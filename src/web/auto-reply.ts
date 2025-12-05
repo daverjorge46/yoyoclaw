@@ -66,6 +66,7 @@ export type WebMonitorTuning = {
   replyHeartbeatMinutes?: number;
   replyHeartbeatNow?: boolean;
   sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
+  suppressStartMessage?: boolean;
 };
 
 const formatDuration = (ms: number) =>
@@ -1246,10 +1247,12 @@ export async function monitorWebProvider(
       }
     }
 
-    logInfo(
-      "📡 Listening for personal WhatsApp Web inbound messages. Leave this running; Ctrl+C to stop.",
-      runtime,
-    );
+    if (!tuning.suppressStartMessage) {
+      logInfo(
+        "📡 Listening for personal WhatsApp Web inbound messages.",
+        runtime,
+      );
+    }
 
     if (!keepAlive) {
       await closeListener();

@@ -59,7 +59,7 @@ export async function runMultiProviderRelay(
 					undefined,
 					runtime,
 					signal,
-					opts.webTuning,
+					{ ...opts.webTuning, suppressStartMessage: true },
 				);
 			} else if (provider === "twilio") {
 				const { monitorTwilio } = await import("../twilio/monitor.js");

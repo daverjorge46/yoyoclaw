@@ -213,7 +213,9 @@ export async function monitorTelegramProvider(
     verbose,
   };
 
-  runtime.log(info("📡 Starting Telegram relay..."));
+  if (!suppressStartMessage) {
+    runtime.log(info("📡 Starting Telegram relay..."));
+  }
 
   // Create and initialize provider
   const provider = await createInitializedProvider("telegram", providerConfig);
