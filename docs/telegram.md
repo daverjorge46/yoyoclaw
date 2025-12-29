@@ -24,7 +24,7 @@ Status: ready for bot-mode use with grammY (long-polling by default; webhook sup
      - If you need a different public port/host, set `telegram.webhookUrl` to the externally reachable URL and use a reverse proxy to forward to `:8787`.
 4) Direct chats: user sends the first message; all subsequent turns land in the shared `main` session (default, no extra config).
 5) Groups: add the bot, disable privacy mode (or make it admin) so it can read messages; group threads stay on `group:<chatId>` and require mention/command to trigger replies.
-6) Optional allowlist: reuse `routing.allowFrom` for direct chats by chat id (`123456789` or `telegram:123456789`).
+6) Optional allowlist (DMs): set `telegram.allowFrom` to Telegram chat IDs (`123456789`) and/or `telegram:123456789`. Use `"*"` to allow all.
 
 ## Capabilities & limits (Bot API)
 - Sees only messages sent after it’s added to a chat; no pre-history access.
@@ -71,3 +71,13 @@ Example config:
 - Treat the bot token as a secret (equivalent to account control); prefer `TELEGRAM_BOT_TOKEN` or a locked-down config file (`chmod 600 ~/.clawdis/clawdis.json`).
 - Respect Telegram rate limits (429s); grammY throttling is enabled by default.
 - Use a test bot for development to avoid hitting production chats.
+
+## Manual E2E smoke test (Telegram)
+
+With a running gateway, run an agent turn and deliver the reply back to Telegram:
+
+```bash
+pnpm clawdis agent --message "тест" --provider telegram --to <TELEGRAM_ID> --deliver
+```
+
+See also: `docs/e2e.md`.

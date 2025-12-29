@@ -27,6 +27,11 @@ The agent was interrupted mid-response.
 cat ~/.clawdis/clawdis.json | jq '.routing.allowFrom'
 ```
 
+**Telegram note:** Telegram DMs are gated by `telegram.allowFrom` (not `routing.allowFrom`):
+```bash
+cat ~/.clawdis/clawdis.json | jq '.telegram.allowFrom'
+```
+
 **Check 2:** For group chats, is mention required?
 ```bash
 # The message must contain a pattern from mentionPatterns
@@ -157,6 +162,15 @@ clawdis login --verbose
 | Credentials | `~/.clawdis/credentials/` |
 
 ## Health Check
+
+## Provider Auth Failures
+
+### `401 {"error":{"message":"Authorization Failure"...}}`
+
+This usually means the configured LLM provider credentials are rejected.
+
+- Confirm the provider expects the auth mechanism you configured (e.g. `Authorization: Bearer ...` vs `x-api-key`).
+- For Anthropic-compatible proxies that require a bearer token, use a custom provider with `authHeader: true` (see `docs/configuration.md` → “Z.ai (Anthropic-compatible)”).
 
 ```bash
 # Is the gateway reachable?
