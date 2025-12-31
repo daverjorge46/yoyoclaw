@@ -87,3 +87,6 @@ temp_/
 
 # Test fixtures (local test data)
 tests/fixtures/
+
+# Project analysis working files (generated)
+docs/project_gathering/
