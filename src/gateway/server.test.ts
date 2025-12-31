@@ -113,13 +113,21 @@ vi.mock("../infra/tailnet.js", () => ({
   pickPrimaryTailnetIPv6: () => undefined,
 }));
 
-let testSessionStorePath: string | undefined;
-let testAllowFrom: string[] | undefined;
-let testCronStorePath: string | undefined;
-let testCronEnabled: boolean | undefined = false;
-let testGatewayBind: "auto" | "lan" | "tailnet" | "loopback" | undefined;
-let testGatewayAuth: Record<string, unknown> | undefined;
-let testHooksConfig: Record<string, unknown> | undefined;
+const testState = vi.hoisted(() => ({
+  sessionStorePath: undefined as string | undefined,
+  allowFrom: undefined as string[] | undefined,
+  cronStorePath: undefined as string | undefined,
+  cronEnabled: false as boolean | undefined,
+  canvasHostPort: undefined as number | undefined,
+  gatewayBind: undefined as
+    | "auto"
+    | "lan"
+    | "tailnet"
+    | "loopback"
+    | undefined,
+  gatewayAuth: undefined as Record<string, unknown> | undefined,
+  hooksConfig: undefined as Record<string, unknown> | undefined,
+}));
 const sessionStoreSaveDelayMs = vi.hoisted(() => ({ value: 0 }));
 vi.mock("../config/sessions.js", async () => {
   const actual = await vi.importActual<typeof import("../config/sessions.js")>(
@@ -194,23 +202,27 @@ vi.mock("../config/config.js", () => {
         model: "anthropic/claude-opus-4-5",
         workspace: path.join(os.tmpdir(), "clawd-gateway-test"),
       },
+      canvasHost:
+        typeof testState.canvasHostPort === "number"
+          ? { port: testState.canvasHostPort }
+          : undefined,
       routing: {
-        allowFrom: testAllowFrom,
+        allowFrom: testState.allowFrom,
       },
-      session: { mainKey: "main", store: testSessionStorePath },
+      session: { mainKey: "main", store: testState.sessionStorePath },
       gateway: (() => {
         const gateway: Record<string, unknown> = {};
-        if (testGatewayBind) gateway.bind = testGatewayBind;
-        if (testGatewayAuth) gateway.auth = testGatewayAuth;
+        if (testState.gatewayBind) gateway.bind = testState.gatewayBind;
+        if (testState.gatewayAuth) gateway.auth = testState.gatewayAuth;
         return Object.keys(gateway).length > 0 ? gateway : undefined;
       })(),
-      hooks: testHooksConfig,
+      hooks: testState.hooksConfig,
       cron: (() => {
         const cron: Record<string, unknown> = {};
-        if (typeof testCronEnabled === "boolean")
-          cron.enabled = testCronEnabled;
-        if (typeof testCronStorePath === "string")
-          cron.store = testCronStorePath;
+        if (typeof testState.cronEnabled === "boolean")
+          cron.enabled = testState.cronEnabled;
+        if (typeof testState.cronStorePath === "string")
+          cron.store = testState.cronStorePath;
         return Object.keys(cron).length > 0 ? cron : undefined;
       })(),
     }),
@@ -257,9 +269,10 @@ beforeEach(async () => {
   process.env.HOME = tempHome;
   sessionStoreSaveDelayMs.value = 0;
   testTailnetIPv4.value = undefined;
-  testGatewayBind = undefined;
-  testGatewayAuth = undefined;
-  testHooksConfig = undefined;
+  testState.canvasHostPort = undefined;
+  testState.gatewayBind = undefined;
+  testState.gatewayAuth = undefined;
+  testState.hooksConfig = undefined;
   cronIsolatedRun.mockClear();
   drainSystemEvents();
   __resetModelCatalogCacheForTest();
@@ -1159,10 +1172,10 @@ describe("gateway server", () => {
 
   test("supports cron.add and cron.list", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-cron-"));
-    testCronStorePath = path.join(dir, "cron", "jobs.json");
-    await fs.mkdir(path.dirname(testCronStorePath), { recursive: true });
+    testState.cronStorePath = path.join(dir, "cron", "jobs.json");
+    await fs.mkdir(path.dirname(testState.cronStorePath), { recursive: true });
     await fs.writeFile(
-      testCronStorePath,
+      testState.cronStorePath,
       JSON.stringify({ version: 1, jobs: [] }),
     );
 
@@ -1218,17 +1231,17 @@ describe("gateway server", () => {
     ws.close();
     await server.close();
     await fs.rm(dir, { recursive: true, force: true });
-    testCronStorePath = undefined;
+    testState.cronStorePath = undefined;
   });
 
   test("writes cron run history to runs/<jobId>.jsonl", async () => {
     const dir = await fs.mkdtemp(
       path.join(os.tmpdir(), "clawdis-gw-cron-log-"),
     );
-    testCronStorePath = path.join(dir, "cron", "jobs.json");
-    await fs.mkdir(path.dirname(testCronStorePath), { recursive: true });
+    testState.cronStorePath = path.join(dir, "cron", "jobs.json");
+    await fs.mkdir(path.dirname(testState.cronStorePath), { recursive: true });
     await fs.writeFile(
-      testCronStorePath,
+      testState.cronStorePath,
       JSON.stringify({ version: 1, jobs: [] }),
     );
 
@@ -1328,7 +1341,7 @@ describe("gateway server", () => {
     ws.close();
     await server.close();
     await fs.rm(dir, { recursive: true, force: true });
-    testCronStorePath = undefined;
+    testState.cronStorePath = undefined;
   });
 
   test("writes cron run history to per-job runs/ when store is jobs.json", async () => {
@@ -1336,10 +1349,10 @@ describe("gateway server", () => {
       path.join(os.tmpdir(), "clawdis-gw-cron-log-jobs-"),
     );
     const cronDir = path.join(dir, "cron");
-    testCronStorePath = path.join(cronDir, "jobs.json");
+    testState.cronStorePath = path.join(cronDir, "jobs.json");
     await fs.mkdir(cronDir, { recursive: true });
     await fs.writeFile(
-      testCronStorePath,
+      testState.cronStorePath,
       JSON.stringify({ version: 1, jobs: [] }),
     );
 
@@ -1437,20 +1450,20 @@ describe("gateway server", () => {
     ws.close();
     await server.close();
     await fs.rm(dir, { recursive: true, force: true });
-    testCronStorePath = undefined;
+    testState.cronStorePath = undefined;
   });
 
   test("enables cron scheduler by default and runs due jobs automatically", async () => {
     const dir = await fs.mkdtemp(
       path.join(os.tmpdir(), "clawdis-gw-cron-default-on-"),
     );
-    testCronStorePath = path.join(dir, "cron", "jobs.json");
-    testCronEnabled = undefined; // omitted config => enabled by default
+    testState.cronStorePath = path.join(dir, "cron", "jobs.json");
+    testState.cronEnabled = undefined; // omitted config => enabled by default
 
     try {
-      await fs.mkdir(path.dirname(testCronStorePath), { recursive: true });
+      await fs.mkdir(path.dirname(testState.cronStorePath), { recursive: true });
       await fs.writeFile(
-        testCronStorePath,
+        testState.cronStorePath,
         JSON.stringify({ version: 1, jobs: [] }),
       );
 
@@ -1553,8 +1566,8 @@ describe("gateway server", () => {
       ws.close();
       await server.close();
     } finally {
-      testCronEnabled = false;
-      testCronStorePath = undefined;
+      testState.cronEnabled = false;
+      testState.cronStorePath = undefined;
       await fs.rm(dir, { recursive: true, force: true });
     }
   });
@@ -1631,11 +1644,11 @@ describe("gateway server", () => {
   });
 
   test("agent falls back to allowFrom when lastTo is stale", async () => {
-    testAllowFrom = ["+436769770569"];
+    testState.allowFrom = ["+436769770569"];
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -1682,15 +1695,15 @@ describe("gateway server", () => {
 
     ws.close();
     await server.close();
-    testAllowFrom = undefined;
+    testState.allowFrom = undefined;
   });
 
   test("agent routes main last-channel whatsapp", async () => {
-    testAllowFrom = undefined;
+    testState.allowFrom = undefined;
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -1743,9 +1756,9 @@ describe("gateway server", () => {
 
   test("agent routes main last-channel telegram", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -1795,9 +1808,9 @@ describe("gateway server", () => {
 
   test("agent routes main last-channel discord", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -1849,11 +1862,11 @@ describe("gateway server", () => {
   });
 
   test("agent ignores webchat last-channel for routing", async () => {
-    testAllowFrom = ["+1555"];
+    testState.allowFrom = ["+1555"];
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -1905,7 +1918,8 @@ describe("gateway server", () => {
     const prevToken = process.env.CLAWDIS_GATEWAY_TOKEN;
     process.env.CLAWDIS_GATEWAY_TOKEN = "secret";
     testTailnetIPv4.value = "100.64.0.1";
-    testGatewayBind = "lan";
+    testState.gatewayBind = "lan";
+    testState.canvasHostPort = await getFreePort();
 
     const port = await getFreePort();
     const server = await startGatewayServer(port, {
@@ -1918,7 +1932,9 @@ describe("gateway server", () => {
     await new Promise<void>((resolve) => ws.once("open", resolve));
 
     const hello = await connectOk(ws, { token: "secret" });
-    expect(hello.canvasHostUrl).toBe(`http://100.64.0.1:18793`);
+    expect(hello.canvasHostUrl).toBe(
+      `http://100.64.0.1:${testState.canvasHostPort}`,
+    );
 
     ws.close();
     await server.close();
@@ -1955,7 +1971,7 @@ describe("gateway server", () => {
   });
 
   test("accepts password auth when configured", async () => {
-    testGatewayAuth = { mode: "password", password: "secret" };
+    testState.gatewayAuth = { mode: "password", password: "secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const ws = new WebSocket(`ws://127.0.0.1:${port}`);
@@ -1969,7 +1985,7 @@ describe("gateway server", () => {
   });
 
   test("rejects invalid password", async () => {
-    testGatewayAuth = { mode: "password", password: "secret" };
+    testState.gatewayAuth = { mode: "password", password: "secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const ws = new WebSocket(`ws://127.0.0.1:${port}`);
@@ -2485,9 +2501,9 @@ describe("gateway server", () => {
     };
 
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -2592,9 +2608,9 @@ describe("gateway server", () => {
 
   test("chat.history caps payload bytes", { timeout: 15_000 }, async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -2647,9 +2663,9 @@ describe("gateway server", () => {
 
   test("chat.send does not overwrite last delivery route", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -2689,7 +2705,7 @@ describe("gateway server", () => {
     expect(res.ok).toBe(true);
 
     const stored = JSON.parse(
-      await fs.readFile(testSessionStorePath, "utf-8"),
+      await fs.readFile(testState.sessionStorePath, "utf-8"),
     ) as {
       main?: { lastChannel?: string; lastTo?: string };
     };
@@ -2705,9 +2721,9 @@ describe("gateway server", () => {
     { timeout: 15000 },
     async () => {
       const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-      testSessionStorePath = path.join(dir, "sessions.json");
+      testState.sessionStorePath = path.join(dir, "sessions.json");
       await fs.writeFile(
-        testSessionStorePath,
+        testState.sessionStorePath,
         JSON.stringify(
           {
             main: {
@@ -2810,9 +2826,9 @@ describe("gateway server", () => {
 
   test("chat.abort cancels while saving the session store", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -2897,9 +2913,9 @@ describe("gateway server", () => {
 
   test("chat.abort returns aborted=false for unknown runId", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify({}, null, 2),
       "utf-8",
     );
@@ -2932,9 +2948,9 @@ describe("gateway server", () => {
 
   test("chat.abort rejects mismatched sessionKey", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3031,9 +3047,9 @@ describe("gateway server", () => {
 
   test("chat.abort is a no-op after chat.send completes", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3095,9 +3111,9 @@ describe("gateway server", () => {
 
   test("bridge RPC chat.history returns session messages", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3154,9 +3170,9 @@ describe("gateway server", () => {
 
   test("bridge RPC sessions.list returns session rows", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3202,9 +3218,9 @@ describe("gateway server", () => {
 
   test("bridge chat events are pushed to subscribed nodes", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3282,9 +3298,9 @@ describe("gateway server", () => {
 
   test("bridge voice transcript defaults to main session", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3320,7 +3336,7 @@ describe("gateway server", () => {
     expect(call.surface).toBe("Node");
 
     const stored = JSON.parse(
-      await fs.readFile(testSessionStorePath, "utf-8"),
+      await fs.readFile(testState.sessionStorePath, "utf-8"),
     ) as Record<string, { sessionId?: string } | undefined>;
     expect(stored.main?.sessionId).toBe("sess-main");
     expect(stored["node-ios-node"]).toBeUndefined();
@@ -3330,9 +3346,9 @@ describe("gateway server", () => {
 
   test("bridge chat.abort cancels while saving the session store", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-gw-"));
-    testSessionStorePath = path.join(dir, "sessions.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
     await fs.writeFile(
-      testSessionStorePath,
+      testState.sessionStorePath,
       JSON.stringify(
         {
           main: {
@@ -3469,7 +3485,7 @@ describe("gateway server", () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdis-sessions-"));
     const storePath = path.join(dir, "sessions.json");
     const now = Date.now();
-    testSessionStorePath = storePath;
+    testState.sessionStorePath = storePath;
 
     await fs.writeFile(
       path.join(dir, "sess-main.jsonl"),
@@ -3676,7 +3692,7 @@ describe("gateway server", () => {
   });
 
   test("hooks wake requires auth", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
@@ -3689,7 +3705,7 @@ describe("gateway server", () => {
   });
 
   test("hooks wake enqueues system event", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
@@ -3708,7 +3724,7 @@ describe("gateway server", () => {
   });
 
   test("hooks agent posts summary to main", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     cronIsolatedRun.mockResolvedValueOnce({
       status: "ok",
       summary: "done",
@@ -3731,7 +3747,7 @@ describe("gateway server", () => {
   });
 
   test("hooks wake accepts query token", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(
@@ -3750,7 +3766,7 @@ describe("gateway server", () => {
   });
 
   test("hooks agent rejects invalid channel", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/agent`, {
@@ -3767,7 +3783,7 @@ describe("gateway server", () => {
   });
 
   test("hooks wake accepts x-clawdis-token header", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
@@ -3786,7 +3802,7 @@ describe("gateway server", () => {
   });
 
   test("hooks rejects non-post", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
@@ -3798,7 +3814,7 @@ describe("gateway server", () => {
   });
 
   test("hooks wake requires text", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
@@ -3814,7 +3830,7 @@ describe("gateway server", () => {
   });
 
   test("hooks agent requires message", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/agent`, {
@@ -3830,7 +3846,7 @@ describe("gateway server", () => {
   });
 
   test("hooks rejects invalid json", async () => {
-    testHooksConfig = { enabled: true, token: "hook-secret" };
+    testState.hooksConfig = { enabled: true, token: "hook-secret" };
     const port = await getFreePort();
     const server = await startGatewayServer(port);
     const res = await fetch(`http://127.0.0.1:${port}/hooks/wake`, {
