@@ -39,6 +39,38 @@ echo "  Time:     $(date)"
 echo "  Uptime:   $(uptime -p)"
 echo ""
 
+get_telegram_proxy() {
+    local proxy=""
+    if command -v python3 >/dev/null 2>&1; then
+        proxy=$(python3 - <<'PY' 2>/dev/null
+import json, os, sys
+path = os.path.expanduser("~/.clawdis/clawdis.json")
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+    proxy = cfg.get("telegram", {}).get("proxy") or ""
+    if isinstance(proxy, str):
+        sys.stdout.write(proxy)
+except Exception:
+    pass
+PY
+)
+    elif command -v node >/dev/null 2>&1; then
+        proxy=$(node - <<'NODE' 2>/dev/null
+const fs = require("fs");
+const path = require("path");
+try {
+  const cfgPath = path.join(process.env.HOME || "", ".clawdis", "clawdis.json");
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+  const proxy = (cfg.telegram && cfg.telegram.proxy) || "";
+  if (typeof proxy === "string") process.stdout.write(proxy);
+} catch {}
+NODE
+)
+    fi
+    echo "$proxy"
+}
+
 # Process Status
 print_section "PROCESS STATUS"
 if pgrep -f "clawdis gateway" > /dev/null; then
@@ -72,9 +104,17 @@ echo ""
 
 # Telegram API
 print_section "TELEGRAM API"
-TOKEN=$(grep TELEGRAM_BOT_TOKEN /home/almaz/zoo_flow/clawdis/.env 2>/dev/null | cut -d= -f2 || echo "")
+TOKEN=$(grep TELEGRAM_BOT_TOKEN /home/almaz/zoo_flow/clawdis/.env 2>/dev/null | cut -d= -f2- || echo "")
+if [ -z "$TOKEN" ]; then
+    TOKEN=$(grep TELEGRAM_BOT_TOKEN /home/almaz/.clawdis/secrets.env 2>/dev/null | cut -d= -f2- || echo "")
+fi
 if [ -n "$TOKEN" ]; then
-    response=$(curl -s --max-time 5 "https://api.telegram.org/bot${TOKEN}/getMe" 2>/dev/null || echo "error")
+    proxy=$(get_telegram_proxy)
+    proxy_args=()
+    if [ -n "$proxy" ]; then
+        proxy_args=(--proxy "$proxy")
+    fi
+    response=$(curl -s --max-time 5 "${proxy_args[@]}" "https://api.telegram.org/bot${TOKEN}/getMe" 2>/dev/null || echo "error")
     if echo "$response" | grep -q '"ok":true'; then
         bot_name=$(echo "$response" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
         echo -e "  Bot API:  $(status_icon ok) CONNECTED (@$bot_name)"
@@ -88,7 +128,10 @@ echo ""
 
 # Z.ai API
 print_section "Z.AI API"
-API_KEY=$(grep ANTHROPIC_API_KEY /home/almaz/zoo_flow/clawdis/.env 2>/dev/null | cut -d= -f2 || echo "")
+API_KEY=$(grep ANTHROPIC_API_KEY /home/almaz/zoo_flow/clawdis/.env 2>/dev/null | cut -d= -f2- || echo "")
+if [ -z "$API_KEY" ]; then
+    API_KEY=$(grep ANTHROPIC_API_KEY /home/almaz/.clawdis/secrets.env 2>/dev/null | cut -d= -f2- || echo "")
+fi
 if [ -n "$API_KEY" ]; then
     response=$(curl -s --max-time 5 -H "x-api-key: $API_KEY" "https://api.z.ai/api/anthropic/v1/models" 2>/dev/null || echo "error")
     if echo "$response" | grep -q '"data"'; then
