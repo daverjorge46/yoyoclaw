@@ -5,8 +5,12 @@
 ### Features
 - Talk mode: continuous speech conversations (macOS/iOS/Android) with ElevenLabs TTS, reply directives, and optional interrupt-on-speech.
 - UI: add optional `ui.seamColor` accent to tint the Talk Mode side bubble (macOS/iOS/Android).
+- Agent runtime: accept legacy `Z_AI_API_KEY` for Z.AI provider auth (maps to `ZAI_API_KEY`).
+- Tests: add a Z.AI live test gate for smoke validation when keys are present.
+- macOS Debug: add app log verbosity and rolling file log toggle for swift-log-backed app logs.
 
 ### Fixes
+- Docs/agent tools: clarify that browser `wait` should be avoided by default and used only in exceptional cases.
 - macOS: Voice Wake now fully tears down the Speech pipeline when disabled (cancel pending restarts, drop stale callbacks) to avoid high CPU in the background.
 - macOS menu: add a Talk Mode action alongside the Open Dashboard/Chat/Canvas entries.
 - macOS Debug: hide “Restart Gateway” when the app won’t start a local gateway (remote mode / attach-only).
@@ -25,7 +29,9 @@
 - Talk Mode: treat history timestamps as seconds or milliseconds to avoid stale assistant picks (macOS/iOS/Android).
 - Chat UI: clear streaming/tool bubbles when external runs finish, preventing duplicate assistant bubbles.
 - Chat UI: user bubbles use `ui.seamColor` (fallback to a calmer default blue).
+- Android Chat UI: use `onPrimary` for user bubble text to preserve contrast (thanks @Syhids).
 - Control UI: sync sidebar navigation with the URL for deep-linking, and auto-scroll chat to the latest message.
+- Control UI: disable Web Chat + Talk when no iOS/Android node is connected; refreshed Web Chat styling and keyboard send.
 - Talk Mode: wait for chat history to surface the assistant reply before starting TTS (macOS/iOS/Android).
 - iOS Talk Mode: fix chat completion wait to time out even if no events arrive (prevents “Thinking…” hangs).
 - iOS Talk Mode: keep recognition running during playback to support interrupt-on-speech.
