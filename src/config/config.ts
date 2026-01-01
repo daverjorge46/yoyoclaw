@@ -180,6 +180,11 @@ export type GroupChatConfig = {
   historyLimit?: number;
 };
 
+export type DirectChatConfig = {
+  requireMention?: boolean;
+  mentionPatterns?: string[];
+};
+
 export type RoutingConfig = {
   allowFrom?: string[]; // E.164 numbers allowed to trigger auto-reply (without whatsapp:)
   transcribeAudio?: {
@@ -188,6 +193,7 @@ export type RoutingConfig = {
     timeoutSeconds?: number;
   };
   groupChat?: GroupChatConfig;
+  directChat?: DirectChatConfig;
   queue?: {
     mode?: QueueMode;
     bySurface?: QueueModeBySurface;
@@ -510,6 +516,13 @@ const GroupChatSchema = z
   })
   .optional();
 
+const DirectChatSchema = z
+  .object({
+    requireMention: z.boolean().optional(),
+    mentionPatterns: z.array(z.string()).optional(),
+  })
+  .optional();
+
 const QueueModeSchema = z.union([z.literal("queue"), z.literal("interrupt")]);
 
 const QueueModeBySurfaceSchema = z
@@ -586,6 +599,7 @@ const RoutingSchema = z
   .object({
     allowFrom: z.array(z.string()).optional(),
     groupChat: GroupChatSchema,
+    directChat: DirectChatSchema,
     transcribeAudio: TranscribeAudioSchema,
     queue: z
       .object({

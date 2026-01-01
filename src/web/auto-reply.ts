@@ -1273,6 +1273,34 @@ export async function monitorWebProvider(
             );
             return;
           }
+        } else {
+          // Direct chat mention filtering
+          const directChatCfg = cfg.routing?.directChat;
+          if (directChatCfg?.requireMention) {
+            const directMentionPatterns = directChatCfg.mentionPatterns ?? [];
+            const directMentionRegexes = directMentionPatterns
+              .map((p) => {
+                try {
+                  return new RegExp(p, "i");
+                } catch {
+                  return null;
+                }
+              })
+              .filter((r): r is RegExp => Boolean(r));
+            const bodyClean = msg.body
+              .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u206f]/g, "")
+              .toLowerCase();
+            const wasMentioned = directMentionRegexes.some((re) =>
+              re.test(bodyClean),
+            );
+            if (!wasMentioned) {
+              logVerbose(
+                `Direct message ignored (no mention detected): ${msg.body}`,
+              );
+              return;
+            }
+            msg.wasMentioned = true;
+          }
         }
 
         return processMessage(msg);
