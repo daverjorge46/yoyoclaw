@@ -351,7 +351,9 @@ Examples:
               },
               formatted: formatRecurringSchedule(schedule),
               nextOccurrence: new Date(nextOccurrence).toISOString(),
-              nextOccurrenceFormatted: new Date(nextOccurrence).toLocaleString(),
+              nextOccurrenceFormatted: new Date(
+                nextOccurrence,
+              ).toLocaleString(),
             });
           }
 

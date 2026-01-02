@@ -337,8 +337,6 @@ Actions:
             const platform = params.platform as Platform;
             const direction = params.direction as CommunicationDirection;
             const messageType = (params.messageType as MessageType) ?? "text";
-            const topics = params.topics as string[] | undefined;
-            const summary = params.summary as string | undefined;
 
             if (!contactId) {
               return jsonResult({

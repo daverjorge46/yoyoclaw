@@ -1027,4 +1027,217 @@ describe("temporal-reasoning", () => {
       expect(codeReview.durationMs).not.toBe(docReview.durationMs);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Recurring Schedule Parsing Tests
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe("parseRecurringSchedule", () => {
+    it("should parse daily patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("every day at 9am");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("daily");
+      expect(result?.interval).toBe(1);
+      expect(result?.hour).toBe(9);
+      expect(result?.minute).toBe(0);
+      expect(result?.confidence).toBeGreaterThan(0.9);
+
+      const daily = parseRecurringSchedule("daily");
+      expect(daily?.type).toBe("daily");
+    });
+
+    it("should parse weekly patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("every Monday at 3pm");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("weekly");
+      expect(result?.dayOfWeek).toBe(1); // Monday = 1
+      expect(result?.hour).toBe(15); // 3pm = 15
+
+      const weekly = parseRecurringSchedule("weekly on Friday");
+      expect(weekly?.type).toBe("weekly");
+      expect(weekly?.dayOfWeek).toBe(5); // Friday = 5
+    });
+
+    it("should parse biweekly patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("every other Tuesday at 2pm");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("biweekly");
+      expect(result?.interval).toBe(2);
+      expect(result?.dayOfWeek).toBe(2); // Tuesday = 2
+      expect(result?.hour).toBe(14);
+    });
+
+    it("should parse N-weekly patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("every 3 weeks on Wednesday");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("custom");
+      expect(result?.interval).toBe(3);
+      expect(result?.dayOfWeek).toBe(3); // Wednesday = 3
+    });
+
+    it("should parse first/last weekday of month patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const firstMon = parseRecurringSchedule("first Monday of the month");
+      expect(firstMon).toBeDefined();
+      expect(firstMon?.type).toBe("monthly");
+      expect(firstMon?.weekOfMonth).toBe(1);
+      expect(firstMon?.dayOfWeek).toBe(1);
+      expect(firstMon?.confidence).toBeGreaterThan(0.9);
+
+      const lastFri = parseRecurringSchedule("last Friday of every month at 5pm");
+      expect(lastFri).toBeDefined();
+      expect(lastFri?.type).toBe("monthly");
+      expect(lastFri?.weekOfMonth).toBe(-1);
+      expect(lastFri?.dayOfWeek).toBe(5);
+      expect(lastFri?.hour).toBe(17);
+    });
+
+    it("should parse monthly date patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("monthly on the 15th");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("monthly");
+      expect(result?.dayOfMonth).toBe(15);
+
+      const everyMonth = parseRecurringSchedule("every month on the 1st");
+      expect(everyMonth?.type).toBe("monthly");
+      expect(everyMonth?.dayOfMonth).toBe(1);
+    });
+
+    it("should parse yearly patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      const result = parseRecurringSchedule("yearly on March 15");
+      expect(result).toBeDefined();
+      expect(result?.type).toBe("yearly");
+      expect(result?.month).toBe(2); // March = 2 (0-indexed)
+      expect(result?.dayOfMonth).toBe(15);
+      expect(result?.confidence).toBeGreaterThan(0.9);
+
+      const annually = parseRecurringSchedule("annually on Dec 25");
+      expect(annually?.type).toBe("yearly");
+      expect(annually?.month).toBe(11); // December = 11
+      expect(annually?.dayOfMonth).toBe(25);
+    });
+
+    it("should extract time from patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      expect(parseRecurringSchedule("daily at 9:30 am")?.hour).toBe(9);
+      expect(parseRecurringSchedule("daily at 9:30 am")?.minute).toBe(30);
+      expect(parseRecurringSchedule("daily at 2pm")?.hour).toBe(14);
+      expect(parseRecurringSchedule("daily in the morning")?.hour).toBe(9);
+      expect(parseRecurringSchedule("daily at noon")?.hour).toBe(12);
+      expect(parseRecurringSchedule("daily in the afternoon")?.hour).toBe(14);
+      expect(parseRecurringSchedule("daily in the evening")?.hour).toBe(18);
+    });
+
+    it("should return null for unparseable patterns", async () => {
+      const { parseRecurringSchedule } = await import("./temporal-reasoning.js");
+
+      expect(parseRecurringSchedule("random text")).toBeNull();
+      expect(parseRecurringSchedule("")).toBeNull();
+      expect(parseRecurringSchedule("sometime next week")).toBeNull();
+    });
+  });
+
+  describe("calculateNextOccurrence", () => {
+    it("should calculate next daily occurrence", async () => {
+      const { parseRecurringSchedule, calculateNextOccurrence } = await import(
+        "./temporal-reasoning.js"
+      );
+
+      const schedule = parseRecurringSchedule("daily at 9am");
+      expect(schedule).toBeDefined();
+
+      // Use local time for testing since the function uses local time
+      const now = new Date();
+      now.setHours(10, 0, 0, 0); // 10am today
+      const next = calculateNextOccurrence(schedule!, now.getTime());
+
+      // Since it's 10am, next occurrence should be tomorrow at 9am
+      const nextDate = new Date(next);
+      expect(nextDate.getHours()).toBe(9);
+      // Next day (accounting for same day vs next day)
+      expect(nextDate.getDate()).toBe(now.getDate() + 1);
+    });
+
+    it("should calculate next weekly occurrence", async () => {
+      const { parseRecurringSchedule, calculateNextOccurrence } = await import(
+        "./temporal-reasoning.js"
+      );
+
+      const schedule = parseRecurringSchedule("every Friday at 2pm");
+      expect(schedule).toBeDefined();
+
+      // Use local time - pick a Thursday
+      const now = new Date();
+      // Find next Thursday
+      const daysUntilThursday = (4 - now.getDay() + 7) % 7;
+      now.setDate(now.getDate() + daysUntilThursday);
+      now.setHours(10, 0, 0, 0);
+
+      const next = calculateNextOccurrence(schedule!, now.getTime());
+
+      const nextDate = new Date(next);
+      expect(nextDate.getDay()).toBe(5); // Friday (local)
+      expect(nextDate.getHours()).toBe(14); // 2pm (local)
+    });
+
+    it("should calculate next monthly weekday occurrence", async () => {
+      const { parseRecurringSchedule, calculateNextOccurrence } = await import(
+        "./temporal-reasoning.js"
+      );
+
+      const schedule = parseRecurringSchedule("first Monday of the month");
+      expect(schedule).toBeDefined();
+
+      // Use a date after the first Monday of the month
+      const now = new Date();
+      now.setDate(15); // Mid-month, definitely after first Monday
+      now.setHours(10, 0, 0, 0);
+
+      const next = calculateNextOccurrence(schedule!, now.getTime());
+
+      const nextDate = new Date(next);
+      expect(nextDate.getDay()).toBe(1); // Monday
+      expect(nextDate.getMonth()).toBe((now.getMonth() + 1) % 12); // Next month
+    });
+  });
+
+  describe("formatRecurringSchedule", () => {
+    it("should format schedules as human-readable strings", async () => {
+      const { parseRecurringSchedule, formatRecurringSchedule } = await import(
+        "./temporal-reasoning.js"
+      );
+
+      const daily = parseRecurringSchedule("daily at 9am");
+      expect(formatRecurringSchedule(daily!)).toContain("Every day");
+      expect(formatRecurringSchedule(daily!)).toContain("9:00");
+
+      const weekly = parseRecurringSchedule("every Monday");
+      expect(formatRecurringSchedule(weekly!)).toContain("Every Monday");
+
+      const biweekly = parseRecurringSchedule("every other Tuesday");
+      expect(formatRecurringSchedule(biweekly!)).toContain("Every other Tuesday");
+
+      const firstMon = parseRecurringSchedule("first Monday of the month");
+      expect(formatRecurringSchedule(firstMon!)).toContain("1st Monday");
+      expect(formatRecurringSchedule(firstMon!)).toContain("month");
+
+      const yearly = parseRecurringSchedule("yearly on March 15");
+      expect(formatRecurringSchedule(yearly!)).toContain("Yearly");
+      expect(formatRecurringSchedule(yearly!)).toContain("March");
+    });
+  });
 });
