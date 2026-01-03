@@ -97,3 +97,15 @@ runs/
 .flows/
 prompts/
 sdd-flow/
+
+# Development monitoring/watch scripts
+*-watch.sh
+watch-*.sh
+live-watch.sh
+monitor.sh
+
+# Investigation/draft markdown files
+*-INVESTIGATION.md
+*INVESTIGATION.md
+*-investigation.md
+*investigation.md
