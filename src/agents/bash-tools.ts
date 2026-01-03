@@ -127,7 +127,7 @@ export function createBashTool(
   const defaultTimeoutSec =
     typeof defaults?.timeoutSec === "number" && defaults.timeoutSec > 0
       ? defaults.timeoutSec
-      : 1800;
+      : 600;
 
   return {
     name: "bash",
