@@ -5798,8 +5798,8 @@ export async function startGatewayServer(
       }
       await Promise.allSettled(
         [whatsappTask, telegramTask, signalTask, imessageTask].filter(
-          Boolean,
-        ) as Array<Promise<unknown>>,
+          (task): task is NonNullable<typeof task> => task != null,
+        ),
       );
       await new Promise<void>((resolve) => wss.close(() => resolve()));
       await new Promise<void>((resolve, reject) =>

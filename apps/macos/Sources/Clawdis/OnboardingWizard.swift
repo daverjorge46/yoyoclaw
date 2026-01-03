@@ -213,50 +213,72 @@ struct OnboardingWizardStepView: View {
     }
 
     private var selectOptions: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(optionItems) { item in
-                Button {
-                    selectedIndex = item.index
-                } label: {
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: selectedIndex == item.index ? "largecircle.fill.circle" : "circle")
-                            .foregroundStyle(.accent)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.option.label)
-                                .foregroundStyle(.primary)
-                            if let hint = item.option.hint, !hint.isEmpty {
-                                Text(hint)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+        let content = someContent
+        return VStack(alignment: .leading, spacing: 8) {
+            content
+        }
+    }
+
+    private var someContent: some View {
+        ForEach(optionItems) { item in
+            selectOptionRow(item)
+        }
+    }
+
+    private func selectOptionRow(_ item: WizardOptionItem) -> some View {
+        Button {
+            selectedIndex = item.index
+        } label: {
+            selectOptionLabel(item)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func selectOptionLabel(_ item: WizardOptionItem) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: selectedIndex == item.index ? "largecircle.fill.circle" : "circle")
+                .foregroundStyle(Color.accentColor)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.option.label)
+                    .foregroundStyle(.primary)
+                if let hint = item.option.hint, !hint.isEmpty {
+                    Text(hint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
 
     private var multiselectOptions: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(optionItems) { item in
-                Toggle(isOn: Binding(get: {
-                    selectedIndices.contains(item.index)
-                }, set: { newValue in
-                    if newValue {
-                        selectedIndices.insert(item.index)
-                    } else {
-                        selectedIndices.remove(item.index)
-                    }
-                })) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.option.label)
-                        if let hint = item.option.hint, !hint.isEmpty {
-                            Text(hint)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+        let content = multiContent
+        return VStack(alignment: .leading, spacing: 8) {
+            content
+        }
+    }
+
+    private var multiContent: some View {
+        ForEach(optionItems) { item in
+            multiselectRow(item)
+        }
+    }
+
+    private func multiselectRow(_ item: WizardOptionItem) -> some View {
+        Toggle(isOn: Binding(get: {
+            selectedIndices.contains(item.index)
+        }, set: { newValue in
+            if newValue {
+                selectedIndices.insert(item.index)
+            } else {
+                selectedIndices.remove(item.index)
+            }
+        })) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.option.label)
+                if let hint = item.option.hint, !hint.isEmpty {
+                    Text(hint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -272,27 +294,27 @@ struct OnboardingWizardStepView: View {
     private func submit() {
         switch wizardStepType(step) {
         case "note", "progress":
-            onSubmit(nil)
+            self.onSubmit(nil)
         case "text":
-            onSubmit(AnyCodable(textValue))
+            self.onSubmit(convertToClawdisAnyCodable(ClawdisProtocol.AnyCodable(textValue)))
         case "confirm":
-            onSubmit(AnyCodable(confirmValue))
+            self.onSubmit(convertToClawdisAnyCodable(ClawdisProtocol.AnyCodable(confirmValue)))
         case "select":
             guard optionItems.indices.contains(selectedIndex) else {
-                onSubmit(nil)
+                self.onSubmit(nil)
                 return
             }
             let option = optionItems[selectedIndex].option
-            onSubmit(option.value ?? AnyCodable(option.label))
+            self.onSubmit(convertToClawdisAnyCodable(option.value ?? ClawdisProtocol.AnyCodable(option.label)))
         case "multiselect":
             let values = optionItems
                 .filter { selectedIndices.contains($0.index) }
-                .map { $0.option.value ?? AnyCodable($0.option.label) }
-            onSubmit(AnyCodable(values))
+                .map { $0.option.value ?? ClawdisProtocol.AnyCodable($0.option.label) }
+            self.onSubmit(convertToClawdisAnyCodable(ClawdisProtocol.AnyCodable(values)))
         case "action":
-            onSubmit(AnyCodable(true))
+            self.onSubmit(convertToClawdisAnyCodable(ClawdisProtocol.AnyCodable(true)))
         default:
-            onSubmit(nil)
+            self.onSubmit(nil)
         }
     }
 }
@@ -305,12 +327,12 @@ private struct WizardOptionItem: Identifiable {
 }
 
 private struct WizardOption {
-    let value: AnyCodable?
+    let value: ClawdisProtocol.AnyCodable?
     let label: String
     let hint: String?
 }
 
-private func decodeWizardStep(_ raw: [String: AnyCodable]?) -> WizardStep? {
+private func decodeWizardStep(_ raw: [String: ClawdisProtocol.AnyCodable]?) -> WizardStep? {
     guard let raw else { return nil }
     do {
         let data = try JSONEncoder().encode(raw)
@@ -321,7 +343,7 @@ private func decodeWizardStep(_ raw: [String: AnyCodable]?) -> WizardStep? {
     }
 }
 
-private func parseWizardOptions(_ raw: [[String: AnyCodable]]?) -> [WizardOption] {
+private func parseWizardOptions(_ raw: [[String: ClawdisProtocol.AnyCodable]]?) -> [WizardOption] {
     guard let raw else { return [] }
     return raw.map { entry in
         let value = entry["value"]
@@ -335,7 +357,7 @@ private func wizardStepType(_ step: WizardStep) -> String {
     (step.type.value as? String) ?? ""
 }
 
-private func anyCodableString(_ value: AnyCodable?) -> String {
+private func anyCodableString(_ value: ClawdisProtocol.AnyCodable?) -> String {
     switch value?.value {
     case let string as String:
         return string
@@ -350,11 +372,11 @@ private func anyCodableString(_ value: AnyCodable?) -> String {
     }
 }
 
-private func anyCodableStringValue(_ value: AnyCodable?) -> String? {
+private func anyCodableStringValue(_ value: ClawdisProtocol.AnyCodable?) -> String? {
     value?.value as? String
 }
 
-private func anyCodableBool(_ value: AnyCodable?) -> Bool {
+private func anyCodableBool(_ value: ClawdisProtocol.AnyCodable?) -> Bool {
     switch value?.value {
     case let bool as Bool:
         return bool
@@ -365,18 +387,31 @@ private func anyCodableBool(_ value: AnyCodable?) -> Bool {
     }
 }
 
-private func anyCodableArray(_ value: AnyCodable?) -> [AnyCodable] {
+private func anyCodableArray(_ value: ClawdisProtocol.AnyCodable?) -> [ClawdisProtocol.AnyCodable] {
     switch value?.value {
-    case let arr as [AnyCodable]:
+    case let arr as [ClawdisProtocol.AnyCodable]:
         return arr
     case let arr as [Any]:
-        return arr.map { AnyCodable($0) }
+        return arr.map { ClawdisProtocol.AnyCodable($0) }
     default:
         return []
     }
 }
 
-private func anyCodableEqual(_ lhs: AnyCodable?, _ rhs: AnyCodable?) -> Bool {
+/// Convert ClawdisProtocol.AnyCodable to AnyCodable (Clawdis module)
+private func convertToClawdisAnyCodable(_ value: ClawdisProtocol.AnyCodable?) -> AnyCodable? {
+    guard let value else { return nil }
+    let v = value.value
+    if let s = v as? String { return AnyCodable(s) }
+    if let i = v as? Int { return AnyCodable(i) }
+    if let d = v as? Double { return AnyCodable(d) }
+    if let b = v as? Bool { return AnyCodable(b) }
+    // Note: Arrays and dicts would need recursive conversion, but for wizard step values
+    // we primarily use primitive types
+    return AnyCodable(v)
+}
+
+private func anyCodableEqual(_ lhs: ClawdisProtocol.AnyCodable?, _ rhs: ClawdisProtocol.AnyCodable?) -> Bool {
     switch (lhs?.value, rhs?.value) {
     case let (l as String, r as String):
         return l == r

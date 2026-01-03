@@ -834,7 +834,7 @@ public struct WizardStep: Codable {
     }
 }
 
-public struct WizardNextResult: Codable {
+public struct WizardNextResult: Codable, Sendable {
     public let done: Bool
     public let step: [String: AnyCodable]?
     public let status: AnyCodable?
@@ -859,7 +859,7 @@ public struct WizardNextResult: Codable {
     }
 }
 
-public struct WizardStartResult: Codable {
+public struct WizardStartResult: Codable, Sendable {
     public let sessionid: String
     public let done: Bool
     public let step: [String: AnyCodable]?
@@ -888,7 +888,7 @@ public struct WizardStartResult: Codable {
     }
 }
 
-public struct WizardStatusResult: Codable {
+public struct WizardStatusResult: Codable, Sendable {
     public let status: AnyCodable
     public let error: String?
 
