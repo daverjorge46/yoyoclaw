@@ -37,10 +37,17 @@ import { saveMediaBuffer } from "../media/store.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { loadWebMedia } from "../web/media.js";
 import { startLivenessProbe, type LivenessProbeOptions } from "./liveness-probe.js";
+import {
+  detectWebSearchIntent,
+  extractSearchQuery,
+} from "../web-search/detect.js";
+import { messages as webSearchMessages } from "../web-search/messages.js";
+import { executeWebSearch } from "../web-search/executor.js";
 
 const PARSE_ERR_RE =
   /can't parse entities|parse entities|find end of the entity/i;
 const deepResearchInFlight = new Set<number>();
+const webSearchInFlight = new Set<number>();
 
 type TelegramMessage = Message.CommonMessage;
 
@@ -174,6 +181,53 @@ export function createTelegramBot(opts: TelegramBotOptions) {
         return;
       }
 
+      // Check for web search
+      if (detectWebSearchIntent(messageText)) {
+        const query = extractSearchQuery(messageText);
+        if (!query) {
+          logger.warn({ chatId }, "Failed to extract query for web search");
+          return;
+        }
+        
+        // Check if already searching for this chat
+        if (webSearchInFlight.has(chatId)) {
+          await ctx.reply(webSearchMessages.error("Поиск уже выполняется для этого чата. Пожалуйста, подождите."));
+          return;
+        }
+        
+        // Mark as in-flight
+        webSearchInFlight.add(chatId);
+        
+        try {
+          // Send acknowledgment
+          await ctx.reply(webSearchMessages.acknowledgment());
+          
+          // Execute search
+          const result = await executeWebSearch(query);
+          
+          if (result.success && result.result) {
+            // Deliver result
+            await ctx.reply(webSearchMessages.resultDelivery(result.result));
+          } else {
+            // Deliver error
+            await ctx.reply(webSearchMessages.error(
+              result.error || "Unknown error",
+              result.runId
+            ));
+          }
+        } catch (error) {
+          logger.error({ chatId, error }, "Web search execution failed");
+          await ctx.reply(webSearchMessages.error(
+            error instanceof Error ? error.message : String(error)
+          ));
+        } finally {
+          // Always remove from in-flight set
+          webSearchInFlight.delete(chatId);
+        }
+        
+        return; // Don't process further
+      }
+
       const replyTarget = describeReplyTarget(msg);
       const rawBody = (
         msg.text ??
@@ -260,6 +314,10 @@ export function createTelegramBot(opts: TelegramBotOptions) {
         bot,
       });
     } catch (err) {
+      // Clean up in-flight sets on error (if chatId was defined)
+      if (typeof chatId !== 'undefined' && webSearchInFlight.has(chatId)) {
+        webSearchInFlight.delete(chatId);
+      }
       runtime.error?.(danger(`Telegram handler failed: ${String(err)}`));
     }
   });
