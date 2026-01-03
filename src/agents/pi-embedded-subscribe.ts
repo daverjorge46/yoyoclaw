@@ -437,15 +437,42 @@ export function subscribeEmbeddedPiSession(params: {
             evtType === "text_start" ||
             evtType === "text_end"
           ) {
-            const chunk =
+            const delta =
               typeof assistantRecord?.delta === "string"
                 ? assistantRecord.delta
-                : typeof assistantRecord?.content === "string"
-                  ? assistantRecord.content
-                  : "";
+                : "";
+            const content =
+              typeof assistantRecord?.content === "string"
+                ? assistantRecord.content
+                : "";
+            let chunk = "";
+            let replaceBuffers = false;
+            if (evtType === "text_delta") {
+              chunk = delta;
+            } else if (evtType === "text_start" || evtType === "text_end") {
+              if (delta) {
+                chunk = delta;
+              } else if (content) {
+                if (
+                  !deltaBuffer ||
+                  content.startsWith(deltaBuffer) ||
+                  deltaBuffer.startsWith(content)
+                ) {
+                  chunk = content;
+                  replaceBuffers = true;
+                } else if (!deltaBuffer.includes(content)) {
+                  chunk = content;
+                }
+              }
+            }
             if (chunk) {
-              deltaBuffer += chunk;
-              blockBuffer += chunk;
+              if (replaceBuffers) {
+                deltaBuffer = chunk;
+                blockBuffer = chunk;
+              } else {
+                deltaBuffer += chunk;
+                blockBuffer += chunk;
+              }
             }
 
             const cleaned = params.enforceFinalTag
