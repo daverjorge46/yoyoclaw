@@ -1,6 +1,10 @@
 node_modules
 .env
 dist
+
+# Clawdis config (contains API keys)
+.clawdis/
+clawdis.json
 *.bun-build
 pnpm-lock.yaml
 coverage
