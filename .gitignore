@@ -115,6 +115,8 @@ sdd-flow/
 
 # Local start/test scripts
 start-*.sh
+final_*.sh
+validation_*.sh
 
 # Development monitoring/watch scripts
 *-watch.sh
@@ -127,3 +129,26 @@ monitor.sh
 *INVESTIGATION.md
 *-investigation.md
 *investigation.md
+
+# Completion/implementation summaries
+*COMPLETE.md
+COMPLETION*.md
+IMPLEMENTATION*.md
+
+# Test scripts and documentation (Python, Shell, and Markdown)
+test_*.py
+test_*.sh
+test_*.md
+*-test.py
+*-test.sh
+*-test.md
+*_test.py
+*_test.sh
+*_test.md
+
+# Development update/create scripts
+create_*.py
+create_*.sh
+update_*.py
+update_*.sh
+update_*_*.py
