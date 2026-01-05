@@ -143,6 +143,9 @@ export class AcpGwAgent implements Agent {
   /** Map of Gateway's internal sessionId -> ACP sessionId */
   private gatewaySessionMap = new Map<string, string>();
 
+  /** Set of recently-resolved sessionKeys to ignore stale events */
+  private resolvedSessionKeys = new Set<string>();
+
   /** Keepalive interval in ms - send a dot to prevent client timeout */
   private readonly KEEPALIVE_MS = 5000;
 
@@ -385,6 +388,14 @@ export class AcpGwAgent implements Agent {
       this.pendingPrompts.delete(acpSessionId);
       this.gatewaySessionMap.delete(runId);
       clearActiveRun(acpSessionId);
+      // Track this sessionKey to ignore stale events that arrive after resolution
+      const session = getSession(acpSessionId);
+      if (session?.sessionKey) {
+        this.resolvedSessionKeys.add(session.sessionKey);
+        // Clean up after 30s to prevent memory leak
+        const key = session.sessionKey;
+        setTimeout(() => this.resolvedSessionKeys.delete(key), 30_000);
+      }
       pending.resolve({ stopReason: "end_turn" });
     } else {
       this.log(`maybeResolve: waiting (sawJobDone=${pending.sawJobDone}, sawFinal=${pending.sawFinal})`);
@@ -418,6 +429,12 @@ export class AcpGwAgent implements Agent {
     this.log(`handleChatEvent: sessionKey=${sessionKey} state=${state} runId=${runId}`);
 
     if (!sessionKey) return;
+
+    // Ignore events for already-resolved sessions (stale events after resolution)
+    if (sessionKey && this.resolvedSessionKeys.has(sessionKey)) {
+      this.log(`handleChatEvent: ignoring stale event for resolved sessionKey=${sessionKey}`);
+      return;
+    }
 
     // Find the pending prompt for this session
     const pending = this.findPendingBySessionKey(sessionKey);
@@ -483,30 +500,47 @@ export class AcpGwAgent implements Agent {
     const fullText = content?.find((c) => c.type === "text")?.text ?? "";
 
     const actualPending = this.pendingPrompts.get(sessionId);
-    if (!actualPending) return;
+    if (!actualPending) {
+      this.log(`[DELTA] no pending for session ${sessionId}`);
+      return;
+    }
 
     const sentSoFar = actualPending.sentTextLength ?? 0;
     const sentText = actualPending.sentText ?? "";
+
+    // DEBUG logging
+    this.log(`[DELTA] in: fullText.len=${fullText.length} sentSoFar=${sentSoFar}`);
 
     // Only send new text
     if (fullText.length > sentSoFar) {
       const newText = fullText.slice(sentSoFar);
 
       // Workaround: Detect and skip duplicate text (Gateway bug)
-      // If the "new" text starts with what we already sent, it's a duplicate
-      if (
-        sentText.length > 0 &&
-        newText.startsWith(sentText.slice(0, Math.min(20, sentText.length)))
-      ) {
-        this.log(`skipping duplicate: newText starts with already-sent content`);
-        return;
+      // The Gateway sometimes re-sends text we already sent. Detect by checking
+      // if the "new" portion starts with text from the beginning of our sentText.
+      if (sentText.length > 0) {
+        // Check if newText starts with the beginning of what we already sent
+        const checkLen = Math.min(20, sentText.length);
+        if (newText.startsWith(sentText.slice(0, checkLen))) {
+          this.log(`[DELTA] skip dup (starts with sent): "${newText.slice(0, 30)}..."`);
+          return;
+        }
+        // Also check if newText contains our sentText (wrapped duplicate)
+        // This catches cases like ".<previous full text>"
+        if (newText.length > 50 && sentText.length > 20) {
+          const needle = sentText.slice(0, 30);
+          if (newText.includes(needle)) {
+            this.log(`[DELTA] skip dup (contains sent): "${newText.slice(0, 30)}..."`);
+            return;
+          }
+        }
       }
 
       // Update tracking state
       actualPending.sentTextLength = fullText.length;
       actualPending.sentText = fullText;
 
-      this.log(`streaming delta: +${newText.length} chars`);
+      this.log(`[DELTA] send: +${newText.length} chars "${newText.slice(0, 50)}${newText.length > 50 ? '...' : ''}"`);
 
       // Send the delta to the client
       await this.connection.sessionUpdate({
@@ -516,6 +550,10 @@ export class AcpGwAgent implements Agent {
           content: { type: "text", text: newText },
         },
       });
+      
+      this.log(`[DELTA] sent ok`);
+    } else {
+      this.log(`[DELTA] no new text (fullText.len=${fullText.length} <= sentSoFar=${sentSoFar})`);
     }
   }
 
@@ -705,6 +743,11 @@ export class AcpGwAgent implements Agent {
     );
 
     return new Promise<PromptResponse>((resolve, reject) => {
+      // Clear any stale resolution marker for this session - new prompt starting
+      if (session.sessionKey) {
+        this.resolvedSessionKeys.delete(session.sessionKey);
+      }
+
       // Track this prompt for event correlation
       // jobStartedAt will be set when we see job:started - used to match job:done
       this.pendingPrompts.set(params.sessionId, {
