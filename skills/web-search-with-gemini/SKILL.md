@@ -1,33 +1,34 @@
 ---
 name: web-search-with-gemini
-description: Perform deep research queries using Gemini with multi-perspective reasoning, answering in Russian.
+description: 🔴 DEPRECATED - Use built-in web_search tool instead. Perform deep research queries using Gemini with multi-perspective reasoning, answering in Russian.
 metadata: {"clawdis":{"emoji":"🔍","requires":{"bins":["web_search_with_gemini"]},"install":[{"id":"manual","kind":"manual","instructions":"Script at scripts/web_search_with_gemini.sh"}]}}
 ---
 
-# web-search-with-gemini
+# web-search-with-gemini [DEPRECATED]
 
-This skill wraps the Gemini CLI to perform "Deep Research" and "Ultrathink" queries. It automatically appends instructions for Google search, deep diving, and multi-perspective reasoning.
+**NOTE: This skill is deprecated. Use the built-in `web_search` tool instead.**
 
-## Features
+The `web_search` tool is now automatically available in Pi agent and provides better integration with visual markers.
 
-- **Automated Deep Research**: Triggers Google search and deep dive modes.
-- **Ultrathink Reasoning**: Uses collective multi-perspective reasoning for high-quality answers.
-- **Russian Language Output**: Strictly enforces answers in Russian with appropriate emojis.
-- **Customizable**: Supports model and output format overrides.
+## Built-in Web Search Tool
+
+The Pi agent now includes a native `web_search` tool that:
+- Automatically searches the web when user asks about current information
+- Returns results with clear visual markers (🌐 Результат поиска:)
+- Works with Gemini backend for Russian-language results
+- No external dependencies required
 
 ## Usage
 
+Simply ask the agent to search:
+```
+User: google 2666 for me
+Agent: [automatically uses web_search tool]
+→ 🌐 Результат поиска: [search results]
+```
+
+## Legacy Usage (Deprecated)
+
+If you still need the advanced ultrathink functionality:
 - **Basic**: `web_search_with_gemini "Who won the World Cup in 2022?"`
 - **Specific Model**: `web_search_with_gemini --model gemini-2.0-flash "Latest AI trends"`
-- **JSON Output**: `web_search_with_gemini --output-format json "Current stock price of NVIDIA"`
-
-## How it Works
-
-The tool appends the following tail to your query:
-`. google it, deep dive, deep research, answer strictly in russian language. ultrathink,[ultrathink, use collective multi-perspective reasoning with multi-perspective consulting before making any decision with emoji in russian language !]`
-
-## When to Use
-
-- When you need a deep research on a topic with a summary in Russian.
-- To get a multi-perspective analysis of complex questions.
-- For queries where the answer requires the latest information from the web.
