@@ -39,12 +39,40 @@ import { loadWebMedia } from "../web/media.js";
 import { startLivenessProbe, type LivenessProbeOptions } from "./liveness-probe.js";
 import { messages as webSearchMessages } from "../web-search/messages.js";
 import { executeWebSearch } from "../web-search/executor.js";
+import {
+  createTTSButton,
+  createTTSProgressButton,
+  parseTTSCallbackData,
+  TTS_CALLBACK_PREFIX,
+  type TTSProgressStage,
+} from "../tts/button.js";
+import { isTTSEnabled, synthesize } from "../tts/provider.js";
 import { formatTelegramMessage } from "./formatter.js";
 
 const PARSE_ERR_RE =
   /can't parse entities|parse entities|find end of the entity/i;
 const deepResearchInFlight = new Set<number>();
 const webSearchInFlight = new Set<number>();
+
+// TTS in-flight tracking with TTL (5 minutes)
+const ttsInFlight = new Map<string, number>();
+const TTS_IN_FLIGHT_TTL_MS = 5 * 60 * 1000;
+const TTS_CLEANUP_INTERVAL_MS = 60 * 1000; // Clean every minute
+
+// Periodic cleanup of expired TTS entries
+setInterval(() => {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [key, timestamp] of ttsInFlight.entries()) {
+    if (now - timestamp > TTS_IN_FLIGHT_TTL_MS) {
+      ttsInFlight.delete(key);
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    logVerbose(`[tts] Cleaned up ${cleaned} expired in-flight entries`);
+  }
+}, TTS_CLEANUP_INTERVAL_MS);
 const CATEGORY_CONFIDENCE_THRESHOLD = 0.7;
 const CATEGORY_MIN_WORDS = 2;
 const CATEGORY_MIN_CHARS = 6;
@@ -376,12 +404,13 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     }
   });
 
-  // Deep Research button callback handler
+  // Deep Research and TTS button callback handler
   bot.on("callback_query:data", async (ctx, next) => {
     const handled = await handleDeepResearchCallback(ctx, runtime);
-    if (!handled && next) {
-      await next();
+    if (!handled) {
+      await handleTTSCallback(ctx, runtime);
     }
+    if (next) await next();
   });
 
   // Start liveness probe if enabled
@@ -661,11 +690,23 @@ async function runWebSearch(
 
     if (result.success && result.result) {
       // Edit the original message with result
+      const resultText = webSearchMessages.resultDelivery(result.result);
+
+      // Add TTS button if enabled
+      let replyMarkup = undefined;
+      if (isTTSEnabled()) {
+        try {
+          replyMarkup = createTTSButton(result.result.response);
+        } catch (err) {
+          console.warn(`[tts] Failed to create button: ${err}`);
+        }
+      }
+
       await ctx.api.editMessageText(
         statusChatId,
         statusMessageId,
-        webSearchMessages.resultDelivery(result.result),
-        { parse_mode: "MarkdownV2" },
+        resultText,
+        { parse_mode: "MarkdownV2", reply_markup: replyMarkup },
       );
     } else {
       // Edit with error
@@ -920,6 +961,119 @@ async function handleDeepResearchCallback(
     );
   } finally {
     deepResearchInFlight.delete(callerId);
+  }
+
+  return true;
+}
+
+async function handleTTSCallback(
+  ctx: Context,
+  runtime: RuntimeEnv,
+): Promise<boolean> {
+  const data = ctx.callbackQuery?.data;
+  if (!data || !data.startsWith(TTS_CALLBACK_PREFIX)) {
+    return false;
+  }
+
+  const textHash = parseTTSCallbackData(data);
+  if (!textHash) {
+    await ctx.answerCallbackQuery({ text: "Invalid TTS callback" });
+    return true;
+  }
+
+  const callerId = ctx.from?.id;
+  if (callerId === undefined) {
+    await ctx.answerCallbackQuery({ text: "Invalid user" });
+    return true;
+  }
+
+  // Check if already processing (with TTL check)
+  const flightKey = `${callerId}:${textHash}`;
+  const now = Date.now();
+  const existingTimestamp = ttsInFlight.get(flightKey);
+  if (existingTimestamp && now - existingTimestamp < TTS_IN_FLIGHT_TTL_MS) {
+    await ctx.answerCallbackQuery({ text: "Уже генерирую..." });
+    return true;
+  }
+
+  // Add with current timestamp
+  ttsInFlight.set(flightKey, now);
+
+  try {
+    await ctx.answerCallbackQuery({ text: "Генерирую аудио..." });
+
+    // Get original message to extract result text
+    const msg = ctx.callbackQuery.message;
+    if (!msg || !("text" in msg)) {
+      await ctx.reply("Ошибка: не найден оригинальный результат");
+      return true;
+    }
+
+    // Extract web search result text from message
+    const resultText = msg.text
+      .replace(/^○ Результат поиска:\n\n/, "")
+      .trim();
+
+    if (!resultText) {
+      await ctx.reply("Ошибка: пустой результат");
+      return true;
+    }
+
+    const chatId = ctx.chat?.id;
+    const messageId = msg.message_id;
+
+    if (!chatId || !messageId) {
+      await ctx.reply("Ошибка: не получен ID чата");
+      return true;
+    }
+
+    // Progress update function
+    let currentStage: TTSProgressStage = 0;
+    const updateProgress = async (stage: TTSProgressStage) => {
+      if (stage === currentStage) return;
+      currentStage = stage;
+      try {
+        const button = createTTSProgressButton(stage, textHash);
+        await ctx.api.editMessageReplyMarkup(chatId, messageId, button);
+      } catch (err) {
+        console.warn(`[tts] Failed to update progress: ${err}`);
+      }
+    };
+
+    // Generate audio
+    const result = await synthesize(resultText, async (percentage) => {
+      if (percentage >= 100) await updateProgress(4);
+      else if (percentage >= 75) await updateProgress(3);
+      else if (percentage >= 50) await updateProgress(2);
+      else if (percentage >= 25) await updateProgress(1);
+      else await updateProgress(0);
+    });
+
+    if (result.success && result.audioPath) {
+      // Send audio file
+      const fs = await import("node:fs");
+      if (fs.existsSync(result.audioPath)) {
+        const file = new InputFile(result.audioPath, "tts.mp3");
+
+        // Build caption with cache and truncation info
+        let caption = "🎙️";
+        if (result.cached) caption += " (из кэша)";
+        if (result.truncated) caption += " (текст укорочен)";
+
+        await ctx.api.sendVoice(chatId, file, { caption });
+      }
+      // Remove button
+      await ctx.api.editMessageReplyMarkup(chatId, messageId);
+    } else {
+      // Show error, remove button
+      await ctx.api.editMessageText(
+        chatId,
+        messageId,
+        `✂︎ Озвучка не удалась:\n\n${result.error || "Неизвестная ошибка"}`,
+      );
+    }
+  } finally {
+    ttsInFlight.delete(flightKey);
   }
 
   return true;
