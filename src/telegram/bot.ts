@@ -204,6 +204,8 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     try {
       const msg = ctx.message;
       if (!msg) return;
+      const botId = ctx.me?.id;
+      if (msg.from?.is_bot || (botId && msg.from?.id === botId)) return;
       const chatId = msg.chat.id;
       const isGroup =
         msg.chat.type === "group" || msg.chat.type === "supergroup";
