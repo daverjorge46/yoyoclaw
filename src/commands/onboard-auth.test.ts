@@ -36,11 +36,12 @@ describe("writeOAuthCredentials", () => {
     delete process.env.CLAWDBOT_OAUTH_DIR;
   });
 
-  it("writes auth-profiles.json under CLAWDBOT_STATE_DIR/agent", async () => {
+  it("writes auth-profiles.json under CLAWDBOT_STATE_DIR/agents/main/agent", async () => {
     tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-oauth-"));
     process.env.CLAWDBOT_STATE_DIR = tempStateDir;
-    process.env.CLAWDBOT_AGENT_DIR = path.join(tempStateDir, "agent");
-    process.env.PI_CODING_AGENT_DIR = process.env.CLAWDBOT_AGENT_DIR;
+    // Clear legacy env vars so resolveDefaultAgentDir uses the new multi-agent path
+    delete process.env.CLAWDBOT_AGENT_DIR;
+    delete process.env.PI_CODING_AGENT_DIR;
 
     const creds = {
       refresh: "refresh-token",
@@ -50,8 +51,11 @@ describe("writeOAuthCredentials", () => {
 
     await writeOAuthCredentials("anthropic", creds);
 
+    // Now writes to the multi-agent path: agents/main/agent
     const authProfilePath = path.join(
       tempStateDir,
+      "agents",
+      "main",
       "agent",
       "auth-profiles.json",
     );
