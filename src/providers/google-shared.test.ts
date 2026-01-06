@@ -456,6 +456,6 @@ describe("google-shared convertMessages", () => {
     expect(contents[0].role).toBe("user");
     expect(contents[1].role).toBe("model");
     // The model message should have both text and function call
-    expect(contents[1].parts.length).toBe(2);
+    expect(contents[1].parts?.length).toBe(2);
   });
 });
