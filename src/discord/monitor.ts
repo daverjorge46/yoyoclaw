@@ -417,12 +417,11 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
         isGuildMessage && channelSlug ? `#${channelSlug}` : undefined;
       const groupSubject = isDirectMessage ? undefined : groupRoom;
       const messageText = text;
-      const bodyWithHints = `${messageText}\n[channel_id: ${message.channelId}]`;
       let combinedBody = formatAgentEnvelope({
         surface: "Discord",
         from: fromLabel,
         timestamp: message.createdTimestamp,
-        body: bodyWithHints,
+        body: messageText,
       });
       let shouldClearHistory = false;
       if (!isDirectMessage) {
@@ -494,9 +493,7 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
         From: isDirectMessage
           ? `discord:${message.author.id}`
           : `group:${message.channelId}`,
-        To: isDirectMessage
-          ? `user:${message.author.id}`
-          : `channel:${message.channelId}`,
+        To: `channel:${message.channelId}`,
         ChatType: isDirectMessage ? "direct" : "group",
         SenderName: message.member?.displayName ?? message.author.tag,
         SenderId: message.author.id,
