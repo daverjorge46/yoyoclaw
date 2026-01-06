@@ -21,6 +21,7 @@
 - Build: fix duplicate protocol export, align Codex OAuth options, and add proper-lockfile typings.
 - Typing indicators: stop typing once the reply dispatcher drains to prevent stuck typing across Discord/Telegram/WhatsApp.
 - Typing indicators: fix a race that could keep the typing indicator stuck after quick replies. Thanks @thewilloftheshadow for PR #270.
+- Telegram: default reply-to mode to `first` and wire config into bot creation. Thanks @mneves75 for PR #325.
 - Google: merge consecutive messages to satisfy strict role alternation for Google provider models. Thanks @Asleep123 for PR #266.
 - Postinstall: handle targetDir symlinks in the install script. Thanks @obviyus for PR #272.
 - WhatsApp/Telegram: add groupPolicy handling for group messages and normalize allowFrom matching (tg/telegram prefixes). Thanks @mneves75.
