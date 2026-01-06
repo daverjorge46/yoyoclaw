@@ -20,11 +20,22 @@ vi.mock("grammy", () => ({
     api = apiStub;
     on = onSpy;
     stop = stopSpy;
+    use = vi.fn();
     constructor(public token: string) {}
   },
   InputFile: class {},
   webhookCallback: vi.fn(),
 }));
+
+// Helper to call handler and wait for background processing
+const callHandlerAndFlush = async (
+  handler: (ctx: Record<string, unknown>) => Promise<void>,
+  ctx: Record<string, unknown>,
+) => {
+  await handler(ctx);
+  // Wait for fire-and-forget processing to complete (multiple ticks needed for async chains)
+  await new Promise((r) => setTimeout(r, 10));
+};
 
 const throttlerSpy = vi.fn(() => "throttler");
 vi.mock("@grammyjs/transformer-throttler", () => ({
@@ -94,7 +105,7 @@ describe("telegram inbound media", () => {
           new Uint8Array([0xff, 0xd8, 0xff, 0x00]).buffer,
       } as Response);
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         message_id: 1,
         chat: { id: 1234, type: "private" },
@@ -151,7 +162,7 @@ describe("telegram inbound media", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         message_id: 2,
         chat: { id: 1234, type: "private" },
@@ -197,7 +208,7 @@ describe("telegram inbound media", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         message_id: 3,
         chat: { id: 1234, type: "private" },
@@ -255,7 +266,7 @@ describe("telegram media groups", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 1,
@@ -268,7 +279,7 @@ describe("telegram media groups", () => {
       getFile: async () => ({ file_path: "photos/photo1.jpg" }),
     });
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 2,
@@ -315,7 +326,7 @@ describe("telegram media groups", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 1,
@@ -328,7 +339,7 @@ describe("telegram media groups", () => {
       getFile: async () => ({ file_path: "photos/photoA1.jpg" }),
     });
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 2,
@@ -366,7 +377,7 @@ describe("telegram location parsing", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 5,
@@ -407,7 +418,7 @@ describe("telegram location parsing", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 42, type: "private" },
         message_id: 6,

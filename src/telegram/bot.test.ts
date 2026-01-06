@@ -64,17 +64,30 @@ const apiStub: ApiStub = {
   sendPhoto: sendPhotoSpy,
 };
 
+const flushProcessingSpy = vi.fn(async () => []);
+
 vi.mock("grammy", () => ({
   Bot: class {
     api = apiStub;
     on = onSpy;
     stop = stopSpy;
     use = vi.fn();
+    _flushProcessing = flushProcessingSpy;
     constructor(public token: string) {}
   },
   InputFile: class {},
   webhookCallback: vi.fn(),
 }));
+
+// Helper to call handler and wait for background processing
+const callHandlerAndFlush = async (
+  handler: (ctx: Record<string, unknown>) => Promise<void>,
+  ctx: Record<string, unknown>,
+) => {
+  await handler(ctx);
+  // Wait for fire-and-forget processing to complete (multiple ticks needed for async chains)
+  await new Promise((r) => setTimeout(r, 10));
+};
 
 const throttlerSpy = vi.fn(() => "throttler");
 
@@ -135,7 +148,7 @@ describe("createTelegramBot", () => {
           username: "ada_bot",
         },
       };
-      await handler({
+      await callHandlerAndFlush(handler, {
         message,
         me: { username: "clawdbot_bot" },
         getFile: async () => ({ download: async () => new Uint8Array() }),
@@ -172,7 +185,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 1234, type: "private" },
         text: "hello",
@@ -200,7 +213,7 @@ describe("createTelegramBot", () => {
     const handler = onSpy.mock.calls[0][1] as (
       ctx: Record<string, unknown>,
     ) => Promise<void>;
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: { chat: { id: 42, type: "private" }, text: "hi" },
       me: { username: "clawdbot_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
@@ -229,7 +242,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 7, type: "group", title: "Test Group" },
         text: "bert: introduce yourself",
@@ -308,7 +321,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 7, type: "group", title: "Test Group" },
         text: "bert hello",
@@ -352,7 +365,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 7, type: "group", title: "Test Group" },
         text: "hello everyone",
@@ -384,7 +397,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 7, type: "group", title: "Test Group" },
         text: "hello everyone",
@@ -414,7 +427,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 7, type: "private" },
         text: "Sure, see below",
@@ -451,7 +464,7 @@ describe("createTelegramBot", () => {
     const handler = onSpy.mock.calls[0][1] as (
       ctx: Record<string, unknown>,
     ) => Promise<void>;
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 5, type: "private" },
         text: "hi",
@@ -484,7 +497,7 @@ describe("createTelegramBot", () => {
     const handler = onSpy.mock.calls[0][1] as (
       ctx: Record<string, unknown>,
     ) => Promise<void>;
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 5, type: "private" },
         text: "hi",
@@ -523,7 +536,7 @@ describe("createTelegramBot", () => {
     const handler = onSpy.mock.calls[0][1] as (
       ctx: Record<string, unknown>,
     ) => Promise<void>;
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 5, type: "private" },
         text: "hi",
@@ -554,7 +567,7 @@ describe("createTelegramBot", () => {
     const handler = onSpy.mock.calls[0][1] as (
       ctx: Record<string, unknown>,
     ) => Promise<void>;
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 5, type: "private" },
         text: "hi",
@@ -590,7 +603,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 456, type: "group", title: "Ops" },
         text: "@clawdbot_bot hello",
@@ -618,7 +631,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 123, type: "group", title: "Dev Chat" },
         text: "hello",
@@ -651,7 +664,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 123, type: "group", title: "Dev Chat" },
         text: "hello",
@@ -681,7 +694,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 456, type: "group", title: "Ops" },
         text: "hello",
@@ -709,7 +722,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 789, type: "group", title: "No Me" },
         text: "hello",
@@ -744,7 +757,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 1234, type: "private" },
         text: "hello world",
@@ -783,7 +796,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" },
@@ -816,7 +829,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 999999, username: "notallowed" }, // Not in allowFrom
@@ -849,7 +862,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" }, // In allowFrom
@@ -882,7 +895,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 12345, username: "testuser" }, // Username matches @testuser
@@ -915,7 +928,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 77112533, username: "mneves" },
@@ -948,7 +961,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 77112533, username: "mneves" },
@@ -980,7 +993,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 999999, username: "random" }, // Random sender
@@ -1013,7 +1026,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 12345, username: "testuser" }, // Lowercase in message
@@ -1045,7 +1058,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 123456789, type: "private" }, // Direct message
         from: { id: 123456789, username: "testuser" },
@@ -1076,7 +1089,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 123456789, type: "private" }, // Direct message
         from: { id: 123456789, username: "testuser" },
@@ -1107,7 +1120,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: 123456789, type: "private" },
         from: { id: 123456789, username: "testuser" },
@@ -1140,7 +1153,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 999999, username: "random" }, // Random sender, but wildcard allows
@@ -1172,7 +1185,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         // No `from` field (e.g., channel post or anonymous admin)
@@ -1205,7 +1218,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" }, // Matches after stripping prefix
@@ -1239,7 +1252,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" }, // Matches after stripping tg: prefix
@@ -1272,7 +1285,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" },
@@ -1305,7 +1318,7 @@ describe("createTelegramBot", () => {
       ctx: Record<string, unknown>,
     ) => Promise<void>;
 
-    await handler({
+    await callHandlerAndFlush(handler, {
       message: {
         chat: { id: -100123456789, type: "group", title: "Test Group" },
         from: { id: 123456789, username: "testuser" },

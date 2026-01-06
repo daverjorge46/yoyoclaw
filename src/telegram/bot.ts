@@ -2,7 +2,7 @@
 import { Buffer } from "node:buffer";
 
 import { apiThrottler } from "@grammyjs/transformer-throttler";
-import type { ApiClientOptions, Context, Message, NextFunction } from "grammy";
+import type { ApiClientOptions, Message } from "grammy";
 import { Bot, InputFile, webhookCallback } from "grammy";
 import {
   chunkMarkdownText,
@@ -118,39 +118,15 @@ export function createTelegramBot(opts: TelegramBotOptions) {
   const bot = new Bot(opts.token, { client });
   bot.api.config.use(apiThrottler());
 
-  // Custom sequentialize by chat+topic - different chats/topics process in parallel,
-  // same chat+topic processes sequentially to maintain conversation order
+  // Session locks for sequentializing messages within the same chat+topic
+  // Different chats/topics process in parallel, same chat+topic processes sequentially
   const sessionLocks = new Map<string, Promise<void>>();
-  const getSessionKey = (ctx: Context): string | undefined => {
-    const chatId = ctx.chat?.id;
-    if (!chatId) return undefined;
-    const threadId = (ctx.message as { message_thread_id?: number })
-      ?.message_thread_id;
+  const getSessionKey = (chatId: number, threadId?: number): string => {
     return threadId ? `${chatId}:${threadId}` : String(chatId);
   };
-  bot.use(async (ctx: Context, next: NextFunction) => {
-    const key = getSessionKey(ctx);
-    if (!key) return next();
 
-    // Wait for any previous handler with same key to finish
-    const prev = sessionLocks.get(key) ?? Promise.resolve();
-    let resolve: () => void;
-    const current = new Promise<void>((r) => {
-      resolve = r;
-    });
-    sessionLocks.set(key, current);
-
-    try {
-      await prev;
-      await next();
-    } finally {
-      resolve?.();
-      // Clean up if this is still the latest promise for this key
-      if (sessionLocks.get(key) === current) {
-        sessionLocks.delete(key);
-      }
-    }
-  });
+  // Track pending processing for testing (exposed via _pendingProcessing)
+  const pendingProcessing = new Set<Promise<void>>();
 
   const mediaGroupBuffer = new Map<string, MediaGroupEntry>();
 
@@ -231,301 +207,326 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     const isGroup = msg.chat.type === "group" || msg.chat.type === "supergroup";
     const messageThreadId = (msg as { message_thread_id?: number })
       ?.message_thread_id;
-    const effectiveDmAllow = normalizeAllowFrom([
-      ...(allowFrom ?? []),
-      ...storeAllowFrom,
-    ]);
-    const effectiveGroupAllow = normalizeAllowFrom([
-      ...(groupAllowFrom ?? []),
-      ...storeAllowFrom,
-    ]);
 
-    const sendTyping = async () => {
-      try {
-        await bot.api.sendChatAction(chatId, "typing", {
-          message_thread_id: messageThreadId,
-        });
-      } catch (err) {
-        logVerbose(
-          `telegram typing cue failed for chat ${chatId}: ${String(err)}`,
-        );
-      }
-    };
+    // Session locking: wait for previous message in same chat+topic to finish
+    const sessionKey = getSessionKey(chatId, messageThreadId);
+    const prev = sessionLocks.get(sessionKey) ?? Promise.resolve();
+    let resolveSession: () => void;
+    const current = new Promise<void>((r) => {
+      resolveSession = r;
+    });
+    sessionLocks.set(sessionKey, current);
 
-    // DM access control (secure defaults): "pairing" (default) / "allowlist" / "open" / "disabled"
-    if (!isGroup) {
-      if (dmPolicy === "disabled") return;
+    try {
+      await prev; // Wait for previous message in this session to complete
+      const effectiveDmAllow = normalizeAllowFrom([
+        ...(allowFrom ?? []),
+        ...storeAllowFrom,
+      ]);
+      const effectiveGroupAllow = normalizeAllowFrom([
+        ...(groupAllowFrom ?? []),
+        ...storeAllowFrom,
+      ]);
 
-      if (dmPolicy !== "open") {
-        const candidate = String(chatId);
-        const senderUsername = msg.from?.username ?? "";
-        const allowed =
-          effectiveDmAllow.hasWildcard ||
-          (effectiveDmAllow.hasEntries &&
-            isSenderAllowed({
-              allow: effectiveDmAllow,
-              senderId: candidate,
-              senderUsername,
-            }));
-        if (!allowed) {
-          if (dmPolicy === "pairing") {
-            try {
-              const from = msg.from as
-                | {
-                    first_name?: string;
-                    last_name?: string;
-                    username?: string;
-                  }
-                | undefined;
-              const { code } = await upsertTelegramPairingRequest({
-                chatId: candidate,
-                username: from?.username,
-                firstName: from?.first_name,
-                lastName: from?.last_name,
-              });
-              logger.info(
-                {
+      const sendTyping = async () => {
+        try {
+          await bot.api.sendChatAction(chatId, "typing", {
+            message_thread_id: messageThreadId,
+          });
+        } catch (err) {
+          logVerbose(
+            `telegram typing cue failed for chat ${chatId}: ${String(err)}`,
+          );
+        }
+      };
+
+      // DM access control (secure defaults): "pairing" (default) / "allowlist" / "open" / "disabled"
+      if (!isGroup) {
+        if (dmPolicy === "disabled") return;
+
+        if (dmPolicy !== "open") {
+          const candidate = String(chatId);
+          const senderUsername = msg.from?.username ?? "";
+          const allowed =
+            effectiveDmAllow.hasWildcard ||
+            (effectiveDmAllow.hasEntries &&
+              isSenderAllowed({
+                allow: effectiveDmAllow,
+                senderId: candidate,
+                senderUsername,
+              }));
+          if (!allowed) {
+            if (dmPolicy === "pairing") {
+              try {
+                const from = msg.from as
+                  | {
+                      first_name?: string;
+                      last_name?: string;
+                      username?: string;
+                    }
+                  | undefined;
+                const { code } = await upsertTelegramPairingRequest({
                   chatId: candidate,
                   username: from?.username,
                   firstName: from?.first_name,
                   lastName: from?.last_name,
-                  code,
-                },
-                "telegram pairing request",
-              );
-              await bot.api.sendMessage(
-                chatId,
-                [
-                  "Clawdbot: access not configured.",
-                  "",
-                  `Pairing code: ${code}`,
-                  "",
-                  "Ask the bot owner to approve with:",
-                  "clawdbot telegram pairing approve <code>",
-                ].join("\n"),
-              );
-            } catch (err) {
+                });
+                logger.info(
+                  {
+                    chatId: candidate,
+                    username: from?.username,
+                    firstName: from?.first_name,
+                    lastName: from?.last_name,
+                    code,
+                  },
+                  "telegram pairing request",
+                );
+                await bot.api.sendMessage(
+                  chatId,
+                  [
+                    "Clawdbot: access not configured.",
+                    "",
+                    `Pairing code: ${code}`,
+                    "",
+                    "Ask the bot owner to approve with:",
+                    "clawdbot telegram pairing approve <code>",
+                  ].join("\n"),
+                );
+              } catch (err) {
+                logVerbose(
+                  `telegram pairing reply failed for chat ${chatId}: ${String(err)}`,
+                );
+              }
+            } else {
               logVerbose(
-                `telegram pairing reply failed for chat ${chatId}: ${String(err)}`,
+                `Blocked unauthorized telegram sender ${candidate} (dmPolicy=${dmPolicy})`,
               );
             }
-          } else {
-            logVerbose(
-              `Blocked unauthorized telegram sender ${candidate} (dmPolicy=${dmPolicy})`,
-            );
+            return;
           }
+        }
+      }
+
+      const botUsername = primaryCtx.me?.username?.toLowerCase();
+      const senderId = msg.from?.id ? String(msg.from.id) : "";
+      const senderUsername = msg.from?.username ?? "";
+      const commandAuthorized = isSenderAllowed({
+        allow: isGroup ? effectiveGroupAllow : effectiveDmAllow,
+        senderId,
+        senderUsername,
+      });
+      const wasMentioned =
+        (Boolean(botUsername) && hasBotMention(msg, botUsername)) ||
+        matchesMentionPatterns(msg.text ?? msg.caption ?? "", mentionRegexes);
+      const hasAnyMention = (msg.entities ?? msg.caption_entities ?? []).some(
+        (ent) => ent.type === "mention",
+      );
+      const requireMention = resolveGroupRequireMention(chatId);
+      const shouldBypassMention =
+        isGroup &&
+        requireMention &&
+        !wasMentioned &&
+        !hasAnyMention &&
+        commandAuthorized &&
+        hasControlCommand(msg.text ?? msg.caption ?? "");
+      const canDetectMention =
+        Boolean(botUsername) || mentionRegexes.length > 0;
+      if (isGroup && requireMention && canDetectMention) {
+        if (!wasMentioned && !shouldBypassMention) {
+          logger.info(
+            { chatId, reason: "no-mention" },
+            "skipping group message",
+          );
           return;
         }
       }
-    }
 
-    const botUsername = primaryCtx.me?.username?.toLowerCase();
-    const senderId = msg.from?.id ? String(msg.from.id) : "";
-    const senderUsername = msg.from?.username ?? "";
-    const commandAuthorized = isSenderAllowed({
-      allow: isGroup ? effectiveGroupAllow : effectiveDmAllow,
-      senderId,
-      senderUsername,
-    });
-    const wasMentioned =
-      (Boolean(botUsername) && hasBotMention(msg, botUsername)) ||
-      matchesMentionPatterns(msg.text ?? msg.caption ?? "", mentionRegexes);
-    const hasAnyMention = (msg.entities ?? msg.caption_entities ?? []).some(
-      (ent) => ent.type === "mention",
-    );
-    const requireMention = resolveGroupRequireMention(chatId);
-    const shouldBypassMention =
-      isGroup &&
-      requireMention &&
-      !wasMentioned &&
-      !hasAnyMention &&
-      commandAuthorized &&
-      hasControlCommand(msg.text ?? msg.caption ?? "");
-    const canDetectMention = Boolean(botUsername) || mentionRegexes.length > 0;
-    if (isGroup && requireMention && canDetectMention) {
-      if (!wasMentioned && !shouldBypassMention) {
-        logger.info({ chatId, reason: "no-mention" }, "skipping group message");
-        return;
-      }
-    }
-
-    // ACK reactions
-    const shouldAckReaction = () => {
-      if (!ackReaction) return false;
-      if (ackReactionScope === "all") return true;
-      if (ackReactionScope === "direct") return !isGroup;
-      if (ackReactionScope === "group-all") return isGroup;
-      if (ackReactionScope === "group-mentions") {
-        if (!isGroup) return false;
-        if (!requireMention) return false;
-        if (!canDetectMention) return false;
-        return wasMentioned || shouldBypassMention;
-      }
-      return false;
-    };
-    if (shouldAckReaction() && msg.message_id) {
-      const api = bot.api as unknown as {
-        setMessageReaction?: (
-          chatId: number | string,
-          messageId: number,
-          reactions: Array<{ type: "emoji"; emoji: string }>,
-        ) => Promise<void>;
+      // ACK reactions
+      const shouldAckReaction = () => {
+        if (!ackReaction) return false;
+        if (ackReactionScope === "all") return true;
+        if (ackReactionScope === "direct") return !isGroup;
+        if (ackReactionScope === "group-all") return isGroup;
+        if (ackReactionScope === "group-mentions") {
+          if (!isGroup) return false;
+          if (!requireMention) return false;
+          if (!canDetectMention) return false;
+          return wasMentioned || shouldBypassMention;
+        }
+        return false;
       };
-      if (typeof api.setMessageReaction === "function") {
-        api
-          .setMessageReaction(chatId, msg.message_id, [
-            { type: "emoji", emoji: ackReaction },
-          ])
-          .catch((err) => {
-            logVerbose(
-              `telegram react failed for chat ${chatId}: ${String(err)}`,
+      if (shouldAckReaction() && msg.message_id) {
+        const api = bot.api as unknown as {
+          setMessageReaction?: (
+            chatId: number | string,
+            messageId: number,
+            reactions: Array<{ type: "emoji"; emoji: string }>,
+          ) => Promise<void>;
+        };
+        if (typeof api.setMessageReaction === "function") {
+          api
+            .setMessageReaction(chatId, msg.message_id, [
+              { type: "emoji", emoji: ackReaction },
+            ])
+            .catch((err) => {
+              logVerbose(
+                `telegram react failed for chat ${chatId}: ${String(err)}`,
+              );
+            });
+        }
+      }
+
+      let placeholder = "";
+      if (msg.photo) placeholder = "<media:image>";
+      else if (msg.video) placeholder = "<media:video>";
+      else if (msg.audio || msg.voice) placeholder = "<media:audio>";
+      else if (msg.document) placeholder = "<media:document>";
+
+      const replyTarget = describeReplyTarget(msg);
+      const locationData = extractTelegramLocation(msg);
+      const locationText = locationData
+        ? formatLocationText(locationData)
+        : undefined;
+      const rawText = (msg.text ?? msg.caption ?? "").trim();
+      let rawBody = [rawText, locationText].filter(Boolean).join("\n").trim();
+      if (!rawBody) rawBody = placeholder;
+      if (!rawBody && allMedia.length === 0) return;
+
+      let bodyText = rawBody;
+      if (!bodyText && allMedia.length > 0) {
+        bodyText = `<media:image>${allMedia.length > 1 ? ` (${allMedia.length} images)` : ""}`;
+      }
+
+      const replySuffix = replyTarget
+        ? `\n\n[Replying to ${replyTarget.sender}${
+            replyTarget.id ? ` id:${replyTarget.id}` : ""
+          }]\n${replyTarget.body}\n[/Replying]`
+        : "";
+      const body = formatAgentEnvelope({
+        provider: "Telegram",
+        from: isGroup
+          ? buildGroupFromLabel(msg, chatId, senderId, messageThreadId)
+          : buildSenderLabel(msg, senderId || chatId),
+        timestamp: msg.date ? msg.date * 1000 : undefined,
+        body: `${bodyText}${replySuffix}`,
+      });
+
+      const route = resolveAgentRoute({
+        cfg,
+        provider: "telegram",
+        peer: {
+          kind: isGroup ? "group" : "dm",
+          id: messageThreadId
+            ? `${chatId}:topic:${messageThreadId}`
+            : String(chatId),
+        },
+      });
+      const ctxPayload = {
+        Body: body,
+        From: isGroup
+          ? messageThreadId
+            ? `telegram:group:${chatId}:topic:${messageThreadId}`
+            : `telegram:group:${chatId}`
+          : `telegram:${chatId}`,
+        To: `telegram:${chatId}`,
+        SessionKey: route.sessionKey,
+        AccountId: route.accountId,
+        ChatType: isGroup ? "group" : "direct",
+        GroupSubject: isGroup ? (msg.chat.title ?? undefined) : undefined,
+        SenderName: buildSenderName(msg),
+        SenderId: senderId || undefined,
+        SenderUsername: senderUsername || undefined,
+        Provider: "telegram",
+        MessageSid: String(msg.message_id),
+        ReplyToId: replyTarget?.id,
+        ReplyToBody: replyTarget?.body,
+        ReplyToSender: replyTarget?.sender,
+        Timestamp: msg.date ? msg.date * 1000 : undefined,
+        WasMentioned: isGroup ? wasMentioned : undefined,
+        MediaPath: allMedia[0]?.path,
+        MediaType: allMedia[0]?.contentType,
+        MediaUrl: allMedia[0]?.path,
+        MediaPaths:
+          allMedia.length > 0 ? allMedia.map((m) => m.path) : undefined,
+        MediaUrls:
+          allMedia.length > 0 ? allMedia.map((m) => m.path) : undefined,
+        MediaTypes:
+          allMedia.length > 0
+            ? (allMedia.map((m) => m.contentType).filter(Boolean) as string[])
+            : undefined,
+        ...(locationData ? toLocationContext(locationData) : undefined),
+        CommandAuthorized: commandAuthorized,
+      };
+
+      if (replyTarget && shouldLogVerbose()) {
+        const preview = replyTarget.body.replace(/\s+/g, " ").slice(0, 120);
+        logVerbose(
+          `telegram reply-context: replyToId=${replyTarget.id} replyToSender=${replyTarget.sender} replyToBody="${preview}"`,
+        );
+      }
+
+      if (!isGroup) {
+        const sessionCfg = cfg.session;
+        const storePath = resolveStorePath(sessionCfg?.store, {
+          agentId: route.agentId,
+        });
+        await updateLastRoute({
+          storePath,
+          sessionKey: route.mainSessionKey,
+          provider: "telegram",
+          to: String(chatId),
+          accountId: route.accountId,
+        });
+      }
+
+      if (shouldLogVerbose()) {
+        const preview = body.slice(0, 200).replace(/\n/g, "\\n");
+        const mediaInfo =
+          allMedia.length > 1 ? ` mediaCount=${allMedia.length}` : "";
+        const topicInfo = messageThreadId ? ` topic=${messageThreadId}` : "";
+        logVerbose(
+          `telegram inbound: chatId=${chatId} from=${ctxPayload.From} len=${body.length}${mediaInfo}${topicInfo} preview="${preview}"`,
+        );
+      }
+
+      const { dispatcher, replyOptions, markDispatchIdle } =
+        createReplyDispatcherWithTyping({
+          responsePrefix: cfg.messages?.responsePrefix,
+          deliver: async (payload) => {
+            await deliverReplies({
+              replies: [payload],
+              chatId: String(chatId),
+              token: opts.token,
+              runtime,
+              bot,
+              replyToMode,
+              textLimit,
+              messageThreadId,
+            });
+          },
+          onError: (err, info) => {
+            runtime.error?.(
+              danger(`telegram ${info.kind} reply failed: ${String(err)}`),
             );
-          });
+          },
+          onReplyStart: sendTyping,
+        });
+
+      const { queuedFinal } = await dispatchReplyFromConfig({
+        ctx: ctxPayload,
+        cfg,
+        dispatcher,
+        replyOptions,
+      });
+      markDispatchIdle();
+      if (!queuedFinal) return;
+    } finally {
+      // Release session lock
+      resolveSession?.();
+      if (sessionLocks.get(sessionKey) === current) {
+        sessionLocks.delete(sessionKey);
       }
     }
-
-    let placeholder = "";
-    if (msg.photo) placeholder = "<media:image>";
-    else if (msg.video) placeholder = "<media:video>";
-    else if (msg.audio || msg.voice) placeholder = "<media:audio>";
-    else if (msg.document) placeholder = "<media:document>";
-
-    const replyTarget = describeReplyTarget(msg);
-    const locationData = extractTelegramLocation(msg);
-    const locationText = locationData
-      ? formatLocationText(locationData)
-      : undefined;
-    const rawText = (msg.text ?? msg.caption ?? "").trim();
-    let rawBody = [rawText, locationText].filter(Boolean).join("\n").trim();
-    if (!rawBody) rawBody = placeholder;
-    if (!rawBody && allMedia.length === 0) return;
-
-    let bodyText = rawBody;
-    if (!bodyText && allMedia.length > 0) {
-      bodyText = `<media:image>${allMedia.length > 1 ? ` (${allMedia.length} images)` : ""}`;
-    }
-
-    const replySuffix = replyTarget
-      ? `\n\n[Replying to ${replyTarget.sender}${
-          replyTarget.id ? ` id:${replyTarget.id}` : ""
-        }]\n${replyTarget.body}\n[/Replying]`
-      : "";
-    const body = formatAgentEnvelope({
-      provider: "Telegram",
-      from: isGroup
-        ? buildGroupFromLabel(msg, chatId, senderId, messageThreadId)
-        : buildSenderLabel(msg, senderId || chatId),
-      timestamp: msg.date ? msg.date * 1000 : undefined,
-      body: `${bodyText}${replySuffix}`,
-    });
-
-    const route = resolveAgentRoute({
-      cfg,
-      provider: "telegram",
-      peer: {
-        kind: isGroup ? "group" : "dm",
-        id: messageThreadId
-          ? `${chatId}:topic:${messageThreadId}`
-          : String(chatId),
-      },
-    });
-    const ctxPayload = {
-      Body: body,
-      From: isGroup
-        ? messageThreadId
-          ? `telegram:group:${chatId}:topic:${messageThreadId}`
-          : `telegram:group:${chatId}`
-        : `telegram:${chatId}`,
-      To: `telegram:${chatId}`,
-      SessionKey: route.sessionKey,
-      AccountId: route.accountId,
-      ChatType: isGroup ? "group" : "direct",
-      GroupSubject: isGroup ? (msg.chat.title ?? undefined) : undefined,
-      SenderName: buildSenderName(msg),
-      SenderId: senderId || undefined,
-      SenderUsername: senderUsername || undefined,
-      Provider: "telegram",
-      MessageSid: String(msg.message_id),
-      ReplyToId: replyTarget?.id,
-      ReplyToBody: replyTarget?.body,
-      ReplyToSender: replyTarget?.sender,
-      Timestamp: msg.date ? msg.date * 1000 : undefined,
-      WasMentioned: isGroup ? wasMentioned : undefined,
-      MediaPath: allMedia[0]?.path,
-      MediaType: allMedia[0]?.contentType,
-      MediaUrl: allMedia[0]?.path,
-      MediaPaths: allMedia.length > 0 ? allMedia.map((m) => m.path) : undefined,
-      MediaUrls: allMedia.length > 0 ? allMedia.map((m) => m.path) : undefined,
-      MediaTypes:
-        allMedia.length > 0
-          ? (allMedia.map((m) => m.contentType).filter(Boolean) as string[])
-          : undefined,
-      ...(locationData ? toLocationContext(locationData) : undefined),
-      CommandAuthorized: commandAuthorized,
-    };
-
-    if (replyTarget && shouldLogVerbose()) {
-      const preview = replyTarget.body.replace(/\s+/g, " ").slice(0, 120);
-      logVerbose(
-        `telegram reply-context: replyToId=${replyTarget.id} replyToSender=${replyTarget.sender} replyToBody="${preview}"`,
-      );
-    }
-
-    if (!isGroup) {
-      const sessionCfg = cfg.session;
-      const storePath = resolveStorePath(sessionCfg?.store, {
-        agentId: route.agentId,
-      });
-      await updateLastRoute({
-        storePath,
-        sessionKey: route.mainSessionKey,
-        provider: "telegram",
-        to: String(chatId),
-        accountId: route.accountId,
-      });
-    }
-
-    if (shouldLogVerbose()) {
-      const preview = body.slice(0, 200).replace(/\n/g, "\\n");
-      const mediaInfo =
-        allMedia.length > 1 ? ` mediaCount=${allMedia.length}` : "";
-      const topicInfo = messageThreadId ? ` topic=${messageThreadId}` : "";
-      logVerbose(
-        `telegram inbound: chatId=${chatId} from=${ctxPayload.From} len=${body.length}${mediaInfo}${topicInfo} preview="${preview}"`,
-      );
-    }
-
-    const { dispatcher, replyOptions, markDispatchIdle } =
-      createReplyDispatcherWithTyping({
-        responsePrefix: cfg.messages?.responsePrefix,
-        deliver: async (payload) => {
-          await deliverReplies({
-            replies: [payload],
-            chatId: String(chatId),
-            token: opts.token,
-            runtime,
-            bot,
-            replyToMode,
-            textLimit,
-            messageThreadId,
-          });
-        },
-        onError: (err, info) => {
-          runtime.error?.(
-            danger(`telegram ${info.kind} reply failed: ${String(err)}`),
-          );
-        },
-        onReplyStart: sendTyping,
-      });
-
-    const { queuedFinal } = await dispatchReplyFromConfig({
-      ctx: ctxPayload,
-      cfg,
-      dispatcher,
-      replyOptions,
-    });
-    markDispatchIdle();
-    if (!queuedFinal) return;
   };
 
   const nativeCommands = nativeEnabled ? listNativeCommandSpecs() : [];
@@ -777,7 +778,14 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       const allMedia = media
         ? [{ path: media.path, contentType: media.contentType }]
         : [];
-      await processMessage(ctx, allMedia, storeAllowFrom);
+      // Fire-and-forget: don't block Grammy's polling loop
+      // Session locking inside processMessage ensures per-session ordering
+      const p = processMessage(ctx, allMedia, storeAllowFrom)
+        .catch((err) => {
+          runtime.error?.(danger(`handler failed: ${String(err)}`));
+        })
+        .finally(() => pendingProcessing.delete(p));
+      pendingProcessing.add(p);
     } catch (err) {
       runtime.error?.(danger(`handler failed: ${String(err)}`));
     }
@@ -806,11 +814,23 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       }
 
       const storeAllowFrom = await readTelegramAllowFromStore().catch(() => []);
-      await processMessage(primaryEntry.ctx, allMedia, storeAllowFrom);
+      // Fire-and-forget: don't block Grammy's polling loop
+      const p = processMessage(primaryEntry.ctx, allMedia, storeAllowFrom)
+        .catch((err) => {
+          runtime.error?.(danger(`media group handler failed: ${String(err)}`));
+        })
+        .finally(() => pendingProcessing.delete(p));
+      pendingProcessing.add(p);
     } catch (err) {
       runtime.error?.(danger(`media group handler failed: ${String(err)}`));
     }
   };
+
+  // Expose a method to wait for all pending processing (for testing)
+  const flushProcessing = () => Promise.all(pendingProcessing);
+  (
+    bot as Bot & { _flushProcessing: () => Promise<undefined[]> }
+  )._flushProcessing = flushProcessing;
 
   return bot;
 }
@@ -935,10 +955,7 @@ function buildSenderName(msg: TelegramMessage) {
   return name || undefined;
 }
 
-function buildSenderLabel(
-  msg: TelegramMessage,
-  senderId?: number | string,
-) {
+function buildSenderLabel(msg: TelegramMessage, senderId?: number | string) {
   const name = buildSenderName(msg);
   const username = msg.from?.username ? `@${msg.from.username}` : undefined;
   let label = name;
@@ -948,9 +965,7 @@ function buildSenderLabel(
     label = username;
   }
   const normalizedSenderId =
-    senderId != null && `${senderId}`.trim()
-      ? `${senderId}`.trim()
-      : undefined;
+    senderId != null && `${senderId}`.trim() ? `${senderId}`.trim() : undefined;
   const fallbackId =
     normalizedSenderId ??
     (msg.from?.id != null ? String(msg.from.id) : undefined);
