@@ -254,6 +254,27 @@ describe("google-shared convertMessages", () => {
     expect(contents[0].parts).toHaveLength(2);
   });
 
+  it("merges consecutive user messages for non-Gemini Google models", () => {
+    const model = makeModel("claude-3-opus");
+    const context = {
+      messages: [
+        {
+          role: "user",
+          content: "First",
+        },
+        {
+          role: "user",
+          content: "Second",
+        },
+      ],
+    } as unknown as Context;
+
+    const contents = convertMessages(model, context);
+    expect(contents).toHaveLength(1);
+    expect(contents[0].role).toBe("user");
+    expect(contents[0].parts).toHaveLength(2);
+  });
+
   it("merges consecutive model messages to satisfy Gemini role alternation", () => {
     const model = makeModel("gemini-1.5-pro");
     const context = {
