@@ -453,7 +453,10 @@ export function resolveAuthProfileOrder(params: {
   if (configuredOrder && configuredOrder.length > 0) {
     // Still put preferredProfile first if specified
     if (preferredProfile && deduped.includes(preferredProfile)) {
-      return [preferredProfile, ...deduped.filter((e) => e !== preferredProfile)];
+      return [
+        preferredProfile,
+        ...deduped.filter((e) => e !== preferredProfile),
+      ];
     }
     return deduped;
   }
