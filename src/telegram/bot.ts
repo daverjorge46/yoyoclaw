@@ -30,7 +30,11 @@ import {
   resolveProviderGroupPolicy,
   resolveProviderGroupRequireMention,
 } from "../config/group-policy.js";
-import { resolveStorePath, updateLastRoute } from "../config/sessions.js";
+import {
+  loadSessionStore,
+  resolveStorePath,
+  updateLastRoute,
+} from "../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../globals.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { getChildLogger } from "../logging.js";
@@ -208,6 +212,27 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       provider: "telegram",
       groupId: String(chatId),
     });
+  const resolveGroupActivation = (params: {
+    chatId: string | number;
+    agentId?: string;
+    messageThreadId?: number;
+    sessionKey?: string;
+  }) => {
+    const agentId = params.agentId ?? cfg.agent?.id ?? "main";
+    const sessionKey =
+      params.sessionKey ??
+      `agent:${agentId}:telegram:group:${buildTelegramGroupPeerId(params.chatId, params.messageThreadId)}`;
+    const storePath = resolveStorePath(cfg.session?.store, { agentId });
+    try {
+      const store = loadSessionStore(storePath);
+      const entry = store[sessionKey];
+      if (entry?.groupActivation === "always") return false;
+      if (entry?.groupActivation === "mention") return true;
+    } catch (err) {
+      logVerbose(`Failed to load session for activation check: ${String(err)}`);
+    }
+    return undefined;
+  };
   const resolveGroupRequireMention = (chatId: string | number) =>
     resolveProviderGroupRequireMention({
       cfg,
@@ -246,6 +271,17 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       chatId,
       messageThreadId,
     );
+    const peerId = isGroup
+      ? buildTelegramGroupPeerId(chatId, messageThreadId)
+      : String(chatId);
+    const route = resolveAgentRoute({
+      cfg,
+      provider: "telegram",
+      peer: {
+        kind: isGroup ? "group" : "dm",
+        id: peerId,
+      },
+    });
     const effectiveDmAllow = normalizeAllowFrom([
       ...(allowFrom ?? []),
       ...storeAllowFrom,
@@ -380,8 +416,15 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     const hasAnyMention = (msg.entities ?? msg.caption_entities ?? []).some(
       (ent) => ent.type === "mention",
     );
+    const activationOverride = resolveGroupActivation({
+      chatId,
+      messageThreadId,
+      sessionKey: route.sessionKey,
+      agentId: route.agentId,
+    });
     const baseRequireMention = resolveGroupRequireMention(chatId);
     const requireMention = firstDefined(
+      activationOverride,
       topicConfig?.requireMention,
       groupConfig?.requireMention,
       baseRequireMention,
@@ -471,16 +514,6 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       body: `${bodyText}${replySuffix}`,
     });
 
-    const route = resolveAgentRoute({
-      cfg,
-      provider: "telegram",
-      peer: {
-        kind: isGroup ? "group" : "dm",
-        id: isGroup
-          ? buildTelegramGroupPeerId(chatId, messageThreadId)
-          : buildTelegramDmPeerId(chatId, messageThreadId),
-      },
-    });
     const skillFilter = firstDefined(topicConfig?.skills, groupConfig?.skills);
     const systemPromptParts = [
       groupConfig?.systemPrompt?.trim() || null,
@@ -825,7 +858,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
             kind: isGroup ? "group" : "dm",
             id: isGroup
               ? buildTelegramGroupPeerId(chatId, messageThreadId)
-              : buildTelegramDmPeerId(chatId, messageThreadId),
+              : String(chatId),
           },
         });
         const skillFilter = firstDefined(
@@ -1208,15 +1241,6 @@ function resolveTelegramStreamMode(
 }
 
 function buildTelegramGroupPeerId(
-  chatId: number | string,
-  messageThreadId?: number,
-) {
-  return messageThreadId != null
-    ? `${chatId}:topic:${messageThreadId}`
-    : String(chatId);
-}
-
-function buildTelegramDmPeerId(
   chatId: number | string,
   messageThreadId?: number,
 ) {
