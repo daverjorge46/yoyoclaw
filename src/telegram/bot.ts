@@ -201,9 +201,7 @@ export function createTelegramBot(opts: TelegramBotOptions) {
       if (entry?.groupActivation === "mention") return true; // requireMention = true
     } catch (err) {
       // Silently fall back to config if session loading fails
-      logVerbose(
-        `Failed to load session for activation check: ${String(err)}`,
-      );
+      logVerbose(`Failed to load session for activation check: ${String(err)}`);
     }
     // Fall back to config
     return resolveProviderGroupRequireMention({
