@@ -1,6 +1,10 @@
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it } from "vitest";
 
-import { buildBootstrapContextFiles } from "./pi-embedded-helpers.js";
+import {
+  buildBootstrapContextFiles,
+  sanitizeGoogleTurnOrdering,
+} from "./pi-embedded-helpers.js";
 import {
   DEFAULT_AGENTS_FILENAME,
   type WorkspaceBootstrapFile,
@@ -44,5 +48,28 @@ describe("buildBootstrapContextFiles", () => {
     expect(result?.content.length).toBeLessThan(long.length);
     expect(result?.content.startsWith(long.slice(0, 120))).toBe(true);
     expect(result?.content.endsWith(long.slice(-120))).toBe(true);
+  });
+});
+
+describe("sanitizeGoogleTurnOrdering", () => {
+  it("prepends a synthetic user turn when history starts with assistant", () => {
+    const input = [
+      {
+        role: "assistant",
+        content: [
+          { type: "toolCall", id: "call_1", name: "bash", arguments: {} },
+        ],
+      },
+    ] satisfies AgentMessage[];
+
+    const out = sanitizeGoogleTurnOrdering(input);
+    expect(out[0]?.role).toBe("user");
+    expect(out[1]?.role).toBe("assistant");
+  });
+
+  it("is a no-op when history starts with user", () => {
+    const input = [{ role: "user", content: "hi" }] satisfies AgentMessage[];
+    const out = sanitizeGoogleTurnOrdering(input);
+    expect(out).toBe(input);
   });
 });

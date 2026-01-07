@@ -56,6 +56,7 @@ import {
   isRateLimitAssistantError,
   isRateLimitErrorMessage,
   pickFallbackThinkingLevel,
+  sanitizeGoogleTurnOrdering,
   sanitizeSessionMessagesImages,
 } from "./pi-embedded-helpers.js";
 import {
@@ -601,10 +602,27 @@ export async function compactEmbeddedPiSession(params: {
         });
 
         try {
-          const prior = await sanitizeSessionMessagesImages(
+          const sanitizedImages = await sanitizeSessionMessagesImages(
             session.messages,
             "session:history",
           );
+          const needsGoogleBootstrap =
+            (model.api === "google-gemini-cli" ||
+              model.api === "google-generative-ai") &&
+            sanitizedImages[0] &&
+            typeof sanitizedImages[0] === "object" &&
+            "role" in sanitizedImages[0] &&
+            sanitizedImages[0].role === "assistant";
+          const prior =
+            model.api === "google-gemini-cli" ||
+            model.api === "google-generative-ai"
+              ? sanitizeGoogleTurnOrdering(sanitizedImages)
+              : sanitizedImages;
+          if (needsGoogleBootstrap) {
+            log.warn(
+              `google turn ordering fixup: prepended user bootstrap (sessionId=${params.sessionId})`,
+            );
+          }
           if (prior.length > 0) {
             session.agent.replaceMessages(prior);
           }
@@ -915,8 +933,25 @@ export async function runEmbeddedPiAgent(params: {
             session.messages,
             "session:history",
           );
-          if (prior.length > 0) {
-            session.agent.replaceMessages(prior);
+          const needsGoogleBootstrap =
+            (model.api === "google-gemini-cli" ||
+              model.api === "google-generative-ai") &&
+            prior[0] &&
+            typeof prior[0] === "object" &&
+            "role" in prior[0] &&
+            prior[0].role === "assistant";
+          const sanitizedPrior =
+            model.api === "google-gemini-cli" ||
+            model.api === "google-generative-ai"
+              ? sanitizeGoogleTurnOrdering(prior)
+              : prior;
+          if (needsGoogleBootstrap) {
+            log.warn(
+              `google turn ordering fixup: prepended user bootstrap (sessionId=${params.sessionId})`,
+            );
+          }
+          if (sanitizedPrior.length > 0) {
+            session.agent.replaceMessages(sanitizedPrior);
           }
           let aborted = Boolean(params.abortSignal?.aborted);
           let timedOut = false;
@@ -997,7 +1032,10 @@ export async function runEmbeddedPiAgent(params: {
               `embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`,
             );
             try {
-              await session.prompt(params.prompt);
+              const prompt = params.prompt.trim()
+                ? params.prompt
+                : "(empty prompt)";
+              await session.prompt(prompt);
             } catch (err) {
               promptError = err;
             } finally {
