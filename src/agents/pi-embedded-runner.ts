@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type {
   AgentMessage,
@@ -16,7 +18,6 @@ import {
   SettingsManager,
   type Skill,
 } from "@mariozechner/pi-coding-agent";
-import type { TSchema } from "@sinclair/typebox";
 import { resolveHeartbeatPrompt } from "../auto-reply/heartbeat.js";
 import type {
   ReasoningLevel,
@@ -40,7 +41,11 @@ import {
   markAuthProfileUsed,
 } from "./auth-profiles.js";
 import type { BashElevatedDefaults } from "./bash-tools.js";
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
+import {
+  DEFAULT_CONTEXT_TOKENS,
+  DEFAULT_MODEL,
+  DEFAULT_PROVIDER,
+} from "./defaults.js";
 import {
   ensureAuthProfileStore,
   getApiKeyForModel,
@@ -53,9 +58,12 @@ import {
   formatAssistantErrorText,
   isAuthAssistantError,
   isAuthErrorMessage,
+  isContextOverflowError,
+  isGoogleModelApi,
   isRateLimitAssistantError,
   isRateLimitErrorMessage,
   pickFallbackThinkingLevel,
+  sanitizeGoogleTurnOrdering,
   sanitizeSessionMessagesImages,
 } from "./pi-embedded-helpers.js";
 import {
@@ -67,6 +75,9 @@ import {
   extractAssistantThinking,
   formatReasoningMarkdown,
 } from "./pi-embedded-utils.js";
+import { setContextPruningRuntime } from "./pi-extensions/context-pruning/runtime.js";
+import { computeEffectiveSettings } from "./pi-extensions/context-pruning/settings.js";
+import { makeToolPrunablePredicate } from "./pi-extensions/context-pruning/tools.js";
 import { toToolDefinitions } from "./pi-tool-definition-adapter.js";
 import { createClawdbotCodingTools } from "./pi-tools.js";
 import { resolveSandboxContext } from "./sandbox.js";
@@ -81,6 +92,84 @@ import {
 import { buildAgentSystemPromptAppend } from "./system-prompt.js";
 import { normalizeUsage, type UsageLike } from "./usage.js";
 import { loadWorkspaceBootstrapFiles } from "./workspace.js";
+
+// Optional features can be implemented as Pi extensions that run in the same Node process.
+// We configure context pruning per-session via a WeakMap registry keyed by the SessionManager instance.
+
+function resolvePiExtensionPath(id: string): string {
+  const self = fileURLToPath(import.meta.url);
+  const dir = path.dirname(self);
+  // In dev this file is `.ts` (tsx), in production it's `.js`.
+  const ext = path.extname(self) === ".ts" ? "ts" : "js";
+  return path.join(dir, "pi-extensions", `${id}.${ext}`);
+}
+
+function resolveContextWindowTokens(params: {
+  cfg: ClawdbotConfig | undefined;
+  provider: string;
+  modelId: string;
+  model: Model<Api> | undefined;
+}): number {
+  const fromModel =
+    typeof params.model?.contextWindow === "number" &&
+    Number.isFinite(params.model.contextWindow) &&
+    params.model.contextWindow > 0
+      ? params.model.contextWindow
+      : undefined;
+  if (fromModel) return fromModel;
+
+  const fromModelsConfig = (() => {
+    const providers = params.cfg?.models?.providers as
+      | Record<
+          string,
+          { models?: Array<{ id?: string; contextWindow?: number }> }
+        >
+      | undefined;
+    const providerEntry = providers?.[params.provider];
+    const models = Array.isArray(providerEntry?.models)
+      ? providerEntry.models
+      : [];
+    const match = models.find((m) => m?.id === params.modelId);
+    return typeof match?.contextWindow === "number" && match.contextWindow > 0
+      ? match.contextWindow
+      : undefined;
+  })();
+  if (fromModelsConfig) return fromModelsConfig;
+
+  const fromAgentConfig =
+    typeof params.cfg?.agent?.contextTokens === "number" &&
+    Number.isFinite(params.cfg.agent.contextTokens) &&
+    params.cfg.agent.contextTokens > 0
+      ? Math.floor(params.cfg.agent.contextTokens)
+      : undefined;
+  if (fromAgentConfig) return fromAgentConfig;
+
+  return DEFAULT_CONTEXT_TOKENS;
+}
+
+function buildContextPruningExtension(params: {
+  cfg: ClawdbotConfig | undefined;
+  sessionManager: SessionManager;
+  provider: string;
+  modelId: string;
+  model: Model<Api> | undefined;
+}): { additionalExtensionPaths?: string[] } {
+  const raw = params.cfg?.agent?.contextPruning;
+  if (raw?.mode !== "adaptive" && raw?.mode !== "aggressive") return {};
+
+  const settings = computeEffectiveSettings(raw);
+  if (!settings) return {};
+
+  setContextPruningRuntime(params.sessionManager, {
+    settings,
+    contextWindowTokens: resolveContextWindowTokens(params),
+    isToolPrunable: makeToolPrunablePredicate(settings.tools),
+  });
+
+  return {
+    additionalExtensionPaths: [resolvePiExtensionPath("context-pruning")],
+  };
+}
 
 export type EmbeddedPiAgentMeta = {
   sessionId: string;
@@ -155,6 +244,80 @@ type EmbeddedPiQueueHandle = {
 };
 
 const log = createSubsystemLogger("agent/embedded");
+const GOOGLE_TURN_ORDERING_CUSTOM_TYPE = "google-turn-ordering-bootstrap";
+
+type CustomEntryLike = { type?: unknown; customType?: unknown };
+
+function hasGoogleTurnOrderingMarker(sessionManager: SessionManager): boolean {
+  try {
+    return sessionManager
+      .getEntries()
+      .some(
+        (entry) =>
+          (entry as CustomEntryLike)?.type === "custom" &&
+          (entry as CustomEntryLike)?.customType ===
+            GOOGLE_TURN_ORDERING_CUSTOM_TYPE,
+      );
+  } catch {
+    return false;
+  }
+}
+
+function markGoogleTurnOrderingMarker(sessionManager: SessionManager): void {
+  try {
+    sessionManager.appendCustomEntry(GOOGLE_TURN_ORDERING_CUSTOM_TYPE, {
+      timestamp: Date.now(),
+    });
+  } catch {
+    // ignore marker persistence failures
+  }
+}
+
+export function applyGoogleTurnOrderingFix(params: {
+  messages: AgentMessage[];
+  modelApi?: string | null;
+  sessionManager: SessionManager;
+  sessionId: string;
+  warn?: (message: string) => void;
+}): { messages: AgentMessage[]; didPrepend: boolean } {
+  if (!isGoogleModelApi(params.modelApi)) {
+    return { messages: params.messages, didPrepend: false };
+  }
+  const first = params.messages[0] as
+    | { role?: unknown; content?: unknown }
+    | undefined;
+  if (first?.role !== "assistant") {
+    return { messages: params.messages, didPrepend: false };
+  }
+  const sanitized = sanitizeGoogleTurnOrdering(params.messages);
+  const didPrepend = sanitized !== params.messages;
+  if (didPrepend && !hasGoogleTurnOrderingMarker(params.sessionManager)) {
+    const warn = params.warn ?? ((message: string) => log.warn(message));
+    warn(
+      `google turn ordering fixup: prepended user bootstrap (sessionId=${params.sessionId})`,
+    );
+    markGoogleTurnOrderingMarker(params.sessionManager);
+  }
+  return { messages: sanitized, didPrepend };
+}
+
+async function sanitizeSessionHistory(params: {
+  messages: AgentMessage[];
+  modelApi?: string | null;
+  sessionManager: SessionManager;
+  sessionId: string;
+}): Promise<AgentMessage[]> {
+  const sanitizedImages = await sanitizeSessionMessagesImages(
+    params.messages,
+    "session:history",
+  );
+  return applyGoogleTurnOrderingFix({
+    messages: sanitizedImages,
+    modelApi: params.modelApi,
+    sessionManager: params.sessionManager,
+    sessionId: params.sessionId,
+  }).messages;
+}
 
 const ACTIVE_EMBEDDED_RUNS = new Map<string, EmbeddedPiQueueHandle>();
 type EmbeddedRunWaiter = {
@@ -269,7 +432,7 @@ export function buildEmbeddedSandboxInfo(
 
 const BUILT_IN_TOOL_NAMES = new Set(["read", "bash", "edit", "write"]);
 
-type AnyAgentTool = AgentTool<TSchema, unknown>;
+type AnyAgentTool = AgentTool;
 
 export function splitSdkTools(options: {
   tools: AnyAgentTool[];
@@ -578,13 +741,22 @@ export async function compactEmbeddedPiSession(params: {
           effectiveWorkspace,
           agentDir,
         );
+        const pruning = buildContextPruningExtension({
+          cfg: params.config,
+          sessionManager,
+          provider,
+          modelId,
+          model,
+        });
+        const additionalExtensionPaths = pruning.additionalExtensionPaths;
 
         const { builtInTools, customTools } = splitSdkTools({
           tools,
           sandboxEnabled: !!sandbox?.enabled,
         });
 
-        const { session } = await createAgentSession({
+        let session: Awaited<ReturnType<typeof createAgentSession>>["session"];
+        ({ session } = await createAgentSession({
           cwd: resolvedWorkspace,
           agentDir,
           authStorage,
@@ -598,13 +770,16 @@ export async function compactEmbeddedPiSession(params: {
           settingsManager,
           skills: promptSkills,
           contextFiles,
-        });
+          additionalExtensionPaths,
+        }));
 
         try {
-          const prior = await sanitizeSessionMessagesImages(
-            session.messages,
-            "session:history",
-          );
+          const prior = await sanitizeSessionHistory({
+            messages: session.messages,
+            modelApi: model.api,
+            sessionManager,
+            sessionId: params.sessionId,
+          });
           if (prior.length > 0) {
             session.agent.replaceMessages(prior);
           }
@@ -887,13 +1062,24 @@ export async function runEmbeddedPiAgent(params: {
             effectiveWorkspace,
             agentDir,
           );
+          const pruning = buildContextPruningExtension({
+            cfg: params.config,
+            sessionManager,
+            provider,
+            modelId,
+            model,
+          });
+          const additionalExtensionPaths = pruning.additionalExtensionPaths;
 
           const { builtInTools, customTools } = splitSdkTools({
             tools,
             sandboxEnabled: !!sandbox?.enabled,
           });
 
-          const { session } = await createAgentSession({
+          let session: Awaited<
+            ReturnType<typeof createAgentSession>
+          >["session"];
+          ({ session } = await createAgentSession({
             cwd: resolvedWorkspace,
             agentDir,
             authStorage,
@@ -909,14 +1095,22 @@ export async function runEmbeddedPiAgent(params: {
             settingsManager,
             skills: promptSkills,
             contextFiles,
-          });
+            additionalExtensionPaths,
+          }));
 
-          const prior = await sanitizeSessionMessagesImages(
-            session.messages,
-            "session:history",
-          );
-          if (prior.length > 0) {
-            session.agent.replaceMessages(prior);
+          try {
+            const prior = await sanitizeSessionHistory({
+              messages: session.messages,
+              modelApi: model.api,
+              sessionManager,
+              sessionId: params.sessionId,
+            });
+            if (prior.length > 0) {
+              session.agent.replaceMessages(prior);
+            }
+          } catch (err) {
+            session.dispose();
+            throw err;
           }
           let aborted = Boolean(params.abortSignal?.aborted);
           let timedOut = false;
@@ -925,21 +1119,27 @@ export async function runEmbeddedPiAgent(params: {
             if (isTimeout) timedOut = true;
             void session.abort();
           };
-          const subscription = subscribeEmbeddedPiSession({
-            session,
-            runId: params.runId,
-            verboseLevel: params.verboseLevel,
-            reasoningMode: params.reasoningLevel ?? "off",
-            shouldEmitToolResult: params.shouldEmitToolResult,
-            onToolResult: params.onToolResult,
-            onReasoningStream: params.onReasoningStream,
-            onBlockReply: params.onBlockReply,
-            blockReplyBreak: params.blockReplyBreak,
-            blockReplyChunking: params.blockReplyChunking,
-            onPartialReply: params.onPartialReply,
-            onAgentEvent: params.onAgentEvent,
-            enforceFinalTag: params.enforceFinalTag,
-          });
+          let subscription: ReturnType<typeof subscribeEmbeddedPiSession>;
+          try {
+            subscription = subscribeEmbeddedPiSession({
+              session,
+              runId: params.runId,
+              verboseLevel: params.verboseLevel,
+              reasoningMode: params.reasoningLevel ?? "off",
+              shouldEmitToolResult: params.shouldEmitToolResult,
+              onToolResult: params.onToolResult,
+              onReasoningStream: params.onReasoningStream,
+              onBlockReply: params.onBlockReply,
+              blockReplyBreak: params.blockReplyBreak,
+              blockReplyChunking: params.blockReplyChunking,
+              onPartialReply: params.onPartialReply,
+              onAgentEvent: params.onAgentEvent,
+              enforceFinalTag: params.enforceFinalTag,
+            });
+          } catch (err) {
+            session.dispose();
+            throw err;
+          }
           const {
             assistantTexts,
             toolMetas,
@@ -1033,6 +1233,26 @@ export async function runEmbeddedPiAgent(params: {
           }
           if (promptError && !aborted) {
             const errorText = describeUnknownError(promptError);
+            if (isContextOverflowError(errorText)) {
+              return {
+                payloads: [
+                  {
+                    text:
+                      "Context overflow: the conversation history is too large for the model. " +
+                      "Use /new or /reset to start a fresh session, or try a model with a larger context window.",
+                    isError: true,
+                  },
+                ],
+                meta: {
+                  durationMs: Date.now() - started,
+                  agentMeta: {
+                    sessionId: sessionIdUsed,
+                    provider,
+                    model: model.id,
+                  },
+                },
+              };
+            }
             if (
               (isAuthErrorMessage(errorText) ||
                 isRateLimitErrorMessage(errorText)) &&

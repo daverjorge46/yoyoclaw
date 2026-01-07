@@ -226,16 +226,33 @@ function resolveSandboxScopeKey(scope: SandboxScope, sessionKey: string) {
   return `agent:${agentId}`;
 }
 
-function defaultSandboxConfig(cfg?: ClawdbotConfig): SandboxConfig {
+function defaultSandboxConfig(
+  cfg?: ClawdbotConfig,
+  agentId?: string,
+): SandboxConfig {
   const agent = cfg?.agent?.sandbox;
+
+  // Agent-specific sandbox config overrides global
+  let agentSandbox: typeof agent | undefined;
+  if (agentId && cfg?.routing?.agents) {
+    const agentConfig = cfg.routing.agents[agentId];
+    if (agentConfig && typeof agentConfig === "object") {
+      agentSandbox = agentConfig.sandbox;
+    }
+  }
+
   return {
-    mode: agent?.mode ?? "off",
+    mode: agentSandbox?.mode ?? agent?.mode ?? "off",
     scope: resolveSandboxScope({
-      scope: agent?.scope,
-      perSession: agent?.perSession,
+      scope: agentSandbox?.scope ?? agent?.scope,
+      perSession: agentSandbox?.perSession ?? agent?.perSession,
     }),
-    workspaceAccess: agent?.workspaceAccess ?? "none",
-    workspaceRoot: agent?.workspaceRoot ?? DEFAULT_SANDBOX_WORKSPACE_ROOT,
+    workspaceAccess:
+      agentSandbox?.workspaceAccess ?? agent?.workspaceAccess ?? "none",
+    workspaceRoot:
+      agentSandbox?.workspaceRoot ??
+      agent?.workspaceRoot ??
+      DEFAULT_SANDBOX_WORKSPACE_ROOT,
     docker: {
       image: agent?.docker?.image ?? DEFAULT_SANDBOX_IMAGE,
       containerPrefix:
@@ -271,8 +288,10 @@ function defaultSandboxConfig(cfg?: ClawdbotConfig): SandboxConfig {
       enableNoVnc: agent?.browser?.enableNoVnc ?? true,
     },
     tools: {
-      allow: agent?.tools?.allow ?? DEFAULT_TOOL_ALLOW,
-      deny: agent?.tools?.deny ?? DEFAULT_TOOL_DENY,
+      allow:
+        agentSandbox?.tools?.allow ?? agent?.tools?.allow ?? DEFAULT_TOOL_ALLOW,
+      deny:
+        agentSandbox?.tools?.deny ?? agent?.tools?.deny ?? DEFAULT_TOOL_DENY,
     },
     prune: {
       idleHours: agent?.prune?.idleHours ?? DEFAULT_SANDBOX_IDLE_HOURS,
@@ -924,7 +943,8 @@ export async function resolveSandboxContext(params: {
 }): Promise<SandboxContext | null> {
   const rawSessionKey = params.sessionKey?.trim();
   if (!rawSessionKey) return null;
-  const cfg = defaultSandboxConfig(params.config);
+  const agentId = resolveAgentIdFromSessionKey(rawSessionKey);
+  const cfg = defaultSandboxConfig(params.config, agentId);
   const mainKey = params.config?.session?.mainKey?.trim() || "main";
   if (!shouldSandboxSession(cfg, rawSessionKey, mainKey)) return null;
 
@@ -986,7 +1006,8 @@ export async function ensureSandboxWorkspaceForSession(params: {
 }): Promise<SandboxWorkspaceInfo | null> {
   const rawSessionKey = params.sessionKey?.trim();
   if (!rawSessionKey) return null;
-  const cfg = defaultSandboxConfig(params.config);
+  const agentId = resolveAgentIdFromSessionKey(rawSessionKey);
+  const cfg = defaultSandboxConfig(params.config, agentId);
   const mainKey = params.config?.session?.mainKey?.trim() || "main";
   if (!shouldSandboxSession(cfg, rawSessionKey, mainKey)) return null;
 
