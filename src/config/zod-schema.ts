@@ -97,6 +97,7 @@ const QueueModeBySurfaceSchema = z
     slack: QueueModeSchema.optional(),
     signal: QueueModeSchema.optional(),
     imessage: QueueModeSchema.optional(),
+    msteams: QueueModeSchema.optional(),
     webchat: QueueModeSchema.optional(),
   })
   .optional();
@@ -313,6 +314,7 @@ const HookMappingSchema = z
         z.literal("slack"),
         z.literal("signal"),
         z.literal("imessage"),
+        z.literal("msteams"),
       ])
       .optional(),
     to: z.string().optional(),
@@ -569,6 +571,7 @@ export const ClawdbotSchema = z.object({
               slack: z.array(z.union([z.string(), z.number()])).optional(),
               signal: z.array(z.union([z.string(), z.number()])).optional(),
               imessage: z.array(z.union([z.string(), z.number()])).optional(),
+              msteams: z.array(z.union([z.string(), z.number()])).optional(),
               webchat: z.array(z.union([z.string(), z.number()])).optional(),
             })
             .optional(),
@@ -1071,6 +1074,36 @@ export const ClawdbotSchema = z.object({
         path: ["allowFrom"],
         message:
           'imessage.dmPolicy="open" requires imessage.allowFrom to include "*"',
+      });
+    })
+    .optional(),
+  msteams: z
+    .object({
+      enabled: z.boolean().optional(),
+      appId: z.string().optional(),
+      appPassword: z.string().optional(),
+      tenantId: z.string().optional(),
+      webhook: z
+        .object({
+          port: z.number().int().positive().optional(),
+          path: z.string().optional(),
+        })
+        .optional(),
+      dmPolicy: DmPolicySchema.optional().default("pairing"),
+      allowFrom: z.array(z.string()).optional(),
+      textChunkLimit: z.number().int().positive().optional(),
+    })
+    .superRefine((value, ctx) => {
+      if (value.dmPolicy !== "open") return;
+      const allow = (value.allowFrom ?? [])
+        .map((v) => String(v).trim())
+        .filter(Boolean);
+      if (allow.includes("*")) return;
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["allowFrom"],
+        message:
+          'msteams.dmPolicy="open" requires msteams.allowFrom to include "*"',
       });
     })
     .optional(),

@@ -25,7 +25,8 @@ export type HookMappingResolved = {
     | "discord"
     | "slack"
     | "signal"
-    | "imessage";
+    | "imessage"
+    | "msteams";
   to?: string;
   thinking?: string;
   timeoutSeconds?: number;
@@ -64,7 +65,8 @@ export type HookAction =
         | "discord"
         | "slack"
         | "signal"
-        | "imessage";
+        | "imessage"
+        | "msteams";
       to?: string;
       thinking?: string;
       timeoutSeconds?: number;

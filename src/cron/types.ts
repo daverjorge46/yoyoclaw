@@ -21,7 +21,8 @@ export type CronPayload =
         | "discord"
         | "slack"
         | "signal"
-        | "imessage";
+        | "imessage"
+        | "msteams";
       to?: string;
       bestEffortDeliver?: boolean;
     };

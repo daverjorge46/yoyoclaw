@@ -160,6 +160,7 @@ const logDiscord = logProviders.child("discord");
 const logSlack = logProviders.child("slack");
 const logSignal = logProviders.child("signal");
 const logIMessage = logProviders.child("imessage");
+const logMSTeams = logProviders.child("msteams");
 const canvasRuntime = runtimeForLogger(logCanvas);
 const whatsappRuntimeEnv = runtimeForLogger(logWhatsApp);
 const telegramRuntimeEnv = runtimeForLogger(logTelegram);
@@ -167,6 +168,7 @@ const discordRuntimeEnv = runtimeForLogger(logDiscord);
 const slackRuntimeEnv = runtimeForLogger(logSlack);
 const signalRuntimeEnv = runtimeForLogger(logSignal);
 const imessageRuntimeEnv = runtimeForLogger(logIMessage);
+const msteamsRuntimeEnv = runtimeForLogger(logMSTeams);
 
 type GatewayModelChoice = ModelCatalogEntry;
 
@@ -496,7 +498,8 @@ export async function startGatewayServer(
       | "discord"
       | "slack"
       | "signal"
-      | "imessage";
+      | "imessage"
+      | "msteams";
     to?: string;
     thinking?: string;
     timeoutSeconds?: number;
@@ -749,12 +752,14 @@ export async function startGatewayServer(
     logSlack,
     logSignal,
     logIMessage,
+    logMSTeams,
     whatsappRuntimeEnv,
     telegramRuntimeEnv,
     discordRuntimeEnv,
     slackRuntimeEnv,
     signalRuntimeEnv,
     imessageRuntimeEnv,
+    msteamsRuntimeEnv,
   });
   const {
     getRuntimeSnapshot,
@@ -765,12 +770,14 @@ export async function startGatewayServer(
     startSlackProvider,
     startSignalProvider,
     startIMessageProvider,
+    startMSTeamsProvider,
     stopWhatsAppProvider,
     stopTelegramProvider,
     stopDiscordProvider,
     stopSlackProvider,
     stopSignalProvider,
     stopIMessageProvider,
+    stopMSTeamsProvider,
     markWhatsAppLoggedOut,
   } = providerManager;
 

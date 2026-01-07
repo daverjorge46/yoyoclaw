@@ -74,6 +74,7 @@ export type AgentElevatedAllowFromConfig = {
   slack?: Array<string | number>;
   signal?: Array<string | number>;
   imessage?: Array<string | number>;
+  msteams?: Array<string | number>;
   webchat?: Array<string | number>;
 };
 
@@ -191,7 +192,8 @@ export type HookMappingConfig = {
     | "discord"
     | "slack"
     | "signal"
-    | "imessage";
+    | "imessage"
+    | "msteams";
   to?: string;
   thinking?: string;
   timeoutSeconds?: number;
@@ -499,6 +501,32 @@ export type SignalConfig = {
   mediaMaxMb?: number;
 };
 
+export type MSTeamsWebhookConfig = {
+  /** Port for the webhook server. Default: 3978. */
+  port?: number;
+  /** Path for the messages endpoint. Default: /msteams/messages. */
+  path?: string;
+};
+
+export type MSTeamsConfig = {
+  /** If false, do not start the MS Teams provider. Default: true. */
+  enabled?: boolean;
+  /** Azure Bot App ID (from Azure Bot registration). */
+  appId?: string;
+  /** Azure Bot App Password / Client Secret. */
+  appPassword?: string;
+  /** Azure AD Tenant ID (for single-tenant bots). */
+  tenantId?: string;
+  /** Webhook server configuration. */
+  webhook?: MSTeamsWebhookConfig;
+  /** Direct message access policy (default: pairing). */
+  dmPolicy?: DmPolicy;
+  /** Allowlist for DM senders (AAD object IDs or UPNs). */
+  allowFrom?: Array<string>;
+  /** Outbound text chunk size (chars). Default: 4000. */
+  textChunkLimit?: number;
+};
+
 export type IMessageConfig = {
   /** If false, do not start the iMessage provider. Default: true. */
   enabled?: boolean;
@@ -554,6 +582,7 @@ export type QueueModeByProvider = {
   slack?: QueueMode;
   signal?: QueueMode;
   imessage?: QueueMode;
+  msteams?: QueueMode;
   webchat?: QueueMode;
 };
 
@@ -1072,6 +1101,7 @@ export type ClawdbotConfig = {
   slack?: SlackConfig;
   signal?: SignalConfig;
   imessage?: IMessageConfig;
+  msteams?: MSTeamsConfig;
   cron?: CronConfig;
   hooks?: HooksConfig;
   bridge?: BridgeConfig;

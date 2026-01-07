@@ -39,7 +39,8 @@ type HookDispatchers = {
       | "discord"
       | "slack"
       | "signal"
-      | "imessage";
+      | "imessage"
+      | "msteams";
     to?: string;
     thinking?: string;
     timeoutSeconds?: number;

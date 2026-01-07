@@ -62,6 +62,14 @@ export type IMessageRuntimeStatus = {
   dbPath?: string | null;
 };
 
+export type MSTeamsRuntimeStatus = {
+  running: boolean;
+  lastStartAt?: number | null;
+  lastStopAt?: number | null;
+  lastError?: string | null;
+  port?: number | null;
+};
+
 export type ProviderRuntimeSnapshot = {
   whatsapp: WebProviderStatus;
   whatsappAccounts?: Record<string, WebProviderStatus>;
@@ -70,6 +78,7 @@ export type ProviderRuntimeSnapshot = {
   slack: SlackRuntimeStatus;
   signal: SignalRuntimeStatus;
   imessage: IMessageRuntimeStatus;
+  msteams: MSTeamsRuntimeStatus;
 };
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
@@ -82,12 +91,14 @@ type ProviderManagerOptions = {
   logSlack: SubsystemLogger;
   logSignal: SubsystemLogger;
   logIMessage: SubsystemLogger;
+  logMSTeams: SubsystemLogger;
   whatsappRuntimeEnv: RuntimeEnv;
   telegramRuntimeEnv: RuntimeEnv;
   discordRuntimeEnv: RuntimeEnv;
   slackRuntimeEnv: RuntimeEnv;
   signalRuntimeEnv: RuntimeEnv;
   imessageRuntimeEnv: RuntimeEnv;
+  msteamsRuntimeEnv: RuntimeEnv;
 };
 
 export type ProviderManager = {
@@ -105,6 +116,8 @@ export type ProviderManager = {
   stopSignalProvider: () => Promise<void>;
   startIMessageProvider: () => Promise<void>;
   stopIMessageProvider: () => Promise<void>;
+  startMSTeamsProvider: () => Promise<void>;
+  stopMSTeamsProvider: () => Promise<void>;
   markWhatsAppLoggedOut: (cleared: boolean, accountId?: string) => void;
 };
 
@@ -119,12 +132,14 @@ export function createProviderManager(
     logSlack,
     logSignal,
     logIMessage,
+    logMSTeams,
     whatsappRuntimeEnv,
     telegramRuntimeEnv,
     discordRuntimeEnv,
     slackRuntimeEnv,
     signalRuntimeEnv,
     imessageRuntimeEnv,
+    msteamsRuntimeEnv,
   } = opts;
 
   const whatsappAborts = new Map<string, AbortController>();
@@ -133,12 +148,14 @@ export function createProviderManager(
   let slackAbort: AbortController | null = null;
   let signalAbort: AbortController | null = null;
   let imessageAbort: AbortController | null = null;
+  let msteamsAbort: AbortController | null = null;
   const whatsappTasks = new Map<string, Promise<unknown>>();
   let telegramTask: Promise<unknown> | null = null;
   let discordTask: Promise<unknown> | null = null;
   let slackTask: Promise<unknown> | null = null;
   let signalTask: Promise<unknown> | null = null;
   let imessageTask: Promise<unknown> | null = null;
+  let msteamsTask: Promise<unknown> | null = null;
 
   const whatsappRuntimes = new Map<string, WebProviderStatus>();
   const defaultWhatsAppStatus = (): WebProviderStatus => ({
@@ -184,6 +201,13 @@ export function createProviderManager(
     lastError: null,
     cliPath: null,
     dbPath: null,
+  };
+  let msteamsRuntime: MSTeamsRuntimeStatus = {
+    running: false,
+    lastStartAt: null,
+    lastStopAt: null,
+    lastError: null,
+    port: null,
   };
 
   const updateWhatsAppStatus = (accountId: string, next: WebProviderStatus) => {
@@ -798,6 +822,83 @@ export function createProviderManager(
     };
   };
 
+  const startMSTeamsProvider = async () => {
+    if (msteamsTask) return;
+    const cfg = loadConfig();
+    if (!cfg.msteams) {
+      msteamsRuntime = {
+        ...msteamsRuntime,
+        running: false,
+        lastError: "not configured",
+      };
+      if (shouldLogVerbose()) {
+        logMSTeams.debug("msteams provider not configured (no msteams config)");
+      }
+      return;
+    }
+    if (cfg.msteams?.enabled === false) {
+      msteamsRuntime = {
+        ...msteamsRuntime,
+        running: false,
+        lastError: "disabled",
+      };
+      if (shouldLogVerbose()) {
+        logMSTeams.debug("msteams provider disabled (msteams.enabled=false)");
+      }
+      return;
+    }
+    const { monitorMSTeamsProvider } = await import("../msteams/index.js");
+    const port = cfg.msteams?.webhook?.port ?? 3978;
+    logMSTeams.info(`starting provider (port ${port})`);
+    msteamsAbort = new AbortController();
+    msteamsRuntime = {
+      ...msteamsRuntime,
+      running: true,
+      lastStartAt: Date.now(),
+      lastError: null,
+      port,
+    };
+    const task = monitorMSTeamsProvider({
+      cfg,
+      runtime: msteamsRuntimeEnv,
+      abortSignal: msteamsAbort.signal,
+    })
+      .catch((err) => {
+        msteamsRuntime = {
+          ...msteamsRuntime,
+          lastError: formatError(err),
+        };
+        logMSTeams.error(`provider exited: ${formatError(err)}`);
+      })
+      .finally(() => {
+        msteamsAbort = null;
+        msteamsTask = null;
+        msteamsRuntime = {
+          ...msteamsRuntime,
+          running: false,
+          lastStopAt: Date.now(),
+        };
+      });
+    msteamsTask = task;
+  };
+
+  const stopMSTeamsProvider = async () => {
+    if (!msteamsAbort && !msteamsTask) return;
+    msteamsAbort?.abort();
+    try {
+      await msteamsTask;
+    } catch {
+      // ignore
+    }
+    msteamsAbort = null;
+    msteamsTask = null;
+    msteamsRuntime = {
+      ...msteamsRuntime,
+      running: false,
+      lastStopAt: Date.now(),
+    };
+  };
+
   const startProviders = async () => {
     await startWhatsAppProvider();
     await startDiscordProvider();
@@ -805,6 +906,7 @@ export function createProviderManager(
     await startTelegramProvider();
     await startSignalProvider();
     await startIMessageProvider();
+    await startMSTeamsProvider();
   };
 
   const markWhatsAppLoggedOut = (cleared: boolean, accountId?: string) => {
@@ -837,6 +939,7 @@ export function createProviderManager(
       slack: { ...slackRuntime },
       signal: { ...signalRuntime },
       imessage: { ...imessageRuntime },
+      msteams: { ...msteamsRuntime },
     };
   };
 
@@ -855,6 +958,8 @@ export function createProviderManager(
     stopSignalProvider,
     startIMessageProvider,
     stopIMessageProvider,
+    startMSTeamsProvider,
+    stopMSTeamsProvider,
     markWhatsAppLoggedOut,
   };
 }

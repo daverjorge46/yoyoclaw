@@ -101,7 +101,8 @@ function resolveDeliveryTarget(
       | "discord"
       | "slack"
       | "signal"
-      | "imessage";
+      | "imessage"
+      | "msteams";
     to?: string;
   },
 ) {
