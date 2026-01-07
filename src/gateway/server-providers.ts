@@ -25,6 +25,8 @@ export type TelegramRuntimeStatus = {
   lastStopAt?: number | null;
   lastError?: string | null;
   mode?: "webhook" | "polling" | null;
+  restartCount?: number;
+  nextRestartAt?: number | null;
 };
 
 export type DiscordRuntimeStatus = {
@@ -151,7 +153,12 @@ export function createProviderManager(
     lastStopAt: null,
     lastError: null,
     mode: null,
+    restartCount: 0,
+    nextRestartAt: null,
   };
+  let telegramRestartTimer: ReturnType<typeof setTimeout> | null = null;
+  let telegramRestartBackoff = 1000; // Start at 1s, max 60s
+  const TELEGRAM_MAX_BACKOFF = 60000;
   let discordRuntime: DiscordRuntimeStatus = {
     running: false,
     lastStartAt: null,
@@ -264,12 +271,18 @@ export function createProviderManager(
 
   const startTelegramProvider = async () => {
     if (telegramTask) return;
+    // Clear any pending restart timer
+    if (telegramRestartTimer) {
+      clearTimeout(telegramRestartTimer);
+      telegramRestartTimer = null;
+    }
     const cfg = loadConfig();
     if (cfg.telegram?.enabled === false) {
       telegramRuntime = {
         ...telegramRuntime,
         running: false,
         lastError: "disabled",
+        nextRestartAt: null,
       };
       if (shouldLogVerbose()) {
         logTelegram.debug(
@@ -286,6 +299,7 @@ export function createProviderManager(
         ...telegramRuntime,
         running: false,
         lastError: "not configured",
+        nextRestartAt: null,
       };
       // keep quiet by default; this is a normal state
       if (shouldLogVerbose()) {
@@ -313,13 +327,16 @@ export function createProviderManager(
       `starting provider${telegramBotLabel}${cfg.telegram ? "" : " (no telegram config; token via env)"}`,
     );
     telegramAbort = new AbortController();
+    const startTime = Date.now();
     telegramRuntime = {
       ...telegramRuntime,
       running: true,
-      lastStartAt: Date.now(),
+      lastStartAt: startTime,
       lastError: null,
       mode: cfg.telegram?.webhookUrl ? "webhook" : "polling",
+      nextRestartAt: null,
     };
+    const wasAborted = () => telegramAbort?.signal.aborted ?? true;
     const task = monitorTelegramProvider({
       token: telegramToken.trim(),
       runtime: telegramRuntimeEnv,
@@ -337,6 +354,8 @@ export function createProviderManager(
         logTelegram.error(`provider exited: ${formatError(err)}`);
       })
       .finally(() => {
+        const intentionalStop = wasAborted();
+        const runDuration = Date.now() - startTime;
         telegramAbort = null;
         telegramTask = null;
         telegramRuntime = {
@@ -344,11 +363,43 @@ export function createProviderManager(
           running: false,
           lastStopAt: Date.now(),
         };
+
+        // Auto-restart on unexpected exit (not intentional stop)
+        if (!intentionalStop && cfg.telegram?.enabled !== false) {
+          // Reset backoff if we ran for > 5 minutes (successful connection)
+          if (runDuration > 5 * 60 * 1000) {
+            telegramRestartBackoff = 1000;
+          }
+          const delay = telegramRestartBackoff;
+          telegramRestartBackoff = Math.min(
+            telegramRestartBackoff * 2,
+            TELEGRAM_MAX_BACKOFF,
+          );
+          telegramRuntime = {
+            ...telegramRuntime,
+            restartCount: (telegramRuntime.restartCount ?? 0) + 1,
+            nextRestartAt: Date.now() + delay,
+          };
+          logTelegram.warn(
+            `provider stopped unexpectedly; restarting in ${Math.round(delay / 1000)}s (attempt #${telegramRuntime.restartCount})`,
+          );
+          telegramRestartTimer = setTimeout(() => {
+            telegramRestartTimer = null;
+            startTelegramProvider().catch((err) => {
+              logTelegram.error(`restart failed: ${formatError(err)}`);
+            });
+          }, delay);
+        }
       });
     telegramTask = task;
   };
 
   const stopTelegramProvider = async () => {
+    // Clear any pending restart timer
+    if (telegramRestartTimer) {
+      clearTimeout(telegramRestartTimer);
+      telegramRestartTimer = null;
+    }
     if (!telegramAbort && !telegramTask) return;
     telegramAbort?.abort();
     try {
@@ -362,7 +413,10 @@ export function createProviderManager(
       ...telegramRuntime,
       running: false,
       lastStopAt: Date.now(),
+      nextRestartAt: null,
     };
+    // Reset backoff on intentional stop
+    telegramRestartBackoff = 1000;
   };
 
   const startDiscordProvider = async () => {
