@@ -749,7 +749,11 @@ export function createTelegramBot(opts: TelegramBotOptions) {
               if (payload.text) draftStream.update(payload.text);
             }
           : undefined,
-        disableBlockStreaming: Boolean(draftStream),
+        disableBlockStreaming:
+          Boolean(draftStream) ||
+          (typeof telegramCfg.blockStreaming === "boolean"
+            ? !telegramCfg.blockStreaming
+            : undefined),
       },
     });
     markDispatchIdle();
