@@ -35,6 +35,41 @@ import { normalizeVerboseLevel, type VerboseLevel } from "../thinking.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { extractAudioTag } from "./audio-tags.js";
+
+const THINKING_TAG_RE = /<\s*\/?\s*think(?:ing)?\s*>/gi;
+const THINKING_OPEN_RE = /<\s*think(?:ing)?\s*>/i;
+const THINKING_CLOSE_RE = /<\s*\/\s*think(?:ing)?\s*>/i;
+
+function stripThinkingTags(value: string): string {
+  if (!value) return value;
+  const hasOpen = THINKING_OPEN_RE.test(value);
+  const hasClose = THINKING_CLOSE_RE.test(value);
+  if (!hasOpen && !hasClose) return value;
+  if (hasOpen !== hasClose) {
+    if (!hasOpen) return value.replace(THINKING_CLOSE_RE, "").trimStart();
+    return value.replace(THINKING_OPEN_RE, "").trimStart();
+  }
+
+  if (!THINKING_TAG_RE.test(value)) return value;
+  THINKING_TAG_RE.lastIndex = 0;
+
+  let result = "";
+  let lastIndex = 0;
+  let inThinking = false;
+  for (const match of value.matchAll(THINKING_TAG_RE)) {
+    const idx = match.index ?? 0;
+    if (!inThinking) {
+      result += value.slice(lastIndex, idx);
+    }
+    const tag = match[0].toLowerCase();
+    inThinking = !tag.includes("/");
+    lastIndex = idx + match[0].length;
+  }
+  if (!inThinking) {
+    result += value.slice(lastIndex);
+  }
+  return result.trimStart();
+}
 import { createFollowupRunner } from "./followup-runner.js";
 import {
   enqueueFollowupRun,
@@ -496,7 +531,9 @@ export async function runReplyAgent(params: {
                     );
                     if (!isRenderablePayload(taggedPayload)) return;
                     const audioTagResult = extractAudioTag(taggedPayload.text);
-                    const cleaned = audioTagResult.cleaned || undefined;
+                    const cleaned = stripThinkingTags(
+                      audioTagResult.cleaned || "",
+                    );
                     const hasMedia =
                       Boolean(taggedPayload.mediaUrl) ||
                       (taggedPayload.mediaUrls?.length ?? 0) > 0;
@@ -721,9 +758,10 @@ export async function runReplyAgent(params: {
     })
       .map((payload) => {
         const audioTagResult = extractAudioTag(payload.text);
+        const cleaned = stripThinkingTags(audioTagResult.cleaned || "");
         return {
           ...payload,
-          text: audioTagResult.cleaned ? audioTagResult.cleaned : undefined,
+          text: cleaned ? cleaned : undefined,
           audioAsVoice: audioTagResult.audioAsVoice,
         };
       })
