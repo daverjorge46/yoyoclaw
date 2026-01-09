@@ -28,6 +28,32 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+export type Identity = {
+  name?: string;
+  theme?: string;
+  emoji?: string;
+};
+
+/**
+ * Resolve the effective identity for an agent.
+ * Per-agent identity fields override root-level identity fields.
+ */
+export function resolveAgentIdentity(
+  cfg: ClawdbotConfig,
+  agentId: string,
+): Identity | undefined {
+  const rootIdentity = cfg.identity;
+  const agentIdentity = cfg.routing?.agents?.[agentId]?.identity;
+
+  if (!rootIdentity && !agentIdentity) return undefined;
+
+  return {
+    name: agentIdentity?.name ?? rootIdentity?.name,
+    theme: agentIdentity?.theme ?? rootIdentity?.theme,
+    emoji: agentIdentity?.emoji ?? rootIdentity?.emoji,
+  };
+}
+
 export function applyIdentityDefaults(cfg: ClawdbotConfig): ClawdbotConfig {
   const identity = cfg.identity;
   if (!identity) return cfg;

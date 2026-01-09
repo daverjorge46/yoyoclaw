@@ -47,6 +47,14 @@ const ModelProviderSchema = z.object({
   models: z.array(ModelDefinitionSchema),
 });
 
+const IdentitySchema = z
+  .object({
+    name: z.string().optional(),
+    theme: z.string().optional(),
+    emoji: z.string().optional(),
+  })
+  .optional();
+
 const ModelsConfigSchema = z
   .object({
     mode: z.union([z.literal("merge"), z.literal("replace")]).optional(),
@@ -215,6 +223,7 @@ const RoutingSchema = z
         z.string(),
         z
           .object({
+            identity: IdentitySchema,
             workspace: z.string().optional(),
             agentDir: z.string().optional(),
             model: z.string().optional(),
@@ -351,13 +360,7 @@ export const ClawdbotSchema = z.object({
         .optional(),
     })
     .optional(),
-  identity: z
-    .object({
-      name: z.string().optional(),
-      theme: z.string().optional(),
-      emoji: z.string().optional(),
-    })
-    .optional(),
+  identity: IdentitySchema,
   wizard: z
     .object({
       lastRunAt: z.string().optional(),
