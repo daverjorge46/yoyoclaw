@@ -86,7 +86,7 @@ if ! git push fork "$BRANCH"; then
 fi
 
 echo "📤 Pushing to dev..."
-if ! git push dev "$BRANCH"; then
+if ! git push --force-with-lease dev "$BRANCH"; then
     fail "Failed to push to dev. Fork updated but dev failed!"
 fi
 
