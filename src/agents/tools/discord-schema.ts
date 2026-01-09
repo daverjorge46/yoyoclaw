@@ -219,7 +219,7 @@ export const DiscordToolSchema = Type.Union([
     name: Type.Optional(Type.String()),
     topic: Type.Optional(Type.String()),
     position: Type.Optional(Type.Number()),
-    parentId: Type.Optional(Type.String()),
+    parentId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
     nsfw: Type.Optional(Type.Boolean()),
     rateLimitPerUser: Type.Optional(Type.Number()),
   }),
@@ -231,7 +231,7 @@ export const DiscordToolSchema = Type.Union([
     action: Type.Literal("channelMove"),
     guildId: Type.String(),
     channelId: Type.String(),
-    parentId: Type.Optional(Type.String()),
+    parentId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
     position: Type.Optional(Type.Number()),
   }),
   // Category management actions (convenience aliases)

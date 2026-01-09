@@ -28,6 +28,13 @@ import {
   readStringParam,
 } from "./common.js";
 
+function readParentIdParam(
+  params: Record<string, unknown>,
+): string | null | undefined {
+  if (params.parentId === null) return null;
+  return readStringParam(params, "parentId");
+}
+
 export async function handleDiscordGuildAction(
   action: string,
   params: Record<string, unknown>,
@@ -221,7 +228,7 @@ export async function handleDiscordGuildAction(
       const guildId = readStringParam(params, "guildId", { required: true });
       const name = readStringParam(params, "name", { required: true });
       const type = readNumberParam(params, "type", { integer: true });
-      const parentId = readStringParam(params, "parentId");
+      const parentId = readParentIdParam(params);
       const topic = readStringParam(params, "topic");
       const position = readNumberParam(params, "position", { integer: true });
       const nsfw = params.nsfw as boolean | undefined;
@@ -246,7 +253,7 @@ export async function handleDiscordGuildAction(
       const name = readStringParam(params, "name");
       const topic = readStringParam(params, "topic");
       const position = readNumberParam(params, "position", { integer: true });
-      const parentId = readStringParam(params, "parentId");
+      const parentId = readParentIdParam(params);
       const nsfw = params.nsfw as boolean | undefined;
       const rateLimitPerUser = readNumberParam(params, "rateLimitPerUser", {
         integer: true,
@@ -256,7 +263,7 @@ export async function handleDiscordGuildAction(
         name: name ?? undefined,
         topic: topic ?? undefined,
         position: position ?? undefined,
-        parentId: parentId ?? undefined,
+        parentId: parentId === undefined ? undefined : parentId,
         nsfw,
         rateLimitPerUser: rateLimitPerUser ?? undefined,
       });
@@ -280,12 +287,12 @@ export async function handleDiscordGuildAction(
       const channelId = readStringParam(params, "channelId", {
         required: true,
       });
-      const parentId = readStringParam(params, "parentId");
+      const parentId = readParentIdParam(params);
       const position = readNumberParam(params, "position", { integer: true });
       await moveChannelDiscord({
         guildId,
         channelId,
-        parentId: parentId ?? undefined,
+        parentId: parentId === undefined ? undefined : parentId,
         position: position ?? undefined,
       });
       return jsonResult({ ok: true });

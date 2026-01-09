@@ -198,6 +198,26 @@ describe("handleDiscordGuildAction - channel management", () => {
     });
   });
 
+  it("clears the channel parent when parentId is null", async () => {
+    await handleDiscordGuildAction(
+      "channelEdit",
+      {
+        channelId: "C1",
+        parentId: null,
+      },
+      channelsEnabled,
+    );
+    expect(editChannelDiscord).toHaveBeenCalledWith({
+      channelId: "C1",
+      name: undefined,
+      topic: undefined,
+      position: undefined,
+      parentId: null,
+      nsfw: undefined,
+      rateLimitPerUser: undefined,
+    });
+  });
+
   it("deletes a channel", async () => {
     await handleDiscordGuildAction(
       "channelDelete",
@@ -223,6 +243,24 @@ describe("handleDiscordGuildAction - channel management", () => {
       channelId: "C1",
       parentId: "P1",
       position: 5,
+    });
+  });
+
+  it("clears the channel parent on move when parentId is null", async () => {
+    await handleDiscordGuildAction(
+      "channelMove",
+      {
+        guildId: "G1",
+        channelId: "C1",
+        parentId: null,
+      },
+      channelsEnabled,
+    );
+    expect(moveChannelDiscord).toHaveBeenCalledWith({
+      guildId: "G1",
+      channelId: "C1",
+      parentId: null,
+      position: undefined,
     });
   });
 
