@@ -585,6 +585,7 @@ export async function agentCommand(
     deliveryProvider === "slack" ||
     deliveryProvider === "signal" ||
     deliveryProvider === "imessage" ||
+    deliveryProvider === "msteams" ||
     deliveryProvider === "webchat";
 
   const resolvedTarget =
@@ -593,6 +594,7 @@ export async function agentCommand(
           provider: deliveryProvider,
           to: opts.to,
           allowFrom,
+          cfg,
         })
       : null;
   const deliveryTarget = resolvedTarget?.ok ? resolvedTarget.to : undefined;
@@ -648,7 +650,8 @@ export async function agentCommand(
       deliveryProvider === "discord" ||
       deliveryProvider === "slack" ||
       deliveryProvider === "signal" ||
-      deliveryProvider === "imessage")
+      deliveryProvider === "imessage" ||
+      deliveryProvider === "msteams")
   ) {
     if (deliveryTarget) {
       await deliverOutboundPayloads({
