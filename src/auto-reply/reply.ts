@@ -60,7 +60,11 @@ import {
   defaultGroupActivation,
   resolveGroupRequireMention,
 } from "./reply/groups.js";
-import { stripMentions, stripStructuralPrefixes } from "./reply/mentions.js";
+import {
+  CURRENT_MESSAGE_MARKER,
+  stripMentions,
+  stripStructuralPrefixes,
+} from "./reply/mentions.js";
 import {
   createModelSelectionState,
   resolveContextTokens,
@@ -429,7 +433,6 @@ export async function getReplyFromConfig(
         hasQueueDirective: false,
         queueReset: false,
       };
-  const marker = "[Current message - respond to this]";
   const existingBody = sessionCtx.BodyStripped ?? sessionCtx.Body ?? "";
   const cleanedBody = (() => {
     if (!existingBody) return parsedDirectives.cleaned;
@@ -439,15 +442,20 @@ export async function getReplyFromConfig(
       }).cleaned;
     }
 
-    const markerIndex = existingBody.indexOf(marker);
+    const markerIndex = existingBody.indexOf(CURRENT_MESSAGE_MARKER);
     if (markerIndex < 0) {
       return parseInlineDirectives(existingBody, {
         modelAliases: configuredAliases,
       }).cleaned;
     }
 
-    const head = existingBody.slice(0, markerIndex + marker.length);
-    const tail = existingBody.slice(markerIndex + marker.length);
+    const head = existingBody.slice(
+      0,
+      markerIndex + CURRENT_MESSAGE_MARKER.length,
+    );
+    const tail = existingBody.slice(
+      markerIndex + CURRENT_MESSAGE_MARKER.length,
+    );
     const cleanedTail = parseInlineDirectives(tail, {
       modelAliases: configuredAliases,
     }).cleaned;

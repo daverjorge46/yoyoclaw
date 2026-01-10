@@ -23,6 +23,8 @@ function deriveMentionPatterns(identity?: { name?: string; emoji?: string }) {
 
 const BACKSPACE_CHAR = "\u0008";
 
+export const CURRENT_MESSAGE_MARKER = "[Current message - respond to this]";
+
 function normalizeMentionPattern(pattern: string): string {
   if (!pattern.includes(BACKSPACE_CHAR)) return pattern;
   return pattern.split(BACKSPACE_CHAR).join("\\b");
@@ -87,9 +89,12 @@ export function matchesMentionPatterns(
 export function stripStructuralPrefixes(text: string): string {
   // Ignore wrapper labels, timestamps, and sender prefixes so directive-only
   // detection still works in group batches that include history/context.
-  const marker = "[Current message - respond to this]";
-  const afterMarker = text.includes(marker)
-    ? text.slice(text.indexOf(marker) + marker.length).trimStart()
+  const afterMarker = text.includes(CURRENT_MESSAGE_MARKER)
+    ? text
+        .slice(
+          text.indexOf(CURRENT_MESSAGE_MARKER) + CURRENT_MESSAGE_MARKER.length,
+        )
+        .trimStart()
     : text;
 
   return afterMarker
