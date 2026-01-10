@@ -20,9 +20,7 @@ import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
-import { createTelegramTool } from "./tools/telegram-tool.js";
 import { createVoiceCallTool } from "./tools/voice-call-tool.js";
-import { createWhatsAppTool } from "./tools/whatsapp-tool.js";
 
 export function createClawdbotTools(options?: {
   browserControlUrl?: string;
@@ -81,8 +79,6 @@ export function createClawdbotTools(options?: {
       replyToMode: options?.replyToMode,
       hasRepliedRef: options?.hasRepliedRef,
     }),
-    createTelegramTool(),
-    createWhatsAppTool(),
     createVoiceCallTool(),
     createGatewayTool({
       agentSessionKey: options?.agentSessionKey,
