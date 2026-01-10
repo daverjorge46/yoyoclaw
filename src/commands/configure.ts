@@ -69,16 +69,16 @@ import { healthCommand } from "./health.js";
 import {
   applyAuthProfileConfig,
   applyMinimaxConfig,
+  applyMinimaxHostedConfig,
   setAnthropicApiKey,
   setGeminiApiKey,
+  setMinimaxApiKey,
   writeOAuthCredentials,
 } from "./onboard-auth.js";
 import {
   applyWizardMetadata,
   DEFAULT_WORKSPACE,
-  detectBrowserOpenSupport,
   ensureWorkspaceAndSessions,
-  formatControlUiSshHint,
   guardCancel,
   openUrl,
   printWizardHeader,
@@ -357,6 +357,7 @@ async function promptAuthConfig(
     | "antigravity"
     | "gemini-api-key"
     | "apiKey"
+    | "minimax-cloud"
     | "minimax"
     | "skip";
 
@@ -622,26 +623,32 @@ async function promptAuthConfig(
           mode: "oauth",
         });
         // Set default model to Claude Opus 4.5 via Antigravity
+        const existingDefaults = next.agents?.defaults;
+        const existingModel = existingDefaults?.model;
+        const existingModels = existingDefaults?.models;
         next = {
           ...next,
-          agent: {
-            ...next.agent,
-            model: {
-              ...(next.agent?.model &&
-              "fallbacks" in (next.agent.model as Record<string, unknown>)
-                ? {
-                    fallbacks: (next.agent.model as { fallbacks?: string[] })
-                      .fallbacks,
-                  }
-                : undefined),
-              primary: "google-antigravity/claude-opus-4-5-thinking",
-            },
-            models: {
-              ...next.agent?.models,
-              "google-antigravity/claude-opus-4-5-thinking":
-                next.agent?.models?.[
-                  "google-antigravity/claude-opus-4-5-thinking"
-                ] ?? {},
+          agents: {
+            ...next.agents,
+            defaults: {
+              ...existingDefaults,
+              model: {
+                ...(existingModel &&
+                "fallbacks" in (existingModel as Record<string, unknown>)
+                  ? {
+                      fallbacks: (existingModel as { fallbacks?: string[] })
+                        .fallbacks,
+                    }
+                  : undefined),
+                primary: "google-antigravity/claude-opus-4-5-thinking",
+              },
+              models: {
+                ...existingModels,
+                "google-antigravity/claude-opus-4-5-thinking":
+                  existingModels?.[
+                    "google-antigravity/claude-opus-4-5-thinking"
+                  ] ?? {},
+              },
             },
           },
         };
@@ -691,14 +698,29 @@ async function promptAuthConfig(
       provider: "anthropic",
       mode: "api_key",
     });
+  } else if (authChoice === "minimax-cloud") {
+    const key = guardCancel(
+      await text({
+        message: "Enter MiniMax API key",
+        validate: (value) => (value?.trim() ? undefined : "Required"),
+      }),
+      runtime,
+    );
+    await setMinimaxApiKey(String(key).trim());
+    next = applyAuthProfileConfig(next, {
+      profileId: "minimax:default",
+      provider: "minimax",
+      mode: "api_key",
+    });
+    next = applyMinimaxHostedConfig(next);
   } else if (authChoice === "minimax") {
     next = applyMinimaxConfig(next);
   }
 
   const currentModel =
-    typeof next.agent?.model === "string"
-      ? next.agent?.model
-      : (next.agent?.model?.primary ?? "");
+    typeof next.agents?.defaults?.model === "string"
+      ? next.agents?.defaults?.model
+      : (next.agents?.defaults?.model?.primary ?? "");
   const preferAnthropic =
     authChoice === "claude-cli" ||
     authChoice === "token" ||
@@ -718,23 +740,29 @@ async function promptAuthConfig(
   );
   const model = String(modelInput ?? "").trim();
   if (model) {
+    const existingDefaults = next.agents?.defaults;
+    const existingModel = existingDefaults?.model;
+    const existingModels = existingDefaults?.models;
     next = {
       ...next,
-      agent: {
-        ...next.agent,
-        model: {
-          ...(next.agent?.model &&
-          "fallbacks" in (next.agent.model as Record<string, unknown>)
-            ? {
-                fallbacks: (next.agent.model as { fallbacks?: string[] })
-                  .fallbacks,
-              }
-            : undefined),
-          primary: model,
-        },
-        models: {
-          ...next.agent?.models,
-          [model]: next.agent?.models?.[model] ?? {},
+      agents: {
+        ...next.agents,
+        defaults: {
+          ...existingDefaults,
+          model: {
+            ...(existingModel &&
+            "fallbacks" in (existingModel as Record<string, unknown>)
+              ? {
+                  fallbacks: (existingModel as { fallbacks?: string[] })
+                    .fallbacks,
+                }
+              : undefined),
+            primary: model,
+          },
+          models: {
+            ...existingModels,
+            [model]: existingModels?.[model] ?? {},
+          },
         },
       },
     };
@@ -937,7 +965,7 @@ export async function runConfigureWizard(
             {
               value: "workspace",
               label: "Workspace",
-              hint: "Set agent workspace + ensure sessions",
+              hint: "Set default workspace + ensure sessions",
             },
             {
               value: "model",
@@ -981,8 +1009,8 @@ export async function runConfigureWizard(
 
   let nextConfig = { ...baseConfig };
   let workspaceDir =
-    nextConfig.agent?.workspace ??
-    baseConfig.agent?.workspace ??
+    nextConfig.agents?.defaults?.workspace ??
+    baseConfig.agents?.defaults?.workspace ??
     DEFAULT_WORKSPACE;
   let gatewayPort = resolveGatewayPort(baseConfig);
   let gatewayToken: string | undefined;
@@ -1000,9 +1028,12 @@ export async function runConfigureWizard(
     );
     nextConfig = {
       ...nextConfig,
-      agent: {
-        ...nextConfig.agent,
-        workspace: workspaceDir,
+      agents: {
+        ...nextConfig.agents,
+        defaults: {
+          ...nextConfig.agents?.defaults,
+          workspace: workspaceDir,
+        },
       },
     };
     await ensureWorkspaceAndSessions(workspaceDir, runtime);
@@ -1108,41 +1139,6 @@ export async function runConfigureWizard(
     ].join("\n"),
     "Control UI",
   );
-
-  const browserSupport = await detectBrowserOpenSupport();
-  if (gatewayProbe.ok) {
-    if (!browserSupport.ok) {
-      note(
-        formatControlUiSshHint({
-          port: gatewayPort,
-          basePath: nextConfig.gateway?.controlUi?.basePath,
-          token: gatewayToken,
-        }),
-        "Open Control UI",
-      );
-    } else {
-      const wantsOpen = guardCancel(
-        await confirm({
-          message: "Open Control UI now?",
-          initialValue: false,
-        }),
-        runtime,
-      );
-      if (wantsOpen) {
-        const opened = await openUrl(links.httpUrl);
-        if (!opened) {
-          note(
-            formatControlUiSshHint({
-              port: gatewayPort,
-              basePath: nextConfig.gateway?.controlUi?.basePath,
-              token: gatewayToken,
-            }),
-            "Open Control UI",
-          );
-        }
-      }
-    }
-  }
 
   outro("Configure complete.");
 }

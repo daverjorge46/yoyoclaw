@@ -687,10 +687,13 @@ export async function startGatewayServer(
     { controller: AbortController; sessionId: string; sessionKey: string }
   >();
   setCommandLaneConcurrency("cron", cfgAtStart.cron?.maxConcurrentRuns ?? 1);
-  setCommandLaneConcurrency("main", cfgAtStart.agent?.maxConcurrent ?? 1);
+  setCommandLaneConcurrency(
+    "main",
+    cfgAtStart.agents?.defaults?.maxConcurrent ?? 1,
+  );
   setCommandLaneConcurrency(
     "subagent",
-    cfgAtStart.agent?.subagents?.maxConcurrent ?? 1,
+    cfgAtStart.agents?.defaults?.subagents?.maxConcurrent ?? 1,
   );
 
   const cronLogger = getChildLogger({
@@ -1098,15 +1101,14 @@ export async function startGatewayServer(
   }
 
   const tailnetDns = await resolveTailnetDnsHint();
+  const sshPortEnv = process.env.CLAWDBOT_SSH_PORT?.trim();
+  const sshPortParsed = sshPortEnv ? Number.parseInt(sshPortEnv, 10) : NaN;
+  const sshPort =
+    Number.isFinite(sshPortParsed) && sshPortParsed > 0
+      ? sshPortParsed
+      : undefined;
 
   try {
-    const sshPortEnv = process.env.CLAWDBOT_SSH_PORT?.trim();
-    const sshPortParsed = sshPortEnv ? Number.parseInt(sshPortEnv, 10) : NaN;
-    const sshPort =
-      Number.isFinite(sshPortParsed) && sshPortParsed > 0
-        ? sshPortParsed
-        : undefined;
-
     const bonjour = await startGatewayBonjourAdvertiser({
       instanceName: formatBonjourInstanceName(machineDisplayName),
       gatewayPort: port,
@@ -1132,10 +1134,13 @@ export async function startGatewayServer(
         const tailnetIPv6 = pickPrimaryTailnetIPv6();
         const result = await writeWideAreaBridgeZone({
           bridgePort: bridge.port,
+          gatewayPort: port,
           displayName: formatBonjourInstanceName(machineDisplayName),
           tailnetIPv4,
           tailnetIPv6: tailnetIPv6 ?? undefined,
           tailnetDns,
+          sshPort,
+          cliPath: resolveBonjourCliPath(),
         });
         logDiscovery.info(
           `wide-area DNS-SD ${result.changed ? "updated" : "unchanged"} (${WIDE_AREA_DISCOVERY_DOMAIN} → ${result.zonePath})`,
@@ -1975,10 +1980,13 @@ export async function startGatewayServer(
     }
 
     setCommandLaneConcurrency("cron", nextConfig.cron?.maxConcurrentRuns ?? 1);
-    setCommandLaneConcurrency("main", nextConfig.agent?.maxConcurrent ?? 1);
+    setCommandLaneConcurrency(
+      "main",
+      nextConfig.agents?.defaults?.maxConcurrent ?? 1,
+    );
     setCommandLaneConcurrency(
       "subagent",
-      nextConfig.agent?.subagents?.maxConcurrent ?? 1,
+      nextConfig.agents?.defaults?.subagents?.maxConcurrent ?? 1,
     );
 
     if (plan.hotReasons.length > 0) {

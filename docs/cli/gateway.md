@@ -40,7 +40,7 @@ Notes:
 - `--tailscale <off|serve|funnel>`: expose the Gateway via Tailscale.
 - `--tailscale-reset-on-exit`: reset Tailscale serve/funnel config on shutdown.
 - `--dev`: create a dev config + workspace if missing (skips BOOTSTRAP.md).
-- `--reset`: recreate the dev config (requires `--dev`).
+- `--reset`: reset dev config + credentials + sessions + workspace (requires `--dev`).
 - `--force`: kill any existing listener on the selected port before starting.
 - `--verbose`: verbose logs.
 - `--claude-cli-logs`: only show claude-cli logs in the console (and enable its stdout/stderr).
@@ -120,6 +120,12 @@ clawdbot gateway call logs.tail --params '{"sinceMs": 60000}'
 - Unicast DNS-SD (Wide-Area Bonjour): `clawdbot.internal.` (requires split DNS + DNS server; see [/gateway/bonjour](/gateway/bonjour))
 
 Only gateways with the **bridge enabled** will advertise the discovery beacon.
+
+Wide-Area discovery records include (TXT):
+- `gatewayPort` (WebSocket port, usually `18789`)
+- `sshPort` (SSH port; defaults to `22` if not present)
+- `tailnetDns` (MagicDNS hostname, when available)
+- `cliPath` (optional hint for remote installs)
 
 ### `gateway discover`
 

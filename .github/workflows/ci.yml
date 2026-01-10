@@ -6,7 +6,7 @@ on:
 
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:
@@ -16,7 +16,7 @@ jobs:
             command: pnpm lint
           - runtime: node
             task: test
-            command: pnpm test
+            command: node scripts/ci-sanitize-output.mjs pnpm test
           - runtime: node
             task: build
             command: pnpm build
@@ -91,7 +91,7 @@ jobs:
         run: ${{ matrix.command }}
 
   checks-windows:
-    runs-on: windows-latest
+    runs-on: blacksmith-4vcpu-windows-2025
     defaults:
       run:
         shell: bash
@@ -104,7 +104,7 @@ jobs:
             command: pnpm lint
           - runtime: node
             task: test
-            command: pnpm test
+            command: node scripts/ci-sanitize-output.mjs pnpm test
           - runtime: node
             task: build
             command: pnpm build
@@ -412,7 +412,7 @@ jobs:
           PY
 
   android:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:

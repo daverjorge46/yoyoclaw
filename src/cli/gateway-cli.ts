@@ -5,7 +5,7 @@ import path from "node:path";
 import type { Command } from "commander";
 import { resolveDefaultAgentWorkspaceDir } from "../agents/workspace.js";
 import { gatewayStatusCommand } from "../commands/gateway-status.js";
-import { moveToTrash } from "../commands/onboard-helpers.js";
+import { handleReset } from "../commands/onboard-helpers.js";
 import {
   CONFIG_PATH_CLAWDBOT,
   type GatewayAuthMode,
@@ -77,8 +77,8 @@ type GatewayRunParams = {
 };
 
 const gatewayLog = createSubsystemLogger("gateway");
-const DEV_IDENTITY_NAME = "Clawdbot Dev";
-const DEV_IDENTITY_THEME = "helpful debug droid";
+const DEV_IDENTITY_NAME = "C3-PO";
+const DEV_IDENTITY_THEME = "protocol droid";
 const DEV_IDENTITY_EMOJI = "🤖";
 const DEV_AGENT_WORKSPACE_SUFFIX = "dev";
 const DEV_AGENTS_TEMPLATE = `# AGENTS.md - Clawdbot Dev Workspace
@@ -91,18 +91,32 @@ Default dev workspace for clawdbot gateway --dev.
 `;
 const DEV_SOUL_TEMPLATE = `# SOUL.md - Dev Persona
 
-Helpful robotic debugging assistant.
+Protocol droid for debugging and operations.
 
 - Concise, structured answers.
 - Ask for missing context before guessing.
 - Prefer reproducible steps and logs.
 `;
+const DEV_TOOLS_TEMPLATE = `# TOOLS.md - Dev Tool Notes
+
+Use local tools carefully. Prefer read-only inspection before changes.
+`;
 const DEV_IDENTITY_TEMPLATE = `# IDENTITY.md - Agent Identity
 
 - Name: ${DEV_IDENTITY_NAME}
-- Creature: debug droid
+- Creature: protocol droid
 - Vibe: ${DEV_IDENTITY_THEME}
 - Emoji: ${DEV_IDENTITY_EMOJI}
+`;
+const DEV_USER_TEMPLATE = `# USER.md - User Profile
+
+- Name:
+- Preferred address:
+- Notes:
+`;
+const DEV_HEARTBEAT_TEMPLATE = `# HEARTBEAT.md
+
+Keep it short. Check logs, health, and connectivity.
 `;
 
 type GatewayRunSignalAction = "stop" | "restart";
@@ -162,31 +176,51 @@ async function ensureDevWorkspace(dir: string) {
     path.join(resolvedDir, "IDENTITY.md"),
     DEV_IDENTITY_TEMPLATE,
   );
+  await writeFileIfMissing(
+    path.join(resolvedDir, "TOOLS.md"),
+    DEV_TOOLS_TEMPLATE,
+  );
+  await writeFileIfMissing(
+    path.join(resolvedDir, "USER.md"),
+    DEV_USER_TEMPLATE,
+  );
+  await writeFileIfMissing(
+    path.join(resolvedDir, "HEARTBEAT.md"),
+    DEV_HEARTBEAT_TEMPLATE,
+  );
 }
 
 async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
-  const configExists = fs.existsSync(CONFIG_PATH_CLAWDBOT);
-  if (opts.reset && configExists) {
-    await moveToTrash(CONFIG_PATH_CLAWDBOT, defaultRuntime);
+  const workspace = resolveDevWorkspaceDir();
+  if (opts.reset) {
+    await handleReset("full", workspace, defaultRuntime);
   }
 
-  const shouldWrite = opts.reset || !configExists;
-  if (!shouldWrite) return;
+  const configExists = fs.existsSync(CONFIG_PATH_CLAWDBOT);
+  if (!opts.reset && configExists) return;
 
-  const workspace = resolveDevWorkspaceDir();
   await writeConfigFile({
     gateway: {
       mode: "local",
       bind: "loopback",
     },
-    agent: {
-      workspace,
-      skipBootstrap: true,
-    },
-    identity: {
-      name: DEV_IDENTITY_NAME,
-      theme: DEV_IDENTITY_THEME,
-      emoji: DEV_IDENTITY_EMOJI,
+    agents: {
+      defaults: {
+        workspace,
+        skipBootstrap: true,
+      },
+      list: [
+        {
+          id: "dev",
+          default: true,
+          workspace,
+          identity: {
+            name: DEV_IDENTITY_NAME,
+            theme: DEV_IDENTITY_THEME,
+            emoji: DEV_IDENTITY_EMOJI,
+          },
+        },
+      ],
     },
   });
   await ensureDevWorkspace(workspace);
@@ -265,26 +299,24 @@ function renderBeaconLines(
   const title = colorize(rich, theme.accentBright, nameRaw);
   const domain = colorize(rich, theme.muted, domainRaw);
 
-  const parts: string[] = [];
-  if (beacon.tailnetDns)
-    parts.push(
-      `${colorize(rich, theme.info, "tailnet")}: ${beacon.tailnetDns}`,
-    );
-  if (beacon.lanHost)
-    parts.push(`${colorize(rich, theme.info, "lan")}: ${beacon.lanHost}`);
-  if (beacon.host)
-    parts.push(`${colorize(rich, theme.info, "host")}: ${beacon.host}`);
-
   const host = pickBeaconHost(beacon);
   const gatewayPort = pickGatewayPort(beacon);
   const wsUrl = host ? `ws://${host}:${gatewayPort}` : null;
 
-  const firstLine =
-    parts.length > 0
-      ? `${title} ${domain} · ${parts.join(" · ")}`
-      : `${title} ${domain}`;
+  const lines = [`- ${title} ${domain}`];
 
-  const lines = [`- ${firstLine}`];
+  if (beacon.tailnetDns) {
+    lines.push(
+      `  ${colorize(rich, theme.info, "tailnet")}: ${beacon.tailnetDns}`,
+    );
+  }
+  if (beacon.lanHost) {
+    lines.push(`  ${colorize(rich, theme.info, "lan")}: ${beacon.lanHost}`);
+  }
+  if (beacon.host) {
+    lines.push(`  ${colorize(rich, theme.info, "host")}: ${beacon.host}`);
+  }
+
   if (wsUrl) {
     lines.push(
       `  ${colorize(rich, theme.muted, "ws")}: ${colorize(rich, theme.command, wsUrl)}`,
@@ -807,7 +839,11 @@ function addGatewayRunCommand(
       "Create a dev config + workspace if missing (no BOOTSTRAP.md)",
       false,
     )
-    .option("--reset", "Recreate dev config (requires --dev)", false)
+    .option(
+      "--reset",
+      "Reset dev config + credentials + sessions + workspace (requires --dev)",
+      false,
+    )
     .option(
       "--force",
       "Kill any existing listener on the target port before starting",
@@ -979,6 +1015,7 @@ export function registerGatewayCli(program: Command) {
             label: "Scanning for gateways…",
             indeterminate: true,
             enabled: opts.json !== true,
+            delayMs: 0,
           },
           async () => await discoverGatewayBeacons({ timeoutMs }),
         );

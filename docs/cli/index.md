@@ -169,10 +169,11 @@ Options:
 - `--workspace <dir>`
 - `--non-interactive`
 - `--mode <local|remote>`
-- `--auth-choice <oauth|claude-cli|token|openai-codex|openai-api-key|codex-cli|antigravity|gemini-api-key|apiKey|minimax|skip>`
+- `--auth-choice <oauth|claude-cli|token|openai-codex|openai-api-key|codex-cli|antigravity|gemini-api-key|apiKey|minimax-cloud|minimax|skip>`
 - `--anthropic-api-key <key>`
 - `--openai-api-key <key>`
 - `--gemini-api-key <key>`
+- `--minimax-api-key <key>`
 - `--gateway-port <port>`
 - `--gateway-bind <loopback|lan|tailnet|auto>`
 - `--gateway-auth <off|token|password>`
@@ -410,7 +411,7 @@ Options:
 - `--tailscale-reset-on-exit`
 - `--allow-unconfigured`
 - `--dev`
-- `--reset`
+- `--reset` (reset dev config + credentials + sessions + workspace)
 - `--force` (kill existing listener on port)
 - `--verbose`
 - `--ws-log <auto|full|compact>`
@@ -467,6 +468,13 @@ Common RPCs:
 
 See [/concepts/models](/concepts/models) for fallback behavior and scanning strategy.
 
+Preferred Anthropic auth (CLI token, not API key):
+
+```bash
+claude setup-token
+clawdbot models status
+```
+
 ### `models` (root)
 `clawdbot models` is an alias for `models status`.
 
@@ -487,10 +495,10 @@ Options:
 Always includes the auth overview and OAuth expiry status for profiles in the auth store.
 
 ### `models set <model>`
-Set `agent.model.primary`.
+Set `agents.defaults.model.primary`.
 
 ### `models set-image <model>`
-Set `agent.imageModel.primary`.
+Set `agents.defaults.imageModel.primary`.
 
 ### `models aliases list|add|remove`
 Options:

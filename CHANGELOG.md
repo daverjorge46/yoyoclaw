@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+- macOS: add node bridge heartbeat pings to detect half-open sockets and reconnect cleanly. (#572) — thanks @ngutman
+- CLI: add `sandbox list` and `sandbox recreate` commands for managing Docker sandbox containers after image/config updates. (#563) — thanks @pasogott
 - Providers: add Microsoft Teams provider with polling, attachments, and CLI send support. (#404) — thanks @onutc
 - Commands: accept /models as an alias for /model.
+- Models/Auth: show per-agent auth candidates in `/model status`, and add `clawdbot models auth order {get,set,clear}` (per-agent auth rotation overrides). — thanks @steipete
 - Debugging: add raw model stream logging flags and document gateway watch mode.
+- Gateway: decode dns-sd escaped UTF-8 in discovery output and show scan progress immediately. — thanks @steipete
 - Agent: add claude-cli/opus-4.5 runner via Claude CLI with resume support (tools disabled).
 - CLI: move `clawdbot message` to subcommands (`message send|poll|…`), fold Discord/Slack/Telegram/WhatsApp tools into `message`, and require `--provider` unless only one provider is configured.
 - CLI: improve `logs` output (pretty/plain/JSONL), add gateway unreachable hint, and document logging.
@@ -38,6 +42,7 @@
 - WhatsApp: group `/model list` output by provider for scannability. (#456) - thanks @mcinteerj
 - Hooks: allow per-hook model overrides for webhook/Gmail runs (e.g. GPT 5 Mini).
 - Control UI: logs tab opens at the newest entries (bottom).
+- Control UI: default to relative paths for control UI assets. (#569) — thanks @bjesuiter
 - Control UI: add Docs link, remove chat composer divider, and add New session button.
 - Control UI: link sessions list to chat view. (#471) — thanks @HazAT
 - Control UI: show/patch per-session reasoning level and render extracted reasoning in chat.
@@ -54,6 +59,8 @@
 - Onboarding: avoid “token expired” for Codex CLI when expiry is heuristic.
 - Onboarding: QuickStart jumps straight into provider selection with Telegram preselected when unset.
 - Onboarding: QuickStart auto-installs the Gateway daemon with Node (no runtime picker).
+- Onboarding: clarify WhatsApp owner number prompt and label pairing phone number.
+- Auto-reply: normalize routed replies to drop NO_REPLY and apply response prefixes.
 - Daemon runtime: remove Bun from selection options.
 - CLI: restore hidden `gateway-daemon` alias for legacy launchd configs.
 - Onboarding/Configure: add OpenAI API key flow that stores in shared `~/.clawdbot/.env` for launchd; simplify Anthropic token prompt order.
@@ -85,9 +92,12 @@
 - Gateway/CLI: add `clawdbot gateway discover` (Bonjour scan on `local.` + `clawdbot.internal.`) with `--timeout` and `--json`. — thanks @steipete
 - Gateway/CLI: make `clawdbot gateway status` human-readable by default, add `--json`, and probe localhost + configured remote (warn on multiple gateways). — thanks @steipete
 - Gateway/CLI: support remote loopback gateways via SSH tunnel in `clawdbot gateway status` (`--ssh` / `--ssh-auto`). — thanks @steipete
+- Gateway/Discovery: include `gatewayPort`/`sshPort`/`cliPath` in wide-area Bonjour records, and add a tailnet DNS fallback for `gateway discover` when split DNS isn’t configured. — thanks @steipete
 - CLI: add global `--no-color` (and respect `NO_COLOR=1`) to disable ANSI output. — thanks @steipete
 - CLI: centralize lobster palette + apply it to onboarding/config prompts. — thanks @steipete
-- Gateway/CLI: add `clawdbot gateway --dev/--reset` to auto-create a dev config/workspace with a robot identity (no BOOTSTRAP.md). — thanks @steipete
+- Gateway/CLI: add `clawdbot gateway --dev/--reset` to auto-create a dev config/workspace with a robot identity (no BOOTSTRAP.md), and reset wipes config/creds/sessions/workspace (subcommand --dev no longer collides with global --dev profile). — thanks @steipete
+- Configure: stop prompting to open the Control UI (still shown in onboarding). — thanks @steipete
+- Config: fix Minimax hosted onboarding to write `agents.defaults` and allow `msteams` as a heartbeat target. — thanks @steipete
 
 ## 2026.1.8
 
