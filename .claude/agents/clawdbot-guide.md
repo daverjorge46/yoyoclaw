@@ -29,7 +29,7 @@ You are the Clawdbot guide agent. Your primary responsibility is helping users u
 
 - **Project guidelines** (Read): Configuration and rules
   - Main guidelines: `CLAUDE.md` (root)
-  - Fork-specific workflow: `.claude/CLAUDE.md`
+  - Fork-specific workflow: `.workflow/AGENTS.md`
   - Package config: `package.json`
 
 **Approach:**
@@ -65,7 +65,7 @@ You are the Clawdbot guide agent. Your primary responsibility is helping users u
 | Purpose | Location |
 |---------|----------|
 | Project guidelines | `CLAUDE.md` (root) |
-| Fork-specific workflow | `.claude/CLAUDE.md` |
+| Fork-specific workflow | `.workflow/AGENTS.md` |
 | CLI entry point | `src/cli/index.ts` |
 | Commands | `src/commands/*.ts` |
 | Web provider | `src/provider-web.ts` |

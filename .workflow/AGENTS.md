@@ -37,13 +37,28 @@
 
 ## Quick Start
 
+### First Steps
+1. Read root `CLAUDE.md` - coding standards (source of truth)
+2. Check `package.json` - available scripts
+3. Run `/dev:help` - see available slash commands
+
+### Key Commands
 ```bash
 /dev:help              # List all dev commands
+/dev:gate              # Quality gate - run before every commit
 /dev:fix-issue <num>   # Fix an upstream issue
 /dev:pr-review <num>   # Review a PR (read-only)
 /dev:pr-test <num>     # Test a PR locally
-/dev:gate              # Quality gate - run before every commit
 ```
+
+### Workflow Docs Index
+
+| Trigger | Read |
+|---------|------|
+| Writing tests | `.claude/skills/writing-tests/SKILL.md` |
+| Writing E2E tests | `.claude/skills/e2e-testing/SKILL.md` |
+| Multi-agent setup | `.workflow/automation/agent-automation.md` |
+| Something broken | [Troubleshooting](#troubleshooting) |
 
 ---
 
@@ -140,18 +155,10 @@ git branch -D temp/test-pr-123
 
 ## One-Shot Prompt Templates
 
-**Preferred: Use slash commands** (they include full context):
+**Use slash commands** (they include full context):
 - `/dev:fix-issue 123` - Fix issue #123
 - `/dev:pr-review 456` - Review PR #456
 - `/dev:pr-test 456` - Test PR #456 locally
-
-**Alternative: Copy/paste prompts** for manual sessions:
-
-| Task | Prompt File |
-|------|-------------|
-| Fix an issue | `prompts/fix-issue.md` |
-| Review a PR | `prompts/pr-review.md` |
-| Implement a feature | `prompts/new-feature.md` |
 
 ---
 
@@ -237,7 +244,7 @@ When multiple agents work in parallel:
 |------|----------|
 | Project coding standards | `CLAUDE.md` (root, synced from upstream) |
 | Test patterns | `src/**/*.test.ts` |
-| E2E patterns | `test/**/*.e2e.test.ts` |
+| E2E patterns | `test/*.e2e.test.ts` |
 | Test helpers | `src/gateway/test-helpers.ts` |
 | CLI commands | `package.json` scripts |
 | Slash commands | `.claude/commands/dev/` |

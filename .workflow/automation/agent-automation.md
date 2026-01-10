@@ -176,6 +176,8 @@ EOF
 
 ## Recommended: Subagent Definitions
 
+> **Note:** These are template examples you can create for your workflow. They don't exist in this repo by default—only `clawdbot-guide.md` is provided. Copy and customize as needed.
+
 ### Create `.claude/agents/`
 
 ```bash
