@@ -1,24 +1,24 @@
 ---
 description: Summon architecture wizard - prime agent with Clawdbot product internals
-allowed-tools: [Read, Glob, Grep, Task, Write, Bash]
-argument-hint: "[output-file]"
+allowed-tools: [Bash, Glob, Grep, Read, Task, Write]
+argument-hint: "[path]"
 ---
 
 # Wizard: Clawdbot Core Architecture
 
 You are summoning an architecture wizard. Prime yourself with deep understanding of Clawdbot's product architecture for an interactive session.
 
-**Arguments:** $ARGUMENTS
+**Output path:** `$PATH` (default: `/dev/null`)
 
-**Output file:** `$ARGUMENTS` (default: `/dev/null`)
-- Use `stdout` to display report on screen
-- Use a file path to write report to that location
-- Default `/dev/null` suppresses output
+**Path conventions:**
+- `/dev/null` - Suppress output (silent mode, default)
+- `/dev/stdout` - Display report to screen
+- Any other path - Write report to that file
 
-## CRITICAL: No Cheating
+## CRITICAL: Always Explore
 
 You MUST explore the codebase and build understanding regardless of output destination.
-The exploration happens always - the argument only controls where the report is written.
+The exploration phases happen always - `$PATH` only controls where the final report is written.
 
 Generate your internal summary to ensure context is loaded. Then write it to the specified destination.
 
@@ -150,10 +150,22 @@ Ready for questions about architecture, data flow, or implementation.
 
 **Output handling:**
 
-1. Determine output destination from `$ARGUMENTS` (default: `/dev/null`)
-2. If argument is empty or `/dev/null`: Write nothing, just confirm "Primed for Clawdbot architecture questions."
-3. If argument is `stdout`: Display the report above directly to user
-4. If argument is a file path: Use Write tool to save the report to that path, then confirm "Report written to [path]. Primed for Clawdbot architecture questions."
+Follow this conditional pattern based on `$PATH`:
+
+1. **Normalize path:** If `$PATH` is empty, treat as `/dev/null`
+
+2. **Route output based on path:**
+   - **If `$PATH` is `/dev/null`:**
+     - Write nothing
+     - Respond with: "Primed for Clawdbot architecture questions."
+
+   - **If `$PATH` is `/dev/stdout`:**
+     - Display the full report above directly in your response
+     - End with: "Primed for Clawdbot architecture questions."
+
+   - **Otherwise (any other path):**
+     - Use Write tool to save the report to `$PATH`
+     - Respond with: "Report written to `$PATH`. Primed for Clawdbot architecture questions."
 
 ---
 

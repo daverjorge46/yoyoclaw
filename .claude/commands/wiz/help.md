@@ -18,18 +18,18 @@ Summon domain-expert wizards for interactive sessions. Each wizard primes the ag
 
 | Command | Domain | Description |
 |---------|--------|-------------|
-| `/wiz:core [output-file]` | Architecture | Clawdbot product internals: gateway, agents, providers, data flow |
-| `/wiz:workflow [output-file]` | Dev Process | Development workflow, hotfixes, releases, project management |
+| `/wiz:core [path]` | Architecture | Clawdbot product internals: gateway, agents, providers, data flow |
+| `/wiz:workflow [path]` | Dev Process | Development workflow, hotfixes, releases, project management |
 | `/wiz:help` | - | This help |
 
 ## Usage
 
 ```bash
-# Prime for architecture questions (no output)
+# Prime for architecture questions (silent mode)
 /wiz:core
 
-# Prime and display report on screen
-/wiz:core stdout
+# Prime and display report to screen
+/wiz:core /dev/stdout
 
 # Prime and save report to file
 /wiz:core /tmp/architecture-report.txt
@@ -43,10 +43,10 @@ Summon domain-expert wizards for interactive sessions. Each wizard primes the ag
 1. Agent explores relevant files and documentation
 2. Builds internal understanding of the domain
 3. Generates comprehensive report
-4. Writes report to specified destination:
-   - Default (no argument or `/dev/null`): Silent, just confirms primed
-   - `stdout`: Displays report on screen
-   - File path: Saves report to file
+4. Writes report to specified path:
+   - `/dev/null` (default): Silent mode, just confirms primed
+   - `/dev/stdout`: Displays report to screen
+   - Any other path: Saves report to that file
 5. Ready for interactive Q&A session
 
 ## Examples
@@ -58,7 +58,7 @@ Primed for Clawdbot architecture questions.
 > How does message routing work?
 [Agent answers with specific file references from exploration]
 
-> /wiz:workflow stdout
+> /wiz:workflow /dev/stdout
 Dev Workflow Primed
 ===================
 [Full summary shown]
