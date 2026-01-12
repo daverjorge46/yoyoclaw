@@ -108,6 +108,7 @@ import {
   getResolvedLoggerSettings,
   runtimeForLogger,
 } from "../logging.js";
+import { initializeGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { loadClawdbotPlugins } from "../plugins/loader.js";
 import {
   type PluginServicesHandle,
@@ -477,6 +478,7 @@ export async function startGatewayServer(
     },
     coreGatewayHandlers,
   });
+  initializeGlobalHookRunner(pluginRegistry);
   const pluginMethods = Object.keys(pluginRegistry.gatewayHandlers);
   const gatewayMethods = Array.from(new Set([...METHODS, ...pluginMethods]));
   if (pluginRegistry.diagnostics.length > 0) {

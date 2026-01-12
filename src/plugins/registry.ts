@@ -12,6 +12,9 @@ import type {
   ClawdbotPluginToolFactory,
   PluginConfigUiHint,
   PluginDiagnostic,
+  PluginHookHandlers,
+  PluginHookName,
+  PluginHookRegistration,
   PluginLogger,
   PluginOrigin,
 } from "./types.js";
@@ -51,6 +54,7 @@ export type PluginRecord = {
   gatewayMethods: string[];
   cliCommands: string[];
   services: string[];
+  hooks: PluginHookName[];
   configSchema: boolean;
   configUiHints?: Record<string, PluginConfigUiHint>;
 };
@@ -61,6 +65,7 @@ export type PluginRegistry = {
   gatewayHandlers: GatewayRequestHandlers;
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
+  hooks: PluginHookRegistration[];
   diagnostics: PluginDiagnostic[];
 };
 
@@ -76,6 +81,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     gatewayHandlers: {},
     cliRegistrars: [],
     services: [],
+    hooks: [],
     diagnostics: [],
   };
   const coreGatewayMethods = new Set(
@@ -164,6 +170,24 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
+  const registerHook = <K extends PluginHookName>(
+    record: PluginRecord,
+    hookName: K,
+    handler: PluginHookHandlers[K],
+    opts?: { priority?: number },
+  ) => {
+    if (!record.hooks.includes(hookName)) {
+      record.hooks.push(hookName);
+    }
+    registry.hooks.push({
+      pluginId: record.id,
+      hookName,
+      handler,
+      priority: opts?.priority ?? 0,
+      source: record.source,
+    });
+  };
+
   const normalizeLogger = (logger: PluginLogger): PluginLogger => ({
     info: logger.info,
     warn: logger.warn,
@@ -193,6 +217,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
       resolvePath: (input: string) => resolveUserPath(input),
+      on: (hookName, handler, opts) =>
+        registerHook(record, hookName, handler, opts),
     };
   };
 
@@ -204,5 +230,6 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registerGatewayMethod,
     registerCli,
     registerService,
+    registerHook,
   };
 }

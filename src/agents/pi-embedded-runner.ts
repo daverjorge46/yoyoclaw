@@ -38,6 +38,7 @@ import { resolveProviderCapabilities } from "../config/provider-capabilities.js"
 import { getMachineDisplayName } from "../infra/machine-name.js";
 import { registerUnhandledRejectionHandler } from "../infra/unhandled-rejections.js";
 import { createSubsystemLogger } from "../logging.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import {
   type enqueueCommand,
   enqueueCommandInLane,
@@ -1818,14 +1819,47 @@ export async function runEmbeddedPiAgent(params: {
               });
             }
           }
+          // Get hook runner once for both before_agent_start and agent_end hooks
+          const hookRunner = getGlobalHookRunner();
+
           let promptError: unknown = null;
           try {
             const promptStartedAt = Date.now();
+
+            // Run before_agent_start hooks to allow plugins to inject context
+            let effectivePrompt = params.prompt;
+            if (hookRunner?.hasHooks("before_agent_start")) {
+              try {
+                const hookResult = await hookRunner.runBeforeAgentStart(
+                  {
+                    prompt: params.prompt,
+                    messages: session.messages,
+                  },
+                  {
+                    agentId: params.sessionKey?.split(":")[0] ?? "main",
+                    sessionKey: params.sessionKey,
+                    workspaceDir: resolvedWorkspace,
+                    messageProvider: normalizeMessageProvider(
+                      params.messageProvider,
+                    ),
+                  },
+                );
+                if (hookResult?.prependContext) {
+                  effectivePrompt = `${hookResult.prependContext}\n\n${params.prompt}`;
+                  log.debug(
+                    `hooks: prepended context to prompt (${hookResult.prependContext.length} chars)`,
+                  );
+                }
+              } catch (hookErr) {
+                log.warn(`before_agent_start hook failed: ${hookErr}`);
+              }
+            }
+
             log.debug(
               `embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`,
             );
             try {
-              await session.prompt(params.prompt, {
+              await session.prompt(effectivePrompt, {
                 images: params.images,
               });
             } catch (err) {
@@ -2144,6 +2178,32 @@ export async function runEmbeddedPiAgent(params: {
               profileId: lastProfileId,
             });
           }
+
+          // Run agent_end hooks to allow plugins to analyze the conversation
+          // This is fire-and-forget, so we don't await
+          if (hookRunner?.hasHooks("agent_end")) {
+            hookRunner
+              .runAgentEnd(
+                {
+                  messages: messagesSnapshot,
+                  success: !aborted && !promptError,
+                  error: promptError ? String(promptError) : undefined,
+                  durationMs: Date.now() - started,
+                },
+                {
+                  agentId: params.sessionKey?.split(":")[0] ?? "main",
+                  sessionKey: params.sessionKey,
+                  workspaceDir: resolvedWorkspace,
+                  messageProvider: normalizeMessageProvider(
+                    params.messageProvider,
+                  ),
+                },
+              )
+              .catch((err) => {
+                log.warn(`agent_end hook failed: ${err}`);
+              });
+          }
+
           return {
             payloads: payloads.length ? payloads : undefined,
             meta: {

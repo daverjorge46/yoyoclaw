@@ -208,6 +208,7 @@ function createPluginRecord(params: {
     gatewayMethods: [],
     cliCommands: [],
     services: [],
+    hooks: [],
     configSchema: params.configSchema,
     configUiHints: undefined,
   };

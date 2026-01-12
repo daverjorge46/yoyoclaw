@@ -7,8 +7,16 @@
 
 ## 2026.1.12-3
 
+### Highlights
+- Memory Plugin: seamless auto-recall and auto-capture via lifecycle hooks (`before_agent_start`, `agent_end`).
+
 ### Changes
 - Sandbox: drop legacy `memory` tool-policy shorthand; require explicit `group:memory`.
+- Plugins: add lifecycle hook system with `api.on()` registration and global hook runner singleton.
+- Memory: LanceDB-based vector storage with OpenAI embeddings (`text-embedding-3-small`).
+- Memory: rule-based capture filtering (preferences, decisions, contacts, entities) with smart deduplication.
+- Memory: automatic context injection prepends `<relevant-memories>` to prompts when relevant memories found.
+- Docs: document plugin hooks with examples for `before_agent_start` and `agent_end`.
 
 ### Fixes
 - Telegram: tolerate mocked bots missing native-command APIs (`setMyCommands`, `command`) during tests.

@@ -218,6 +218,84 @@ export default function (api) {
 }
 ```
 
+### Register lifecycle hooks
+
+Plugins can subscribe to lifecycle events using `api.on()`. Hooks allow plugins
+to react to agent events, inject context, and process messages.
+
+```ts
+export default function (api) {
+  // Inject memories before agent starts processing
+  api.on("before_agent_start", async (event, ctx) => {
+    const memories = await searchMemories(event.prompt);
+    if (memories.length > 0) {
+      return {
+        prependContext: formatMemories(memories),
+      };
+    }
+  });
+
+  // Capture important information after agent completes
+  api.on("agent_end", async (event, ctx) => {
+    await analyzeAndStore(event.messages);
+  });
+}
+```
+
+#### Available hooks
+
+**Agent lifecycle:**
+
+| Hook | Description | Returns |
+|------|-------------|---------|
+| `before_agent_start` | Before agent processes user input | `{ systemPrompt?, prependContext? }` |
+| `agent_end` | After agent completes (success or error) | void |
+| `before_compaction` | Before context compaction | void |
+| `after_compaction` | After context compaction | void |
+
+**Message handling:**
+
+| Hook | Description | Returns |
+|------|-------------|---------|
+| `message_received` | When a new message is received | void |
+| `message_sending` | Before sending outgoing message | `{ content?, cancel? }` |
+| `message_sent` | After message is sent | void |
+
+**Tool execution:**
+
+| Hook | Description | Returns |
+|------|-------------|---------|
+| `before_tool_call` | Before a tool is executed | `{ params?, block?, blockReason? }` |
+| `after_tool_call` | After tool execution completes | void |
+
+**Session lifecycle:**
+
+| Hook | Description | Returns |
+|------|-------------|---------|
+| `session_start` | When a session starts | void |
+| `session_end` | When a session ends | void |
+
+**Gateway lifecycle:**
+
+| Hook | Description | Returns |
+|------|-------------|---------|
+| `gateway_start` | When gateway starts | void |
+| `gateway_stop` | When gateway stops | void |
+
+#### Hook execution behavior
+
+- **Blocking hooks** (`before_agent_start`, `message_sending`, `before_tool_call`):
+  Run sequentially in priority order. Return values are merged.
+- **Fire-and-forget hooks** (`agent_end`, `message_sent`, `after_tool_call`, etc.):
+  Run in parallel for performance. Errors are logged but don't block execution.
+- **Priority**: Use `{ priority: number }` option to control execution order
+  (higher values run first).
+
+```ts
+// Higher priority runs first
+api.on("before_agent_start", handler, { priority: 100 });
+```
+
 ## Naming conventions
 
 - Gateway methods: `pluginId.action` (example: `voicecall.status`)
