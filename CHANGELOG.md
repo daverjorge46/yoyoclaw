@@ -4,6 +4,12 @@
 
 ### Changes
 - Subagents: add config to set default sub-agent model (`agents.defaults.subagents.model` + per-agent override); still overridden by `sessions_spawn.model`.
+- Plugins: restore full voice-call plugin parity (Telnyx/Twilio, streaming, inbound policies, tools/CLI).
+- Sandbox: support tool-policy groups in `tools.sandbox.tools` (e.g. `group:memory`, `group:fs`) to reduce config churn.
+
+### Fixes
+- Tools/Models: MiniMax vision now uses the Coding Plan VLM endpoint (`/v1/coding_plan/vlm`) so the `image` tool works with MiniMax keys (also accepts `@/path/to/file.png`-style inputs).
+- Gateway/macOS: reduce noisy loopback WS “closed before connect” logs during tests.
 
 ## 2026.1.12-1
 
@@ -20,19 +26,26 @@
 - Memory: embedding providers support OpenAI or local `node-llama-cpp`; config adds defaults + per-agent overrides, provider/fallback metadata surfaced in tools/CLI.
 - CLI/Tools: new `clawdbot memory` commands plus `memory_search`/`memory_get` tools returning snippets + line ranges and provider info.
 - Runtime: memory index stored under `~/.clawdbot/memory/{agentId}.sqlite` with watch-on-by-default; inline status replies now stay auth-gated while inline prompts continue to the agent.
+- Discord: add `discord.allowBots` to permit bot-authored messages (still ignores its own messages) with docs warning about bot loops. (#802) — thanks @zknicker.
 - CLI/Onboarding: `clawdbot dashboard` prints/copies the tokenized Control UI link and opens it; onboarding now auto-opens the dashboard with your token and keeps the link in the summary.
+- Commands: native slash commands now default to `"auto"` (on for Discord/Telegram, off for Slack) with per-provider overrides (`discord/telegram/slack.commands.native`) and docs updated.
+- Sandbox: allow Docker bind mounts via `docker.binds`; merges global + per-agent binds (per-agent ignored under shared scope) for custom host paths. (#790 — thanks @akonyer)
 
 ### Fixes
 - Auto-reply: inline `/status` now honors allowlists (authorized stripped + replied inline; unauthorized leaves text for the agent) to match command gating tests.
 - Models: normalize `${ENV_VAR}` apiKey config values and auto-fill missing provider `apiKey` from env/auth when custom provider models are configured (fixes MiniMax “Unknown model” on fresh installs).
 - Models/Tools: include `MiniMax-VL-01` in implicit MiniMax provider so image pairing uses a real vision model.
 - Telegram: show typing indicator in General forum topics. (#779) — thanks @azade-c.
+- Discord: keep reasoning italics intact when messages are chunked, so reasoning stays italic across multi-part sends.
 - Models: keep explicit GitHub Copilot provider config and honor agent-dir auth profiles for auto-injection. (#705) — thanks @TAGOOZ.
 - Auto-reply: restore 300-char heartbeat ack limit and keep >300 char replies instead of dropping them; adjust long heartbeat test content accordingly.
 - Gateway: `agents.list` now honors explicit `agents.list` config without pulling stray agents from disk; GitHub Copilot CLI auth path uses the updated provider build.
 - Google: apply patched pi-ai `google-gemini-cli` function call handling (strips ids) after upgrading to pi-ai 0.43.0.
+- Tools: allow Gemini/Claude-style aliases (`file_path`, `old_string`, `new_string`) in read/write/edit schemas while still enforcing required params at runtime to avoid validation loops.
 - Auto-reply: elevated/reasoning toggles now enqueue system events so the model sees the mode change immediately.
 - Tools: keep `image` available in sandbox and fail over when image models return empty output (fixes “(no text returned)”).
+- Discord: add per-channel `autoThread` to auto-create threads for top-level messages. (#800) — thanks @davidguttman.
+- Onboarding: TUI defaults to `deliver: false` to avoid cross-provider auto-delivery leaks; onboarding spawns the TUI with explicit `deliver: false`. (#791 — thanks @roshanasingh4)
 
 ## 2026.1.11
 

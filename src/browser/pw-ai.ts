@@ -15,6 +15,7 @@ export {
   cookiesClearViaPlaywright,
   cookiesGetViaPlaywright,
   cookiesSetViaPlaywright,
+  downloadViaPlaywright,
   dragViaPlaywright,
   emulateMediaViaPlaywright,
   evaluateViaPlaywright,
@@ -28,6 +29,8 @@ export {
   pdfViaPlaywright,
   pressKeyViaPlaywright,
   resizeViewportViaPlaywright,
+  responseBodyViaPlaywright,
+  scrollIntoViewViaPlaywright,
   selectOptionViaPlaywright,
   setDeviceViaPlaywright,
   setExtraHTTPHeadersViaPlaywright,
@@ -46,5 +49,6 @@ export {
   traceStartViaPlaywright,
   traceStopViaPlaywright,
   typeViaPlaywright,
+  waitForDownloadViaPlaywright,
   waitForViaPlaywright,
 } from "./pw-tools-core.js";

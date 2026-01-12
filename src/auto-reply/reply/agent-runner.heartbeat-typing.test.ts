@@ -145,6 +145,23 @@ describe("runReplyAgent typing (heartbeat)", () => {
     expect(typing.startTypingLoop).toHaveBeenCalled();
   });
 
+  it("signals typing even without consumer partial handler", async () => {
+    runEmbeddedPiAgentMock.mockImplementationOnce(
+      async (params: EmbeddedPiAgentParams) => {
+        await params.onPartialReply?.({ text: "hi" });
+        return { payloads: [{ text: "final" }], meta: {} };
+      },
+    );
+
+    const { run, typing } = createMinimalRun({
+      typingMode: "message",
+    });
+    await run();
+
+    expect(typing.startTypingOnText).toHaveBeenCalledWith("hi");
+    expect(typing.startTypingLoop).not.toHaveBeenCalled();
+  });
+
   it("never signals typing for heartbeat runs", async () => {
     const onPartialReply = vi.fn();
     runEmbeddedPiAgentMock.mockImplementationOnce(
@@ -206,7 +223,7 @@ describe("runReplyAgent typing (heartbeat)", () => {
           text?: string;
         }) => Promise<void> | void;
       }) => {
-        await params.onReasoningStream?.({ text: "Reasoning:\nstep" });
+        await params.onReasoningStream?.({ text: "Reasoning:\n_step_" });
         await params.onPartialReply?.({ text: "hi" });
         return { payloads: [{ text: "final" }], meta: {} };
       },

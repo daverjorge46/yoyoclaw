@@ -33,6 +33,10 @@ import {
 import { dispatchReplyWithBufferedBlockDispatcher } from "../auto-reply/reply/provider-dispatcher.js";
 import { getReplyFromConfig } from "../auto-reply/reply.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
+import {
+  isNativeCommandsExplicitlyDisabled,
+  resolveNativeCommandsEnabled,
+} from "../config/commands.js";
 import type { ClawdbotConfig, ReplyToMode } from "../config/config.js";
 import { loadConfig } from "../config/config.js";
 import {
@@ -291,8 +295,15 @@ export function createTelegramBot(opts: TelegramBotOptions) {
   };
   const replyToMode = opts.replyToMode ?? telegramCfg.replyToMode ?? "first";
   const streamMode = resolveTelegramStreamMode(telegramCfg);
-  const nativeEnabled = cfg.commands?.native === true;
-  const nativeDisabledExplicit = cfg.commands?.native === false;
+  const nativeEnabled = resolveNativeCommandsEnabled({
+    providerId: "telegram",
+    providerSetting: telegramCfg.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
+  const nativeDisabledExplicit = isNativeCommandsExplicitlyDisabled({
+    providerSetting: telegramCfg.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
   const useAccessGroups = cfg.commands?.useAccessGroups !== false;
   const ackReactionScope = cfg.messages?.ackReactionScope ?? "group-mentions";
   const mediaMaxBytes =
@@ -921,26 +932,37 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     ? listNativeCommandSpecsForConfig(cfg)
     : [];
   if (nativeCommands.length > 0) {
-    bot.api
-      .setMyCommands(
-        nativeCommands.map((command) => ({
-          command: command.name,
-          description: command.description,
-        })),
-      )
-      .catch((err) => {
-        runtime.error?.(
-          danger(`telegram setMyCommands failed: ${String(err)}`),
-        );
-      });
+    if (typeof bot.api.setMyCommands === "function") {
+      bot.api
+        .setMyCommands(
+          nativeCommands.map((command) => ({
+            command: command.name,
+            description: command.description,
+          })),
+        )
+        .catch((err) => {
+          runtime.error?.(
+            danger(`telegram setMyCommands failed: ${String(err)}`),
+          );
+        });
+    } else {
+      runtime.info?.(
+        "telegram: setMyCommands not available on api mock; skipping",
+      );
+    }
 
-    for (const command of nativeCommands) {
-      bot.command(command.name, async (ctx) => {
-        const msg = ctx.message;
-        if (!msg) return;
-        if (shouldSkipUpdate(ctx)) return;
-        const chatId = msg.chat.id;
-        const isGroup =
+    if (typeof bot.command !== "function") {
+      runtime.info?.(
+        "telegram: bot.command not available on api mock; skipping native command handlers",
+      );
+    } else {
+      for (const command of nativeCommands) {
+        bot.command(command.name, async (ctx) => {
+          const msg = ctx.message;
+          if (!msg) return;
+          if (shouldSkipUpdate(ctx)) return;
+          const chatId = msg.chat.id;
+          const isGroup =
           msg.chat.type === "group" || msg.chat.type === "supergroup";
         const messageThreadId = (msg as { message_thread_id?: number })
           .message_thread_id;
@@ -1121,7 +1143,8 @@ export function createTelegramBot(opts: TelegramBotOptions) {
           textLimit,
           messageThreadId,
         });
-      });
+        });
+      }
     }
   } else if (nativeDisabledExplicit) {
     bot.api.setMyCommands([]).catch((err) => {

@@ -209,6 +209,10 @@ ClawdHub installs into `./skills` under your current directory; Clawdbot treats 
 
 Yes. See [Sandboxing](/gateway/sandboxing). For Docker-specific setup (full gateway in Docker or sandbox images), see [Docker](/install/docker).
 
+### How do I bind a host folder into the sandbox?
+
+Set `agents.defaults.sandbox.docker.binds` to `["host:path:mode"]` (e.g., `"/home/user/src:/src:ro"`). Global + per-agent binds merge; per-agent binds are ignored when `scope: "shared"`. Use `:ro` for anything sensitive and remember binds bypass the sandbox filesystem walls. See [Sandboxing](/gateway/sandboxing#custom-bind-mounts) and [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated#bind-mounts-security-quick-check) for examples and safety notes.
+
 ### How does memory work?
 
 Clawdbot memory is just Markdown files in the agent workspace:
@@ -735,6 +739,8 @@ Facts (from code):
 - The UI can import `?token=...` (and/or `?password=...`) once, then strips it from the URL.
 
 Fix:
+- Fastest: `clawdbot dashboard` (prints + copies tokenized link, tries to open; shows SSH hint if headless).
+- If remote, tunnel first: `ssh -N -L 18789:127.0.0.1:18789 user@host` then open `http://127.0.0.1:18789/?token=...`.
 - Set `gateway.auth.token` (or `CLAWDBOT_GATEWAY_TOKEN`) on the gateway host.
 - In the Control UI settings, paste the same token (or refresh with a one-time `?token=...` link).
 

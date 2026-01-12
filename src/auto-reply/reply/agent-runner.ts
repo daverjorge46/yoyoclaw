@@ -547,6 +547,35 @@ export async function runReplyAgent(params: {
         const allowPartialStream = !(
           followupRun.run.reasoningLevel === "stream" && opts?.onReasoningStream
         );
+        const normalizeStreamingText = (
+          payload: ReplyPayload,
+        ): string | undefined => {
+          if (!allowPartialStream) return undefined;
+          let text = payload.text;
+          if (!isHeartbeat && text?.includes("HEARTBEAT_OK")) {
+            const stripped = stripHeartbeatToken(text, {
+              mode: "message",
+            });
+            if (stripped.didStrip && !didLogHeartbeatStrip) {
+              didLogHeartbeatStrip = true;
+              logVerbose("Stripped stray HEARTBEAT_OK token from reply");
+            }
+            if (stripped.shouldSkip && (payload.mediaUrls?.length ?? 0) === 0) {
+              return undefined;
+            }
+            text = stripped.text;
+          }
+          if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) return undefined;
+          return text;
+        };
+        const handlePartialForTyping = async (
+          payload: ReplyPayload,
+        ): Promise<string | undefined> => {
+          const text = normalizeStreamingText(payload);
+          if (!text) return undefined;
+          await typingSignals.signalTextDelta(text);
+          return text;
+        };
         const fallbackResult = await runWithModelFallback({
           cfg: followupRun.run.config,
           provider: followupRun.run.provider,
@@ -641,31 +670,15 @@ export async function runReplyAgent(params: {
               blockReplyBreak: resolvedBlockStreamingBreak,
               blockReplyChunking,
               onPartialReply:
-                opts?.onPartialReply && allowPartialStream
+                allowPartialStream
                   ? async (payload) => {
-                      let text = payload.text;
-                      if (!isHeartbeat && text?.includes("HEARTBEAT_OK")) {
-                        const stripped = stripHeartbeatToken(text, {
-                          mode: "message",
-                        });
-                        if (stripped.didStrip && !didLogHeartbeatStrip) {
-                          didLogHeartbeatStrip = true;
-                          logVerbose(
-                            "Stripped stray HEARTBEAT_OK token from reply",
-                          );
-                        }
-                        if (
-                          stripped.shouldSkip &&
-                          (payload.mediaUrls?.length ?? 0) === 0
-                        ) {
-                          return;
-                        }
-                        text = stripped.text;
-                      }
-                      if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) return;
-                      await typingSignals.signalTextDelta(text);
-                      await opts.onPartialReply?.({
-                        text,
+                      const textForTyping = await handlePartialForTyping(
+                        payload,
+                      );
+                      if (!opts?.onPartialReply || textForTyping === undefined)
+                        return;
+                      await opts.onPartialReply({
+                        text: textForTyping,
                         mediaUrls: payload.mediaUrls,
                       });
                     }

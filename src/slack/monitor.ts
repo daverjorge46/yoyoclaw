@@ -38,6 +38,7 @@ import { createReplyDispatcherWithTyping } from "../auto-reply/reply/reply-dispa
 import { getReplyFromConfig } from "../auto-reply/reply.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
+import { resolveNativeCommandsEnabled } from "../config/commands.js";
 import type {
   ClawdbotConfig,
   SlackReactionNotificationMode,
@@ -1944,8 +1945,14 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
     }
   };
 
-  const nativeCommands =
-    cfg.commands?.native === true ? listNativeCommandSpecsForConfig(cfg) : [];
+  const nativeEnabled = resolveNativeCommandsEnabled({
+    providerId: "slack",
+    providerSetting: account.config.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
+  const nativeCommands = nativeEnabled
+    ? listNativeCommandSpecsForConfig(cfg)
+    : [];
   if (nativeCommands.length > 0) {
     for (const command of nativeCommands) {
       app.command(

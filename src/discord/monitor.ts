@@ -14,8 +14,11 @@ import {
   type User,
 } from "@buape/carbon";
 import { GatewayIntents, GatewayPlugin } from "@buape/carbon/gateway";
-import type { APIAttachment } from "discord-api-types/v10";
-import { ApplicationCommandOptionType, Routes } from "discord-api-types/v10";
+import {
+  type APIAttachment,
+  ApplicationCommandOptionType,
+  Routes,
+} from "discord-api-types/v10";
 
 import {
   resolveAckReaction,
@@ -49,6 +52,10 @@ import {
 } from "../auto-reply/reply/reply-dispatcher.js";
 import { getReplyFromConfig } from "../auto-reply/reply.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
+import {
+  isNativeCommandsExplicitlyDisabled,
+  resolveNativeCommandsEnabled,
+} from "../config/commands.js";
 import type { ClawdbotConfig, ReplyToMode } from "../config/config.js";
 import { loadConfig } from "../config/config.js";
 import { resolveStorePath, updateLastRoute } from "../config/sessions.js";
@@ -247,6 +254,7 @@ export type DiscordGuildEntryResolved = {
       enabled?: boolean;
       users?: Array<string | number>;
       systemPrompt?: string;
+      autoThread?: boolean;
     }
   >;
 };
@@ -258,6 +266,7 @@ export type DiscordChannelConfigResolved = {
   enabled?: boolean;
   users?: Array<string | number>;
   systemPrompt?: string;
+  autoThread?: boolean;
 };
 
 export type DiscordMessageEvent = Parameters<
@@ -401,8 +410,15 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
   const dmPolicy = dmConfig?.policy ?? "pairing";
   const groupDmEnabled = dmConfig?.groupEnabled ?? false;
   const groupDmChannels = dmConfig?.groupChannels;
-  const nativeEnabled = cfg.commands?.native === true;
-  const nativeDisabledExplicit = cfg.commands?.native === false;
+  const nativeEnabled = resolveNativeCommandsEnabled({
+    providerId: "discord",
+    providerSetting: discordCfg.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
+  const nativeDisabledExplicit = isNativeCommandsExplicitlyDisabled({
+    providerSetting: discordCfg.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
   const useAccessGroups = cfg.commands?.useAccessGroups !== false;
   const sessionPrefix = "discord:slash";
   const ephemeralDefault = true;
@@ -645,7 +661,17 @@ export function createDiscordMessageHandler(params: {
     try {
       const message = data.message;
       const author = data.author;
-      if (!author || author.bot) return;
+      if (!author) return;
+
+      const allowBots = discordConfig?.allowBots ?? false;
+      if (author.bot) {
+        // Always ignore own messages to prevent self-reply loops
+        if (botUserId && author.id === botUserId) return;
+        if (!allowBots) {
+          logVerbose("discord: drop bot message (allowBots=false)");
+          return;
+        }
+      }
 
       const isGuildMessage = Boolean(data.guild_id);
       const channelInfo = await resolveDiscordChannelInfo(
@@ -905,8 +931,12 @@ export function createDiscordMessageHandler(params: {
             }
           : undefined;
 
-      const shouldRequireMention =
-        channelConfig?.requireMention ?? guildInfo?.requireMention ?? true;
+      const shouldRequireMention = resolveDiscordShouldRequireMention({
+        isGuildMessage,
+        isThread: Boolean(threadChannel),
+        channelConfig,
+        guildInfo,
+      });
       const hasAnyMention = Boolean(
         !isDirectMessage &&
           (message.mentionedEveryone ||
@@ -1155,6 +1185,39 @@ export function createDiscordMessageHandler(params: {
         return;
       }
 
+      let deliverTarget = replyTarget;
+      if (isGuildMessage && channelConfig?.autoThread && !threadChannel) {
+        try {
+          const base = truncateUtf16Safe(
+            (baseText || combinedBody || "Thread").replace(/\s+/g, " ").trim(),
+            80,
+          );
+          const authorLabel = author.username ?? author.id;
+          const threadName =
+            truncateUtf16Safe(`${authorLabel}: ${base}`.trim(), 100) ||
+            `Thread ${message.id}`;
+
+          const created = (await client.rest.post(
+            `${Routes.channelMessage(message.channelId, message.id)}/threads`,
+            {
+              body: {
+                name: threadName,
+                auto_archive_duration: 60,
+              },
+            },
+          )) as { id?: string };
+
+          const createdId = created?.id ? String(created.id) : "";
+          if (createdId) {
+            deliverTarget = `channel:${createdId}`;
+          }
+        } catch (err) {
+          logVerbose(
+            `discord: autoThread failed for ${message.channelId}/${message.id}: ${String(err)}`,
+          );
+        }
+      }
+
       if (isDirectMessage) {
         const sessionCfg = cfg.session;
         const storePath = resolveStorePath(sessionCfg?.store, {
@@ -1188,12 +1251,12 @@ export function createDiscordMessageHandler(params: {
           deliver: async (payload) => {
             await deliverDiscordReply({
               replies: [payload],
-              target: replyTarget,
+              target: deliverTarget,
               token,
               accountId,
               rest: client.rest,
               runtime,
-              replyToMode,
+              replyToMode: deliverTarget !== replyTarget ? "off" : replyToMode,
               textLimit,
               maxLinesPerMessage: discordConfig?.maxLinesPerMessage,
             });
@@ -2370,6 +2433,7 @@ export function resolveDiscordChannelConfig(params: {
       enabled: byId.enabled,
       users: byId.users,
       systemPrompt: byId.systemPrompt,
+      autoThread: byId.autoThread,
     };
   if (channelSlug && channels[channelSlug]) {
     const entry = channels[channelSlug];
@@ -2380,6 +2444,7 @@ export function resolveDiscordChannelConfig(params: {
       enabled: entry.enabled,
       users: entry.users,
       systemPrompt: entry.systemPrompt,
+      autoThread: entry.autoThread,
     };
   }
   if (channelName && channels[channelName]) {
@@ -2391,9 +2456,25 @@ export function resolveDiscordChannelConfig(params: {
       enabled: entry.enabled,
       users: entry.users,
       systemPrompt: entry.systemPrompt,
+      autoThread: entry.autoThread,
     };
   }
   return { allowed: false };
+}
+
+export function resolveDiscordShouldRequireMention(params: {
+  isGuildMessage: boolean;
+  isThread: boolean;
+  channelConfig?: DiscordChannelConfigResolved | null;
+  guildInfo?: DiscordGuildEntryResolved | null;
+}): boolean {
+  if (!params.isGuildMessage) return false;
+  if (params.isThread && params.channelConfig?.autoThread) return false;
+  return (
+    params.channelConfig?.requireMention ??
+    params.guildInfo?.requireMention ??
+    true
+  );
 }
 
 export function isDiscordGroupAllowedByPolicy(params: {
