@@ -529,6 +529,10 @@ Use `*.groupPolicy` to control whether group/room messages are accepted at all:
     groupPolicy: "allowlist",
     groupAllowFrom: ["chat_id:123"]
   },
+  msteams: {
+    groupPolicy: "allowlist",
+    groupAllowFrom: ["user@org.com"]
+  },
   discord: {
     groupPolicy: "allowlist",
     guilds: {
@@ -545,12 +549,13 @@ Use `*.groupPolicy` to control whether group/room messages are accepted at all:
 ```
 
 Notes:
-- `"open"` (default): groups bypass allowlists; mention-gating still applies.
+- `"open"`: groups bypass allowlists; mention-gating still applies.
 - `"disabled"`: block all group/room messages.
 - `"allowlist"`: only allow groups/rooms that match the configured allowlist.
-- WhatsApp/Telegram/Signal/iMessage use `groupAllowFrom` (fallback: explicit `allowFrom`).
+- WhatsApp/Telegram/Signal/iMessage/Microsoft Teams use `groupAllowFrom` (fallback: explicit `allowFrom`).
 - Discord/Slack use channel allowlists (`discord.guilds.*.channels`, `slack.channels`).
 - Group DMs (Discord/Slack) are still controlled by `dm.groupEnabled` + `dm.groupChannels`.
+- Default is `groupPolicy: "allowlist"`; if no allowlist is configured, group messages are blocked.
 
 ### Multi-agent routing (`agents.list` + `bindings`)
 
@@ -1368,6 +1373,42 @@ Example (adaptive tuned):
 
 See [/concepts/session-pruning](/concepts/session-pruning) for behavior details.
 
+#### `agents.defaults.compaction` (reserve headroom + memory flush)
+
+`agents.defaults.compaction.reserveTokensFloor` enforces a minimum `reserveTokens`
+value for Pi compaction (default: `20000`). Set it to `0` to disable the floor.
+
+`agents.defaults.compaction.memoryFlush` runs a **silent** agentic turn before
+auto-compaction, instructing the model to store durable memories on disk (e.g.
+`memory/YYYY-MM-DD.md`). It triggers when the session token estimate crosses a
+soft threshold below the compaction limit.
+
+Defaults:
+- `memoryFlush.enabled`: `true`
+- `memoryFlush.softThresholdTokens`: `4000`
+- `memoryFlush.prompt` / `memoryFlush.systemPrompt`: built-in defaults with `NO_REPLY`
+- Note: memory flush is skipped when the session workspace is read-only
+  (`agents.defaults.sandbox.workspaceAccess: "ro"` or `"none"`).
+
+Example (tuned):
+```json5
+{
+  agents: {
+    defaults: {
+      compaction: {
+        reserveTokensFloor: 24000,
+        memoryFlush: {
+          enabled: true,
+          softThresholdTokens: 6000,
+          systemPrompt: "Session nearing compaction. Store durable memories now.",
+          prompt: "Write any lasting notes to memory/YYYY-MM-DD.md; reply with NO_REPLY if nothing to store."
+        }
+      }
+    }
+  }
+}
+```
+
 Block streaming:
 - `agents.defaults.blockStreamingDefault`: `"on"`/`"off"` (default off).
 - Provider overrides: `*.blockStreaming` (and per-account variants) to force block streaming on/off.
@@ -1422,7 +1463,7 @@ Z.AI models are available as `zai/<model>` (e.g. `zai/glm-4.7`) and require
 - `target`: optional delivery provider (`last`, `whatsapp`, `telegram`, `discord`, `slack`, `signal`, `imessage`, `none`). Default: `last`.
 - `to`: optional recipient override (provider-specific id, e.g. E.164 for WhatsApp, chat id for Telegram).
 - `prompt`: optional override for the heartbeat body (default: `Read HEARTBEAT.md if exists. Consider outstanding tasks. Checkup sometimes on your human during (user local) day time.`). Overrides are sent verbatim; include a `Read HEARTBEAT.md if exists` line if you still want the file read.
-- `ackMaxChars`: max chars allowed after `HEARTBEAT_OK` before delivery (default: 30).
+- `ackMaxChars`: max chars allowed after `HEARTBEAT_OK` before delivery (default: 300).
 
 Heartbeats run full agent turns. Shorter intervals burn more tokens; be mindful
 of `every`, keep `HEARTBEAT.md` tiny, and/or choose a cheaper `model`.
@@ -1728,37 +1769,34 @@ Notes:
   override (see the custom providers section above).
 - Use a fake placeholder in docs/configs; never commit real API keys.
 
-### Local models (LM Studio) — recommended setup
+### Moonshot AI (Kimi)
 
-Best current local setup (what we’re running): **MiniMax M2.1** on a powerful local machine
-via **LM Studio** using the **Responses API**.
+Use Moonshot's OpenAI-compatible endpoint:
 
 ```json5
 {
+  env: { MOONSHOT_API_KEY: "sk-..." },
   agents: {
     defaults: {
-      model: { primary: "lmstudio/minimax-m2.1-gs32" },
-      models: {
-        "anthropic/claude-opus-4-5": { alias: "Opus" },
-        "lmstudio/minimax-m2.1-gs32": { alias: "Minimax" }
-      }
+      model: { primary: "moonshot/kimi-k2-0905-preview" },
+      models: { "moonshot/kimi-k2-0905-preview": { alias: "Kimi K2" } }
     }
   },
   models: {
     mode: "merge",
     providers: {
-      lmstudio: {
-        baseUrl: "http://127.0.0.1:1234/v1",
-        apiKey: "lmstudio",
-        api: "openai-responses",
+      moonshot: {
+        baseUrl: "https://api.moonshot.ai/v1",
+        apiKey: "${MOONSHOT_API_KEY}",
+        api: "openai-completions",
         models: [
           {
-            id: "minimax-m2.1-gs32",
-            name: "MiniMax M2.1 GS32",
+            id: "kimi-k2-0905-preview",
+            name: "Kimi K2 0905 Preview",
             reasoning: false,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-            contextWindow: 196608,
+            contextWindow: 256000,
             maxTokens: 8192
           }
         ]
@@ -1769,13 +1807,17 @@ via **LM Studio** using the **Responses API**.
 ```
 
 Notes:
-- LM Studio must have the model loaded and the local server enabled (default URL above).
-- Responses API enables clean reasoning/output separation; WhatsApp sees only final text.
-- Adjust `contextWindow`/`maxTokens` if your LM Studio context length differs.
+- Set `MOONSHOT_API_KEY` in the environment or use `clawdbot onboard --auth-choice moonshot-api-key`.
+- Model ref: `moonshot/kimi-k2-0905-preview`.
+- Use `https://api.moonshot.cn/v1` if you need the China endpoint.
 
-### MiniMax API (platform.minimax.io)
+### Local models (LM Studio) — recommended setup
 
-Use MiniMax's Anthropic-compatible API directly without LM Studio:
+See [/gateway/local-models](/gateway/local-models) for the current local guidance. TL;DR: run MiniMax M2.1 via LM Studio Responses API on serious hardware; keep hosted models merged for fallback.
+
+### MiniMax M2.1
+
+Use MiniMax M2.1 directly without LM Studio:
 
 ```json5
 {
@@ -1799,25 +1841,7 @@ Use MiniMax's Anthropic-compatible API directly without LM Studio:
             name: "MiniMax M2.1",
             reasoning: false,
             input: ["text"],
-            // Pricing: MiniMax doesn't publish public rates. Override in models.json for accurate costs.
-            cost: { input: 15, output: 60, cacheRead: 2, cacheWrite: 10 },
-            contextWindow: 200000,
-            maxTokens: 8192
-          },
-          {
-            id: "MiniMax-M2.1-lightning",
-            name: "MiniMax M2.1 Lightning",
-            reasoning: false,
-            input: ["text"],
-            cost: { input: 15, output: 60, cacheRead: 2, cacheWrite: 10 },
-            contextWindow: 200000,
-            maxTokens: 8192
-          },
-          {
-            id: "MiniMax-M2",
-            name: "MiniMax M2",
-            reasoning: true,
-            input: ["text"],
+            // Pricing: update in models.json if you need exact cost tracking.
             cost: { input: 15, output: 60, cacheRead: 2, cacheWrite: 10 },
             contextWindow: 200000,
             maxTokens: 8192
@@ -1830,9 +1854,49 @@ Use MiniMax's Anthropic-compatible API directly without LM Studio:
 ```
 
 Notes:
-- Set `MINIMAX_API_KEY` environment variable or use `clawdbot onboard --auth-choice minimax-api`
-- Available models: `MiniMax-M2.1` (default), `MiniMax-M2.1-lightning` (~100 tps), `MiniMax-M2` (reasoning)
-- Pricing is a placeholder; MiniMax doesn't publish public rates. Override in `models.json` for accurate cost tracking.
+- Set `MINIMAX_API_KEY` environment variable or use `clawdbot onboard --auth-choice minimax-api`.
+- Available model: `MiniMax-M2.1` (default).
+- Update pricing in `models.json` if you need exact cost tracking.
+
+### Cerebras (GLM 4.6 / 4.7)
+
+Use Cerebras via their OpenAI-compatible endpoint:
+
+```json5
+{
+  env: { CEREBRAS_API_KEY: "sk-..." },
+  agents: {
+    defaults: {
+      model: {
+        primary: "cerebras/zai-glm-4.7",
+        fallbacks: ["cerebras/zai-glm-4.6"]
+      },
+      models: {
+        "cerebras/zai-glm-4.7": { alias: "GLM 4.7 (Cerebras)" },
+        "cerebras/zai-glm-4.6": { alias: "GLM 4.6 (Cerebras)" }
+      }
+    }
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      cerebras: {
+        baseUrl: "https://api.cerebras.ai/v1",
+        apiKey: "${CEREBRAS_API_KEY}",
+        api: "openai-completions",
+        models: [
+          { id: "zai-glm-4.7", name: "GLM 4.7 (Cerebras)" },
+          { id: "zai-glm-4.6", name: "GLM 4.6 (Cerebras)" }
+        ]
+      }
+    }
+  }
+}
+```
+
+Notes:
+- Use `cerebras/zai-glm-4.7` for Cerebras; use `zai/glm-4.7` for Z.AI direct.
+- Set `CEREBRAS_API_KEY` in the environment or config.
 
 Notes:
 - Supported APIs: `openai-completions`, `openai-responses`, `anthropic-messages`,

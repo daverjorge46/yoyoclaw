@@ -116,6 +116,10 @@ Not currently. Clawdbot doesn’t ship a Bedrock provider today. If you must use
 
 Clawdbot supports **OpenAI Code (Codex)** via OAuth or by reusing your Codex CLI login (`~/.codex/auth.json`). The wizard can import the CLI login or run the OAuth flow and will set the default model to `openai-codex/gpt-5.2` when appropriate. See [Model providers](/concepts/model-providers) and [Wizard](/start/wizard).
 
+### Is a local model OK for casual chats?
+
+Usually no. Clawdbot needs large context + strong safety; small cards truncate. See [/gateway/local-models](/gateway/local-models) for hardware expectations and the LM Studio MiniMax M2.1 setup.
+
 ### Can I use Bun?
 
 Bun is supported for faster TypeScript execution, but **WhatsApp requires Node** in this ecosystem. The wizard lets you pick the runtime; choose **Node** if you use WhatsApp.
@@ -123,6 +127,10 @@ Bun is supported for faster TypeScript execution, but **WhatsApp requires Node**
 ### Can multiple people use one WhatsApp number with different Clawdbots?
 
 Yes, via **multi‑agent routing**. Bind each sender’s WhatsApp **DM** (peer `kind: "dm"`, sender E.164 like `+15551234567`) to a different `agentId`, so each person gets their own workspace and session store. Replies still come from the **same WhatsApp account**, and DM access control (`whatsapp.dmPolicy` / `whatsapp.allowFrom`) is global per WhatsApp account. See [Multi-Agent Routing](/concepts/multi-agent) and [WhatsApp](/providers/whatsapp).
+
+### Can I run a "fast chat" agent and an "Opus for coding" agent?
+
+Yes. Use multi‑agent routing: give each agent its own default model, then bind inbound routes (provider account or specific peers) to each agent. Example config lives in [Multi-Agent Routing](/concepts/multi-agent). See also [Models](/concepts/models) and [Configuration](/gateway/configuration).
 
 ### Does Homebrew work on Linux?
 
@@ -196,6 +204,16 @@ ClawdHub installs into `./skills` under your current directory; Clawdbot treats 
 ### Is there a dedicated sandboxing doc?
 
 Yes. See [Sandboxing](/gateway/sandboxing). For Docker-specific setup (full gateway in Docker or sandbox images), see [Docker](/install/docker).
+
+### How does memory work?
+
+Clawdbot memory is just Markdown files in the agent workspace:
+- Daily notes in `memory/YYYY-MM-DD.md`
+- Curated long-term notes in `MEMORY.md` (main/private sessions only)
+
+Clawdbot also runs a **silent pre-compaction memory flush** to remind the model
+to write durable notes before auto-compaction. This only runs when the workspace
+is writable (read-only sandboxes skip it). See [Memory](/concepts/memory).
 
 ## Where things live on disk
 
@@ -434,7 +452,7 @@ Notes:
 ### Do I need to add a “bot account” to a WhatsApp group?
 
 No. Clawdbot runs on **your own account**, so if you’re in the group, Clawdbot can see it.
-By default, anyone in that group can **mention** the bot to trigger a reply.
+By default, group replies are blocked until you allow senders (`groupPolicy: "allowlist"`).
 
 If you want only **you** to be able to trigger group replies:
 
@@ -487,6 +505,12 @@ Use the `/model` command as a standalone message:
 
 You can list available models with `/model`, `/model list`, or `/model status`.
 
+`/model` (and `/model list`) shows a compact, numbered picker. Select by number:
+
+```
+/model 3
+```
+
 You can also force a specific auth profile for the provider (per session):
 
 ```
@@ -495,6 +519,7 @@ You can also force a specific auth profile for the provider (per session):
 ```
 
 Tip: `/model status` shows which agent is active, which `auth-profiles.json` file is being used, and which auth profile will be tried next.
+It also shows the configured provider endpoint (`baseUrl`) and API mode (`api`) when available.
 
 ### Why do I see “Model … is not allowed” and then no reply?
 
@@ -867,7 +892,9 @@ For background processes (from the exec tool), you can ask the agent to run:
 process action:kill sessionId:XXX
 ```
 
-Slash commands only run when the **entire** message is the command (must start with `/`). Inline text like `hello /status` is ignored.
+Slash commands overview: see [Slash commands](/tools/slash-commands).
+
+Most commands must be sent as a **standalone** message that starts with `/`, but a few shortcuts (like `/status`) also work inline for allowlisted senders.
 
 ### Why does it feel like the bot “ignores” rapid‑fire messages?
 

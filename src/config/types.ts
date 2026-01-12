@@ -140,7 +140,7 @@ export type WhatsAppConfig = {
   groupAllowFrom?: string[];
   /**
    * Controls how group messages are handled:
-   * - "open" (default): groups bypass allowFrom, only mention-gating applies
+   * - "open": groups bypass allowFrom, only mention-gating applies
    * - "disabled": block all group messages entirely
    * - "allowlist": only allow group messages from senders in groupAllowFrom/allowFrom
    */
@@ -380,7 +380,7 @@ export type TelegramAccountConfig = {
   groupAllowFrom?: Array<string | number>;
   /**
    * Controls how group messages are handled:
-   * - "open" (default): groups bypass allowFrom, only mention-gating applies
+   * - "open": groups bypass allowFrom, only mention-gating applies
    * - "disabled": block all group messages entirely
    * - "allowlist": only allow group messages from senders in groupAllowFrom/allowFrom
    */
@@ -515,7 +515,7 @@ export type DiscordAccountConfig = {
   token?: string;
   /**
    * Controls how guild channel messages are handled:
-   * - "open" (default): guild channels bypass allowlists; mention-gating applies
+   * - "open": guild channels bypass allowlists; mention-gating applies
    * - "disabled": block all guild channel messages
    * - "allowlist": only allow channels present in discord.guilds.*.channels
    */
@@ -627,7 +627,7 @@ export type SlackAccountConfig = {
   allowBots?: boolean;
   /**
    * Controls how channel messages are handled:
-   * - "open" (default): channels bypass allowlists; mention-gating applies
+   * - "open": channels bypass allowlists; mention-gating applies
    * - "disabled": block all channel messages
    * - "allowlist": only allow channels present in slack.channels
    */
@@ -690,7 +690,7 @@ export type SignalAccountConfig = {
   groupAllowFrom?: Array<string | number>;
   /**
    * Controls how group messages are handled:
-   * - "open" (default): groups bypass allowFrom, no extra gating
+   * - "open": groups bypass allowFrom, no extra gating
    * - "disabled": block all group messages
    * - "allowlist": only allow group messages from senders in groupAllowFrom/allowFrom
    */
@@ -763,6 +763,15 @@ export type MSTeamsConfig = {
   dmPolicy?: DmPolicy;
   /** Allowlist for DM senders (AAD object IDs or UPNs). */
   allowFrom?: Array<string>;
+  /** Optional allowlist for group/channel senders (AAD object IDs or UPNs). */
+  groupAllowFrom?: Array<string>;
+  /**
+   * Controls how group/channel messages are handled:
+   * - "open": groups bypass allowFrom; mention-gating applies
+   * - "disabled": block all group messages
+   * - "allowlist": only allow group messages from senders in groupAllowFrom/allowFrom
+   */
+  groupPolicy?: GroupPolicy;
   /** Outbound text chunk size (chars). Default: 4000. */
   textChunkLimit?: number;
   /** Merge streamed block replies before sending. */
@@ -809,7 +818,7 @@ export type IMessageAccountConfig = {
   groupAllowFrom?: Array<string | number>;
   /**
    * Controls how group messages are handled:
-   * - "open" (default): groups bypass allowFrom; mention-gating applies
+   * - "open": groups bypass allowFrom; mention-gating applies
    * - "disabled": block all group messages entirely
    * - "allowlist": only allow group messages from senders in groupAllowFrom/allowFrom
    */
@@ -987,6 +996,47 @@ export type AgentToolsConfig = {
   };
 };
 
+export type MemorySearchConfig = {
+  /** Enable vector memory search (default: true). */
+  enabled?: boolean;
+  /** Embedding provider mode. */
+  provider?: "openai" | "local";
+  /** Fallback behavior when local embeddings fail. */
+  fallback?: "openai" | "none";
+  /** Embedding model id (remote) or alias (local). */
+  model?: string;
+  /** Local embedding settings (node-llama-cpp). */
+  local?: {
+    /** GGUF model path or hf: URI. */
+    modelPath?: string;
+    /** Optional cache directory for local models. */
+    modelCacheDir?: string;
+  };
+  /** Index storage configuration. */
+  store?: {
+    driver?: "sqlite";
+    path?: string;
+  };
+  /** Chunking configuration. */
+  chunking?: {
+    tokens?: number;
+    overlap?: number;
+  };
+  /** Sync behavior. */
+  sync?: {
+    onSessionStart?: boolean;
+    onSearch?: boolean;
+    watch?: boolean;
+    watchDebounceMs?: number;
+    intervalMinutes?: number;
+  };
+  /** Query behavior. */
+  query?: {
+    maxResults?: number;
+    minScore?: number;
+  };
+};
+
 export type ToolsConfig = {
   allow?: string[];
   deny?: string[];
@@ -1061,6 +1111,7 @@ export type AgentConfig = {
   workspace?: string;
   agentDir?: string;
   model?: string;
+  memorySearch?: MemorySearchConfig;
   /** Human-like delay between block replies for this agent. */
   humanDelay?: HumanDelayConfig;
   identity?: IdentityConfig;
@@ -1356,7 +1407,8 @@ export type ModelApi =
   | "openai-completions"
   | "openai-responses"
   | "anthropic-messages"
-  | "google-generative-ai";
+  | "google-generative-ai"
+  | "github-copilot";
 
 export type ModelCompatConfig = {
   supportsStore?: boolean;
@@ -1523,6 +1575,10 @@ export type AgentDefaultsConfig = {
   cliBackends?: Record<string, CliBackendConfig>;
   /** Opt-in: prune old tool results from the LLM context to reduce token usage. */
   contextPruning?: AgentContextPruningConfig;
+  /** Compaction tuning and pre-compaction memory flush behavior. */
+  compaction?: AgentCompactionConfig;
+  /** Vector memory search configuration (per-agent overrides supported). */
+  memorySearch?: MemorySearchConfig;
   /** Default thinking level when no /think directive is present. */
   thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high";
   /** Default verbose level when no /verbose directive is present. */
@@ -1622,6 +1678,24 @@ export type AgentDefaultsConfig = {
     /** Auto-prune sandbox containers. */
     prune?: SandboxPruneSettings;
   };
+};
+
+export type AgentCompactionConfig = {
+  /** Minimum reserve tokens enforced for Pi compaction (0 disables the floor). */
+  reserveTokensFloor?: number;
+  /** Pre-compaction memory flush (agentic turn). Default: enabled. */
+  memoryFlush?: AgentCompactionMemoryFlushConfig;
+};
+
+export type AgentCompactionMemoryFlushConfig = {
+  /** Enable the pre-compaction memory flush (default: true). */
+  enabled?: boolean;
+  /** Run the memory flush when context is within this many tokens of the compaction threshold. */
+  softThresholdTokens?: number;
+  /** User prompt used for the memory flush turn (NO_REPLY is enforced if missing). */
+  prompt?: string;
+  /** System prompt appended for the memory flush turn. */
+  systemPrompt?: string;
 };
 
 export type ClawdbotConfig = {
