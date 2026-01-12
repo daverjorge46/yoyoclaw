@@ -50,9 +50,15 @@ if [[ ! -d "Peekaboo/Core/PeekabooCore" ]]; then
   echo ""
 fi
 
-# Skip hotfix application - build upstream as-is
-echo "⏭️  Skipping hotfix application (building upstream as-is)"
-echo ""
+# Apply fixes using the smart apply script
+# This auto-detects which fixes are needed based on what's already in the target
+if [[ -f "$REPO_ROOT/scripts/apply-release-fixes.sh" ]]; then
+  "$REPO_ROOT/scripts/apply-release-fixes.sh"
+  echo ""
+else
+  echo "⚠️  apply-release-fixes.sh not found, skipping fix application"
+  echo ""
+fi
 
 # Install dependencies if needed
 if [[ ! -d "node_modules" ]]; then
