@@ -12,37 +12,34 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WORKTREE_DIR="$REPO_ROOT/.worktrees/$VERSION"
+LATEST_DIR="$REPO_ROOT/.worktrees/latest"
 BRANCH_NAME="release/$VERSION"
-LATEST_LINK="$REPO_ROOT/.local/latest"
 
 echo "🚀 Building Clawdbot $VERSION"
 echo ""
 
-# Check if worktree exists
-if [[ ! -d "$WORKTREE_DIR" ]]; then
-  cd "$REPO_ROOT"
+cd "$REPO_ROOT"
 
-  # Check if the release branch exists
-  if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
-    echo "📂 Creating worktree for existing branch $BRANCH_NAME..."
-    git worktree add "$WORKTREE_DIR" "$BRANCH_NAME"
-  else
-    # Branch doesn't exist - create it from the version tag
-    if git rev-parse --verify --quiet "$VERSION" >/dev/null; then
-      echo "📂 Creating worktree with new branch $BRANCH_NAME from tag $VERSION..."
-      git worktree add -b "$BRANCH_NAME" "$WORKTREE_DIR" "$VERSION"
-    else
-      echo "❌ Error: Neither branch '$BRANCH_NAME' nor tag '$VERSION' exists"
-      echo "   Please create a tag first: git tag $VERSION"
-      exit 1
-    fi
-  fi
+# Remove existing 'latest' worktree if it exists
+if [[ -d "$LATEST_DIR" ]]; then
+  echo "🧹 Removing existing 'latest' worktree..."
+  git worktree remove "$LATEST_DIR" --force 2>/dev/null || rm -rf "$LATEST_DIR"
   echo ""
 fi
 
+# Create worktree at 'latest' using the tag (detached HEAD)
+if git rev-parse --verify --quiet "$VERSION" >/dev/null; then
+  echo "📂 Creating worktree 'latest' from tag $VERSION (detached HEAD)..."
+  git worktree add --detach "$LATEST_DIR" "$VERSION"
+else
+  echo "❌ Error: Tag '$VERSION' does not exist"
+  echo "   Available tags: $(git tag | grep '^v2026' | tail -5 | tr '\n' ' ')"
+  exit 1
+fi
+echo ""
+
 # Navigate to worktree
-cd "$WORKTREE_DIR"
+cd "$LATEST_DIR"
 echo "📍 Working directory: $(pwd)"
 echo ""
 
@@ -53,15 +50,9 @@ if [[ ! -d "Peekaboo/Core/PeekabooCore" ]]; then
   echo ""
 fi
 
-# Apply fixes using the smart apply script
-# This auto-detects which fixes are needed based on what's already in the target
-if [[ -f "$REPO_ROOT/scripts/apply-release-fixes.sh" ]]; then
-  "$REPO_ROOT/scripts/apply-release-fixes.sh"
-  echo ""
-else
-  echo "⚠️  apply-release-fixes.sh not found, skipping fix application"
-  echo ""
-fi
+# Skip hotfix application - build upstream as-is
+echo "⏭️  Skipping hotfix application (building upstream as-is)"
+echo ""
 
 # Install dependencies if needed
 if [[ ! -d "node_modules" ]]; then
@@ -81,14 +72,8 @@ echo ""
 echo "✅ Build complete!"
 echo ""
 
-# Update latest symlink (use relative path for portability)
-echo "🔗 Updating 'latest' symlink..."
-mkdir -p "$(dirname "$LATEST_LINK")"
-ln -sfn "../.worktrees/$VERSION" "$LATEST_LINK"
-echo "   $LATEST_LINK -> ../.worktrees/$VERSION"
-echo ""
-
-echo "Build location: $WORKTREE_DIR/dist/Clawdbot.app"
+echo "Build location: $LATEST_DIR/dist/Clawdbot.app"
+echo "Version: $VERSION"
 echo ""
 echo "Next steps:"
 echo "1. Switch to admin account"

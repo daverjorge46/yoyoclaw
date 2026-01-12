@@ -4,11 +4,11 @@ set -euo pipefail
 # Deploy script for admin account (requires sudo)
 # Usage: deploy-release.sh [worktree-path]
 #
-# Default: Uses .local/latest symlink (created by build-release.sh)
+# Default: Uses .worktrees/latest symlink (created by build-release.sh)
 # Override: Pass a worktree path as argument
 
 # Default to the 'latest' symlink (created by build-release.sh)
-DEFAULT_WORKTREE="/Users/petter/Projects/clawdbot/clawdbot/.local/latest"
+DEFAULT_WORKTREE="/Users/petter/Projects/clawdbot/clawdbot/.worktrees/latest"
 
 # Determine source directory (from argument or default)
 WORKTREE_PATH="${1:-$DEFAULT_WORKTREE}"
@@ -32,7 +32,7 @@ if [[ ! -d "$APP_SOURCE" ]]; then
   echo "❌ ERROR: Build not found at $APP_SOURCE"
   echo ""
   echo "Make sure you:"
-  echo "1. Run build-release.sh first (creates 'latest' symlink)"
+  echo "1. Run build-release.sh first (creates '.worktrees/latest' symlink)"
   echo "2. Or pass a specific worktree path: ./deploy-release.sh /path/to/worktree"
   exit 1
 fi
