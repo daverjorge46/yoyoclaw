@@ -25,6 +25,11 @@ export async function transcribeInboundAudio(
   ctx: MsgContext,
   runtime: RuntimeEnv,
 ): Promise<{ text: string } | undefined> {
+  // Skip if voiceNotes transcription already ran in the inbound pipeline
+  if (ctx.Body?.startsWith("[Voice Note]")) {
+    return undefined;
+  }
+
   const toolTranscriber = cfg.tools?.audio?.transcription;
   const legacyTranscriber = cfg.audio?.transcription;
   const hasToolTranscriber = Boolean(toolTranscriber?.args?.length);
