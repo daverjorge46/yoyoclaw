@@ -529,8 +529,6 @@ const MatrixConfigSchema = z.object({
   password: z.string().optional(),
   deviceName: z.string().optional(),
   storePath: z.string().optional(),
-  cryptoStorePath: z.string().optional(),
-  encryption: z.boolean().optional(),
   autoJoin: z
     .union([z.literal("always"), z.literal("allowlist"), z.literal("off")])
     .optional(),

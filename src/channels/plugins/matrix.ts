@@ -3,15 +3,12 @@ import {
   listMatrixAccountIds,
   resolveDefaultMatrixAccountId,
 } from "../../matrix/accounts.js";
-import { runMatrixVerificationFlow } from "../../matrix/login.js";
 import { probeMatrix } from "../../matrix/probe.js";
 import { sendMessageMatrix } from "../../matrix/send.js";
 import {
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
 } from "../../routing/session-key.js";
-import { createClackPrompter } from "../../wizard/clack-prompter.js";
-import { WizardCancelledError } from "../../wizard/prompts.js";
 import { getChatChannelMeta } from "../registry.js";
 import { formatPairingApproveHint } from "./helpers.js";
 import { matrixOnboardingAdapter } from "./onboarding/matrix.js";
@@ -30,7 +27,6 @@ export type ResolvedMatrixAccount = {
     userId?: string;
     accessToken?: string;
     password?: string;
-    encryption?: boolean;
     dmPolicy?: string;
     allowFrom?: Array<string | number>;
     mediaMaxMb?: number;
@@ -80,7 +76,6 @@ function resolveMatrixAccount(params: {
       userId: resolved.userId || undefined,
       accessToken: resolved.accessToken || undefined,
       password: resolved.password || undefined,
-      encryption: matrixConfig.encryption as boolean | undefined,
       dmPolicy: (matrixConfig.dm as Record<string, unknown> | undefined)
         ?.policy as string | undefined,
       allowFrom: (matrixConfig.dm as Record<string, unknown> | undefined)
@@ -242,25 +237,6 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount> = {
     sendMedia: async ({ to, text, mediaUrl }) => {
       const result = await sendMessageMatrix(to, text, { mediaUrl });
       return { channel: "matrix", ...result };
-    },
-  },
-  auth: {
-    login: async ({ cfg, runtime }) => {
-      if (!process.stdin.isTTY) {
-        throw new Error("Matrix verification requires an interactive TTY.");
-      }
-      const prompter = createClackPrompter();
-      try {
-        await prompter.intro("Matrix verification");
-        await runMatrixVerificationFlow({ cfg, runtime, prompter });
-        await prompter.outro("Done");
-      } catch (err) {
-        if (err instanceof WizardCancelledError) {
-          runtime.exit(0);
-          return;
-        }
-        throw err;
-      }
     },
   },
   status: {

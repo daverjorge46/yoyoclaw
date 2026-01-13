@@ -8,9 +8,7 @@ export type MatrixResolvedConfig = {
   userId: string;
   accessToken?: string;
   password?: string;
-  deviceId?: string;
   deviceName?: string;
-  encryption: boolean;
   initialSyncLimit?: number;
 };
 
@@ -18,9 +16,7 @@ export type MatrixAuth = {
   homeserver: string;
   userId: string;
   accessToken: string;
-  deviceId?: string;
   deviceName?: string;
-  encryption: boolean;
   initialSyncLimit?: number;
 };
 
@@ -35,7 +31,6 @@ type SharedMatrixClientState = {
 let sharedClientState: SharedMatrixClientState | null = null;
 let sharedClientPromise: Promise<SharedMatrixClientState> | null = null;
 let sharedClientStartPromise: Promise<void> | null = null;
-const deviceIdCache = new Map<string, string>();
 
 export function isBunRuntime(): boolean {
   const versions = process.versions as { bun?: string };
@@ -61,10 +56,8 @@ export function resolveMatrixConfig(
     clean(env.MATRIX_ACCESS_TOKEN) || clean(matrix.accessToken) || undefined;
   const password =
     clean(env.MATRIX_PASSWORD) || clean(matrix.password) || undefined;
-  const deviceId = clean(matrix.deviceId) || undefined;
   const deviceName =
     clean(env.MATRIX_DEVICE_NAME) || clean(matrix.deviceName) || undefined;
-  const encryption = matrix.encryption === true;
   const initialSyncLimit =
     typeof matrix.initialSyncLimit === "number"
       ? Math.max(0, Math.floor(matrix.initialSyncLimit))
@@ -74,44 +67,9 @@ export function resolveMatrixConfig(
     userId,
     accessToken,
     password,
-    deviceId,
     deviceName,
-    encryption,
     initialSyncLimit,
   };
-}
-
-function buildDeviceIdCacheKey(params: {
-  homeserver: string;
-  userId: string;
-  accessToken: string;
-}): string {
-  return `${params.homeserver}|${params.userId}|${params.accessToken}`;
-}
-
-export async function resolveMatrixDeviceIdFromWhoami(params: {
-  homeserver: string;
-  userId: string;
-  accessToken: string;
-  timeoutMs?: number;
-}): Promise<string | undefined> {
-  const sdk = await loadMatrixSdk();
-  const client = sdk.createClient({
-    baseUrl: params.homeserver,
-    userId: params.userId,
-    accessToken: params.accessToken,
-    localTimeoutMs: params.timeoutMs,
-  });
-  try {
-    const response = await client.whoami();
-    const deviceId =
-      typeof response.device_id === "string"
-        ? response.device_id.trim()
-        : "";
-    return deviceId || undefined;
-  } finally {
-    client.stopClient();
-  }
 }
 
 export async function resolveMatrixAuth(params?: {
@@ -148,50 +106,17 @@ export async function resolveMatrixAuth(params?: {
 
   // If access token is provided in config, use it directly.
   if (resolved.accessToken) {
-    let deviceId = resolved.deviceId;
     if (
-      !deviceId &&
       cachedCredentials &&
       cachedCredentials.accessToken === resolved.accessToken
     ) {
-      deviceId = cachedCredentials.deviceId;
       touchMatrixCredentials(env);
-    }
-    if (!deviceId && resolved.encryption) {
-      const cacheKey = buildDeviceIdCacheKey({
-        homeserver: resolved.homeserver,
-        userId: resolved.userId,
-        accessToken: resolved.accessToken,
-      });
-      if (deviceIdCache.has(cacheKey)) {
-        deviceId = deviceIdCache.get(cacheKey);
-      } else {
-        try {
-          deviceId = await resolveMatrixDeviceIdFromWhoami({
-            homeserver: resolved.homeserver,
-            userId: resolved.userId,
-            accessToken: resolved.accessToken,
-          });
-        } catch {
-          deviceId = undefined;
-        }
-      }
-      if (deviceId) {
-        deviceIdCache.set(cacheKey, deviceId);
-      }
-    }
-    if (!deviceId && resolved.encryption) {
-      throw new Error(
-        "Matrix encryption requires a deviceId when using an access token. Set matrix.deviceId or use password login to register a device.",
-      );
     }
     return {
       homeserver: resolved.homeserver,
       userId: resolved.userId,
       accessToken: resolved.accessToken,
-      deviceId,
       deviceName: resolved.deviceName,
-      encryption: resolved.encryption,
       initialSyncLimit: resolved.initialSyncLimit,
     };
   }
@@ -203,9 +128,7 @@ export async function resolveMatrixAuth(params?: {
       homeserver: cachedCredentials.homeserver,
       userId: cachedCredentials.userId,
       accessToken: cachedCredentials.accessToken,
-      deviceId: cachedCredentials.deviceId,
       deviceName: resolved.deviceName,
-      encryption: resolved.encryption,
       initialSyncLimit: resolved.initialSyncLimit,
     };
   }
@@ -225,7 +148,6 @@ export async function resolveMatrixAuth(params?: {
     type: "m.login.password",
     identifier: { type: "m.id.user", user: resolved.userId },
     password: resolved.password,
-    device_id: cached?.deviceId,
     initial_device_display_name: resolved.deviceName ?? "Clawdbot Gateway",
   });
   const accessToken = login.access_token?.trim();
@@ -233,34 +155,19 @@ export async function resolveMatrixAuth(params?: {
     throw new Error("Matrix login did not return an access token");
   }
 
-  const auth: MatrixAuth = {
+  return {
     homeserver: resolved.homeserver,
     userId: login.user_id ?? resolved.userId,
     accessToken,
-    deviceId: login.device_id,
     deviceName: resolved.deviceName,
-    encryption: resolved.encryption,
     initialSyncLimit: resolved.initialSyncLimit,
   };
-
-  // Save credentials for future restarts
-  if (auth.deviceId) {
-    saveMatrixCredentials({
-      homeserver: auth.homeserver,
-      userId: auth.userId,
-      accessToken: auth.accessToken,
-      deviceId: auth.deviceId,
-    });
-  }
-
-  return auth;
 }
 
 export async function createMatrixClient(params: {
   homeserver: string;
   userId: string;
   accessToken: string;
-  deviceId?: string;
   localTimeoutMs?: number;
 }): Promise<MatrixClient> {
   const sdk = await loadMatrixSdk();
@@ -269,20 +176,13 @@ export async function createMatrixClient(params: {
     baseUrl: params.homeserver,
     userId: params.userId,
     accessToken: params.accessToken,
-    deviceId: params.deviceId,
     localTimeoutMs: params.localTimeoutMs,
     store,
   });
 }
 
 function buildSharedClientKey(auth: MatrixAuth): string {
-  return [
-    auth.homeserver,
-    auth.userId,
-    auth.deviceId ?? "",
-    auth.accessToken,
-    auth.encryption ? "enc" : "plain",
-  ].join("|");
+  return [auth.homeserver, auth.userId, auth.accessToken].join("|");
 }
 
 async function createSharedMatrixClient(params: {
@@ -293,10 +193,8 @@ async function createSharedMatrixClient(params: {
     homeserver: params.auth.homeserver,
     userId: params.auth.userId,
     accessToken: params.auth.accessToken,
-    deviceId: params.auth.deviceId,
     localTimeoutMs: params.timeoutMs,
   });
-  await ensureMatrixCrypto(client, params.auth.encryption, params.auth.userId);
   return { client, key: buildSharedClientKey(params.auth), started: false };
 }
 
@@ -386,19 +284,6 @@ export async function resolveSharedMatrixClient(
   } finally {
     sharedClientPromise = null;
   }
-}
-
-export async function ensureMatrixCrypto(
-  client: MatrixClient,
-  enabled: boolean,
-  userId?: string,
-): Promise<void> {
-  if (!enabled) return;
-  if (client.getCrypto()) return;
-
-  await client.initRustCrypto({
-    useIndexedDB: false,
-  });
 }
 
 export async function waitForMatrixSync(params: {

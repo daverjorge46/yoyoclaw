@@ -3,8 +3,6 @@ import type { DmPolicy } from "../../../config/types.js";
 import { DEFAULT_ACCOUNT_ID } from "../../../routing/session-key.js";
 import { formatDocsLink } from "../../../terminal/links.js";
 import type { WizardPrompter } from "../../../wizard/prompts.js";
-import { resolveMatrixDeviceIdFromWhoami } from "../../../matrix/client.js";
-import { runMatrixVerificationFlow } from "../../../matrix/login.js";
 import type {
   ChannelOnboardingAdapter,
   ChannelOnboardingDmPolicy,
@@ -18,7 +16,6 @@ type MatrixCredentialSnapshot = {
   userId: string;
   accessToken: string;
   password: string;
-  deviceId: string;
   deviceName: string;
 };
 
@@ -26,14 +23,15 @@ function clean(value?: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function resolveMatrixConfigValues(cfg: ClawdbotConfig): MatrixCredentialSnapshot {
+function resolveMatrixConfigValues(
+  cfg: ClawdbotConfig,
+): MatrixCredentialSnapshot {
   const matrix = cfg.matrix ?? {};
   return {
     homeserver: clean(matrix.homeserver),
     userId: clean(matrix.userId),
     accessToken: clean(matrix.accessToken),
     password: clean(matrix.password),
-    deviceId: clean(matrix.deviceId),
     deviceName: clean(matrix.deviceName),
   };
 }
@@ -46,14 +44,15 @@ function resolveMatrixEnvValues(
     userId: clean(env.MATRIX_USER_ID),
     accessToken: clean(env.MATRIX_ACCESS_TOKEN),
     password: clean(env.MATRIX_PASSWORD),
-    deviceId: "",
     deviceName: clean(env.MATRIX_DEVICE_NAME),
   };
 }
 
 function hasMatrixCredentials(values: MatrixCredentialSnapshot): boolean {
   return Boolean(
-    values.homeserver && values.userId && (values.accessToken || values.password),
+    values.homeserver &&
+      values.userId &&
+      (values.accessToken || values.password),
   );
 }
 
@@ -159,9 +158,6 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
       shouldPromptEncryption = true;
     }
 
-    let usesAccessToken: boolean | null = null;
-    let resolvedAccessToken = "";
-
     if (shouldPromptCredentials) {
       await noteMatrixCredentialHelp(prompter);
       const homeserver = String(
@@ -211,8 +207,6 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
             validate: (value) => (value?.trim() ? undefined : "Required"),
           }),
         ).trim();
-        resolvedAccessToken = accessToken;
-        usesAccessToken = true;
       } else {
         password = String(
           await prompter.text({
@@ -220,7 +214,6 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
             validate: (value) => (value?.trim() ? undefined : "Required"),
           }),
         ).trim();
-        usesAccessToken = false;
       }
 
       matrixConfig.enabled = true;
@@ -237,69 +230,15 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
       shouldWrite = true;
     }
 
-    if (usesAccessToken === null) {
-      resolvedAccessToken =
-        clean(matrixConfig.accessToken) ||
-        configValues.accessToken ||
-        envValues.accessToken;
-      usesAccessToken = Boolean(resolvedAccessToken);
-    }
-
-    const resolvedHomeserver =
-      clean(matrixConfig.homeserver) ||
-      configValues.homeserver ||
-      envValues.homeserver;
-    const resolvedUserId =
-      clean(matrixConfig.userId) || configValues.userId || envValues.userId;
-
     if (shouldPromptEncryption) {
-      const enableEncryption = await prompter.confirm({
-        message:
-          "Enable Matrix end-to-end encryption (E2EE)? (requires Node runtime)",
-        initialValue: cfg.matrix?.encryption === true,
-      });
-      matrixConfig.encryption = enableEncryption;
-      if (enableEncryption) {
-        const deviceNameRaw = await prompter.text({
-          message: "Matrix device name (optional)",
-          placeholder: "Clawdbot Gateway",
-          initialValue:
-            configValues.deviceName || envValues.deviceName || undefined,
-        });
-        const deviceName =
-          typeof deviceNameRaw === "string" ? deviceNameRaw.trim() : "";
-        if (deviceName) {
-          matrixConfig.deviceName = deviceName;
-        }
-
-        if (usesAccessToken && resolvedAccessToken) {
-          let deviceIdCandidate =
-            clean(matrixConfig.deviceId) || configValues.deviceId || "";
-          if (!deviceIdCandidate && resolvedHomeserver && resolvedUserId) {
-            try {
-              deviceIdCandidate =
-                (await resolveMatrixDeviceIdFromWhoami({
-                  homeserver: resolvedHomeserver,
-                  userId: resolvedUserId,
-                  accessToken: resolvedAccessToken,
-                })) ?? "";
-            } catch {
-              deviceIdCandidate = "";
-            }
-          }
-          const deviceIdRaw = await prompter.text({
-            message: "Matrix device id (required for E2EE with access token)",
-            placeholder: "DEVICEID",
-            initialValue: deviceIdCandidate || undefined,
-            validate: (value) => (value?.trim() ? undefined : "Required"),
-          });
-          const deviceId = String(deviceIdRaw ?? "").trim();
-          if (deviceId) {
-            matrixConfig.deviceId = deviceId;
-          }
-        }
-      }
-      shouldWrite = true;
+      await prompter.note(
+        [
+          "Matrix end-to-end encryption (E2EE) is no longer supported by Clawdbot.",
+          "If your room is encrypted, Clawdbot will not be able to read or send messages.",
+          `Docs: ${formatDocsLink("/matrix", "matrix")}`,
+        ].join("\n"),
+        "Matrix encryption",
+      );
     }
 
     if (shouldWrite) {
@@ -307,37 +246,6 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
         ...next,
         matrix: matrixConfig,
       };
-    }
-
-    if (matrixConfig.encryption === true) {
-      const wantsVerify = await prompter.confirm({
-        message: "Verify Matrix device now (SAS)?",
-        initialValue: true,
-      });
-
-      if (wantsVerify) {
-        try {
-          await runMatrixVerificationFlow({
-            cfg: next,
-            runtime,
-            prompter,
-            showSkipNote: false,
-            skipConfirm: true,
-            allowReverify: false,
-          });
-        } catch (err) {
-          runtime.error(`Matrix verification failed: ${String(err)}`);
-          await prompter.note(
-            `Docs: ${formatDocsLink("/matrix", "matrix")}`,
-            "Matrix verification",
-          );
-        }
-      } else {
-        await prompter.note(
-          "Run `clawdbot providers login --provider matrix` later to verify.",
-          "Matrix verification",
-        );
-      }
     }
 
     return { cfg: next, accountId: DEFAULT_ACCOUNT_ID };

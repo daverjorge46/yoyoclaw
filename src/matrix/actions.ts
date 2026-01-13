@@ -19,7 +19,6 @@ import { loadConfig } from "../config/config.js";
 import { getActiveMatrixClient } from "./active-client.js";
 import {
   createMatrixClient,
-  ensureMatrixCrypto,
   isBunRuntime,
   resolveMatrixAuth,
   resolveSharedMatrixClient,
@@ -86,10 +85,8 @@ async function resolveActionClient(
     homeserver: auth.homeserver,
     userId: auth.userId,
     accessToken: auth.accessToken,
-    deviceId: auth.deviceId,
     localTimeoutMs: opts.timeoutMs,
   });
-  await ensureMatrixCrypto(client, auth.encryption, auth.userId);
   await client.startClient({
     initialSyncLimit: 0,
     lazyLoadMembers: true,
@@ -159,7 +156,6 @@ async function fetchEventSummary(
   const raw = await client.fetchRoomEvent(roomId, eventId);
   const mapper = client.getEventMapper();
   const event = mapper(raw);
-  await client.decryptEventIfNeeded(event);
   if (event.isRedacted()) return null;
   return summarizeMatrixEvent(event);
 }
@@ -258,9 +254,6 @@ export async function readMatrixMessages(
     );
     const mapper = client.getEventMapper();
     const events = res.chunk.map(mapper);
-    await Promise.all(
-      events.map((event) => client.decryptEventIfNeeded(event)),
-    );
     const messages = events
       .filter((event) => event.getType() === EventType.RoomMessage)
       .filter((event) => !event.isRedacted())
@@ -475,7 +468,6 @@ export async function getMatrixRoomInfo(
       canonicalAlias: room?.getCanonicalAlias?.() ?? null,
       altAliases: room?.getAltAliases?.() ?? [],
       memberCount: room?.getJoinedMemberCount?.() ?? null,
-      encrypted: room?.hasEncryptionStateEvent() ?? false,
     };
   } finally {
     if (stopOnDone) client.stopClient();

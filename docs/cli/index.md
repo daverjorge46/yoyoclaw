@@ -289,7 +289,7 @@ Subcommands:
 - `channels logs`: show recent channel logs from the gateway log file.
 - `channels add`: wizard-style setup when no flags are passed; flags switch to non-interactive mode.
 - `channels remove`: disable by default; pass `--delete` to remove config entries without prompts.
-- `channels login`: interactive channel login (WhatsApp Web + Matrix verification).
+- `channels login`: interactive channel login (WhatsApp Web only).
 - `channels logout`: log out of a channel session (if supported).
 
 Common options:
@@ -298,7 +298,7 @@ Common options:
 - `--name <label>`: display name for the account
 
 `channels login` options:
-- `--channel <channel>` (default `whatsapp`; supports `whatsapp`/`web`/`matrix`)
+- `--channel <channel>` (default `whatsapp`; supports `whatsapp`/`web`)
 - `--account <id>`
 - `--verbose`
 

@@ -40,39 +40,6 @@ describe("sendMessageMatrix media", () => {
     vi.clearAllMocks();
   });
 
-  it("uploads encrypted media with file payloads", async () => {
-    const { client, sendMessage, uploadContent } = makeClient(true);
-
-    await sendMessageMatrix("room:!room:example", "caption", {
-      client,
-      mediaUrl: "file:///tmp/photo.png",
-    });
-
-    const uploadArg = uploadContent.mock.calls[0]?.[0];
-    expect(Buffer.isBuffer(uploadArg)).toBe(true);
-    expect(uploadContent).toHaveBeenCalledWith(
-      expect.any(Buffer),
-      expect.objectContaining({
-        type: "application/octet-stream",
-        name: "photo.png",
-        includeFilename: false,
-      }),
-    );
-
-    const content = sendMessage.mock.calls[0]?.[2] as {
-      file?: { url?: string };
-      url?: string;
-      msgtype?: string;
-      format?: string;
-      formatted_body?: string;
-    };
-    expect(content.msgtype).toBe("m.file");
-    expect(content.format).toBe("org.matrix.custom.html");
-    expect(content.formatted_body).toContain("caption");
-    expect(content.file?.url).toBe("mxc://example/file");
-    expect(content.url).toBeUndefined();
-  });
-
   it("uploads unencrypted media with url payloads", async () => {
     const { client, sendMessage, uploadContent } = makeClient(false);
 

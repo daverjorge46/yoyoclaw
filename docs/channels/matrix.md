@@ -1,8 +1,8 @@
 ---
-summary: "Matrix client setup, E2EE verification, DMs, rooms, threading, and configuration"
+summary: "Matrix client setup, DMs, rooms, threading, configuration, and encryption limitations"
 read_when:
   - Setting up the Matrix channel
-  - Debugging Matrix E2EE or verification
+  - Understanding Matrix limitations (unencrypted rooms only)
   - Configuring Matrix rooms or DMs
 ---
 
@@ -10,15 +10,14 @@ read_when:
 
 Updated: 2026-01-11
 
-Status: production-ready for DMs + rooms via `matrix-js-sdk`. Node-only with E2EE using Rust crypto.
+Status: production-ready for **unencrypted** DMs + rooms via `matrix-js-sdk`.
 
 ## Quick setup (beginner)
 
 1) Create a Matrix account (or use an existing one) on any homeserver.
-2) Get an access token via password login or generate one from Element.
+2) Create an access token (recommended) or use password login.
 3) Configure Clawdbot with the credentials.
-4) If using E2EE: set `encryption: true` and run device verification.
-5) Start the gateway and verify the device if E2EE is enabled.
+4) Ensure you are using **unencrypted** rooms/DMs.
 
 Minimal config:
 ```json5
@@ -27,8 +26,7 @@ Minimal config:
     enabled: true,
     homeserver: "https://matrix.example.org",
     userId: "@clawdbot:example.org",
-    accessToken: "syt_...",
-    encryption: true
+    accessToken: "syt_..."
   }
 }
 ```
@@ -42,15 +40,24 @@ Minimal config:
 
 ## Runtime requirements
 
-Matrix uses the official `matrix-js-sdk` with Rust crypto. That means:
+- **Node.js only** runtime (Matrix is currently not supported on Bun).
+- This provider currently supports **unencrypted** DMs + rooms.
 
-- **Node.js only** runtime (Bun is unsupported for Matrix due to native crypto dependencies).
-- E2EE is **on by default** (`matrix.encryption: true`). Set `matrix.encryption: false` to disable.
-- For **verified encryption** (no warning icons), verify the "Clawdbot Gateway" device in your Matrix client.
+## Encryption (E2EE) status
+
+E2EE is **not supported yet**.
+
+Why:
+- `matrix-js-sdk`’s E2EE stack expects a persistent crypto store.
+- In Node.js this typically requires a working crypto-store backend (historically via IndexedDB shims or other storage layers).
+- We don’t currently have a crypto-store solution we’re happy shipping/maintaining, so the Matrix provider intentionally runs **without** E2EE.
+
+What this means in practice:
+- Encrypted rooms/messages (`m.room.encrypted`) are ignored (the bot can’t decrypt them).
+- Encrypted media in E2EE rooms is not supported.
 
 ### Storage locations
 
-- Crypto state is persisted to `~/.clawdbot/matrix-crypto/` using a user-specific IndexedDB database (fake-indexeddb for Node.js).
 - Password login credentials are cached to `~/.clawdbot/credentials/matrix/` for reuse across restarts.
 
 ## Authentication
@@ -81,8 +88,7 @@ Then configure:
   matrix: {
     homeserver: "https://matrix.example.org",
     userId: "@clawdbot:example.org",
-    accessToken: "syt_...",
-    encryption: true
+    accessToken: "syt_..."
   }
 }
 ```
@@ -98,32 +104,10 @@ For long-running gateways, prefer a pre-generated `accessToken`.
   matrix: {
     homeserver: "https://matrix.example.org",
     userId: "@clawdbot:example.org",
-    password: "YOUR_PASSWORD",
-    encryption: true
+    password: "YOUR_PASSWORD"
   }
 }
 ```
-
-## End-to-End Encryption (E2EE)
-
-### Enabling encryption
-
-Set `matrix.encryption: true` in your config. This initializes the Rust crypto module and enables reading/sending encrypted messages.
-
-### Cross-signing and verification
-
-Matrix uses a "Web of Trust" model. When you first log in, the server knows who you are (via password/token), but other users' devices don't trust your new device yet. Verification proves that this device is controlled by you.
-
-#### Why verify?
-
-Without verification:
-- Your bot may be unable to read history from encrypted rooms.
-- Other users see a "warning" shield next to messages sent by your bot, indicating its trust status is unknown.
-- Some security-conscious users block messages from unverified devices.
-
-#### SAS verification
-
-Matrix uses SAS (emoji/number comparison) to verify devices. Start verification from your Matrix client (Element: Settings -> Security & Privacy -> Sessions) and verify the "Clawdbot Gateway" device when prompted.
 
 ## DM configuration
 
@@ -159,13 +143,13 @@ When `dm.policy: "pairing"` and an unknown sender messages:
    Pairing code: ABC123
    
    Ask the bot owner to approve with:
-   clawdbot pairing approve --provider matrix <code>
+   clawdbot pairing approve matrix <code>
    ```
 
 2. Approve the sender:
    ```bash
-   clawdbot pairing list --provider matrix
-   clawdbot pairing approve --provider matrix ABC123
+   clawdbot pairing list matrix
+   clawdbot pairing approve matrix ABC123
    ```
 
 3. The sender is added to the local allowlist and can now message freely.
@@ -263,13 +247,13 @@ Deliver messages to rooms using the CLI:
 
 ```bash
 # By room ID
-clawdbot message send --provider matrix --to "room:!roomid:example.org" --message "hello"
+clawdbot message send --channel matrix --to "room:!roomid:example.org" --message "hello"
 
 # By alias
-clawdbot message send --provider matrix --to "#channel:example.org" --message "hello"
+clawdbot message send --channel matrix --to "#channel:example.org" --message "hello"
 
 # Direct message (requires existing DM room via m.direct)
-clawdbot message send --provider matrix --to "user:@alice:example.org" --message "hello"
+clawdbot message send --channel matrix --to "user:@alice:example.org" --message "hello"
 ```
 
 Short form targets:
@@ -330,7 +314,7 @@ Options:
 
 Send polls via CLI:
 ```bash
-clawdbot message poll --provider matrix --to "room:!roomid:example.org" \
+clawdbot message poll --channel matrix --to "room:!roomid:example.org" \
   --question "What should we order?" \
   --options "Pizza,Sushi,Tacos"
 ```
@@ -339,7 +323,7 @@ clawdbot message poll --provider matrix --to "room:!roomid:example.org" \
 
 ### What works
 
-- ✅ Encrypted + unencrypted rooms (E2EE with Rust crypto)
+- ✅ Unencrypted rooms and DMs
 - ✅ DMs and group rooms
 - ✅ Threads and reply relations
 - ✅ Typing indicators
@@ -348,14 +332,14 @@ clawdbot message poll --provider matrix --to "room:!roomid:example.org" \
 - ✅ Pinned messages
 - ✅ Room/member info queries
 - ✅ Media uploads via Matrix content repository
-- ✅ Encrypted media in E2EE rooms (download + upload)
+- ✅ Media uploads/downloads in unencrypted rooms
 - ✅ Polls (MSC3381)
 
 ### Limits
 
 - Text chunked to `matrix.textChunkLimit` (default: 4000 chars).
 - Media capped by `matrix.mediaMaxMb` (default: 20 MB).
-- **Node.js only** — Bun runtime is not supported due to native crypto dependencies.
+- **Node.js only** — Bun runtime is not supported.
 
 ## Full configuration reference
 
@@ -372,12 +356,8 @@ clawdbot message poll --provider matrix --to "room:!roomid:example.org" \
     password: "...",                       // alternative: login at startup
     deviceName: "Clawdbot Gateway",       // display name for device
     
-    // Encryption
-    encryption: true,                     // enable E2EE
-    
     // Storage (defaults usually fine)
     storePath: "~/.clawdbot/credentials/matrix/store",
-    cryptoStorePath: "~/.clawdbot/credentials/matrix/crypto",
     
     // Auto-join behavior
     autoJoin: "always",                   // always | allowlist | off
@@ -438,7 +418,6 @@ All config options can be overridden via environment variables (env wins):
 | `MATRIX_PASSWORD` | `matrix.password` |
 | `MATRIX_DEVICE_NAME` | `matrix.deviceName` |
 | `MATRIX_STORE_PATH` | `matrix.storePath` |
-| `MATRIX_CRYPTO_STORE_PATH` | `matrix.cryptoStorePath` |
 
 ## Routing and sessions
 
@@ -455,12 +434,13 @@ The `From` field in context:
 
 ### Bot can't read encrypted messages
 
-1. Ensure `matrix.encryption: true` is set.
-2. Verify the device is trusted in your main Matrix client.
+Encrypted rooms/messages are not supported yet.
+
+Fix: use an unencrypted room/DM for Clawdbot.
 
 ### "Matrix requires Node.js" error
 
-Matrix provider uses Rust crypto bindings that don't work with Bun. Run the gateway with Node.js:
+Matrix is not supported on Bun. Run the gateway with Node.js:
 ```bash
 node dist/bin/clawdbot.js gateway
 ```
@@ -481,5 +461,4 @@ node dist/bin/clawdbot.js gateway
 
 - [Matrix Client-Server API](https://spec.matrix.org/latest/client-server-api/)
 - [matrix-js-sdk documentation](https://matrix-org.github.io/matrix-js-sdk/)
-- [Matrix E2EE guide](https://matrix.org/docs/guides/end-to-end-encryption-implementation-guide)
 - [MSC3381 Polls](https://github.com/matrix-org/matrix-spec-proposals/pull/3381)

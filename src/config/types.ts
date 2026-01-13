@@ -698,11 +698,8 @@ export type MatrixConfig = {
   userId?: string;
   accessToken?: string;
   password?: string;
-  deviceId?: string;
   deviceName?: string;
   storePath?: string;
-  cryptoStorePath?: string;
-  encryption?: boolean;
   autoJoin?: "always" | "allowlist" | "off";
   autoJoinAllowlist?: string[];
   groupPolicy?: GroupPolicy;

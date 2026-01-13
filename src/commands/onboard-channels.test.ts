@@ -104,7 +104,6 @@ describe("setupChannels", () => {
     });
     const confirm = vi.fn(async ({ message }: { message: string }) => {
       if (message.includes("Use a Matrix access token")) return true;
-      if (message.includes("Enable Matrix end-to-end encryption")) return false;
       throw new Error(`unexpected confirm prompt: ${message}`);
     });
 

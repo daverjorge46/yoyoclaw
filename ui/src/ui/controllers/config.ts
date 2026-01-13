@@ -362,10 +362,7 @@ export function applyConfigSnapshot(state: ConfigState, snapshot: ConfigSnapshot
     accessToken:
       typeof matrix.accessToken === "string" ? matrix.accessToken : "",
     password: typeof matrix.password === "string" ? matrix.password : "",
-    deviceId: typeof matrix.deviceId === "string" ? matrix.deviceId : "",
     deviceName: typeof matrix.deviceName === "string" ? matrix.deviceName : "",
-    encryption:
-      typeof matrix.encryption === "boolean" ? matrix.encryption : true,
     autoJoin:
       matrix.autoJoin === "allowlist" || matrix.autoJoin === "off"
         ? matrix.autoJoin

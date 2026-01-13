@@ -115,9 +115,7 @@ export type MatrixForm = {
   userId: string;
   accessToken: string;
   password: string;
-  deviceId: string;
   deviceName: string;
-  encryption: boolean;
   autoJoin: "always" | "allowlist" | "off";
   autoJoinAllowlist: string;
   groupPolicy: "open" | "allowlist" | "disabled";

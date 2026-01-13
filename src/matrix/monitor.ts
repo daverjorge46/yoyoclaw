@@ -14,7 +14,6 @@ import {
   RoomMemberEvent,
 } from "matrix-js-sdk";
 import type { RoomMessageEventContent } from "matrix-js-sdk/lib/@types/events.js";
-import type { EncryptedFile } from "matrix-js-sdk/lib/@types/media.js";
 
 import {
   chunkMarkdownText,
@@ -50,7 +49,6 @@ import {
   resolveMatrixAuth,
   resolveSharedMatrixClient,
 } from "./client.js";
-import { decryptMatrixAttachment } from "./crypto-attachments.js";
 import {
   formatPollAsText,
   isPollStartType,
@@ -310,21 +308,6 @@ async function fetchMatrixMediaBuffer(params: {
   return { buffer, headerType };
 }
 
-function resolveEncryptedFile(
-  content: RoomMessageEventContent,
-): EncryptedFile | null {
-  if (!("file" in content)) return null;
-  const file = content.file as unknown;
-  if (!file || typeof file !== "object") return null;
-  const value = file as Record<string, unknown>;
-  if (typeof value.url !== "string") return null;
-  if (typeof value.iv !== "string") return null;
-  if (typeof value.v !== "string") return null;
-  if (typeof value.key !== "object" || value.key === null) return null;
-  if (typeof value.hashes !== "object" || value.hashes === null) return null;
-  return file as EncryptedFile;
-}
-
 async function deliverMatrixReplies(params: {
   replies: ReplyPayload[];
   roomId: string;
@@ -506,16 +489,6 @@ export async function monitorMatrixProvider(
         event.getType() === EventType.RoomMessageEncrypted ||
         event.isDecryptionFailure()
       ) {
-        // Wait for decryption before processing to avoid missing encrypted messages.
-        const onDecrypted = () => {
-          if (event.isDecryptionFailure()) {
-            event.once(MatrixEventEvent.Decrypted, onDecrypted);
-            return;
-          }
-          void handleTimeline(event, room, toStartOfTimeline);
-        };
-        event.once(MatrixEventEvent.Decrypted, onDecrypted);
-        void client.decryptEventIfNeeded(event).catch(() => {});
         return;
       }
 
@@ -684,8 +657,7 @@ export async function monitorMatrixProvider(
         "url" in content && typeof content.url === "string"
           ? content.url
           : undefined;
-      const encryptedFile = resolveEncryptedFile(content);
-      if (!rawBody && !contentUrl && !encryptedFile) {
+      if (!rawBody && !contentUrl) {
         return;
       }
 
@@ -693,38 +665,7 @@ export async function monitorMatrixProvider(
         "info" in content && content.info && "mimetype" in content.info
           ? content.info.mimetype
           : undefined;
-      if (encryptedFile) {
-        if (encryptedFile.url.startsWith("mxc://")) {
-          try {
-            const fetched = await fetchMatrixMediaBuffer({
-              client,
-              mxcUrl: encryptedFile.url,
-              maxBytes: mediaMaxBytes,
-            });
-            if (fetched) {
-              const decrypted = await decryptMatrixAttachment({
-                encrypted: fetched.buffer,
-                file: encryptedFile,
-              });
-              const saved = await saveMediaBuffer(
-                Buffer.from(decrypted),
-                contentType,
-                "inbound",
-                mediaMaxBytes,
-              );
-              media = {
-                path: saved.path,
-                contentType: saved.contentType,
-                placeholder: "[matrix media]",
-              };
-            }
-          } catch (err) {
-            logVerbose(
-              `matrix: encrypted media download failed: ${String(err)}`,
-            );
-          }
-        }
-      } else if (contentUrl?.startsWith("mxc://")) {
+      if (contentUrl?.startsWith("mxc://")) {
         try {
           media = await downloadMatrixMedia({
             client,

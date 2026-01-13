@@ -6,14 +6,12 @@ export type MatrixProbe = {
   error?: string | null;
   elapsedMs: number;
   userId?: string | null;
-  deviceId?: string | null;
 };
 
 export async function probeMatrix(params: {
   homeserver: string;
   accessToken: string;
   userId?: string;
-  deviceId?: string;
   timeoutMs: number;
 }): Promise<MatrixProbe> {
   const started = Date.now();
@@ -49,13 +47,12 @@ export async function probeMatrix(params: {
       homeserver: params.homeserver,
       userId: params.userId ?? "",
       accessToken: params.accessToken,
-      deviceId: params.deviceId,
       localTimeoutMs: params.timeoutMs,
     });
     const res = await client.whoami();
     result.ok = true;
     result.userId = res.user_id ?? null;
-    result.deviceId = res.device_id ?? null;
+
     result.elapsedMs = Date.now() - started;
     return result;
   } catch (err) {
