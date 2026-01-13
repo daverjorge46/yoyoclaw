@@ -79,10 +79,32 @@ Defaults:
 - Uses remote embeddings (OpenAI) unless configured for local.
 - Local mode uses node-llama-cpp and may require `pnpm approve-builds`.
 
-Remote embeddings **require** an OpenAI API key (`OPENAI_API_KEY` or
-`models.providers.openai.apiKey`). Codex OAuth only covers chat/completions and
-does **not** satisfy embeddings for memory search. If you don't want to set an
-API key, use `memorySearch.provider = "local"` or set
+Remote embeddings **require** an API key for the embedding provider. By default
+this is OpenAI (`OPENAI_API_KEY` or `models.providers.openai.apiKey`). Codex
+OAuth only covers chat/completions and does **not** satisfy embeddings for
+memory search. When using a custom OpenAI-compatible endpoint, set
+`memorySearch.remote.apiKey` (and optional `memorySearch.remote.headers`).
+
+If you want to use a **custom OpenAI-compatible endpoint** (like Gemini, OpenRouter, or a proxy),
+you can use the `remote` configuration:
+
+```json5
+agents: {
+  defaults: {
+    memorySearch: {
+      provider: "openai",
+      model: "text-embedding-3-small",
+      remote: {
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        apiKey: "YOUR_GEMINI_API_KEY",
+        headers: { "X-Custom-Header": "value" }
+      }
+    }
+  }
+}
+```
+
+If you don't want to set an API key, use `memorySearch.provider = "local"` or set
 `memorySearch.fallback = "none"`.
 
 Config example:
@@ -127,3 +149,28 @@ Local mode:
 - When `memorySearch.provider = "local"`, `node-llama-cpp` resolves `modelPath`; if the GGUF is missing it **auto-downloads** to the cache (or `local.modelCacheDir` if set), then loads it. Downloads resume on retry.
 - Native build requirement: run `pnpm approve-builds`, pick `node-llama-cpp`, then `pnpm rebuild node-llama-cpp`.
 - Fallback: if local setup fails and `memorySearch.fallback = "openai"`, we automatically switch to remote embeddings (`openai/text-embedding-3-small` unless overridden) and record the reason.
+
+### Custom OpenAI-compatible endpoint example
+
+```json5
+agents: {
+  defaults: {
+    memorySearch: {
+      provider: "openai",
+      model: "text-embedding-3-small",
+      remote: {
+        baseUrl: "https://api.example.com/v1/",
+        apiKey: "YOUR_REMOTE_API_KEY",
+        headers: {
+          "X-Organization": "org-id",
+          "X-Project": "project-id"
+        }
+      }
+    }
+  }
+}
+```
+
+Notes:
+- `remote.*` takes precedence over `models.providers.openai.*`.
+- `remote.headers` merge with OpenAI headers; remote wins on key conflicts. Omit `remote.headers` to use the OpenAI defaults.

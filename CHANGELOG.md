@@ -3,7 +3,8 @@
 ## 2026.1.12-4
 
 ### Changes
-- Models/Moonshot: add Kimi K2 turbo + thinking variants to the preset + docs. (#818 — thanks @mickahouan)
+- Models/Moonshot: add Kimi K2 0905 + turbo/thinking variants to the preset + docs. (#818 — thanks @mickahouan)
+- Memory: allow custom OpenAI-compatible embedding endpoints for memory search (remote baseUrl/apiKey/headers). (#819 — thanks @mukhtharcm)
 
 ### Fixes
 - Onboarding/Configure: refuse to proceed with invalid configs; run `clawdbot doctor` first to avoid wiping custom fields. (#764 — thanks @mukhtharcm)
