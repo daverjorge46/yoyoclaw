@@ -116,8 +116,8 @@ importers:
         specifier: ^14.1.0
         version: 14.1.0
       matrix-js-sdk:
-        specifier: 40.0.0-rc.0
-        version: 40.0.0-rc.0
+        specifier: 40.0.0
+        version: 40.0.0
       node-llama-cpp:
         specifier: 3.14.5
         version: 3.14.5(typescript@5.9.3)
@@ -3135,8 +3135,8 @@ packages:
   matrix-events-sdk@0.0.1:
     resolution: {integrity: sha512-1QEOsXO+bhyCroIe2/A5OwaxHvBm7EsSQ46DEDn8RBIfQwN5HWBpFvyWWR4QY0KHPPnnJdI99wgRiAl7Ad5qaA==}
 
-  matrix-js-sdk@40.0.0-rc.0:
-    resolution: {integrity: sha512-RFeU+arhtKfqoE6iZaaB8XyRRxSeaGnsQxwnqTXIkGOGEBZKrOzS/FQl+yxooaUY5QrhJXxWCK6IR+EjgcWKWA==}
+  matrix-js-sdk@40.0.0:
+    resolution: {integrity: sha512-KQzMJQ7ZzQlgCIYgUOOVT0+dhlyKZS6bq0Gdf1WCt/tIGc4m56aD2h+EqZKv9aNZ3AtPbPUMDMEpHDva0ggYQg==}
     engines: {node: '>=22.0.0'}
 
   matrix-widget-api@1.15.0:
@@ -7487,7 +7487,7 @@ snapshots:
 
   matrix-events-sdk@0.0.1: {}
 
-  matrix-js-sdk@40.0.0-rc.0:
+  matrix-js-sdk@40.0.0:
     dependencies:
       '@babel/runtime': 7.28.6
       '@matrix-org/matrix-sdk-crypto-wasm': 16.0.0
