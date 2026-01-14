@@ -42,6 +42,8 @@ export type WebSearchConfig = {
   enabled?: boolean;
   /** Max searches per request (Anthropic). */
   maxUses?: number;
+  /** Search context size (OpenAI): low, medium, high. */
+  searchContextSize?: "low" | "medium" | "high";
   /** Restrict search to these domains. */
   allowedDomains?: string[];
   /** Exclude these domains from search. */

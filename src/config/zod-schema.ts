@@ -133,6 +133,9 @@ const WebSearchSchema = z
   .object({
     enabled: z.boolean().optional(),
     maxUses: z.number().int().positive().optional(),
+    searchContextSize: z
+      .union([z.literal("low"), z.literal("medium"), z.literal("high")])
+      .optional(),
     allowedDomains: z.array(z.string()).optional(),
     blockedDomains: z.array(z.string()).optional(),
     userLocation: z
