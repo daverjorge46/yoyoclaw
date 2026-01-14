@@ -9,6 +9,7 @@ overrides:
 
 patchedDependencies:
 <<<<<<< HEAD
+<<<<<<< HEAD
   '@mariozechner/pi-ai@0.43.0':
     hash: cjdehc724hk2xzqssudsld3zwe
     path: patches/@mariozechner__pi-ai@0.43.0.patch
@@ -16,6 +17,11 @@ patchedDependencies:
   '@mariozechner/pi-ai@0.45.3':
     hash: c8bf66c9ab4dc6fb8cb630102c7dad4a9c288ee4c9edb9538d69d6a1eadf5f94
     path: patches/@mariozechner__pi-ai@0.45.3.patch
+>>>>>>> upstream/main
+=======
+  '@mariozechner/pi-ai@0.45.7':
+    hash: 899187c39b551e0b611a32006f5f06bc329d3478fe4bac9bac044b2df079e2cd
+    path: patches/@mariozechner__pi-ai@0.45.7.patch
 >>>>>>> upstream/main
 
 importers:
@@ -42,11 +48,16 @@ importers:
         version: 0.45.3(ws@8.19.0)(zod@4.3.5)
       '@mariozechner/pi-ai':
 <<<<<<< HEAD
+<<<<<<< HEAD
         specifier: ^0.43.0
         version: 0.43.0(patch_hash=cjdehc724hk2xzqssudsld3zwe)(ws@8.19.0)(zod@4.3.5)
 =======
         specifier: ^0.45.3
         version: 0.45.3(patch_hash=c8bf66c9ab4dc6fb8cb630102c7dad4a9c288ee4c9edb9538d69d6a1eadf5f94)(ws@8.19.0)(zod@4.3.5)
+>>>>>>> upstream/main
+=======
+        specifier: 0.45.7
+        version: 0.45.7(patch_hash=899187c39b551e0b611a32006f5f06bc329d3478fe4bac9bac044b2df079e2cd)(ws@8.19.0)(zod@4.3.5)
 >>>>>>> upstream/main
       '@mariozechner/pi-coding-agent':
         specifier: ^0.45.3
@@ -1510,11 +1521,16 @@ packages:
     dev: false
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   /@mariozechner/pi-ai@0.43.0(patch_hash=cjdehc724hk2xzqssudsld3zwe)(ws@8.19.0)(zod@4.3.5):
     resolution: {integrity: sha512-kDcAe3WINSQN41GnUmqY2hxfRvLIg8+RXNq9WLB4QNILOI5//0CXvWpS3iMooNI7ptD8IVIgzdIiSDoCRwZW9g==}
 =======
   '@mariozechner/pi-ai@0.45.3':
     resolution: {integrity: sha512-PVL4xrDfP24v86ZZBAw+3HMqqDjq/RyIpQc+0c/QKp2Ldu4SlX7zYqzDDeXR1PWNvxVPdHwIihMnoXOh/361iA==}
+>>>>>>> upstream/main
+=======
+  '@mariozechner/pi-ai@0.45.7':
+    resolution: {integrity: sha512-RsOLVYdR3gpREx35cDPIIM3z2KyJb/4NOWSN/CP+HRUJ4sJR+W4yo6k/6mpmDncSM+eB8NJZ8wi+WYFJVEbUVw==}
 >>>>>>> upstream/main
     engines: {node: '>=20.0.0'}
     hasBin: true
@@ -7883,7 +7899,7 @@ snapshots:
   '@mariozechner/pi-agent-core@0.45.3(ws@8.19.0)(zod@4.3.5)':
 >>>>>>> upstream/main
     dependencies:
-      '@mariozechner/pi-ai': 0.45.3(patch_hash=c8bf66c9ab4dc6fb8cb630102c7dad4a9c288ee4c9edb9538d69d6a1eadf5f94)(ws@8.19.0)(zod@4.3.5)
+      '@mariozechner/pi-ai': 0.45.7(patch_hash=899187c39b551e0b611a32006f5f06bc329d3478fe4bac9bac044b2df079e2cd)(ws@8.19.0)(zod@4.3.5)
       '@mariozechner/pi-tui': 0.45.3
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
@@ -7897,7 +7913,11 @@ snapshots:
   '@mariozechner/pi-ai@0.43.0(patch_hash=3eee8ed34968210911b89dc61e65d651e2be64943933d24ab1de86c7fee9ffdd)(ws@8.19.0)(zod@4.3.5)':
 =======
 
+<<<<<<< HEAD
   '@mariozechner/pi-ai@0.45.3(patch_hash=c8bf66c9ab4dc6fb8cb630102c7dad4a9c288ee4c9edb9538d69d6a1eadf5f94)(ws@8.19.0)(zod@4.3.5)':
+>>>>>>> upstream/main
+=======
+  '@mariozechner/pi-ai@0.45.7(patch_hash=899187c39b551e0b611a32006f5f06bc329d3478fe4bac9bac044b2df079e2cd)(ws@8.19.0)(zod@4.3.5)':
 >>>>>>> upstream/main
     dependencies:
       '@anthropic-ai/sdk': 0.71.2(zod@4.3.5)
@@ -7929,7 +7949,7 @@ snapshots:
       '@mariozechner/clipboard': 0.3.0
       '@mariozechner/jiti': 2.6.2
       '@mariozechner/pi-agent-core': 0.45.3(ws@8.19.0)(zod@4.3.5)
-      '@mariozechner/pi-ai': 0.45.3(patch_hash=c8bf66c9ab4dc6fb8cb630102c7dad4a9c288ee4c9edb9538d69d6a1eadf5f94)(ws@8.19.0)(zod@4.3.5)
+      '@mariozechner/pi-ai': 0.45.7(patch_hash=899187c39b551e0b611a32006f5f06bc329d3478fe4bac9bac044b2df079e2cd)(ws@8.19.0)(zod@4.3.5)
       '@mariozechner/pi-tui': 0.45.3
       chalk: 5.6.2
       cli-highlight: 2.1.11
