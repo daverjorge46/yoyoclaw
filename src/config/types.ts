@@ -1823,13 +1823,15 @@ export type ClawdbotConfig = {
   commands?: CommandsConfig;
   session?: SessionConfig;
   web?: WebConfig;
-  whatsapp?: WhatsAppConfig;
-  telegram?: TelegramConfig;
-  discord?: DiscordConfig;
-  slack?: SlackConfig;
-  signal?: SignalConfig;
-  imessage?: IMessageConfig;
-  msteams?: MSTeamsConfig;
+  channels?: {
+    whatsapp?: WhatsAppConfig;
+    telegram?: TelegramConfig;
+    discord?: DiscordConfig;
+    slack?: SlackConfig;
+    signal?: SignalConfig;
+    imessage?: IMessageConfig;
+    msteams?: MSTeamsConfig;
+  };
   cron?: CronConfig;
   hooks?: HooksConfig;
   bridge?: BridgeConfig;
