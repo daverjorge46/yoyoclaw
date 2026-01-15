@@ -97,7 +97,7 @@ Override via config:
 
 Sub-agents use a dedicated in-process queue lane:
 - Lane name: `subagent`
-- Concurrency: `agents.defaults.subagents.maxConcurrent` (default `1`)
+- Concurrency: `agents.defaults.subagents.maxConcurrent` (default `5`)
 
 ## Limitations
 
