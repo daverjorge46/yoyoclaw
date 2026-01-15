@@ -178,9 +178,9 @@ export function parseLaunchctlPrint(output: string): LaunchctlPrintInfo {
   return info;
 }
 
-export async function isLaunchAgentLoaded(profile?: string): Promise<boolean> {
+export async function isLaunchAgentLoaded(profile?: string, launchdLabelOverride?: string): Promise<boolean> {
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel(profile);
+  const label = resolveLaunchAgentLabel(profile, launchdLabelOverride);
   const res = await execLaunchctl(["print", `${domain}/${label}`]);
   return res.code === 0;
 }
@@ -337,12 +337,14 @@ function isLaunchctlNotLoaded(res: { stdout: string; stderr: string; code: numbe
 export async function stopLaunchAgent({
   stdout,
   profile,
+  launchdLabelOverride,
 }: {
   stdout: NodeJS.WritableStream;
   profile?: string;
+  launchdLabelOverride?: string;
 }): Promise<void> {
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel(profile);
+  const label = resolveLaunchAgentLabel(profile, launchdLabelOverride);
   const res = await execLaunchctl(["bootout", `${domain}/${label}`]);
   if (res.code !== 0 && !isLaunchctlNotLoaded(res)) {
     throw new Error(`launchctl bootout failed: ${res.stderr || res.stdout}`.trim());
@@ -417,12 +419,14 @@ export async function installLaunchAgent({
 export async function restartLaunchAgent({
   stdout,
   profile,
+  launchdLabelOverride,
 }: {
   stdout: NodeJS.WritableStream;
   profile?: string;
+  launchdLabelOverride?: string;
 }): Promise<void> {
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel(profile);
+  const label = resolveLaunchAgentLabel(profile, launchdLabelOverride);
   const res = await execLaunchctl(["kickstart", "-k", `${domain}/${label}`]);
   if (res.code !== 0) {
     throw new Error(`launchctl kickstart failed: ${res.stderr || res.stdout}`.trim());

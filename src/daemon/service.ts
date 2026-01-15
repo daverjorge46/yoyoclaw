@@ -83,15 +83,17 @@ export function resolveGatewayService(): GatewayService {
         await stopLaunchAgent({
           stdout: args.stdout,
           profile: args.profile ?? args.env?.CLAWDBOT_PROFILE,
+          launchdLabelOverride: args.env?.CLAWDBOT_LAUNCHD_LABEL,
         });
       },
       restart: async (args) => {
         await restartLaunchAgent({
           stdout: args.stdout,
           profile: args.profile ?? args.env?.CLAWDBOT_PROFILE,
+          launchdLabelOverride: args.env?.CLAWDBOT_LAUNCHD_LABEL,
         });
       },
-      isLoaded: async (args) => isLaunchAgentLoaded(args.profile ?? args.env?.CLAWDBOT_PROFILE),
+      isLoaded: async (args) => isLaunchAgentLoaded(args.profile ?? args.env?.CLAWDBOT_PROFILE, args.env?.CLAWDBOT_LAUNCHD_LABEL),
       readCommand: readLaunchAgentProgramArguments,
       readRuntime: readLaunchAgentRuntime,
     };
