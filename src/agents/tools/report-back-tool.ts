@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { Type } from "@sinclair/typebox";
 
 import { loadConfig } from "../../config/config.js";
@@ -67,6 +69,7 @@ export function createReportBackTool(opts?: {
             sessionKey: mainSessionKey,
             message: `[Subagent completed${opts?.label ? `: ${opts.label}` : ""}]`,
             deliver: true,
+            idempotencyKey: crypto.randomUUID(),
           },
           timeoutMs: 60_000,
         });
