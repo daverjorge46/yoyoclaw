@@ -11,6 +11,9 @@ const MEDIA_DIR = path.join(CONFIG_DIR, "media");
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB default
 const DEFAULT_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
+// Known sidecar file patterns that should be cleaned up with parent media
+const SIDECAR_PATTERNS = [".transcript.txt", ".description.txt"];
+
 export function getMediaDir() {
   return MEDIA_DIR;
 }
@@ -22,15 +25,21 @@ export async function ensureMediaDir() {
 
 export async function cleanOldMedia(ttlMs = DEFAULT_TTL_MS) {
   await ensureMediaDir();
-  const entries = await fs.readdir(MEDIA_DIR).catch(() => []);
+  const entries = await fs.readdir(MEDIA_DIR, { recursive: true }).catch(() => []);
   const now = Date.now();
   await Promise.all(
     entries.map(async (file) => {
       const full = path.join(MEDIA_DIR, file);
       const stat = await fs.stat(full).catch(() => null);
-      if (!stat) return;
+      if (!stat || stat.isDirectory()) return;
+
       if (now - stat.mtimeMs > ttlMs) {
+        // Delete the media file
         await fs.rm(full).catch(() => {});
+
+        // Also clean up known sidecar patterns
+        const sidecars = SIDECAR_PATTERNS.map((pattern) => `${full}${pattern}`);
+        await Promise.all(sidecars.map((s) => fs.rm(s, { force: true }).catch(() => {})));
       }
     }),
   );

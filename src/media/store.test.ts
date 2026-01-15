@@ -70,6 +70,83 @@ describe("media store", () => {
     });
   });
 
+  it("deletes sidecar files when parent media is deleted", async () => {
+    await withTempStore(async (store) => {
+      const mediaDir = await store.ensureMediaDir();
+
+      // Create a media file with sidecars
+      const mediaPath = path.join(mediaDir, "test-audio.ogg");
+      const transcriptPath = `${mediaPath}.transcript.txt`;
+      const descriptionPath = `${mediaPath}.description.txt`;
+
+      await fs.writeFile(mediaPath, "audio content");
+      await fs.writeFile(transcriptPath, "transcript text");
+      await fs.writeFile(descriptionPath, "description text");
+
+      // Verify all files exist
+      await expect(fs.stat(mediaPath)).resolves.toBeDefined();
+      await expect(fs.stat(transcriptPath)).resolves.toBeDefined();
+      await expect(fs.stat(descriptionPath)).resolves.toBeDefined();
+
+      // Make files old
+      const past = Date.now() - 10_000;
+      await fs.utimes(mediaPath, past / 1000, past / 1000);
+
+      // Run cleanup
+      await store.cleanOldMedia(1);
+
+      // Verify all files are deleted
+      await expect(fs.stat(mediaPath)).rejects.toThrow();
+      await expect(fs.stat(transcriptPath)).rejects.toThrow();
+      await expect(fs.stat(descriptionPath)).rejects.toThrow();
+    });
+  });
+
+  it("deletes orphaned sidecar files when their parent no longer exists", async () => {
+    await withTempStore(async (store) => {
+      const mediaDir = await store.ensureMediaDir();
+
+      // Create orphaned sidecars (no parent media file)
+      const transcriptPath = path.join(mediaDir, "orphan.ogg.transcript.txt");
+      const descriptionPath = path.join(mediaDir, "orphan.ogg.description.txt");
+
+      await fs.writeFile(transcriptPath, "orphaned transcript");
+      await fs.writeFile(descriptionPath, "orphaned description");
+
+      // Make sidecars old
+      const past = Date.now() - 10_000;
+      await fs.utimes(transcriptPath, past / 1000, past / 1000);
+      await fs.utimes(descriptionPath, past / 1000, past / 1000);
+
+      // Run cleanup
+      await store.cleanOldMedia(1);
+
+      // Orphaned sidecars should be cleaned as regular old files
+      await expect(fs.stat(transcriptPath)).rejects.toThrow();
+      await expect(fs.stat(descriptionPath)).rejects.toThrow();
+    });
+  });
+
+  it("keeps sidecars when parent media is not old enough", async () => {
+    await withTempStore(async (store) => {
+      const mediaDir = await store.ensureMediaDir();
+
+      // Create a fresh media file with sidecars
+      const mediaPath = path.join(mediaDir, "fresh-audio.ogg");
+      const transcriptPath = `${mediaPath}.transcript.txt`;
+
+      await fs.writeFile(mediaPath, "fresh audio");
+      await fs.writeFile(transcriptPath, "fresh transcript");
+
+      // Run cleanup with very short TTL, but files are brand new
+      await store.cleanOldMedia(1);
+
+      // Files should still exist (not old enough)
+      await expect(fs.stat(mediaPath)).resolves.toBeDefined();
+      await expect(fs.stat(transcriptPath)).resolves.toBeDefined();
+    });
+  });
+
   it("sets correct mime for xlsx by extension", async () => {
     await withTempStore(async (store, home) => {
       const xlsxPath = path.join(home, "sheet.xlsx");
