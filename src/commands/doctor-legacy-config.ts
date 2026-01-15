@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -12,6 +13,7 @@ import {
 import type { RuntimeEnv } from "../runtime.js";
 import { note } from "../terminal/note.js";
 import { resolveUserPath } from "../utils.js";
+import { resolveDefaultWebAuthDir, resolveWebCredsPath } from "../web/auth-store.js";
 
 function resolveLegacyConfigPath(env: NodeJS.ProcessEnv): string {
   const override = env.CLAWDIS_CONFIG_PATH?.trim();
@@ -51,6 +53,17 @@ export function replaceModernName(value: string | undefined): string | undefined
   if (!value) return value;
   if (!value.includes("clawdbot")) return value;
   return value.replace(/clawdbot/g, "clawdis");
+}
+
+function hasWhatsAppAuthState(): boolean {
+  try {
+    const authDir = resolveDefaultWebAuthDir();
+    const credsPath = resolveWebCredsPath(authDir);
+    const stats = fs.statSync(credsPath);
+    return stats.isFile() && stats.size > 1;
+  } catch {
+    return false;
+  }
 }
 
 export function normalizeLegacyConfigValues(cfg: ClawdbotConfig): {
@@ -220,7 +233,8 @@ export function normalizeLegacyConfigValues(cfg: ClawdbotConfig): {
 
   const legacyAckReaction = cfg.messages?.ackReaction?.trim();
   const hasWhatsAppConfig = cfg.channels?.whatsapp !== undefined;
-  if (legacyAckReaction && hasWhatsAppConfig) {
+  const hasWhatsAppAuth = hasWhatsAppAuthState();
+  if (legacyAckReaction && (hasWhatsAppConfig || hasWhatsAppAuth)) {
     const hasWhatsAppAck = cfg.channels?.whatsapp?.ackReaction !== undefined;
     if (!hasWhatsAppAck) {
       const legacyScope = cfg.messages?.ackReactionScope ?? "group-mentions";
