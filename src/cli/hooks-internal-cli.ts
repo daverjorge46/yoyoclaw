@@ -290,7 +290,7 @@ export async function enableHook(hookName: string): Promise<void> {
   }
 
   // Update config
-  const entries = { ...(config.hooks?.internal?.entries ?? {}) };
+  const entries = { ...config.hooks?.internal?.entries };
   entries[hookName] = { ...entries[hookName], enabled: true };
 
   const nextConfig = {
@@ -305,7 +305,7 @@ export async function enableHook(hookName: string): Promise<void> {
     },
   };
 
-  writeConfigFile(nextConfig);
+  await writeConfigFile(nextConfig);
   console.log(`${chalk.green("✓")} Enabled hook: ${hook.emoji ?? "🔗"} ${hookName}`);
 }
 
@@ -320,7 +320,7 @@ export async function disableHook(hookName: string): Promise<void> {
   }
 
   // Update config
-  const entries = { ...(config.hooks?.internal?.entries ?? {}) };
+  const entries = { ...config.hooks?.internal?.entries };
   entries[hookName] = { ...entries[hookName], enabled: false };
 
   const nextConfig = {
@@ -334,7 +334,7 @@ export async function disableHook(hookName: string): Promise<void> {
     },
   };
 
-  writeConfigFile(nextConfig);
+  await writeConfigFile(nextConfig);
   console.log(`${chalk.yellow("⏸")} Disabled hook: ${hook.emoji ?? "🔗"} ${hookName}`);
 }
 

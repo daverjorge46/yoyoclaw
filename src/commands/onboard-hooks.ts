@@ -54,7 +54,7 @@ export async function setupInternalHooks(
   }
 
   // Enable selected hooks using the new entries config format
-  const entries = { ...(cfg.hooks?.internal?.entries ?? {}) };
+  const entries = { ...cfg.hooks?.internal?.entries };
   for (const name of selected) {
     entries[name] = { enabled: true };
   }

@@ -18,8 +18,6 @@ import type {
   ParsedHookFrontmatter,
 } from "./types.js";
 
-const fsp = fs.promises;
-
 function filterHookEntries(
   entries: HookEntry[],
   config?: ClawdbotConfig,
