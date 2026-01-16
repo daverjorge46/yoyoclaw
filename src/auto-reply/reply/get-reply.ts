@@ -28,7 +28,10 @@ import {
 } from "../../media-understanding/scope.js";
 import type { MediaUnderstandingOutput } from "../../media-understanding/types.js";
 import { resolveAudioAttachment } from "./attachments.js";
-import { extractMediaUserText, formatMediaUnderstandingBody } from "../../media-understanding/format.js";
+import {
+  extractMediaUserText,
+  formatMediaUnderstandingBody,
+} from "../../media-understanding/format.js";
 
 export async function getReplyFromConfig(
   ctx: MsgContext,

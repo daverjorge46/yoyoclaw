@@ -32,10 +32,9 @@ describe("fetchRemoteMedia", () => {
 
   it("rejects when streamed payload exceeds maxBytes", async () => {
     const fetchImpl = async () =>
-      new Response(
-        makeStream([new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]),
-        { status: 200 },
-      );
+      new Response(makeStream([new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]), {
+        status: 200,
+      });
 
     await expect(
       fetchRemoteMedia({

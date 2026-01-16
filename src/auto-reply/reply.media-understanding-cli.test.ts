@@ -43,9 +43,7 @@ vi.mock("../media-understanding/apply.js", () => ({
 }));
 
 vi.mock("./transcription.js", async () => {
-  const actual = await vi.importActual<typeof import("./transcription.js")>(
-    "./transcription.js",
-  );
+  const actual = await vi.importActual<typeof import("./transcription.js")>("./transcription.js");
   return {
     ...actual,
     transcribeInboundAudio: mocks.transcribeInboundAudio,

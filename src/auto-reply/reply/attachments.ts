@@ -8,8 +8,7 @@ export function resolveAudioAttachment(ctx: MsgContext): AudioAttachment | undef
   const paths = Array.isArray(ctx.MediaPaths) ? ctx.MediaPaths : [];
   const urls = Array.isArray(ctx.MediaUrls) ? ctx.MediaUrls : [];
   const types = Array.isArray(ctx.MediaTypes) ? ctx.MediaTypes : [];
-  const total =
-    paths.length > 0 ? paths.length : urls.length > 0 ? urls.length : 0;
+  const total = paths.length > 0 ? paths.length : urls.length > 0 ? urls.length : 0;
   const allowGlobalTypeFallback = total <= 1;
 
   const scan = (entries: AudioAttachment[]) => {

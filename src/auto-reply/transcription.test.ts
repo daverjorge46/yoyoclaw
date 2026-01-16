@@ -104,7 +104,9 @@ describe("transcribeInboundAudio", () => {
 
     const fetchModule = await import("../media/fetch.js");
     vi.mocked(fetchModule.fetchRemoteMedia).mockRejectedValue(
-      new Error("Failed to fetch media from https://example.com/audio.ogg: payload exceeds maxBytes 2"),
+      new Error(
+        "Failed to fetch media from https://example.com/audio.ogg: payload exceeds maxBytes 2",
+      ),
     );
     const execModule = await import("../process/exec.js");
     runtime.error.mockClear();

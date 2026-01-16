@@ -64,14 +64,8 @@ function normalizeAttachments(ctx: MsgContext): MediaAttachment[] {
 
   if (pathsFromArray && pathsFromArray.length > 0) {
     const count = pathsFromArray.length;
-    const urls =
-      urlsFromArray && urlsFromArray.length === count
-        ? urlsFromArray
-        : undefined;
-    const types =
-      typesFromArray && typesFromArray.length === count
-        ? typesFromArray
-        : undefined;
+    const urls = urlsFromArray && urlsFromArray.length === count ? urlsFromArray : undefined;
+    const types = typesFromArray && typesFromArray.length === count ? typesFromArray : undefined;
     return pathsFromArray
       .map((value, index) => ({
         path: value?.trim() || undefined,
@@ -84,10 +78,7 @@ function normalizeAttachments(ctx: MsgContext): MediaAttachment[] {
 
   if (urlsFromArray && urlsFromArray.length > 0) {
     const count = urlsFromArray.length;
-    const types =
-      typesFromArray && typesFromArray.length === count
-        ? typesFromArray
-        : undefined;
+    const types = typesFromArray && typesFromArray.length === count ? typesFromArray : undefined;
     return urlsFromArray
       .map((value, index) => ({
         path: undefined,
@@ -236,11 +227,11 @@ export async function applyMediaUnderstanding(params: {
   const audioProviderRaw = audioCfg?.provider?.trim();
   const audioEnabled = audioCfg?.enabled !== false && Boolean(audioProviderRaw);
   if (audioEnabled) {
-      const decision = resolveMediaUnderstandingScope({
-        scope: audioCfg?.scope,
-        sessionKey,
-        channel,
-        chatType,
+    const decision = resolveMediaUnderstandingScope({
+      scope: audioCfg?.scope,
+      sessionKey,
+      channel,
+      chatType,
     });
     if (decision === "deny") {
       if (shouldLogVerbose()) {
@@ -277,8 +268,7 @@ export async function applyMediaUnderstanding(params: {
                 agentDir: params.agentDir,
               });
               const providerConfig = cfg.models?.providers?.[providerId];
-              const resolvedModel =
-                audioCfg?.model?.trim() || DEFAULT_AUDIO_MODELS[providerId];
+              const resolvedModel = audioCfg?.model?.trim() || DEFAULT_AUDIO_MODELS[providerId];
               const result = await provider.transcribeAudio({
                 buffer: media.buffer,
                 fileName: media.fileName,
@@ -313,11 +303,11 @@ export async function applyMediaUnderstanding(params: {
   const videoProviderRaw = videoCfg?.provider?.trim();
   const videoEnabled = videoCfg?.enabled !== false && Boolean(videoProviderRaw);
   if (videoEnabled) {
-      const decision = resolveMediaUnderstandingScope({
-        scope: videoCfg?.scope,
-        sessionKey,
-        channel,
-        chatType,
+    const decision = resolveMediaUnderstandingScope({
+      scope: videoCfg?.scope,
+      sessionKey,
+      channel,
+      chatType,
     });
     if (decision === "deny") {
       if (shouldLogVerbose()) {
@@ -355,32 +345,32 @@ export async function applyMediaUnderstanding(params: {
                   );
                 }
               } else {
-              const key = await resolveApiKeyForProvider({
-                provider: providerId,
-                cfg,
-                profileId: videoCfg?.profile,
-                preferredProfile: videoCfg?.preferredProfile,
-                agentDir: params.agentDir,
-              });
-              const providerConfig = cfg.models?.providers?.[providerId];
-              const result = await provider.describeVideo({
-                buffer: media.buffer,
-                fileName: media.fileName,
-                mime: media.mime,
-                apiKey: key.apiKey,
-                baseUrl: providerConfig?.baseUrl,
-                headers: providerConfig?.headers,
-                model: videoCfg?.model,
-                prompt: videoCfg?.prompt,
-                timeoutMs,
-              });
-              outputs.push({
-                kind: "video.description",
-                attachmentIndex: attachment.index,
-                text: result.text,
-                provider: providerId,
-                model: result.model ?? videoCfg?.model,
-              });
+                const key = await resolveApiKeyForProvider({
+                  provider: providerId,
+                  cfg,
+                  profileId: videoCfg?.profile,
+                  preferredProfile: videoCfg?.preferredProfile,
+                  agentDir: params.agentDir,
+                });
+                const providerConfig = cfg.models?.providers?.[providerId];
+                const result = await provider.describeVideo({
+                  buffer: media.buffer,
+                  fileName: media.fileName,
+                  mime: media.mime,
+                  apiKey: key.apiKey,
+                  baseUrl: providerConfig?.baseUrl,
+                  headers: providerConfig?.headers,
+                  model: videoCfg?.model,
+                  prompt: videoCfg?.prompt,
+                  timeoutMs,
+                });
+                outputs.push({
+                  kind: "video.description",
+                  attachmentIndex: attachment.index,
+                  text: result.text,
+                  provider: providerId,
+                  model: result.model ?? videoCfg?.model,
+                });
               }
             }
           } catch (err) {

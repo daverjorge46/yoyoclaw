@@ -81,9 +81,7 @@ export async function transcribeInboundAudio(
       if (!stat.isFile()) return undefined;
       if (stat.size > maxBytes) {
         if (shouldLogVerbose()) {
-          logVerbose(
-            `Skipping audio transcription: ${stat.size} bytes exceeds ${maxBytes}`,
-          );
+          logVerbose(`Skipping audio transcription: ${stat.size} bytes exceeds ${maxBytes}`);
         }
         return undefined;
       }
