@@ -22,12 +22,16 @@
 - **Status:** Cron jobs should continue running; gateway may restart automatically
 - **Action:** Monitor and verify when system stable
 
-## 📋 Suggested Morning Actions
-When David is available:
-1. Check cron job status after gateway restart
+## 📋 Suggested Morning Actions (Priority Order)
+1. **URGENT**: Resolve git repository conflicts before 8:00 AM (affects sync-skills cron)
 2. Complete Beaumont reference guide PPTX
-3. Verify no other urgent One Point items
+3. Check cron job status after gateway restart
 4. Consider birthday greeting for Alana Hodges (Sunday)
+
+## ⚠️ Critical Issue Status
+- **Git Sync Risk**: Local branch diverged (234 vs 44 commits) - needs resolution before 8:00 AM
+- **Cron Jobs**: All running properly with correct models
+- **One Point Work**: Beaumont PPTX waiting for completion
 
 ## System Health
 - **All automated workflows:** Configured and ready
