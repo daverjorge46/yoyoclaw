@@ -168,41 +168,72 @@ export function describeForwardOrigin(msg: TelegramMessage): {
     | { title?: string; id?: number; username?: string; type?: string }
     | undefined;
   const forwardDate = msgAny.forward_date as number | undefined;
+  const forwardSenderName =
+    typeof msgAny.forward_sender_name === "string" ? msgAny.forward_sender_name.trim() : undefined;
+  const forwardSignature =
+    typeof msgAny.forward_signature === "string" ? msgAny.forward_signature.trim() : undefined;
+
+  const formatUserSource = (user?: {
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    id?: number;
+  }) => {
+    if (!user) return undefined;
+    const name = [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+    const username = user.username ? `@${user.username}` : undefined;
+    if (name && username) return `${name} (${username})`;
+    if (name) return name;
+    if (username) return username;
+    if (user.id != null) return `user:${user.id}`;
+    return undefined;
+  };
+
+  const formatChatSource = (
+    chat?: { title?: string; id?: number; username?: string },
+    fallback: "chat" | "channel",
+  ) => {
+    if (!chat) return undefined;
+    if (chat.title) return chat.title;
+    if (chat.username) return `@${chat.username}`;
+    if (chat.id != null) return `${fallback}:${chat.id}`;
+    return undefined;
+  };
 
   // Try newer forward_origin first
   if (forwardOrigin) {
-    let source = "unknown source";
+    let source: string | undefined;
     if (forwardOrigin.type === "user" && forwardOrigin.sender_user) {
-      const user = forwardOrigin.sender_user;
-      const name = [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
-      const username = user.username ? `@${user.username}` : undefined;
-      source = name && username ? `${name} (${username})` : name || username || `user:${user.id}`;
+      source = formatUserSource(forwardOrigin.sender_user);
     } else if (forwardOrigin.type === "hidden_user" && forwardOrigin.sender_user_name) {
-      source = forwardOrigin.sender_user_name;
+      source = forwardOrigin.sender_user_name.trim() || undefined;
     } else if (forwardOrigin.type === "chat" && forwardOrigin.sender_chat) {
-      const chat = forwardOrigin.sender_chat;
-      source = chat.title || (chat.username ? `@${chat.username}` : `chat:${chat.id}`);
+      source = formatChatSource(forwardOrigin.sender_chat, "chat");
     } else if (forwardOrigin.type === "channel" && forwardOrigin.chat) {
-      const chat = forwardOrigin.chat;
-      source = chat.title || (chat.username ? `@${chat.username}` : `channel:${chat.id}`);
+      source = formatChatSource(forwardOrigin.chat, "channel");
     }
-    return { source, date: forwardOrigin.date };
+    if (source) return { source, date: forwardOrigin.date };
   }
 
   // Legacy forward_from_chat
   if (forwardFromChat) {
-    const chat = forwardFromChat;
-    const source = chat.title || (chat.username ? `@${chat.username}` : `chat:${chat.id}`);
-    return { source, date: forwardDate };
+    const base = formatChatSource(forwardFromChat, "chat");
+    const source = base
+      ? forwardSignature
+        ? `${base} (${forwardSignature})`
+        : base
+      : forwardSignature ?? forwardSenderName;
+    if (source) return { source, date: forwardDate };
   }
 
   // Legacy forward_from
   if (forwardFrom) {
-    const user = forwardFrom;
-    const name = [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
-    const username = user.username ? `@${user.username}` : undefined;
-    const source = name && username ? `${name} (${username})` : name || username || `user:${user.id}`;
-    return { source, date: forwardDate };
+    const source = formatUserSource(forwardFrom);
+    if (source) return { source, date: forwardDate };
+  }
+
+  if (forwardSenderName) {
+    return { source: forwardSenderName, date: forwardDate };
   }
 
   return null;
