@@ -6,6 +6,7 @@ import type { ClawdbotConfig } from "../../config/config.js";
 import { isAbortTrigger, tryFastAbortFromMessage } from "./abort.js";
 import { enqueueFollowupRun, getFollowupQueueDepth, type FollowupRun } from "./queue.js";
 import { initSessionState } from "./session.js";
+import { buildTestCtx } from "./test-ctx.js";
 
 vi.mock("../../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(true),
@@ -67,15 +68,16 @@ describe("abort detection", () => {
     const cfg = { session: { store: storePath }, commands: { text: false } } as ClawdbotConfig;
 
     const result = await tryFastAbortFromMessage({
-      ctx: {
+      ctx: buildTestCtx({
         CommandBody: "/stop",
         RawBody: "/stop",
+        CommandAuthorized: true,
         SessionKey: "telegram:123",
         Provider: "telegram",
         Surface: "telegram",
         From: "telegram:123",
         To: "telegram:123",
-      },
+      }),
       cfg,
     });
 
@@ -129,15 +131,16 @@ describe("abort detection", () => {
     expect(getFollowupQueueDepth(sessionKey)).toBe(1);
 
     const result = await tryFastAbortFromMessage({
-      ctx: {
+      ctx: buildTestCtx({
         CommandBody: "/stop",
         RawBody: "/stop",
+        CommandAuthorized: true,
         SessionKey: sessionKey,
         Provider: "telegram",
         Surface: "telegram",
         From: "telegram:123",
         To: "telegram:123",
-      },
+      }),
       cfg,
     });
 
@@ -185,15 +188,16 @@ describe("abort detection", () => {
     ]);
 
     const result = await tryFastAbortFromMessage({
-      ctx: {
+      ctx: buildTestCtx({
         CommandBody: "/stop",
         RawBody: "/stop",
+        CommandAuthorized: true,
         SessionKey: sessionKey,
         Provider: "telegram",
         Surface: "telegram",
         From: "telegram:parent",
         To: "telegram:parent",
-      },
+      }),
       cfg,
     });
 

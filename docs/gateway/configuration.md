@@ -1745,10 +1745,10 @@ of `every`, keep `HEARTBEAT.md` tiny, and/or choose a cheaper `model`.
 - `backgroundMs`: time before auto-background (ms, default 10000)
 - `timeoutSec`: auto-kill after this runtime (seconds, default 1800)
 - `cleanupMs`: how long to keep finished sessions in memory (ms, default 1800000)
+- `notifyOnExit`: enqueue a system event + request heartbeat when backgrounded exec exits (default true)
 - `applyPatch.enabled`: enable experimental `apply_patch` (OpenAI/OpenAI Codex only; default false)
 - `applyPatch.allowModels`: optional allowlist of model ids (e.g. `gpt-5.2` or `openai/gpt-5.2`)
-Note: `applyPatch` is only under `tools.exec` (no `tools.bash` alias).
-Legacy: `tools.bash` is still accepted as an alias.
+Note: `applyPatch` is only under `tools.exec`.
 
 `tools.web` configures web search + fetch tools:
 - `tools.web.search.enabled` (default: true when key is present)
@@ -1768,6 +1768,61 @@ Legacy: `tools.bash` is still accepted as an alias.
 - `tools.web.fetch.firecrawl.onlyMainContent` (default true)
 - `tools.web.fetch.firecrawl.maxAgeMs` (optional)
 - `tools.web.fetch.firecrawl.timeoutSeconds` (optional)
+
+`tools.media` configures inbound media understanding (image/audio/video):
+- `tools.media.models`: shared model list (capability-tagged; used after per-cap lists).
+- `tools.media.concurrency`: max concurrent capability runs (default 2).
+- `tools.media.image` / `tools.media.audio` / `tools.media.video`:
+  - `enabled`: opt-out switch (default true when models are configured).
+  - `prompt`: optional prompt override (image/video append a `maxChars` hint automatically).
+  - `maxChars`: max output characters (default 500 for image/video; unset for audio).
+  - `maxBytes`: max media size to send (defaults: image 10MB, audio 20MB, video 50MB).
+  - `timeoutSeconds`: request timeout (defaults: image 60s, audio 60s, video 120s).
+  - `language`: optional audio hint.
+  - `attachments`: attachment policy (`mode`, `maxAttachments`, `prefer`).
+  - `scope`: optional gating (first match wins) with `match.channel`, `match.chatType`, or `match.keyPrefix`.
+  - `models`: ordered list of model entries; failures or oversize media fall back to the next entry.
+- Each `models[]` entry:
+  - Provider entry (`type: "provider"` or omitted):
+    - `provider`: API provider id (`openai`, `anthropic`, `google`/`gemini`, `groq`, etc).
+    - `model`: model id override (required for image; defaults to `whisper-1`/`whisper-large-v3-turbo` for audio providers, and `gemini-3-flash-preview` for video).
+    - `profile` / `preferredProfile`: auth profile selection.
+  - CLI entry (`type: "cli"`):
+    - `command`: executable to run.
+    - `args`: templated args (supports `{{MediaPath}}`, `{{Prompt}}`, `{{MaxChars}}`, etc).
+  - `capabilities`: optional list (`image`, `audio`, `video`) to gate a shared entry. Defaults when omitted: `openai`/`anthropic`/`minimax` → image, `google` → image+audio+video, `groq` → audio.
+  - `prompt`, `maxChars`, `maxBytes`, `timeoutSeconds`, `language` can be overridden per entry.
+
+If no models are configured (or `enabled: false`), understanding is skipped; the model still receives the original attachments.
+
+Provider auth follows the standard model auth order (auth profiles, env vars like `OPENAI_API_KEY`/`GROQ_API_KEY`/`GEMINI_API_KEY`, or `models.providers.*.apiKey`).
+
+Example:
+```json5
+{
+  tools: {
+    media: {
+      audio: {
+        enabled: true,
+        maxBytes: 20971520,
+        scope: {
+          default: "deny",
+          rules: [{ action: "allow", match: { chatType: "direct" } }]
+        },
+        models: [
+          { provider: "openai", model: "whisper-1" },
+          { type: "cli", command: "whisper", args: ["--model", "base", "{{MediaPath}}"] }
+        ]
+      },
+      video: {
+        enabled: true,
+        maxBytes: 52428800,
+        models: [{ provider: "google", model: "gemini-3-flash-preview" }]
+      }
+    }
+  }
+}
+```
 
 `agents.defaults.subagents` configures sub-agent defaults:
 - `model`: default model for spawned sub-agents (string or `{ primary, fallbacks }`). If omitted, sub-agents inherit the caller’s model unless overridden per agent or per call.
@@ -2702,7 +2757,7 @@ Mapping notes:
 - If there is no prior delivery route, set `channel` + `to` explicitly (required for Telegram/Discord/Slack/Signal/iMessage/MS Teams).
 - `model` overrides the LLM for this hook run (`provider/model` or alias; must be allowed if `agents.defaults.models` is set).
 
-Gmail helper config (used by `clawdbot hooks gmail setup` / `run`):
+Gmail helper config (used by `clawdbot webhooks gmail setup` / `run`):
 
 ```json5
 {
@@ -2848,7 +2903,7 @@ clawdbot dns setup --apply
 
 ## Template variables
 
-Template placeholders are expanded in `tools.audio.transcription.args` (and any future templated argument fields).
+Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
 | Variable | Description |
 |----------|-------------|
@@ -2864,6 +2919,8 @@ Template placeholders are expanded in `tools.audio.transcription.args` (and any 
 | `{{MediaPath}}` | Local media path (if downloaded) |
 | `{{MediaType}}` | Media type (image/audio/document/…) |
 | `{{Transcript}}` | Audio transcript (when enabled) |
+| `{{Prompt}}` | Resolved media prompt for CLI entries |
+| `{{MaxChars}}` | Resolved max output chars for CLI entries |
 | `{{ChatType}}` | `"direct"` or `"group"` |
 | `{{GroupSubject}}` | Group subject (best effort) |
 | `{{GroupMembers}}` | Group members preview (best effort) |

@@ -1,6 +1,12 @@
 import type { ChildProcess } from "node:child_process";
 
 import type { RuntimeEnv } from "../../../src/runtime.js";
+import {
+  isControlCommandMessage,
+  shouldComputeCommandAuthorized,
+} from "../../../src/auto-reply/command-detection.js";
+import { finalizeInboundContext } from "../../../src/auto-reply/reply/inbound-context.js";
+import { resolveCommandAuthorizedFromAuthorizers } from "../../../src/channels/command-gating.js";
 import { loadCoreChannelDeps, type CoreChannelDeps } from "./core-bridge.js";
 import { sendMessageZalouser } from "./send.js";
 import type { CoreConfig, ResolvedZalouserAccount, ZcaMessage } from "./types.js";
@@ -104,6 +110,21 @@ async function processMessage(
 
   const dmPolicy = account.config.dmPolicy ?? "pairing";
   const configAllowFrom = (account.config.allowFrom ?? []).map((v) => String(v));
+  const rawBody = content.trim();
+  const shouldComputeAuth = shouldComputeCommandAuthorized(rawBody, config);
+  const storeAllowFrom =
+    !isGroup && (dmPolicy !== "open" || shouldComputeAuth)
+      ? await deps.readChannelAllowFromStore("zalouser").catch(() => [])
+      : [];
+  const effectiveAllowFrom = [...configAllowFrom, ...storeAllowFrom];
+  const useAccessGroups = config.commands?.useAccessGroups !== false;
+  const senderAllowedForCommands = isSenderAllowed(senderId, effectiveAllowFrom);
+  const commandAuthorized = shouldComputeAuth
+    ? resolveCommandAuthorizedFromAuthorizers({
+        useAccessGroups,
+        authorizers: [{ configured: effectiveAllowFrom.length > 0, allowed: senderAllowedForCommands }],
+      })
+    : undefined;
 
   if (!isGroup) {
     if (dmPolicy === "disabled") {
@@ -112,9 +133,7 @@ async function processMessage(
     }
 
     if (dmPolicy !== "open") {
-      const storeAllowFrom = await deps.readChannelAllowFromStore("zalouser").catch(() => []);
-      const effectiveAllowFrom = [...configAllowFrom, ...storeAllowFrom];
-      const allowed = isSenderAllowed(senderId, effectiveAllowFrom);
+      const allowed = senderAllowedForCommands;
 
       if (!allowed) {
         if (dmPolicy === "pairing") {
@@ -157,6 +176,11 @@ async function processMessage(
     }
   }
 
+  if (isGroup && isControlCommandMessage(rawBody, config) && commandAuthorized !== true) {
+    logVerbose(deps, runtime, `zalouser: drop control command from unauthorized sender ${senderId}`);
+    return;
+  }
+
   const peer = isGroup ? { kind: "group" as const, id: chatId } : { kind: "group" as const, id: senderId };
 
   const route = deps.resolveAgentRoute({
@@ -170,34 +194,34 @@ async function processMessage(
     },
   });
 
-  const rawBody = content.trim();
-  const fromLabel = isGroup
-    ? `group:${chatId} from ${senderName || senderId}`
-    : senderName || `user:${senderId}`;
-  const body = deps.formatAgentEnvelope({
-    channel: "Zalo Personal",
-    from: fromLabel,
+	  const rawBody = content.trim();
+	  const fromLabel = isGroup ? `group:${chatId}` : senderName || `user:${senderId}`;
+	  const body = deps.formatAgentEnvelope({
+	    channel: "Zalo Personal",
+	    from: fromLabel,
     timestamp: timestamp ? timestamp * 1000 : undefined,
     body: rawBody,
   });
 
-  const ctxPayload = {
+  const ctxPayload = finalizeInboundContext({
     Body: body,
     RawBody: rawBody,
     CommandBody: rawBody,
-    From: isGroup ? `group:${chatId}` : `zalouser:${senderId}`,
+    From: isGroup ? `zalouser:group:${chatId}` : `zalouser:${senderId}`,
     To: `zalouser:${chatId}`,
     SessionKey: route.sessionKey,
     AccountId: route.accountId,
     ChatType: isGroup ? "group" : "direct",
+    ConversationLabel: fromLabel,
     SenderName: senderName || undefined,
     SenderId: senderId,
+    CommandAuthorized: commandAuthorized,
     Provider: "zalouser",
     Surface: "zalouser",
     MessageSid: message.msgId ?? `${timestamp}`,
     OriginatingChannel: "zalouser",
     OriginatingTo: `zalouser:${chatId}`,
-  };
+  });
 
   await deps.dispatchReplyWithBufferedBlockDispatcher({
     ctx: ctxPayload,

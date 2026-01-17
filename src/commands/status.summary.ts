@@ -19,8 +19,10 @@ import type { HeartbeatStatus, SessionStatus, StatusSummary } from "./status.typ
 const classifyKey = (key: string, entry?: SessionEntry): SessionStatus["kind"] => {
   if (key === "global") return "global";
   if (key === "unknown") return "unknown";
-  if (entry?.chatType === "group" || entry?.chatType === "room") return "group";
-  if (key.startsWith("group:") || key.includes(":group:") || key.includes(":channel:")) {
+  if (entry?.chatType === "group" || entry?.chatType === "channel") {
+    return "group";
+  }
+  if (key.includes(":group:") || key.includes(":channel:")) {
     return "group";
   }
   return "direct";

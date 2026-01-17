@@ -9,7 +9,11 @@ import {
   collectDiscordAuditChannelIds,
 } from "../../discord/audit.js";
 import { probeDiscord } from "../../discord/probe.js";
-import { sendMessageDiscord, sendPollDiscord } from "../../discord/send.js";
+import {
+  listGuildChannelsDiscord,
+  sendMessageDiscord,
+  sendPollDiscord,
+} from "../../discord/send.js";
 import { shouldLogVerbose } from "../../globals.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../routing/session-key.js";
 import { getChatChannelMeta } from "../registry.js";
@@ -22,7 +26,7 @@ import {
 } from "./config-helpers.js";
 import { resolveDiscordGroupRequireMention } from "./group-mentions.js";
 import { formatPairingApproveHint } from "./helpers.js";
-import { normalizeDiscordMessagingTarget } from "./normalize-target.js";
+import { looksLikeDiscordTargetId, normalizeDiscordMessagingTarget } from "./normalize-target.js";
 import { discordOnboardingAdapter } from "./onboarding/discord.js";
 import { PAIRING_APPROVED_MESSAGE } from "./pairing-message.js";
 import {
@@ -31,6 +35,10 @@ import {
 } from "./setup-helpers.js";
 import { collectDiscordStatusIssues } from "./status-issues/discord.js";
 import type { ChannelPlugin } from "./types.js";
+import {
+  listDiscordDirectoryGroupsFromConfig,
+  listDiscordDirectoryPeersFromConfig,
+} from "./directory-config.js";
 
 const meta = getChatChannelMeta("discord");
 
@@ -113,18 +121,25 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
       };
     },
     collectWarnings: ({ account }) => {
+      const warnings: string[] = [];
       const groupPolicy = account.config.groupPolicy ?? "allowlist";
-      if (groupPolicy !== "open") return [];
-      const channelAllowlistConfigured =
-        Boolean(account.config.guilds) && Object.keys(account.config.guilds ?? {}).length > 0;
-      if (channelAllowlistConfigured) {
-        return [
-          `- Discord guilds: groupPolicy="open" allows any channel not explicitly denied to trigger (mention-gated). Set channels.discord.groupPolicy="allowlist" and configure channels.discord.guilds.<id>.channels.`,
-        ];
+      const guildEntries = account.config.guilds ?? {};
+      const guildsConfigured = Object.keys(guildEntries).length > 0;
+      const channelAllowlistConfigured = guildsConfigured;
+
+      if (groupPolicy === "open") {
+        if (channelAllowlistConfigured) {
+          warnings.push(
+            `- Discord guilds: groupPolicy="open" allows any channel not explicitly denied to trigger (mention-gated). Set channels.discord.groupPolicy="allowlist" and configure channels.discord.guilds.<id>.channels.`,
+          );
+        } else {
+          warnings.push(
+            `- Discord guilds: groupPolicy="open" with no guild/channel allowlist; any channel can trigger (mention-gated). Set channels.discord.groupPolicy="allowlist" and configure channels.discord.guilds.<id>.channels.`,
+          );
+        }
       }
-      return [
-        `- Discord guilds: groupPolicy="open" with no guild/channel allowlist; any channel can trigger (mention-gated). Set channels.discord.groupPolicy="allowlist" and configure channels.discord.guilds.<id>.channels.`,
-      ];
+
+      return warnings;
     },
   },
   groups: {
@@ -138,76 +153,38 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
   },
   messaging: {
     normalizeTarget: normalizeDiscordMessagingTarget,
+    targetResolver: {
+      looksLikeId: looksLikeDiscordTargetId,
+      hint: "<channelId|user:ID|channel:ID>",
+    },
   },
   directory: {
     self: async () => null,
-    listPeers: async ({ cfg, accountId, query, limit }) => {
+    listPeers: async (params) => listDiscordDirectoryPeersFromConfig(params),
+    listGroups: async (params) => listDiscordDirectoryGroupsFromConfig(params),
+    listGroupsLive: async ({ cfg, accountId, query, limit }) => {
       const account = resolveDiscordAccount({ cfg, accountId });
       const q = query?.trim().toLowerCase() || "";
-      const ids = new Set<string>();
-
-      for (const entry of account.config.dm?.allowFrom ?? []) {
-        const raw = String(entry).trim();
-        if (!raw || raw === "*") continue;
-        ids.add(raw);
-      }
-      for (const id of Object.keys(account.config.dms ?? {})) {
-        const trimmed = id.trim();
-        if (trimmed) ids.add(trimmed);
-      }
-      for (const guild of Object.values(account.config.guilds ?? {})) {
-        for (const entry of guild.users ?? []) {
-          const raw = String(entry).trim();
-          if (raw) ids.add(raw);
-        }
-        for (const channel of Object.values(guild.channels ?? {})) {
-          for (const user of channel.users ?? []) {
-            const raw = String(user).trim();
-            if (raw) ids.add(raw);
-          }
+      const guildIds = Object.keys(account.config.guilds ?? {}).filter((id) => /^\d+$/.test(id));
+      const rows: Array<{ kind: "group"; id: string; name?: string; raw?: unknown }> = [];
+      for (const guildId of guildIds) {
+        const channels = await listGuildChannelsDiscord(guildId, {
+          accountId: account.accountId,
+        });
+        for (const channel of channels) {
+          const name = typeof channel.name === "string" ? channel.name : undefined;
+          if (q && name && !name.toLowerCase().includes(q)) continue;
+          rows.push({
+            kind: "group",
+            id: `channel:${channel.id}`,
+            name: name ?? undefined,
+            raw: channel,
+          });
         }
       }
-
-      const peers = Array.from(ids)
-        .map((raw) => raw.trim())
-        .filter(Boolean)
-        .map((raw) => {
-          const mention = raw.match(/^<@!?(\d+)>$/);
-          const cleaned = (mention?.[1] ?? raw).replace(/^(discord|user):/i, "").trim();
-          if (!/^\d+$/.test(cleaned)) return null;
-          return `user:${cleaned}`;
-        })
-        .filter((id): id is string => Boolean(id))
-        .filter((id) => (q ? id.toLowerCase().includes(q) : true))
-        .slice(0, limit && limit > 0 ? limit : undefined)
-        .map((id) => ({ kind: "user", id }) as const);
-      return peers;
-    },
-    listGroups: async ({ cfg, accountId, query, limit }) => {
-      const account = resolveDiscordAccount({ cfg, accountId });
-      const q = query?.trim().toLowerCase() || "";
-      const ids = new Set<string>();
-      for (const guild of Object.values(account.config.guilds ?? {})) {
-        for (const channelId of Object.keys(guild.channels ?? {})) {
-          const trimmed = channelId.trim();
-          if (trimmed) ids.add(trimmed);
-        }
-      }
-
-      const groups = Array.from(ids)
-        .map((raw) => raw.trim())
-        .filter(Boolean)
-        .map((raw) => {
-          const mention = raw.match(/^<#(\d+)>$/);
-          const cleaned = (mention?.[1] ?? raw).replace(/^(discord|channel|group):/i, "").trim();
-          if (!/^\d+$/.test(cleaned)) return null;
-          return `channel:${cleaned}`;
-        })
-        .filter((id): id is string => Boolean(id))
-        .filter((id) => (q ? id.toLowerCase().includes(q) : true))
-        .slice(0, limit && limit > 0 ? limit : undefined)
-        .map((id) => ({ kind: "group", id }) as const);
-      return groups;
+      const filtered = q ? rows.filter((row) => row.name?.toLowerCase().includes(q)) : rows;
+      const limited = typeof limit === "number" && limit > 0 ? filtered.slice(0, limit) : filtered;
+      return limited;
     },
   },
   actions: discordMessageActions,
@@ -225,7 +202,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
         return "DISCORD_BOT_TOKEN can only be used for the default account.";
       }
       if (!input.useEnv && !input.token) {
-        return "Discord requires --token (or --use-env).";
+        return "Discord requires token (or --use-env).";
       }
       return null;
     },
@@ -281,16 +258,6 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
     chunker: null,
     textChunkLimit: 2000,
     pollMaxOptions: 10,
-    resolveTarget: ({ to }) => {
-      const trimmed = to?.trim();
-      if (!trimmed) {
-        return {
-          ok: false,
-          error: new Error("Delivering to Discord requires --to <channelId|user:ID|channel:ID>"),
-        };
-      }
-      return { ok: true, to: trimmed };
-    },
     sendText: async ({ to, text, accountId, deps, replyToId }) => {
       const send = deps?.sendDiscord ?? sendMessageDiscord;
       const result = await send(to, text, {

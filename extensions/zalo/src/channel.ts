@@ -150,6 +150,14 @@ export const zaloPlugin: ChannelPlugin<ResolvedZaloAccount> = {
   actions: zaloMessageActions,
   messaging: {
     normalizeTarget: normalizeZaloMessagingTarget,
+    targetResolver: {
+      looksLikeId: (raw) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return false;
+        return /^\d{3,}$/.test(trimmed);
+      },
+      hint: "<chatId>",
+    },
   },
   directory: {
     self: async () => null,
@@ -185,7 +193,7 @@ export const zaloPlugin: ChannelPlugin<ResolvedZaloAccount> = {
         return "ZALO_BOT_TOKEN can only be used for the default account.";
       }
       if (!input.useEnv && !input.token && !input.tokenFile) {
-        return "Zalo requires --token or --token-file (or --use-env).";
+        return "Zalo requires token or --token-file (or --use-env).";
       }
       return null;
     },
@@ -279,16 +287,6 @@ export const zaloPlugin: ChannelPlugin<ResolvedZaloAccount> = {
       return chunks;
     },
     textChunkLimit: 2000,
-    resolveTarget: ({ to }) => {
-      const trimmed = to?.trim();
-      if (!trimmed) {
-        return {
-          ok: false,
-          error: new Error("Delivering to Zalo requires --to <chatId>"),
-        };
-      }
-      return { ok: true, to: trimmed };
-    },
     sendText: async ({ to, text, accountId, cfg }) => {
       const result = await sendMessageZalo(to, text, {
         accountId: accountId ?? undefined,

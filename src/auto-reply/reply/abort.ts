@@ -11,7 +11,7 @@ import {
 import { parseAgentSessionKey } from "../../routing/session-key.js";
 import { resolveCommandAuthorization } from "../command-auth.js";
 import { normalizeCommandBody } from "../commands-registry.js";
-import type { MsgContext } from "../templating.js";
+import type { FinalizedMsgContext, MsgContext } from "../templating.js";
 import { logVerbose } from "../../globals.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 import { clearSessionQueues } from "./queue.js";
@@ -52,11 +52,6 @@ function resolveSessionEntryForKey(
   if (!store || !sessionKey) return {};
   const direct = store[sessionKey];
   if (direct) return { entry: direct, key: sessionKey };
-  const parsed = parseAgentSessionKey(sessionKey);
-  const legacyKey = parsed?.rest;
-  if (legacyKey && store[legacyKey]) {
-    return { entry: store[legacyKey], key: legacyKey };
-  }
   return {};
 }
 
@@ -120,18 +115,10 @@ export function stopSubagentsForRequester(params: {
 }
 
 export async function tryFastAbortFromMessage(params: {
-  ctx: MsgContext;
+  ctx: FinalizedMsgContext;
   cfg: ClawdbotConfig;
 }): Promise<{ handled: boolean; aborted: boolean; stoppedSubagents?: number }> {
   const { ctx, cfg } = params;
-  const commandAuthorized = ctx.CommandAuthorized ?? true;
-  const auth = resolveCommandAuthorization({
-    ctx,
-    cfg,
-    commandAuthorized,
-  });
-  if (!auth.isAuthorizedSender) return { handled: false, aborted: false };
-
   const targetKey = resolveAbortTargetKey(ctx);
   const agentId = resolveSessionAgentId({
     sessionKey: targetKey ?? ctx.SessionKey ?? "",
@@ -144,6 +131,14 @@ export async function tryFastAbortFromMessage(params: {
   const normalized = normalizeCommandBody(stripped);
   const abortRequested = normalized === "/stop" || isAbortTrigger(stripped);
   if (!abortRequested) return { handled: false, aborted: false };
+
+  const commandAuthorized = ctx.CommandAuthorized;
+  const auth = resolveCommandAuthorization({
+    ctx,
+    cfg,
+    commandAuthorized,
+  });
+  if (!auth.isAuthorizedSender) return { handled: false, aborted: false };
 
   const abortKey = targetKey ?? auth.from ?? auth.to;
   const requesterSessionKey = targetKey ?? ctx.SessionKey ?? abortKey;

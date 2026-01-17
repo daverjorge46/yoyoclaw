@@ -4,6 +4,7 @@ import type { ClawdbotConfig } from "../../config/config.js";
 import type { MsgContext } from "../templating.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import type { ReplyDispatcher } from "./reply-dispatcher.js";
+import { buildTestCtx } from "./test-ctx.js";
 
 const mocks = vi.hoisted(() => ({
   routeReply: vi.fn(async () => ({ ok: true, messageId: "mock" })),
@@ -58,11 +59,12 @@ describe("dispatchReplyFromConfig", () => {
     mocks.routeReply.mockClear();
     const cfg = {} as ClawdbotConfig;
     const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
+    const ctx = buildTestCtx({
       Provider: "slack",
+      Surface: undefined,
       OriginatingChannel: "slack",
       OriginatingTo: "channel:C123",
-    };
+    });
 
     const replyResolver = async (
       _ctx: MsgContext,
@@ -83,13 +85,13 @@ describe("dispatchReplyFromConfig", () => {
     mocks.routeReply.mockClear();
     const cfg = {} as ClawdbotConfig;
     const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
+    const ctx = buildTestCtx({
       Provider: "slack",
       AccountId: "acc-1",
       MessageThreadId: 123,
       OriginatingChannel: "telegram",
       OriginatingTo: "telegram:999",
-    };
+    });
 
     const replyResolver = async (
       _ctx: MsgContext,
@@ -116,10 +118,10 @@ describe("dispatchReplyFromConfig", () => {
     });
     const cfg = {} as ClawdbotConfig;
     const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
+    const ctx = buildTestCtx({
       Provider: "telegram",
       Body: "/stop",
-    };
+    });
     const replyResolver = vi.fn(async () => ({ text: "hi" }) as ReplyPayload);
 
     await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
@@ -138,10 +140,10 @@ describe("dispatchReplyFromConfig", () => {
     });
     const cfg = {} as ClawdbotConfig;
     const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
+    const ctx = buildTestCtx({
       Provider: "telegram",
       Body: "/stop",
-    };
+    });
 
     await dispatchReplyFromConfig({
       ctx,
@@ -161,12 +163,12 @@ describe("dispatchReplyFromConfig", () => {
       aborted: false,
     });
     const cfg = {} as ClawdbotConfig;
-    const ctx: MsgContext = {
+    const ctx = buildTestCtx({
       Provider: "whatsapp",
       OriginatingChannel: "whatsapp",
       OriginatingTo: "whatsapp:+15555550123",
       MessageSid: "msg-1",
-    };
+    });
     const replyResolver = vi.fn(async () => ({ text: "hi" }) as ReplyPayload);
 
     await dispatchReplyFromConfig({
@@ -182,79 +184,6 @@ describe("dispatchReplyFromConfig", () => {
       replyResolver,
     });
 
-    expect(replyResolver).toHaveBeenCalledTimes(1);
-  });
-
-  it("appends sender meta for non-direct chats when missing", async () => {
-    mocks.tryFastAbortFromMessage.mockResolvedValue({
-      handled: false,
-      aborted: false,
-    });
-    const cfg = {} as ClawdbotConfig;
-    const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
-      Provider: "imessage",
-      ChatType: "group",
-      Body: "[iMessage group:1] hello",
-      SenderName: "+15555550123",
-      SenderId: "+15555550123",
-    };
-
-    const replyResolver = vi.fn(async (resolvedCtx: MsgContext) => {
-      expect(resolvedCtx.Body).toContain("\n[from: +15555550123]");
-      return { text: "ok" } satisfies ReplyPayload;
-    });
-
-    await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
-    expect(replyResolver).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not append sender meta when Body already includes a from line", async () => {
-    mocks.tryFastAbortFromMessage.mockResolvedValue({
-      handled: false,
-      aborted: false,
-    });
-    const cfg = {} as ClawdbotConfig;
-    const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
-      Provider: "whatsapp",
-      ChatType: "group",
-      Body: "[WhatsApp group:1] hello\\n[from: Bob (+222)]",
-      SenderName: "Bob",
-      SenderId: "+222",
-    };
-
-    const replyResolver = vi.fn(async (resolvedCtx: MsgContext) => {
-      expect(resolvedCtx.Body.match(/\\n\[from:/g)?.length ?? 0).toBe(1);
-      return { text: "ok" } satisfies ReplyPayload;
-    });
-
-    await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
-    expect(replyResolver).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not append sender meta for other providers (scope is signal/imessage only)", async () => {
-    mocks.tryFastAbortFromMessage.mockResolvedValue({
-      handled: false,
-      aborted: false,
-    });
-    const cfg = {} as ClawdbotConfig;
-    const dispatcher = createDispatcher();
-    const ctx: MsgContext = {
-      Provider: "slack",
-      OriginatingChannel: "slack",
-      ChatType: "group",
-      Body: "[Slack #room 2026-01-01T00:00Z] hi",
-      SenderName: "Bob",
-      SenderId: "U123",
-    };
-
-    const replyResolver = vi.fn(async (resolvedCtx: MsgContext) => {
-      expect(resolvedCtx.Body).not.toContain("[from:");
-      return { text: "ok" } satisfies ReplyPayload;
-    });
-
-    await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
     expect(replyResolver).toHaveBeenCalledTimes(1);
   });
 });

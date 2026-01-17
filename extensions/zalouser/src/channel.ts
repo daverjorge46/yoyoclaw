@@ -218,6 +218,14 @@ export const zalouserPlugin: ChannelPlugin<ResolvedZalouserAccount> = {
       if (!trimmed) return undefined;
       return trimmed.replace(/^(zalouser|zlu):/i, "");
     },
+    targetResolver: {
+      looksLikeId: (raw) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return false;
+        return /^\d{3,}$/.test(trimmed);
+      },
+      hint: "<threadId>",
+    },
   },
   directory: {
     self: async ({ cfg, accountId, runtime }) => {
@@ -373,16 +381,6 @@ export const zalouserPlugin: ChannelPlugin<ResolvedZalouserAccount> = {
       return chunks;
     },
     textChunkLimit: 2000,
-    resolveTarget: ({ to }) => {
-      const trimmed = to?.trim();
-      if (!trimmed) {
-        return {
-          ok: false,
-          error: new Error("Delivering to Zalouser requires --to <threadId>"),
-        };
-      }
-      return { ok: true, to: trimmed };
-    },
     sendText: async ({ to, text, accountId, cfg }) => {
       const account = resolveZalouserAccountSync({ cfg: cfg as CoreConfig, accountId });
       const result = await sendMessageZalouser(to, text, { profile: account.profile });

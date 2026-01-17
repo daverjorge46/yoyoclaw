@@ -18,7 +18,7 @@ import {
 } from "./config-helpers.js";
 import { formatPairingApproveHint } from "./helpers.js";
 import { resolveChannelMediaMaxBytes } from "./media-limits.js";
-import { normalizeSignalMessagingTarget } from "./normalize-target.js";
+import { looksLikeSignalTargetId, normalizeSignalMessagingTarget } from "./normalize-target.js";
 import { signalOnboardingAdapter } from "./onboarding/signal.js";
 import { PAIRING_APPROVED_MESSAGE } from "./pairing-message.js";
 import {
@@ -115,6 +115,10 @@ export const signalPlugin: ChannelPlugin<ResolvedSignalAccount> = {
   },
   messaging: {
     normalizeTarget: normalizeSignalMessagingTarget,
+    targetResolver: {
+      looksLikeId: looksLikeSignalTargetId,
+      hint: "<E.164|group:ID|signal:group:ID|signal:+E.164>",
+    },
   },
   setup: {
     resolveAccountId: ({ accountId }) => normalizeAccountId(accountId),
@@ -196,18 +200,6 @@ export const signalPlugin: ChannelPlugin<ResolvedSignalAccount> = {
     deliveryMode: "direct",
     chunker: chunkText,
     textChunkLimit: 4000,
-    resolveTarget: ({ to }) => {
-      const trimmed = to?.trim();
-      if (!trimmed) {
-        return {
-          ok: false,
-          error: new Error(
-            "Delivering to Signal requires --to <E.164|group:ID|signal:group:ID|signal:+E.164>",
-          ),
-        };
-      }
-      return { ok: true, to: trimmed };
-    },
     sendText: async ({ cfg, to, text, accountId, deps }) => {
       const send = deps?.sendSignal ?? sendMessageSignal;
       const maxBytes = resolveChannelMediaMaxBytes({
