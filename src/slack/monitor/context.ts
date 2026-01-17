@@ -37,6 +37,8 @@ export function normalizeSlackChannelType(
   ) {
     return normalized;
   }
+  // Default to "channel" when type is unknown to ensure consistent session keys.
+  // This prevents slack:group:{id} vs slack:channel:{id} inconsistency (issue #912).
   return inferSlackChannelType(channelId) ?? "channel";
 }
 
