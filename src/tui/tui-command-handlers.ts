@@ -134,8 +134,8 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       });
       const items = result.sessions.map((session) => ({
         value: session.key,
-        label: session.displayName
-          ? `${session.displayName} (${formatSessionKey(session.key)})`
+        label: (session.displayName || session.label)
+          ? `${session.displayName || session.label} (${formatSessionKey(session.key)})`
           : formatSessionKey(session.key),
         description: session.updatedAt ? new Date(session.updatedAt).toLocaleString() : "",
       }));
