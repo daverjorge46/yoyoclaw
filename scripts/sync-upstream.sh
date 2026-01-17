@@ -5,7 +5,6 @@ set -euo pipefail
 
 BRANCH="${1:-main}"
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-LOG_FILE="/tmp/sync-upstream.log"
 
 notify() {
     local title="$1"

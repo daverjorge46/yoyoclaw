@@ -13,7 +13,6 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LATEST_DIR="$REPO_ROOT/.worktrees/latest"
-BRANCH_NAME="release/$VERSION"
 
 echo "🚀 Building Clawdbot $VERSION"
 echo ""

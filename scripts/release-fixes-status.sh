@@ -37,7 +37,7 @@ printf "%-35s %-18s %s\n" "HOTFIX" "STATUS" "COMMITS"
 printf "%-35s %-18s %s\n" "------" "------" "-------"
 
 for branch in $BRANCHES; do
-  id="${branch#$HOTFIX_PREFIX}"
+  id="${branch#"$HOTFIX_PREFIX"}"
   FIX_TIP=$(git rev-parse "$branch")
 
   if git merge-base --is-ancestor "$FIX_TIP" "$TARGET_SHA" 2>/dev/null; then

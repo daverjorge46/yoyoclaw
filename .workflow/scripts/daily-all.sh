@@ -114,9 +114,7 @@ echo "" | tee -a "$SUMMARY_FILE"
 echo "=== Summary ===" | tee -a "$SUMMARY_FILE"
 echo "Results saved to: $RESULTS_DIR/" | tee -a "$SUMMARY_FILE"
 
-OVERALL_STATUS=0
 if [[ $ARM_STATUS -ne 0 || $X86_STATUS -ne 0 || $E2E_STATUS -ne 0 ]]; then
-  OVERALL_STATUS=1
   echo "" | tee -a "$SUMMARY_FILE"
   echo "❌ DAILY BUILD FAILED" | tee -a "$SUMMARY_FILE"
   exit 1

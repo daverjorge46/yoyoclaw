@@ -15,7 +15,7 @@ echo ""
 
 # Create isolated config directory
 CONFIG_DIR=$(mktemp -d)
-trap "rm -rf '$CONFIG_DIR'" EXIT
+trap 'rm -rf "$CONFIG_DIR"' EXIT
 
 # Create test config
 cat > "$CONFIG_DIR/clawdbot.json" << EOF
@@ -34,11 +34,12 @@ CLAWDBOT_CONFIG_PATH="$CONFIG_DIR/clawdbot.json" \
 GATEWAY_PID=$!
 
 # Ensure cleanup on exit
+# shellcheck disable=SC2329
 cleanup() {
   echo ""
   echo "Stopping gateway (PID: $GATEWAY_PID)..."
-  kill $GATEWAY_PID 2>/dev/null || true
-  wait $GATEWAY_PID 2>/dev/null || true
+  kill "$GATEWAY_PID" 2>/dev/null || true
+  wait "$GATEWAY_PID" 2>/dev/null || true
   rm -rf "$CONFIG_DIR"
 }
 trap cleanup EXIT
@@ -50,7 +51,7 @@ for i in {1..30}; do
     echo "Gateway is ready!"
     break
   fi
-  if [ $i -eq 30 ]; then
+  if [ "$i" -eq 30 ]; then
     echo "Error: Gateway failed to start within 30 seconds"
     exit 1
   fi

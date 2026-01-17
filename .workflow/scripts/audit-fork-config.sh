@@ -41,7 +41,9 @@ if [ -f .gitattributes ]; then
 
     if [ -n "$MERGE_OURS_PATTERNS" ]; then
         echo "Found patterns with merge=ours:"
-        echo "$MERGE_OURS_PATTERNS" | sed 's/^/  - /'
+        while IFS= read -r pattern; do
+            echo "  - $pattern"
+        done <<< "$MERGE_OURS_PATTERNS"
         echo ""
 
         ATTR_VIOLATIONS=""
