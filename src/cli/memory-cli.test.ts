@@ -17,10 +17,12 @@ vi.mock("../agents/agent-scope.js", () => ({
   resolveDefaultAgentId,
 }));
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   getMemorySearchManager.mockReset();
   process.exitCode = undefined;
+  const { setVerbose } = await import("../globals.js");
+  setVerbose(false);
 });
 
 describe("memory cli", () => {
@@ -40,6 +42,8 @@ describe("memory cli", () => {
           provider: "openai",
           model: "text-embedding-3-small",
           requestedProvider: "openai",
+          cache: { enabled: true, entries: 123, maxEntries: 50000 },
+          fts: { enabled: true, available: true },
           vector: {
             enabled: true,
             available: true,
@@ -60,6 +64,10 @@ describe("memory cli", () => {
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Vector: ready"));
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Vector dims: 1024"));
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Vector path: /opt/sqlite-vec.dylib"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("FTS: ready"));
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining("Embedding cache: enabled (123 entries)"),
+    );
     expect(close).toHaveBeenCalled();
   });
 
@@ -135,6 +143,72 @@ describe("memory cli", () => {
     expect(close).toHaveBeenCalled();
   });
 
+  it("enables verbose logging with --verbose", async () => {
+    const { registerMemoryCli } = await import("./memory-cli.js");
+    const { isVerbose } = await import("../globals.js");
+    const close = vi.fn(async () => {});
+    getMemorySearchManager.mockResolvedValueOnce({
+      manager: {
+        probeVectorAvailability: vi.fn(async () => true),
+        status: () => ({
+          files: 0,
+          chunks: 0,
+          dirty: false,
+          workspaceDir: "/tmp/clawd",
+          dbPath: "/tmp/memory.sqlite",
+          provider: "openai",
+          model: "text-embedding-3-small",
+          requestedProvider: "openai",
+          vector: { enabled: true, available: true },
+        }),
+        close,
+      },
+    });
+
+    const program = new Command();
+    program.name("test");
+    registerMemoryCli(program);
+    await program.parseAsync(["memory", "status", "--verbose"], { from: "user" });
+
+    expect(isVerbose()).toBe(true);
+  });
+
+  it("logs close failure after status", async () => {
+    const { registerMemoryCli } = await import("./memory-cli.js");
+    const { defaultRuntime } = await import("../runtime.js");
+    const close = vi.fn(async () => {
+      throw new Error("close boom");
+    });
+    getMemorySearchManager.mockResolvedValueOnce({
+      manager: {
+        probeVectorAvailability: vi.fn(async () => true),
+        status: () => ({
+          files: 1,
+          chunks: 1,
+          dirty: false,
+          workspaceDir: "/tmp/clawd",
+          dbPath: "/tmp/memory.sqlite",
+          provider: "openai",
+          model: "text-embedding-3-small",
+          requestedProvider: "openai",
+        }),
+        close,
+      },
+    });
+
+    const error = vi.spyOn(defaultRuntime, "error").mockImplementation(() => {});
+    const program = new Command();
+    program.name("test");
+    registerMemoryCli(program);
+    await program.parseAsync(["memory", "status"], { from: "user" });
+
+    expect(close).toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("Memory manager close failed: close boom"),
+    );
+    expect(process.exitCode).toBeUndefined();
+  });
+
   it("reindexes on status --index", async () => {
     const { registerMemoryCli } = await import("./memory-cli.js");
     const { defaultRuntime } = await import("../runtime.js");
@@ -195,6 +269,70 @@ describe("memory cli", () => {
     expect(sync).toHaveBeenCalledWith({ reason: "cli", force: false });
     expect(close).toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith("Memory index updated.");
+  });
+
+  it("logs close failures without failing the command", async () => {
+    const { registerMemoryCli } = await import("./memory-cli.js");
+    const { defaultRuntime } = await import("../runtime.js");
+    const close = vi.fn(async () => {
+      throw new Error("close boom");
+    });
+    const sync = vi.fn(async () => {});
+    getMemorySearchManager.mockResolvedValueOnce({
+      manager: {
+        sync,
+        close,
+      },
+    });
+
+    const error = vi.spyOn(defaultRuntime, "error").mockImplementation(() => {});
+    const program = new Command();
+    program.name("test");
+    registerMemoryCli(program);
+    await program.parseAsync(["memory", "index"], { from: "user" });
+
+    expect(sync).toHaveBeenCalledWith({ reason: "cli", force: false });
+    expect(close).toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("Memory manager close failed: close boom"),
+    );
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("logs close failure after search", async () => {
+    const { registerMemoryCli } = await import("./memory-cli.js");
+    const { defaultRuntime } = await import("../runtime.js");
+    const close = vi.fn(async () => {
+      throw new Error("close boom");
+    });
+    const search = vi.fn(async () => [
+      {
+        path: "memory/2026-01-12.md",
+        startLine: 1,
+        endLine: 2,
+        score: 0.5,
+        snippet: "Hello",
+      },
+    ]);
+    getMemorySearchManager.mockResolvedValueOnce({
+      manager: {
+        search,
+        close,
+      },
+    });
+
+    const error = vi.spyOn(defaultRuntime, "error").mockImplementation(() => {});
+    const program = new Command();
+    program.name("test");
+    registerMemoryCli(program);
+    await program.parseAsync(["memory", "search", "hello"], { from: "user" });
+
+    expect(search).toHaveBeenCalled();
+    expect(close).toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("Memory manager close failed: close boom"),
+    );
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("closes manager after search error", async () => {

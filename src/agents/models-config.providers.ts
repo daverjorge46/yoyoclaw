@@ -50,6 +50,17 @@ const KIMI_CODE_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+const QWEN_PORTAL_BASE_URL = "https://portal.qwen.ai/v1";
+const QWEN_PORTAL_OAUTH_PLACEHOLDER = "qwen-oauth";
+const QWEN_PORTAL_DEFAULT_CONTEXT_WINDOW = 128000;
+const QWEN_PORTAL_DEFAULT_MAX_TOKENS = 8192;
+const QWEN_PORTAL_DEFAULT_COST = {
+  input: 0,
+  output: 0,
+  cacheRead: 0,
+  cacheWrite: 0,
+};
+
 function normalizeApiKeyConfig(value: string): string {
   const trimmed = value.trim();
   const match = /^\$\{([A-Z0-9_]+)\}$/.exec(trimmed);
@@ -216,6 +227,33 @@ function buildKimiCodeProvider(): ProviderConfig {
   };
 }
 
+function buildQwenPortalProvider(): ProviderConfig {
+  return {
+    baseUrl: QWEN_PORTAL_BASE_URL,
+    api: "openai-completions",
+    models: [
+      {
+        id: "coder-model",
+        name: "Qwen Coder",
+        reasoning: false,
+        input: ["text"],
+        cost: QWEN_PORTAL_DEFAULT_COST,
+        contextWindow: QWEN_PORTAL_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: QWEN_PORTAL_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "vision-model",
+        name: "Qwen Vision",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: QWEN_PORTAL_DEFAULT_COST,
+        contextWindow: QWEN_PORTAL_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: QWEN_PORTAL_DEFAULT_MAX_TOKENS,
+      },
+    ],
+  };
+}
+
 function buildSyntheticProvider(): ProviderConfig {
   return {
     baseUrl: SYNTHETIC_BASE_URL,
@@ -258,6 +296,14 @@ export function resolveImplicitProviders(params: { agentDir: string }): ModelsCo
     providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
   }
 
+  const qwenProfiles = listProfilesForProvider(authStore, "qwen-portal");
+  if (qwenProfiles.length > 0) {
+    providers["qwen-portal"] = {
+      ...buildQwenPortalProvider(),
+      apiKey: QWEN_PORTAL_OAUTH_PLACEHOLDER,
+    };
+  }
+
   return providers;
 }
 
@@ -266,7 +312,7 @@ export async function resolveImplicitCopilotProvider(params: {
   env?: NodeJS.ProcessEnv;
 }): Promise<ProviderConfig | null> {
   const env = params.env ?? process.env;
-  const authStore = ensureAuthProfileStore(params.agentDir);
+  const authStore = ensureAuthProfileStore(params.agentDir, { allowKeychainPrompt: false });
   const hasProfile = listProfilesForProvider(authStore, "github-copilot").length > 0;
   const envToken = env.COPILOT_GITHUB_TOKEN ?? env.GH_TOKEN ?? env.GITHUB_TOKEN;
   const githubToken = (envToken ?? "").trim();

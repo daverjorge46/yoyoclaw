@@ -36,6 +36,7 @@ See [Voice Call](/plugins/voice-call) for a concrete example plugin.
 ## Available plugins (official)
 
 - Microsoft Teams is plugin-only as of 2026.1.15; install `@clawdbot/msteams` if you use Teams.
+- Memory (Core) — bundled memory search plugin (enabled by default via `plugins.slots.memory`)
 - [Voice Call](/plugins/voice-call) — `@clawdbot/voice-call`
 - [Zalo Personal](/plugins/zalouser) — `@clawdbot/zalouser`
 - [Matrix](/channels/matrix) — `@clawdbot/matrix`
@@ -43,6 +44,7 @@ See [Voice Call](/plugins/voice-call) for a concrete example plugin.
 - [Microsoft Teams](/channels/msteams) — `@clawdbot/msteams`
 - Google Antigravity OAuth (provider auth) — bundled as `google-antigravity-auth` (disabled by default)
 - Gemini CLI OAuth (provider auth) — bundled as `google-gemini-cli-auth` (disabled by default)
+- Qwen OAuth (provider auth) — bundled as `qwen-portal-auth` (disabled by default)
 - Copilot Proxy (provider auth) — bundled as `copilot-proxy` (disabled by default)
 
 Clawdbot plugins are **TypeScript modules** loaded at runtime via jiti. They can
@@ -56,6 +58,7 @@ register:
 - Optional config validation
 
 Plugins run **in‑process** with the Gateway, so treat them as trusted code.
+Tool authoring guide: [Plugin agent tools](/plugins/agent-tools).
 
 ## Discovery & precedence
 
@@ -135,6 +138,24 @@ Fields:
 - `entries.<id>`: per‑plugin toggles + config
 
 Config changes **require a gateway restart**.
+
+## Plugin slots (exclusive categories)
+
+Some plugin categories are **exclusive** (only one active at a time). Use
+`plugins.slots` to select which plugin owns the slot:
+
+```json5
+{
+  plugins: {
+    slots: {
+      memory: "memory-core" // or "none" to disable memory plugins
+    }
+  }
+}
+```
+
+If multiple plugins declare `kind: "memory"`, only the selected one loads. Others
+are disabled with diagnostics.
 
 ## Control UI (schema + labels)
 
@@ -359,24 +380,9 @@ export default function (api) {
 Load the plugin (extensions dir or `plugins.load.paths`), restart the gateway,
 then configure `channels.<id>` in your config.
 
-### Register a tool
+### Agent tools
 
-```ts
-import { Type } from "@sinclair/typebox";
-
-export default function (api) {
-  api.registerTool({
-    name: "my_tool",
-    description: "Do a thing",
-    parameters: Type.Object({
-      input: Type.String(),
-    }),
-    async execute(_id, params) {
-      return { content: [{ type: "text", text: params.input }] };
-    },
-  });
-}
-```
+See the dedicated guide: [Plugin agent tools](/plugins/agent-tools).
 
 ### Register a gateway RPC method
 

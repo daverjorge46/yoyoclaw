@@ -19,12 +19,15 @@ import type {
   PluginDiagnostic,
   PluginLogger,
   PluginOrigin,
+  PluginKind,
 } from "./types.js";
+import type { PluginRuntime } from "./runtime/types.js";
 
 export type PluginToolRegistration = {
   pluginId: string;
   factory: ClawdbotPluginToolFactory;
   names: string[];
+  optional: boolean;
   source: string;
 };
 
@@ -65,6 +68,7 @@ export type PluginRecord = {
   name: string;
   version?: string;
   description?: string;
+  kind?: PluginKind;
   source: string;
   origin: PluginOrigin;
   workspaceDir?: string;
@@ -98,6 +102,7 @@ export type PluginRegistry = {
 export type PluginRegistryParams = {
   logger: PluginLogger;
   coreGatewayHandlers?: GatewayRequestHandlers;
+  runtime: PluginRuntime;
 };
 
 export function createPluginRegistry(registryParams: PluginRegistryParams) {
@@ -121,9 +126,10 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
   const registerTool = (
     record: PluginRecord,
     tool: AnyAgentTool | ClawdbotPluginToolFactory,
-    opts?: { name?: string; names?: string[] },
+    opts?: { name?: string; names?: string[]; optional?: boolean },
   ) => {
     const names = opts?.names ?? (opts?.name ? [opts.name] : []);
+    const optional = opts?.optional === true;
     const factory: ClawdbotPluginToolFactory =
       typeof tool === "function" ? tool : (_ctx: ClawdbotPluginToolContext) => tool;
 
@@ -139,6 +145,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       pluginId: record.id,
       factory,
       names: normalized,
+      optional,
       source: record.source,
     });
   };
@@ -277,6 +284,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       source: record.source,
       config: params.config,
       pluginConfig: params.pluginConfig,
+      runtime: registryParams.runtime,
       logger: normalizeLogger(registryParams.logger),
       registerTool: (tool, opts) => registerTool(record, tool, opts),
       registerHttpHandler: (handler) => registerHttpHandler(record, handler),

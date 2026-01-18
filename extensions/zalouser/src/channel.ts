@@ -1,10 +1,6 @@
-import type { ChannelPlugin } from "../../../src/channels/plugins/types.plugin.js";
-import type {
-  ChannelAccountSnapshot,
-  ChannelDirectoryEntry,
-} from "../../../src/channels/plugins/types.core.js";
+import type { ChannelAccountSnapshot, ChannelDirectoryEntry, ChannelPlugin } from "clawdbot/plugin-sdk";
 
-import { formatPairingApproveHint } from "../../../src/channels/plugins/helpers.js";
+import { formatPairingApproveHint } from "clawdbot/plugin-sdk";
 import {
   listZalouserAccountIds,
   resolveDefaultZalouserAccountId,
@@ -322,6 +318,73 @@ export const zalouserPlugin: ChannelPlugin<ResolvedZalouserAccount> = {
         : [];
       const sliced = typeof limit === "number" && limit > 0 ? rows.slice(0, limit) : rows;
       return sliced as ChannelDirectoryEntry[];
+    },
+  },
+  resolver: {
+    resolveTargets: async ({ cfg, accountId, inputs, kind, runtime }) => {
+      const results = [];
+      for (const input of inputs) {
+        const trimmed = input.trim();
+        if (!trimmed) {
+          results.push({ input, resolved: false, note: "empty input" });
+          continue;
+        }
+        if (/^\d+$/.test(trimmed)) {
+          results.push({ input, resolved: true, id: trimmed });
+          continue;
+        }
+        try {
+          const account = resolveZalouserAccountSync({
+            cfg: cfg as CoreConfig,
+            accountId: accountId ?? DEFAULT_ACCOUNT_ID,
+          });
+          const args =
+            kind === "user"
+              ? trimmed
+                ? ["friend", "find", trimmed]
+                : ["friend", "list", "-j"]
+              : ["group", "list", "-j"];
+          const result = await runZca(args, { profile: account.profile, timeout: 15000 });
+          if (!result.ok) throw new Error(result.stderr || "zca lookup failed");
+          if (kind === "user") {
+            const parsed = parseJsonOutput<ZcaFriend[]>(result.stdout) ?? [];
+            const matches = Array.isArray(parsed)
+              ? parsed.map((f) => ({
+                  id: String(f.userId),
+                  name: f.displayName ?? undefined,
+                }))
+              : [];
+            const best = matches[0];
+            results.push({
+              input,
+              resolved: Boolean(best?.id),
+              id: best?.id,
+              name: best?.name,
+              note: matches.length > 1 ? "multiple matches; chose first" : undefined,
+            });
+          } else {
+            const parsed = parseJsonOutput<ZcaGroup[]>(result.stdout) ?? [];
+            const matches = Array.isArray(parsed)
+              ? parsed.map((g) => ({
+                  id: String(g.groupId),
+                  name: g.name ?? undefined,
+                }))
+              : [];
+            const best = matches.find((g) => g.name?.toLowerCase() === trimmed.toLowerCase()) ?? matches[0];
+            results.push({
+              input,
+              resolved: Boolean(best?.id),
+              id: best?.id,
+              name: best?.name,
+              note: matches.length > 1 ? "multiple matches; chose first" : undefined,
+            });
+          }
+        } catch (err) {
+          runtime.error?.(`zalouser resolve failed: ${String(err)}`);
+          results.push({ input, resolved: false, note: "lookup failed" });
+        }
+      }
+      return results;
     },
   },
   pairing: {

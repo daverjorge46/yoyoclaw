@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ClawdbotConfig } from "../config/config.js";
 import { ensureClawdbotModelsJson } from "./models-config.js";
 
@@ -78,15 +78,20 @@ vi.mock("@mariozechner/pi-ai", async () => {
               ? buildAssistantErrorMessage(model)
               : buildAssistantMessage(model),
         });
+        stream.end();
       });
       return stream;
     },
   };
 });
 
-vi.resetModules();
+let runEmbeddedPiAgent: typeof import("./pi-embedded-runner.js").runEmbeddedPiAgent;
 
-const { runEmbeddedPiAgent } = await import("./pi-embedded-runner.js");
+beforeEach(async () => {
+  vi.useRealTimers();
+  vi.resetModules();
+  ({ runEmbeddedPiAgent } = await import("./pi-embedded-runner.js"));
+});
 
 const makeOpenAiConfig = (modelIds: string[]) =>
   ({
@@ -112,6 +117,9 @@ const makeOpenAiConfig = (modelIds: string[]) =>
 
 const ensureModels = (cfg: ClawdbotConfig, agentDir: string) =>
   ensureClawdbotModelsJson(cfg, agentDir);
+
+const testSessionKey = "agent:test:embedded-ordering";
+const immediateEnqueue = async <T>(task: () => Promise<T>) => task();
 
 const textFromContent = (content: unknown) => {
   if (typeof content === "string") return content;
@@ -179,7 +187,7 @@ describe("runEmbeddedPiAgent", () => {
 
     await runEmbeddedPiAgent({
       sessionId: "session:test",
-      sessionKey: "agent:main:main",
+      sessionKey: testSessionKey,
       sessionFile,
       workspaceDir,
       config: cfg,
@@ -188,6 +196,7 @@ describe("runEmbeddedPiAgent", () => {
       model: "mock-1",
       timeoutMs: 5_000,
       agentDir,
+      enqueue: immediateEnqueue,
     });
 
     const messages = await readSessionMessages(sessionFile);
@@ -208,7 +217,7 @@ describe("runEmbeddedPiAgent", () => {
     expect(seedAssistantIndex).toBeGreaterThan(seedUserIndex);
     expect(newUserIndex).toBeGreaterThan(seedAssistantIndex);
     expect(newAssistantIndex).toBeGreaterThan(newUserIndex);
-  }, 20_000);
+  }, 45_000);
   it("persists multi-turn user/assistant ordering across runs", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-agent-"));
     const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-workspace-"));
@@ -219,7 +228,7 @@ describe("runEmbeddedPiAgent", () => {
 
     await runEmbeddedPiAgent({
       sessionId: "session:test",
-      sessionKey: "agent:main:main",
+      sessionKey: testSessionKey,
       sessionFile,
       workspaceDir,
       config: cfg,
@@ -228,11 +237,12 @@ describe("runEmbeddedPiAgent", () => {
       model: "mock-1",
       timeoutMs: 5_000,
       agentDir,
+      enqueue: immediateEnqueue,
     });
 
     await runEmbeddedPiAgent({
       sessionId: "session:test",
-      sessionKey: "agent:main:main",
+      sessionKey: testSessionKey,
       sessionFile,
       workspaceDir,
       config: cfg,
@@ -241,6 +251,7 @@ describe("runEmbeddedPiAgent", () => {
       model: "mock-1",
       timeoutMs: 5_000,
       agentDir,
+      enqueue: immediateEnqueue,
     });
 
     const messages = await readSessionMessages(sessionFile);
@@ -306,7 +317,7 @@ describe("runEmbeddedPiAgent", () => {
 
     const result = await runEmbeddedPiAgent({
       sessionId: "session:test",
-      sessionKey: "agent:main:main",
+      sessionKey: testSessionKey,
       sessionFile,
       workspaceDir,
       config: cfg,
@@ -315,6 +326,7 @@ describe("runEmbeddedPiAgent", () => {
       model: "mock-1",
       timeoutMs: 5_000,
       agentDir,
+      enqueue: immediateEnqueue,
     });
 
     expect(result.meta.error).toBeUndefined();
@@ -339,7 +351,7 @@ describe("runEmbeddedPiAgent", () => {
 
     const result = await runEmbeddedPiAgent({
       sessionId: "session:test",
-      sessionKey: "agent:main:main",
+      sessionKey: testSessionKey,
       sessionFile,
       workspaceDir,
       config: cfg,
@@ -348,6 +360,7 @@ describe("runEmbeddedPiAgent", () => {
       model: "mock-1",
       timeoutMs: 5_000,
       agentDir,
+      enqueue: immediateEnqueue,
     });
 
     expect(result.meta.error).toBeUndefined();

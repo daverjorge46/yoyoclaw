@@ -255,6 +255,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         TerminationSignalWatcher.shared.start()
         NodePairingApprovalPrompter.shared.start()
+        ExecApprovalsPromptServer.shared.start()
         MacNodeModeCoordinator.shared.start()
         VoiceWakeGlobalSettingsSync.shared.start()
         Task { PresenceReporter.shared.start() }
@@ -276,6 +277,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         PresenceReporter.shared.stop()
         NodePairingApprovalPrompter.shared.stop()
+        ExecApprovalsPromptServer.shared.stop()
         MacNodeModeCoordinator.shared.stop()
         TerminationSignalWatcher.shared.stop()
         VoiceWakeGlobalSettingsSync.shared.stop()
