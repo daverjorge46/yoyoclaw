@@ -11,6 +11,7 @@ import {
   HEX_ENTROPY_THRESHOLD,
   HEX_MIN_LENGTH,
 } from "./constants.js";
+import { hexEntropy, isHex, shannonEntropy } from "./entropy.js";
 import { maskToken, redactPemBlock } from "./redact.js";
 import type {
   SecretScanMatch,
@@ -58,6 +59,7 @@ const REGEX_DETECTORS: RegexDetector[] = [
     kind: "format",
     confidence: "high",
     pattern: String.raw`Authorization\s*[:=]\s*Bearer\s+([A-Za-z0-9._\-+=]+)`,
+    flags: "gi",
     group: 1,
     redact: "group",
   },
@@ -66,6 +68,7 @@ const REGEX_DETECTORS: RegexDetector[] = [
     kind: "format",
     confidence: "medium",
     pattern: String.raw`\bBearer\s+([A-Za-z0-9._\-+=]{18,})\b`,
+    flags: "gi",
     group: 1,
     redact: "group",
   },
@@ -74,6 +77,7 @@ const REGEX_DETECTORS: RegexDetector[] = [
     kind: "heuristic",
     confidence: "medium",
     pattern: String.raw`\b[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD)\b\s*[=:]\s*(["']?)([^\s"'\\]+)\1`,
+    flags: "gi",
     group: 2,
     redact: "group",
   },
@@ -82,6 +86,7 @@ const REGEX_DETECTORS: RegexDetector[] = [
     kind: "heuristic",
     confidence: "medium",
     pattern: String.raw`"(?:apiKey|token|secret|password|passwd|accessToken|refreshToken)"\s*:\s*"([^"]+)"`,
+    flags: "gi",
     group: 1,
     redact: "group",
   },
@@ -90,6 +95,7 @@ const REGEX_DETECTORS: RegexDetector[] = [
     kind: "heuristic",
     confidence: "medium",
     pattern: String.raw`--(?:api[-_]?key|token|secret|password|passwd)\s+(["']?)([^\s"']+)\1`,
+    flags: "gi",
     group: 2,
     redact: "group",
   },
@@ -121,9 +127,16 @@ const REGEX_DETECTORS: RegexDetector[] = [
     id: "token-slack",
     kind: "format",
     confidence: "high",
-    pattern: String.raw`\b(xox[baprs]-[A-Za-z0-9-]{10,})\b`,
+    pattern: String.raw`\b(xox(?:[baprs]|o)-[A-Za-z0-9-]{10,})\b`,
     group: 1,
     redact: "group",
+  },
+  {
+    id: "token-slack-webhook",
+    kind: "format",
+    confidence: "high",
+    pattern: String.raw`https://hooks\.slack\.com/services/[A-Za-z0-9]+/[A-Za-z0-9]+/[A-Za-z0-9]+`,
+    redact: "full",
   },
   {
     id: "token-slack-app",
@@ -254,24 +267,7 @@ function applyRedactions(text: string, redactions: Redaction[]): string {
   return out;
 }
 
-function shannonEntropy(value: string): number {
-  if (!value) return 0;
-  const counts = new Map<string, number>();
-  for (const char of value) {
-    counts.set(char, (counts.get(char) ?? 0) + 1);
-  }
-  const len = value.length;
-  let entropy = 0;
-  for (const count of counts.values()) {
-    const p = count / len;
-    entropy -= p * Math.log2(p);
-  }
-  return entropy;
-}
-
-function isHex(value: string): boolean {
-  return /^[A-Fa-f0-9]+$/.test(value);
-}
+// entropy helpers live in entropy.ts
 
 function addMatch(
   matches: SecretScanMatch[],
@@ -341,7 +337,7 @@ function addEntropyDetections(
   execAll(HEX_RE, text, (match) => {
     const token = match[0];
     if (!token) return;
-    const entropy = shannonEntropy(token);
+    const entropy = hexEntropy(token);
     if (entropy < HEX_ENTROPY_THRESHOLD) return;
     const start = match.index ?? 0;
     addEntropyMatch(token, start, "entropy", "low");
