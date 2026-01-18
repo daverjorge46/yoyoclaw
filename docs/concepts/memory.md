@@ -89,7 +89,26 @@ OAuth only covers chat/completions and does **not** satisfy embeddings for
 memory search. When using a custom OpenAI-compatible endpoint, set
 `memorySearch.remote.apiKey` (and optional `memorySearch.remote.headers`).
 
-If you want to use a **custom OpenAI-compatible endpoint** (like Gemini, OpenRouter, or a proxy),
+If you want to use **Gemini embeddings** directly, set the provider to `gemini`:
+
+```json5
+agents: {
+  defaults: {
+    memorySearch: {
+      provider: "gemini",
+      model: "gemini-embedding-001", // default
+      remote: {
+        apiKey: "${GEMINI_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Gemini uses `GEMINI_API_KEY` (or `models.providers.google.apiKey`). Override
+`memorySearch.remote.baseUrl` to point at a custom Gemini-compatible endpoint.
+
+If you want to use a **custom OpenAI-compatible endpoint** (like OpenRouter or a proxy),
 you can use the `remote` configuration:
 
 ```json5
@@ -99,8 +118,8 @@ agents: {
       provider: "openai",
       model: "text-embedding-3-small",
       remote: {
-        baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
-        apiKey: "YOUR_GEMINI_API_KEY",
+        baseUrl: "https://proxy.example/v1",
+        apiKey: "YOUR_PROXY_KEY",
         headers: { "X-Custom-Header": "value" }
       }
     }
@@ -171,6 +190,44 @@ When enabled, Clawdbot combines:
 - **BM25 keyword relevance** (exact tokens like IDs, env vars, code symbols)
 
 If full-text search is unavailable on your platform, Clawdbot falls back to vector-only search.
+
+#### Why hybrid?
+
+Vector search is great at “this means the same thing”:
+- “Mac Studio gateway host” vs “the machine running the gateway”
+- “debounce file updates” vs “avoid indexing on every write”
+
+But it can be weak at exact, high-signal tokens:
+- IDs (`a828e60`, `b3b9895a…`)
+- code symbols (`memorySearch.query.hybrid`)
+- error strings (“sqlite-vec unavailable”)
+
+BM25 (full-text) is the opposite: strong at exact tokens, weaker at paraphrases.
+Hybrid search is the pragmatic middle ground: **use both retrieval signals** so you get
+good results for both “natural language” queries and “needle in a haystack” queries.
+
+#### How we merge results (the current design)
+
+Implementation sketch:
+
+1) Retrieve a candidate pool from both sides:
+- **Vector**: top `maxResults * candidateMultiplier` by cosine similarity.
+- **BM25**: top `maxResults * candidateMultiplier` by FTS5 BM25 rank (lower is better).
+
+2) Convert BM25 rank into a 0..1-ish score:
+- `textScore = 1 / (1 + max(0, bm25Rank))`
+
+3) Union candidates by chunk id and compute a weighted score:
+- `finalScore = vectorWeight * vectorScore + textWeight * textScore`
+
+Notes:
+- `vectorWeight` + `textWeight` is normalized to 1.0 in config resolution, so weights behave as percentages.
+- If embeddings are unavailable (or the provider returns a zero-vector), we still run BM25 and return keyword matches.
+- If FTS5 can’t be created, we keep vector-only search (no hard failure).
+
+This isn’t “IR-theory perfect”, but it’s simple, fast, and tends to improve recall/precision on real notes.
+If we want to get fancier later, common next steps are Reciprocal Rank Fusion (RRF) or score normalization
+(min/max or z-score) before mixing.
 
 Config:
 

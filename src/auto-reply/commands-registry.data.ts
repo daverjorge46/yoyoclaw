@@ -1,4 +1,5 @@
 import { listChannelDocks } from "../channels/dock.js";
+import { getActivePluginRegistry } from "../plugins/runtime.js";
 import { listThinkingLevels } from "./thinking.js";
 import { COMMAND_ARG_FORMATTERS } from "./commands-args.js";
 import type { ChatCommandDefinition, CommandScope } from "./commands-registry.types.js";
@@ -111,7 +112,12 @@ function assertCommandRegistry(commands: ChatCommandDefinition[]): void {
   }
 }
 
-export const CHAT_COMMANDS: ChatCommandDefinition[] = (() => {
+let cachedCommands: ChatCommandDefinition[] | null = null;
+let cachedRegistry: ReturnType<typeof getActivePluginRegistry> | null = null;
+let cachedNativeCommandSurfaces: Set<string> | null = null;
+let cachedNativeRegistry: ReturnType<typeof getActivePluginRegistry> | null = null;
+
+function buildChatCommands(): ChatCommandDefinition[] {
   const commands: ChatCommandDefinition[] = [
     defineChatCommand({
       key: "help",
@@ -225,16 +231,16 @@ export const CHAT_COMMANDS: ChatCommandDefinition[] = (() => {
       formatArgs: COMMAND_ARG_FORMATTERS.debug,
     }),
     defineChatCommand({
-      key: "cost",
-      nativeName: "cost",
+      key: "usage",
+      nativeName: "usage",
       description: "Toggle per-response usage line.",
-      textAlias: "/cost",
+      textAlias: "/usage",
       args: [
         {
           name: "mode",
-          description: "on or off",
+          description: "off, tokens, or full",
           type: "string",
-          choices: ["on", "off"],
+          choices: ["off", "tokens", "full"],
         },
       ],
       argsMenu: "auto",
@@ -368,6 +374,20 @@ export const CHAT_COMMANDS: ChatCommandDefinition[] = (() => {
       argsMenu: "auto",
     }),
     defineChatCommand({
+      key: "exec",
+      nativeName: "exec",
+      description: "Set exec defaults for this session.",
+      textAlias: "/exec",
+      args: [
+        {
+          name: "options",
+          description: "host=... security=... ask=... node=...",
+          type: "string",
+        },
+      ],
+      argsParsing: "none",
+    }),
+    defineChatCommand({
       key: "model",
       nativeName: "model",
       description: "Show or set the model.",
@@ -431,7 +451,6 @@ export const CHAT_COMMANDS: ChatCommandDefinition[] = (() => {
       .map((dock) => defineDockCommand(dock)),
   ];
 
-  registerAlias(commands, "status", "/usage");
   registerAlias(commands, "whoami", "/id");
   registerAlias(commands, "think", "/thinking", "/t");
   registerAlias(commands, "verbose", "/v");
@@ -441,17 +460,28 @@ export const CHAT_COMMANDS: ChatCommandDefinition[] = (() => {
 
   assertCommandRegistry(commands);
   return commands;
-})();
+}
 
-let cachedNativeCommandSurfaces: Set<string> | null = null;
+export function getChatCommands(): ChatCommandDefinition[] {
+  const registry = getActivePluginRegistry();
+  if (cachedCommands && registry === cachedRegistry) return cachedCommands;
+  const commands = buildChatCommands();
+  cachedCommands = commands;
+  cachedRegistry = registry;
+  cachedNativeCommandSurfaces = null;
+  return commands;
+}
 
-export const getNativeCommandSurfaces = (): Set<string> => {
-  if (!cachedNativeCommandSurfaces) {
-    cachedNativeCommandSurfaces = new Set(
-      listChannelDocks()
-        .filter((dock) => dock.capabilities.nativeCommands)
-        .map((dock) => dock.id),
-    );
+export function getNativeCommandSurfaces(): Set<string> {
+  const registry = getActivePluginRegistry();
+  if (cachedNativeCommandSurfaces && registry === cachedNativeRegistry) {
+    return cachedNativeCommandSurfaces;
   }
+  cachedNativeCommandSurfaces = new Set(
+    listChannelDocks()
+      .filter((dock) => dock.capabilities.nativeCommands)
+      .map((dock) => dock.id),
+  );
+  cachedNativeRegistry = registry;
   return cachedNativeCommandSurfaces;
-};
+}

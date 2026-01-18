@@ -2,18 +2,61 @@
 
 Docs: https://docs.clawd.bot
 
+## 2026.1.18-4
+
+### Changes
+- macOS: switch PeekabooBridge integration to the tagged Swift Package Manager release (no submodule).
+- macOS: stop syncing Peekaboo as a git submodule in postinstall.
+- Swabble: use the tagged Commander Swift package release.
+- CLI: add `clawdbot acp client` interactive ACP harness for debugging.
+- Plugins: route command detection/text chunking helpers through the plugin runtime and drop runtime exports from the SDK.
+- Memory: add native Gemini embeddings provider for memory search. (#1151) — thanks @gumadeiras.
+
+### Fixes
+- Auth profiles: keep auto-pinned preference while allowing rotation on failover; user pins stay locked. (#1138) — thanks @cheeeee.
+- macOS: avoid touching launchd in Remote over SSH so quitting the app no longer disables the remote gateway. (#1105)
+- Memory: index atomically so failed reindex preserves the previous memory database. (#1151) — thanks @gumadeiras.
+
 ## 2026.1.18-3
 
 ### Changes
 - Exec: add host/security/ask routing for gateway + node exec.
+- Exec: add `/exec` directive for per-session exec defaults (host/security/ask/node).
 - macOS: migrate exec approvals to `~/.clawdbot/exec-approvals.json` with per-agent allowlists and skill auto-allow toggle.
 - macOS: add approvals socket UI server + node exec lifecycle events.
+- Nodes: add headless node host (`clawdbot node start`) for `system.run`/`system.which`.
+- Nodes: add node daemon service install/status/start/stop/restart.
+- Bridge: add `skills.bins` RPC to support node host auto-allow skill bins.
+- Slash commands: replace `/cost` with `/usage off|tokens|full` to control per-response usage footer; `/usage` no longer aliases `/status`. (Supersedes #1140) — thanks @Nachx639.
+- Sessions: add daily reset policy with per-type overrides and idle windows (default 4am local), preserving legacy idle-only configs. (#1146) — thanks @austinm911.
+- Agents: auto-inject local image references for vision models and avoid reloading history images. (#1098) — thanks @tyler6204.
 - Docs: refresh exec/elevated/exec-approvals docs for the new flow. https://docs.clawd.bot/tools/exec-approvals
+- Docs: add node host CLI + update exec approvals/bridge protocol docs. https://docs.clawd.bot/cli/node
+- ACP: add experimental ACP support for IDE integrations (`clawdbot acp`). Thanks @visionik.
 
 ### Fixes
+- Exec approvals: enforce allowlist when ask is off; prefer raw command for node approvals/events.
 - Tools: return a companion-app-required message when node exec is requested with no paired node.
+- Streaming: emit assistant deltas for OpenAI-compatible SSE chunks. (#1147) — thanks @alauppe.
+- Model fallback: treat timeout aborts as failover while preserving user aborts. (#1137) — thanks @cheeeee.
 
 ## 2026.1.18-2
+
+### Fixes
+- Tests: stabilize plugin SDK resolution and embedded agent timeouts.
+
+## 2026.1.17-6
+
+### Changes
+- Plugins: add exclusive plugin slots with a dedicated memory slot selector.
+- Memory: ship core memory tools + CLI as the bundled `memory-core` plugin.
+- Docs: document plugin slots and memory plugin behavior.
+- Plugins: add the bundled BlueBubbles channel plugin (disabled by default).
+- Plugins: migrate bundled messaging extensions to the plugin SDK; resolve plugin-sdk imports in loader.
+- Plugins: migrate the Zalo plugin to the shared plugin SDK runtime.
+- Plugins: migrate the Zalo Personal plugin to the shared plugin SDK runtime.
+
+## 2026.1.17-5
 
 ### Changes
 - Memory: add hybrid BM25 + vector search (FTS5) with weighted merging and fallback.
