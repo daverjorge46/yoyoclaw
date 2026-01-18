@@ -23,16 +23,16 @@ cd /home/duhd/clawdbot/k8s
 
 ```bash
 docker login vcr.vnpaycloud.vn
-# Username: bot$260115-jrfmoq-clawd
-# Password: d9KHfWfmk7wHEPHgWlsW7vmaDjsVpea0
+# Username: 
+# Password: 
 ```
 
 ### Option 3: Automated Login (for scripts)
 
 ```bash
-echo "d9KHfWfmk7wHEPHgWlsW7vmaDjsVpea0" | \
+echo "_pass" | \
   docker login vcr.vnpaycloud.vn \
-  -u "bot\$260115-jrfmoq-clawd" \
+  -u "_user" \
   --password-stdin
 ```
 
