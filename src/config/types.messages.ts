@@ -13,6 +13,8 @@ export type QueueConfig = {
   mode?: QueueMode;
   byChannel?: QueueModeByProvider;
   debounceMs?: number;
+  /** Per-channel debounce overrides (ms). */
+  debounceMsByChannel?: InboundDebounceByProvider;
   cap?: number;
   drop?: QueueDropPolicy;
 };
