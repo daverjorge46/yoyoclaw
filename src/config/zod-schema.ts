@@ -348,7 +348,7 @@ export const ClawdbotSchema = z
                 apiKey: z.string().optional(),
                 env: z.record(z.string(), z.string()).optional(),
               })
-              .strict(),
+              .catchall(z.unknown()),
           )
           .optional(),
       })
