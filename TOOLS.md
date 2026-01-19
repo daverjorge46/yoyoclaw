@@ -2,18 +2,49 @@
 
 Skills define *how* tools work. This file is for *your* specifics — the stuff that's unique to your setup.
 
+## System Cron Jobs (launchd)
+
+These run independently of the gateway via macOS launchd. You can manage them:
+
+```bash
+# List all jobs
+launchctl list | grep com.steve.cron
+
+# Run a job manually
+/Users/steve/clawd/personal-scripts/cron-wrappers/<name>.sh
+
+# Disable a job
+launchctl bootout gui/501/com.steve.cron.<name>
+
+# Re-enable a job
+launchctl bootstrap gui/501 ~/Library/LaunchAgents/com.steve.cron.<name>.plist
+```
+
+| Job | Schedule | What it does |
+|-----|----------|--------------|
+| sync-skills | 0,4,8,12,16,20:00 | Git sync upstream + push changes |
+| steve-email-check | Hourly at :00 | Check email, notify if new |
+| daily-weather-steve | 5:55 AM | Morning weather report |
+| daily-verse | 6:05 AM | Bible verse of the day |
+| daily-recap-posterboard | 5:00 PM | Daily recap summary |
+| archive-media | Every 2h at :30 | Archive inbound media to Dropbox Steve_Journal |
+
+**Wrapper scripts**: `/Users/steve/clawd/personal-scripts/cron-wrappers/`
+**Launchd plists**: `~/Library/LaunchAgents/com.steve.cron.*.plist`
+**Logs**: `~/.clawdbot/logs/cron-*.log`
+
 ## SSH Hosts
 
 ### synology
 - **IP**: 192.168.4.84
-- **User**: dbhurley
+- **User**: steve
 - **Port**: 22
 - **Services**: Plex, Radarr, Sonarr, SABnzbd, Home Assistant
 - **Use**: `ssh synology`
 
-### mac-mini (Coming Jan 13-15)
+### mac-mini
 - **IP**: TBD
-- **User**: dbhurley
+- **User**: steve
 - **Services**: Future "brain" - will host migrated services
 - **Use**: `ssh mac-mini`
 
