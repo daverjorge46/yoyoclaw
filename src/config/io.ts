@@ -352,17 +352,6 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         };
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      const legacyIssues = findLegacyConfigIssues(resolved);
-      const resolvedConfig =
-        typeof resolved === "object" && resolved !== null
-          ? (resolved as ClawdbotConfig)
-          : {};
-=======
-      const migrated = applyLegacyMigrations(resolved);
-      const resolvedConfigRaw = migrated.next ?? resolved;
-=======
       // Substitute ${VAR} env var references
       let substituted: unknown;
       try {
@@ -385,23 +374,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         };
       }
 
-<<<<<<< HEAD
-      const migrated = applyLegacyMigrations(substituted);
-<<<<<<< HEAD
-      const resolvedConfigRaw = migrated.next ?? substituted;
->>>>>>> upstream/main
-=======
-      let resolvedConfigRaw = migrated.next ?? substituted;
-      const autoEnable = applyPluginAutoEnable({
-        config: coerceConfig(resolvedConfigRaw),
-        env: deps.env,
-      });
-      resolvedConfigRaw = autoEnable.config;
-      const migrationChanges = [...migrated.changes, ...autoEnable.changes];
->>>>>>> upstream/main
-=======
       const resolvedConfigRaw = substituted;
->>>>>>> upstream/main
       const legacyIssues = findLegacyConfigIssues(resolvedConfigRaw);
 >>>>>>> upstream/main
 

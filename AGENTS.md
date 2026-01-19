@@ -1,8 +1,7 @@
 # AGENTS.md - Your Workspace
 
-<<<<<<< HEAD
 This folder is home. Treat it that way.
-=======
+
 ## Project Structure & Module Organization
 - Source code: `src/` (CLI wiring in `src/cli`, commands in `src/commands`, web provider in `src/provider-web.ts`, infra in `src/infra`, media pipeline in `src/media`).
 - Tests: colocated `*.test.ts`.
@@ -13,7 +12,6 @@ This folder is home. Treat it that way.
   - Core channel docs: `docs/channels/`
   - Core channel code: `src/telegram`, `src/discord`, `src/slack`, `src/signal`, `src/imessage`, `src/web` (WhatsApp web), `src/channels`, `src/routing`
   - Extensions (channel plugins): `extensions/*` (e.g. `extensions/msteams`, `extensions/matrix`, `extensions/zalo`, `extensions/zalouser`, `extensions/voice-call`)
->>>>>>> upstream/main
 
 ## Docs Linking (Mintlify)
 
