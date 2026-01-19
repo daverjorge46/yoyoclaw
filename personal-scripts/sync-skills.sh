@@ -55,6 +55,6 @@ echo "$STATUS"
 
 # 5. Notify via Telegram (if clawdbot available and gateway running)
 CLAWDBOT="/Users/steve/Library/pnpm/clawdbot"
-if [ -x "$CLAWDBOT" ] && curl -s --max-time 2 http://localhost:18789/__clawdbot__/health >/dev/null 2>&1; then
-    "$CLAWDBOT" agent --agent main --message "$STATUS" --deliver --reply-channel telegram --reply-to 1191367022 >/dev/null 2>&1 &
+if [ -x "$CLAWDBOT" ] && lsof -i :18789 >/dev/null 2>&1; then
+    "$CLAWDBOT" agent --agent main --message "$STATUS" --deliver --reply-channel telegram --reply-to 1191367022 2>/dev/null &
 fi

@@ -170,20 +170,29 @@ class EmmaClient:
             text_lower = text.lower()
             if "official statement" in text_lower:
                 doc["type"] = "official_statement"
-            elif "quarterly financial" in text_lower:
-                doc["type"] = "quarterly"
-            elif "occupancy" in text_lower:
-                doc["type"] = "occupancy"
-            elif "audited" in text_lower:
+            elif "audited" in text_lower or "audit" in text_lower or "annual financial" in text_lower:
                 doc["type"] = "audited_financial"
+            elif "quarterly" in text_lower and ("financial" in text_lower or "report" in text_lower):
+                doc["type"] = "quarterly_financial"
+            elif "monthly" in text_lower and ("financial" in text_lower or "report" in text_lower):
+                doc["type"] = "monthly_financial"
+            elif "occupancy" in text_lower or "census" in text_lower:
+                doc["type"] = "occupancy"
+            elif "covenant" in text_lower or "compliance" in text_lower or "continuing disclosure" in text_lower:
+                doc["type"] = "covenant_compliance"
             elif "presale" in text_lower or "marketing" in text_lower or "upgrades" in text_lower:
                 doc["type"] = "presale_marketing"
             elif "redemption" in text_lower or "bond call" in text_lower:
                 doc["type"] = "event_notice"
-            elif "amendment" in text_lower or "covenant" in text_lower:
-                doc["type"] = "covenant_amendment"
+            elif "amendment" in text_lower:
+                doc["type"] = "amendment"
             else:
                 doc["type"] = "other"
+
+            # Extract year if present (for filtering historical audits)
+            year_match = re.search(r"(20\d{2})", text)
+            if year_match:
+                doc["year"] = int(year_match.group(1))
             
             # Extract date if present
             date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", text)
@@ -383,15 +392,49 @@ def cmd_auto(args):
     # Download key documents
     docs = client.get_documents(issue_id)
     downloaded = []
-    for doc in docs:
+
+    # Key document types to download
+    key_types = [
+        "official_statement",
+        "audited_financial",      # Audit statements
+        "quarterly_financial",    # Quarterly financial statements
+        "monthly_financial",      # Monthly financial statements
+        "occupancy",              # Occupancy reports
+        "covenant_compliance",    # Continuing covenant/compliance docs
+    ]
+
+    # Track audits by year (want last 3 years)
+    current_year = datetime.now().year
+    audit_years_needed = {current_year, current_year - 1, current_year - 2}
+    audits_downloaded = set()
+
+    # Sort docs to prefer recent ones
+    docs_sorted = sorted(docs, key=lambda d: d.get("year", 0), reverse=True)
+
+    for doc in docs_sorted:
         doc_type = doc.get("type", "other")
-        if doc_type in ["official_statement", "quarterly", "occupancy", "audited_financial"]:
-            filename = f"{doc_type}_{doc['filename']}"
-            output_path = output_dir / filename
-            print(f"  Downloading {doc_type}...", file=sys.stderr)
-            if client.download_document(doc["url"], output_path):
-                downloaded.append({"type": doc_type, "path": str(output_path)})
-                time.sleep(0.5)
+        if doc_type not in key_types:
+            continue
+
+        # For audits, only get last 3 years
+        if doc_type == "audited_financial":
+            doc_year = doc.get("year")
+            if doc_year:
+                if doc_year not in audit_years_needed or doc_year in audits_downloaded:
+                    continue
+                audits_downloaded.add(doc_year)
+
+        filename = f"{doc_type}_{doc['filename']}"
+        output_path = output_dir / filename
+        print(f"  Downloading {doc_type} ({doc.get('year', 'n/a')})...", file=sys.stderr)
+        if client.download_document(doc["url"], output_path):
+            downloaded.append({
+                "type": doc_type,
+                "path": str(output_path),
+                "year": doc.get("year"),
+                "description": doc.get("description", "")[:100]
+            })
+            time.sleep(0.5)
     
     if not downloaded:
         print("No documents downloaded!", file=sys.stderr)
@@ -471,7 +514,7 @@ def cmd_auto(args):
             f"- DSCR Required: {data.get('dscr_required', 'N/A')}",
             f"- Days Cash Required: {data.get('days_cash_required', 'N/A')}",
         ]
-        
+
         if data.get("latest_occupancy"):
             occ = data["latest_occupancy"]
             note_lines.extend([
@@ -480,6 +523,33 @@ def cmd_auto(args):
                 f"- IL: {occ.get('il_occupied', 'N/A')} ({occ.get('il_pct', 'N/A')}%)",
                 f"- AL/MC: {occ.get('almc_occupied', 'N/A')} ({occ.get('almc_pct', 'N/A')}%)",
             ])
+
+        # Summarize downloaded documents by type
+        if downloaded:
+            note_lines.extend([f"", f"## Documents Retrieved"])
+            doc_summary = {}
+            for doc in downloaded:
+                dtype = doc.get("type", "other")
+                year = doc.get("year", "")
+                if dtype not in doc_summary:
+                    doc_summary[dtype] = []
+                if year:
+                    doc_summary[dtype].append(str(year))
+
+            type_labels = {
+                "official_statement": "Official Statement",
+                "audited_financial": "Audit Statements",
+                "quarterly_financial": "Quarterly Financials",
+                "monthly_financial": "Monthly Financials",
+                "occupancy": "Occupancy Reports",
+                "covenant_compliance": "Covenant/Compliance Reports",
+            }
+            for dtype, years in doc_summary.items():
+                label = type_labels.get(dtype, dtype)
+                if years:
+                    note_lines.append(f"- {label}: {', '.join(sorted(set(years)))}")
+                else:
+                    note_lines.append(f"- {label}: ✓")
         
         note_body = "\n".join(note_lines)
         

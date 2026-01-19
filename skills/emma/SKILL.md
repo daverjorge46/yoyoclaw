@@ -66,12 +66,26 @@ Searching Twenty for 'Edgewood Baldwin'...
 ✓ Uploaded official_statement_P21566762.pdf to SharePoint
 ```
 
+## Documents Automatically Downloaded
+
+The skill automatically retrieves these key documents for CCRC due diligence:
+
+| Document Type | Description | Filtering |
+|---------------|-------------|-----------|
+| **Audit Statements** | Annual audited financials | Last 3 years |
+| **Quarterly Financials** | Quarterly financial statements | All available |
+| **Monthly Financials** | Monthly financial statements | All available |
+| **Occupancy Reports** | Census/occupancy data | All available |
+| **Covenant Compliance** | Continuing disclosure & covenant reports | All available |
+| **Official Statement** | Bond offering document | Latest |
+
 ## What Gets Extracted
 
 | Source | Data |
 |--------|------|
 | Official Statement | Unit counts (IL, AL/MC), DSCR covenant, Days Cash requirement |
 | Occupancy Reports | Latest occupancy by level of care |
+| Covenant Compliance | Financial covenant compliance status |
 
 ## SharePoint Drive IDs (One Point)
 
