@@ -1,12 +1,15 @@
+import ClawdbotKit
 import ClawdbotProtocol
 import SwiftUI
+
+private typealias AnyCodable = ClawdbotKit.AnyCodable
 
 struct CronJobEditor: View {
     let job: CronJob?
     @Binding var isSaving: Bool
     @Binding var error: String?
     let onCancel: () -> Void
-    let onSave: ([String: AnyCodable]) -> Void
+    let onSave: ([String: ClawdbotKit.AnyCodable]) -> Void
 
     let labelColumnWidth: CGFloat = 160
     static let introText =

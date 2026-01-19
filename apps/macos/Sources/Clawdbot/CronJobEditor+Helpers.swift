@@ -1,6 +1,9 @@
+import ClawdbotKit
 import ClawdbotProtocol
 import Foundation
 import SwiftUI
+
+private typealias AnyCodable = ClawdbotKit.AnyCodable
 
 extension CronJobEditor {
     func gridLabel(_ text: String) -> some View {
@@ -60,7 +63,7 @@ extension CronJobEditor {
         }
     }
 
-    func buildPayload() throws -> [String: AnyCodable] {
+    func buildPayload() throws -> [String: ClawdbotKit.AnyCodable] {
         let name = try self.requireName()
         let description = self.trimmed(self.description)
         let agentId = self.trimmed(self.agentId)

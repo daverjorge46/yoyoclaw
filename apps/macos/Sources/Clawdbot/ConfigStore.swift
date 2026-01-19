@@ -1,5 +1,8 @@
+import ClawdbotKit
 import ClawdbotProtocol
 import Foundation
+
+private typealias AnyCodable = ClawdbotKit.AnyCodable
 
 enum ConfigStore {
     struct Overrides: Sendable {

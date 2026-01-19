@@ -4,6 +4,8 @@ import Foundation
 import Observation
 import OSLog
 
+private typealias AnyCodable = ClawdbotKit.AnyCodable
+
 @MainActor
 @Observable
 final class CronJobsStore {
@@ -130,7 +132,7 @@ final class CronJobsStore {
 
     func upsertJob(
         id: String?,
-        payload: [String: AnyCodable]) async throws
+        payload: [String: ClawdbotKit.AnyCodable]) async throws
     {
         if let id {
             try await GatewayConnection.shared.cronUpdate(jobId: id, patch: payload)

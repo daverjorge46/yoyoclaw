@@ -114,7 +114,7 @@ actor GatewayConnection {
 
     func request(
         method: String,
-        params: [String: AnyCodable]?,
+        params: [String: ClawdbotKit.AnyCodable]?,
         timeoutMs: Double? = nil) async throws -> Data
     {
         let cfg = try await self.configProvider()
@@ -186,7 +186,7 @@ actor GatewayConnection {
 
     func requestRaw(
         method: Method,
-        params: [String: AnyCodable]? = nil,
+        params: [String: ClawdbotKit.AnyCodable]? = nil,
         timeoutMs: Double? = nil) async throws -> Data
     {
         try await self.request(method: method.rawValue, params: params, timeoutMs: timeoutMs)
@@ -194,7 +194,7 @@ actor GatewayConnection {
 
     func requestRaw(
         method: String,
-        params: [String: AnyCodable]? = nil,
+        params: [String: ClawdbotKit.AnyCodable]? = nil,
         timeoutMs: Double? = nil) async throws -> Data
     {
         try await self.request(method: method, params: params, timeoutMs: timeoutMs)
@@ -202,20 +202,23 @@ actor GatewayConnection {
 
     func requestDecoded<T: Decodable>(
         method: Method,
-        params: [String: AnyCodable]? = nil,
+        params: [String: ClawdbotKit.AnyCodable]? = nil,
         timeoutMs: Double? = nil) async throws -> T
     {
         let data = try await self.requestRaw(method: method, params: params, timeoutMs: timeoutMs)
         do {
             return try self.decoder.decode(T.self, from: data)
         } catch {
-            throw GatewayDecodingError(method: method.rawValue, message: error.localizedDescription)
+            throw NSError(
+                domain: "GatewayDecoding",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to decode \(method.rawValue): \(error.localizedDescription)"])
         }
     }
 
     func requestVoid(
         method: Method,
-        params: [String: AnyCodable]? = nil,
+        params: [String: ClawdbotKit.AnyCodable]? = nil,
         timeoutMs: Double? = nil) async throws
     {
         _ = try await self.requestRaw(method: method, params: params, timeoutMs: timeoutMs)
@@ -243,8 +246,8 @@ actor GatewayConnection {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    private func sessionDefaultString(_ defaults: [String: AnyCodable]?, key: String) -> String {
-        (defaults?[key]?.stringValue ?? "")
+    private func sessionDefaultString(_ defaults: [String: ClawdbotProtocol.AnyCodable]?, key: String) -> String {
+        ((defaults?[key]?.value as? String) ?? "")
             .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
 
@@ -401,7 +404,7 @@ extension GatewayConnection {
 
     func setHeartbeatsEnabled(_ enabled: Bool) async -> Bool {
         do {
-            try await self.requestVoid(method: .setHeartbeats, params: ["enabled": AnyCodable(enabled)])
+            try await self.requestVoid(method: .setHeartbeats, params: ["enabled": ClawdbotKit.AnyCodable(enabled)])
             return true
         } catch {
             gatewayConnectionLogger.error("setHeartbeatsEnabled failed \(error.localizedDescription, privacy: .public)")
@@ -414,17 +417,17 @@ extension GatewayConnection {
         guard !trimmed.isEmpty else { return (false, "message empty") }
         let sessionKey = self.canonicalizeSessionKey(invocation.sessionKey)
 
-        var params: [String: AnyCodable] = [
-            "message": AnyCodable(trimmed),
-            "sessionKey": AnyCodable(sessionKey),
-            "thinking": AnyCodable(invocation.thinking ?? "default"),
-            "deliver": AnyCodable(invocation.deliver),
-            "to": AnyCodable(invocation.to ?? ""),
-            "channel": AnyCodable(invocation.channel.rawValue),
-            "idempotencyKey": AnyCodable(invocation.idempotencyKey),
+        var params: [String: ClawdbotKit.AnyCodable] = [
+            "message": ClawdbotKit.AnyCodable(trimmed),
+            "sessionKey": ClawdbotKit.AnyCodable(sessionKey),
+            "thinking": ClawdbotKit.AnyCodable(invocation.thinking ?? "default"),
+            "deliver": ClawdbotKit.AnyCodable(invocation.deliver),
+            "to": ClawdbotKit.AnyCodable(invocation.to ?? ""),
+            "channel": ClawdbotKit.AnyCodable(invocation.channel.rawValue),
+            "idempotencyKey": ClawdbotKit.AnyCodable(invocation.idempotencyKey),
         ]
         if let timeout = invocation.timeoutSeconds {
-            params["timeout"] = AnyCodable(timeout)
+            params["timeout"] = ClawdbotKit.AnyCodable(timeout)
         }
 
         do {
@@ -456,7 +459,7 @@ extension GatewayConnection {
             idempotencyKey: idempotencyKey))
     }
 
-    func sendSystemEvent(_ params: [String: AnyCodable]) async {
+    func sendSystemEvent(_ params: [String: ClawdbotKit.AnyCodable]) async {
         do {
             try await self.requestVoid(method: .systemEvent, params: params)
         } catch {
@@ -469,7 +472,10 @@ extension GatewayConnection {
     func healthSnapshot(timeoutMs: Double? = nil) async throws -> HealthSnapshot {
         let data = try await self.requestRaw(method: .health, timeoutMs: timeoutMs)
         if let snap = decodeHealthSnapshot(from: data) { return snap }
-        throw GatewayDecodingError(method: Method.health.rawValue, message: "failed to decode health snapshot")
+        throw NSError(
+            domain: "GatewayDecoding",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: "Failed to decode \(Method.health.rawValue): health snapshot"])
     }
 
     func healthOK(timeoutMs: Int = 8000) async throws -> Bool {
@@ -488,12 +494,12 @@ extension GatewayConnection {
         installId: String,
         timeoutMs: Int? = nil) async throws -> SkillInstallResult
     {
-        var params: [String: AnyCodable] = [
-            "name": AnyCodable(name),
-            "installId": AnyCodable(installId),
+        var params: [String: ClawdbotKit.AnyCodable] = [
+            "name": ClawdbotKit.AnyCodable(name),
+            "installId": ClawdbotKit.AnyCodable(installId),
         ]
         if let timeoutMs {
-            params["timeoutMs"] = AnyCodable(timeoutMs)
+            params["timeoutMs"] = ClawdbotKit.AnyCodable(timeoutMs)
         }
         return try await self.requestDecoded(method: .skillsInstall, params: params)
     }
@@ -504,12 +510,12 @@ extension GatewayConnection {
         apiKey: String? = nil,
         env: [String: String]? = nil) async throws -> SkillUpdateResult
     {
-        var params: [String: AnyCodable] = [
-            "skillKey": AnyCodable(skillKey),
+        var params: [String: ClawdbotKit.AnyCodable] = [
+            "skillKey": ClawdbotKit.AnyCodable(skillKey),
         ]
-        if let enabled { params["enabled"] = AnyCodable(enabled) }
-        if let apiKey { params["apiKey"] = AnyCodable(apiKey) }
-        if let env, !env.isEmpty { params["env"] = AnyCodable(env) }
+        if let enabled { params["enabled"] = ClawdbotKit.AnyCodable(enabled) }
+        if let apiKey { params["apiKey"] = ClawdbotKit.AnyCodable(apiKey) }
+        if let env, !env.isEmpty { params["env"] = ClawdbotKit.AnyCodable(env) }
         return try await self.requestDecoded(method: .skillsUpdate, params: params)
     }
 
@@ -521,8 +527,8 @@ extension GatewayConnection {
         timeoutMs: Int? = nil) async throws -> ClawdbotChatHistoryPayload
     {
         let resolvedKey = self.canonicalizeSessionKey(sessionKey)
-        var params: [String: AnyCodable] = ["sessionKey": AnyCodable(resolvedKey)]
-        if let limit { params["limit"] = AnyCodable(limit) }
+        var params: [String: ClawdbotKit.AnyCodable] = ["sessionKey": ClawdbotKit.AnyCodable(resolvedKey)]
+        if let limit { params["limit"] = ClawdbotKit.AnyCodable(limit) }
         let timeout = timeoutMs.map { Double($0) }
         return try await self.requestDecoded(
             method: .chatHistory,
@@ -539,12 +545,12 @@ extension GatewayConnection {
         timeoutMs: Int = 30000) async throws -> ClawdbotChatSendResponse
     {
         let resolvedKey = self.canonicalizeSessionKey(sessionKey)
-        var params: [String: AnyCodable] = [
-            "sessionKey": AnyCodable(resolvedKey),
-            "message": AnyCodable(message),
-            "thinking": AnyCodable(thinking),
-            "idempotencyKey": AnyCodable(idempotencyKey),
-            "timeoutMs": AnyCodable(timeoutMs),
+        var params: [String: ClawdbotKit.AnyCodable] = [
+            "sessionKey": ClawdbotKit.AnyCodable(resolvedKey),
+            "message": ClawdbotKit.AnyCodable(message),
+            "thinking": ClawdbotKit.AnyCodable(thinking),
+            "idempotencyKey": ClawdbotKit.AnyCodable(idempotencyKey),
+            "timeoutMs": ClawdbotKit.AnyCodable(timeoutMs),
         ]
 
         if !attachments.isEmpty {
@@ -556,7 +562,7 @@ extension GatewayConnection {
                     "content": att.content,
                 ]
             }
-            params["attachments"] = AnyCodable(encoded)
+            params["attachments"] = ClawdbotKit.AnyCodable(encoded)
         }
 
         return try await self.requestDecoded(
@@ -570,13 +576,13 @@ extension GatewayConnection {
         struct AbortResponse: Decodable { let ok: Bool?; let aborted: Bool? }
         let res: AbortResponse = try await self.requestDecoded(
             method: .chatAbort,
-            params: ["sessionKey": AnyCodable(resolvedKey), "runId": AnyCodable(runId)])
+            params: ["sessionKey": ClawdbotKit.AnyCodable(resolvedKey), "runId": ClawdbotKit.AnyCodable(runId)])
         return res.aborted ?? false
     }
 
     func talkMode(enabled: Bool, phase: String? = nil) async {
-        var params: [String: AnyCodable] = ["enabled": AnyCodable(enabled)]
-        if let phase { params["phase"] = AnyCodable(phase) }
+        var params: [String: ClawdbotKit.AnyCodable] = ["enabled": ClawdbotKit.AnyCodable(enabled)]
+        if let phase { params["phase"] = ClawdbotKit.AnyCodable(phase) }
         try? await self.requestVoid(method: .talkMode, params: params)
     }
 
@@ -592,7 +598,7 @@ extension GatewayConnection {
         do {
             try await self.requestVoid(
                 method: .voicewakeSet,
-                params: ["triggers": AnyCodable(triggers)],
+                params: ["triggers": ClawdbotKit.AnyCodable(triggers)],
                 timeoutMs: 10000)
         } catch {
             // Best-effort only.
@@ -604,14 +610,14 @@ extension GatewayConnection {
     func nodePairApprove(requestId: String) async throws {
         try await self.requestVoid(
             method: .nodePairApprove,
-            params: ["requestId": AnyCodable(requestId)],
+            params: ["requestId": ClawdbotKit.AnyCodable(requestId)],
             timeoutMs: 10000)
     }
 
     func nodePairReject(requestId: String) async throws {
         try await self.requestVoid(
             method: .nodePairReject,
-            params: ["requestId": AnyCodable(requestId)],
+            params: ["requestId": ClawdbotKit.AnyCodable(requestId)],
             timeoutMs: 10000)
     }
 
@@ -620,14 +626,14 @@ extension GatewayConnection {
     func devicePairApprove(requestId: String) async throws {
         try await self.requestVoid(
             method: .devicePairApprove,
-            params: ["requestId": AnyCodable(requestId)],
+            params: ["requestId": ClawdbotKit.AnyCodable(requestId)],
             timeoutMs: 10000)
     }
 
     func devicePairReject(requestId: String) async throws {
         try await self.requestVoid(
             method: .devicePairReject,
-            params: ["requestId": AnyCodable(requestId)],
+            params: ["requestId": ClawdbotKit.AnyCodable(requestId)],
             timeoutMs: 10000)
     }
 
@@ -647,14 +653,14 @@ extension GatewayConnection {
     func cronList(includeDisabled: Bool = true) async throws -> [CronJob] {
         let res: CronListResponse = try await self.requestDecoded(
             method: .cronList,
-            params: ["includeDisabled": AnyCodable(includeDisabled)])
+            params: ["includeDisabled": ClawdbotKit.AnyCodable(includeDisabled)])
         return res.jobs
     }
 
     func cronRuns(jobId: String, limit: Int = 200) async throws -> [CronRunLogEntry] {
         let res: CronRunsResponse = try await self.requestDecoded(
             method: .cronRuns,
-            params: ["id": AnyCodable(jobId), "limit": AnyCodable(limit)])
+            params: ["id": ClawdbotKit.AnyCodable(jobId), "limit": ClawdbotKit.AnyCodable(limit)])
         return res.entries
     }
 
@@ -662,23 +668,23 @@ extension GatewayConnection {
         try await self.requestVoid(
             method: .cronRun,
             params: [
-                "id": AnyCodable(jobId),
-                "mode": AnyCodable(force ? "force" : "due"),
+                "id": ClawdbotKit.AnyCodable(jobId),
+                "mode": ClawdbotKit.AnyCodable(force ? "force" : "due"),
             ],
             timeoutMs: 20000)
     }
 
     func cronRemove(jobId: String) async throws {
-        try await self.requestVoid(method: .cronRemove, params: ["id": AnyCodable(jobId)])
+        try await self.requestVoid(method: .cronRemove, params: ["id": ClawdbotKit.AnyCodable(jobId)])
     }
 
-    func cronUpdate(jobId: String, patch: [String: AnyCodable]) async throws {
+    func cronUpdate(jobId: String, patch: [String: ClawdbotKit.AnyCodable]) async throws {
         try await self.requestVoid(
             method: .cronUpdate,
-            params: ["id": AnyCodable(jobId), "patch": AnyCodable(patch)])
+            params: ["id": ClawdbotKit.AnyCodable(jobId), "patch": ClawdbotKit.AnyCodable(patch)])
     }
 
-    func cronAdd(payload: [String: AnyCodable]) async throws {
+    func cronAdd(payload: [String: ClawdbotKit.AnyCodable]) async throws {
         try await self.requestVoid(method: .cronAdd, params: payload)
     }
 }

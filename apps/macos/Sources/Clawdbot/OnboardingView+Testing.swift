@@ -1,4 +1,5 @@
 import ClawdbotDiscovery
+import ClawdbotKit
 import SwiftUI
 
 #if DEBUG

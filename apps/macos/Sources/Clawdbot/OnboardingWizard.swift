@@ -14,16 +14,16 @@ private let onboardingWizardLogger = Logger(subsystem: "com.clawdbot", category:
 
 private typealias ProtocolAnyCodable = ClawdbotProtocol.AnyCodable
 
-private func bridgeToLocal(_ value: ProtocolAnyCodable) -> AnyCodable {
+private func bridgeToLocal(_ value: ProtocolAnyCodable) -> ClawdbotKit.AnyCodable {
     if let data = try? JSONEncoder().encode(value),
-       let decoded = try? JSONDecoder().decode(AnyCodable.self, from: data)
+       let decoded = try? JSONDecoder().decode(ClawdbotKit.AnyCodable.self, from: data)
     {
         return decoded
     }
-    return AnyCodable(value.value)
+    return ClawdbotKit.AnyCodable(value.value)
 }
 
-private func bridgeToLocal(_ value: ProtocolAnyCodable?) -> AnyCodable? {
+private func bridgeToLocal(_ value: ProtocolAnyCodable?) -> ClawdbotKit.AnyCodable? {
     value.map(bridgeToLocal)
 }
 
@@ -80,9 +80,9 @@ final class OnboardingWizardModel {
                     code: 1,
                     userInfo: [NSLocalizedDescriptionKey: "Gateway did not become ready. Check that it is running."])
             }
-            var params: [String: AnyCodable] = ["mode": AnyCodable("local")]
+            var params: [String: ClawdbotKit.AnyCodable] = ["mode": ClawdbotKit.AnyCodable("local")]
             if let workspace, !workspace.isEmpty {
-                params["workspace"] = AnyCodable(workspace)
+                params["workspace"] = ClawdbotKit.AnyCodable(workspace)
             }
             let res: WizardStartResult = try await GatewayConnection.shared.requestDecoded(
                 method: .wizardStart,
@@ -95,19 +95,19 @@ final class OnboardingWizardModel {
         }
     }
 
-    func submit(step: WizardStep, value: AnyCodable?) async {
+    func submit(step: WizardStep, value: ClawdbotKit.AnyCodable?) async {
         guard let sessionId, !self.isSubmitting else { return }
         self.isSubmitting = true
         self.errorMessage = nil
         defer { self.isSubmitting = false }
 
         do {
-            var params: [String: AnyCodable] = ["sessionId": AnyCodable(sessionId)]
-            var answer: [String: AnyCodable] = ["stepId": AnyCodable(step.id)]
+            var params: [String: ClawdbotKit.AnyCodable] = ["sessionId": ClawdbotKit.AnyCodable(sessionId)]
+            var answer: [String: ClawdbotKit.AnyCodable] = ["stepId": ClawdbotKit.AnyCodable(step.id)]
             if let value {
                 answer["value"] = value
             }
-            params["answer"] = AnyCodable(answer)
+            params["answer"] = ClawdbotKit.AnyCodable(answer)
             let res: WizardNextResult = try await GatewayConnection.shared.requestDecoded(
                 method: .wizardNext,
                 params: params)
@@ -127,7 +127,7 @@ final class OnboardingWizardModel {
         do {
             let res: WizardStatusResult = try await GatewayConnection.shared.requestDecoded(
                 method: .wizardCancel,
-                params: ["sessionId": AnyCodable(sessionId)])
+                params: ["sessionId": ClawdbotKit.AnyCodable(sessionId)])
             self.applyStatusResult(res)
         } catch {
             self.status = "error"
@@ -217,7 +217,7 @@ final class OnboardingWizardModel {
 struct OnboardingWizardStepView: View {
     let step: WizardStep
     let isSubmitting: Bool
-    let onSubmit: (AnyCodable?) -> Void
+    let onSubmit: (ClawdbotKit.AnyCodable?) -> Void
 
     @State private var textValue: String
     @State private var confirmValue: Bool
@@ -226,7 +226,7 @@ struct OnboardingWizardStepView: View {
 
     private let optionItems: [WizardOptionItem]
 
-    init(step: WizardStep, isSubmitting: Bool, onSubmit: @escaping (AnyCodable?) -> Void) {
+    init(step: WizardStep, isSubmitting: Bool, onSubmit: @escaping (ClawdbotKit.AnyCodable?) -> Void) {
         self.step = step
         self.isSubmitting = isSubmitting
         self.onSubmit = onSubmit
@@ -381,23 +381,23 @@ struct OnboardingWizardStepView: View {
         case "note", "progress":
             self.onSubmit(nil)
         case "text":
-            self.onSubmit(AnyCodable(self.textValue))
+            self.onSubmit(ClawdbotKit.AnyCodable(self.textValue))
         case "confirm":
-            self.onSubmit(AnyCodable(self.confirmValue))
+            self.onSubmit(ClawdbotKit.AnyCodable(self.confirmValue))
         case "select":
             guard self.optionItems.indices.contains(self.selectedIndex) else {
                 self.onSubmit(nil)
                 return
             }
             let option = self.optionItems[self.selectedIndex].option
-            self.onSubmit(bridgeToLocal(option.value) ?? AnyCodable(option.label))
+            self.onSubmit(bridgeToLocal(option.value) ?? ClawdbotKit.AnyCodable(option.label))
         case "multiselect":
             let values = self.optionItems
                 .filter { self.selectedIndices.contains($0.index) }
-                .map { bridgeToLocal($0.option.value) ?? AnyCodable($0.option.label) }
-            self.onSubmit(AnyCodable(values))
+                .map { bridgeToLocal($0.option.value) ?? ClawdbotKit.AnyCodable($0.option.label) }
+            self.onSubmit(ClawdbotKit.AnyCodable(values))
         case "action":
-            self.onSubmit(AnyCodable(true))
+            self.onSubmit(ClawdbotKit.AnyCodable(true))
         default:
             self.onSubmit(nil)
         }

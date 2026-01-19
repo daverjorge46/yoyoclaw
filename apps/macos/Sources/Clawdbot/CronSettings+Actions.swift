@@ -1,8 +1,9 @@
+import ClawdbotKit
 import ClawdbotProtocol
 import Foundation
 
 extension CronSettings {
-    func save(payload: [String: AnyCodable]) async {
+    func save(payload: [String: ClawdbotKit.AnyCodable]) async {
         guard !self.isSaving else { return }
         self.isSaving = true
         self.editorError = nil

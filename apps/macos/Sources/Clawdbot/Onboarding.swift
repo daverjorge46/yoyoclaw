@@ -2,6 +2,7 @@ import AppKit
 import ClawdbotChatUI
 import ClawdbotDiscovery
 import ClawdbotIPC
+import ClawdbotKit
 import Combine
 import Observation
 import SwiftUI
