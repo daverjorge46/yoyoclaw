@@ -5,6 +5,7 @@ import {
   readConfigFileSnapshot,
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
+import { formatCliCommand } from "../cli/profile.js";
 import { note } from "../terminal/note.js";
 import { normalizeLegacyConfigValues } from "./doctor-legacy-config.js";
 import type { DoctorOptions } from "./doctor-prompter.js";
@@ -65,7 +66,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
       if (changes.length > 0) note(changes.join("\n"), "Doctor changes");
       if (migrated) cfg = migrated;
     } else {
-      note('Run "clawdbot doctor --fix" to apply legacy migrations.', "Doctor");
+      note(`Run "${formatCliCommand("clawdbot doctor --fix")}" to apply legacy migrations.`, "Doctor");
     }
   }
 
@@ -75,7 +76,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     if (shouldRepair) {
       cfg = normalized.config;
     } else {
-      note('Run "clawdbot doctor --fix" to apply these changes.', "Doctor");
+      note(`Run "${formatCliCommand("clawdbot doctor --fix")}" to apply these changes.`, "Doctor");
     }
   }
 
@@ -85,7 +86,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     if (shouldRepair) {
       cfg = autoEnable.config;
     } else {
-      note('Run "clawdbot doctor --fix" to apply these changes.', "Doctor");
+      note(`Run "${formatCliCommand("clawdbot doctor --fix")}" to apply these changes.`, "Doctor");
     }
   }
 

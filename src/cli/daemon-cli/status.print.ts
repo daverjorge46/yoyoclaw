@@ -13,6 +13,7 @@ import { isWSLEnv } from "../../infra/wsl.js";
 import { getResolvedLoggerSettings } from "../../logging.js";
 import { defaultRuntime } from "../../runtime.js";
 import { colorize, isRich, theme } from "../../terminal/theme.js";
+import { formatCliCommand } from "../profile.js";
 import { formatRuntimeStatus, renderRuntimeHints, safeDaemonEnv } from "./shared.js";
 import {
   type DaemonStatus,
@@ -70,7 +71,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
       defaultRuntime.error(`${warnText("Service config issue:")} ${issue.message}${detail}`);
     }
     defaultRuntime.error(
-      warnText('Recommendation: run "clawdbot doctor" (or "clawdbot doctor --repair").'),
+      warnText(`Recommendation: run "${formatCliCommand("clawdbot doctor")}" (or "${formatCliCommand("clawdbot doctor --repair")}").`),
     );
   }
 

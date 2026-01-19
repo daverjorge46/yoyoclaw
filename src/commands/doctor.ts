@@ -7,6 +7,7 @@ import {
   resolveConfiguredModelRef,
   resolveHooksGmailModel,
 } from "../agents/model-selection.js";
+import { formatCliCommand } from "../cli/profile.js";
 import type { ClawdbotConfig } from "../config/config.js";
 import { CONFIG_PATH_CLAWDBOT, writeConfigFile } from "../config/config.js";
 import { resolveGatewayService } from "../daemon/service.js";
@@ -252,7 +253,7 @@ export async function doctorCommand(
     await writeConfigFile(cfg);
     runtime.log(`Updated ${CONFIG_PATH_CLAWDBOT}`);
   } else {
-    runtime.log('Run "clawdbot doctor --fix" to apply changes.');
+    runtime.log(`Run "${formatCliCommand("clawdbot doctor --fix")}" to apply changes.`);
   }
 
   if (options.workspaceSuggestions !== false) {

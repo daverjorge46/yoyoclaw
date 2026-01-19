@@ -6,6 +6,7 @@ import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { colorize, isRich, theme } from "../terminal/theme.js";
 import { addGatewayClientOptions, callGatewayFromCli } from "./gateway-rpc.js";
+import { formatCliCommand } from "./profile.js";
 
 type LogsTailPayload = {
   file?: string;
@@ -117,7 +118,7 @@ function emitGatewayError(
 ) {
   const details = buildGatewayConnectionDetails({ url: opts.url });
   const message = "Gateway not reachable. Is it running and accessible?";
-  const hint = "Hint: run `clawdbot doctor`.";
+  const hint = `Hint: run \`${formatCliCommand("clawdbot doctor")}\`.`;
   const errorText = err instanceof Error ? err.message : String(err);
 
   if (mode === "json") {

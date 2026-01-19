@@ -2,6 +2,7 @@ import { readConfigFileSnapshot } from "../../config/config.js";
 import { loadAndMaybeMigrateDoctorConfig } from "../../commands/doctor-config-flow.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { loadClawdbotPlugins } from "../../plugins/loader.js";
+import { formatCliCommand } from "../profile.js";
 import type { RuntimeEnv } from "../../runtime.js";
 
 const ALLOWED_INVALID_COMMANDS = new Set(["doctor", "logs", "health", "help", "status", "service"]);
@@ -60,7 +61,7 @@ export async function ensureConfigReady(params: {
   if (pluginIssues.length > 0) {
     params.runtime.error(`Plugin config errors:\n${pluginIssues.join("\n")}`);
   }
-  params.runtime.error("Run `clawdbot doctor --fix` to repair, then retry.");
+  params.runtime.error(`Run \`${formatCliCommand("clawdbot doctor --fix")}\` to repair, then retry.`);
   if (!allowInvalid) {
     params.runtime.exit(1);
   }

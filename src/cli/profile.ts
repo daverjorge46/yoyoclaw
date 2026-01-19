@@ -113,3 +113,17 @@ export function applyCliProfileEnv(params: {
     env.CLAWDBOT_GATEWAY_PORT = "19001";
   }
 }
+
+/**
+ * Formats a CLI command with the current profile flag if set.
+ * E.g., "clawdbot doctor --fix" becomes "clawdbot --profile foo doctor --fix"
+ */
+export function formatCliCommand(
+  command: string,
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+): string {
+  const profile = env.CLAWDBOT_PROFILE?.trim();
+  if (!profile || profile.toLowerCase() === "default") return command;
+  // Insert --profile after "clawdbot"
+  return command.replace(/^clawdbot\b/, `clawdbot --profile ${profile}`);
+}

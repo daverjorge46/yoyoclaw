@@ -1,3 +1,4 @@
+import { formatCliCommand } from "../cli/profile.js";
 import type { ClawdbotConfig } from "../config/config.js";
 import {
   CONFIG_PATH_CLAWDBOT,
@@ -198,7 +199,7 @@ export async function runConfigureWizard(
         );
       }
       if (!snapshot.valid) {
-        outro("Config invalid. Run `clawdbot doctor` to repair it, then re-run configure.");
+        outro(`Config invalid. Run \`${formatCliCommand("clawdbot doctor")}\` to repair it, then re-run configure.`);
         runtime.exit(1);
         return;
       }
