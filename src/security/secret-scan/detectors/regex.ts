@@ -31,7 +31,7 @@ function addMatch(
   groupText?: string,
 ): void {
   const redactionText = groupText ?? matchText;
-  const redactionOffset = groupText ? matchText.indexOf(groupText) : 0;
+  const redactionOffset = groupText ? matchText.lastIndexOf(groupText) : 0;
   const start = matchStart + (redactionOffset >= 0 ? redactionOffset : 0);
   const end = start + redactionText.length;
   const key = `${detector.id}:${start}:${end}`;

@@ -55,7 +55,7 @@ function applyRedactions(text: string, redactions: Redaction[]): string {
       merged.push({ ...redaction });
       continue;
     }
-    if (redaction.start <= last.end) {
+    if (redaction.start < last.end) {
       if (redaction.end <= last.end) continue;
       const start = last.start;
       const end = redaction.end;

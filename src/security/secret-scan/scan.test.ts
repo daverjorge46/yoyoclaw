@@ -35,6 +35,16 @@ describe("scanText", () => {
     expect(result.redactedText).not.toContain("super secret value");
   });
 
+  it("redacts repeated group values without masking the key", () => {
+    const input = "password=password";
+    const result = scanText(input, { config: { mode: "redact" } });
+    expect(result.blocked).toBe(false);
+    expect(result.redactedText).toBeDefined();
+    expect(result.redactedText).not.toBe(input);
+    expect(result.redactedText).toContain("password=");
+    expect(result.redactedText).not.toContain("password=password");
+  });
+
   it("blocks on overflow when overflow policy is block", () => {
     const input = "a".repeat(20);
     const result = scanText(input, {
