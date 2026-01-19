@@ -9,6 +9,7 @@ export type RegexDetector = {
   pattern: string;
   flags?: string;
   group?: number;
+  groupPosition?: "first" | "last";
   redact: "group" | "full";
   validator?: (value: string) => boolean;
 };

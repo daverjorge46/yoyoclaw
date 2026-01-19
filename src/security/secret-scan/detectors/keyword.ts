@@ -46,6 +46,7 @@ const KEYWORD_QUOTED_DETECTORS: RegexDetector[] = QUOTED_VALUE_PATTERNS.flatMap(
     pattern: `${valuePattern}${KEYWORD_COMPARE_SUFFIX}`,
     flags: "gi",
     group: 1,
+    groupPosition: "first",
     redact: "group",
     validator: isLikelyKeywordSecret,
   },
