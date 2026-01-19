@@ -25,18 +25,21 @@ export function armTimer(state: CronServiceState) {
 }
 
 export async function onTimer(state: CronServiceState) {
-  if (state.running) return;
-  state.running = true;
-  try {
-    await locked(state, async () => {
+  // Move the running check inside locked() to ensure atomicity.
+  // Without this, two timer callbacks firing simultaneously could both
+  // pass the check before either sets running=true, causing duplicate job runs.
+  await locked(state, async () => {
+    if (state.running) return;
+    state.running = true;
+    try {
       await ensureLoaded(state);
       await runDueJobs(state);
       await persist(state);
       armTimer(state);
-    });
-  } finally {
-    state.running = false;
-  }
+    } finally {
+      state.running = false;
+    }
+  });
 }
 
 export async function runDueJobs(state: CronServiceState) {
