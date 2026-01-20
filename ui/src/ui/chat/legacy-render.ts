@@ -6,6 +6,7 @@ import {
   isToolResultMessage,
   normalizeRoleForGrouping,
 } from "./message-normalizer";
+import { renderCopyAsMarkdownButton } from "./copy-as-markdown";
 import {
   extractText,
   extractThinking,
@@ -72,6 +73,8 @@ export function renderMessage(
   const timestamp =
     typeof m.timestamp === "number" ? new Date(m.timestamp).toLocaleTimeString() : "";
 
+  const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
+
   const normalizedRole = normalizeRoleForGrouping(role);
   const klass =
     normalizedRole === "assistant"
@@ -101,6 +104,8 @@ export function renderMessage(
     <div class="chat-line ${klass}">
       <div class="chat-msg">
         <div class="chat-bubble ${opts?.streaming ? "streaming" : ""}">
+          ${canCopyMarkdown ? renderCopyAsMarkdownButton(markdown!) : nothing}
+
           ${reasoningMarkdown
             ? html`<div class="chat-thinking">${unsafeHTML(
                 toSanitizedMarkdownHtml(reasoningMarkdown),

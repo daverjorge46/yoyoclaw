@@ -3,6 +3,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
 import { toSanitizedMarkdownHtml } from "../markdown";
 import type { MessageGroup } from "../types/chat-types";
+import { renderCopyAsMarkdownButton } from "./copy-as-markdown";
 import { isToolResultMessage, normalizeRoleForGrouping } from "./message-normalizer";
 import {
   extractText,
@@ -167,8 +168,12 @@ function renderGroupedMessage(
 
   if (!markdown && !hasToolCards) return nothing;
 
+  const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
+
   return html`
     <div class="${bubbleClasses}">
+      ${canCopyMarkdown ? renderCopyAsMarkdownButton(markdown!) : nothing}
+
       ${reasoningMarkdown
         ? html`<div class="chat-thinking">${unsafeHTML(
             toSanitizedMarkdownHtml(reasoningMarkdown),
