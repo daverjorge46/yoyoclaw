@@ -73,7 +73,7 @@ export const ClawdbotSchema = z
       .optional(),
     update: z
       .object({
-        channel: z.union([z.literal("stable"), z.literal("beta")]).optional(),
+        channel: z.union([z.literal("stable"), z.literal("beta"), z.literal("dev")]).optional(),
         checkOnStart: z.boolean().optional(),
       })
       .strict()
@@ -261,6 +261,7 @@ export const ClawdbotSchema = z
             url: z.string().optional(),
             token: z.string().optional(),
             password: z.string().optional(),
+            tlsFingerprint: z.string().optional(),
             sshTarget: z.string().optional(),
             sshIdentity: z.string().optional(),
           })
@@ -379,6 +380,7 @@ export const ClawdbotSchema = z
                 enabled: z.boolean().optional(),
                 apiKey: z.string().optional(),
                 env: z.record(z.string(), z.string()).optional(),
+                config: z.record(z.string(), z.unknown()).optional(),
               })
               .strict(),
           )

@@ -74,6 +74,9 @@ export const deviceHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown requestId"));
       return;
     }
+    context.logGateway.info(
+      `device pairing approved device=${approved.device.deviceId} role=${approved.device.role ?? "unknown"}`,
+    );
     context.broadcast(
       "device.pair.resolved",
       {
@@ -118,7 +121,7 @@ export const deviceHandlers: GatewayRequestHandlers = {
     );
     respond(true, rejected, undefined);
   },
-  "device.token.rotate": async ({ params, respond }) => {
+  "device.token.rotate": async ({ params, respond, context }) => {
     if (!validateDeviceTokenRotateParams(params)) {
       respond(
         false,
@@ -142,6 +145,9 @@ export const deviceHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown deviceId/role"));
       return;
     }
+    context.logGateway.info(
+      `device token rotated device=${deviceId} role=${entry.role} scopes=${entry.scopes.join(",")}`,
+    );
     respond(
       true,
       {
@@ -154,7 +160,7 @@ export const deviceHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
-  "device.token.revoke": async ({ params, respond }) => {
+  "device.token.revoke": async ({ params, respond, context }) => {
     if (!validateDeviceTokenRevokeParams(params)) {
       respond(
         false,
@@ -174,6 +180,7 @@ export const deviceHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown deviceId/role"));
       return;
     }
+    context.logGateway.info(`device token revoked device=${deviceId} role=${entry.role}`);
     respond(
       true,
       { deviceId, role: entry.role, revokedAtMs: entry.revokedAtMs ?? Date.now() },

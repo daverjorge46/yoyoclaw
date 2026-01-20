@@ -4,6 +4,8 @@ import ClawdbotProtocol
 import Foundation
 import OSLog
 
+private typealias AnyCodable = ClawdbotKit.AnyCodable
+
 private let gatewayConnectionLogger = Logger(subsystem: "com.clawdbot", category: "gateway.connection")
 
 enum GatewayAgentChannel: String, Codable, CaseIterable, Sendable {
@@ -244,9 +246,9 @@ actor GatewayConnection {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    private func sessionDefaultString(_ defaults: [String: AnyCodable]?, key: String) -> String {
-        (defaults?[key]?.stringValue ?? "")
-            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+    private func sessionDefaultString(_ defaults: [String: ClawdbotProtocol.AnyCodable]?, key: String) -> String {
+        let raw = defaults?[key]?.value as? String
+        return (raw ?? "").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
 
     func cachedMainSessionKey() -> String? {

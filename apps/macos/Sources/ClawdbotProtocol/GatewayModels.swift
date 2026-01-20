@@ -20,7 +20,7 @@ public struct ConnectParams: Codable, Sendable {
     public let permissions: [String: AnyCodable]?
     public let role: String?
     public let scopes: [String]?
-    public let device: [String: AnyCodable]
+    public let device: [String: AnyCodable]?
     public let auth: [String: AnyCodable]?
     public let locale: String?
     public let useragent: String?
@@ -34,7 +34,7 @@ public struct ConnectParams: Codable, Sendable {
         permissions: [String: AnyCodable]?,
         role: String?,
         scopes: [String]?,
-        device: [String: AnyCodable],
+        device: [String: AnyCodable]?,
         auth: [String: AnyCodable]?,
         locale: String?,
         useragent: String?
@@ -205,6 +205,9 @@ public struct PresenceEntry: Codable, Sendable {
     public let tags: [String]?
     public let text: String?
     public let ts: Int
+    public let deviceid: String?
+    public let roles: [String]?
+    public let scopes: [String]?
     public let instanceid: String?
 
     public init(
@@ -220,6 +223,9 @@ public struct PresenceEntry: Codable, Sendable {
         tags: [String]?,
         text: String?,
         ts: Int,
+        deviceid: String?,
+        roles: [String]?,
+        scopes: [String]?,
         instanceid: String?
     ) {
         self.host = host
@@ -234,6 +240,9 @@ public struct PresenceEntry: Codable, Sendable {
         self.tags = tags
         self.text = text
         self.ts = ts
+        self.deviceid = deviceid
+        self.roles = roles
+        self.scopes = scopes
         self.instanceid = instanceid
     }
     private enum CodingKeys: String, CodingKey {
@@ -249,6 +258,9 @@ public struct PresenceEntry: Codable, Sendable {
         case tags
         case text
         case ts
+        case deviceid = "deviceId"
+        case roles
+        case scopes
         case instanceid = "instanceId"
     }
 }
@@ -1314,6 +1326,7 @@ public struct ChannelsStatusResult: Codable, Sendable {
     public let channellabels: [String: AnyCodable]
     public let channeldetaillabels: [String: AnyCodable]?
     public let channelsystemimages: [String: AnyCodable]?
+    public let channelmeta: [[String: AnyCodable]]?
     public let channels: [String: AnyCodable]
     public let channelaccounts: [String: AnyCodable]
     public let channeldefaultaccountid: [String: AnyCodable]
@@ -1324,6 +1337,7 @@ public struct ChannelsStatusResult: Codable, Sendable {
         channellabels: [String: AnyCodable],
         channeldetaillabels: [String: AnyCodable]?,
         channelsystemimages: [String: AnyCodable]?,
+        channelmeta: [[String: AnyCodable]]?,
         channels: [String: AnyCodable],
         channelaccounts: [String: AnyCodable],
         channeldefaultaccountid: [String: AnyCodable]
@@ -1333,6 +1347,7 @@ public struct ChannelsStatusResult: Codable, Sendable {
         self.channellabels = channellabels
         self.channeldetaillabels = channeldetaillabels
         self.channelsystemimages = channelsystemimages
+        self.channelmeta = channelmeta
         self.channels = channels
         self.channelaccounts = channelaccounts
         self.channeldefaultaccountid = channeldefaultaccountid
@@ -1343,6 +1358,7 @@ public struct ChannelsStatusResult: Codable, Sendable {
         case channellabels = "channelLabels"
         case channeldetaillabels = "channelDetailLabels"
         case channelsystemimages = "channelSystemImages"
+        case channelmeta = "channelMeta"
         case channels
         case channelaccounts = "channelAccounts"
         case channeldefaultaccountid = "channelDefaultAccountId"

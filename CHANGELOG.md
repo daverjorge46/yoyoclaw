@@ -2,21 +2,31 @@
 
 Docs: https://docs.clawd.bot
 
-## 2026.1.20-1
+## 2026.1.20
 
 ### Changes
+- Deps: update workspace + memory-lancedb dependencies.
 - Repo: remove the Peekaboo git submodule now that the SPM release is used.
+- Update: sync plugin sources on channel switches and update npm-installed plugins during `clawdbot update`.
+- Plugins: share npm plugin update logic between `clawdbot update` and `clawdbot plugins update`.
 - Plugins: require manifest-embedded config schemas, validate configs without loading plugin code, and surface plugin config warnings. (#1272) — thanks @thewilloftheshadow.
 - Plugins: move channel catalog metadata into plugin manifests; align Nextcloud Talk policy helpers with core patterns. (#1290) — thanks @NicholaiVogel.
+- Discord: fall back to /skill when native command limits are exceeded; expose /skill globally. (#1287) — thanks @thewilloftheshadow.
 - Docs: refresh bird skill install metadata and usage notes. (#1302) — thanks @odysseus0.
 - Matrix: migrate to matrix-bot-sdk with E2EE support, location handling, and group allowlist upgrades. (#1298) — thanks @sibbl.
 - Plugins/UI: let channel plugin metadata drive UI labels/icons and cron channel options. (#1306) — thanks @steipete.
+- Zalouser: add channel dock metadata, config schema, setup wiring, probe, and status issues. (#1219) — thanks @suminhthanh.
 ### Fixes
+- Discovery: shorten Bonjour DNS-SD service type to `_clawdbot-gw._tcp` and update discovery clients/docs.
+- Doctor: clarify plugin auto-enable hint text in the startup banner.
 - Web search: infer Perplexity base URL from API key source (direct vs OpenRouter).
 - TUI: keep thinking blocks ordered before content during streaming and isolate per-run assembly. (#1202) — thanks @aaronveklabs.
+- TUI: align custom editor initialization with the latest pi-tui API. (#1298) — thanks @sibbl.
 - CLI: avoid duplicating --profile/--dev flags when formatting commands.
 - Exec: prefer bash when fish is default shell, falling back to sh if bash is missing. (#1297) — thanks @ysqander.
+- Exec: merge login-shell PATH for host=gateway exec while keeping daemon PATH minimal. (#1304)
 - Plugins: add Nextcloud Talk manifest for plugin config validation. (#1297) — thanks @ysqander.
+- Anthropic: default API prompt caching to 1h with configurable TTL override; ignore TTL for OAuth.
 
 ## 2026.1.19-3
 
@@ -29,6 +39,8 @@ Docs: https://docs.clawd.bot
 ### Fixes
 - Gateway: strip inbound envelope headers from chat history messages to keep clients clean.
 - UI: prevent double-scroll in Control UI chat by locking chat layout to the viewport. (#1283) — thanks @bradleypriest.
+- Config: allow Perplexity as a web_search provider in config validation. (#1230)
+- Browser: register AI snapshot refs for act commands. (#1282) — thanks @John-Rood.
 
 ## 2026.1.19-2
 
@@ -51,6 +63,7 @@ Docs: https://docs.clawd.bot
 - Usage: add `/usage cost` summaries and macOS menu cost submenu with daily charting.
 - Agents: clarify node_modules read-only guidance in agent instructions.
 - TUI: add syntax highlighting for code blocks. (#1200) — thanks @vignesh07.
+- TUI: session picker shows derived titles, fuzzy search, relative times, and last message preview. (#1271) — thanks @Whoaa512.
 
 ### Fixes
 - UI: enable shell mode for sync Windows spawns to avoid `pnpm ui:build` EINVAL. (#1212) — thanks @longmaba.
@@ -63,6 +76,7 @@ Docs: https://docs.clawd.bot
 - TUI: show generic empty-state text for searchable pickers. (#1201) — thanks @vignesh07.
 - Doctor: canonicalize legacy session keys in session stores to prevent stale metadata. (#1169)
 - CLI: centralize CLI command registration to keep fast-path routing and program wiring in sync. (#1207) — thanks @gumadeiras.
+- Config: allow custom fields under `skills.entries.<name>.config` for skill credentials/config. (#1226) — thanks @VACInc. (fixes #1225)
 
 ## 2026.1.18-5
 

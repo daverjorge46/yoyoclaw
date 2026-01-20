@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { WebSocket, type ClientOptions, type CertMeta } from "ws";
+import { normalizeFingerprint } from "../infra/tls/fingerprint.js";
 import { rawDataToString } from "../infra/ws.js";
 import { logDebug, logError } from "../logger.js";
 import type { DeviceIdentity } from "../infra/device-identity.js";
@@ -8,7 +9,11 @@ import {
   publicKeyRawBase64UrlFromPem,
   signDevicePayload,
 } from "../infra/device-identity.js";
-import { loadDeviceAuthToken, storeDeviceAuthToken } from "../infra/device-auth-store.js";
+import {
+  clearDeviceAuthToken,
+  loadDeviceAuthToken,
+  storeDeviceAuthToken,
+} from "../infra/device-auth-store.js";
 import {
   GATEWAY_CLIENT_MODES,
   GATEWAY_CLIENT_NAMES,
@@ -72,11 +77,14 @@ export function describeGatewayCloseCode(code: number): string | undefined {
 
 export class GatewayClient {
   private ws: WebSocket | null = null;
-  private opts: GatewayClientOptions & { deviceIdentity: DeviceIdentity };
+  private opts: GatewayClientOptions;
   private pending = new Map<string, Pending>();
   private backoffMs = 1000;
   private closed = false;
   private lastSeq: number | null = null;
+  private connectNonce: string | null = null;
+  private connectSent = false;
+  private connectTimer: NodeJS.Timeout | null = null;
   // Track last tick to detect silent stalls.
   private lastTick: number | null = null;
   private tickIntervalMs = 30_000;
@@ -92,6 +100,10 @@ export class GatewayClient {
   start() {
     if (this.closed) return;
     const url = this.opts.url ?? "ws://127.0.0.1:18789";
+    if (this.opts.tlsFingerprint && !url.startsWith("wss://")) {
+      this.opts.onConnectError?.(new Error("gateway tls fingerprint requires wss:// gateway url"));
+      return;
+    }
     // Allow node screen snapshots and other large responses.
     const wsOptions: ClientOptions = {
       maxPayload: 25 * 1024 * 1024,
@@ -121,7 +133,17 @@ export class GatewayClient {
     }
     this.ws = new WebSocket(url, wsOptions);
 
-    this.ws.on("open", () => this.sendConnect());
+    this.ws.on("open", () => {
+      if (url.startsWith("wss://") && this.opts.tlsFingerprint) {
+        const tlsError = this.validateTlsFingerprint();
+        if (tlsError) {
+          this.opts.onConnectError?.(tlsError);
+          this.ws?.close(1008, tlsError.message);
+          return;
+        }
+      }
+      this.queueConnect();
+    });
     this.ws.on("message", (data) => this.handleMessage(rawDataToString(data)));
     this.ws.on("close", (code, reason) => {
       const reasonText = rawDataToString(reason);
@@ -132,6 +154,9 @@ export class GatewayClient {
     });
     this.ws.on("error", (err) => {
       logDebug(`gateway client error: ${String(err)}`);
+      if (!this.connectSent) {
+        this.opts.onConnectError?.(err instanceof Error ? err : new Error(String(err)));
+      }
     });
   }
 
@@ -147,11 +172,18 @@ export class GatewayClient {
   }
 
   private sendConnect() {
+    if (this.connectSent) return;
+    this.connectSent = true;
+    if (this.connectTimer) {
+      clearTimeout(this.connectTimer);
+      this.connectTimer = null;
+    }
     const role = this.opts.role ?? "operator";
     const storedToken = this.opts.deviceIdentity
       ? loadDeviceAuthToken({ deviceId: this.opts.deviceIdentity.deviceId, role })?.token
       : null;
-    const authToken = this.opts.token ?? storedToken ?? undefined;
+    const authToken = storedToken ?? this.opts.token ?? undefined;
+    const canFallbackToShared = Boolean(storedToken && this.opts.token);
     const auth =
       authToken || this.opts.password
         ? {
@@ -160,24 +192,29 @@ export class GatewayClient {
           }
         : undefined;
     const signedAtMs = Date.now();
+    const nonce = this.connectNonce ?? undefined;
     const scopes = this.opts.scopes ?? ["operator.admin"];
-    const deviceIdentity = this.opts.deviceIdentity;
-    const payload = buildDeviceAuthPayload({
-      deviceId: deviceIdentity.deviceId,
-      clientId: this.opts.clientName ?? GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
-      clientMode: this.opts.mode ?? GATEWAY_CLIENT_MODES.BACKEND,
-      role,
-      scopes,
-      signedAtMs,
-      token: authToken ?? null,
-    });
-    const signature = signDevicePayload(deviceIdentity.privateKeyPem, payload);
-    const device = {
-      id: deviceIdentity.deviceId,
-      publicKey: publicKeyRawBase64UrlFromPem(deviceIdentity.publicKeyPem),
-      signature,
-      signedAt: signedAtMs,
-    };
+    const device = (() => {
+      if (!this.opts.deviceIdentity) return undefined;
+      const payload = buildDeviceAuthPayload({
+        deviceId: this.opts.deviceIdentity.deviceId,
+        clientId: this.opts.clientName ?? GATEWAY_CLIENT_NAMES.GATEWAY_CLIENT,
+        clientMode: this.opts.mode ?? GATEWAY_CLIENT_MODES.BACKEND,
+        role,
+        scopes,
+        signedAtMs,
+        token: authToken ?? null,
+        nonce,
+      });
+      const signature = signDevicePayload(this.opts.deviceIdentity.privateKeyPem, payload);
+      return {
+        id: this.opts.deviceIdentity.deviceId,
+        publicKey: publicKeyRawBase64UrlFromPem(this.opts.deviceIdentity.publicKeyPem),
+        signature,
+        signedAt: signedAtMs,
+        nonce,
+      };
+    })();
     const params: ConnectParams = {
       minProtocol: this.opts.minProtocol ?? PROTOCOL_VERSION,
       maxProtocol: this.opts.maxProtocol ?? PROTOCOL_VERSION,
@@ -222,6 +259,12 @@ export class GatewayClient {
         this.opts.onHelloOk?.(helloOk);
       })
       .catch((err) => {
+        if (canFallbackToShared && this.opts.deviceIdentity) {
+          clearDeviceAuthToken({
+            deviceId: this.opts.deviceIdentity.deviceId,
+            role,
+          });
+        }
         this.opts.onConnectError?.(err instanceof Error ? err : new Error(String(err)));
         const msg = `gateway connect failed: ${String(err)}`;
         if (this.opts.mode === GATEWAY_CLIENT_MODES.PROBE) logDebug(msg);
@@ -235,6 +278,15 @@ export class GatewayClient {
       const parsed = JSON.parse(raw);
       if (validateEventFrame(parsed)) {
         const evt = parsed as EventFrame;
+        if (evt.event === "connect.challenge") {
+          const payload = evt.payload as { nonce?: unknown } | undefined;
+          const nonce = payload && typeof payload.nonce === "string" ? payload.nonce : null;
+          if (nonce) {
+            this.connectNonce = nonce;
+            this.sendConnect();
+          }
+          return;
+        }
         const seq = typeof evt.seq === "number" ? evt.seq : null;
         if (seq !== null) {
           if (this.lastSeq !== null && seq > this.lastSeq + 1) {
@@ -264,6 +316,15 @@ export class GatewayClient {
     } catch (err) {
       logDebug(`gateway client parse error: ${String(err)}`);
     }
+  }
+
+  private queueConnect() {
+    this.connectNonce = null;
+    this.connectSent = false;
+    if (this.connectTimer) clearTimeout(this.connectTimer);
+    this.connectTimer = setTimeout(() => {
+      this.sendConnect();
+    }, 750);
   }
 
   private scheduleReconnect() {
@@ -297,6 +358,25 @@ export class GatewayClient {
     }, interval);
   }
 
+  private validateTlsFingerprint(): Error | null {
+    if (!this.opts.tlsFingerprint || !this.ws) return null;
+    const expected = normalizeFingerprint(this.opts.tlsFingerprint);
+    if (!expected) return new Error("gateway tls fingerprint missing");
+    const socket = (
+      this.ws as WebSocket & {
+        _socket?: { getPeerCertificate?: () => { fingerprint256?: string } };
+      }
+    )._socket;
+    if (!socket || typeof socket.getPeerCertificate !== "function") {
+      return new Error("gateway tls fingerprint unavailable");
+    }
+    const cert = socket.getPeerCertificate();
+    const fingerprint = normalizeFingerprint(cert?.fingerprint256 ?? "");
+    if (!fingerprint) return new Error("gateway tls fingerprint unavailable");
+    if (fingerprint !== expected) return new Error("gateway tls fingerprint mismatch");
+    return null;
+  }
+
   async request<T = unknown>(
     method: string,
     params?: unknown,
@@ -323,8 +403,4 @@ export class GatewayClient {
     this.ws.send(JSON.stringify(frame));
     return p;
   }
-}
-
-function normalizeFingerprint(input: string): string {
-  return input.replace(/[^a-fA-F0-9]/g, "").toLowerCase();
 }

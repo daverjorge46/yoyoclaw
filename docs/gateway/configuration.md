@@ -1414,7 +1414,7 @@ Each `agents.defaults.models` entry can include:
 - `alias` (optional model shortcut, e.g. `/opus`).
 - `params` (optional provider-specific API params passed through to the model request).
 
-`params` is also applied to streaming runs (embedded agent + compaction). Supported keys today: `temperature`, `maxTokens`. These merge with call-time options; caller-supplied values win. `temperature` is an advanced knob—leave unset unless you know the model’s defaults and need a change.
+`params` is also applied to streaming runs (embedded agent + compaction). Supported keys today: `temperature`, `maxTokens`, `cacheControlTtl` (`"5m"` or `"1h"`, Anthropic API + OpenRouter Anthropic models only; ignored for Anthropic OAuth/Claude Code tokens). These merge with call-time options; caller-supplied values win. `temperature` is an advanced knob—leave unset unless you know the model’s defaults and need a change. Anthropic API defaults to `"1h"` unless you override (`cacheControlTtl: "5m"`). Clawdbot includes the `extended-cache-ttl-2025-04-11` beta flag for Anthropic API; keep it if you override provider headers.
 
 Example:
 
@@ -2697,6 +2697,7 @@ Remote client defaults (CLI):
 - `gateway.remote.url` sets the default Gateway WebSocket URL for CLI calls when `gateway.mode = "remote"`.
 - `gateway.remote.token` supplies the token for remote calls (leave unset for no auth).
 - `gateway.remote.password` supplies the password for remote calls (leave unset for no auth).
+- `gateway.remote.tlsFingerprint` pins the gateway TLS cert fingerprint (sha256).
 
 macOS app behavior:
 - Clawdbot.app watches `~/.clawdbot/clawdbot.json` and switches modes live when `gateway.mode` or `gateway.remote.url` changes.
@@ -2710,7 +2711,8 @@ macOS app behavior:
     remote: {
       url: "ws://gateway.tailnet:18789",
       token: "your-token",
-      password: "your-password"
+      password: "your-password",
+      tlsFingerprint: "sha256:ab12cd34..."
     }
   }
 }
@@ -2986,7 +2988,7 @@ Auto-generated certs require `openssl` on PATH; if generation fails, the bridge 
 
 ### `discovery.wideArea` (Wide-Area Bonjour / unicast DNS‑SD)
 
-When enabled, the Gateway writes a unicast DNS-SD zone for `_clawdbot-bridge._tcp` under `~/.clawdbot/dns/` using the standard discovery domain `clawdbot.internal.`
+When enabled, the Gateway writes a unicast DNS-SD zone for `_clawdbot-gw._tcp` under `~/.clawdbot/dns/` using the standard discovery domain `clawdbot.internal.`
 
 To make iOS/Android discover across networks (Vienna ⇄ London), pair this with:
 - a DNS server on the gateway host serving `clawdbot.internal.` (CoreDNS is recommended)

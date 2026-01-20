@@ -4,9 +4,17 @@ export type ChannelsStatusSnapshot = {
   channelLabels: Record<string, string>;
   channelDetailLabels?: Record<string, string>;
   channelSystemImages?: Record<string, string>;
+  channelMeta?: ChannelUiMetaEntry[];
   channels: Record<string, unknown>;
   channelAccounts: Record<string, ChannelAccountSnapshot[]>;
   channelDefaultAccountId: Record<string, string>;
+};
+
+export type ChannelUiMetaEntry = {
+  id: string;
+  label: string;
+  detailLabel: string;
+  systemImage?: string;
 };
 
 export const CRON_CHANNEL_LAST = "last";
@@ -246,6 +254,7 @@ export type ConfigSchemaResponse = {
 };
 
 export type PresenceEntry = {
+  deviceId?: string | null;
   instanceId?: string | null;
   host?: string | null;
   ip?: string | null;
@@ -256,6 +265,8 @@ export type PresenceEntry = {
   mode?: string | null;
   lastInputSeconds?: number | null;
   reason?: string | null;
+  roles?: string[] | null;
+  scopes?: string[] | null;
   text?: string | null;
   ts?: number | null;
 };

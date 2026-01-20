@@ -79,10 +79,24 @@ This intentionally excludes version managers (nvm/fnm/volta/asdf) and package
 managers (pnpm/npm) because the daemon does not load your shell init. Runtime
 variables like `DISPLAY` should live in `~/.clawdbot/.env` (loaded early by the
 gateway).
+Exec runs on `host=gateway` merge your login-shell `PATH` into the exec environment,
+so missing tools usually mean your shell init isn’t exporting them (or set
+`tools.exec.pathPrepend`). See [/tools/exec](/tools/exec).
 
 WhatsApp + Telegram channels require **Node**; Bun is unsupported. If your
 service was installed with Bun or a version-managed Node path, run `clawdbot doctor`
 to migrate to a system Node install.
+
+### Skill missing API key in sandbox
+
+**Symptom:** Skill works on host but fails in sandbox with missing API key.
+
+**Why:** sandboxed exec runs inside Docker and does **not** inherit host `process.env`.
+
+**Fix:**
+- set `agents.defaults.sandbox.docker.env` (or per-agent `agents.list[].sandbox.docker.env`)
+- or bake the key into your custom sandbox image
+- then run `clawdbot sandbox recreate --agent <id>` (or `--all`)
 
 ### Service Running but Port Not Listening
 
