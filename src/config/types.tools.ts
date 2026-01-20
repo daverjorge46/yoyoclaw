@@ -180,6 +180,12 @@ export type MemorySearchConfig = {
   enabled?: boolean;
   /** Sources to index and search (default: ["memory"]). */
   sources?: Array<"memory" | "sessions">;
+  /**
+   * Additional paths to include in memory search.
+   * Supports glob patterns. Paths can be absolute, relative to workspace, or use tilde for home.
+   * Only markdown files are indexed.
+   */
+  paths?: string[];
   /** Experimental memory search settings. */
   experimental?: {
     /** Enable session transcript indexing (experimental, default: false). */

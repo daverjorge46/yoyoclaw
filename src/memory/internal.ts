@@ -60,7 +60,10 @@ async function walkDir(dir: string, files: string[]) {
   }
 }
 
-export async function listMemoryFiles(workspaceDir: string): Promise<string[]> {
+export async function listMemoryFiles(
+  workspaceDir: string,
+  additionalPaths?: string[],
+): Promise<string[]> {
   const result: string[] = [];
   const memoryFile = path.join(workspaceDir, "MEMORY.md");
   const altMemoryFile = path.join(workspaceDir, "memory.md");
@@ -70,6 +73,39 @@ export async function listMemoryFiles(workspaceDir: string): Promise<string[]> {
   if (await exists(memoryDir)) {
     await walkDir(memoryDir, result);
   }
+
+  // Process additional paths (glob patterns)
+  if (additionalPaths && additionalPaths.length > 0) {
+    for (const pattern of additionalPaths) {
+      // Expand ~ to home directory
+      const expandedPattern = pattern.startsWith("~/")
+        ? path.join(process.env.HOME || "", pattern.slice(2))
+        : pattern.startsWith("/")
+          ? pattern
+          : path.join(workspaceDir, pattern);
+
+      try {
+        // Use Node's fs.glob for pattern matching (Node 22+)
+        const { glob } = await import("node:fs/promises");
+        for await (const file of glob(expandedPattern)) {
+          if (file.endsWith(".md")) {
+            result.push(file);
+          }
+        }
+      } catch {
+        // If glob fails (e.g., not a pattern, just a path), try as direct path
+        if (await exists(expandedPattern)) {
+          if (expandedPattern.endsWith(".md")) {
+            result.push(expandedPattern);
+          } else {
+            // It's a directory, walk it
+            await walkDir(expandedPattern, result);
+          }
+        }
+      }
+    }
+  }
+
   if (result.length <= 1) return result;
   const seen = new Set<string>();
   const deduped: string[] = [];

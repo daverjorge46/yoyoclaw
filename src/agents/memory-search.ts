@@ -9,6 +9,7 @@ import { resolveAgentConfig } from "./agent-scope.js";
 export type ResolvedMemorySearchConfig = {
   enabled: boolean;
   sources: Array<"memory" | "sessions">;
+  paths?: string[];
   provider: "openai" | "local" | "gemini" | "auto";
   remote?: {
     baseUrl?: string;
@@ -208,9 +209,14 @@ function mergeConfig(
   const normalizedVectorWeight = sum > 0 ? vectorWeight / sum : DEFAULT_HYBRID_VECTOR_WEIGHT;
   const normalizedTextWeight = sum > 0 ? textWeight / sum : DEFAULT_HYBRID_TEXT_WEIGHT;
   const candidateMultiplier = clampInt(hybrid.candidateMultiplier, 1, 20);
+
+  // Merge paths arrays (override takes precedence, but can extend defaults)
+  const paths = overrides?.paths ?? defaults?.paths;
+
   return {
     enabled,
     sources,
+    paths,
     provider,
     remote,
     experimental: {

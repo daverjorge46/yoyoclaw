@@ -240,6 +240,12 @@ export const MemorySearchSchema = z
   .object({
     enabled: z.boolean().optional(),
     sources: z.array(z.union([z.literal("memory"), z.literal("sessions")])).optional(),
+    paths: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Additional paths (glob patterns) to include in memory search. Paths are relative to workspace. Example: ['~/projects/cambrian/reports/*.md', '~/projects/cambrian/design/**/*.md']",
+      ),
     experimental: z
       .object({
         sessionMemory: z.boolean().optional(),
