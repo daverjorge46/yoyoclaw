@@ -23,7 +23,11 @@ import {
   updateSessionBubble,
   completeSessionBubble,
   forwardEventToChat,
+  recordCCQuestion,
+  recordDyDoAnswer,
 } from "../claude-code/bubble-service.js";
+import { generateOrchestratorResponse } from "../claude-code/orchestrator.js";
+import type { OrchestratorContext } from "../claude-code/orchestrator.js";
 import type { ProjectContext } from "../claude-code/project-context.js";
 import type { SessionEvent, SessionState } from "../claude-code/types.js";
 import type { AnyAgentTool } from "./common.js";
@@ -240,6 +244,54 @@ The session will run in background. You'll receive questions via conversation.`,
 
             // Update the bubble with new state
             await updateSessionBubble({ sessionId, state });
+          },
+
+          // Question handler: route CC questions to DyDo
+          onQuestion: async (question: string): Promise<string | null> => {
+            if (!sessionId) return null;
+
+            log.info(`[${sessionId}] CC question: ${question.slice(0, 100)}...`);
+
+            // Record question in bubble state (shows expanded Q&A)
+            recordCCQuestion(sessionId, question);
+
+            // Trigger bubble update to show "DyDo thinking..."
+            const session = getSession(sessionId);
+            if (session) {
+              await updateSessionBubble({ sessionId, state: getSessionState(session) });
+            }
+
+            // Build orchestrator context from planning context
+            const orchestratorContext: OrchestratorContext = {
+              projectName,
+              workingDir: projectPath,
+              resumeToken: currentResumeToken ?? sessionId,
+              originalTask,
+              recentActions: session ? getSessionState(session).recentActions : [],
+            };
+
+            try {
+              // Get DyDo's answer via orchestrator
+              const answer = await generateOrchestratorResponse(orchestratorContext, question);
+
+              log.info(`[${sessionId}] DyDo answer: ${answer.slice(0, 100)}...`);
+
+              // Record answer in bubble state (collapses Q&A, shows summary)
+              recordDyDoAnswer(sessionId);
+
+              // Trigger bubble update to show collapsed Q&A
+              const updatedSession = getSession(sessionId);
+              if (updatedSession) {
+                await updateSessionBubble({ sessionId, state: getSessionState(updatedSession) });
+              }
+
+              return answer;
+            } catch (err) {
+              log.error(`[${sessionId}] Failed to get DyDo answer: ${err}`);
+              // Fall back to a safe default
+              recordDyDoAnswer(sessionId);
+              return "Use your best judgment and proceed.";
+            }
           },
         });
 
