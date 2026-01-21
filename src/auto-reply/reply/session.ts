@@ -119,13 +119,7 @@ export async function initSessionState(params: {
   const channelKey = rawChannel?.trim()
     ? (normalizeChannelId(rawChannel) ?? rawChannel.trim().toLowerCase())
     : undefined;
-  const channelIdleMinutes = channelKey
-    ? sessionCfg?.channelIdleMinutes?.[channelKey]
-    : undefined;
-  const idleMinutes = Math.max(
-    channelIdleMinutes ?? sessionCfg?.idleMinutes ?? DEFAULT_IDLE_MINUTES,
-    1,
-  );
+  const channelIdleMinutes = channelKey ? sessionCfg?.channelIdleMinutes?.[channelKey] : undefined;
   const sessionScope = sessionCfg?.scope ?? "per-sender";
   const storePath = resolveStorePath(sessionCfg?.store, { agentId });
 
@@ -211,7 +205,11 @@ export async function initSessionState(params: {
     parentSessionKey: ctx.ParentSessionKey,
   });
   const resetType = resolveSessionResetType({ sessionKey, isGroup, isThread });
-  const resetPolicy = resolveSessionResetPolicy({ sessionCfg, resetType });
+  const resetPolicy = resolveSessionResetPolicy({
+    sessionCfg,
+    resetType,
+    idleMinutesOverride: channelIdleMinutes,
+  });
   const freshEntry = entry
     ? evaluateSessionFreshness({ updatedAt: entry.updatedAt, now, policy: resetPolicy }).fresh
     : false;
