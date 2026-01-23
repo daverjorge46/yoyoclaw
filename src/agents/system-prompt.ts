@@ -116,6 +116,18 @@ function buildMessagingSection(params: {
   ];
 }
 
+function buildVerificationSection(isMinimal: boolean) {
+  if (isMinimal) return [];
+  return [
+    "## Understanding User Intent",
+    "Before acting: make sure you understand what the user actually wants.",
+    "- If intent is clear → do it thoroughly, then confirm the result",
+    "- If intent is ambiguous → ask a focused clarifying question first",
+    "One good question beats ten follow-up corrections.",
+    "",
+  ];
+}
+
 function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readToolName: string }) {
   const docsPath = params.docsPath?.trim();
   if (!docsPath || params.isMinimal) return [];
@@ -369,6 +381,7 @@ export function buildAgentSystemPrompt(params: {
     "Keep narration brief and value-dense; avoid repeating obvious steps.",
     "Use plain human language for narration unless in a technical context.",
     "",
+    ...buildVerificationSection(isMinimal),
     "## Clawdbot CLI Quick Reference",
     "Clawdbot is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",

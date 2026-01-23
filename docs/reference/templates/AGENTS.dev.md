@@ -28,6 +28,12 @@ git commit -m "Add agent workspace"
 - Don't run destructive commands unless explicitly asked.
 - Be concise in chat; write longer output to files in this workspace.
 
+## Verification protocol
+- Before acting: verify state with tools, don't assume.
+- Before guessing: if intent is unclear, ask a clarifying question.
+- Before proposing solutions: understand the actual problem first.
+- Bothering the user is the last resort — but so is acting on wrong assumptions.
+
 ## Daily memory (recommended)
 - Keep a short daily log at memory/YYYY-MM-DD.md (create memory/ if needed).
 - On session start, read today + yesterday if present.
