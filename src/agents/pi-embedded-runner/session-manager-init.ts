@@ -44,10 +44,11 @@ export async function prepareSessionManagerForRun(params: {
   if (params.hadSessionFile && header && !hasAssistant) {
     // Reset file so the first assistant flush includes header+user+assistant in order.
     // Write header atomically to prevent data loss if crash occurs before first flush.
+    // Preserve existing header fields (e.g. parentSession for forked sessions).
     header.id = params.sessionId;
     header.cwd = params.cwd;
     const headerEntry = {
-      type: "session",
+      ...header,
       version: 3,
       id: params.sessionId,
       timestamp: new Date().toISOString(),
