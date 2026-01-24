@@ -1,15 +1,7 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import { describe, expect, it } from "vitest";
 import { formatAssistantErrorText } from "./pi-embedded-helpers.js";
-import { DEFAULT_AGENTS_FILENAME } from "./workspace.js";
 
-const _makeFile = (overrides: Partial<WorkspaceBootstrapFile>): WorkspaceBootstrapFile => ({
-  name: DEFAULT_AGENTS_FILENAME,
-  path: "/tmp/AGENTS.md",
-  content: "",
-  missing: false,
-  ...overrides,
-});
 describe("formatAssistantErrorText", () => {
   const makeAssistantError = (errorMessage: string): AssistantMessage =>
     ({
