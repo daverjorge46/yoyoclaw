@@ -8,9 +8,18 @@ This plugin provides tools for agents to:
 - **Load and cache project context** - Understand project structure, conventions, and preferences
 - **Start Claude Code sessions** - Spawn enriched Claude Code sessions with full context
 
-## Phase 1 (Current)
+## Implementation Status
 
-Core plugin functionality without Telegram integration.
+### Phase 1 ✅ Complete
+- Core tools (`project_context`, `claude_code_start`)
+- Session management with event callbacks
+- Project context caching and exploration
+
+### Phase 2 ✅ Complete
+- Telegram bubble integration (imports core bubble-service)
+- Blocker detection and notification
+- `onBlocker` callback for session monitoring
+- Telegram config options (`enabled`, `chatId`, `threadId`, `accountId`)
 
 ## Installation
 
@@ -55,6 +64,14 @@ Add to your Clawdbot config:
           // Explicit project aliases
           projects: {
             "myproject": "~/custom/path/myproject"
+          },
+
+          // Telegram bubble integration (Phase 2)
+          telegram: {
+            enabled: true,
+            chatId: "-1001234567890",  // Your Telegram chat ID
+            threadId: 42,               // Optional: topic/thread ID
+            accountId: "default"        // Optional: multi-account support
           }
         }
       }

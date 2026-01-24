@@ -17,6 +17,7 @@ import type {
   SessionEvent,
   SessionState,
   SessionStartResult,
+  BlockerInfo,
 } from "../types.js";
 import {
   resolveProject,
@@ -59,6 +60,60 @@ export function setLogger(logger: Logger): void {
  * Registry of active Claude Code sessions.
  */
 const activeSessions = new Map<string, ClaudeCodeSessionData>();
+
+/**
+ * Blocker detection patterns.
+ * These patterns indicate the session is blocked and needs external intervention.
+ */
+const BLOCKER_PATTERNS = [
+  {
+    pattern: /insufficient\s+(funds|balance|sol)/i,
+    category: "insufficient_funds",
+    extractContext: (text: string) => {
+      const walletMatch = text.match(/wallet[:\s]+([A-HJ-NP-Za-km-z1-9]{32,44})/i);
+      const amountMatch = text.match(/(\d+\.?\d*)\s*SOL/i);
+      const neededMatch = text.match(/need(?:ed|s)?\s+(\d+\.?\d*)\s*SOL/i);
+      return {
+        wallet: walletMatch?.[1],
+        current: amountMatch ? parseFloat(amountMatch[1]) : undefined,
+        needed: neededMatch ? parseFloat(neededMatch[1]) : undefined,
+      };
+    },
+  },
+  {
+    pattern: /rate\s*limit(?:ed)?|too\s+many\s+requests/i,
+    category: "rate_limit",
+  },
+  {
+    pattern: /api\s*(?:key|token)\s*(?:invalid|expired|missing)/i,
+    category: "api_key_error",
+  },
+  {
+    pattern: /permission\s*denied|access\s*denied|unauthorized/i,
+    category: "permission_denied",
+  },
+  {
+    pattern: /connection\s*(?:refused|timeout|failed)/i,
+    category: "connection_error",
+  },
+];
+
+/**
+ * Detect blockers in text content.
+ */
+function detectBlocker(text: string): BlockerInfo | null {
+  for (const { pattern, category, extractContext } of BLOCKER_PATTERNS) {
+    const match = text.match(pattern);
+    if (match) {
+      return {
+        reason: match[0],
+        matchedPatterns: [category],
+        extractedContext: extractContext ? extractContext(text) : undefined,
+      };
+    }
+  }
+  return null;
+}
 
 /**
  * Get session by ID.
@@ -234,6 +289,7 @@ export async function startSession(params: ClaudeCodeSessionParams): Promise<Ses
     onEvent: params.onEvent,
     onQuestion: params.onQuestion,
     onStateChange: params.onStateChange,
+    onBlocker: params.onBlocker,
     eventCount: 0,
     events: [],
     recentActions: [],
@@ -580,6 +636,28 @@ function processEvent(session: ClaudeCodeSessionData, event: SessionEvent): void
     session.status = "running";
   }
 
+  // Check for blockers in assistant messages
+  if (event.type === "assistant_message" && event.text && session.onBlocker) {
+    const blocker = detectBlocker(event.text);
+    if (blocker) {
+      log.info(`[${session.id}] Blocker detected: ${blocker.reason}`);
+      session.blockerInfo = blocker;
+
+      // Invoke blocker callback
+      session
+        .onBlocker(blocker)
+        .then((shouldPause) => {
+          if (shouldPause) {
+            session.status = "blocked";
+            notifyStateChange(session);
+          }
+        })
+        .catch((err) => {
+          log.error(`[${session.id}] Blocker handler error: ${err}`);
+        });
+    }
+  }
+
   // Notify event callback
   if (session.onEvent) {
     session.onEvent(event);
@@ -632,6 +710,7 @@ export function getSessionState(session: ClaudeCodeSessionData): SessionState {
     questionText: session.currentQuestion ?? "",
     totalEvents: session.eventCount,
     isIdle: session.status === "idle",
+    blockerInfo: session.blockerInfo,
   };
 }
 

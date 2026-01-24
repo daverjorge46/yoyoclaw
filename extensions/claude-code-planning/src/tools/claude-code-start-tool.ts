@@ -21,7 +21,7 @@ import {
   getWorkingDirFromResumeToken,
 } from "../context/resolver.js";
 import { loadProjectContext } from "../context/explorer.js";
-import type { ProjectContext, SessionState } from "../types.js";
+import type { ProjectContext, SessionState, BlockerInfo } from "../types.js";
 
 /** Logger interface */
 interface Logger {
@@ -180,6 +180,9 @@ export interface ClaudeCodeStartToolOptions {
 
   /** Callback when Claude Code asks a question */
   onQuestion?: (sessionId: string, question: string) => Promise<string | null>;
+
+  /** Callback when a blocker is detected (return true to pause, false to let complete) */
+  onBlocker?: (sessionId: string, blocker: BlockerInfo) => Promise<boolean>;
 
   /** Default permission mode */
   defaultPermissionMode?: "default" | "acceptEdits" | "bypassPermissions";
@@ -352,6 +355,16 @@ The session will run in background. You'll receive questions via conversation.`,
                   return options.onQuestion!(result.sessionId, question);
                 }
                 return null;
+              }
+            : undefined,
+
+          // Blocker handler
+          onBlocker: options?.onBlocker
+            ? async (blocker: BlockerInfo): Promise<boolean> => {
+                if (result.sessionId) {
+                  return options.onBlocker!(result.sessionId, blocker);
+                }
+                return false;
               }
             : undefined,
         });

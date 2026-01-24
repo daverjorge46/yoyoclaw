@@ -7,6 +7,18 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 
 /**
+ * Blocker information detected during session execution.
+ */
+export interface BlockerInfo {
+  /** Why the session is blocked */
+  reason: string;
+  /** Patterns that matched to detect this blocker */
+  matchedPatterns: string[];
+  /** Optional extracted context (e.g., wallet address, amounts) */
+  extractedContext?: Record<string, unknown>;
+}
+
+/**
  * Parameters for starting a Claude Code session.
  */
 export interface ClaudeCodeSessionParams {
@@ -36,6 +48,9 @@ export interface ClaudeCodeSessionParams {
 
   /** Callback for session state changes */
   onStateChange?: (state: SessionState) => void;
+
+  /** Callback when a blocker is detected (return true to pause, false to let complete) */
+  onBlocker?: (blocker: BlockerInfo) => Promise<boolean>;
 }
 
 /**
@@ -76,6 +91,7 @@ export type SessionStatus =
   | "running"
   | "waiting_for_input"
   | "idle"
+  | "blocked"
   | "completed"
   | "cancelled"
   | "failed";
@@ -119,6 +135,9 @@ export interface SessionState {
 
   /** Whether session is idle (no active tool use) */
   isIdle: boolean;
+
+  /** Blocker info if session is blocked */
+  blockerInfo?: BlockerInfo;
 }
 
 /**
@@ -159,6 +178,12 @@ export interface ClaudeCodeSessionData {
 
   /** File watcher abort controller */
   watcherAbort?: AbortController;
+
+  /** Callback when a blocker is detected */
+  onBlocker?: (blocker: BlockerInfo) => Promise<boolean>;
+
+  /** Current blocker info if blocked */
+  blockerInfo?: BlockerInfo;
 
   /** Parsed events count */
   eventCount: number;

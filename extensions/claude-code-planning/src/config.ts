@@ -7,6 +7,35 @@
 import { Type, type Static } from "@sinclair/typebox";
 
 /**
+ * Telegram integration configuration schema.
+ */
+export const TelegramConfigSchema = Type.Object({
+  /** Enable Telegram bubble updates */
+  enabled: Type.Boolean({ default: false }),
+
+  /** Default chat ID for bubble updates */
+  chatId: Type.Optional(
+    Type.String({
+      description: "Telegram chat ID for status bubbles",
+    }),
+  ),
+
+  /** Default thread/topic ID */
+  threadId: Type.Optional(
+    Type.Number({
+      description: "Telegram thread/topic ID for bubbles",
+    }),
+  ),
+
+  /** Account ID for multi-account support */
+  accountId: Type.Optional(
+    Type.String({
+      description: "Account ID for multi-account Telegram setup",
+    }),
+  ),
+});
+
+/**
  * Plugin configuration schema using TypeBox.
  */
 export const ClaudeCodePlanningConfigSchema = Type.Object({
@@ -66,9 +95,13 @@ export const ClaudeCodePlanningConfigSchema = Type.Object({
       description: "Default model for Claude Code sessions (opus, sonnet, haiku)",
     }),
   ),
+
+  /** Telegram integration settings */
+  telegram: Type.Optional(TelegramConfigSchema),
 });
 
 export type ClaudeCodePlanningConfig = Static<typeof ClaudeCodePlanningConfigSchema>;
+export type TelegramConfig = Static<typeof TelegramConfigSchema>;
 
 /**
  * Parse and validate plugin configuration.
@@ -78,6 +111,18 @@ export function parseConfig(value: unknown): ClaudeCodePlanningConfig {
     value && typeof value === "object" && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : {};
+
+  // Parse telegram config
+  const telegramRaw = raw.telegram as Record<string, unknown> | undefined;
+  const telegram: TelegramConfig | undefined = telegramRaw
+    ? {
+        enabled: typeof telegramRaw.enabled === "boolean" ? telegramRaw.enabled : false,
+        chatId: typeof telegramRaw.chatId === "string" ? telegramRaw.chatId : undefined,
+        threadId: typeof telegramRaw.threadId === "number" ? telegramRaw.threadId : undefined,
+        accountId:
+          typeof telegramRaw.accountId === "string" ? telegramRaw.accountId : undefined,
+      }
+    : undefined;
 
   return {
     enabled: typeof raw.enabled === "boolean" ? raw.enabled : true,
@@ -101,6 +146,7 @@ export function parseConfig(value: unknown): ClaudeCodePlanningConfig {
         ? raw.permissionMode
         : "default",
     model: typeof raw.model === "string" ? raw.model : undefined,
+    telegram,
   };
 }
 
@@ -138,6 +184,32 @@ export const configSchema = {
       label: "Default Model",
       help: "Default model for Claude Code sessions (opus, sonnet, haiku)",
       advanced: true,
+    },
+    telegram: {
+      label: "Telegram Integration",
+      help: "Configure Telegram bubble status updates",
+      nested: {
+        enabled: {
+          label: "Enable Telegram Bubbles",
+          help: "Show live session status in Telegram",
+        },
+        chatId: {
+          label: "Chat ID",
+          placeholder: "-1001234567890",
+          help: "Telegram chat ID for status bubbles",
+        },
+        threadId: {
+          label: "Thread ID",
+          placeholder: "42",
+          help: "Topic/thread ID for topic-based chats",
+          advanced: true,
+        },
+        accountId: {
+          label: "Account ID",
+          help: "Account ID for multi-account setup",
+          advanced: true,
+        },
+      },
     },
   },
 };
