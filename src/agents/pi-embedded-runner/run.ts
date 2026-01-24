@@ -387,18 +387,14 @@ export async function runEmbeddedPiAgent(
                   ownerNumbers: params.ownerNumbers,
                 });
                 if (compactResult.compacted) {
-                  log.info(
-                    `auto-compaction succeeded for ${provider}/${modelId}; retrying prompt`,
-                  );
+                  log.info(`auto-compaction succeeded for ${provider}/${modelId}; retrying prompt`);
                   continue;
                 }
                 log.warn(
                   `auto-compaction failed for ${provider}/${modelId}: ${compactResult.reason ?? "nothing to compact"}`,
                 );
               }
-              const kind = isCompactionFailure
-                ? "compaction_failure"
-                : "context_overflow";
+              const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
               return {
                 payloads: [
                   {
