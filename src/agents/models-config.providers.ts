@@ -4,7 +4,8 @@ import {
   resolveCopilotApiToken,
 } from "../providers/github-copilot-token.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "./auth-profiles.js";
-import { resolveEnvApiKey } from "./model-auth.js";
+import { resolveAwsSdkEnvVarName, resolveEnvApiKey } from "./model-auth.js";
+import { discoverBedrockModels } from "./bedrock-discovery.js";
 import {
   buildSyntheticModelDefinition,
   SYNTHETIC_BASE_URL,
@@ -74,6 +75,10 @@ function resolveEnvApiKeyVarName(provider: string): string | undefined {
   return match ? match[1] : undefined;
 }
 
+function resolveAwsSdkApiKeyVarName(): string {
+  return resolveAwsSdkEnvVarName() ?? "AWS_PROFILE";
+}
+
 function resolveApiKeyFromProfiles(params: {
   provider: string;
   store: ReturnType<typeof ensureAuthProfileStore>;
@@ -138,15 +143,23 @@ export function normalizeProviders(params: {
     const hasModels =
       Array.isArray(normalizedProvider.models) && normalizedProvider.models.length > 0;
     if (hasModels && !normalizedProvider.apiKey?.trim()) {
-      const fromEnv = resolveEnvApiKeyVarName(normalizedKey);
-      const fromProfiles = resolveApiKeyFromProfiles({
-        provider: normalizedKey,
-        store: authStore,
-      });
-      const apiKey = fromEnv ?? fromProfiles;
-      if (apiKey?.trim()) {
+      const authMode =
+        normalizedProvider.auth ?? (normalizedKey === "amazon-bedrock" ? "aws-sdk" : undefined);
+      if (authMode === "aws-sdk") {
+        const apiKey = resolveAwsSdkApiKeyVarName();
         mutated = true;
         normalizedProvider = { ...normalizedProvider, apiKey };
+      } else {
+        const fromEnv = resolveEnvApiKeyVarName(normalizedKey);
+        const fromProfiles = resolveApiKeyFromProfiles({
+          provider: normalizedKey,
+          store: authStore,
+        });
+        const apiKey = fromEnv ?? fromProfiles;
+        if (apiKey?.trim()) {
+          mutated = true;
+          normalizedProvider = { ...normalizedProvider, apiKey };
+        }
       }
     }
 
@@ -361,5 +374,29 @@ export async function resolveImplicitCopilotProvider(params: {
   return {
     baseUrl,
     models: [],
+  } satisfies ProviderConfig;
+}
+
+export async function resolveImplicitBedrockProvider(params: {
+  agentDir: string;
+  config?: ClawdbotConfig;
+  env?: NodeJS.ProcessEnv;
+}): Promise<ProviderConfig | null> {
+  const env = params.env ?? process.env;
+  const discoveryConfig = params.config?.models?.bedrockDiscovery;
+  const enabled = discoveryConfig?.enabled;
+  const hasAwsCreds = resolveAwsSdkEnvVarName(env) !== undefined;
+  if (enabled === false) return null;
+  if (enabled !== true && !hasAwsCreds) return null;
+
+  const region = discoveryConfig?.region ?? env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "us-east-1";
+  const models = await discoverBedrockModels({ region, config: discoveryConfig });
+  if (models.length === 0) return null;
+
+  return {
+    baseUrl: `https://bedrock-runtime.${region}.amazonaws.com`,
+    api: "bedrock-converse-stream",
+    auth: "aws-sdk",
+    models,
   } satisfies ProviderConfig;
 }

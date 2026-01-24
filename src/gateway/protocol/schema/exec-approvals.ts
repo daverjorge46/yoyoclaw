@@ -4,6 +4,7 @@ import { NonEmptyString } from "./primitives.js";
 
 export const ExecApprovalsAllowlistEntrySchema = Type.Object(
   {
+    id: Type.Optional(NonEmptyString),
     pattern: Type.String(),
     lastUsedAt: Type.Optional(Type.Integer({ minimum: 0 })),
     lastUsedCommand: Type.Optional(Type.String()),
@@ -83,6 +84,30 @@ export const ExecApprovalsNodeSetParamsSchema = Type.Object(
     nodeId: NonEmptyString,
     file: ExecApprovalsFileSchema,
     baseHash: Type.Optional(NonEmptyString),
+  },
+  { additionalProperties: false },
+);
+
+export const ExecApprovalRequestParamsSchema = Type.Object(
+  {
+    id: Type.Optional(NonEmptyString),
+    command: NonEmptyString,
+    cwd: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    host: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    security: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    ask: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    agentId: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    resolvedPath: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    sessionKey: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    timeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
+  },
+  { additionalProperties: false },
+);
+
+export const ExecApprovalResolveParamsSchema = Type.Object(
+  {
+    id: NonEmptyString,
+    decision: NonEmptyString,
   },
   { additionalProperties: false },
 );

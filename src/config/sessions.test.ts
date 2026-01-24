@@ -206,6 +206,37 @@ describe("sessions", () => {
     expect(store[sessionKey]?.origin?.chatType).toBe("group");
   });
 
+  it("updateSessionStoreEntry preserves existing fields when patching", async () => {
+    const sessionKey = "agent:main:main";
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-sessions-"));
+    const storePath = path.join(dir, "sessions.json");
+    await fs.writeFile(
+      storePath,
+      JSON.stringify(
+        {
+          [sessionKey]: {
+            sessionId: "sess-1",
+            updatedAt: 100,
+            reasoningLevel: "on",
+          },
+        },
+        null,
+        2,
+      ),
+      "utf-8",
+    );
+
+    await updateSessionStoreEntry({
+      storePath,
+      sessionKey,
+      update: async () => ({ updatedAt: 200 }),
+    });
+
+    const store = loadSessionStore(storePath);
+    expect(store[sessionKey]?.updatedAt).toBeGreaterThanOrEqual(200);
+    expect(store[sessionKey]?.reasoningLevel).toBe("on");
+  });
+
   it("updateSessionStore preserves concurrent additions", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-sessions-"));
     const storePath = path.join(dir, "sessions.json");
@@ -223,6 +254,22 @@ describe("sessions", () => {
     const store = loadSessionStore(storePath);
     expect(store["agent:main:one"]?.sessionId).toBe("sess-1");
     expect(store["agent:main:two"]?.sessionId).toBe("sess-2");
+  });
+
+  it("recovers from array-backed session stores", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-sessions-"));
+    const storePath = path.join(dir, "sessions.json");
+    await fs.writeFile(storePath, "[]", "utf-8");
+
+    await updateSessionStore(storePath, (store) => {
+      store["agent:main:main"] = { sessionId: "sess-1", updatedAt: 1 };
+    });
+
+    const store = loadSessionStore(storePath);
+    expect(store["agent:main:main"]?.sessionId).toBe("sess-1");
+
+    const raw = await fs.readFile(storePath, "utf-8");
+    expect(raw.trim().startsWith("{")).toBe(true);
   });
 
   it("normalizes last route fields on write", async () => {

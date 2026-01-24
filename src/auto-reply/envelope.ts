@@ -16,7 +16,7 @@ export type AgentEnvelopeParams = {
 
 export type EnvelopeFormatOptions = {
   /**
-   * "utc" (default), "local", "user", or an explicit IANA timezone string.
+   * "local" (default), "utc", "user", or an explicit IANA timezone string.
    */
   timezone?: string;
   /**
@@ -30,6 +30,13 @@ export type EnvelopeFormatOptions = {
   /**
    * Optional user timezone used when timezone="user".
    */
+  userTimezone?: string;
+};
+
+type NormalizedEnvelopeOptions = {
+  timezone: string;
+  includeTimestamp: boolean;
+  includeElapsed: boolean;
   userTimezone?: string;
 };
 
@@ -48,11 +55,11 @@ export function resolveEnvelopeFormatOptions(cfg?: ClawdbotConfig): EnvelopeForm
   };
 }
 
-function normalizeEnvelopeOptions(options?: EnvelopeFormatOptions): Required<EnvelopeFormatOptions> {
+function normalizeEnvelopeOptions(options?: EnvelopeFormatOptions): NormalizedEnvelopeOptions {
   const includeTimestamp = options?.includeTimestamp !== false;
   const includeElapsed = options?.includeElapsed !== false;
   return {
-    timezone: options?.timezone?.trim() || "utc",
+    timezone: options?.timezone?.trim() || "local",
     includeTimestamp,
     includeElapsed,
     userTimezone: options?.userTimezone,
@@ -68,9 +75,9 @@ function resolveExplicitTimezone(value: string): string | undefined {
   }
 }
 
-function resolveEnvelopeTimezone(options: EnvelopeFormatOptions): ResolvedEnvelopeTimezone {
+function resolveEnvelopeTimezone(options: NormalizedEnvelopeOptions): ResolvedEnvelopeTimezone {
   const trimmed = options.timezone?.trim();
-  if (!trimmed) return { mode: "utc" };
+  if (!trimmed) return { mode: "local" };
   const lowered = trimmed.toLowerCase();
   if (lowered === "utc" || lowered === "gmt") return { mode: "utc" };
   if (lowered === "local" || lowered === "host") return { mode: "local" };
@@ -115,7 +122,10 @@ function formatZonedTimestamp(date: Date, timeZone?: string): string | undefined
   return `${yyyy}-${mm}-${dd} ${hh}:${min}${tz ? ` ${tz}` : ""}`;
 }
 
-function formatTimestamp(ts: number | Date | undefined, options?: EnvelopeFormatOptions): string | undefined {
+function formatTimestamp(
+  ts: number | Date | undefined,
+  options?: EnvelopeFormatOptions,
+): string | undefined {
   if (!ts) return undefined;
   const resolved = normalizeEnvelopeOptions(options);
   if (!resolved.includeTimestamp) return undefined;
