@@ -18,11 +18,18 @@ import {
   setAccountEnabledInConfigSection,
   signalOnboardingAdapter,
   SignalConfigSchema,
+  type ChannelMessageActionAdapter,
   type ChannelPlugin,
   type ResolvedSignalAccount,
 } from "clawdbot/plugin-sdk";
 
 import { getSignalRuntime } from "./runtime.js";
+
+const signalMessageActions: ChannelMessageActionAdapter = {
+  listActions: (ctx) => getSignalRuntime().channel.signal.messageActions.listActions(ctx),
+  handleAction: async (ctx) =>
+    await getSignalRuntime().channel.signal.messageActions.handleAction(ctx),
+};
 
 const meta = getChatChannelMeta("signal");
 
@@ -42,7 +49,9 @@ export const signalPlugin: ChannelPlugin<ResolvedSignalAccount> = {
   capabilities: {
     chatTypes: ["direct", "group"],
     media: true,
+    reactions: true,
   },
+  actions: signalMessageActions,
   streaming: {
     blockStreamingCoalesceDefaults: { minChars: 1500, idleMs: 1000 },
   },

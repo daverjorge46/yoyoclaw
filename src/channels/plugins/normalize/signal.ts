@@ -22,9 +22,14 @@ export function normalizeSignalMessagingTarget(raw: string): string | undefined 
   return normalized.toLowerCase();
 }
 
+// UUID pattern for signal-cli recipient IDs
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function looksLikeSignalTargetId(raw: string): boolean {
   const trimmed = raw.trim();
   if (!trimmed) return false;
   if (/^(signal:)?(group:|username:|u:)/i.test(trimmed)) return true;
+  // Accept UUIDs (used by signal-cli for reactions)
+  if (UUID_PATTERN.test(trimmed)) return true;
   return /^\+?\d{3,}$/.test(trimmed);
 }
