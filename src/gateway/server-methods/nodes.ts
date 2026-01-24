@@ -469,9 +469,8 @@ export const nodeHandlers: GatewayRequestHandlers = {
     });
     if (!ok) {
       // Late-arriving results (after invoke timeout) are expected and harmless.
-      // Return success with a "late" flag instead of an error to reduce log noise.
-      // The client can safely discard this response.
-      respond(true, { ok: true, late: true }, undefined);
+      // Return success instead of error to reduce log noise; client can discard.
+      respond(true, { ok: true }, undefined);
       return;
     }
     respond(true, { ok: true }, undefined);

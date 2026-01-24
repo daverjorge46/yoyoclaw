@@ -41,7 +41,7 @@ afterAll(async () => {
 });
 
 describe("late-arriving invoke results", () => {
-  test("returns success with late flag for unknown invoke id (late arrival after timeout)", async () => {
+  test("returns success for unknown invoke id (late arrival after timeout)", async () => {
     // Create a node client WebSocket
     const nodeWs = new WebSocket(`ws://127.0.0.1:${port}`);
     await new Promise<void>((resolve) => nodeWs.once("open", resolve));
@@ -63,26 +63,23 @@ describe("late-arriving invoke results", () => {
       });
 
       // Send an invoke result with an unknown ID (simulating late arrival after timeout)
-      const result = await rpcReq<{ ok?: boolean; late?: boolean }>(nodeWs, "node.invoke.result", {
+      const result = await rpcReq<{ ok?: boolean }>(nodeWs, "node.invoke.result", {
         id: "unknown-invoke-id-12345",
         nodeId,
         ok: true,
         payloadJSON: JSON.stringify({ result: "late" }),
       });
 
-      // Late-arriving results should return success with "late" flag instead of error
+      // Late-arriving results return success instead of error to reduce log noise
       expect(result.ok).toBe(true);
       expect(result.payload?.ok).toBe(true);
-      expect(result.payload?.late).toBe(true);
     } finally {
       nodeWs.close();
     }
   });
 
-  test("returns success without late flag for valid invoke id", async () => {
-    // This test verifies that normal invoke results still work correctly
-    // We can't easily test this without an actual invoke, so we just verify
-    // the late flag behavior is specifically for unknown IDs
+  test("returns success for unknown invoke id with error payload", async () => {
+    // Verifies late results are accepted regardless of their ok/error status
     const nodeWs = new WebSocket(`ws://127.0.0.1:${port}`);
     await new Promise<void>((resolve) => nodeWs.once("open", resolve));
 
@@ -101,8 +98,8 @@ describe("late-arriving invoke results", () => {
       const identity = loadOrCreateDeviceIdentity();
       const nodeId = identity.deviceId;
 
-      // Another unknown invoke - should still return late: true
-      const result = await rpcReq<{ ok?: boolean; late?: boolean }>(nodeWs, "node.invoke.result", {
+      // Late invoke result with error payload - should still return success
+      const result = await rpcReq<{ ok?: boolean }>(nodeWs, "node.invoke.result", {
         id: "another-unknown-invoke-id",
         nodeId,
         ok: false,
@@ -111,7 +108,6 @@ describe("late-arriving invoke results", () => {
 
       expect(result.ok).toBe(true);
       expect(result.payload?.ok).toBe(true);
-      expect(result.payload?.late).toBe(true);
     } finally {
       nodeWs.close();
     }
