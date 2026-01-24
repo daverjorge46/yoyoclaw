@@ -17,8 +17,8 @@ This plugin provides tools for agents to:
 
 ### Phase 2 ✅ Complete
 - Telegram bubble integration (imports core bubble-service)
-- Blocker detection and notification
-- `onBlocker` callback for session monitoring
+- AI-driven blocker detection (via core orchestrator)
+- Retry mechanism with smart escalation (3 attempts before notifying user)
 - Telegram config options (`enabled`, `chatId`, `threadId`, `accountId`)
 
 ## Installation
@@ -345,6 +345,43 @@ src/agents/claude-code/
 2. **Integration tests** with mock Telegram API
 3. **Manual testing** with real Telegram chat
 4. **Race condition testing** - rapid start/stop cycles
+
+### AI-Driven Blocker Detection
+
+The plugin uses AI-driven blocker detection instead of pattern matching:
+
+```typescript
+import {
+  createAIDrivenQuestionHandler,
+  assessQuestion,
+  generateOrchestratorResponse,
+  getAttemptHistory,
+  recordAttempt,
+  isSimilarQuestion,
+} from "@clawdbot/claude-code-planning";
+
+// Create AI-driven question handler
+const handler = createAIDrivenQuestionHandler({
+  getContext: (sessionId) => ({
+    projectName: "myproject",
+    workingDir: "/path/to/project",
+    resumeToken: sessionId,
+    originalTask: "Build feature X",
+    recentActions: [],
+  }),
+  onBlocker: async (sessionId, question, reason) => {
+    // Notify user when AI cannot handle the question
+    console.log(`Blocker: ${reason}`);
+  },
+});
+```
+
+**How it works:**
+
+1. **AI Assessment** - `assessQuestion()` evaluates confidence (high/medium/low/impossible)
+2. **Retry Detection** - Tracks similar questions; escalates after 3 failed attempts
+3. **AI Response** - `generateOrchestratorResponse()` creates contextual answers
+4. **Attempt History** - `recordAttempt()` logs each Q&A for retry detection
 
 ### Non-Goals for Phase 2
 
