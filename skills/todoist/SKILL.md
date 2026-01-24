@@ -12,7 +12,7 @@ Use `todoist` to manage Todoist tasks directly from the terminal.
 ## Setup
 
 1. Install: `brew install todoist-cli`
-2. Get your API token from https://todoist.com/app/settings/integrations/developer
+2. Get your API token from https://app.todoist.com/app/settings/integrations/developer
 3. Create config:
 ```bash
 mkdir -p ~/.config/todoist
@@ -113,6 +113,6 @@ todoist list --filter "#Work & !@done"
 ## Notes
 
 - Run `todoist sync` after making changes in the web/mobile app
-- Task IDs are alphanumeric (e.g., `6Xr4Kv9m`)
+- Task IDs are numeric (e.g., `12345678`)
 - Config stored in `~/.config/todoist/config.json`
 - Cache stored in `~/.config/todoist/cache.json`
