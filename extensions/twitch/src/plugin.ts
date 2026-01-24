@@ -5,8 +5,6 @@
  * This is the primary entry point for the Twitch channel integration.
  */
 
-import { checkTwitchAccessControl } from "./access-control.js";
-import { resolveAgentRoute } from "../../../src/routing/resolve-route.js";
 import type { ClawdbotConfig } from "clawdbot/plugin-sdk";
 import { buildChannelConfigSchema } from "clawdbot/plugin-sdk";
 import { twitchMessageActions } from "./actions.js";
@@ -21,10 +19,7 @@ import { twitchOutbound } from "./outbound.js";
 import { probeTwitch } from "./probe.js";
 import { resolveTwitchTargets } from "./resolver.js";
 import { collectTwitchStatusIssues } from "./status.js";
-import {
-  getOrCreateClientManager,
-  removeClientManager,
-} from "./client-manager-registry.js";
+import { removeClientManager } from "./client-manager-registry.js";
 import type {
   ChannelAccountSnapshot,
   ChannelCapabilities,
@@ -245,61 +240,6 @@ export const twitchPlugin: ChannelPlugin<TwitchAccountConfig> = {
       const account = ctx.account as TwitchAccountConfig;
       const accountId = ctx.accountId;
 
-      // Create logger for client manager
-      const logger: ChannelLogSink = {
-        info: (msg) => ctx.log?.info(`[twitch] ${msg}`),
-        warn: (msg) => ctx.log?.warn(`[twitch] ${msg}`),
-        error: (msg) => ctx.log?.error(`[twitch] ${msg}`),
-        debug: (msg) => ctx.log?.debug?.(`[twitch] ${msg}`),
-      };
-
-      // Get or create client manager from registry
-      const clientManager = getOrCreateClientManager(accountId, logger);
-
-      // Set up message handler
-      clientManager.onMessage(account, (message) => {
-        // Access control check
-        const botUsername = account.username.toLowerCase();
-        if (message.username.toLowerCase() === botUsername) {
-          return; // Ignore own messages
-        }
-
-        const access = checkTwitchAccessControl({
-          message,
-          account,
-          botUsername,
-        });
-
-        if (!access.allowed) {
-          ctx.log?.info(
-            `[twitch] Ignored message from ${message.username}: ${access.reason ?? "blocked"}`,
-          );
-          return;
-        }
-
-        // Resolve route for this message
-        resolveAgentRoute({
-          cfg: ctx.cfg,
-          channel: "twitch",
-          accountId,
-          peer: {
-            kind: "group", // Twitch chat is always group-like
-            id: message.channel,
-          },
-        });
-
-        // Build message preview
-        const preview = message.message.replace(/\s+/g, " ").slice(0, 160);
-
-        // Log message receipt
-        // Note: Message dispatch to agent system will be handled by a separate monitor/loop
-        // For now, we just log that we received and validated the message
-        ctx.log?.info(
-          `[twitch] Received message from ${message.displayName ?? message.username}: ${preview}`,
-        );
-      });
-
-      // Update status
       ctx.setStatus?.({
         accountId,
         running: true,
@@ -311,19 +251,15 @@ export const twitchPlugin: ChannelPlugin<TwitchAccountConfig> = {
         `[twitch] Starting Twitch connection for ${account.username}`,
       );
 
-      try {
-        await clientManager.getClient(account, ctx.cfg);
-        ctx.log?.info(`[twitch] Connected to Twitch as ${account.username}`);
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        ctx.log?.error(`[twitch] Failed to connect: ${errorMsg}`);
-        ctx.setStatus?.({
-          accountId,
-          running: false,
-          lastError: errorMsg,
-        });
-        throw error;
-      }
+      // Lazy import: the monitor pulls the reply pipeline; avoid ESM init cycles.
+      const { monitorTwitchProvider } = await import("./monitor.js");
+      await monitorTwitchProvider({
+        account,
+        accountId,
+        config: ctx.cfg,
+        runtime: ctx.runtime,
+        abortSignal: ctx.abortSignal,
+      });
     },
 
     /** Stop an account connection */

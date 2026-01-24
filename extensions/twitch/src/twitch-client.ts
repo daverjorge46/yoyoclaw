@@ -96,6 +96,7 @@ export class TwitchClientManager {
 	async getClient(
 		account: TwitchAccountConfig,
 		cfg?: ClawdbotConfig,
+		accountId?: string,
 	): Promise<ChatClient> {
 		const key = this.getAccountKey(account);
 
@@ -106,7 +107,7 @@ export class TwitchClientManager {
 
 		// Resolve token from config or environment
 		const tokenResolution = resolveTwitchToken(cfg, {
-			accountId: account.username,
+			accountId,
 		});
 
 		if (!tokenResolution.token) {
@@ -283,9 +284,10 @@ export class TwitchClientManager {
 		channel: string,
 		message: string,
 		cfg?: ClawdbotConfig,
+		accountId?: string,
 	): Promise<{ ok: boolean; error?: string; messageId?: string }> {
 		try {
-			const client = await this.getClient(account, cfg);
+			const client = await this.getClient(account, cfg, accountId);
 
 			// Generate a message ID (Twurple's say() doesn't return the message ID, so we generate one)
 			const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;

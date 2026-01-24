@@ -285,6 +285,7 @@ describe("send", () => {
 				"testchannel", // normalized account channel
 				"Hello!",
 				mockConfig,
+				"default",
 			);
 		});
 	});

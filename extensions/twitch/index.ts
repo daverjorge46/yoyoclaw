@@ -4,6 +4,8 @@ import { emptyPluginConfigSchema } from "clawdbot/plugin-sdk";
 import { twitchPlugin } from "./src/plugin.js";
 import { setTwitchRuntime } from "./src/runtime.js";
 
+export { monitorTwitchProvider } from "./src/monitor.js";
+
 const plugin = {
   id: "twitch",
   name: "Twitch",
@@ -11,7 +13,7 @@ const plugin = {
   configSchema: emptyPluginConfigSchema(),
   register(api: ClawdbotPluginApi) {
     setTwitchRuntime(api.runtime);
-    api.registerChannel({ plugin: twitchPlugin });
+    api.registerChannel({ plugin: twitchPlugin as any });
   },
 };
 

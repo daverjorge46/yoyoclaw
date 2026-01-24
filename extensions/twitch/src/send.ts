@@ -113,6 +113,7 @@ export async function sendMessageTwitchInternal(
 			normalizeTwitchChannel(normalizedChannel),
 			cleanedText,
 			cfg,
+			accountId,
 		);
 
 		if (!result.ok) {
