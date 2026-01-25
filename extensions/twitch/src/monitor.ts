@@ -206,7 +206,7 @@ export async function monitorTwitchProvider(
     throw error;
   }
 
-  const unregisterHandler = clientManager.onMessage(account, async (message) => {
+  const unregisterHandler = clientManager.onMessage(account, (message) => {
     if (stopped) return;
 
     // Access control check
@@ -228,19 +228,18 @@ export async function monitorTwitchProvider(
 
     statusSink?.({ lastInboundAt: Date.now() });
 
-    try {
-      await processTwitchMessage({
-        message,
-        account,
-        accountId,
-        config,
-        runtime,
-        core,
-        statusSink,
-      });
-    } catch (err) {
+    // Fire-and-forget: process message without blocking
+    void processTwitchMessage({
+      message,
+      account,
+      accountId,
+      config,
+      runtime,
+      core,
+      statusSink,
+    }).catch((err) => {
       runtime.error?.(`Message processing failed: ${String(err)}`);
-    }
+    });
   });
 
   const stop = () => {
