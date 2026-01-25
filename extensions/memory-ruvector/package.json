@@ -1,0 +1,21 @@
+{
+  "name": "@clawdbot/memory-ruvector",
+  "version": "2026.1.24",
+  "type": "module",
+  "description": "Clawdbot ruvector-backed long-term memory plugin with auto-recall/capture",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.47",
+    "ruvector": "0.1.96"
+  },
+  "devDependencies": {
+    "clawdbot": "workspace:*"
+  },
+  "peerDependencies": {
+    "clawdbot": "*"
+  },
+  "clawdbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
