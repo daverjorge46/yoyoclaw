@@ -102,6 +102,10 @@
       "destination": "/providers/openrouter"
     },
     {
+      "source": "/poe",
+      "destination": "/providers/poe"
+    },
+    {
       "source": "/opencode",
       "destination": "/providers/opencode"
     },
@@ -984,6 +988,7 @@
           "providers/moonshot",
           "providers/minimax",
           "providers/openrouter",
+          "providers/poe",
           "providers/synthetic",
           "providers/opencode",
           "providers/glm",
