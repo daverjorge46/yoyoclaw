@@ -177,7 +177,21 @@ export function attachGatewayWsMessageHandler(params: {
   const configSnapshot = loadConfig();
   const trustedProxies = configSnapshot.gateway?.trustedProxies ?? [];
   const clientIp = resolveGatewayClientIp({ remoteAddr, forwardedFor, realIp, trustedProxies });
-  const isLocalClient = isLocalGatewayAddress(clientIp);
+
+  // If proxy headers are present but trustedProxies is not configured, don't treat
+  // the connection as local. This prevents auth bypass when running behind a reverse
+  // proxy without proper configuration - the proxy's loopback connection would otherwise
+  // cause all external requests to be treated as trusted local clients.
+  const hasUntrustedProxyHeaders = (forwardedFor || realIp) && trustedProxies.length === 0;
+  const isLocalClient = !hasUntrustedProxyHeaders && isLocalGatewayAddress(clientIp);
+
+  if (hasUntrustedProxyHeaders) {
+    logWsControl.warn(
+      "Proxy headers detected but gateway.trustedProxies is not configured. " +
+        "Connection will not be treated as local. " +
+        "Configure gateway.trustedProxies to restore local client detection behind your proxy.",
+    );
+  }
 
   const isWebchatConnect = (p: ConnectParams | null | undefined) => isWebchatClient(p?.client);
 
