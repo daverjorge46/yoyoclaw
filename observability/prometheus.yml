@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'clawdbot'
+    static_configs:
+      - targets: ['clawdbot:18789']
+
+  - job_name: 'openpoke'
+    static_configs:
+      - targets: ['openpoke:8000']

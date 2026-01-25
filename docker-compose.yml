@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # --- UI & Dashboard ---
+  dashboard:
+    build: 
+      context: ./dashboard
+    container_name: clawdhub
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_CLAWDBOT_API=http://clawdbot:18789
+      - VITE_OPENPOKE_API=http://openpoke:8000
+      - VITE_AGENT_ZERO_API=http://agentzero:8080
+    networks:
+      - clawd-mesh
+    depends_on:
+      - clawdbot
+      - openpoke
+      - agentzero
+
+  # --- Agent Runtimes ---
+  
+  # Clawdbot (The Headless Runtime)
+  # Uses the official image or builds from source
+  clawdbot:
+    image: ghcr.io/clawdbot/clawdbot:latest
+    container_name: clawdbot
+    volumes:
+      - ./data/clawdbot:/var/lib/clawdbot
+      - /var/run/docker.sock:/var/run/docker.sock # Needs docker access for tools
+    environment:
+      - CLAWDBOT_PORT=18789
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    networks:
+      - clawd-mesh
+
+  # OpenPoke (The Proactive Assistant)
+  # Requires Postgres and Redis
+  openpoke:
+    image: ghcr.io/composiohq/open-poke:latest
+    container_name: openpoke
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/poke
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - clawd-mesh
+
+  # Agent Zero (The Autonomous Agent)
+  agentzero:
+    image: agentzero/agent-zero:latest
+    container_name: agentzero
+    privileged: true # Needs root for OS control
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/agentzero_memory:/app/memory
+    networks:
+      - clawd-mesh
+
+  # --- Infrastructure & Observability ---
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: poke
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - clawd-mesh
+
+  redis:
+    image: redis:alpine
+    networks:
+      - clawd-mesh
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - clawd-mesh
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - clawd-mesh
+
+  # Tailscale (Optional - Uncomment to join mesh)
+  # tailscale:
+  #   image: tailscale/tailscale
+  #   network_mode: host
+  #   privileged: true
+  #   environment:
+  #     - TS_AUTHKEY=${TS_AUTHKEY}
+  #     - TS_STATE_DIR=/var/lib/tailscale
+
+networks:
+  clawd-mesh:
+    driver: bridge
+
+volumes:
+  postgres_data:
