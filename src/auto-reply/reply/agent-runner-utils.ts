@@ -28,7 +28,7 @@ export function buildThreadingToolContext(params: {
   const dock = provider ? getChannelDock(provider) : undefined;
   if (!dock?.threading?.buildToolContext) {
     return {
-      currentChannelId: sessionCtx.To?.trim() || undefined,
+      currentChannelId: (sessionCtx.OriginatingTo ?? sessionCtx.To)?.trim() || undefined,
       currentChannelProvider: provider ?? (rawProvider as ChannelId),
       hasRepliedRef,
     };
