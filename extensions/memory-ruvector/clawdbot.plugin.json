@@ -1,0 +1,188 @@
+{
+  "id": "memory-ruvector",
+  "kind": "memory",
+  "uiHints": {
+    "embedding.provider": {
+      "label": "Embedding Provider",
+      "placeholder": "openai",
+      "help": "openai, voyage, or local"
+    },
+    "embedding.apiKey": {
+      "label": "Embedding API Key",
+      "sensitive": true,
+      "placeholder": "sk-...",
+      "help": "API key for embedding provider (or use ${ENV_VAR})"
+    },
+    "embedding.model": {
+      "label": "Embedding Model",
+      "placeholder": "text-embedding-3-small",
+      "help": "Model to use for generating embeddings"
+    },
+    "embedding.baseUrl": {
+      "label": "Base URL",
+      "placeholder": "https://api.openai.com/v1",
+      "advanced": true,
+      "help": "Custom API base URL (for local/self-hosted)"
+    },
+    "dbPath": {
+      "label": "Database Path",
+      "placeholder": "~/.clawdbot/memory/ruvector",
+      "advanced": true,
+      "help": "Directory for ruvector database storage"
+    },
+    "dimension": {
+      "label": "Vector Dimension",
+      "placeholder": "1536",
+      "advanced": true,
+      "help": "Must match your embedding model output dimension"
+    },
+    "metric": {
+      "label": "Distance Metric",
+      "placeholder": "cosine",
+      "advanced": true,
+      "help": "Similarity metric: cosine (default), euclidean, or dot"
+    },
+    "hooks.enabled": {
+      "label": "Enable Auto-Indexing",
+      "help": "Automatically index messages via hooks"
+    },
+    "hooks.indexInbound": {
+      "label": "Index Inbound Messages",
+      "help": "Index incoming user messages"
+    },
+    "hooks.indexOutbound": {
+      "label": "Index Outbound Messages",
+      "help": "Index outgoing bot messages"
+    },
+    "sona.enabled": {
+      "label": "Enable SONA Self-Learning",
+      "help": "Enable Self-Organizing Neural Architecture for adaptive learning"
+    },
+    "ruvllm.enabled": {
+      "label": "Enable ruvLLM",
+      "help": "Enable ruvLLM features for LLM context enrichment and adaptive learning"
+    },
+    "ruvllm.contextInjection.enabled": {
+      "label": "Enable Context Injection",
+      "help": "Automatically inject relevant memories into agent prompts"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "embedding": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["openai", "voyage", "local"]
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": "string"
+          }
+        },
+        "required": ["provider"]
+      },
+      "dbPath": {
+        "type": "string"
+      },
+      "dimension": {
+        "type": "number"
+      },
+      "metric": {
+        "type": "string",
+        "enum": ["cosine", "euclidean", "dot"]
+      },
+      "hooks": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "indexInbound": {
+            "type": "boolean"
+          },
+          "indexOutbound": {
+            "type": "boolean"
+          },
+          "indexAgentResponses": {
+            "type": "boolean"
+          },
+          "batchSize": {
+            "type": "number"
+          },
+          "debounceMs": {
+            "type": "number"
+          }
+        }
+      },
+      "sona": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "hiddenDim": {
+            "type": "number"
+          },
+          "learningRate": {
+            "type": "number"
+          },
+          "qualityThreshold": {
+            "type": "number"
+          },
+          "backgroundIntervalMs": {
+            "type": "number"
+          }
+        }
+      },
+      "ruvllm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "contextInjection": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "maxTokens": {
+                "type": "number"
+              },
+              "relevanceThreshold": {
+                "type": "number"
+              }
+            }
+          },
+          "trajectoryRecording": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "maxTrajectories": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": ["embedding"]
+  }
+}
