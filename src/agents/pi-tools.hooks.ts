@@ -1,7 +1,7 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 
-import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { logWarn } from "../logger.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 
 // biome-ignore lint/suspicious/noExplicitAny: tools are externally typed
 type AnyTool = AgentTool<any, any>;
@@ -24,7 +24,12 @@ export function wrapToolWithPluginHooks(
     execute: async (toolCallId, args, signal, onUpdate) => {
       const hookRunner = getGlobalHookRunner();
       const toolName = tool.name ?? "unknown";
-      const ctx = { agentId: opts?.agentId, sessionKey: opts?.sessionKey, toolName, toolCallId };
+      const ctx = {
+        agentId: opts?.agentId,
+        sessionKey: opts?.sessionKey,
+        toolName,
+        toolCallId,
+      };
 
       let effectiveArgs = (args ?? {}) as any;
 
@@ -45,8 +50,7 @@ export function wrapToolWithPluginHooks(
             throw err;
           }
         } catch (err) {
-          // If a hook throws, fail closed only when it explicitly throws TOOL_BLOCKED;
-          // otherwise, warn and proceed.
+          // If a hook throws, fail closed only when it explicitly throws TOOL_BLOCKED; otherwise, warn and proceed.
           const code = (err as any)?.code;
           if (code === "TOOL_BLOCKED") throw err;
           logWarn(`[hooks] before_tool_call failed for ${toolName}: ${String(err)}`);
@@ -61,16 +65,23 @@ export function wrapToolWithPluginHooks(
         if (hookRunner?.hasHooks("after_tool_call")) {
           try {
             await hookRunner.runAfterToolCall(
-              { toolName, params: (effectiveArgs ?? {}) as Record<string, unknown>, result, durationMs },
+              {
+                toolName,
+                params: (effectiveArgs ?? {}) as Record<string, unknown>,
+                result,
+                durationMs,
+              },
               ctx,
             );
           } catch (err) {
             logWarn(`[hooks] after_tool_call failed for ${toolName}: ${String(err)}`);
           }
         }
+
         return result;
       } catch (err) {
         const durationMs = Date.now() - startedAt;
+
         if (hookRunner?.hasHooks("after_tool_call")) {
           try {
             await hookRunner.runAfterToolCall(
@@ -86,6 +97,7 @@ export function wrapToolWithPluginHooks(
             logWarn(`[hooks] after_tool_call failed for ${toolName}: ${String(hookErr)}`);
           }
         }
+
         throw err;
       }
     },
