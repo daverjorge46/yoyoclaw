@@ -17,6 +17,7 @@ import {
   applyMinimaxApiConfig,
   applyMinimaxConfig,
   applyMoonshotConfig,
+  applyNanoGptConfig,
   applyOpencodeZenConfig,
   applyOpenrouterConfig,
   applySyntheticConfig,
@@ -27,6 +28,7 @@ import {
   setKimiCodeApiKey,
   setMinimaxApiKey,
   setMoonshotApiKey,
+  setNanoGptApiKey,
   setOpencodeZenApiKey,
   setOpenrouterApiKey,
   setSyntheticApiKey,
@@ -270,6 +272,25 @@ export async function applyNonInteractiveAuthChoice(params: {
       mode: "api_key",
     });
     return applySyntheticConfig(nextConfig);
+  }
+
+  if (authChoice === "nanogpt-api-key") {
+    const resolved = await resolveNonInteractiveApiKey({
+      provider: "nanogpt",
+      cfg: baseConfig,
+      flagValue: opts.nanogptApiKey,
+      flagName: "--nanogpt-api-key",
+      envVar: "NANOGPT_API_KEY",
+      runtime,
+    });
+    if (!resolved) return null;
+    if (resolved.source !== "profile") await setNanoGptApiKey(resolved.key);
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "nanogpt:default",
+      provider: "nanogpt",
+      mode: "api_key",
+    });
+    return applyNanoGptConfig(nextConfig);
   }
 
   if (
