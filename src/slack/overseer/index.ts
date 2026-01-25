@@ -10,3 +10,4 @@
 export * from "./bridge.js";
 export * from "./blocks.js";
 export * from "./config.js";
+export * from "./decisions.js";
