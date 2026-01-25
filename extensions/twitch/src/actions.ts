@@ -45,15 +45,16 @@ function readStringParam(
   }
 
   // Convert value to string safely
-  let str: string;
   if (typeof value === "string") {
-    str = value;
-  } else if (typeof value === "number" || typeof value === "boolean") {
-    str = String(value);
-  } else {
-    throw new Error(`Parameter ${key} must be a string, number, or boolean`);
+    return options.trim !== false ? value.trim() : value;
   }
-  return options.trim !== false ? str.trim() : str;
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    const str = String(value);
+    return options.trim !== false ? str.trim() : str;
+  }
+
+  throw new Error(`Parameter ${key} must be a string, number, or boolean`);
 }
 
 /** Supported Twitch actions */
