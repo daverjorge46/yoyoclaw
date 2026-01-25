@@ -11,6 +11,9 @@ const localWorkers = Math.max(4, Math.min(16, os.cpus().length));
 // Cap CI workers: Windows/macOS get 2 (flaky worker crashes), Linux gets 3
 const ciWorkers = isWindows || isMacOS ? 2 : 3;
 
+// macOS CI needs longer teardown for native module cleanup (sqlite, chokidar)
+const macOSCI = isCI && isMacOS;
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -20,6 +23,8 @@ export default defineConfig({
   test: {
     testTimeout: 120_000,
     hookTimeout: isWindows ? 180_000 : 120_000,
+    // Longer teardown on macOS CI for native module cleanup (node:sqlite, etc.)
+    teardownTimeout: macOSCI ? 30_000 : 10_000,
     pool: "forks",
     maxWorkers: isCI ? ciWorkers : localWorkers,
     include: [

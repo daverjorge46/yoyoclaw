@@ -6,6 +6,11 @@ type Warning = Error & {
   message?: string;
 };
 
+type WarningFilterState = {
+  installed: boolean;
+  listener?: (warning: Warning) => void;
+};
+
 function shouldIgnoreWarning(warning: Warning): boolean {
   if (warning.code === "DEP0040" && warning.message?.includes("punycode")) {
     return true;
@@ -22,15 +27,33 @@ function shouldIgnoreWarning(warning: Warning): boolean {
   return false;
 }
 
-export function installProcessWarningFilter(): void {
+/**
+ * Install a process warning filter that suppresses known benign warnings.
+ * Returns a cleanup function to remove the listener (useful for test teardown).
+ */
+export function installProcessWarningFilter(): () => void {
   const globalState = globalThis as typeof globalThis & {
-    [warningFilterKey]?: { installed: boolean };
+    [warningFilterKey]?: WarningFilterState;
   };
-  if (globalState[warningFilterKey]?.installed) return;
-  globalState[warningFilterKey] = { installed: true };
+  if (globalState[warningFilterKey]?.installed) {
+    // Already installed - return a no-op cleanup
+    return () => {};
+  }
 
-  process.on("warning", (warning: Warning) => {
+  const listener = (warning: Warning) => {
     if (shouldIgnoreWarning(warning)) return;
     process.stderr.write(`${warning.stack ?? warning.toString()}\n`);
-  });
+  };
+
+  globalState[warningFilterKey] = { installed: true, listener };
+  process.on("warning", listener);
+
+  return () => {
+    const state = globalState[warningFilterKey];
+    if (state?.listener) {
+      process.off("warning", state.listener);
+      state.listener = undefined;
+      state.installed = false;
+    }
+  };
 }

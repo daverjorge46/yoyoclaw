@@ -15,10 +15,13 @@ import { setActivePluginRegistry } from "../src/plugins/runtime.js";
 import { createTestRegistry } from "../src/test-utils/channel-plugins.js";
 import { withIsolatedTestHome } from "./test-env";
 
-installProcessWarningFilter();
+const cleanupWarningFilter = installProcessWarningFilter();
 
 const testEnv = withIsolatedTestHome();
-afterAll(() => testEnv.cleanup());
+afterAll(() => {
+  testEnv.cleanup();
+  cleanupWarningFilter();
+});
 const pickSendFn = (id: ChannelId, deps?: OutboundSendDeps) => {
   switch (id) {
     case "discord":
