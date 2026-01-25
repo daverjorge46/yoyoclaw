@@ -6,10 +6,10 @@ import type {
   Request,
   Response,
 } from "playwright-core";
-import { chromium } from "playwright-core";
 import { formatErrorMessage } from "../infra/errors.js";
 import { getHeadersWithAuth } from "./cdp.helpers.js";
 import { getChromeWebSocketUrl } from "./chrome.js";
+import { getChromium } from "./pw-stealth.js";
 
 export type BrowserConsoleMessage = {
   type: string;
@@ -286,6 +286,7 @@ async function connectBrowser(cdpUrl: string): Promise<ConnectedBrowser> {
 
   const connectWithRetry = async (): Promise<ConnectedBrowser> => {
     let lastErr: unknown;
+    const chromium = await getChromium();
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
         const timeout = 5000 + attempt * 2000;

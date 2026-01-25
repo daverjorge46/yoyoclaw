@@ -5,6 +5,7 @@ import { loadConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveBrowserConfig, resolveProfile, shouldStartLocalBrowserServer } from "./config.js";
 import { ensureChromeExtensionRelayServer } from "./extension-relay.js";
+import { configureStealthMode } from "./pw-stealth.js";
 import { registerBrowserRoutes } from "./routes/index.js";
 import { type BrowserServerState, createBrowserRouteContext } from "./server-context.js";
 
@@ -18,6 +19,9 @@ export async function startBrowserControlServerFromConfig(): Promise<BrowserServ
   const cfg = loadConfig();
   const resolved = resolveBrowserConfig(cfg.browser);
   if (!resolved.enabled) return null;
+
+  // Configure stealth mode before any browser connections
+  configureStealthMode(resolved.stealth);
 
   if (!shouldStartLocalBrowserServer(resolved)) {
     logServer.info(

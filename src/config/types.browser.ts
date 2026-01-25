@@ -39,6 +39,13 @@ export type BrowserConfig = {
   noSandbox?: boolean;
   /** If true: never launch; only attach to an existing browser. Default: false */
   attachOnly?: boolean;
+  /**
+   * Enable stealth mode to evade bot detection.
+   * Uses playwright-extra with puppeteer-extra-plugin-stealth.
+   * Requires optional dependencies: playwright-extra, puppeteer-extra-plugin-stealth.
+   * Default: false
+   */
+  stealth?: boolean;
   /** Default profile to use when profile param is omitted. Default: "chrome" */
   defaultProfile?: string;
   /** Named browser profiles with explicit CDP ports or URLs. */

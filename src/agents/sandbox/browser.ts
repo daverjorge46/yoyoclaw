@@ -58,6 +58,7 @@ function buildSandboxBrowserResolvedConfig(params: {
     headless: params.headless,
     noSandbox: false,
     attachOnly: true,
+    stealth: false,
     defaultProfile: "clawd",
     profiles: {
       clawd: { cdpPort: params.cdpPort, color: DEFAULT_CLAWD_BROWSER_COLOR },

@@ -28,6 +28,7 @@ export type ResolvedBrowserConfig = {
   headless: boolean;
   noSandbox: boolean;
   attachOnly: boolean;
+  stealth: boolean;
   defaultProfile: string;
   profiles: Record<string, BrowserProfileConfig>;
 };
@@ -193,6 +194,7 @@ export function resolveBrowserConfig(cfg: BrowserConfig | undefined): ResolvedBr
   const headless = cfg?.headless === true;
   const noSandbox = cfg?.noSandbox === true;
   const attachOnly = cfg?.attachOnly === true;
+  const stealth = cfg?.stealth === true;
   const executablePath = cfg?.executablePath?.trim() || undefined;
 
   const defaultProfileFromConfig = cfg?.defaultProfile?.trim() || undefined;
@@ -225,6 +227,7 @@ export function resolveBrowserConfig(cfg: BrowserConfig | undefined): ResolvedBr
     headless,
     noSandbox,
     attachOnly,
+    stealth,
     defaultProfile,
     profiles,
   };

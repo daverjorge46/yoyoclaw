@@ -202,7 +202,9 @@
   },
   "optionalDependencies": {
     "@napi-rs/canvas": "^0.1.88",
-    "node-llama-cpp": "3.15.0"
+    "node-llama-cpp": "3.15.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@grammyjs/types": "^3.23.0",
