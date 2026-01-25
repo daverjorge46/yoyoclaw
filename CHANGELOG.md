@@ -34,6 +34,7 @@ Docs: https://docs.clawd.bot
 - Telegram: treat DM topics as separate sessions and keep DM history limits stable with thread suffixes. (#1597) Thanks @rohannagpal.
 - Telegram: add `channels.telegram.linkPreview` to toggle outbound link previews. (#1700) Thanks @zerone0x. https://docs.clawd.bot/channels/telegram
 - Web search: add Brave freshness filter parameter for time-scoped results. (#1688) Thanks @JonUleis. https://docs.clawd.bot/tools/web
+- UI: refresh Control UI design with new color palette (red accent), Inter/JetBrains Mono fonts, and Lucide SVG icons. (#1745) Thanks @EnzeD.
 - UI: refresh Control UI dashboard design system (typography, colors, spacing). (#1786) Thanks @mousberg.
 - Exec approvals: forward approval prompts to chat with `/approve` for all channels (including plugins). (#1621) Thanks @czekaj. https://docs.clawd.bot/tools/exec-approvals https://docs.clawd.bot/tools/slash-commands
 - Gateway: expose config.patch in the gateway tool with safe partial updates + restart sentinel. (#1653) Thanks @Glucksberg.
