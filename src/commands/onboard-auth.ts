@@ -13,6 +13,8 @@ export {
   applyOpenrouterProviderConfig,
   applySyntheticConfig,
   applySyntheticProviderConfig,
+  applyTogetherConfig,
+  applyTogetherProviderConfig,
   applyVeniceConfig,
   applyVeniceProviderConfig,
   applyVercelAiGatewayConfig,
@@ -42,6 +44,7 @@ export {
   setOpencodeZenApiKey,
   setOpenrouterApiKey,
   setSyntheticApiKey,
+  setTogetherApiKey,
   setVeniceApiKey,
   setVercelAiGatewayApiKey,
   setZaiApiKey,
@@ -65,3 +68,10 @@ export {
   MOONSHOT_DEFAULT_MODEL_ID,
   MOONSHOT_DEFAULT_MODEL_REF,
 } from "./onboard-auth.models.js";
+export {
+  buildTogetherModelDefinition,
+  TOGETHER_BASE_URL,
+  TOGETHER_DEFAULT_MODEL_ID,
+  TOGETHER_DEFAULT_MODEL_REF,
+  TOGETHER_MODEL_CATALOG,
+} from "../agents/together-models.js";
