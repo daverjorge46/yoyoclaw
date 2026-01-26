@@ -69,3 +69,15 @@ USER.md
 
 # local tooling
 .serena/
+
+# Clawdbot Secrets
+clawdbot.json
+.clawdbot/
+*.backup.*
+
+# Cursor IDE (server-side)
+.cursor-server/
+.cursor/ide_state.json
+.cursor/projects/*/agent-transcripts/
+.cursor/projects/*/assets/
+.cursor/projects/*/terminals/
