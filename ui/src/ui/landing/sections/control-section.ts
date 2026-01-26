@@ -27,6 +27,7 @@ export class LandingControl extends LitElement {
       display: block;
       background: var(--landing-bg-dark);
       padding: 8rem 2rem;
+      font-family: var(--landing-font-body, inherit);
     }
 
     .section-container {
@@ -50,8 +51,9 @@ export class LandingControl extends LitElement {
     }
 
     .section-headline {
+      font-family: var(--landing-font-display, inherit);
       font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1.2;
       color: var(--landing-text-primary);
       margin: 0 0 1rem;
@@ -128,6 +130,11 @@ export class LandingControl extends LitElement {
     .dashboard-action:hover {
       color: var(--landing-text-primary);
       border-color: var(--landing-border-hover);
+    }
+
+    .dashboard-action:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
     }
 
     /* Dashboard body */
@@ -217,6 +224,11 @@ export class LandingControl extends LitElement {
       border-color: var(--landing-border-hover);
     }
 
+    .agent-action:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
+    }
+
     /* Guardrail row */
     .guardrail-row {
       display: flex;
@@ -261,6 +273,11 @@ export class LandingControl extends LitElement {
 
     .guardrail-action:hover {
       background: rgba(99, 102, 241, 0.1);
+    }
+
+    .guardrail-action:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
     }
 
     /* Trust signals */

@@ -58,6 +58,7 @@ export class LandingActivity extends LitElement {
       display: block;
       background: var(--landing-bg-elevated);
       padding: 8rem 2rem;
+      font-family: var(--landing-font-body, inherit);
     }
 
     .section-container {
@@ -81,8 +82,9 @@ export class LandingActivity extends LitElement {
     }
 
     .section-headline {
+      font-family: var(--landing-font-display, inherit);
       font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1.2;
       color: var(--landing-text-primary);
       margin: 0;

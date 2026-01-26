@@ -7,7 +7,7 @@
  */
 
 import { html, css, LitElement, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 
 // Import all section components
 import './sections/hero-section';
@@ -75,8 +75,8 @@ export class LandingPage extends LitElement {
       --landing-glass-border: rgba(255, 255, 255, 0.08);
       --landing-glass-blur: blur(20px);
 
-      --landing-font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --landing-font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --landing-font-display: 'Unbounded', 'Times New Roman', serif;
+      --landing-font-body: 'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     /* Light mode support */
@@ -105,17 +105,155 @@ export class LandingPage extends LitElement {
       flex-direction: column;
     }
 
-    /* Smooth scroll behavior */
-    .landing-wrapper {
-      scroll-behavior: smooth;
+    /* Sticky navigation */
+    .landing-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .landing-nav.scrolled {
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--landing-border);
+      padding: 0.75rem 2rem;
+    }
+
+    .nav-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--landing-text-primary);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo span {
+      background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent-lavender));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .nav-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--landing-text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--landing-text-primary);
+    }
+
+    .nav-link:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .nav-logo:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+
+    .nav-cta {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: white;
+      background: var(--landing-primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-cta:hover {
+      background: var(--landing-primary-light);
+      transform: translateY(-1px);
+    }
+
+    .nav-cta:focus-visible {
+      outline: 2px solid var(--landing-primary-light);
+      outline-offset: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .landing-nav {
+        padding: 0.75rem 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .nav-link {
+        display: none;
+      }
     }
   `;
 
+  @state()
+  private navScrolled = false;
+
+  private scrollHandler?: () => void;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.scrollHandler = () => {
+      this.navScrolled = window.scrollY > 50;
+    };
+    window.addEventListener('scroll', this.scrollHandler, { passive: true });
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this.scrollHandler) {
+      window.removeEventListener('scroll', this.scrollHandler);
+    }
+  }
+
   render(): TemplateResult {
     return html`
+      <nav class="landing-nav ${this.navScrolled ? 'scrolled' : ''}">
+        <a href="/" class="nav-logo">
+          Clawd<span>brain</span>
+        </a>
+        <div class="nav-links">
+          <button class="nav-link" @click=${this.scrollToSection.bind(this, 'features')}>Features</button>
+          <button class="nav-link" @click=${this.scrollToSection.bind(this, 'control')}>Trust</button>
+          <button class="nav-link" @click=${this.scrollToSection.bind(this, 'social-proof')}>Stories</button>
+          <button class="nav-cta" @click=${this.handleGetStarted}>
+            Get Started
+          </button>
+        </div>
+      </nav>
+
       <div class="landing-wrapper">
         <landing-hero
           @get-started=${this.handleGetStarted}
+          @learn-more=${() => this.scrollToSection('understanding')}
         ></landing-hero>
 
         <landing-understanding></landing-understanding>
@@ -136,16 +274,28 @@ export class LandingPage extends LitElement {
     `;
   }
 
+  private scrollToSection(sectionId: string): void {
+    const sectionMap: Record<string, string> = {
+      'understanding': 'landing-understanding',
+      'activity': 'landing-activity',
+      'control': 'landing-control',
+      'features': 'landing-features',
+      'social-proof': 'landing-social-proof',
+    };
+    const tagName = sectionMap[sectionId];
+    if (!tagName) return;
+    const el = this.renderRoot.querySelector(tagName);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   private handleGetStarted(): void {
-    // Navigate to signup or onboarding
-    console.log('Get Started clicked');
-    // window.location.href = '/signup';
+    this.dispatchEvent(new CustomEvent('get-started', { bubbles: true, composed: true }));
   }
 
   private handleBookDemo(): void {
-    // Open demo booking modal or navigate
-    console.log('Book Demo clicked');
-    // window.location.href = '/demo';
+    this.dispatchEvent(new CustomEvent('book-demo', { bubbles: true, composed: true }));
   }
 }
 
@@ -156,7 +306,6 @@ declare global {
 }
 
 // Export all components for potential individual use
-export { LandingPage };
 export { LandingHero } from './sections/hero-section';
 export { LandingUnderstanding } from './sections/understanding-section';
 export { LandingActivity } from './sections/activity-section';

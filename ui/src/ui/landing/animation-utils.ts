@@ -41,7 +41,8 @@ export function initParallax(container: HTMLElement): () => void {
         getComputedStyle(layer).getPropertyValue('--parallax-speed') || '0.5'
       );
       const yOffset = relativeScroll * speed;
-      layer.style.transform = `translateY(${yOffset}px)`;
+      // Use a CSS custom property so transform compositions aren't overwritten
+      layer.style.setProperty('--parallax-y', `${yOffset}px`);
     });
   }
 

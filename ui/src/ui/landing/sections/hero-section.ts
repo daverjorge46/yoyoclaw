@@ -21,36 +21,36 @@ const FLOATING_CARDS: FloatingCard[] = [
   {
     id: 'research',
     icon: '🔍',
-    label: 'Researching...',
+    label: 'Researching market trends...',
     status: 'active',
-    position: { top: '15%', left: '8%' },
+    position: { top: '18%', left: '5%' },
     rotation: -3,
     parallaxSpeed: 0.3,
   },
   {
     id: 'building',
     icon: '🔨',
-    label: 'Building...',
+    label: 'Building your plan...',
     status: 'active',
-    position: { top: '20%', right: '10%' },
+    position: { top: '22%', right: '6%' },
     rotation: 4,
     parallaxSpeed: 0.5,
   },
   {
     id: 'learning',
     icon: '🧠',
-    label: 'Learning...',
+    label: 'Learning your preferences...',
     status: 'active',
-    position: { bottom: '25%', left: '12%' },
+    position: { bottom: '28%', left: '8%' },
     rotation: 2,
     parallaxSpeed: 0.4,
   },
   {
     id: 'delivering',
     icon: '✨',
-    label: 'Ready!',
+    label: '3 items ready for review',
     status: 'complete',
-    position: { bottom: '20%', right: '8%' },
+    position: { bottom: '24%', right: '5%' },
     rotation: -2,
     parallaxSpeed: 0.6,
   },
@@ -127,13 +127,14 @@ export class LandingHero extends LitElement {
     .hero-headline {
       font-family: var(--landing-font-display, inherit);
       font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 700;
-      line-height: 1.1;
+      font-weight: 600;
+      line-height: 1.15;
       letter-spacing: -0.02em;
       color: var(--landing-text-primary);
-      margin: 0 0 0.5rem;
+      margin: 0;
       opacity: 0;
       animation: fadeInUp 0.8s ease-out 0.2s forwards;
+      max-width: 800px;
     }
 
     @keyframes fadeInUp {
@@ -162,46 +163,62 @@ export class LandingHero extends LitElement {
       50% { opacity: 0.5; }
     }
 
-    /* Rotating text container */
-    .hero-rotating {
-      display: inline-block;
-      min-width: 300px;
-      height: 1.2em;
-      overflow: hidden;
-      position: relative;
+    /* Rotating text line */
+    .hero-rotating-line {
+      font-family: var(--landing-font-display, inherit);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0.25rem 0 0;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out 0.35s forwards;
     }
 
     .hero-rotating-text {
       display: inline-block;
-      color: var(--landing-primary);
-      background: linear-gradient(90deg, var(--landing-primary), var(--landing-accent-lavender));
+      background: linear-gradient(
+        135deg,
+        var(--landing-primary) 0%,
+        var(--landing-accent-lavender) 50%,
+        var(--landing-accent-teal) 100%
+      );
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      background-size: 200% 100%;
+      animation: gradientShift 6s ease-in-out infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     /* Subheadline */
     .hero-subheadline {
-      max-width: 600px;
-      margin: 2rem auto;
-      font-size: 1.25rem;
+      font-family: var(--landing-font-body, inherit);
+      max-width: 560px;
+      margin: 2rem auto 0;
+      font-size: clamp(1rem, 2vw, 1.25rem);
       line-height: 1.7;
       color: var(--landing-text-secondary);
       opacity: 0;
-      animation: fadeInUp 0.8s ease-out 0.4s forwards;
+      animation: fadeInUp 0.8s ease-out 0.5s forwards;
     }
 
     /* CTA buttons */
     .hero-ctas {
       display: flex;
       gap: 1rem;
-      margin-top: 2rem;
+      margin-top: 2.5rem;
       opacity: 0;
-      animation: fadeInUp 0.8s ease-out 0.6s forwards;
+      animation: fadeInUp 0.8s ease-out 0.65s forwards;
     }
 
     .cta-primary {
-      padding: 1rem 2rem;
+      font-family: var(--landing-font-body, inherit);
+      padding: 1rem 2.25rem;
       font-size: 1rem;
       font-weight: 600;
       color: white;
@@ -218,8 +235,18 @@ export class LandingHero extends LitElement {
       box-shadow: var(--landing-shadow-lg), 0 0 60px rgba(99, 102, 241, 0.4);
     }
 
+    .cta-primary:active {
+      transform: translateY(0);
+    }
+
+    .cta-primary:focus-visible {
+      outline: 2px solid var(--landing-primary-light, #818cf8);
+      outline-offset: 2px;
+    }
+
     .cta-secondary {
-      padding: 1rem 2rem;
+      font-family: var(--landing-font-body, inherit);
+      padding: 1rem 2.25rem;
       font-size: 1rem;
       font-weight: 600;
       color: var(--landing-text-primary);
@@ -233,40 +260,97 @@ export class LandingHero extends LitElement {
     .cta-secondary:hover {
       background: rgba(255, 255, 255, 0.05);
       border-color: var(--landing-border-hover);
+      transform: translateY(-1px);
+    }
+
+    .cta-secondary:active {
+      transform: translateY(0);
+    }
+
+    .cta-secondary:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
+    }
+
+    /* Social proof hint */
+    .hero-social-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 3rem;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out 0.8s forwards;
+    }
+
+    .hero-avatars {
+      display: flex;
+    }
+
+    .hero-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--landing-bg-dark);
+      background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent-lavender));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 600;
+    }
+
+    .hero-avatar + .hero-avatar {
+      margin-left: -8px;
+    }
+
+    .hero-social-text {
+      font-family: var(--landing-font-body, inherit);
+      font-size: 0.875rem;
+      color: var(--landing-text-muted);
+    }
+
+    .hero-social-text strong {
+      color: var(--landing-text-secondary);
     }
 
     /* Floating cards */
     .floating-card {
       position: absolute;
       z-index: 5;
-      padding: 0.75rem 1rem;
-      background: var(--landing-glass-bg);
-      backdrop-filter: var(--landing-glass-blur);
+      padding: 0.75rem 1.25rem;
+      background: rgba(18, 18, 26, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--landing-glass-border);
       border-radius: 12px;
       box-shadow: var(--landing-shadow-md);
       opacity: 0;
       animation: fadeIn 0.6s ease-out forwards;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      --parallax-y: 0px;
+      transform: rotate(var(--card-rotation, 0deg)) translateY(var(--parallax-y, 0px));
     }
 
     .floating-card:hover {
-      transform: scale(1.05) !important;
+      transform: rotate(var(--card-rotation, 0deg)) translateY(var(--parallax-y, 0px)) scale(1.05);
+      box-shadow: var(--landing-shadow-lg);
     }
 
     .floating-card-content {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.625rem;
       white-space: nowrap;
     }
 
     .floating-card-icon {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
     }
 
     .floating-card-label {
-      font-size: 0.875rem;
+      font-family: var(--landing-font-body, inherit);
+      font-size: 0.8125rem;
       font-weight: 500;
       color: var(--landing-text-secondary);
     }
@@ -275,7 +359,8 @@ export class LandingHero extends LitElement {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      margin-left: 0.5rem;
+      margin-left: 0.25rem;
+      flex-shrink: 0;
     }
 
     .floating-card-status.active {
@@ -294,7 +379,18 @@ export class LandingHero extends LitElement {
       left: 50%;
       transform: translateX(-50%);
       opacity: 0;
-      animation: fadeIn 0.6s ease-out 1s forwards;
+      animation: fadeIn 0.6s ease-out 1.2s forwards;
+      cursor: pointer;
+    }
+
+    .scroll-indicator:hover .scroll-arrow {
+      color: var(--landing-text-secondary);
+    }
+
+    .scroll-indicator:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 4px;
+      border-radius: 50%;
     }
 
     .scroll-arrow {
@@ -302,6 +398,7 @@ export class LandingHero extends LitElement {
       height: 24px;
       color: var(--landing-text-muted);
       animation: float 2s ease-in-out infinite;
+      transition: color 0.2s ease;
     }
 
     /* Responsive */
@@ -329,15 +426,9 @@ export class LandingHero extends LitElement {
 
   private textRotator?: TextRotator;
 
-  connectedCallback(): void {
-    super.connectedCallback();
-  }
-
   firstUpdated(): void {
-    // Initialize parallax
     this.parallaxCleanup = initParallax(this.renderRoot as HTMLElement);
 
-    // Initialize text rotation
     const rotatingEl = this.renderRoot.querySelector('.hero-rotating-text');
     if (rotatingEl) {
       this.textRotator = new TextRotator(
@@ -361,7 +452,7 @@ export class LandingHero extends LitElement {
       bottom: ${card.position.bottom || 'auto'};
       left: ${card.position.left || 'auto'};
       right: ${card.position.right || 'auto'};
-      transform: rotate(${card.rotation}deg);
+      --card-rotation: ${card.rotation}deg;
       --parallax-speed: ${card.parallaxSpeed};
       animation-delay: ${0.8 + index * 0.15}s;
     `;
@@ -392,26 +483,44 @@ export class LandingHero extends LitElement {
           <h1 class="hero-headline">
             Turn your ideas into reality.
           </h1>
-          <div class="hero-headline hero-rotating">
+          <div class="hero-rotating-line">
             <span class="hero-rotating-text">${ROTATING_TEXTS[0]}</span>
           </div>
 
           <p class="hero-subheadline">
-            An AI that works for you — researching, building, and delivering
+            An AI that truly knows you — researching, building, and delivering
             while you focus on what matters most.
           </p>
 
           <div class="hero-ctas">
             <button class="cta-primary" @click=${this.handleGetStarted}>
-              Get Started
+              Get Started Free
             </button>
             <button class="cta-secondary" @click=${this.handleLearnMore}>
               See How It Works
             </button>
           </div>
+
+          <div class="hero-social-hint">
+            <div class="hero-avatars">
+              <div class="hero-avatar">S</div>
+              <div class="hero-avatar">M</div>
+              <div class="hero-avatar">E</div>
+            </div>
+            <span class="hero-social-text">
+              Trusted by <strong>early adopters</strong> building their second brain
+            </span>
+          </div>
         </div>
 
-        <div class="scroll-indicator">
+        <div
+          class="scroll-indicator"
+          role="button"
+          tabindex="0"
+          aria-label="Scroll to learn more"
+          @click=${this.handleLearnMore}
+          @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.handleLearnMore(); } }}
+        >
           <svg class="scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
           </svg>
@@ -425,8 +534,7 @@ export class LandingHero extends LitElement {
   }
 
   private handleLearnMore(): void {
-    const target = document.querySelector('#understanding-section');
-    target?.scrollIntoView({ behavior: 'smooth' });
+    this.dispatchEvent(new CustomEvent('learn-more', { bubbles: true, composed: true }));
   }
 }
 

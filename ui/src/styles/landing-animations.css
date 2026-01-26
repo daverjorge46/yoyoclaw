@@ -232,7 +232,7 @@
 
 .parallax-layer {
   will-change: transform;
-  transition: transform 0.1s linear;
+  --parallax-y: 0px;
 }
 
 .parallax-slow {

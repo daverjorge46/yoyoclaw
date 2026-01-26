@@ -48,6 +48,7 @@ export class LandingSocialProof extends LitElement {
   static styles = css`
     :host {
       display: block;
+      font-family: var(--landing-font-body, inherit);
     }
 
     /* Testimonials section */
@@ -76,8 +77,9 @@ export class LandingSocialProof extends LitElement {
     }
 
     .section-headline {
+      font-family: var(--landing-font-display, inherit);
       font-size: clamp(1.75rem, 3vw, 2.5rem);
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1.3;
       color: var(--landing-text-primary);
       margin: 0;
@@ -187,8 +189,9 @@ export class LandingSocialProof extends LitElement {
     }
 
     .cta-headline {
+      font-family: var(--landing-font-display, inherit);
       font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1.2;
       color: var(--landing-text-primary);
       margin: 0 0 1rem;
@@ -225,6 +228,11 @@ export class LandingSocialProof extends LitElement {
       box-shadow: var(--landing-shadow-lg), 0 0 60px rgba(99, 102, 241, 0.4);
     }
 
+    .cta-primary:focus-visible {
+      outline: 2px solid var(--landing-primary-light, #818cf8);
+      outline-offset: 2px;
+    }
+
     .cta-secondary {
       padding: 1.125rem 2.5rem;
       font-size: 1.125rem;
@@ -240,6 +248,11 @@ export class LandingSocialProof extends LitElement {
     .cta-secondary:hover {
       background: rgba(255, 255, 255, 0.05);
       border-color: var(--landing-border-hover);
+    }
+
+    .cta-secondary:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
     }
 
     .trust-badges {

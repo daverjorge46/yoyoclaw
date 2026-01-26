@@ -12,3 +12,6 @@
 @import "./styles/logs.css";
 @import "./styles/channel-wizard.css";
 @import "./styles/chat/task-sidebar.css";
+
+/* Landing page */
+@import "./styles/landing-animations.css";

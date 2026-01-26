@@ -27,6 +27,7 @@ export class LandingFooter extends LitElement {
       display: block;
       background: var(--landing-bg-dark);
       border-top: 1px solid var(--landing-border);
+      font-family: var(--landing-font-body, inherit);
     }
 
     .footer-container {
@@ -45,14 +46,19 @@ export class LandingFooter extends LitElement {
     }
 
     .footer-logo {
-      font-size: 1.5rem;
-      font-weight: 700;
+      font-family: var(--landing-font-display, inherit);
+      font-size: 1.25rem;
+      font-weight: 600;
       color: var(--landing-text-primary);
       text-decoration: none;
+      letter-spacing: -0.02em;
     }
 
     .footer-logo span {
-      color: var(--landing-primary);
+      background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent-lavender));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .footer-nav {
@@ -69,6 +75,12 @@ export class LandingFooter extends LitElement {
 
     .footer-nav-link:hover {
       color: var(--landing-text-primary);
+    }
+
+    .footer-nav-link:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
     }
 
     .footer-social {
@@ -93,6 +105,11 @@ export class LandingFooter extends LitElement {
     .footer-social-link:hover {
       border-color: var(--landing-border-hover);
       color: var(--landing-text-primary);
+    }
+
+    .footer-social-link:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
     }
 
     .footer-social-icon {
@@ -125,6 +142,18 @@ export class LandingFooter extends LitElement {
 
     .footer-legal-link:hover {
       color: var(--landing-text-primary);
+    }
+
+    .footer-legal-link:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .footer-logo:focus-visible {
+      outline: 2px solid var(--landing-primary);
+      outline-offset: 4px;
+      border-radius: 4px;
     }
 
     /* Responsive */
