@@ -2,12 +2,22 @@
 # Render startup script - creates config and starts gateway
 set -e
 
+echo "=== Render startup script ==="
+echo "CLAWDBOT_STATE_DIR=${CLAWDBOT_STATE_DIR}"
+echo "HOME=${HOME}"
+
+CONFIG_DIR="${CLAWDBOT_STATE_DIR:-/data/.clawdbot}"
+CONFIG_FILE="${CONFIG_DIR}/clawdbot.json"
+
+echo "Config dir: ${CONFIG_DIR}"
+echo "Config file: ${CONFIG_FILE}"
+
 # Create config directory
-mkdir -p "${CLAWDBOT_STATE_DIR:-/data/.clawdbot}"
+mkdir -p "${CONFIG_DIR}"
 
 # Write config file with Render-specific settings
 # trustedProxies allows Render's internal proxy IPs to be trusted
-cat > "${CLAWDBOT_STATE_DIR:-/data/.clawdbot}/clawdbot.json" << 'EOF'
+cat > "${CONFIG_FILE}" << 'EOF'
 {
   "gateway": {
     "mode": "local",
@@ -19,10 +29,19 @@ cat > "${CLAWDBOT_STATE_DIR:-/data/.clawdbot}/clawdbot.json" << 'EOF'
 }
 EOF
 
-echo "Config written to ${CLAWDBOT_STATE_DIR:-/data/.clawdbot}/clawdbot.json"
-cat "${CLAWDBOT_STATE_DIR:-/data/.clawdbot}/clawdbot.json"
+echo "=== Config written to ${CONFIG_FILE} ==="
+cat "${CONFIG_FILE}"
+echo "=== End config ==="
+
+# Verify file exists
+ls -la "${CONFIG_DIR}/"
+
+# Also check default config location
+echo "=== Checking ~/.clawdbot ==="
+ls -la ~/.clawdbot/ 2>/dev/null || echo "~/.clawdbot does not exist"
 
 # Start the gateway with token from env var
+echo "=== Starting gateway ==="
 exec node dist/index.js gateway \
   --port 8080 \
   --bind lan \
