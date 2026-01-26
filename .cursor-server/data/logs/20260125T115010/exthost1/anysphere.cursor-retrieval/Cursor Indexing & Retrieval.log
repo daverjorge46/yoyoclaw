@@ -624,3 +624,4 @@
 2026-01-25 22:57:30.311 [info] Aborting indexing job.
 2026-01-25 22:57:30.311 [error] We currently do not allow indexing the home directory.
 2026-01-25 22:57:30.311 [info] Indexing job successfully done or aborted.
+2026-01-25 23:00:45.633 [error] Error getting submodules: A system error occurred (ENOENT: no such file or directory, open '/home/liam/.gitmodules')

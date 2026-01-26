@@ -406,3 +406,23 @@
 2026-01-25 22:56:18.051 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1805
 2026-01-25 23:00:05.753 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
 2026-01-25 23:00:10.797 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:15.627 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:15.932 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:16.917 [error] Error: command '_chat.editSessions.accept' not found
+    at pdc._tryExecuteCommand (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:3343)
+    at pdc.executeCommandImpl (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:2847)
+2026-01-25 23:00:18.039 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:23.819 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:35.275 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:40.336 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:45.383 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:45.425 [warning] [Decorations] CAPPING events from decorations provider vscode.git 1809
+2026-01-25 23:00:46.419 [error] Error: command '_chat.editSessions.accept' not found
+    at pdc._tryExecuteCommand (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:3343)
+    at pdc.executeCommandImpl (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:2847)
+2026-01-25 23:00:55.553 [error] Error: command '_chat.editSessions.accept' not found
+    at pdc._tryExecuteCommand (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:3343)
+    at pdc.executeCommandImpl (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:2847)
+2026-01-25 23:00:59.190 [error] Error: command '_chat.editSessions.accept' not found
+    at pdc._tryExecuteCommand (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:3343)
+    at pdc.executeCommandImpl (vscode-file://vscode-app/c:/Program%20Files/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33959:2847)
