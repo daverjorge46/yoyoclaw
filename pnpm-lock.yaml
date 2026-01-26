@@ -55,6 +55,9 @@ importers:
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
+      '@ruvector/graph-node':
+        specifier: ^0.1.26
+        version: 0.1.26
       '@sinclair/typebox':
         specifier: 0.34.47
         version: 0.34.47
@@ -374,6 +377,9 @@ importers:
 
   extensions/memory-ruvector:
     dependencies:
+      '@ruvector/graph-node':
+        specifier: ^0.1.26
+        version: 0.1.26
       '@sinclair/typebox':
         specifier: 0.34.47
         version: 0.34.47
@@ -2355,6 +2361,36 @@ packages:
   '@ruvector/gnn@0.1.22':
     resolution: {integrity: sha512-BOXLu6x/1GVj1zAqXJfF3zJWOzVl94i4bo6ATOlaDAlmGCvTwvvmomz8p9lPAMc99vmaox650MO9D4+CEqXK/A==}
     engines: {node: '>= 10'}
+
+  '@ruvector/graph-node-darwin-arm64@0.1.26':
+    resolution: {integrity: sha512-8SWNN/EcYPD4fYoC6LiMU34SzJ2FlwMnr1KmF/daPxP8p4BopnbivrS+4Skcij5UgmnSb7tRzXr3m8PKyL89Iw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@ruvector/graph-node-darwin-x64@0.1.26':
+    resolution: {integrity: sha512-n0xZ/mEojUBsg9XP65v472507FUGMj3hZhqj2mnm7jFixuJEQoIYE1oGW85Lwi+yf26/jR3DfUBRygjRLE+zcg==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@ruvector/graph-node-linux-arm64-gnu@0.1.26':
+    resolution: {integrity: sha512-WyhMaZZGKhTDf98ln6hzkN9yfnuK3asr/Y+VUyG5f0SQSXroq9RMpjy5sUYZI4Zo+wXyczDfOQmQo/NK8ZiZAQ==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@ruvector/graph-node-linux-x64-gnu@0.1.26':
+    resolution: {integrity: sha512-iZfcxvtN9ogysrfNjJ0qTgB8wsQqUhlNRgOLMKrWAMSz6ZvkNKu+raoznlTr7ic+aguwfUCewmCm4mITyK7www==}
+    engines: {node: '>=18.0.0'}
+    cpu: [x64]
+    os: [linux]
+
+  '@ruvector/graph-node-win32-x64-msvc@0.1.26':
+    resolution: {integrity: sha512-JuB6ff4opUhehaRiWJnKY39snLDAs1EPJRV32+NCS40cqBc7OJ5ywVqVBMIL1XGMAMEsByypvAv1JU7C1pQeRw==}
+    cpu: [x64]
+    os: [win32]
+
+  '@ruvector/graph-node@0.1.26':
+    resolution: {integrity: sha512-AIWeLOjLnMmx/ki+HviZlghBEM9mWCi9ANgRs+eqL6l9hoAsXy2MNJblidO4uUxc0p+1rvmz8cIJCwYZVTz5OQ==}
+    engines: {node: '>=18.0.0'}
 
   '@ruvector/sona-darwin-arm64@0.1.5':
     resolution: {integrity: sha512-+bXB7+WdbkiNbcw0Xh5VENNILgDVpuma7fyx8NwGylWaYRe1niM03k/rezdM3zbpf4qGSqp6fVKIIDU8/H9lHw==}
@@ -8002,6 +8038,29 @@ snapshots:
   '@ruvector/gnn@0.1.22':
     optionalDependencies:
       '@ruvector/gnn-linux-x64-gnu': 0.1.22
+
+  '@ruvector/graph-node-darwin-arm64@0.1.26':
+    optional: true
+
+  '@ruvector/graph-node-darwin-x64@0.1.26':
+    optional: true
+
+  '@ruvector/graph-node-linux-arm64-gnu@0.1.26':
+    optional: true
+
+  '@ruvector/graph-node-linux-x64-gnu@0.1.26':
+    optional: true
+
+  '@ruvector/graph-node-win32-x64-msvc@0.1.26':
+    optional: true
+
+  '@ruvector/graph-node@0.1.26':
+    optionalDependencies:
+      '@ruvector/graph-node-darwin-arm64': 0.1.26
+      '@ruvector/graph-node-darwin-x64': 0.1.26
+      '@ruvector/graph-node-linux-arm64-gnu': 0.1.26
+      '@ruvector/graph-node-linux-x64-gnu': 0.1.26
+      '@ruvector/graph-node-win32-x64-msvc': 0.1.26
 
   '@ruvector/sona-darwin-arm64@0.1.5':
     optional: true

@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Clawdbot ruvector-backed long-term memory plugin with auto-recall/capture",
   "dependencies": {
+    "@ruvector/graph-node": "^0.1.26",
     "@sinclair/typebox": "0.34.47",
     "ruvector": "0.1.96"
   },
