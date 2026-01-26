@@ -20,7 +20,8 @@ export const NEAR_AI_DEFAULT_COST = {
  * - NVIDIA TEE for GPU-level isolation
  * - Cryptographic signing of all AI outputs inside TEE
  *
- * All inference is private by default - prompts/responses are not logged.
+ * All NEAR AI models are fully private - prompts/responses are not logged.
+ * The `privacy` field is set to "private" for all models.
  */
 export const NEAR_AI_MODEL_CATALOG = [
   {
@@ -31,6 +32,7 @@ export const NEAR_AI_MODEL_CATALOG = [
     contextWindow: 128000,
     maxTokens: 8192,
     cost: { input: 1.05, output: 3.1, cacheRead: 0, cacheWrite: 0 },
+    privacy: "private",
   },
   {
     id: "openai/gpt-oss-120b",
@@ -40,6 +42,7 @@ export const NEAR_AI_MODEL_CATALOG = [
     contextWindow: 131000,
     maxTokens: 8192,
     cost: { input: 0.15, output: 0.55, cacheRead: 0, cacheWrite: 0 },
+    privacy: "private",
   },
   {
     id: "Qwen/Qwen3-30B-A3B-Instruct-2507",
@@ -49,6 +52,7 @@ export const NEAR_AI_MODEL_CATALOG = [
     contextWindow: 262144,
     maxTokens: 8192,
     cost: { input: 0.15, output: 0.55, cacheRead: 0, cacheWrite: 0 },
+    privacy: "private",
   },
   {
     id: "zai-org/GLM-4.7",
@@ -58,6 +62,7 @@ export const NEAR_AI_MODEL_CATALOG = [
     contextWindow: 131072,
     maxTokens: 8192,
     cost: { input: 0.85, output: 3.3, cacheRead: 0, cacheWrite: 0 },
+    privacy: "private",
   },
 ] as const;
 
