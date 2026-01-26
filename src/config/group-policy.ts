@@ -8,6 +8,8 @@ export type GroupPolicyChannel = ChannelId;
 export type ChannelGroupConfig = {
   requireMention?: boolean;
   tools?: GroupToolPolicyConfig;
+  /** Custom system prompt for this group. */
+  systemPrompt?: string;
 };
 
 export type ChannelGroupPolicy = {
@@ -103,5 +105,69 @@ export function resolveChannelGroupToolsPolicy(params: {
   const { groupConfig, defaultConfig } = resolveChannelGroupPolicy(params);
   if (groupConfig?.tools) return groupConfig.tools;
   if (defaultConfig?.tools) return defaultConfig.tools;
+  return undefined;
+}
+
+/**
+ * Resolve group-specific system prompt from channel config.
+ * Falls back to wildcard (`*`) config if specific group not found.
+ */
+export function resolveChannelGroupSystemPrompt(params: {
+  cfg: ClawdbotConfig;
+  channel: GroupPolicyChannel;
+  groupId?: string | null;
+  accountId?: string | null;
+}): string | undefined {
+  const { groupConfig, defaultConfig } = resolveChannelGroupPolicy(params);
+  if (groupConfig?.systemPrompt?.trim()) return groupConfig.systemPrompt.trim();
+  if (defaultConfig?.systemPrompt?.trim()) return defaultConfig.systemPrompt.trim();
+  return undefined;
+}
+
+type ChannelDmsConfig = Record<
+  string,
+  { historyLimit?: number; systemPrompt?: string } | undefined
+>;
+
+function resolveChannelDms(
+  cfg: ClawdbotConfig,
+  channel: GroupPolicyChannel,
+  accountId?: string | null,
+): ChannelDmsConfig | undefined {
+  const normalizedAccountId = normalizeAccountId(accountId);
+  const channelConfig = cfg.channels?.[channel] as
+    | {
+        accounts?: Record<string, { dms?: ChannelDmsConfig }>;
+        dms?: ChannelDmsConfig;
+      }
+    | undefined;
+  if (!channelConfig) return undefined;
+  const accountDms =
+    channelConfig.accounts?.[normalizedAccountId]?.dms ??
+    channelConfig.accounts?.[
+      Object.keys(channelConfig.accounts ?? {}).find(
+        (key) => key.toLowerCase() === normalizedAccountId.toLowerCase(),
+      ) ?? ""
+    ]?.dms;
+  return accountDms ?? channelConfig.dms;
+}
+
+/**
+ * Resolve DM-specific system prompt from channel config.
+ * Falls back to wildcard (`*`) config if specific DM not found.
+ */
+export function resolveChannelDmSystemPrompt(params: {
+  cfg: ClawdbotConfig;
+  channel: GroupPolicyChannel;
+  dmId?: string | null;
+  accountId?: string | null;
+}): string | undefined {
+  const dms = resolveChannelDms(params.cfg, params.channel, params.accountId);
+  if (!dms) return undefined;
+  const normalizedId = params.dmId?.trim();
+  const dmConfig = normalizedId ? dms[normalizedId] : undefined;
+  const defaultConfig = dms["*"];
+  if (dmConfig?.systemPrompt?.trim()) return dmConfig.systemPrompt.trim();
+  if (defaultConfig?.systemPrompt?.trim()) return defaultConfig.systemPrompt.trim();
   return undefined;
 }

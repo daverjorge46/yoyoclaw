@@ -474,6 +474,14 @@ export const SlackConfigSchema = SlackAccountSchema.extend({
   }
 });
 
+export const SignalGroupSchema = z
+  .object({
+    requireMention: z.boolean().optional(),
+    tools: ToolPolicySchema,
+    systemPrompt: z.string().optional(),
+  })
+  .strict();
+
 export const SignalAccountSchemaBase = z
   .object({
     name: z.string().optional(),
@@ -499,6 +507,7 @@ export const SignalAccountSchemaBase = z
     historyLimit: z.number().int().min(0).optional(),
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
+    groups: z.record(z.string(), SignalGroupSchema.optional()).optional(),
     textChunkLimit: z.number().int().positive().optional(),
     chunkMode: z.enum(["length", "newline"]).optional(),
     blockStreaming: z.boolean().optional(),

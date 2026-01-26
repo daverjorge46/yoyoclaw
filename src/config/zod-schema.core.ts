@@ -92,6 +92,7 @@ export const GroupChatSchema = z
 export const DmConfigSchema = z
   .object({
     historyLimit: z.number().int().min(0).optional(),
+    systemPrompt: z.string().optional(),
   })
   .strict();
 

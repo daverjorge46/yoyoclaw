@@ -17,6 +17,10 @@ import { toLocationContext } from "../../../channels/location.js";
 import { createReplyPrefixContext } from "../../../channels/reply-prefix.js";
 import type { loadConfig } from "../../../config/config.js";
 import {
+  resolveChannelDmSystemPrompt,
+  resolveChannelGroupSystemPrompt,
+} from "../../../config/group-policy.js";
+import {
   readSessionUpdatedAt,
   recordSessionMetaFromInbound,
   resolveStorePath,
@@ -255,6 +259,22 @@ export async function processMessage(params: {
       ? (resolveIdentityNamePrefix(params.cfg, params.route.agentId) ?? "[clawdbot]")
       : undefined);
 
+  // Resolve system prompt from group or DM config
+  const groupSystemPrompt =
+    params.msg.chatType === "group"
+      ? resolveChannelGroupSystemPrompt({
+          cfg: params.cfg,
+          channel: "whatsapp",
+          groupId: conversationId,
+          accountId: params.route.accountId,
+        })
+      : resolveChannelDmSystemPrompt({
+          cfg: params.cfg,
+          channel: "whatsapp",
+          dmId: dmRouteTarget,
+          accountId: params.route.accountId,
+        });
+
   const ctxPayload = finalizeInboundContext({
     Body: combinedBody,
     RawBody: params.msg.body,
@@ -288,6 +308,7 @@ export async function processMessage(params: {
     Surface: "whatsapp",
     OriginatingChannel: "whatsapp",
     OriginatingTo: params.msg.from,
+    GroupSystemPrompt: groupSystemPrompt,
   });
 
   if (dmRouteTarget) {

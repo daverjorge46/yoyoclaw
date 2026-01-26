@@ -20,6 +20,10 @@ import { logInboundDrop, logTypingFailure } from "../../channels/logging.js";
 import { createReplyPrefixContext } from "../../channels/reply-prefix.js";
 import { recordInboundSession } from "../../channels/session.js";
 import { createTypingCallbacks } from "../../channels/typing.js";
+import {
+  resolveChannelDmSystemPrompt,
+  resolveChannelGroupSystemPrompt,
+} from "../../config/group-policy.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../../globals.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
@@ -123,6 +127,22 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
       });
     }
     const signalTo = entry.isGroup ? `group:${entry.groupId}` : `signal:${entry.senderRecipient}`;
+
+    // Resolve system prompt from group or DM config
+    const groupSystemPrompt = entry.isGroup
+      ? resolveChannelGroupSystemPrompt({
+          cfg: deps.cfg,
+          channel: "signal",
+          groupId: entry.groupId,
+          accountId: deps.accountId,
+        })
+      : resolveChannelDmSystemPrompt({
+          cfg: deps.cfg,
+          channel: "signal",
+          dmId: entry.senderPeerId,
+          accountId: deps.accountId,
+        });
+
     const ctxPayload = finalizeInboundContext({
       Body: combinedBody,
       RawBody: entry.bodyText,
@@ -148,6 +168,7 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
       CommandAuthorized: entry.commandAuthorized,
       OriginatingChannel: "signal" as const,
       OriginatingTo: signalTo,
+      GroupSystemPrompt: groupSystemPrompt,
     });
 
     await recordInboundSession({

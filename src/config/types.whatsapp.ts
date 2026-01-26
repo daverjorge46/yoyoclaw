@@ -70,6 +70,8 @@ export type WhatsAppConfig = {
     {
       requireMention?: boolean;
       tools?: GroupToolPolicyConfig;
+      /** Custom system prompt for this group. */
+      systemPrompt?: string;
     }
   >;
   /** Acknowledgment reaction sent immediately upon message receipt. */
@@ -135,6 +137,8 @@ export type WhatsAppAccountConfig = {
     {
       requireMention?: boolean;
       tools?: GroupToolPolicyConfig;
+      /** Custom system prompt for this group. */
+      systemPrompt?: string;
     }
   >;
   /** Acknowledgment reaction sent immediately upon message receipt. */

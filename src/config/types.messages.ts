@@ -8,6 +8,8 @@ export type GroupChatConfig = {
 
 export type DmConfig = {
   historyLimit?: number;
+  /** Custom system prompt for this DM conversation. */
+  systemPrompt?: string;
 };
 
 export type QueueConfig = {
