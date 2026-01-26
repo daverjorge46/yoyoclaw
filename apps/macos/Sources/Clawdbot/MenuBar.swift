@@ -322,7 +322,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let shouldShow = seenVersion < currentOnboardingVersion || !AppStateStore.shared.onboardingSeen
         guard shouldShow else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            OnboardingController.shared.show()
+            // Use simplified Easy Setup for first-time users by default
+            EasySetupController.shared.show()
         }
     }
 
