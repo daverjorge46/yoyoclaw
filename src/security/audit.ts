@@ -9,6 +9,7 @@ import { formatCliCommand } from "../cli/command-format.js";
 import { buildGatewayConnectionDetails } from "../gateway/call.js";
 import { probeGateway } from "../gateway/probe.js";
 import {
+  collectApiKeyInProfileNameFindings,
   collectAttackSurfaceSummaryFindings,
   collectExposureMatrixFindings,
   collectHooksHardeningFindings,
@@ -911,6 +912,7 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
   findings.push(...collectElevatedFindings(cfg));
   findings.push(...collectHooksHardeningFindings(cfg));
   findings.push(...collectSecretsInConfigFindings(cfg));
+  findings.push(...collectApiKeyInProfileNameFindings(cfg));
   findings.push(...collectModelHygieneFindings(cfg));
   findings.push(...collectSmallModelRiskFindings({ cfg, env }));
   findings.push(...collectExposureMatrixFindings(cfg));

@@ -28,6 +28,7 @@ import {
   safeStat,
 } from "./audit-fs.js";
 import type { ExecFn } from "./windows-acl.js";
+import { getDefaultRedactPatterns } from "../logging/redact.js";
 
 export type SecurityAuditFinding = {
   checkId: string;
@@ -125,6 +126,69 @@ export function collectSyncedFolderFindings(params: {
 function looksLikeEnvRef(value: string): boolean {
   const v = value.trim();
   return v.startsWith("${") && v.endsWith("}");
+}
+
+function hasHighEntropy(value: string, minLength = 40, minRatio = 0.4): boolean {
+  if (value.length < minLength) return false;
+  if (!/^[A-Za-z0-9_-]+$/.test(value)) return false;
+  const entropy = new Set(value).size / value.length;
+  return entropy > minRatio;
+}
+
+export function collectApiKeyInProfileNameFindings(cfg: ClawdbotConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const profiles = cfg.auth?.profiles;
+  if (!profiles || typeof profiles !== "object") return findings;
+
+  // Compile redact patterns for matching
+  const patterns = getDefaultRedactPatterns()
+    .map((p) => {
+      try {
+        return new RegExp(p, "i");
+      } catch {
+        return null;
+      }
+    })
+    .filter((r): r is RegExp => r !== null);
+
+  const matches: string[] = [];
+
+  for (const profileKey of Object.keys(profiles)) {
+    // Profile keys are like "provider:name" - check the name part
+    const parts = profileKey.split(":");
+    const namePart = parts.length > 1 ? parts.slice(1).join(":") : profileKey;
+
+    // Check against redact patterns (same patterns used for log redaction)
+    let matched = false;
+    for (const pattern of patterns) {
+      if (pattern.test(namePart)) {
+        matches.push(profileKey);
+        matched = true;
+        break;
+      }
+    }
+
+    // Fallback: high-entropy check for unknown secret formats
+    if (!matched && hasHighEntropy(namePart)) {
+      matches.push(profileKey);
+    }
+  }
+
+  if (matches.length > 0) {
+    const lines = matches.map((m) => `- "${m}"`).join("\n");
+    findings.push({
+      checkId: "auth.profiles.key_in_name",
+      severity: "warn",
+      title: "API key detected in auth profile name",
+      detail:
+        `The following auth profile names appear to contain API keys:\n${lines}\n` +
+        "Profile names are not secrets and may appear in logs, error messages, and UI dropdowns.",
+      remediation:
+        'Rename profiles to descriptive IDs like "anthropic:personal" or "openai:work" instead of using the actual key as the name.',
+    });
+  }
+
+  return findings;
 }
 
 export function collectSecretsInConfigFindings(cfg: ClawdbotConfig): SecurityAuditFinding[] {
