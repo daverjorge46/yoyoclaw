@@ -15,6 +15,7 @@ import { resolveChannelCapabilities } from "../../../config/channel-capabilities
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { resolveTelegramInlineButtonsScope } from "../../../telegram/inline-buttons.js";
 import { resolveTelegramReactionLevel } from "../../../telegram/reaction-level.js";
+import { resolveSignalReactionLevel } from "../../../signal/reaction-level.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { isSubagentSessionKey } from "../../../routing/session-key.js";
@@ -55,6 +56,7 @@ import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { isAbortError } from "../abort.js";
 import { buildEmbeddedExtensionPaths } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
+import { wrapStreamFnWithConcurrencyGate } from "../../provider-concurrency.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import {
   logToolSchemasForGoogle,
@@ -255,14 +257,25 @@ export async function runEmbeddedAttempt(
       }
     }
     const reactionGuidance =
-      runtimeChannel === "telegram" && params.config
+      runtimeChannel && params.config
         ? (() => {
-            const resolved = resolveTelegramReactionLevel({
-              cfg: params.config,
-              accountId: params.agentAccountId ?? undefined,
-            });
-            const level = resolved.agentReactionGuidance;
-            return level ? { level, channel: "Telegram" } : undefined;
+            if (runtimeChannel === "telegram") {
+              const resolved = resolveTelegramReactionLevel({
+                cfg: params.config,
+                accountId: params.agentAccountId ?? undefined,
+              });
+              const level = resolved.agentReactionGuidance;
+              return level ? { level, channel: "Telegram" } : undefined;
+            }
+            if (runtimeChannel === "signal") {
+              const resolved = resolveSignalReactionLevel({
+                cfg: params.config,
+                accountId: params.agentAccountId ?? undefined,
+              });
+              const level = resolved.agentReactionGuidance;
+              return level ? { level, channel: "Signal" } : undefined;
+            }
+            return undefined;
           })()
         : undefined;
     const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
@@ -497,6 +510,13 @@ export async function runEmbeddedAttempt(
           activeSession.agent.streamFn,
         );
       }
+
+      // Apply per-provider concurrency gate (wraps outermost so the slot is held
+      // for the full stream duration including any inner wrappers).
+      activeSession.agent.streamFn = wrapStreamFnWithConcurrencyGate(
+        activeSession.agent.streamFn,
+        params.provider,
+      );
 
       try {
         const prior = await sanitizeSessionHistory({

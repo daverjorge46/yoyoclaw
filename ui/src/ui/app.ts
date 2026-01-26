@@ -32,7 +32,7 @@ import type {
   OverseerGoalStatusResult,
   OverseerStatusResult,
 } from "../../../src/gateway/protocol/schema/overseer.js";
-import { type ChatQueueItem, type CronFormState, type GraphDragState, type GraphViewport } from "./ui-types";
+import { type ChatAttachment, type ChatQueueItem, type CronFormState, type GraphDragState, type GraphViewport } from "./ui-types";
 import type { EventLogEntry } from "./app-events";
 import { DEFAULT_CRON_FORM, DEFAULT_LOG_LEVEL_FILTERS } from "./app-defaults";
 import type {
@@ -264,6 +264,7 @@ export class ClawdbotApp extends LitElement {
   @state() chatAvatarUrl: string | null = null;
   @state() chatThinkingLevel: string | null = null;
   @state() chatQueue: ChatQueueItem[] = [];
+  @state() chatAttachments: ChatAttachment[] = [];
   @state() audioInputSupported = false;
   @state() audioRecording = false;
   @state() audioInputError: string | null = null;
@@ -511,6 +512,8 @@ export class ClawdbotApp extends LitElement {
   @state() commandPaletteOpen = false;
   @state() commandPaletteQuery = "";
   @state() commandPaletteSelectedIndex = 0;
+  @state() commandPaletteFavVersion = 0;
+  @state() commandPaletteCategory = "All";
 
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
@@ -1599,12 +1602,14 @@ export class ClawdbotApp extends LitElement {
     this.commandPaletteOpen = true;
     this.commandPaletteQuery = "";
     this.commandPaletteSelectedIndex = 0;
+    this.commandPaletteCategory = "All";
   }
 
   closeCommandPalette() {
     this.commandPaletteOpen = false;
     this.commandPaletteQuery = "";
     this.commandPaletteSelectedIndex = 0;
+    this.commandPaletteCategory = "All";
   }
 
   setCommandPaletteQuery(query: string) {
@@ -1613,6 +1618,14 @@ export class ClawdbotApp extends LitElement {
 
   setCommandPaletteSelectedIndex(index: number) {
     this.commandPaletteSelectedIndex = index;
+  }
+
+  bumpCommandPaletteFavVersion() {
+    this.commandPaletteFavVersion++;
+  }
+
+  setCommandPaletteCategory(category: string) {
+    this.commandPaletteCategory = category;
   }
 
   render() {

@@ -21,7 +21,7 @@ import type {
   SkillStatusReport,
   StatusSummary,
 } from "./types";
-import type { ChatQueueItem, CronFormState, GraphDragState, GraphViewport } from "./ui-types";
+import type { ChatAttachment, ChatQueueItem, CronFormState, GraphDragState, GraphViewport } from "./ui-types";
 import type { EventLogEntry } from "./app-events";
 import type { SkillMessage } from "./controllers/skills";
 import type { TtsProviderId, TtsProviderInfo } from "./controllers/tts";
@@ -62,6 +62,7 @@ export type AppViewState = {
   chatLoading: boolean;
   chatSending: boolean;
   chatMessage: string;
+  chatAttachments: ChatAttachment[];
   chatMessages: unknown[];
   chatToolMessages: unknown[];
   chatStream: string | null;
@@ -269,10 +270,15 @@ export type AppViewState = {
   commandPaletteOpen: boolean;
   commandPaletteQuery: string;
   commandPaletteSelectedIndex: number;
+  /** Incremented to force re-render when favorites change. */
+  commandPaletteFavVersion: number;
+  commandPaletteCategory: string;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
   setCommandPaletteQuery: (query: string) => void;
   setCommandPaletteSelectedIndex: (index: number) => void;
+  bumpCommandPaletteFavVersion: () => void;
+  setCommandPaletteCategory: (category: string) => void;
   sidebarOpen: boolean;
   sidebarContent: string | null;
   sidebarError: string | null;
