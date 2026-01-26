@@ -44,6 +44,34 @@ The onboarding wizard generates a gateway token by default, so paste it here on 
 - Debug: status/health/models snapshots + event log + manual RPC calls (`status`, `health`, `models.list`)
 - Logs: live tail of gateway file logs with filter/export (`logs.tail`)
 - Update: run a package/git update + restart (`update.run`) with a restart report
+- Analytics: token usage stats, cost estimates, and plan quota display (`usage.cost`, `usage.status`)
+
+## Analytics
+
+The Analytics tab provides visibility into your token usage and costs:
+
+![Analytics Dashboard](/gateway/images/control-ui-analytics.png)
+
+### Plan Quota
+
+Shows your current usage against plan limits (for providers that expose quota data):
+
+- **Usage bars**: Visual progress bars for each rate limit window (5-hour, weekly, model-specific)
+- **Reset timers**: Time remaining until each limit resets
+- **Provider support**: Currently supports Anthropic API keys with quota access
+
+For Claude Code OAuth tokens (which use the `user:inference` scope only), plan quota is not available programmatically. The UI displays a link to [claude.ai/settings/usage](https://claude.ai/settings/usage) where you can check your usage directly.
+
+### Usage Summary
+
+Aggregates token consumption from your session transcripts:
+
+- **Summary cards**: Total tokens, input/output breakdown, cache read/write, estimated cost
+- **Daily charts**: Bar charts showing token usage and cost over time
+- **Time periods**: Select 7, 14, 30, or 90 day views
+- **Refresh**: Click to reload data from the gateway
+
+Cost estimates are based on published model pricing and may not reflect actual billing (discounts, commitments, etc.).
 
 ## Chat behavior
 
