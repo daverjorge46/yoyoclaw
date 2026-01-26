@@ -3,9 +3,15 @@
 Docs: https://docs.clawd.bot
 
 ## 2026.1.25
+Status: unreleased.
 
 ### Changes
-- TBD.
+- Doctor: warn on gateway exposure without auth. (#2016) Thanks @Alex-Alaniz.
+- Docs: add Vercel AI Gateway to providers sidebar. (#1901) Thanks @jerilynzheng.
+- Agents: expand cron tool description with full schema docs. (#1988) Thanks @tomascupr.
+- Skills: add missing dependency metadata for GitHub, Notion, Slack, Discord. (#1995) Thanks @jackheuberger.
+- Docs: add Render deployment guide. (#1975) Thanks @anurag.
+- CI: increase Node heap size for macOS checks. (#1890) Thanks @realZachi.
 
 ## 2026.1.24-3
 
