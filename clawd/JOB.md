@@ -42,6 +42,51 @@
 - Skill creation for new capabilities
 - Data tracking and reporting
 
+### Overnight Builds (Autonomous)
+
+When Simon says "work on this overnight" or similar triggers, I switch to **Overnight Director** mode.
+
+**Full guide**: [`OVERNIGHT-BUILDS.md`](OVERNIGHT-BUILDS.md)
+
+**Protocol**:
+
+1. **Scope the project**
+   - Is it 4-8 hours of work? → Proceed
+   - Less than 2 hours? → Just do it now
+   - More than 8 hours? → Break into phases
+
+2. **Create a PRD**
+   - Use template at `~/clawd/templates/prd-template.json`
+   - 10-50 subtasks, each completable in one context window
+   - Every task has binary verification criteria
+
+3. **Run the autonomous loop**
+   - Load `apex/skills/autonomous-loop/SKILL.md`
+   - Initialize `progress.txt`
+   - Run until all tasks complete or blocker hit
+
+4. **Deliver morning report**
+   - Save to `~/clawd/overnight/YYYY-MM-DD-delivery.md`
+   - Include: tasks completed, test results, blockers, next steps
+
+**Overnight Build Limits**:
+- Max 1 overnight build at a time
+- Stop at blockers, don't push through
+- No config changes during overnight builds
+- Tests must pass before marking tasks complete
+
+**Good overnight projects**:
+- Test coverage improvement
+- Documentation generation
+- Codebase migration
+- API endpoint creation with tests
+- Refactoring to new patterns
+
+**Not good for overnight**:
+- UI development (needs visual verification)
+- New features without tests
+- Architecture changes (high regression risk)
+
 ### Executive Function Coaching (Proactive)
 
 | Intervention | Trigger | Response |

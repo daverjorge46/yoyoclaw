@@ -122,3 +122,4 @@ export GOROOT=/home/liam/go
 export GOPATH=/home/liam/go-workspace
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 . "$HOME/.cargo/env"
+export LIAM_TELEGRAM_CHAT_ID="886031571"

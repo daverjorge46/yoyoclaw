@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "PRD Template for Overnight Builds - Use with autonomous-loop skill",
+  
+  "featureName": "REPLACE: Feature Name",
+  "branchName": "feat/REPLACE-feature-name",
+  "estimatedDuration": "4-8 hours",
+  "verificationStrategy": "test-driven",
+  "completionPromise": "<<ALL_TASKS_COMPLETE>>",
+  "maxIterations": 50,
+  
+  "context": {
+    "codebasePatterns": [
+      "REPLACE: Note any patterns discovered during exploration",
+      "Example: Auth middleware uses withAuth() HOC",
+      "Example: API routes return { success: boolean, data?: T }"
+    ],
+    "filesOfInterest": [
+      "REPLACE: List key files to reference",
+      "Example: src/lib/auth.ts",
+      "Example: src/api/routes.ts"
+    ],
+    "outOfScope": [
+      "REPLACE: What NOT to do",
+      "Example: Don't refactor existing auth",
+      "Example: Don't add new dependencies without asking"
+    ]
+  },
+  
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "REPLACE: First task title",
+      "description": "REPLACE: What to do in this task",
+      "acceptanceCriteria": [
+        "REPLACE: Specific, binary criterion",
+        "npm run typecheck passes",
+        "npm test passes (no regressions)"
+      ],
+      "dependsOn": [],
+      "passes": false
+    },
+    {
+      "id": "US-002",
+      "title": "REPLACE: Second task title",
+      "description": "REPLACE: What to do in this task",
+      "acceptanceCriteria": [
+        "REPLACE: Specific, binary criterion",
+        "npm run typecheck passes",
+        "npm test passes (no regressions)"
+      ],
+      "dependsOn": ["US-001"],
+      "passes": false
+    },
+    {
+      "id": "US-003",
+      "title": "REPLACE: Third task title",
+      "description": "REPLACE: What to do in this task",
+      "acceptanceCriteria": [
+        "REPLACE: Specific, binary criterion",
+        "npm run typecheck passes",
+        "npm test passes (no regressions)"
+      ],
+      "dependsOn": ["US-002"],
+      "passes": false
+    }
+  ],
+  
+  "_instructions": {
+    "taskSizing": "Each task should complete in one context window (15-30 min). If bigger, split it.",
+    "dependencies": "Create a DAG - no cycles. Parallel tasks can share the same dependency.",
+    "criteria": "Every criterion must be binary (done/not done). No vague language.",
+    "testing": "Every task MUST include 'npm test passes' in acceptance criteria.",
+    "count": "Aim for 10-50 tasks for an overnight build. Fewer = finishes too fast. More = scope creep."
+  }
+}

@@ -1,0 +1,13 @@
+[Unit]
+Description=Liam Config Watcher - Auto-refresh sessions on config change
+After=clawdbot-gateway.service
+
+[Service]
+Type=simple
+Environment="LIAM_TELEGRAM_CHAT_ID=886031571"
+ExecStart=/home/liam/bin/liam-watch
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
