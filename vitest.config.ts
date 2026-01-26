@@ -26,6 +26,10 @@ export default defineConfig({
     // Longer teardown on macOS CI for native module cleanup (node:sqlite, etc.)
     teardownTimeout: macOSCI ? 30_000 : 10_000,
     pool: "forks",
+    // Use single fork on macOS CI to avoid worker crash during teardown
+    poolOptions: macOSCI
+      ? { forks: { singleFork: true } }
+      : undefined,
     maxWorkers: isCI ? ciWorkers : localWorkers,
     include: [
       "src/**/*.test.ts",
