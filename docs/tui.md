@@ -88,6 +88,8 @@ Session lifecycle:
 - `/settings`
 - `/exit`
 
+Other Gateway slash commands (for example, `/context`) are forwarded to the Gateway and shown as system output. See [Slash commands](/tools/slash-commands).
+
 ## Local shell commands
 - Prefix a line with `!` to run a local shell command on the TUI host.
 - The TUI prompts once per session to allow local execution; declining keeps `!` disabled for the session.
@@ -116,6 +118,14 @@ Session lifecycle:
 - `--deliver`: Deliver assistant replies to the provider (default off)
 - `--thinking <level>`: Override thinking level for sends
 - `--timeout-ms <ms>`: Agent timeout in ms (defaults to `agents.defaults.timeoutSeconds`)
+
+## Troubleshooting
+
+No output after sending a message:
+- Run `/status` in the TUI to confirm the Gateway is connected and idle/busy.
+- Check the Gateway logs: `clawdbot logs --follow`.
+- Confirm the agent can run: `clawdbot status` and `clawdbot models status`.
+- If you expect messages in a chat channel, enable delivery (`/deliver on` or `--deliver`).
 - `--history-limit <n>`: History entries to load (default 200)
 
 ## Troubleshooting
