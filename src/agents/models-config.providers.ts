@@ -351,8 +351,8 @@ async function buildVeniceProvider(): Promise<ProviderConfig> {
   };
 }
 
-async function buildFireworksProvider(apiKey?: string): Promise<ProviderConfig> {
-  const models = await discoverFireworksModels({ apiKey });
+function buildFireworksProvider(): ProviderConfig {
+  const models = discoverFireworksModels();
   return {
     baseUrl: FIREWORKS_BASE_URL,
     api: "openai-completions",
@@ -416,7 +416,7 @@ export async function resolveImplicitProviders(params: {
     resolveEnvApiKeyVarName("fireworks") ??
     resolveApiKeyFromProfiles({ provider: "fireworks", store: authStore });
   if (fireworksKey) {
-    providers.fireworks = { ...(await buildFireworksProvider(fireworksKey)), apiKey: fireworksKey };
+    providers.fireworks = { ...buildFireworksProvider(), apiKey: fireworksKey };
   }
 
   const qwenProfiles = listProfilesForProvider(authStore, "qwen-portal");
