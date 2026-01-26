@@ -36,6 +36,7 @@ Status: unreleased.
 
 ### Fixes
 - Web UI: improve WebChat image paste previews and allow image-only sends. (#1925) Thanks @smartprogrammer93.
+- Gateway: fix server resource leak in canBindToHost error handler.
 
 ## 2026.1.24-3
 
