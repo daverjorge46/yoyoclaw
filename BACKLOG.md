@@ -17,12 +17,13 @@ This file tracks work items for autonomous development.
 
 Branch: `landing-page-ux` | Design doc: `docs/plans/2026-01-25-landing-page-design.md`
 
-- [~] Complete landing page structure (PR #6 open)
-- [ ] Polish landing page copy and design
+- [x] Complete landing page structure (PR #13 — `autodev-landing-page`)
+- [x] Polish landing page copy and design (PR #13)
+- [~] Mobile navigation + accessibility improvements (PR from `landing-page-ux`)
 - [ ] Implement interactive demos/previews (live Overseer visualization, chat preview)
-- [ ] Responsive breakpoints (mobile, tablet, desktop)
+- [~] Responsive breakpoints (mobile, tablet, desktop) — mobile hamburger menu + back-to-top added
 - [ ] Wire CTA flows (signup, waitlist, demo request)
-- [ ] SEO optimization
+- [ ] SEO optimization (meta tags, structured data, og tags)
 - [ ] Performance pass (lazy load sections, optimize animations)
 
 ---
