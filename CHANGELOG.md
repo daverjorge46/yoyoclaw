@@ -6,8 +6,10 @@ Docs: https://docs.clawd.bot
 Status: unreleased.
 
 ### Changes
+- Agents: honor tools.exec.safeBins in exec allowlist checks. (#2281)
 - Docs: tighten Fly private deployment steps. (#2289) Thanks @dguido.
 - Gateway: warn on hook tokens via query params; document header auth preference. (#2200) Thanks @YuriNachos.
+- Gateway: add dangerous Control UI device auth bypass flag + audit warnings. (#2248)
 - Doctor: warn on gateway exposure without auth. (#2016) Thanks @Alex-Alaniz.
 - Discord: add configurable privileged gateway intents for presences/members. (#2266) Thanks @kentaro.
 - Docs: add Vercel AI Gateway to providers sidebar. (#1901) Thanks @jerilynzheng.
@@ -50,6 +52,7 @@ Status: unreleased.
 - Web UI: improve WebChat image paste previews and allow image-only sends. (#1925) Thanks @smartprogrammer93.
 - Security: wrap external hook content by default with a per-hook opt-out. (#1827) Thanks @mertcicekci0.
 - Gateway: default auth now fail-closed (token/password required; Tailscale Serve identity remains allowed).
+- Onboarding: remove unsupported gateway auth "off" choice from onboarding/configure flows and CLI flags.
 
 ## 2026.1.24-3
 
