@@ -103,9 +103,7 @@ export async function runCopilotSdkAgent(params: {
   try {
     await client.start();
 
-    let session:
-      | Awaited<ReturnType<CopilotClient["createSession"]>>
-      | Awaited<ReturnType<CopilotClient["resumeSession"]>>;
+    let session: Awaited<ReturnType<CopilotClient["createSession"]>>;
 
     if (params.cliSessionId) {
       try {
