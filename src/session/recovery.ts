@@ -69,7 +69,7 @@ export async function recoverPendingSessions(
   // 期限切れチェック
   const validSessions = sessions.filter((s) => {
     if (Date.now() > s.metadata.expiresAt * 1000) {
-      deleteSession(s.metadata.sessionId);
+      void deleteSession(s.metadata.sessionId);
       result.expired++;
       return false;
     }

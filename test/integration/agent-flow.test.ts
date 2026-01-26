@@ -467,7 +467,7 @@ ${handoff.context}
       // Simulate θサイクル
       ["observe", "analyze", "decide", "allocate", "execute", "improve"].forEach(() => {
         // Simulate phase
-        1 + 1;
+        void 1;
       });
 
       const cycleEnd = Date.now();

@@ -6,7 +6,7 @@
 
 import { exec } from "child_process";
 import { promisify } from "util";
-import { mkdtempSync, writeFileSync, unlinkSync, rmSync, rmdirSync } from "node:fs";
+import { mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from "node:fs";
 import { join } from "node:path";
 import type {
   CodexReview,

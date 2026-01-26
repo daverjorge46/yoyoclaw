@@ -3,7 +3,6 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SessionStatus } from "./types.js";
 
 // DynamoDBモック
 vi.mock("@aws-sdk/client-dynamodb");
