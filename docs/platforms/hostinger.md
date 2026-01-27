@@ -1,18 +1,18 @@
 ---
-summary: "Clawdbot on Hostinger VPS (simplest UI-based setup)"
+summary: "Moltbot on Hostinger VPS (simplest UI-based setup)"
 read_when:
-  - Setting up Clawdbot on Hostinger VPS
+  - Setting up Moltbot on Hostinger VPS
   - Looking for the easiest VPS setup with a UI
   - Want one-click Docker deployment
 ---
 
-# Clawdbot on Hostinger VPS
+# Moltbot on Hostinger VPS
 
 ## Goal
 
-Run a persistent Clawdbot Gateway on Hostinger VPS using their **Docker Manager** UI.
+Run a persistent Moltbot Gateway on Hostinger VPS using their **Docker Manager** UI.
 
-This is the **simplest setup path** if you prefer a graphical interface over SSH and command-line configuration. Hostinger's hPanel includes a Docker catalog with Clawdbot pre-configured for one-click deployment.
+This is the **simplest setup path** if you prefer a graphical interface over SSH and command-line configuration. Hostinger's hPanel includes a Docker catalog with Moltbot pre-configured for one-click deployment.
 
 ## Cost Comparison (2026)
 
@@ -27,7 +27,7 @@ This is the **simplest setup path** if you prefer a graphical interface over SSH
 
 **Why Hostinger?**
 - Fully UI-based setup (no SSH required)
-- Docker Manager with pre-configured Clawdbot in the catalog
+- Docker Manager with pre-configured Moltbot in the catalog
 - Good starting point for users less comfortable with the command line
 
 ---
@@ -56,19 +56,19 @@ That's it. No SSH keys, no terminal experience required.
 4. If not already installed, click **Install**
 5. Wait 2-3 minutes for installation to complete
 
-## 3) Deploy Clawdbot from Catalog
+## 3) Deploy Moltbot from Catalog
 
 1. Open **Docker Manager** in hPanel
 2. Go to the **Catalog** section
-3. Search for **Clawdbot**
-4. Click the **Deploy** button on the Clawdbot card
+3. Search for **Moltbot**
+4. Click the **Deploy** button on the Moltbot card
 
 ## 4) Configure Environment Variables
 
 The deployment wizard will show configuration options:
 
 **Required (auto-generated):**
-- `CLAWDBOT_GATEWAY_TOKEN` — Used to access the Control UI (generated automatically)
+- `MOLTBOT_GATEWAY_TOKEN` — Used to access the Control UI (generated automatically)
 
 You can also configure these later via the Control UI.
 
@@ -83,7 +83,7 @@ You can also configure these later via the Control UI.
 
 ## Access the Control UI
 
-Once deployed, access Clawdbot at:
+Once deployed, access Moltbot at:
 
 ```
 http://YOUR_VPS_IP:PORT
@@ -117,15 +117,15 @@ See [Channels](/channels) for detailed setup guides.
 
 All management happens through Docker Manager in hPanel:
 
-- **View logs:** Click on the Clawdbot container → Logs tab
+- **View logs:** Click on the Moltbot container → Logs tab
 - **Restart:** Click the restart button on the container
 - **Stop/Start:** Use the container controls
 - **Update:** Pull the latest image and redeploy
 
 ### Update to Latest Version
 
-1. In Docker Manager, stop the Clawdbot container
-2. Go to the Catalog and redeploy Clawdbot
+1. In Docker Manager, stop the Moltbot container
+2. Go to the Catalog and redeploy Moltbot
 3. Your configuration persists if using volumes
 
 ---
@@ -137,11 +137,11 @@ If you need command-line access for troubleshooting:
 1. In hPanel, go to **Docker Manager**
 2. Press **Terminal** button
 
-From SSH, you can use standard Clawdbot CLI commands:
+From SSH, you can use standard Moltbot CLI commands:
 
 ```bash
 # Check status
-docker ps | grep clawdbot
+docker ps | grep moltbot
 
 # View logs
 docker logs -f <container_id>
@@ -177,7 +177,7 @@ Docker Manager configures volumes automatically. Your data persists across conta
 
 ### Gateway token not working
 
-1. Check the `CLAWDBOT_GATEWAY_TOKEN` in Docker Manager → Environment
+1. Check the `MOLTBOT_GATEWAY_TOKEN` in Docker Manager → Environment
 2. The token is case-sensitive
 3. Try redeploying with a new token
 
