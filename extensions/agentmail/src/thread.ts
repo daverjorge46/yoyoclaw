@@ -16,62 +16,39 @@ export function extractMessageBody(
   return msg.extractedText ?? msg.extractedHtml ?? msg.text ?? msg.html ?? "";
 }
 
-/**
- * Formats thread-level metadata.
- */
 function formatThreadHeader(thread: Thread): string {
-  const lines: string[] = [];
-
-  if (thread.subject) {
-    lines.push(`Subject: ${thread.subject}`);
-  }
-
-  lines.push(`Senders: ${thread.senders.join(", ")}`);
-  lines.push(`Recipients: ${thread.recipients.join(", ")}`);
-  lines.push(`Messages: ${thread.messageCount}`);
-
-  return lines.join("\n");
+  return [
+    thread.subject && `Subject: ${thread.subject}`,
+    `Senders: ${thread.senders.join(", ")}`,
+    `Recipients: ${thread.recipients.join(", ")}`,
+    `Messages: ${thread.messageCount}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-/**
- * Formats recipients for a message (to, cc, bcc).
- */
 function formatMessageRecipients(msg: Message): string {
-  const parts: string[] = [`To: ${msg.to.join(", ")}`];
-
-  if (msg.cc?.length) {
-    parts.push(`Cc: ${msg.cc.join(", ")}`);
-  }
-
-  if (msg.bcc?.length) {
-    parts.push(`Bcc: ${msg.bcc.join(", ")}`);
-  }
-
-  return parts.join("\n");
+  return [
+    `To: ${msg.to.join(", ")}`,
+    msg.cc?.length && `Cc: ${msg.cc.join(", ")}`,
+    msg.bcc?.length && `Bcc: ${msg.bcc.join(", ")}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-/**
- * Formats a single message for context display.
- */
 function formatMessage(msg: Message): string {
-  const recipients = formatMessageRecipients(msg);
   const attachments = formatAttachments(msg.attachments);
-  const body = extractMessageBody(msg);
-  const timestamp = formatUtcDate(msg.createdAt);
-
-  const parts = [
-    `--- ${timestamp} ---`,
+  return [
+    `--- ${formatUtcDate(msg.createdAt)} ---`,
     `From: ${msg.from}`,
-    recipients,
-  ];
-
-  if (attachments) {
-    parts.push(attachments);
-  }
-
-  parts.push("", body);
-
-  return parts.join("\n");
+    formatMessageRecipients(msg),
+    attachments,
+    "",
+    extractMessageBody(msg),
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /**

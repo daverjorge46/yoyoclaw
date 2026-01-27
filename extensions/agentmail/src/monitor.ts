@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { registerPluginHttpRoute } from "clawdbot/plugin-sdk";
 
-import { resolveAgentMailAccount, resolveCredentials } from "./accounts.js";
+import { resolveCredentials } from "./accounts.js";
 import { getAgentMailClient } from "./client.js";
 import { getAgentMailRuntime } from "./runtime.js";
 import { checkSenderAllowed, labelMessageAllowed } from "./filtering.js";
@@ -16,30 +16,26 @@ export type MonitorAgentMailOptions = {
 };
 
 // Runtime state tracking
-const runtimeState = new Map<
-  string,
-  {
-    running: boolean;
-    lastStartAt: number | null;
-    lastStopAt: number | null;
-    lastError: string | null;
-    lastInboundAt?: number | null;
-    lastOutboundAt?: number | null;
-  }
->();
+type RuntimeState = {
+  running: boolean;
+  lastStartAt: number | null;
+  lastStopAt: number | null;
+  lastError: string | null;
+  lastInboundAt?: number | null;
+  lastOutboundAt?: number | null;
+};
+const runtimeState = new Map<string, RuntimeState>();
+const defaultState: RuntimeState = {
+  running: false,
+  lastStartAt: null,
+  lastStopAt: null,
+  lastError: null,
+};
 
-function recordState(
-  accountId: string,
-  state: Partial<typeof runtimeState extends Map<string, infer V> ? V : never>
-) {
+function recordState(accountId: string, state: Partial<RuntimeState>) {
   const key = `agentmail:${accountId}`;
   runtimeState.set(key, {
-    ...(runtimeState.get(key) ?? {
-      running: false,
-      lastStartAt: null,
-      lastStopAt: null,
-      lastError: null,
-    }),
+    ...(runtimeState.get(key) ?? defaultState),
     ...state,
   });
 }
@@ -87,27 +83,13 @@ export async function monitorAgentMailProvider(
     module: "agentmail-auto-reply",
   });
   const logVerbose = (msg: string) => {
-    if (core.logging.shouldLogVerbose()) {
-      if (logger.debug) {
-        logger.debug(msg);
-      } else {
-        logger.info(msg);
-      }
-    }
+    if (core.logging.shouldLogVerbose()) (logger.debug ?? logger.info)(msg);
   };
 
   const accountId = opts.accountId ?? "default";
-  const account = resolveAgentMailAccount({ cfg, accountId });
-
-  if (!account.configured) {
-    logger.warn("AgentMail not configured (missing token or email address)");
-    return;
-  }
-
   const { apiKey, inboxId, webhookPath } = resolveCredentials(cfg);
-
   if (!apiKey || !inboxId) {
-    logger.warn("AgentMail token or email address not found");
+    logger.warn("AgentMail not configured (missing token or email address)");
     return;
   }
 

@@ -6,9 +6,10 @@ import type {
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "clawdbot/plugin-sdk";
 
 import {
+  DEFAULT_WEBHOOK_PATH,
+  extractPathFromUrl,
   resolveAgentMailAccount,
   resolveCredentials,
-  resolveDefaultAgentMailAccountId,
 } from "./accounts.js";
 import type { AgentMailConfig, CoreConfig } from "./utils.js";
 
@@ -86,12 +87,9 @@ export const agentmailOnboardingAdapter: ChannelOnboardingAdapter = {
   },
 
   configure: async ({ cfg, prompter, accountOverrides }) => {
-    const defaultAccountId = resolveDefaultAgentMailAccountId(
-      cfg as CoreConfig
-    );
     const accountId = accountOverrides.agentmail
       ? normalizeAccountId(accountOverrides.agentmail)
-      : defaultAccountId;
+      : DEFAULT_ACCOUNT_ID;
 
     let next = cfg as MoltbotConfig;
     const account = resolveAgentMailAccount({
@@ -160,9 +158,6 @@ export const agentmailOnboardingAdapter: ChannelOnboardingAdapter = {
     // Apply config
     next = updateAgentMailConfig(next, { enabled: true, token, emailAddress });
 
-    // Webhook configuration
-    const DEFAULT_WEBHOOK_PATH = "/webhooks/agentmail";
-
     // Ask if gateway has a public URL
     const hasPublicUrl = await prompter.confirm({
       message:
@@ -174,7 +169,6 @@ export const agentmailOnboardingAdapter: ChannelOnboardingAdapter = {
     let webhookPath = DEFAULT_WEBHOOK_PATH;
 
     if (hasPublicUrl) {
-      // Get the full public webhook URL
       webhookUrl = String(
         await prompter.text({
           message: "Full webhook URL",
@@ -185,21 +179,13 @@ export const agentmailOnboardingAdapter: ChannelOnboardingAdapter = {
             if (
               !trimmed.startsWith("http://") &&
               !trimmed.startsWith("https://")
-            ) {
+            )
               return "Must start with http:// or https://";
-            }
             return undefined;
           },
         })
       ).trim();
-
-      // Derive path from URL
-      try {
-        const parsed = new URL(webhookUrl);
-        webhookPath = parsed.pathname || DEFAULT_WEBHOOK_PATH;
-      } catch {
-        webhookPath = DEFAULT_WEBHOOK_PATH;
-      }
+      webhookPath = extractPathFromUrl(webhookUrl) ?? DEFAULT_WEBHOOK_PATH;
 
       // Auto-register webhook with AgentMail
       try {
@@ -349,22 +335,21 @@ async function promptForNewInbox(
       await prompter.note(`Your new inbox: ${emailAddress}`, "Inbox Created");
       return emailAddress;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const isConflict =
-        message.toLowerCase().includes("already") ||
-        message.toLowerCase().includes("taken") ||
-        message.toLowerCase().includes("exists") ||
-        message.includes("409");
-
-      if (isConflict) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const lower = msg.toLowerCase();
+      if (
+        lower.includes("already") ||
+        lower.includes("taken") ||
+        lower.includes("exists") ||
+        msg.includes("409")
+      ) {
         await prompter.note(
           `${targetEmail} is already taken. Please try a different address.`,
           "Address Unavailable"
         );
         continue;
       }
-
-      throw new Error(`Failed to create inbox: ${message}`);
+      throw new Error(`Failed to create inbox: ${msg}`);
     }
   }
 }

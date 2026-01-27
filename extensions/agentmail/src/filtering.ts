@@ -2,43 +2,24 @@ import type { AgentMailClient } from "agentmail";
 
 import type { AgentMailConfig } from "./utils.js";
 
-/**
- * Checks if a sender email matches any entry in a list.
- * Entries can be exact email addresses or domains.
- */
+/** Checks if a sender email matches any entry in a list (exact email or domain). */
 export function matchesList(senderEmail: string, list: string[]): boolean {
-  if (!list || list.length === 0) return false;
-
-  const normalizedSender = senderEmail.toLowerCase().trim();
-  const domain = normalizedSender.split("@")[1];
-
-  return list.some((entry) => {
-    const normalizedEntry = entry.toLowerCase().trim();
-    // Match exact email or domain
-    return normalizedEntry === normalizedSender || normalizedEntry === domain;
+  if (!list?.length) return false;
+  const sender = senderEmail.toLowerCase().trim();
+  const domain = sender.split("@")[1];
+  return list.some((e) => {
+    const entry = e.toLowerCase().trim();
+    return entry === sender || entry === domain;
   });
 }
 
-/**
- * Determines if a sender is allowed based on allowFrom config.
- *
- * Logic:
- * 1. If allowFrom is empty → allowed (open mode)
- * 2. If sender matches allowFrom → allowed
- * 3. Otherwise → not allowed
- */
+/** Checks if sender is allowed: empty allowFrom = open mode (all allowed). */
 export function checkSenderAllowed(
   senderEmail: string,
-  config: Pick<AgentMailConfig, "allowFrom">,
+  config: Pick<AgentMailConfig, "allowFrom">
 ): boolean {
   const { allowFrom = [] } = config;
-
-  // Open mode: all senders allowed when allowFrom is empty
-  if (allowFrom.length === 0) {
-    return true;
-  }
-
-  return matchesList(senderEmail, allowFrom);
+  return allowFrom.length === 0 || matchesList(senderEmail, allowFrom);
 }
 
 /**
@@ -47,7 +28,7 @@ export function checkSenderAllowed(
 export async function labelMessageAllowed(
   client: AgentMailClient,
   inboxId: string,
-  messageId: string,
+  messageId: string
 ): Promise<void> {
   await client.inboxes.messages.update(inboxId, messageId, {
     addLabels: ["allowed"],

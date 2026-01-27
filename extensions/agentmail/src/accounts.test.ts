@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  listAgentMailAccountIds,
-  resolveAgentMailAccount,
-  resolveCredentials,
-  resolveDefaultAgentMailAccountId,
-} from "./accounts.js";
+import { resolveAgentMailAccount, resolveCredentials } from "./accounts.js";
 import type { CoreConfig } from "./utils.js";
 
 describe("resolveCredentials", () => {
@@ -99,7 +94,9 @@ describe("resolveCredentials", () => {
       AGENTMAIL_WEBHOOK_URL: "https://env-gateway.example.com/hooks/email",
     };
     const result = resolveCredentials(cfg, env);
-    expect(result.webhookUrl).toBe("https://env-gateway.example.com/hooks/email");
+    expect(result.webhookUrl).toBe(
+      "https://env-gateway.example.com/hooks/email"
+    );
   });
 
   it("derives webhookPath from webhookUrl", () => {
@@ -216,21 +213,5 @@ describe("resolveAgentMailAccount", () => {
     };
     const result = resolveAgentMailAccount({ cfg });
     expect(result.name).toBe("Trimmed Name");
-  });
-});
-
-describe("listAgentMailAccountIds", () => {
-  it("returns default account", () => {
-    const cfg: CoreConfig = {};
-    const result = listAgentMailAccountIds(cfg);
-    expect(result).toEqual(["default"]);
-  });
-});
-
-describe("resolveDefaultAgentMailAccountId", () => {
-  it("returns default account id", () => {
-    const cfg: CoreConfig = {};
-    const result = resolveDefaultAgentMailAccountId(cfg);
-    expect(result).toBe("default");
   });
 });

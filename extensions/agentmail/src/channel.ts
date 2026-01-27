@@ -8,12 +8,7 @@ import {
   type ChannelPlugin,
 } from "clawdbot/plugin-sdk";
 
-import {
-  listAgentMailAccountIds,
-  resolveAgentMailAccount,
-  resolveDefaultAgentMailAccountId,
-  resolveCredentials,
-} from "./accounts.js";
+import { resolveAgentMailAccount, resolveCredentials } from "./accounts.js";
 import { getAgentMailClient } from "./client.js";
 import { AgentMailConfigSchema } from "./config-schema.js";
 import { agentmailOnboardingAdapter } from "./onboarding.js";
@@ -47,11 +42,10 @@ export const agentmailPlugin: ChannelPlugin<ResolvedAgentMailAccount> = {
   configSchema: buildChannelConfigSchema(AgentMailConfigSchema),
 
   config: {
-    listAccountIds: (cfg) => listAgentMailAccountIds(cfg as CoreConfig),
+    listAccountIds: () => [DEFAULT_ACCOUNT_ID],
     resolveAccount: (cfg, accountId) =>
       resolveAgentMailAccount({ cfg: cfg as CoreConfig, accountId }),
-    defaultAccountId: (cfg) =>
-      resolveDefaultAgentMailAccountId(cfg as CoreConfig),
+    defaultAccountId: () => DEFAULT_ACCOUNT_ID,
     setAccountEnabled: ({ cfg, accountId, enabled }) =>
       setAccountEnabledInConfigSection({
         cfg: cfg as CoreConfig,
@@ -102,18 +96,10 @@ export const agentmailPlugin: ChannelPlugin<ResolvedAgentMailAccount> = {
         "Add email addresses or domains to channels.agentmail.allowFrom",
       normalizeEntry: (raw) => raw.toLowerCase().trim(),
     }),
-    collectWarnings: ({ account }) => {
-      const warnings: string[] = [];
-      const { allowFrom = [] } = account.config;
-
-      if (allowFrom.length === 0) {
-        warnings.push(
-          "- AgentMail: No allowFrom configured. All senders will be allowed."
-        );
-      }
-
-      return warnings;
-    },
+    collectWarnings: ({ account }) =>
+      (account.config.allowFrom?.length ?? 0) === 0
+        ? ["- AgentMail: No allowFrom configured. All senders will be allowed."]
+        : [],
   },
 
   messaging: {
@@ -147,25 +133,19 @@ export const agentmailPlugin: ChannelPlugin<ResolvedAgentMailAccount> = {
     },
     applyAccountConfig: ({ cfg, input }) => {
       const existing = (cfg as CoreConfig).channels?.agentmail ?? {};
+      const updates: Record<string, unknown> = { enabled: true };
+      if (!input.useEnv) {
+        if (input.token?.trim()) updates.token = input.token.trim();
+        if (input.emailAddress?.trim())
+          updates.emailAddress = input.emailAddress.trim();
+        if (input.webhookPath?.trim())
+          updates.webhookPath = input.webhookPath.trim();
+      }
       return {
         ...cfg,
         channels: {
           ...(cfg as CoreConfig).channels,
-          agentmail: {
-            ...existing,
-            enabled: true,
-            ...(input.useEnv
-              ? {}
-              : {
-                  ...(input.token?.trim() ? { token: input.token.trim() } : {}),
-                  ...(input.emailAddress?.trim()
-                    ? { emailAddress: input.emailAddress.trim() }
-                    : {}),
-                  ...(input.webhookPath?.trim()
-                    ? { webhookPath: input.webhookPath.trim() }
-                    : {}),
-                }),
-          },
+          agentmail: { ...existing, ...updates },
         },
       };
     },
@@ -182,54 +162,39 @@ export const agentmailPlugin: ChannelPlugin<ResolvedAgentMailAccount> = {
       lastError: null,
     },
     collectStatusIssues: (accounts) =>
-      accounts.flatMap((account) => {
-        const lastError =
-          typeof account.lastError === "string" ? account.lastError.trim() : "";
-        if (!lastError) return [];
-        return [
-          {
-            channel: "agentmail",
-            accountId: account.accountId,
-            kind: "runtime",
-            message: `Channel error: ${lastError}`,
-          },
-        ];
-      }),
-    buildChannelSummary: ({ snapshot }) => ({
-      configured: snapshot.configured ?? false,
-      emailAddress: snapshot.emailAddress ?? null,
-      running: snapshot.running ?? false,
-      lastStartAt: snapshot.lastStartAt ?? null,
-      lastStopAt: snapshot.lastStopAt ?? null,
-      lastError: snapshot.lastError ?? null,
-      probe: snapshot.probe,
-      lastProbeAt: snapshot.lastProbeAt ?? null,
+      accounts
+        .filter((a) => typeof a.lastError === "string" && a.lastError.trim())
+        .map((a) => ({
+          channel: "agentmail",
+          accountId: a.accountId,
+          kind: "runtime" as const,
+          message: `Channel error: ${a.lastError}`,
+        })),
+    buildChannelSummary: ({ snapshot: s }) => ({
+      configured: s.configured ?? false,
+      emailAddress: s.emailAddress ?? null,
+      running: s.running ?? false,
+      lastStartAt: s.lastStartAt ?? null,
+      lastStopAt: s.lastStopAt ?? null,
+      lastError: s.lastError ?? null,
+      probe: s.probe,
+      lastProbeAt: s.lastProbeAt ?? null,
     }),
     probeAccount: async ({ cfg }) => {
       try {
         const { apiKey, inboxId } = resolveCredentials(cfg as CoreConfig);
-
-        if (!apiKey || !inboxId) {
+        if (!apiKey || !inboxId)
           return {
             ok: false,
             error: "Missing token or email address",
             elapsedMs: 0,
           };
-        }
-
         const start = Date.now();
-        const client = getAgentMailClient(apiKey);
-
-        // Probe by getting inbox info
-        const inbox = await client.inboxes.get(inboxId);
-        const elapsedMs = Date.now() - start;
-
+        const inbox = await getAgentMailClient(apiKey).inboxes.get(inboxId);
         return {
           ok: true,
-          elapsedMs,
-          meta: {
-            inboxId: inbox.inboxId, // inboxId is the email address
-          },
+          elapsedMs: Date.now() - start,
+          meta: { inboxId: inbox.inboxId },
         };
       } catch (err) {
         return {
@@ -239,40 +204,35 @@ export const agentmailPlugin: ChannelPlugin<ResolvedAgentMailAccount> = {
         };
       }
     },
-    buildAccountSnapshot: ({ account, runtime, probe }) => ({
-      accountId: account.accountId,
-      name: account.name,
-      enabled: account.enabled,
-      configured: account.configured,
-      emailAddress: account.inboxId,
-      running: runtime?.running ?? false,
-      lastStartAt: runtime?.lastStartAt ?? null,
-      lastStopAt: runtime?.lastStopAt ?? null,
-      lastError: runtime?.lastError ?? null,
+    buildAccountSnapshot: ({ account: a, runtime: r, probe }) => ({
+      accountId: a.accountId,
+      name: a.name,
+      enabled: a.enabled,
+      configured: a.configured,
+      emailAddress: a.inboxId,
+      running: r?.running ?? false,
+      lastStartAt: r?.lastStartAt ?? null,
+      lastStopAt: r?.lastStopAt ?? null,
+      lastError: r?.lastError ?? null,
       probe,
-      lastProbeAt: runtime?.lastProbeAt ?? null,
-      lastInboundAt: runtime?.lastInboundAt ?? null,
-      lastOutboundAt: runtime?.lastOutboundAt ?? null,
+      lastProbeAt: r?.lastProbeAt ?? null,
+      lastInboundAt: r?.lastInboundAt ?? null,
+      lastOutboundAt: r?.lastOutboundAt ?? null,
     }),
   },
 
   gateway: {
     startAccount: async (ctx) => {
-      const account = ctx.account;
-      ctx.setStatus({
-        accountId: account.accountId,
-        emailAddress: account.inboxId,
-      });
+      const { accountId, inboxId } = ctx.account;
+      ctx.setStatus({ accountId, emailAddress: inboxId });
       ctx.log?.info(
-        `[${account.accountId}] starting AgentMail provider (email: ${
-          account.inboxId ?? "unknown"
+        `[${accountId}] starting AgentMail provider (email: ${
+          inboxId ?? "unknown"
         })`
       );
-
-      // Lazy import: avoid ESM init cycles
       const { monitorAgentMailProvider } = await import("./monitor.js");
       return monitorAgentMailProvider({
-        accountId: account.accountId,
+        accountId,
         abortSignal: ctx.abortSignal,
       });
     },

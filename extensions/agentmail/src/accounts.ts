@@ -6,22 +6,6 @@ import type {
   ResolvedAgentMailAccount,
 } from "./utils.js";
 
-/**
- * Lists all AgentMail account IDs.
- * Currently supports only a single default account.
- */
-export function listAgentMailAccountIds(_cfg: CoreConfig): string[] {
-  return [DEFAULT_ACCOUNT_ID];
-}
-
-/**
- * Returns the default AgentMail account ID.
- * Currently only supports a single default account.
- */
-export function resolveDefaultAgentMailAccountId(_cfg: CoreConfig): string {
-  return DEFAULT_ACCOUNT_ID;
-}
-
 /** Resolved AgentMail credentials and paths. */
 export type ResolvedAgentMailCredentials = {
   apiKey?: string;
@@ -30,10 +14,10 @@ export type ResolvedAgentMailCredentials = {
   webhookPath: string;
 };
 
-const DEFAULT_WEBHOOK_PATH = "/webhooks/agentmail";
+export const DEFAULT_WEBHOOK_PATH = "/webhooks/agentmail";
 
 /** Extracts the path from a URL string. Returns undefined if just root "/". */
-function extractPathFromUrl(url: string): string | undefined {
+export function extractPathFromUrl(url: string): string | undefined {
   try {
     const parsed = new URL(url);
     // Return undefined if just root path "/" - use default instead
