@@ -51,7 +51,7 @@ export type ConfigProps = {
 
 // SVG Icons for sidebar (Lucide-style)
 const sidebarIcons = {
-  all: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`,
+  status: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
   env: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
   update: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
   agents: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"></path><circle cx="8" cy="14" r="1"></circle><circle cx="16" cy="14" r="1"></circle></svg>`,
@@ -470,9 +470,13 @@ export function renderConfig(props: ConfigProps) {
   const validity =
     props.valid == null ? "unknown" : props.valid ? "valid" : "invalid";
   const analysis = analyzeConfigSchema(props.schema);
-  const formUnsafe = analysis.schema
-    ? analysis.unsupportedPaths.length > 0
-    : false;
+  const unsupportedInSection = analysis.schema
+    ? analysis.unsupportedPaths.filter(p => {
+        if (!props.activeSection) return false;
+        return p.startsWith(props.activeSection + ".") || p === props.activeSection;
+      })
+    : [];
+  const formUnsafe = unsupportedInSection.length > 0;
 
   const normalizedIssues = (props.issues ?? []).map(normalizeIssue);
   const issueCounts = normalizedIssues.reduce(
@@ -543,6 +547,14 @@ export function renderConfig(props: ConfigProps) {
   const hasRawChanges = props.formMode === "raw" && props.raw !== props.originalRaw;
   const hasChanges = props.formMode === "form" ? diff.length > 0 : hasRawChanges;
 
+  const gatewayMode = (() => {
+    const gw = props.formValue?.gateway;
+    if (gw && typeof gw === "object" && "mode" in (gw as Record<string, unknown>)) {
+      return (gw as Record<string, unknown>).mode === "remote" ? "remote" : "local";
+    }
+    return "local";
+  })();
+
   // Save/apply buttons require actual changes to be enabled.
   // Note: formUnsafe warns about unsupported schema paths but shouldn't block saving.
   const canSaveForm =
@@ -550,12 +562,6 @@ export function renderConfig(props: ConfigProps) {
   const canSave =
     props.connected &&
     !props.saving &&
-    hasChanges &&
-    (props.formMode === "raw" ? true : canSaveForm);
-  const canApply =
-    props.connected &&
-    !props.applying &&
-    !props.updating &&
     hasChanges &&
     (props.formMode === "raw" ? true : canSaveForm);
   const canUpdate = props.connected && !props.applying && !props.updating;
@@ -707,8 +713,8 @@ export function renderConfig(props: ConfigProps) {
             class="config-nav__item ${props.activeSection === null ? "active" : ""}"
             @click=${() => props.onSectionChange(null)}
           >
-            <span class="config-nav__icon">${sidebarIcons.all}</span>
-            <span class="config-nav__label">All Settings</span>
+            <span class="config-nav__icon">${sidebarIcons.status}</span>
+            <span class="config-nav__label">Status</span>
           </button>
           ${allSections.map(section => html`
             <button
@@ -747,7 +753,12 @@ export function renderConfig(props: ConfigProps) {
         <div class="config-actions">
           <div class="config-actions__left">
             ${hasChanges ? html`
-              <span class="config-changes-badge">${props.formMode === "raw" ? "Unsaved changes" : `${diff.length} unsaved change${diff.length !== 1 ? "s" : ""}`}</span>
+              <button
+                class="config-changes-badge"
+                type="button"
+                @click=${() => openDialog(pendingDialogId)}
+                title="View pending changes"
+              >Unsaved Changes (${props.formMode === "raw" ? "raw" : diff.length})</button>
             ` : html`
               <span class="config-status muted">No changes</span>
             `}
@@ -765,53 +776,20 @@ export function renderConfig(props: ConfigProps) {
                   </button>
                 `
               : nothing}
-            ${hasChanges ? html`
-              <button
-                class="btn btn--sm"
-                type="button"
-                @click=${() => {
-                  const payload =
-                    props.formMode === "form"
-                      ? JSON.stringify({ mode: "form", changes: diff }, null, 2)
-                      : JSON.stringify({ mode: "raw", diff: unifiedDiff || "(no diff)" }, null, 2);
-                  copyText(payload);
-                }}
-                title="Copy a JSON summary of pending changes"
-              >
-                Copy pending changes
-              </button>
-              <button
-                class="btn btn--sm"
-                type="button"
-                @click=${() => {
-                  const dialog = document.getElementById(
-                    pendingDialogId,
-                  ) as HTMLDialogElement | null;
-                  dialog?.showModal?.();
-                }}
-                title="Open a full review panel with summary + unified diff"
-              >
-                View pending changes
-              </button>
-            ` : nothing}
             <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onReload} title="Reload config from the gateway">
               ${props.loading ? "Loading…" : "Reload"}
             </button>
             <button
               class="btn btn--sm primary"
               ?disabled=${!canSave}
-              @click=${props.onSave}
-              title="Save: write config to the gateway (does not necessarily apply/restart)"
+              @click=${() => {
+                props.onSave();
+                // Apply after a brief delay to let save complete
+                setTimeout(() => props.onApply(), 100);
+              }}
+              title="Save and apply: write config and activate it"
             >
-              ${props.saving ? "Saving…" : "Save"}
-            </button>
-            <button
-              class="btn btn--sm"
-              ?disabled=${!canApply}
-              @click=${props.onApply}
-              title="Apply: apply the saved config to the active session"
-            >
-              ${props.applying ? "Applying…" : "Apply"}
+              ${props.saving ? "Saving…" : props.applying ? "Applying…" : "Save & Apply"}
             </button>
             <button
               class="btn btn--sm"
@@ -824,7 +802,7 @@ export function renderConfig(props: ConfigProps) {
           </div>
         </div>
         <div class="config-actions__hint muted">
-          Save writes config; Apply activates it; Update updates the gateway binary. (Tip: Cmd/Ctrl+S saves.)
+          Save & Apply writes and activates config. Update downloads the latest gateway binary. (Tip: Cmd/Ctrl+S saves.)
         </div>
 
         <!-- Quick Setup Card (shown when no section is selected) -->
@@ -879,60 +857,7 @@ export function renderConfig(props: ConfigProps) {
           </div>
         ` : nothing}
 
-        <!-- Diff panel (form mode only - raw mode doesn't have granular diff) -->
-        ${hasChanges && props.formMode === "form" ? html`
-          <details class="config-diff">
-            <summary class="config-diff__summary">
-              <span>Quick preview: ${diff.length} change${diff.length !== 1 ? "s" : ""}</span>
-              <svg class="config-diff__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </summary>
-            <div class="config-diff__content">
-              <div class="config-diff__actions">
-                <button
-                  class="btn btn--sm"
-                  type="button"
-                  @click=${() =>
-                    copyText(
-                      JSON.stringify(
-                        {
-                          mode: "form",
-                          changes: diff,
-                        },
-                        null,
-                        2,
-                      ),
-                    )}
-                >
-                  Copy pending changes
-                </button>
-                <button
-                  class="btn btn--sm"
-                  type="button"
-                  @click=${() => {
-                    const dialog = document.getElementById(
-                      pendingDialogId,
-                    ) as HTMLDialogElement | null;
-                    dialog?.showModal?.();
-                  }}
-                >
-                  View pending changes
-                </button>
-              </div>
-              ${diff.map(change => html`
-                <div class="config-diff__item">
-                  <div class="config-diff__path">${change.path}</div>
-                  <div class="config-diff__values">
-                    <span class="config-diff__from">${truncateValue(change.from)}</span>
-                    <span class="config-diff__arrow">→</span>
-                    <span class="config-diff__to">${truncateValue(change.to)}</span>
-                  </div>
-                </div>
-              `)}
-            </div>
-          </details>
-        ` : nothing}
+        <!-- Diff panel removed: "Unsaved Changes (N)" badge in the action bar opens the pending changes dialog -->
 
         ${activeSectionMeta && props.formMode === "form"
           ? html`
@@ -944,6 +869,36 @@ export function renderConfig(props: ConfigProps) {
                     ? html`<div class="config-section-hero__desc">${activeSectionMeta.description}</div>`
                     : nothing}
                 </div>
+                ${props.activeSection === "gateway" ? html`
+                  <div class="config-mode-pill">
+                    <button
+                      class="config-mode-pill__btn ${gatewayMode === "local" ? "active" : ""}"
+                      ?disabled=${props.loading || props.saving}
+                      @click=${() => props.onFormPatch(["gateway", "mode"], "local")}
+                      title="Run gateway locally on this machine"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                      </svg>
+                      Local
+                    </button>
+                    <button
+                      class="config-mode-pill__btn ${gatewayMode === "remote" ? "active" : ""}"
+                      ?disabled=${props.loading || props.saving}
+                      @click=${() => props.onFormPatch(["gateway", "mode"], "remote")}
+                      title="Connect to a remote gateway"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                      </svg>
+                      Remote
+                    </button>
+                  </div>
+                ` : nothing}
               </div>
             `
           : nothing}
@@ -983,22 +938,69 @@ export function renderConfig(props: ConfigProps) {
                       <div class="config-loading__spinner"></div>
                       <span>Loading schema…</span>
                     </div>`
-                  : renderConfigForm({
-                      schema: analysis.schema,
-                      uiHints: props.uiHints,
-                      value: props.formValue,
-                      disabled: props.loading || !props.formValue,
-                      unsupportedPaths: analysis.unsupportedPaths,
-                      validation,
-                      onPatch: props.onFormPatch,
-                      searchQuery: props.searchQuery,
-                      activeSection: props.activeSection,
-                      activeSubsection: effectiveSubsection,
-                    })}
+                  : props.activeSection === null
+                    ? html`
+                        <div class="config-status-overview">
+                          <div class="config-status-overview__header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <div>
+                              <div class="config-status-overview__title">Configuration Status</div>
+                              <div class="config-status-overview__desc">Overview of your gateway configuration</div>
+                            </div>
+                          </div>
+                          <div class="config-status-overview__grid">
+                            ${allSections.map(section => {
+                              const sectionValue = props.formValue?.[section.key];
+                              const isConfigured = sectionValue != null &&
+                                (typeof sectionValue !== "object" || Object.keys(sectionValue as Record<string, unknown>).length > 0);
+                              const sectionIssues = normalizedIssues.filter(i => i.sectionKey === section.key);
+                              const hasErrors = sectionIssues.some(i => i.severity === "error");
+                              const hasWarnings = sectionIssues.some(i => i.severity === "warn");
+
+                              return html`
+                                <button
+                                  class="config-status-overview__item ${isConfigured ? "config-status-overview__item--configured" : "config-status-overview__item--unset"} ${hasErrors ? "config-status-overview__item--error" : hasWarnings ? "config-status-overview__item--warn" : ""}"
+                                  @click=${() => props.onSectionChange(section.key)}
+                                >
+                                  <span class="config-status-overview__item-icon">${getSectionIcon(section.key)}</span>
+                                  <span class="config-status-overview__item-label">${section.label}</span>
+                                  <span class="config-status-overview__item-status">
+                                    ${hasErrors
+                                      ? html`<span class="pill pill--sm pill--danger">${sectionIssues.filter(i => i.severity === "error").length} error${sectionIssues.filter(i => i.severity === "error").length !== 1 ? "s" : ""}</span>`
+                                      : hasWarnings
+                                        ? html`<span class="pill pill--sm pill--warn">warning</span>`
+                                        : isConfigured
+                                          ? html`<span class="pill pill--sm pill--ok">configured</span>`
+                                          : html`<span class="config-status-overview__item-unset-label">not set</span>`}
+                                  </span>
+                                  <span class="config-status-overview__item-chevron">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                  </span>
+                                </button>
+                              `;
+                            })}
+                          </div>
+                        </div>
+                      `
+                    : renderConfigForm({
+                        schema: analysis.schema,
+                        uiHints: props.uiHints,
+                        value: props.formValue,
+                        disabled: props.loading || !props.formValue,
+                        unsupportedPaths: analysis.unsupportedPaths,
+                        validation,
+                        onPatch: props.onFormPatch,
+                        searchQuery: props.searchQuery,
+                        activeSection: props.activeSection,
+                        activeSubsection: effectiveSubsection,
+                      })}
                 ${formUnsafe
-                  ? html`<div class="callout danger" style="margin-top: 12px;">
-                      Form view can't safely edit some fields.
-                      Use Raw to avoid losing config entries.
+                  ? html`<div class="callout warn" style="margin-top: 12px;">
+                      Some fields in this section use unsupported schema patterns.
+                      Switch to Raw mode to edit: ${unsupportedInSection.join(", ")}
                     </div>`
                   : nothing}
               `
