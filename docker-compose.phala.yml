@@ -1,0 +1,42 @@
+# Clawdbot on Phala Cloud CVM
+# Deploy with: docker compose -f docker-compose.phala.yml up -d
+#
+# Access the web UI at http://<cvm-ip>:18789
+# Configure channels and API keys via /setup (password protected)
+#
+# If REDPILL_API_KEY is set, the container auto-configures Redpill
+# as the default provider on first boot.
+
+services:
+  clawdbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hashwarlock/clawdbot:redpill
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      # Redpill API key - auto-configures provider on first boot
+      REDPILL_API_KEY: ${REDPILL_API_KEY:-}
+      # Channel tokens - auto-configures channels on first boot
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      # Gateway configuration
+      GATEWAY_PORT: ${GATEWAY_PORT:-18789}
+      GATEWAY_AUTH: ${GATEWAY_AUTH:-off}
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN:-}
+      GATEWAY_PASSWORD: ${GATEWAY_PASSWORD:-}
+      # Persistence paths inside container
+      CLAWDBOT_STATE_DIR: /data/.clawdbot
+      CLAWDBOT_WORKSPACE_DIR: /data/workspace
+    volumes:
+      # Persistent storage for credentials, agents, sessions
+      - clawdbot-data:/data
+    # Host network mode: container shares CVM's network stack
+    # Gateway binds to loopback, accessible via CVM's public IP
+    network_mode: host
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "/app/scripts/docker-entrypoint-phala.sh"]
+
+volumes:
+  clawdbot-data:
