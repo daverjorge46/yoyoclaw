@@ -30,11 +30,20 @@ collect_files() {
 }
 
 compute_hash() {
-  collect_files \
-    | LC_ALL=C sort -z \
-    | xargs -0 shasum -a 256 \
-    | shasum -a 256 \
-    | awk '{print $1}'
+  # Use sha256sum (more portable on Windows) or fall back to shasum
+  if command -v sha256sum >/dev/null 2>&1; then
+    collect_files \
+      | LC_ALL=C sort -z \
+      | xargs -0 sha256sum \
+      | sha256sum \
+      | awk '{print $1}'
+  else
+    collect_files \
+      | LC_ALL=C sort -z \
+      | xargs -0 shasum -a 256 \
+      | shasum -a 256 \
+      | awk '{print $1}'
+  fi
 }
 
 current_hash="$(compute_hash)"

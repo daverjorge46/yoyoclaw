@@ -272,9 +272,7 @@ jobs:
           pnpm install --frozen-lockfile --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true || pnpm install --frozen-lockfile --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true
 
       - name: Run ${{ matrix.task }} (${{ matrix.runtime }})
-        run: |
-          export PATH="/c/Program Files/Git/usr/bin:$PATH"
-          ${{ matrix.command }}
+        run: ${{ matrix.command }}
 
   checks-macos:
     if: github.event_name == 'pull_request'
