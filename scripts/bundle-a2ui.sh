@@ -18,6 +18,24 @@ INPUT_PATHS=(
   "$ROOT_DIR/apps/shared/ClawdbotKit/Tools/CanvasA2UI"
 )
 
+# Cross-platform SHA256 hash function
+sha256_hash() {
+  if command -v shasum &>/dev/null; then
+    shasum -a 256
+  elif command -v sha256sum &>/dev/null; then
+    sha256sum
+  else
+    # Fallback: use openssl or skip hashing
+    if command -v openssl &>/dev/null; then
+      openssl dgst -sha256 | awk '{print $NF}'
+    else
+      echo "warning: no sha256 tool found, skipping hash check" >&2
+      echo "SKIP"
+      return 0
+    fi
+  fi
+}
+
 collect_files() {
   local path
   for path in "${INPUT_PATHS[@]}"; do
@@ -32,8 +50,8 @@ collect_files() {
 compute_hash() {
   collect_files \
     | LC_ALL=C sort -z \
-    | xargs -0 shasum -a 256 \
-    | shasum -a 256 \
+    | xargs -0 sha256_hash \
+    | sha256_hash \
     | awk '{print $1}'
 }
 
