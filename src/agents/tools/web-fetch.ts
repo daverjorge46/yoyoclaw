@@ -393,11 +393,16 @@ export async function fetchExaContent(params: {
   status?: number;
 }> {
   const body: Record<string, unknown> = {
-    ids: [params.url],
+    urls: [params.url],
   };
 
   if (params.contents) {
-    body.text = { maxCharacters: params.maxChars };
+    body.text = {
+      maxCharacters: params.maxChars,
+      includeHtmlTags: false,
+    };
+  } else {
+    body.text = false;
   }
 
   const res = await fetch(EXA_CONTENTS_ENDPOINT, {
