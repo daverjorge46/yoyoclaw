@@ -114,8 +114,6 @@ config:
       controlUi:
         enabled: true
     channels: {}
-    meta:
-      lastTouchedVersion: "2026.1.25"
 
 # Persistence
 persistence:
