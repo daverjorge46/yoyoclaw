@@ -394,6 +394,44 @@ export async function finalizeOnboardingWizard(options: FinalizeOnboardingOption
     "Security",
   );
 
+  const shouldOpenControlUi =
+    !opts.skipUi &&
+    settings.authMode === "token" &&
+    Boolean(settings.gatewayToken) &&
+    hatchChoice === null;
+  if (shouldOpenControlUi) {
+    const browserSupport = await detectBrowserOpenSupport();
+    if (browserSupport.ok) {
+      controlUiOpened = await openUrl(authedUrl);
+      if (!controlUiOpened) {
+        controlUiOpenHint = formatControlUiSshHint({
+          port: settings.port,
+          basePath: controlUiBasePath,
+          token: settings.gatewayToken,
+        });
+      }
+    } else {
+      controlUiOpenHint = formatControlUiSshHint({
+        port: settings.port,
+        basePath: controlUiBasePath,
+        token: settings.gatewayToken,
+      });
+    }
+
+    await prompter.note(
+      [
+        `Dashboard link (with token): ${authedUrl}`,
+        controlUiOpened
+          ? "Opened in your browser. Keep that tab to control Moltbot."
+          : "Copy/paste this URL in a browser on this machine to control Moltbot.",
+        controlUiOpenHint,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      "Dashboard ready",
+    );
+  }
+
   const webSearchProvider = nextConfig.tools?.web?.search?.provider ?? "brave";
   const webSearchKey =
     webSearchProvider === "perplexity"
