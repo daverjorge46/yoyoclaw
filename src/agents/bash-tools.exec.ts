@@ -486,7 +486,11 @@ notify_best_effort "🚀 Starting coding agent session '$SCREEN_SESSION'\\n📁 
 SHELL_BIN="\${CLAWDBOT_CODING_AGENT_SHELL:-\${SHELL:-/bin/bash}}"
 
 (
-  script -q "$RAW_LOG_FILE" "$SHELL_BIN" -lc "$CMD" 2>&1 | tee -a "$LOG_FILE"
+  if command -v script >/dev/null 2>&1; then
+    script -q "$RAW_LOG_FILE" "$SHELL_BIN" -lc "$CMD" 2>&1 | tee -a "$LOG_FILE"
+  else
+    "$SHELL_BIN" -lc "$CMD" 2>&1 | tee -a "$LOG_FILE"
+  fi
 ) &
 PIPE_PID=$!
 
