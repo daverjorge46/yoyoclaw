@@ -222,6 +222,15 @@ const entries: SubCliEntry[] = [
       mod.registerUpdateCli(program);
     },
   },
+  // 新增：profiles 命令配置
+  {
+    name: "profiles",
+    description: "Model configuration profiles",
+    register: async (program) => {
+      const mod = await import("../profiles-cli.js");
+      mod.registerProfilesCli(program);
+    },
+  },
 ];
 
 function removeCommand(program: Command, command: Command) {
