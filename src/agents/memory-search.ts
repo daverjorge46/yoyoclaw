@@ -119,7 +119,6 @@ function mergeConfig(
   const provider = overrides?.provider ?? defaults?.provider ?? "auto";
   const defaultRemote = defaults?.remote;
   const overrideRemote = overrides?.remote;
-  const hasRemote = Boolean(defaultRemote || overrideRemote);
   const includeRemote =
     Boolean(overrideRemote?.baseUrl || overrideRemote?.apiKey || overrideRemote?.headers ||
             defaultRemote?.baseUrl || defaultRemote?.apiKey || defaultRemote?.headers) ||
