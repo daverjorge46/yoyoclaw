@@ -43,6 +43,7 @@ import {
   type MemoryChunk,
   type MemoryFileEntry,
   parseEmbedding,
+  runWithConcurrency,
 } from "./internal.js";
 import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
@@ -1157,7 +1158,7 @@ export class MemoryIndexManager {
         });
       }
     });
-    await this.runWithConcurrency(tasks, this.getIndexConcurrency());
+    await runWithConcurrency(tasks, this.getIndexConcurrency());
 
     const staleRows = this.db
       .prepare(`SELECT path FROM files WHERE source = ?`)
@@ -1254,7 +1255,7 @@ export class MemoryIndexManager {
         });
       }
     });
-    await this.runWithConcurrency(tasks, this.getIndexConcurrency());
+    await runWithConcurrency(tasks, this.getIndexConcurrency());
 
     const staleRows = this.db
       .prepare(`SELECT path FROM files WHERE source = ?`)
@@ -2233,40 +2234,6 @@ export class MemoryIndexManager {
     }
   }
 
-  private async runWithConcurrency<T>(tasks: Array<() => Promise<T>>, limit: number): Promise<T[]> {
-    if (tasks.length === 0) {
-      return [];
-    }
-    const resolvedLimit = Math.max(1, Math.min(limit, tasks.length));
-    const results: T[] = Array.from({ length: tasks.length });
-    let next = 0;
-    let firstError: unknown = null;
-
-    const workers = Array.from({ length: resolvedLimit }, async () => {
-      while (true) {
-        if (firstError) {
-          return;
-        }
-        const index = next;
-        next += 1;
-        if (index >= tasks.length) {
-          return;
-        }
-        try {
-          results[index] = await tasks[index]();
-        } catch (err) {
-          firstError = err;
-          return;
-        }
-      }
-    });
-
-    await Promise.allSettled(workers);
-    if (firstError) {
-      throw firstError;
-    }
-    return results;
-  }
 
   private async withBatchFailureLock<T>(fn: () => Promise<T>): Promise<T> {
     let release: () => void;
