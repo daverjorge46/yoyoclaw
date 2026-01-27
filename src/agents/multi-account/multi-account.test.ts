@@ -60,13 +60,13 @@ describe("RateLimitTracker", () => {
   it("checks all rate limited", () => {
     const tracker = new RateLimitTracker();
     const profiles = ["p1", "p2", "p3"];
-    
+
     expect(tracker.areAllRateLimited(profiles, "m1")).toBe(false);
-    
+
     tracker.markRateLimited("p1", "m1", 5000);
     tracker.markRateLimited("p2", "m1", 5000);
     tracker.markRateLimited("p3", "m1", 5000);
-    
+
     expect(tracker.areAllRateLimited(profiles, "m1")).toBe(true);
   });
 });
@@ -121,7 +121,7 @@ describe("AccountManager", () => {
     const profiles = manager.getProfilesForProvider();
     const first = profiles[0];
     manager.markInvalid(first, "Token revoked");
-    
+
     const updated = manager.getProfilesForProvider();
     expect(updated).not.toContain(first);
   });

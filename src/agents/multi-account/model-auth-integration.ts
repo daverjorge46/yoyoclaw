@@ -40,7 +40,7 @@ export function isMultiAccountEnabled(provider: string, cfg?: ClawdbotConfig): b
 export async function getOrCreateManager(
   provider: string,
   store: AuthProfileStore,
-  cfg?: ClawdbotConfig
+  cfg?: ClawdbotConfig,
 ): Promise<AccountManager> {
   const normalized = normalizeProviderId(provider);
 
@@ -97,7 +97,7 @@ export async function selectAccountForModel(params: {
       const waitSec = Math.ceil(waitMs / 1000);
       throw new Error(
         `All ${manager.getAccountCount()} accounts rate-limited for ${modelId}. ` +
-          `Shortest wait: ${waitSec}s. Try again later.`
+          `Shortest wait: ${waitSec}s. Try again later.`,
       );
     }
     return null;
@@ -112,7 +112,7 @@ export async function selectAccountForModel(params: {
 
 export function notifyMultiAccountSuccess(
   selection: MultiAccountSelection | null | undefined,
-  modelId: string
+  modelId: string,
 ): void {
   if (!selection) return;
   selection.manager.notifySuccess(selection.profileId, modelId);
@@ -121,7 +121,7 @@ export function notifyMultiAccountSuccess(
 export function notifyMultiAccountRateLimit(
   selection: MultiAccountSelection | null | undefined,
   modelId: string,
-  cooldownMs?: number
+  cooldownMs?: number,
 ): void {
   if (!selection) return;
   selection.manager.notifyRateLimit(selection.profileId, modelId, cooldownMs);
@@ -129,7 +129,7 @@ export function notifyMultiAccountRateLimit(
 
 export function notifyMultiAccountFailure(
   selection: MultiAccountSelection | null | undefined,
-  modelId: string
+  modelId: string,
 ): void {
   if (!selection) return;
   selection.manager.notifyFailure(selection.profileId, modelId);
@@ -137,16 +137,13 @@ export function notifyMultiAccountFailure(
 
 export function notifyMultiAccountInvalid(
   selection: MultiAccountSelection | null | undefined,
-  reason: string
+  reason: string,
 ): void {
   if (!selection) return;
   selection.manager.markInvalid(selection.profileId, reason);
 }
 
-export function getMultiAccountStatus(): Record<
-  string,
-  ReturnType<AccountManager["getStatus"]>
-> {
+export function getMultiAccountStatus(): Record<string, ReturnType<AccountManager["getStatus"]>> {
   const status: Record<string, ReturnType<AccountManager["getStatus"]>> = {};
   for (const [provider, manager] of managers) {
     status[provider] = manager.getStatus();

@@ -18,7 +18,7 @@ const managers = new Map<string, AccountManager>();
 export async function getAccountManager(
   provider: string,
   authStore: AuthProfileStore,
-  cfg?: ClawdbotConfig
+  cfg?: ClawdbotConfig,
 ): Promise<AccountManager> {
   if (managers.has(provider)) {
     return managers.get(provider)!;
@@ -40,10 +40,7 @@ export async function getAccountManager(
 /**
  * Check if multi-account is enabled for a provider
  */
-export function isMultiAccountEnabled(
-  provider: string,
-  cfg?: ClawdbotConfig
-): boolean {
+export function isMultiAccountEnabled(provider: string, cfg?: ClawdbotConfig): boolean {
   const multiAccountConfig = (cfg as any)?.auth?.multiAccount;
   if (!multiAccountConfig?.enabled) return false;
 
@@ -91,7 +88,7 @@ export async function resolveWithMultiAccount(params: {
       const minWait = manager.getMinWaitTimeMs(modelId);
       throw new Error(
         `MULTI_ACCOUNT_EXHAUSTED: All accounts rate limited for ${modelId}. ` +
-        `Wait ${Math.ceil(minWait / 1000)}s.`
+          `Wait ${Math.ceil(minWait / 1000)}s.`,
       );
     }
     return null;
@@ -116,7 +113,7 @@ export async function resolveWithMultiAccount(params: {
  */
 export function reportMultiAccountSuccess(
   result: { _manager?: AccountManager; _profileId?: string } | null,
-  modelId: string
+  modelId: string,
 ): void {
   if (!result?._manager || !result?._profileId) return;
   result._manager.notifySuccess(result._profileId, modelId);
@@ -128,7 +125,7 @@ export function reportMultiAccountSuccess(
 export function reportMultiAccountRateLimit(
   result: { _manager?: AccountManager; _profileId?: string } | null,
   modelId: string,
-  cooldownMs?: number
+  cooldownMs?: number,
 ): void {
   if (!result?._manager || !result?._profileId) return;
   result._manager.notifyRateLimit(result._profileId, modelId, cooldownMs);
@@ -139,7 +136,7 @@ export function reportMultiAccountRateLimit(
  */
 export function reportMultiAccountFailure(
   result: { _manager?: AccountManager; _profileId?: string } | null,
-  modelId: string
+  modelId: string,
 ): void {
   if (!result?._manager || !result?._profileId) return;
   result._manager.notifyFailure(result._profileId, modelId);
@@ -150,7 +147,7 @@ export function reportMultiAccountFailure(
  */
 export function reportMultiAccountAuthInvalid(
   result: { _manager?: AccountManager; _profileId?: string } | null,
-  reason: string
+  reason: string,
 ): void {
   if (!result?._manager || !result?._profileId) return;
   result._manager.markInvalid(result._profileId, reason);

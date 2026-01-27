@@ -8,7 +8,7 @@ import { RateLimitTracker } from "./rate-limit-tracker.js";
 import { HealthScorer } from "./health-scorer.js";
 import { QuotaTracker } from "./quota-tracker.js";
 import { createStrategy, STRATEGY_NAMES, type Strategy } from "./strategies.js";
-import { DEFAULT_COOLDOWN_MS, MAX_WAIT_BEFORE_ERROR_MS } from "./constants.js";
+import { DEFAULT_COOLDOWN_MS } from "./constants.js";
 
 export interface Account {
   profileId: string;
@@ -27,15 +27,18 @@ export interface AccountManagerConfig {
 }
 
 export interface AuthProfileStore {
-  profiles: Record<string, {
-    type: string;
-    provider: string;
-    email?: string;
-    access?: string;
-    refresh?: string;
-    expires?: number;
-    projectId?: string;
-  }>;
+  profiles: Record<
+    string,
+    {
+      type: string;
+      provider: string;
+      email?: string;
+      access?: string;
+      refresh?: string;
+      expires?: number;
+      projectId?: string;
+    }
+  >;
 }
 
 export class AccountManager {
@@ -59,10 +62,7 @@ export class AccountManager {
     this.strategy.init(this);
   }
 
-  async initialize(
-    authStore: AuthProfileStore,
-    strategyOverride?: string
-  ): Promise<this> {
+  async initialize(authStore: AuthProfileStore, strategyOverride?: string): Promise<this> {
     this.authStore = authStore;
 
     if (strategyOverride && STRATEGY_NAMES.includes(strategyOverride.toLowerCase() as any)) {
@@ -93,9 +93,7 @@ export class AccountManager {
   }
 
   getProfilesForProvider(): string[] {
-    return Array.from(this.accounts.keys()).filter(
-      (id) => !this.invalidProfiles.has(id)
-    );
+    return Array.from(this.accounts.keys()).filter((id) => !this.invalidProfiles.has(id));
   }
 
   getAccountByProfileId(profileId: string): Account | null {
@@ -147,11 +145,7 @@ export class AccountManager {
   }
 
   markRateLimited(profileId: string, modelId: string, cooldownMs?: number): void {
-    this.rateLimitTracker.markRateLimited(
-      profileId,
-      modelId,
-      cooldownMs ?? this.defaultCooldownMs
-    );
+    this.rateLimitTracker.markRateLimited(profileId, modelId, cooldownMs ?? this.defaultCooldownMs);
   }
 
   markInvalid(profileId: string, reason: string): void {
@@ -236,12 +230,8 @@ export class AccountManager {
   getStatus() {
     const profiles = this.getProfilesForProvider();
     const invalid = Array.from(this.invalidProfiles);
-    const rateLimited = profiles.filter(
-      (id) => this.rateLimitTracker.getSoonestReset(id) !== null
-    );
-    const available = profiles.filter(
-      (id) => !rateLimited.includes(id) && !invalid.includes(id)
-    );
+    const rateLimited = profiles.filter((id) => this.rateLimitTracker.getSoonestReset(id) !== null);
+    const available = profiles.filter((id) => !rateLimited.includes(id) && !invalid.includes(id));
 
     return {
       total: profiles.length + invalid.length,

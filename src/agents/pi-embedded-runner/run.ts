@@ -41,11 +41,7 @@ import {
   type FailoverReason,
 } from "../pi-embedded-helpers.js";
 import { normalizeUsage, type UsageLike } from "../usage.js";
-import {
-  isMultiAccountEnabled,
-  getManager,
-  getOrCreateManager,
-} from "../multi-account/index.js";
+import { isMultiAccountEnabled, getManager, getOrCreateManager } from "../multi-account/index.js";
 
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
@@ -141,12 +137,12 @@ export async function runEmbeddedPiAgent(
       }
 
       const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
-      
+
       // Initialize multi-account manager if enabled for this provider
       if (isMultiAccountEnabled(provider, params.config)) {
         await getOrCreateManager(provider, authStore, params.config);
       }
-      
+
       const preferredProfileId = params.authProfileId?.trim();
       let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
       if (lockedProfileId) {
@@ -158,7 +154,7 @@ export async function runEmbeddedPiAgent(
           lockedProfileId = undefined;
         }
       }
-      
+
       // Use multi-account intelligent ordering when enabled
       let profileOrder: string[];
       const manager = getManager(provider);
@@ -170,11 +166,11 @@ export async function runEmbeddedPiAgent(
           provider,
           preferredProfile: preferredProfileId,
         });
-        
+
         // Re-order based on multi-account intelligence (health + rate limits)
         const available: string[] = [];
         const rateLimited: Array<{ profileId: string; cooldown: number }> = [];
-        
+
         for (const profileId of baseOrder) {
           if (manager.rateLimitTracker.isRateLimited(profileId, modelId)) {
             rateLimited.push({
@@ -185,20 +181,23 @@ export async function runEmbeddedPiAgent(
             available.push(profileId);
           }
         }
-        
+
         // Sort available by health score (highest first)
         const healthSorted = manager.healthScorer.getSortedByHealth(available);
-        const sortedAvailable = healthSorted.map(h => h.profileId);
-        
+        const sortedAvailable = healthSorted.map((h) => h.profileId);
+
         // Sort rate-limited by soonest cooldown expiry
         rateLimited.sort((a, b) => a.cooldown - b.cooldown);
-        const sortedRateLimited = rateLimited.map(r => r.profileId);
-        
+        const sortedRateLimited = rateLimited.map((r) => r.profileId);
+
         profileOrder = [...sortedAvailable, ...sortedRateLimited];
-        
+
         // Ensure preferred profile is first if specified
         if (preferredProfileId && profileOrder.includes(preferredProfileId)) {
-          profileOrder = [preferredProfileId, ...profileOrder.filter(p => p !== preferredProfileId)];
+          profileOrder = [
+            preferredProfileId,
+            ...profileOrder.filter((p) => p !== preferredProfileId),
+          ];
         }
       } else {
         // Fall back to standard ordering

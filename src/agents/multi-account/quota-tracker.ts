@@ -55,11 +55,7 @@ export class QuotaTracker {
     });
   }
 
-  updateModelQuota(
-    profileId: string,
-    modelId: string,
-    quota: ModelQuota
-  ): void {
+  updateModelQuota(profileId: string, modelId: string, quota: ModelQuota): void {
     const existing = this.getQuota(profileId) ?? {
       tier: "unknown" as const,
       projectId: null,

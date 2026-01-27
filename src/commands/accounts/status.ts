@@ -19,7 +19,7 @@ export interface AccountsStatusOptions {
 
 export async function accountsStatusCommand(
   runtime: RuntimeEnv,
-  options: AccountsStatusOptions
+  options: AccountsStatusOptions,
 ): Promise<void> {
   const cfg = loadConfig();
   const agentDir = resolveClawdbotAgentDir();
@@ -34,7 +34,7 @@ export async function accountsStatusCommand(
         `    multiAccount:\n` +
         `      enabled: true\n` +
         `      providers:\n` +
-        `        - ${provider}`
+        `        - ${provider}`,
     );
     return;
   }
@@ -69,9 +69,7 @@ export async function accountsStatusCommand(
       const status = acc.isInvalid
         ? `❌ Invalid (${acc.invalidReason})`
         : `✅ Health: ${acc.healthScore}`;
-      const lastUsed = acc.lastUsed
-        ? new Date(acc.lastUsed).toLocaleTimeString()
-        : "never";
+      const lastUsed = acc.lastUsed ? new Date(acc.lastUsed).toLocaleTimeString() : "never";
       runtime.log(`  • ${acc.email}`);
       runtime.log(`    Status: ${status}`);
       runtime.log(`    Last used: ${lastUsed}`);

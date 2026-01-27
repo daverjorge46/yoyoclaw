@@ -21,46 +21,33 @@ export class HealthScorer {
 
     // Apply time-based recovery
     const minutesSinceUpdate = (Date.now() - lastUpdateTime) / 60_000;
-    const recovery = Math.floor(
-      minutesSinceUpdate * HEALTH_SCORE.recoveryPerMinute
-    );
+    const recovery = Math.floor(minutesSinceUpdate * HEALTH_SCORE.recoveryPerMinute);
 
     return Math.min(HEALTH_SCORE.maxScore, baseScore + recovery);
   }
 
   recordSuccess(profileId: string): void {
     const current = this.getScore(profileId);
-    const newScore = Math.min(
-      HEALTH_SCORE.maxScore,
-      current + HEALTH_SCORE.successBonus
-    );
+    const newScore = Math.min(HEALTH_SCORE.maxScore, current + HEALTH_SCORE.successBonus);
     this.scores.set(profileId, newScore);
     this.lastUpdate.set(profileId, Date.now());
   }
 
   recordFailure(profileId: string): void {
     const current = this.getScore(profileId);
-    const newScore = Math.max(
-      HEALTH_SCORE.minScore,
-      current - HEALTH_SCORE.failurePenalty
-    );
+    const newScore = Math.max(HEALTH_SCORE.minScore, current - HEALTH_SCORE.failurePenalty);
     this.scores.set(profileId, newScore);
     this.lastUpdate.set(profileId, Date.now());
   }
 
   recordRateLimit(profileId: string): void {
     const current = this.getScore(profileId);
-    const newScore = Math.max(
-      HEALTH_SCORE.minScore,
-      current - HEALTH_SCORE.rateLimitPenalty
-    );
+    const newScore = Math.max(HEALTH_SCORE.minScore, current - HEALTH_SCORE.rateLimitPenalty);
     this.scores.set(profileId, newScore);
     this.lastUpdate.set(profileId, Date.now());
   }
 
-  getSortedByHealth(
-    profileIds: string[]
-  ): Array<{ profileId: string; score: number }> {
+  getSortedByHealth(profileIds: string[]): Array<{ profileId: string; score: number }> {
     return profileIds
       .map((profileId) => ({
         profileId,
@@ -79,10 +66,7 @@ export class HealthScorer {
     };
   }
 
-  fromJSON(data: {
-    scores?: Record<string, number>;
-    lastUpdate?: Record<string, number>;
-  }): void {
+  fromJSON(data: { scores?: Record<string, number>; lastUpdate?: Record<string, number> }): void {
     if (data?.scores) {
       for (const [key, value] of Object.entries(data.scores)) {
         this.scores.set(key, value);

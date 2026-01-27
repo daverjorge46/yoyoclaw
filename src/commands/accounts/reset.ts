@@ -11,7 +11,7 @@ export interface AccountsResetOptions {
 
 export async function accountsResetCommand(
   runtime: RuntimeEnv,
-  options: AccountsResetOptions
+  options: AccountsResetOptions,
 ): Promise<void> {
   const provider = options.provider ?? "google-antigravity";
 

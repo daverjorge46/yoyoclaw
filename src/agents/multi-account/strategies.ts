@@ -29,9 +29,7 @@ export class HybridStrategy implements Strategy {
     const { rateLimitTracker, healthScorer, quotaTracker } = this.manager;
     const profiles = this.manager.getProfilesForProvider();
 
-    const available = profiles.filter(
-      (id) => !rateLimitTracker.isRateLimited(id, modelId)
-    );
+    const available = profiles.filter((id) => !rateLimitTracker.isRateLimited(id, modelId));
 
     if (available.length === 0) {
       const minWait = rateLimitTracker.getMinWaitTime(profiles, modelId);
@@ -98,9 +96,7 @@ export class StickyStrategy implements Strategy {
       };
     }
 
-    const available = profiles.filter(
-      (id) => !rateLimitTracker.isRateLimited(id, modelId)
-    );
+    const available = profiles.filter((id) => !rateLimitTracker.isRateLimited(id, modelId));
 
     if (available.length === 0) {
       const minWait = rateLimitTracker.getMinWaitTime(profiles, modelId);

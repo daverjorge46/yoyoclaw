@@ -4,7 +4,6 @@
 
 import type { Command } from "commander";
 import { defaultRuntime } from "../runtime.js";
-import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
 import { runCommandWithRuntime } from "./cli-utils.js";
 import {
@@ -24,7 +23,7 @@ export function registerAccountsCli(program: Command) {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Multi-account distributes requests across multiple OAuth accounts for higher throughput.")}\n`
+        `\n${theme.muted("Multi-account distributes requests across multiple OAuth accounts for higher throughput.")}\n`,
     );
 
   accounts
@@ -32,26 +31,20 @@ export function registerAccountsCli(program: Command) {
     .description("List all accounts for a provider")
     .option("-p, --provider <provider>", "Provider name", "google-antigravity")
     .option("--json", "Output as JSON")
-    .action((options) =>
-      runAccountsCommand(() => accountsListCommand(defaultRuntime, options))
-    );
+    .action((options) => runAccountsCommand(() => accountsListCommand(defaultRuntime, options)));
 
   accounts
     .command("status")
     .description("Show multi-account status (health scores, rate limits)")
     .option("-p, --provider <provider>", "Provider name", "google-antigravity")
     .option("--json", "Output as JSON")
-    .action((options) =>
-      runAccountsCommand(() => accountsStatusCommand(defaultRuntime, options))
-    );
+    .action((options) => runAccountsCommand(() => accountsStatusCommand(defaultRuntime, options)));
 
   accounts
     .command("reset")
     .description("Reset rate limits for all accounts")
     .option("-p, --provider <provider>", "Provider name", "google-antigravity")
-    .action((options) =>
-      runAccountsCommand(() => accountsResetCommand(defaultRuntime, options))
-    );
+    .action((options) => runAccountsCommand(() => accountsResetCommand(defaultRuntime, options)));
 
   return accounts;
 }

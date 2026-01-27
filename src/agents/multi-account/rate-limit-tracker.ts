@@ -71,7 +71,7 @@ export class RateLimitTracker {
   markRateLimited(
     profileId: string,
     modelId: string,
-    cooldownMs: number = DEFAULT_COOLDOWN_MS
+    cooldownMs: number = DEFAULT_COOLDOWN_MS,
   ): BackoffResult {
     const key = this.getKey(profileId, modelId);
     const now = Date.now();
@@ -81,7 +81,7 @@ export class RateLimitTracker {
     if (previous && now - previous.lastAt < RATE_LIMIT_DEDUP_WINDOW_MS) {
       const backoffDelay = Math.min(
         FIRST_RETRY_DELAY_MS * Math.pow(2, previous.consecutive429 - 1),
-        60_000
+        60_000,
       );
       return {
         attempt: previous.consecutive429,
@@ -97,10 +97,7 @@ export class RateLimitTracker {
         : 1;
 
     // Calculate exponential backoff
-    const backoffDelay = Math.min(
-      FIRST_RETRY_DELAY_MS * Math.pow(2, attempt - 1),
-      60_000
-    );
+    const backoffDelay = Math.min(FIRST_RETRY_DELAY_MS * Math.pow(2, attempt - 1), 60_000);
     const effectiveCooldown = Math.max(cooldownMs, backoffDelay, MIN_BACKOFF_MS);
 
     // Update state

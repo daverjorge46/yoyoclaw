@@ -15,7 +15,7 @@ export interface AccountsListOptions {
 
 export async function accountsListCommand(
   runtime: RuntimeEnv,
-  options: AccountsListOptions
+  options: AccountsListOptions,
 ): Promise<void> {
   const cfg = loadConfig();
   const agentDir = resolveClawdbotAgentDir();
