@@ -353,7 +353,7 @@ export function splitMessagesForPreservation(params: {
   preservedPairs: number;
 } {
   const { messages, keepLastMessages } = params;
-  
+
   if (keepLastMessages <= 0 || messages.length === 0) {
     return {
       toSummarize: messages,
@@ -390,9 +390,9 @@ export function splitMessagesForPreservation(params: {
       // If we found a user message, we have a complete pair
       if (userIndex !== -1) {
         pairsFound++;
-        splitIndex = userIndex; // Update split index to start of this pair
         
         if (pairsFound >= keepLastMessages) {
+          splitIndex = userIndex; // Update split index to start of this pair
           // We've found enough pairs
           break;
         }

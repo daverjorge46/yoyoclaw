@@ -220,8 +220,8 @@ describe("splitMessagesForPreservation", () => {
 
     const result = splitMessagesForPreservation({ messages, keepLastMessages: 2 });
 
-    // Should preserve both complete pairs (u1+a1, u2+a2), and include the trailing u3
-    // because it comes after the preserved pairs
+    // Should preserve the last 2 complete pairs (u1+a1, u2+a2), plus the trailing incomplete u3
+    // because trailing incomplete messages are always included with preserved pairs
     expect(result.preservedPairs).toBe(2);
     expect(result.toPreserve.length).toBe(5); // u1, a1, u2, a2, u3
     expect(result.toSummarize.length).toBe(0);
