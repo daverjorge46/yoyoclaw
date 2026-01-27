@@ -414,3 +414,32 @@ export async function createAutomation(
     return false;
   }
 }
+
+// Artifact download function
+export async function downloadArtifact(
+  client: GatewayBrowserClient | null,
+  connected: boolean,
+  artifactId: string
+): Promise<string | null> {
+  if (!client || !connected) {
+    toast.error("Not connected to gateway");
+    return null;
+  }
+
+  try {
+    const res = await client.request("automations.artifact.download", { artifactId }, { timeoutMs: 30_000 }) as {
+      url?: string;
+      expiresAt?: number;
+    };
+
+    if (!res.url) {
+      toast.error("Failed to get download URL");
+      return null;
+    }
+
+    return res.url;
+  } catch (err) {
+    toast.error(`Failed to get download URL: ${err}`);
+    return null;
+  }
+}
