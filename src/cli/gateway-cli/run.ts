@@ -3,9 +3,9 @@ import fs from "node:fs";
 import type { Command } from "commander";
 import type { GatewayAuthMode } from "../../config/config.js";
 import {
-  CONFIG_PATH,
   loadConfig,
   readConfigFileSnapshot,
+  resolveEffectiveConfigPath,
   resolveGatewayPort,
 } from "../../config/config.js";
 import { resolveGatewayAuth } from "../../gateway/auth.js";
@@ -48,6 +48,7 @@ type GatewayRunOpts = {
   rawStreamPath?: unknown;
   dev?: boolean;
   reset?: boolean;
+  noUi?: boolean;
 };
 
 const gatewayLog = createSubsystemLogger("gateway");
@@ -157,7 +158,8 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   const passwordRaw = toOptionString(opts.password);
   const tokenRaw = toOptionString(opts.token);
 
-  const configExists = fs.existsSync(CONFIG_PATH);
+  const effectiveConfigPath = resolveEffectiveConfigPath();
+  const configExists = fs.existsSync(effectiveConfigPath);
   const mode = cfg.gateway?.mode;
   if (!opts.allowUnconfigured && mode !== "local") {
     if (!configExists) {
@@ -262,6 +264,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       start: async () =>
         await startGatewayServer(port, {
           bind,
+          ...(opts.noUi ? { controlUiEnabled: false } : {}),
           auth:
             authMode || passwordRaw || tokenRaw || authModeRaw
               ? {
@@ -338,6 +341,11 @@ export function addGatewayRunCommand(cmd: Command): Command {
       false,
     )
     .option("--force", "Kill any existing listener on the target port before starting", false)
+    .option(
+      "--no-ui",
+      "Disable the built-in Control UI (useful for Vite dev server workflow)",
+      false,
+    )
     .option("--verbose", "Verbose logging to stdout/stderr", false)
     .option(
       "--claude-cli-logs",

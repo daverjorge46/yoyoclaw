@@ -554,8 +554,21 @@ function clearConfigCache(): void {
   configCache = null;
 }
 
+/**
+ * Resolve the config file path by searching the default candidate locations
+ * (new, legacy, oldest-legacy dirs and filenames) and returning the first
+ * existing file.  Falls back to the canonical default when nothing exists yet.
+ *
+ * Use this instead of the bare `CONFIG_PATH` / `resolveConfigPath()` whenever
+ * you need the path the runtime will actually read from.
+ */
+export function resolveEffectiveConfigPath(env: NodeJS.ProcessEnv = process.env): string {
+  const candidates = resolveDefaultConfigCandidates(env);
+  return candidates.find((c) => fs.existsSync(c)) ?? resolveConfigPath(env);
+}
+
 export function loadConfig(): ClawdbrainConfig {
-  const configPath = resolveConfigPath();
+  const configPath = resolveEffectiveConfigPath();
   const now = Date.now();
   if (shouldUseConfigCache(process.env)) {
     const cached = configCache;
@@ -579,11 +592,11 @@ export function loadConfig(): ClawdbrainConfig {
 
 export async function readConfigFileSnapshot(): Promise<ConfigFileSnapshot> {
   return await createConfigIO({
-    configPath: resolveConfigPath(),
+    configPath: resolveEffectiveConfigPath(),
   }).readConfigFileSnapshot();
 }
 
 export async function writeConfigFile(cfg: ClawdbrainConfig): Promise<void> {
   clearConfigCache();
-  await createConfigIO({ configPath: resolveConfigPath() }).writeConfigFile(cfg);
+  await createConfigIO({ configPath: resolveEffectiveConfigPath() }).writeConfigFile(cfg);
 }

@@ -19,6 +19,7 @@ const OLDEST_LEGACY_STATE_DIRNAME = ".clawdbot";
 const LEGACY_STATE_DIRNAME = ".moltbot";
 const NEW_STATE_DIRNAME = ".clawdbrain";
 const CONFIG_FILENAME = "clawdbrain.json";
+const OLDEST_LEGACY_CONFIG_FILENAME = "clawdbot.json";
 
 function oldestLegacyStateDir(homedir: () => string = os.homedir): string {
   return path.join(homedir(), OLDEST_LEGACY_STATE_DIRNAME);
@@ -111,6 +112,7 @@ export function resolveDefaultConfigCandidates(
   candidates.push(path.join(newStateDir(homedir), CONFIG_FILENAME));
   candidates.push(path.join(legacyStateDir(homedir), CONFIG_FILENAME));
   candidates.push(path.join(oldestLegacyStateDir(homedir), CONFIG_FILENAME));
+  candidates.push(path.join(oldestLegacyStateDir(homedir), OLDEST_LEGACY_CONFIG_FILENAME));
   return candidates;
 }
 

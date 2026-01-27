@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { handleReset } from "../../commands/onboard-helpers.js";
-import { CONFIG_PATH, writeConfigFile } from "../../config/config.js";
+import { resolveEffectiveConfigPath, writeConfigFile } from "../../config/config.js";
 import { defaultRuntime } from "../../runtime.js";
 import { resolveUserPath, shortenHomePath } from "../../utils.js";
 
@@ -89,7 +89,7 @@ export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
     await handleReset("full", workspace, defaultRuntime);
   }
 
-  const configExists = fs.existsSync(CONFIG_PATH);
+  const configExists = fs.existsSync(resolveEffectiveConfigPath());
   if (!opts.reset && configExists) return;
 
   await writeConfigFile({
@@ -117,6 +117,6 @@ export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
     },
   });
   await ensureDevWorkspace(workspace);
-  defaultRuntime.log(`Dev config ready: ${shortenHomePath(CONFIG_PATH)}`);
+  defaultRuntime.log(`Dev config ready: ${shortenHomePath(resolveEffectiveConfigPath())}`);
   defaultRuntime.log(`Dev workspace ready: ${shortenHomePath(resolveUserPath(workspace))}`);
 }

@@ -91,6 +91,7 @@
     "release:check": "node --import tsx scripts/release-check.ts",
     "ui:install": "node scripts/ui.js install",
     "ui:dev": "node scripts/ui.js dev",
+    "ui:dev:full": "node scripts/dev-ui.mjs",
     "ui:build": "node scripts/ui.js build",
     "start": "node scripts/run-node.mjs",
     "clawdbrain": "node scripts/run-node.mjs",

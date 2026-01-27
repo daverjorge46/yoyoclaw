@@ -49,5 +49,6 @@ describe("state + config path candidates", () => {
     expect(candidates[0]).toBe(path.join(home, ".clawdbrain", "clawdbrain.json"));
     expect(candidates[1]).toBe(path.join(home, ".moltbot", "clawdbrain.json"));
     expect(candidates[2]).toBe(path.join(home, ".clawdbot", "clawdbrain.json"));
+    expect(candidates[3]).toBe(path.join(home, ".clawdbot", "clawdbot.json"));
   });
 });
