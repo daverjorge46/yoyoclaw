@@ -42,12 +42,46 @@ if [ ! -f "$CONFIG_FILE" ] && [ -n "$REDPILL_API_KEY" ]; then
     --gateway-bind loopback \
     $GATEWAY_AUTH_ARGS \
     --skip-daemon \
-    --skip-channels \
     --skip-skills \
     --skip-health \
     --skip-ui
 
-  echo "Auto-configuration complete. Starting gateway..."
+  echo "Auto-configuration complete."
+
+  # Configure channel allowlists if user IDs are provided
+  if [ -n "$TELEGRAM_ALLOWED_USERS" ] || [ -n "$DISCORD_ALLOWED_USERS" ]; then
+    echo "Configuring channel allowlists..."
+
+    if [ -n "$TELEGRAM_ALLOWED_USERS" ]; then
+      # Convert comma-separated list to JSON array
+      TELEGRAM_IDS=$(echo "$TELEGRAM_ALLOWED_USERS" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')
+      node dist/index.js config set channels.telegram.dmPolicy allowlist || true
+      node dist/index.js config set "channels.telegram.allowFrom" "[$TELEGRAM_IDS]" --json || true
+      echo "✓ Telegram allowlist configured: $TELEGRAM_ALLOWED_USERS"
+    fi
+
+    if [ -n "$DISCORD_ALLOWED_USERS" ]; then
+      # Convert comma-separated list to JSON array
+      DISCORD_IDS=$(echo "$DISCORD_ALLOWED_USERS" | sed 's/,/", "/g' | sed 's/^/"/' | sed 's/$/"/')
+      node dist/index.js config set channels.discord.dm.policy allowlist || true
+      node dist/index.js config set "channels.discord.dm.allowFrom" "[$DISCORD_IDS]" --json || true
+      echo "✓ Discord allowlist configured: $DISCORD_ALLOWED_USERS"
+    fi
+  fi
+
+  echo "Starting gateway..."
+fi
+
+# Clean orphaned session locks from previous gateway restarts
+# Gateway SIGUSR1 restart keeps PID=1 but clears in-memory lock state,
+# leaving lock files that appear valid but are actually orphaned.
+SESSIONS_DIR="$CONFIG_DIR/agents/main/sessions"
+if [ -d "$SESSIONS_DIR" ]; then
+  LOCK_COUNT=$(find "$SESSIONS_DIR" -name "*.lock" -type f 2>/dev/null | wc -l)
+  if [ "$LOCK_COUNT" -gt 0 ]; then
+    echo "Cleaning $LOCK_COUNT orphaned session lock(s)..."
+    find "$SESSIONS_DIR" -name "*.lock" -type f -delete 2>/dev/null || true
+  fi
 fi
 
 # Start the gateway
