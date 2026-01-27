@@ -5,9 +5,7 @@ read_when:
 ---
 # Google Chat (Chat API)
 
-Status: ready for DMs + spaces via Google Chat API webhooks (HTTP only).
-
-## Quick setup (beginner)
+## Service Account Setup
 1) Create a Google Cloud project and enable the **Google Chat API**.
    - Go to: [Google Chat API Credentials](https://console.cloud.google.com/apis/api/chat.googleapis.com/credentials)
    - Enable the API if it is not already enabled.
@@ -47,7 +45,7 @@ Status: ready for DMs + spaces via Google Chat API webhooks (HTTP only).
 9) Start the gateway. Google Chat will POST to your webhook path.
 
 ## User OAuth (optional, enables reactions)
-Service accounts cover most bot workflows, but **reactions and user-attributed actions require user OAuth**.
+Service account covers almost all features, but **reactions and user-attributed actions require user OAuth**.
 
 ### Option A: Use gog OAuth (recommended if you already use `gog`)
 If you already use `gog` for Google Workspace, you can reuse its OAuth client + refresh token.
@@ -55,8 +53,6 @@ If you already use `gog` for Google Workspace, you can reuse its OAuth client + 
 
 1) Ensure `gog` is already authorized:
    ```bash
-   gog auth credentials /path/to/client_secret.json
-   gog auth add you@example.com --services gmail,calendar,drive,contacts,docs,sheets
    gog auth list
    ```
 2) Configure Google Chat to reuse `gog`:
@@ -77,12 +73,23 @@ If you already use `gog` for Google Workspace, you can reuse its OAuth client + 
    - For headless systems (systemd, SSH-only), switch to file keyring + password (see `gog` docs). 
      - Set `GOG_KEYRING_BACKEND=file` and `GOG_KEYRING_PASSWORD=...` for the gateway service.
      - The file keyring lives under your gog config directory (for example `~/.config/gogcli/keyring/`).
-4) Verify `gog` is visible to the gateway user:
+4) Verify `gog` is visible to clawdbot and ask it to run:
    ```bash
-   gog auth tokens list --json
+   Run `gog auth tokens list --json` and tell me if you can access services.
    ```
    This lists token keys only (no secrets). If this fails, install `gog` on the gateway host and ensure the keyring is accessible.
    For non-interactive services, set `GOG_KEYRING_PASSWORD` in the gateway environment so `gog` can unlock the keyring.
+5) Set `typingIndicator` to "reaction" in your clawdbot config.
+```json5
+{
+  channels: {
+    "googlechat": {
+      actions: { reactions: true },
+      typingIndicator: "message",
+    }
+  }
+}
+```
 
 Clawdbot reads `gog` OAuth client files from:
 - `~/.config/gogcli/credentials.json`
