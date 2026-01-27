@@ -1,5 +1,5 @@
 {
-  "name": "clawdbot",
+  "name": "moltbot",
   "version": "2026.1.25",
   "description": "WhatsApp gateway CLI (Baileys web) with Pi RPC agent",
   "type": "module",
@@ -10,6 +10,7 @@
     "./plugin-sdk/*": "./dist/plugin-sdk/*"
   },
   "bin": {
+    "moltbot": "dist/entry.js",
     "clawdbot": "dist/entry.js"
   },
   "files": [

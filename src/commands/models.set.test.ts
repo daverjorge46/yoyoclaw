@@ -5,7 +5,7 @@ const writeConfigFile = vi.fn().mockResolvedValue(undefined);
 const loadConfig = vi.fn().mockReturnValue({});
 
 vi.mock("../config/config.js", () => ({
-  CONFIG_PATH_CLAWDBOT: "/tmp/clawdbot.json",
+  CONFIG_PATH_MOLTBOT: "/tmp/clawdbot.json",
   readConfigFileSnapshot,
   writeConfigFile,
   loadConfig,

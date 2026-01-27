@@ -5,6 +5,7 @@
 echo "=== Render startup script ==="
 echo "HOME=${HOME:-not set}"
 echo "CLAWDBOT_STATE_DIR=${CLAWDBOT_STATE_DIR:-not set}"
+echo "MOLTBOT_STATE_DIR=${MOLTBOT_STATE_DIR:-not set}"
 echo "User: $(whoami 2>/dev/null || echo unknown)"
 echo "UID: $(id -u 2>/dev/null || echo unknown)"
 echo "PWD: $(pwd)"
@@ -19,29 +20,30 @@ if [ -z "${HOME}" ]; then
   echo "Set HOME to: ${HOME}"
 fi
 
-# Use CLAWDBOT_STATE_DIR if set and writable, otherwise use HOME/.clawdbot
-CONFIG_DIR="${HOME}/.clawdbot"
-if [ -n "${CLAWDBOT_STATE_DIR}" ]; then
-  # Test if we can write to it (disable exit on error for this test)
-  set +e
-  mkdir -p "${CLAWDBOT_STATE_DIR}" 2>/dev/null
-  touch "${CLAWDBOT_STATE_DIR}/.test" 2>/dev/null
-  if [ $? -eq 0 ]; then
-    rm -f "${CLAWDBOT_STATE_DIR}/.test" 2>/dev/null
-    CONFIG_DIR="${CLAWDBOT_STATE_DIR}"
-    echo "Using CLAWDBOT_STATE_DIR: ${CONFIG_DIR}"
-  else
-    echo "Warning: ${CLAWDBOT_STATE_DIR} not writable, using ${CONFIG_DIR}"
+# Prefer MOLTBOT_STATE_DIR or CLAWDBOT_STATE_DIR (legacy), else HOME/.moltbot then HOME/.clawdbot
+CONFIG_DIR="${HOME}/.moltbot"
+for var in MOLTBOT_STATE_DIR CLAWDBOT_STATE_DIR; do
+  eval "val=\${${var}:-}"
+  if [ -n "$val" ]; then
+    set +e
+    mkdir -p "$val" 2>/dev/null
+    touch "$val/.test" 2>/dev/null
+    if [ $? -eq 0 ]; then
+      rm -f "$val/.test" 2>/dev/null
+      CONFIG_DIR="$val"
+      echo "Using ${var}: ${CONFIG_DIR}"
+    fi
+    set -e
+    break
   fi
-  set -e
-fi
+done
 
-CONFIG_FILE="${CONFIG_DIR}/clawdbot.json"
+CONFIG_FILE="${CONFIG_DIR}/moltbot.json"
 
 echo "Config dir: ${CONFIG_DIR}"
 echo "Config file: ${CONFIG_FILE}"
 
-# Create config directory (this should always work for HOME/.clawdbot)
+# Create config directory (fallback: HOME/.moltbot or HOME/.clawdbot)
 if ! mkdir -p "${CONFIG_DIR}" 2>/dev/null; then
   echo "ERROR: Failed to create config directory: ${CONFIG_DIR}"
   exit 1
@@ -73,14 +75,17 @@ if [ ! -f "${CONFIG_FILE}" ]; then
   exit 1
 fi
 
-# Set environment variables for gateway
+# Set environment variables for gateway (app accepts MOLTBOT_* or CLAWDBOT_*)
 export CLAWDBOT_STATE_DIR="${CONFIG_DIR}"
 export CLAWDBOT_CONFIG_PATH="${CONFIG_FILE}"
 export CLAWDBOT_CONFIG_CACHE_MS=0
+export MOLTBOT_STATE_DIR="${CONFIG_DIR}"
+export MOLTBOT_CONFIG_PATH="${CONFIG_FILE}"
+export MOLTBOT_CONFIG_CACHE_MS=0
 
 echo "=== Starting gateway ==="
-echo "CLAWDBOT_STATE_DIR=${CLAWDBOT_STATE_DIR}"
-echo "CLAWDBOT_CONFIG_PATH=${CLAWDBOT_CONFIG_PATH}"
+echo "CONFIG_DIR=${CONFIG_DIR}"
+echo "CONFIG_FILE=${CONFIG_FILE}"
 
 # Verify node is available
 if ! command -v node >/dev/null 2>&1; then
@@ -103,13 +108,14 @@ fi
 
 echo "Found dist/index.js"
 
-# Check if token is set
-if [ -z "${CLAWDBOT_GATEWAY_TOKEN}" ]; then
-  echo "ERROR: CLAWDBOT_GATEWAY_TOKEN is not set"
+# Token: CLAWDBOT_GATEWAY_TOKEN (legacy) or MOLTBOT_GATEWAY_TOKEN
+GATEWAY_TOKEN="${CLAWDBOT_GATEWAY_TOKEN:-${MOLTBOT_GATEWAY_TOKEN}}"
+if [ -z "${GATEWAY_TOKEN}" ]; then
+  echo "ERROR: CLAWDBOT_GATEWAY_TOKEN or MOLTBOT_GATEWAY_TOKEN must be set"
   exit 1
 fi
 
-echo "Token is set (length: ${#CLAWDBOT_GATEWAY_TOKEN})"
+echo "Token is set (length: ${#GATEWAY_TOKEN})"
 
 # Enable strict error handling for the final exec
 set -e
@@ -120,5 +126,5 @@ exec node dist/index.js gateway \
   --port 8080 \
   --bind lan \
   --auth token \
-  --token "${CLAWDBOT_GATEWAY_TOKEN}" \
+  --token "${GATEWAY_TOKEN}" \
   --allow-unconfigured

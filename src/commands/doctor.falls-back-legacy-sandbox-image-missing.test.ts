@@ -34,7 +34,7 @@ beforeEach(() => {
     durationMs: 0,
   });
   legacyReadConfigFileSnapshot.mockReset().mockResolvedValue({
-    path: "/tmp/clawdbot.json",
+    path: "/tmp/moltbot.json",
     exists: false,
     raw: null,
     parsed: {},
@@ -135,7 +135,7 @@ const ensureAuthProfileStore = vi.fn().mockReturnValue({ version: 1, profiles: {
 const loadClawdbotPlugins = vi.fn().mockReturnValue({ plugins: [], diagnostics: [] });
 
 const legacyReadConfigFileSnapshot = vi.fn().mockResolvedValue({
-  path: "/tmp/clawdbot.json",
+  path: "/tmp/moltbot.json",
   exists: false,
   raw: null,
   parsed: {},
@@ -181,7 +181,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    CONFIG_PATH_CLAWDBOT: "/tmp/clawdbot.json",
+    CONFIG_PATH_MOLTBOT: "/tmp/moltbot.json",
     createConfigIO,
     readConfigFileSnapshot,
     writeConfigFile,
@@ -327,7 +327,7 @@ vi.mock("./doctor-state-migrations.js", () => ({
 describe("doctor command", () => {
   it("runs legacy state migrations in non-interactive mode without prompting", async () => {
     readConfigFileSnapshot.mockResolvedValue({
-      path: "/tmp/clawdbot.json",
+      path: "/tmp/moltbot.json",
       exists: true,
       raw: "{}",
       parsed: {},

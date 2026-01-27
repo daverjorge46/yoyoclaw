@@ -2,9 +2,9 @@ import os from "node:os";
 import path from "node:path";
 
 import { CHANNEL_IDS } from "../../channels/registry.js";
-import { STATE_DIR_CLAWDBOT } from "../../config/config.js";
+import { STATE_DIR_MOLTBOT } from "../../config/config.js";
 
-export const DEFAULT_SANDBOX_WORKSPACE_ROOT = path.join(os.homedir(), ".clawdbot", "sandboxes");
+export const DEFAULT_SANDBOX_WORKSPACE_ROOT = path.join(os.homedir(), ".moltbot", "sandboxes");
 
 export const DEFAULT_SANDBOX_IMAGE = "clawdbot-sandbox:bookworm-slim";
 export const DEFAULT_SANDBOX_CONTAINER_PREFIX = "clawdbot-sbx-";
@@ -48,7 +48,7 @@ export const DEFAULT_SANDBOX_BROWSER_AUTOSTART_TIMEOUT_MS = 12_000;
 
 export const SANDBOX_AGENT_WORKSPACE_MOUNT = "/agent";
 
-const resolvedSandboxStateDir = STATE_DIR_CLAWDBOT ?? path.join(os.homedir(), ".clawdbot");
+const resolvedSandboxStateDir = STATE_DIR_MOLTBOT ?? path.join(os.homedir(), ".moltbot");
 export const SANDBOX_STATE_DIR = path.join(resolvedSandboxStateDir, "sandbox");
 export const SANDBOX_REGISTRY_PATH = path.join(SANDBOX_STATE_DIR, "containers.json");
 export const SANDBOX_BROWSER_REGISTRY_PATH = path.join(SANDBOX_STATE_DIR, "browsers.json");

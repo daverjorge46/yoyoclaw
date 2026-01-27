@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: clawdbot
+    name: moltbot
     runtime: docker
     plan: starter
     dockerCommand: /bin/sh scripts/render-start.sh
@@ -34,6 +34,6 @@ services:
       - key: DEEPGRAM_API_KEY
         sync: false
     disk:
-      name: clawdbot-data
+      name: moltbot-data
       mountPath: /data
       sizeGB: 1
