@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Clawdbot
+@testable import Moltbot
 
 @Suite(.serialized)
 @MainActor
@@ -13,7 +13,7 @@ struct CLIInstallerTests {
         let fm = FileManager()
 >>>>>>> upstream/main
         let root = fm.temporaryDirectory.appendingPathComponent(
-            "clawdbot-cli-installer-\(UUID().uuidString)")
+            "moltbot-cli-installer-\(UUID().uuidString)")
         defer { try? fm.removeItem(at: root) }
 
         let embedded = root.appendingPathComponent("Relay/clawdbot")
@@ -23,8 +23,14 @@ struct CLIInstallerTests {
 
         let binDir = root.appendingPathComponent("bin")
         try fm.createDirectory(at: binDir, withIntermediateDirectories: true)
+<<<<<<< HEAD
         let link = binDir.appendingPathComponent("clawdbot")
         try fm.createSymbolicLink(at: link, withDestinationURL: embedded)
+=======
+        let cli = binDir.appendingPathComponent("moltbot")
+        fm.createFile(atPath: cli.path, contents: Data())
+        try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: cli.path)
+>>>>>>> upstream/main
 
         let found = CLIInstaller.installedLocation(
             searchPaths: [binDir.path],

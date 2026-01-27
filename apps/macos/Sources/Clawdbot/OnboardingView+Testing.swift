@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import ClawdbotKit
 import ClawdbotDiscovery
+=======
+import MoltbotDiscovery
+>>>>>>> upstream/main
 import SwiftUI
 
 #if DEBUG
@@ -15,7 +19,7 @@ extension OnboardingView {
             tailnetDns: "gateway.ts.net",
             sshPort: 2222,
             gatewayPort: 18789,
-            cliPath: "/usr/local/bin/clawdbot",
+            cliPath: "/usr/local/bin/moltbot",
             stableID: "gateway-1",
             debugID: "gateway-1",
             isLocal: false)
@@ -29,14 +33,14 @@ extension OnboardingView {
         view.localGatewayProbe = LocalGatewayProbe(
             port: GatewayEnvironment.gatewayPort(),
             pid: 123,
-            command: "clawdbot-gateway",
+            command: "moltbot-gateway",
             expected: true)
         view.showAdvancedConnection = true
         view.preferredGatewayID = gateway.stableID
         view.cliInstalled = true
-        view.cliInstallLocation = "/usr/local/bin/clawdbot"
+        view.cliInstallLocation = "/usr/local/bin/moltbot"
         view.cliStatus = "Installed"
-        view.workspacePath = "/tmp/clawdbot"
+        view.workspacePath = "/tmp/moltbot"
         view.workspaceStatus = "Saved workspace"
         view.anthropicAuthPKCE = AnthropicOAuth.PKCE(verifier: "verifier", challenge: "challenge")
         view.anthropicAuthCode = "code#state"

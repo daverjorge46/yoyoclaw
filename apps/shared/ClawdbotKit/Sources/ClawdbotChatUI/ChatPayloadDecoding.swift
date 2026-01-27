@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import ClawdbotProtocol
 import ClawdbotKit
+=======
+import MoltbotKit
+>>>>>>> upstream/main
 import Foundation
 
 enum ChatPayloadDecoding {

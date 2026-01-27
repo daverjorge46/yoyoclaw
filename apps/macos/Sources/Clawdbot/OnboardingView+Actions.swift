@@ -1,6 +1,12 @@
 import AppKit
+<<<<<<< HEAD
 import ClawdbotDiscovery
 import ClawdbotIPC
+=======
+import MoltbotDiscovery
+import MoltbotIPC
+import Foundation
+>>>>>>> upstream/main
 import SwiftUI
 
 extension OnboardingView {
@@ -34,7 +40,7 @@ extension OnboardingView {
                 user: user,
                 host: host,
                 port: gateway.sshPort)
-            ClawdbotConfigFile.setRemoteGatewayUrl(host: host, port: gateway.gatewayPort)
+            MoltbotConfigFile.setRemoteGatewayUrl(host: host, port: gateway.gatewayPort)
         }
         self.state.remoteCliPath = gateway.cliPath ?? ""
 
@@ -64,7 +70,7 @@ extension OnboardingView {
     }
 
     func finish() {
-        UserDefaults.standard.set(true, forKey: "clawdbot.onboardingSeen")
+        UserDefaults.standard.set(true, forKey: "moltbot.onboardingSeen")
         UserDefaults.standard.set(currentOnboardingVersion, forKey: onboardingVersionKey)
         OnboardingController.shared.close()
     }
@@ -110,9 +116,9 @@ extension OnboardingView {
                 code: parsed.code,
                 state: parsed.state,
                 verifier: pkce.verifier)
-            try ClawdbotOAuthStore.saveAnthropicOAuth(creds)
+            try MoltbotOAuthStore.saveAnthropicOAuth(creds)
             self.refreshAnthropicOAuthStatus()
-            self.anthropicAuthStatus = "Connected. Clawdbot can now use Claude."
+            self.anthropicAuthStatus = "Connected. Moltbot can now use Claude."
         } catch {
             self.anthropicAuthStatus = "OAuth failed: \(error.localizedDescription)"
         }
