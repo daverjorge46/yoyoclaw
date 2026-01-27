@@ -224,17 +224,29 @@
     },
     "list": [
       {
-        "id": "main",
-        "default": true,
-        "name": "Liam",
+        "id": "liam-telegram",
+        "name": "Liam (Telegram)",
+        "default": false,
         "workspace": "/home/liam/clawd",
         "identity": {
           "name": "Liam"
         },
-        "tools": {
-          "allow": [
-            "llm-task"
-          ]
+        "model": {
+          "primary": "zai/glm-4.7",
+          "fallbacks": ["ollama/glm-4.7-flash"]
+        }
+      },
+      {
+        "id": "liam-discord",
+        "name": "Liam (Discord)",
+        "default": true,
+        "workspace": "/home/liam/clawd",
+        "identity": {
+          "name": "Liam"
+        },
+        "model": {
+          "primary": "ollama/glm-4.7-flash",
+          "fallbacks": ["zai/glm-4.7"]
         }
       },
       {
@@ -267,6 +279,10 @@
       }
     ]
   },
+  "bindings": [
+    { "agentId": "liam-telegram", "match": { "channel": "telegram" } },
+    { "agentId": "liam-discord", "match": { "channel": "discord" } }
+  ],
   "tools": {
     "media": {
       "image": {
