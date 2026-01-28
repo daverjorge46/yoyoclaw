@@ -9,10 +9,14 @@ import type { AgentRuntime, AgentRuntimeRunParams, AgentRuntimeResult } from "..
 import type { AgentCcSdkConfig } from "../../config/types.agents.js";
 import type { ThinkLevel, VerboseLevel } from "../../auto-reply/thinking.js";
 import type { SdkReasoningLevel, SdkVerboseLevel } from "./types.js";
+import type { AnyAgentTool } from "../tools/common.js";
 import { runSdkAgent } from "./sdk-runner.js";
 import { resolveProviderConfig } from "./provider-config.js";
 import { isSdkAvailable } from "./sdk-loader.js";
+import { loadSessionHistoryForSdk } from "./sdk-session-history.js";
+import { appendSdkTurnPairToSessionTranscript } from "./sdk-session-transcript.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import type { SdkConversationTurn, SdkRunnerResult } from "./types.js";
 
 const log = createSubsystemLogger("agents/claude-agent-sdk");
 
@@ -27,6 +31,10 @@ export type CcSdkAgentRuntimeContext = {
   authToken?: string;
   /** Custom base URL for API requests. */
   baseUrl?: string;
+  /** Pre-built tools to expose to the agent. */
+  tools?: AnyAgentTool[];
+  /** Pre-loaded conversation history (if not loading from session file). */
+  conversationHistory?: SdkConversationTurn[];
 };
 
 /**
@@ -101,6 +109,31 @@ function extractSkillNames(
 }
 
 /**
+ * Convert an SdkRunnerResult into an AgentRuntimeResult.
+ */
+function adaptSdkResult(result: SdkRunnerResult, sessionId: string): AgentRuntimeResult {
+  return {
+    payloads: result.payloads.map((p) => ({
+      text: p.text,
+      isError: p.isError,
+    })),
+    meta: {
+      durationMs: result.meta.durationMs,
+      aborted: result.meta.aborted,
+      agentMeta: {
+        sessionId,
+        provider: result.meta.provider ?? "sdk",
+        model: result.meta.model ?? "default",
+      },
+      // SDK runner errors are rendered as text payloads with isError=true.
+      // Avoid mapping to Pi-specific error kinds (context/compaction) because
+      // downstream recovery logic would treat them incorrectly.
+      error: undefined,
+    },
+  };
+}
+
+/**
  * Create a Claude Code SDK runtime instance.
  *
  * The CCSDK runtime uses the Claude Agent SDK for model execution,
@@ -140,8 +173,18 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
         verboseLevel: params.verboseLevel,
       });
 
-      return runSdkAgent({
+      // Load conversation history from session file if not provided
+      let conversationHistory = context?.conversationHistory;
+      if (!conversationHistory && params.sessionFile) {
+        conversationHistory = loadSessionHistoryForSdk({
+          sessionFile: params.sessionFile,
+          maxTurns: 20,
+        });
+      }
+
+      const sdkResult = await runSdkAgent({
         // ─── Session & Identity ──────────────────────────────────────────────
+        runId: params.runId,
         sessionId: params.sessionId,
         sessionKey: params.sessionKey,
         sessionFile: params.sessionFile,
@@ -155,7 +198,6 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
         model: params.model ? `${params.provider ?? "anthropic"}/${params.model}` : undefined,
         providerConfig,
         timeoutMs: params.timeoutMs,
-        runId: params.runId,
         abortSignal: params.abortSignal,
 
         // ─── Model Behavior ──────────────────────────────────────────────────
@@ -172,16 +214,41 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
         hooksEnabled: context?.ccsdkConfig?.hooksEnabled,
         sdkOptions: context?.ccsdkConfig?.options,
         modelTiers: context?.ccsdkConfig?.models,
+        conversationHistory,
+        tools: context?.tools,
 
         // ─── Streaming Callbacks ─────────────────────────────────────────────
-        onPartialReply: params.onPartialReply,
+        // Wrap callbacks to adapt SDK payload shapes to AgentRuntimeRunParams signatures
+        onPartialReply: params.onPartialReply
+          ? (payload) => params.onPartialReply?.({ text: payload.text })
+          : undefined,
         onAssistantMessageStart: params.onAssistantMessageStart,
-        onBlockReply: params.onBlockReply,
+        onBlockReply: params.onBlockReply
+          ? (payload) => params.onBlockReply?.({ text: payload.text })
+          : undefined,
         onBlockReplyFlush: params.onBlockReplyFlush,
-        onReasoningStream: params.onReasoningStream,
-        onToolResult: params.onToolResult,
+        onReasoningStream: params.onReasoningStream
+          ? (payload) => params.onReasoningStream?.({ text: payload.text })
+          : undefined,
+        onToolResult: params.onToolResult
+          ? (payload) => params.onToolResult?.({ text: payload.text })
+          : undefined,
         onAgentEvent: params.onAgentEvent,
       });
+
+      // Persist a minimal user/assistant turn pair so SDK main-agent mode has multi-turn continuity.
+      // This intentionally records only text, not tool call structures.
+      if (params.sessionFile) {
+        appendSdkTurnPairToSessionTranscript({
+          sessionFile: params.sessionFile,
+          prompt: params.prompt,
+          assistantText: sdkResult.payloads.find(
+            (p) => !p.isError && typeof p.text === "string" && p.text.trim(),
+          )?.text,
+        });
+      }
+
+      return adaptSdkResult(sdkResult, params.sessionId);
     },
   };
 }
