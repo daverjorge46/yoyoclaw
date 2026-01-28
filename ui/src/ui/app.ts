@@ -450,12 +450,14 @@ export class MoltbotApp extends LitElement {
   }
 
   handleGatewayUrlConfirm() {
-    if (!this.pendingGatewayUrl) return;
+    const nextGatewayUrl = this.pendingGatewayUrl;
+    if (!nextGatewayUrl) return;
+    this.pendingGatewayUrl = null;
     applySettingsInternal(
       this as unknown as Parameters<typeof applySettingsInternal>[0],
-      { ...this.settings, gatewayUrl: this.pendingGatewayUrl },
+      { ...this.settings, gatewayUrl: nextGatewayUrl },
     );
-    this.pendingGatewayUrl = null;
+    this.connect();
   }
 
   handleGatewayUrlCancel() {

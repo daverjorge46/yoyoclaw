@@ -33,7 +33,7 @@ type SettingsHost = {
   basePath: string;
   themeMedia: MediaQueryList | null;
   themeMediaHandler: ((event: MediaQueryListEvent) => void) | null;
-  pendingGatewayUrl: string | null;
+  pendingGatewayUrl?: string | null;
 };
 
 export function applySettings(host: SettingsHost, next: UiSettings) {
