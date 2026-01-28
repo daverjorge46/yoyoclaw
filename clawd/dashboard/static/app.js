@@ -9,22 +9,24 @@ const CHART_HISTORY = 60; // 60 data points
 
 // === STATE ===
 let currentFilter = 'all';
-let chatVisible = false;
 let cpuChart = null;
 let memChart = null;
+let energyChart = null;
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     initCharts();
     fetchData();
     fetchChartData();
+    fetchSkillData();
     setupFilterButtons();
     setupKeyboardShortcuts();
-    setupChatKeyboard();
+    setupCaptureInput();
 
     // Auto-refresh
     setInterval(fetchData, REFRESH_INTERVAL);
     setInterval(fetchChartData, REFRESH_INTERVAL);
+    setInterval(fetchSkillData, REFRESH_INTERVAL);
 });
 
 // === DATA FETCHING ===
@@ -45,6 +47,169 @@ async function fetchChartData() {
         updateCharts(data);
     } catch (err) {
         console.error('Failed to fetch chart data:', err);
+    }
+}
+
+// === SKILL DATA FETCHING ===
+async function fetchSkillData() {
+    try {
+        // EF Coach and Natural Capture data
+        const [suggestion, focus, habits, recent, counts] = await Promise.all([
+            fetch('/api/ef-coach/suggestions').then(r => r.json()),
+            fetch('/api/ef-coach/focus').then(r => r.json()),
+            fetch('/api/ef-coach/habits').then(r => r.json()),
+            fetch('/api/natural-capture/recent').then(r => r.json()),
+            fetch('/api/natural-capture/counts').then(r => r.json())
+        ]);
+
+        // Update EF Coach section
+        updateEfCoachSection(suggestion, focus, habits);
+
+        // Update Natural Capture section
+        updateNaturalCaptureSection(recent, counts);
+    } catch (err) {
+        console.error('Failed to fetch skill data:', err);
+    }
+}
+
+// === EF COACH UPDATES ===
+function updateEfCoachSection(suggestion, focus, habits) {
+    // Context suggestion
+    document.getElementById('ef-suggestion').textContent = suggestion.suggestion || 'No suggestion';
+    document.getElementById('ef-context-type').textContent = suggestion.context_type || '--';
+    document.getElementById('ef-confidence').textContent = suggestion.confidence ? `${(suggestion.confidence * 100).toFixed(0)}%` : '--';
+
+    // Focus session
+    const focusCard = document.getElementById('ef-focus-card');
+    const focusStatus = document.getElementById('ef-focus-status');
+    const focusTimer = document.getElementById('ef-focus-timer');
+
+    if (focus.active) {
+        focusStatus.textContent = focus.task_name || 'Focus session';
+        focusTimer.textContent = formatTimer(focus.elapsed_minutes);
+        focusCard.style.borderColor = 'var(--success)';
+    } else {
+        focusStatus.textContent = 'No active session';
+        focusTimer.textContent = '';
+        focusCard.style.borderColor = 'var(--border)';
+    }
+
+    // Habits
+    const habitsList = document.getElementById('ef-habits-list');
+    if (habits.length === 0) {
+        habitsList.innerHTML = '<div class="empty">No habits tracked</div>';
+    } else {
+        habitsList.innerHTML = habits.map(h => `
+            <div class="capture-item">
+                <div class="capture-item-title">
+                    ${escapeHtml(h.name)}
+                    ${h.streak_count > 0 ? `<span class="badge" style="margin-left:0.5rem">🔥 ${h.streak_count}</span>` : ''}
+                </div>
+                <div class="capture-item-meta">${h.goal_frequency} • ${h.last_completed || 'Never'}</div>
+            </div>
+        `).join('');
+    }
+}
+
+// === NATURAL CAPTURE UPDATES ===
+function updateNaturalCaptureSection(recent, counts) {
+    // Recent captures
+    const recentList = document.getElementById('captures-list-content');
+    if (!recent || !Array.isArray(recent) || recent.length === 0) {
+        recentList.innerHTML = '<div class="empty">No recent captures</div>';
+    } else {
+        recentList.innerHTML = recent.map(c => `
+            <div class="capture-item">
+                <div class="capture-item-title">${escapeHtml(c.title)}</div>
+                <div class="capture-item-meta">
+                    <span class="badge ${c.category}">${c.category}</span>
+                    ${c.created_at ? new Date(c.created_at).toLocaleTimeString() : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Type counts
+    const countsEl = document.getElementById('capture-type-counts');
+    if (counts) {
+        countsEl.innerHTML = `
+            <div class="type-count">
+                <span class="type-count-label">Ideas</span>
+                <span class="type-count-value">${counts.ideas || 0}</span>
+            </div>
+            <div class="type-count">
+                <span class="type-count-label">Todos</span>
+                <span class="type-count-value">${counts.todos || 0}</span>
+            </div>
+            <div class="type-count">
+                <span class="type-count-label">Notes</span>
+                <span class="type-count-value">${counts.notes || 0}</span>
+            </div>
+            <div class="type-count" style="border:none; margin-top:0.5rem">
+                <span class="type-count-label">Total today</span>
+                <span class="type-count-value">${counts.total || 0}</span>
+            </div>
+        `;
+    }
+}
+
+// === CAPTURE INPUT ===
+function setupCaptureInput() {
+    const input = document.getElementById('capture-input');
+    const submit = document.getElementById('capture-submit');
+
+    submit.addEventListener('click', () => submitCapture());
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitCapture();
+        }
+    });
+}
+
+async function submitCapture() {
+    const input = document.getElementById('capture-input');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    const submit = document.getElementById('capture-submit');
+    submit.textContent = '...';
+    submit.disabled = true;
+
+    try {
+        const res = await fetch('/api/natural-capture/capture', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text, source: 'dashboard'})
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            input.value = '';
+            fetchSkillData(); // Refresh captures
+        } else {
+            alert(`Failed to capture: ${result.error}`);
+        }
+    } catch (err) {
+        alert(`Error: ${err.message}`);
+    } finally {
+        submit.textContent = 'CAPTURE';
+        submit.disabled = false;
+    }
+}
+
+// === TIMER FORMATTING ===
+function formatTimer(minutes) {
+    const h = Math.floor(minutes / 60);
+    const m = Math.floor(minutes % 60);
+    const s = Math.floor((minutes * 60) % 60);
+    if (h > 0) {
+        return `${h}h ${m}m`;
+    } else if (m > 0) {
+        return `${m}m ${s}s`;
+    } else {
+        return `${s}s`;
     }
 }
 
@@ -174,10 +339,18 @@ function initCharts() {
     memChart = echarts.init(memDom);
     memChart.setOption(getChartOption('MEMORY USAGE', '#0088ff'));
 
+    // Energy Chart (EF Coach)
+    const energyDom = document.getElementById('energy-chart');
+    if (energyDom) {
+        energyChart = echarts.init(energyDom);
+        energyChart.setOption(getEnergyChartOption());
+    }
+
     // Resize handler
     window.addEventListener('resize', () => {
         cpuChart.resize();
         memChart.resize();
+        if (energyChart) energyChart.resize();
     });
 }
 
@@ -217,6 +390,34 @@ function getChartOption(title, color) {
     };
 }
 
+function getEnergyChartOption() {
+    return {
+        backgroundColor: 'transparent',
+        grid: { left: 30, right: 10, top: 10, bottom: 20 },
+        xAxis: {
+            type: 'category',
+            data: [],
+            axisLine: { lineStyle: { color: '#2a2a2a' } },
+            axisLabel: { show: false },
+            splitLine: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            min: 1,
+            max: 10,
+            axisLine: { show: false },
+            axisLabel: { show: false },
+            splitLine: { lineStyle: { color: '#1a1a1a' } }
+        },
+        series: [{
+            type: 'bar',
+            data: [],
+            itemStyle: { color: '#ffaa00' },
+            barWidth: '60%'
+        }]
+    };
+}
+
 function updateCharts(data) {
     if (data.length === 0) return;
 
@@ -225,28 +426,6 @@ function updateCharts(data) {
 
     cpuChart.setOption({ series: [{ data: cpuData }] });
     memChart.setOption({ series: [{ data: memData }] });
-}
-
-// === CHAT TOGGLE ===
-function toggleChat() {
-    chatVisible = !chatVisible;
-    const chatFrame = document.getElementById('chat-frame');
-    const chatToggle = document.getElementById('chat-toggle');
-    chatFrame.style.display = chatVisible ? 'block' : 'none';
-    chatToggle.textContent = chatVisible ? 'CLOSE' : 'CHAT';
-    chatToggle.setAttribute('aria-pressed', chatVisible.toString());
-}
-
-function setupChatKeyboard() {
-    const chatToggle = document.getElementById('chat-toggle');
-    if (!chatToggle) return;
-
-    chatToggle.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggleChat();
-        }
-    });
 }
 
 // === KEYBOARD SHORTCUTS ===
@@ -260,17 +439,11 @@ function setupKeyboardShortcuts() {
                 fetchData();
                 fetchChartData();
                 break;
-            case 'c':
-                toggleChat();
-                break;
             case '?':
                 showShortcuts();
                 break;
             case 'escape':
                 closeShortcuts();
-                document.getElementById('chat-frame').style.display = 'none';
-                chatVisible = false;
-                document.getElementById('chat-toggle').textContent = 'CHAT';
                 break;
         }
     });

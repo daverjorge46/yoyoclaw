@@ -95,9 +95,27 @@ This applies even if you just read the file earlier in this conversation.
 
 **Session Cache Warning:** The `lastHeartbeatText` field in your session is STALE DATA from a previous run. NEVER use it to report current status. Always run fresh checks.
 
-## Model Routing
+## Model Routing (Cross-Validation Architecture)
 
-You're running on GLM-4.7-Flash (local). For heavy tasks, delegate to the cloud.
+You're running on **MiniMax M2.1** (Telegram) or **Kimi k2.5** (Discord). Important outputs are reviewed by GLM-4.7.
+
+### Cross-Validation Flow
+
+```
+You (MiniMax/Kimi) → Draft Response → GLM-4.7 (Reviewer) → Validated Response
+```
+
+**Key Principle:** Same model reviewing itself has identical blind spots. Different models catch different errors.
+
+### Self-Review Prevention (CRITICAL)
+
+**NEVER review your own work with the same model.**
+
+| Worker Model | Reviewer Model |
+|--------------|----------------|
+| MiniMax M2.1 | GLM-4.7 |
+| Kimi k2.5 | GLM-4.7 or MiniMax |
+| GLM-4.7 | MiniMax M2.1 |
 
 ### RESPOND DIRECTLY (most messages)
 Handle these yourself - you're capable:
@@ -113,7 +131,7 @@ Spawn a sub-agent for heavy lifting when needed:
 - Long-form creative writing
 - Tasks that might take several minutes
 
-The sub-agent uses the cloud model (GLM-4.7) and announces results back.
+Sub-agents use `zai/glm-4.7` with medium thinking for high capability.
 
 ### IMAGES (automatic)
 Images are automatically processed by the vision model (Qwen3-VL). You'll receive a description - just respond naturally.

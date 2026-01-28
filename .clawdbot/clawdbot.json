@@ -45,7 +45,7 @@
         "models": [
           {
             "id": "glm-4.7-flash",
-            "name": "GLM-4.7-Flash Local (Maxed)",
+            "name": "GLM-4.7-Flash (Pre-flight/Routine)",
             "reasoning": true,
             "input": [
               "text"
@@ -57,7 +57,7 @@
               "cacheWrite": 0
             },
             "contextWindow": 256000,
-            "maxTokens": 16384
+            "maxTokens": 32768
           },
           {
             "id": "qwen3-vl:4b",
@@ -111,7 +111,7 @@
           },
           {
             "id": "kimi-k2.5:cloud",
-            "name": "Kimi K2.5 Cloud",
+            "name": "Kimi K2.5 Cloud (Beta)",
             "reasoning": true,
             "input": [
               "text",
@@ -124,6 +124,22 @@
               "cacheWrite": 0
             },
             "contextWindow": 256000,
+            "maxTokens": 131072
+          },
+          {
+            "id": "minimax-m2.1:cloud",
+            "name": "MiniMax M2.1 Cloud (Primary)",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 196608,
             "maxTokens": 32768
           }
         ]
@@ -155,7 +171,10 @@
           "alias": "deep"
         },
         "ollama/kimi-k2.5:cloud": {
-          "alias": "code"
+          "alias": "beta"
+        },
+        "ollama/minimax-m2.1:cloud": {
+          "alias": "audit"
         }
       },
       "workspace": "/home/liam/clawd",
@@ -192,7 +211,7 @@
       "subagents": {
         "maxConcurrent": 4,
         "archiveAfterMinutes": 60,
-        "model": "ollama/glm-4.7-flash"
+        "model": "zai/glm-4.7"
       }
     },
     "list": [
@@ -202,8 +221,9 @@
         "name": "Liam (Telegram)",
         "workspace": "/home/liam/clawd",
         "model": {
-          "primary": "zai/glm-4.7",
+          "primary": "ollama/minimax-m2.1:cloud",
           "fallbacks": [
+            "zai/glm-4.7",
             "ollama/glm-4.7-flash"
           ]
         },
@@ -214,7 +234,7 @@
       {
         "id": "liam-discord",
         "default": true,
-        "name": "Liam (Discord)",
+        "name": "Liam (Discord) [Beta Testing]",
         "workspace": "/home/liam/clawd",
         "model": {
           "primary": "ollama/kimi-k2.5:cloud",
@@ -252,6 +272,41 @@
             "whatsapp",
             "cron",
             "gateway"
+          ]
+        }
+      },
+      {
+        "id": "supervisor",
+        "name": "Supervisor (Quality Gate)",
+        "workspace": "/home/liam/clawd",
+        "model": {
+          "primary": "zai/glm-4.7",
+          "fallbacks": [
+            "ollama/minimax-m2.1:cloud"
+          ]
+        },
+        "identity": {
+          "name": "Supervisor"
+        },
+        "tools": {
+          "allow": [
+            "read",
+            "sessions_list",
+            "sessions_history"
+          ],
+          "deny": [
+            "exec",
+            "write",
+            "edit",
+            "apply_patch",
+            "browser",
+            "process",
+            "telegram",
+            "discord",
+            "whatsapp",
+            "cron",
+            "gateway",
+            "memory_write"
           ]
         }
       }

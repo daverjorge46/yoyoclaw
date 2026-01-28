@@ -147,22 +147,28 @@ I can spawn subagents for:
 
 | Use Case | Max Concurrent | Recommended Model | Why |
 |----------|----------------|-------------------|-----|
-| Parallel research | 4 | `flash` | Fast local, good for data gathering |
+| Parallel research | 4 | `deep` | Default subagent model, high capability |
 | Long summarization | 4 | `flash` | Efficient for text processing |
-| Simple triage/decisions | 4 | `fast` | Fastest (~200ms), yes/no logic |
-| Coding/debugging | 4 | `code` | Reasoning model, 256K context |
-| Independent cron work | 4 | `flash` or `fast` | Depends on complexity |
+| Simple triage/decisions | 4 | `flash` | Fast enough, more reliable than lfm |
+| Coding/debugging | 4 | `deep` | Best reasoning, 142 tok/s |
+| Independent cron work | 4 | `flash` | Efficient for background tasks |
 
 **Model Alias Reference:**
 
 | Alias | Full Model | Best For |
 |-------|------------|----------|
-| `fast` | ollama/lfm2.5-thinking:1.2b | Fastest (~200ms), yes/no, triage |
-| `flash` | ollama/glm-4.7-flash | Routine tasks, summaries, research |
-| `deep` | zai/glm-4.7 | Complex reasoning, identity-critical |
+| `fast` | ollama/lfm2.5-thinking:1.2b | Fastest (~200ms), simple yes/no only |
+| `flash` | ollama/glm-4.7-flash | Pre-flight, routine tasks, summaries |
+| `deep` | zai/glm-4.7 | Quality gate, code review, coding, complex reasoning |
 | `vision` | ollama/qwen3-vl:4b | Image analysis |
 | `ocr` | ollama/deepseek-ocr | Text extraction from images/PDFs |
-| `code` | ollama/kimi-k2.5:cloud | Coding/debugging, reasoning tasks |
+| `audit` | ollama/minimax-m2.1:cloud | Primary worker (Telegram), overnight builds |
+| `beta` | ollama/kimi-k2.5:cloud | Testing new models (explicit request only) |
+
+**Cross-Validation Architecture:**
+- **Primary Worker (Telegram):** MiniMax M2.1 (`audit`) - best finish-rate
+- **Quality Gate / Reviewer:** GLM-4.7 (`deep`) - different model catches different blind spots
+- **Subagents:** GLM-4.7 (`deep`) by default for high capability
 
 Subagents CANNOT access: cron, gateway (safety restriction)
 

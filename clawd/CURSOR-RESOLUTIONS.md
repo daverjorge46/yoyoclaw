@@ -93,7 +93,8 @@
 
 | Date | Session | Acknowledged By | Notes |
 |------|---------|-----------------|-------|
-| - | - | - | *No acknowledgments yet* |
+| 2026-01-28 14:42 | System Health Complete Fix | Liam (Discord) | Acknowledged all ghost bug closures and model config updates |
+| 2026-01-28 14:42 | Evolution Queue Automation | Liam (Discord) | Noted CURSOR-RESOLUTIONS.md and queue-cleanup.sh creation |
 
 ---
 

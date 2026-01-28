@@ -21,6 +21,13 @@ DASHBOARD_DIR = BASE_DIR / 'dashboard'
 DB_PATH = DASHBOARD_DIR / 'dashboard.db'
 STATIC_DIR = DASHBOARD_DIR / 'static'
 TEMPLATES_DIR = DASHBOARD_DIR / 'templates'
+
+# Skill paths
+EF_COACH_DB = BASE_DIR / 'skills' / 'ef-coach-scale' / 'patterns.db'
+PARA_DB = BASE_DIR / 'memory' / 'para.sqlite'
+MEMORY_DIR = BASE_DIR / 'memory'
+IDEAS_FILE = MEMORY_DIR / 'ideas.md'
+
 PORT = 8080
 METRICS_INTERVAL = 5  # seconds between metric collection
 AUTH_USERNAME = 'liam'  # Basic auth username
@@ -180,6 +187,240 @@ def get_subagents():
     except Exception:
         pass
     return subagents
+
+# === SKILL DATA COLLECTORS ===
+def get_ef_coach_suggestion():
+    """Get latest context suggestion from EF Coach."""
+    try:
+        if not EF_COACH_DB.exists():
+            return {'suggestion': 'EF Coach database not found', 'context_type': 'error', 'confidence': 0}
+
+        conn = sqlite3.connect(str(EF_COACH_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT suggestion, context_type, confidence
+            FROM context_suggestions
+            ORDER BY timestamp DESC
+            LIMIT 1
+        ''')
+        result = cursor.fetchone()
+        conn.close()
+
+        if result:
+            return {
+                'suggestion': result['suggestion'],
+                'context_type': result['context_type'],
+                'confidence': result['confidence']
+            }
+        return {'suggestion': 'No suggestions yet', 'context_type': 'none', 'confidence': 0}
+    except Exception as e:
+        return {'suggestion': f'Error: {e}', 'context_type': 'error', 'confidence': 0}
+
+def get_ef_coach_focus_session():
+    """Get current active focus session."""
+    try:
+        if not EF_COACH_DB.exists():
+            return {'active': False}
+
+        conn = sqlite3.connect(str(EF_COACH_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, start_time, task_name, planned_duration, energy_before
+            FROM focus_sessions
+            WHERE end_time IS NULL
+            ORDER BY start_time DESC
+            LIMIT 1
+        ''')
+        result = cursor.fetchone()
+        conn.close()
+
+        if result:
+            start_time = datetime.fromisoformat(result['start_time'])
+            elapsed = int((datetime.now() - start_time).total_seconds() / 60)
+            return {
+                'active': True,
+                'id': result['id'],
+                'task_name': result['task_name'],
+                'start_time': result['start_time'],
+                'elapsed_minutes': elapsed,
+                'planned_duration': result['planned_duration'],
+                'energy_before': result['energy_before']
+            }
+        return {'active': False}
+    except Exception as e:
+        return {'active': False, 'error': str(e)}
+
+def get_ef_coach_energy_pattern():
+    """Get energy log data for last 24 hours."""
+    try:
+        if not EF_COACH_DB.exists():
+            return []
+
+        conn = sqlite3.connect(str(EF_COACH_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT timestamp, energy_level, time_block
+            FROM energy_log
+            WHERE timestamp > datetime('now', '-24 hours')
+            ORDER BY timestamp
+        ''')
+        results = cursor.fetchall()
+        conn.close()
+
+        return [
+            {
+                'timestamp': row['timestamp'],
+                'energy_level': row['energy_level'],
+                'time_block': row['time_block']
+            }
+            for row in results
+        ]
+    except Exception:
+        return []
+
+def get_ef_coach_habits():
+    """Get all active habits with streak info."""
+    try:
+        if not EF_COACH_DB.exists():
+            return []
+
+        conn = sqlite3.connect(str(EF_COACH_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, name, streak_count, last_completed, goal_frequency
+            FROM habits
+            WHERE active = 1
+            ORDER BY name
+        ''')
+        results = cursor.fetchall()
+        conn.close()
+
+        return [
+            {
+                'id': row['id'],
+                'name': row['name'],
+                'streak_count': row['streak_count'],
+                'last_completed': row['last_completed'],
+                'goal_frequency': row['goal_frequency']
+            }
+            for row in results
+        ]
+    except Exception:
+        return []
+
+def get_natural_capture_recent():
+    """Get recent captures from PARA tasks."""
+    try:
+        if not PARA_DB.exists():
+            return []
+
+        conn = sqlite3.connect(str(PARA_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, title, category, status, created_at
+            FROM tasks
+            ORDER BY created_at DESC
+            LIMIT 10
+        ''')
+        results = cursor.fetchall()
+        conn.close()
+
+        return [
+            {
+                'id': row['id'],
+                'title': row['title'],
+                'category': row['category'],
+                'status': row['status'],
+                'created_at': row['created_at']
+            }
+            for row in results
+        ]
+    except Exception:
+        return []
+
+def get_natural_capture_counts():
+    """Get capture type counts for today."""
+    try:
+        if not PARA_DB.exists():
+            return {'ideas': 0, 'todos': 0, 'notes': 0, 'total': 0}
+
+        conn = sqlite3.connect(str(PARA_DB), timeout=5)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN category = 'idea' THEN 1 ELSE 0 END) as ideas,
+                SUM(CASE WHEN category IN ('todo', 'task') THEN 1 ELSE 0 END) as todos,
+                SUM(CASE WHEN category = 'note' THEN 1 ELSE 0 END) as notes
+            FROM tasks
+            WHERE created_at > datetime('now', 'start of day')
+        ''')
+        result = cursor.fetchone()
+        conn.close()
+
+        return {
+            'ideas': result['ideas'] or 0,
+            'todos': result['todos'] or 0,
+            'notes': result['notes'] or 0,
+            'total': result['total'] or 0
+        }
+    except Exception:
+        return {'ideas': 0, 'todos': 0, 'notes': 0, 'total': 0}
+
+def process_natural_capture(text, source='dashboard'):
+    """Process a new capture through Natural Capture."""
+    try:
+        # Simple pattern matching (replicating Natural Capture logic)
+        capture_type = 'note'
+        content = text.strip()
+
+        # Detect capture type from prefix
+        if re.match(r'^idea\s*:', text, re.IGNORECASE):
+            capture_type = 'idea'
+            content = re.sub(r'^idea\s*:\s*', '', text, flags=re.IGNORECASE)
+        elif re.match(r'^todo\s*:', text, re.IGNORECASE) or re.match(r'^task\s*:', text, re.IGNORECASE):
+            capture_type = 'todo'
+            content = re.sub(r'^(todo|task)\s*:\s*', '', text, flags=re.IGNORECASE)
+        elif re.match(r'^note\s*:', text, re.IGNORECASE):
+            capture_type = 'note'
+            content = re.sub(r'^note\s*:\s*', '', text, flags=re.IGNORECASE)
+        elif re.match(r'^remind\s+me\s+to\s+', text, re.IGNORECASE):
+            capture_type = 'todo'
+            content = text
+
+        # Route to appropriate destination
+        if capture_type == 'idea' and IDEAS_FILE.exists():
+            with open(IDEAS_FILE, 'a') as f:
+                today = datetime.now().strftime('%Y-%m-%d')
+                f.write(f"\n## {today}\n\n")
+                f.write(f"### {content[:100]}\n")
+                f.write(f"**Captured:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"**Source:** {source}\n\n")
+                f.write(f"{content}\n\n---\n")
+            return {'success': True, 'type': 'idea', 'destination': str(IDEAS_FILE)}
+        elif capture_type in ('todo', 'task', 'note'):
+            if not PARA_DB.exists():
+                return {'success': False, 'error': 'PARA database not found'}
+            conn = sqlite3.connect(str(PARA_DB), timeout=5)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO tasks (title, description, category, status)
+                VALUES (?, ?, ?, ?)
+            ''', (content[:100], content, capture_type, 'pending'))
+            conn.commit()
+            conn.close()
+            return {'success': True, 'type': capture_type, 'destination': str(PARA_DB)}
+        else:
+            return {'success': False, 'error': 'Unknown capture type'}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
 
 def parse_evolution_queue():
     """Parse EVOLUTION-QUEUE.md into structured data."""
@@ -469,6 +710,60 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             health = get_queue_health()
             self.send_json(health)
 
+        # === EF COACH API ===
+        elif path == '/api/ef-coach/suggestions':
+            suggestion = get_ef_coach_suggestion()
+            self.send_json(suggestion)
+
+        elif path == '/api/ef-coach/focus':
+            focus = get_ef_coach_focus_session()
+            self.send_json(focus)
+
+        elif path == '/api/ef-coach/energy':
+            energy = get_ef_coach_energy_pattern()
+            self.send_json(energy)
+
+        elif path == '/api/ef-coach/habits':
+            habits = get_ef_coach_habits()
+            self.send_json(habits)
+
+        elif path == '/api/ef-coach/streaks':
+            # Get all streak data (habits + context suggestions)
+            habits = get_ef_coach_habits()
+            self.send_json({'habits': habits})
+
+        # === NATURAL CAPTURE API ===
+        elif path == '/api/natural-capture/recent':
+            recent = get_natural_capture_recent()
+            self.send_json(recent)
+
+        elif path == '/api/natural-capture/counts':
+            counts = get_natural_capture_counts()
+            self.send_json(counts)
+
+        else:
+            self.send_error(404, 'Not found')
+
+    def do_POST(self):
+        """Handle POST requests."""
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        content_length = int(self.headers.get('Content-Length', 0))
+        post_data = self.rfile.read(content_length).decode('utf-8')
+
+        # === NATURAL CAPTURE API ===
+        if path == '/api/natural-capture/capture':
+            try:
+                data = json.loads(post_data)
+                text = data.get('text', '')
+                source = data.get('source', 'dashboard')
+                result = process_natural_capture(text, source)
+                self.send_json(result)
+            except json.JSONDecodeError:
+                self.send_json({'success': False, 'error': 'Invalid JSON'}, status=400)
+            except Exception as e:
+                self.send_json({'success': False, 'error': str(e)}, status=500)
         else:
             self.send_error(404, 'Not found')
 

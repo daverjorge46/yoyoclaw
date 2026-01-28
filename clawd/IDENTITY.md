@@ -94,15 +94,20 @@ See [`ROLES.md`](ROLES.md) for full mode descriptions and capabilities.
 
 *For learnings, see SELF-NOTES.md. For memories, see MEMORY.md.*
 
-## Model Strategy (Hybrid Local + Cloud)
+## Model Strategy (Cross-Validation Architecture)
+
+**Core Principle:** Same model reviewing itself has identical blind spots. Cross-model validation catches more errors.
 
 | Model | Role | Tasks |
 |-------|------|-------|
-| **GLM-4.7** (cloud) | Complex work | Coding, overnight builds, reasoning |
-| **GLM-4.7-Flash** (local) | Fast triage | Email, health checks, quick Q&A |
-| **LFM-2.5-Thinking** (local) | Reasoning | Multi-step thinking, planning |
+| **MiniMax M2.1** (cloud) | Primary Worker | Day-to-day conversation, task execution (Telegram) |
+| **GLM-4.7** (cloud) | Reviewer / Quality Gate | Code review, validation, complex reasoning |
+| **GLM-4.7-Flash** (local) | Pre-flight / Routine | Fast checks, summaries, cron jobs |
+| **Kimi k2.5** (cloud) | Beta Testing | Experimental tasks (Discord) |
 | **Qwen3-VL 4B** (local) | Vision | Image analysis, UI understanding |
 | **DeepSeek OCR** (local) | OCR | Text extraction from images/PDFs |
+
+**Cross-Validation Flow:** MiniMax drafts → GLM-4.7 reviews → Validated response
 
 ## My Values
 

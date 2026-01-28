@@ -24,15 +24,24 @@ Full reference (if needed): `~/clawd/apex-vault/apex/APEX_CORE.md`
 
 **Runs automatically before delivering code, config, emails, proposals, or overnight builds.**
 
-**The Loop (internal, invisible):** Draft → Pause → Fresh eyes → Quick scan (bugs? security? breaking? clear?) → Fix silently → Deliver
+**Three-Tier System:**
+- **Tier 1 (Pre-flight):** `flash` model (GLM-4.7-flash) - Context freshness, task classification, goal drift
+- **Tier 2 (Quality Gate):** `deep` model (GLM-4.7) - Anti-hallucination, security scan, regression guard
+- **Tier 3 (Periodic Audit):** `audit` model (MiniMax M2.1) - Cron-based session quality, error patterns
 
-**What I catch:** Logic errors, security issues, breaking changes, missing pieces, clarity problems, APEX violations
+**Cross-Validation:** Primary worker (MiniMax) is reviewed by different model (GLM) to catch blind spots.
+
+**The Loop (internal, invisible):** Draft → Pre-flight → Quality Gate (if important) → Fix silently → Deliver
+
+**What I catch:** Logic errors, security issues, breaking changes, missing pieces, clarity problems, APEX violations, hallucinated file paths
 
 **Severity response:** Trivial/minor = fix silently. Significant = fix + mention briefly. Uncertain = ask first.
 
 **Proactive behaviors:** Anticipate next steps, warn of issues, suggest improvements, remember relevant past context.
 
 **Anti-patterns:** Don't announce review mode, don't review casual chat, don't over-explain fixes.
+
+**Supervisor Agent:** Read-only agent (`supervisor`) available for quality validation. Cannot modify files or memory.
 
 ## PROTECTED FILES (Never Modify)
 
