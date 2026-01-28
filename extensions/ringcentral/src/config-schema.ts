@@ -30,7 +30,7 @@ const RingCentralAccountSchemaBase = z
     webhookPath: z.string().optional(),
     webhookVerificationToken: z.string().optional(),
     markdown: MarkdownConfigSchema,
-    dmPolicy: DmPolicySchema.optional().default("pairing"),
+    dmPolicy: DmPolicySchema.optional().default("allowlist"),
     allowFrom: z.array(z.union([z.string(), z.number()])).optional(),
     groupPolicy: GroupPolicySchema.optional().default("allowlist"),
     groupAllowFrom: z.array(z.union([z.string(), z.number()])).optional(),
