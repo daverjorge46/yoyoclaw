@@ -115,6 +115,13 @@ export type DiagnosticRunAttemptEvent = DiagnosticBaseEvent & {
   attempt: number;
 };
 
+export type DiagnosticChannelTransportFailedEvent = DiagnosticBaseEvent & {
+  type: "channel.transport.failed";
+  channel: string;
+  accountId?: string;
+  error: string;
+};
+
 export type DiagnosticSessionCompactedEvent = DiagnosticBaseEvent & {
   type: "session.compacted";
   sessionKey?: string;
@@ -145,6 +152,7 @@ export type DiagnosticEventPayload =
   | DiagnosticSessionStateEvent
   | DiagnosticSessionStuckEvent
   | DiagnosticSessionCompactedEvent
+  | DiagnosticChannelTransportFailedEvent
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent

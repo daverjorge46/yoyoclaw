@@ -2,6 +2,7 @@ import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
 import { type ChannelId, getChannelPlugin, listChannelPlugins } from "../channels/plugins/index.js";
 import type { ChannelAccountSnapshot } from "../channels/plugins/types.js";
 import type { MoltbotConfig } from "../config/config.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
@@ -153,6 +154,12 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
             const message = formatErrorMessage(err);
             setRuntime(channelId, id, { accountId: id, lastError: message });
             log.error?.(`[${id}] channel exited: ${message}`);
+            emitDiagnosticEvent({
+              type: "channel.transport.failed",
+              channel: channelId,
+              accountId: id,
+              error: message,
+            });
           })
           .finally(() => {
             store.aborts.delete(id);

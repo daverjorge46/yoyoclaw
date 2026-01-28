@@ -257,6 +257,15 @@ export async function startGatewayServer(
           `🔄 **Session compacted:** \`${key}\` — ${before} → ${after} tokens. Agent may have lost conversational context.`,
         );
       }
+      if (evt.type === "channel.transport.failed") {
+        postStatus(
+          `🔌 **Channel transport failed:** \`${evt.channel}\` account \`${evt.accountId ?? "default"}\` — ${evt.error}\nTriggering gateway restart to recover.`,
+        );
+        // Auto-recover: send SIGUSR1 to self after a brief delay
+        setTimeout(() => {
+          process.kill(process.pid, "SIGUSR1");
+        }, 5000);
+      }
     });
 
     log.info("gateway: status webhook notifications enabled");
