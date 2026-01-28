@@ -27,6 +27,7 @@ import {
   handleUsageCommand,
 } from "./commands-session.js";
 import { handlePluginCommand } from "./commands-plugin.js";
+import { handleMiyabiCommand } from "./commands-miyabi.js";
 import type {
   CommandHandler,
   CommandHandlerResult,
@@ -37,6 +38,7 @@ const HANDLERS: CommandHandler[] = [
   // Plugin commands are processed first, before built-in commands
   handlePluginCommand,
   handleBashCommand,
+  handleMiyabiCommand,
   handleActivationCommand,
   handleSendPolicyCommand,
   handleUsageCommand,

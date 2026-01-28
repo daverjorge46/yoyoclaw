@@ -568,6 +568,49 @@ function buildChatCommands(): ChatCommandDefinition[] {
         },
       ],
     }),
+    defineChatCommand({
+      key: "miyabi",
+      nativeName: "miyabi",
+      description: "Miyabi Agent Society bridge commands.",
+      category: "tools",
+      args: [
+        {
+          name: "action",
+          description: "Action to perform",
+          type: "string",
+          required: true,
+          choices: [
+            { label: "Create GitHub Issue", value: "issue" },
+            { label: "Show Status", value: "status" },
+            { label: "Send to Agent", value: "agent" },
+          ],
+        },
+        {
+          name: "title",
+          description: "Issue title (for issue action)",
+          type: "string",
+        },
+        {
+          name: "agent",
+          description: "Agent name (for agent action)",
+          type: "string",
+          choices: [
+            { label: "Conductor (しきるん)", value: "conductor" },
+            { label: "Kaede (カエデ)", value: "kaede" },
+            { label: "Sakura (サクラ)", value: "sakura" },
+            { label: "Tsubaki (ツバキ)", value: "tsubaki" },
+            { label: "Botan (ボタン)", value: "botan" },
+          ],
+        },
+        {
+          name: "command",
+          description: "Command to send (for agent action)",
+          type: "string",
+          captureRemaining: true,
+        },
+      ],
+      argsParsing: "none",
+    }),
     ...listChannelDocks()
       .filter((dock) => dock.capabilities.nativeCommands)
       .map((dock) => defineDockCommand(dock)),
