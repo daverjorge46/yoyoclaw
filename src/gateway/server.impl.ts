@@ -13,7 +13,7 @@ import {
   readConfigFileSnapshot,
   writeConfigFile,
 } from "../config/config.js";
-import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
+import { isDiagnosticsEnabled, onDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
@@ -213,6 +213,39 @@ export async function startGatewayServer(
   const diagnosticsEnabled = isDiagnosticsEnabled(cfgAtStart);
   if (diagnosticsEnabled) {
     startDiagnosticHeartbeat();
+  }
+
+  // --- Status notification listener ---
+  // Posts to Discord webhook when sessions get stuck or gateway restarts.
+  const statusWebhookUrl = process.env.MOLTBOT_STATUS_WEBHOOK;
+  if (statusWebhookUrl) {
+    const postStatus = async (message: string) => {
+      try {
+        await fetch(statusWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: message }),
+        });
+      } catch {
+        /* best-effort */
+      }
+    };
+
+    // Announce gateway startup
+    postStatus(`🟢 **Gateway started** at ${new Date().toISOString()}. Sessions resuming.`);
+
+    // Alert on stuck sessions
+    onDiagnosticEvent((evt) => {
+      if (evt.type === "session.stuck") {
+        const ageMin = Math.round(evt.ageMs / 60_000);
+        const key = evt.sessionKey ?? evt.sessionId ?? "unknown";
+        postStatus(
+          `⚠️ **Stuck session detected:** \`${key}\` has been in \`${evt.state}\` state for ${ageMin}+ minutes.`,
+        );
+      }
+    });
+
+    log.info("gateway: status webhook notifications enabled");
   }
   setGatewaySigusr1RestartPolicy({ allowExternal: cfgAtStart.commands?.restart === true });
   initSubagentRegistry();
