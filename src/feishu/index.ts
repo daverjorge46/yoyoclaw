@@ -2,12 +2,25 @@
 
 export { createFeishuBot, buildFeishuSessionKey, buildFeishuPeerId } from "./bot.js";
 export { createFeishuClient, type FeishuClient } from "./client.js";
-export { monitorFeishuProvider, createFeishuWebhookHandler } from "./monitor.js";
+export {
+  monitorFeishuProvider,
+  createFeishuWebhookHandler,
+  registerMessageProcessing,
+  unregisterMessageProcessing,
+  updateMessageProcessingStatus,
+  abortMessageProcessing,
+} from "./monitor.js";
 export {
   sendMessageFeishu,
+  sendImageFeishu,
   reactMessageFeishu,
   deleteMessageFeishu,
   editMessageFeishu,
+  markdownToFeishuText,
+  markdownToFeishuPost,
+  buildFeishuMarkdownCard,
+  hasMarkdown,
+  type FeishuInteractiveCard,
 } from "./send.js";
 export {
   resolveFeishuAccount,
@@ -15,5 +28,10 @@ export {
   listEnabledFeishuAccounts,
 } from "./accounts.js";
 export { resolveFeishuCredentials } from "./token.js";
-export type { FeishuMessageContext, MonitorFeishuOpts } from "./monitor.js";
+export type {
+  FeishuMessageContext,
+  MonitorFeishuOpts,
+  FeishuMessageRecallContext,
+} from "./monitor.js";
 export type { FeishuBotOptions } from "./bot.js";
+export type { FeishuMessageRecalledEvent } from "./events.js";

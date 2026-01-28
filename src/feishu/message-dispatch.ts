@@ -238,6 +238,12 @@ export async function dispatchFeishuMessage(params: DispatchFeishuMessageParams)
       cfg,
       dispatcherOptions: {
         deliver: async (payload) => {
+          // Check if processing was aborted (message was recalled)
+          if (ctx.abortSignal?.aborted) {
+            log(`feishu: delivery skipped - message was recalled`);
+            return;
+          }
+
           log(
             `feishu: deliver callback called - hasText=${!!payload.text}, textLength=${payload.text?.length ?? 0}`,
           );
@@ -251,6 +257,7 @@ export async function dispatchFeishuMessage(params: DispatchFeishuMessageParams)
                 accountId: account.accountId,
                 config: cfg,
                 receiveIdType: "chat_id",
+                autoRichText: true, // Enable markdown rendering
               });
               log(`feishu: reply sent successfully`);
             } catch (sendErr) {
@@ -261,12 +268,22 @@ export async function dispatchFeishuMessage(params: DispatchFeishuMessageParams)
           }
         },
         onError: (err) => {
+          // Don't report errors for aborted messages
+          if (ctx.abortSignal?.aborted) {
+            log(`feishu: error ignored - message was recalled`);
+            return;
+          }
           runtime?.error?.(danger(`feishu: dispatch error: ${formatUncaughtError(err)}`));
         },
       },
     });
     log(`feishu: dispatch completed`);
   } catch (err) {
+    // Don't report errors for aborted messages
+    if (ctx.abortSignal?.aborted) {
+      log(`feishu: dispatch aborted - message was recalled`);
+      return;
+    }
     runtime?.error?.(danger(`feishu: message dispatch failed: ${formatUncaughtError(err)}`));
   }
 }
