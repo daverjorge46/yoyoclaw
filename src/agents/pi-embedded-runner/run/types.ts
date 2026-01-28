@@ -58,6 +58,7 @@ export type EmbeddedRunAttemptParams = {
   thinkLevel: ThinkLevel;
   verboseLevel?: VerboseLevel;
   reasoningLevel?: ReasoningLevel;
+  secrets?: string[];
   toolResultFormat?: ToolResultFormat;
   execOverrides?: Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
   bashElevated?: ExecElevatedDefaults;

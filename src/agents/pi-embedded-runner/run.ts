@@ -51,6 +51,7 @@ import { runEmbeddedAttempt } from "./run/attempt.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
+import { extractSecrets } from "../../security/scrubber.js";
 import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
@@ -170,6 +171,11 @@ export async function runEmbeddedPiAgent(
       let apiKeyInfo: ApiKeyInfo | null = null;
       let lastProfileId: string | undefined;
 
+      const secrets = [
+        ...(params.secrets ?? []),
+        ...(params.config ? extractSecrets(params.config) : []),
+      ];
+
       const resolveAuthProfileFailoverReason = (params: {
         allInCooldown: boolean;
         message: string;
@@ -235,8 +241,14 @@ export async function runEmbeddedPiAgent(
             githubToken: apiKeyInfo.apiKey,
           });
           authStorage.setRuntimeApiKey(model.provider, copilotToken.token);
+          if (copilotToken.token.length >= 8 && !secrets.includes(copilotToken.token)) {
+            secrets.push(copilotToken.token);
+          }
         } else {
           authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
+        }
+        if (apiKeyInfo.apiKey.length >= 8 && !secrets.includes(apiKeyInfo.apiKey)) {
+          secrets.push(apiKeyInfo.apiKey);
         }
         lastProfileId = apiKeyInfo.profileId;
       };
