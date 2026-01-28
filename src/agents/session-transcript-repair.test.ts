@@ -109,4 +109,49 @@ describe("sanitizeToolUseResultPairing", () => {
     expect(out.some((m) => m.role === "toolResult")).toBe(false);
     expect(out.map((m) => m.role)).toEqual(["user", "assistant"]);
   });
+
+  it("does not insert synthetic toolResult for aborted assistant message", () => {
+    const input = [
+      {
+        role: "assistant",
+        content: [{ type: "toolCall", id: "call_aborted", name: "edit", arguments: {} }],
+        stopReason: "aborted",
+      },
+      { role: "user", content: "next message" },
+    ] as AgentMessage[];
+
+    const out = sanitizeToolUseResultPairing(input);
+    expect(out.filter((m) => m.role === "toolResult")).toHaveLength(0);
+    expect(out.map((m) => m.role)).toEqual(["assistant", "user"]);
+  });
+
+  it("does not insert synthetic toolResult for errored assistant message", () => {
+    const input = [
+      {
+        role: "assistant",
+        content: [{ type: "toolCall", id: "call_errored", name: "cron", arguments: {} }],
+        stopReason: "error",
+      },
+      { role: "user", content: "next message" },
+    ] as AgentMessage[];
+
+    const out = sanitizeToolUseResultPairing(input);
+    expect(out.filter((m) => m.role === "toolResult")).toHaveLength(0);
+    expect(out.map((m) => m.role)).toEqual(["assistant", "user"]);
+  });
+
+  it("still inserts synthetic toolResult for normal assistant message with missing result", () => {
+    const input = [
+      {
+        role: "assistant",
+        content: [{ type: "toolCall", id: "call_normal", name: "read", arguments: {} }],
+        stopReason: "toolUse",
+      },
+      { role: "user", content: "next message" },
+    ] as AgentMessage[];
+
+    const out = sanitizeToolUseResultPairing(input);
+    expect(out.filter((m) => m.role === "toolResult")).toHaveLength(1);
+    expect((out[1] as { toolCallId?: string }).toolCallId).toBe("call_normal");
+  });
 });
