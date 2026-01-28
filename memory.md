@@ -40,6 +40,24 @@
   - db@lovemolly.app (work Google - Molly) ✅
   - dhurley@onepoint-partners.com (M365 - One Point) ⏳ Azure setup
 
+## SaveState — LAUNCHED Jan 27, 2026 🚀
+
+- **What**: Encrypted backup/restore for AI agents ("Time Machine for AI")
+- **Website**: https://savestate.dev
+- **GitHub**: https://github.com/savestatedev/savestate
+- **npm**: @savestate/cli v0.2.1
+- **Homebrew**: `brew tap savestatedev/tap && brew install savestate`
+- **Local code**: /Users/steve/Git/savestate/
+- **Database**: Neon serverless Postgres (Vercel integration)
+- **API**: savestate.dev/api/* (Vercel serverless — account, webhook, storage)
+- **Payments**: Stripe (WithCandor) — Pro $9/mo, Team $29/mo
+- **Email**: PurelyMail (noreply@savestate.dev, hello@savestate.dev)
+- **Cloud Storage**: Cloudflare R2 (savestate-backups)
+- **Vercel project**: prj_V551D28C7WHtiVXZtr79MjuB648s (has savestate.dev domain + all env vars)
+- **Stripe webhook**: we_1SuNxlEJ7b5sfPTDSqlHspTE
+- **Bear docs**: Tagged `projects,savestate` (status, roadmap, launch notes)
+- **CONCEPT.md**: Full spec at /Users/steve/Git/savestate/CONCEPT.md
+
 ## Etsy Shops (AI Agent-Operated)
 
 ### Patterns4Printing (Lisbeth)
