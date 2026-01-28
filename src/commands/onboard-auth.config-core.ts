@@ -436,9 +436,13 @@ export function applyLitellmProviderConfig(
   const providers = { ...cfg.models?.providers };
   const existingProvider = providers.litellm;
   const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
+  // Detect Claude models and use Anthropic Messages API for proper cache control support
+  const isClaude = params.modelId.toLowerCase().startsWith("claude-");
   const newModel = {
     id: params.modelId,
     name: params.modelName ?? params.modelId,
+    // Claude models through LiteLLM should use anthropic-messages API for cache control
+    ...(isClaude ? { api: "anthropic-messages" as const } : {}),
     reasoning: false,
     input: ["text"] as ("text" | "image")[],
     cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
