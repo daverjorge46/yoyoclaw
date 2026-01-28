@@ -1,4 +1,5 @@
 import type { ClawdbotPluginApi } from "clawdbot/plugin-sdk";
+import { Type } from "@sinclair/typebox";
 import { claudeMemConfigSchema } from "./config.js";
 import { ClaudeMemClient } from "./client.js";
 
@@ -61,7 +62,101 @@ const claudeMemPlugin = {
       }
     });
 
-    // TODO: Phase 5 - Tool registration
+    // Phase 5: Tool registration
+    // memory_search - Layer 1: compact results (~50-100 tokens per result)
+    api.registerTool(
+      {
+        name: "memory_search",
+        label: "Memory Search",
+        description:
+          "Search past observations. Returns compact results with IDs. Use memory_observations for full details.",
+        parameters: Type.Object({
+          query: Type.String({ description: "Search query" }),
+          limit: Type.Optional(
+            Type.Number({ description: "Max results (default: 10)" }),
+          ),
+        }),
+        async execute(_toolCallId, params) {
+          const { query, limit = 10 } = params as {
+            query: string;
+            limit?: number;
+          };
+
+          const results = await client.search(query, limit);
+
+          if (results.length === 0) {
+            return {
+              content: [{ type: "text", text: "No relevant memories found." }],
+            };
+          }
+
+          const text = results.map((r) => `[#${r.id}] ${r.title}`).join("\n");
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Found ${results.length} memories:\n\n${text}`,
+              },
+            ],
+          };
+        },
+      },
+      { name: "memory_search" },
+    );
+
+    // memory_observations - Layer 3: full details (~500-1000 tokens per result)
+    api.registerTool(
+      {
+        name: "memory_observations",
+        label: "Memory Observations",
+        description:
+          "Get full details for specific observation IDs. Use after memory_search to filter.",
+        parameters: Type.Object({
+          ids: Type.Array(Type.Number(), {
+            description: "Array of observation IDs to fetch",
+          }),
+        }),
+        async execute(_toolCallId, params) {
+          const { ids } = params as { ids: number[] };
+
+          if (ids.length === 0) {
+            return {
+              content: [{ type: "text", text: "No observation IDs provided." }],
+            };
+          }
+
+          const observations = await client.getObservations(ids);
+
+          if (observations.length === 0) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: "No observations found for the given IDs.",
+                },
+              ],
+            };
+          }
+
+          const text = observations
+            .map((obs) => {
+              const filesSection =
+                obs.files_modified && obs.files_modified.length > 0
+                  ? `\n\nFiles: ${obs.files_modified.join(", ")}`
+                  : "";
+              return `## #${obs.id}\n${obs.narrative}${filesSection}`;
+            })
+            .join("\n\n---\n\n");
+
+          return {
+            content: [{ type: "text", text }],
+          };
+        },
+      },
+      { name: "memory_observations" },
+    );
+
     // TODO: Phase 6 - CLI registration
   },
 };
