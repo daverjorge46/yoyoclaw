@@ -428,7 +428,7 @@ const FIELD_HELP: Record<string, string> = {
   "tools.tidb.enabled":
     "Enable the tidb tool (mysql CLI-backed). Intended for saving/querying large structured datasets when it makes sense to persist results to a database.",
   "tools.tidb.url":
-    'TiDB/MySQL connection URL (supports "tidb://" and "mysql://"). Prefer using env substitution (e.g. "${TIDB_URL}") to avoid storing credentials in plaintext.',
+    'TiDB/MySQL connection URL (supports "tidb://" and "mysql://"). Prefer using env substitution (e.g. "${TIDB_URL}") so configuration is a single token string and credentials are not stored in plaintext.',
   "tools.tidb.command": 'mysql client binary name/path (default: "mysql").',
   "tools.tidb.timeoutSeconds": "Default timeout in seconds for tidb tool mysql CLI runs.",
   "tools.tidb.maxOutputChars":

@@ -231,37 +231,11 @@ function readEnvString(...keys: string[]): string | undefined {
   return undefined;
 }
 
-function buildTidbUrlFromEnv(): string | undefined {
-  // TiDB Cloud "Connect with .env" defaults to these keys.
-  const host = readEnvString("DB_HOST", "TIDB_HOST", "MYSQL_HOST");
-  const portRaw = readEnvString("DB_PORT", "TIDB_PORT", "MYSQL_PORT");
-  const user = readEnvString("DB_USERNAME", "TIDB_USERNAME", "MYSQL_USER", "MYSQL_USERNAME");
-  const password = readEnvString("DB_PASSWORD", "TIDB_PASSWORD", "MYSQL_PASSWORD");
-  const database = readEnvString("DB_DATABASE", "TIDB_DATABASE", "MYSQL_DATABASE", "MYSQL_DB");
-
-  if (!host || !user) return undefined;
-
-  const port = portRaw ? Number.parseInt(portRaw, 10) : 4000;
-  if (!Number.isFinite(port) || port <= 0) return undefined;
-
-  const auth =
-    password && password.length > 0
-      ? `${encodeURIComponent(user)}:${encodeURIComponent(password)}`
-      : encodeURIComponent(user);
-  const dbPath = database ? `/${encodeURIComponent(database)}` : "";
-
-  // Use mysql:// since TiDB Cloud provides a MySQL-protocol DSN.
-  return `mysql://${auth}@${host}:${port}${dbPath}`;
-}
-
 function resolveTidbUrl(cfg?: TiDbToolConfig): string | undefined {
   const fromConfig = resolveTidbUrlFromConfig(cfg);
   if (fromConfig) return fromConfig;
 
-  const fromEnvUrl = stripOuterQuotes(process.env.TIDB_URL ?? "").trim();
-  if (fromEnvUrl) return fromEnvUrl;
-
-  return buildTidbUrlFromEnv();
+  return readEnvString("TIDB_URL")?.trim() || undefined;
 }
 
 function resolveTidbCommand(cfg?: TiDbToolConfig): string {
@@ -303,9 +277,7 @@ export function createTiDbTool(options: { config?: ClawdbotConfig }): AnyAgentTo
         return jsonResult({
           error: "missing_tidb_config",
           message:
-            "TiDB tool is enabled but not configured. Use TiDB Cloud Connect panel and paste its .env output into the gateway environment (recommended: ~/.clawdbot/.env), or set tools.tidb.url / TIDB_URL.",
-          acceptedEnv:
-            "DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE (TiDB Cloud .env) or TIDB_URL.",
+            "TiDB tool is enabled but not configured. Copy the TiDB Cloud connection string (Connect panel -> General -> Connection String) into the gateway environment as TIDB_URL, or set tools.tidb.url.",
           docs: "https://docs.clawd.bot/tools/tidb",
         });
       }
@@ -320,7 +292,7 @@ export function createTiDbTool(options: { config?: ClawdbotConfig }): AnyAgentTo
       const parsed = parseTidbUrl(url);
       if (!parsed.user) {
         throw new Error(
-          "TiDB connection must include a username (from tools.tidb.url/TIDB_URL or DB_USERNAME/TIDB_USERNAME).",
+          "TiDB connection must include a username (from tools.tidb.url or TIDB_URL).",
         );
       }
 
