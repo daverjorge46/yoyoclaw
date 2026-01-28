@@ -7,7 +7,7 @@ read_when:
 # Together AI
 
 
-The [Together AI](https://together.ai) provides access to leading open-source models including Llama, DeepSeek, Qwen, and more through a unified API.
+The [Together AI](https://together.ai) provides access to leading open-source models including Llama, DeepSeek, Kimi, and more through a unified API.
 
 - Provider: `together`
 - Auth: `TOGETHER_API_KEY`
@@ -60,6 +60,6 @@ Together AI provides access to many popular open-source models:
 - **Llama 4 Maverick** - Advanced vision and reasoning
 - **DeepSeek V3.1** - Powerful coding and reasoning model
 - **DeepSeek R1** - Advanced reasoning model
-- **Qwen 2.5 72B** - Multilingual capabilities
+- **Kimi K2 Instruct** - High-performance model with 262K context window
 
 All models support standard chat completions and are OpenAI API compatible.

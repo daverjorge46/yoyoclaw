@@ -13,7 +13,11 @@ import {
   SYNTHETIC_MODEL_CATALOG,
 } from "./synthetic-models.js";
 import { discoverVeniceModels, VENICE_BASE_URL } from "./venice-models.js";
-import { TOGETHER_BASE_URL, TOGETHER_MODEL_CATALOG } from "./together-models.js";
+import {
+  TOGETHER_BASE_URL,
+  TOGETHER_MODEL_CATALOG,
+  buildTogetherModelDefinition,
+} from "./together-models.js";
 
 type ModelsConfig = NonNullable<MoltbotConfig["models"]>;
 export type ProviderConfig = NonNullable<ModelsConfig["providers"]>[string];
@@ -364,7 +368,7 @@ function buildTogetherProvider(): ProviderConfig {
   return {
     baseUrl: TOGETHER_BASE_URL,
     api: "openai-completions",
-    models: TOGETHER_MODEL_CATALOG,
+    models: TOGETHER_MODEL_CATALOG.map(buildTogetherModelDefinition),
   };
 }
 
