@@ -11,15 +11,25 @@ import type { AgentStreamParams } from "../commands/agent/types.js";
 import type { ReasoningLevel, ThinkLevel, VerboseLevel } from "../auto-reply/thinking.js";
 import type { ExecElevatedDefaults, ExecToolDefaults } from "./bash-tools.js";
 import type { BlockReplyChunking, ToolResultFormat } from "./pi-embedded-subscribe.js";
-import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import type { SkillSnapshot } from "./skills.js";
-import type { EmbeddedPiRunResult } from "./pi-embedded-runner/types.js";
+import type {
+  AgentRunResult,
+  AgentRuntimeKind,
+  AgentSandboxInfo,
+  ClientToolDefinition,
+} from "./runtime-result-types.js";
 
-/** Agent runtime backend discriminant. */
-export type AgentRuntimeKind = "pi" | "ccsdk";
+// Re-export shared result types for convenience
+export type {
+  AgentRunResult,
+  AgentRunMeta,
+  AgentRunResultMeta,
+  AgentRuntimeKind,
+  ClientToolDefinition,
+} from "./runtime-result-types.js";
 
 /** Result type shared by all agent runtimes. */
-export type AgentRuntimeResult = EmbeddedPiRunResult;
+export type AgentRuntimeResult = AgentRunResult;
 
 /** Streaming and event callbacks for agent runs. */
 export type AgentRuntimeCallbacks = {
@@ -59,12 +69,6 @@ export type AgentRuntimeCallbacks = {
 export type PiRuntimeOptions = {
   /** Whether to enforce final XML tag in responses. */
   enforceFinalTag?: boolean;
-  /** Execution tool overrides (host, security, ask, node). */
-  execOverrides?: Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
-  /** Bash elevated execution defaults. */
-  bashElevated?: ExecElevatedDefaults;
-  /** Client-provided tools (OpenResponses hosted tools). */
-  clientTools?: ClientToolDefinition[];
 };
 
 /**
@@ -79,8 +83,6 @@ export type CcSdkRuntimeOptions = {
   sdkOptions?: Record<string, unknown>;
   /** 3-tier model configuration for Claude Code SDK. */
   modelTiers?: CcSdkModelTiers;
-  /** Existing Claude Code session ID for resumption. */
-  claudeSessionId?: string;
   /** Fork the session instead of continuing it. */
   forkSession?: boolean;
 };
@@ -174,6 +176,16 @@ export type AgentRuntimeRunParams = {
   shouldEmitToolOutput?: () => boolean;
   /** Owner phone numbers for access control. */
   ownerNumbers?: string[];
+  /** Provider session ID for session resumption (used by CLI providers and CCSDK). */
+  providerSessionId?: string;
+  /** Sandbox/workspace configuration for agent runs. */
+  sandboxInfo?: AgentSandboxInfo;
+  /** Bash/exec elevated execution defaults. Controls where exec commands run (sandbox vs host). */
+  bashElevated?: ExecElevatedDefaults;
+  /** Exec tool overrides (host, security, ask, node). Shared by both runtimes. */
+  execOverrides?: Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
+  /** Client-provided tools (OpenResponses hosted tools). Applicable to both runtimes. */
+  clientTools?: ClientToolDefinition[];
 
   // ─── Runtime-specific option bags ───────────────────────────────────────────
   /** Pi runtime-specific options. */

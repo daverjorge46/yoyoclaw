@@ -74,6 +74,27 @@ Session transcripts are stored as JSONL at:
 The session ID is stable and chosen by Moltbot.
 Legacy Pi/Tau session folders are **not** read.
 
+## Claude Agent SDK Runtime
+
+When using the Claude Agent SDK (`ccsdk`) runtime, Moltbot stores SDK-specific
+configuration and sessions in a per-agent `.claude` directory:
+
+```
+~/.clawdbot/agents/<agentId>/.claude/
+├── sessions/          # SDK native session files
+├── settings.json      # Per-agent SDK settings (optional)
+├── CLAUDE.md          # Per-agent memory/instructions (optional)
+├── skills/            # Per-agent skills (optional)
+└── commands/          # Per-agent slash commands (optional)
+```
+
+This separation ensures Moltbot agent sessions are stored separately from
+standard Claude Code CLI sessions (`~/.claude/`), and allows per-agent
+customization of Claude Code features like settings, skills, and commands.
+
+The SDK config directory is set via the `CLAUDE_CONFIG_DIR` environment variable
+when launching the SDK process.
+
 ## Steering while streaming
 
 When queue mode is `steer`, inbound messages are injected into the current run.

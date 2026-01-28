@@ -24,6 +24,8 @@ import type { SdkConversationTurn, SdkRunnerResult } from "./types.js";
 import { createMoltbotCodingTools } from "../pi-tools.js";
 import { resolveMoltbotAgentDir } from "../agent-paths.js";
 import { resolveModelAuthMode } from "../model-auth.js";
+import { resolveCcSdkConfigDirForAgent } from "../../config/sessions/paths.js";
+import { convertClientToolsForSdk } from "./client-tool-bridge.js";
 
 const log = createSubsystemLogger("agents/ccsdk-runtime");
 
@@ -82,6 +84,31 @@ function mapVerboseLevel(verboseLevel?: VerboseLevel): SdkVerboseLevel {
 }
 
 /**
+ * Map elevated permission level to CCSDK permission mode.
+ *
+ * Translates the platform's elevated permission level (from sandboxInfo)
+ * to the Claude Code SDK's permission mode for file edits and other operations.
+ *
+ * Note: This is distinct from bashElevated which controls where exec commands run.
+ * The CCSDK permissionMode controls Claude Code's built-in permission system.
+ */
+function mapElevatedToPermissionMode(
+  elevatedLevel?: "on" | "off" | "ask" | "full",
+): string | undefined {
+  switch (elevatedLevel) {
+    case "off":
+    case "ask":
+      return "default";
+    case "on":
+      return "acceptEdits";
+    case "full":
+      return "bypassPermissions";
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Extract agent ID from session key.
  */
 function extractAgentId(sessionKey?: string): string {
@@ -135,9 +162,11 @@ function adaptSdkResult(result: SdkRunnerResult, sessionId: string): AgentRuntim
       durationMs: result.meta.durationMs,
       aborted: result.meta.aborted,
       agentMeta: {
-        sessionId,
-        provider: result.meta.provider ?? "sdk",
+        // Use CCSDK session ID if available (for resume), otherwise Moltbot session ID
+        sessionId: result.claudeSessionId ?? sessionId,
+        provider: result.meta.provider ?? "anthropic",
         model: result.meta.model ?? "default",
+        runtime: "ccsdk",
         usage,
       },
       error: undefined,
@@ -206,9 +235,14 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
 
       // Build tools for this run (similar to how Pi runtime builds tools in attempt.ts)
       // If pre-built tools are provided via context, use those instead
-      const tools: AnyAgentTool[] =
+      const builtInTools: AnyAgentTool[] =
         context?.tools ??
         createMoltbotCodingTools({
+          // Exec tool configuration (same as Pi runtime)
+          exec: {
+            ...params.execOverrides,
+            elevated: params.bashElevated,
+          },
           messageProvider: params.messageChannel ?? params.messageProvider,
           agentAccountId: params.agentAccountId,
           messageTo: params.messageTo,
@@ -226,7 +260,31 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
           groupId: params.groupId,
         });
 
-      log.debug("Built tools for CCSDK run", { toolCount: tools.length });
+      // Track client tool calls for OpenResponses integration
+      // Note: clientToolCallDetected is set when a client tool is invoked; future work may
+      // expose this in SdkRunnerResult similar to how Pi runtime exposes it in AttemptResult.
+      let clientToolCallDetected: { name: string; params: Record<string, unknown> } | null = null;
+      void clientToolCallDetected; // Suppress unused warning (callback mutates this)
+
+      // Convert client tools (OpenResponses hosted tools) for CCSDK
+      const clientToolsConverted = params.clientTools
+        ? convertClientToolsForSdk(params.clientTools, (toolName, toolParams) => {
+            clientToolCallDetected = { name: toolName, params: toolParams };
+          })
+        : [];
+
+      // Combine built-in tools with client tools
+      const tools: AnyAgentTool[] = [...builtInTools, ...clientToolsConverted];
+
+      log.debug("Built tools for CCSDK run", {
+        builtInCount: builtInTools.length,
+        clientToolCount: clientToolsConverted.length,
+        totalCount: tools.length,
+      });
+
+      // Resolve CCSDK config directory for this agent's session storage.
+      // This ensures Moltbot sessions are stored separately from CLI sessions.
+      const ccsdkConfigDir = resolveCcSdkConfigDirForAgent(agentId);
 
       const sdkResult = await runSdkAgent({
         // ─── Core shared params (spread) ────────────────────────────────────────
@@ -242,6 +300,7 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
         timeoutMs: params.timeoutMs,
         abortSignal: params.abortSignal,
         extraSystemPrompt: params.extraSystemPrompt,
+        ccsdkConfigDir,
 
         // ─── Messaging & sender context (shared) ────────────────────────────────
         messageChannel: params.messageChannel,
@@ -262,8 +321,10 @@ export function createCcSdkAgentRuntime(context?: CcSdkAgentRuntimeContext): Age
         hooksEnabled: ccsdkOpts.hooksEnabled ?? context?.ccsdkConfig?.hooksEnabled,
         sdkOptions: ccsdkOpts.sdkOptions ?? context?.ccsdkConfig?.options,
         modelTiers: ccsdkOpts.modelTiers ?? context?.ccsdkConfig?.models,
-        claudeSessionId: ccsdkOpts.claudeSessionId,
+        claudeSessionId: params.providerSessionId,
         forkSession: ccsdkOpts.forkSession,
+        // Map sandbox elevated permission level to CCSDK permission mode
+        permissionMode: mapElevatedToPermissionMode(params.sandboxInfo?.elevated?.defaultLevel),
         thinkingLevel: params.thinkLevel,
         conversationHistory,
         tools,

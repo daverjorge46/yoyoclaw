@@ -28,7 +28,7 @@ import {
 } from "./cli-runner/helpers.js";
 import { FailoverError, resolveFailoverStatus } from "./failover-error.js";
 import { classifyFailoverReason, isFailoverErrorMessage } from "./pi-embedded-helpers.js";
-import type { EmbeddedPiRunResult } from "./pi-embedded-runner.js";
+import type { AgentRunResult } from "./runtime-result-types.js";
 
 const log = createSubsystemLogger("agent/claude-cli");
 
@@ -49,7 +49,7 @@ export async function runCliAgent(params: {
   ownerNumbers?: string[];
   cliSessionId?: string;
   images?: ImageContent[];
-}): Promise<EmbeddedPiRunResult> {
+}): Promise<AgentRunResult> {
   const started = Date.now();
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
   const workspaceDir = resolvedWorkspace;
@@ -314,7 +314,7 @@ export async function runClaudeCliAgent(params: {
   ownerNumbers?: string[];
   claudeSessionId?: string;
   images?: ImageContent[];
-}): Promise<EmbeddedPiRunResult> {
+}): Promise<AgentRunResult> {
   return runCliAgent({
     sessionId: params.sessionId,
     sessionKey: params.sessionKey,

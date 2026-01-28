@@ -24,19 +24,49 @@ const REMINDER_CONTEXT_MARKER = "\n\nRecent context:\n";
 
 // Flattened schema: runtime validates per-action requirements.
 const CronToolSchema = Type.Object({
-  action: stringEnum(CRON_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  includeDisabled: Type.Optional(Type.Boolean()),
-  job: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  jobId: Type.Optional(Type.String()),
-  id: Type.Optional(Type.String()),
-  patch: Type.Optional(Type.Object({}, { additionalProperties: true })),
-  text: Type.Optional(Type.String()),
-  mode: optionalStringEnum(CRON_WAKE_MODES),
+  action: stringEnum(CRON_ACTIONS, {
+    description: "Cron action: status, list, add, update, remove, run, runs, wake.",
+  }),
+  gatewayUrl: Type.Optional(
+    Type.String({ description: "Gateway URL override (uses default if omitted)." }),
+  ),
+  gatewayToken: Type.Optional(Type.String({ description: "Gateway authentication token." })),
+  timeoutMs: Type.Optional(Type.Number({ description: "Request timeout in milliseconds." })),
+  includeDisabled: Type.Optional(
+    Type.Boolean({ description: "Include disabled jobs in list output." }),
+  ),
+  job: Type.Optional(
+    Type.Object(
+      {},
+      {
+        additionalProperties: true,
+        description:
+          "Job definition object for add action. See tool description for schema details.",
+      },
+    ),
+  ),
+  jobId: Type.Optional(Type.String({ description: "Job ID for update/remove/run/runs actions." })),
+  id: Type.Optional(Type.String({ description: "Deprecated: use jobId instead." })),
+  patch: Type.Optional(
+    Type.Object(
+      {},
+      {
+        additionalProperties: true,
+        description: "Partial job update object for update action.",
+      },
+    ),
+  ),
+  text: Type.Optional(Type.String({ description: "Wake event text message (for wake action)." })),
+  mode: optionalStringEnum(CRON_WAKE_MODES, {
+    description: "Wake mode: 'now' (immediate) or 'next-heartbeat' (default).",
+  }),
   contextMessages: Type.Optional(
-    Type.Number({ minimum: 0, maximum: REMINDER_CONTEXT_MESSAGES_MAX }),
+    Type.Number({
+      description:
+        "Number of recent conversation messages (0-10) to include as context in the job text.",
+      minimum: 0,
+      maximum: REMINDER_CONTEXT_MESSAGES_MAX,
+    }),
   ),
 });
 

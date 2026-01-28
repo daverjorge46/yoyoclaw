@@ -426,4 +426,263 @@ describe("runSdkAgent", () => {
       expect(firstPartial).toBeLessThanOrEqual(firstBlock);
     });
   });
+
+  describe("session resumption", () => {
+    it("extracts session_id from SDK init event", async () => {
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "system", subtype: "init", session_id: "sdk-session-abc123" };
+        yield { type: "assistant", text: "Hello" };
+        yield { type: "result", result: "Hello" };
+      });
+
+      const result = await runSdkAgent(baseParams);
+
+      expect(result.claudeSessionId).toBe("sdk-session-abc123");
+      expect(result.payloads[0]?.text).toBe("Hello");
+    });
+
+    it("extracts session_id from any event with session_id field", async () => {
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "assistant", text: "Response", session_id: "session-from-assistant" };
+        yield { type: "result", result: "Response" };
+      });
+
+      const result = await runSdkAgent(baseParams);
+
+      expect(result.claudeSessionId).toBe("session-from-assistant");
+    });
+
+    it("passes resume option to SDK when claudeSessionId is provided", async () => {
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "result", result: "Resumed session response" };
+      });
+
+      await runSdkAgent({
+        ...baseParams,
+        claudeSessionId: "existing-session-xyz",
+      });
+
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      const callArgs = mockQuery.mock.calls[0];
+      const options = callArgs?.[0]?.options;
+      expect(options?.resume).toBe("existing-session-xyz");
+    });
+
+    it("passes forkSession option when both claudeSessionId and forkSession are provided", async () => {
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "result", result: "Forked session response" };
+      });
+
+      await runSdkAgent({
+        ...baseParams,
+        claudeSessionId: "session-to-fork",
+        forkSession: true,
+      });
+
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      const callArgs = mockQuery.mock.calls[0];
+      const options = callArgs?.[0]?.options;
+      expect(options?.resume).toBe("session-to-fork");
+      expect(options?.forkSession).toBe(true);
+    });
+
+    it("does not set resume option when claudeSessionId is not provided", async () => {
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "result", result: "New session response" };
+      });
+
+      await runSdkAgent(baseParams);
+
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      const callArgs = mockQuery.mock.calls[0];
+      const options = callArgs?.[0]?.options;
+      expect(options?.resume).toBeUndefined();
+    });
+  });
+
+  describe("callback error handling", () => {
+    it("continues streaming if onPartialReply throws synchronously", async () => {
+      const onPartialReply = vi.fn().mockImplementation(() => {
+        throw new Error("onPartialReply sync error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "text", text: "First chunk" };
+        yield { type: "text", text: "Second chunk" };
+        yield { type: "result", result: "Final output" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onPartialReply,
+      });
+
+      // Should complete despite callback error
+      expect(result.payloads[0]?.text).toBe("Final output");
+      expect(result.payloads[0]?.isError).toBeUndefined();
+      expect(onPartialReply).toHaveBeenCalled();
+    });
+
+    it("continues streaming if onPartialReply returns rejected promise", async () => {
+      const onPartialReply = vi.fn().mockRejectedValue(new Error("onPartialReply async error"));
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "text", text: "Streaming" };
+        yield { type: "result", result: "Done" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onPartialReply,
+      });
+
+      expect(result.payloads[0]?.text).toBe("Done");
+      expect(result.payloads[0]?.isError).toBeUndefined();
+    });
+
+    it("continues streaming if onBlockReply throws", async () => {
+      const onBlockReply = vi.fn().mockImplementation(() => {
+        throw new Error("onBlockReply error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "assistant", text: "Block 1" };
+        yield { type: "assistant", text: "Block 2" };
+        yield { type: "result", result: "Block 2" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onBlockReply,
+      });
+
+      expect(result.payloads[0]?.text).toBe("Block 2");
+      expect(onBlockReply).toHaveBeenCalled();
+    });
+
+    it("continues streaming if onReasoningStream throws", async () => {
+      const onReasoningStream = vi.fn().mockImplementation(() => {
+        throw new Error("onReasoningStream error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "thinking", thinking: "Thinking content" };
+        yield { type: "assistant", text: "Response" };
+        yield { type: "result", result: "Response" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        thinkingLevel: "high",
+        onReasoningStream,
+      });
+
+      expect(result.payloads[0]?.text).toBe("Response");
+      expect(onReasoningStream).toHaveBeenCalled();
+    });
+
+    it("continues streaming if onBlockReplyFlush throws", async () => {
+      const onBlockReplyFlush = vi.fn().mockImplementation(() => {
+        throw new Error("onBlockReplyFlush error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "assistant", text: "Content" };
+        yield { type: "result", result: "Content" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onBlockReply: vi.fn(),
+        onBlockReplyFlush,
+      });
+
+      expect(result.payloads[0]?.text).toBe("Content");
+      expect(onBlockReplyFlush).toHaveBeenCalled();
+    });
+
+    it("handles multiple callbacks throwing simultaneously", async () => {
+      const onPartialReply = vi.fn().mockRejectedValue(new Error("partial error"));
+      const onBlockReply = vi.fn().mockImplementation(() => {
+        throw new Error("block error");
+      });
+      const onReasoningStream = vi.fn().mockRejectedValue(new Error("reasoning error"));
+      const onAgentEvent = vi.fn().mockImplementation(() => {
+        throw new Error("event error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "thinking", thinking: "Thinking..." };
+        yield { type: "assistant", text: "Response" };
+        yield { type: "result", result: "Response" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        thinkingLevel: "high",
+        onPartialReply,
+        onBlockReply,
+        onReasoningStream,
+        onAgentEvent,
+      });
+
+      // All callbacks should have been called, and result should still be correct
+      expect(result.payloads[0]?.text).toBe("Response");
+      expect(result.payloads[0]?.isError).toBeUndefined();
+      expect(onPartialReply).toHaveBeenCalled();
+      expect(onBlockReply).toHaveBeenCalled();
+      expect(onReasoningStream).toHaveBeenCalled();
+      expect(onAgentEvent).toHaveBeenCalled();
+    });
+
+    it("continues if onToolResult callback throws", async () => {
+      const onToolResult = vi.fn().mockImplementation(() => {
+        throw new Error("onToolResult error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield {
+          type: "tool_use",
+          tool_use_id: "tool-123",
+          name: "test_tool",
+          input: {},
+        };
+        yield {
+          type: "tool_result",
+          tool_use_id: "tool-123",
+          content: [{ type: "text", text: "Tool output" }],
+        };
+        yield { type: "assistant", text: "Here is the result" };
+        yield { type: "result", result: "Here is the result" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onToolResult,
+      });
+
+      // Should complete despite callback error
+      expect(result.payloads[0]?.text).toBe("Here is the result");
+    });
+
+    it("completes run even if onAssistantMessageStart throws", async () => {
+      const onAssistantMessageStart = vi.fn().mockImplementation(() => {
+        throw new Error("onAssistantMessageStart error");
+      });
+
+      mockQuery.mockImplementationOnce(async function* () {
+        yield { type: "assistant_message_start" };
+        yield { type: "assistant", text: "Hello" };
+        yield { type: "result", result: "Hello" };
+      });
+
+      const result = await runSdkAgent({
+        ...baseParams,
+        onAssistantMessageStart,
+      });
+
+      expect(result.payloads[0]?.text).toBe("Hello");
+      expect(onAssistantMessageStart).toHaveBeenCalled();
+    });
+  });
 });

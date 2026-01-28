@@ -1,11 +1,11 @@
 import type { ExecElevatedDefaults } from "../bash-tools.js";
 import type { resolveSandboxContext } from "../sandbox.js";
-import type { EmbeddedSandboxInfo } from "./types.js";
+import type { AgentSandboxInfo } from "../runtime-result-types.js";
 
-export function buildEmbeddedSandboxInfo(
+export function buildAgentSandboxInfo(
   sandbox?: Awaited<ReturnType<typeof resolveSandboxContext>>,
   execElevated?: ExecElevatedDefaults,
-): EmbeddedSandboxInfo | undefined {
+): AgentSandboxInfo | undefined {
   if (!sandbox?.enabled) return undefined;
   const elevatedAllowed = Boolean(execElevated?.enabled && execElevated.allowed);
   return {

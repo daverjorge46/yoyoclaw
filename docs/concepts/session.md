@@ -24,6 +24,7 @@ All session state is **owned by the gateway** (the “master” Moltbot). UI cli
 - On the **gateway host**:
   - Store file: `~/.clawdbot/agents/<agentId>/sessions/sessions.json` (per agent).
 - Transcripts: `~/.clawdbot/agents/<agentId>/sessions/<SessionId>.jsonl` (Telegram topic sessions use `.../<SessionId>-topic-<threadId>.jsonl`).
+- Claude Agent SDK sessions (when using `ccsdk` runtime): `~/.clawdbot/agents/<agentId>/.claude/sessions/` (separate from CLI sessions at `~/.claude/`).
 - The store is a map `sessionKey -> { sessionId, updatedAt, ... }`. Deleting entries is safe; they are recreated on demand.
 - Group entries may include `displayName`, `channel`, `subject`, `room`, and `space` to label sessions in UIs.
 - Session entries include `origin` metadata (label + routing hints) so UIs can explain where a session came from.

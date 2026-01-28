@@ -26,15 +26,49 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsSpawnToolSchema = Type.Object({
-  task: Type.String(),
-  label: Type.Optional(Type.String()),
-  agentId: Type.Optional(Type.String()),
-  model: Type.Optional(Type.String()),
-  thinking: Type.Optional(Type.String()),
-  runTimeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
+  task: Type.String({
+    description: "The task or prompt to send to the spawned sub-agent session.",
+  }),
+  label: Type.Optional(
+    Type.String({
+      description: "Human-readable label for the spawned session (for tracking/display).",
+    }),
+  ),
+  agentId: Type.Optional(
+    Type.String({
+      description:
+        "Target agent ID to spawn. Must be in the allowlist (agents.X.subagents.allowAgents). Defaults to the requester's agent.",
+    }),
+  ),
+  model: Type.Optional(
+    Type.String({
+      description:
+        "Model override for the sub-agent (e.g., 'anthropic/claude-sonnet-4-20250514'). Uses configured subagent model if omitted.",
+    }),
+  ),
+  thinking: Type.Optional(
+    Type.String({
+      description:
+        "Thinking level override (e.g., 'none', 'low', 'medium', 'high'). Model-dependent.",
+    }),
+  ),
+  runTimeoutSeconds: Type.Optional(
+    Type.Number({
+      description: "Maximum time in seconds for the sub-agent run. 0 = no timeout.",
+      minimum: 0,
+    }),
+  ),
   // Back-compat alias. Prefer runTimeoutSeconds.
-  timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
-  cleanup: optionalStringEnum(["delete", "keep"] as const),
+  timeoutSeconds: Type.Optional(
+    Type.Number({
+      description: "Deprecated: use runTimeoutSeconds instead.",
+      minimum: 0,
+    }),
+  ),
+  cleanup: optionalStringEnum(["delete", "keep"] as const, {
+    description:
+      "Session cleanup policy after completion. 'delete' removes the session, 'keep' preserves it. Default: 'keep'.",
+  }),
 });
 
 function splitModelRef(ref?: string) {

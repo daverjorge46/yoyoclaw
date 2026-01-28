@@ -25,17 +25,19 @@ import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 const AllMessageActions = CHANNEL_MESSAGE_ACTION_NAMES;
 function buildRoutingSchema() {
   return {
-    channel: Type.Optional(Type.String()),
+    channel: Type.Optional(
+      Type.String({ description: "Channel provider (e.g., 'telegram', 'discord', 'slack')." }),
+    ),
     target: Type.Optional(channelTargetSchema({ description: "Target channel/user id or name." })),
     targets: Type.Optional(channelTargetsSchema()),
-    accountId: Type.Optional(Type.String()),
-    dryRun: Type.Optional(Type.Boolean()),
+    accountId: Type.Optional(Type.String({ description: "Account ID for multi-account setups." })),
+    dryRun: Type.Optional(Type.Boolean({ description: "Simulate the action without sending." })),
   };
 }
 
 function buildSendSchema(options: { includeButtons: boolean; includeCards: boolean }) {
   const props: Record<string, unknown> = {
-    message: Type.Optional(Type.String()),
+    message: Type.Optional(Type.String({ description: "Text message content to send." })),
     effectId: Type.Optional(
       Type.String({
         description: "Message effect name/id for sendWithEffect (e.g., invisible ink).",
@@ -44,37 +46,49 @@ function buildSendSchema(options: { includeButtons: boolean; includeCards: boole
     effect: Type.Optional(
       Type.String({ description: "Alias for effectId (e.g., invisible-ink, balloons)." }),
     ),
-    media: Type.Optional(Type.String()),
-    filename: Type.Optional(Type.String()),
+    media: Type.Optional(Type.String({ description: "URL or path to media file to attach." })),
+    filename: Type.Optional(Type.String({ description: "Filename for the attachment." })),
     buffer: Type.Optional(
       Type.String({
         description: "Base64 payload for attachments (optionally a data: URL).",
       }),
     ),
-    contentType: Type.Optional(Type.String()),
-    mimeType: Type.Optional(Type.String()),
-    caption: Type.Optional(Type.String()),
-    path: Type.Optional(Type.String()),
-    filePath: Type.Optional(Type.String()),
-    replyTo: Type.Optional(Type.String()),
-    threadId: Type.Optional(Type.String()),
-    asVoice: Type.Optional(Type.Boolean()),
-    silent: Type.Optional(Type.Boolean()),
-    quoteText: Type.Optional(
-      Type.String({ description: "Quote text for Telegram reply_parameters" }),
+    contentType: Type.Optional(
+      Type.String({ description: "MIME content type of the attachment." }),
     ),
-    bestEffort: Type.Optional(Type.Boolean()),
-    gifPlayback: Type.Optional(Type.Boolean()),
+    mimeType: Type.Optional(
+      Type.String({ description: "MIME type of the attachment (alias for contentType)." }),
+    ),
+    caption: Type.Optional(Type.String({ description: "Caption for media attachments." })),
+    path: Type.Optional(Type.String({ description: "Local file path to attach." })),
+    filePath: Type.Optional(
+      Type.String({ description: "Local file path to attach (alias for path)." }),
+    ),
+    replyTo: Type.Optional(Type.String({ description: "Message ID to reply to." })),
+    threadId: Type.Optional(Type.String({ description: "Thread/topic ID to send to." })),
+    asVoice: Type.Optional(Type.Boolean({ description: "Send audio as a voice message bubble." })),
+    silent: Type.Optional(Type.Boolean({ description: "Send without notification sound." })),
+    quoteText: Type.Optional(
+      Type.String({ description: "Quote text for Telegram reply_parameters." }),
+    ),
+    bestEffort: Type.Optional(
+      Type.Boolean({ description: "Continue on partial failures (e.g., some targets failed)." }),
+    ),
+    gifPlayback: Type.Optional(
+      Type.Boolean({ description: "Enable GIF autoplay for the attachment." }),
+    ),
     buttons: Type.Optional(
       Type.Array(
         Type.Array(
           Type.Object({
-            text: Type.String(),
-            callback_data: Type.String(),
+            text: Type.String({ description: "Button label text." }),
+            callback_data: Type.String({
+              description: "Callback data sent when button is pressed.",
+            }),
           }),
         ),
         {
-          description: "Telegram inline keyboard buttons (array of button rows)",
+          description: "Telegram inline keyboard buttons (array of button rows).",
         },
       ),
     ),
@@ -83,7 +97,7 @@ function buildSendSchema(options: { includeButtons: boolean; includeCards: boole
         {},
         {
           additionalProperties: true,
-          description: "Adaptive Card JSON object (when supported by the channel)",
+          description: "Adaptive Card JSON object (when supported by the channel).",
         },
       ),
     ),
@@ -95,109 +109,141 @@ function buildSendSchema(options: { includeButtons: boolean; includeCards: boole
 
 function buildReactionSchema() {
   return {
-    messageId: Type.Optional(Type.String()),
-    emoji: Type.Optional(Type.String()),
-    remove: Type.Optional(Type.Boolean()),
-    targetAuthor: Type.Optional(Type.String()),
-    targetAuthorUuid: Type.Optional(Type.String()),
-    groupId: Type.Optional(Type.String()),
+    messageId: Type.Optional(Type.String({ description: "Message ID to react to." })),
+    emoji: Type.Optional(Type.String({ description: "Emoji character or name for the reaction." })),
+    remove: Type.Optional(Type.Boolean({ description: "Remove the reaction instead of adding." })),
+    targetAuthor: Type.Optional(
+      Type.String({ description: "Author of the message to react to (Signal)." }),
+    ),
+    targetAuthorUuid: Type.Optional(
+      Type.String({ description: "UUID of the message author (Signal)." }),
+    ),
+    groupId: Type.Optional(Type.String({ description: "Group ID for group reactions (Signal)." })),
   };
 }
 
 function buildFetchSchema() {
   return {
-    limit: Type.Optional(Type.Number()),
-    before: Type.Optional(Type.String()),
-    after: Type.Optional(Type.String()),
-    around: Type.Optional(Type.String()),
-    fromMe: Type.Optional(Type.Boolean()),
-    includeArchived: Type.Optional(Type.Boolean()),
+    limit: Type.Optional(Type.Number({ description: "Maximum number of messages to fetch." })),
+    before: Type.Optional(Type.String({ description: "Fetch messages before this message ID." })),
+    after: Type.Optional(Type.String({ description: "Fetch messages after this message ID." })),
+    around: Type.Optional(Type.String({ description: "Fetch messages around this message ID." })),
+    fromMe: Type.Optional(Type.Boolean({ description: "Filter to only messages from the bot." })),
+    includeArchived: Type.Optional(
+      Type.Boolean({ description: "Include archived messages in results." }),
+    ),
   };
 }
 
 function buildPollSchema() {
   return {
-    pollQuestion: Type.Optional(Type.String()),
-    pollOption: Type.Optional(Type.Array(Type.String())),
-    pollDurationHours: Type.Optional(Type.Number()),
-    pollMulti: Type.Optional(Type.Boolean()),
+    pollQuestion: Type.Optional(Type.String({ description: "Poll question text." })),
+    pollOption: Type.Optional(
+      Type.Array(Type.String(), { description: "Array of poll answer options." }),
+    ),
+    pollDurationHours: Type.Optional(
+      Type.Number({ description: "Poll duration in hours before closing." }),
+    ),
+    pollMulti: Type.Optional(Type.Boolean({ description: "Allow multiple answer selections." })),
   };
 }
 
 function buildChannelTargetSchema() {
   return {
     channelId: Type.Optional(
-      Type.String({ description: "Channel id filter (search/thread list/event create)." }),
+      Type.String({ description: "Channel ID filter (search/thread list/event create)." }),
     ),
     channelIds: Type.Optional(
-      Type.Array(Type.String({ description: "Channel id filter (repeatable)." })),
+      Type.Array(Type.String(), { description: "Multiple channel IDs to filter by." }),
     ),
-    guildId: Type.Optional(Type.String()),
-    userId: Type.Optional(Type.String()),
-    authorId: Type.Optional(Type.String()),
-    authorIds: Type.Optional(Type.Array(Type.String())),
-    roleId: Type.Optional(Type.String()),
-    roleIds: Type.Optional(Type.Array(Type.String())),
-    participant: Type.Optional(Type.String()),
+    guildId: Type.Optional(Type.String({ description: "Discord server/guild ID." })),
+    userId: Type.Optional(Type.String({ description: "User ID to filter by." })),
+    authorId: Type.Optional(Type.String({ description: "Message author ID to filter by." })),
+    authorIds: Type.Optional(
+      Type.Array(Type.String(), { description: "Multiple author IDs to filter by." }),
+    ),
+    roleId: Type.Optional(Type.String({ description: "Discord role ID to filter by." })),
+    roleIds: Type.Optional(
+      Type.Array(Type.String(), { description: "Multiple role IDs to filter by." }),
+    ),
+    participant: Type.Optional(Type.String({ description: "Participant ID/name to filter by." })),
   };
 }
 
 function buildStickerSchema() {
   return {
-    emojiName: Type.Optional(Type.String()),
-    stickerId: Type.Optional(Type.Array(Type.String())),
-    stickerName: Type.Optional(Type.String()),
-    stickerDesc: Type.Optional(Type.String()),
-    stickerTags: Type.Optional(Type.String()),
+    emojiName: Type.Optional(Type.String({ description: "Emoji name to convert to sticker." })),
+    stickerId: Type.Optional(Type.Array(Type.String(), { description: "Sticker IDs to send." })),
+    stickerName: Type.Optional(Type.String({ description: "Name for creating a new sticker." })),
+    stickerDesc: Type.Optional(Type.String({ description: "Description for the sticker." })),
+    stickerTags: Type.Optional(Type.String({ description: "Tags/keywords for the sticker." })),
   };
 }
 
 function buildThreadSchema() {
   return {
-    threadName: Type.Optional(Type.String()),
-    autoArchiveMin: Type.Optional(Type.Number()),
+    threadName: Type.Optional(Type.String({ description: "Name for creating a new thread." })),
+    autoArchiveMin: Type.Optional(
+      Type.Number({ description: "Minutes of inactivity before auto-archiving the thread." }),
+    ),
   };
 }
 
 function buildEventSchema() {
   return {
-    query: Type.Optional(Type.String()),
-    eventName: Type.Optional(Type.String()),
-    eventType: Type.Optional(Type.String()),
-    startTime: Type.Optional(Type.String()),
-    endTime: Type.Optional(Type.String()),
-    desc: Type.Optional(Type.String()),
-    location: Type.Optional(Type.String()),
-    durationMin: Type.Optional(Type.Number()),
-    until: Type.Optional(Type.String()),
+    query: Type.Optional(Type.String({ description: "Search query for events." })),
+    eventName: Type.Optional(Type.String({ description: "Event name/title." })),
+    eventType: Type.Optional(Type.String({ description: "Event type (e.g., 'meeting', 'call')." })),
+    startTime: Type.Optional(
+      Type.String({ description: "Event start time (ISO 8601 or natural language)." }),
+    ),
+    endTime: Type.Optional(
+      Type.String({ description: "Event end time (ISO 8601 or natural language)." }),
+    ),
+    desc: Type.Optional(Type.String({ description: "Event description." })),
+    location: Type.Optional(
+      Type.String({ description: "Event location (physical address or URL)." }),
+    ),
+    durationMin: Type.Optional(Type.Number({ description: "Event duration in minutes." })),
+    until: Type.Optional(Type.String({ description: "End date for recurring events." })),
   };
 }
 
 function buildModerationSchema() {
   return {
-    reason: Type.Optional(Type.String()),
-    deleteDays: Type.Optional(Type.Number()),
+    reason: Type.Optional(
+      Type.String({ description: "Reason for moderation action (logged/displayed)." }),
+    ),
+    deleteDays: Type.Optional(
+      Type.Number({ description: "Number of days of messages to delete (ban action)." }),
+    ),
   };
 }
 
 function buildGatewaySchema() {
   return {
-    gatewayUrl: Type.Optional(Type.String()),
-    gatewayToken: Type.Optional(Type.String()),
-    timeoutMs: Type.Optional(Type.Number()),
+    gatewayUrl: Type.Optional(
+      Type.String({ description: "Gateway URL override (uses default if omitted)." }),
+    ),
+    gatewayToken: Type.Optional(Type.String({ description: "Gateway authentication token." })),
+    timeoutMs: Type.Optional(Type.Number({ description: "Request timeout in milliseconds." })),
   };
 }
 
 function buildChannelManagementSchema() {
   return {
-    name: Type.Optional(Type.String()),
-    type: Type.Optional(Type.Number()),
-    parentId: Type.Optional(Type.String()),
-    topic: Type.Optional(Type.String()),
-    position: Type.Optional(Type.Number()),
-    nsfw: Type.Optional(Type.Boolean()),
-    rateLimitPerUser: Type.Optional(Type.Number()),
-    categoryId: Type.Optional(Type.String()),
+    name: Type.Optional(Type.String({ description: "Channel name." })),
+    type: Type.Optional(
+      Type.Number({ description: "Channel type (Discord channel type number)." }),
+    ),
+    parentId: Type.Optional(Type.String({ description: "Parent category ID for the channel." })),
+    topic: Type.Optional(Type.String({ description: "Channel topic/description." })),
+    position: Type.Optional(Type.Number({ description: "Channel position in the list." })),
+    nsfw: Type.Optional(Type.Boolean({ description: "Mark channel as NSFW (age-restricted)." })),
+    rateLimitPerUser: Type.Optional(
+      Type.Number({ description: "Slowmode delay in seconds between messages." }),
+    ),
+    categoryId: Type.Optional(Type.String({ description: "Category ID to move the channel to." })),
     clearParent: Type.Optional(
       Type.Boolean({
         description: "Clear the parent/category when supported by the provider.",

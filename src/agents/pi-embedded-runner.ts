@@ -16,12 +16,19 @@ export {
   queueEmbeddedPiMessage,
   waitForEmbeddedPiRunEnd,
 } from "./pi-embedded-runner/runs.js";
-export { buildEmbeddedSandboxInfo } from "./pi-embedded-runner/sandbox-info.js";
+export { buildAgentSandboxInfo } from "./pi-embedded-runner/sandbox-info.js";
 export { createSystemPromptOverride } from "./pi-embedded-runner/system-prompt.js";
 export { splitSdkTools } from "./pi-embedded-runner/tool-split.js";
+// Re-export shared result types (generalized names)
 export type {
-  EmbeddedPiAgentMeta,
-  EmbeddedPiCompactResult,
-  EmbeddedPiRunMeta,
-  EmbeddedPiRunResult,
-} from "./pi-embedded-runner/types.js";
+  AgentRunMeta,
+  AgentRunResultMeta,
+  AgentRunResult,
+  AgentRuntimeKind,
+} from "./runtime-result-types.js";
+
+// Re-export Pi-specific types
+export type { EmbeddedPiCompactResult } from "./pi-embedded-runner/types.js";
+
+// Re-export shared sandbox info type
+export type { AgentSandboxInfo } from "./runtime-result-types.js";

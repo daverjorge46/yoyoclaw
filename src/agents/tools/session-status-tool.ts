@@ -49,8 +49,17 @@ import {
 import { loadCombinedSessionStoreForGateway } from "../../gateway/session-utils.js";
 
 const SessionStatusToolSchema = Type.Object({
-  sessionKey: Type.Optional(Type.String()),
-  model: Type.Optional(Type.String()),
+  sessionKey: Type.Optional(
+    Type.String({
+      description: "Session key or session ID to get status for. Defaults to the current session.",
+    }),
+  ),
+  model: Type.Optional(
+    Type.String({
+      description:
+        "Set a per-session model override (e.g., 'anthropic/claude-sonnet-4-20250514'). Use 'default' to reset overrides.",
+    }),
+  ),
 });
 
 function formatApiKeySnippet(apiKey: string): string {

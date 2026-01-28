@@ -36,11 +36,13 @@ export function createPiAgentRuntime(): AgentRuntime {
       // Spread shared params directly, then add Pi-specific options from the bag
       return runEmbeddedPiAgent({
         ...params,
-        // Pi-specific options from piOptions bag override any shared fields
+        // Pi-specific options from piOptions bag
         enforceFinalTag: piOpts.enforceFinalTag,
-        execOverrides: piOpts.execOverrides,
-        bashElevated: piOpts.bashElevated,
-        clientTools: piOpts.clientTools,
+        // Client tools (now at top level, applicable to both runtimes)
+        clientTools: params.clientTools,
+        // Shared params (execOverrides and bashElevated are now at top level)
+        execOverrides: params.execOverrides,
+        bashElevated: params.bashElevated,
       });
     },
   };

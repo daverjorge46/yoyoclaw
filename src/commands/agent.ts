@@ -447,10 +447,9 @@ export async function agentCommand(
           replyToMode: runContext.replyToMode,
           hasRepliedRef: runContext.hasRepliedRef,
 
-          // Pi-specific options
-          piOptions: {
-            clientTools: opts.clientTools,
-          },
+          // Client-provided tools (OpenResponses hosted tools)
+          // Now at top level so both Pi and CCSDK runtimes can use them
+          clientTools: opts.clientTools,
 
           // Fallback config
           fallbacksOverride: resolveAgentModelFallbacksOverride(cfg, sessionAgentId),

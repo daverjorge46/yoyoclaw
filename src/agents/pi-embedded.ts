@@ -1,9 +1,8 @@
-export type {
-  EmbeddedPiAgentMeta,
-  EmbeddedPiCompactResult,
-  EmbeddedPiRunMeta,
-  EmbeddedPiRunResult,
-} from "./pi-embedded-runner.js";
+// Re-export shared agent result types
+export type { AgentRunMeta, AgentRunResultMeta, AgentRunResult } from "./runtime-result-types.js";
+
+// Re-export Pi-specific types
+export type { EmbeddedPiCompactResult } from "./pi-embedded-runner.js";
 export {
   abortEmbeddedPiRun,
   compactEmbeddedPiSession,

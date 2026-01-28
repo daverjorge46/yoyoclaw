@@ -24,29 +24,43 @@ const CANVAS_SNAPSHOT_FORMATS = ["png", "jpg", "jpeg"] as const;
 
 // Flattened schema: runtime validates per-action requirements.
 const CanvasToolSchema = Type.Object({
-  action: stringEnum(CANVAS_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  node: Type.Optional(Type.String()),
+  action: stringEnum(CANVAS_ACTIONS, {
+    description: "Canvas action: present, hide, navigate, eval, snapshot, a2ui_push, a2ui_reset.",
+  }),
+  gatewayUrl: Type.Optional(
+    Type.String({ description: "Gateway URL override (uses default if omitted)." }),
+  ),
+  gatewayToken: Type.Optional(Type.String({ description: "Gateway authentication token." })),
+  timeoutMs: Type.Optional(Type.Number({ description: "Request timeout in milliseconds." })),
+  node: Type.Optional(Type.String({ description: "Node ID or name to target." })),
   // present
-  target: Type.Optional(Type.String()),
-  x: Type.Optional(Type.Number()),
-  y: Type.Optional(Type.Number()),
-  width: Type.Optional(Type.Number()),
-  height: Type.Optional(Type.Number()),
+  target: Type.Optional(Type.String({ description: "URL to load when presenting the canvas." })),
+  x: Type.Optional(Type.Number({ description: "Canvas window X position in pixels." })),
+  y: Type.Optional(Type.Number({ description: "Canvas window Y position in pixels." })),
+  width: Type.Optional(Type.Number({ description: "Canvas window width in pixels." })),
+  height: Type.Optional(Type.Number({ description: "Canvas window height in pixels." })),
   // navigate
-  url: Type.Optional(Type.String()),
+  url: Type.Optional(Type.String({ description: "URL to navigate the canvas to." })),
   // eval
-  javaScript: Type.Optional(Type.String()),
+  javaScript: Type.Optional(
+    Type.String({ description: "JavaScript code to evaluate in the canvas context." }),
+  ),
   // snapshot
-  outputFormat: optionalStringEnum(CANVAS_SNAPSHOT_FORMATS),
-  maxWidth: Type.Optional(Type.Number()),
-  quality: Type.Optional(Type.Number()),
-  delayMs: Type.Optional(Type.Number()),
+  outputFormat: optionalStringEnum(CANVAS_SNAPSHOT_FORMATS, {
+    description: "Snapshot image format: 'png', 'jpg', or 'jpeg'.",
+  }),
+  maxWidth: Type.Optional(Type.Number({ description: "Maximum snapshot width in pixels." })),
+  quality: Type.Optional(
+    Type.Number({ description: "Image quality (0-100) for JPEG compression." }),
+  ),
+  delayMs: Type.Optional(
+    Type.Number({ description: "Delay in milliseconds before capturing snapshot." }),
+  ),
   // a2ui_push
-  jsonl: Type.Optional(Type.String()),
-  jsonlPath: Type.Optional(Type.String()),
+  jsonl: Type.Optional(Type.String({ description: "A2UI JSONL content to push directly." })),
+  jsonlPath: Type.Optional(
+    Type.String({ description: "Path to A2UI JSONL file to read and push." }),
+  ),
 });
 
 export function createCanvasTool(): AnyAgentTool {

@@ -303,14 +303,20 @@ export async function runAgentWithUnifiedFailover(
           total: totalAttempts,
         });
 
-        // Notify model selection before attempt
-        await params.onModelSelected?.({
-          runtime: runtimeKind,
-          provider: candidate.provider,
-          model: candidate.model,
-          attempt: attemptIndex,
-          total: totalAttempts,
-        });
+        // Notify model selection before attempt (wrapped in try/catch to be resilient)
+        try {
+          await params.onModelSelected?.({
+            runtime: runtimeKind,
+            provider: candidate.provider,
+            model: candidate.model,
+            attempt: attemptIndex,
+            total: totalAttempts,
+          });
+        } catch (err) {
+          log.warn("onModelSelected callback failed", {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
 
         // Determine if this is a different provider than originally requested
         const originalProvider = params.provider ?? DEFAULT_PROVIDER;

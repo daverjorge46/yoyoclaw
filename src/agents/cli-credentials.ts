@@ -30,6 +30,9 @@ const QWEN_CLI_CREDENTIALS_RELATIVE_PATH = ".qwen/oauth_creds.json";
 const CLAUDE_CLI_KEYCHAIN_SERVICE = "Claude Code-credentials";
 const CLAUDE_CLI_KEYCHAIN_ACCOUNT = "Claude Code";
 
+// Windows Credential Manager target name (matches Claude Code CLI)
+const CLAUDE_CLI_WINDOWS_TARGET = "Claude Code-credentials";
+
 type CachedValue<T> = {
   value: T | null;
   readAt: number;
@@ -84,6 +87,7 @@ type ClaudeCliFileOptions = {
 
 type ClaudeCliWriteOptions = ClaudeCliFileOptions & {
   platform?: NodeJS.Platform;
+  execSync?: ExecSyncFn;
   writeKeychain?: (credentials: OAuthCredentials) => boolean;
   writeFile?: (credentials: OAuthCredentials, options?: ClaudeCliFileOptions) => boolean;
 };
@@ -276,6 +280,236 @@ function readClaudeCliKeychainCredentials(
   }
 }
 
+/**
+ * Read Claude CLI credentials from Linux Secret Service (libsecret).
+ *
+ * This uses the `secret-tool` CLI which interfaces with GNOME Keyring,
+ * KWallet, or any freedesktop.org Secret Service D-Bus compatible keyring.
+ *
+ * Requires: libsecret-tools package (apt install libsecret-tools on Debian/Ubuntu)
+ */
+function readClaudeCliLinuxSecretServiceCredentials(
+  execSyncImpl: ExecSyncFn = execSync,
+): ClaudeCliCredential | null {
+  log.debug("[CCSDK-AUTH] Attempting to read credentials from Linux Secret Service", {
+    service: CLAUDE_CLI_KEYCHAIN_SERVICE,
+  });
+
+  try {
+    // secret-tool lookup returns the secret value for matching attributes
+    const result = execSyncImpl(`secret-tool lookup service "${CLAUDE_CLI_KEYCHAIN_SERVICE}"`, {
+      encoding: "utf8",
+      timeout: 5000,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    if (!result || !result.trim()) {
+      log.debug("[CCSDK-AUTH] Linux Secret Service returned empty result");
+      return null;
+    }
+
+    log.debug("[CCSDK-AUTH] Linux Secret Service returned data", {
+      rawLength: result.length,
+    });
+
+    const data = JSON.parse(result.trim());
+    const claudeOauth = data?.claudeAiOauth;
+    if (!claudeOauth || typeof claudeOauth !== "object") {
+      log.debug("[CCSDK-AUTH] Linux Secret Service data missing claudeAiOauth object");
+      return null;
+    }
+
+    const accessToken = claudeOauth.accessToken;
+    const refreshToken = claudeOauth.refreshToken;
+    const expiresAt = claudeOauth.expiresAt;
+
+    if (typeof accessToken !== "string" || !accessToken) {
+      log.debug("[CCSDK-AUTH] Linux Secret Service accessToken invalid or missing");
+      return null;
+    }
+    if (typeof expiresAt !== "number" || expiresAt <= 0) {
+      log.debug("[CCSDK-AUTH] Linux Secret Service expiresAt invalid", { expiresAt });
+      return null;
+    }
+
+    const expiresDate = new Date(expiresAt);
+    const isExpired = expiresAt < Date.now();
+    const msUntilExpiry = expiresAt - Date.now();
+
+    log.debug("[CCSDK-AUTH] Linux Secret Service credentials parsed successfully", {
+      source: "linux-secret-service",
+      hasAccessToken: Boolean(accessToken),
+      accessTokenMasked: maskToken(accessToken),
+      hasRefreshToken: Boolean(refreshToken),
+      refreshTokenMasked: maskToken(refreshToken),
+      expiresAt: expiresDate.toISOString(),
+      isExpired,
+      msUntilExpiry,
+      type: refreshToken ? "oauth" : "token",
+    });
+
+    if (typeof refreshToken === "string" && refreshToken) {
+      return {
+        type: "oauth",
+        provider: "anthropic",
+        access: accessToken,
+        refresh: refreshToken,
+        expires: expiresAt,
+      };
+    }
+
+    return {
+      type: "token",
+      provider: "anthropic",
+      token: accessToken,
+      expires: expiresAt,
+    };
+  } catch (err) {
+    log.debug("[CCSDK-AUTH] Linux Secret Service read failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  }
+}
+
+/**
+ * Read Claude CLI credentials from Windows Credential Manager.
+ *
+ * This uses PowerShell to retrieve credentials from Windows Credential Manager
+ * using the CredRead API. The credential is stored as a "Generic" credential.
+ */
+function readClaudeCliWindowsCredentialManagerCredentials(
+  execSyncImpl: ExecSyncFn = execSync,
+): ClaudeCliCredential | null {
+  log.debug("[CCSDK-AUTH] Attempting to read credentials from Windows Credential Manager", {
+    target: CLAUDE_CLI_WINDOWS_TARGET,
+  });
+
+  try {
+    // PowerShell script to read from Windows Credential Manager
+    // Uses the .NET CredentialManager API via Add-Type
+    const psScript = `
+      Add-Type -TypeDefinition @"
+        using System;
+        using System.Runtime.InteropServices;
+        using System.Text;
+        public class CredManager {
+          [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+          public static extern bool CredRead(string target, int type, int flags, out IntPtr credential);
+          [DllImport("advapi32.dll", SetLastError = true)]
+          public static extern bool CredFree(IntPtr credential);
+          [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+          public struct CREDENTIAL {
+            public int Flags;
+            public int Type;
+            public string TargetName;
+            public string Comment;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+            public int CredentialBlobSize;
+            public IntPtr CredentialBlob;
+            public int Persist;
+            public int AttributeCount;
+            public IntPtr Attributes;
+            public string TargetAlias;
+            public string UserName;
+          }
+          public static string GetCredential(string target) {
+            IntPtr credPtr;
+            if (!CredRead(target, 1, 0, out credPtr)) return null;
+            try {
+              CREDENTIAL cred = (CREDENTIAL)Marshal.PtrToStructure(credPtr, typeof(CREDENTIAL));
+              if (cred.CredentialBlobSize > 0) {
+                return Marshal.PtrToStringUni(cred.CredentialBlob, cred.CredentialBlobSize / 2);
+              }
+              return null;
+            } finally {
+              CredFree(credPtr);
+            }
+          }
+        }
+"@
+      $result = [CredManager]::GetCredential("${CLAUDE_CLI_WINDOWS_TARGET}")
+      if ($result) { Write-Output $result }
+    `.replace(/\n/g, " ");
+
+    const result = execSyncImpl(
+      `powershell -NoProfile -Command "${psScript.replace(/"/g, '\\"')}"`,
+      {
+        encoding: "utf8",
+        timeout: 10000,
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
+
+    if (!result || !result.trim()) {
+      log.debug("[CCSDK-AUTH] Windows Credential Manager returned empty result");
+      return null;
+    }
+
+    log.debug("[CCSDK-AUTH] Windows Credential Manager returned data", {
+      rawLength: result.length,
+    });
+
+    const data = JSON.parse(result.trim());
+    const claudeOauth = data?.claudeAiOauth;
+    if (!claudeOauth || typeof claudeOauth !== "object") {
+      log.debug("[CCSDK-AUTH] Windows Credential Manager data missing claudeAiOauth object");
+      return null;
+    }
+
+    const accessToken = claudeOauth.accessToken;
+    const refreshToken = claudeOauth.refreshToken;
+    const expiresAt = claudeOauth.expiresAt;
+
+    if (typeof accessToken !== "string" || !accessToken) {
+      log.debug("[CCSDK-AUTH] Windows Credential Manager accessToken invalid or missing");
+      return null;
+    }
+    if (typeof expiresAt !== "number" || expiresAt <= 0) {
+      log.debug("[CCSDK-AUTH] Windows Credential Manager expiresAt invalid", { expiresAt });
+      return null;
+    }
+
+    const expiresDate = new Date(expiresAt);
+    const isExpired = expiresAt < Date.now();
+    const msUntilExpiry = expiresAt - Date.now();
+
+    log.debug("[CCSDK-AUTH] Windows Credential Manager credentials parsed successfully", {
+      source: "windows-credential-manager",
+      hasAccessToken: Boolean(accessToken),
+      accessTokenMasked: maskToken(accessToken),
+      hasRefreshToken: Boolean(refreshToken),
+      refreshTokenMasked: maskToken(refreshToken),
+      expiresAt: expiresDate.toISOString(),
+      isExpired,
+      msUntilExpiry,
+      type: refreshToken ? "oauth" : "token",
+    });
+
+    if (typeof refreshToken === "string" && refreshToken) {
+      return {
+        type: "oauth",
+        provider: "anthropic",
+        access: accessToken,
+        refresh: refreshToken,
+        expires: expiresAt,
+      };
+    }
+
+    return {
+      type: "token",
+      provider: "anthropic",
+      token: accessToken,
+      expires: expiresAt,
+    };
+  } catch (err) {
+    log.debug("[CCSDK-AUTH] Windows Credential Manager read failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  }
+}
+
 export function readClaudeCliCredentials(options?: {
   allowKeychainPrompt?: boolean;
   platform?: NodeJS.Platform;
@@ -290,22 +524,40 @@ export function readClaudeCliCredentials(options?: {
     homeDir: options?.homeDir ?? "(default)",
   });
 
-  // Try macOS Keychain first
-  if (platform === "darwin" && options?.allowKeychainPrompt !== false) {
-    log.debug("[CCSDK-AUTH] Attempting macOS Keychain read");
-    const keychainCreds = readClaudeCliKeychainCredentials(options?.execSync);
-    if (keychainCreds) {
-      log.info("[CCSDK-AUTH] Successfully read credentials from macOS Keychain", {
-        type: keychainCreds.type,
-        source: "keychain",
-        accessTokenMasked:
-          keychainCreds.type === "oauth"
-            ? maskToken(keychainCreds.access)
-            : maskToken(keychainCreds.token),
-      });
-      return keychainCreds;
+  // Try platform-specific secure credential storage first
+  if (options?.allowKeychainPrompt !== false) {
+    let secureStoreCreds: ClaudeCliCredential | null = null;
+    let source = "";
+
+    if (platform === "darwin") {
+      log.debug("[CCSDK-AUTH] Attempting macOS Keychain read");
+      secureStoreCreds = readClaudeCliKeychainCredentials(options?.execSync);
+      source = "macos-keychain";
+    } else if (platform === "linux") {
+      log.debug("[CCSDK-AUTH] Attempting Linux Secret Service read");
+      secureStoreCreds = readClaudeCliLinuxSecretServiceCredentials(options?.execSync);
+      source = "linux-secret-service";
+    } else if (platform === "win32") {
+      log.debug("[CCSDK-AUTH] Attempting Windows Credential Manager read");
+      secureStoreCreds = readClaudeCliWindowsCredentialManagerCredentials(options?.execSync);
+      source = "windows-credential-manager";
     }
-    log.debug("[CCSDK-AUTH] Keychain read returned null, falling back to file");
+
+    if (secureStoreCreds) {
+      log.info("[CCSDK-AUTH] Successfully read credentials from secure storage", {
+        type: secureStoreCreds.type,
+        source,
+        accessTokenMasked:
+          secureStoreCreds.type === "oauth"
+            ? maskToken(secureStoreCreds.access)
+            : maskToken(secureStoreCreds.token),
+      });
+      return secureStoreCreds;
+    }
+
+    if (source) {
+      log.debug("[CCSDK-AUTH] Secure storage read returned null, falling back to file", { source });
+    }
   }
 
   // Fall back to file-based credentials
@@ -458,6 +710,210 @@ export function writeClaudeCliKeychainCredentials(
   }
 }
 
+/**
+ * Write Claude CLI credentials to Linux Secret Service (libsecret).
+ *
+ * Updates existing credentials in GNOME Keyring, KWallet, or compatible keyring.
+ */
+export function writeClaudeCliLinuxSecretServiceCredentials(
+  newCredentials: OAuthCredentials,
+  options?: { execSync?: ExecSyncFn },
+): boolean {
+  const execSyncImpl = options?.execSync ?? execSync;
+  try {
+    // First read existing data to preserve other fields
+    const existingResult = execSyncImpl(
+      `secret-tool lookup service "${CLAUDE_CLI_KEYCHAIN_SERVICE}" 2>/dev/null`,
+      { encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] },
+    );
+
+    if (!existingResult || !existingResult.trim()) {
+      log.debug("[CCSDK-AUTH] No existing Linux Secret Service entry to update");
+      return false;
+    }
+
+    const existingData = JSON.parse(existingResult.trim());
+    const existingOauth = existingData?.claudeAiOauth;
+    if (!existingOauth || typeof existingOauth !== "object") {
+      return false;
+    }
+
+    existingData.claudeAiOauth = {
+      ...existingOauth,
+      accessToken: newCredentials.access,
+      refreshToken: newCredentials.refresh,
+      expiresAt: newCredentials.expires,
+    };
+
+    const newValue = JSON.stringify(existingData);
+
+    // Write back using secret-tool store (overwrites existing entry with same attributes)
+    execSyncImpl(
+      `echo -n '${newValue.replace(/'/g, "'\\''")}' | secret-tool store --label="Claude Code" service "${CLAUDE_CLI_KEYCHAIN_SERVICE}"`,
+      { encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"], shell: "/bin/bash" },
+    );
+
+    log.info("wrote refreshed credentials to linux secret service", {
+      expires: new Date(newCredentials.expires).toISOString(),
+    });
+    return true;
+  } catch (error) {
+    log.warn("failed to write credentials to linux secret service", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Write Claude CLI credentials to Windows Credential Manager.
+ *
+ * Updates existing credentials in Windows Credential Manager.
+ */
+export function writeClaudeCliWindowsCredentialManagerCredentials(
+  newCredentials: OAuthCredentials,
+  options?: { execSync?: ExecSyncFn },
+): boolean {
+  const execSyncImpl = options?.execSync ?? execSync;
+  try {
+    // First read existing data to preserve other fields
+    const psReadScript = `
+      Add-Type -TypeDefinition @"
+        using System;
+        using System.Runtime.InteropServices;
+        public class CredManager {
+          [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+          public static extern bool CredRead(string target, int type, int flags, out IntPtr credential);
+          [DllImport("advapi32.dll", SetLastError = true)]
+          public static extern bool CredFree(IntPtr credential);
+          [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+          public struct CREDENTIAL {
+            public int Flags;
+            public int Type;
+            public string TargetName;
+            public string Comment;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+            public int CredentialBlobSize;
+            public IntPtr CredentialBlob;
+            public int Persist;
+            public int AttributeCount;
+            public IntPtr Attributes;
+            public string TargetAlias;
+            public string UserName;
+          }
+          public static string GetCredential(string target) {
+            IntPtr credPtr;
+            if (!CredRead(target, 1, 0, out credPtr)) return null;
+            try {
+              CREDENTIAL cred = (CREDENTIAL)Marshal.PtrToStructure(credPtr, typeof(CREDENTIAL));
+              if (cred.CredentialBlobSize > 0) {
+                return Marshal.PtrToStringUni(cred.CredentialBlob, cred.CredentialBlobSize / 2);
+              }
+              return null;
+            } finally {
+              CredFree(credPtr);
+            }
+          }
+        }
+"@
+      $result = [CredManager]::GetCredential("${CLAUDE_CLI_WINDOWS_TARGET}")
+      if ($result) { Write-Output $result }
+    `.replace(/\n/g, " ");
+
+    const existingResult = execSyncImpl(
+      `powershell -NoProfile -Command "${psReadScript.replace(/"/g, '\\"')}"`,
+      { encoding: "utf8", timeout: 10000, stdio: ["pipe", "pipe", "pipe"] },
+    );
+
+    if (!existingResult || !existingResult.trim()) {
+      log.debug("[CCSDK-AUTH] No existing Windows Credential Manager entry to update");
+      return false;
+    }
+
+    const existingData = JSON.parse(existingResult.trim());
+    const existingOauth = existingData?.claudeAiOauth;
+    if (!existingOauth || typeof existingOauth !== "object") {
+      return false;
+    }
+
+    existingData.claudeAiOauth = {
+      ...existingOauth,
+      accessToken: newCredentials.access,
+      refreshToken: newCredentials.refresh,
+      expiresAt: newCredentials.expires,
+    };
+
+    const newValue = JSON.stringify(existingData);
+
+    // Write back using PowerShell CredWrite
+    const psWriteScript = `
+      Add-Type -TypeDefinition @"
+        using System;
+        using System.Runtime.InteropServices;
+        using System.Text;
+        public class CredWriter {
+          [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+          public static extern bool CredWrite(ref CREDENTIAL credential, int flags);
+          [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+          public struct CREDENTIAL {
+            public int Flags;
+            public int Type;
+            public string TargetName;
+            public string Comment;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
+            public int CredentialBlobSize;
+            public IntPtr CredentialBlob;
+            public int Persist;
+            public int AttributeCount;
+            public IntPtr Attributes;
+            public string TargetAlias;
+            public string UserName;
+          }
+          public static bool WriteCredential(string target, string secret) {
+            byte[] byteArray = Encoding.Unicode.GetBytes(secret);
+            CREDENTIAL cred = new CREDENTIAL();
+            cred.Type = 1;
+            cred.TargetName = target;
+            cred.CredentialBlobSize = byteArray.Length;
+            cred.CredentialBlob = Marshal.AllocHGlobal(byteArray.Length);
+            Marshal.Copy(byteArray, 0, cred.CredentialBlob, byteArray.Length);
+            cred.Persist = 2;
+            cred.UserName = "Claude Code";
+            try {
+              return CredWrite(ref cred, 0);
+            } finally {
+              Marshal.FreeHGlobal(cred.CredentialBlob);
+            }
+          }
+        }
+"@
+      [CredWriter]::WriteCredential("${CLAUDE_CLI_WINDOWS_TARGET}", '${newValue.replace(/'/g, "''")}')
+    `.replace(/\n/g, " ");
+
+    const writeResult = execSyncImpl(
+      `powershell -NoProfile -Command "${psWriteScript.replace(/"/g, '\\"')}"`,
+      { encoding: "utf8", timeout: 10000, stdio: ["pipe", "pipe", "pipe"] },
+    );
+
+    if (writeResult.trim() === "True") {
+      log.info("wrote refreshed credentials to windows credential manager", {
+        expires: new Date(newCredentials.expires).toISOString(),
+      });
+      return true;
+    }
+
+    log.warn("failed to write credentials to windows credential manager", {
+      result: writeResult.trim(),
+    });
+    return false;
+  } catch (error) {
+    log.warn("failed to write credentials to windows credential manager", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
 export function writeClaudeCliFileCredentials(
   newCredentials: OAuthCredentials,
   options?: ClaudeCliFileOptions,
@@ -506,13 +962,29 @@ export function writeClaudeCliCredentials(
     options?.writeFile ??
     ((credentials, fileOptions) => writeClaudeCliFileCredentials(credentials, fileOptions));
 
+  // Try platform-specific secure storage first
   if (platform === "darwin") {
-    const didWriteKeychain = writeKeychain(newCredentials);
-    if (didWriteKeychain) {
+    const didWrite = writeKeychain(newCredentials);
+    if (didWrite) {
+      return true;
+    }
+  } else if (platform === "linux") {
+    const didWrite = writeClaudeCliLinuxSecretServiceCredentials(newCredentials, {
+      execSync: options?.execSync,
+    });
+    if (didWrite) {
+      return true;
+    }
+  } else if (platform === "win32") {
+    const didWrite = writeClaudeCliWindowsCredentialManagerCredentials(newCredentials, {
+      execSync: options?.execSync,
+    });
+    if (didWrite) {
       return true;
     }
   }
 
+  // Fall back to file-based storage
   return writeFile(newCredentials, { homeDir: options?.homeDir });
 }
 

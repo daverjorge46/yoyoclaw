@@ -8,15 +8,38 @@ import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 
 const MemorySearchSchema = Type.Object({
-  query: Type.String(),
-  maxResults: Type.Optional(Type.Number()),
-  minScore: Type.Optional(Type.Number()),
+  query: Type.String({
+    description:
+      "The semantic search query to find relevant memories. Be specific and descriptive for best results.",
+  }),
+  maxResults: Type.Optional(
+    Type.Number({
+      description: "Maximum number of results to return. Defaults to 10.",
+    }),
+  ),
+  minScore: Type.Optional(
+    Type.Number({
+      description:
+        "Minimum similarity score (0-1) for results. Higher values return more relevant but fewer results.",
+    }),
+  ),
 });
 
 const MemoryGetSchema = Type.Object({
-  path: Type.String(),
-  from: Type.Optional(Type.Number()),
-  lines: Type.Optional(Type.Number()),
+  path: Type.String({
+    description:
+      "Relative path to the memory file (e.g., 'MEMORY.md' or 'memory/projects.md'). Use paths from memory_search results.",
+  }),
+  from: Type.Optional(
+    Type.Number({
+      description: "Starting line number (1-indexed). Omit to start from the beginning.",
+    }),
+  ),
+  lines: Type.Optional(
+    Type.Number({
+      description: "Number of lines to read. Omit to read to the end of file.",
+    }),
+  ),
 });
 
 export function createMemorySearchTool(options: {

@@ -48,44 +48,81 @@ const LOCATION_ACCURACY = ["coarse", "balanced", "precise"] as const;
 
 // Flattened schema: runtime validates per-action requirements.
 const NodesToolSchema = Type.Object({
-  action: stringEnum(NODES_TOOL_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  node: Type.Optional(Type.String()),
-  requestId: Type.Optional(Type.String()),
+  action: stringEnum(NODES_TOOL_ACTIONS, {
+    description:
+      "Node action: status, describe, pending, approve, reject, notify, camera_snap, camera_list, camera_clip, screen_record, location_get, run.",
+  }),
+  gatewayUrl: Type.Optional(
+    Type.String({ description: "Gateway URL override (uses default if omitted)." }),
+  ),
+  gatewayToken: Type.Optional(Type.String({ description: "Gateway authentication token." })),
+  timeoutMs: Type.Optional(Type.Number({ description: "Request timeout in milliseconds." })),
+  node: Type.Optional(Type.String({ description: "Node ID or name to target." })),
+  requestId: Type.Optional(
+    Type.String({ description: "Pairing request ID (for approve/reject actions)." }),
+  ),
   // notify
-  title: Type.Optional(Type.String()),
-  body: Type.Optional(Type.String()),
-  sound: Type.Optional(Type.String()),
-  priority: optionalStringEnum(NOTIFY_PRIORITIES),
-  delivery: optionalStringEnum(NOTIFY_DELIVERIES),
+  title: Type.Optional(Type.String({ description: "Notification title." })),
+  body: Type.Optional(Type.String({ description: "Notification body text." })),
+  sound: Type.Optional(Type.String({ description: "Notification sound name." })),
+  priority: optionalStringEnum(NOTIFY_PRIORITIES, {
+    description: "Notification priority: 'passive', 'active', or 'timeSensitive'.",
+  }),
+  delivery: optionalStringEnum(NOTIFY_DELIVERIES, {
+    description: "Notification delivery mode: 'system', 'overlay', or 'auto'.",
+  }),
   // camera_snap / camera_clip
   facing: optionalStringEnum(CAMERA_FACING, {
     description: "camera_snap: front/back/both; camera_clip: front/back only.",
   }),
-  maxWidth: Type.Optional(Type.Number()),
-  quality: Type.Optional(Type.Number()),
-  delayMs: Type.Optional(Type.Number()),
-  deviceId: Type.Optional(Type.String()),
-  duration: Type.Optional(Type.String()),
-  durationMs: Type.Optional(Type.Number()),
-  includeAudio: Type.Optional(Type.Boolean()),
+  maxWidth: Type.Optional(
+    Type.Number({ description: "Maximum image width in pixels (camera_snap)." }),
+  ),
+  quality: Type.Optional(
+    Type.Number({ description: "Image quality (0-100) for JPEG compression." }),
+  ),
+  delayMs: Type.Optional(Type.Number({ description: "Delay in milliseconds before capturing." })),
+  deviceId: Type.Optional(Type.String({ description: "Specific camera device ID to use." })),
+  duration: Type.Optional(
+    Type.String({ description: "Recording duration as a string (e.g., '5s', '1m')." }),
+  ),
+  durationMs: Type.Optional(Type.Number({ description: "Recording duration in milliseconds." })),
+  includeAudio: Type.Optional(
+    Type.Boolean({ description: "Include audio in camera_clip or screen_record." }),
+  ),
   // screen_record
-  fps: Type.Optional(Type.Number()),
-  screenIndex: Type.Optional(Type.Number()),
-  outPath: Type.Optional(Type.String()),
+  fps: Type.Optional(Type.Number({ description: "Frames per second for screen recording." })),
+  screenIndex: Type.Optional(
+    Type.Number({ description: "Screen/display index to record (0-based)." }),
+  ),
+  outPath: Type.Optional(Type.String({ description: "Output file path for screen recording." })),
   // location_get
-  maxAgeMs: Type.Optional(Type.Number()),
-  locationTimeoutMs: Type.Optional(Type.Number()),
-  desiredAccuracy: optionalStringEnum(LOCATION_ACCURACY),
+  maxAgeMs: Type.Optional(
+    Type.Number({ description: "Maximum age of cached location in milliseconds." }),
+  ),
+  locationTimeoutMs: Type.Optional(
+    Type.Number({ description: "Location request timeout in milliseconds." }),
+  ),
+  desiredAccuracy: optionalStringEnum(LOCATION_ACCURACY, {
+    description: "Location accuracy: 'coarse', 'balanced', or 'precise'.",
+  }),
   // run
-  command: Type.Optional(Type.Array(Type.String())),
-  cwd: Type.Optional(Type.String()),
-  env: Type.Optional(Type.Array(Type.String())),
-  commandTimeoutMs: Type.Optional(Type.Number()),
-  invokeTimeoutMs: Type.Optional(Type.Number()),
-  needsScreenRecording: Type.Optional(Type.Boolean()),
+  command: Type.Optional(
+    Type.Array(Type.String(), { description: "Command argv array (e.g., ['echo', 'Hello'])." }),
+  ),
+  cwd: Type.Optional(Type.String({ description: "Working directory for the command." })),
+  env: Type.Optional(
+    Type.Array(Type.String(), { description: "Environment variables as KEY=VALUE strings." }),
+  ),
+  commandTimeoutMs: Type.Optional(
+    Type.Number({ description: "Timeout for the command execution in milliseconds." }),
+  ),
+  invokeTimeoutMs: Type.Optional(
+    Type.Number({ description: "Timeout for the node invoke RPC in milliseconds." }),
+  ),
+  needsScreenRecording: Type.Optional(
+    Type.Boolean({ description: "Hint that the command needs screen recording permission." }),
+  ),
 });
 
 export function createNodesTool(options?: {

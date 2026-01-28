@@ -15,6 +15,7 @@
  */
 
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { emitAgentEvent } from "../../infra/agent-events.js";
 import { bridgeMoltbotToolsToMcpServer } from "./tool-bridge.js";
 import type { SdkRunnerQueryOptions } from "./tool-bridge.types.js";
 import { extractFromClaudeAgentSdkEvent } from "./extract.js";
@@ -632,7 +633,28 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     });
   }
 
+  // Standard agent event streams that should be emitted to the global system.
+  // These are consumed by the Chat UI and other listeners (gateway, diagnostics).
+  const GLOBAL_EVENT_STREAMS = new Set([
+    "lifecycle",
+    "tool",
+    "assistant",
+    "thinking",
+    "compaction",
+  ]);
+
   const emitEvent = (stream: string, data: Record<string, unknown>) => {
+    // Emit to global agent event system for standard streams.
+    // This allows the Chat UI to receive tool events, assistant text, etc.
+    if (GLOBAL_EVENT_STREAMS.has(stream) && params.runId) {
+      emitAgentEvent({
+        runId: params.runId,
+        stream,
+        data,
+      });
+    }
+
+    // Also emit via callback for typing signals, etc.
     try {
       void Promise.resolve(params.onAgentEvent?.({ stream, data })).catch(() => {
         // Don't let async callback errors trigger unhandled rejections.
@@ -643,7 +665,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   };
 
   emitEvent("lifecycle", { phase: "start", startedAt, runtime: "sdk" });
-  emitEvent("sdk", { type: "sdk_runner_start", runId: params.runId });
 
   // -------------------------------------------------------------------------
   // Step 0: Run before_agent_start hooks
@@ -708,8 +729,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     };
   }
 
-  emitEvent("sdk", { type: "sdk_loaded" });
-
   // -------------------------------------------------------------------------
   // Step 2: Bridge Moltbot tools to MCP
   // -------------------------------------------------------------------------
@@ -767,11 +786,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           ? ` (skipped: ${bridgeResult.skippedTools.join(", ")})`
           : ""),
     );
-    emitEvent("sdk", {
-      type: "tools_bridged",
-      toolCount: bridgeResult.toolCount,
-      skipped: bridgeResult.skippedTools,
-    });
   }
 
   // -------------------------------------------------------------------------
@@ -874,23 +888,15 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     if (value !== undefined) sdkEnv[key] = value;
   }
 
-  // Add provider env vars (z.AI, custom endpoints, etc.).
+  // Add provider env vars (z.AI, custom endpoints, explicit API key, etc.).
+  // These override any inherited values from the parent process.
   if (params.providerConfig?.env) {
     log.debug("[CCSDK-ENV] Applying provider config env overrides", {
       providerName: params.providerConfig.name,
       providerEnvKeys: Object.keys(params.providerConfig.env),
     });
     for (const [key, value] of Object.entries(params.providerConfig.env)) {
-      if (value !== undefined) {
-        const wasOverwritten = sdkEnv[key] !== undefined && sdkEnv[key] !== value;
-        if (wasOverwritten) {
-          log.debug("[CCSDK-ENV] Overwriting inherited env var", {
-            key,
-            oldValueMasked:
-              key.includes("KEY") || key.includes("TOKEN") ? maskToken(sdkEnv[key]) : sdkEnv[key],
-            newValueMasked: key.includes("KEY") || key.includes("TOKEN") ? maskToken(value) : value,
-          });
-        }
+      if (value !== undefined && value !== "") {
         sdkEnv[key] = value;
       }
     }
@@ -903,6 +909,21 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   }
   for (const [key, value] of Object.entries(modelTierEnv)) {
     if (value !== undefined) sdkEnv[key] = value;
+  }
+
+  // NOTE: We intentionally do NOT set CLAUDE_CONFIG_DIR.
+  // Setting it to a custom directory breaks auth because the SDK scopes
+  // credential resolution (including keychain lookups) to that directory.
+  // The user's `claude login` credentials are associated with ~/.claude,
+  // so we must let the SDK use the default config directory.
+  //
+  // TODO: If per-agent session isolation is needed, we may need to:
+  // 1. Symlink auth state from ~/.claude to the agent's config dir, OR
+  // 2. Use a different mechanism for session isolation that doesn't affect auth
+  if (params.ccsdkConfigDir) {
+    log.debug("[CCSDK-ENV] Ignoring ccsdkConfigDir to preserve auth - using default ~/.claude", {
+      ignoredConfigDir: params.ccsdkConfigDir,
+    });
   }
 
   // Log final auth env state
@@ -984,8 +1005,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     : timeoutController.signal;
 
   try {
-    emitEvent("sdk", { type: "query_start" });
-
     log.debug("Starting SDK query", {
       promptFormat: hasMcpServers ? "AsyncIterable" : "string",
       promptLength: typeof prompt === "string" ? prompt.length : undefined,
@@ -1123,12 +1142,21 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
           pendingToolCalls.delete(toolCallId);
         }
 
+        // Include args for start events to match Pi runtime event shape.
+        const argsForEvent =
+          phase === "start" && record
+            ? ((record.input as Record<string, unknown>) ??
+              (record.arguments as Record<string, unknown>) ??
+              undefined)
+            : undefined;
+
         emitEvent("tool", {
           phase,
           name: normalizedName.name,
           toolCallId,
           sdkType: type,
           ...(normalizedName.rawName ? { rawName: normalizedName.rawName } : {}),
+          ...(argsForEvent ? { args: argsForEvent } : {}),
           isError,
           ...(toolText ? { resultText: toolText } : {}),
         });
@@ -1142,11 +1170,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
             // Don't break the stream on callback errors.
           }
         }
-      }
-
-      // Emit system/lifecycle events.
-      if (kind === "system" && isRecord(event)) {
-        emitEvent("sdk", event as Record<string, unknown>);
       }
 
       // Handle terminal result event.
@@ -1522,14 +1545,6 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
     log.debug("[CCSDK-FINAL] No onBlockReplyFlush callback - UI may stay on typing indicator");
   }
 
-  emitEvent("sdk", {
-    type: "sdk_runner_end",
-    eventCount,
-    extractedChars,
-    truncated,
-    aborted,
-    durationMs: Date.now() - startedAt,
-  });
   emitEvent("lifecycle", {
     phase: "end",
     startedAt,

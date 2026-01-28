@@ -165,11 +165,27 @@ export function createFollowupRunner(params: {
           blockReplyBreak: queued.run.blockReplyBreak,
           ownerNumbers: queued.run.ownerNumbers,
 
+          // Sandbox info (minimal version for CCSDK permission mode)
+          sandboxInfo: (() => {
+            const bashElevated = queued.run.bashElevated;
+            const elevatedAllowed = Boolean(bashElevated?.enabled && bashElevated?.allowed);
+            if (!elevatedAllowed) return undefined;
+            return {
+              enabled: true,
+              elevated: {
+                allowed: true,
+                defaultLevel: bashElevated?.defaultLevel ?? "off",
+              },
+            };
+          })(),
+
+          // Exec tool configuration (shared by both runtimes)
+          bashElevated: queued.run.bashElevated,
+          execOverrides: queued.run.execOverrides,
+
           // Pi-specific options
           piOptions: {
             enforceFinalTag: queued.run.enforceFinalTag,
-            execOverrides: queued.run.execOverrides,
-            bashElevated: queued.run.bashElevated,
           },
 
           // Fallback config

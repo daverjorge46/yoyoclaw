@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { lookupContextTokens } from "../../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
 import { resolveModelAuthMode } from "../../agents/model-auth.js";
+import { setCliSessionId } from "../../agents/cli-session.js";
 import { isCliProvider } from "../../agents/model-selection.js";
 import { queueEmbeddedPiMessage } from "../../agents/pi-embedded.js";
 import { hasNonzeroUsage } from "../../agents/usage.js";
@@ -15,6 +16,7 @@ import {
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
 import type { TypingMode } from "../../config/types.js";
+import { logVerbose } from "../../globals.js";
 import { defaultRuntime } from "../../runtime.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
 import type { OriginatingChannelType, TemplateContext } from "../templating.js";
@@ -368,14 +370,28 @@ export async function runReplyAgent(params: {
     const modelUsed = runResult.meta.agentMeta?.model ?? fallbackModel ?? defaultModel;
     const providerUsed =
       runResult.meta.agentMeta?.provider ?? fallbackProvider ?? followupRun.run.provider;
-    const cliSessionId = isCliProvider(providerUsed, cfg)
-      ? runResult.meta.agentMeta?.sessionId?.trim()
-      : undefined;
     const contextTokensUsed =
       agentCfgContextTokens ??
       lookupContextTokens(modelUsed) ??
       activeSessionEntry?.contextTokens ??
       DEFAULT_CONTEXT_TOKENS;
+
+    // Extract session ID for CLI providers or CCSDK runtime
+    // CLI providers use their provider name as key; CCSDK uses "ccsdk"
+    const isCcsdkRun = runResult.meta.agentMeta?.runtime === "ccsdk";
+    const cliSessionId = runResult.meta.agentMeta?.sessionId?.trim();
+    const cliSessionIdProvider = isCcsdkRun
+      ? "ccsdk"
+      : isCliProvider(providerUsed, cfg)
+        ? undefined
+        : undefined;
+    const shouldStoreSessionId = isCcsdkRun || isCliProvider(providerUsed, cfg);
+
+    logVerbose(
+      `[PROVIDER-SESSION] Session ID detection: providerUsed=${providerUsed}, ` +
+        `isCcsdkRun=${isCcsdkRun}, shouldStore=${shouldStoreSessionId}, ` +
+        `sessionId=${cliSessionId ?? "(none)"}, providerKey=${cliSessionIdProvider ?? "(none)"}`,
+    );
 
     await persistSessionUsageUpdate({
       storePath,
@@ -385,8 +401,22 @@ export async function runReplyAgent(params: {
       providerUsed,
       contextTokensUsed,
       systemPromptReport: runResult.meta.systemPromptReport,
-      cliSessionId,
+      cliSessionId: shouldStoreSessionId ? cliSessionId : undefined,
+      cliSessionIdProvider,
     });
+
+    // Update local activeSessionEntry with the provider session ID so subsequent turns
+    // within the same conversation can access it via getActiveSessionEntry()
+    if (shouldStoreSessionId && cliSessionId && activeSessionEntry) {
+      const providerKey = cliSessionIdProvider ?? providerUsed ?? activeSessionEntry.modelProvider;
+      if (providerKey) {
+        setCliSessionId(activeSessionEntry, providerKey, cliSessionId);
+        logVerbose(
+          `[PROVIDER-SESSION] Stored provider session ID in activeSessionEntry: ${cliSessionId}, ` +
+            `provider key: ${providerKey}`,
+        );
+      }
+    }
 
     // Drain any late tool/block deliveries before deciding there's "nothing to send".
     // Otherwise, a late typing trigger (e.g. from a tool callback) can outlive the run and

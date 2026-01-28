@@ -132,14 +132,30 @@ export async function runMemoryFlushIfNeeded(params: {
       reasoningLevel: params.followupRun.run.reasoningLevel,
       ownerNumbers: params.followupRun.run.ownerNumbers,
 
+      // Sandbox info (minimal version for CCSDK permission mode)
+      sandboxInfo: (() => {
+        const bashElevated = params.followupRun.run.bashElevated;
+        const elevatedAllowed = Boolean(bashElevated?.enabled && bashElevated?.allowed);
+        if (!elevatedAllowed) return undefined;
+        return {
+          enabled: true,
+          elevated: {
+            allowed: true,
+            defaultLevel: bashElevated?.defaultLevel ?? "off",
+          },
+        };
+      })(),
+
+      // Exec tool configuration (shared by both runtimes)
+      bashElevated: params.followupRun.run.bashElevated,
+      execOverrides: params.followupRun.run.execOverrides,
+
       // Pi-specific options
       piOptions: {
         enforceFinalTag: resolveEnforceFinalTag(
           params.followupRun.run,
           params.followupRun.run.provider,
         ),
-        execOverrides: params.followupRun.run.execOverrides,
-        bashElevated: params.followupRun.run.bashElevated,
       },
 
       // Fallback config

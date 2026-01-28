@@ -6,16 +6,10 @@ import type { enqueueCommand } from "../../../process/command-queue.js";
 import type { ExecElevatedDefaults, ExecToolDefaults } from "../../bash-tools.js";
 import type { BlockReplyChunking, ToolResultFormat } from "../../pi-embedded-subscribe.js";
 import type { SkillSnapshot } from "../../skills.js";
+import type { ClientToolDefinition } from "../../runtime-result-types.js";
 
-// Simplified tool definition for client-provided tools (OpenResponses hosted tools)
-export type ClientToolDefinition = {
-  type: "function";
-  function: {
-    name: string;
-    description?: string;
-    parameters?: Record<string, unknown>;
-  };
-};
+// Re-export for backwards compatibility
+export type { ClientToolDefinition } from "../../runtime-result-types.js";
 
 export type RunEmbeddedPiAgentParams = {
   sessionId: string;

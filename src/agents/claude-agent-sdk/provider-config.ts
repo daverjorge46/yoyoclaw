@@ -2,16 +2,20 @@
  * Provider configuration builders for the Claude Agent SDK.
  *
  * Supports multiple authentication methods:
- * - Anthropic API key (ANTHROPIC_API_KEY)
- * - Claude Code CLI OAuth (reuses ~/.claude credentials)
- * - z.AI subscription (via ANTHROPIC_AUTH_TOKEN or CLI auth)
+ * - Anthropic API key (ANTHROPIC_API_KEY) - when explicitly configured in moltbot.json
+ * - Claude Code SDK native auth (default) - inherits parent env, SDK handles credential resolution
+ * - z.AI subscription (via ANTHROPIC_AUTH_TOKEN)
  * - OpenRouter (Anthropic-compatible API)
  * - AWS Bedrock
  * - Google Vertex AI
+ *
+ * For SDK native auth, we inherit the full parent process environment and let the SDK
+ * handle credential resolution. If the user has ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN
+ * set in their environment, the SDK will use them. Otherwise, it uses its native
+ * keychain-based OAuth flow.
  */
 
 import type { SdkProviderConfig, SdkProviderEnv } from "./types.js";
-import { readClaudeCliCredentialsCached } from "../cli-credentials.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 
 const log = createSubsystemLogger("agents/claude-agent-sdk");
@@ -67,73 +71,25 @@ export function buildAnthropicSdkProvider(apiKey: string): SdkProviderConfig {
 }
 
 /**
- * Build provider config for Claude Code CLI/subscription auth.
+ * Build provider config for Claude Code SDK native auth.
  *
- * This method reads credentials from the Claude Code CLI's keychain/file storage,
- * enabling subscription-based access (Claude Max, z.AI, etc.) without an API key.
+ * This returns a minimal config with no env overrides, allowing the SDK to:
+ * - Inherit any ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN from parent process
+ * - Use its internal credential resolution (keychain → OAuth) if no env vars are set
  *
- * The SDK will automatically use these credentials when they're available in the
- * environment or via the CLI's native auth mechanism.
+ * We don't try to be "smart" about unsetting env vars - if the user has auth
+ * env vars set in their system environment, that's their configuration choice.
  */
-export function buildClaudeCliSdkProvider(): SdkProviderConfig | null {
-  log.debug("[CCSDK-PROVIDER] buildClaudeCliSdkProvider called");
+export function buildClaudeCliSdkProvider(): SdkProviderConfig {
+  log.debug("[CCSDK-PROVIDER] buildClaudeCliSdkProvider called - using SDK native auth");
 
-  // Read cached credentials from Claude Code CLI
-  const credentials = readClaudeCliCredentialsCached({
-    allowKeychainPrompt: false,
-    ttlMs: 60_000, // 1 minute cache
-  });
+  const config: SdkProviderConfig = {
+    name: "Claude CLI (SDK native)",
+    env: {},
+  };
 
-  if (!credentials) {
-    log.debug("[CCSDK-PROVIDER] No Claude CLI credentials found from cache");
-    return null;
-  }
-
-  log.debug("[CCSDK-PROVIDER] Claude CLI credentials loaded", {
-    type: credentials.type,
-    provider: credentials.provider,
-    expiresAt: new Date(credentials.expires).toISOString(),
-    isExpired: credentials.expires < Date.now(),
-    msUntilExpiry: credentials.expires - Date.now(),
-  });
-
-  // For OAuth credentials, use the access token as ANTHROPIC_AUTH_TOKEN
-  if (credentials.type === "oauth") {
-    // Check if token is expired
-    if (credentials.expires < Date.now()) {
-      log.warn("[CCSDK-PROVIDER] Claude CLI credentials EXPIRED", {
-        expiresAt: new Date(credentials.expires).toISOString(),
-        expiredAgo: Date.now() - credentials.expires,
-      });
-      // Still return the config - the SDK may handle refresh internally
-    }
-
-    const config: SdkProviderConfig = {
-      name: "Claude CLI (subscription)",
-      env: {
-        ANTHROPIC_AUTH_TOKEN: credentials.access,
-      },
-    };
-    logProviderConfig(config, "claude-cli-oauth");
-    return config;
-  }
-
-  // For token-type credentials (less common)
-  if (credentials.type === "token") {
-    const config: SdkProviderConfig = {
-      name: "Claude CLI (token)",
-      env: {
-        ANTHROPIC_AUTH_TOKEN: credentials.token,
-      },
-    };
-    logProviderConfig(config, "claude-cli-token");
-    return config;
-  }
-
-  log.debug("[CCSDK-PROVIDER] Unknown credential type", {
-    type: (credentials as { type: string }).type,
-  });
-  return null;
+  logProviderConfig(config, "sdk-native-auth");
+  return config;
 }
 
 /**
@@ -278,9 +234,14 @@ export function buildVertexSdkProvider(): SdkProviderConfig {
  * Resolve provider configuration based on available credentials.
  *
  * Priority order:
- * 1. Explicit API key from config/env
- * 2. Claude Code CLI credentials (subscription auth)
- * 3. Environment variables (fallback)
+ * 1. Explicit API key from moltbot config (options.apiKey)
+ * 2. Explicit auth token from moltbot config (options.authToken) - for z.AI, etc.
+ * 3. SDK native auth (default) - inherits parent env, SDK handles credential resolution
+ *
+ * The SDK will inherit the full parent process environment. If auth env vars
+ * (ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN) are set in the parent process,
+ * the SDK will use them. Otherwise, it falls back to its native credential
+ * resolution (keychain → OAuth).
  */
 export function resolveProviderConfig(options?: {
   apiKey?: string;
@@ -297,9 +258,9 @@ export function resolveProviderConfig(options?: {
     useCliCredentials: options?.useCliCredentials ?? true,
   });
 
-  // 1. Explicit API key takes precedence
+  // 1. Explicit API key from moltbot config takes precedence
   if (options?.apiKey) {
-    log.debug("[CCSDK-PROVIDER] Using explicit API key");
+    log.debug("[CCSDK-PROVIDER] Using explicit API key from moltbot config");
     const config = buildAnthropicSdkProvider(options.apiKey);
     if (options.baseUrl && config.env) {
       config.env.ANTHROPIC_BASE_URL = options.baseUrl;
@@ -308,9 +269,9 @@ export function resolveProviderConfig(options?: {
     return config;
   }
 
-  // 2. Explicit auth token (OAuth/subscription)
+  // 2. Explicit auth token from moltbot config (for z.AI, custom endpoints, etc.)
   if (options?.authToken) {
-    log.debug("[CCSDK-PROVIDER] Using explicit auth token");
+    log.debug("[CCSDK-PROVIDER] Using explicit auth token from moltbot config");
     const env: SdkProviderEnv = {
       ANTHROPIC_AUTH_TOKEN: options.authToken,
     };
@@ -325,67 +286,14 @@ export function resolveProviderConfig(options?: {
     return config;
   }
 
-  // 3. Try Claude CLI credentials if enabled (default: true)
-  if (options?.useCliCredentials !== false) {
-    log.debug("[CCSDK-PROVIDER] Attempting Claude CLI credentials");
-    const cliConfig = buildClaudeCliSdkProvider();
-    if (cliConfig) {
-      log.debug("[CCSDK-PROVIDER] Using Claude CLI credentials", {
-        providerName: cliConfig.name,
-      });
-      if (options?.baseUrl && cliConfig.env) {
-        cliConfig.env.ANTHROPIC_BASE_URL = options.baseUrl;
-      }
-      return cliConfig;
-    }
-    log.debug("[CCSDK-PROVIDER] Claude CLI credentials not available");
+  // 3. Default: SDK native auth
+  // Let the SDK use its internal credential resolution (keychain → OAuth flow).
+  // We inherit the full parent process env - if the user has ANTHROPIC_API_KEY or
+  // ANTHROPIC_AUTH_TOKEN set, that's their configuration choice.
+  log.debug("[CCSDK-PROVIDER] Using SDK native auth (no explicit credentials configured)");
+  const cliConfig = buildClaudeCliSdkProvider();
+  if (options?.baseUrl && cliConfig.env) {
+    cliConfig.env.ANTHROPIC_BASE_URL = options.baseUrl;
   }
-
-  // 4. Check environment variables
-  const envApiKey = process.env.ANTHROPIC_API_KEY;
-  const envAuthToken = process.env.ANTHROPIC_AUTH_TOKEN;
-
-  log.debug("[CCSDK-PROVIDER] Checking environment variables", {
-    hasEnvApiKey: Boolean(envApiKey),
-    envApiKeyMasked: maskToken(envApiKey),
-    hasEnvAuthToken: Boolean(envAuthToken),
-    envAuthTokenMasked: maskToken(envAuthToken),
-    hasEnvBaseUrl: Boolean(process.env.ANTHROPIC_BASE_URL),
-  });
-
-  if (envApiKey) {
-    const config: SdkProviderConfig = {
-      name: "Anthropic (env)",
-      env: {
-        ANTHROPIC_API_KEY: envApiKey,
-        ANTHROPIC_BASE_URL: options?.baseUrl ?? process.env.ANTHROPIC_BASE_URL,
-      },
-    };
-    logProviderConfig(config, "env-api-key");
-    return config;
-  }
-
-  if (envAuthToken) {
-    const config: SdkProviderConfig = {
-      name: "Anthropic (env auth token)",
-      env: {
-        ANTHROPIC_AUTH_TOKEN: envAuthToken,
-        ANTHROPIC_BASE_URL: options?.baseUrl ?? process.env.ANTHROPIC_BASE_URL,
-      },
-    };
-    logProviderConfig(config, "env-auth-token");
-    return config;
-  }
-
-  // 5. Return empty config - SDK will use its own credential resolution
-  log.warn("[CCSDK-PROVIDER] No credentials found - SDK will use native auth (may fail)", {
-    triedCliCredentials: options?.useCliCredentials !== false,
-    triedEnvVars: true,
-  });
-  const config: SdkProviderConfig = {
-    name: "Anthropic (SDK native)",
-    env: {},
-  };
-  logProviderConfig(config, "sdk-native-fallback");
-  return config;
+  return cliConfig;
 }

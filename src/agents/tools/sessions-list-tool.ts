@@ -19,10 +19,30 @@ import {
 } from "./sessions-helpers.js";
 
 const SessionsListToolSchema = Type.Object({
-  kinds: Type.Optional(Type.Array(Type.String())),
-  limit: Type.Optional(Type.Number({ minimum: 1 })),
-  activeMinutes: Type.Optional(Type.Number({ minimum: 1 })),
-  messageLimit: Type.Optional(Type.Number({ minimum: 0 })),
+  kinds: Type.Optional(
+    Type.Array(Type.String(), {
+      description:
+        "Filter by session kinds: 'main', 'subagent', 'spawned', 'internal'. Omit for all kinds.",
+    }),
+  ),
+  limit: Type.Optional(
+    Type.Number({
+      description: "Maximum number of sessions to return.",
+      minimum: 1,
+    }),
+  ),
+  activeMinutes: Type.Optional(
+    Type.Number({
+      description: "Only include sessions active within the last N minutes.",
+      minimum: 1,
+    }),
+  ),
+  messageLimit: Type.Optional(
+    Type.Number({
+      description: "Number of recent messages to include per session. 0 = no messages.",
+      minimum: 0,
+    }),
+  ),
 });
 
 function resolveSandboxSessionToolsVisibility(cfg: ReturnType<typeof loadConfig>) {

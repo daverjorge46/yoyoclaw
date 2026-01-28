@@ -50,7 +50,7 @@ import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
-import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
+import type { AgentRunMeta, AgentRunResult } from "../runtime-result-types.js";
 import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
@@ -69,7 +69,7 @@ function scrubAnthropicRefusalMagic(prompt: string): string {
 
 export async function runEmbeddedPiAgent(
   params: RunEmbeddedPiAgentParams,
-): Promise<EmbeddedPiRunResult> {
+): Promise<AgentRunResult> {
   const sessionLane = resolveSessionLane(params.sessionKey?.trim() || params.sessionId);
   const globalLane = resolveGlobalLane(params.lane);
   const enqueueGlobal =
@@ -611,7 +611,7 @@ export async function runEmbeddedPiAgent(
           }
 
           const usage = normalizeUsage(lastAssistant?.usage as UsageLike);
-          const agentMeta: EmbeddedPiAgentMeta = {
+          const agentMeta: AgentRunMeta = {
             sessionId: sessionIdUsed,
             provider: lastAssistant?.provider ?? provider,
             model: lastAssistant?.model ?? model.id,

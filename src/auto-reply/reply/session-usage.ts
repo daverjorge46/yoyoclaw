@@ -16,6 +16,8 @@ export async function persistSessionUsageUpdate(params: {
   contextTokensUsed?: number;
   systemPromptReport?: SessionSystemPromptReport;
   cliSessionId?: string;
+  /** Provider key for storing cliSessionId (defaults to providerUsed). Use "ccsdk" for CCSDK sessions. */
+  cliSessionIdProvider?: string;
   logLabel?: string;
 }): Promise<void> {
   const { storePath, sessionKey } = params;
@@ -42,7 +44,8 @@ export async function persistSessionUsageUpdate(params: {
             systemPromptReport: params.systemPromptReport ?? entry.systemPromptReport,
             updatedAt: Date.now(),
           };
-          const cliProvider = params.providerUsed ?? entry.modelProvider;
+          const cliProvider =
+            params.cliSessionIdProvider ?? params.providerUsed ?? entry.modelProvider;
           if (params.cliSessionId && cliProvider) {
             const nextEntry = { ...entry, ...patch };
             setCliSessionId(nextEntry, cliProvider, params.cliSessionId);
@@ -74,7 +77,8 @@ export async function persistSessionUsageUpdate(params: {
             systemPromptReport: params.systemPromptReport ?? entry.systemPromptReport,
             updatedAt: Date.now(),
           };
-          const cliProvider = params.providerUsed ?? entry.modelProvider;
+          const cliProvider =
+            params.cliSessionIdProvider ?? params.providerUsed ?? entry.modelProvider;
           if (params.cliSessionId && cliProvider) {
             const nextEntry = { ...entry, ...patch };
             setCliSessionId(nextEntry, cliProvider, params.cliSessionId);

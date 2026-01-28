@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import type { MoltbotConfig } from "../config/config.js";
 import { ensureMoltbotModelsJson } from "./models-config.js";
-import { buildEmbeddedSandboxInfo } from "./pi-embedded-runner.js";
+import { buildAgentSandboxInfo } from "./pi-embedded-runner.js";
 import type { SandboxContext } from "./sandbox.js";
 
 vi.mock("@mariozechner/pi-ai", async () => {
@@ -97,9 +97,9 @@ const _readSessionMessages = async (sessionFile: string) => {
     .map((entry) => entry.message as { role?: string; content?: unknown });
 };
 
-describe("buildEmbeddedSandboxInfo", () => {
+describe("buildAgentSandboxInfo", () => {
   it("returns undefined when sandbox is missing", () => {
-    expect(buildEmbeddedSandboxInfo()).toBeUndefined();
+    expect(buildAgentSandboxInfo()).toBeUndefined();
   });
   it("maps sandbox context into prompt info", () => {
     const sandbox = {
@@ -133,7 +133,7 @@ describe("buildEmbeddedSandboxInfo", () => {
       },
     } satisfies SandboxContext;
 
-    expect(buildEmbeddedSandboxInfo(sandbox)).toEqual({
+    expect(buildAgentSandboxInfo(sandbox)).toEqual({
       enabled: true,
       workspaceDir: "/tmp/moltbot-sandbox",
       workspaceAccess: "none",
@@ -171,7 +171,7 @@ describe("buildEmbeddedSandboxInfo", () => {
     } satisfies SandboxContext;
 
     expect(
-      buildEmbeddedSandboxInfo(sandbox, {
+      buildAgentSandboxInfo(sandbox, {
         enabled: true,
         allowed: true,
         defaultLevel: "on",

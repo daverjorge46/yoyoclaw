@@ -153,6 +153,13 @@ export function wrapToolHandler(
     // model's response.
     const toolCallId = `mcp-bridge-${normalizedName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+    // Debug: log received arguments to diagnose parameter passing issues
+    log.debug(`Tool ${normalizedName} received args`, {
+      argsKeys: Object.keys(args),
+      argsType: typeof args,
+      argsPreview: JSON.stringify(args).slice(0, 500),
+    });
+
     // Create an onUpdate callback that forwards to the bridge callback.
     const onUpdate = onToolUpdate
       ? (update: unknown) => {

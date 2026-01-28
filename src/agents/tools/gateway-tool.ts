@@ -37,21 +37,43 @@ const GATEWAY_ACTIONS = [
 // because Claude API on Vertex AI rejects nested anyOf schemas as invalid JSON Schema.
 // The discriminator (action) determines which properties are relevant; runtime validates.
 const GatewayToolSchema = Type.Object({
-  action: stringEnum(GATEWAY_ACTIONS),
+  action: stringEnum(GATEWAY_ACTIONS, {
+    description:
+      "Gateway action: restart, config.get, config.schema, config.apply, config.patch, update.run.",
+  }),
   // restart
-  delayMs: Type.Optional(Type.Number()),
-  reason: Type.Optional(Type.String()),
+  delayMs: Type.Optional(
+    Type.Number({ description: "Delay in milliseconds before restarting (for restart action)." }),
+  ),
+  reason: Type.Optional(
+    Type.String({ description: "Human-readable reason for the restart (logged)." }),
+  ),
   // config.get, config.schema, config.apply, update.run
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
+  gatewayUrl: Type.Optional(
+    Type.String({ description: "Gateway URL override (uses default if omitted)." }),
+  ),
+  gatewayToken: Type.Optional(Type.String({ description: "Gateway authentication token." })),
+  timeoutMs: Type.Optional(Type.Number({ description: "Request timeout in milliseconds." })),
   // config.apply, config.patch
-  raw: Type.Optional(Type.String()),
-  baseHash: Type.Optional(Type.String()),
+  raw: Type.Optional(
+    Type.String({
+      description:
+        "Raw YAML/JSON config content. Required for config.apply (full replace) and config.patch (partial merge).",
+    }),
+  ),
+  baseHash: Type.Optional(
+    Type.String({
+      description: "Base config hash for optimistic concurrency. Auto-fetched if omitted.",
+    }),
+  ),
   // config.apply, config.patch, update.run
-  sessionKey: Type.Optional(Type.String()),
-  note: Type.Optional(Type.String()),
-  restartDelayMs: Type.Optional(Type.Number()),
+  sessionKey: Type.Optional(
+    Type.String({ description: "Session key to notify after restart completes." }),
+  ),
+  note: Type.Optional(Type.String({ description: "Note to include in the restart notification." })),
+  restartDelayMs: Type.Optional(
+    Type.Number({ description: "Delay in milliseconds before restarting after config change." }),
+  ),
 });
 // NOTE: We intentionally avoid top-level `allOf`/`anyOf`/`oneOf` conditionals here:
 // - OpenAI rejects tool schemas that include these keywords at the *top-level*.
