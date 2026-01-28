@@ -42,6 +42,7 @@ import {
 import { stripEnvelopeFromMessages } from "../chat-sanitize.js";
 import { formatForLog } from "../ws-log.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
+import { formatScreenContextForAgent, getSessionScreenContext } from "./screen-context.js";
 
 type TranscriptAppendResult = {
   ok: boolean;
@@ -443,9 +444,18 @@ export const chatHandlers: GatewayRequestHandlers = {
       );
       const commandBody = injectThinking ? `/think ${p.thinking} ${parsedMessage}` : parsedMessage;
       const clientInfo = client?.connect?.client;
+
+      // Check for screen context and prepend to agent body
+      const screenContext = getSessionScreenContext(p.sessionKey);
+      let bodyForAgent = parsedMessage;
+      if (screenContext) {
+        const screenContextBlock = formatScreenContextForAgent(screenContext);
+        bodyForAgent = `${screenContextBlock}\n\n${parsedMessage}`;
+      }
+
       const ctx: MsgContext = {
         Body: parsedMessage,
-        BodyForAgent: parsedMessage,
+        BodyForAgent: bodyForAgent,
         BodyForCommands: commandBody,
         RawBody: parsedMessage,
         CommandBody: commandBody,

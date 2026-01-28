@@ -82,6 +82,9 @@ const BASE_METHODS = [
   "chat.history",
   "chat.abort",
   "chat.send",
+  // Screen context methods
+  "screen_context.get",
+  "screen_context.update",
 ];
 
 export function listGatewayMethods(): string[] {
