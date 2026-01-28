@@ -1,1 +1,1 @@
-export type TranslationMap = Record<string, any>; // Relaxed type for nested objects
+export type TranslationMap = Record<string, unknown>; // Relaxed type for nested objects

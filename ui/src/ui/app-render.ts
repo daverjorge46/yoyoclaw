@@ -105,7 +105,7 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const chatDisabledReason = state.connected ? null : t("status.disconnected") + " from gateway.";
+  const chatDisabledReason = state.connected ? null : t("status.disconnected_from_gateway");
   const isChat = state.tab === "chat";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
@@ -123,15 +123,8 @@ export function renderApp(state: AppViewState) {
         ...state.settings,
         navCollapsed: !state.settings.navCollapsed,
       })}
-            @click=${() =>
-      state.applySettings({
-        ...state.settings,
-        navCollapsed: !state.settings.navCollapsed,
-      })}
             title="${state.settings.navCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}"
             aria-label="${state.settings.navCollapsed ? t("sidebar.expand") : t("sidebar.collapse")}"
-          >
-            <span class="nav-collapse-toggle__icon">${icons.menu}</span>
           >
             <span class="nav-collapse-toggle__icon">${icons.menu}</span>
           </button>
@@ -140,21 +133,16 @@ export function renderApp(state: AppViewState) {
               <img src="https://mintcdn.com/clawdhub/4rYvG-uuZrMK_URE/assets/pixel-lobster.svg?fit=max&auto=format&n=4rYvG-uuZrMK_URE&q=85&s=da2032e9eac3b5d9bfe7eb96ca6a8a26" alt="Moltbot" />
             </div>
             <div class="brand-text">
-            <div class="brand-text">
               <div class="brand-title">${t("brand.title")}</div>
               <div class="brand-sub">${t("brand.subtitle")}</div>
-            </div>
             </div>
           </div>
         </div>
         <div class="topbar-status">
           <div class="pill">
             <span class="statusDot ${state.connected ? "ok" : ""}"></span>
-          <div class="pill">
-            <span class="statusDot ${state.connected ? "ok" : ""}"></span>
             <span>${t("status.health")}</span>
             <span class="mono">${state.connected ? t("status.ok") : t("status.offline")}</span>
-          </div>
           </div>
           ${renderThemeToggle(state)}
         </div>
@@ -177,7 +165,7 @@ export function renderApp(state: AppViewState) {
           }}
                 aria-expanded=${!isGroupCollapsed}
               >
-                <span class="nav-label__text">${group.label}</span>
+                <span class="nav-label__text">${t("nav.group." + group.label)}</span>
                 <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "−"}</span>
               </button>
               <div class="nav-group__items">
@@ -188,11 +176,7 @@ export function renderApp(state: AppViewState) {
       })}
         <div class="nav-group nav-group--links">
           <div class="nav-label nav-label--static">
-        <div class="nav-group nav-group--links">
-          <div class="nav-label nav-label--static">
             <span class="nav-label__text">${t("nav.resources")}</span>
-          </div>
-          <div class="nav-group__items">
           </div>
           <div class="nav-group__items">
             <a
@@ -200,14 +184,10 @@ export function renderApp(state: AppViewState) {
               href="https://docs.molt.bot"
               target="_blank"
               rel="noreferrer"
-              title="Docs (opens in new tab)"
-            >
-              <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
               title="${t("nav.docs")} (opens in new tab)"
             >
               <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
               <span class="nav-item__text">${t("nav.docs")}</span>
-            </a>
             </a>
           </div>
         </div>

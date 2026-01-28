@@ -40,11 +40,7 @@ class Translator {
     setLocale(locale: string) {
         if (this.locale === locale) return;
         this.locale = locale;
-        try {
-            localStorage.setItem('moltbot-locale', locale);
-        } catch (e) {
-            // ignore
-        }
+        // localStorage persistence is handled by the app's UiSettings to avoid sync issues.
         this.notify();
     }
 
@@ -68,7 +64,7 @@ class Translator {
 
     private resolve(table: TranslationMap | undefined, key: string): any {
         if (!table) return undefined;
-        return key.split('.').reduce((obj, i) => (obj ? obj[i] : null), table);
+        return key.split('.').reduce((obj, i) => (obj ? (obj as any)[i] : null), table);
     }
 
     private interpolate(text: string, params?: Record<string, string | number>) {

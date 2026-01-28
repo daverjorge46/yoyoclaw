@@ -157,6 +157,7 @@ export function renderOverview(props: OverviewProps) {
             />
           </label>
           <label class="field">
+            <span>Default Session Key</span>
             <input
               .value=${props.settings.sessionKey}
               @input=${(e: Event) => {
