@@ -19,6 +19,7 @@ export type SessionListDeliveryContext = {
 export type SessionListRow = {
   key: string;
   kind: SessionKind;
+  state?: "idle" | "processing" | "waiting";
   channel: string;
   label?: string;
   displayName?: string;

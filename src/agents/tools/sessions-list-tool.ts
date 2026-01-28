@@ -150,9 +150,11 @@ export function createSessionsListTool(opts?: {
             ? path.join(path.dirname(storePath), `${sessionId}.jsonl`)
             : undefined;
 
+        const entryState = typeof entry.state === "string" ? entry.state : undefined;
         const row: SessionListRow = {
           key: displayKey,
           kind,
+          state: entryState as SessionListRow["state"],
           channel: derivedChannel,
           label: typeof entry.label === "string" ? entry.label : undefined,
           displayName: typeof entry.displayName === "string" ? entry.displayName : undefined,
