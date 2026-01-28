@@ -345,7 +345,7 @@ export function applySyntheticConfig(cfg: MoltbotConfig): MoltbotConfig {
 /**
  * Apply NanoGPT provider configuration without changing the default model.
  */
-export function applyNanoGptProviderConfig(cfg: ClawdbotConfig): ClawdbotConfig {
+export function applyNanoGptProviderConfig(cfg: MoltbotConfig): MoltbotConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[NANOGPT_DEFAULT_MODEL_REF] = {
     ...models[NANOGPT_DEFAULT_MODEL_REF],
@@ -395,7 +395,7 @@ export function applyNanoGptProviderConfig(cfg: ClawdbotConfig): ClawdbotConfig 
 /**
  * Apply NanoGPT provider configuration AND set NanoGPT as the default model.
  */
-export function applyNanoGptConfig(cfg: ClawdbotConfig): ClawdbotConfig {
+export function applyNanoGptConfig(cfg: MoltbotConfig): MoltbotConfig {
   const next = applyNanoGptProviderConfig(cfg);
   const existingModel = next.agents?.defaults?.model;
   return {
