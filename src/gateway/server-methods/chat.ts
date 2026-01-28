@@ -713,3 +713,9 @@ export const chatHandlers: GatewayRequestHandlers = {
     respond(true, { ok: true, messageId });
   },
 };
+
+// Exported for testing only
+export const _testExports = {
+  findTranscriptLeafId,
+  appendAssistantTranscriptMessage,
+};
