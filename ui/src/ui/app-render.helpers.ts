@@ -9,6 +9,7 @@ import { syncUrlWithSessionKey } from "./app-settings";
 import type { SessionsListResult } from "./types";
 import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
+import { t, getLocale, setLocale, getAvailableLocales, getLocaleDisplayName, type Locale } from "../../i18n";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
@@ -89,7 +90,7 @@ export function renderChatControls(state: AppViewState) {
           state.resetToolStream();
           void loadChatHistory(state);
         }}
-        title="Refresh chat history"
+        title="${t("common.refresh")}"
       >
         ${refreshIcon}
       </button>
@@ -238,5 +239,40 @@ function renderMonitorIcon() {
       <line x1="8" x2="16" y1="21" y2="21"></line>
       <line x1="12" x2="12" y1="17" y2="21"></line>
     </svg>
+  `;
+}
+
+/**
+ * Render language switcher
+ */
+export function renderLanguageSwitcher() {
+  const currentLocale = getLocale();
+  const locales = getAvailableLocales();
+
+  const handleChange = (e: Event) => {
+    const select = e.target as HTMLSelectElement;
+    const newLocale = select.value as Locale;
+    setLocale(newLocale);
+    // Reload the page to apply new locale
+    window.location.reload();
+  };
+
+  return html`
+    <div class="language-switcher">
+      <select
+        class="language-switcher__select"
+        .value=${currentLocale}
+        @change=${handleChange}
+        aria-label="Select language"
+      >
+        ${locales.map(
+          (locale) => html`
+            <option value=${locale} ?selected=${locale === currentLocale}>
+              ${getLocaleDisplayName(locale)}
+            </option>
+          `,
+        )}
+      </select>
+    </div>
   `;
 }

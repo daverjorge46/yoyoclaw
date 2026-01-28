@@ -1,0 +1,520 @@
+/**
+ * English (US) translations - Baseline
+ */
+export const enUS = {
+  // Common
+  common: {
+    loading: "Loading…",
+    refresh: "Refresh",
+    save: "Save",
+    saving: "Saving…",
+    apply: "Apply",
+    applying: "Applying…",
+    cancel: "Cancel",
+    delete: "Delete",
+    edit: "Edit",
+    close: "Close",
+    yes: "Yes",
+    no: "No",
+    ok: "OK",
+    error: "Error",
+    success: "Success",
+    warning: "Warning",
+    info: "Info",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    configured: "Configured",
+    connected: "Connected",
+    disconnected: "Disconnected",
+    running: "Running",
+    stopped: "Stopped",
+    active: "Active",
+    inactive: "Inactive",
+    unknown: "Unknown",
+    none: "None",
+    all: "All",
+    search: "Search",
+    filter: "Filter",
+    export: "Export",
+    import: "Import",
+    copy: "Copy",
+    copied: "Copied!",
+    na: "n/a",
+    optional: "(optional)",
+    required: "Required",
+    inherit: "inherit",
+    actions: "Actions",
+  },
+
+  // App header and branding
+  app: {
+    title: "MOLTBOT",
+    subtitle: "Gateway Dashboard",
+    health: "Health",
+    offline: "Offline",
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+  },
+
+  // Navigation
+  nav: {
+    groups: {
+      chat: "Chat",
+      control: "Control",
+      agent: "Agent",
+      settings: "Settings",
+      resources: "Resources",
+    },
+    tabs: {
+      overview: "Overview",
+      channels: "Channels",
+      instances: "Instances",
+      sessions: "Sessions",
+      cron: "Cron Jobs",
+      skills: "Skills",
+      nodes: "Nodes",
+      chat: "Chat",
+      config: "Config",
+      debug: "Debug",
+      logs: "Logs",
+    },
+    subtitles: {
+      overview: "Gateway status, entry points, and a fast health read.",
+      channels: "Manage channels and settings.",
+      instances: "Presence beacons from connected clients and nodes.",
+      sessions: "Inspect active sessions and adjust per-session defaults.",
+      cron: "Schedule wakeups and recurring agent runs.",
+      skills: "Manage skill availability and API key injection.",
+      nodes: "Paired devices, capabilities, and command exposure.",
+      chat: "Direct gateway chat session for quick interventions.",
+      config: "Edit ~/.clawdbot/moltbot.json safely.",
+      debug: "Gateway snapshots, events, and manual RPC calls.",
+      logs: "Live tail of the gateway file logs.",
+    },
+    docs: "Docs",
+    docsTooltip: "Docs (opens in new tab)",
+  },
+
+  // Overview page
+  overview: {
+    gatewayAccess: "Gateway Access",
+    gatewayAccessDesc: "Where the dashboard connects and how it authenticates.",
+    websocketUrl: "WebSocket URL",
+    gatewayToken: "Gateway Token",
+    password: "Password (not stored)",
+    passwordPlaceholder: "system or shared password",
+    defaultSessionKey: "Default Session Key",
+    connect: "Connect",
+    connectNote: "Click Connect to apply connection changes.",
+
+    snapshot: "Snapshot",
+    snapshotDesc: "Latest gateway handshake information.",
+    status: "Status",
+    uptime: "Uptime",
+    tickInterval: "Tick Interval",
+    lastChannelsRefresh: "Last Channels Refresh",
+
+    authRequired: "This gateway requires auth. Add a token or password, then click Connect.",
+    authFailed: "Auth failed. Re-copy a tokenized URL with",
+    authDocsLink: "Docs: Control UI auth",
+    tokenizedUrlCmd: "moltbot dashboard --no-open",
+    generateTokenCmd: "moltbot doctor --generate-gateway-token",
+    thenClickConnect: ", or update the token, then click Connect.",
+
+    insecureContext: "This page is HTTP, so the browser blocks device identity. Use HTTPS (Tailscale Serve) or open",
+    insecureContextLocal: "on the gateway host.",
+    insecureContextConfig: "If you must stay on HTTP, set",
+    insecureContextConfigValue: "gateway.controlUi.allowInsecureAuth: true",
+    insecureContextNote: "(token-only).",
+    tailscaleDocsLink: "Docs: Tailscale Serve",
+    insecureHttpDocsLink: "Docs: Insecure HTTP",
+
+    channelsHint: "Use Channels to link WhatsApp, Telegram, Discord, Signal, or iMessage.",
+
+    instancesCard: "Instances",
+    instancesDesc: "Presence beacons in the last 5 minutes.",
+    sessionsCard: "Sessions",
+    sessionsDesc: "Recent session keys tracked by the gateway.",
+    cronCard: "Cron",
+    nextWake: "Next wake",
+
+    notes: "Notes",
+    notesDesc: "Quick reminders for remote control setups.",
+    tailscaleServe: "Tailscale serve",
+    tailscaleServeDesc: "Prefer serve mode to keep the gateway on loopback with tailnet auth.",
+    sessionHygiene: "Session hygiene",
+    sessionHygieneDesc: "Use /new or sessions.patch to reset context.",
+    cronReminders: "Cron reminders",
+    cronRemindersDesc: "Use isolated sessions for recurring runs.",
+  },
+
+  // Chat page
+  chat: {
+    message: "Message",
+    messagePlaceholder: "Message (↩ to send, Shift+↩ for line breaks, paste images)",
+    messagePlaceholderWithImages: "Add a message or paste more images...",
+    connectToChat: "Connect to the gateway to start chatting…",
+    send: "Send",
+    queue: "Queue",
+    stop: "Stop",
+    newSession: "New session",
+    loadingChat: "Loading chat…",
+    compacting: "Compacting context...",
+    compacted: "Context compacted",
+    queued: "Queued",
+    removeQueued: "Remove queued message",
+    exitFocusMode: "Exit focus mode",
+    removeAttachment: "Remove attachment",
+    attachmentPreview: "Attachment preview",
+    showingLast: "Showing last {{count}} messages ({{hidden}} hidden).",
+    image: "Image",
+  },
+
+  // Channels page
+  channels: {
+    title: "Channels",
+    health: "Channel health",
+    healthDesc: "Channel status snapshots from the gateway.",
+    noSnapshot: "No snapshot yet.",
+    statusAndConfig: "Channel status and configuration.",
+    lastInbound: "Last inbound",
+
+    // Status labels
+    labels: {
+      configured: "Configured",
+      running: "Running",
+      connected: "Connected",
+    },
+
+    // WhatsApp
+    whatsapp: {
+      title: "WhatsApp",
+      desc: "WhatsApp via Baileys (multi-device).",
+      start: "Start",
+      relink: "Relink",
+      logout: "Logout",
+      scanQr: "Scan QR with WhatsApp on your phone.",
+      linking: "Linking…",
+      waitingForQr: "Waiting for QR code…",
+      notConfigured: "Not configured.",
+    },
+
+    // Telegram
+    telegram: {
+      title: "Telegram",
+      desc: "Telegram bot(s) via Grammy.",
+    },
+
+    // Discord
+    discord: {
+      title: "Discord",
+      desc: "Discord bot via discord.js.",
+    },
+
+    // Slack
+    slack: {
+      title: "Slack",
+      desc: "Slack app via Bolt framework.",
+    },
+
+    // Signal
+    signal: {
+      title: "Signal",
+      desc: "Signal via signal-cli or linked device.",
+    },
+
+    // iMessage
+    imessage: {
+      title: "iMessage",
+      desc: "iMessage via BlueBubbles server.",
+    },
+
+    // Google Chat
+    googlechat: {
+      title: "Google Chat",
+      desc: "Google Chat via service account.",
+    },
+
+    // Nostr
+    nostr: {
+      title: "Nostr",
+      desc: "Nostr protocol via NIP-04 DMs.",
+      editProfile: "Edit Profile",
+      profileForm: {
+        title: "Edit Nostr Profile",
+        name: "Display Name",
+        about: "About",
+        picture: "Picture URL",
+        nip05: "NIP-05 Identifier",
+        lud16: "Lightning Address",
+        banner: "Banner URL",
+        website: "Website",
+        showAdvanced: "Show advanced fields",
+        hideAdvanced: "Hide advanced fields",
+        importFromRelays: "Import from relays",
+        importing: "Importing…",
+      },
+    },
+
+    // Config section
+    config: {
+      title: "Channel Configuration",
+      saveChanges: "Save Changes",
+      reloadConfig: "Reload Config",
+      unsavedChanges: "Unsaved changes",
+    },
+  },
+
+  // Sessions page
+  sessions: {
+    title: "Sessions",
+    desc: "Active session keys and per-session overrides.",
+    activeWithin: "Active within (minutes)",
+    limit: "Limit",
+    includeGlobal: "Include global",
+    includeUnknown: "Include unknown",
+    store: "Store",
+    noSessions: "No sessions found.",
+
+    columns: {
+      key: "Key",
+      label: "Label",
+      kind: "Kind",
+      updated: "Updated",
+      tokens: "Tokens",
+      thinking: "Thinking",
+      verbose: "Verbose",
+      reasoning: "Reasoning",
+      actions: "Actions",
+    },
+
+    levels: {
+      off: "off",
+      minimal: "minimal",
+      low: "low",
+      medium: "medium",
+      high: "high",
+      on: "on",
+      stream: "stream",
+      offExplicit: "off (explicit)",
+    },
+  },
+
+  // Cron page
+  cron: {
+    title: "Cron Jobs",
+    desc: "Scheduled agent wakeups and recurring tasks.",
+    noJobs: "No cron jobs configured.",
+    addJob: "Add Job",
+    runNow: "Run",
+    remove: "Remove",
+    enable: "Enable",
+    disable: "Disable",
+    runs: "Runs",
+    lastRun: "Last run",
+    nextRun: "Next run",
+
+    form: {
+      schedule: "Schedule (cron)",
+      message: "Message",
+      sessionKey: "Session Key",
+      channel: "Channel",
+      channelPlaceholder: "Select channel",
+      enabled: "Enabled",
+    },
+
+    status: {
+      enabled: "Cron Enabled",
+      disabled: "Cron Disabled",
+      nextWake: "Next wake",
+    },
+  },
+
+  // Skills page
+  skills: {
+    title: "Skills",
+    desc: "Manage bundled and installed skills.",
+    noSkills: "No skills found.",
+    filter: "Filter skills",
+    apiKey: "API Key",
+    saveKey: "Save Key",
+    install: "Install",
+    installing: "Installing…",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    toggle: "Toggle",
+    keySaved: "API key saved",
+    keyError: "Failed to save API key",
+  },
+
+  // Nodes page
+  nodes: {
+    title: "Nodes",
+    desc: "Connected execution nodes and device pairings.",
+    noNodes: "No nodes connected.",
+    devices: "Devices",
+    noDevices: "No paired devices.",
+    approve: "Approve",
+    reject: "Reject",
+    revoke: "Revoke",
+    rotate: "Rotate",
+    pending: "Pending",
+    approved: "Approved",
+
+    bindings: {
+      title: "Exec Bindings",
+      desc: "Bind agents to specific execution nodes.",
+      default: "Default Node",
+      agent: "Agent",
+      node: "Node",
+      save: "Save Bindings",
+    },
+
+    approvals: {
+      title: "Exec Approvals",
+      desc: "Pre-approve commands for agent execution.",
+      target: "Target",
+      gateway: "Gateway",
+      selectAgent: "Select agent",
+      addRule: "Add Rule",
+      noRules: "No approval rules configured.",
+    },
+  },
+
+  // Config page
+  config: {
+    title: "Settings",
+    desc: "Configuration editor with schema validation.",
+    valid: "valid",
+    invalid: "invalid",
+    searchSettings: "Search settings...",
+    allSettings: "All Settings",
+    form: "Form",
+    raw: "Raw",
+    rawJson5: "Raw JSON5",
+    reload: "Reload",
+    update: "Update",
+    updating: "Updating…",
+    noChanges: "No changes",
+    unsavedChanges: "Unsaved changes",
+    unsavedCount: "{{count}} unsaved change",
+    unsavedCountPlural: "{{count}} unsaved changes",
+    viewPending: "View {{count}} pending change",
+    viewPendingPlural: "View {{count}} pending changes",
+    loadingSchema: "Loading schema…",
+    formUnsafe: "Form view can't safely edit some fields. Use Raw to avoid losing config entries.",
+
+    sections: {
+      env: "Environment",
+      update: "Updates",
+      agents: "Agents",
+      auth: "Authentication",
+      channels: "Channels",
+      messages: "Messages",
+      commands: "Commands",
+      hooks: "Hooks",
+      skills: "Skills",
+      tools: "Tools",
+      gateway: "Gateway",
+      wizard: "Setup Wizard",
+    },
+  },
+
+  // Debug page
+  debug: {
+    title: "Debug",
+    desc: "Gateway internals and manual RPC testing.",
+    status: "Status",
+    health: "Health",
+    models: "Models",
+    heartbeat: "Heartbeat",
+    events: "Events",
+    rpcCall: "RPC Call",
+    method: "Method",
+    params: "Params",
+    call: "Call",
+    result: "Result",
+    noResult: "No result yet.",
+  },
+
+  // Logs page
+  logs: {
+    title: "Logs",
+    desc: "Gateway file logs (JSONL).",
+    filter: "Filter",
+    searchLogs: "Search logs",
+    autoFollow: "Auto-follow",
+    file: "File",
+    truncated: "Log output truncated; showing latest chunk.",
+    noEntries: "No log entries.",
+    exportFiltered: "Export filtered",
+    exportVisible: "Export visible",
+
+    levels: {
+      trace: "trace",
+      debug: "debug",
+      info: "info",
+      warn: "warn",
+      error: "error",
+      fatal: "fatal",
+    },
+  },
+
+  // Instances page
+  instances: {
+    title: "Instances",
+    desc: "Presence beacons from connected gateways and nodes.",
+    noInstances: "No presence beacons found.",
+    id: "ID",
+    type: "Type",
+    version: "Version",
+    lastSeen: "Last Seen",
+  },
+
+  // Exec approval prompt
+  execApproval: {
+    title: "Execution Approval Required",
+    command: "Command",
+    agent: "Agent",
+    allowOnce: "Allow Once",
+    allowAlways: "Allow Always",
+    deny: "Deny",
+  },
+
+  // Theme
+  theme: {
+    toggle: "Toggle theme",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
+
+  // Time/date formatting
+  time: {
+    justNow: "just now",
+    minutesAgo: "{{count}}m ago",
+    hoursAgo: "{{count}}h ago",
+    daysAgo: "{{count}}d ago",
+    never: "never",
+  },
+
+  // Markdown sidebar
+  sidebar: {
+    close: "Close",
+    viewRaw: "View raw",
+    error: "Error loading content",
+  },
+
+  // Errors
+  errors: {
+    connectionFailed: "Connection failed",
+    loadFailed: "Failed to load",
+    saveFailed: "Failed to save",
+    unknownError: "An unknown error occurred",
+    networkError: "Network error",
+    timeout: "Request timed out",
+    unauthorized: "Unauthorized",
+    forbidden: "Forbidden",
+    notFound: "Not found",
+  },
+};
