@@ -208,7 +208,7 @@ class PPLGiftAPI:
         """Add journal entry"""
         data = {
             'title': title,
-            'body': body,
+            'post': body,  # API expects 'post', not 'body'
             'account': 'journal'
         }
         if contact_id:
