@@ -1,0 +1,12 @@
+{
+  "name": "@boltbot/extension",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Boltbot — Trustless Moltbot hosting via EigenCloud",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  }
+}
