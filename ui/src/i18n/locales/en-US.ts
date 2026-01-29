@@ -687,6 +687,33 @@ export const enUS = {
     light: "Light",
     dark: "Dark",
     system: "System",
+    ariaLabel: "Theme",
+    systemAriaLabel: "System theme",
+    lightAriaLabel: "Light theme",
+    darkAriaLabel: "Dark theme",
+  },
+
+  // Chat controls
+  chatControls: {
+    disabledDuringOnboarding: "Disabled during onboarding",
+    toggleThinking: "Toggle assistant thinking/working output",
+    toggleFocusMode: "Toggle focus mode (hide sidebar + page header)",
+    selectLanguage: "Select language",
+  },
+
+  // Gateway connection
+  gateway: {
+    disconnected: "Disconnected from gateway.",
+  },
+
+  // Nostr profile messages
+  nostrProfile: {
+    publishFailed: "Profile publish failed on all relays.",
+    publishSuccess: "Profile published to relays.",
+    updateFailed: "Profile update failed",
+    importFailed: "Profile import failed",
+    importedFromRelays: "Profile imported from relays. Review and publish.",
+    importedReviewPublish: "Profile imported. Review and publish.",
   },
 
   // Time/date formatting

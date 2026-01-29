@@ -694,6 +694,33 @@ export const zhTW = {
     light: "淺色",
     dark: "深色",
     system: "跟隨系統",
+    ariaLabel: "主題",
+    systemAriaLabel: "跟隨系統主題",
+    lightAriaLabel: "淺色主題",
+    darkAriaLabel: "深色主題",
+  },
+
+  // 對話控制
+  chatControls: {
+    disabledDuringOnboarding: "引導期間已停用",
+    toggleThinking: "切換助手思考/工作輸出",
+    toggleFocusMode: "切換專注模式（隱藏側邊欄和頁首）",
+    selectLanguage: "選擇語言",
+  },
+
+  // 閘道器連線
+  gateway: {
+    disconnected: "已與閘道器斷線。",
+  },
+
+  // Nostr 個人檔案訊息
+  nostrProfile: {
+    publishFailed: "個人檔案發布至所有中繼站失敗。",
+    publishSuccess: "個人檔案已發布至中繼站。",
+    updateFailed: "個人檔案更新失敗",
+    importFailed: "個人檔案匯入失敗",
+    importedFromRelays: "已從中繼站匯入個人檔案。請檢視並發布。",
+    importedReviewPublish: "已匯入個人檔案。請檢視並發布。",
   },
 
   // 時間/日期格式

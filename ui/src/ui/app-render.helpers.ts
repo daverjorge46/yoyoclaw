@@ -107,8 +107,8 @@ export function renderChatControls(state: AppViewState) {
         }}
         aria-pressed=${showThinking}
         title=${disableThinkingToggle
-          ? "Disabled during onboarding"
-          : "Toggle assistant thinking/working output"}
+          ? t("chatControls.disabledDuringOnboarding")
+          : t("chatControls.toggleThinking")}
       >
         ${icons.brain}
       </button>
@@ -124,8 +124,8 @@ export function renderChatControls(state: AppViewState) {
         }}
         aria-pressed=${focusActive}
         title=${disableFocusToggle
-          ? "Disabled during onboarding"
-          : "Toggle focus mode (hide sidebar + page header)"}
+          ? t("chatControls.disabledDuringOnboarding")
+          : t("chatControls.toggleFocusMode")}
       >
         ${focusIcon}
       </button>
@@ -172,14 +172,14 @@ export function renderThemeToggle(state: AppViewState) {
 
   return html`
     <div class="theme-toggle" style="--theme-index: ${index};">
-      <div class="theme-toggle__track" role="group" aria-label="Theme">
+      <div class="theme-toggle__track" role="group" aria-label="${t("theme.ariaLabel")}">
         <span class="theme-toggle__indicator"></span>
         <button
           class="theme-toggle__button ${state.theme === "system" ? "active" : ""}"
           @click=${applyTheme("system")}
           aria-pressed=${state.theme === "system"}
-          aria-label="System theme"
-          title="System"
+          aria-label="${t("theme.systemAriaLabel")}"
+          title="${t("theme.system")}"
         >
           ${renderMonitorIcon()}
         </button>
@@ -187,8 +187,8 @@ export function renderThemeToggle(state: AppViewState) {
           class="theme-toggle__button ${state.theme === "light" ? "active" : ""}"
           @click=${applyTheme("light")}
           aria-pressed=${state.theme === "light"}
-          aria-label="Light theme"
-          title="Light"
+          aria-label="${t("theme.lightAriaLabel")}"
+          title="${t("theme.light")}"
         >
           ${renderSunIcon()}
         </button>
@@ -196,8 +196,8 @@ export function renderThemeToggle(state: AppViewState) {
           class="theme-toggle__button ${state.theme === "dark" ? "active" : ""}"
           @click=${applyTheme("dark")}
           aria-pressed=${state.theme === "dark"}
-          aria-label="Dark theme"
-          title="Dark"
+          aria-label="${t("theme.darkAriaLabel")}"
+          title="${t("theme.dark")}"
         >
           ${renderMoonIcon()}
         </button>
@@ -263,7 +263,7 @@ export function renderLanguageSwitcher() {
         class="language-switcher__select"
         .value=${currentLocale}
         @change=${handleChange}
-        aria-label="Select language"
+        aria-label="${t("chatControls.selectLanguage")}"
       >
         ${locales.map(
           (locale) => html`
