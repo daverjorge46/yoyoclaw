@@ -77,7 +77,30 @@ const hookPresetMappings: Record<string, HookMappingConfig[]> = {
   ],
 };
 
-const transformCache = new Map<string, HookTransformFn>();
+/**
+ * Context for custom auth verification in hook transforms.
+ * Similar to HookMappingContext but includes the raw body buffer
+ * for signature verification (e.g., GitHub HMAC signatures).
+ */
+export type HookVerifyAuthContext = {
+  headers: Record<string, string>;
+  url: URL;
+  path: string;
+  rawBody: Buffer;
+};
+
+/**
+ * Custom auth verification function exported by transform modules.
+ * Return true to allow the request, false to reject with 401.
+ */
+export type HookVerifyAuthFn = (ctx: HookVerifyAuthContext) => boolean | Promise<boolean>;
+
+type CachedTransform = {
+  transform: HookTransformFn;
+  verifyAuth?: HookVerifyAuthFn;
+};
+
+const transformCache = new Map<string, CachedTransform>();
 
 type HookTransformResult = Partial<{
   kind: HookAction["kind"];
@@ -195,7 +218,7 @@ function normalizeHookMapping(
   };
 }
 
-function mappingMatches(mapping: HookMappingResolved, ctx: HookMappingContext) {
+export function mappingMatches(mapping: HookMappingResolved, ctx: HookMappingContext) {
   if (mapping.matchPath) {
     if (mapping.matchPath !== normalizeMatchPath(ctx.path)) return false;
   }
@@ -293,14 +316,34 @@ function validateAction(action: HookAction): HookMappingResult {
   return { ok: true, action };
 }
 
-async function loadTransform(transform: HookMappingTransformResolved): Promise<HookTransformFn> {
+async function loadTransformModule(
+  transform: HookMappingTransformResolved,
+): Promise<CachedTransform> {
   const cached = transformCache.get(transform.modulePath);
   if (cached) return cached;
   const url = pathToFileURL(transform.modulePath).href;
   const mod = (await import(url)) as Record<string, unknown>;
-  const fn = resolveTransformFn(mod, transform.exportName);
-  transformCache.set(transform.modulePath, fn);
-  return fn;
+  const transformFn = resolveTransformFn(mod, transform.exportName);
+  const verifyAuth =
+    typeof mod.verifyAuth === "function" ? (mod.verifyAuth as HookVerifyAuthFn) : undefined;
+  const result: CachedTransform = { transform: transformFn, verifyAuth };
+  transformCache.set(transform.modulePath, result);
+  return result;
+}
+
+async function loadTransform(transform: HookMappingTransformResolved): Promise<HookTransformFn> {
+  const cached = await loadTransformModule(transform);
+  return cached.transform;
+}
+
+/**
+ * Load a transform module and return its verifyAuth export, if any.
+ */
+export async function loadVerifyAuth(
+  transform: HookMappingTransformResolved,
+): Promise<HookVerifyAuthFn | undefined> {
+  const mod = await loadTransformModule(transform);
+  return mod.verifyAuth;
 }
 
 function resolveTransformFn(mod: Record<string, unknown>, exportName?: string): HookTransformFn {

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { applyHookMappings, resolveHookMappings } from "./hooks-mapping.js";
+import { applyHookMappings, loadVerifyAuth, resolveHookMappings } from "./hooks-mapping.js";
 
 const baseUrl = new URL("http://127.0.0.1:18789/hooks/gmail");
 
@@ -164,5 +164,75 @@ describe("hooks mapping", () => {
       path: "noop",
     });
     expect(result?.ok).toBe(false);
+  });
+});
+
+describe("loadVerifyAuth", () => {
+  it("returns undefined when transform has no verifyAuth export", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "moltbot-hooks-noauth-"));
+    const modPath = path.join(dir, "transform.mjs");
+    fs.writeFileSync(modPath, "export default () => ({ message: 'test' });");
+
+    const mappings = resolveHookMappings({
+      transformsDir: dir,
+      mappings: [
+        {
+          match: { path: "github" },
+          action: "agent",
+          transform: { module: "transform.mjs" },
+        },
+      ],
+    });
+
+    const result = await loadVerifyAuth(mappings[0]!.transform!);
+    expect(result).toBeUndefined();
+  });
+
+  it("returns verifyAuth function when exported", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "moltbot-hooks-auth-"));
+    const modPath = path.join(dir, "transform.mjs");
+    fs.writeFileSync(
+      modPath,
+      `
+      export function verifyAuth(ctx) {
+        return ctx.headers["x-secret"] === "valid";
+      }
+      export default () => ({ message: 'test' });
+      `,
+    );
+
+    const mappings = resolveHookMappings({
+      transformsDir: dir,
+      mappings: [
+        {
+          match: { path: "github" },
+          action: "agent",
+          transform: { module: "transform.mjs" },
+        },
+      ],
+    });
+
+    const result = await loadVerifyAuth(mappings[0]!.transform!);
+    expect(result).toBeDefined();
+    expect(typeof result).toBe("function");
+
+    // Test the verifyAuth function works
+    if (result) {
+      const valid = await result({
+        headers: { "x-secret": "valid" },
+        url: new URL("http://localhost/hooks/github"),
+        path: "github",
+        rawBody: Buffer.from("{}"),
+      });
+      expect(valid).toBe(true);
+
+      const invalid = await result({
+        headers: { "x-secret": "wrong" },
+        url: new URL("http://localhost/hooks/github"),
+        path: "github",
+        rawBody: Buffer.from("{}"),
+      });
+      expect(invalid).toBe(false);
+    }
   });
 });

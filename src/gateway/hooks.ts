@@ -4,7 +4,14 @@ import { listChannelPlugins } from "../channels/plugins/index.js";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { MoltbotConfig } from "../config/config.js";
 import { normalizeMessageChannel } from "../utils/message-channel.js";
-import { type HookMappingResolved, resolveHookMappings } from "./hooks-mapping.js";
+import {
+  type HookMappingContext,
+  type HookMappingResolved,
+  type HookVerifyAuthFn,
+  loadVerifyAuth,
+  mappingMatches,
+  resolveHookMappings,
+} from "./hooks-mapping.js";
 
 const DEFAULT_HOOKS_PATH = "/hooks";
 const DEFAULT_HOOKS_MAX_BODY_BYTES = 256 * 1024;
@@ -61,10 +68,10 @@ export function extractHookToken(req: IncomingMessage, url: URL): HookTokenResul
   return { token: undefined, fromQuery: false };
 }
 
-export async function readJsonBody(
+export async function readRawBody(
   req: IncomingMessage,
   maxBytes: number,
-): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
+): Promise<{ ok: true; value: Buffer } | { ok: false; error: string }> {
   return await new Promise((resolve) => {
     let done = false;
     let total = 0;
@@ -83,17 +90,7 @@ export async function readJsonBody(
     req.on("end", () => {
       if (done) return;
       done = true;
-      const raw = Buffer.concat(chunks).toString("utf-8").trim();
-      if (!raw) {
-        resolve({ ok: true, value: {} });
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw) as unknown;
-        resolve({ ok: true, value: parsed });
-      } catch (err) {
-        resolve({ ok: false, error: String(err) });
-      }
+      resolve({ ok: true, value: Buffer.concat(chunks) });
     });
     req.on("error", (err) => {
       if (done) return;
@@ -101,6 +98,103 @@ export async function readJsonBody(
       resolve({ ok: false, error: String(err) });
     });
   });
+}
+
+export function parseJsonBody(
+  raw: Buffer,
+): { ok: true; value: unknown } | { ok: false; error: string } {
+  const str = raw.toString("utf-8").trim();
+  if (!str) {
+    return { ok: true, value: {} };
+  }
+  try {
+    const parsed = JSON.parse(str) as unknown;
+    return { ok: true, value: parsed };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+export async function readJsonBody(
+  req: IncomingMessage,
+  maxBytes: number,
+): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
+  const raw = await readRawBody(req, maxBytes);
+  if (!raw.ok) return raw;
+  return parseJsonBody(raw.value);
+}
+
+export type VerifyWebhookContext = {
+  req: IncomingMessage;
+  url: URL;
+  subPath: string;
+  headers: Record<string, string>;
+  mappings: HookMappingResolved[];
+  expectedToken: string;
+  maxBodyBytes: number;
+};
+
+export type VerifyWebhookResult =
+  | { ok: true; payload: Record<string, unknown>; tokenFromQuery: boolean }
+  | { ok: false; status: number; error: string };
+
+/**
+ * Verify webhook authentication and parse body.
+ *
+ * Reads the raw body first, finds the matching mapping (using full match
+ * including path and source), then uses custom verifyAuth or token auth.
+ */
+export async function verifyAndParseWebhook(
+  ctx: VerifyWebhookContext,
+): Promise<VerifyWebhookResult> {
+  const { req, url, subPath, headers, mappings, expectedToken, maxBodyBytes } = ctx;
+
+  // Read raw body upfront so we can match on source and verify signatures
+  const rawBody = await readRawBody(req, maxBodyBytes);
+  if (!rawBody.ok) {
+    const status = rawBody.error === "payload too large" ? 413 : 400;
+    return { ok: false, status, error: rawBody.error };
+  }
+
+  // Parse body for mapping match (source matching needs the payload)
+  const parsed = parseJsonBody(rawBody.value);
+  const payload =
+    parsed.ok && typeof parsed.value === "object" && parsed.value !== null
+      ? (parsed.value as Record<string, unknown>)
+      : {};
+
+  // Find the first matching mapping using full match criteria (path + source)
+  const matchCtx: HookMappingContext = { payload, headers, url, path: subPath };
+  const matched = mappings.find((m) => mappingMatches(m, matchCtx));
+
+  if (matched?.transform) {
+    const verifyAuth = await loadVerifyAuth(matched.transform);
+    if (verifyAuth) {
+      const authCtx = { headers, url, path: subPath, rawBody: rawBody.value };
+      let authResult: boolean;
+      try {
+        authResult = await verifyAuth(authCtx);
+      } catch (err) {
+        return { ok: false, status: 401, error: `verifyAuth error: ${String(err)}` };
+      }
+      if (!authResult) {
+        return { ok: false, status: 401, error: "Unauthorized" };
+      }
+      return { ok: true, payload, tokenFromQuery: false };
+    }
+  }
+
+  // No custom auth — verify token
+  const { token, fromQuery } = extractHookToken(req, url);
+  if (!token || token !== expectedToken) {
+    return { ok: false, status: 401, error: "Unauthorized" };
+  }
+
+  if (!parsed.ok) {
+    return { ok: false, status: 400, error: parsed.error };
+  }
+
+  return { ok: true, payload, tokenFromQuery: fromQuery };
 }
 
 export function normalizeHookHeaders(req: IncomingMessage) {
