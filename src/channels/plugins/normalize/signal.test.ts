@@ -54,9 +54,9 @@ describe("signal target normalization", () => {
 
   it("preserves group ID case (base64 is case-sensitive)", () => {
     // Base64 group IDs contain mixed case that must be preserved
-    expect(normalizeSignalMessagingTarget("group:igVOP2EJR1sBXYYwsLhif/AEMTJWtiDiTyu88GWP5ZQ=")).toBe(
-      "group:igVOP2EJR1sBXYYwsLhif/AEMTJWtiDiTyu88GWP5ZQ=",
-    );
+    expect(
+      normalizeSignalMessagingTarget("group:igVOP2EJR1sBXYYwsLhif/AEMTJWtiDiTyu88GWP5ZQ="),
+    ).toBe("group:igVOP2EJR1sBXYYwsLhif/AEMTJWtiDiTyu88GWP5ZQ=");
     expect(normalizeSignalMessagingTarget("signal:group:ABC123xyz+/=")).toBe("group:ABC123xyz+/=");
   });
 
