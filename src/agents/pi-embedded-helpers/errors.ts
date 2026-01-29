@@ -515,6 +515,8 @@ export function classifyFailoverReason(raw: string): FailoverReason | null {
   if (isAuthErrorMessage(raw)) return "auth";
   // Network errors (fetch failed, connection refused, DNS) should trigger fallback
   if (isNetworkErrorMessage(raw)) return "timeout";
+  // Context overflow should trigger fallback to larger-context models
+  if (isContextOverflowError(raw)) return "timeout";
   return null;
 }
 

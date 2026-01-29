@@ -314,3 +314,35 @@
 ---
 
 *Archive updated: 2026-01-28*
+
+---
+
+## Archived Entries (Jan 29, 2026)
+
+### [2026-01-27-046] Dashboard Chat Window [CANCELLED]
+- **Proposed by:** Simon (via Telegram)
+- **Date:** 2026-01-27
+- **Category:** tools
+- **Target file:** ~/clawd/dashboard/
+- **Description:** Add a chat window to the dashboard that allows chatting with Liam directly from the web interface.
+- **Status:** CANCELLED (2026-01-29)
+- **Resolution:** User requested removal from queue. Feature not needed.
+
+### [2026-01-27-047] Dashboard Session Visibility [CANCELLED]
+- **Proposed by:** Simon (via Telegram)
+- **Date:** 2026-01-27
+- **Category:** tools
+- **Target file:** ~/clawd/dashboard/
+- **Description:** Show what all Liam sessions are doing in the dashboard. Display active sessions across all agents (Telegram, Discord, etc.) with their current state.
+- **Status:** CANCELLED (2026-01-29)
+- **Resolution:** User requested removal from queue. Feature not needed.
+
+### [2026-01-27-048] Dashboard Subagent Visibility [CANCELLED]
+- **Proposed by:** Simon (via Telegram)
+- **Date:** 2026-01-27
+- **Category:** tools
+- **Target file:** ~/clawd/dashboard/
+- **Description:** Show subagent activity in the dashboard. Display spawned subagents, their tasks, and status.
+- **Status:** CANCELLED (2026-01-29)
+- **Resolution:** User requested removal from queue. Feature not needed.
+

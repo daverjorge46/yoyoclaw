@@ -12,6 +12,7 @@ import { isLoopbackAddress } from "../net.js";
 
 // Connection rate limiter: prevents connection floods
 const connectionRateLimiter = createRateLimiter(WS_CONNECTION_RATE_LIMIT);
+const MAX_CONNECTIONS = 1000; // Global connection limit
 import { getHandshakeTimeoutMs } from "../server-constants.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "../server-methods/types.js";
 import { formatError } from "../server-utils.js";
@@ -91,6 +92,15 @@ export function attachGatewayWsConnectionHandler(params: {
     });
 
     logWs("in", "open", { connId, remoteAddr });
+
+    // Global connection limit check
+    if (clients.size >= MAX_CONNECTIONS) {
+      logGateway.warn(
+        `connection limit exceeded: connId=${connId} remote=${remoteAddr ?? "?"} current=${clients.size} max=${MAX_CONNECTIONS}`,
+      );
+      socket.close(503, "service unavailable: connection limit exceeded");
+      return;
+    }
 
     // Rate limit check: prevent connection floods (skip for loopback)
     const rateLimitKey = remoteAddr ?? "unknown";

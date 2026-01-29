@@ -39,7 +39,21 @@ CREATE TABLE IF NOT EXISTS session_activity (
     updated_at TEXT
 );
 
+-- Agent activity log (real-time observability)
+CREATE TABLE IF NOT EXISTS agent_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT DEFAULT (datetime('now')),
+    run_id TEXT NOT NULL,
+    session_key TEXT,
+    stream TEXT NOT NULL,  -- lifecycle, tool, assistant, error
+    event_type TEXT,       -- start, end, tool_call, result, thinking, etc.
+    summary TEXT,
+    raw_data TEXT          -- JSON blob for full event data
+);
+
 -- Performance indices
 CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_queue_item_id ON queue_snapshots(queue_item_id);
 CREATE INDEX IF NOT EXISTS idx_session_agent ON session_activity(agent_id);
+CREATE INDEX IF NOT EXISTS idx_activity_timestamp ON agent_activity(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_run_id ON agent_activity(run_id);

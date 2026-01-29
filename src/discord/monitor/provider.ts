@@ -174,7 +174,7 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
   });
   const historyLimit = Math.max(
     0,
-    opts.historyLimit ?? discordCfg.historyLimit ?? cfg.messages?.groupChat?.historyLimit ?? 20,
+    opts.historyLimit ?? discordCfg.historyLimit ?? cfg.messages?.groupChat?.historyLimit ?? 10,
   );
   const replyToMode = opts.replyToMode ?? discordCfg.replyToMode ?? "off";
   const dmEnabled = dmConfig?.enabled ?? true;

@@ -119,3 +119,4 @@ Immediate positive feedback:
 - **Heartbeat**: Include coaching check-in prompts
 - **METRICS.md**: Track streaks, achievements, completion rates
 - **Progress files**: Use for multi-step EF support
+- **Sleep Coach**: See [`SLEEP-COACH.md`](SLEEP-COACH.md) — Sleep and EF are deeply connected; coordinate care when sleep issues impact executive function

@@ -190,16 +190,19 @@ describe("runReplyAgent typing (heartbeat)", () => {
       await fs.mkdir(path.dirname(transcriptPath), { recursive: true });
       await fs.writeFile(transcriptPath, "ok", "utf-8");
 
-      runEmbeddedPiAgentMock.mockImplementationOnce(async () => ({
-        payloads: [{ text: "Context overflow: prompt too large", isError: true }],
-        meta: {
-          durationMs: 1,
-          error: {
-            kind: "context_overflow",
-            message: 'Context overflow: Summarization failed: 400 {"message":"prompt is too long"}',
+      // Context overflow now throws FailoverError instead of returning error payload
+      const { FailoverError } = await import("../../agents/failover-error.js");
+      runEmbeddedPiAgentMock.mockImplementationOnce(async () => {
+        throw new FailoverError(
+          'Context overflow: Summarization failed: 400 {"message":"prompt is too long"}',
+          {
+            reason: "timeout",
+            provider: "anthropic",
+            model: "claude-3-5-sonnet-20241022",
+            code: "context_overflow",
           },
-        },
-      }));
+        );
+      });
 
       const { run } = createMinimalRun({
         sessionEntry,

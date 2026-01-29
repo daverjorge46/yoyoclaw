@@ -6,12 +6,19 @@
 // === CONFIGURATION ===
 const REFRESH_INTERVAL = 5000; // 5 seconds
 const CHART_HISTORY = 60; // 60 data points
+const GATEWAY_WS_URL = 'ws://127.0.0.1:18789';
+const MAX_ACTIVITY_ITEMS = 50;
+const WS_RECONNECT_DELAY = 3000;
 
 // === STATE ===
 let currentFilter = 'all';
 let cpuChart = null;
 let memChart = null;
 let energyChart = null;
+let gatewayWs = null;
+let wsReconnectTimer = null;
+let liamStatus = 'idle'; // idle, thinking, executing, error
+let activityItems = [];
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFilterButtons();
     setupKeyboardShortcuts();
     setupCaptureInput();
+    connectActivityStream(); // Connect to gateway WebSocket for live activity
 
     // Auto-refresh
     setInterval(fetchData, REFRESH_INTERVAL);
@@ -465,4 +473,238 @@ function escapeHtml(str) {
               .replace(/>/g, '&gt;')
               .replace(/"/g, '&quot;')
               .replace(/'/g, '&#039;');
+}
+
+// === ACTIVITY STREAM (WebSocket to Gateway) ===
+function connectActivityStream() {
+    if (gatewayWs && gatewayWs.readyState === WebSocket.OPEN) {
+        return; // Already connected
+    }
+
+    updateWsStatus('connecting');
+
+    try {
+        gatewayWs = new WebSocket(GATEWAY_WS_URL);
+
+        gatewayWs.onopen = () => {
+            console.log('[Activity] Connected to gateway WebSocket');
+            updateWsStatus('connected');
+            if (wsReconnectTimer) {
+                clearTimeout(wsReconnectTimer);
+                wsReconnectTimer = null;
+            }
+        };
+
+        gatewayWs.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                handleGatewayMessage(msg);
+            } catch (err) {
+                console.warn('[Activity] Failed to parse message:', err);
+            }
+        };
+
+        gatewayWs.onclose = (event) => {
+            console.log('[Activity] WebSocket closed:', event.code, event.reason);
+            updateWsStatus('disconnected');
+            scheduleReconnect();
+        };
+
+        gatewayWs.onerror = (err) => {
+            console.error('[Activity] WebSocket error:', err);
+            updateWsStatus('error');
+        };
+    } catch (err) {
+        console.error('[Activity] Failed to connect:', err);
+        updateWsStatus('error');
+        scheduleReconnect();
+    }
+}
+
+function scheduleReconnect() {
+    if (wsReconnectTimer) return;
+    wsReconnectTimer = setTimeout(() => {
+        wsReconnectTimer = null;
+        connectActivityStream();
+    }, WS_RECONNECT_DELAY);
+}
+
+function updateWsStatus(status) {
+    const wsStatusEl = document.getElementById('ws-status');
+    if (!wsStatusEl) return;
+
+    const statusMap = {
+        'connecting': { text: 'WS: ...', class: 'ws-connecting' },
+        'connected': { text: 'WS: OK', class: 'ws-connected' },
+        'disconnected': { text: 'WS: OFF', class: 'ws-disconnected' },
+        'error': { text: 'WS: ERR', class: 'ws-error' }
+    };
+
+    const s = statusMap[status] || statusMap['disconnected'];
+    wsStatusEl.textContent = s.text;
+    wsStatusEl.className = `ws-status ${s.class}`;
+}
+
+function handleGatewayMessage(msg) {
+    // Gateway sends messages in format: { type: 'event', event: 'agent', data: {...} }
+    if (!msg || !msg.type) return;
+
+    // Handle agent events
+    if (msg.type === 'event' && msg.event === 'agent') {
+        handleAgentEvent(msg.data);
+    }
+    // Handle chat events (for seeing message flow)
+    else if (msg.type === 'event' && msg.event === 'chat') {
+        handleChatEvent(msg.data);
+    }
+}
+
+function handleAgentEvent(evt) {
+    if (!evt) return;
+
+    const { stream, data, ts, runId, sessionKey } = evt;
+    const timestamp = ts ? new Date(ts).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+    let eventType = stream;
+    let summary = '';
+    let statusClass = 'event-info';
+
+    if (stream === 'lifecycle') {
+        const phase = data?.phase;
+        eventType = phase || 'lifecycle';
+        
+        if (phase === 'start') {
+            summary = 'Starting agent run...';
+            updateLiamStatus('thinking');
+            statusClass = 'event-start';
+        } else if (phase === 'end') {
+            summary = 'Agent run completed';
+            updateLiamStatus('idle');
+            statusClass = 'event-done';
+        } else if (phase === 'error') {
+            summary = data?.errorMessage || 'Error occurred';
+            updateLiamStatus('error');
+            statusClass = 'event-error';
+        } else {
+            summary = phase || 'Unknown phase';
+        }
+    } else if (stream === 'tool') {
+        const toolName = data?.name || data?.tool || 'unknown';
+        const phase = data?.phase;
+        
+        if (phase === 'start' || data?.type === 'call') {
+            eventType = 'TOOL';
+            // Try to get a useful summary from tool input
+            const input = data?.input || data?.args || {};
+            if (toolName.toLowerCase().includes('read')) {
+                summary = `Reading: ${input.path || input.file || '...'}`;
+            } else if (toolName.toLowerCase().includes('shell') || toolName.toLowerCase().includes('bash')) {
+                summary = `Running: ${(input.command || '...').slice(0, 50)}`;
+            } else if (toolName.toLowerCase().includes('grep') || toolName.toLowerCase().includes('search')) {
+                summary = `Searching: ${input.pattern || input.query || '...'}`;
+            } else if (toolName.toLowerCase().includes('write') || toolName.toLowerCase().includes('edit')) {
+                summary = `Writing: ${input.path || input.file || '...'}`;
+            } else {
+                summary = `${toolName}`;
+            }
+            updateLiamStatus('executing');
+            statusClass = 'event-tool';
+        } else if (phase === 'end' || data?.type === 'result') {
+            eventType = 'RESULT';
+            const success = data?.success !== false && !data?.error;
+            summary = success ? 'Tool completed' : `Error: ${data?.error || 'failed'}`;
+            updateLiamStatus('thinking');
+            statusClass = success ? 'event-result' : 'event-error';
+        }
+    } else if (stream === 'assistant') {
+        eventType = 'THINKING';
+        const textLen = (data?.text || '').length;
+        summary = textLen > 0 ? `Generating response (${textLen} chars)...` : 'Thinking...';
+        updateLiamStatus('thinking');
+        statusClass = 'event-thinking';
+    } else if (stream === 'error') {
+        eventType = 'ERROR';
+        summary = data?.message || data?.reason || 'Unknown error';
+        updateLiamStatus('error');
+        statusClass = 'event-error';
+    }
+
+    // Add to activity feed
+    addActivityItem({
+        timestamp,
+        eventType,
+        summary,
+        statusClass,
+        runId: runId?.slice(0, 8),
+        sessionKey: sessionKey?.split(':')[1] || sessionKey?.slice(0, 8)
+    });
+}
+
+function handleChatEvent(evt) {
+    if (!evt) return;
+
+    const { state, sessionKey } = evt;
+    const timestamp = new Date().toLocaleTimeString();
+
+    if (state === 'final') {
+        addActivityItem({
+            timestamp,
+            eventType: 'DONE',
+            summary: 'Response sent',
+            statusClass: 'event-done',
+            sessionKey: sessionKey?.split(':')[1] || sessionKey?.slice(0, 8)
+        });
+        updateLiamStatus('idle');
+    }
+}
+
+function updateLiamStatus(status) {
+    liamStatus = status;
+    const dotEl = document.getElementById('liam-status-dot');
+    const textEl = document.getElementById('liam-status');
+    
+    if (!dotEl || !textEl) return;
+
+    const statusMap = {
+        'idle': { text: 'IDLE', class: 'status-idle' },
+        'thinking': { text: 'THINKING', class: 'status-thinking' },
+        'executing': { text: 'EXECUTING', class: 'status-executing' },
+        'error': { text: 'ERROR', class: 'status-error' }
+    };
+
+    const s = statusMap[status] || statusMap['idle'];
+    textEl.textContent = s.text;
+    dotEl.className = `activity-status-dot ${s.class}`;
+}
+
+function addActivityItem(item) {
+    // Add to front of array
+    activityItems.unshift(item);
+    
+    // Keep only last N items
+    if (activityItems.length > MAX_ACTIVITY_ITEMS) {
+        activityItems = activityItems.slice(0, MAX_ACTIVITY_ITEMS);
+    }
+
+    // Render
+    renderActivityFeed();
+}
+
+function renderActivityFeed() {
+    const feedEl = document.getElementById('activity-feed');
+    if (!feedEl) return;
+
+    if (activityItems.length === 0) {
+        feedEl.innerHTML = '<div class="activity-item empty">Waiting for activity...</div>';
+        return;
+    }
+
+    feedEl.innerHTML = activityItems.map(item => `
+        <div class="activity-item ${item.statusClass}">
+            <span class="activity-time">${escapeHtml(item.timestamp)}</span>
+            <span class="activity-type">[${escapeHtml(item.eventType)}]</span>
+            <span class="activity-summary">${escapeHtml(item.summary)}</span>
+            ${item.sessionKey ? `<span class="activity-session">${escapeHtml(item.sessionKey)}</span>` : ''}
+        </div>
+    `).join('');
 }

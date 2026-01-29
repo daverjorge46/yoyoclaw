@@ -45,7 +45,8 @@ export const registerTelegramHandlers = ({
   const TELEGRAM_TEXT_FRAGMENT_MAX_TOTAL_CHARS = 50_000;
 
   const mediaGroupBuffer = new Map<string, MediaGroupEntry>();
-  let mediaGroupProcessing: Promise<void> = Promise.resolve();
+  // Track active media group processing operations (for logging/monitoring only)
+  const activeMediaGroupOps = new Set<string>();
 
   type TextFragmentEntry = {
     key: string;
@@ -53,7 +54,47 @@ export const registerTelegramHandlers = ({
     timer: ReturnType<typeof setTimeout>;
   };
   const textFragmentBuffer = new Map<string, TextFragmentEntry>();
-  let textFragmentProcessing: Promise<void> = Promise.resolve();
+  // Track active text fragment processing operations (for logging/monitoring only)
+  const activeTextFragmentOps = new Set<string>();
+
+  const TEXT_FRAGMENT_FLUSH_TIMEOUT_MS = 30_000; // 30 seconds
+  const MEDIA_GROUP_FLUSH_TIMEOUT_MS = 60_000; // 60 seconds
+
+  /**
+   * Wrapper for buffer flush operations with timeout and non-blocking execution.
+   * Prevents promise chain blocking by using fire-and-forget pattern.
+   */
+  const safeFlushWithTimeout = async <T>(opts: {
+    operationId: string;
+    activeOps: Set<string>;
+    timeoutMs: number;
+    operation: () => Promise<T>;
+    operationName: string;
+  }): Promise<void> => {
+    const { operationId, activeOps, timeoutMs, operation, operationName } = opts;
+
+    if (activeOps.has(operationId)) {
+      // Already processing this operation, skip duplicate
+      return;
+    }
+
+    activeOps.add(operationId);
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error(`${operationName} timeout after ${timeoutMs}ms`)),
+          timeoutMs,
+        );
+      });
+
+      await Promise.race([operation(), timeoutPromise]);
+    } catch (err) {
+      runtime.error?.(danger(`${operationName} failed (id=${operationId}): ${String(err)}`));
+    } finally {
+      activeOps.delete(operationId);
+    }
+  };
 
   const debounceMs = resolveInboundDebounceMs({ cfg, channel: "telegram" });
   type TelegramDebounceEntry = {
@@ -178,14 +219,16 @@ export const registerTelegramHandlers = ({
 
   const scheduleTextFragmentFlush = (entry: TextFragmentEntry) => {
     clearTimeout(entry.timer);
-    entry.timer = setTimeout(async () => {
+    entry.timer = setTimeout(() => {
       textFragmentBuffer.delete(entry.key);
-      textFragmentProcessing = textFragmentProcessing
-        .then(async () => {
-          await flushTextFragments(entry);
-        })
-        .catch(() => undefined);
-      await textFragmentProcessing;
+      // Fire-and-forget with timeout guard - doesn't block other operations
+      void safeFlushWithTimeout({
+        operationId: entry.key,
+        activeOps: activeTextFragmentOps,
+        timeoutMs: TEXT_FRAGMENT_FLUSH_TIMEOUT_MS,
+        operation: () => flushTextFragments(entry),
+        operationName: "text fragment flush",
+      });
     }, TELEGRAM_TEXT_FRAGMENT_MAX_GAP_MS);
   };
 
@@ -574,12 +617,14 @@ export const registerTelegramHandlers = ({
           // Not appendable (or limits exceeded): flush buffered entry first, then continue normally.
           clearTimeout(existing.timer);
           textFragmentBuffer.delete(key);
-          textFragmentProcessing = textFragmentProcessing
-            .then(async () => {
-              await flushTextFragments(existing);
-            })
-            .catch(() => undefined);
-          await textFragmentProcessing;
+          // Fire-and-forget with timeout guard - doesn't block other operations
+          void safeFlushWithTimeout({
+            operationId: key,
+            activeOps: activeTextFragmentOps,
+            timeoutMs: TEXT_FRAGMENT_FLUSH_TIMEOUT_MS,
+            operation: () => flushTextFragments(existing),
+            operationName: "text fragment flush",
+          });
         }
 
         const shouldStart = text.length >= TELEGRAM_TEXT_FRAGMENT_START_THRESHOLD_CHARS;
@@ -602,26 +647,30 @@ export const registerTelegramHandlers = ({
         if (existing) {
           clearTimeout(existing.timer);
           existing.messages.push({ msg, ctx });
-          existing.timer = setTimeout(async () => {
+          existing.timer = setTimeout(() => {
             mediaGroupBuffer.delete(mediaGroupId);
-            mediaGroupProcessing = mediaGroupProcessing
-              .then(async () => {
-                await processMediaGroup(existing);
-              })
-              .catch(() => undefined);
-            await mediaGroupProcessing;
+            // Fire-and-forget with timeout guard - doesn't block other operations
+            void safeFlushWithTimeout({
+              operationId: mediaGroupId,
+              activeOps: activeMediaGroupOps,
+              timeoutMs: MEDIA_GROUP_FLUSH_TIMEOUT_MS,
+              operation: () => processMediaGroup(existing),
+              operationName: "media group processing",
+            });
           }, MEDIA_GROUP_TIMEOUT_MS);
         } else {
           const entry: MediaGroupEntry = {
             messages: [{ msg, ctx }],
-            timer: setTimeout(async () => {
+            timer: setTimeout(() => {
               mediaGroupBuffer.delete(mediaGroupId);
-              mediaGroupProcessing = mediaGroupProcessing
-                .then(async () => {
-                  await processMediaGroup(entry);
-                })
-                .catch(() => undefined);
-              await mediaGroupProcessing;
+              // Fire-and-forget with timeout guard - doesn't block other operations
+              void safeFlushWithTimeout({
+                operationId: mediaGroupId,
+                activeOps: activeMediaGroupOps,
+                timeoutMs: MEDIA_GROUP_FLUSH_TIMEOUT_MS,
+                operation: () => processMediaGroup(entry),
+                operationName: "media group processing",
+              });
             }, MEDIA_GROUP_TIMEOUT_MS),
           };
           mediaGroupBuffer.set(mediaGroupId, entry);

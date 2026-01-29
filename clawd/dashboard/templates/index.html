@@ -51,6 +51,23 @@
             </div>
         </section>
 
+        <!-- LIAM ACTIVITY PANEL -->
+        <section class="activity-panel">
+            <h2>
+                LIAM ACTIVITY
+                <span class="activity-status-wrapper">
+                    <span class="activity-status-dot" id="liam-status-dot"></span>
+                    <span class="activity-status-text" id="liam-status">IDLE</span>
+                </span>
+                <span class="ws-status" id="ws-status" title="WebSocket connection status">WS: --</span>
+            </h2>
+            <div class="activity-feed-container">
+                <div class="activity-feed" id="activity-feed" aria-live="polite">
+                    <div class="activity-item empty">Connecting to gateway...</div>
+                </div>
+            </div>
+        </section>
+
         <!-- TWO COLUMN LAYOUT -->
         <div class="columns">
             <!-- LEFT: SESSIONS + SUBAGENTS -->

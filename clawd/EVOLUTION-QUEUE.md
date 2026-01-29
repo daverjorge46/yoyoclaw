@@ -59,33 +59,6 @@ Items with these statuses must be moved to `EVOLUTION-QUEUE-ARCHIVE.md`:
 - **Description:** Revert debug mode frequencies to normal after 2-week dev period. Actions: disable Evening-Self-Audit + Model-Health-Check cron jobs, revert self-evaluation/Queue-Cleanup to Sunday only.
 - **Status:** SCHEDULED
 
-### [2026-01-27-046] Dashboard Chat Window
-- **Proposed by:** Simon (via Telegram)
-- **Date:** 2026-01-27
-- **Category:** tools
-- **Target file:** ~/clawd/dashboard/
-- **Description:** Add a chat window to the dashboard that allows chatting with Liam directly from the web interface.
-- **Impact:** High - Direct interaction without switching to Telegram/Discord
-- **Status:** PENDING
-
-### [2026-01-27-047] Dashboard Session Visibility
-- **Proposed by:** Simon (via Telegram)
-- **Date:** 2026-01-27
-- **Category:** tools
-- **Target file:** ~/clawd/dashboard/
-- **Description:** Show what all Liam sessions are doing in the dashboard. Display active sessions across all agents (Telegram, Discord, etc.) with their current state.
-- **Impact:** Medium - Visibility into agent activity
-- **Status:** PENDING
-
-### [2026-01-27-048] Dashboard Subagent Visibility
-- **Proposed by:** Simon (via Telegram)
-- **Date:** 2026-01-27
-- **Category:** tools
-- **Target file:** ~/clawd/dashboard/
-- **Description:** Show subagent activity in the dashboard. Display spawned subagents, their tasks, and status.
-- **Impact:** Medium - Visibility into subagent orchestration
-- **Status:** PENDING
-
 ---
 
 ## In Progress

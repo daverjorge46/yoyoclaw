@@ -55,6 +55,26 @@ import { describeUnknownError } from "./utils.js";
 
 type ApiKeyInfo = ResolvedProviderAuth;
 
+// Pre-flight context check constants
+const PREFLIGHT_CONTEXT_THRESHOLD_RATIO = 0.75; // Trigger at 75% of context window
+const CHARS_PER_TOKEN_ESTIMATE = 4; // Conservative estimate
+
+/**
+ * Estimate tokens in a session file by reading the file and counting characters.
+ * Returns 0 if the file doesn't exist or can't be read.
+ */
+async function estimateSessionTokens(sessionFile: string | undefined): Promise<number> {
+  if (!sessionFile) return 0;
+  try {
+    const content = await fs.readFile(sessionFile, "utf-8");
+    // Each line is a JSON object; estimate total characters
+    return Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE);
+  } catch {
+    // File doesn't exist or can't be read - return 0
+    return 0;
+  }
+}
+
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
 const ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)";
@@ -305,6 +325,45 @@ export async function runEmbeddedPiAgent(
       }
 
       let overflowCompactionAttempted = false;
+
+      // Pre-flight context check: trigger compaction early if session is getting large
+      const preflightContextThreshold = Math.floor(
+        ctxInfo.tokens * PREFLIGHT_CONTEXT_THRESHOLD_RATIO,
+      );
+      const estimatedSessionTokens = await estimateSessionTokens(params.sessionFile);
+      if (estimatedSessionTokens > preflightContextThreshold) {
+        log.warn(
+          `pre-flight context check: session has ~${estimatedSessionTokens} tokens, threshold ${preflightContextThreshold} (${Math.round(PREFLIGHT_CONTEXT_THRESHOLD_RATIO * 100)}% of ${ctxInfo.tokens}); triggering pre-emptive compaction`,
+        );
+        const preflightCompactResult = await compactEmbeddedPiSessionDirect({
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          messageChannel: params.messageChannel,
+          messageProvider: params.messageProvider,
+          agentAccountId: params.agentAccountId,
+          authProfileId: undefined,
+          sessionFile: params.sessionFile,
+          workspaceDir: params.workspaceDir,
+          agentDir,
+          config: params.config,
+          skillsSnapshot: params.skillsSnapshot,
+          provider,
+          model: modelId,
+          thinkLevel: params.thinkLevel ?? "off",
+          reasoningLevel: params.reasoningLevel,
+          bashElevated: params.bashElevated,
+          extraSystemPrompt: params.extraSystemPrompt,
+          ownerNumbers: params.ownerNumbers,
+        });
+        if (preflightCompactResult.compacted) {
+          log.info(`pre-flight compaction succeeded; reduced session size before prompt`);
+        } else {
+          log.warn(
+            `pre-flight compaction skipped: ${preflightCompactResult.reason ?? "nothing to compact"}`,
+          );
+        }
+      }
+
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
@@ -413,26 +472,16 @@ export async function runEmbeddedPiAgent(
                 );
               }
               const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
-              return {
-                payloads: [
-                  {
-                    text:
-                      "Context overflow: prompt too large for the model. " +
-                      "Try again with less input or a larger-context model.",
-                    isError: true,
-                  },
-                ],
-                meta: {
-                  durationMs: Date.now() - started,
-                  agentMeta: {
-                    sessionId: sessionIdUsed,
-                    provider,
-                    model: model.id,
-                  },
-                  systemPromptReport: attempt.systemPromptReport,
-                  error: { kind, message: errorText },
-                },
-              };
+              // Throw FailoverError to allow fallback to larger-context models
+              // If no fallbacks are configured, the higher-level error handler will
+              // return an appropriate error payload and reset the session
+              throw new FailoverError(errorText, {
+                reason: "timeout", // Context overflow classified as timeout for fallback purposes
+                provider,
+                model: modelId,
+                status: undefined,
+                code: kind,
+              });
             }
             // Handle role ordering errors with a user-friendly message
             if (/incorrect role information|roles must alternate/i.test(errorText)) {

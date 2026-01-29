@@ -422,11 +422,15 @@ export async function runAgentTurnWithFallback(params: {
       fallbackProvider = fallbackResult.provider;
       fallbackModel = fallbackResult.model;
 
-      // Some embedded runs surface context overflow as an error payload instead of throwing.
-      // Treat those as a session-level failure and auto-recover by starting a fresh session.
+      // Context overflow now throws FailoverError (not returned as error payload).
+      // This allows runWithModelFallback to try larger-context models before session reset.
+      // If all fallbacks fail, the error is caught below and the session is reset.
+      // This block is kept for backward compatibility with any other error payload patterns.
       const embeddedError = runResult.meta?.error;
       if (
         embeddedError &&
+        embeddedError.kind !== "context_overflow" &&
+        embeddedError.kind !== "compaction_failure" &&
         isContextOverflowError(embeddedError.message) &&
         !didResetAfterCompactionFailure &&
         (await params.resetSessionAfterCompactionFailure(embeddedError.message))

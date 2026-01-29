@@ -712,6 +712,32 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             health = get_queue_health()
             self.send_json(health)
 
+        elif path == '/api/activity/recent':
+            # Recent agent activity from database
+            conn = get_db()
+            rows = conn.execute('''
+                SELECT timestamp, run_id, session_key, stream, event_type, summary
+                FROM agent_activity
+                ORDER BY timestamp DESC
+                LIMIT 50
+            ''').fetchall()
+            data = [
+                {
+                    'timestamp': row['timestamp'],
+                    'run_id': row['run_id'],
+                    'session_key': row['session_key'],
+                    'stream': row['stream'],
+                    'event_type': row['event_type'],
+                    'summary': row['summary']
+                }
+                for row in rows
+            ]
+            self.send_json(data)
+
+        elif path == '/api/gateway-ws-url':
+            # Return the gateway WebSocket URL for direct connection
+            self.send_json({'url': 'ws://127.0.0.1:18789'})
+
         # === EF COACH API ===
         elif path == '/api/ef-coach/suggestions':
             suggestion = get_ef_coach_suggestion()

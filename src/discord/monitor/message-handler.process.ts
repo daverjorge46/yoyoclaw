@@ -169,10 +169,28 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
   const shouldIncludeChannelHistory =
     !isDirectMessage && !(isGuildMessage && channelConfig?.autoThread && !threadChannel);
   if (shouldIncludeChannelHistory) {
+    // Dynamic history reduction to prevent context overflow
+    const DISCORD_HISTORY_TOKEN_BUDGET = 4000; // Max tokens for history
+    const CHARS_PER_TOKEN_ESTIMATE = 4; // Conservative estimate
+
+    // Estimate tokens for current message (current message is priority, history is optional)
+    const currentMessageTokens = Math.ceil(combinedBody.length / CHARS_PER_TOKEN_ESTIMATE);
+    const remainingTokenBudget = Math.max(0, DISCORD_HISTORY_TOKEN_BUDGET - currentMessageTokens);
+
+    // Dynamically reduce history limit if current message is already large
+    let adjustedHistoryLimit = historyLimit;
+    if (remainingTokenBudget < DISCORD_HISTORY_TOKEN_BUDGET * 0.5) {
+      // If current message uses >50% of budget, reduce history aggressively
+      adjustedHistoryLimit = Math.min(historyLimit, 5);
+    } else if (remainingTokenBudget < DISCORD_HISTORY_TOKEN_BUDGET * 0.75) {
+      // If current message uses >25% of budget, reduce history moderately
+      adjustedHistoryLimit = Math.min(historyLimit, 7);
+    }
+
     combinedBody = buildPendingHistoryContextFromMap({
       historyMap: guildHistories,
       historyKey: message.channelId,
-      limit: historyLimit,
+      limit: adjustedHistoryLimit,
       currentMessage: combinedBody,
       formatEntry: (entry) =>
         formatInboundEnvelope({

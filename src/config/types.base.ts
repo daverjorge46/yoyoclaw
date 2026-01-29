@@ -97,6 +97,19 @@ export type SessionConfig = {
     /** Max ping-pong turns between requester/target (0–5). Default: 5. */
     maxPingPongTurns?: number;
   };
+  /** Automatic session garbage collection. */
+  cleanup?: {
+    /** Enable automatic session cleanup. Default: true. */
+    enabled?: boolean;
+    /** Delete sessions older than this many days. Default: 7. */
+    maxAgeDays?: number;
+    /** Always keep at least this many sessions per agent (safety net). Default: 5. */
+    keepMinSessions?: number;
+    /** Run GC every N minutes. Default: 60. */
+    runIntervalMinutes?: number;
+    /** Also delete orphaned transcript (.jsonl) files. Default: true. */
+    cleanTranscripts?: boolean;
+  };
 };
 
 export type LoggingConfig = {

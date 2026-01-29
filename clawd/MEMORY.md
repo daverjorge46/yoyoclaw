@@ -158,6 +158,19 @@ Before any coding task, I automatically load relevant APEX skills from `~/clawd/
 
 ---
 
+### Sleep Coach Training (Jan 29, 2026, 4:45 AM)
+- Researched and trained on CBT-I (Cognitive Behavioral Therapy for Insomnia)
+- CBT-I is first-line treatment for chronic insomnia (American College of Physicians 2016)
+- Key components: Sleep Restriction Therapy, Stimulus Control, Cognitive Therapy, Sleep Hygiene
+- Created comprehensive `SLEEP-COACH.md` with full protocol
+- Created `SLEEP-COACH-QUICKREF.md` for day-to-day reference
+- Updated `EF-COACH.md` to reference Sleep Coach integration
+- Sleep and EF are deeply connected — poor sleep → poor executive function
+- Can guide through 8-week CBT-I protocol if Simon wants to address insomnia
+- Know when to refer out: sleep apnea symptoms, severe mental illness, circadian rhythm disorders
+
+---
+
 ## Notes for Future Simon
 
 *(Anything I should tell future-you)*

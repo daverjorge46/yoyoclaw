@@ -1,5 +1,9 @@
 # Troubleshooting Liam
 
+> **For complex issues** (Telegram stalling, Discord context overflow, session accumulation, gateway instability): See the comprehensive guide at [`diagnostics/SYSTEMS-DIAGNOSTIC-GUIDE.md`](./diagnostics/SYSTEMS-DIAGNOSTIC-GUIDE.md)
+
+---
+
 ## Liam Not Responding
 
 1. Check gateway status:

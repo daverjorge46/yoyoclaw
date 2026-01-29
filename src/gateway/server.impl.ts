@@ -408,6 +408,19 @@ export async function startGatewayServer(
 
   let heartbeatRunner = startHeartbeatRunner({ cfg: cfgAtStart });
 
+  // Start session garbage collection
+  const { startSessionGCTask, resolveSessionGCConfig } = await import("../config/sessions/gc.js");
+  const sessionGCConfig = resolveSessionGCConfig(cfgAtStart.session?.cleanup);
+  const stopSessionGC = startSessionGCTask(sessionGCConfig);
+
+  // Start lane cleanup task to prevent memory leaks
+  const { startLaneCleanupTask } = await import("../process/command-queue.js");
+  const stopLaneCleanup = startLaneCleanupTask();
+
+  // Start system events cleanup task to prevent memory leaks
+  const { startSystemEventsCleanupTask } = await import("../infra/system-events.js");
+  const stopSystemEventsCleanup = startSystemEventsCleanupTask();
+
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
 
   const execApprovalManager = new ExecApprovalManager();
@@ -553,6 +566,9 @@ export async function startGatewayServer(
     pluginServices,
     cron,
     heartbeatRunner,
+    stopSessionGC,
+    stopLaneCleanup,
+    stopSystemEventsCleanup,
     nodePresenceTimers,
     broadcast,
     tickInterval,
