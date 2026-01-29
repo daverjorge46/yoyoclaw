@@ -60,6 +60,10 @@ import {
   detectDangerousCommand,
   formatDangerousCommandError,
 } from "../security/dangerous-commands.js";
+import {
+  logDangerousCommandBlocked,
+  logExecRun,
+} from "../security/audit-log.js";
 
 const DEFAULT_MAX_OUTPUT = clampNumber(
   readEnvInt("PI_BASH_MAX_OUTPUT_CHARS"),
@@ -357,9 +361,21 @@ async function runExecProcess(opts: {
   notifyOnExit: boolean;
   scopeKey?: string;
   sessionKey?: string;
+  agentId?: string;
+  elevated?: boolean;
   timeoutSec: number;
   onUpdate?: (partialResult: AgentToolResult<ExecToolDetails>) => void;
 }): Promise<ExecProcessHandle> {
+  // SECURITY: Audit log the command execution
+  logExecRun({
+    sessionKey: opts.sessionKey,
+    agentId: opts.agentId,
+    command: opts.command,
+    host: opts.sandbox ? "sandbox" : "gateway",
+    elevated: opts.elevated,
+    workdir: opts.workdir,
+  });
+
   const startedAt = Date.now();
   const sessionId = createSessionSlug();
   let child: ChildProcessWithoutNullStreams | null = null;
@@ -762,6 +778,13 @@ export function createExecTool(
       // SECURITY: Check for dangerous command patterns before any execution
       const dangerousMatch = detectDangerousCommand(params.command, "high");
       if (dangerousMatch) {
+        logDangerousCommandBlocked({
+          sessionKey: defaults?.sessionKey,
+          agentId,
+          command: params.command,
+          reason: dangerousMatch.reason,
+          severity: dangerousMatch.severity,
+        });
         throw new Error(formatDangerousCommandError(dangerousMatch));
       }
 
