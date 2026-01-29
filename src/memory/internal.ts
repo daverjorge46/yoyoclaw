@@ -3,6 +3,8 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { tokenizeMixed, hasChinese } from "./tokenizer-zh.js";
+
 export type MemoryFileEntry = {
   path: string;
   absPath: string;
@@ -238,4 +240,28 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   }
   if (normA === 0 || normB === 0) return 0;
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+/**
+ * 预处理文本用于 FTS 索引
+ * 对中文文本进行分词，对英文/数字保持原样
+ */
+export function preprocessTextForFts(text: string): string {
+  if (!text || typeof text !== "string") {
+    return "";
+  }
+
+  // 如果不包含中文，直接返回原文本
+  if (!hasChinese(text)) {
+    return text;
+  }
+
+  // 对混合文本进行分词
+  const tokens = tokenizeMixed(text);
+  if (tokens.length === 0) {
+    return text;
+  }
+
+  // 返回分词后的文本，用空格连接
+  return tokens.join(" ");
 }

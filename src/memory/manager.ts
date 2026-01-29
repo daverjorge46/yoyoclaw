@@ -37,6 +37,7 @@ import {
   isMemoryPath,
   listMemoryFiles,
   normalizeExtraMemoryPaths,
+  preprocessTextForFts,
   type MemoryChunk,
   type MemoryFileEntry,
   parseEmbedding,
@@ -2202,13 +2203,15 @@ export class MemoryIndexManager {
           .run(id, vectorToBlob(embedding));
       }
       if (this.fts.enabled && this.fts.available) {
+        // 预处理中文文本用于 FTS 索引
+        const ftsText = preprocessTextForFts(chunk.text);
         this.db
           .prepare(
             `INSERT INTO ${FTS_TABLE} (text, id, path, source, model, start_line, end_line)\n` +
               ` VALUES (?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
-            chunk.text,
+            ftsText,
             id,
             entry.path,
             options.source,

@@ -1,3 +1,5 @@
+import { hasChinese, tokenizeMixed } from "./tokenizer-zh.js";
+
 export type HybridSource = string;
 
 export type HybridVectorResult = {
@@ -21,13 +23,30 @@ export type HybridKeywordResult = {
 };
 
 export function buildFtsQuery(raw: string): string | null {
-  const tokens =
-    raw
-      .match(/[A-Za-z0-9_]+/g)
-      ?.map((t) => t.trim())
-      .filter(Boolean) ?? [];
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  let tokens: string[];
+
+  if (hasChinese(trimmed)) {
+    // 中文文本使用中文分词
+    tokens = tokenizeMixed(trimmed);
+  } else {
+    // 英文/数字文本使用原有的正则提取
+    tokens =
+      trimmed
+        .match(/[A-Za-z0-9_]+/g)
+        ?.map((t) => t.trim())
+        .filter(Boolean) ?? [];
+  }
+
   if (tokens.length === 0) return null;
-  const quoted = tokens.map((t) => `"${t.replaceAll('"', "")}"`);
+
+  // 去重并保持顺序
+  const uniqueTokens = [...new Set(tokens)];
+
+  const quoted = uniqueTokens.map((t) => `"${t.replaceAll('"', "")}"`);
   return quoted.join(" AND ");
 }
 

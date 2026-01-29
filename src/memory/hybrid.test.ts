@@ -9,6 +9,33 @@ describe("memory hybrid helpers", () => {
     expect(buildFtsQuery("   ")).toBeNull();
   });
 
+  it("buildFtsQuery handles Chinese text with tokenization", () => {
+    // 纯中文测试 - 分词后应有多个 token
+    const result = buildFtsQuery("你好世界");
+    // 分词结果不应为 null
+    expect(result).not.toBeNull();
+    // 如果有中文分词结果，应该包含 AND
+    if (result) {
+      expect(result).toContain("AND");
+    }
+  });
+
+  it("buildFtsQuery handles mixed Chinese and English text", () => {
+    const mixedResult = buildFtsQuery("你好 hello world 世界");
+    expect(mixedResult).not.toBeNull();
+    expect(mixedResult).toContain("AND");
+    expect(mixedResult).toContain('"hello"');
+    expect(mixedResult).toContain('"world"');
+  });
+
+  it("buildFtsQuery deduplicates tokens", () => {
+    const result = buildFtsQuery("hello hello world");
+    expect(result).not.toBeNull();
+    // "hello" should only appear once
+    const helloCount = (result!.match(/"hello"/g) || []).length;
+    expect(helloCount).toBe(1);
+  });
+
   it("bm25RankToScore is monotonic and clamped", () => {
     expect(bm25RankToScore(0)).toBeCloseTo(1);
     expect(bm25RankToScore(1)).toBeCloseTo(0.5);
