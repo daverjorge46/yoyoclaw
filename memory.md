@@ -77,6 +77,36 @@ Note: Some references to "clawdbot" remain in older code/docs during transition.
 - **Vikunja project**: ID 6
 - **Aesthetic**: Elegant, minimal, gallery-like
 - **Legal**: Style-inspired only, no copyright infringement
+- **Gallery images**: 6 AI-generated pieces via Gemini (Nano Banana Pro)
+- **SEO**: Full meta tags, Schema.org, sitemap.xml, robots.txt ✓
+
+## Incubation Workflow Checklist
+
+Standard steps for new DBH Ventures projects:
+
+### Foundation
+1. **Domain**: Purchase via GoDaddy, point to Vercel
+2. **Email**: `purelymail-admin.py setup-project <domain>` (creates noreply + hello)
+3. **DNS**: Configure MX, SPF, DKIM, DMARC for email
+4. **Vercel**: Create project, link domain
+5. **Vikunja**: Clone from template (ID 3)
+
+### SEO (do at launch)
+1. **Meta tags**: Title, description, keywords, Open Graph, Twitter Cards
+2. **Schema.org**: Structured data for business type
+3. **sitemap.xml**: Include all pages + images with captions
+4. **robots.txt**: Allow all, reference sitemap
+5. **Google Search Console**: Verify via HTML meta tag, submit sitemap
+6. **Colors**: Use coolors.co - avoid AI gradient clichés (no pink-purple-blue)
+
+### Commands
+```bash
+# Email setup
+uv run skills/purelymail/scripts/purelymail-admin.py setup-project example.com
+
+# Image generation (Hockney-style example)
+uv run skills/nano-banana-pro/scripts/generate_image.py --prompt "..." --filename output.png --resolution 2K
+```
 
 ## SaveState — LAUNCHED Jan 27, 2026 🚀
 
