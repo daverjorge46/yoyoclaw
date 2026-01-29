@@ -3,6 +3,7 @@ import type { ModelCatalogEntry } from "./model-catalog.js";
 import { normalizeGoogleModelId } from "./models-config.providers.js";
 import { resolveAgentModelPrimary } from "./agent-scope.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
+import { resolveModelForAgentWithTaskRouting, type TaskType } from "./task-type-router.js";
 
 export type ModelRef = {
   provider: string;
@@ -156,6 +157,7 @@ export function resolveConfiguredModelRef(params: {
 export function resolveDefaultModelForAgent(params: {
   cfg: MoltbotConfig;
   agentId?: string;
+  userMessage?: string;
 }): ModelRef {
   const agentModelOverride = params.agentId
     ? resolveAgentModelPrimary(params.cfg, params.agentId)
@@ -178,10 +180,20 @@ export function resolveDefaultModelForAgent(params: {
           },
         }
       : params.cfg;
-  return resolveConfiguredModelRef({
+
+  // Get the default model using original logic
+  const defaultModelRef = resolveConfiguredModelRef({
     cfg,
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
+  });
+
+  // Apply task-type routing if user message is provided
+  return resolveModelForAgentWithTaskRouting({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    userMessage: params.userMessage,
+    defaultModelRef,
   });
 }
 

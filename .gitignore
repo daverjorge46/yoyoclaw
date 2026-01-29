@@ -71,3 +71,70 @@ USER.md
 
 # local tooling
 .serena/
+
+# ===== CUSTOM SECURITY ADDITIONS =====
+
+# Sensitive Configuration & Secrets (NEVER commit these!)
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+ecosystem.config.cjs
+ecosystem.config.js
+
+# API Keys & Credentials
+**/auth-profiles.json
+**/credentials/
+**/secrets/
+**/*-credentials.json
+**/*-apikey*
+**/*-secret*
+
+# System Service Files (local deployment only)
+/etc/systemd/system/moltbot-gateway.service
+
+# Runtime & Log Files
+/var/log/moltbot-gateway.log
+**/moltbot-*.log
+**/pm2-*.log
+/tmp/moltbot/
+/tmp/moltbot-gateway.log
+**/logs/
+**/log/
+*.log
+
+# Test & Validation Files (created during dev)
+test-task-router*.js
+verify-task-router.js
+**/*.test.js
+**/*.spec.js
+test-results/
+test-output/
+
+# Global Skills & Plugins (large, auto-generated)
+skills/global-shared/
+skills/global-skills/
+
+# OS & IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Package Manager Locks (use source control for dependency pinning)
+pnpm-lock.yaml
+bun.lock
+bun.lockb
+package-lock.json
+
+# Node/Build
+dist/
+node_modules/
+build/
+.cache/
+*.bun-build

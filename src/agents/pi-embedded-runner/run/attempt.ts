@@ -305,6 +305,7 @@ export async function runEmbeddedAttempt(
     const defaultModelRef = resolveDefaultModelForAgent({
       cfg: params.config ?? {},
       agentId: sessionAgentId,
+      userMessage: params.prompt,
     });
     const defaultModelLabel = `${defaultModelRef.provider}/${defaultModelRef.model}`;
     const { runtimeInfo, userTimezone, userTime, userTimeFormat } = buildSystemPromptParams({
