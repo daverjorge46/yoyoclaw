@@ -274,17 +274,21 @@ type ExecApprovalsState = {
 
 const EXEC_APPROVALS_DEFAULT_SCOPE = "__defaults__";
 
-const SECURITY_OPTIONS: Array<{ value: ExecSecurity; label: string }> = [
-  { value: "deny", label: "Deny" },
-  { value: "allowlist", label: "Allowlist" },
-  { value: "full", label: "Full" },
-];
+function getSecurityOptions(): Array<{ value: ExecSecurity; label: string }> {
+  return [
+    { value: "deny", label: t("nodes.approvals.deny") },
+    { value: "allowlist", label: t("nodes.approvals.allowlist") },
+    { value: "full", label: t("nodes.approvals.full") },
+  ];
+}
 
-const ASK_OPTIONS: Array<{ value: ExecAsk; label: string }> = [
-  { value: "off", label: "Off" },
-  { value: "on-miss", label: "On miss" },
-  { value: "always", label: "Always" },
-];
+function getAskOptions(): Array<{ value: ExecAsk; label: string }> {
+  return [
+    { value: "off", label: t("nodes.approvals.off") },
+    { value: "on-miss", label: t("nodes.approvals.onMiss") },
+    { value: "always", label: t("nodes.approvals.always") },
+  ];
+}
 
 function resolveBindingsState(props: NodesProps): BindingState {
   const config = props.configForm;
@@ -696,7 +700,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
                     Use default (${defaults.security})
                   </option>`
                 : nothing}
-              ${SECURITY_OPTIONS.map(
+              ${getSecurityOptions().map(
                 (option) =>
                   html`<option
                     value=${option.value}
@@ -737,7 +741,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
                     Use default (${defaults.ask})
                   </option>`
                 : nothing}
-              ${ASK_OPTIONS.map(
+              ${getAskOptions().map(
                 (option) =>
                   html`<option
                     value=${option.value}
@@ -780,7 +784,7 @@ function renderExecApprovalsPolicy(state: ExecApprovalsState) {
                     Use default (${defaults.askFallback})
                   </option>`
                 : nothing}
-              ${SECURITY_OPTIONS.map(
+              ${getSecurityOptions().map(
                 (option) =>
                   html`<option
                     value=${option.value}
@@ -878,7 +882,7 @@ function renderAllowlistEntry(
   return html`
     <div class="list-item">
       <div class="list-main">
-        <div class="list-title">${entry.pattern?.trim() ? entry.pattern : "New pattern"}</div>
+        <div class="list-title">${entry.pattern?.trim() ? entry.pattern : t("nodes.approvals.newPattern")}</div>
         <div class="list-sub">Last used: ${lastUsed}</div>
         ${lastCommand ? html`<div class="list-sub mono">${lastCommand}</div>` : nothing}
         ${lastPath ? html`<div class="list-sub mono">${lastPath}</div>` : nothing}

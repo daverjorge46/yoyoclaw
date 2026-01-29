@@ -36,11 +36,13 @@ export type SessionsProps = {
 
 const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high"] as const;
 const BINARY_THINK_LEVELS = ["", "off", "on"] as const;
-const VERBOSE_LEVELS = [
-  { value: "", label: "inherit" },
-  { value: "off", label: "off (explicit)" },
-  { value: "on", label: "on" },
-] as const;
+function getVerboseLevels() {
+  return [
+    { value: "", label: t("common.inherit") },
+    { value: "off", label: t("sessions.levels.offExplicit") },
+    { value: "on", label: t("sessions.levels.on") },
+  ] as const;
+}
 const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
 
 function normalizeProviderId(provider?: string | null): string {
@@ -236,7 +238,7 @@ function renderRow(
             onPatch(row.key, { verboseLevel: value || null });
           }}
         >
-          ${VERBOSE_LEVELS.map(
+          ${getVerboseLevels().map(
             (level) => html`<option value=${level.value}>${level.label}</option>`,
           )}
         </select>

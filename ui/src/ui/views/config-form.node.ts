@@ -1,4 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
+
+import { t } from "../../i18n";
 import type { ConfigUiHints } from "../types";
 import {
   defaultValue,
@@ -533,7 +535,7 @@ function renderArray(params: {
                 <button
                   type="button"
                   class="cfg-array__item-remove"
-                  title="Remove item"
+                  title="${t("config.removeItem")}"
                   ?disabled=${disabled}
                   @click=${() => {
                     const next = [...arr];
@@ -668,7 +670,7 @@ function renderMapField(params: {
                 <button
                   type="button"
                   class="cfg-map__item-remove"
-                  title="Remove entry"
+                  title="${t("config.removeEntry")}"
                   ?disabled=${disabled}
                   @click=${() => {
                     const next = { ...(value ?? {}) };
