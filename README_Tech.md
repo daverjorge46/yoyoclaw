@@ -211,6 +211,63 @@ sudo apt-get install -y nodejs
 
 ---
 
+### 7. **Gateway Crash Loop & Inotify Exhaustion** (Jan 29, 2026)
+
+**Problem:** Gateway hung/became unresponsive. Systemd crashed 1203+ times. Telegram bot stopped responding.
+
+**Symptoms:**
+- `Port 18789 is already in use` (but port handler didn't properly clean up)
+- `Gateway failed to start: gateway already running (pid 618450); lock timeout after 5000ms`
+- Lock files stale/not released
+
+**Root Cause:** System hit **inotify file descriptor limit** (`ENOSPC`):
+```
+Error: ENOSPC: System limit for number of file watchers reached, watch '/root/.moltbot/moltbot.json'
+Error: ENOSPC: System limit for number of file watchers reached, watch '/root/clawd/canvas'
+Error: ENOSPC: System limit for number of file watchers reached, watch '/root/clawd'
+```
+
+Gateway couldn't monitor config/skill files for changes → config reloading broke → became hung/unresponsive → systemd restart loop.
+
+**Solutions:**
+
+1. **Immediate fix:** Kill stuck process + clean lock files
+```bash
+kill -9 618450
+rm -f ~/.clawdbot/gateway.lock ~/.clawdbot/moltbot.lock
+systemctl restart moltbot-gateway
+```
+
+2. **Permanent inotify limit increase:** `/etc/sysctl.d/99-moltbot-inotify.conf`
+```
+fs.inotify.max_user_watches=524288  # Increased from 65536
+```
+Apply: `sysctl -p /etc/sysctl.d/99-moltbot-inotify.conf`
+
+3. **Better systemd service:** `/etc/systemd/system/moltbot-gateway.service`
+   - Changed `Restart=always` → `Restart=on-failure` (only restart on actual failure)
+   - Increased `RestartSec=5` → `RestartSec=10` (reduce CPU churn)
+   - Reduced `StartLimitBurst=10` → `StartLimitBurst=5` (fewer restart attempts before blocking)
+   - Added `ExecStartPre` to auto-clean stale locks on startup
+
+4. **Health check monitoring:** `/etc/systemd/system/moltbot-health-check.{service,timer}`
+   - Runs `/root/moltbot/scripts/health-check-gateway.sh` every 5 minutes
+   - Checks if gateway is responding on port 18789
+   - Detects stale lock files and crash loops
+   - Automatically cleans locks and restarts if needed
+   - **Isolated:** Does not interfere with other services (code-server, ssh, etc.)
+
+**Key Files Added/Modified:**
+- Created: `scripts/health-check-gateway.sh` (health check logic)
+- Created: `/etc/systemd/system/moltbot-health-check.service`
+- Created: `/etc/systemd/system/moltbot-health-check.timer`
+- Created: `/etc/sysctl.d/99-moltbot-inotify.conf`
+- Modified: `/etc/systemd/system/moltbot-gateway.service` (restart policy)
+
+**Status:** ✅ Fixed. All preventative measures in place.
+
+---
+
 ## Configuration Summary
 
 ### Model Fallback Chain
@@ -240,14 +297,38 @@ sudo apt-get install -y nodejs
 
 ---
 
+---
+
+## Architecture: Service Isolation & Stability
+
+### Systemd Services Running on This Host
+- `moltbot-gateway.service` - Telegram bot gateway (isolated, does not affect others)
+- `moltbot-health-check.timer` - Periodic gateway health monitoring (oneshot service, no resource hoarding)
+- `code-server.service` - Code editor (independent, unaffected)
+- `ssh.service` - SSH server (independent, unaffected)
+
+### Safety Design
+- **No shared resources:** Each service runs independently
+- **No resource limits affecting others:** Moltbot has `LimitNOFILE/NOPROC` set locally only
+- **Health check is isolated:** Runs as `oneshot` (completes quickly), doesn't run concurrently with gateway
+- **No interference with startup/shutdown:** Services can be restarted independently
+
+### Monitoring
+- **Automatic health checks:** Every 5 minutes (can be adjusted in `moltbot-health-check.timer`)
+- **Logs:** `/tmp/moltbot-health-check.log` (separate from gateway logs)
+- **Manual check:** `systemctl list-timers moltbot-health-check.timer`
+
+---
+
 ## Quick Troubleshooting
 
 ### Bot Not Responding
 
 1. Check status: `systemctl status moltbot-gateway`
 2. Check logs: `journalctl -u moltbot-gateway -n 50`
-3. Restart: `systemctl restart moltbot-gateway`
-4. Verify Telegram: `node dist/entry.js channels status`
+3. Check health: `bash /root/moltbot/scripts/health-check-gateway.sh`
+4. Restart: `systemctl restart moltbot-gateway`
+5. Check inotify limit (if file watching errors): `cat /proc/sys/fs/inotify/max_user_watches`
 
 ### Telegram Connection Error
 
@@ -286,6 +367,8 @@ If issue persists, reduce retry attempts in retry policy config.
 /root/moltbot/                          Main installation
 ├── dist/                               Compiled code (loaded at runtime)
 ├── src/                                TypeScript source
+├── scripts/
+│   └── health-check-gateway.sh         Health monitoring script
 ├── ecosystem.config.cjs                PM2 config (legacy, not used)
 └── README_Tech.md                      This file
 
@@ -297,16 +380,24 @@ If issue persists, reduce retry attempts in retry policy config.
 └── .env                                Environment variables
 
 /etc/systemd/system/                    System services
-└── moltbot-gateway.service             Systemd service file
+├── moltbot-gateway.service             Systemd service (gateway)
+├── moltbot-health-check.service        Health check service
+├── moltbot-health-check.timer          Health check timer (runs every 5min)
+└── ...other services (code-server, ssh, etc)
+
+/etc/sysctl.d/                          System configuration
+└── 99-moltbot-inotify.conf            Inotify limit config
 
 /var/log/                               System logs
 └── moltbot-gateway.log                 Gateway application log
 
 /tmp/moltbot/                           Runtime logs
-└── moltbot-*.log                       Detailed debug logs
+├── moltbot-*.log                       Detailed debug logs
+└── moltbot-health-check.log            Health check results
 ```
 
 ---
 
-**Last Updated:** Jan 29, 2026
+**Last Updated:** Jan 29, 2026 (18:50 UTC)
 **Maintained By:** Claude Code + Moltbot Task Router
+**Latest:** Crash loop root cause fixed (inotify limit), health monitoring added, service isolation verified
