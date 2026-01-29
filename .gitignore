@@ -71,3 +71,11 @@ USER.md
 
 # local tooling
 .serena/
+memory/code-index/
+
+# Claude agent settings
+.claude/
+
+# Copilot agent settings
+.github/prompts/
+/.vs

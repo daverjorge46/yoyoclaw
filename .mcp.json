@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "civyk-repoix": {
+      "command": "civyk-repoix",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

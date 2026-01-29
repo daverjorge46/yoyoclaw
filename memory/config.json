@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Spec Kit configuration",
+  "version": "2.4",
+  "project": {
+    "type": "personal",
+    "guidelineProfile": "personal",
+    "description": "Project type determines which corporate guidelines profile to use: 'corporate' for internal/proprietary projects, 'personal' for open-source/public projects"
+  },
+  "artifactory": {
+    "enabled": false,
+    "url": "",
+    "repos": "",
+    "apiKeyEnv": "ARTIFACTORY_API_KEY",
+    "_comment": "Configure Artifactory for corporate package validation. Set enabled:true and url to your Artifactory instance (e.g., https://artifactory.company.com/artifactory), repos to comma-separated repository names, and apiKeyEnv to the environment variable containing your API key."
+  },
+  "git": {
+    "checkTimeout": 5,
+    "listTimeout": 60,
+    "_comment": "Timeouts in seconds for git commands. Increase listTimeout for very large repositories"
+  },
+  "workflows": {
+    "max_iterations": 10,
+    "_comment": "Maximum iterations for iterative workflows (review, tests). Prevents infinite loops. Default: 10"
+  },
+  "branching": {
+    "pattern": "feature/<jira>-<shortname>",
+    "_comment": "example pattern: feature/<num>-<jira>-<shortname>",
+    "prefix": "feature/",
+    "separator": "-",
+    "number_format": {
+      "digits": 3,
+      "zero_padded": true
+    },
+    "jira": {
+      "required": false,
+      "strict_format": false,
+      "format": "C12345-7890",
+      "regex": "^C[0-9]{5}-[0-9]{4}$",
+      "placeholder": "<jira>",
+      "_comment": "Set required:true and strict_format:true for corporate projects with enforced ticket IDs"
+    },
+    "directory": {
+      "includes_prefix": false,
+      "base_path": "specs"
+    }
+  }
+}
