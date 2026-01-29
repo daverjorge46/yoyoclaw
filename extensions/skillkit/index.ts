@@ -26,7 +26,7 @@ const plugin = {
   id: "skillkit",
   name: "SkillKit",
   description:
-    "Universal AI agent skills management - search, install, translate, and sync skills across 17 coding agents",
+    "Universal AI agent skills management - search, install, translate, and sync skills across 32 coding agents",
   configSchema: emptyPluginConfigSchema(),
   register(api: MoltbotPluginApi) {
     api.registerTool({
@@ -54,7 +54,7 @@ const plugin = {
       label: "SkillKit Translate",
       description:
         "Translate skills between different AI agent formats. " +
-        "Supports Cursor, Claude Code, Codex, Gemini CLI, Windsurf, Roo, and 11 more agents.",
+        "Supports Cursor, Claude Code, Codex, Gemini CLI, Windsurf, Roo, and 26 more agents.",
       parameters: SkillkitTranslateSchema,
       execute: executeSkillkitTranslate,
     });

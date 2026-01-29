@@ -251,7 +251,7 @@ ClawdHub is a minimal skill registry. With ClawdHub enabled, the agent can searc
 
 [ClawdHub](https://ClawdHub.com)
 
-For cross-agent skill portability (translating skills from Cursor, Claude Code, Codex, and 14 other agents), see the [SkillKit extension](https://docs.molt.bot/tools/skillkit).
+For cross-agent skill portability (translating skills from Cursor, Claude Code, Codex, and 29 other agents), see the [SkillKit extension](https://docs.molt.bot/tools/skillkit).
 
 ## Chat commands
 

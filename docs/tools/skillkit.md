@@ -8,7 +8,7 @@ read_when:
 
 # SkillKit
 
-SkillKit is a **universal CLI for managing AI agent skills** across 17 different coding agents. It provides cross-agent skill portability, team collaboration features, and smart project-aware recommendations. While ClawdHub is the Moltbot-specific skill registry, SkillKit enables you to translate and sync skills from other AI agents like Cursor, Claude Code, Codex, and more.
+SkillKit is a **universal CLI for managing AI agent skills** across 32 different coding agents. It provides cross-agent skill portability, team collaboration features, and smart project-aware recommendations. While ClawdHub is the Moltbot-specific skill registry, SkillKit enables you to translate and sync skills from other AI agents like Cursor, Claude Code, Codex, and more.
 
 **Current version**: v1.7.2
 
