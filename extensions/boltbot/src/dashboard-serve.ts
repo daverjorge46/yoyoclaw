@@ -33,14 +33,11 @@ export function registerDashboardRoutes(api: PluginApi) {
       const idx = url.indexOf(basePath);
       let filePath = idx !== -1 ? url.slice(idx + basePath.length) : "/";
 
-      // Strip query string
       const qIdx = filePath.indexOf("?");
       if (qIdx !== -1) filePath = filePath.slice(0, qIdx);
 
-      // Default to index.html
       if (!filePath || filePath === "/") filePath = "/index.html";
 
-      // Sanitize: prevent directory traversal
       const decoded = decodeURIComponent(filePath);
       const absolutePath = join(DIST_DIR, normalize(decoded));
       const resolvedDist = resolve(DIST_DIR);
@@ -55,7 +52,6 @@ export function registerDashboardRoutes(api: PluginApi) {
       try {
         content = readFileSync(absolutePath);
       } catch {
-        // SPA catch-all: serve index.html for unknown paths
         try {
           content = readFileSync(join(DIST_DIR, "index.html"));
           servingIndex = true;

@@ -56,7 +56,6 @@ export default function App() {
     setSearchParams({ anomalies: v ? "1" : "" });
   }
 
-  // Polling: merge new receipts at the top, do NOT touch loadedCount or hasMore
   useEffect(() => {
     if (receipts) {
       setAllReceipts((prev) => {
@@ -68,7 +67,6 @@ export default function App() {
     }
   }, [receipts]);
 
-  // Initial load: set hasMore and loadedCount once
   useEffect(() => {
     if (receipts && !initialLoadDone.current) {
       initialLoadDone.current = true;
