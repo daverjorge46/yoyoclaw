@@ -226,7 +226,7 @@ export async function applyAuthChoiceNvidiaNim(
       initialValue: true,
     });
     if (useExisting) {
-      const result = upsertSharedEnvVar({
+      upsertSharedEnvVar({
         key: "NVIDIA_API_KEY",
         value: envKey.apiKey,
       });
