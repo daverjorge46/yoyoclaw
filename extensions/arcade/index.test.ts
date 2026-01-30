@@ -100,19 +100,38 @@ describe("Arcade Plugin", () => {
         config: {},
       };
 
-      // Mock successful tools list response
+      // Mock successful tools list response (matching SDK format)
+      const mockResponse = {
+        items: [
+          {
+            name: "SendEmail",
+            fully_qualified_name: "Gmail.SendEmail",
+            qualified_name: "Gmail.SendEmail",
+            description: "Send email",
+            toolkit: { name: "Gmail", description: "Gmail tools" },
+            input: { parameters: [] },
+            requirements: { authorization: { oauth2: {} } },
+          },
+          {
+            name: "PostMessage",
+            fully_qualified_name: "Slack.PostMessage",
+            qualified_name: "Slack.PostMessage",
+            description: "Post message",
+            toolkit: { name: "Slack", description: "Slack tools" },
+            input: { parameters: [] },
+            requirements: { authorization: { oauth2: {} } },
+          },
+        ],
+        total_count: 2,
+        offset: 0,
+      };
       mockFetch.mockResolvedValue({
         ok: true,
-        text: async () =>
-          JSON.stringify({
-            items: [
-              { name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail", requires_auth: true },
-              { name: "Slack.PostMessage", description: "Post message", toolkit: "slack", requires_auth: true },
-            ],
-            total: 2,
-            limit: 50,
-            offset: 0,
-          }),
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockResponse,
+        text: async () => JSON.stringify(mockResponse),
+        clone: function() { return this; },
       });
     });
 

@@ -1,5 +1,7 @@
 /**
  * Arcade Client Tests
+ *
+ * Tests the ArcadeClient wrapper around @arcadeai/arcadejs SDK.
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
@@ -9,6 +11,22 @@ import {
   createArcadeClient,
 } from "./client.js";
 import type { ArcadeConfig } from "./config.js";
+
+// Helper to create mock Response objects that the SDK expects
+function mockResponse(body: unknown, options: { status?: number; ok?: boolean; headers?: Record<string, string> } = {}) {
+  const status = options.status ?? 200;
+  const ok = options.ok ?? (status >= 200 && status < 300);
+  const headers = new Headers(options.headers ?? { "content-type": "application/json" });
+
+  return {
+    ok,
+    status,
+    headers,
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+    clone: function() { return this; },
+  };
+}
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -65,35 +83,23 @@ describe("ArcadeClient", () => {
 
   describe("health", () => {
     it("checks API health", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify({ status: "ok" }),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse({ healthy: true }));
 
       const result = await client.health();
 
-      expect(result).toEqual({ status: "ok" });
+      expect(result).toEqual({ status: "healthy" });
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.arcade.dev/v1/health",
-        expect.objectContaining({
-          method: "GET",
-          headers: expect.objectContaining({
-            Authorization: "Bearer test_api_key",
-          }),
-        }),
+        expect.stringContaining("/v1/health"),
+        expect.anything(),
       );
     });
 
-    it("throws on API error after retries", async () => {
-      // Server errors trigger retries, so we mock multiple failures
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-        headers: new Headers(),
-        text: async () => "Internal Server Error",
-      });
+    it("returns unhealthy status when health check fails", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse({ healthy: false }));
 
-      await expect(client.health()).rejects.toThrow(ArcadeApiError);
+      const result = await client.health();
+
+      expect(result).toEqual({ status: "unhealthy" });
     });
   });
 
@@ -101,59 +107,77 @@ describe("ArcadeClient", () => {
     it("lists available tools", async () => {
       const mockTools = {
         items: [
-          { name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail" },
-          { name: "Slack.PostMessage", description: "Post message", toolkit: "slack" },
+          {
+            name: "SendEmail",
+            fully_qualified_name: "Gmail.SendEmail",
+            qualified_name: "Gmail.SendEmail",
+            description: "Send email",
+            toolkit: { name: "Gmail", description: "Gmail tools" },
+            input: { parameters: [] },
+          },
+          {
+            name: "PostMessage",
+            fully_qualified_name: "Slack.PostMessage",
+            qualified_name: "Slack.PostMessage",
+            description: "Post message",
+            toolkit: { name: "Slack", description: "Slack tools" },
+            input: { parameters: [] },
+          },
         ],
-        total: 2,
-        limit: 50,
+        total_count: 2,
         offset: 0,
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify(mockTools),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse(mockTools));
 
       const tools = await client.listTools();
 
       expect(tools).toHaveLength(2);
+      // name is fully_qualified_name (Gmail.SendEmail) for proper tool registration
       expect(tools[0].name).toBe("Gmail.SendEmail");
+      expect(tools[0].toolkit.name).toBe("Gmail");
       expect(tools[1].name).toBe("Slack.PostMessage");
     });
 
     it("filters by toolkit", async () => {
       const mockTools = {
-        items: [{ name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail" }],
-        total: 1,
-        limit: 50,
+        items: [{
+          name: "SendEmail",
+          fully_qualified_name: "Gmail.SendEmail",
+          qualified_name: "Gmail.SendEmail",
+          description: "Send email",
+          toolkit: { name: "Gmail" },
+          input: { parameters: [] },
+        }],
+        total_count: 1,
         offset: 0,
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify(mockTools),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse(mockTools));
 
-      await client.listTools({ toolkit: "gmail" });
+      await client.listTools({ toolkit: "Gmail" });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("toolkit=gmail"),
+        expect.stringContaining("toolkit=Gmail"),
         expect.anything(),
       );
     });
 
     it("caches tool list", async () => {
       const mockTools = {
-        items: [{ name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail" }],
-        total: 1,
-        limit: 50,
+        items: [{
+          name: "SendEmail",
+          fully_qualified_name: "Gmail.SendEmail",
+          qualified_name: "Gmail.SendEmail",
+          description: "Send email",
+          toolkit: { name: "Gmail" },
+          input: { parameters: [] },
+        }],
+        total_count: 1,
         offset: 0,
       };
 
-      mockFetch.mockResolvedValue({
-        ok: true,
-        text: async () => JSON.stringify(mockTools),
-      });
+      mockFetch.mockResolvedValue(mockResponse(mockTools));
 
       // First call - hits API
       await client.listTools();
@@ -165,16 +189,19 @@ describe("ArcadeClient", () => {
 
     it("bypasses cache with forceRefresh", async () => {
       const mockTools = {
-        items: [{ name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail" }],
-        total: 1,
-        limit: 50,
+        items: [{
+          name: "SendEmail",
+          fully_qualified_name: "Gmail.SendEmail",
+          qualified_name: "Gmail.SendEmail",
+          description: "Send email",
+          toolkit: { name: "Gmail" },
+          input: { parameters: [] },
+        }],
+        total_count: 1,
         offset: 0,
       };
 
-      mockFetch.mockResolvedValue({
-        ok: true,
-        text: async () => JSON.stringify(mockTools),
-      });
+      mockFetch.mockResolvedValue(mockResponse(mockTools));
 
       await client.listTools();
       await client.listTools({ forceRefresh: true });
@@ -185,42 +212,32 @@ describe("ArcadeClient", () => {
 
   describe("authorize", () => {
     it("initiates authorization", async () => {
-      const mockResponse = {
+      const mockAuthResponse = {
         status: "pending",
         authorization_id: "auth_123",
         authorization_url: "https://arcade.dev/auth/123",
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify(mockResponse),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse(mockAuthResponse));
 
       const result = await client.authorize("Gmail.SendEmail");
 
       expect(result.status).toBe("pending");
       expect(result.authorization_url).toBe("https://arcade.dev/auth/123");
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.arcade.dev/v1/tools/authorize",
+        expect.stringContaining("/v1/tools/authorize"),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({
-            tool_name: "Gmail.SendEmail",
-            user_id: "test_user",
-          }),
         }),
       );
     });
 
     it("returns completed status when already authorized", async () => {
-      const mockResponse = {
+      const mockAuthResponse = {
         status: "completed",
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify(mockResponse),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse(mockAuthResponse));
 
       const result = await client.authorize("Gmail.SendEmail");
 
@@ -231,15 +248,12 @@ describe("ArcadeClient", () => {
 
   describe("execute", () => {
     it("executes a tool", async () => {
-      const mockResponse = {
+      const mockExecResponse = {
         success: true,
-        output: { messageId: "msg_123" },
+        output: { value: { messageId: "msg_123" } },
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        text: async () => JSON.stringify(mockResponse),
-      });
+      mockFetch.mockResolvedValueOnce(mockResponse(mockExecResponse));
 
       const result = await client.execute("Gmail.SendEmail", {
         to: "test@example.com",
@@ -251,34 +265,43 @@ describe("ArcadeClient", () => {
       expect(result.output).toEqual({ messageId: "msg_123" });
     });
 
-    it("handles authorization required error", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: async () => JSON.stringify({ message: "Unauthorized" }),
-      });
+    it("handles authorization required in response", async () => {
+      const mockExecResponse = {
+        success: false,
+        output: {
+          authorization: {
+            status: "pending",
+            authorization_url: "https://arcade.dev/auth/456",
+          },
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce(mockResponse(mockExecResponse));
 
       const result = await client.execute("Gmail.SendEmail", {});
 
       expect(result.success).toBe(false);
       expect(result.authorization_required).toBe(true);
-      expect(result.error?.code).toBe("AUTH_REQUIRED");
+      expect(result.authorization_url).toBe("https://arcade.dev/auth/456");
     });
   });
 
   describe("clearCache", () => {
     it("clears the tools cache", async () => {
       const mockTools = {
-        items: [{ name: "Gmail.SendEmail", description: "Send email", toolkit: "gmail" }],
-        total: 1,
-        limit: 50,
+        items: [{
+          name: "SendEmail",
+          fully_qualified_name: "Gmail.SendEmail",
+          qualified_name: "Gmail.SendEmail",
+          description: "Send email",
+          toolkit: { name: "Gmail" },
+          input: { parameters: [] },
+        }],
+        total_count: 1,
         offset: 0,
       };
 
-      mockFetch.mockResolvedValue({
-        ok: true,
-        text: async () => JSON.stringify(mockTools),
-      });
+      mockFetch.mockResolvedValue(mockResponse(mockTools));
 
       await client.listTools();
       client.clearCache();
@@ -324,7 +347,7 @@ describe("ArcadeApiError", () => {
   });
 });
 
-describe("retry and rate limiting", () => {
+describe("SDK integration", () => {
   const defaultConfig: ArcadeConfig = {
     enabled: true,
     apiKey: "test_api_key",
@@ -339,58 +362,24 @@ describe("retry and rate limiting", () => {
     mockFetch.mockReset();
   });
 
-  it("retries on server errors", async () => {
-    const client = new ArcadeClient(defaultConfig, { maxRetries: 2, retryDelayMs: 10 });
+  it("exposes the underlying SDK", () => {
+    const client = new ArcadeClient(defaultConfig);
+    const sdk = client.getSdk();
 
-    // Fail twice, then succeed
-    mockFetch
-      .mockResolvedValueOnce({ ok: false, status: 500, text: async () => "Server error" })
-      .mockResolvedValueOnce({ ok: false, status: 502, text: async () => "Bad gateway" })
-      .mockResolvedValueOnce({ ok: true, text: async () => JSON.stringify({ status: "ok" }) });
-
-    const result = await client.health();
-
-    expect(result).toEqual({ status: "ok" });
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(sdk).toBeDefined();
+    expect(sdk.tools).toBeDefined();
+    expect(sdk.auth).toBeDefined();
+    expect(sdk.health).toBeDefined();
   });
 
-  it("does not retry on client errors", async () => {
-    const client = new ArcadeClient(defaultConfig, { maxRetries: 2, retryDelayMs: 10 });
+  it("handles SDK errors gracefully", async () => {
+    const client = new ArcadeClient(defaultConfig);
 
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 400,
-      text: async () => JSON.stringify({ message: "Bad request" }),
-    });
-
-    await expect(client.health()).rejects.toThrow(ArcadeApiError);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it("handles rate limiting with Retry-After header", async () => {
-    const client = new ArcadeClient(defaultConfig, { maxRetries: 2, retryDelayMs: 10 });
-
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        headers: new Headers({ "Retry-After": "1" }),
-        text: async () => "Rate limited",
-      })
-      .mockResolvedValueOnce({ ok: true, text: async () => JSON.stringify({ status: "ok" }) });
-
-    const result = await client.health();
-
-    expect(result).toEqual({ status: "ok" });
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-  });
-
-  it("gives up after max retries", async () => {
-    const client = new ArcadeClient(defaultConfig, { maxRetries: 2, retryDelayMs: 10 });
-
-    mockFetch.mockResolvedValue({ ok: false, status: 500, text: async () => "Server error" });
+    mockFetch.mockResolvedValueOnce(mockResponse(
+      { error: { message: "Invalid request" } },
+      { status: 400, ok: false },
+    ));
 
     await expect(client.health()).rejects.toThrow();
-    expect(mockFetch).toHaveBeenCalledTimes(3); // Initial + 2 retries
   });
 });

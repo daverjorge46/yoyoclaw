@@ -18,6 +18,7 @@
     "directory": "extensions/arcade"
   },
   "dependencies": {
+    "@arcadeai/arcadejs": "^2.1.0",
     "@sinclair/typebox": "0.34.47",
     "zod": "^4.3.6"
   },

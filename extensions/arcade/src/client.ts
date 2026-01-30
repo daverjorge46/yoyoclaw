@@ -1,14 +1,16 @@
 /**
  * Arcade.dev API Client
  *
- * Handles all communication with the Arcade.dev API for tool listing,
- * authorization, and execution.
+ * Wraps the official @arcadeai/arcadejs SDK for OpenClaw integration.
  */
 
+import { Arcade, type ClientOptions } from "@arcadeai/arcadejs";
+import type { ToolDefinition, ExecuteToolResponse } from "@arcadeai/arcadejs/resources/tools/tools";
+import type { AuthorizationResponse } from "@arcadeai/arcadejs/resources/shared";
 import type { ArcadeConfig } from "./config.js";
 
 // ============================================================================
-// Types
+// Types - Re-export SDK types with our naming conventions
 // ============================================================================
 
 export type ArcadeToolParameter = {
@@ -78,46 +80,40 @@ export type ArcadeExecuteResult = {
   authorization_url?: string;
 };
 
-export type ArcadeToolsListResponse = {
-  items: ArcadeToolDefinition[];
-  total_count: number;
-  page_count: number;
-  limit: number;
-  offset: number;
-};
-
 // ============================================================================
-// Client Implementation
+// Client Implementation - Wraps @arcadeai/arcadejs SDK
 // ============================================================================
 
 export type ArcadeClientOptions = {
   /** Maximum retries on transient errors */
   maxRetries?: number;
-  /** Base delay for exponential backoff (ms) */
-  retryDelayMs?: number;
   /** Request timeout (ms) */
   timeoutMs?: number;
 };
 
 export class ArcadeClient {
+  private sdk: Arcade;
+  private userId: string;
   private baseUrl: string;
   private apiKey: string;
-  private userId: string;
   private toolsCache: Map<string, { tools: ArcadeToolDefinition[]; timestamp: number }> = new Map();
   private cacheTtlMs: number;
-  private maxRetries: number;
-  private retryDelayMs: number;
-  private timeoutMs: number;
-  private rateLimitResetTime: number = 0;
 
   constructor(config: ArcadeConfig, options?: ArcadeClientOptions) {
     this.baseUrl = config.baseUrl.replace(/\/$/, "");
     this.apiKey = config.apiKey ?? "";
     this.userId = config.userId ?? "";
     this.cacheTtlMs = config.cacheToolsTtlMs;
-    this.maxRetries = options?.maxRetries ?? 3;
-    this.retryDelayMs = options?.retryDelayMs ?? 1000;
-    this.timeoutMs = options?.timeoutMs ?? 30000;
+
+    // Initialize SDK
+    const sdkOptions: ClientOptions = {
+      apiKey: this.apiKey || undefined,
+      baseURL: this.baseUrl,
+      maxRetries: options?.maxRetries ?? 3,
+      timeout: options?.timeoutMs ?? 30000,
+    };
+
+    this.sdk = new Arcade(sdkOptions);
   }
 
   // ==========================================================================
@@ -131,6 +127,12 @@ export class ArcadeClient {
     if (config.apiKey !== undefined) this.apiKey = config.apiKey;
     if (config.userId !== undefined) this.userId = config.userId;
     if (config.baseUrl !== undefined) this.baseUrl = config.baseUrl.replace(/\/$/, "");
+
+    // Re-create SDK with new config
+    this.sdk = new Arcade({
+      apiKey: this.apiKey || undefined,
+      baseURL: this.baseUrl,
+    });
   }
 
   /**
@@ -147,141 +149,11 @@ export class ArcadeClient {
     return this.userId;
   }
 
-  // ==========================================================================
-  // HTTP Helpers
-  // ==========================================================================
-
   /**
-   * Check if we're currently rate limited
+   * Get the underlying SDK instance for advanced usage
    */
-  private isRateLimited(): boolean {
-    return Date.now() < this.rateLimitResetTime;
-  }
-
-  /**
-   * Wait for rate limit to reset
-   */
-  private async waitForRateLimit(): Promise<void> {
-    const waitTime = this.rateLimitResetTime - Date.now();
-    if (waitTime > 0) {
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-  }
-
-  /**
-   * Make HTTP request with retry logic, timeout, and rate limit handling
-   */
-  private async request<T>(
-    method: "GET" | "POST" | "PATCH" | "DELETE",
-    path: string,
-    body?: unknown,
-  ): Promise<T> {
-    // Wait if rate limited
-    if (this.isRateLimited()) {
-      await this.waitForRateLimit();
-    }
-
-    const url = `${this.baseUrl}${path}`;
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${this.apiKey}`,
-      "Content-Type": "application/json",
-    };
-
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
-      try {
-        // Create abort controller for timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
-
-        try {
-          const response = await fetch(url, {
-            method,
-            headers,
-            ...(method !== "GET" && body ? { body: JSON.stringify(body) } : {}),
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          // Handle rate limiting (429)
-          if (response.status === 429) {
-            const retryAfter = response.headers.get("Retry-After");
-            const waitMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : this.retryDelayMs * Math.pow(2, attempt);
-            this.rateLimitResetTime = Date.now() + waitMs;
-
-            if (attempt < this.maxRetries) {
-              await new Promise((resolve) => setTimeout(resolve, waitMs));
-              continue;
-            }
-
-            throw new ArcadeRateLimitError(
-              "Rate limit exceeded",
-              waitMs,
-              response.headers.get("X-RateLimit-Limit") ?? undefined,
-            );
-          }
-
-          // Handle server errors with retry
-          if (response.status >= 500 && attempt < this.maxRetries) {
-            const delay = this.retryDelayMs * Math.pow(2, attempt);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            continue;
-          }
-
-          if (!response.ok) {
-            const errorText = await response.text().catch(() => "Unknown error");
-            let errorJson: unknown;
-            try {
-              errorJson = JSON.parse(errorText);
-            } catch {
-              // Not JSON
-            }
-
-            const errorMessage =
-              errorJson && typeof errorJson === "object" && "message" in errorJson
-                ? String((errorJson as { message: string }).message)
-                : errorText;
-
-            throw new ArcadeApiError(
-              response.status,
-              errorMessage,
-              errorJson as Record<string, unknown> | undefined,
-            );
-          }
-
-          // Handle empty responses
-          const text = await response.text();
-          if (!text) return {} as T;
-
-          return JSON.parse(text) as T;
-        } finally {
-          clearTimeout(timeoutId);
-        }
-      } catch (err) {
-        lastError = err instanceof Error ? err : new Error(String(err));
-
-        // Don't retry on abort (timeout) or non-retriable errors
-        if (err instanceof Error && err.name === "AbortError") {
-          throw new ArcadeTimeoutError(`Request timed out after ${this.timeoutMs}ms`, path);
-        }
-
-        // Don't retry on client errors (4xx except 429)
-        if (err instanceof ArcadeApiError && err.status >= 400 && err.status < 500 && err.status !== 429) {
-          throw err;
-        }
-
-        // Retry on other errors
-        if (attempt < this.maxRetries) {
-          const delay = this.retryDelayMs * Math.pow(2, attempt);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-    }
-
-    throw lastError ?? new Error("Request failed after retries");
+  getSdk(): Arcade {
+    return this.sdk;
   }
 
   // ==========================================================================
@@ -292,19 +164,55 @@ export class ArcadeClient {
    * Check API health
    */
   async health(): Promise<{ status: string }> {
-    return this.request<{ status: string }>("GET", "/v1/health");
+    const result = await this.sdk.health.check();
+    return { status: result.healthy ? "healthy" : "unhealthy" };
   }
 
   /**
    * Get engine configuration
    */
   async getConfig(): Promise<Record<string, unknown>> {
-    return this.request<Record<string, unknown>>("GET", "/v1/config");
+    // SDK doesn't have a direct config endpoint, use health as proxy
+    const health = await this.sdk.health.check();
+    return health as unknown as Record<string, unknown>;
   }
 
   // ==========================================================================
   // Tools
   // ==========================================================================
+
+  /**
+   * Convert SDK ToolDefinition to our ArcadeToolDefinition format
+   */
+  private convertToolDefinition(tool: ToolDefinition): ArcadeToolDefinition {
+    // Use fully_qualified_name (e.g., "Gmail.SendEmail") as the name for tool registration
+    // This ensures proper naming convention like arcade_gmail_send_email
+    return {
+      name: tool.fully_qualified_name || `${tool.toolkit.name}.${tool.name}`,
+      fully_qualified_name: tool.fully_qualified_name,
+      qualified_name: tool.qualified_name,
+      description: tool.description ?? "",
+      toolkit: {
+        name: tool.toolkit.name,
+        description: tool.toolkit.description,
+        version: tool.toolkit.version,
+      },
+      input: tool.input ? {
+        parameters: tool.input.parameters?.map(p => ({
+          name: p.name,
+          required: p.required,
+          description: p.description,
+          value_schema: p.value_schema ? {
+            val_type: p.value_schema.val_type,
+            enum: p.value_schema.enum,
+          } : undefined,
+          inferrable: p.inferrable,
+        })),
+      } : undefined,
+      requires_auth: tool.requirements?.authorization?.oauth2 !== undefined ||
+                     tool.requirements?.authorization?.custom !== undefined,
+    };
+  }
 
   /**
    * List available tools, optionally filtered by toolkit
@@ -323,23 +231,21 @@ export class ArcadeClient {
       return cached.tools;
     }
 
-    const params = new URLSearchParams();
-    if (opts?.toolkit) params.set("toolkit", opts.toolkit);
-    if (opts?.limit) params.set("limit", String(opts.limit));
-    if (opts?.offset) params.set("offset", String(opts.offset));
+    const response = await this.sdk.tools.list({
+      toolkit: opts?.toolkit,
+      limit: opts?.limit,
+      offset: opts?.offset,
+    });
 
-    const query = params.toString();
-    const path = `/v1/tools${query ? `?${query}` : ""}`;
-
-    const response = await this.request<ArcadeToolsListResponse>("GET", path);
+    const tools = response.items.map(t => this.convertToolDefinition(t));
 
     // Cache the result
     this.toolsCache.set(cacheKey, {
-      tools: response.items,
+      tools,
       timestamp: Date.now(),
     });
 
-    return response.items;
+    return tools;
   }
 
   /**
@@ -357,24 +263,21 @@ export class ArcadeClient {
     let totalCount: number | null = null;
 
     while (true) {
-      const params = new URLSearchParams();
-      params.set("limit", String(batchSize));
-      params.set("offset", String(offset));
-
-      const response = await this.request<ArcadeToolsListResponse>(
-        "GET",
-        `/v1/tools?${params.toString()}`,
-      );
+      const response = await this.sdk.tools.list({
+        limit: batchSize,
+        offset,
+      });
 
       if (totalCount === null) {
-        totalCount = response.total_count;
+        totalCount = response.total_count ?? null;
       }
 
-      allTools.push(...response.items);
+      const tools = response.items.map(t => this.convertToolDefinition(t));
+      allTools.push(...tools);
       opts?.onProgress?.(allTools.length, totalCount);
 
       // Check if we've fetched all tools
-      if (response.items.length === 0 || allTools.length >= totalCount) {
+      if (response.items.length === 0 || (totalCount !== null && allTools.length >= totalCount)) {
         break;
       }
 
@@ -394,7 +297,8 @@ export class ArcadeClient {
    * Get a specific tool definition
    */
   async getTool(toolName: string): Promise<ArcadeToolDefinition> {
-    return this.request<ArcadeToolDefinition>("GET", `/v1/tools/${encodeURIComponent(toolName)}`);
+    const tool = await this.sdk.tools.get(toolName);
+    return this.convertToolDefinition(tool);
   }
 
   /**
@@ -404,11 +308,11 @@ export class ArcadeClient {
     provider: "openai" | "anthropic",
     toolkit?: string,
   ): Promise<unknown[]> {
-    const params = new URLSearchParams();
-    params.set("format", provider);
-    if (toolkit) params.set("toolkit", toolkit);
-
-    return this.request<unknown[]>("GET", `/v1/formatted_tools?${params.toString()}`);
+    const response = await this.sdk.tools.formatted.list({
+      format: provider,
+      toolkit,
+    });
+    return response.items;
   }
 
   // ==========================================================================
@@ -416,24 +320,37 @@ export class ArcadeClient {
   // ==========================================================================
 
   /**
+   * Convert SDK AuthorizationResponse to our format
+   */
+  private convertAuthResponse(response: AuthorizationResponse): ArcadeAuthResponse {
+    return {
+      status: response.status as ArcadeAuthStatus,
+      authorization_id: response.authorization_id,
+      authorization_url: response.authorization_url,
+      scopes: response.scopes,
+      context: response.context as Record<string, unknown>,
+    };
+  }
+
+  /**
    * Initiate authorization for a tool
    */
   async authorize(toolName: string, userId?: string): Promise<ArcadeAuthResponse> {
-    const response = await this.request<ArcadeAuthResponse>("POST", "/v1/tools/authorize", {
+    const response = await this.sdk.tools.authorize({
       tool_name: toolName,
       user_id: userId ?? this.userId,
     });
-    return response;
+    return this.convertAuthResponse(response);
   }
 
   /**
    * Check authorization status
    */
   async checkAuthStatus(authorizationId: string): Promise<ArcadeAuthResponse> {
-    return this.request<ArcadeAuthResponse>(
-      "GET",
-      `/v1/auth/status?authorization_id=${encodeURIComponent(authorizationId)}`,
-    );
+    const response = await this.sdk.auth.status({
+      id: authorizationId,
+    });
+    return this.convertAuthResponse(response);
   }
 
   /**
@@ -477,6 +394,41 @@ export class ArcadeClient {
   // ==========================================================================
 
   /**
+   * Convert SDK ExecuteToolResponse to our format
+   */
+  private convertExecuteResponse(response: ExecuteToolResponse): ArcadeExecuteResult {
+    // Check for authorization requirement
+    if (response.output?.authorization?.status === "pending") {
+      return {
+        success: false,
+        authorization_required: true,
+        authorization_url: response.output.authorization.authorization_url,
+        error: {
+          code: "AUTH_REQUIRED",
+          message: "Authorization required for this tool",
+        },
+      };
+    }
+
+    // Check for error
+    if (response.output?.error) {
+      return {
+        success: false,
+        error: {
+          code: response.output.error.kind,
+          message: response.output.error.message,
+          details: response.output.error.extra,
+        },
+      };
+    }
+
+    return {
+      success: response.success ?? true,
+      output: response.output?.value,
+    };
+  }
+
+  /**
    * Execute a tool
    */
   async execute(
@@ -485,26 +437,23 @@ export class ArcadeClient {
     userId?: string,
   ): Promise<ArcadeExecuteResult> {
     try {
-      const response = await this.request<ArcadeExecuteResult>("POST", "/v1/tools/execute", {
+      const response = await this.sdk.tools.execute({
         tool_name: toolName,
         input,
         user_id: userId ?? this.userId,
       });
-      return response;
+      return this.convertExecuteResponse(response);
     } catch (err) {
-      if (err instanceof ArcadeApiError) {
-        // Check if this is an authorization error
-        if (err.status === 401 || err.status === 403) {
-          return {
-            success: false,
-            authorization_required: true,
-            error: {
-              code: "AUTH_REQUIRED",
-              message: "Authorization required for this tool",
-              details: err.details,
-            },
-          };
-        }
+      // Check if this is an authorization error from the SDK
+      if (err instanceof Arcade.AuthenticationError) {
+        return {
+          success: false,
+          authorization_required: true,
+          error: {
+            code: "AUTH_REQUIRED",
+            message: "Authorization required for this tool",
+          },
+        };
       }
       throw err;
     }
@@ -561,18 +510,22 @@ export class ArcadeClient {
    * List user's auth connections
    */
   async listUserConnections(userId?: string): Promise<unknown[]> {
-    const params = new URLSearchParams();
-    if (userId ?? this.userId) {
-      params.set("user_id", userId ?? this.userId);
+    const id = userId ?? this.userId;
+    if (!id) return [];
+
+    try {
+      const response = await this.sdk.admin.userConnections.list({ user: { id } });
+      return response.items ?? [];
+    } catch {
+      return [];
     }
-    return this.request<unknown[]>("GET", `/v1/admin/user_connections?${params.toString()}`);
   }
 
   /**
    * Delete a user connection
    */
   async deleteUserConnection(connectionId: string): Promise<void> {
-    await this.request<void>("DELETE", `/v1/admin/user_connections/${connectionId}`);
+    await this.sdk.admin.userConnections.delete(connectionId);
   }
 
   // ==========================================================================
@@ -614,27 +567,6 @@ export class ArcadeAuthError extends Error {
   ) {
     super(message);
     this.name = "ArcadeAuthError";
-  }
-}
-
-export class ArcadeRateLimitError extends Error {
-  constructor(
-    message: string,
-    public readonly retryAfterMs: number,
-    public readonly limit?: string,
-  ) {
-    super(message);
-    this.name = "ArcadeRateLimitError";
-  }
-}
-
-export class ArcadeTimeoutError extends Error {
-  constructor(
-    message: string,
-    public readonly path: string,
-  ) {
-    super(message);
-    this.name = "ArcadeTimeoutError";
   }
 }
 
