@@ -1,12 +1,29 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Mock the LLM execution boundary so no real LLM calls are made.
+// This returns a successful result with a test slug.
+vi.mock("../../../agents/pi-embedded.js", () => ({
+  runEmbeddedPiAgent: vi.fn().mockResolvedValue({
+    payloads: [{ text: "test-slug" }],
+  }),
+}));
 
 import handler from "./handler.js";
 import { createHookEvent } from "../../hooks.js";
 import type { ClawdbotConfig } from "../../../config/config.js";
 import { makeTempWorkspace, writeWorkspaceFile } from "../../../test-helpers/workspace.js";
+
+// Common provider config for ollama - matches the default model (ollama/llama3:chat)
+// so resolveModel succeeds instead of returning an error.
+const ollamaProviderConfig = {
+  ollama: {
+    baseUrl: "http://127.0.0.1:11434/v1",
+    models: [{ id: "llama3:chat", name: "Llama 3 Chat" }],
+  },
+};
 
 /**
  * Create a mock session JSONL file with various entry types
@@ -80,6 +97,7 @@ describe("session-memory hook", () => {
 
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
     };
 
     const event = createHookEvent("command", "new", "agent:main:main", {
@@ -126,6 +144,7 @@ describe("session-memory hook", () => {
 
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
     };
 
     const event = createHookEvent("command", "new", "agent:main:main", {
@@ -171,6 +190,7 @@ describe("session-memory hook", () => {
 
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
     };
 
     const event = createHookEvent("command", "new", "agent:main:main", {
@@ -215,6 +235,7 @@ describe("session-memory hook", () => {
     // Configure to only include last 3 messages
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
       hooks: {
         internal: {
           entries: {
@@ -276,6 +297,7 @@ describe("session-memory hook", () => {
     // because the last 3 lines include tool entries
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
       hooks: {
         internal: {
           entries: {
@@ -319,6 +341,7 @@ describe("session-memory hook", () => {
 
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
     };
 
     const event = createHookEvent("command", "new", "agent:main:main", {
@@ -356,6 +379,7 @@ describe("session-memory hook", () => {
 
     const cfg: ClawdbotConfig = {
       agents: { defaults: { workspace: tempDir } },
+      models: { providers: ollamaProviderConfig },
     };
 
     const event = createHookEvent("command", "new", "agent:main:main", {
