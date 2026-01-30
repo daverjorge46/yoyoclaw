@@ -19,8 +19,11 @@ import {
   ZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.credentials.js";
 import {
+  buildChutesModelDefinition,
   buildKimiCodeModelDefinition,
   buildMoonshotModelDefinition,
+  CHUTES_BASE_URL,
+  CHUTES_DEFAULT_MODEL_REF,
   KIMI_CODE_BASE_URL,
   KIMI_CODE_MODEL_ID,
   KIMI_CODE_MODEL_REF,
@@ -198,6 +201,67 @@ export function applyMoonshotConfig(cfg: OpenClawConfig): OpenClawConfig {
               }
             : undefined),
           primary: MOONSHOT_DEFAULT_MODEL_REF,
+        },
+      },
+    },
+  };
+}
+
+export function applyChutesProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[CHUTES_DEFAULT_MODEL_REF] = {
+    ...models[CHUTES_DEFAULT_MODEL_REF],
+    alias: models[CHUTES_DEFAULT_MODEL_REF]?.alias ?? "GLM 4.7 Flash",
+  };
+
+  const providers = { ...cfg.models?.providers };
+  const existingProvider = providers.chutes;
+  const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
+    string,
+    unknown
+  > as { apiKey?: string; teeOnly?: boolean };
+  const resolvedApiKey = typeof existingApiKey === "string" ? existingApiKey : undefined;
+  const normalizedApiKey = resolvedApiKey?.trim();
+  providers.chutes = {
+    ...existingProviderRest,
+    baseUrl: CHUTES_BASE_URL,
+    api: "openai-completions",
+    ...(normalizedApiKey ? { apiKey: normalizedApiKey } : {}),
+    models: existingProvider?.models || [buildChutesModelDefinition()],
+  };
+
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        models,
+      },
+    },
+    models: {
+      mode: cfg.models?.mode ?? "merge",
+      providers,
+    },
+  };
+}
+
+export function applyChutesConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const next = applyChutesProviderConfig(cfg);
+  const existingModel = next.agents?.defaults?.model;
+  return {
+    ...next,
+    agents: {
+      ...next.agents,
+      defaults: {
+        ...next.agents?.defaults,
+        model: {
+          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+            ? {
+                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+              }
+            : undefined),
+          primary: CHUTES_DEFAULT_MODEL_REF,
         },
       },
     },
