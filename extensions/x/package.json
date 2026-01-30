@@ -7,8 +7,5 @@
     "extensions": [
       "./index.ts"
     ]
-  },
-  "devDependencies": {
-    "openclaw": "workspace:*"
   }
 }

@@ -5,8 +5,8 @@
  * This delegates to core implementation in src/x/.
  */
 
-import type { OpenClawConfig } from "openclaw/plugin-sdk";
-import { buildChannelConfigSchema } from "openclaw/plugin-sdk";
+import type { OpenClawConfig } from "../../../src/plugin-sdk/index.js";
+import { buildChannelConfigSchema } from "../../../src/plugin-sdk/index.js";
 import { XConfigSchema } from "./config-schema.js";
 import { getXRuntime } from "./runtime.js";
 import type { ChannelPlugin } from "../../../src/channels/plugins/types.plugin.js";
@@ -96,7 +96,7 @@ export const xPlugin: ChannelPlugin<XAccountConfig> = {
   outbound: {
     deliveryMode: "direct",
     textChunkLimit: 280,
-    chunkerMode: "plain",
+    chunkerMode: "text",
 
     chunker: (text: string, limit: number): string[] =>
       getXRuntime().channel.x.chunkTextForX(text, limit),
@@ -106,12 +106,12 @@ export const xPlugin: ChannelPlugin<XAccountConfig> = {
       const cfg = (ctx as { deps?: { cfg?: OpenClawConfig } }).deps?.cfg;
 
       if (!cfg) {
-        return { channel: "x", ok: false, error: "No config provided" };
+        return { channel: "x", ok: false, error: "No config provided", messageId: "" };
       }
 
       const account = getXRuntime().channel.x.resolveXAccount(cfg, accountId ?? DEFAULT_ACCOUNT_ID);
       if (!account) {
-        return { channel: "x", ok: false, error: "Account not configured" };
+        return { channel: "x", ok: false, error: "Account not configured", messageId: "" };
       }
 
       const logger = {
@@ -133,7 +133,7 @@ export const xPlugin: ChannelPlugin<XAccountConfig> = {
       return {
         channel: "x",
         ok: result.ok,
-        messageId: result.tweetId,
+        messageId: result.tweetId ?? "",
         error: result.error,
       };
     },
@@ -204,36 +204,36 @@ export const xPlugin: ChannelPlugin<XAccountConfig> = {
       };
     },
 
-    collectStatusIssues: (params: { cfg: OpenClawConfig; accountId: string }) => {
-      const { cfg, accountId } = params;
-      const issues: Array<{ level: string; message: string }> = [];
+    collectStatusIssues: (accounts) =>
+      accounts.flatMap((account) => {
+        const issues: Array<{
+          channel: "x";
+          accountId: string;
+          kind: "config" | "runtime";
+          message: string;
+        }> = [];
 
-      const xConfig = (cfg.channels as Record<string, unknown> | undefined)?.x as
-        | Record<string, unknown>
-        | undefined;
+        if (!account.configured) {
+          issues.push({
+            channel: "x",
+            accountId: account.accountId,
+            kind: "config",
+            message: "Account not configured (missing credentials)",
+          });
+        }
 
-      if (!xConfig) {
-        issues.push({ level: "error", message: "X channel not configured" });
+        const lastError = typeof account.lastError === "string" ? account.lastError.trim() : "";
+        if (lastError) {
+          issues.push({
+            channel: "x",
+            accountId: account.accountId,
+            kind: "runtime",
+            message: `Channel error: ${lastError}`,
+          });
+        }
+
         return issues;
-      }
-
-      const account = getXRuntime().channel.x.resolveXAccount(cfg, accountId);
-      if (!account) {
-        issues.push({ level: "error", message: `Account "${accountId}" not found` });
-        return issues;
-      }
-
-      if (!account.consumerKey) issues.push({ level: "error", message: "Missing consumerKey" });
-      if (!account.consumerSecret) issues.push({ level: "error", message: "Missing consumerSecret" });
-      if (!account.accessToken) issues.push({ level: "error", message: "Missing accessToken" });
-      if (!account.accessTokenSecret) issues.push({ level: "error", message: "Missing accessTokenSecret" });
-
-      if (!account.allowFrom || account.allowFrom.length === 0) {
-        issues.push({ level: "warn", message: "No allowFrom configured - bot will respond to all mentions" });
-      }
-
-      return issues;
-    },
+      }),
   },
 
   gateway: {
@@ -280,7 +280,7 @@ export const xPlugin: ChannelPlugin<XAccountConfig> = {
               },
             });
           },
-        },
+        } as any,
       });
     },
 

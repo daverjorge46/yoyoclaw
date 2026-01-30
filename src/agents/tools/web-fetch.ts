@@ -207,7 +207,13 @@ async function fetchWithRedirects(params: {
       } as RequestInit);
     } catch (err) {
       await closeDispatcher(dispatcher);
-      throw err;
+      // Wrap fetch errors with URL context for better debugging
+      const cause = err instanceof Error ? err.cause : undefined;
+      const causeMsg = cause instanceof Error ? `: ${cause.name} - ${cause.message}` : "";
+      const errMsg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Fetch failed for ${parsedUrl.hostname}${causeMsg || `: ${errMsg}`}`, {
+        cause: err,
+      });
     }
 
     if (isRedirectStatus(res.status)) {

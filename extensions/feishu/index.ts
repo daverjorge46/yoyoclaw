@@ -1,5 +1,5 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
+import type { OpenClawPluginApi } from "../../src/plugin-sdk/index.js";
+import { emptyPluginConfigSchema } from "../../src/plugin-sdk/index.js";
 
 import { feishuPlugin } from "./src/channel.js";
 

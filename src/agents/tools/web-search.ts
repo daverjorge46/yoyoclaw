@@ -385,20 +385,31 @@ async function runQverisSearch(params: {
 }): Promise<{ data: unknown; elapsedMs: number }> {
   const endpoint = `${params.baseUrl.replace(/\/$/, "")}/tools/execute?tool_id=${encodeURIComponent(params.toolId)}`;
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${params.apiKey}`,
-    },
-    body: JSON.stringify({
-      parameters: {
-        query: params.query,
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${params.apiKey}`,
       },
-      max_response_size: 20480,
-    }),
-    signal: withTimeout(undefined, params.timeoutSeconds * 1000),
-  });
+      body: JSON.stringify({
+        parameters: {
+          q: params.query,
+        },
+        max_response_size: 20480,
+      }),
+      signal: withTimeout(undefined, params.timeoutSeconds * 1000),
+    });
+  } catch (err) {
+    // Wrap network errors with endpoint context for better debugging
+    const cause = err instanceof Error ? err.cause : undefined;
+    const causeMsg = cause instanceof Error ? `: ${cause.name} - ${cause.message}` : "";
+    const errMsg = err instanceof Error ? err.message : String(err);
+    throw new Error(`QVeris fetch failed (${endpoint})${causeMsg || `: ${errMsg}`}`, {
+      cause: err,
+    });
+  }
 
   if (!res.ok) {
     const detail = await readResponseText(res);
