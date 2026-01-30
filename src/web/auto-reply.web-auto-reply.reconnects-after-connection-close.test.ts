@@ -14,8 +14,8 @@ vi.mock("../agents/pi-embedded.js", () => ({
   resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
 }));
 
-vi.mock("../session.js", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("../session.js")>();
+vi.mock("./session.js", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("./session.js")>();
   return {
     ...mod,
     webAuthExists: vi.fn().mockResolvedValue(false),
@@ -24,7 +24,7 @@ vi.mock("../session.js", async (importOriginal) => {
 
 import { resetInboundDedupe } from "../auto-reply/reply/inbound-dedupe.js";
 import { resetLogger, setLoggerOverride } from "../logging.js";
-import { webAuthExists } from "../session.js";
+import { webAuthExists } from "./session.js";
 import { monitorWebChannel } from "./auto-reply.js";
 import { resetBaileysMocks, resetLoadConfigMock, setLoadConfigMock } from "./test-helpers.js";
 
