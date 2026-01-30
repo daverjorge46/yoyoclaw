@@ -43,7 +43,6 @@ const XIAOMI_DEFAULT_COST = {
 
 const NEBIUS_BASE_URL = "https://api.tokenfactory.nebius.com/v1";
 export const NEBIUS_DEFAULT_MODEL_ID = "zai-org/GLM-4.7-FP8";
-const NEBIUS_DEFAULT_CONTEXT_WINDOW = 202752;
 const NEBIUS_DEFAULT_MAX_TOKENS = 8192;
 const NEBIUS_DEFAULT_COST = {
   input: 0,
