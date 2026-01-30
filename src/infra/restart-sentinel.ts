@@ -108,7 +108,17 @@ export async function consumeRestartSentinel(
 }
 
 export function formatRestartSentinelMessage(payload: RestartSentinelPayload): string {
-  return `GatewayRestart:\n${JSON.stringify(payload, null, 2)}`;
+  const reason = payload.message ?? payload.stats?.reason ?? "unknown";
+  const mode = payload.stats?.mode ?? payload.kind;
+  return [
+    `Gateway restarted successfully (${mode}: ${reason}).`,
+    "",
+    "IMPORTANT: You MUST immediately send a visible message to the user confirming you are back online.",
+    "Check your recent conversation context and tell the user where you left off.",
+    "Do not proceed with any other work until you have confirmed your return to the user.",
+    "If you were mid-task, summarize what you were doing and resume.",
+    "If you had just finished, tell the user you're back and ask what's next.",
+  ].join("\n");
 }
 
 export function summarizeRestartSentinel(payload: RestartSentinelPayload): string {

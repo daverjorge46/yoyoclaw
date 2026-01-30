@@ -18,16 +18,15 @@ import { extractConfigPaths, validateConfigPaths } from "./config-path-validator
 import { callGatewayTool } from "./gateway.js";
 
 /**
- * Send a proactive notification to Discord before a restart.
- * Uses the session's delivery context to post directly to the channel,
- * bypassing the agent session (which will die during restart).
- * Falls back to the status webhook if direct channel posting isn't possible.
+ * Send a proactive notification before a restart.
+ * Posts to the status webhook (monitoring) AND logs to console.
+ * Both fire before the process dies, so notifications arrive even if the session is killed.
  */
 async function notifyDiscordBeforeRestart(
   notice: string,
-  deliveryContext?: { channel?: string; to?: string; accountId?: string },
+  _deliveryContext?: { channel?: string; to?: string; accountId?: string },
 ): Promise<void> {
-  // Try the status webhook first (most reliable — doesn't need the gateway running)
+  // Post to status webhook (monitoring channel)
   const webhookUrl = process.env.MOLTBOT_STATUS_WEBHOOK;
   if (webhookUrl) {
     try {
@@ -36,13 +35,12 @@ async function notifyDiscordBeforeRestart(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: notice }),
       });
-      return;
     } catch {
-      // Fall through — best effort
+      // Best effort — don't block restart on webhook failure
     }
   }
 
-  // If no webhook, log to console (gateway log captures it)
+  // Always log to console (gateway log captures it)
   console.info(`[restart-notice] ${notice}`);
 }
 
