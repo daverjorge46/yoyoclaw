@@ -70,7 +70,7 @@ function normalizeSchemaNode(
     normalized.properties = normalizedProps;
 
     if (schema.additionalProperties === true) {
-      unsupported.add(pathLabel);
+      // Allowed extra props - handled by map/JSON editor
     } else if (schema.additionalProperties === false) {
       normalized.additionalProperties = false;
     } else if (
@@ -84,7 +84,7 @@ function normalizeSchemaNode(
         );
         normalized.additionalProperties =
           res.schema ?? (schema.additionalProperties as JsonSchema);
-        if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
+        // Do not propagate unsupported paths - let renderer handle them via fallback
       }
     }
   } else if (type === "array") {
@@ -92,11 +92,11 @@ function normalizeSchemaNode(
       ? schema.items[0]
       : schema.items;
     if (!itemsSchema) {
-      unsupported.add(pathLabel);
+      // No items schema - let renderer handle via JSON editor
     } else {
       const res = normalizeSchemaNode(itemsSchema, [...path, "*"]);
       normalized.items = res.schema ?? itemsSchema;
-      if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
+      // Do not propagate unsupported paths
     }
   } else if (
     type !== "string" &&
@@ -105,7 +105,7 @@ function normalizeSchemaNode(
     type !== "boolean" &&
     !normalized.enum
   ) {
-    unsupported.add(pathLabel);
+    // Unknown types - handled by JSON editor fallback
   }
 
   return {
@@ -192,5 +192,13 @@ function normalizeUnion(
     };
   }
 
-  return null;
+  // Fallback: accept complex unions as-is instead of marking them unsupported.
+  // The renderer will handle them (likely via JSON editor fallback).
+  return {
+    schema: {
+      ...schema,
+      nullable,
+    },
+    unsupportedPaths: [],
+  };
 }

@@ -1,6 +1,7 @@
 export const GATEWAY_CLIENT_IDS = {
   WEBCHAT_UI: "webchat-ui",
   CONTROL_UI: "openclaw-control-ui",
+  LEGACY_CONTROL_UI: "moltbot-control-ui",
   WEBCHAT: "webchat",
   CLI: "cli",
   GATEWAY_CLIENT: "gateway-client",

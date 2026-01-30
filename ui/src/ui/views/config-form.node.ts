@@ -77,10 +77,7 @@ export function renderNode(params: {
       : String(opt);
 
   if (unsupported.has(key)) {
-    return html`<div class="cfg-field cfg-field--error">
-      <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">${t(locale, "config.form.unsupportedSchema")}</div>
-    </div>`;
+    return renderJsonEditor(params);
   }
 
   // Handle anyOf/oneOf unions
@@ -229,11 +226,57 @@ export function renderNode(params: {
     return renderTextInput({ ...params, inputType: "text" });
   }
 
-  // Fallback
+  // Fallback to JSON editor
+  return renderJsonEditor(params);
+}
+
+function renderJsonEditor(params: {
+  schema: JsonSchema;
+  value: unknown;
+  path: Array<string | number>;
+  hints: ConfigUiHints;
+  disabled: boolean;
+  showLabel?: boolean;
+  onPatch: (path: Array<string | number>, value: unknown) => void;
+  locale?: Locale;
+}): TemplateResult {
+  const { schema, value, path, hints, disabled, onPatch, locale } = params;
+  const showLabel = params.showLabel ?? true;
+  const hint = hintForPath(path, hints);
+  const lastKey = String(path.at(-1));
+
+  const commonKey = `config.schema.${lastKey}`;
+  const labelFallback = hint?.label ?? schema.title ?? humanize(lastKey);
+  const helpFallbackRaw = hint?.help ?? schema.description;
+  const helpFallback =
+    typeof helpFallbackRaw === "string" && helpFallbackRaw.startsWith("config.")
+      ? undefined
+      : helpFallbackRaw;
+  const label = t(locale, commonKey + ".label", labelFallback);
+  const help = t(locale, commonKey + ".desc", helpFallback);
+  const stringified = jsonValue(value);
+
   return html`
-    <div class="cfg-field cfg-field--error">
-      <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">${tFormat(locale, "config.form.unsupported", { type: type || "unknown" })}</div>
+    <div class="cfg-field" data-path=${pathKey(path)}>
+      ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
+      ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
+      <div class="cfg-input-wrap">
+        <textarea
+          class="cfg-input cfg-input--textarea cfg-input--code"
+          rows="5"
+          ?disabled=${disabled}
+          .value=${stringified}
+          @change=${(e: Event) => {
+            const raw = (e.target as HTMLTextAreaElement).value;
+            try {
+              const parsed = JSON.parse(raw);
+              onPatch(path, parsed);
+            } catch {
+              // TODO: Show validation error
+            }
+          }}
+        ></textarea>
+      </div>
     </div>
   `;
 }
