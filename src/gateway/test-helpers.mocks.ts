@@ -232,15 +232,26 @@ vi.mock("@mariozechner/pi-coding-agent", async () => {
     "@mariozechner/pi-coding-agent",
   );
 
+  class MockModelRegistry extends actual.ModelRegistry {
+    constructor(authStorage: InstanceType<typeof actual.AuthStorage>, modelsJsonPath?: string) {
+      super(authStorage, modelsJsonPath);
+      if (piSdkMock.enabled) {
+        piSdkMock.discoverCalls += 1;
+      }
+    }
+    override getAll() {
+      if (piSdkMock.enabled) {
+        // Cast mock models to match Model<Api>[] return type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return piSdkMock.models as any;
+      }
+      return super.getAll();
+    }
+  }
+
   return {
     ...actual,
-    discoverModels: (...args: unknown[]) => {
-      if (!piSdkMock.enabled) {
-        return (actual.discoverModels as (...args: unknown[]) => unknown)(...args);
-      }
-      piSdkMock.discoverCalls += 1;
-      return piSdkMock.models;
-    },
+    ModelRegistry: MockModelRegistry,
   };
 });
 

@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { type OpenClawConfig, loadConfig } from "../config/config.js";
 import { resolveOpenClawAgentDir } from "./agent-paths.js";
 import { ensureOpenClawModelsJson } from "./models-config.js";
@@ -64,13 +65,9 @@ export async function loadModelCatalog(params?: {
       // will keep failing until restart).
       const piSdk = await importPiSdk();
       const agentDir = resolveOpenClawAgentDir();
-      const authStorage = piSdk.discoverAuthStorage(agentDir);
-      const registry = piSdk.discoverModels(authStorage, agentDir) as
-        | {
-            getAll: () => Array<DiscoveredModel>;
-          }
-        | Array<DiscoveredModel>;
-      const entries = Array.isArray(registry) ? registry : registry.getAll();
+      const authStorage = new piSdk.AuthStorage(join(agentDir, "auth.json"));
+      const registry = new piSdk.ModelRegistry(authStorage, join(agentDir, "models.json"));
+      const entries = registry.getAll() as Array<DiscoveredModel>;
       for (const entry of entries) {
         const id = String(entry?.id ?? "").trim();
         if (!id) continue;

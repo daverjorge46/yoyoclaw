@@ -424,7 +424,7 @@ export async function runEmbeddedAttempt(
         minReserveTokens: resolveCompactionReserveTokensFloor(params.config),
       });
 
-      const additionalExtensionPaths = buildEmbeddedExtensionPaths({
+      const _additionalExtensionPaths = buildEmbeddedExtensionPaths({
         cfg: params.config,
         sessionManager,
         provider: params.provider,
@@ -454,14 +454,10 @@ export async function runEmbeddedAttempt(
         modelRegistry: params.modelRegistry,
         model: params.model,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        systemPrompt,
         tools: builtInTools,
         customTools: allCustomTools,
         sessionManager,
         settingsManager,
-        skills: [],
-        contextFiles: [],
-        additionalExtensionPaths,
       }));
       if (!session) {
         throw new Error("Embedded agent session missing");

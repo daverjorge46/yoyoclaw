@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { join } from "node:path";
 
 import {
   type Api,
@@ -8,12 +9,13 @@ import {
   complete,
   type Model,
 } from "@mariozechner/pi-ai";
-import { discoverAuthStorage, discoverModels } from "@mariozechner/pi-coding-agent";
+import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 
 import type { OpenClawConfig } from "../../config/config.js";
 import { resolveUserPath } from "../../utils.js";
 import { loadWebMedia } from "../../web/media.js";
+import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "../auth-profiles.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { minimaxUnderstandImage } from "../minimax-vlm.js";
@@ -233,8 +235,9 @@ async function runImagePrompt(params: {
     : undefined;
 
   await ensureOpenClawModelsJson(effectiveCfg, params.agentDir);
-  const authStorage = discoverAuthStorage(params.agentDir);
-  const modelRegistry = discoverModels(authStorage, params.agentDir);
+  const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
+  const authStorage = new AuthStorage(join(agentDir, "auth.json"));
+  const modelRegistry = new ModelRegistry(authStorage, join(agentDir, "models.json"));
 
   const result = await runWithImageModelFallback({
     cfg: effectiveCfg,
