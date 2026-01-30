@@ -1,46 +1,77 @@
 # Moltbot Mini
 
-A minimal, secure email assistant demonstrating core Moltbot architectural patterns in ~800 lines of code.
+A minimal, secure email assistant using the same file structure and naming conventions as [Moltbot](https://github.com/moltbot/moltbot). Designed for progressive feature additions.
 
 ## Features
 
 - **Gmail Integration**: Read, search, send, archive, and organize emails
 - **OpenAI-Powered**: Natural language interface with function calling
 - **Secure by Default**: File permissions (0o600), atomic writes, credential isolation
-- **CLI-First**: Simple command-line interface
+- **CLI-First**: Command-line interface following Moltbot patterns
+- **Extensible**: Plugin architecture ready for additional channels
 
-## Architecture Overview
+## Architecture (Mirrors Moltbot)
 
 ```
 moltbot-mini/
 ├── src/
-│   ├── index.ts           # CLI entry point (Commander.js)
+│   ├── index.ts                    # Entry point
 │   ├── cli/
-│   │   └── commands.ts    # Command implementations
+│   │   ├── deps.ts                 # Dependency injection (createDefaultDeps)
+│   │   ├── prompt.ts               # Interactive prompts
+│   │   ├── program.ts              # Main program builder
+│   │   ├── run-main.ts             # CLI execution entry
+│   │   └── program/
+│   │       ├── register.setup.ts   # Setup commands
+│   │       ├── register.gmail.ts   # Gmail commands
+│   │       ├── register.chat.ts    # Chat commands
+│   │       └── register.status.ts  # Status commands
 │   ├── config/
-│   │   ├── index.ts       # Config loading/saving
-│   │   └── schema.ts      # Zod validation schemas
+│   │   ├── types.ts                # Type barrel export
+│   │   ├── types.base.ts           # Base configuration types
+│   │   ├── zod-schema.ts           # Schema barrel export
+│   │   ├── zod-schema.core.ts      # Zod validation schemas
+│   │   ├── config.ts               # Config loading/saving
+│   │   ├── config-paths.ts         # File path resolution
+│   │   ├── defaults.ts             # Default values
+│   │   ├── env-vars.ts             # Environment variables
+│   │   └── io.ts                   # Secure file I/O
+│   ├── infra/
+│   │   ├── credentials.ts          # Secure credential storage
+│   │   └── security-audit.ts       # Security auditing
 │   ├── gmail/
-│   │   ├── auth.ts        # OAuth2 authentication
-│   │   ├── client.ts      # Gmail API operations
-│   │   └── types.ts       # Type definitions
-│   ├── agent/
-│   │   ├── index.ts       # OpenAI chat orchestrator
-│   │   └── tools.ts       # Email tool definitions
-│   └── security/
-│       └── credentials.ts # Secure credential storage
-└── package.json
+│   │   ├── types.ts                # Gmail type definitions
+│   │   ├── auth.ts                 # OAuth2 authentication
+│   │   ├── accounts.ts             # Account management
+│   │   ├── monitor.ts              # Message reading (like bot.ts)
+│   │   └── send.ts                 # Message sending
+│   ├── agents/
+│   │   ├── types.ts                # Agent types
+│   │   ├── gmail-tools.ts          # Tool definitions
+│   │   ├── gmail-tools.execute.ts  # Tool execution
+│   │   └── openai-runner.ts        # OpenAI integration
+│   └── channels/
+│       └── plugins/
+│           ├── types.ts            # Plugin interface
+│           └── gmail.ts            # Gmail plugin
+├── package.json
+└── tsconfig.json
 ```
 
-## Design Patterns from Moltbot
+## Moltbot Pattern Mappings
 
-| Pattern | Implementation | Location |
-|---------|---------------|----------|
-| Secure Storage | 0o600 permissions, atomic writes | `security/credentials.ts` |
-| Schema Validation | Zod schemas with defaults | `config/schema.ts` |
-| Tool System | OpenAI function calling | `agent/tools.ts` |
-| Adapter Pattern | Gmail client abstraction | `gmail/client.ts` |
-| Separation of Concerns | CLI/Config/Gmail/Agent layers | Directory structure |
+| Moltbot Pattern | Moltbot Mini Implementation |
+|-----------------|----------------------------|
+| `src/cli/program/register.*.ts` | `src/cli/program/register.{setup,gmail,chat,status}.ts` |
+| `src/config/types.*.ts` | `src/config/types.base.ts` |
+| `src/config/zod-schema.*.ts` | `src/config/zod-schema.core.ts` |
+| `src/telegram/bot.ts` | `src/gmail/monitor.ts` |
+| `src/telegram/send.ts` | `src/gmail/send.ts` |
+| `src/agents/bash-tools.ts` | `src/agents/gmail-tools.ts` |
+| `src/agents/bash-tools.exec.ts` | `src/agents/gmail-tools.execute.ts` |
+| `src/channels/plugins/types.ts` | `src/channels/plugins/types.ts` |
+| `src/infra/credentials.ts` | `src/infra/credentials.ts` |
+| `createDefaultDeps()` | `src/cli/deps.ts` |
 
 ## Quick Start
 
@@ -80,9 +111,14 @@ npm run dev -- ask "What unread emails do I have?"
 
 # List recent emails
 npm run dev -- gmail list -n 5
+npm run dev -- gmail list --query "is:unread"
+
+# Read specific email
+npm run dev -- gmail read <messageId>
 
 # Check status
 npm run dev -- status
+npm run dev -- status --verbose
 
 # Security audit
 npm run dev -- security
@@ -101,10 +137,10 @@ npm run dev -- security
 
 ### Credential Storage
 
-All credentials stored in `~/.moltbot-mini/credentials/` with:
+All credentials stored in `~/.moltbot-mini/` with:
 - File permissions: `0o600` (owner read/write only)
 - Directory permissions: `0o700` (owner only)
-- Atomic writes prevent corruption
+- Atomic writes (temp file + rename)
 
 ### Security Audit
 
@@ -146,42 +182,37 @@ Configuration stored in `~/.moltbot-mini/config.json`:
 
 ## Available Tools
 
-The AI assistant can use these tools:
+The AI assistant can use these Gmail tools:
 
 | Tool | Description |
 |------|-------------|
-| `list_emails` | List/search emails |
-| `read_email` | Read full email content |
-| `send_email` | Send new email or reply |
-| `archive_email` | Archive (remove from inbox) |
-| `trash_email` | Move to trash |
-| `mark_read` | Mark as read |
-| `mark_unread` | Mark as unread |
-| `get_unread_count` | Count unread emails |
+| `gmail_list_messages` | List/search emails with Gmail query |
+| `gmail_read_message` | Read full email content |
+| `gmail_send_message` | Send new email or reply |
+| `gmail_archive_message` | Archive (remove from inbox) |
+| `gmail_trash_message` | Move to trash |
+| `gmail_mark_read` | Mark as read |
+| `gmail_mark_unread` | Mark as unread |
+| `gmail_get_unread_count` | Count unread emails |
+| `gmail_get_thread` | Get all messages in a thread |
 
-## Example Conversations
+## Adding More Features
 
-```
-You: Show me my unread emails from today
-  [Tool: list_emails]
-Assistant: You have 3 unread emails today:
-1. From: boss@company.com - "Q4 Planning Meeting"
-2. From: team@slack.com - "New message in #general"
-3. From: news@newsletter.com - "Weekly Digest"
+The structure is designed for easy extension:
 
-You: Read the email from my boss
-  [Tool: read_email]
-Assistant: Here's the email from boss@company.com:
+### Adding a New Channel (e.g., Slack)
 
-Subject: Q4 Planning Meeting
-Date: Today at 2:30 PM
+1. Create `src/slack/` with same structure as `src/gmail/`:
+   - `types.ts`, `auth.ts`, `accounts.ts`, `monitor.ts`, `send.ts`
+2. Add `src/channels/plugins/slack.ts`
+3. Add `src/agents/slack-tools.ts` and `slack-tools.execute.ts`
+4. Register CLI commands in `src/cli/program/register.slack.ts`
 
-Hi team, let's meet tomorrow at 10am to discuss Q4 priorities...
+### Adding a New LLM Provider (e.g., Anthropic)
 
-You: Draft a reply confirming I'll attend
-  [Tool: send_email]
-Assistant: I've sent your reply confirming attendance.
-```
+1. Create `src/agents/anthropic-runner.ts`
+2. Update config types in `src/config/types.base.ts`
+3. Update schemas in `src/config/zod-schema.core.ts`
 
 ## Development
 
@@ -205,19 +236,11 @@ npm start -- <command>
 |---------|--------------|--------------|
 | Channels | Gmail only | 10+ (Telegram, Discord, Slack...) |
 | LLM Providers | OpenAI only | 6+ (Anthropic, Bedrock, Ollama...) |
-| Plugin System | None | Full extension architecture |
+| Plugin System | Basic | Full extension architecture |
 | Gateway | None | WebSocket RPC server |
 | Mobile Apps | None | iOS, Android, macOS |
-| Lines of Code | ~800 | ~100,000+ |
-
-## Learning Path
-
-After understanding this codebase, explore the full Moltbot:
-
-1. **Channel Plugins**: `src/channels/plugins/` - Adapter pattern
-2. **Gateway**: `src/gateway/` - RPC orchestration
-3. **Agent Tools**: `src/agents/tools/` - Extended tool system
-4. **Security**: `src/security/` - Comprehensive audit system
+| CLI Structure | Same patterns | Full implementation |
+| Config Structure | Same patterns | Full implementation |
 
 ## License
 
