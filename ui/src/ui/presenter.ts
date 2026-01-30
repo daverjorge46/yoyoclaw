@@ -1,6 +1,6 @@
 import { formatAgo, formatDurationMs, formatMs } from "./format";
 import type { CronJob, GatewaySessionRow, PresenceEntry } from "./types";
-import { t } from "./i18n/i18n";
+import { t } from "../i18n/i18n";
 
 export function formatPresenceSummary(entry: PresenceEntry): string {
   const host = entry.host ?? t("instances.unknown");
