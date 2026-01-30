@@ -42,6 +42,21 @@ describe("memory flush settings", () => {
     expect(settings?.prompt).toContain("NO_REPLY");
     expect(settings?.systemPrompt).toContain("NO_REPLY");
   });
+
+  it("incorporates custom path in default prompt", () => {
+    const settings = resolveMemoryFlushSettings({
+      agents: {
+        defaults: {
+          compaction: {
+            memoryFlush: {
+              path: "/test/memory/",
+            },
+          },
+        },
+      },
+    });
+    expect(settings?.prompt).toContain("/test/memory/");
+  });
 });
 
 describe("shouldRunMemoryFlush", () => {
@@ -113,6 +128,29 @@ describe("shouldRunMemoryFlush", () => {
         softThresholdTokens: 2_000,
       }),
     ).toBe(true);
+  });
+  it("handles triggerPercent correctly", () => {
+    // case 1: triggered by percent (50% of 100k = 50k)
+    expect(
+      shouldRunMemoryFlush({
+        entry: { totalTokens: 60_000 },
+        contextWindowTokens: 100_000,
+        reserveTokensFloor: 5_000,
+        softThresholdTokens: 2_000, // soft threshold would be 93k
+        triggerPercent: 50,
+      }),
+    ).toBe(true);
+
+    // case 2: not triggered by percent (under 50k)
+    expect(
+      shouldRunMemoryFlush({
+        entry: { totalTokens: 40_000 },
+        contextWindowTokens: 100_000,
+        reserveTokensFloor: 5_000,
+        softThresholdTokens: 2_000,
+        triggerPercent: 50,
+      }),
+    ).toBe(false);
   });
 });
 

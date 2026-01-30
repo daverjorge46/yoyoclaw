@@ -255,6 +255,16 @@ export type AgentCompactionMemoryFlushConfig = {
   enabled?: boolean;
   /** Run the memory flush when context is within this many tokens of the compaction threshold. */
   softThresholdTokens?: number;
+  /**
+   * Run the memory flush whenever the context reaches this percentage of the window (0-100).
+   * If both softThresholdTokens and triggerPercent are set, the more aggressive (earlier) one wins.
+   */
+  triggerPercent?: number;
+  /**
+   * Default path for memory storage (relative to workspace or absolute).
+   * This is used in the default prompt hint.
+   */
+  path?: string;
   /** User prompt used for the memory flush turn (NO_REPLY is enforced if missing). */
   prompt?: string;
   /** System prompt appended for the memory flush turn. */

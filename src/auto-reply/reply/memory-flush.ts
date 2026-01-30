@@ -22,6 +22,7 @@ export const DEFAULT_MEMORY_FLUSH_SYSTEM_PROMPT = [
 export type MemoryFlushSettings = {
   enabled: boolean;
   softThresholdTokens: number;
+  triggerPercent: number | null;
   prompt: string;
   systemPrompt: string;
   reserveTokensFloor: number;
@@ -39,7 +40,16 @@ export function resolveMemoryFlushSettings(cfg?: OpenClawConfig): MemoryFlushSet
   if (!enabled) return null;
   const softThresholdTokens =
     normalizeNonNegativeInt(defaults?.softThresholdTokens) ?? DEFAULT_MEMORY_FLUSH_SOFT_TOKENS;
-  const prompt = defaults?.prompt?.trim() || DEFAULT_MEMORY_FLUSH_PROMPT;
+  const triggerPercent = normalizeNonNegativeInt(defaults?.triggerPercent);
+
+  const memoryPath = defaults?.path?.trim() || "memory/";
+  const defaultPrompt = [
+    "Pre-compaction memory flush.",
+    `Store durable memories now (use ${memoryPath}YYYY-MM-DD.md; create ${memoryPath} if needed).`,
+    `If nothing to store, reply with ${SILENT_REPLY_TOKEN}.`,
+  ].join(" ");
+
+  const prompt = defaults?.prompt?.trim() || defaultPrompt;
   const systemPrompt = defaults?.systemPrompt?.trim() || DEFAULT_MEMORY_FLUSH_SYSTEM_PROMPT;
   const reserveTokensFloor =
     normalizeNonNegativeInt(cfg?.agents?.defaults?.compaction?.reserveTokensFloor) ??
@@ -48,6 +58,7 @@ export function resolveMemoryFlushSettings(cfg?: OpenClawConfig): MemoryFlushSet
   return {
     enabled,
     softThresholdTokens,
+    triggerPercent,
     prompt: ensureNoReplyHint(prompt),
     systemPrompt: ensureNoReplyHint(systemPrompt),
     reserveTokensFloor,
@@ -73,13 +84,22 @@ export function shouldRunMemoryFlush(params: {
   contextWindowTokens: number;
   reserveTokensFloor: number;
   softThresholdTokens: number;
+  triggerPercent?: number | null;
 }): boolean {
   const totalTokens = params.entry?.totalTokens;
   if (!totalTokens || totalTokens <= 0) return false;
   const contextWindow = Math.max(1, Math.floor(params.contextWindowTokens));
   const reserveTokens = Math.max(0, Math.floor(params.reserveTokensFloor));
+
   const softThreshold = Math.max(0, Math.floor(params.softThresholdTokens));
-  const threshold = Math.max(0, contextWindow - reserveTokens - softThreshold);
+  const softThresholdValue = Math.max(0, contextWindow - reserveTokens - softThreshold);
+
+  let threshold = softThresholdValue;
+  if (params.triggerPercent != null && params.triggerPercent > 0) {
+    const percentThreshold = Math.floor(contextWindow * (params.triggerPercent / 100));
+    threshold = Math.min(threshold, percentThreshold);
+  }
+
   if (threshold <= 0) return false;
   if (totalTokens < threshold) return false;
 
