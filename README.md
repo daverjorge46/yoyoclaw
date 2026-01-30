@@ -114,6 +114,16 @@ Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Go
 
 Run `moltbot doctor` to surface risky/misconfigured DM policies.
 
+### Recommended: Prompt Injection Defense
+
+For group chats and multi-user environments, consider adding **[Prompt Guard](https://github.com/seojoonkim/prompt-guard)** — a security skill that detects and blocks prompt injection attacks in 4 languages (EN/KO/JA/ZH):
+
+```bash
+clawdhub install prompt-guard
+```
+
+Features: instruction override detection, secret exfiltration blocking, owner-only command restrictions, and security audit tools. See [prompt-guard on ClawdHub](https://clawdhub.com/skills/prompt-guard).
+
 ## Highlights
 
 - **[Local-first Gateway](https://docs.molt.bot/gateway)** — single control plane for sessions, channels, tools, and events.
