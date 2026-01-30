@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { ProxyAgent } from "undici";
 
 import type { OpenClawConfig } from "../../config/config.js";
 import { formatCliCommand } from "../../cli/command-format.js";
@@ -120,6 +121,11 @@ function resolveSearchApiKey(search?: WebSearchConfig): string | undefined {
     search && "apiKey" in search && typeof search.apiKey === "string" ? search.apiKey.trim() : "";
   const fromEnv = (process.env.BRAVE_API_KEY ?? "").trim();
   return fromConfig || fromEnv || undefined;
+}
+
+function resolveProxy(search?: WebSearchConfig): string | undefined {
+  const fromConfig = search && "proxy" in search && typeof search.proxy === "string" ? search.proxy.trim() : "";
+  return fromConfig || undefined;
 }
 
 function missingSearchKeyPayload(provider: (typeof SEARCH_PROVIDERS)[number]) {
@@ -271,8 +277,11 @@ async function runPerplexitySearch(params: {
   baseUrl: string;
   model: string;
   timeoutSeconds: number;
+  proxy?: string;
 }): Promise<{ content: string; citations: string[] }> {
   const endpoint = `${params.baseUrl.replace(/\/$/, "")}/chat/completions`;
+
+  const dispatcher = params.proxy ? new ProxyAgent(params.proxy) : undefined;
 
   const res = await fetch(endpoint, {
     method: "POST",
@@ -292,6 +301,7 @@ async function runPerplexitySearch(params: {
       ],
     }),
     signal: withTimeout(undefined, params.timeoutSeconds * 1000),
+    dispatcher,
   });
 
   if (!res.ok) {
@@ -319,6 +329,7 @@ async function runWebSearch(params: {
   freshness?: string;
   perplexityBaseUrl?: string;
   perplexityModel?: string;
+  proxy?: string;
 }): Promise<Record<string, unknown>> {
   const cacheKey = normalizeCacheKey(
     params.provider === "brave"
@@ -337,6 +348,7 @@ async function runWebSearch(params: {
       baseUrl: params.perplexityBaseUrl ?? DEFAULT_PERPLEXITY_BASE_URL,
       model: params.perplexityModel ?? DEFAULT_PERPLEXITY_MODEL,
       timeoutSeconds: params.timeoutSeconds,
+      proxy: params.proxy,
     });
 
     const payload = {
@@ -371,6 +383,8 @@ async function runWebSearch(params: {
     url.searchParams.set("freshness", params.freshness);
   }
 
+  const dispatcher = params.proxy ? new ProxyAgent(params.proxy) : undefined;
+
   const res = await fetch(url.toString(), {
     method: "GET",
     headers: {
@@ -378,6 +392,7 @@ async function runWebSearch(params: {
       "X-Subscription-Token": params.apiKey,
     },
     signal: withTimeout(undefined, params.timeoutSeconds * 1000),
+    dispatcher,
   });
 
   if (!res.ok) {
@@ -476,6 +491,7 @@ export function createWebSearchTool(options?: {
           perplexityAuth?.apiKey,
         ),
         perplexityModel: resolvePerplexityModel(perplexityConfig),
+        proxy: resolveProxy(search),
       });
       return jsonResult(result);
     },
