@@ -5,12 +5,12 @@ import { looksLikeSignalTargetId, normalizeSignalMessagingTarget } from "./signa
 describe("signal target normalization", () => {
   it("preserves case for base64 group IDs", () => {
     // Group IDs are base64-encoded and case-sensitive
-    expect(normalizeSignalMessagingTarget("group:Zy6lFqNBqQ0KcMHD8apzPYGGfE0xjKO6F27gMVHJD8A=")).toBe(
-      "group:Zy6lFqNBqQ0KcMHD8apzPYGGfE0xjKO6F27gMVHJD8A=",
-    );
-    expect(normalizeSignalMessagingTarget("signal:group:ffOISN96ruoRNDb8EXl0gixTcVBWGduuIAcRW7//VJY=")).toBe(
-      "group:ffOISN96ruoRNDb8EXl0gixTcVBWGduuIAcRW7//VJY=",
-    );
+    expect(
+      normalizeSignalMessagingTarget("group:Zy6lFqNBqQ0KcMHD8apzPYGGfE0xjKO6F27gMVHJD8A="),
+    ).toBe("group:Zy6lFqNBqQ0KcMHD8apzPYGGfE0xjKO6F27gMVHJD8A=");
+    expect(
+      normalizeSignalMessagingTarget("signal:group:ffOISN96ruoRNDb8EXl0gixTcVBWGduuIAcRW7//VJY="),
+    ).toBe("group:ffOISN96ruoRNDb8EXl0gixTcVBWGduuIAcRW7//VJY=");
   });
 
   it("normalizes uuid targets by stripping uuid:", () => {
