@@ -273,8 +273,8 @@ export function formatAssistantErrorText(
 
   if (isContextOverflowError(raw)) {
     return (
-      "Context overflow: prompt too large for the model. " +
-      "Try again with less input or a larger-context model."
+      "Context overflow: conversation too long for the model. " +
+      "Auto-compaction was attempted. Use /new to start a fresh session."
     );
   }
 
@@ -325,8 +325,8 @@ export function sanitizeUserFacingText(text: string): string {
 
   if (isContextOverflowError(trimmed)) {
     return (
-      "Context overflow: prompt too large for the model. " +
-      "Try again with less input or a larger-context model."
+      "Context overflow: conversation too long for the model. " +
+      "Auto-compaction was attempted. Use /new to start a fresh session."
     );
   }
 

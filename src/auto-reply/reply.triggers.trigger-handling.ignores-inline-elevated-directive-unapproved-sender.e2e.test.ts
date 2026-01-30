@@ -223,7 +223,7 @@ describe("trigger handling", () => {
 
       const text = Array.isArray(res) ? res[0]?.text : res?.text;
       expect(text).toBe(
-        "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model.",
+        "⚠️ Context overflow — this conversation got too long for the model. Starting a fresh session with /new should fix it.",
       );
       expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
     });
