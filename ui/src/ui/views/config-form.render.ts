@@ -185,8 +185,16 @@ export function renderConfigForm(props: ConfigFormProps) {
       ? (() => {
         const { sectionKey, subsectionKey, schema: node } = subsectionContext;
         const hint = hintForPath([sectionKey, subsectionKey], props.uiHints);
-        const label = hint?.label ?? node.title ?? humanize(subsectionKey);
-        const description = hint?.help ?? node.description ?? "";
+
+        // Try translation first
+        const schemaPath = `config.schema.${sectionKey}.${subsectionKey}`;
+        const labelKey = `${schemaPath}.label`;
+        const descKey = `${schemaPath}.description`;
+        const translatedLabel = t(labelKey);
+        const translatedDesc = t(descKey);
+
+        const label = translatedLabel !== labelKey ? translatedLabel : (hint?.label ?? node.title ?? humanize(subsectionKey));
+        const description = translatedDesc !== descKey ? translatedDesc : (hint?.help ?? node.description ?? "");
         const sectionValue = (value as Record<string, unknown>)[sectionKey];
         const scopedValue =
           sectionValue && typeof sectionValue === "object"
@@ -221,14 +229,23 @@ export function renderConfigForm(props: ConfigFormProps) {
       })()
       : filteredEntries.map(([key, node]) => {
         const meta = getSectionMeta(key);
+        // Try translation for top-level schema items if not in meta
+        const schemaPath = `config.schema.${key}`;
+        const labelKey = `${schemaPath}.label`;
+        const descKey = `${schemaPath}.description`;
+        const translatedLabel = t(labelKey);
+        const translatedDesc = t(descKey);
+
+        const label = translatedLabel !== labelKey ? translatedLabel : meta.label;
+        const description = translatedDesc !== descKey ? translatedDesc : meta.description;
 
         return html`
               <section class="config-section-card" id="config-section-${key}">
                 <div class="config-section-card__header">
                   <span class="config-section-card__icon">${getSectionIcon(key)}</span>
                   <div class="config-section-card__titles">
-                    <h3 class="config-section-card__title">${meta.label}</h3>
-                    ${meta.description
+                    <h3 class="config-section-card__title">${label}</h3>
+                    ${description
             ? html`<p class="config-section-card__desc">${meta.description}</p>`
             : nothing}
                   </div>

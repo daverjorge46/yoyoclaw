@@ -27,6 +27,34 @@ function jsonValue(value: unknown): string {
   }
 }
 
+function resolveNodeLabels(
+  path: Array<string | number>,
+  schema: JsonSchema,
+  hints: ConfigUiHints
+): { label: string; help?: string } {
+  const hint = hintForPath(path, hints);
+  // Try translation
+  // Filter out numeric indices to handle array items if necessary, 
+  // but for settings keys (which are object properties), we usually want the specific path.
+  // However, many array items might share the same schema. 
+  // For now, we focus on the settings panel which is mostly object paths.
+  const strPath = path.join(".");
+  const schemaPath = `config.schema.${strPath}`;
+  const labelKey = `${schemaPath}.label`;
+  const descKey = `${schemaPath}.description`;
+
+  const translatedLabel = t(labelKey);
+  const translatedDesc = t(descKey);
+
+  const fallbackLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const fallbackHelp = hint?.help ?? schema.description;
+
+  return {
+    label: translatedLabel && translatedLabel !== labelKey ? translatedLabel : fallbackLabel,
+    help: translatedDesc && translatedDesc !== descKey ? translatedDesc : fallbackHelp,
+  };
+}
+
 // SVG Icons as template literals
 const icons = {
   chevronDown: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
@@ -49,9 +77,12 @@ export function renderNode(params: {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const type = schemaType(schema);
-  const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const hint = hintForPath(path, hints); // Keep for sensitive check below? 
+  // Actually resolveNodeLabels does `hintForPath` internally but we might need `hint` variable for other things like `sensitive`.
+  // `renderNode` doesn't use `hint` for anything else except label/help.
+  // `pathKey` is used below.
+
+  const { label, help } = resolveNodeLabels(path, schema, hints);
   const key = pathKey(path);
 
   if (unsupported.has(key)) {
@@ -229,8 +260,7 @@ function renderTextInput(params: {
   const { schema, value, path, hints, disabled, onPatch, inputType } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const { label, help } = resolveNodeLabels(path, schema, hints);
   const isSensitive = hint?.sensitive ?? isSensitivePath(path);
   const placeholder =
     hint?.placeholder ??
@@ -297,8 +327,7 @@ function renderNumberInput(params: {
   const { schema, value, path, hints, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const { label, help } = resolveNodeLabels(path, schema, hints);
   const displayValue = value ?? schema.default ?? "";
   const numValue = typeof displayValue === "number" ? displayValue : 0;
 
@@ -348,8 +377,7 @@ function renderSelect(params: {
   const { schema, value, path, hints, disabled, options, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const { label, help } = resolveNodeLabels(path, schema, hints);
   const resolvedValue = value ?? schema.default;
   const currentIndex = options.findIndex(
     (opt) => opt === resolvedValue || String(opt) === String(resolvedValue),
@@ -391,8 +419,7 @@ function renderObject(params: {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const { label, help } = resolveNodeLabels(path, schema, hints);
 
   const fallback = value ?? schema.default;
   const obj = fallback && typeof fallback === "object" && !Array.isArray(fallback)
@@ -490,8 +517,7 @@ function renderArray(params: {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const { label, help } = resolveNodeLabels(path, schema, hints);
 
   const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items;
   if (!itemsSchema) {

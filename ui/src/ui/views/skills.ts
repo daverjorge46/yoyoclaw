@@ -92,9 +92,9 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
     <div class="list-item">
       <div class="list-main">
         <div class="list-title">
-          ${skill.emoji ? `${skill.emoji} ` : ""}${skill.name}
+          ${skill.emoji ? `${skill.emoji} ` : ""}${t(`skills.names.${skill.skillKey}`) !== `skills.names.${skill.skillKey}` ? t(`skills.names.${skill.skillKey}`) : skill.name}
         </div>
-        <div class="list-sub">${clampText(skill.description, 140)}</div>
+        <div class="list-sub">${clampText((t(`skills.descriptions.${skill.skillKey}`) !== `skills.descriptions.${skill.skillKey}` ? t(`skills.descriptions.${skill.skillKey}`) : skill.description), 140)}</div>
         <div class="chip-row" style="margin-top: 6px;">
           <span class="chip">${skill.source}</span>
           <span class="chip ${skill.eligible ? "chip-ok" : "chip-warn"}">
