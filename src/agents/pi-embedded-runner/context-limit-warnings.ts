@@ -250,6 +250,7 @@ export function resolveMaxContextTokens(params: {
 export function canCompactFurther(
   messages: AgentMessage[],
   maxContextTokens: number,
+  options?: { keepRecent?: number; summaryOverhead?: number },
 ): { canCompact: boolean; reason?: string } {
   if (messages.length === 0) {
     return { canCompact: false, reason: "no messages" };
@@ -261,14 +262,14 @@ export function canCompactFurther(
     return { canCompact: false, reason: "already compacted" };
   }
 
-  // Conservative estimate: Keep recent 10 messages + summary overhead
-  // This is a simplified model since actual compaction logic is in upstream library
-  const keepRecent = 10;
+  // Configurable: how many recent messages compaction retains (default 10)
+  // No upstream setting exists for this, so callers can override via options
+  const keepRecent = options?.keepRecent ?? 10;
   const recentMessages = messages.slice(-keepRecent);
   const recentTokens = estimateMessagesTokens(recentMessages);
 
   // Upper bound for summary overhead (multi-stage summarization worst case)
-  const summaryOverheadMax = 2500;
+  const summaryOverheadMax = options?.summaryOverhead ?? 2500;
   const minimumTokens = recentTokens + summaryOverheadMax;
 
   const currentTokens = estimateMessagesTokens(messages);
