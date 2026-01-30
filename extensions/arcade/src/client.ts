@@ -92,12 +92,13 @@ export type ArcadeClientOptions = {
 };
 
 export class ArcadeClient {
-  private sdk: Arcade;
+  private _sdk: Arcade | null = null;
   private userId: string;
   private baseUrl: string;
   private apiKey: string;
   private toolsCache: Map<string, { tools: ArcadeToolDefinition[]; timestamp: number }> = new Map();
   private cacheTtlMs: number;
+  private sdkOptions: ClientOptions;
 
   constructor(config: ArcadeConfig, options?: ArcadeClientOptions) {
     this.baseUrl = config.baseUrl.replace(/\/$/, "");
@@ -105,15 +106,27 @@ export class ArcadeClient {
     this.userId = config.userId ?? "";
     this.cacheTtlMs = config.cacheToolsTtlMs;
 
-    // Initialize SDK
-    const sdkOptions: ClientOptions = {
+    // Store SDK options for lazy initialization
+    this.sdkOptions = {
       apiKey: this.apiKey || undefined,
       baseURL: this.baseUrl,
       maxRetries: options?.maxRetries ?? 3,
       timeout: options?.timeoutMs ?? 30000,
     };
+  }
 
-    this.sdk = new Arcade(sdkOptions);
+  /**
+   * Get the SDK instance, creating it lazily if needed.
+   * Throws if not configured (no API key).
+   */
+  private get sdk(): Arcade {
+    if (!this._sdk) {
+      if (!this.apiKey) {
+        throw new Error("Arcade API key not configured");
+      }
+      this._sdk = new Arcade(this.sdkOptions);
+    }
+    return this._sdk;
   }
 
   // ==========================================================================
@@ -128,11 +141,13 @@ export class ArcadeClient {
     if (config.userId !== undefined) this.userId = config.userId;
     if (config.baseUrl !== undefined) this.baseUrl = config.baseUrl.replace(/\/$/, "");
 
-    // Re-create SDK with new config
-    this.sdk = new Arcade({
+    // Update SDK options and invalidate cached SDK
+    this.sdkOptions = {
+      ...this.sdkOptions,
       apiKey: this.apiKey || undefined,
       baseURL: this.baseUrl,
-    });
+    };
+    this._sdk = null;
   }
 
   /**
@@ -150,10 +165,11 @@ export class ArcadeClient {
   }
 
   /**
-   * Get the underlying SDK instance for advanced usage
+   * Get the underlying SDK instance for advanced usage.
+   * Throws if not configured (no API key).
    */
   getSdk(): Arcade {
-    return this.sdk;
+    return this.sdk; // Uses lazy getter
   }
 
   // ==========================================================================
