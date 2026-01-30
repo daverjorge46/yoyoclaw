@@ -1,5 +1,6 @@
+import { join } from "node:path";
 import { type Api, completeSimple, type Model } from "@mariozechner/pi-ai";
-import { discoverAuthStorage, discoverModels } from "@mariozechner/pi-coding-agent";
+import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../config/config.js";
@@ -165,8 +166,8 @@ describeLive("live models (profile keys)", () => {
       }
 
       const agentDir = resolveOpenClawAgentDir();
-      const authStorage = discoverAuthStorage(agentDir);
-      const modelRegistry = discoverModels(authStorage, agentDir);
+      const authStorage = new AuthStorage(join(agentDir, "auth.json"));
+      const modelRegistry = new ModelRegistry(authStorage, join(agentDir, "models.json"));
       const models = modelRegistry.getAll() as Array<Model<Api>>;
 
       const rawModels = process.env.OPENCLAW_LIVE_MODELS?.trim();

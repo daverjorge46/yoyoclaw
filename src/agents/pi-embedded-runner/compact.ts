@@ -388,7 +388,7 @@ export async function compactEmbeddedPiSessionDirect(
         cwd: resolvedWorkspace,
         agentDir,
         settingsManager,
-        systemPromptOverride: () => appendPrompt,
+        systemPromptOverride: (_base) => appendPrompt,
         agentsFilesOverride: (current) => ({
           agentsFiles: [
             ...current.agentsFiles,

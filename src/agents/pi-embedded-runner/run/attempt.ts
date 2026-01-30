@@ -455,7 +455,7 @@ export async function runEmbeddedAttempt(
         cwd: resolvedWorkspace,
         agentDir,
         settingsManager,
-        systemPromptOverride: () => appendPrompt,
+        systemPromptOverride: (_base) => appendPrompt,
         agentsFilesOverride: (current) => ({
           agentsFiles: [
             ...current.agentsFiles,

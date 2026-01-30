@@ -3,8 +3,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { join } from "node:path";
 import { type Api, completeSimple, type Model } from "@mariozechner/pi-ai";
-import { discoverAuthStorage, discoverModels } from "@mariozechner/pi-coding-agent";
+import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import { describe, expect, it } from "vitest";
 import { isTruthyEnvValue } from "../infra/env.js";
 import {
@@ -155,8 +156,11 @@ describeLive("live anthropic setup-token", () => {
         const cfg = loadConfig();
         await ensureOpenClawModelsJson(cfg, tokenSource.agentDir);
 
-        const authStorage = discoverAuthStorage(tokenSource.agentDir);
-        const modelRegistry = discoverModels(authStorage, tokenSource.agentDir);
+        const authStorage = new AuthStorage(join(tokenSource.agentDir, "auth.json"));
+        const modelRegistry = new ModelRegistry(
+          authStorage,
+          join(tokenSource.agentDir, "models.json"),
+        );
         const all = Array.isArray(modelRegistry) ? modelRegistry : modelRegistry.getAll();
         const candidates = all.filter(
           (model) => normalizeProviderId(model.provider) === "anthropic",

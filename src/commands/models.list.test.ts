@@ -13,8 +13,11 @@ const resolveProfileUnusableUntilForDisplay = vi.fn().mockReturnValue(null);
 const resolveEnvApiKey = vi.fn().mockReturnValue(undefined);
 const resolveAwsSdkEnvVarName = vi.fn().mockReturnValue(undefined);
 const getCustomProviderApiKey = vi.fn().mockReturnValue(undefined);
-const discoverAuthStorage = vi.fn().mockReturnValue({});
-const discoverModels = vi.fn();
+const AuthStorage = vi.fn().mockImplementation(() => ({}));
+const ModelRegistry = vi.fn().mockImplementation(() => ({
+  getAll: vi.fn().mockReturnValue([]),
+  getAvailable: vi.fn().mockReturnValue([]),
+}));
 
 vi.mock("../config/config.js", () => ({
   CONFIG_PATH: "/tmp/openclaw.json",
@@ -45,8 +48,8 @@ vi.mock("../agents/model-auth.js", () => ({
 }));
 
 vi.mock("@mariozechner/pi-coding-agent", () => ({
-  discoverAuthStorage,
-  discoverModels,
+  AuthStorage,
+  ModelRegistry,
 }));
 
 function makeRuntime() {
@@ -99,10 +102,10 @@ describe("models list/status", () => {
       contextWindow: 128000,
     };
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => [model],
       getAvailable: () => [model],
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ json: true }, runtime);
@@ -127,10 +130,10 @@ describe("models list/status", () => {
       contextWindow: 128000,
     };
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => [model],
       getAvailable: () => [model],
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ plain: true }, runtime);
@@ -164,10 +167,10 @@ describe("models list/status", () => {
       },
     ];
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => models,
       getAvailable: () => models,
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ all: true, provider: "z.ai", json: true }, runtime);
@@ -203,10 +206,10 @@ describe("models list/status", () => {
       },
     ];
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => models,
       getAvailable: () => models,
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ all: true, provider: "Z.AI", json: true }, runtime);
@@ -242,10 +245,10 @@ describe("models list/status", () => {
       },
     ];
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => models,
       getAvailable: () => models,
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ all: true, provider: "z-ai", json: true }, runtime);
@@ -271,10 +274,10 @@ describe("models list/status", () => {
       contextWindow: 128000,
     };
 
-    discoverModels.mockReturnValue({
+    ModelRegistry.mockImplementation(() => ({
       getAll: () => [model],
       getAvailable: () => [],
-    });
+    }));
 
     const { modelsListCommand } = await import("./models/list.js");
     await modelsListCommand({ all: true, json: true }, runtime);

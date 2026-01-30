@@ -4,8 +4,9 @@ import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 
+import { join } from "node:path";
 import type { Api, Model } from "@mariozechner/pi-ai";
-import { discoverAuthStorage, discoverModels } from "@mariozechner/pi-coding-agent";
+import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import { describe, it } from "vitest";
 import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
 import { resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
@@ -963,8 +964,8 @@ describeLive("gateway live (dev agent, profile keys)", () => {
       const authStore = ensureAuthProfileStore(agentDir, {
         allowKeychainPrompt: false,
       });
-      const authStorage = discoverAuthStorage(agentDir);
-      const modelRegistry = discoverModels(authStorage, agentDir);
+      const authStorage = new AuthStorage(join(agentDir, "auth.json"));
+      const modelRegistry = new ModelRegistry(authStorage, join(agentDir, "models.json"));
       const all = modelRegistry.getAll() as Array<Model<Api>>;
 
       const rawModels = process.env.OPENCLAW_LIVE_GATEWAY_MODELS?.trim();
@@ -1064,8 +1065,8 @@ describeLive("gateway live (dev agent, profile keys)", () => {
     await ensureOpenClawModelsJson(cfg);
 
     const agentDir = resolveOpenClawAgentDir();
-    const authStorage = discoverAuthStorage(agentDir);
-    const modelRegistry = discoverModels(authStorage, agentDir);
+    const authStorage = new AuthStorage(join(agentDir, "auth.json"));
+    const modelRegistry = new ModelRegistry(authStorage, join(agentDir, "models.json"));
     const anthropic = modelRegistry.find("anthropic", "claude-opus-4-5") as Model<Api> | null;
     const zai = modelRegistry.find("zai", "glm-4.7") as Model<Api> | null;
 
