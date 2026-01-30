@@ -148,6 +148,15 @@ export function checkContextLimit(params: {
     estimatedOutputTokens: params.estimatedOutputTokens,
   });
   const maxTokens = params.maxContextTokens;
+  if (maxTokens <= 0) {
+    return {
+      currentTokens,
+      maxTokens,
+      usagePercent: 0,
+      action: "proceed",
+      shouldAutoCompact: false,
+    };
+  }
   const usagePercent = (currentTokens / maxTokens) * 100;
 
   // Determine action based on thresholds

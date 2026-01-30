@@ -954,7 +954,10 @@ export async function runEmbeddedAttempt(
               activeSession.agent.replaceMessages(sessionContext.messages);
             } else {
               log.warn(
-                `Turn boundary: auto-compaction failed: ${compactResult.reason ?? "nothing to compact"}`,
+                `Turn boundary: hard gate compaction failed: ${compactResult.reason ?? "nothing to compact"}. Aborting to prevent context overflow.`,
+              );
+              throw new Error(
+                `Context limit hard gate: at ${turnBoundaryCheck.usagePercent.toFixed(0)}% but compaction failed: ${compactResult.reason ?? "unknown"}`,
               );
             }
           } else if (turnBoundaryCheck.action === "soft_warn" && turnBoundaryCheck.warningMessage) {
