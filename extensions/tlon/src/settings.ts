@@ -228,7 +228,7 @@ export function createSettingsManager(
      */
     async load(): Promise<TlonSettingsStore> {
       try {
-        const raw = await api.scry("/all.json");
+        const raw = await api.scry("/settings/all.json");
         // Response shape: { all: { [desk]: { [bucket]: { [key]: value } } } }
         const allData = raw as { all?: Record<string, Record<string, unknown>> };
         const deskData = allData?.all?.[SETTINGS_DESK];
