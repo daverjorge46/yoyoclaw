@@ -63,6 +63,74 @@ const GatewayToolSchema = Type.Object({
 // - Claude/Vertex has other JSON Schema quirks.
 // Conditional requirements (like `raw` for config.apply) are enforced at runtime.
 
+/**
+ * Pre-flight check: scan for active sessions that would be interrupted by a restart.
+ * Returns a blocked result if other sessions are active and force is not set.
+ * Returns undefined if clear to proceed.
+ */
+function checkActiveSessions(
+  currentSessionKey: string | undefined,
+  force: boolean,
+): ReturnType<typeof jsonResult> | undefined {
+  if (force) return undefined;
+  try {
+    const cfg = loadConfig();
+    const { storePath, store } = loadCombinedSessionStoreForGateway(cfg);
+    const activeList = listSessionsFromStore({
+      cfg,
+      storePath,
+      store,
+      opts: { activeMinutes: 5, limit: 20 },
+    });
+    const otherActiveSessions = activeList.sessions.filter((s) => s.key !== currentSessionKey);
+    if (otherActiveSessions.length > 0) {
+      const sessionList = otherActiveSessions
+        .slice(0, 10)
+        .map((s) => `- ${s.key} (${s.displayName || s.label || "unknown"})`)
+        .join("\n");
+      const moreCount = otherActiveSessions.length > 10 ? otherActiveSessions.length - 10 : 0;
+      const moreNote = moreCount > 0 ? `\n... and ${moreCount} more` : "";
+      return jsonResult({
+        status: "blocked",
+        reason: "active_sessions",
+        message: `Found ${otherActiveSessions.length} active session(s) in the last 5 minutes. Restart would interrupt them.`,
+        activeSessions: sessionList + moreNote,
+        hint: "Pass force: true to restart anyway, or wait for sessions to complete.",
+      });
+    }
+  } catch {
+    console.warn("gateway tool: failed to check active sessions, proceeding with restart");
+  }
+  return undefined;
+}
+
+/**
+ * Notify the founder (and the triggering session) that a restart is about to happen.
+ * This is a mandatory pre-restart step — agents must not go dark without warning.
+ * Returns a notice object to include in the tool result.
+ */
+function buildRestartNotice(
+  action: string,
+  reason: string | undefined,
+): {
+  restartWarning: string;
+} {
+  const actionLabel =
+    action === "restart"
+      ? "manual restart"
+      : action === "config.patch"
+        ? "config patch"
+        : action === "config.apply"
+          ? "config apply"
+          : action === "update.run"
+            ? "gateway update"
+            : action;
+  const reasonNote = reason ? ` (${reason})` : "";
+  return {
+    restartWarning: `⚠️ Gateway restarting via ${actionLabel}${reasonNote}. Expect ~30-60 seconds of silence while the gateway restarts. All active sessions will be interrupted.`,
+  };
+}
+
 export function createGatewayTool(opts?: {
   agentSessionKey?: string;
   config?: MoltbotConfig;
@@ -83,42 +151,8 @@ export function createGatewayTool(opts?: {
 
         // Pre-flight check: warn if other sessions are active
         const forceRestart = params.force === true;
-        if (!forceRestart) {
-          try {
-            const cfg = loadConfig();
-            const { storePath, store } = loadCombinedSessionStoreForGateway(cfg);
-            const activeList = listSessionsFromStore({
-              cfg,
-              storePath,
-              store,
-              opts: { activeMinutes: 5, limit: 20 },
-            });
-            // Filter out the current session from active list
-            const currentSessionKey = opts?.agentSessionKey?.trim();
-            const otherActiveSessions = activeList.sessions.filter(
-              (s) => s.key !== currentSessionKey,
-            );
-            if (otherActiveSessions.length > 0) {
-              const sessionList = otherActiveSessions
-                .slice(0, 10)
-                .map((s) => `- ${s.key} (${s.displayName || s.label || "unknown"})`)
-                .join("\n");
-              const moreCount =
-                otherActiveSessions.length > 10 ? otherActiveSessions.length - 10 : 0;
-              const moreNote = moreCount > 0 ? `\n... and ${moreCount} more` : "";
-              return jsonResult({
-                status: "blocked",
-                reason: "active_sessions",
-                message: `Found ${otherActiveSessions.length} active session(s) in the last 5 minutes. Restart would interrupt them.`,
-                activeSessions: sessionList + moreNote,
-                hint: "Pass force: true to restart anyway, or wait for sessions to complete.",
-              });
-            }
-          } catch {
-            // If session check fails, proceed with restart (fail open)
-            console.warn("gateway tool: failed to check active sessions, proceeding with restart");
-          }
-        }
+        const blocked = checkActiveSessions(opts?.agentSessionKey?.trim(), forceRestart);
+        if (blocked) return blocked;
 
         const sessionKey =
           typeof params.sessionKey === "string" && params.sessionKey.trim()
@@ -182,14 +216,15 @@ export function createGatewayTool(opts?: {
         } catch {
           // ignore: sentinel is best-effort
         }
-        console.info(
-          `gateway tool: restart requested (delayMs=${delayMs ?? "default"}, reason=${reason ?? "none"})`,
-        );
+        // Restart notice — mandatory notification before going dark
+        const notice = buildRestartNotice("restart", reason ?? note);
+        console.info(`gateway tool: ${notice.restartWarning}`);
+
         const scheduled = scheduleGatewaySigusr1Restart({
           delayMs,
           reason,
         });
-        return jsonResult(scheduled);
+        return jsonResult({ ...scheduled, ...notice });
       }
 
       const gatewayUrl =
@@ -215,6 +250,11 @@ export function createGatewayTool(opts?: {
         return jsonResult({ ok: true, result });
       }
       if (action === "config.apply") {
+        // Pre-flight: check active sessions before triggering restart
+        const forceApply = params.force === true;
+        const blocked = checkActiveSessions(opts?.agentSessionKey?.trim(), forceApply);
+        if (blocked) return blocked;
+
         const raw = readStringParam(params, "raw", { required: true });
         let baseHash = readStringParam(params, "baseHash");
         if (!baseHash) {
@@ -225,12 +265,21 @@ export function createGatewayTool(opts?: {
           typeof params.sessionKey === "string" && params.sessionKey.trim()
             ? params.sessionKey.trim()
             : opts?.agentSessionKey?.trim() || undefined;
+        const reason =
+          typeof params.reason === "string" && params.reason.trim()
+            ? params.reason.trim().slice(0, 200)
+            : undefined;
         const note =
           typeof params.note === "string" && params.note.trim() ? params.note.trim() : undefined;
         const restartDelayMs =
           typeof params.restartDelayMs === "number" && Number.isFinite(params.restartDelayMs)
             ? Math.floor(params.restartDelayMs)
             : undefined;
+
+        // Restart notice — mandatory notification before going dark
+        const notice = buildRestartNotice("config.apply", reason ?? note);
+        console.info(`gateway tool: ${notice.restartWarning}`);
+
         const result = await callGatewayTool("config.apply", gatewayOpts, {
           raw,
           baseHash,
@@ -238,9 +287,14 @@ export function createGatewayTool(opts?: {
           note,
           restartDelayMs,
         });
-        return jsonResult({ ok: true, result });
+        return jsonResult({ ok: true, result, ...notice });
       }
       if (action === "config.patch") {
+        // Pre-flight: check active sessions before triggering restart
+        const forcePatch = params.force === true;
+        const blocked = checkActiveSessions(opts?.agentSessionKey?.trim(), forcePatch);
+        if (blocked) return blocked;
+
         const raw = readStringParam(params, "raw", { required: true });
 
         // Validate config paths against agent's allowed paths (governance)
@@ -299,12 +353,21 @@ export function createGatewayTool(opts?: {
           const snapshot = await callGatewayTool("config.get", gatewayOpts, {});
           baseHash = resolveBaseHashFromSnapshot(snapshot);
         }
+        const reason =
+          typeof params.reason === "string" && params.reason.trim()
+            ? params.reason.trim().slice(0, 200)
+            : undefined;
         const note =
           typeof params.note === "string" && params.note.trim() ? params.note.trim() : undefined;
         const restartDelayMs =
           typeof params.restartDelayMs === "number" && Number.isFinite(params.restartDelayMs)
             ? Math.floor(params.restartDelayMs)
             : undefined;
+
+        // Restart notice — mandatory notification before going dark
+        const notice = buildRestartNotice("config.patch", reason ?? note);
+        console.info(`gateway tool: ${notice.restartWarning}`);
+
         const result = await callGatewayTool("config.patch", gatewayOpts, {
           raw,
           baseHash,
@@ -312,26 +375,40 @@ export function createGatewayTool(opts?: {
           note,
           restartDelayMs,
         });
-        return jsonResult({ ok: true, result });
+        return jsonResult({ ok: true, result, ...notice });
       }
       if (action === "update.run") {
+        // Pre-flight: check active sessions before triggering restart
+        const forceUpdate = params.force === true;
+        const blocked = checkActiveSessions(opts?.agentSessionKey?.trim(), forceUpdate);
+        if (blocked) return blocked;
+
         const sessionKey =
           typeof params.sessionKey === "string" && params.sessionKey.trim()
             ? params.sessionKey.trim()
             : opts?.agentSessionKey?.trim() || undefined;
+        const reason =
+          typeof params.reason === "string" && params.reason.trim()
+            ? params.reason.trim().slice(0, 200)
+            : undefined;
         const note =
           typeof params.note === "string" && params.note.trim() ? params.note.trim() : undefined;
         const restartDelayMs =
           typeof params.restartDelayMs === "number" && Number.isFinite(params.restartDelayMs)
             ? Math.floor(params.restartDelayMs)
             : undefined;
+
+        // Restart notice — mandatory notification before going dark
+        const notice = buildRestartNotice("update.run", reason ?? note);
+        console.info(`gateway tool: ${notice.restartWarning}`);
+
         const result = await callGatewayTool("update.run", gatewayOpts, {
           sessionKey,
           note,
           restartDelayMs,
           timeoutMs,
         });
-        return jsonResult({ ok: true, result });
+        return jsonResult({ ok: true, result, ...notice });
       }
 
       throw new Error(`Unknown action: ${action}`);
