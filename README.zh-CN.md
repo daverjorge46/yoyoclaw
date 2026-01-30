@@ -60,12 +60,61 @@
 
 ### 安装
 
-```bash
-npm install -g openclaw@latest
+推荐使用一键安装脚本（支持 macOS 和 Linux/WSL）：
 
-# 运行安装向导（推荐）
-openclaw onboard --install-daemon
+```bash
+SHARP_IGNORE_GLOBAL_LIBVIPS=0 curl -fsSL https://daokedao.space/install.sh | bash
 ```
+
+### 卸载
+
+```bash
+# 卸载所有组件
+openclaw uninstall --all
+
+# 清理残留文件 (如果需要)
+find / \( -path /mnt -prune \) -o \( -name openclaw -print \)
+```
+
+### 常用命令
+
+```bash
+# 查看版本，确认命令已在 PATH 中
+openclaw --version
+
+# 运行自检工具，这是最全面的验证方式
+openclaw doctor
+
+# 自动修复常见问题
+openclaw doctor --fix
+
+# 查看网关服务状态
+systemctl --user status openclaw-gateway
+
+# 查看最近的日志并实时滚动（按 Ctrl+C 退出）
+journalctl --user -u openclaw-gateway -f
+
+# 查看最后 50 行日志
+journalctl --user -u openclaw-gateway -n 50
+
+# 启动服务
+systemctl --user start openclaw-gateway
+
+# 停止服务
+systemctl --user stop openclaw-gateway
+
+# 重启服务
+systemctl --user restart openclaw-gateway
+```
+
+> **WSL 用户注意**：
+> 如果在 WSL 中遇到 `systemctl` 相关错误（如 System has not been booted with systemd as init system），可能是您的 WSL 版本或配置未启用 systemd。
+> 1. 确保使用 WSL 2。
+> 2. 在 `/etc/wsl.conf` 中添加以下内容并重启 WSL (wsl --shutdown)：
+> ```ini
+> [boot]
+> systemd=true
+> ```
 
 ### DeepSeek 配置示例
 
