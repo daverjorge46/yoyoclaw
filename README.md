@@ -468,6 +468,22 @@ by Peter Steinberger and the community.
 - [steipete.me](https://steipete.me)
 - [@openclaw](https://x.com/openclaw)
 
+## Canvas Page
+
+The Canvas page at `/__openclaw__/canvas/` is a **developer test page** for mobile app integration.
+
+**"Bridge: missing" is expected behavior** when viewing in a desktop browser. The Canvas is designed to communicate with iOS/Android OpenClaw mobile apps via a native bridge. When accessed from a desktop browser:
+- The page loads correctly ✅
+- Actions fail because there's no mobile bridge ✅
+
+**For AI Agent Factory use cases**, you'll interact via:
+- WhatsApp Business API
+- SMS (Termii)
+- REST API endpoints
+- Custom frontends
+
+The Canvas page is not required for typical AI agent deployments.
+
 ## Community
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, maintainers, and how to submit PRs.

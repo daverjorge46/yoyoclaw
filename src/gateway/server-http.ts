@@ -30,6 +30,7 @@ import { applyHookMappings } from "./hooks-mapping.js";
 import { handleOpenAiHttpRequest } from "./openai-http.js";
 import { handleOpenResponsesHttpRequest } from "./openresponses-http.js";
 import { handleToolsInvokeHttpRequest } from "./tools-invoke-http.js";
+import { handleHealthRequest } from "./health.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -240,6 +241,9 @@ export function createGatewayHttpServer(opts: {
     }
 
     try {
+      // Health check endpoint (no auth required)
+      if (await handleHealthRequest(req, res)) return;
+      
       const configSnapshot = loadConfig();
       const trustedProxies = configSnapshot.gateway?.trustedProxies ?? [];
       if (await handleHooksRequest(req, res)) {
