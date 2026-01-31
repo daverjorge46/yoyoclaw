@@ -16,7 +16,7 @@ import type { OpenClawConfig } from "../../../config/config.js";
 import { runWithImageModelFallback } from "../../model-fallback.js";
 import { getApiKeyForModel, requireApiKey } from "../../model-auth.js";
 import { ensureOpenClawModelsJson } from "../../models-config.js";
-import { coerceImageModelConfig, type ImageModelConfig } from "../../tools/image-tool.helpers.js";
+import { coerceImageModelConfig } from "../../tools/image-tool.helpers.js";
 import { log } from "../logger.js";
 
 const DEFAULT_IMAGE_ANALYSIS_PROMPT =
