@@ -30,7 +30,9 @@ function formatUtcMsInZone(ms: number, timeZone: string): string {
   }).formatToParts(d);
   const map: Record<string, string> = {};
   for (const p of parts) {
-    if (p.type !== "literal") map[p.type] = p.value;
+    if (p.type !== "literal") {
+      map[p.type] = p.value;
+    }
   }
   const y = map.year ?? "0000";
   const mo = map.month ?? "01";
@@ -46,7 +48,9 @@ function parseLocalTimeInZone(localStr: string, timeZone: string): number | null
   const match = normalized.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?$/,
   );
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
   const [, y, mo, day, h, min, s, frac] = match;
   const sec = s ? Number(s) : 0;
   const ms = frac ? Math.floor(Number(`0.${frac}`) * 1000) : 0;
@@ -61,7 +65,9 @@ function parseLocalTimeInZone(localStr: string, timeZone: string): number | null
   const trialMs = Date.parse(
     `${y}-${mo}-${day}T${h.padStart(2, "0")}:${min}:${String(sec).padStart(2, "0")}.${String(ms).padStart(3, "0")}Z`,
   );
-  if (!Number.isFinite(trialMs)) return null;
+  if (!Number.isFinite(trialMs)) {
+    return null;
+  }
   const halfDay = 12 * 60 * 60 * 1000;
   let low = trialMs - halfDay;
   let high = trialMs + halfDay;
@@ -69,13 +75,20 @@ function parseLocalTimeInZone(localStr: string, timeZone: string): number | null
   for (let i = 0; i < 30; i++) {
     const mid = Math.floor((low + high) / 2);
     const formatted = formatUtcMsInZone(mid, timeZone);
-    if (formatted === target) return roundToSecond(mid);
-    if (formatted < target) low = mid;
-    else high = mid;
+    if (formatted === target) {
+      return roundToSecond(mid);
+    }
+    if (formatted < target) {
+      low = mid;
+    } else {
+      high = mid;
+    }
   }
   const mid = Math.floor((low + high) / 2);
   const result = formatUtcMsInZone(mid, timeZone) === target ? mid : null;
-  if (result === null) return null;
+  if (result === null) {
+    return null;
+  }
   return roundToSecond(result);
 }
 
