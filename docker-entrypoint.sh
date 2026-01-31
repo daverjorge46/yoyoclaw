@@ -39,12 +39,9 @@ fi
 # Default to 8080 if no port is set
 : "${OPENCLAW_GATEWAY_PORT:=8080}"
 
-# Start a tiny healthcheck server (runs in background)
-node -e 'require("http").createServer((_,res)=>res.end("ok")).listen(process.env.PORT)' &
-
 # Ensure gateway process receives config path explicitly
 export OPENCLAW_CONFIG_PATH
 
 # Run the gateway server in lan mode for Railway deployments
 # "lan" mode binds to 0.0.0.0 making the service reachable from Railway proxy
-exec su node -c "HOME=$HOME node openclaw.mjs gateway run --bind lan --port $OPENCLAW_GATEWAY_PORT --allow-unconfigured"
+exec su node -c "HOME=$HOME node openclaw.mjs gateway run --bind lan --port $OPENCLAW_GATEWAY_PORT --allow-unconfigured --health-path /"
