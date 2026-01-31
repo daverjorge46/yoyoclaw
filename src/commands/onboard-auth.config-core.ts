@@ -511,7 +511,7 @@ export function applyAuthProfileConfig(
   };
 }
 
-export function applyDeepSeekProviderConfig(cfg: MoltbotConfig): MoltbotConfig {
+export function applyDeepSeekProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[DEEPSEEK_DEFAULT_MODEL_REF] = {
     ...models[DEEPSEEK_DEFAULT_MODEL_REF],
@@ -561,7 +561,7 @@ export function applyDeepSeekProviderConfig(cfg: MoltbotConfig): MoltbotConfig {
   };
 }
 
-export function applyDeepSeekConfig(cfg: MoltbotConfig): MoltbotConfig {
+export function applyDeepSeekConfig(cfg: OpenClawConfig): OpenClawConfig {
   const next = applyDeepSeekProviderConfig(cfg);
   const existingModel = next.agents?.defaults?.model;
   return {
