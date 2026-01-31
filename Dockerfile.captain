@@ -31,6 +31,17 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# Default npm global prefix + PATH for user-level installs (persisted in /home/node volume)
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/node/.npm-global/bin:/home/node/.local/bin:${PATH}"
+
+# Pre-create linuxbrew prefix symlink (target lives in persisted /home/node volume)
+RUN mkdir -p /home/linuxbrew && ln -sf /home/node/.linuxbrew /home/linuxbrew/.linuxbrew
+
+# Provide an openclaw command in the image for convenience
+RUN printf '%s\n' '#!/bin/sh' 'exec node /app/dist/index.js "$@"' > /usr/local/bin/openclaw \
+  && chmod +x /usr/local/bin/openclaw
+
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
 # This reduces the attack surface by preventing container escape via root privileges
