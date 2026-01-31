@@ -2,6 +2,7 @@ import { resolveAnnounceTargetFromKey } from "../agents/tools/sessions-send-help
 import { normalizeChannelId } from "../channels/plugins/index.js";
 import type { CliDeps } from "../cli/deps.js";
 import { agentCommand } from "../commands/agent.js";
+import { loadConfig } from "../config/config.js";
 import { resolveMainSessionKeyFromConfig } from "../config/sessions.js";
 import { resolveOutboundTarget } from "../infra/outbound/targets.js";
 import {
@@ -10,9 +11,12 @@ import {
   summarizeRestartSentinel,
 } from "../infra/restart-sentinel.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { defaultRuntime } from "../runtime.js";
 import { deliveryContextFromSession, mergeDeliveryContext } from "../utils/delivery-context.js";
 import { loadSessionEntry } from "./session-utils.js";
+
+const log = createSubsystemLogger("restart-sentinel");
 
 export async function scheduleRestartSentinelWake(params: { deps: CliDeps }) {
   const sentinel = await consumeRestartSentinel();
@@ -22,9 +26,18 @@ export async function scheduleRestartSentinelWake(params: { deps: CliDeps }) {
   const message = formatRestartSentinelMessage(payload);
   const summary = summarizeRestartSentinel(payload);
 
+  // P0: Check if resume prompt is enabled (default: false for backward compat)
+  const cfg = loadConfig();
+  const resumePromptEnabled = cfg.agents?.defaults?.resumePrompt?.enabled ?? false;
+
   if (!sessionKey) {
-    const mainSessionKey = resolveMainSessionKeyFromConfig();
-    enqueueSystemEvent(message, { sessionKey: mainSessionKey });
+    // P0: Only enqueue system event if resumePrompt enabled
+    if (resumePromptEnabled) {
+      const mainSessionKey = resolveMainSessionKeyFromConfig();
+      enqueueSystemEvent(message, { sessionKey: mainSessionKey });
+    } else {
+      log.info("Gateway restart complete (no session key, resumePrompt disabled)");
+    }
     return;
   }
 
@@ -40,7 +53,7 @@ export async function scheduleRestartSentinelWake(params: { deps: CliDeps }) {
     markerIndex === -1 ? undefined : sessionKey.slice(markerIndex + marker.length);
   const sessionThreadId = threadIdRaw?.trim() || undefined;
 
-  const { cfg, entry } = loadSessionEntry(sessionKey);
+  const { cfg: sessionCfg, entry } = loadSessionEntry(sessionKey);
   const parsedTarget = resolveAnnounceTargetFromKey(baseSessionKey);
 
   // Prefer delivery context from sentinel (captured at restart) over session store
@@ -61,19 +74,31 @@ export async function scheduleRestartSentinelWake(params: { deps: CliDeps }) {
   const channel = channelRaw ? normalizeChannelId(channelRaw) : null;
   const to = origin?.to;
   if (!channel || !to) {
-    enqueueSystemEvent(message, { sessionKey });
+    if (resumePromptEnabled) {
+      enqueueSystemEvent(message, { sessionKey });
+    } else {
+      log.info(
+        `Gateway restart complete (session=${sessionKey}, no channel/to, resumePrompt disabled)`,
+      );
+    }
     return;
   }
 
   const resolved = resolveOutboundTarget({
     channel,
     to,
-    cfg,
+    cfg: sessionCfg,
     accountId: origin?.accountId,
     mode: "implicit",
   });
   if (!resolved.ok) {
-    enqueueSystemEvent(message, { sessionKey });
+    if (resumePromptEnabled) {
+      enqueueSystemEvent(message, { sessionKey });
+    } else {
+      log.info(
+        `Gateway restart complete (session=${sessionKey}, outbound resolve failed, resumePrompt disabled)`,
+      );
+    }
     return;
   }
 
@@ -82,6 +107,13 @@ export async function scheduleRestartSentinelWake(params: { deps: CliDeps }) {
     parsedTarget?.threadId ?? // From resolveAnnounceTargetFromKey (extracts :topic:N)
     sessionThreadId ??
     (origin?.threadId != null ? String(origin.threadId) : undefined);
+
+  // P0: Only deliver restart message if resumePrompt is enabled
+  // Default is OFF for backward compatibility (no user-visible restart messages)
+  if (!resumePromptEnabled) {
+    log.info(`Gateway restart complete (session=${sessionKey}, resumePrompt disabled)`);
+    return;
+  }
 
   try {
     await agentCommand(

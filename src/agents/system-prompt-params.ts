@@ -22,6 +22,10 @@ export type RuntimeInfoInput = {
   /** Supported message actions for the current channel (e.g., react, edit, unsend) */
   channelActions?: string[];
   repoRoot?: string;
+  /** Gateway uptime in seconds (for conversation continuity awareness) */
+  gatewayUptimeSeconds?: number;
+  /** True if this is the first message after a gateway restart */
+  sessionResumedAfterRestart?: boolean;
 };
 
 export type SystemPromptRuntimeParams = {

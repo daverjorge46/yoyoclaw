@@ -167,6 +167,22 @@ export const AgentDefaultsSchema = z
       })
       .strict()
       .optional(),
+    /** P0: Conversation continuity - resume prompt after gateway restart */
+    resumePrompt: z
+      .object({
+        /** Enable resume prompt on restart (default: false for backward compat) */
+        enabled: z.boolean().optional(),
+        /** Cost mode: minimal (gateway metadata only), balanced (+ memory search), comprehensive (full) */
+        costMode: z
+          .union([z.literal("minimal"), z.literal("balanced"), z.literal("comprehensive")])
+          .optional(),
+        /** Max results from memory search on resume (default: 5) */
+        maxSearchResults: z.number().int().positive().optional(),
+        /** Timeout for memory search in ms (default: 2000) */
+        searchTimeoutMs: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

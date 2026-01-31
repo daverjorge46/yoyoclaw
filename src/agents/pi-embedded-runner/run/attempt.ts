@@ -331,6 +331,8 @@ export async function runEmbeddedAttempt(
         channel: runtimeChannel,
         capabilities: runtimeCapabilities,
         channelActions,
+        // P0: Gateway continuity metadata - model can infer "resumed" from low uptime + history
+        gatewayUptimeSeconds: Math.round(process.uptime()),
       },
     });
     const isDefaultAgent = sessionAgentId === defaultAgentId;

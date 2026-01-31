@@ -563,6 +563,8 @@ export function buildRuntimeLine(
     model?: string;
     defaultModel?: string;
     repoRoot?: string;
+    gatewayUptimeSeconds?: number;
+    sessionResumedAfterRestart?: boolean;
   },
   runtimeChannel?: string,
   runtimeCapabilities: string[] = [],
@@ -585,6 +587,11 @@ export function buildRuntimeLine(
       ? `capabilities=${runtimeCapabilities.length > 0 ? runtimeCapabilities.join(",") : "none"}`
       : "",
     `thinking=${defaultThinkLevel ?? "off"}`,
+    // Gateway continuity metadata (P0 - conversation continuity)
+    runtimeInfo?.gatewayUptimeSeconds != null
+      ? `gateway_uptime=${runtimeInfo.gatewayUptimeSeconds}s`
+      : "",
+    runtimeInfo?.sessionResumedAfterRestart ? "session_resumed=true" : "",
   ]
     .filter(Boolean)
     .join(" | ")}`;

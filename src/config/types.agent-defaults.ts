@@ -235,6 +235,8 @@ export type AgentDefaultsConfig = {
     /** Auto-prune sandbox containers. */
     prune?: SandboxPruneSettings;
   };
+  /** P0: Conversation continuity - resume prompt after gateway restart */
+  resumePrompt?: ResumePromptConfig;
 };
 
 export type AgentCompactionMode = "default" | "safeguard";
@@ -259,4 +261,16 @@ export type AgentCompactionMemoryFlushConfig = {
   prompt?: string;
   /** System prompt appended for the memory flush turn. */
   systemPrompt?: string;
+};
+
+/** P0: Conversation continuity - resume prompt after gateway restart */
+export type ResumePromptConfig = {
+  /** Enable resume prompt on restart (default: false for backward compat) */
+  enabled?: boolean;
+  /** Cost mode: minimal (gateway metadata only), balanced (+ memory search), comprehensive (full) */
+  costMode?: "minimal" | "balanced" | "comprehensive";
+  /** Max results from memory search on resume (default: 5) */
+  maxSearchResults?: number;
+  /** Timeout for memory search in ms (default: 2000) */
+  searchTimeoutMs?: number;
 };
