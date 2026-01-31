@@ -19,11 +19,17 @@ const BACKUP_PATH = path.join(CONFIG_DIR, "openclaw.json.bak");
 const FAILED_CONFIG_PATH = path.join(CONFIG_DIR, "openclaw.json.failed");
 const ROLLBACK_HISTORY_PATH = path.join(CONFIG_DIR, "config-rollback-history.json");
 
+// Dist backup paths (for code/schema rollback)
+const DIST_DIR = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../");
+const DIST_BACKUP_DIR = path.join(CONFIG_DIR, "dist.bak");
+
 export interface ConfigPendingMarker {
   /** ISO timestamp when config change was applied */
   appliedAt: string;
   /** Path to backup file */
   rollbackTo: string;
+  /** Path to dist backup (for code/schema rollback) */
+  distBackupPath?: string;
   /** Crash detection window in ms */
   timeoutMs: number;
   /** What triggered the change */
@@ -36,9 +42,60 @@ export interface PendingMarkerOptions {
   timeoutMs?: number;
   reason?: string;
   sessionKey?: string;
+  /** Also backup dist/ for code rollback */
+  backupDist?: boolean;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+
+/**
+ * Recursively copy a directory.
+ */
+async function copyDir(src: string, dest: string): Promise<void> {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyDir(srcPath, destPath);
+    } else {
+      await fs.copyFile(srcPath, destPath);
+    }
+  }
+}
+
+/**
+ * Backup the dist/ directory for code rollback.
+ * Call this before building new code.
+ */
+export async function backupDist(): Promise<string | null> {
+  try {
+    // Remove old backup if exists
+    await fs.rm(DIST_BACKUP_DIR, { recursive: true, force: true });
+    await copyDir(DIST_DIR, DIST_BACKUP_DIR);
+    log.info(`config-pending: backed up dist to ${DIST_BACKUP_DIR}`);
+    return DIST_BACKUP_DIR;
+  } catch (err) {
+    log.warn(`config-pending: failed to backup dist: ${err}`);
+    return null;
+  }
+}
+
+/**
+ * Restore dist/ from backup.
+ */
+async function restoreDist(backupPath: string): Promise<boolean> {
+  try {
+    await fs.rm(DIST_DIR, { recursive: true, force: true });
+    await copyDir(backupPath, DIST_DIR);
+    log.info(`config-pending: restored dist from ${backupPath}`);
+    return true;
+  } catch (err) {
+    log.error(`config-pending: failed to restore dist: ${err}`);
+    return false;
+  }
+}
 
 /**
  * Write a pending marker before applying a config change.
@@ -56,16 +113,28 @@ export async function writePendingMarker(opts: PendingMarkerOptions = {}): Promi
     // Continue anyway - we'll still write the marker
   }
 
+  // Optionally backup dist for code rollback
+  let distBackupPath: string | undefined;
+  if (opts.backupDist) {
+    const backed = await backupDist();
+    if (backed) {
+      distBackupPath = backed;
+    }
+  }
+
   const marker: ConfigPendingMarker = {
     appliedAt: new Date().toISOString(),
     rollbackTo: BACKUP_PATH,
+    distBackupPath,
     timeoutMs,
     reason: opts.reason,
     sessionKey: opts.sessionKey,
   };
 
   await fs.writeFile(PENDING_MARKER_PATH, JSON.stringify(marker, null, 2), "utf-8");
-  log.debug(`config-pending: wrote pending marker (timeout=${timeoutMs}ms)`);
+  log.debug(
+    `config-pending: wrote pending marker (timeout=${timeoutMs}ms, distBackup=${!!distBackupPath})`,
+  );
 }
 
 /**
@@ -93,6 +162,8 @@ export interface RollbackResult {
   reason?: string;
   /** Path to the failed config file (if saved) */
   failedConfigPath?: string;
+  /** Whether dist was also rolled back */
+  distRolledBack?: boolean;
 }
 
 export interface RollbackHistoryEntry {
@@ -104,6 +175,8 @@ export interface RollbackHistoryEntry {
   elapsedMs: number;
   /** Path to the failed config file */
   failedConfigPath?: string;
+  /** Whether dist was also rolled back */
+  distRolledBack?: boolean;
 }
 
 /**
@@ -195,7 +268,7 @@ export async function checkPendingOnStartup(): Promise<RollbackResult> {
     log.warn(`config-pending: failed to save failed config: ${err}`);
   }
 
-  // Perform rollback
+  // Perform config rollback
   try {
     await fs.copyFile(marker.rollbackTo, CONFIG_PATH);
     log.info(`config-pending: restored config from ${marker.rollbackTo}`);
@@ -209,6 +282,15 @@ export async function checkPendingOnStartup(): Promise<RollbackResult> {
     };
   }
 
+  // Perform dist rollback if we have a backup
+  let distRolledBack = false;
+  if (marker.distBackupPath) {
+    distRolledBack = await restoreDist(marker.distBackupPath);
+    if (!distRolledBack) {
+      log.warn(`config-pending: dist rollback failed, continuing with config-only rollback`);
+    }
+  }
+
   // Append to rollback history
   try {
     await appendRollbackHistory({
@@ -216,6 +298,7 @@ export async function checkPendingOnStartup(): Promise<RollbackResult> {
       reason: marker.reason,
       elapsedMs: elapsed,
       failedConfigPath,
+      distRolledBack,
     });
   } catch (err) {
     log.warn(`config-pending: failed to append to rollback history: ${err}`);
@@ -223,9 +306,10 @@ export async function checkPendingOnStartup(): Promise<RollbackResult> {
 
   await clearPendingMarker();
 
+  const distNote = distRolledBack ? " Code (dist/) was also rolled back." : "";
   const errorMsg = capturedError
-    ? `Startup failed within ${marker.timeoutMs}ms of config change.\nLast errors:\n${capturedError}`
-    : `Startup failed within ${marker.timeoutMs}ms of config change (reason: ${marker.reason ?? "unknown"}).`;
+    ? `Startup failed within ${marker.timeoutMs}ms of config change.${distNote}\nLast errors:\n${capturedError}`
+    : `Startup failed within ${marker.timeoutMs}ms of config change (reason: ${marker.reason ?? "unknown"}).${distNote}`;
 
   return {
     rolledBack: true,
@@ -233,6 +317,7 @@ export async function checkPendingOnStartup(): Promise<RollbackResult> {
     sessionKey: marker.sessionKey,
     reason: marker.reason,
     failedConfigPath,
+    distRolledBack,
   };
 }
 
