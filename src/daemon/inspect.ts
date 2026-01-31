@@ -6,9 +6,13 @@ import { promisify } from "node:util";
 import {
   GATEWAY_SERVICE_KIND,
   GATEWAY_SERVICE_MARKER,
+  NODE_SERVICE_KIND,
   resolveGatewayLaunchAgentLabel,
   resolveGatewaySystemdServiceName,
   resolveGatewayWindowsTaskName,
+  resolveNodeLaunchAgentLabel,
+  resolveNodeSystemdServiceName,
+  resolveNodeWindowsTaskName,
 } from "./constants.js";
 
 export type ExtraGatewayService = {
@@ -84,6 +88,15 @@ function hasGatewayServiceMarker(content: string): boolean {
   );
 }
 
+function hasNodeServiceMarker(content: string): boolean {
+  const lower = content.toLowerCase();
+  const markerKeys = ["openclaw_service_marker"];
+  const kindKeys = ["openclaw_service_kind"];
+  const hasMarkerKey = markerKeys.some((key) => lower.includes(key));
+  const hasKindKey = kindKeys.some((key) => lower.includes(key));
+  return hasMarkerKey && hasKindKey && lower.includes(NODE_SERVICE_KIND.toLowerCase());
+}
+
 function isOpenClawGatewayLaunchdService(label: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) return true;
   const lowerContents = contents.toLowerCase();
@@ -91,10 +104,22 @@ function isOpenClawGatewayLaunchdService(label: string, contents: string): boole
   return label.startsWith("ai.openclaw.");
 }
 
+function isOpenClawNodeLaunchdService(label: string, contents: string): boolean {
+  if (hasNodeServiceMarker(contents)) return true;
+  if (label === resolveNodeLaunchAgentLabel()) return true;
+  return false;
+}
+
 function isOpenClawGatewaySystemdService(name: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) return true;
   if (!name.startsWith("openclaw-gateway")) return false;
   return contents.toLowerCase().includes("gateway");
+}
+
+function isOpenClawNodeSystemdService(name: string, contents: string): boolean {
+  if (hasNodeServiceMarker(contents)) return true;
+  if (name === resolveNodeSystemdServiceName()) return true;
+  return false;
 }
 
 function isOpenClawGatewayTaskName(name: string): boolean {
@@ -104,6 +129,13 @@ function isOpenClawGatewayTaskName(name: string): boolean {
   return normalized === defaultName || normalized.startsWith("openclaw gateway");
 }
 
+function isOpenClawNodeTaskName(name: string): boolean {
+  const normalized = name.trim().toLowerCase();
+  if (!normalized) return false;
+  const defaultName = resolveNodeWindowsTaskName().toLowerCase();
+  return normalized === defaultName || normalized.startsWith("openclaw node");
+}
+
 function tryExtractPlistLabel(contents: string): string | null {
   const match = contents.match(/<key>Label<\/key>\s*<string>([\s\S]*?)<\/string>/i);
   if (!match) return null;
@@ -111,11 +143,11 @@ function tryExtractPlistLabel(contents: string): string | null {
 }
 
 function isIgnoredLaunchdLabel(label: string): boolean {
-  return label === resolveGatewayLaunchAgentLabel();
+  return label === resolveGatewayLaunchAgentLabel() || label === resolveNodeLaunchAgentLabel();
 }
 
 function isIgnoredSystemdName(name: string): boolean {
-  return name === resolveGatewaySystemdServiceName();
+  return name === resolveGatewaySystemdServiceName() || name === resolveNodeSystemdServiceName();
 }
 
 function isLegacyLabel(label: string): boolean {
@@ -163,6 +195,7 @@ async function scanLaunchdDir(params: {
     }
     if (isIgnoredLaunchdLabel(label)) continue;
     if (marker === "openclaw" && isOpenClawGatewayLaunchdService(label, contents)) continue;
+    if (marker === "openclaw" && isOpenClawNodeLaunchdService(label, contents)) continue;
     results.push({
       platform: "darwin",
       label,
@@ -202,6 +235,7 @@ async function scanSystemdDir(params: {
     const marker = detectMarker(contents);
     if (!marker) continue;
     if (marker === "openclaw" && isOpenClawGatewaySystemdService(name, contents)) continue;
+    if (marker === "openclaw" && isOpenClawNodeSystemdService(name, contents)) continue;
     results.push({
       platform: "linux",
       label: entry,
@@ -364,6 +398,7 @@ export async function findExtraGatewayServices(
       const name = task.name.trim();
       if (!name) continue;
       if (isOpenClawGatewayTaskName(name)) continue;
+      if (isOpenClawNodeTaskName(name)) continue;
       const lowerName = name.toLowerCase();
       const lowerCommand = task.taskToRun?.toLowerCase() ?? "";
       let marker: Marker | null = null;
