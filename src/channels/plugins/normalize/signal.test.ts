@@ -28,6 +28,11 @@ describe("signal target normalization", () => {
     ).toBe("group:aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefg=");
   });
 
+  it("strips whitespace from group IDs (handles copy-paste errors)", () => {
+    expect(normalizeSignalMessagingTarget("group: aBcDeF gHiJkL =")).toBe("group:aBcDeFgHiJkL=");
+    expect(normalizeSignalMessagingTarget("group:aBc\nDeF\t=")).toBe("group:aBcDeF=");
+  });
+
   it("accepts uuid prefixes for target detection", () => {
     expect(looksLikeSignalTargetId("uuid:123e4567-e89b-12d3-a456-426614174000")).toBe(true);
     expect(looksLikeSignalTargetId("signal:uuid:123e4567-e89b-12d3-a456-426614174000")).toBe(true);
