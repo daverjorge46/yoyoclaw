@@ -3,14 +3,14 @@ import { VaultClient, createVaultClientFromEnv } from "./vault-client.js";
 
 /**
  * Vault Integration Plugin Service
- * 
+ *
  * Provides credential storage in HashiCorp Vault as an alternative to local files.
- * 
+ *
  * Configuration via environment variables:
  * - VAULT_ADDR: Vault server address (default: http://localhost:8200)
  * - VAULT_TOKEN: Authentication token (required)
  * - VAULT_NAMESPACE: Optional namespace
- * 
+ *
  * Or via openclaw.json:
  * {
  *   "vault": {
@@ -52,9 +52,7 @@ export function createVaultIntegrationService(): OpenClawPluginService {
         vaultClient = createVaultClientFromEnv();
 
         if (!vaultClient) {
-          ctx.logger.debug(
-            "vault-integration: VAULT_TOKEN not set, plugin disabled",
-          );
+          ctx.logger.debug("vault-integration: VAULT_TOKEN not set, plugin disabled");
           return;
         }
 
@@ -73,9 +71,7 @@ export function createVaultIntegrationService(): OpenClawPluginService {
 
         const sealStatus = await vaultClient.getSealStatus();
         if (sealStatus.sealed) {
-          ctx.logger.error(
-            "vault-integration: Vault is SEALED! Run 'vault operator unseal' first",
-          );
+          ctx.logger.error("vault-integration: Vault is SEALED! Run 'vault operator unseal' first");
           vaultClient = null;
           return;
         }

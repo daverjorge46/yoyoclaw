@@ -63,9 +63,7 @@ describe("VaultClient", () => {
 
       const client = new VaultClient(mockConfig);
 
-      await expect(
-        client.read("openclaw/data/credentials/test"),
-      ).rejects.toThrow(VaultError);
+      await expect(client.read("openclaw/data/credentials/test")).rejects.toThrow(VaultError);
     });
   });
 
@@ -138,9 +136,7 @@ describe("VaultClient", () => {
       });
 
       const client = new VaultClient(mockConfig);
-      await expect(
-        client.delete("openclaw/data/credentials/test"),
-      ).resolves.not.toThrow();
+      await expect(client.delete("openclaw/data/credentials/test")).resolves.not.toThrow();
     });
 
     it("should not throw on 404", async () => {
@@ -150,9 +146,7 @@ describe("VaultClient", () => {
       });
 
       const client = new VaultClient(mockConfig);
-      await expect(
-        client.delete("openclaw/data/credentials/notfound"),
-      ).resolves.not.toThrow();
+      await expect(client.delete("openclaw/data/credentials/notfound")).resolves.not.toThrow();
     });
   });
 

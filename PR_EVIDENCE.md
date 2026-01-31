@@ -7,6 +7,7 @@ The `diagnostics-otel` plugin fails to start due to API breaking changes in Open
 ## Errors Before Fix
 
 ### Error 1: Resource constructor
+
 ```
 [plugins] plugin service failed (diagnostics-otel): TypeError: _resources.Resource is not a constructor
 ```
@@ -14,6 +15,7 @@ The `diagnostics-otel` plugin fails to start due to API breaking changes in Open
 **Root cause:** `@opentelemetry/resources@2.5.0` no longer exports `Resource` class.
 
 ### Error 2: addLogRecordProcessor method
+
 ```
 [plugins] plugin service failed (diagnostics-otel): TypeError: logProvider.addLogRecordProcessor is not a function
 ```
@@ -23,7 +25,9 @@ The `diagnostics-otel` plugin fails to start due to API breaking changes in Open
 ## Changes Made
 
 ### 1. Resource Creation (line 6, 65-67)
+
 **Before:**
+
 ```typescript
 import { Resource } from "@opentelemetry/resources";
 // ...
@@ -33,6 +37,7 @@ const resource = new Resource({
 ```
 
 **After:**
+
 ```typescript
 import { resourceFromAttributes } from "@opentelemetry/resources";
 // ...
@@ -42,18 +47,23 @@ const resource = resourceFromAttributes({
 ```
 
 ### 2. Semantic Conventions (line 11)
+
 **Before:**
+
 ```typescript
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 ```
 
 **After:**
+
 ```typescript
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 ```
 
 ### 3. LoggerProvider Processors (line 202-210)
+
 **Before:**
+
 ```typescript
 logProvider = new LoggerProvider({ resource });
 logProvider.addLogRecordProcessor(
@@ -62,6 +72,7 @@ logProvider.addLogRecordProcessor(
 ```
 
 **After:**
+
 ```typescript
 const logProcessor = new BatchLogRecordProcessor(logExporter, { ... });
 logProvider = new LoggerProvider({
@@ -73,6 +84,7 @@ logProvider = new LoggerProvider({
 ## Testing
 
 ### Environment
+
 - **OS:** Linux (WSL2)
 - **Node:** v22.22.0
 - **Docker:** moltbot:local image
@@ -80,12 +92,14 @@ logProvider = new LoggerProvider({
 ### Test Results
 
 **Before fix:**
+
 ```
 [plugins] plugin service failed (diagnostics-otel): TypeError: _resources.Resource is not a constructor
 [plugins] plugin service failed (diagnostics-otel): TypeError: logProvider.addLogRecordProcessor is not a function
 ```
 
 **After fix:**
+
 ```
 [plugins] diagnostics-otel: logs exporter enabled (OTLP/HTTP)
 ```
@@ -96,6 +110,7 @@ logProvider = new LoggerProvider({
 ✅ Telemetry pipeline ready
 
 ### Validation Commands
+
 ```bash
 # Build
 pnpm build  # ✅ No TypeScript errors
@@ -117,6 +132,7 @@ docker logs moltbot-moltbot-gateway-1 | grep diagnostic
 ## AI Disclosure
 
 This fix was developed with AI assistance (Claude Sonnet 4.5) and has been:
+
 - ✅ Fully tested locally
 - ✅ Validated with linter
 - ✅ Verified in production-like environment (Docker)

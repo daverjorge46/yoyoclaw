@@ -14,29 +14,32 @@ Store OpenClaw credentials in HashiCorp Vault for centralized secret management.
 ## Prerequisites
 
 1. **HashiCorp Vault running**:
+
    ```bash
    # Using Docker (shared infrastructure)
    cd ~/.local/services
    docker-compose up -d vault
-   
+
    # Unseal Vault
    export VAULT_ADDR=http://localhost:8200
    vault operator unseal <UNSEAL_KEY>
    ```
 
 2. **Vault initialized with KV v2 engine**:
+
    ```bash
    vault secrets enable -path=openclaw kv-v2
    ```
 
 3. **Vault token with appropriate permissions**:
+
    ```bash
    vault policy write openclaw - <<EOF
    path "openclaw/*" {
      capabilities = ["create", "read", "update", "delete", "list"]
    }
    EOF
-   
+
    vault token create -policy=openclaw
    ```
 
@@ -182,11 +185,13 @@ openclaw vault delete credentials/old-bot
 **Manual migration** (until CLI tool is implemented):
 
 1. **Export existing credentials**:
+
    ```bash
    cat ~/.claude/.credentials.json
    ```
 
 2. **Store in Vault**:
+
    ```bash
    vault kv put openclaw/credentials/anthropic \
      type="oauth" \
@@ -199,6 +204,7 @@ openclaw vault delete credentials/old-bot
 3. **Enable Vault integration** (see Configuration above)
 
 4. **Verify** OpenClaw loads credentials from Vault:
+
    ```bash
    openclaw gateway run --bind loopback --port 18789
    # Check logs for "vault-integration: ready"
@@ -214,11 +220,13 @@ openclaw vault delete credentials/old-bot
 ### Extension not loading
 
 **Check logs**:
+
 ```bash
 openclaw logs --follow | grep vault
 ```
 
 **Common issues**:
+
 - `VAULT_TOKEN not set` → Set environment variable
 - `Vault is SEALED` → Run `vault operator unseal`
 - `Vault health check failed` → Check if Vault is running
@@ -235,6 +243,7 @@ vault operator unseal <UNSEAL_KEY>
 ```
 
 **Find unseal key**:
+
 ```bash
 cat ~/.local/services/vault/backup/vault-init.json
 ```
@@ -265,6 +274,7 @@ openclaw gateway run --bind loopback --port 18789 --verbose
    - Use Vault's AppRole or other auth methods in production
 
 2. **Use least-privilege policies**
+
    ```bash
    # Create limited policy for OpenClaw
    vault policy write openclaw-readonly - <<EOF
@@ -275,12 +285,14 @@ openclaw gateway run --bind loopback --port 18789 --verbose
    ```
 
 3. **Rotate tokens regularly**
+
    ```bash
    vault token renew
    vault token create -policy=openclaw -ttl=720h
    ```
 
 4. **Enable audit logging**
+
    ```bash
    vault audit enable file file_path=/vault/logs/audit.log
    ```
