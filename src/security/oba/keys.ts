@@ -10,6 +10,7 @@ export type ObaKeyFile = {
   publicKeyPem: string;
   privateKeyPem: string;
   owner?: string;
+  agentId?: string;
   createdAt: string;
 };
 

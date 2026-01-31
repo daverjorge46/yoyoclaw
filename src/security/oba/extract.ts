@@ -1,3 +1,4 @@
+import { validateOwnerUrl } from "./owner-url.js";
 import type { ObaBlock, ObaVerificationResult } from "./types.js";
 
 /**
@@ -19,14 +20,10 @@ export function extractObaBlock(value: unknown): { oba?: ObaBlock; error?: strin
     return { error: "malformed oba block: owner must be a non-empty string" };
   }
 
-  // Reject non-HTTPS owner URLs to prevent SSRF during verification.
-  try {
-    const parsed = new URL(obj.owner);
-    if (parsed.protocol !== "https:") {
-      return { error: "malformed oba block: owner must be an HTTPS URL" };
-    }
-  } catch {
-    return { error: "malformed oba block: owner is not a valid URL" };
+  // Validate owner URL (HTTPS, no credentials/fragments, no private hosts).
+  const urlResult = validateOwnerUrl(obj.owner);
+  if (!urlResult.ok) {
+    return { error: `malformed oba block: ${urlResult.error}` };
   }
 
   if (typeof obj.kid !== "string" || obj.kid.length === 0) {
