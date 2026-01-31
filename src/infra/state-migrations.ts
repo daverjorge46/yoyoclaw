@@ -36,6 +36,7 @@ export type LegacyStateDetection = {
   targetMainKey: string;
   targetScope?: SessionScope;
   stateDir: string;
+  legacyStateDirs: string[];
   oauthDir: string;
   sessions: {
     legacyDir: string;
@@ -44,6 +45,7 @@ export type LegacyStateDetection = {
     targetStorePath: string;
     hasLegacy: boolean;
     legacyKeys: string[];
+    legacySessionFiles: string[];
   };
   agentDir: {
     legacyDir: string;
@@ -300,6 +302,54 @@ function listLegacySessionKeys(params: {
   return legacy;
 }
 
+function listLegacySessionFiles(params: {
+  store: Record<string, SessionEntryLike>;
+  legacyStateDirs: string[];
+}): string[] {
+  if (params.legacyStateDirs.length === 0) return [];
+  const legacyRoots = params.legacyStateDirs.map((dir) => path.resolve(dir));
+  const legacyFiles: string[] = [];
+  for (const entry of Object.values(params.store)) {
+    if (!entry || typeof entry !== "object") continue;
+    const rec = entry as Record<string, unknown>;
+    if (typeof rec.sessionFile !== "string") continue;
+    const sessionFile = path.resolve(rec.sessionFile);
+    if (legacyRoots.some((root) => sessionFile === root || sessionFile.startsWith(`${root}${path.sep}`))) {
+      legacyFiles.push(rec.sessionFile);
+    }
+  }
+  return legacyFiles;
+}
+
+function rewriteLegacySessionFiles(params: {
+  store: Record<string, SessionEntryLike>;
+  legacyStateDirs: string[];
+  targetStateDir: string;
+}): number {
+  if (params.legacyStateDirs.length === 0) return 0;
+  const targetRoot = path.resolve(params.targetStateDir);
+  const legacyRoots = params.legacyStateDirs
+    .map((dir) => path.resolve(dir))
+    .filter((dir) => dir !== targetRoot);
+  if (legacyRoots.length === 0) return 0;
+  let rewritten = 0;
+  for (const entry of Object.values(params.store)) {
+    if (!entry || typeof entry !== "object") continue;
+    const rec = entry as Record<string, unknown>;
+    if (typeof rec.sessionFile !== "string") continue;
+    const sessionFile = path.resolve(rec.sessionFile);
+    for (const legacyRoot of legacyRoots) {
+      if (sessionFile === legacyRoot || sessionFile.startsWith(`${legacyRoot}${path.sep}`)) {
+        const relative = path.relative(legacyRoot, sessionFile);
+        rec.sessionFile = path.join(targetRoot, relative);
+        rewritten += 1;
+        break;
+      }
+    }
+  }
+  return rewritten;
+}
+
 function emptyDirOrMissing(dir: string): boolean {
   if (!existsDir(dir)) {
     return true;
@@ -513,6 +563,7 @@ export async function detectLegacyStateMigrations(params: {
   const env = params.env ?? process.env;
   const homedir = params.homedir ?? os.homedir;
   const stateDir = resolveStateDir(env, homedir);
+  const legacyStateDirs = resolveLegacyStateDirs(homedir);
   const oauthDir = resolveOAuthDir(env, stateDir);
 
   const targetAgentId = normalizeAgentId(resolveDefaultAgentId(params.cfg));
@@ -543,6 +594,12 @@ export async function detectLegacyStateMigrations(params: {
         scope: targetScope,
       })
     : [];
+  const legacySessionFiles = targetSessionParsed.ok
+    ? listLegacySessionFiles({
+        store: targetSessionParsed.store,
+        legacyStateDirs,
+      })
+    : [];
 
   const legacyAgentDir = path.join(stateDir, "agent");
   const targetAgentDir = path.join(stateDir, "agents", targetAgentId, "agent");
@@ -560,6 +617,9 @@ export async function detectLegacyStateMigrations(params: {
   if (legacyKeys.length > 0) {
     preview.push(`- Sessions: canonicalize legacy keys in ${sessionsTargetStorePath}`);
   }
+  if (legacySessionFiles.length > 0) {
+    preview.push(`- Sessions: rewrite legacy sessionFile paths in ${sessionsTargetStorePath}`);
+  }
   if (hasLegacyAgentDir) {
     preview.push(`- Agent dir: ${legacyAgentDir} → ${targetAgentDir}`);
   }
@@ -572,14 +632,16 @@ export async function detectLegacyStateMigrations(params: {
     targetMainKey,
     targetScope,
     stateDir,
+    legacyStateDirs,
     oauthDir,
     sessions: {
       legacyDir: sessionsLegacyDir,
       legacyStorePath: sessionsLegacyStorePath,
       targetDir: sessionsTargetDir,
       targetStorePath: sessionsTargetStorePath,
-      hasLegacy: hasLegacySessions || legacyKeys.length > 0,
+      hasLegacy: hasLegacySessions || legacyKeys.length > 0 || legacySessionFiles.length > 0,
       legacyKeys,
+      legacySessionFiles,
     },
     agentDir: {
       legacyDir: legacyAgentDir,
@@ -668,10 +730,18 @@ async function migrateLegacySessions(
       }
       normalized[key] = normalizedEntry;
     }
+    const rewritten = rewriteLegacySessionFiles({
+      store: normalized,
+      legacyStateDirs: detected.legacyStateDirs,
+      targetStateDir: detected.stateDir,
+    });
     await saveSessionStore(detected.sessions.targetStorePath, normalized);
     changes.push(`Merged sessions store → ${detected.sessions.targetStorePath}`);
     if (canonicalizedTarget.legacyKeys.length > 0) {
       changes.push(`Canonicalized ${canonicalizedTarget.legacyKeys.length} legacy session key(s)`);
+    }
+    if (rewritten > 0) {
+      changes.push(`Rewrote ${rewritten} legacy sessionFile path(s)`);
     }
   }
 
