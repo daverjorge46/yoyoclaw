@@ -22,24 +22,18 @@ Set the following environment variables to configure Azure OpenAI:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `AZURE_OPENAI_API_KEY` | Yes | Your Azure OpenAI API key |
-| `AZURE_OPENAI_RESOURCE_NAME` | Yes* | Azure OpenAI resource name (e.g., `my-openai-resource`) |
+| `AZURE_OPENAI_ENDPOINT` | Yes | Azure OpenAI resource root endpoint (e.g., `https://my-openai-resource.openai.azure.com`) |
 | `AZURE_OPENAI_DEPLOYMENT_NAME` | Yes | Model deployment name (e.g., `gpt-5`) |
 | `AZURE_OPENAI_API_VERSION` | No | API version (defaults to `2024-08-01-preview`) |
-| `AZURE_OPENAI_ENDPOINT` | No | Full endpoint URL (alternative to resource name) |
-
-\* Either `AZURE_OPENAI_RESOURCE_NAME` or `AZURE_OPENAI_ENDPOINT` is required.
 
 ### Example .env Configuration
 
 ```bash
 # Azure OpenAI Configuration
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
-AZURE_OPENAI_RESOURCE_NAME=my-openai-resource
+AZURE_OPENAI_ENDPOINT=https://my-openai-resource.openai.azure.com
 AZURE_OPENAI_DEPLOYMENT_NAME=gpt-5
 AZURE_OPENAI_API_VERSION=2024-08-01-preview
-
-# Alternative: provide full endpoint URL
-# AZURE_OPENAI_ENDPOINT=https://my-openai-resource.openai.azure.com
 ```
 
 ## Docker Deployment
@@ -118,7 +112,7 @@ Recommended (newer) deployment names to use in docs/examples:
 - Check that the API key has access to the specified deployment
 
 **404 Not Found**
-- Verify `AZURE_OPENAI_RESOURCE_NAME` matches your Azure resource
+- Verify `AZURE_OPENAI_ENDPOINT` points at your Azure OpenAI resource (resource root URL)
 - Verify `AZURE_OPENAI_DEPLOYMENT_NAME` matches an existing deployment
 - Check that the deployment is in a "Succeeded" state in Azure Portal
 
@@ -131,7 +125,7 @@ Recommended (newer) deployment names to use in docs/examples:
 List available models to verify your configuration:
 
 ```bash
-moltbot models list
+openclaw models list
 ```
 
 The Azure OpenAI deployment should appear as `azure-openai/{deployment-name}`.

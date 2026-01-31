@@ -15,8 +15,7 @@ import {
 import { discoverVeniceModels, VENICE_BASE_URL } from "./venice-models.js";
 import {
   buildAzureOpenAIProvider,
-  resolveAzureOpenAIConfigFromEnv,
-  AZURE_OPENAI_ENV,
+  resolveAzureOpenAISettingsFromEnv,
 } from "./azure-openai-provider.js";
 
 type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
@@ -439,26 +438,17 @@ export async function resolveImplicitProviders(params: {
   }
 
   // Azure OpenAI provider - auto-discover from environment variables
-  const azureOpenAIConfig = resolveAzureOpenAIConfigFromEnv();
-  if (azureOpenAIConfig) {
-    providers["azure-openai"] = buildAzureOpenAIProvider(azureOpenAIConfig);
-  } else {
-    // Check for API key in auth profiles
+  // Endpoint + deployment come from env; API key can come from env OR auth profiles.
+  const azureSettings = resolveAzureOpenAISettingsFromEnv();
+  if (azureSettings) {
     const azureOpenAIKey =
-      resolveEnvApiKeyVarName("azure-openai") ??
+      resolveEnvApiKey("azure-openai")?.apiKey ??
       resolveApiKeyFromProfiles({ provider: "azure-openai", store: authStore });
     if (azureOpenAIKey) {
-      // If we have an API key but not full config, check for resource/deployment in env
-      const resourceName = process.env[AZURE_OPENAI_ENV.RESOURCE_NAME]?.trim();
-      const deploymentName = process.env[AZURE_OPENAI_ENV.DEPLOYMENT_NAME]?.trim();
-      if (resourceName && deploymentName) {
-        providers["azure-openai"] = buildAzureOpenAIProvider({
-          resourceName,
-          deploymentName,
-          apiKey: azureOpenAIKey,
-          apiVersion: process.env[AZURE_OPENAI_ENV.API_VERSION]?.trim(),
-        });
-      }
+      providers["azure-openai"] = buildAzureOpenAIProvider({
+        ...azureSettings,
+        apiKey: azureOpenAIKey,
+      });
     }
   }
 

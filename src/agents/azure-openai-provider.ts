@@ -31,10 +31,14 @@ export function getAzureOpenAIConfig(
   try {
     const parsed = new URL(url);
     const match = /^([^.]+)\.openai\.azure\.com$/.exec(parsed.hostname);
-    if (!match) return null;
+    if (!match) {
+      return null;
+    }
     const resourceName = match[1].toLowerCase();
     const config = azureOpenAIConfigs.get(resourceName);
-    if (!config) return null;
+    if (!config) {
+      return null;
+    }
     return { resourceName, apiVersion: config.apiVersion };
   } catch {
     return null;
@@ -50,7 +54,9 @@ let originalFetch: typeof fetch | null = null;
  * to Azure OpenAI requests.
  */
 export function installAzureOpenAIFetchWrapper(): void {
-  if (fetchWrapperInstalled) return;
+  if (fetchWrapperInstalled) {
+    return;
+  }
 
   originalFetch = globalThis.fetch;
   fetchWrapperInstalled = true;
@@ -102,7 +108,9 @@ export function installAzureOpenAIFetchWrapper(): void {
  * Uninstall the Azure OpenAI fetch wrapper (for testing).
  */
 export function uninstallAzureOpenAIFetchWrapper(): void {
-  if (!fetchWrapperInstalled || !originalFetch) return;
+  if (!fetchWrapperInstalled || !originalFetch) {
+    return;
+  }
   globalThis.fetch = originalFetch;
   fetchWrapperInstalled = false;
   originalFetch = null;
@@ -120,8 +128,8 @@ const AZURE_OPENAI_DEFAULT_COST = {
 };
 
 export interface AzureOpenAIConfig {
-  /** Azure OpenAI resource name (the name of your Azure OpenAI resource) */
-  resourceName: string;
+  /** Azure OpenAI endpoint (resource root URL, e.g. https://my-resource.openai.azure.com) */
+  endpoint: string;
   /** Deployment name (the name of your model deployment) */
   deploymentName: string;
   /** API version (defaults to 2024-08-01-preview) */
@@ -141,21 +149,94 @@ export interface AzureOpenAIConfig {
 }
 
 /**
- * Builds the Azure OpenAI base URL from resource name
+ * Parsed Azure OpenAI endpoint details.
  */
-export function buildAzureOpenAIBaseUrl(resourceName: string): string {
-  return `https://${resourceName}.openai.azure.com`;
+export type ParsedAzureOpenAIEndpoint = {
+  origin: string;
+  resourceName: string;
+};
+
+export function tryParseAzureOpenAIEndpoint(endpoint: string): ParsedAzureOpenAIEndpoint | null {
+  const raw = endpoint.trim();
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "https:") {
+      return null;
+    }
+    if (parsed.pathname !== "" && parsed.pathname !== "/") {
+      return null;
+    }
+    if (parsed.search) {
+      return null;
+    }
+    if (parsed.hash) {
+      return null;
+    }
+
+    const match = /^([^.]+)\.openai\.azure\.com$/i.exec(parsed.hostname);
+    if (!match) {
+      return null;
+    }
+    const resourceName = match[1]?.trim();
+    if (!resourceName) {
+      return null;
+    }
+
+    return { origin: parsed.origin, resourceName };
+  } catch {
+    return null;
+  }
+}
+
+export function parseAzureOpenAIEndpoint(endpoint: string): ParsedAzureOpenAIEndpoint {
+  const parsed = tryParseAzureOpenAIEndpoint(endpoint);
+  if (!parsed) {
+    throw new Error(
+      [
+        "Invalid AZURE_OPENAI_ENDPOINT.",
+        "Expected a resource root URL like: https://my-resource.openai.azure.com",
+        "Do not include /openai/deployments/... or query parameters.",
+      ].join(" "),
+    );
+  }
+  return parsed;
+}
+
+export function resolveAzureOpenAISettingsFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): Pick<AzureOpenAIConfig, "endpoint" | "deploymentName" | "apiVersion"> | null {
+  const endpointRaw = env[AZURE_OPENAI_ENV.ENDPOINT]?.trim();
+  const deploymentName = env[AZURE_OPENAI_ENV.DEPLOYMENT_NAME]?.trim();
+  const apiVersion = env[AZURE_OPENAI_ENV.API_VERSION]?.trim();
+
+  if (!endpointRaw || !deploymentName) {
+    return null;
+  }
+  const parsed = tryParseAzureOpenAIEndpoint(endpointRaw);
+  if (!parsed) {
+    return null;
+  }
+
+  return {
+    endpoint: parsed.origin,
+    deploymentName,
+    apiVersion: apiVersion || AZURE_OPENAI_DEFAULT_API_VERSION,
+  };
 }
 
 /**
  * Builds the full Azure OpenAI API endpoint URL
  */
 export function buildAzureOpenAIEndpoint(
-  resourceName: string,
+  endpoint: string,
   deploymentName: string,
   apiVersion: string = AZURE_OPENAI_DEFAULT_API_VERSION,
 ): string {
-  return `${buildAzureOpenAIBaseUrl(resourceName)}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+  const parsed = parseAzureOpenAIEndpoint(endpoint);
+  return `${parsed.origin}/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
 }
 
 /**
@@ -187,13 +268,14 @@ export function buildAzureOpenAIModelDefinition(config: AzureOpenAIConfig): Mode
  */
 export function buildAzureOpenAIProvider(config: AzureOpenAIConfig): ProviderConfig {
   const apiVersion = config.apiVersion ?? AZURE_OPENAI_DEFAULT_API_VERSION;
+  const endpoint = parseAzureOpenAIEndpoint(config.endpoint);
   // Azure OpenAI requires the deployment in the URL path
   // Format: https://{resource}.openai.azure.com/openai/deployments/{deployment}
   // The SDK will append /chat/completions to this
-  const baseUrl = `https://${config.resourceName}.openai.azure.com/openai/deployments/${config.deploymentName}`;
+  const baseUrl = `${endpoint.origin}/openai/deployments/${config.deploymentName}`;
 
   // Register the resource for fetch interception to add api-version query param
-  registerAzureOpenAIResource(config.resourceName, apiVersion);
+  registerAzureOpenAIResource(endpoint.resourceName, apiVersion);
   // Install the global fetch wrapper
   installAzureOpenAIFetchWrapper();
 
@@ -207,7 +289,7 @@ export function buildAzureOpenAIProvider(config: AzureOpenAIConfig): ProviderCon
       "api-key": config.apiKey ?? "",
     },
     // Azure requires api-version as query parameter - store in provider config
-    azureResourceName: config.resourceName,
+    azureResourceName: endpoint.resourceName,
     azureApiVersion: apiVersion,
     models: [buildAzureOpenAIModelDefinition(config)],
   };
@@ -221,7 +303,7 @@ export function buildAzureOpenAIProvider(config: AzureOpenAIConfig): ProviderCon
  * The api-version query parameter is added automatically via a global fetch wrapper.
  */
 export function buildAzureOpenAIProviderMultiDeployment(params: {
-  resourceName: string;
+  endpoint: string;
   apiKey?: string;
   apiVersion?: string;
   deployments: Array<{
@@ -235,10 +317,11 @@ export function buildAzureOpenAIProviderMultiDeployment(params: {
 }): ProviderConfig {
   const apiVersion = params.apiVersion ?? AZURE_OPENAI_DEFAULT_API_VERSION;
   const firstDeployment = params.deployments[0]?.name ?? "default";
-  const baseUrl = `https://${params.resourceName}.openai.azure.com/openai/deployments/${firstDeployment}`;
+  const endpoint = parseAzureOpenAIEndpoint(params.endpoint);
+  const baseUrl = `${endpoint.origin}/openai/deployments/${firstDeployment}`;
 
   // Register the resource for fetch interception to add api-version query param
-  registerAzureOpenAIResource(params.resourceName, apiVersion);
+  registerAzureOpenAIResource(endpoint.resourceName, apiVersion);
   // Install the global fetch wrapper
   installAzureOpenAIFetchWrapper();
 
@@ -260,7 +343,7 @@ export function buildAzureOpenAIProviderMultiDeployment(params: {
     headers: {
       "api-key": params.apiKey ?? "",
     },
-    azureResourceName: params.resourceName,
+    azureResourceName: endpoint.resourceName,
     azureApiVersion: apiVersion,
     models,
   };
@@ -271,7 +354,6 @@ export function buildAzureOpenAIProviderMultiDeployment(params: {
  */
 export const AZURE_OPENAI_ENV = {
   API_KEY: "AZURE_OPENAI_API_KEY",
-  RESOURCE_NAME: "AZURE_OPENAI_RESOURCE_NAME",
   DEPLOYMENT_NAME: "AZURE_OPENAI_DEPLOYMENT_NAME",
   API_VERSION: "AZURE_OPENAI_API_VERSION",
   ENDPOINT: "AZURE_OPENAI_ENDPOINT",
@@ -284,30 +366,16 @@ export function resolveAzureOpenAIConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): AzureOpenAIConfig | null {
   const apiKey = env[AZURE_OPENAI_ENV.API_KEY]?.trim();
-  const resourceName = env[AZURE_OPENAI_ENV.RESOURCE_NAME]?.trim();
-  const deploymentName = env[AZURE_OPENAI_ENV.DEPLOYMENT_NAME]?.trim();
-  const apiVersion = env[AZURE_OPENAI_ENV.API_VERSION]?.trim();
-
-  // If endpoint is provided directly, parse resource name from it
-  const endpoint = env[AZURE_OPENAI_ENV.ENDPOINT]?.trim();
-  let resolvedResourceName = resourceName;
-  if (!resolvedResourceName && endpoint) {
-    const match = /https:\/\/([^.]+)\.openai\.azure\.com/.exec(endpoint);
-    if (match) {
-      resolvedResourceName = match[1];
-    }
-  }
-
-  if (!apiKey || !resolvedResourceName || !deploymentName) {
+  if (!apiKey) {
     return null;
   }
 
-  return {
-    resourceName: resolvedResourceName,
-    deploymentName,
-    apiVersion: apiVersion || AZURE_OPENAI_DEFAULT_API_VERSION,
-    apiKey,
-  };
+  const settings = resolveAzureOpenAISettingsFromEnv(env);
+  if (!settings) {
+    return null;
+  }
+
+  return { ...settings, apiKey };
 }
 
 /**
