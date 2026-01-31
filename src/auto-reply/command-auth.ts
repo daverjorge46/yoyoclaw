@@ -36,14 +36,19 @@ function resolveProviderFromContext(ctx: MsgContext, cfg: OpenClawConfig): Chann
       if (!dock.config?.resolveAllowFrom) {
         return null;
       }
-      const allowFrom = dock.config.resolveAllowFrom({
-        cfg,
-        accountId: ctx.AccountId,
-      });
-      if (!Array.isArray(allowFrom) || allowFrom.length === 0) {
+      try {
+        const allowFrom = dock.config.resolveAllowFrom({
+          cfg,
+          accountId: ctx.AccountId,
+        });
+        if (!Array.isArray(allowFrom) || allowFrom.length === 0) {
+          return null;
+        }
+        return dock.id;
+      } catch {
+        // Skip this dock if resolution fails (e.g., missing credentials)
         return null;
       }
-      return dock.id;
     })
     .filter((value): value is ChannelId => Boolean(value));
   if (configured.length === 1) {
