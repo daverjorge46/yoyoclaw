@@ -360,6 +360,7 @@ export async function runEmbeddedPiAgent(
 
           if (promptError && !aborted) {
             const errorText = describeUnknownError(promptError);
+            log.error(`API error [${provider}/${modelId}]: ${errorText}`);
             if (isContextOverflowError(errorText)) {
               const isCompactionFailure = isCompactionFailureError(errorText);
               // Attempt auto-compaction on context overflow (not compaction_failure)
@@ -527,6 +528,9 @@ export async function runEmbeddedPiAgent(
           const rateLimitFailure = isRateLimitAssistantError(lastAssistant);
           const failoverFailure = isFailoverAssistantError(lastAssistant);
           const assistantFailoverReason = classifyFailoverReason(lastAssistant?.errorMessage ?? "");
+          if (lastAssistant?.errorMessage) {
+            log.error(`API error [${provider}/${modelId}]: ${lastAssistant.errorMessage}`);
+          }
           const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
           const imageDimensionError = parseImageDimensionError(lastAssistant?.errorMessage ?? "");
 
