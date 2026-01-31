@@ -87,7 +87,9 @@ export async function readSystemdServiceExecStart(
       const environment: Record<string, string> = {};
       for (const rawLine of content.split("\n")) {
         const line = rawLine.trim();
-        if (!line || line.startsWith("#")) continue;
+        if (!line || line.startsWith("#")) {
+          continue;
+        }
         if (line.startsWith("ExecStart=")) {
           execStart = line.slice("ExecStart=".length).trim();
         } else if (line.startsWith("WorkingDirectory=")) {
@@ -95,10 +97,14 @@ export async function readSystemdServiceExecStart(
         } else if (line.startsWith("Environment=")) {
           const raw = line.slice("Environment=".length).trim();
           const parsed = parseSystemdEnvAssignment(raw);
-          if (parsed) environment[parsed.key] = parsed.value;
+          if (parsed) {
+            environment[parsed.key] = parsed.value;
+          }
         }
       }
-      if (!execStart) continue;
+      if (!execStart) {
+        continue;
+      }
       const programArguments = parseSystemdExecStart(execStart);
       return {
         programArguments,
@@ -216,8 +222,12 @@ export async function isSystemdSystemServiceAvailable(): Promise<boolean> {
   const res = await execSystemctl(["status"], { useSudo: true });
   // If it doesn't error with "command not found", systemd is available
   const detail = `${res.stderr} ${res.stdout}`.toLowerCase();
-  if (detail.includes("not found")) return false;
-  if (detail.includes("command not found")) return false;
+  if (detail.includes("not found")) {
+    return false;
+  }
+  if (detail.includes("command not found")) {
+    return false;
+  }
   return true;
 }
 
@@ -373,7 +383,9 @@ export async function isSystemdServiceEnabled(args: {
 
   // Check user service
   const userRes = await execSystemctl(["--user", "is-enabled", unitName]);
-  if (userRes.code === 0) return true;
+  if (userRes.code === 0) {
+    return true;
+  }
 
   // Check system service
   const systemRes = await execSystemctl(["is-enabled", unitName], { useSudo: true });
