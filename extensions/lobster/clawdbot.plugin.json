@@ -1,0 +1,9 @@
+{
+  "id": "lobster",
+  "channels": [],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

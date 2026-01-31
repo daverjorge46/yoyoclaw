@@ -3,12 +3,12 @@ import type {
   ChannelPlugin,
   ChannelSetupInput,
   OpenClawConfig,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 import {
   applyAccountNameToChannelSection,
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { resolveTlonAccount, listTlonAccountIds } from "./types.js";
 import { formatTargetHint, normalizeShip, parseTlonTarget } from "./targets.js";

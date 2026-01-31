@@ -6,7 +6,7 @@ import {
   GroupPolicySchema,
   MarkdownConfigSchema,
   requireOpenAllowFrom,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 const MattermostAccountSchemaBase = z
   .object({

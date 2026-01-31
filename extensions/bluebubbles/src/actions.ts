@@ -10,7 +10,7 @@ import {
   type ChannelMessageActionName,
   type ChannelToolSend,
   type OpenClawConfig,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { resolveBlueBubblesAccount } from "./accounts.js";
 import { resolveBlueBubblesMessageId } from "./monitor.js";

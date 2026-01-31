@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { EventEmitter } from "node:events";
 
-import { removeAckReactionAfterReply, shouldAckReaction } from "openclaw/plugin-sdk";
-import type { OpenClawConfig, PluginRuntime } from "openclaw/plugin-sdk";
+import { removeAckReactionAfterReply, shouldAckReaction } from "clawdbot/plugin-sdk";
+import type { OpenClawConfig, PluginRuntime } from "clawdbot/plugin-sdk";
 import {
   handleBlueBubblesWebhookRequest,
   registerBlueBubblesWebhookTarget,

@@ -1,0 +1,9 @@
+{
+  "id": "memory-core",
+  "channels": [],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

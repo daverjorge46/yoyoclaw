@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import type { OpenClawConfig, MarkdownTableMode } from "openclaw/plugin-sdk";
+import type { OpenClawConfig, MarkdownTableMode } from "clawdbot/plugin-sdk";
 
 import type { ResolvedZaloAccount } from "./accounts.js";
 import {

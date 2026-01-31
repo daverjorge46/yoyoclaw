@@ -29,7 +29,7 @@ import {
   type ChannelMessageActionName,
   type ChannelPlugin,
   type ResolvedSlackAccount,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { getSlackRuntime } from "./runtime.js";
 

@@ -9,7 +9,7 @@ import {
   type LineConfig,
   type LineChannelData,
   type ResolvedLineAccount,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { getLineRuntime } from "./runtime.js";
 

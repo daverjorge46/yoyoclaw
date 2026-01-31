@@ -3,7 +3,7 @@ import {
   DEFAULT_ACCOUNT_ID,
   formatPairingApproveHint,
   type ChannelPlugin,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { NostrConfigSchema } from "./config-schema.js";
 import { getNostrRuntime } from "./runtime.js";

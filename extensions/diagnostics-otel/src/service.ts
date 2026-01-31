@@ -10,8 +10,8 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 import { ParentBasedSampler, TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 
-import type { DiagnosticEventPayload, OpenClawPluginService } from "openclaw/plugin-sdk";
-import { onDiagnosticEvent, registerLogTransport } from "openclaw/plugin-sdk";
+import type { DiagnosticEventPayload, OpenClawPluginService } from "clawdbot/plugin-sdk";
+import { onDiagnosticEvent, registerLogTransport } from "clawdbot/plugin-sdk";
 
 const DEFAULT_SERVICE_NAME = "openclaw";
 

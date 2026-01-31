@@ -1,0 +1,9 @@
+{
+  "id": "memory-lancedb",
+  "channels": [],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

@@ -21,7 +21,7 @@ import {
   setAccountEnabledInConfigSection,
   type ChannelPlugin,
   type ResolvedIMessageAccount,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import { getIMessageRuntime } from "./runtime.js";
 

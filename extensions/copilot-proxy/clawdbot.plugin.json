@@ -1,0 +1,9 @@
+{
+  "id": "copilot-proxy",
+  "channels": [],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

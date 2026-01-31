@@ -3,13 +3,13 @@ import type {
   ChannelOnboardingDmPolicy,
   OpenClawConfig,
   WizardPrompter,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 import {
   addWildcardAllowFrom,
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
   promptAccountId,
-} from "openclaw/plugin-sdk";
+} from "clawdbot/plugin-sdk";
 
 import {
   listZaloAccountIds,

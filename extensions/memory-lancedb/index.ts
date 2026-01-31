@@ -10,8 +10,8 @@ import { Type } from "@sinclair/typebox";
 import * as lancedb from "@lancedb/lancedb";
 import OpenAI from "openai";
 import { randomUUID } from "node:crypto";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import { stringEnum } from "openclaw/plugin-sdk";
+import type { OpenClawPluginApi } from "clawdbot/plugin-sdk";
+import { stringEnum } from "clawdbot/plugin-sdk";
 
 import {
   MEMORY_CATEGORIES,

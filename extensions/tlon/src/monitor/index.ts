@@ -1,6 +1,6 @@
 import { format } from "node:util";
 
-import type { RuntimeEnv, ReplyPayload, OpenClawConfig } from "openclaw/plugin-sdk";
+import type { RuntimeEnv, ReplyPayload, OpenClawConfig } from "clawdbot/plugin-sdk";
 
 import { getTlonRuntime } from "../runtime.js";
 import { resolveTlonAccount } from "../types.js";

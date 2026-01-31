@@ -1,0 +1,9 @@
+{
+  "id": "diagnostics-otel",
+  "channels": [],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
