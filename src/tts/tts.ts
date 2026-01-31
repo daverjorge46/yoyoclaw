@@ -69,6 +69,39 @@ const DEFAULT_FISH_PROSODY = {
   volume: 0,
 };
 
+/**
+ * Calculate estimated TTS cost based on provider pricing.
+ * Prices as of January 2026.
+ */
+function calculateTtsCost(params: { provider: TtsProvider; textLength: number }): number {
+  const { provider, textLength } = params;
+
+  // Estimate UTF-8 bytes (conservative: chars * 1.2 for multi-byte characters)
+  const estimatedBytes = textLength * 1.2;
+
+  switch (provider) {
+    case "fish":
+      // fish.audio: $15 per million UTF-8 bytes
+      return (estimatedBytes / 1_000_000) * 15;
+
+    case "elevenlabs":
+      // ElevenLabs: ~$0.30 per 1K chars (estimated from minute-based pricing)
+      // Average: 750 chars/min @ $0.18-0.30/min
+      return (textLength / 1000) * 0.3;
+
+    case "openai":
+      // OpenAI gpt-4o-mini-tts: $0.60 per 1M input characters
+      return (textLength / 1_000_000) * 0.6;
+
+    case "edge":
+      // Edge TTS: Free
+      return 0;
+
+    default:
+      return 0;
+  }
+}
+
 const TELEGRAM_OUTPUT = {
   openai: "opus" as const,
   // ElevenLabs output formats use codec_sample_rate_bitrate naming.
@@ -214,6 +247,10 @@ export type TtsResult = {
   provider?: string;
   outputFormat?: string;
   voiceCompatible?: boolean;
+  /** Estimated cost in USD for this TTS generation */
+  cost?: number;
+  /** Number of characters in the input text */
+  textLength?: number;
 };
 
 export type TtsTelephonyResult = {
@@ -1353,6 +1390,8 @@ export async function textToSpeech(params: {
         scheduleCleanup(tempDir);
         const voiceCompatible = isVoiceCompatibleAudio({ fileName: edgeResult.audioPath });
 
+        const cost = calculateTtsCost({ provider, textLength: params.text.length });
+
         return {
           success: true,
           audioPath: edgeResult.audioPath,
@@ -1360,6 +1399,8 @@ export async function textToSpeech(params: {
           provider,
           outputFormat: edgeResult.outputFormat,
           voiceCompatible,
+          cost,
+          textLength: params.text.length,
         };
       }
 
@@ -1425,6 +1466,8 @@ export async function textToSpeech(params: {
       writeFileSync(audioPath, audioBuffer);
       scheduleCleanup(tempDir);
 
+      const cost = calculateTtsCost({ provider, textLength: params.text.length });
+
       return {
         success: true,
         audioPath,
@@ -1437,6 +1480,8 @@ export async function textToSpeech(params: {
               ? output.openai
               : output.elevenlabs,
         voiceCompatible: output.voiceCompatible,
+        cost,
+        textLength: params.text.length,
       };
     } catch (err) {
       const error = err as Error;
