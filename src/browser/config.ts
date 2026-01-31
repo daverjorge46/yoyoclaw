@@ -291,7 +291,7 @@ export function resolveProfile(
     return {
       name: profileName,
       cdpPort: 0, // No CDP for rtrvr profiles
-      cdpUrl: profile.rtrvrApiUrl ?? defaultApiUrl,
+      cdpUrl: "",
       cdpHost: "rtrvr.ai",
       cdpIsLoopback: false, // rtrvr.ai is always remote
       color: profile.color,

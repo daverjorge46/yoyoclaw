@@ -4,6 +4,7 @@ import type {
   BrowserDeleteProfileResult,
   BrowserResetProfileResult,
   BrowserStatus,
+  BrowserScrapeResult,
   BrowserTab,
   ProfileStatus,
   SnapshotResult,
@@ -418,42 +419,31 @@ export function registerBrowserManageCommands(
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
       await runBrowserCommand(async () => {
-        const tab = await callBrowserRequest<BrowserTab>(
-          parent,
-          {
-            method: "POST",
-            path: "/tabs/open",
-            query: profile ? { profile } : undefined,
-            body: { url },
-          },
-          { timeoutMs: 15000 },
-        );
-
         const format = opts.format === "aria" ? "aria" : opts.format === "ai" ? "ai" : undefined;
         const limit = Number.isFinite(opts.limit) ? Math.floor(opts.limit) : undefined;
         const maxChars = Number.isFinite(opts.maxChars) ? Math.floor(opts.maxChars) : undefined;
-        const snapshot = await callBrowserRequest<SnapshotResult>(
+        const result = await callBrowserRequest<BrowserScrapeResult>(
           parent,
           {
-            method: "GET",
-            path: "/snapshot",
-            query: {
-              profile,
-              targetId: tab.targetId,
+            method: "POST",
+            path: "/scrape",
+            query: profile ? { profile } : undefined,
+            body: {
+              url,
               format,
               limit,
-              maxChars,
+              ...(typeof maxChars === "number" ? { maxChars } : {}),
             },
           },
           { timeoutMs: 20000 },
         );
 
         if (parent?.json) {
-          defaultRuntime.log(JSON.stringify({ tab, snapshot }, null, 2));
+          defaultRuntime.log(JSON.stringify(result, null, 2));
           return;
         }
 
-        logSnapshotResult(snapshot);
+        logSnapshotResult(result.snapshot);
       });
     });
 

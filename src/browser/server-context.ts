@@ -787,7 +787,7 @@ export function createBrowserRouteContext(opts: ContextOptions): BrowserRouteCon
         result.push({
           name,
           cdpPort: profile.cdpPort,
-          cdpUrl: profile.cdpUrl,
+          cdpUrl: profile.rtrvrApiUrl ?? "",
           color: profile.color,
           running,
           tabCount,

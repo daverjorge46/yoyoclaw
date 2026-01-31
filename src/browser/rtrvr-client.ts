@@ -358,8 +358,30 @@ export class RtrvrClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => "Unknown error");
-        throw new Error(`rtrvr.ai API error (${response.status}): ${errorText}`);
+        const errorBody = await response.text().catch(() => "");
+        let errorText = errorBody;
+        if (errorBody) {
+          try {
+            const parsed = JSON.parse(errorBody) as {
+              error?: string | { message?: string };
+              message?: string;
+            };
+            if (typeof parsed.error === "string") {
+              errorText = parsed.error;
+            } else if (parsed.error && typeof parsed.error.message === "string") {
+              errorText = parsed.error.message;
+            } else if (typeof parsed.message === "string") {
+              errorText = parsed.message;
+            }
+          } catch {
+            // non-JSON error body
+          }
+        }
+        const normalized = (errorText || "Unknown error").replace(/\s+/g, " ").trim();
+        const maxLen = 200;
+        const sanitized =
+          normalized.length > maxLen ? `${normalized.slice(0, maxLen)}…` : normalized;
+        throw new Error(`rtrvr.ai API error (${response.status}): ${sanitized}`);
       }
 
       return (await response.json()) as T;
