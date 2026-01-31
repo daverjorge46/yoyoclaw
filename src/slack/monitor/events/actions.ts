@@ -14,7 +14,7 @@ export function registerSlackBlockActions(params: { ctx: SlackMonitorContext }) 
     return;
   }
 
-  // Match all action_ids with "clawdbot_" prefix from our skills
+  // Match all action_ids with "openclaw_" prefix from our skills
   (
     ctx.app as unknown as {
       action: (
@@ -22,7 +22,7 @@ export function registerSlackBlockActions(params: { ctx: SlackMonitorContext }) 
         handler: (args: SlackActionMiddlewareArgs) => Promise<void>,
       ) => void;
     }
-  ).action(/^clawdbot_/, async (args: SlackActionMiddlewareArgs) => {
+  ).action(/^openclaw_/, async (args: SlackActionMiddlewareArgs) => {
     const { ack, body } = args;
     const action = args.action as { action_id?: string; value?: string; action_ts?: string };
 
