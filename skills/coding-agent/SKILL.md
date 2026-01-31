@@ -203,14 +203,32 @@ bash pty:true command:"pi --provider openai --model gpt-4o-mini 'Your task'"
 
 ### Cerebras Configuration
 
-Use `pic` alias for Cerebras (keeps `pi` available for other providers):
-```bash
-alias pic="pi --provider cerebras --model zai-glm-4.7"
+Configure via `~/.pi/agent/settings.json`:
+```json
+{
+  "defaultProvider": "cerebras",
+  "defaultModel": "zai-glm-4.7"
+}
 ```
 
-Config files:
-- `~/.pi/agent/models.json` - Cerebras provider definition
-- `CEREBRAS_API_KEY` env var in shell profile
+And `~/.pi/agent/models.json` for provider definition:
+```json
+{
+  "providers": {
+    "cerebras": {
+      "api": "openai-completions",
+      "baseUrl": "https://api.cerebras.ai/v1",
+      "apiKey": "CEREBRAS_API_KEY"
+    }
+  },
+  "models": [
+    { "id": "cerebras:zai-glm-4.7", "provider": "cerebras", "model": "zai-glm-4.7" },
+    { "id": "cerebras:llama-3.3-70b", "provider": "cerebras", "model": "llama-3.3-70b" }
+  ]
+}
+```
+
+Env var: `CEREBRAS_API_KEY` in shell profile
 
 **Note:** Pi now has Anthropic prompt caching enabled (PR #584, merged Jan 2026)!
 
