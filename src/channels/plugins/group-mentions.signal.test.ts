@@ -124,7 +124,7 @@ describe("resolveSignalGroupRequireMention", () => {
       channels: {
         signal: {
           accounts: {
-            "account1": {
+            account1: {
               groups: {
                 "group-123": {
                   requireMention: false,
@@ -153,7 +153,7 @@ describe("resolveSignalGroupRequireMention", () => {
             },
           },
           accounts: {
-            "account1": {},
+            account1: {},
           },
         },
       },

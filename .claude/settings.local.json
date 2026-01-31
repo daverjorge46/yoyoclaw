@@ -27,7 +27,11 @@
       "Bash(pnpm install)",
       "Bash(pnpm build)",
       "Bash(find:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(gh pr checks:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm oxfmt:*)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": []
