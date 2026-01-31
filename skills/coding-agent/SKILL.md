@@ -203,9 +203,9 @@ bash pty:true command:"pi --provider openai --model gpt-4o-mini 'Your task'"
 
 ### Cerebras Configuration
 
-Pi is configured to use Cerebras by default via alias in `~/.bashrc` and `~/.zshrc`:
+Use `pic` alias for Cerebras (keeps `pi` available for other providers):
 ```bash
-alias pi="pi --provider cerebras --model zai-glm-4.7"
+alias pic="pi --provider cerebras --model zai-glm-4.7"
 ```
 
 Config files:
