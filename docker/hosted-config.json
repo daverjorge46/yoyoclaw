@@ -1,0 +1,15 @@
+{
+  "gateway": {
+    "mode": "local",
+    "controlUi": {
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        }
+      }
+    }
+  }
+}

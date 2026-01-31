@@ -31,6 +31,9 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# Copy hosted config for cloud deployments (enables chat API, disables device pairing)
+COPY docker/hosted-config.json /app/hosted-config.json
+
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
 # This reduces the attack surface by preventing container escape via root privileges
