@@ -293,7 +293,6 @@ importers:
 
   extensions/feishu: {}
 
-  extensions/google-antigravity-auth: {}
   extensions/google-antigravity-auth:
     devDependencies:
       openclaw:
