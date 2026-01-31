@@ -70,13 +70,16 @@ export async function applyAuthChoice(
     const pluginEntry = allPlugins.find((p) => p.providerIds?.includes(matchingProvider.id));
 
     if (pluginEntry) {
-      return await applyAuthChoicePluginProvider(params, {
+      const result = await applyAuthChoicePluginProvider(params, {
         authChoice: params.authChoice,
         pluginId: pluginEntry.id,
         providerId: matchingProvider.id,
         methodId: matchingProvider.auth[0]?.id,
         label: matchingProvider.label,
       });
+      if (result) {
+        return result;
+      }
     }
   }
 
