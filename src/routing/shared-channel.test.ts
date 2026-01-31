@@ -34,9 +34,6 @@ describe("resolveAgentRoute - Shared Channel", () => {
     const routeA = resolveAgentRoute(inputA);
     const routeB = resolveAgentRoute(inputB);
 
-    console.log("Channel RouteA:", routeA.sessionKey);
-    console.log("Channel RouteB:", routeB.sessionKey);
-
     expect(routeA.sessionKey).not.toEqual(routeB.sessionKey);
     expect(routeA.sessionKey).toContain(":bot_a");
     expect(routeB.sessionKey).toContain(":bot_b");
@@ -51,7 +48,6 @@ describe("resolveAgentRoute - Shared Channel", () => {
     };
 
     const route = resolveAgentRoute(input);
-    console.log("Channel Default:", route.sessionKey);
 
     expect(route.sessionKey).toBe("agent:main:discord:channel:channel_123");
   });

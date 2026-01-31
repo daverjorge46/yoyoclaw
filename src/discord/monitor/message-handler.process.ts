@@ -284,7 +284,6 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     Surface: "discord" as const,
     WasMentioned: effectiveWasMentioned,
     MessageSid: message.id,
-    RpcId: `discord:${route.accountId}:${message.id}`,
     ParentSessionKey: autoThreadContext?.ParentSessionKey ?? threadKeys.parentSessionKey,
     ThreadStarterBody: threadStarterBody,
     ThreadLabel: threadLabel,

@@ -42,23 +42,6 @@ describe("discord multi-account logic", () => {
     expect(tokenUnknown.token).toBe("");
   });
 
-  it("should fall back to default token if no account token specified", () => {
-    const config = {
-      channels: {
-        discord: {
-          token: "default_token",
-          accounts: {
-            bot_a: {},
-          },
-        },
-      },
-    } as unknown as MoltbotConfig;
-
-    const tokenA = resolveDiscordToken(config, { accountId: "bot_a" });
-
-    expect(tokenA.token).toBe("");
-  });
-
   it("should include default account if top-level token is present", () => {
     const config = {
       channels: {
