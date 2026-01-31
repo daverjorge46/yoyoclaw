@@ -7,6 +7,11 @@ import type { MCPServersConfig } from "../config/types.mcp.js";
 import { MCPClient } from "./client.js";
 import { convertMCPTools } from "./schema-converter.js";
 import type { MCPToolCallResult } from "./types.js";
+import {
+  validateConfigSecurity,
+  validateToolCollisions,
+  validateURLSecurity,
+} from "./validation.js";
 
 interface Logger {
   debug(msg: string): void;
@@ -22,6 +27,11 @@ type AnyAgentTool = AgentTool<any, unknown>;
  * MCP client registry (singleton per server)
  */
 const mcpClients = new Map<string, MCPClient>();
+
+/**
+ * Track whether startup validation has run
+ */
+let startupValidationComplete = false;
 
 /**
  * Get or create MCP client for a server
@@ -47,14 +57,28 @@ export async function fetchMCPTools(
   workspace: string,
   sessionId: string,
   logger: Logger,
+  configPath?: string,
 ): Promise<AnyAgentTool[]> {
-  // Feature flag check
-  if (process.env.ENABLE_MCP !== "true") {
+  if (!servers || Object.keys(servers).length === 0) {
     return [];
   }
 
-  if (!servers || Object.keys(servers).length === 0) {
-    return [];
+  // Run validation checks once at startup
+  if (!startupValidationComplete) {
+    startupValidationComplete = true;
+
+    // Validate config file security
+    if (configPath) {
+      await validateConfigSecurity(configPath, logger);
+    }
+
+    // Validate URL security for all servers
+    for (const [serverName, config] of Object.entries(servers)) {
+      validateURLSecurity(serverName, config, logger);
+    }
+
+    // Validate tool name collisions
+    await validateToolCollisions(servers, logger);
   }
 
   const allTools: AnyAgentTool[] = [];
@@ -74,8 +98,8 @@ export async function fetchMCPTools(
       // Get tools for this session (cached)
       const mcpTools = await client.getToolsForSession(sessionId);
 
-      // Convert to Moltbot format
-      const convertedSchemas = convertMCPTools(mcpTools, serverName);
+      // Convert to Moltbot format (with error handling and deep cloning)
+      const convertedSchemas = convertMCPTools(mcpTools, serverName, logger);
 
       // Create AgentTool instances
       for (const schema of convertedSchemas) {

@@ -40,7 +40,7 @@ import {
 } from "../../pi-settings.js";
 import { createMoltbotCodingTools } from "../../pi-tools.js";
 import { resolveSandboxContext } from "../../sandbox.js";
-import { fetchMCPTools } from "../../../mcp/integration.js";
+import { fetchMCPTools, clearMCPSessionCache } from "../../../mcp/integration.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { acquireSessionWriteLock } from "../../session-write-lock.js";
@@ -446,14 +446,19 @@ export async function runEmbeddedAttempt(
           modelHasVision,
         });
 
-    // Fetch MCP tools if configured
-    const mcpTools = await fetchMCPTools(
-      (params.config as any)?.mcpServers,
-      params.sessionKey ?? params.sessionId,
-      effectiveWorkspace,
-      params.sessionId,
-      log,
-    );
+    // Fetch MCP tools if configured (feature flag check)
+    const mcpTools =
+      process.env.ENABLE_MCP === "true"
+        ? await fetchMCPTools(
+            (params.config as any)?.mcpServers,
+            // Extract agent name from sessionKey format: "agent:agentName:..."
+            params.sessionKey?.split(":")[1] ?? "main",
+            effectiveWorkspace,
+            params.sessionId,
+            log,
+            undefined, // configPath not available in this context
+          )
+        : [];
 
     // Merge built-in and MCP tools
     const toolsRaw = [...builtInTools, ...mcpTools];
@@ -1219,6 +1224,8 @@ export async function runEmbeddedAttempt(
       sessionManager?.flushPendingToolResults?.();
       session?.dispose();
       await sessionLock.release();
+      // Clear MCP session cache to prevent memory leaks
+      clearMCPSessionCache(params.sessionId);
     }
   } finally {
     restoreSkillEnv?.();

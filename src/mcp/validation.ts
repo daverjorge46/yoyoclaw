@@ -14,6 +14,27 @@ interface Logger {
 }
 
 /**
+ * Validate URL security (warn if non-localhost HTTP URLs are used)
+ */
+export function validateURLSecurity(
+  serverName: string,
+  config: MCPServersConfig[string],
+  logger: Logger,
+): void {
+  if (config.type === "http" && config.url) {
+    // Check if URL is localhost/127.0.0.1/::1
+    const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?/;
+
+    if (!localhostPattern.test(config.url)) {
+      logger.warn(
+        `WARNING: MCP server "${serverName}" uses non-localhost URL: ${config.url}. ` +
+          `This may expose credentials or allow unauthorized access.`,
+      );
+    }
+  }
+}
+
+/**
  * Validate config file permissions (warn if insecure)
  */
 export async function validateConfigSecurity(configPath: string, logger: Logger): Promise<void> {
