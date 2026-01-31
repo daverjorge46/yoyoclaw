@@ -432,6 +432,24 @@ function buildZhipuProvider(): ProviderConfig {
         contextWindow: 8192,
         maxTokens: 8192,
       },
+      {
+        id: "glm-4-7",
+        name: "GLM-4-7",
+        reasoning: false,
+        input: ["text"],
+        cost: ZHIPU_DEFAULT_COST,
+        contextWindow: 198000,
+        maxTokens: 128000,
+      },
+      {
+        id: "glm-4-long",
+        name: "GLM-4-Long",
+        reasoning: false,
+        input: ["text"],
+        cost: ZHIPU_DEFAULT_COST,
+        contextWindow: 1000000,
+        maxTokens: 128000,
+      },
     ],
   };
 }

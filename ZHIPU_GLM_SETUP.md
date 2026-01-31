@@ -9,6 +9,8 @@ Zhipu GLM support has been added to OpenClaw! You can now use Zhipu AI's GLM mod
 - **glm-4-plus** - GLM-4-Plus (enhanced version)
 - **glm-4-air** - GLM-4-Air (lightweight version)
 - **glm-4-airx** - GLM-4-AirX (ultra-lightweight)
+- **glm-4-7** - GLM-4-7 (7B parameters, 198K context)
+- **glm-4-long** - GLM-4-Long (1M context window)
 
 ## Setup
 
@@ -68,6 +70,12 @@ openclaw agent --model zhipu/glm-4v-flash --message "Describe this image" --imag
 
 # Use GLM-4-Plus
 openclaw agent --model zhipu/glm-4-plus --message "Explain quantum computing"
+
+# Use GLM-4-7 (7B model with 198K context)
+openclaw agent --model zhipu/glm-4-7 --message "Analyze this long document"
+
+# Use GLM-4-Long (1M context window!)
+openclaw agent --model zhipu/glm-4-long --message "Summarize this entire book"
 ```
 
 ## API Key
@@ -85,6 +93,8 @@ Get your Zhipu API key from:
 | glm-4-plus | GLM-4-Plus | 128K | 8K | Text |
 | glm-4-air | GLM-4-Air | 128K | 8K | Text |
 | glm-4-airx | GLM-4-AirX | 8K | 8K | Text |
+| glm-4-7 | GLM-4-7 | 198K | 128K | Text |
+| glm-4-long | GLM-4-Long | 1M | 128K | Text |
 
 ## Notes
 
