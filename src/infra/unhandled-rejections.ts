@@ -152,7 +152,9 @@ function shouldExitOnUnhandledRejection(): boolean {
 
 function logUnhandledRejectionCause(reason: unknown): void {
   const cause = getErrorCause(reason);
-  if (!cause) return;
+  if (!cause) {
+    return;
+  }
   try {
     console.error("[openclaw] Unhandled rejection cause:", formatUncaughtError(cause));
   } catch {
