@@ -123,7 +123,7 @@ describe("Presets", () => {
       const config = resolvePreset("safety", extra);
       const presetRules = getPreset("safety")!.config.rules;
       expect(config.rules.length).toBe(presetRules.length + 1);
-      expect(config.rules[config.rules.length - 1]!.id).toBe("extra-rule");
+      expect(config.rules[config.rules.length - 1]?.id).toBe("extra-rule");
     });
 
     it("should not mutate the original preset", () => {

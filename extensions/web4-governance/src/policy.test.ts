@@ -300,7 +300,9 @@ describe("PolicyEngine", () => {
       const limiter = new RateLimiter();
       const key = "ratelimit:bash-rate:tool:Bash";
       // Fill up the limiter
-      for (let i = 0; i < 3; i++) limiter.record(key);
+      for (let i = 0; i < 3; i++) {
+        limiter.record(key);
+      }
 
       const engine = new PolicyEngine(
         {
@@ -346,7 +348,9 @@ describe("PolicyEngine", () => {
     it("should use category key for category-based rate limits", () => {
       const limiter = new RateLimiter();
       const key = "ratelimit:net-rate:category:network";
-      for (let i = 0; i < 2; i++) limiter.record(key);
+      for (let i = 0; i < 2; i++) {
+        limiter.record(key);
+      }
 
       const engine = new PolicyEngine(
         {
@@ -372,7 +376,9 @@ describe("PolicyEngine", () => {
     it("should not match rate limit rule when tool does not match", () => {
       const limiter = new RateLimiter();
       const key = "ratelimit:bash-rate:tool:Bash";
-      for (let i = 0; i < 5; i++) limiter.record(key);
+      for (let i = 0; i < 5; i++) {
+        limiter.record(key);
+      }
 
       const engine = new PolicyEngine(
         {

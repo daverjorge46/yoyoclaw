@@ -225,7 +225,9 @@ const plugin = {
       // Ensure session exists for this tool call (P0 fix: consistent key derivation)
       const entry = getOrCreateSession(sid);
 
-      if (policyEngine.ruleCount === 0) return;
+      if (policyEngine.ruleCount === 0) {
+        return;
+      }
 
       const { blocked, evaluation } = policyEngine.shouldBlock(event.toolName, category, target);
 
@@ -281,7 +283,9 @@ const plugin = {
     api.on("after_tool_call", (event, ctx) => {
       const sid = deriveSessionKey(ctx);
       const entry = sessions.get(sid);
-      if (!entry) return;
+      if (!entry) {
+        return;
+      }
 
       // Pick up stashed policy evaluation from before_tool_call
       const policyEval = policyStash.get(sid);
@@ -317,7 +321,7 @@ const plugin = {
       }
 
       const result = {
-        status: (event.error ? "error" : "success") as "success" | "error",
+        status: event.error ? ("error" as const) : ("success" as const),
         outputHash: event.result ? hashOutput(event.result) : undefined,
         errorMessage: event.error,
         durationMs: event.durationMs,
@@ -389,7 +393,9 @@ const plugin = {
               logger.info(`Records: ${result.recordCount}`);
               if (result.errors.length > 0) {
                 logger.info("Errors:");
-                for (const e of result.errors) logger.info(`  - ${e}`);
+                for (const e of result.errors) {
+                  logger.info(`  - ${e}`);
+                }
               }
             } else {
               for (const [, entry] of sessions) {
@@ -513,8 +519,12 @@ const plugin = {
             for (const rule of rules) {
               const match = rule.match;
               const criteria: string[] = [];
-              if (match.tools) criteria.push(`tools=[${match.tools.join(", ")}]`);
-              if (match.categories) criteria.push(`categories=[${match.categories.join(", ")}]`);
+              if (match.tools) {
+                criteria.push(`tools=[${match.tools.join(", ")}]`);
+              }
+              if (match.categories) {
+                criteria.push(`categories=[${match.categories.join(", ")}]`);
+              }
               if (match.targetPatterns) {
                 const kind = match.targetPatternsAreRegex ? "regex" : "glob";
                 criteria.push(`targets(${kind})=[${match.targetPatterns.join(", ")}]`);
@@ -526,8 +536,12 @@ const plugin = {
               }
               logger.info(`  [${rule.priority}] ${rule.id} → ${rule.decision}`);
               logger.info(`       ${rule.name}`);
-              if (criteria.length > 0) logger.info(`       match: ${criteria.join(" AND ")}`);
-              if (rule.reason) logger.info(`       reason: ${rule.reason}`);
+              if (criteria.length > 0) {
+                logger.info(`       match: ${criteria.join(" AND ")}`);
+              }
+              if (rule.reason) {
+                logger.info(`       reason: ${rule.reason}`);
+              }
               logger.info();
             }
             logger.info(

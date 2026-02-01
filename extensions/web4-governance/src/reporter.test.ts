@@ -98,8 +98,8 @@ describe("AuditReporter", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       expect(report.timeRange).not.toBeNull();
-      expect(report.timeRange!.from).toBe("2026-01-27T10:00:00.000Z");
-      expect(report.timeRange!.to).toBe("2026-01-27T10:03:30.000Z");
+      expect(report.timeRange?.from).toBe("2026-01-27T10:00:00.000Z");
+      expect(report.timeRange?.to).toBe("2026-01-27T10:03:30.000Z");
     });
   });
 
@@ -109,38 +109,38 @@ describe("AuditReporter", () => {
       const report = new AuditReporter(records).generate();
       const bash = report.toolStats.find((t) => t.tool === "Bash");
       expect(bash).toBeDefined();
-      expect(bash!.invocations).toBe(4);
-      expect(bash!.successCount).toBe(1);
-      expect(bash!.errorCount).toBe(3);
+      expect(bash?.invocations).toBe(4);
+      expect(bash?.successCount).toBe(1);
+      expect(bash?.errorCount).toBe(3);
     });
 
     it("should calculate success rate", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       const read = report.toolStats.find((t) => t.tool === "Read");
-      expect(read!.successRate).toBe(1);
+      expect(read?.successRate).toBe(1);
       const bash = report.toolStats.find((t) => t.tool === "Bash");
-      expect(bash!.successRate).toBe(0.25);
+      expect(bash?.successRate).toBe(0.25);
     });
 
     it("should calculate avg duration", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       const read = report.toolStats.find((t) => t.tool === "Read");
-      expect(read!.avgDurationMs).toBe(15); // (10+20)/2
+      expect(read?.avgDurationMs).toBe(15); // (10+20)/2
     });
 
     it("should return null avgDuration when no durations", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       const wf = report.toolStats.find((t) => t.tool === "WebFetch");
-      expect(wf!.avgDurationMs).toBeNull();
+      expect(wf?.avgDurationMs).toBeNull();
     });
 
     it("should sort by invocation count descending", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
-      expect(report.toolStats[0]!.tool).toBe("Bash");
+      expect(report.toolStats[0]?.tool).toBe("Bash");
     });
   });
 
@@ -149,14 +149,14 @@ describe("AuditReporter", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       const cmd = report.categoryBreakdown.find((c) => c.category === "command");
-      expect(cmd!.count).toBe(4);
-      expect(cmd!.percentage).toBe(50);
+      expect(cmd?.count).toBe(4);
+      expect(cmd?.percentage).toBe(50);
     });
 
     it("should sort by count descending", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
-      expect(report.categoryBreakdown[0]!.category).toBe("command");
+      expect(report.categoryBreakdown[0]?.category).toBe("command");
     });
   });
 
@@ -180,22 +180,22 @@ describe("AuditReporter", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       expect(report.errors).toHaveLength(1); // only Bash has errors
-      expect(report.errors[0]!.tool).toBe("Bash");
-      expect(report.errors[0]!.count).toBe(3);
+      expect(report.errors[0]?.tool).toBe("Bash");
+      expect(report.errors[0]?.count).toBe(3);
     });
 
     it("should list top error messages", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
-      expect(report.errors[0]!.topMessages).toContain("exit 1");
-      expect(report.errors[0]!.topMessages).toContain("timeout");
+      expect(report.errors[0]?.topMessages).toContain("exit 1");
+      expect(report.errors[0]?.topMessages).toContain("timeout");
     });
 
     it("should sort messages by frequency", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       // "exit 1" appears twice, "timeout" once
-      expect(report.errors[0]!.topMessages[0]).toBe("exit 1");
+      expect(report.errors[0]?.topMessages[0]).toBe("exit 1");
     });
   });
 
@@ -206,14 +206,14 @@ describe("AuditReporter", () => {
       expect(report.timeline.length).toBeGreaterThan(0);
       // First two records share the same minute bucket (both at :00 seconds apart)
       // The exact minute string depends on local timezone, so just check the first bucket has 2
-      expect(report.timeline[0]!.count).toBe(2);
+      expect(report.timeline[0]?.count).toBe(2);
     });
 
     it("should sort chronologically", () => {
       const records = makeSyntheticRecords();
       const report = new AuditReporter(records).generate();
       for (let i = 1; i < report.timeline.length; i++) {
-        expect(report.timeline[i]!.minute >= report.timeline[i - 1]!.minute).toBe(true);
+        expect(report.timeline[i]?.minute >= report.timeline[i - 1]?.minute).toBe(true);
       }
     });
   });
