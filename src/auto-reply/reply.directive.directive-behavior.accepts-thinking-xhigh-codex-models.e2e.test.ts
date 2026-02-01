@@ -28,6 +28,7 @@ vi.mock("../agents/pi-embedded.js", () => ({
   isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
   getActiveRunThreadContext: vi.fn().mockReturnValue(undefined),
+  hasActiveRunThreadContext: vi.fn().mockReturnValue(false),
 }));
 vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(),
