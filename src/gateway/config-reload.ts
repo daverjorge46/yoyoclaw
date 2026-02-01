@@ -310,6 +310,7 @@ export function startGatewayConfigReloader(opts: {
       }
       const nextConfig = snapshot.config;
       const changedPaths = diffConfigPaths(currentConfig, nextConfig);
+      const prevConfig = currentConfig;
       currentConfig = nextConfig;
       settings = resolveGatewayReloadSettings(nextConfig);
       if (changedPaths.length === 0) {
@@ -327,6 +328,8 @@ export function startGatewayConfigReloader(opts: {
         if (preflightError) {
           opts.log.error(`config preflight failed: ${preflightError}`);
           opts.log.error(`changed config keys: ${changedPaths.join(", ")}`);
+          // Restore in-memory state to avoid reload loops after rollback
+          currentConfig = prevConfig;
           const rollbackResult = await rollbackToBackupConfig(snapshot.path);
           if (rollbackResult.ok) {
             opts.log.warn(`rolled back to previous config: ${rollbackResult.backupPath}`);
@@ -354,6 +357,8 @@ export function startGatewayConfigReloader(opts: {
         if (preflightError) {
           opts.log.error(`config preflight failed: ${preflightError}`);
           opts.log.error(`changed config keys: ${changedPaths.join(", ")}`);
+          // Restore in-memory state to avoid reload loops after rollback
+          currentConfig = prevConfig;
           const rollbackResult = await rollbackToBackupConfig(snapshot.path);
           if (rollbackResult.ok) {
             opts.log.warn(`rolled back to previous config: ${rollbackResult.backupPath}`);
