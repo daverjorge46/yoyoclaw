@@ -16,5 +16,8 @@
     "pnpm-lock.yaml/",
     "Swabble/",
     "vendor/",
+    "docs/concepts/model-providers.md",
+    "docs/providers/moonshot.md",
+    "docker-compose.yml",
   ],
 }

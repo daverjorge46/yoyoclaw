@@ -175,8 +175,9 @@ export class SearchableSelectList implements Component {
 
     // If no items match filter, show message
     if (this.filteredItems.length === 0) {
-      lines.push(this.theme.noMatch("  No matches"));
-      return lines;
+      const noMatchLine = this.theme.noMatch("  No matches");
+      lines.push(noMatchLine);
+      return this.truncateLines(lines, width);
     }
 
     // Calculate visible range with scrolling
@@ -205,6 +206,19 @@ export class SearchableSelectList implements Component {
       lines.push(this.theme.scrollInfo(`  ${scrollInfo}`));
     }
 
+    return this.truncateLines(lines, width);
+  }
+
+  /**
+   * Truncate all lines to the specified width to prevent TUI crashes.
+   * This must be called before every return in render().
+   */
+  private truncateLines(lines: string[], width: number): string[] {
+    for (let i = 0; i < lines.length; i++) {
+      if (visibleWidth(lines[i]) > width) {
+        lines[i] = truncateToWidth(lines[i], width, "");
+      }
+    }
     return lines;
   }
 
