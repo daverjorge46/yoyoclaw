@@ -2,11 +2,468 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Create a unified, reusable `UnifiedChatSession` component that consolidates the Agent Session UI's rich features into a configurable component supporting Full vs Basic display modes, with complete multi-modal input capabilities.
+**Goal:** Create a unified, reusable `UnifiedChatSession` component that consolidates the Agent Session UI's rich features into a configurable component supporting Full vs Basic display modes, with complete multi-modal input AND output capabilities.
 
-**Architecture:** The component will wrap existing Session components (SessionChat, SessionActivityFeed, SessionWorkspacePane) and add new capabilities for voice recording, drag-and-drop file uploads, reasoning stream toggles, and display mode configuration. The `/conversations` routes will be migrated to use this unified component in Basic mode.
+**Architecture:** The component will wrap existing Session components (SessionChat, SessionActivityFeed, SessionWorkspacePane) and add new capabilities for voice recording, drag-and-drop file uploads, reasoning stream toggles, multi-modal output rendering (images, audio, files), and display mode configuration. The `/conversations` routes will be migrated to use this unified component in Basic mode.
 
 **Tech Stack:** React 18, TanStack Router, Framer Motion, Web Audio API (voice recording), File API (drag-drop), shadcn/ui components, Zustand (stores)
+
+---
+
+## Critical UX Requirements
+
+### Vertical Layout Constraints
+- **CRITICAL:** The chat UI and RHS panel must NEVER require page-level scrolling to see the message input box or bottom of panels
+- The bottom of the center pane must end no lower than vertically centered between the "Settings" and "Connections" nav items in the left sidebar
+- Use `h-screen`, `max-h-screen`, `overflow-hidden` on the outer container
+- Use `flex-1 min-h-0` pattern for scrollable children to constrain height properly
+- Test at various viewport heights to ensure no overflow
+
+### Message Author Clarity
+- Agent 2-letter initials must have a visible ring/border around the avatar circle
+- Add a subtle separator line between "Agent Name · Timestamp" header and message content
+- Make author attribution more prominent with slightly larger/bolder text
+
+### Multi-Modal Output Support
+- Support rendering images in assistant responses (inline or lightbox)
+- Support rendering audio players for voice/audio content
+- Support rendering file download cards for attachments
+- Support rendering code blocks with syntax highlighting
+
+---
+
+## Phase 0: Critical Layout & UX Fixes
+
+### Task 0A: Fix Vertical Layout Overflow Issues
+
+**Files:**
+- Modify: `src/routes/agents/$agentId/session/$sessionKey.tsx`
+- Modify: `src/routes/conversations/$id.tsx`
+- Modify: `src/components/domain/session/SessionChat.tsx`
+- Modify: `src/components/layout/Sidebar.tsx` (if needed for reference measurements)
+
+**Problem:** The chat UI overflows the viewport, requiring page-level scrolling to see the message input box.
+
+**Step 1: Audit current layout structure**
+
+Check the outer container uses proper height constraints:
+```tsx
+// REQUIRED pattern for all chat page containers:
+<div className="h-screen max-h-screen overflow-hidden flex flex-col">
+  {/* Header - shrink-0 */}
+  <header className="shrink-0">...</header>
+
+  {/* Main content - flex-1 min-h-0 */}
+  <main className="flex-1 min-h-0 flex">
+    {/* Scrollable areas inside */}
+  </main>
+</div>
+```
+
+**Step 2: Apply fix to AgentSessionPage**
+
+In `src/routes/agents/$agentId/session/$sessionKey.tsx`, ensure:
+```tsx
+return (
+  <div className="h-screen max-h-screen overflow-hidden flex flex-col bg-background text-foreground">
+    {/* SessionHeader - must be shrink-0 */}
+    <SessionHeader className="shrink-0" ... />
+
+    {/* Main content area - flex-1 with min-h-0 is CRITICAL */}
+    <div className="flex-1 flex min-h-0 overflow-hidden">
+      {/* Chat section */}
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+        {/* Message list - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto">...</div>
+        {/* Input - shrink-0 */}
+        <div className="shrink-0">...</div>
+      </div>
+
+      {/* RHS sidebar - same constraints */}
+      <div className="w-[380px] flex flex-col min-h-0 overflow-hidden">...</div>
+    </div>
+  </div>
+);
+```
+
+**Step 3: Verify with CSS calc if needed**
+
+If sidebar nav items need consideration, use CSS calc:
+```tsx
+// Alternative: explicit height calculation
+<div className="flex flex-col" style={{ height: 'calc(100vh - var(--sidebar-footer-offset, 0px))' }}>
+```
+
+**Step 4: Test at multiple viewport heights**
+
+- Test at 768px, 900px, 1080px viewport heights
+- Verify message input is ALWAYS visible without scrolling
+- Verify RHS panels don't overflow
+
+**Step 5: Commit**
+
+```bash
+git add src/routes/agents/\$agentId/session/\$sessionKey.tsx src/routes/conversations/\$id.tsx
+git commit -m "fix(layout): ensure chat UI never overflows viewport height"
+```
+
+---
+
+### Task 0B: Improve Message Author Clarity
+
+**Files:**
+- Modify: `src/components/domain/session/SessionChatMessage.tsx`
+- Modify: `src/components/composed/AgentAvatar.tsx`
+
+**Step 1: Add ring/border to AgentAvatar**
+
+In `AgentAvatar.tsx`, add a visible ring:
+```tsx
+<div
+  className={cn(
+    "flex items-center justify-center rounded-xl font-medium",
+    "ring-2 ring-border/50", // ADD THIS - subtle ring around avatar
+    // ... existing size classes
+  )}
+>
+  {/* 2-letter initial */}
+</div>
+```
+
+**Step 2: Update SessionChatMessage header with separator**
+
+In `SessionChatMessage.tsx`, update the message bubble header:
+```tsx
+{/* Header with separator */}
+<div className="mb-2">
+  <div className="flex items-center justify-between gap-2 text-xs">
+    <span
+      className={cn(
+        "font-semibold", // Make bolder
+        isUser ? "text-primary-foreground/90" : "text-foreground"
+      )}
+    >
+      {isUser ? "You" : message.agentName || "Assistant"}
+    </span>
+    {formattedTime && (
+      <span
+        className={cn(
+          "text-[10px]", // Slightly smaller timestamp
+          isUser ? "text-primary-foreground/60" : "text-muted-foreground"
+        )}
+      >
+        {formattedTime}
+      </span>
+    )}
+  </div>
+  {/* Subtle separator line */}
+  <div
+    className={cn(
+      "mt-1.5 mb-2 h-px w-full",
+      isUser ? "bg-primary-foreground/10" : "bg-border/30"
+    )}
+  />
+</div>
+```
+
+**Step 3: Commit**
+
+```bash
+git add src/components/domain/session/SessionChatMessage.tsx src/components/composed/AgentAvatar.tsx
+git commit -m "fix(chat): improve message author clarity with avatar ring and separator"
+```
+
+---
+
+### Task 0C: Add Multi-Modal Output Support
+
+**Files:**
+- Create: `src/components/domain/session/MessageContentRenderer.tsx`
+- Modify: `src/components/domain/session/SessionChatMessage.tsx`
+- Modify: `src/lib/api/sessions.ts` (extend ChatMessage type)
+
+**Step 1: Extend ChatMessage type to support attachments**
+
+In `src/lib/api/sessions.ts`:
+```ts
+export interface MessageAttachment {
+  id: string;
+  type: "image" | "audio" | "file" | "code";
+  name: string;
+  mimeType: string;
+  url?: string;
+  data?: string; // base64 for inline
+  language?: string; // for code blocks
+  size?: number;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp?: string;
+  toolCalls?: ToolCall[];
+  attachments?: MessageAttachment[]; // ADD THIS
+  reasoning?: string; // ADD THIS for thinking/reasoning stream
+}
+```
+
+**Step 2: Create MessageContentRenderer component**
+
+```tsx
+// src/components/domain/session/MessageContentRenderer.tsx
+"use client";
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Download, Play, Pause, FileText, Code, Image as ImageIcon, Volume2 } from "lucide-react";
+import type { MessageAttachment } from "@/lib/api/sessions";
+
+interface MessageContentRendererProps {
+  content: string;
+  attachments?: MessageAttachment[];
+  reasoning?: string;
+  showReasoning?: boolean;
+  isStreaming?: boolean;
+  className?: string;
+}
+
+export function MessageContentRenderer({
+  content,
+  attachments,
+  reasoning,
+  showReasoning = true,
+  isStreaming = false,
+  className,
+}: MessageContentRendererProps) {
+  return (
+    <div className={cn("space-y-3", className)}>
+      {/* Reasoning/thinking stream (collapsible) */}
+      {reasoning && showReasoning && (
+        <ReasoningBlock reasoning={reasoning} isStreaming={isStreaming} />
+      )}
+
+      {/* Main text content */}
+      {content && (
+        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+          {content}
+          {isStreaming && (
+            <span className="ml-1 inline-block h-4 w-0.5 animate-pulse bg-current" />
+          )}
+        </div>
+      )}
+
+      {/* Attachments */}
+      {attachments && attachments.length > 0 && (
+        <div className="space-y-2 pt-2">
+          {attachments.map((attachment) => (
+            <AttachmentRenderer key={attachment.id} attachment={attachment} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReasoningBlock({ reasoning, isStreaming }: { reasoning: string; isStreaming: boolean }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  return (
+    <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-3">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <span className="font-medium">Thinking...</span>
+        <span className="text-[10px]">{isExpanded ? "Hide" : "Show"}</span>
+      </button>
+      {isExpanded && (
+        <div className="mt-2 text-xs text-muted-foreground italic whitespace-pre-wrap">
+          {reasoning}
+          {isStreaming && (
+            <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-current" />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AttachmentRenderer({ attachment }: { attachment: MessageAttachment }) {
+  switch (attachment.type) {
+    case "image":
+      return <ImageAttachment attachment={attachment} />;
+    case "audio":
+      return <AudioAttachment attachment={attachment} />;
+    case "code":
+      return <CodeAttachment attachment={attachment} />;
+    case "file":
+    default:
+      return <FileAttachment attachment={attachment} />;
+  }
+}
+
+function ImageAttachment({ attachment }: { attachment: MessageAttachment }) {
+  const src = attachment.url || `data:${attachment.mimeType};base64,${attachment.data}`;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button type="button" className="relative group cursor-pointer">
+          <img
+            src={src}
+            alt={attachment.name}
+            className="max-w-sm max-h-64 rounded-lg border border-border object-cover"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center">
+            <ImageIcon className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl">
+        <img src={src} alt={attachment.name} className="w-full h-auto" />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AudioAttachment({ attachment }: { attachment: MessageAttachment }) {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  const src = attachment.url || `data:${attachment.mimeType};base64,${attachment.data}`;
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+      <audio
+        ref={audioRef}
+        src={src}
+        onEnded={() => setIsPlaying(false)}
+        className="hidden"
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-10 w-10 rounded-full"
+        onClick={togglePlay}
+      >
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+      </Button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <Volume2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm truncate">{attachment.name}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CodeAttachment({ attachment }: { attachment: MessageAttachment }) {
+  const code = attachment.data || "";
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="flex items-center justify-between bg-muted/50 px-3 py-1.5 text-xs">
+        <span className="font-mono text-muted-foreground">{attachment.language || "code"}</span>
+        <span className="text-muted-foreground">{attachment.name}</span>
+      </div>
+      <pre className="p-3 overflow-x-auto text-xs bg-background">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
+function FileAttachment({ attachment }: { attachment: MessageAttachment }) {
+  const handleDownload = () => {
+    if (attachment.url) {
+      window.open(attachment.url, "_blank");
+    } else if (attachment.data) {
+      const blob = new Blob(
+        [Uint8Array.from(atob(attachment.data), (c) => c.charCodeAt(0))],
+        { type: attachment.mimeType }
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = attachment.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+        <FileText className="h-5 w-5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">{attachment.name}</div>
+        {attachment.size && (
+          <div className="text-xs text-muted-foreground">
+            {formatFileSize(attachment.size)}
+          </div>
+        )}
+      </div>
+      <Button variant="ghost" size="icon" onClick={handleDownload}>
+        <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export default MessageContentRenderer;
+```
+
+**Step 3: Update SessionChatMessage to use MessageContentRenderer**
+
+Replace the content rendering in `SessionChatMessage.tsx`:
+```tsx
+import { MessageContentRenderer } from "./MessageContentRenderer";
+
+// In the render:
+<MessageContentRenderer
+  content={message.content}
+  attachments={message.attachments}
+  reasoning={message.reasoning}
+  showReasoning={true} // or from settings
+  isStreaming={message.isStreaming}
+/>
+```
+
+**Step 4: Export from index**
+
+Add to `src/components/domain/session/index.ts`:
+```ts
+export { MessageContentRenderer } from "./MessageContentRenderer";
+```
+
+**Step 5: Commit**
+
+```bash
+git add src/components/domain/session/MessageContentRenderer.tsx src/components/domain/session/SessionChatMessage.tsx src/lib/api/sessions.ts
+git commit -m "feat(chat): add multi-modal output support for images, audio, files, code"
+```
 
 ---
 
@@ -1623,16 +2080,51 @@ git commit -m "fix(terminal): resolve xterm module loading issues"
 
 This plan creates:
 
-1. **UnifiedChatSession** - A reusable component supporting Full and Basic display modes
-2. **EnhancedChatInput** - Multi-modal input with voice recording, drag-drop, attachments
-3. **useVoiceRecorder** - Custom hook for Web Audio API voice recording
-4. Bug fixes for:
-   - Refresh icon placement (terminal → files tab)
-   - Tool access spacing
-   - Remove Add Custom Tool button
-   - Ritual/workstream card linking
-   - Active workstreams filter alignment
-5. Route migrations to use the unified component
-6. xterm module resolution fix
+### Phase 0: Critical UX Fixes (Tasks 0A-0C)
+- **Vertical layout fix** - Ensure chat UI never overflows viewport; message input always visible
+- **Message author clarity** - Avatar ring, bolder author text, separator line between header and content
+- **Multi-modal output** - MessageContentRenderer for images, audio, files, code blocks, reasoning streams
 
-The unified component will replace the disparate chat UIs across the app, providing a consistent experience with configurable feature sets.
+### Phase 1: Core Unified Component (Tasks 1-4)
+- **UnifiedChatSession** - Reusable component supporting Full and Basic display modes
+- **EnhancedChatInput** - Multi-modal input with voice recording, drag-drop, attachments
+- **useVoiceRecorder** - Custom hook for Web Audio API voice recording
+- **BasicChatLayout** and **FullChatLayout** - Two layout modes for different use cases
+
+### Phase 2: Bug Fixes (Tasks 5-9)
+- Refresh icon placement (terminal → files tab)
+- Tool access spacing
+- Remove Add Custom Tool button
+- Ritual/workstream card linking
+- Active workstreams filter alignment
+
+### Phase 3: Route Migration (Tasks 10-11)
+- Migrate `/conversations/$id` to use UnifiedChatSession (basic mode)
+- Migrate agent session page to use UnifiedChatSession (full mode)
+
+### Phase 4: xterm Fix (Task 12)
+- Resolve terminal module resolution issues
+
+The unified component will replace the disparate chat UIs across the app, providing a consistent experience with multi-modal I/O and configurable feature sets.
+
+---
+
+## Task Summary Table
+
+| Task ID | Phase | Description | Files |
+|---------|-------|-------------|-------|
+| 0A | 0 | Fix vertical layout overflow | session routes, SessionChat |
+| 0B | 0 | Improve message author clarity | SessionChatMessage, AgentAvatar |
+| 0C | 0 | Add multi-modal output support | MessageContentRenderer (new), SessionChatMessage |
+| 1 | 1 | Create UnifiedChatSession shell | UnifiedChatSession (new) |
+| 2 | 1 | Create EnhancedChatInput | EnhancedChatInput (new), use-voice-recorder (new) |
+| 3 | 1 | Implement BasicChatLayout | UnifiedChatSession |
+| 4 | 1 | Implement FullChatLayout | UnifiedChatSession |
+| 5 | 2 | Fix refresh icon placement | SessionWorkspacePane |
+| 6 | 2 | Fix tool access spacing | ToolCategorySection |
+| 7 | 2 | Remove Add Custom Tool | ToolAccessConfig |
+| 8 | 2 | Add ritual/workstream links | AgentOverviewTab |
+| 9 | 2 | Fix active workstreams filter | AgentOverviewTab |
+| 10 | 3 | Migrate conversations route | conversations/$id.tsx |
+| 11 | 3 | Migrate agent session route | agents/$agentId/session/$sessionKey.tsx |
+| 12 | 4 | Fix xterm module resolution | WebTerminal, vite.config |
