@@ -289,15 +289,15 @@ async function extractFileBlocks(params: {
       }
       continue;
     }
-    const buf = bufferResult?.buffer;
-    if (isKnownBinaryMedia(buf)) {
-      continue;
-    }
     const nameHint = bufferResult?.fileName ?? attachment.path ?? attachment.url;
     const forcedTextMimeResolved = forcedTextMime ?? resolveTextMimeFromName(nameHint ?? "");
     const utf16Charset = resolveUtf16Charset(bufferResult?.buffer);
     const textSample = decodeTextSample(bufferResult?.buffer);
     const textLike = Boolean(utf16Charset) || looksLikeUtf8Text(bufferResult?.buffer);
+    // Skip binary audio that would otherwise be misclassified as text by heuristics
+    if (!forcedTextMimeResolved && kind === "audio" && isKnownBinaryMedia(bufferResult?.buffer)) {
+      continue;
+    }
     if (!forcedTextMimeResolved && kind === "audio" && !textLike) {
       continue;
     }
