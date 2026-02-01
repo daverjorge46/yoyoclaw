@@ -7,15 +7,17 @@ This guide explains how to verify that the security enhancements in OpenClaw are
 The easiest way to check your system is the included shell script.
 
 **Command:**
+
 ```bash
 ./security-verification.sh
 ```
 
 **What it validates:**
-*   **File Integrity**: Checks that security modules (`auth-rate-limit.ts`, etc.) exist.
-*   **Imports**: Verifies `auth.ts` is actually importing the security modules.
-*   **Configuration**: Runs `openclaw security audit` to check your config.
-*   **Permissions**: Warns if sensitive files have wide permissions.
+
+- **File Integrity**: Checks that security modules (`auth-rate-limit.ts`, etc.) exist.
+- **Imports**: Verifies `auth.ts` is actually importing the security modules.
+- **Configuration**: Runs `openclaw security audit` to check your config.
+- **Permissions**: Warns if sensitive files have wide permissions.
 
 ---
 
@@ -24,14 +26,16 @@ The easiest way to check your system is the included shell script.
 We have added a dedicated test suite for security features.
 
 **Command:**
+
 ```bash
 node --test tests/security-test-suite.test.js
 ```
 
 **Coverage (23 Tests):**
-*   **Rate Limiting**: Verifies locking after 5 attempts, unlocking after 15m.
-*   **Password Hashing**: Verifies hashing correctness and timing-safe comparison.
-*   **Integration**: Tests the full auth flow including rate limit checks.
+
+- **Rate Limiting**: Verifies locking after 5 attempts, unlocking after 15m.
+- **Password Hashing**: Verifies hashing correctness and timing-safe comparison.
+- **Integration**: Tests the full auth flow including rate limit checks.
 
 ---
 
@@ -60,9 +64,10 @@ If you want to manually verify the features, follow these steps:
 
 ### Test Password Hashing
 
-*Currently, password hashing is implemented as a module. Full integration for auto-migrating passwords in `openclaw.json` is planned for the next release.*
+_Currently, password hashing is implemented as a module. Full integration for auto-migrating passwords in `openclaw.json` is planned for the next release._
 
 To test the module manually via REPL:
+
 ```typescript
 import { hashPassword, verifyPassword } from "./src/gateway/auth-password.js";
 const hash = await hashPassword("secret");

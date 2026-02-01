@@ -10,12 +10,12 @@ We implemented a memory-based rate limiting system to protect the Gateway agains
 
 ### Implementation Details
 
-*   **Algorithm**: Token bucket / Failure counter per IP.
-*   **Storage**: In-memory LRU Cache (max 1000 IPs) to prevent memory leaks.
-*   **Thresholds**:
-    *   **Max Attempts**: 5 failures.
-    *   **Block Duration**: 15 minutes.
-    *   **Reset Window**: 1 minute (counters reset if no failures occur for 1 min).
+- **Algorithm**: Token bucket / Failure counter per IP.
+- **Storage**: In-memory LRU Cache (max 1000 IPs) to prevent memory leaks.
+- **Thresholds**:
+  - **Max Attempts**: 5 failures.
+  - **Block Duration**: 15 minutes.
+  - **Reset Window**: 1 minute (counters reset if no failures occur for 1 min).
 
 ### Logic Flow
 
@@ -23,8 +23,8 @@ We implemented a memory-based rate limiting system to protect the Gateway agains
 2.  **Before** any crypto or password verification is done, `checkRateLimit(ip)` is called.
 3.  If blocked, request is rejected immediately (`429 Too Many Requests`).
 4.  If allowed, auth proceeds.
-    *   **On Failure**: `recordAuthFailure(ip)` increments counter. If > 5, IP is blocked.
-    *   **On Success**: `recordAuthSuccess(ip)` clears the counter.
+    - **On Failure**: `recordAuthFailure(ip)` increments counter. If > 5, IP is blocked.
+    - **On Success**: `recordAuthSuccess(ip)` clears the counter.
 
 ---
 
@@ -37,16 +37,17 @@ Previously, passwords were stored in plain text in `~/.openclaw/openclaw.json`. 
 ### Design Choice: `scrypt`
 
 We chose **scrypt** over bcrypt or argon2 because:
+
 1.  **Native Support**: Available in Node.js `crypto` module (no C++ compilation required).
 2.  **OWASP Recommended**: Approved for password storage.
 3.  **Memory-Hard**: Resistant to GPU/ASIC attacks compared to simple hash functions.
 
 ### Implementation
 
-*   **Salt**: 16 bytes random salt per password.
-*   **Parameters**: `N=16384`, `r=8`, `p=1` (Balanced for security/performance).
-*   **Format**: `salt:derived_key` (hex encoded).
-*   **Verification**: Uses `crypto.timingSafeEqual()` to prevent timing attacks continuously.
+- **Salt**: 16 bytes random salt per password.
+- **Parameters**: `N=16384`, `r=8`, `p=1` (Balanced for security/performance).
+- **Format**: `salt:derived_key` (hex encoded).
+- **Verification**: Uses `crypto.timingSafeEqual()` to prevent timing attacks continuously.
 
 ---
 
@@ -58,9 +59,9 @@ To ensure users are aware of potential misconfigurations, we overhauled the star
 
 ### Features
 
-*   **Risk Detection**: Checks if `bind` is non-loopback (exposed) AND (TLS is off OR Auth is weak).
-*   **ASCII Banner**: A large, unmissable warning box is displayed in the logs.
-*   **Delay**: A **5-second pause** occurs when a risk is detected, ensuring the user sees the message before it scrolls away.
+- **Risk Detection**: Checks if `bind` is non-loopback (exposed) AND (TLS is off OR Auth is weak).
+- **ASCII Banner**: A large, unmissable warning box is displayed in the logs.
+- **Delay**: A **5-second pause** occurs when a risk is detected, ensuring the user sees the message before it scrolls away.
 
 **Example Warning:**
 
@@ -85,10 +86,10 @@ To ensure users are aware of potential misconfigurations, we overhauled the star
 
 The authentication logic was refactored to check rate limits **first** (fail-fast).
 
-*   **Order of Operations**:
-    1.  Resolve IP.
-    2.  Check Rate Limit -> Reject if blocked.
-    3.  Check Auth Token/Password.
-    4.  Log result (Success/Failure) to Rate Limiter.
+- **Order of Operations**:
+  1.  Resolve IP.
+  2.  Check Rate Limit -> Reject if blocked.
+  3.  Check Auth Token/Password.
+  4.  Log result (Success/Failure) to Rate Limiter.
 
 This ensures that attackers cannot consume CPU resources verifying passwords if they are already blocked.

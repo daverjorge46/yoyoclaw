@@ -32,11 +32,11 @@ const SCRYPT_P = 1;
  */
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(SALT_LENGTH);
-  const derivedKey = (await scryptAsync(password, salt, KEY_LENGTH, {
+  const derivedKey = await scryptAsync(password, salt, KEY_LENGTH, {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P,
-  })) as Buffer;
+  });
 
   return `${salt.toString("hex")}:${derivedKey.toString("hex")}`;
 }
@@ -68,11 +68,11 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
     return false;
   }
 
-  const derivedKey = (await scryptAsync(password, salt, KEY_LENGTH, {
+  const derivedKey = await scryptAsync(password, salt, KEY_LENGTH, {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P,
-  })) as Buffer;
+  });
 
   return crypto.timingSafeEqual(storedKey, derivedKey);
 }

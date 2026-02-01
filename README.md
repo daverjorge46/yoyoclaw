@@ -27,24 +27,24 @@ If you want a personal, single-user assistant that feels local, fast, and always
 
 ## 🛡️ Security Enhancements (Fork)
 
-
-
 This fork of OpenClaw provides **hardened security** for self-hosters. Key improvements include:
 
 - **🔒 Rate Limiting**: Built-in protection against brute-force attacks on the Gateway.
 - **🔑 Secure Authentication**: Mandatory password hashing (Argon2) and secure session handling.
 - **📦 Hardened Dependencies**:
-    - **0 Vulnerabilities**: All critical, high, and moderate vulnerabilities patched.
-    - Updated critical packages: `hono`, `form-data`, `qs`, `fast-xml-parser`, `request`, `tough-cookie`.
+  - **0 Vulnerabilities**: All critical, high, and moderate vulnerabilities patched.
+  - Updated critical packages: `hono`, `form-data`, `qs`, `fast-xml-parser`, `request`, `tough-cookie`.
 - **✅ Security Verification**: Includes `security-verification.sh` to validate system integrity on startup.
-    ```bash
-    # Run the verification suite
-    ./security-verification.sh
-    ```
+  ```bash
+  # Run the verification suite
+  ./security-verification.sh
+  ```
 - **📝 Audited**: Comprehensive security audit focusing on dependency risks and configuration safety.
 
 ### 📚 Security Documentation
+
 For deep technical details, see the `docs/security/` directory:
+
 - [`docs/security/README.md`](docs/security/README.md): Security Hub Index.
 - [`docs/security/ARCHITECTURE.md`](docs/security/ARCHITECTURE.md): Deep dive into Rate Limiting, Hashing, and Warnings.
 - [`docs/security/VERIFICATION.md`](docs/security/VERIFICATION.md): Validation guide and test suite usage.

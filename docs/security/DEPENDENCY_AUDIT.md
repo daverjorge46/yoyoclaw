@@ -12,18 +12,18 @@ After remediation, `pnpm audit` reports **0 known vulnerabilities**.
 
 ### Critical Fixes
 
-| Package | Vulnerability | Severity | Fix Applied |
-|---------|---------------|----------|-------------|
-| **tar** | CVE-2026-24842 | **HIGH** | Forced upgrade to `7.5.7` via overrides |
-| **playwright-core** | CVE-2025-59288 | **MEDIUM** | Updated to latest version |
-| **hono** | Multiple (XSS) | **MODERATE** | Forced upgrade to `>=4.11.7` via overrides & peer rules |
+| Package             | Vulnerability  | Severity     | Fix Applied                                             |
+| ------------------- | -------------- | ------------ | ------------------------------------------------------- |
+| **tar**             | CVE-2026-24842 | **HIGH**     | Forced upgrade to `7.5.7` via overrides                 |
+| **playwright-core** | CVE-2025-59288 | **MEDIUM**   | Updated to latest version                               |
+| **hono**            | Multiple (XSS) | **MODERATE** | Forced upgrade to `>=4.11.7` via overrides & peer rules |
 
 ### Moderate Fixes
 
-*   **form-data**: Updated to `>=2.5.4`
-*   **qs**: Updated to `>=6.14.1`
-*   **fast-xml-parser**: Updated to `>=5.3.4`
-*   **request**: Replaced with `@cypress/request` fork to resolve deprecation issues.
+- **form-data**: Updated to `>=2.5.4`
+- **qs**: Updated to `>=6.14.1`
+- **fast-xml-parser**: Updated to `>=5.3.4`
+- **request**: Replaced with `@cypress/request` fork to resolve deprecation issues.
 
 ---
 
