@@ -4,6 +4,7 @@ import type {
   GroupPolicy,
   MarkdownConfig,
   ReplyToMode,
+  ResponseMode,
 } from "./types.base.js";
 import type { ChannelHeartbeatVisibilityConfig } from "./types.channels.js";
 import type { DmConfig, ProviderCommandsConfig } from "./types.messages.js";
@@ -31,6 +32,8 @@ export type SlackChannelConfig = {
   allow?: boolean;
   /** Require mentioning the bot to trigger replies. */
   requireMention?: boolean;
+  /** Response mode override for this channel. */
+  responseMode?: ResponseMode;
   /** Optional tool policy overrides for this channel. */
   tools?: GroupToolPolicyConfig;
   toolsBySender?: GroupToolPolicyBySenderConfig;
@@ -103,6 +106,19 @@ export type SlackAccountConfig = {
   allowBots?: boolean;
   /** Default mention requirement for channel messages (default: true). */
   requireMention?: boolean;
+  /**
+   * Controls how channel messages are handled:
+   * - "mention": require @mention to respond (default)
+   * - "auto": fast model pre-check decides relevance
+   * - "all": respond to everything
+   */
+  responseMode?: ResponseMode;
+  /**
+   * Model for relevance pre-check in "auto" mode.
+   * - "auto": use smaller model from same provider as main agent
+   * - specific model ID: e.g. "anthropic/claude-3-haiku-20240307"
+   */
+  relevanceModel?: "auto" | string;
   /**
    * Controls how channel messages are handled:
    * - "open": channels bypass allowlists; mention-gating applies
