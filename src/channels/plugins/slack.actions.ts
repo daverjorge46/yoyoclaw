@@ -42,6 +42,7 @@ export function createSlackActions(providerId: string): ChannelMessageActionAdap
         actions.add("read");
         actions.add("edit");
         actions.add("delete");
+        actions.add("thread-reply");
       }
       if (isActionEnabled("pins")) {
         actions.add("pin");
@@ -213,6 +214,44 @@ export function createSlackActions(providerId: string): ChannelMessageActionAdap
         return await handleSlackAction(
           { action: "emojiList", accountId: accountId ?? undefined },
           cfg,
+        );
+      }
+
+      if (action === "thread-reply") {
+        const content = readStringParam(params, "message", {
+          required: true,
+          allowEmpty: true,
+        });
+        const mediaUrl = readStringParam(params, "media", { trim: false });
+        // Prefer threadId, fall back to replyTo, then context
+        const threadId = readStringParam(params, "threadId");
+        const replyTo = readStringParam(params, "replyTo");
+        const threadTs =
+          threadId ?? replyTo ?? toolContext?.currentThreadTs ?? toolContext?.replyToMessageId;
+        if (!threadTs) {
+          throw new Error("thread-reply requires threadId or replyTo parameter");
+        }
+        // Resolve channel: prefer channelId param, then to param, then context
+        const channelIdParam = readStringParam(params, "channelId");
+        const toParam = readStringParam(params, "to");
+        const channelId =
+          channelIdParam ?? toParam ?? toolContext?.currentChannelId
+            ? `channel:${channelIdParam ?? toParam ?? toolContext?.currentChannelId}`
+            : undefined;
+        if (!channelId) {
+          throw new Error("thread-reply requires channelId or to parameter");
+        }
+        return await handleSlackAction(
+          {
+            action: "sendMessage",
+            to: channelId,
+            content,
+            mediaUrl: mediaUrl ?? undefined,
+            accountId: accountId ?? undefined,
+            threadTs,
+          },
+          cfg,
+          toolContext,
         );
       }
 
