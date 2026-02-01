@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { __testing } from "./web-search.js";
 
 const {
@@ -57,24 +57,27 @@ describe("web_search perplexity baseUrl defaults", () => {
 });
 
 describe("web_search brave baseUrl resolution", () => {
-  const originalEnv = process.env.BRAVE_API_URL;
+  let savedEnv: string | undefined;
+
+  beforeEach(() => {
+    savedEnv = process.env.BRAVE_API_URL;
+    delete process.env.BRAVE_API_URL;
+  });
 
   afterEach(() => {
-    if (originalEnv === undefined) {
+    if (savedEnv === undefined) {
       delete process.env.BRAVE_API_URL;
     } else {
-      process.env.BRAVE_API_URL = originalEnv;
+      process.env.BRAVE_API_URL = savedEnv;
     }
   });
 
   it("returns undefined when no config or env var", () => {
-    delete process.env.BRAVE_API_URL;
     expect(resolveBraveBaseUrl(undefined)).toBeUndefined();
     expect(resolveBraveBaseUrl({})).toBeUndefined();
   });
 
   it("uses config baseUrl when set", () => {
-    delete process.env.BRAVE_API_URL;
     expect(resolveBraveBaseUrl({ baseUrl: "http://localhost:3015" })).toBe(
       "http://localhost:3015",
     );
@@ -89,6 +92,11 @@ describe("web_search brave baseUrl resolution", () => {
   it("falls back to BRAVE_API_URL env var", () => {
     process.env.BRAVE_API_URL = "http://my-proxy:8080";
     expect(resolveBraveBaseUrl(undefined)).toBe("http://my-proxy:8080");
+  });
+
+  it("ignores non-string config values", () => {
+    expect(resolveBraveBaseUrl({ baseUrl: true as unknown as string })).toBeUndefined();
+    expect(resolveBraveBaseUrl({ baseUrl: 123 as unknown as string })).toBeUndefined();
   });
 
   it("config takes precedence over env var", () => {

@@ -159,10 +159,9 @@ function resolveSearchProvider(search?: WebSearchConfig): (typeof SEARCH_PROVIDE
 }
 
 function resolveBraveBaseUrl(search?: WebSearchConfig): string | undefined {
-  const fromConfig =
-    search && typeof search === "object" && "baseUrl" in search
-      ? (search.baseUrl as string | undefined)
-      : undefined;
+  const raw =
+    search && typeof search === "object" && "baseUrl" in search ? search.baseUrl : undefined;
+  const fromConfig = typeof raw === "string" ? raw.trim() : "";
   if (fromConfig) return fromConfig.replace(/\/+$/, "");
   const fromEnv = (process.env.BRAVE_API_URL ?? "").trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, "");
