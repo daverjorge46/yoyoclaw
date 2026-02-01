@@ -45,8 +45,15 @@ export function isPrivateIPv6(ip: string): boolean {
   const lower = ip.toLowerCase();
   // fc00::/7 (unique local) - starts with fc or fd
   if (lower.startsWith("fc") || lower.startsWith("fd")) return true;
-  // fe80::/10 (link-local)
-  if (lower.startsWith("fe80")) return true;
+  // fe80::/10 (link-local) - first hextet in [0xfe80, 0xfebf]
+  {
+    const colonIndex = lower.indexOf(":");
+    const firstHextetStr = colonIndex === -1 ? lower : lower.slice(0, colonIndex);
+    const firstHextet = parseInt(firstHextetStr, 16);
+    if (!Number.isNaN(firstHextet) && firstHextet >= 0xfe80 && firstHextet <= 0xfebf) {
+      return true;
+    }
+  }
   // ::1 (loopback)
   if (lower === "::1") return true;
   // ::ffff: mapped IPv4 - check the IPv4 portion
