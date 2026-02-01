@@ -144,4 +144,145 @@ describe("slack prepareSlackMessage inbound contract", () => {
     expect(prepared).toBeTruthy();
     expect(prepared!.ctxPayload.MessageThreadId).toBe("1.000");
   });
+
+  it("includes thread_ts and parent_user_id metadata in thread replies", async () => {
+    const slackCtx = createSlackMonitorContext({
+      cfg: {
+        channels: { slack: { enabled: true } },
+      } as OpenClawConfig,
+      accountId: "default",
+      botToken: "token",
+      app: { client: {} } as App,
+      runtime: {} as RuntimeEnv,
+      botUserId: "B1",
+      teamId: "T1",
+      apiAppId: "A1",
+      historyLimit: 0,
+      sessionScope: "per-sender",
+      mainKey: "main",
+      dmEnabled: true,
+      dmPolicy: "open",
+      allowFrom: [],
+      groupDmEnabled: true,
+      groupDmChannels: [],
+      defaultRequireMention: true,
+      groupPolicy: "open",
+      useAccessGroups: false,
+      reactionMode: "off",
+      reactionAllowlist: [],
+      replyToMode: "off",
+      threadHistoryScope: "thread",
+      threadInheritParent: false,
+      slashCommand: {
+        enabled: false,
+        name: "openclaw",
+        sessionPrefix: "slack:slash",
+        ephemeral: true,
+      },
+      textLimit: 4000,
+      ackReactionScope: "group-mentions",
+      mediaMaxBytes: 1024,
+      removeAckAfterReply: false,
+    });
+    slackCtx.resolveUserName = async () => ({ name: "Alice" }) as any;
+
+    const account: ResolvedSlackAccount = {
+      accountId: "default",
+      enabled: true,
+      botTokenSource: "config",
+      appTokenSource: "config",
+      config: {},
+    };
+
+    const message: SlackMessageEvent = {
+      channel: "D123",
+      channel_type: "im",
+      user: "U1",
+      text: "this is a reply",
+      ts: "1.002",
+      thread_ts: "1.000",
+      parent_user_id: "U2",
+    } as SlackMessageEvent;
+
+    const prepared = await prepareSlackMessage({
+      ctx: slackCtx,
+      account,
+      message,
+      opts: { source: "message" },
+    });
+
+    expect(prepared).toBeTruthy();
+    expect(prepared!.ctxPayload.Body).toContain("thread_ts: 1.000");
+    expect(prepared!.ctxPayload.Body).toContain("parent_user: U2");
+  });
+
+  it("includes only thread_ts when parent_user_id is missing", async () => {
+    const slackCtx = createSlackMonitorContext({
+      cfg: {
+        channels: { slack: { enabled: true } },
+      } as OpenClawConfig,
+      accountId: "default",
+      botToken: "token",
+      app: { client: {} } as App,
+      runtime: {} as RuntimeEnv,
+      botUserId: "B1",
+      teamId: "T1",
+      apiAppId: "A1",
+      historyLimit: 0,
+      sessionScope: "per-sender",
+      mainKey: "main",
+      dmEnabled: true,
+      dmPolicy: "open",
+      allowFrom: [],
+      groupDmEnabled: true,
+      groupDmChannels: [],
+      defaultRequireMention: true,
+      groupPolicy: "open",
+      useAccessGroups: false,
+      reactionMode: "off",
+      reactionAllowlist: [],
+      replyToMode: "off",
+      threadHistoryScope: "thread",
+      threadInheritParent: false,
+      slashCommand: {
+        enabled: false,
+        name: "openclaw",
+        sessionPrefix: "slack:slash",
+        ephemeral: true,
+      },
+      textLimit: 4000,
+      ackReactionScope: "group-mentions",
+      mediaMaxBytes: 1024,
+      removeAckAfterReply: false,
+    });
+    slackCtx.resolveUserName = async () => ({ name: "Alice" }) as any;
+
+    const account: ResolvedSlackAccount = {
+      accountId: "default",
+      enabled: true,
+      botTokenSource: "config",
+      appTokenSource: "config",
+      config: {},
+    };
+
+    const message: SlackMessageEvent = {
+      channel: "D123",
+      channel_type: "im",
+      user: "U1",
+      text: "this is a thread reply",
+      ts: "1.002",
+      thread_ts: "1.000",
+    } as SlackMessageEvent;
+
+    const prepared = await prepareSlackMessage({
+      ctx: slackCtx,
+      account,
+      message,
+      opts: { source: "message" },
+    });
+
+    expect(prepared).toBeTruthy();
+    expect(prepared!.ctxPayload.Body).toContain("thread_ts: 1.000");
+    expect(prepared!.ctxPayload.Body).not.toContain("parent_user");
+  });
 });
