@@ -86,7 +86,13 @@ export type MessagesConfig = {
   tts?: TtsConfig;
 };
 
-export type NativeCommandsSetting = boolean | "auto";
+/**
+ * Controls native command registration:
+ * - `true` / `"auto"`: register all commands (auto uses provider heuristic)
+ * - `false`: register no commands
+ * - `string[]`: register only the listed command names (e.g. ["new", "status", "stop"])
+ */
+export type NativeCommandsSetting = boolean | "auto" | string[];
 
 export type CommandsConfig = {
   /** Enable native command registration when supported (default: "auto"). */

@@ -494,7 +494,11 @@ export const ToolsLinksSchema = z
   .strict()
   .optional();
 
-export const NativeCommandsSettingSchema = z.union([z.boolean(), z.literal("auto")]);
+export const NativeCommandsSettingSchema = z.union([
+  z.boolean(),
+  z.literal("auto"),
+  z.array(z.string().min(1).max(32)).max(100),
+]);
 
 export const ProviderCommandsSchema = z
   .object({

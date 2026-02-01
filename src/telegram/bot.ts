@@ -13,7 +13,9 @@ import { isControlCommandMessage } from "../auto-reply/command-detection.js";
 import { DEFAULT_GROUP_HISTORY_LIMIT, type HistoryEntry } from "../auto-reply/reply/history.js";
 import {
   isNativeCommandsExplicitlyDisabled,
+  resolveNativeCommandAllowlist,
   resolveNativeCommandsEnabled,
+  resolveNativeSkillAllowlist,
   resolveNativeSkillsEnabled,
 } from "../config/commands.js";
 import { loadConfig } from "../config/config.js";
@@ -260,6 +262,14 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     providerSetting: telegramCfg.commands?.native,
     globalSetting: cfg.commands?.native,
   });
+  const nativeCommandAllowlist = resolveNativeCommandAllowlist({
+    providerSetting: telegramCfg.commands?.native,
+    globalSetting: cfg.commands?.native,
+  });
+  const nativeSkillAllowlist = resolveNativeSkillAllowlist({
+    providerSetting: telegramCfg.commands?.nativeSkills,
+    globalSetting: cfg.commands?.nativeSkills,
+  });
   const useAccessGroups = cfg.commands?.useAccessGroups !== false;
   const ackReactionScope = cfg.messages?.ackReactionScope ?? "group-mentions";
   const mediaMaxBytes = (opts.mediaMaxMb ?? telegramCfg.mediaMaxMb ?? 5) * 1024 * 1024;
@@ -382,6 +392,8 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     nativeEnabled,
     nativeSkillsEnabled,
     nativeDisabledExplicit,
+    nativeCommandAllowlist,
+    nativeSkillAllowlist,
     resolveGroupPolicy,
     resolveTelegramGroupConfig,
     shouldSkipUpdate,

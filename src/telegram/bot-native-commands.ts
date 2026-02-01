@@ -109,6 +109,8 @@ type RegisterTelegramNativeCommandsParams = {
   nativeEnabled: boolean;
   nativeSkillsEnabled: boolean;
   nativeDisabledExplicit: boolean;
+  nativeCommandAllowlist: Set<string> | null;
+  nativeSkillAllowlist: Set<string> | null;
   resolveGroupPolicy: (chatId: string | number) => ChannelGroupPolicy;
   resolveTelegramGroupConfig: (
     chatId: string | number,
@@ -281,6 +283,8 @@ export const registerTelegramNativeCommands = ({
   nativeEnabled,
   nativeSkillsEnabled,
   nativeDisabledExplicit,
+  nativeCommandAllowlist,
+  nativeSkillAllowlist,
   resolveGroupPolicy,
   resolveTelegramGroupConfig,
   shouldSkipUpdate,
@@ -296,12 +300,15 @@ export const registerTelegramNativeCommands = ({
     nativeEnabled && nativeSkillsEnabled
       ? listSkillCommandsForAgents(boundAgentIds ? { cfg, agentIds: boundAgentIds } : { cfg })
       : [];
-  const nativeCommands = nativeEnabled
+  const nativeCommandsAll = nativeEnabled
     ? listNativeCommandSpecsForConfig(cfg, {
         skillCommands,
         provider: "telegram",
       })
     : [];
+  const nativeCommands = nativeCommandAllowlist
+    ? nativeCommandsAll.filter((cmd) => nativeCommandAllowlist.has(cmd.name.toLowerCase()))
+    : nativeCommandsAll;
   const reservedCommands = new Set(
     listNativeCommandSpecs().map((command) => command.name.toLowerCase()),
   );

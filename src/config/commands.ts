@@ -29,6 +29,10 @@ export function resolveNativeSkillsEnabled(params: {
   if (setting === false) {
     return false;
   }
+  if (Array.isArray(setting)) {
+    // When an explicit allowlist is provided for nativeSkills, enable if non-empty
+    return setting.length > 0;
+  }
   return resolveAutoDefault(providerId);
 }
 
@@ -45,8 +49,42 @@ export function resolveNativeCommandsEnabled(params: {
   if (setting === false) {
     return false;
   }
+  if (Array.isArray(setting)) {
+    return setting.length > 0;
+  }
   // auto or undefined -> heuristic
   return resolveAutoDefault(providerId);
+}
+
+/**
+ * Resolve the effective native commands setting, returning the string[] allowlist if one is set,
+ * or null if all commands should be registered.
+ */
+export function resolveNativeCommandAllowlist(params: {
+  providerSetting?: NativeCommandsSetting;
+  globalSetting?: NativeCommandsSetting;
+}): Set<string> | null {
+  const { providerSetting, globalSetting } = params;
+  const setting = providerSetting === undefined ? globalSetting : providerSetting;
+  if (Array.isArray(setting)) {
+    return new Set(setting.map((s) => s.toLowerCase()));
+  }
+  return null;
+}
+
+/**
+ * Resolve the effective native skills allowlist, or null if all skills should be registered.
+ */
+export function resolveNativeSkillAllowlist(params: {
+  providerSetting?: NativeCommandsSetting;
+  globalSetting?: NativeCommandsSetting;
+}): Set<string> | null {
+  const { providerSetting, globalSetting } = params;
+  const setting = providerSetting === undefined ? globalSetting : providerSetting;
+  if (Array.isArray(setting)) {
+    return new Set(setting.map((s) => s.toLowerCase()));
+  }
+  return null;
 }
 
 export function isNativeCommandsExplicitlyDisabled(params: {
