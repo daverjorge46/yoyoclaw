@@ -28,6 +28,7 @@ import { isGatewayCliClient, isWebchatClient } from "../../../utils/message-chan
 import { authorizeGatewayConnect, isLocalDirectRequest } from "../../auth.js";
 import { buildDeviceAuthPayload } from "../../device-auth.js";
 import { isLoopbackAddress, isTrustedProxyAddress, resolveGatewayClientIp } from "../../net.js";
+import { resolveAssistantIdentity } from "../../assistant-identity.js";
 import { resolveNodeCommandAllowlist } from "../../node-command-policy.js";
 import { GATEWAY_CLIENT_IDS } from "../../protocol/client-info.js";
 import {
@@ -823,6 +824,15 @@ export function attachGatewayWsMessageHandler(params: {
             maxBufferedBytes: MAX_BUFFERED_BYTES,
             tickIntervalMs: TICK_INTERVAL_MS,
           },
+          identity: (() => {
+            try {
+              const cfg = loadConfig();
+              const resolved = resolveAssistantIdentity({ cfg });
+              return { name: resolved.name, avatar: resolved.avatar };
+            } catch {
+              return undefined;
+            }
+          })(),
         };
 
         clearHandshakeTimer();
