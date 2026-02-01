@@ -148,7 +148,8 @@ class MemoryDB {
 // ============================================================================
 
 class Embeddings {
-  private client: unknown = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private client: any = null;
 
   constructor(
     private provider: "openai" | "google",
@@ -165,14 +166,15 @@ class Embeddings {
     }
 
     if (provider === "openai") {
-      // Dynamically import OpenAI only when needed
+      // Dynamically load OpenAI for ESM compatibility
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+      const openaiModule = require("openai");
+      const OpenAI = openaiModule.default || openaiModule;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const OpenAI = require("openai").default;
         this.client = new OpenAI({ apiKey });
       } catch (error) {
         throw new Error(
-          `Failed to load OpenAI client. Make sure 'openai' package is installed. Error: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to initialize OpenAI client. Make sure 'openai' package is properly installed. Error: ${error instanceof Error ? error.message : String(error)}`,
           { cause: error },
         );
       }
@@ -198,6 +200,8 @@ class Embeddings {
         );
       }
 
+      // Use global fetch (available in Node.js 18+)
+      // eslint-disable-next-line no-undef
       const res = await fetch(url, {
         method: "POST",
         headers: {
