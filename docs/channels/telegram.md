@@ -399,6 +399,56 @@ Most users want: `groupPolicy: "allowlist"` + `groupAllowFrom` + specific groups
   - The local listener binds to `0.0.0.0:8787` and serves `POST /telegram-webhook` by default.
   - If your public URL is different, use a reverse proxy and point `channels.telegram.webhookUrl` at the public endpoint.
 
+## Local Bot API server
+
+For advanced users who need higher file limits or faster transfers, Telegram allows self-hosting the Bot API server. OpenClaw supports connecting to a local Bot API server instead of the official `api.telegram.org`.
+
+### Benefits
+
+- **Larger file uploads/downloads:** Up to 2GB (vs 50MB with the official API).
+- **Faster transfers:** Files transfer directly between your server and Telegram, reducing latency.
+- **Direct file access:** Files are stored locally; OpenClaw reads them directly from disk instead of HTTP downloads.
+
+### Setup
+
+1. Run the [Telegram Bot API server](https://github.com/tdlib/telegram-bot-api) on your host (see their docs for build/run instructions).
+2. Configure OpenClaw to use your local server:
+
+**Via environment variable:**
+
+```bash
+export TELEGRAM_LOCAL_API_SERVER=http://localhost:8081
+```
+
+**Via config:**
+
+```json5
+{
+  channels: {
+    telegram: {
+      localApiServer: "http://localhost:8081",
+    },
+  },
+}
+```
+
+If both are set, config takes precedence (same pattern as `botToken`).
+
+### How it works
+
+When `localApiServer` is configured:
+
+- All Bot API calls (sending messages, getting files, etc.) route to your local server.
+- File downloads check if the `file_path` is an absolute local path (e.g., `/var/lib/telegram-bot-api/...`). If so, OpenClaw reads the file directly from disk instead of making an HTTP request.
+- This enables seamless handling of large files that would exceed the official API limits.
+
+### Notes
+
+- The local server must be running and reachable before starting the gateway.
+- File paths returned by a local server are absolute filesystem paths; ensure OpenClaw has read access to those directories.
+- Trailing slashes in the URL are normalized automatically (`http://localhost:8081/` and `http://localhost:8081` both work).
+- Windows paths (e.g., `C:\telegram-bot-api\...`) are also detected as local paths.
+
 ## Reply threading
 
 Telegram supports optional threaded replies via tags:
@@ -709,6 +759,7 @@ Provider options:
 - `channels.telegram.enabled`: enable/disable channel startup.
 - `channels.telegram.botToken`: bot token (BotFather).
 - `channels.telegram.tokenFile`: read token from file path.
+- `channels.telegram.localApiServer`: URL of a self-hosted [Telegram Bot API server](https://github.com/tdlib/telegram-bot-api) (e.g., `http://localhost:8081`). Enables 2GB file uploads and direct local file access. Env: `TELEGRAM_LOCAL_API_SERVER`.
 - `channels.telegram.dmPolicy`: `pairing | allowlist | open | disabled` (default: pairing).
 - `channels.telegram.allowFrom`: DM allowlist (ids/usernames). `open` requires `"*"`.
 - `channels.telegram.groupPolicy`: `open | allowlist | disabled` (default: allowlist).
