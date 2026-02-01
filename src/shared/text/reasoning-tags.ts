@@ -95,7 +95,7 @@ export function stripReasoningTagsFromText(
   let result = "";
   let lastIndex = 0;
   let inThinking = false;
-  let fallbackThinking = "";
+  let unclosedThinking = "";
 
   for (const match of cleaned.matchAll(THINKING_TAG_RE)) {
     const idx = match.index ?? 0;
@@ -110,20 +110,15 @@ export function stripReasoningTagsFromText(
       if (!isClose) {
         inThinking = true;
       }
-    } else {
-      if (idx > lastIndex) {
-        fallbackThinking += cleaned.slice(lastIndex, idx);
-      }
-      if (isClose) {
-        inThinking = false;
-      }
+    } else if (isClose) {
+      inThinking = false;
     }
 
     lastIndex = idx + match[0].length;
   }
 
   if (inThinking) {
-    fallbackThinking += cleaned.slice(lastIndex);
+    unclosedThinking = cleaned.slice(lastIndex);
   }
 
   if (!inThinking || mode === "preserve") {
@@ -131,8 +126,8 @@ export function stripReasoningTagsFromText(
   }
 
   const trimmedResult = applyTrim(result, trimMode);
-  if (!hasFinalTag && trimmedResult === "" && fallbackThinking) {
-    return applyTrim(fallbackThinking, trimMode);
+  if (!hasFinalTag && trimmedResult === "" && unclosedThinking) {
+    return applyTrim(unclosedThinking, trimMode);
   }
 
   return trimmedResult;

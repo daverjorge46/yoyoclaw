@@ -33,9 +33,9 @@ describe("stripReasoningTagsFromText", () => {
       expect(stripReasoningTagsFromText(input)).toBe("AB");
     });
 
-    it("returns think content when no final tag", () => {
+    it("returns empty when only closed think tag", () => {
       const input = "<think>Hello</think>";
-      expect(stripReasoningTagsFromText(input)).toBe("Hello");
+      expect(stripReasoningTagsFromText(input)).toBe("");
     });
 
     it("returns unclosed think content when no final tag", () => {
