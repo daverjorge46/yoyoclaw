@@ -124,6 +124,7 @@ function supportsReasoning(modelId: string): boolean {
     lower.includes("deepseek-r1") ||
     lower.includes("qwq") ||
     lower.includes("glm-z1") ||
+    lower.includes("glm-4.7") ||
     lower.includes("rumination") ||
     lower.includes("ring-") ||
     lower.includes("qwenlong")
