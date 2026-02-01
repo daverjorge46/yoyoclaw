@@ -15,10 +15,14 @@ let currentLocale: Locale = detectLocale();
  * Detect user's preferred locale from browser settings
  */
 function detectLocale(): Locale {
-  if (typeof navigator === "undefined") return "en";
+  if (typeof navigator === "undefined") {
+    return "en";
+  }
   
   const lang = navigator.language.toLowerCase();
-  if (lang.startsWith("zh")) return "zh";
+  if (lang.startsWith("zh")) {
+    return "zh";
+  }
   return "en";
 }
 
