@@ -6,6 +6,7 @@
  */
 
 import type { WorkspaceBootstrapFile } from "../agents/workspace.js";
+import type { ReplyPayload } from "../auto-reply/types.js";
 import type { OpenClawConfig } from "../config/config.js";
 
 export type InternalHookEventType = "command" | "session" | "agent" | "gateway";
@@ -26,10 +27,10 @@ export type AgentBootstrapHookEvent = InternalHookEvent & {
 };
 
 export type AgentResponseHookContext = {
-  /** The agent's response text (may be undefined if only tool calls) */
+  /** The agent's response text (combined from text payloads, may be undefined if only tool calls) */
   responseText?: string;
-  /** All response payloads */
-  payloads: Array<{ text?: string; [key: string]: unknown }>;
+  /** All response payloads (same type as agent runner output) */
+  payloads: ReplyPayload[];
   /** Model used for this response */
   model?: string;
   /** Provider used for this response */
@@ -42,6 +43,10 @@ export type AgentResponseHookContext = {
   workspaceDir?: string;
 };
 
+/**
+ * Event fired after agent generates a user-visible response.
+ * Only fires when there are payloads to send (not for tool-only or empty responses).
+ */
 export type AgentResponseHookEvent = InternalHookEvent & {
   type: "agent";
   action: "response";
