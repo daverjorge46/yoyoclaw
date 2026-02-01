@@ -22,6 +22,8 @@ type ChatHost = {
   hello: GatewayHelloOk | null;
   chatAvatarUrl: string | null;
   refreshSessionsAfterChat: Set<string>;
+  chatMessages: unknown[];
+  chatToolMessages: unknown[];
 };
 
 export const CHAT_SESSIONS_ACTIVE_MINUTES = 10;
@@ -89,6 +91,7 @@ async function sendChatMessageNow(
     previousAttachments?: ChatAttachment[];
     restoreAttachments?: boolean;
     refreshSessions?: boolean;
+    isSessionReset?: boolean;
   },
 ) {
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
@@ -112,6 +115,11 @@ async function sendChatMessageNow(
   if (ok && opts?.restoreAttachments && opts.previousAttachments?.length) {
     host.chatAttachments = opts.previousAttachments;
   }
+  // Clear chat messages on session reset (/new or /reset) for a fresh visual slate
+  if (ok && opts?.isSessionReset) {
+    host.chatMessages = [];
+    host.chatToolMessages = [];
+  }
   scheduleChatScroll(host as unknown as Parameters<typeof scheduleChatScroll>[0]);
   if (ok && !host.chatRunId) {
     void flushChatQueue(host);
@@ -130,6 +138,7 @@ async function flushChatQueue(host: ChatHost) {
   const ok = await sendChatMessageNow(host, next.text, {
     attachments: next.attachments,
     refreshSessions: next.refreshSessions,
+    isSessionReset: next.refreshSessions,
   });
   if (!ok) {
     host.chatQueue = [next, ...host.chatQueue];
@@ -179,6 +188,7 @@ export async function handleSendChat(
     previousAttachments: messageOverride == null ? attachments : undefined,
     restoreAttachments: Boolean(messageOverride && opts?.restoreDraft),
     refreshSessions,
+    isSessionReset: refreshSessions,
   });
 }
 
