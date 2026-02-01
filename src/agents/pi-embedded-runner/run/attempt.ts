@@ -1,12 +1,7 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
-import {
-  createAgentSession,
-  DefaultResourceLoader,
-  SessionManager,
-  SettingsManager,
-} from "@mariozechner/pi-coding-agent";
+import { createAgentSession, SessionManager, SettingsManager } from "@mariozechner/pi-coding-agent";
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
@@ -448,23 +443,19 @@ export async function runEmbeddedAttempt(
       // Add client tools (OpenResponses hosted tools) to customTools
       let clientToolCallDetected: { name: string; params: Record<string, unknown> } | null = null;
       const clientToolDefs = params.clientTools
-        ? toClientToolDefinitions(params.clientTools, (toolName, toolParams) => {
-            clientToolCallDetected = { name: toolName, params: toolParams };
-          })
+        ? toClientToolDefinitions(
+            params.clientTools,
+            (toolName, toolParams) => {
+              clientToolCallDetected = { name: toolName, params: toolParams };
+            },
+            {
+              agentId: sessionAgentId,
+              sessionKey: params.sessionKey,
+            },
+          )
         : [];
 
       const allCustomTools = [...customTools, ...clientToolDefs];
-
-      const resourceLoader = new DefaultResourceLoader({
-        cwd: resolvedWorkspace,
-        agentDir,
-        settingsManager,
-        additionalExtensionPaths,
-        noSkills: true,
-        systemPromptOverride: systemPrompt,
-        agentsFilesOverride: () => ({ agentsFiles: [] }),
-      });
-      await resourceLoader.reload();
 
       ({ session } = await createAgentSession({
         cwd: resolvedWorkspace,
@@ -477,7 +468,10 @@ export async function runEmbeddedAttempt(
         customTools: allCustomTools,
         sessionManager,
         settingsManager,
-        resourceLoader,
+        systemPrompt,
+        additionalExtensionPaths,
+        skills: [],
+        contextFiles: [],
       }));
       if (!session) {
         throw new Error("Embedded agent session missing");
