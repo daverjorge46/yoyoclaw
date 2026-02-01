@@ -1,7 +1,4 @@
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { MemoryChunk } from "./internal.js";
 import { EMBEDDING_CACHE_TABLE } from "./constants.js";
 import {
@@ -251,13 +248,16 @@ describe("mergeEmbeddingsWithCache", () => {
       { startLine: 3, endLine: 3, text: "c", hash: "h3" },
     ];
 
+    const chunk1 = chunks[1];
+    expect(chunk1).toBeDefined();
+
     const cacheResult = {
       cached: new Map([
         ["h1", [1.0]],
         ["h3", [3.0]],
       ]),
       missingIndices: [1],
-      missingChunks: [chunks[1]!],
+      missingChunks: chunk1 ? [chunk1] : [],
     };
 
     const freshEmbeddings = [[2.0]];

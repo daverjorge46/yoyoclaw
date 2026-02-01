@@ -5,11 +5,8 @@
  * scoring, access tracking, and pruning.
  */
 
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { EMBEDDING_CACHE_TABLE, FTS_TABLE, VECTOR_TABLE } from "./constants.js";
+import { describe, expect, it } from "vitest";
+import { EMBEDDING_CACHE_TABLE, FTS_TABLE } from "./constants.js";
 import { chunkMarkdown, hashText } from "./internal.js";
 import { ensureMemoryIndexSchema } from "./memory-schema.js";
 import {
@@ -57,7 +54,10 @@ function indexMemoryFile(
   const chunks = chunkMarkdown(params.content, { tokens: 100, overlap: 20 });
 
   for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i]!;
+    const chunk = chunks[i];
+    if (!chunk) {
+      continue;
+    }
     const id = `${hashText(params.path)}-${i}`;
 
     db.prepare(`
@@ -186,7 +186,8 @@ describe("Memory Retention Integration", () => {
       const chunkIds = simulateSearch(db, 1);
       expect(chunkIds.length).toBeGreaterThan(0);
 
-      const chunkId = chunkIds[0]!;
+      const chunkId = chunkIds[0];
+      expect(chunkId).toBeDefined();
 
       // Get initial state
       const before = db
@@ -350,7 +351,8 @@ describe("Memory Retention Integration", () => {
 
       updateImportanceScores(db, DEFAULT_RETENTION_POLICY, now);
 
-      const beforeCount = db.prepare(`SELECT COUNT(*) as c FROM chunks`).get() as { c: number };
+      const beforeCountRow = db.prepare(`SELECT COUNT(*) as c FROM chunks`).get() as { c: number };
+      expect(beforeCountRow.c).toBeGreaterThan(10); // Ensure we have chunks to prune
 
       const policy: RetentionPolicy = {
         ...DEFAULT_RETENTION_POLICY,

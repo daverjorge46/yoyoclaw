@@ -269,10 +269,18 @@ export function calculateImportanceScore(params: {
  * Determine importance level from score
  */
 export function scoreToImportance(score: number): MemoryImportance {
-  if (score >= 0.9) return "critical";
-  if (score >= 0.7) return "high";
-  if (score >= 0.4) return "normal";
-  if (score >= 0.2) return "low";
+  if (score >= 0.9) {
+    return "critical";
+  }
+  if (score >= 0.7) {
+    return "high";
+  }
+  if (score >= 0.4) {
+    return "normal";
+  }
+  if (score >= 0.2) {
+    return "low";
+  }
   return "archive";
 }
 
@@ -284,7 +292,9 @@ export function scoreToImportance(score: number): MemoryImportance {
  * Record access to memory chunks (called after search returns results)
  */
 export function recordChunkAccess(db: DatabaseSync, chunkIds: string[], now?: number): void {
-  if (chunkIds.length === 0) return;
+  if (chunkIds.length === 0) {
+    return;
+  }
 
   const timestamp = now ?? Date.now();
 

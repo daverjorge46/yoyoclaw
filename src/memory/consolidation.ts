@@ -130,13 +130,21 @@ export function findSimilarChunks(
 
   // Compare all pairs (O(n^2) but necessary for similarity detection)
   for (let i = 0; i < chunks.length && pairs.length < maxPairs; i++) {
-    const chunk1 = chunks[i]!;
+    const chunk1 = chunks[i];
+    if (!chunk1) {
+      continue;
+    }
     const vec1 = parseEmbedding(chunk1.embedding);
 
-    if (vec1.length === 0) continue;
+    if (vec1.length === 0) {
+      continue;
+    }
 
     for (let j = i + 1; j < chunks.length && pairs.length < maxPairs; j++) {
-      const chunk2 = chunks[j]!;
+      const chunk2 = chunks[j];
+      if (!chunk2) {
+        continue;
+      }
 
       // Skip if different sources and sameSourceOnly is true
       if (sameSourceOnly && chunk1.source !== chunk2.source) {
@@ -144,7 +152,9 @@ export function findSimilarChunks(
       }
 
       const vec2 = parseEmbedding(chunk2.embedding);
-      if (vec2.length === 0 || vec1.length !== vec2.length) continue;
+      if (vec2.length === 0 || vec1.length !== vec2.length) {
+        continue;
+      }
 
       const similarity = cosineSimilarity(vec1, vec2);
 
@@ -163,7 +173,7 @@ export function findSimilarChunks(
   }
 
   // Sort by similarity descending
-  return pairs.sort((a, b) => b.similarity - a.similarity);
+  return pairs.toSorted((a, b) => b.similarity - a.similarity);
 }
 
 /**
@@ -213,7 +223,9 @@ export function removeExactDuplicates(
   const duplicates = findExactDuplicates(db);
 
   for (const group of duplicates) {
-    if (group.chunkIds.length <= 1) continue;
+    if (group.chunkIds.length <= 1) {
+      continue;
+    }
 
     // Get importance scores for all duplicates
     const chunks = db
@@ -320,7 +332,9 @@ export function identifyConsolidationCandidates(
   const candidates: ConsolidationCandidate[] = [];
 
   for (const [groupId, members] of groups) {
-    if (members.size < 2) continue;
+    if (members.size < 2) {
+      continue;
+    }
 
     const memberIds = Array.from(members);
     const sims = similarities.get(groupId) ?? [];
@@ -341,9 +355,14 @@ export function identifyConsolidationCandidates(
       pinned: number;
     }>;
 
-    if (chunks.length < 2) continue;
+    if (chunks.length < 2) {
+      continue;
+    }
 
-    const primary = chunks[0]!;
+    const primary = chunks[0];
+    if (!primary) {
+      continue;
+    }
     const related = chunks.slice(1);
 
     candidates.push({
@@ -356,10 +375,12 @@ export function identifyConsolidationCandidates(
 
   // Sort by group size and similarity
   return candidates
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       const sizeA = a.relatedIds.length;
       const sizeB = b.relatedIds.length;
-      if (sizeA !== sizeB) return sizeB - sizeA;
+      if (sizeA !== sizeB) {
+        return sizeB - sizeA;
+      }
       return b.avgSimilarity - a.avgSimilarity;
     })
     .slice(0, options?.maxCandidates ?? 50);

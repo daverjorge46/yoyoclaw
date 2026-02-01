@@ -222,7 +222,9 @@ export function checkEmbeddingCache(
 
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
-    if (!chunk) continue;
+    if (!chunk) {
+      continue;
+    }
 
     const hit = chunk.hash ? cached.get(chunk.hash) : undefined;
     if (!hit || hit.length === 0) {
@@ -256,7 +258,9 @@ export function mergeEmbeddingsWithCache(
   // Fill in cached embeddings
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
-    if (!chunk) continue;
+    if (!chunk) {
+      continue;
+    }
 
     const hit = chunk.hash ? cacheResult.cached.get(chunk.hash) : undefined;
     if (hit && hit.length > 0) {

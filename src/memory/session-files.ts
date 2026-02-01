@@ -3,7 +3,11 @@ import path from "node:path";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { hashText } from "./internal.js";
-import { parseSessionContent, extractTextFromContent } from "./session-entry-schema.js";
+import {
+  parseSessionContent,
+  parseSessionLines,
+  extractTextFromContent,
+} from "./session-entry-schema.js";
 
 const log = createSubsystemLogger("memory");
 
@@ -64,4 +68,186 @@ export async function buildSessionEntry(absPath: string): Promise<SessionFileEnt
     log.debug(`Failed reading session file ${absPath}: ${String(err)}`);
     return null;
   }
+}
+
+/**
+ * Delta state for tracking session file changes
+ */
+export type SessionDeltaState = {
+  /** Last known file size (byte offset) */
+  lastSize: number;
+  /** Accumulated bytes since last sync */
+  pendingBytes: number;
+  /** Accumulated message count since last sync */
+  pendingMessages: number;
+  /** Hash of last processed content */
+  lastHash?: string;
+};
+
+/**
+ * Result of reading a session file delta
+ */
+export type SessionDeltaResult = {
+  /** New content since last read */
+  content: string;
+  /** Number of new lines/entries */
+  lineCount: number;
+  /** Current file size */
+  currentSize: number;
+  /** Whether file was truncated (size decreased) */
+  wasTruncated: boolean;
+};
+
+/**
+ * Read only the new portion of a session file since the last offset.
+ * This enables incremental indexing without re-reading entire files.
+ *
+ * @param absPath - Absolute path to the session file
+ * @param fromOffset - Byte offset to start reading from
+ * @returns Delta result with new content, or null if file doesn't exist
+ */
+export async function readSessionDelta(
+  absPath: string,
+  fromOffset: number,
+): Promise<SessionDeltaResult | null> {
+  let handle: fs.FileHandle | null = null;
+
+  try {
+    const stat = await fs.stat(absPath);
+    const currentSize = stat.size;
+
+    // Handle file truncation (e.g., rotation)
+    if (currentSize < fromOffset) {
+      // File was truncated - read from beginning
+      const raw = await fs.readFile(absPath, "utf-8");
+      const lines = raw.split("\n").filter((line) => line.trim());
+      return {
+        content: parseSessionLines(lines),
+        lineCount: lines.length,
+        currentSize,
+        wasTruncated: true,
+      };
+    }
+
+    // No new content
+    if (currentSize === fromOffset) {
+      return {
+        content: "",
+        lineCount: 0,
+        currentSize,
+        wasTruncated: false,
+      };
+    }
+
+    // Read only the delta portion
+    handle = await fs.open(absPath, "r");
+    const deltaSize = currentSize - fromOffset;
+    const buffer = Buffer.alloc(deltaSize);
+
+    const { bytesRead } = await handle.read(buffer, 0, deltaSize, fromOffset);
+
+    if (bytesRead === 0) {
+      return {
+        content: "",
+        lineCount: 0,
+        currentSize,
+        wasTruncated: false,
+      };
+    }
+
+    const rawDelta = buffer.slice(0, bytesRead).toString("utf-8");
+
+    // Handle partial line at the start (if we're mid-line from last read)
+    // Find the first newline to skip potential partial line
+    let startIndex = 0;
+    if (fromOffset > 0 && !rawDelta.startsWith("\n")) {
+      const firstNewline = rawDelta.indexOf("\n");
+      if (firstNewline !== -1) {
+        startIndex = firstNewline + 1;
+      }
+    }
+
+    const cleanDelta = rawDelta.slice(startIndex);
+    const lines = cleanDelta.split("\n").filter((line) => line.trim());
+    const content = parseSessionLines(lines);
+
+    return {
+      content,
+      lineCount: lines.length,
+      currentSize,
+      wasTruncated: false,
+    };
+  } catch (err) {
+    log.debug(`Failed reading session delta from ${absPath}: ${String(err)}`);
+    return null;
+  } finally {
+    if (handle) {
+      await handle.close();
+    }
+  }
+}
+
+/**
+ * Update delta state after processing a session file.
+ *
+ * @param state - Current delta state
+ * @param deltaResult - Result from readSessionDelta
+ * @returns Updated state
+ */
+export function updateDeltaState(
+  state: SessionDeltaState,
+  deltaResult: SessionDeltaResult,
+): SessionDeltaState {
+  if (deltaResult.wasTruncated) {
+    // File was truncated - reset state
+    return {
+      lastSize: deltaResult.currentSize,
+      pendingBytes: 0,
+      pendingMessages: 0,
+      lastHash: hashText(deltaResult.content),
+    };
+  }
+
+  return {
+    lastSize: deltaResult.currentSize,
+    pendingBytes: state.pendingBytes + (deltaResult.currentSize - state.lastSize),
+    pendingMessages: state.pendingMessages + deltaResult.lineCount,
+    lastHash: deltaResult.content ? hashText(deltaResult.content) : state.lastHash,
+  };
+}
+
+/**
+ * Check if delta should trigger a sync based on thresholds.
+ */
+export function shouldSyncDelta(
+  state: SessionDeltaState,
+  thresholds: { deltaBytes?: number; deltaMessages?: number },
+): boolean {
+  const { deltaBytes = 0, deltaMessages = 0 } = thresholds;
+
+  if (deltaBytes > 0 && state.pendingBytes >= deltaBytes) {
+    return true;
+  }
+
+  if (deltaMessages > 0 && state.pendingMessages >= deltaMessages) {
+    return true;
+  }
+
+  // If no thresholds set, sync on any change
+  if (deltaBytes <= 0 && deltaMessages <= 0) {
+    return state.pendingBytes > 0 || state.pendingMessages > 0;
+  }
+
+  return false;
+}
+
+/**
+ * Reset pending counters after sync (preserving last position)
+ */
+export function resetDeltaCounters(state: SessionDeltaState): SessionDeltaState {
+  return {
+    ...state,
+    pendingBytes: 0,
+    pendingMessages: 0,
+  };
 }

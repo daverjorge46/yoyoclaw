@@ -5,7 +5,6 @@ import {
   extractTextFromContent,
   extractSessionMessages,
   parseSessionContent,
-  type SessionEntry,
 } from "./session-entry-schema.js";
 
 describe("parseSessionEntry", () => {

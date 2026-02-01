@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { EMBEDDING_CACHE_TABLE, FTS_TABLE, VECTOR_TABLE } from "./constants.js";
+import { describe, expect, it } from "vitest";
+import { EMBEDDING_CACHE_TABLE, FTS_TABLE } from "./constants.js";
 import { ensureMemoryIndexSchema } from "./memory-schema.js";
 import {
   calculateImportanceScore,

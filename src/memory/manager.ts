@@ -18,6 +18,7 @@ import {
   type OpenAiBatchRequest,
   runOpenAiEmbeddingBatches,
 } from "./batch-openai.js";
+import { runConsolidation, getConsolidationStats } from "./consolidation.js";
 import {
   // Centralized constants
   BATCH_FAILURE_LIMIT,
@@ -896,10 +897,13 @@ export class MemoryIndexManager {
   }
 
   /**
-   * Run retention maintenance: initialize timestamps, update scores, enforce limits
+   * Run retention maintenance: initialize timestamps, update scores, enforce limits,
+   * and run memory consolidation to deduplicate and reinforce important content.
    */
   private runRetentionMaintenance(): void {
-    if (!this.retention.enabled) return;
+    if (!this.retention.enabled) {
+      return;
+    }
 
     try {
       // Initialize timestamps for new chunks
@@ -912,7 +916,23 @@ export class MemoryIndexManager {
       const updated = updateImportanceScores(this.db, this.retention.policy);
       log.debug(`Updated importance scores for ${updated} chunks`);
 
-      // Enforce storage limits
+      // Run memory consolidation to deduplicate and reinforce similar content
+      const consolidation = runConsolidation(this.db, this.retention.policy, {
+        vectorTable: VECTOR_TABLE,
+        ftsTable: FTS_TABLE,
+        removeExactDupes: true,
+        reinforceSimilar: true,
+        similarityThreshold: 0.85,
+      });
+
+      if (consolidation.duplicatesFound > 0 || consolidation.candidates.length > 0) {
+        log.debug(
+          `Consolidation: duplicates removed=${consolidation.duplicatesFound}, ` +
+            `candidates=${consolidation.candidates.length}, boosted=${consolidation.importanceBoosted}`,
+        );
+      }
+
+      // Enforce storage limits (after consolidation to benefit from deduplication)
       const result = enforceStorageLimits(this.db, this.retention.policy, {
         vectorTable: VECTOR_TABLE,
         ftsTable: FTS_TABLE,
@@ -926,6 +946,18 @@ export class MemoryIndexManager {
     } catch (err) {
       log.warn(`Retention maintenance failed: ${String(err)}`);
     }
+  }
+
+  /**
+   * Get memory consolidation statistics
+   */
+  getConsolidationStats(): {
+    totalChunks: number;
+    exactDuplicates: number;
+    potentialConsolidations: number;
+    uniqueHashes: number;
+  } {
+    return getConsolidationStats(this.db);
   }
 
   private ensureWatcher() {

@@ -54,7 +54,9 @@ export class PersistentHistoryStore {
    * Initialize the database connection and schema
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    if (this.initialized) {
+      return;
+    }
 
     if (!this.config.enabled || !this.config.dbPath) {
       return;
@@ -83,7 +85,9 @@ export class PersistentHistoryStore {
   }
 
   private ensureSchema(): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS history_keys (
@@ -126,7 +130,9 @@ export class PersistentHistoryStore {
    * Get history entries for a key
    */
   getHistory(historyKey: string): PersistedHistoryEntry[] {
-    if (!this.db) return [];
+    if (!this.db) {
+      return [];
+    }
 
     try {
       // Update last accessed time
@@ -169,7 +175,9 @@ export class PersistentHistoryStore {
    * Append an entry to history
    */
   appendEntry(historyKey: string, entry: PersistedHistoryEntry): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     try {
       const now = Date.now();
@@ -214,7 +222,9 @@ export class PersistentHistoryStore {
    * Enforce entry limit for a single key
    */
   private enforceKeyLimit(historyKey: string): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     const countRow = this.db
       .prepare(`SELECT COUNT(*) as count FROM history_entries WHERE history_key = ?`)
@@ -240,7 +250,9 @@ export class PersistentHistoryStore {
    * Enforce global key limit (LRU eviction)
    */
   private enforceGlobalKeyLimit(): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     const countRow = this.db.prepare(`SELECT COUNT(*) as count FROM history_keys`).get() as {
       count: number;
@@ -268,7 +280,9 @@ export class PersistentHistoryStore {
    * Clear history for a key
    */
   clearHistory(historyKey: string): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     try {
       this.db.prepare(`DELETE FROM history_entries WHERE history_key = ?`).run(historyKey);
@@ -282,7 +296,9 @@ export class PersistentHistoryStore {
    * Delete a history key and all its entries
    */
   deleteKey(historyKey: string): void {
-    if (!this.db) return;
+    if (!this.db) {
+      return;
+    }
 
     try {
       this.db.prepare(`DELETE FROM history_entries WHERE history_key = ?`).run(historyKey);
@@ -330,7 +346,9 @@ export class PersistentHistoryStore {
    * Sync in-memory history map to persistent storage
    */
   syncFromMemory(historyMap: Map<string, PersistedHistoryEntry[]>): number {
-    if (!this.db) return 0;
+    if (!this.db) {
+      return 0;
+    }
 
     let synced = 0;
     for (const [key, entries] of historyMap) {
@@ -355,7 +373,9 @@ export class PersistentHistoryStore {
    * Load persistent history into memory map
    */
   loadToMemory(historyMap: Map<string, PersistedHistoryEntry[]>): number {
-    if (!this.db) return 0;
+    if (!this.db) {
+      return 0;
+    }
 
     try {
       const keys = this.db

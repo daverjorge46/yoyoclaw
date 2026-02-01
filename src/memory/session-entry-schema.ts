@@ -202,3 +202,35 @@ export function extractSessionMessages(content: string): string[] {
 export function parseSessionContent(content: string): string {
   return extractSessionMessages(content).join("\n");
 }
+
+/**
+ * Parse an array of session lines (for delta processing)
+ *
+ * @param lines - Array of JSON lines from a session file
+ * @returns Combined text from all user/assistant messages
+ */
+export function parseSessionLines(lines: string[]): string {
+  const messages: string[] = [];
+
+  for (const line of lines) {
+    const entry = parseSessionEntry(line);
+    if (!entry) {
+      continue;
+    }
+
+    const { message } = entry;
+    if (!isExtractableRole(message.role)) {
+      continue;
+    }
+
+    const text = extractTextFromContent(message.content);
+    if (!text) {
+      continue;
+    }
+
+    const label = message.role === "user" ? "User" : "Assistant";
+    messages.push(`${label}: ${text}`);
+  }
+
+  return messages.join("\n");
+}
