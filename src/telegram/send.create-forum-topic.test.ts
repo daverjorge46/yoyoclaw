@@ -22,7 +22,7 @@ vi.mock("../infra/retry-policy.js", () => ({
 }));
 
 vi.mock("./api-logging.js", () => ({
-  withTelegramApiErrorLogging: ({ fn }: any) => fn(),
+  withTelegramApiErrorLogging: ({ fn }: { fn: () => Promise<unknown> }) => fn(),
 }));
 
 describe("createForumTopicTelegram", () => {
@@ -33,6 +33,32 @@ describe("createForumTopicTelegram", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("throws error if topic name is empty", async () => {
+    await expect(
+      createForumTopicTelegram("123", "", {
+        api: mockApi,
+        token: "tok",
+      }),
+    ).rejects.toThrow("Forum topic name is required");
+
+    await expect(
+      createForumTopicTelegram("123", "   ", {
+        api: mockApi,
+        token: "tok",
+      }),
+    ).rejects.toThrow("Forum topic name is required");
+  });
+
+  it("throws error if topic name exceeds 128 characters", async () => {
+    const longName = "a".repeat(129);
+    await expect(
+      createForumTopicTelegram("123", longName, {
+        api: mockApi,
+        token: "tok",
+      }),
+    ).rejects.toThrow("Forum topic name must be 128 characters or less");
   });
 
   it("creates a forum topic with default parameters", async () => {
@@ -98,5 +124,17 @@ describe("createForumTopicTelegram", () => {
         token: "tok",
       }),
     ).rejects.toThrow(/bot must be an administrator/);
+  });
+
+  it("wraps forum not enabled error", async () => {
+    const error = new Error("Bad Request: FORUM_ENABLED key is disabled");
+    createForumTopicMock.mockRejectedValue(error);
+
+    await expect(
+      createForumTopicTelegram("123", "Error Topic", {
+        api: mockApi,
+        token: "tok",
+      }),
+    ).rejects.toThrow(/forum topics are not enabled/);
   });
 });

@@ -171,7 +171,7 @@ function normalizeMessageId(raw: string | number): number {
       return parsed;
     }
   }
-  throw new Error("Message id is required for Telegram actions");
+  throw new Error(`Invalid message ID. Expected: finite number, received: "${String(raw)}"`);
 }
 
 export function buildInlineKeyboard(
