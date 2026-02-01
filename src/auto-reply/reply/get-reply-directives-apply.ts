@@ -205,7 +205,7 @@ export async function applyInlineDirectiveOverrides(params: {
         resolvedVerboseLevel: currentVerboseLevel ?? "off",
         resolvedReasoningLevel: currentReasoningLevel ?? "off",
         resolvedElevatedLevel,
-        resolveDefaultThinkingLevel: async () => effectiveThinkLevel,
+        resolveDefaultThinkingLevel: modelState.resolveDefaultThinkingLevel,
         isGroup,
         defaultGroupActivation: defaultActivation,
         mediaDecisions: ctx.MediaUnderstandingDecisions,

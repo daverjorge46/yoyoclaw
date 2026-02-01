@@ -94,7 +94,7 @@ describe("directive behavior", () => {
       expect(text).toContain("Thinking level set to high.");
       expect(text).toContain("Think: high");
       const store = loadSessionStore(storePath);
-      expect(store["agent:main:main"]?.thinkingLevel).toBe("high");
+      expect(store[MAIN_SESSION_KEY]?.thinkingLevel).toBe("high");
       expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
     });
   });
@@ -138,7 +138,7 @@ describe("directive behavior", () => {
       expect(optionsLine).not.toContain("elevated");
 
       const store = loadSessionStore(storePath);
-      expect(store["agent:main:main"]?.elevatedLevel).toBe("off");
+      expect(store[MAIN_SESSION_KEY]?.elevatedLevel).toBe("off");
       expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
     });
   });
