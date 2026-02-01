@@ -2,7 +2,34 @@
   "permissions": {
     "allow": [
       "Bash(docker compose:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm build:ui:*)",
+      "Bash(npm run build:ui:*)",
+      "Bash(npm run build:*)",
+      "Bash(bun:*)",
+      "Bash(npx vite build:*)",
+      "Bash(docker build:*)",
+      "Bash(pnpm openclaw channels status:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker restart:*)",
+      "Bash(docker exec:*)",
+      "Bash(source:*)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:docs.openclaw.ai)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(docker ps:*)",
+      "Bash(ls:*)",
+      "Bash(claude:*)",
+      "Bash(claude config list:*)",
+      "Bash(xargs:*)",
+      "Bash(npm search:*)",
+      "Bash(npm view:*)",
+      "WebFetch(domain:www.moltbook.com)",
+      "WebFetch(domain:moltbook.com)",
+      "Bash(~/.openclaw/docker-home/.config/moltbook/credentials.json)"
     ]
   }
 }
