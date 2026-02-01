@@ -1,8 +1,17 @@
 name: Workflow Sanity
 
 on:
-  pull_request:
   push:
+    branches:
+      - daisy/main
+      - daisy/dev
+  pull_request:
+    branches:
+      - daisy/main
+      - daisy/dev
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   no-tabs:

@@ -2,10 +2,21 @@ name: CI
 
 on:
   push:
+    branches:
+      - daisy/main
+      - daisy/dev
   pull_request:
+    branches:
+      - daisy/main
+      - daisy/dev
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 
 jobs:
   install-check:
+    name: Install Check
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -66,6 +77,7 @@ jobs:
           pnpm install --frozen-lockfile --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true
 
   checks:
+    name: Linux / ${{ matrix.runtime }} / ${{ matrix.task }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
@@ -76,7 +88,7 @@ jobs:
             command: pnpm lint
           - runtime: node
             task: test
-            command: pnpm canvas:a2ui:bundle && pnpm test
+            command: pnpm canvas:a2ui:bundle && pnpm test -- --no-file-parallelism
           - runtime: node
             task: build
             command: pnpm build
@@ -88,7 +100,7 @@ jobs:
             command: pnpm format
           - runtime: bun
             task: test
-            command: pnpm canvas:a2ui:bundle && bunx vitest run
+            command: pnpm canvas:a2ui:bundle && bunx vitest run --no-file-parallelism
           - runtime: bun
             task: build
             command: bunx tsc -p tsconfig.json
@@ -160,6 +172,7 @@ jobs:
         run: ${{ matrix.command }}
 
   secrets:
+    name: Secrets Scan
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -185,6 +198,7 @@ jobs:
           fi
 
   checks-windows:
+    name: Windows / ${{ matrix.runtime }} / ${{ matrix.task }}
     runs-on: blacksmith-4vcpu-windows-2025
     env:
       NODE_OPTIONS: --max-old-space-size=4096
@@ -201,7 +215,7 @@ jobs:
             command: pnpm lint
           - runtime: node
             task: test
-            command: pnpm canvas:a2ui:bundle && pnpm test
+            command: pnpm canvas:a2ui:bundle && pnpm test -- --no-file-parallelism
           - runtime: node
             task: build
             command: pnpm build
@@ -276,6 +290,7 @@ jobs:
         run: ${{ matrix.command }}
 
   checks-macos:
+    name: macOS / node / ${{ matrix.task }}
     if: github.event_name == 'pull_request'
     runs-on: macos-latest
     strategy:
@@ -283,7 +298,7 @@ jobs:
       matrix:
         include:
           - task: test
-            command: pnpm test
+            command: pnpm canvas:a2ui:bundle && pnpm test -- --no-file-parallelism
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -348,6 +363,7 @@ jobs:
         run: ${{ matrix.command }}
 
   macos-app:
+    name: macOS App / ${{ matrix.task }}
     if: github.event_name == 'pull_request'
     runs-on: macos-latest
     strategy:
@@ -417,6 +433,7 @@ jobs:
       - name: Run ${{ matrix.task }}
         run: ${{ matrix.command }}
   ios:
+    name: iOS
     if: false # ignore iOS in CI for now
     runs-on: macos-latest
     steps:
@@ -590,6 +607,7 @@ jobs:
           PY
 
   android:
+    name: Android / ${{ matrix.task }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false

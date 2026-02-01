@@ -2,9 +2,19 @@ name: Install Smoke
 
 on:
   push:
-    branches: [main]
+    branches:
+      - daisy/main
+      - daisy/dev
   pull_request:
+    branches:
+      - daisy/main
+      - daisy/dev
   workflow_dispatch:
+    
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+  
 
 jobs:
   install-smoke:
