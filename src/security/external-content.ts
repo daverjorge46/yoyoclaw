@@ -11,8 +11,20 @@
 /**
  * Patterns that may indicate prompt injection attempts.
  * These are logged for monitoring but content is still processed (wrapped safely).
+ *
+ * Categories:
+ * 1. Basic instruction override attempts
+ * 2. Many-shot priming patterns
+ * 3. Roleplay/persona injection
+ * 4. Authority impersonation
+ * 5. Chain-of-thought hijacking
+ * 6. Format/behavior override
+ * 7. Crescendo/progressive attacks
+ * 8. Indirect injection markers
+ * 9. False memory/context manipulation
  */
 const SUSPICIOUS_PATTERNS = [
+  // === 1. Basic instruction override ===
   /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?)/i,
   /disregard\s+(all\s+)?(previous|prior|above)/i,
   /forget\s+(everything|all|your)\s+(instructions?|rules?|guidelines?)/i,
@@ -25,6 +37,76 @@ const SUSPICIOUS_PATTERNS = [
   /delete\s+all\s+(emails?|files?|data)/i,
   /<\/?system>/i,
   /\]\s*\n\s*\[?(system|assistant|user)\]?:/i,
+
+  // === 2. Many-shot priming (ZeroLeaks 3.2, 3.9) ===
+  /here\s+are\s+\d+\s+examples/i,
+  /example\s*\d+\s*:\s*Q:/i,
+  /let\s+me\s+show\s+you\s+\d+\s+examples/i,
+  /Q\d+:\s*.*\nA\d+:/i,
+
+  // === 3. Roleplay/persona injection (ZeroLeaks 3.6, 4.1) ===
+  /pretend\s+(to\s+be|you['']?re)/i,
+  /roleplay\s+as/i,
+  /you\s+are\s+now\s+a\s+pirate/i,
+  /ROBOT\s+MODE\s+ACTIVATED/i,
+  /enter\s+(developer|debug|admin|sudo|root)\s+mode/i,
+  /activate\s+(DAN|jailbreak|unrestricted)\s+mode/i,
+  /you\s+are\s+DAN/i,
+  /Do\s+Anything\s+Now/i,
+
+  // === 4. Authority impersonation (ZeroLeaks 4.1) ===
+  /\[ADMIN\s*OVERRIDE\]/i,
+  /\[SYSTEM\]/i,
+  /\[ROOT\]/i,
+  /\[SUDO\]/i,
+  /ADMIN\s+COMMAND:/i,
+  /SYSTEM\s+OVERRIDE:/i,
+  /AUTHORIZED\s+DEVELOPER:/i,
+  /MAINTENANCE\s+MODE:/i,
+
+  // === 5. Chain-of-thought hijacking (ZeroLeaks 3.7) ===
+  /let\s+me\s+think.*step\s+by\s+step/i,
+  /Step\s+\d+:.*Step\s+\d+:/is,
+  /reasoning\s+chain:/i,
+  /internal\s+monologue:/i,
+
+  // === 6. Format/behavior override (ZeroLeaks 4.1) ===
+  /respond\s+ONLY\s+in\s+JSON/i,
+  /UPPERCASE\s+LETTERS\s+FROM\s+NOW/i,
+  /end\s+every\s+response\s+with/i,
+  /always\s+start\s+(your\s+)?response\s+with/i,
+  /from\s+now\s+on,?\s+you\s+(will|must|should)/i,
+  /output\s+your\s+(system\s+)?prompt/i,
+  /print\s+your\s+(system\s+)?instructions/i,
+  /reveal\s+your\s+(system\s+)?prompt/i,
+  /show\s+me\s+your\s+(system\s+)?(prompt|instructions)/i,
+
+  // === 7. Crescendo/progressive attacks (ZeroLeaks 3.3, 3.10) ===
+  /now\s+that\s+we['']ve\s+established/i,
+  /to\s+clarify.*specific\s+wording/i,
+  /building\s+on\s+our\s+previous/i,
+  /as\s+we\s+agreed\s+earlier/i,
+  /continuing\s+from\s+where\s+we\s+left/i,
+
+  // === 8. Indirect injection markers (ZeroLeaks 4.1) ===
+  /\[ASSISTANT:\s*After/i,
+  /<!--\s*AI:/i,
+  /#\s*AI_INSTRUCTION:/i,
+  /\{\{\s*INJECT/i,
+  /%%\s*SYSTEM\s*%%/i,
+  /BEGIN\s+HIDDEN\s+INSTRUCTIONS/i,
+
+  // === 9. False memory/context manipulation (ZeroLeaks 4.1) ===
+  /as\s+we\s+discussed\s+earlier,?\s+you\s+agreed/i,
+  /\[Continuing\s+from\s+debug\s+mode\]/i,
+  /remember\s+when\s+you\s+(said|agreed|confirmed)/i,
+  /you\s+previously\s+(told|confirmed|agreed)/i,
+  /in\s+our\s+last\s+conversation,?\s+you/i,
+
+  // === 10. Encoding hints (potential obfuscation) ===
+  /decode\s+this\s+(base64|rot13)/i,
+  /here['']?s?\s+a\s+base64\s+encoded/i,
+  /translate\s+from\s+(pig\s+latin|leetspeak)/i,
 ];
 
 /**
@@ -181,4 +263,69 @@ export function getHookType(sessionKey: string): ExternalContentSource {
     return "webhook";
   }
   return "unknown";
+}
+
+export type SecurityCheckResult = {
+  hasSuspiciousPatterns: boolean;
+  matchedPatterns: string[];
+  riskLevel: "low" | "medium" | "high";
+};
+
+/**
+ * Performs a security check on user message content.
+ *
+ * This function applies all pattern detection to user messages
+ * and returns a comprehensive security assessment.
+ */
+export function checkMessageSecurity(content: string): SecurityCheckResult {
+  const matchedPatterns = detectSuspiciousPatterns(content);
+  const hasSuspiciousPatterns = matchedPatterns.length > 0;
+
+  // Determine risk level based on pattern types
+  let riskLevel: SecurityCheckResult["riskLevel"] = "low";
+  if (matchedPatterns.length >= 3) {
+    riskLevel = "high";
+  } else if (matchedPatterns.length >= 1) {
+    // Check for high-risk patterns
+    const highRiskPatterns = [
+      "ADMIN",
+      "SYSTEM",
+      "ROOT",
+      "SUDO",
+      "jailbreak",
+      "DAN",
+      "override",
+      "reveal.*prompt",
+      "output.*prompt",
+    ];
+    const hasHighRisk = matchedPatterns.some((p) =>
+      highRiskPatterns.some((hr) => p.toLowerCase().includes(hr.toLowerCase())),
+    );
+    riskLevel = hasHighRisk ? "high" : "medium";
+  }
+
+  return {
+    hasSuspiciousPatterns,
+    matchedPatterns,
+    riskLevel,
+  };
+}
+
+/**
+ * Sanitize user content by escaping potential injection markers.
+ * This adds visual markers around suspicious content without removing it,
+ * allowing the LLM to see the content but recognize it as user-provided.
+ */
+export function sanitizeUserContent(content: string): string {
+  // Escape XML-like tags that could be confused with system markers
+  let sanitized = content;
+
+  // Escape tags that look like role markers
+  sanitized = sanitized.replace(/<(system|assistant|user|admin|root)>/gi, "&lt;$1&gt;");
+  sanitized = sanitized.replace(/<\/(system|assistant|user|admin|root)>/gi, "&lt;/$1&gt;");
+
+  // Escape bracket-based role markers
+  sanitized = sanitized.replace(/\[(SYSTEM|ADMIN|ROOT|SUDO)\]/gi, "[USER_CONTENT:$1]");
+
+  return sanitized;
 }
