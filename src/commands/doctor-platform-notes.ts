@@ -68,12 +68,16 @@ export async function noteMacLaunchctlGatewayEnvOverrides(
   const deprecatedLaunchctlEntries = [
     ["MOLTBOT_GATEWAY_TOKEN", await getenv("MOLTBOT_GATEWAY_TOKEN")],
     ["MOLTBOT_GATEWAY_PASSWORD", await getenv("MOLTBOT_GATEWAY_PASSWORD")],
+    ["MOLTBOT_STATE_DIR", await getenv("MOLTBOT_STATE_DIR")],
+    ["MOLTBOT_CONFIG_PATH", await getenv("MOLTBOT_CONFIG_PATH")],
     ["CLAWDBOT_GATEWAY_TOKEN", await getenv("CLAWDBOT_GATEWAY_TOKEN")],
     ["CLAWDBOT_GATEWAY_PASSWORD", await getenv("CLAWDBOT_GATEWAY_PASSWORD")],
+    ["CLAWDBOT_STATE_DIR", await getenv("CLAWDBOT_STATE_DIR")],
+    ["CLAWDBOT_CONFIG_PATH", await getenv("CLAWDBOT_CONFIG_PATH")],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]?.trim()));
   if (deprecatedLaunchctlEntries.length > 0) {
     const lines = [
-      "- Deprecated launchctl environment variables detected (ignored).",
+      "- Deprecated launchctl environment variables detected (may be ignored or cause confusion).",
       ...deprecatedLaunchctlEntries.map(
         ([key]) =>
           `- \`${key}\` is set; use \`OPENCLAW_${key.slice(key.indexOf("_") + 1)}\` instead.`,
