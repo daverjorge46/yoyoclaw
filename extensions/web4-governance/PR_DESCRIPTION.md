@@ -2,7 +2,7 @@
 
 ## The Problem
 
-Moltbook has 30k agents. When something goes wrong:
+As agents scale, when something goes wrong:
 
 - "What did it do?" → No audit trail
 - "Can we prove the log wasn't tampered with?" → No chain
