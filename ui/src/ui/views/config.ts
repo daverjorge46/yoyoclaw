@@ -324,10 +324,7 @@ function resolveSubsections(params: {
   return entries;
 }
 
-function applySchemaDefaults(
-  value: unknown,
-  schema: JsonSchema | undefined,
-): unknown {
+function applySchemaDefaults(value: unknown, schema: JsonSchema | undefined): unknown {
   if (!schema) return value;
   const type = schemaType(schema);
   if (value === undefined && schema.default !== undefined) {
@@ -453,14 +450,16 @@ export function renderConfig(props: ConfigProps) {
   // Compute diff for showing changes (works for both form and raw modes)
   const normalizedOriginal =
     props.formMode === "form"
-      ? (applySchemaDefaults(props.originalValue, analysis.schema) as Record<string, unknown> | null)
+      ? (applySchemaDefaults(props.originalValue, analysis.schema) as Record<
+          string,
+          unknown
+        > | null)
       : props.originalValue;
   const normalizedCurrent =
     props.formMode === "form"
       ? (applySchemaDefaults(props.formValue, analysis.schema) as Record<string, unknown> | null)
       : props.formValue;
-  const diff =
-    props.formMode === "form" ? computeDiff(normalizedOriginal, normalizedCurrent) : [];
+  const diff = props.formMode === "form" ? computeDiff(normalizedOriginal, normalizedCurrent) : [];
   const hasRawChanges = props.formMode === "raw" && props.raw !== props.originalRaw;
   const hasChanges = props.formMode === "form" ? diff.length > 0 : hasRawChanges;
 

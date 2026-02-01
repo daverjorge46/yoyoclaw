@@ -34,10 +34,7 @@ export type ConfigState = {
   lastError: string | null;
 };
 
-export async function loadConfig(
-  state: ConfigState,
-  opts: { resetDirty?: boolean } = {},
-) {
+export async function loadConfig(state: ConfigState, opts: { resetDirty?: boolean } = {}) {
   if (!state.client || !state.connected) return;
   if (opts.resetDirty) {
     state.configFormDirty = false;
