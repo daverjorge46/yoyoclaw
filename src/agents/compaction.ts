@@ -307,6 +307,10 @@ export function pruneHistoryForContextShare(params: {
   droppedTokens: number;
   keptTokens: number;
   budgetTokens: number;
+  /** Count of dropped messages grouped by role. */
+  droppedByRole: Record<string, number>;
+  /** Number of dropped messages with importance >= 70. */
+  droppedImportantMessages: number;
 } {
   const maxHistoryShare = params.maxHistoryShare ?? 0.5;
   const budgetTokens = Math.max(1, Math.floor(params.maxContextTokens * maxHistoryShare));
@@ -329,6 +333,25 @@ export function pruneHistoryForContextShare(params: {
     keptMessages = rest.flat();
   }
 
+  // Compute role-based drop stats and importance count
+  const droppedByRole: Record<string, number> = {};
+  let droppedImportantMessages = 0;
+  const IMPORTANT_THRESHOLD = 70;
+  const _totalOriginal = params.messages.length;
+
+  for (const msg of allDroppedMessages) {
+    const role = (msg as { role?: string }).role ?? "unknown";
+    droppedByRole[role] = (droppedByRole[role] ?? 0) + 1;
+
+    // Approximate importance: system=100, user=80, assistant=60, tool=40
+    const baseScores: Record<string, number> = { system: 100, user: 80, assistant: 60, tool: 40 };
+    const base = baseScores[role] ?? 40;
+    // Recency not computable here (dropped from front), so use base only
+    if (base >= IMPORTANT_THRESHOLD) {
+      droppedImportantMessages += 1;
+    }
+  }
+
   return {
     messages: keptMessages,
     droppedMessagesList: allDroppedMessages,
@@ -337,6 +360,8 @@ export function pruneHistoryForContextShare(params: {
     droppedTokens,
     keptTokens: estimateMessagesTokens(keptMessages),
     budgetTokens,
+    droppedByRole,
+    droppedImportantMessages,
   };
 }
 

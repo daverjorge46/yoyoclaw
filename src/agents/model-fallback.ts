@@ -1,4 +1,11 @@
 import type { OpenClawConfig } from "../config/config.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
+import {
+  isCircuitOpen,
+  recordFailure,
+  recordSuccess,
+  type CircuitBreakerConfig,
+} from "./circuit-breaker.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
 import {
   coerceToFailoverError,
@@ -13,6 +20,21 @@ import {
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "./model-selection.js";
+
+const log = createSubsystemLogger("agent/failover");
+
+const MAX_BACKOFF_MS = 10_000;
+
+function computeBackoffMs(attempt: number, retryAfterSeconds?: number): number {
+  if (retryAfterSeconds !== undefined && retryAfterSeconds > 0) {
+    return Math.min(retryAfterSeconds * 1000, MAX_BACKOFF_MS);
+  }
+  return Math.min(1000 * 2 ** attempt, MAX_BACKOFF_MS);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 import type { FailoverReason } from "./pi-embedded-helpers.js";
 import {
   ensureAuthProfileStore,
@@ -222,9 +244,26 @@ export async function runWithModelFallback<T>(params: {
     : null;
   const attempts: FallbackAttempt[] = [];
   let lastError: unknown;
+  const cbConfig: CircuitBreakerConfig | undefined = (
+    params.cfg?.agents as Record<string, unknown> | undefined
+  )?.failover as CircuitBreakerConfig | undefined;
 
   for (let i = 0; i < candidates.length; i += 1) {
     const candidate = candidates[i] as ModelCandidate;
+    const providerKey = candidate.provider;
+
+    // Circuit breaker check
+    if (isCircuitOpen(providerKey, cbConfig)) {
+      attempts.push({
+        provider: candidate.provider,
+        model: candidate.model,
+        error: `Provider ${candidate.provider} circuit is open`,
+        reason: "rate_limit",
+      });
+      log.debug(`Skipping ${providerKey} (circuit open)`);
+      continue;
+    }
+
     if (authStore) {
       const profileIds = resolveAuthProfileOrder({
         cfg: params.cfg,
@@ -244,8 +283,19 @@ export async function runWithModelFallback<T>(params: {
         continue;
       }
     }
+
+    // Exponential backoff between retry attempts (skip delay for the first attempt)
+    if (i > 0) {
+      const prevNormalized = lastError;
+      const retryAfterSec = isFailoverError(prevNormalized) ? prevNormalized.retryAfter : undefined;
+      const delayMs = computeBackoffMs(i - 1, retryAfterSec);
+      log.debug(`Backoff ${delayMs}ms before attempt ${i + 1}/${candidates.length}`);
+      await sleep(delayMs);
+    }
+
     try {
       const result = await params.run(candidate.provider, candidate.model);
+      recordSuccess(providerKey, cbConfig);
       return {
         result,
         provider: candidate.provider,
@@ -261,6 +311,7 @@ export async function runWithModelFallback<T>(params: {
         }) ?? err;
       if (!isFailoverError(normalized)) throw err;
 
+      recordFailure(providerKey, cbConfig);
       lastError = normalized;
       const described = describeFailoverError(normalized);
       attempts.push({
@@ -271,6 +322,9 @@ export async function runWithModelFallback<T>(params: {
         status: described.status,
         code: described.code,
       });
+      log.warn(
+        `Attempt ${i + 1}/${candidates.length} failed: ${candidate.provider}/${candidate.model} - ${described.reason ?? "unknown"}`,
+      );
       await params.onError?.({
         provider: candidate.provider,
         model: candidate.model,

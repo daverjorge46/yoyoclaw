@@ -10,6 +10,8 @@ export class FailoverError extends Error {
   readonly profileId?: string;
   readonly status?: number;
   readonly code?: string;
+  /** Retry-After value in seconds, parsed from HTTP headers or error metadata. */
+  readonly retryAfter?: number;
 
   constructor(
     message: string,
@@ -20,6 +22,7 @@ export class FailoverError extends Error {
       profileId?: string;
       status?: number;
       code?: string;
+      retryAfter?: number;
       cause?: unknown;
     },
   ) {
@@ -31,6 +34,7 @@ export class FailoverError extends Error {
     this.profileId = params.profileId;
     this.status = params.status;
     this.code = params.code;
+    this.retryAfter = params.retryAfter;
   }
 }
 
@@ -155,6 +159,29 @@ export function describeFailoverError(err: unknown): {
   };
 }
 
+/**
+ * Parse Retry-After value from error metadata.
+ * Supports numeric seconds and HTTP-date formats.
+ */
+export function parseRetryAfter(err: unknown): number | undefined {
+  if (!err || typeof err !== "object") return undefined;
+  const headers = (err as { headers?: Record<string, unknown> }).headers;
+  const raw = headers?.["retry-after"] ?? headers?.["Retry-After"];
+  if (raw === undefined || raw === null) return undefined;
+  const str = String(raw as string | number).trim();
+  if (!str) return undefined;
+  if (/^\d+$/.test(str)) {
+    const seconds = Number(str);
+    return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+  }
+  const date = new Date(str);
+  if (!Number.isNaN(date.valueOf())) {
+    const seconds = Math.max(0, Math.ceil((date.getTime() - Date.now()) / 1000));
+    return seconds;
+  }
+  return undefined;
+}
+
 export function coerceToFailoverError(
   err: unknown,
   context?: {
@@ -170,6 +197,7 @@ export function coerceToFailoverError(
   const message = getErrorMessage(err) || String(err);
   const status = getStatusCode(err) ?? resolveFailoverStatus(reason);
   const code = getErrorCode(err);
+  const retryAfter = parseRetryAfter(err);
 
   return new FailoverError(message, {
     reason,
@@ -178,6 +206,7 @@ export function coerceToFailoverError(
     profileId: context?.profileId,
     status,
     code,
+    retryAfter,
     cause: err instanceof Error ? err : undefined,
   });
 }

@@ -263,3 +263,123 @@ export async function loadSessionCostSummary(params: {
     ...totals,
   };
 }
+
+// --- Period aggregation ---
+
+export type AggregationPeriod = "daily" | "weekly" | "monthly";
+
+export type PeriodAggregation = CostUsageTotals & {
+  period: AggregationPeriod;
+  periodKey: string;
+};
+
+function getWeekKey(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00"); // noon to avoid DST edge cases
+  const dayOfWeek = d.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday-based week
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  const y = monday.getFullYear();
+  const m = String(monday.getMonth() + 1).padStart(2, "0");
+  const day = String(monday.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function getMonthKey(dateStr: string): string {
+  return dateStr.slice(0, 7); // YYYY-MM
+}
+
+export function aggregateByPeriod(
+  daily: CostUsageDailyEntry[],
+  period: AggregationPeriod,
+): PeriodAggregation[] {
+  if (period === "daily") {
+    return daily.map((d) => ({ ...d, period, periodKey: d.date }));
+  }
+
+  const buckets = new Map<string, CostUsageTotals>();
+  for (const entry of daily) {
+    const key = period === "weekly" ? getWeekKey(entry.date) : getMonthKey(entry.date);
+    const bucket = buckets.get(key) ?? emptyTotals();
+    bucket.input += entry.input;
+    bucket.output += entry.output;
+    bucket.cacheRead += entry.cacheRead;
+    bucket.cacheWrite += entry.cacheWrite;
+    bucket.totalTokens += entry.totalTokens;
+    bucket.totalCost += entry.totalCost;
+    bucket.missingCostEntries += entry.missingCostEntries;
+    buckets.set(key, bucket);
+  }
+
+  return Array.from(buckets.entries())
+    .map(([periodKey, totals]) => ({ ...totals, period, periodKey }))
+    .sort((a, b) => a.periodKey.localeCompare(b.periodKey));
+}
+
+// --- Cost threshold checks ---
+
+export type CostLimitsConfig = {
+  daily?: number;
+  weekly?: number;
+  monthly?: number;
+};
+
+export type CostThresholdResult = {
+  period: AggregationPeriod;
+  currentCost: number;
+  limit: number;
+  percentage: number;
+  exceeded: boolean;
+};
+
+export function checkCostThresholds(params: {
+  summary: CostUsageSummary;
+  limits: CostLimitsConfig;
+}): CostThresholdResult[] {
+  const results: CostThresholdResult[] = [];
+  const { summary, limits } = params;
+
+  if (limits.daily !== undefined && limits.daily > 0) {
+    const today = formatDayKey(new Date());
+    const todayEntry = summary.daily.find((d) => d.date === today);
+    const currentCost = todayEntry?.totalCost ?? 0;
+    const percentage = (currentCost / limits.daily) * 100;
+    results.push({
+      period: "daily",
+      currentCost,
+      limit: limits.daily,
+      percentage,
+      exceeded: currentCost >= limits.daily,
+    });
+  }
+
+  if (limits.weekly !== undefined && limits.weekly > 0) {
+    const weeklyAgg = aggregateByPeriod(summary.daily, "weekly");
+    const latest = weeklyAgg.at(-1);
+    const currentCost = latest?.totalCost ?? 0;
+    const percentage = (currentCost / limits.weekly) * 100;
+    results.push({
+      period: "weekly",
+      currentCost,
+      limit: limits.weekly,
+      percentage,
+      exceeded: currentCost >= limits.weekly,
+    });
+  }
+
+  if (limits.monthly !== undefined && limits.monthly > 0) {
+    const monthlyAgg = aggregateByPeriod(summary.daily, "monthly");
+    const latest = monthlyAgg.at(-1);
+    const currentCost = latest?.totalCost ?? 0;
+    const percentage = (currentCost / limits.monthly) * 100;
+    results.push({
+      period: "monthly",
+      currentCost,
+      limit: limits.monthly,
+      percentage,
+      exceeded: currentCost >= limits.monthly,
+    });
+  }
+
+  return results;
+}

@@ -48,6 +48,38 @@ export type ContextWindowGuardResult = ContextWindowInfo & {
   shouldBlock: boolean;
 };
 
+/**
+ * Per-model context limit overrides from config.
+ * Looked up via `models.providers[].models[].contextLimits`.
+ */
+export type PerModelContextLimits = {
+  warn?: number;
+  min?: number;
+};
+
+/**
+ * Resolve per-model context limits from config, falling back to global defaults.
+ */
+export function resolveContextLimits(params: {
+  cfg: OpenClawConfig | undefined;
+  provider: string;
+  modelId: string;
+}): PerModelContextLimits {
+  const providers = params.cfg?.models?.providers as
+    | Record<
+        string,
+        { models?: Array<{ id?: string; contextLimits?: { warn?: number; min?: number } }> }
+      >
+    | undefined;
+  const providerEntry = providers?.[params.provider];
+  const models = Array.isArray(providerEntry?.models) ? providerEntry.models : [];
+  const match = models.find((m) => m?.id === params.modelId);
+  return {
+    warn: normalizePositiveInt(match?.contextLimits?.warn) ?? undefined,
+    min: normalizePositiveInt(match?.contextLimits?.min) ?? undefined,
+  };
+}
+
 export function evaluateContextWindowGuard(params: {
   info: ContextWindowInfo;
   warnBelowTokens?: number;

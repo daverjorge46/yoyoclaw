@@ -127,6 +127,40 @@ export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   queued: number;
 };
 
+export type DiagnosticCostThresholdEvent = DiagnosticBaseEvent & {
+  type: "cost.threshold.warning";
+  period: "daily" | "weekly" | "monthly";
+  currentCost: number;
+  limit: number;
+  percentage: number;
+};
+
+export type DiagnosticBudgetWarningEvent = DiagnosticBaseEvent & {
+  type: "budget.warning";
+  period: "daily" | "weekly" | "monthly";
+  currentCost: number;
+  budgetLimit: number;
+  percentage: number;
+};
+
+export type DiagnosticBudgetExceededEvent = DiagnosticBaseEvent & {
+  type: "budget.exceeded";
+  period: "daily" | "weekly" | "monthly";
+  currentCost: number;
+  budgetLimit: number;
+  percentage: number;
+};
+
+export type DiagnosticResponseTimeKpiEvent = DiagnosticBaseEvent & {
+  type: "response.time.kpi";
+  sessionKey?: string;
+  sessionId?: string;
+  durationMs: number;
+  complexity?: "simple" | "medium" | "complex";
+  targetMs: number;
+  exceeded: boolean;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -139,7 +173,11 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
-  | DiagnosticHeartbeatEvent;
+  | DiagnosticHeartbeatEvent
+  | DiagnosticCostThresholdEvent
+  | DiagnosticBudgetWarningEvent
+  | DiagnosticBudgetExceededEvent
+  | DiagnosticResponseTimeKpiEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload
