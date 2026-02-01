@@ -6,7 +6,7 @@ import { readConfigFileSnapshot, writeConfigFile, resolveGatewayPort } from "../
 import { logConfigUpdated } from "../config/logging.js";
 import { defaultRuntime } from "../runtime.js";
 
-type WebConfigureSection = "gateway" | "web-tools" | "model-keys";
+type WebConfigureSection = "gateway" | "web-tools" | "model-keys" | "channels";
 
 type WizardRunOpts = OnboardOptions & { wizard?: "onboarding" | "configure" };
 
@@ -51,8 +51,13 @@ export async function runConfigureWizardWeb(
         label: "Model API keys",
         hint: "OpenAI, Anthropic, Gemini, OpenRouter",
       },
+      {
+        value: "channels",
+        label: "Channels",
+        hint: "Discord, Telegram (basic setup)",
+      },
     ],
-    initialValues: ["gateway", "web-tools", "model-keys"],
+    initialValues: ["gateway", "web-tools", "model-keys", "channels"],
   });
 
   let next = structuredClone(baseConfig);
@@ -215,6 +220,75 @@ export async function runConfigureWizardWeb(
         ...next.env,
         vars: envVars,
       },
+    };
+  }
+
+  if (sections.includes("channels")) {
+    await prompter.note(
+      [
+        "Basic channel setup.",
+        "For advanced routing (allowlists, group policies, multiple accounts), edit openclaw.json manually after this.",
+      ].join("\n"),
+      "Channels",
+    );
+
+    type ChannelChoice = "discord" | "telegram";
+    const picks = await prompter.multiselect<ChannelChoice>({
+      message: "Which channels do you want to configure?",
+      options: [
+        { value: "discord", label: "Discord", hint: "Bot token" },
+        { value: "telegram", label: "Telegram", hint: "Bot token" },
+      ],
+      initialValues: ["discord"],
+    });
+
+    let nextChannels: any = { ...(next.channels ?? {}) };
+
+    if (picks.includes("discord")) {
+      const enabled = await prompter.confirm({
+        message: "Enable Discord?",
+        initialValue: nextChannels.discord?.enabled ?? true,
+      });
+
+      const token = await prompter.text({
+        message: "Discord bot token",
+        initialValue: "",
+        placeholder: nextChannels.discord?.token ? "Leave blank to keep current" : "Paste token",
+        validate: (v) => (v.trim() || nextChannels.discord?.token ? undefined : "Required"),
+      });
+
+      nextChannels.discord = {
+        ...(nextChannels.discord ?? {}),
+        enabled,
+        ...(token.trim() ? { token: token.trim() } : {}),
+      };
+    }
+
+    if (picks.includes("telegram")) {
+      const enabled = await prompter.confirm({
+        message: "Enable Telegram?",
+        initialValue: nextChannels.telegram?.enabled ?? false,
+      });
+
+      const botToken = await prompter.text({
+        message: "Telegram bot token",
+        initialValue: "",
+        placeholder: nextChannels.telegram?.botToken
+          ? "Leave blank to keep current"
+          : "123456:ABC...",
+        validate: (v) => (v.trim() || nextChannels.telegram?.botToken ? undefined : "Required"),
+      });
+
+      nextChannels.telegram = {
+        ...(nextChannels.telegram ?? {}),
+        enabled,
+        ...(botToken.trim() ? { botToken: botToken.trim() } : {}),
+      };
+    }
+
+    next = {
+      ...next,
+      channels: nextChannels,
     };
   }
 
