@@ -16,6 +16,7 @@ import {
   type Edge,
   type Connection,
   type NodeTypes,
+  type EdgeTypes,
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -54,10 +55,16 @@ import {
 import type { Task, TaskStatus, TaskPriority } from "@/hooks/queries/useWorkstreams";
 import type { Agent } from "@/stores/useAgentStore";
 import { TaskNode } from "./TaskNode";
+import { AvoidingEdge } from "./AvoidingEdge";
 
 // Register custom node types
 const nodeTypes: NodeTypes = {
   taskNode: TaskNode,
+};
+
+// Register custom edge types
+const edgeTypes: EdgeTypes = {
+  avoiding: AvoidingEdge,
 };
 
 type TaskRelationType = "upstream" | "downstream";
@@ -212,29 +219,93 @@ function lineIntersectsRect(
   );
 }
 
-// Check if an edge path would intersect any node (excluding source and target)
-function edgeWouldIntersectNode(
+// Obstacle data structure for custom edge routing
+interface ObstacleNode {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// Check if an edge path would intersect any node and calculate routing info
+function getEdgeRoutingInfo(
   sourcePos: { x: number; y: number },
   targetPos: { x: number; y: number },
   allPositions: Map<string, { x: number; y: number }>,
   sourceId: string,
   targetId: string
-): boolean {
-  // Check against all other nodes
+): {
+  wouldIntersect: boolean;
+  offset: number;
+  routeDirection: "left" | "right" | "none";
+  obstacles: ObstacleNode[];
+} {
+  let wouldIntersect = false;
+  let maxOffset = 0;
+  let routeDirection: "left" | "right" | "none" = "none";
+
+  // Source and target center points
+  const sourceX = sourcePos.x + NODE_WIDTH / 2;
+  const sourceY = sourcePos.y + NODE_HEIGHT;
+  const targetX = targetPos.x + NODE_WIDTH / 2;
+  const targetY = targetPos.y;
+
+  // Find all nodes that would be intersected
+  const obstacles: ObstacleNode[] = [];
+
   for (const [nodeId, nodePos] of allPositions) {
     if (nodeId === sourceId || nodeId === targetId) continue;
 
-    // Check if direct line from source to target intersects this node
     if (lineIntersectsRect(
-      sourcePos.x + NODE_WIDTH / 2, sourcePos.y + NODE_HEIGHT, // Source bottom center
-      targetPos.x + NODE_WIDTH / 2, targetPos.y,              // Target top center
+      sourceX, sourceY,
+      targetX, targetY,
       nodePos.x, nodePos.y,
       NODE_WIDTH, NODE_HEIGHT
     )) {
-      return true;
+      wouldIntersect = true;
+      obstacles.push({
+        x: nodePos.x,
+        y: nodePos.y,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+      });
     }
   }
-  return false;
+
+  if (wouldIntersect && obstacles.length > 0) {
+    // Calculate the bounding box of all intersected nodes
+    const minX = Math.min(...obstacles.map(n => n.x));
+    const maxX = Math.max(...obstacles.map(n => n.x + n.width));
+
+    // Determine best route direction based on source/target positions
+    const edgeMidX = (sourceX + targetX) / 2;
+    const obstacleMidX = (minX + maxX) / 2;
+
+    if (sourceX < obstacleMidX && targetX < obstacleMidX) {
+      // Both source and target are to the left - route further left
+      routeDirection = "left";
+      maxOffset = Math.max(sourceX, targetX) - minX + 30;
+    } else if (sourceX > obstacleMidX && targetX > obstacleMidX) {
+      // Both source and target are to the right - route further right
+      routeDirection = "right";
+      maxOffset = maxX - Math.min(sourceX, targetX) + 30;
+    } else {
+      // Source and target are on opposite sides
+      // Route around whichever side has more space
+      const spaceLeft = Math.min(sourceX, targetX) - minX;
+      const spaceRight = maxX - Math.max(sourceX, targetX);
+
+      if (spaceLeft > spaceRight) {
+        routeDirection = "left";
+        maxOffset = Math.abs(edgeMidX - minX) + 40;
+      } else {
+        routeDirection = "right";
+        maxOffset = Math.abs(maxX - edgeMidX) + 40;
+      }
+    }
+  }
+
+  return { wouldIntersect, offset: maxOffset, routeDirection, obstacles };
 }
 
 // Convert tasks to ReactFlow nodes and edges
@@ -282,15 +353,16 @@ function tasksToFlow(
         const sourcePos = positions.get(depId) || { x: 0, y: 0 };
         const targetPos = positions.get(task.id) || { x: 0, y: 0 };
 
-        // Check if edge would intersect any intermediate nodes
-        const wouldIntersect = edgeWouldIntersectNode(
+        // Check if edge would intersect any intermediate nodes and get routing info
+        const { wouldIntersect, offset, routeDirection, obstacles } = getEdgeRoutingInfo(
           sourcePos, targetPos, positions, depId, task.id
         );
 
-        // Use smoothstep only when edge would intersect a node, otherwise use default bezier
-        const edgeType = wouldIntersect ? "smoothstep" : "default";
+        // Use custom "avoiding" edge for obstacle avoidance, otherwise default bezier
+        const edgeType = wouldIntersect ? "avoiding" : "default";
 
-        return {
+        // Base edge config
+        const edge: Edge = {
           id: `${depId}-${task.id}`,
           source: depId,
           target: task.id,
@@ -305,6 +377,17 @@ function tasksToFlow(
             color: edgeColor,
           },
         };
+
+        // Pass obstacle data to the custom edge for routing
+        if (wouldIntersect) {
+          edge.data = {
+            obstacles,
+            routeDirection,
+            clearanceOffset: Math.max(offset, 30),
+          };
+        }
+
+        return edge;
       })
   );
 
@@ -332,10 +415,7 @@ function WorkstreamDAGInner({
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("medium");
-
-  const handleResetView = useCallback(() => {
-    fitView({ padding: 0.2, duration: 300 });
-  }, [fitView]);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   // Open modal for adding related task
   const handleOpenAddTaskModal = useCallback((task: Task, type: TaskRelationType) => {
@@ -365,6 +445,30 @@ function WorkstreamDAGInner({
     setNewTaskDescription("");
   }, [contextMenuTask, newTaskTitle, newTaskDescription, newTaskPriority, relationType, onCreateRelatedTask]);
 
+  const initialFlow = useMemo(
+    () => tasksToFlow(tasks, agents),
+    [tasks, agents]
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
+
+  const applySelection = useCallback((nextNodes: Node[], taskId: string | null) => {
+    if (!taskId) {
+      return nextNodes.map((node) => ({ ...node, selected: false }));
+    }
+    return nextNodes.map((node) => ({ ...node, selected: node.id === taskId }));
+  }, []);
+
+  const setSelectedTask = useCallback((taskId: string | null) => {
+    setSelectedTaskId(taskId);
+    setNodes((currentNodes: Node[]) => applySelection(currentNodes, taskId));
+  }, [applySelection, setNodes]);
+
+  const handleResetView = useCallback(() => {
+    fitView({ padding: 0.2, duration: 300 });
+  }, [fitView]);
+
   // Focus on active/in-progress tasks (zoom + center)
   const handleFocusActive = useCallback(() => {
     // Find active tasks (in_progress or review)
@@ -384,7 +488,7 @@ function WorkstreamDAGInner({
           duration: 500,
           maxZoom: 1,
         });
-        setSelectedTaskId(nextTasks[0].id);
+        setSelectedTask(nextTasks[0].id);
       }
       return;
     }
@@ -396,23 +500,15 @@ function WorkstreamDAGInner({
       duration: 500,
       maxZoom: 1,
     });
-    setSelectedTaskId(activeTasks[0].id);
-  }, [tasks, fitView]);
-
-  const initialFlow = useMemo(
-    () => tasksToFlow(tasks, agents),
-    [tasks, agents]
-  );
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
+    setSelectedTask(activeTasks[0].id);
+  }, [tasks, fitView, setSelectedTask]);
 
   // Update nodes when tasks change
   useEffect(() => {
     const flow = tasksToFlow(tasks, agents);
-    setNodes(flow.nodes);
+    setNodes(applySelection(flow.nodes, selectedTaskId));
     setEdges(flow.edges);
-  }, [tasks, agents, setNodes, setEdges]);
+  }, [tasks, agents, setNodes, setEdges, selectedTaskId, applySelection]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)),
@@ -422,12 +518,12 @@ function WorkstreamDAGInner({
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       const task = tasks.find((t) => t.id === node.id);
-      setSelectedTaskId(node.id);
+      setSelectedTask(node.id);
       if (task) {
         onTaskClick?.(task);
       }
     },
-    [tasks, onTaskClick]
+    [tasks, onTaskClick, setSelectedTask]
   );
 
   // Handle right-click on node for context menu
@@ -472,9 +568,9 @@ function WorkstreamDAGInner({
           y: node.position.x * 0.8, // Nodes within level stack vertically
         },
       }));
-      setNodes(horizontalNodes);
+      setNodes(applySelection(horizontalNodes, selectedTaskId));
     } else {
-      setNodes(flow.nodes);
+      setNodes(applySelection(flow.nodes, selectedTaskId));
     }
     setEdges(flow.edges);
 
@@ -482,26 +578,26 @@ function WorkstreamDAGInner({
     setTimeout(() => {
       fitView({ padding: 0.2, duration: 300 });
     }, 50);
-  }, [layoutDirection, tasks, agents, setNodes, setEdges, fitView]);
+  }, [layoutDirection, tasks, agents, selectedTaskId, applySelection, setNodes, setEdges, fitView]);
 
   const resetLayout = useCallback(() => {
     setLayoutDirection("vertical"); // Reset to vertical mode
     const flow = tasksToFlow(tasks, agents, "vertical");
-    setNodes(flow.nodes);
+    setNodes(applySelection(flow.nodes, selectedTaskId));
     setEdges(flow.edges);
-    setSelectedTaskId(null);
+    setSelectedTask(null);
 
     // Fit view after reset
     setTimeout(() => {
       fitView({ padding: 0.2, duration: 300 });
     }, 50);
-  }, [tasks, agents, setNodes, setEdges, fitView]);
+  }, [tasks, agents, selectedTaskId, applySelection, setNodes, setEdges, fitView, setSelectedTask]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSelectedTaskId(null);
+        setSelectedTask(null);
       }
       // Press 'f' to focus active
       if (e.key === "f" && !e.metaKey && !e.ctrlKey) {
@@ -510,7 +606,7 @@ function WorkstreamDAGInner({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleFocusActive]);
+  }, [handleFocusActive, setSelectedTask]);
 
   // Auto-focus on active tasks on initial render
   const [hasAutoFocused, setHasAutoFocused] = useState(false);
@@ -590,6 +686,7 @@ function WorkstreamDAGInner({
           onNodeContextMenu={handleNodeContextMenu}
           onPaneContextMenu={handlePaneContextMenu}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={true}
@@ -687,7 +784,7 @@ function WorkstreamDAGInner({
           onClick={() => setContextMenuPosition(null)}
         >
           <button
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted/80"
             onClick={() => {
               handleOpenAddTaskModal(contextMenuTask, "upstream");
               setContextMenuPosition(null);
@@ -697,7 +794,7 @@ function WorkstreamDAGInner({
             Add Upstream Dependency
           </button>
           <button
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted/80"
             onClick={() => {
               handleOpenAddTaskModal(contextMenuTask, "downstream");
               setContextMenuPosition(null);
@@ -714,6 +811,11 @@ function WorkstreamDAGInner({
         <div
           className="fixed inset-0 z-40"
           onClick={() => setContextMenuPosition(null)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setContextMenuPosition(null);
+            setContextMenuTask(null);
+          }}
         />
       )}
 

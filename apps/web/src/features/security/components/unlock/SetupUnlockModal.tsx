@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Shield, Check } from "lucide-react";
 import { z } from "zod";
@@ -80,7 +80,7 @@ export function SetupUnlockModal({
     }
   };
 
-  const password = form.watch("password");
+  const password = useWatch({ control: form.control, name: "password" });
   const passwordStrength = getPasswordStrength(password);
 
   return (

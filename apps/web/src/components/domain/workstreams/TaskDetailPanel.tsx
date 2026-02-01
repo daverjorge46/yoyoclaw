@@ -19,13 +19,18 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Circle,
   Clock,
   Eye,
+  FileEdit,
   Flag,
   GitBranch,
   Link2,
   Loader2,
+  Search,
+  Terminal,
   Trash2,
   User,
 } from "lucide-react";
@@ -53,19 +58,19 @@ interface TaskDetailPanelProps {
   onTaskClick?: (taskId: string) => void;
 }
 
-const statusOptions: { value: TaskStatus; label: string; icon: React.ReactNode }[] = [
-  { value: "todo", label: "To Do", icon: <Circle className="h-4 w-4" /> },
-  { value: "in_progress", label: "In Progress", icon: <Clock className="h-4 w-4" /> },
-  { value: "review", label: "Review", icon: <Eye className="h-4 w-4" /> },
-  { value: "done", label: "Done", icon: <CheckCircle2 className="h-4 w-4" /> },
-  { value: "blocked", label: "Blocked", icon: <AlertCircle className="h-4 w-4" /> },
+const statusOptions: { value: TaskStatus; label: string; description: string; icon: React.ReactNode }[] = [
+  { value: "todo", label: "Not Started", description: "Waiting to begin", icon: <Circle className="h-4 w-4" /> },
+  { value: "in_progress", label: "Working", description: "Currently in progress", icon: <Clock className="h-4 w-4" /> },
+  { value: "review", label: "Needs Review", description: "Ready for your review", icon: <Eye className="h-4 w-4" /> },
+  { value: "done", label: "Completed", description: "Successfully finished", icon: <CheckCircle2 className="h-4 w-4" /> },
+  { value: "blocked", label: "On Hold", description: "Waiting on something", icon: <AlertCircle className="h-4 w-4" /> },
 ];
 
-const priorityOptions: { value: TaskPriority; label: string; color: string }[] = [
-  { value: "low", label: "Low", color: "text-gray-500" },
-  { value: "medium", label: "Medium", color: "text-blue-500" },
-  { value: "high", label: "High", color: "text-orange-500" },
-  { value: "urgent", label: "Urgent", color: "text-red-500" },
+const priorityOptions: { value: TaskPriority; label: string; description: string; color: string }[] = [
+  { value: "low", label: "Low Priority", description: "Can wait", color: "text-gray-500" },
+  { value: "medium", label: "Normal", description: "Standard priority", color: "text-blue-500" },
+  { value: "high", label: "Important", description: "Needs attention soon", color: "text-orange-500" },
+  { value: "urgent", label: "Urgent", description: "Needs immediate attention", color: "text-red-500" },
 ];
 
 const statusColors: Record<TaskStatus, string> = {
@@ -84,6 +89,117 @@ function getAgentInitials(agent: Agent | null | undefined): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+// Animated status badge for agent sessions
+function AgentStatusBadge({ status }: { status: TaskStatus }) {
+  const config: Record<TaskStatus, { label: string; color: string; bgColor: string; animate: boolean }> = {
+    in_progress: {
+      label: "Active",
+      color: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-500/20",
+      animate: true,
+    },
+    review: {
+      label: "Waiting",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/20",
+      animate: true,
+    },
+    done: {
+      label: "Completed",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-500/20",
+      animate: false,
+    },
+    blocked: {
+      label: "Paused",
+      color: "text-gray-600 dark:text-gray-400",
+      bgColor: "bg-gray-500/20",
+      animate: false,
+    },
+    todo: {
+      label: "Idle",
+      color: "text-gray-500",
+      bgColor: "bg-gray-500/10",
+      animate: false,
+    },
+  };
+
+  const { label, color, bgColor, animate } = config[status];
+
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", bgColor, color)}>
+      {animate ? (
+        <span className="relative flex h-2 w-2">
+          <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-75", status === "in_progress" ? "bg-green-500" : "bg-amber-500")} />
+          <span className={cn("relative inline-flex h-2 w-2 rounded-full", status === "in_progress" ? "bg-green-500" : "bg-amber-500")} />
+        </span>
+      ) : (
+        <span className={cn("h-2 w-2 rounded-full", status === "done" ? "bg-blue-500" : "bg-gray-400")} />
+      )}
+      {label}
+    </span>
+  );
+}
+
+// Expandable tool usage item component
+interface ToolUsageItemProps {
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  recentActions: { action: string; time: string }[];
+}
+
+function ToolUsageItem({ icon, label, count, recentActions }: ToolUsageItemProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex w-full items-center justify-between px-3 py-2.5 text-left transition-colors",
+          "hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isExpanded && "bg-muted/30"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-background border border-border">
+            {icon}
+          </div>
+          <div>
+            <span className="text-sm font-medium">{label}</span>
+            <p className="text-xs text-muted-foreground">{count} times</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-border bg-muted/20 px-3 py-2">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Recent activity</p>
+          <div className="space-y-1.5">
+            {recentActions.map((item, index) => (
+              <div key={index} className="flex items-start gap-2 text-xs">
+                <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-foreground/80 truncate">{item.action}</p>
+                  <p className="text-muted-foreground">{item.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function TaskDetailPanel({
@@ -150,7 +266,7 @@ export function TaskDetailPanel({
     });
   };
 
-  const handleAssigneeChange = (assigneeId: string) => {
+  const handleAssigneeChange = (assigneeId: string | undefined) => {
     if (!task) return;
     updateTask.mutate({
       workstreamId,
@@ -271,8 +387,8 @@ export function TaskDetailPanel({
         <div className="space-y-2">
           <Label className="text-muted-foreground">Assigned Agent</Label>
           <Select
-            value={task.assigneeId ?? ""}
-            onValueChange={handleAssigneeChange}
+            value={task.assigneeId ?? "__unassigned__"}
+            onValueChange={(value) => handleAssigneeChange(value === "__unassigned__" ? undefined : value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Unassigned">
@@ -290,7 +406,7 @@ export function TaskDetailPanel({
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">
+              <SelectItem value="__unassigned__">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span>Unassigned</span>
@@ -389,6 +505,128 @@ export function TaskDetailPanel({
         </div>
 
         <Separator />
+
+        {/* Agent View Link - only for tasks that have started */}
+        {task.status !== "todo" && (
+          <>
+            <div className="space-y-3">
+              <Label className="text-muted-foreground">Agent Session</Label>
+              {task.status === "done" || task.status === "in_progress" || task.status === "review" ? (
+                <a
+                  href={`/agents?task=${task.id}`}
+                  className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 transition-all hover:bg-muted/50 hover:border-primary/50 group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <GitBranch className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">View Agent Session</p>
+                    <p className="text-xs text-muted-foreground">See detailed activity and logs</p>
+                  </div>
+                  <AgentStatusBadge status={task.status} />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-muted-foreground">Session Paused</p>
+                    <p className="text-xs text-muted-foreground">Task is on hold</p>
+                  </div>
+                  <AgentStatusBadge status={task.status} />
+                </div>
+              )}
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {/* Activity History - mock timeline */}
+        {task.status !== "todo" && (
+          <>
+            <div className="space-y-3">
+              <Label className="text-muted-foreground">Activity History</Label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {/* Mock activity items - in real implementation, fetch from API */}
+                <div className="flex items-start gap-2 text-xs">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
+                  <div>
+                    <p className="font-medium">Status changed to {task.status.replace("_", " ")}</p>
+                    <p className="text-muted-foreground">{new Date(task.updatedAt).toLocaleString()}</p>
+                  </div>
+                </div>
+                {task.status !== "blocked" && (
+                  <div className="flex items-start gap-2 text-xs">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-muted-foreground shrink-0" />
+                    <div>
+                      <p className="font-medium">Work started</p>
+                      <p className="text-muted-foreground">{new Date(task.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-2 text-xs">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-muted-foreground/50 shrink-0" />
+                  <div>
+                    <p className="font-medium">Task created</p>
+                    <p className="text-muted-foreground">{new Date(task.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {/* Tool Usage - for active/completed tasks */}
+        {(task.status === "in_progress" || task.status === "done" || task.status === "review") && (
+          <>
+            <div className="space-y-3">
+              <Label className="text-muted-foreground">What's Been Done</Label>
+              <div className="space-y-2">
+                {/* Mock tool usage - in real implementation, fetch from agent session */}
+                <ToolUsageItem
+                  icon={<FileEdit className="h-4 w-4 text-primary" />}
+                  label="Made file changes"
+                  count={12}
+                  recentActions={[
+                    { action: "Updated TaskDetailPanel.tsx", time: "2 min ago" },
+                    { action: "Modified WorkstreamDAG.tsx", time: "5 min ago" },
+                    { action: "Created AvoidingEdge.tsx", time: "12 min ago" },
+                  ]}
+                />
+                <ToolUsageItem
+                  icon={<Search className="h-4 w-4 text-blue-500" />}
+                  label="Searched for information"
+                  count={8}
+                  recentActions={[
+                    { action: "Found SelectItem component", time: "3 min ago" },
+                    { action: "Located context menu code", time: "8 min ago" },
+                  ]}
+                />
+                <ToolUsageItem
+                  icon={<Terminal className="h-4 w-4 text-green-500" />}
+                  label="Ran commands"
+                  count={5}
+                  recentActions={[
+                    { action: "Type checked the project", time: "1 min ago" },
+                    { action: "Verified build success", time: "6 min ago" },
+                  ]}
+                />
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+              >
+                View complete session history
+                <ChevronRight className="ml-1 h-3 w-3" />
+              </Button>
+            </div>
+            <Separator />
+          </>
+        )}
 
         {/* Delete section */}
         <div className="space-y-3">

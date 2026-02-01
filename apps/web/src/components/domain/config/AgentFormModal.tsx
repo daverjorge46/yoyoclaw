@@ -17,64 +17,26 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ModelProviderSelector } from "@/components/domain/config";
 import {
   ChevronLeft,
   ChevronRight,
   Check,
   User,
-  Sparkles,
-  Zap,
-  Brain,
-  Cpu,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { useModels } from "@/hooks/queries/useModels";
 import type { Agent, AgentStatus } from "@/stores/useAgentStore";
 import type { Workspace } from "@/stores/useWorkspaceStore";
-
-// Available models for selection
-const MODELS = [
-  {
-    id: "claude-3.5-sonnet",
-    name: "Claude 3.5 Sonnet",
-    provider: "Anthropic",
-    description: "Fast and capable, great for most tasks",
-    icon: Sparkles,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-    recommended: true,
-  },
-  {
-    id: "claude-3-opus",
-    name: "Claude 3 Opus",
-    provider: "Anthropic",
-    description: "Most powerful for complex reasoning",
-    icon: Brain,
-    color: "text-violet-500",
-    bgColor: "bg-violet-500/10",
-    recommended: false,
-  },
-  {
-    id: "gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenAI",
-    description: "Multimodal with vision capabilities",
-    icon: Zap,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-    recommended: false,
-  },
-  {
-    id: "gpt-4-turbo",
-    name: "GPT-4 Turbo",
-    provider: "OpenAI",
-    description: "Large context window with good speed",
-    icon: Cpu,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-    recommended: false,
-  },
-] as const;
 
 // Avatar color options
 const AVATAR_COLORS = [
@@ -104,6 +66,9 @@ interface FormState {
   avatarColor: string;
   avatarUrl?: string;
   modelId: string;
+  providerId?: string;
+  runtime: "pi" | "ccsdk";
+  ccsdkProvider?: "anthropic" | "zai" | "openrouter";
   workspaceIds: string[];
   showWorkspaces: boolean;
 }
@@ -119,6 +84,9 @@ export interface AgentFormModalProps {
     avatar?: string;
     status: AgentStatus;
     description?: string;
+    model?: string;
+    runtime?: "pi" | "ccsdk";
+    ccsdkProvider?: "anthropic" | "zai" | "openrouter";
   }) => void;
   isSubmitting?: boolean;
 }
@@ -132,16 +100,57 @@ export function AgentFormModal({
   isSubmitting = false,
 }: AgentFormModalProps) {
   const isEditing = !!agent;
+  const { data: modelsData, isLoading: modelsLoading } = useModels();
+  const models = modelsData?.models ?? [];
+  const modelIndex = React.useMemo(
+    () => new Map(models.map((model) => [model.id, model])),
+    [models]
+  );
+  const modelRefIndex = React.useMemo(
+    () => new Map(models.map((model) => [`${model.provider}/${model.id}`, model])),
+    [models]
+  );
+  const resolveModelEntry = React.useCallback(
+    (providerId?: string, modelId?: string) => {
+      if (!modelId) return undefined;
+      if (providerId) {
+        return (
+          modelRefIndex.get(`${providerId}/${modelId}`) ??
+          models.find((model) => model.provider === providerId && model.id === modelId)
+        );
+      }
+      return modelIndex.get(modelId) ?? models.find((model) => model.id === modelId);
+    },
+    [modelIndex, modelRefIndex, models]
+  );
 
   const [state, setState] = React.useState<FormState>({
     step: 1,
     name: "",
     avatarColor: AVATAR_COLORS[0],
     avatarUrl: undefined,
-    modelId: "claude-3.5-sonnet",
+    modelId: "",
+    providerId: undefined,
+    runtime: "pi",
+    ccsdkProvider: undefined,
     workspaceIds: [],
     showWorkspaces: false,
   });
+
+  const splitModelRef = React.useCallback((value?: string) => {
+    if (!value) return { providerId: undefined, modelId: "" };
+    const trimmed = value.trim();
+    if (!trimmed) return { providerId: undefined, modelId: "" };
+    const parts = trimmed.split("/");
+    if (parts.length <= 1) return { providerId: undefined, modelId: trimmed };
+    return { providerId: parts[0], modelId: parts.slice(1).join("/") };
+  }, []);
+
+  const buildModelRef = React.useCallback((provider?: string, modelId?: string) => {
+    if (!modelId) return undefined;
+    if (!provider) return modelId;
+    return `${provider}/${modelId}`;
+  }, []);
 
   // Reset state when dialog opens/closes or agent changes
   React.useEffect(() => {
@@ -153,7 +162,12 @@ export function AgentFormModal({
           name: agent.name,
           avatarColor: AVATAR_COLORS[0],
           avatarUrl: agent.avatar,
-          modelId: agent.role?.toLowerCase().replace(/ /g, "-") ?? "claude-3.5-sonnet",
+          ...splitModelRef(agent.model),
+          runtime: agent.runtime ?? "pi",
+          ccsdkProvider:
+            agent.runtime === "ccsdk"
+              ? agent.ccsdkProvider ?? "anthropic"
+              : agent.ccsdkProvider,
           workspaceIds: [],
           showWorkspaces: false,
         });
@@ -168,13 +182,27 @@ export function AgentFormModal({
           name: randomName,
           avatarColor: randomColor,
           avatarUrl: undefined,
-          modelId: "claude-3.5-sonnet",
+          modelId: "",
+          providerId: undefined,
+          runtime: "pi",
+          ccsdkProvider: undefined,
           workspaceIds: [],
           showWorkspaces: false,
         });
       }
     }
-  }, [open, agent]);
+  }, [open, agent, splitModelRef]);
+
+  React.useEffect(() => {
+    if (!open || state.modelId.length > 0 || models.length === 0) return;
+    const recommended = models.find((model) => model.recommended) ?? models[0];
+    if (!recommended) return;
+    setState((prev) => ({
+      ...prev,
+      modelId: recommended.id,
+      providerId: recommended.provider ?? prev.providerId,
+    }));
+  }, [open, models, state.modelId.length]);
 
   const handleNext = () => {
     setState((prev) => ({ ...prev, step: prev.step + 1 }));
@@ -184,14 +212,24 @@ export function AgentFormModal({
     setState((prev) => ({ ...prev, step: prev.step - 1 }));
   };
 
+  const selectedModel = React.useMemo(
+    () => resolveModelEntry(state.providerId, state.modelId),
+    [resolveModelEntry, state.modelId, state.providerId]
+  );
+
   const handleSubmit = () => {
-    const selectedModel = MODELS.find((m) => m.id === state.modelId);
+    const modelRef = buildModelRef(state.providerId, state.modelId);
+    const ccsdkProvider =
+      state.runtime === "ccsdk" ? state.ccsdkProvider : undefined;
     onSubmit({
       name: state.name,
       role: selectedModel?.name ?? "Assistant",
       avatar: state.avatarUrl,
       status: agent?.status ?? "online",
       description: `Powered by ${selectedModel?.name ?? "AI"}`,
+      model: modelRef,
+      runtime: state.runtime,
+      ccsdkProvider,
     });
   };
 
@@ -200,7 +238,7 @@ export function AgentFormModal({
       case 1:
         return state.name.trim().length > 0;
       case 2:
-        return !!state.modelId;
+        return state.modelId.length > 0;
       case 3:
         return true;
       default:
@@ -316,59 +354,107 @@ export function AgentFormModal({
 
             {/* Step 2: Model Selection */}
             {state.step === 2 && (
-              <div className="space-y-3">
-                {MODELS.map((model) => {
-                  const Icon = model.icon;
-                  const isSelected = state.modelId === model.id;
-                  return (
-                    <Card
-                      key={model.id}
-                      className={cn(
-                        "cursor-pointer transition-all duration-200",
-                        isSelected
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "hover:border-primary/50"
-                      )}
-                      onClick={() =>
-                        setState((prev) => ({ ...prev, modelId: model.id }))
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Agent runtime</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      {
+                        value: "pi" as const,
+                        label: "Pi (recommended)",
+                        helper: "Keeps conversation memory.",
+                      },
+                      {
+                        value: "ccsdk" as const,
+                        label: "Claude Code SDK (advanced)",
+                        helper: "Stateless but fast.",
+                      },
+                    ].map((option) => {
+                      const selected = state.runtime === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() =>
+                            setState((prev) => ({
+                              ...prev,
+                              runtime: option.value,
+                              ccsdkProvider:
+                                option.value === "ccsdk"
+                                  ? prev.ccsdkProvider ?? "anthropic"
+                                  : prev.ccsdkProvider,
+                            }))
+                          }
+                          className={cn(
+                            "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                            selected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="space-y-1">
+                              <p className="font-medium">{option.label}</p>
+                              <p className="text-xs text-muted-foreground">{option.helper}</p>
+                            </div>
+                            {selected && (
+                              <Badge variant="success" className="text-xs">
+                                Selected
+                              </Badge>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {state.runtime === "ccsdk" && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">CCSDK provider</Label>
+                    <Select
+                      value={state.ccsdkProvider ?? ""}
+                      onValueChange={(value) =>
+                        setState((prev) => ({
+                          ...prev,
+                          ccsdkProvider: value as FormState["ccsdkProvider"],
+                        }))
                       }
                     >
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-                              model.bgColor
-                            )}
-                          >
-                            <Icon className={cn("h-5 w-5", model.color)} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">
-                                {model.name}
-                              </span>
-                              {model.recommended && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px] px-1.5 py-0"
-                                >
-                                  Recommended
-                                </Badge>
-                              )}
-                              {isSelected && (
-                                <Check className="ml-auto h-4 w-4 text-primary shrink-0" />
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {model.description}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="anthropic">Anthropic</SelectItem>
+                        <SelectItem value="zai">Z.AI</SelectItem>
+                        <SelectItem value="openrouter">OpenRouter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {modelsLoading ? (
+                  <div className="space-y-3">
+                    {[0, 1].map((item) => (
+                      <Skeleton key={item} className="h-24 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : (
+                  <ModelProviderSelector
+                    label="Model / Provider"
+                    helper="Pick the model that should power this agent by default."
+                    models={models}
+                    providerId={state.providerId}
+                    modelIds={state.modelId ? [state.modelId] : []}
+                    onChange={(next) =>
+                      setState((prev) => ({
+                        ...prev,
+                        providerId: next.providerId,
+                        modelId: next.modelIds[0] ?? "",
+                      }))
+                    }
+                  />
+                )}
               </div>
             )}
 
@@ -392,7 +478,9 @@ export function AgentFormModal({
                       <div>
                         <h4 className="font-medium">{state.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          {MODELS.find((m) => m.id === state.modelId)?.name}
+                          {state.modelId
+                            ? selectedModel?.name ?? state.modelId
+                            : "Model not selected"}
                         </p>
                       </div>
                     </div>

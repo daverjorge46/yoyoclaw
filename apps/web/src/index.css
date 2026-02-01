@@ -118,6 +118,26 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Allow text selection without showing a text cursor/caret in non-input UI */
+  :where(:not(input):not(textarea):not([contenteditable="true"])):not(.web-terminal *) {
+    caret-color: transparent;
+  }
+
+  :where(p, span, div, h1, h2, h3, h4, h5, h6, li, dt, dd, label, small, strong, em, b, i):not(.web-terminal *):not(.selectable-text):not(.selectable-text *) {
+    cursor: default;
+  }
+
+  :where(.web-terminal, .web-terminal *) {
+    caret-color: auto;
+    cursor: text;
+  }
+
+  :where(.selectable-text, .selectable-text *) {
+    caret-color: transparent;
+    cursor: text;
+    user-select: text;
+  }
+
   /* Focus ring styles */
   :focus-visible {
     @apply outline-2 outline-ring outline-offset-2;

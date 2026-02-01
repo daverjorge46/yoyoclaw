@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import {
-  User,
-  Settings,
   Zap,
   Plug,
   CreditCard,
@@ -16,24 +14,22 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { SettingsSection } from "./SettingsNav";
+import type { ConfigSection } from "./SettingsConfigNav";
 
 interface NavItem {
-  id: SettingsSection;
+  id: ConfigSection;
   label: string;
   shortLabel: string;
   icon: LucideIcon;
 }
 
-interface SettingsMobileNavProps {
-  activeSection: SettingsSection;
-  onSectionChange: (section: SettingsSection) => void;
+interface SettingsConfigMobileNavProps {
+  activeSection: ConfigSection;
+  onSectionChange: (section: ConfigSection) => void;
   className?: string;
 }
 
 const navItems: NavItem[] = [
-  { id: "profile", label: "Profile", shortLabel: "Profile", icon: User },
-  { id: "preferences", label: "Preferences", shortLabel: "Prefs", icon: Settings },
   { id: "health", label: "System Health", shortLabel: "Health", icon: Activity },
   { id: "ai-provider", label: "Model & Provider", shortLabel: "Model", icon: Brain },
   { id: "gateway", label: "Gateway", shortLabel: "Gateway", icon: Server },
@@ -44,11 +40,11 @@ const navItems: NavItem[] = [
   { id: "usage", label: "Usage & Billing", shortLabel: "Usage", icon: CreditCard },
 ];
 
-export function SettingsMobileNav({
+export function SettingsConfigMobileNav({
   activeSection,
   onSectionChange,
   className,
-}: SettingsMobileNavProps) {
+}: SettingsConfigMobileNavProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const activeButtonRef = React.useRef<HTMLButtonElement>(null);
   const [showLeftFade, setShowLeftFade] = React.useState(false);
@@ -71,7 +67,7 @@ export function SettingsMobileNav({
     if (!container) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
-    const threshold = 10; // px threshold for showing fade
+    const threshold = 10;
 
     setShowLeftFade(scrollLeft > threshold);
     setShowRightFade(scrollLeft < scrollWidth - clientWidth - threshold);
@@ -102,7 +98,6 @@ export function SettingsMobileNav({
     const containerRect = container.getBoundingClientRect();
     const buttonRect = button.getBoundingClientRect();
 
-    // Check if button is outside visible area
     const isOutsideLeft = buttonRect.left < containerRect.left + 20;
     const isOutsideRight = buttonRect.right > containerRect.right - 20;
 
@@ -149,7 +144,6 @@ export function SettingsMobileNav({
         className={cn(
           "flex gap-2 overflow-x-auto pb-2 px-1",
           "scrollbar-thin",
-          // Hide scrollbar on touch devices for cleaner look
           "[-webkit-overflow-scrolling:touch]",
           "[&::-webkit-scrollbar]:h-0 [&::-webkit-scrollbar]:w-0"
         )}
@@ -171,27 +165,17 @@ export function SettingsMobileNav({
               tabIndex={isActive ? 0 : -1}
               onClick={() => onSectionChange(item.id)}
               className={cn(
-                // Base styles - minimum 44px touch target
                 "flex items-center gap-2 shrink-0",
                 "min-h-[44px] px-4 py-2 rounded-full",
                 "text-sm font-medium whitespace-nowrap",
-                // Focus styles
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                // Transition - respects reduced motion
-                prefersReducedMotion
-                  ? ""
-                  : "transition-colors duration-150",
-                // Active/inactive states
+                prefersReducedMotion ? "" : "transition-colors duration-150",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
               )}
             >
-              <Icon
-                className="h-4 w-4 shrink-0"
-                aria-hidden="true"
-              />
-              {/* Show short label on very small screens, full label otherwise */}
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="xs:hidden">{item.shortLabel}</span>
               <span className="hidden xs:inline">{item.label}</span>
             </button>
@@ -202,4 +186,4 @@ export function SettingsMobileNav({
   );
 }
 
-export default SettingsMobileNav;
+export default SettingsConfigMobileNav;

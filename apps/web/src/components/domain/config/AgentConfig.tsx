@@ -83,6 +83,9 @@ export function AgentConfig({ className }: AgentConfigProps) {
     createAgent.mutate({
       name: `${agent.name} (Copy)`,
       role: agent.role,
+      model: agent.model,
+      runtime: agent.runtime,
+      ccsdkProvider: agent.ccsdkProvider,
       description: agent.description,
       status: "offline",
       tags: agent.tags ? [...agent.tags] : [],
@@ -115,6 +118,9 @@ export function AgentConfig({ className }: AgentConfigProps) {
     avatar?: string;
     status: AgentStatus;
     description?: string;
+    model?: string;
+    runtime?: "pi" | "ccsdk";
+    ccsdkProvider?: "anthropic" | "zai" | "openrouter";
   }) => {
     if (editingAgent) {
       updateAgent.mutate(

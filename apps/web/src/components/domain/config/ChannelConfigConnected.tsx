@@ -21,6 +21,7 @@ import {
   type SlackConfig,
   type WhatsAppConfig,
   type SignalConfig,
+  type iMessageConfig,
 } from "./channels";
 import { useChannelsStatus } from "@/hooks/queries/useChannels";
 import { useConfig } from "@/hooks/queries/useConfig";
@@ -116,20 +117,51 @@ export function ChannelConfigConnected({
   // Channel-specific config from API
   const telegramConfig = React.useMemo((): TelegramConfig | undefined => {
     const cfg = configSnapshot?.config?.channels?.telegram;
-    if (cfg?.botToken) return { botToken: cfg.botToken };
+    if (cfg?.botToken) {
+      return {
+        botToken: cfg.botToken,
+        mode: cfg.mode,
+        webhookUrl: cfg.webhookUrl,
+        allowFrom: cfg.allowFrom,
+        allowUnmentionedGroups: cfg.allowUnmentionedGroups,
+      };
+    }
     return undefined;
   }, [configSnapshot]);
 
   const discordConfig = React.useMemo((): DiscordConfig | undefined => {
     const cfg = configSnapshot?.config?.channels?.discord;
-    if (cfg?.botToken) return { botToken: cfg.botToken };
+    if (cfg?.botToken) {
+      return {
+        botToken: cfg.botToken,
+        applicationId: cfg.applicationId,
+        allowFrom: cfg.allowFrom,
+        dmPolicy: cfg.dmPolicy,
+      };
+    }
     return undefined;
   }, [configSnapshot]);
 
   const slackConfig = React.useMemo((): SlackConfig | undefined => {
     const cfg = configSnapshot?.config?.channels?.slack;
     if (cfg?.workspaceId) {
-      return { workspaceId: cfg.workspaceId };
+      return {
+        workspaceId: cfg.workspaceId,
+        workspaceName: cfg.workspaceName,
+        mode: cfg.mode,
+        defaultChannel: cfg.defaultChannel,
+        allowChannels: cfg.allowChannels,
+      };
+    }
+    if (cfg?.botToken) {
+      return {
+        mode: "token",
+        botToken: cfg.botToken,
+        appToken: cfg.appToken,
+        signingSecret: cfg.signingSecret,
+        defaultChannel: cfg.defaultChannel,
+        allowChannels: cfg.allowChannels,
+      };
     }
     return undefined;
   }, [configSnapshot]);
@@ -147,7 +179,22 @@ export function ChannelConfigConnected({
   const signalConfig = React.useMemo((): SignalConfig | undefined => {
     const cfg = configSnapshot?.config?.channels?.signal;
     if (cfg?.phoneNumber) {
-      return { phoneNumber: cfg.phoneNumber };
+      return {
+        phoneNumber: cfg.phoneNumber,
+        baseUrl: cfg.baseUrl,
+        deviceName: cfg.deviceName,
+      };
+    }
+    return undefined;
+  }, [configSnapshot]);
+
+  const imessageConfig = React.useMemo((): iMessageConfig | undefined => {
+    const cfg = configSnapshot?.config?.channels?.imessage;
+    if (cfg?.cliPath || cfg?.dbPath) {
+      return {
+        cliPath: cfg.cliPath,
+        dbPath: cfg.dbPath,
+      };
     }
     return undefined;
   }, [configSnapshot]);
@@ -162,7 +209,16 @@ export function ChannelConfigConnected({
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
-        channels: { telegram: { botToken: config.botToken, enabled: true } },
+        channels: {
+          telegram: {
+            botToken: config.botToken,
+            mode: config.mode,
+            webhookUrl: config.webhookUrl,
+            allowFrom: config.allowFrom,
+            allowUnmentionedGroups: config.allowUnmentionedGroups,
+            enabled: true,
+          },
+        },
       }),
       note: "Configure Telegram",
     });
@@ -180,7 +236,15 @@ export function ChannelConfigConnected({
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
-        channels: { discord: { botToken: config.botToken, enabled: true } },
+        channels: {
+          discord: {
+            botToken: config.botToken,
+            applicationId: config.applicationId,
+            allowFrom: config.allowFrom,
+            dmPolicy: config.dmPolicy,
+            enabled: true,
+          },
+        },
       }),
       note: "Configure Discord",
     });
@@ -209,6 +273,29 @@ export function ChannelConfigConnected({
     toast.info("Slack OAuth flow not yet implemented in web UI");
   };
 
+  const handleSlackTokenSave = async (config: SlackConfig) => {
+    if (!configSnapshot?.hash) return;
+    await patchConfig.mutateAsync({
+      baseHash: configSnapshot.hash,
+      raw: JSON.stringify({
+        channels: {
+          slack: {
+            mode: "token",
+            botToken: config.botToken,
+            appToken: config.appToken,
+            signingSecret: config.signingSecret,
+            defaultChannel: config.defaultChannel,
+            allowChannels: config.allowChannels,
+            enabled: true,
+          },
+        },
+      }),
+      note: "Configure Slack tokens",
+    });
+    toast.success("Slack configured successfully");
+    setActiveSheet(null);
+  };
+
   const handleSlackDisconnect = async () => {
     await logoutChannel.mutateAsync({ channel: "slack" });
     setActiveSheet(null);
@@ -219,11 +306,37 @@ export function ChannelConfigConnected({
     await patchConfig.mutateAsync({
       baseHash: configSnapshot.hash,
       raw: JSON.stringify({
-        channels: { signal: { phoneNumber: config.phoneNumber, enabled: true } },
+        channels: {
+          signal: {
+            phoneNumber: config.phoneNumber,
+            baseUrl: config.baseUrl,
+            deviceName: config.deviceName,
+            enabled: true,
+          },
+        },
       }),
       note: "Configure Signal",
     });
     toast.success("Signal configured successfully");
+    setActiveSheet(null);
+  };
+
+  const handleIMessageSave = async (config: iMessageConfig) => {
+    if (!configSnapshot?.hash) return;
+    await patchConfig.mutateAsync({
+      baseHash: configSnapshot.hash,
+      raw: JSON.stringify({
+        channels: {
+          imessage: {
+            cliPath: config.cliPath,
+            dbPath: config.dbPath,
+            enabled: true,
+          },
+        },
+      }),
+      note: "Configure iMessage",
+    });
+    toast.success("iMessage configured successfully");
     setActiveSheet(null);
   };
 
@@ -327,6 +440,7 @@ export function ChannelConfigConnected({
         onOpenChange={(open) => !open && closeSheet()}
         config={slackConfig}
         onConnect={handleSlackConnect}
+        onSaveTokenConfig={handleSlackTokenSave}
         onDisconnect={handleSlackDisconnect}
         isConnected={getChannelStatus("slack") === "connected"}
       />
@@ -344,6 +458,8 @@ export function ChannelConfigConnected({
         open={activeSheet === "imessage"}
         onOpenChange={(open) => !open && closeSheet()}
         isConnected={getChannelStatus("imessage") === "connected"}
+        config={imessageConfig}
+        onSave={handleIMessageSave}
       />
     </div>
   );

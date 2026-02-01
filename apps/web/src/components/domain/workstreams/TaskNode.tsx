@@ -24,6 +24,7 @@ interface TaskNodeData extends Record<string, unknown> {
 type TaskFlowNode = Node<TaskNodeData, "taskNode">;
 
 // Theme config with higher contrast backgrounds and readable text
+// Labels are user-friendly for non-technical users
 const statusTheme: Record<
   TaskStatus,
   { border: string; bg: string; accent: string; textColor: string; icon: React.ReactNode; label: string }
@@ -34,7 +35,7 @@ const statusTheme: Record<
     accent: "text-muted-foreground",
     textColor: "text-foreground",
     icon: <CircleDot className="size-3" />,
-    label: "To Do",
+    label: "Not Started",
   },
   in_progress: {
     border: "border-primary/70",
@@ -42,7 +43,7 @@ const statusTheme: Record<
     accent: "text-primary",
     textColor: "text-foreground",
     icon: <Loader2 className="size-3 animate-spin" />,
-    label: "In Progress",
+    label: "Working",
   },
   review: {
     border: "border-[color:var(--warning)]/70",
@@ -50,7 +51,7 @@ const statusTheme: Record<
     accent: "text-[color:var(--warning)]",
     textColor: "text-foreground",
     icon: <CircleDot className="size-3" />,
-    label: "Review",
+    label: "Needs Review",
   },
   done: {
     border: "border-[color:var(--success)]/70",
@@ -58,7 +59,7 @@ const statusTheme: Record<
     accent: "text-[color:var(--success)]",
     textColor: "text-foreground",
     icon: <Check className="size-3" />,
-    label: "Done",
+    label: "Completed",
   },
   blocked: {
     border: "border-destructive/70",
@@ -66,7 +67,7 @@ const statusTheme: Record<
     accent: "text-destructive",
     textColor: "text-foreground",
     icon: <X className="size-3" />,
-    label: "Blocked",
+    label: "On Hold",
   },
 };
 
@@ -164,17 +165,20 @@ export const TaskNode = memo(function TaskNode({
         className="!size-2 !border-2 !border-background !bg-muted-foreground"
       />
 
-      {/* Node content - matching WorkflowNode card styling */}
+      {/* Node content - solid card background with status color tint */}
       <div
         className={cn(
-          "w-[260px] rounded-xl border p-4 shadow-sm transition-shadow",
+          "relative w-[260px] overflow-hidden rounded-xl border p-4 shadow-sm transition-shadow",
+          "bg-card", // Solid base background - hides grid dots completely
           theme.border,
-          theme.bg,
           selected && "ring-2 ring-ring ring-offset-2 ring-offset-background"
         )}
       >
-        {/* Header with status indicator */}
-        <div className="flex items-start justify-between gap-3">
+        {/* Status color overlay - positioned behind content */}
+        <div className={cn("absolute inset-0 pointer-events-none", theme.bg)} />
+
+        {/* Header with status indicator - relative to appear above overlay */}
+        <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2">
               <StatusIndicator status={task.status} theme={theme} />
@@ -203,14 +207,14 @@ export const TaskNode = memo(function TaskNode({
 
         {/* Description if available */}
         {task.description && (
-          <p className="mt-3 line-clamp-2 text-xs text-foreground/80">
+          <p className="relative mt-3 line-clamp-2 text-xs text-foreground/80">
             {task.description}
           </p>
         )}
 
         {/* Tags and metadata */}
         {((task.tags && task.tags.length > 0) || agent) && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <div className="relative mt-3 flex flex-wrap items-center gap-1.5">
             {task.tags?.slice(0, 2).map((tag) => (
               <Badge key={tag} variant="secondary" className="h-5 px-1.5 text-[10px]">
                 {tag}
@@ -229,7 +233,7 @@ export const TaskNode = memo(function TaskNode({
 
         {/* Dependencies indicator */}
         {task.dependencies && task.dependencies.length > 0 && (
-          <div className="mt-3 border-t border-foreground/20 pt-2 text-[10px] text-foreground/60">
+          <div className="relative mt-3 border-t border-foreground/20 pt-2 text-[10px] text-foreground/60">
             {task.dependencies.length} dependenc{task.dependencies.length === 1 ? "y" : "ies"}
           </div>
         )}

@@ -47,7 +47,7 @@ export function ChatBubbleMessage({
   return (
     <div
       className={cn(
-        "rounded-2xl px-4 py-3 max-w-[80%]",
+        "selectable-text rounded-2xl px-4 py-3 max-w-[80%]",
         variant === "sent"
           ? "bg-primary text-primary-foreground"
           : "bg-secondary text-secondary-foreground",

@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Settings2, Shield, Monitor, AlertCircle, Check, Loader2, Download, AlertTriangle, XCircle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Settings2, Shield, Monitor, AlertCircle, Check, Loader2, Download, AlertTriangle, XCircle, Activity } from "lucide-react";
+import * as Collapsible from "@radix-ui/react-collapsible";
 
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { channelIconMap, channelColorMap } from "./icons";
-import type { ChannelConfig, ChannelStatus, PlatformType } from "./types";
+import type { ChannelConfig, ChannelStatus, PlatformType, ChannelActivityItem } from "./types";
 
 interface ChannelCardProps {
   channel: ChannelConfig;
@@ -25,32 +27,37 @@ interface ChannelCardProps {
 
 const statusConfig: Record<
   ChannelStatus,
-  { label: string; variant: "success" | "secondary" | "error" | "warning"; icon: React.ReactNode }
+  { label: string; variant: "success" | "secondary" | "error" | "warning"; icon: React.ReactNode; dotClass: string }
 > = {
   connected: {
     label: "Connected",
     variant: "success",
     icon: <Check className="h-3 w-3" />,
+    dotClass: "bg-green-500 shadow-[0_0_8px_2px] shadow-green-500/50",
   },
   not_configured: {
     label: "Not configured",
     variant: "secondary",
     icon: null,
+    dotClass: "bg-red-500/70 shadow-[0_0_8px_2px] shadow-red-500/40",
   },
   error: {
     label: "Error",
     variant: "error",
     icon: <AlertCircle className="h-3 w-3" />,
+    dotClass: "bg-red-500 shadow-[0_0_8px_2px] shadow-red-500/50",
   },
   connecting: {
     label: "Connecting",
     variant: "warning",
     icon: <Loader2 className="h-3 w-3 animate-spin" />,
+    dotClass: "bg-yellow-500 shadow-[0_0_8px_2px] shadow-yellow-500/40",
   },
   unsupported: {
     label: "Unsupported",
     variant: "secondary",
     icon: <XCircle className="h-3 w-3" />,
+    dotClass: "bg-muted-foreground/40",
   },
 };
 
@@ -61,6 +68,7 @@ function isPlatformSupported(supported: PlatformType[], current: PlatformType): 
 export function ChannelCard({ channel, currentPlatform = "any", onConfigure, className }: ChannelCardProps) {
   const IconComponent = channelIconMap[channel.id];
   const channelColor = channelColorMap[channel.id];
+  const [activityOpen, setActivityOpen] = React.useState(false);
 
   // Determine if the channel is supported on current platform
   const isSupported = channel.platform
@@ -75,6 +83,23 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
   const requiresInstallation = channel.platform?.requiresInstallation;
   const requiresMacServer = channel.platform?.requiresMacServer;
   const hasRelayProviders = channel.platform?.relayProviders && channel.platform.relayProviders.length > 0;
+  const activities = channel.activity ?? [];
+
+  const statusTooltip = (
+    <div className="space-y-0.5">
+      <div className="font-medium">{status.label}</div>
+      {channel.statusMessage && <div className="text-muted">{channel.statusMessage}</div>}
+    </div>
+  );
+
+  const buildActivityHref = (activity: ChannelActivityItem) => {
+    const params = new URLSearchParams({
+      tab: "activity",
+      activityId: activity.id,
+    });
+    if (activity.sessionId) params.set("sessionId", activity.sessionId);
+    return `/agents/${encodeURIComponent(activity.agentId)}?${params.toString()}`;
+  };
 
   return (
     <TooltipProvider>
@@ -120,16 +145,6 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
                         <TooltipContent>Local machine only</TooltipContent>
                       </Tooltip>
                     )}
-                    {requiresInstallation && (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Download className="h-3.5 w-3.5 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Requires installation: {channel.platform?.installationApp}
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
                     {requiresMacServer && currentPlatform !== "macos" && (
                       <Tooltip>
                         <TooltipTrigger>
@@ -142,6 +157,18 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
                   <p className="text-xs text-muted-foreground truncate">{channel.description}</p>
                 </div>
               </div>
+              {requiresInstallation && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-muted/50 text-muted-foreground">
+                      <Download className="h-4 w-4" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Requires installation: {channel.platform?.installationApp}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
 
             {/* Platform badges */}
@@ -169,27 +196,106 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
 
             {/* Footer: Status + Configure Button */}
             <div className="flex items-center justify-between gap-2 pt-1">
-              <Badge variant={status.variant} className="gap-1">
-                {status.icon}
-                {status.label}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="relative flex h-5 w-5 items-center justify-center">
+                      {effectiveStatus === "connecting" ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
+                      ) : (
+                        <>
+                          <span className={cn("h-3 w-3 rounded-full", status.dotClass)} />
+                          {(effectiveStatus === "connected" || effectiveStatus === "error") && (
+                            <span
+                              className={cn(
+                                "absolute h-3 w-3 rounded-full opacity-40 animate-ping",
+                                status.dotClass.replace(/shadow\\[[^\\]]+\\]/g, "")
+                              )}
+                            />
+                          )}
+                        </>
+                      )}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{statusTooltip}</TooltipContent>
+                </Tooltip>
+                <Badge variant={status.variant} className="gap-1">
+                  {status.icon}
+                  {status.label}
+                </Badge>
+              </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onConfigure}
-                className="gap-1.5 text-muted-foreground hover:text-foreground"
-              >
-                <Settings2 className="h-4 w-4" />
-                {effectiveStatus === "connected"
-                  ? "Settings"
-                  : effectiveStatus === "unsupported"
-                    ? hasRelayProviders
-                      ? "Options"
-                      : "Info"
-                    : "Configure"}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onConfigure}
+                  className="gap-1.5 text-muted-foreground hover:text-foreground"
+                >
+                  <Settings2 className="h-4 w-4" />
+                  {effectiveStatus === "connected"
+                    ? "Settings"
+                    : effectiveStatus === "unsupported"
+                      ? hasRelayProviders
+                        ? "Options"
+                        : "Info"
+                      : "Configure"}
+                </Button>
+              </div>
             </div>
+
+            {activities.length > 0 && (
+              <Collapsible.Root open={activityOpen} onOpenChange={setActivityOpen}>
+                <Collapsible.Trigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <Activity className="h-4 w-4" />
+                    {activityOpen ? "Hide activity" : "View activity"}
+                  </Button>
+                </Collapsible.Trigger>
+                <Collapsible.Content>
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Channel Activity</p>
+                    {activities.map((activity) => (
+                      <Link
+                        key={activity.id}
+                        to={buildActivityHref(activity)}
+                        className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm transition hover:border-primary/40"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="relative flex h-4 w-4 items-center justify-center">
+                            <span
+                              className={cn(
+                                "h-2.5 w-2.5 rounded-full",
+                                activity.status === "active" && "bg-green-500 shadow-[0_0_8px_2px] shadow-green-500/50",
+                                activity.status === "error" && "bg-red-500 shadow-[0_0_8px_2px] shadow-red-500/50",
+                                activity.status === "idle" && "bg-muted-foreground/60"
+                              )}
+                            />
+                            {activity.status === "active" && (
+                              <span className="absolute h-2.5 w-2.5 rounded-full bg-green-500/40 animate-ping" />
+                            )}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium">{activity.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {activity.agentName} • {activity.timestamp}
+                            </p>
+                            {activity.summary && (
+                              <p className="text-xs text-muted-foreground">{activity.summary}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">View session</span>
+                      </Link>
+                    ))}
+                  </div>
+                </Collapsible.Content>
+              </Collapsible.Root>
+            )}
 
             {/* Status message (error or info) */}
             {channel.statusMessage && (

@@ -1,9 +1,12 @@
 "use client";
 
+import * as React from "react";
 import { motion } from "framer-motion";
-import { Monitor, CheckCircle2, Apple, ExternalLink, AlertCircle, XCircle } from "lucide-react";
+import { Monitor, CheckCircle2, Apple, ExternalLink, AlertCircle, XCircle, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { iMessageIcon as IMessageIcon } from "./icons";
+import type { iMessageConfig } from "./types";
 
 type ConnectionStatus = "connected" | "not_configured" | "unavailable";
 
@@ -25,6 +29,8 @@ interface iMessageConfigSheetProps {
   isMacOS?: boolean;
   /** Status message from the gateway */
   statusMessage?: string;
+  config?: iMessageConfig;
+  onSave?: (config: iMessageConfig) => Promise<void>;
 }
 
 export function iMessageConfigSheet({
@@ -33,7 +39,34 @@ export function iMessageConfigSheet({
   isConnected,
   isMacOS = false,
   statusMessage,
+  config,
+  onSave,
 }: iMessageConfigSheetProps) {
+  const [cliPath, setCliPath] = React.useState(config?.cliPath ?? "");
+  const [dbPath, setDbPath] = React.useState(config?.dbPath ?? "");
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setCliPath(config?.cliPath ?? "");
+      setDbPath(config?.dbPath ?? "");
+      setIsSaving(false);
+    }
+  }, [open, config]);
+
+  const handleSave = async () => {
+    if (!onSave) return;
+    setIsSaving(true);
+    try {
+      await onSave({
+        cliPath: cliPath.trim() || undefined,
+        dbPath: dbPath.trim() || undefined,
+      });
+      onOpenChange(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   // Determine the connection status
   const status: ConnectionStatus = isConnected
     ? "connected"
@@ -201,14 +234,47 @@ export function iMessageConfigSheet({
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
+
+              {isMacOS && (
+                <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-4">
+                  <p className="text-sm font-medium">Advanced paths (optional)</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="imessage-cli">imsg binary path</Label>
+                    <Input
+                      id="imessage-cli"
+                      type="text"
+                      placeholder="/usr/local/bin/imsg"
+                      value={cliPath}
+                      onChange={(event) => setCliPath(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imessage-db">Messages database path</Label>
+                    <Input
+                      id="imessage-db"
+                      type="text"
+                      placeholder="~/Library/Messages/chat.db"
+                      value={dbPath}
+                      onChange={(event) => setDbPath(event.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
+        <DialogFooter className="mt-6 flex-row gap-2 sm:justify-between">
+          <div className="flex-1" />
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
+          {onSave && isMacOS && status !== "unavailable" && (
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

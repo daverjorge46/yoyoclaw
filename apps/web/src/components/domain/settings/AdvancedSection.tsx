@@ -50,10 +50,10 @@ export function AdvancedSection({ className, onOpenShortcuts }: AdvancedSectionP
   const handleImport = async (
     data: ValidatedConfigurationExport,
     sections: ExportSection[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     strategy: "merge" | "replace"
   ) => {
     // Note: strategy will be used for merge logic when gateway API supports it
+    void strategy;
     // Apply profile settings
     if (sections.includes("profile") && data.data.profile) {
       const profile = data.data.profile;

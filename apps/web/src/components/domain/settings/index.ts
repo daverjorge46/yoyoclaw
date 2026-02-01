@@ -1,6 +1,8 @@
+// Section components
 export { ProfileSection } from "./ProfileSection";
 export { PreferencesSection } from "./PreferencesSection";
 export { AIProviderSection } from "./AIProviderSection";
+export { ModelProviderSection } from "./ModelProviderSection";
 export { GatewaySection } from "./GatewaySection";
 export { ChannelsSection } from "./ChannelsSection";
 export { AgentsSection } from "./AgentsSection";
@@ -9,5 +11,15 @@ export { ConnectionsSection } from "./ConnectionsSection";
 export { UsageSection } from "./UsageSection";
 export { HealthSection } from "./HealthSection";
 export { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
+
+// Legacy navigation (includes all sections - may be removed later)
 export { SettingsNav, type SettingsSection } from "./SettingsNav";
 export { SettingsMobileNav } from "./SettingsMobileNav";
+
+// Profile navigation (personalization only - for /you route)
+export { ProfileNav, type ProfileSection as ProfileSectionType } from "./ProfileNav";
+export { ProfileMobileNav } from "./ProfileMobileNav";
+
+// Config navigation (system config only - for /settings route)
+export { SettingsConfigNav, type ConfigSection } from "./SettingsConfigNav";
+export { SettingsConfigMobileNav } from "./SettingsConfigMobileNav";

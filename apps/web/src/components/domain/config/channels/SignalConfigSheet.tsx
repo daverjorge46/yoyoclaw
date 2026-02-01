@@ -40,6 +40,8 @@ export function SignalConfigSheet({
   isConnected,
 }: SignalConfigSheetProps) {
   const [phoneNumber, setPhoneNumber] = React.useState(config?.phoneNumber ?? "");
+  const [baseUrl, setBaseUrl] = React.useState(config?.baseUrl ?? "");
+  const [deviceName, setDeviceName] = React.useState(config?.deviceName ?? "");
   const [verificationCode, setVerificationCode] = React.useState("");
   const [currentStep, setCurrentStep] = React.useState<SetupStep>("phone");
   const [isSaving, setIsSaving] = React.useState(false);
@@ -49,6 +51,8 @@ export function SignalConfigSheet({
   React.useEffect(() => {
     if (open) {
       setPhoneNumber(config?.phoneNumber ?? "");
+      setBaseUrl(config?.baseUrl ?? "");
+      setDeviceName(config?.deviceName ?? "");
       setVerificationCode("");
       setCurrentStep(isConnected ? "complete" : "phone");
     }
@@ -71,7 +75,11 @@ export function SignalConfigSheet({
     if (!verificationCode.trim()) return;
     setIsSaving(true);
     try {
-      await onSave({ phoneNumber: phoneNumber.trim() });
+      await onSave({
+        phoneNumber: phoneNumber.trim(),
+        baseUrl: baseUrl.trim() || undefined,
+        deviceName: deviceName.trim() || undefined,
+      });
       setCurrentStep("complete");
       showSuccess("Signal connected successfully");
       setTimeout(() => {
@@ -250,6 +258,33 @@ export function SignalConfigSheet({
                   )}
                   Request Verification Code
                 </Button>
+
+                <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-4">
+                  <p className="text-sm font-medium">Advanced connection settings</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="signal-base-url">signal-cli base URL (optional)</Label>
+                    <Input
+                      id="signal-base-url"
+                      type="url"
+                      placeholder="http://localhost:8080"
+                      value={baseUrl}
+                      onChange={(e) => setBaseUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use this if your signal-cli daemon runs on a remote host.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signal-device-name">Device name (optional)</Label>
+                    <Input
+                      id="signal-device-name"
+                      type="text"
+                      placeholder="Clawdbrain gateway"
+                      value={deviceName}
+                      onChange={(e) => setDeviceName(e.target.value)}
+                    />
+                  </div>
+                </div>
 
                 {/* Prerequisites reminder */}
                 <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">

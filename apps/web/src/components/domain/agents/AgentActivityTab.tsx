@@ -478,14 +478,14 @@ export function AgentActivityTab({
                     >
                       {/* Connectors */}
                       {!isFirst && (
-                        <div className="pointer-events-none absolute left-5 -top-4 z-0 h-4 w-px rounded-full bg-border transition-colors group-hover:bg-emerald-500/50" />
+                        <div className="pointer-events-none absolute left-5 -top-[6px] z-0 h-4 w-px rounded-full bg-border transition-colors group-hover:bg-emerald-500/50" />
                       )}
                       {!isLast && (
-                        <div className="pointer-events-none absolute left-5 top-10 -bottom-4 z-0 w-px rounded-full bg-border transition-colors group-hover:bg-emerald-500/50" />
+                        <div className="pointer-events-none absolute left-5 top-[50px] -bottom-4 z-0 w-px rounded-full bg-border transition-colors group-hover:bg-emerald-500/50" />
                       )}
 
                       {/* Icon */}
-                      <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-border shadow-sm transition-colors group-hover:ring-emerald-500/40">
+                      <div className="absolute left-0 top-[10px] z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-border shadow-sm transition-colors group-hover:ring-emerald-500/40">
                         <div
                           className={cn(
                             "relative flex h-8 w-8 items-center justify-center rounded-full bg-background"
@@ -600,14 +600,14 @@ export function AgentActivityTab({
                       >
                         {/* Connectors */}
                         {!isFirst && (
-                          <div className="pointer-events-none absolute left-5 -top-4 z-0 h-4 w-px rounded-full bg-border transition-colors group-hover:bg-primary/40" />
+                          <div className="pointer-events-none absolute left-5 -top-[6px] z-0 h-4 w-px rounded-full bg-border transition-colors group-hover:bg-primary/40" />
                         )}
                         {!isLast && (
-                          <div className="pointer-events-none absolute left-5 top-10 -bottom-4 z-0 w-px rounded-full bg-border transition-colors group-hover:bg-primary/40" />
+                          <div className="pointer-events-none absolute left-5 top-[50px] -bottom-4 z-0 w-px rounded-full bg-border transition-colors group-hover:bg-primary/40" />
                         )}
 
                         {/* Icon */}
-                        <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-border shadow-sm transition-colors group-hover:ring-primary/30">
+                        <div className="absolute left-0 top-[10px] z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background ring-1 ring-border shadow-sm transition-colors group-hover:ring-primary/30">
                           <div
                             className={cn(
                               "relative flex h-8 w-8 items-center justify-center rounded-full bg-background"

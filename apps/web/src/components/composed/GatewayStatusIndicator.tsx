@@ -104,26 +104,31 @@ export function GatewayStatusIndicator({
     <Tooltip>
       <TooltipTrigger asChild>
         <Link
-          to="/you"
-          search={{ section: "connections" }}
+          to="/settings"
+          search={{ section: "gateway" }}
           className={cn(
-            "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
             "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
             collapsed && "justify-center px-2",
             className
           )}
         >
-          {/* Status dot */}
-          <span className="relative flex items-center justify-center">
+          {/* Status dot - sized to align with NavItem icons (size-5 = 20px) */}
+          <span className="relative flex size-5 shrink-0 items-center justify-center">
             {status === "connecting" ? (
-              <Loader2 className="size-3 animate-spin text-yellow-500" />
+              <Loader2 className="size-4 animate-spin text-yellow-500" />
             ) : (
               <>
-                <span className={cn("size-2.5 rounded-full", config.color)} />
+                <span className={cn(
+                  "size-3 rounded-full shadow-lg",
+                  config.color,
+                  status === "connected" && "shadow-[0_0_8px_2px] shadow-green-500/50",
+                  status === "disconnected" && "shadow-[0_0_8px_2px] shadow-red-500/50"
+                )} />
                 {status === "connected" && (
                   <span
                     className={cn(
-                      "absolute size-2.5 rounded-full opacity-40 animate-ping",
+                      "absolute size-3 rounded-full opacity-50 animate-ping",
                       config.color
                     )}
                   />

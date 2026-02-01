@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import {
   Power,
   PowerOff,
 } from "lucide-react";
+import { useModels } from "@/hooks/queries/useModels";
 import type { Agent, AgentStatus } from "@/stores/useAgentStore";
 
 // Model display names mapping
@@ -36,6 +38,17 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   "gpt-4-turbo": "GPT-4 Turbo",
   default: "Default Model",
 };
+
+function splitModelRef(value?: string): { provider?: string; modelId?: string } {
+  if (!value) return {};
+  const trimmed = value.trim();
+  if (!trimmed) return {};
+  const parts = trimmed.split("/");
+  if (parts.length <= 1) {
+    return { modelId: trimmed };
+  }
+  return { provider: parts[0], modelId: parts.slice(1).join("/") };
+}
 
 // Status badge variants
 const STATUS_CONFIG: Record<
@@ -81,6 +94,7 @@ export function AgentCard({
   onToggleStatus,
   className,
 }: AgentCardProps) {
+  const { data: modelsData } = useModels();
   const statusConfig = STATUS_CONFIG[agent.status];
   const avatarGradient = getAvatarGradient(agent.name);
   const initials = agent.name
@@ -91,7 +105,20 @@ export function AgentCard({
     .toUpperCase();
 
   // Model display - use role as fallback
+  const modelRef = splitModelRef(agent.model);
+  const modelEntry = React.useMemo(() => {
+    if (!modelsData?.models || !modelRef.modelId) return undefined;
+    if (modelRef.provider) {
+      return modelsData.models.find(
+        (model) => model.provider === modelRef.provider && model.id === modelRef.modelId
+      );
+    }
+    return modelsData.models.find((model) => model.id === modelRef.modelId);
+  }, [modelsData?.models, modelRef.modelId, modelRef.provider]);
+
   const modelDisplay =
+    modelEntry?.name ??
+    (modelRef.modelId ? MODEL_DISPLAY_NAMES[modelRef.modelId] : undefined) ??
     MODEL_DISPLAY_NAMES[agent.role?.toLowerCase() ?? ""] ??
     agent.role ??
     "Assistant";

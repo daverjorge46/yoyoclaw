@@ -79,10 +79,17 @@ export function AgentCard({
               </div>
               {/* Status dot */}
               <div className="absolute -bottom-0.5 -right-0.5">
-                <div className="relative flex h-3 w-3 items-center justify-center">
-                  <span className={cn("h-2.5 w-2.5 rounded-full", status.color)} />
+                <div className="relative flex h-4 w-4 items-center justify-center">
+                  <span className={cn(
+                    "h-3 w-3 rounded-full shadow-lg border-2 border-card",
+                    status.color,
+                    status.animate && "shadow-[0_0_8px_1px]",
+                    status.color === "bg-green-500" && status.animate && "shadow-green-500/60",
+                    status.color === "bg-yellow-500" && status.animate && "shadow-yellow-500/60",
+                    status.color === "bg-orange-500" && status.animate && "shadow-orange-500/60"
+                  )} />
                   {status.animate && (
-                    <span className={cn("absolute h-2.5 w-2.5 rounded-full opacity-40 animate-ping", status.color)} />
+                    <span className={cn("absolute h-3 w-3 rounded-full animate-ping opacity-60", status.color)} />
                   )}
                 </div>
               </div>
@@ -130,14 +137,25 @@ export function AgentCard({
         <CardContent className="relative p-6">
           {/* Header */}
           <div className="mb-5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="relative flex h-3 w-3 items-center justify-center">
-                <span className={cn("h-2.5 w-2.5 rounded-full", status.color)} />
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex h-5 w-5 items-center justify-center">
+                <span className={cn(
+                  "h-3.5 w-3.5 rounded-full shadow-lg",
+                  status.color,
+                  status.animate && "shadow-[0_0_12px_2px]",
+                  status.color === "bg-green-500" && status.animate && "shadow-green-500/60",
+                  status.color === "bg-yellow-500" && status.animate && "shadow-yellow-500/60",
+                  status.color === "bg-orange-500" && status.animate && "shadow-orange-500/60"
+                )} />
                 {status.animate && (
-                  <span className={cn("absolute h-2.5 w-2.5 rounded-full opacity-40 animate-ping", status.color)} />
+                  <span className={cn(
+                    "absolute h-3.5 w-3.5 rounded-full animate-ping",
+                    status.color,
+                    "opacity-60"
+                  )} />
                 )}
               </div>
-              <span className="text-sm text-muted-foreground">{status.label}</span>
+              <span className="text-sm font-medium text-foreground">{status.label}</span>
             </div>
             {agent.taskCount !== undefined && agent.taskCount > 0 && (
               <Badge variant="secondary" className="text-xs">

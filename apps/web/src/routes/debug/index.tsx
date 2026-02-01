@@ -749,7 +749,7 @@ function LogsTab() {
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]" ref={scrollRef}>
-            <div className="space-y-1 font-mono text-sm">
+            <div className="selectable-text space-y-1 font-mono text-sm">
               {filteredLogs.map((log) => (
                 <div
                   key={log.id}

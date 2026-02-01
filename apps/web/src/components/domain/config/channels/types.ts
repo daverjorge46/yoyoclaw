@@ -52,6 +52,7 @@ export interface ChannelConfig {
   status: ChannelStatus;
   statusMessage?: string;
   lastConnected?: string;
+  activity?: ChannelActivityItem[];
   /** Legacy advanced flag */
   isAdvanced?: boolean;
   /** Legacy local only flag */
@@ -62,31 +63,64 @@ export interface ChannelConfig {
   category?: "messaging" | "enterprise" | "decentralized" | "productivity";
 }
 
+export type ChannelActivityStatus = "active" | "idle" | "error";
+
+export interface ChannelActivityItem {
+  id: string;
+  title: string;
+  summary?: string;
+  status: ChannelActivityStatus;
+  agentId: string;
+  agentName: string;
+  sessionId?: string;
+  timestamp: string;
+}
+
 // Channel-specific config types
 
 export interface TelegramConfig {
   botToken: string;
+  mode?: "polling" | "webhook";
+  webhookUrl?: string;
+  allowFrom?: string[];
+  allowUnmentionedGroups?: boolean;
 }
 
 export interface DiscordConfig {
   botToken: string;
+  applicationId?: string;
+  allowFrom?: string[];
+  dmPolicy?: "allow" | "mentions" | "disabled";
 }
 
 export interface SlackConfig {
   workspaceId?: string;
   workspaceName?: string;
+  mode?: "oauth" | "token";
+  botToken?: string;
+  appToken?: string;
+  signingSecret?: string;
+  defaultChannel?: string;
+  allowChannels?: string[];
 }
 
 export interface WhatsAppConfig {
   phoneNumber?: string;
   qrCode?: string;
+  displayName?: string;
+  reconnectPolicy?: "auto" | "manual";
 }
 
 export interface SignalConfig {
   phoneNumber?: string;
+  baseUrl?: string;
+  deviceName?: string;
 }
 
-export type iMessageConfig = Record<string, never>;
+export interface iMessageConfig {
+  cliPath?: string;
+  dbPath?: string;
+}
 
 export interface MicrosoftTeamsConfig {
   tenantId?: string;
@@ -99,6 +133,8 @@ export interface GoogleChatConfig {
   serviceAccountKey?: string;
   webhookUrl?: string;
   spaceId?: string;
+  audienceType?: "space" | "member" | "domain";
+  audience?: string;
 }
 
 export interface LineConfig {
@@ -121,16 +157,19 @@ export interface MattermostConfig {
   serverUrl?: string;
   botToken?: string;
   teamId?: string;
+  defaultChannel?: string;
 }
 
 export interface NotionConfig {
   integrationToken?: string;
   workspaceId?: string;
+  databaseIds?: string[];
 }
 
 export interface ObsidianConfig {
   vaultPath?: string;
   apiKey?: string;
+  syncMode?: "read" | "read_write";
 }
 
 export type AnyChannelConfig =

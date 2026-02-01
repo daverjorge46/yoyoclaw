@@ -166,7 +166,7 @@ export function AgenticWorkflowView({
                   </Avatar>
                   <Card
                     className={cn(
-                      "max-w-[85%] p-4",
+                      "selectable-text max-w-[85%] p-4",
                       m.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-card"

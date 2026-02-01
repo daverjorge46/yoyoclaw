@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Check, ExternalLink, Link2Off, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { Check, ExternalLink, Settings2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConnectionWizardDialog } from "./ConnectionWizardDialog";
 
 interface Connection {
   id: string;
@@ -16,6 +16,32 @@ interface Connection {
   description: string;
   connected: boolean;
   lastSync?: string;
+  authMethods: Array<{
+    id: string;
+    label: string;
+    description: string;
+    type: "oauth" | "api_key" | "token";
+    badge?: string;
+    fields?: Array<{
+      id: string;
+      label: string;
+      placeholder?: string;
+      type?: "text" | "password" | "url";
+      helpText?: string;
+      required?: boolean;
+      multiline?: boolean;
+      rows?: number;
+    }>;
+    scopes?: string[];
+    ctaLabel?: string;
+    ctaHint?: string;
+  }>;
+  syncOptions?: Array<{
+    id: string;
+    label: string;
+    description: string;
+    defaultEnabled?: boolean;
+  }>;
 }
 
 interface ConnectionsSectionProps {
@@ -86,6 +112,47 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       description: "Sync repositories and issues with your agents",
       connected: true,
       lastSync: "2 hours ago",
+      authMethods: [
+        {
+          id: "github-oauth",
+          label: "GitHub OAuth",
+          description: "Connect your GitHub account and select repositories",
+          type: "oauth",
+          badge: "Recommended",
+          scopes: ["repo", "read:org", "read:project"],
+          ctaLabel: "Continue with GitHub",
+          ctaHint: "You can fine-tune repo access after authorization.",
+        },
+        {
+          id: "github-pat",
+          label: "Personal Access Token",
+          description: "Use a fine-grained or classic token",
+          type: "api_key",
+          fields: [
+            {
+              id: "token",
+              label: "Personal Access Token",
+              placeholder: "ghp_xxxxxxxxxxxxxxxxxxxxx",
+              type: "password",
+              helpText: "Store a token with repo and workflow access as needed.",
+            },
+            {
+              id: "repoAllowlist",
+              label: "Repo allowlist (optional)",
+              placeholder: "org/repo-one\\norg/repo-two",
+              multiline: true,
+              rows: 3,
+              helpText: "Limit access to specific repos. Leave blank to allow all.",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncIssues", label: "Sync issues", description: "Keep issue updates in sync.", defaultEnabled: true },
+        { id: "syncPulls", label: "Sync pull requests", description: "Track PRs and review status.", defaultEnabled: true },
+        { id: "syncDeploys", label: "Sync deployments", description: "Surface deploy statuses in activity feeds.", defaultEnabled: false },
+      ],
     },
     {
       id: "google",
@@ -94,6 +161,46 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       description: "Connect Google Calendar, Drive, and Gmail",
       connected: true,
       lastSync: "30 minutes ago",
+      authMethods: [
+        {
+          id: "google-oauth",
+          label: "Google OAuth",
+          description: "Sign in with Google and grant access",
+          type: "oauth",
+          badge: "Recommended",
+          scopes: ["Calendar", "Drive", "Gmail"],
+          ctaLabel: "Continue with Google",
+          ctaHint: "You can narrow scopes per workspace later.",
+        },
+        {
+          id: "google-api-key",
+          label: "Service Account / API Key",
+          description: "Use a service account or API key for shared resources",
+          type: "api_key",
+          fields: [
+            {
+              id: "serviceAccountJson",
+              label: "Service Account JSON",
+              placeholder: "{\\n  \"type\": \"service_account\", ...\\n}",
+              multiline: true,
+              rows: 4,
+              helpText: "Paste the full JSON key from Google Cloud.",
+            },
+            {
+              id: "delegatedUser",
+              label: "Delegated user (optional)",
+              placeholder: "user@company.com",
+              helpText: "Impersonate a user for domain-wide delegation.",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncCalendar", label: "Calendar events", description: "Sync calendars and availability.", defaultEnabled: true },
+        { id: "syncDrive", label: "Drive files", description: "Index Drive content for search.", defaultEnabled: true },
+        { id: "syncGmail", label: "Gmail messages", description: "Let agents summarize and draft emails.", defaultEnabled: false },
+      ],
     },
     {
       id: "slack",
@@ -101,6 +208,48 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       icon: <SlackIcon className="h-6 w-6" />,
       description: "Send and receive messages through Slack",
       connected: false,
+      authMethods: [
+        {
+          id: "slack-oauth",
+          label: "Slack OAuth",
+          description: "Install the app in a workspace",
+          type: "oauth",
+          badge: "Recommended",
+          scopes: ["chat:write", "channels:read", "im:history"],
+          ctaLabel: "Continue with Slack",
+        },
+        {
+          id: "slack-tokens",
+          label: "Bot + App Tokens",
+          description: "Use bot tokens for Socket Mode or internal apps",
+          type: "token",
+          fields: [
+            {
+              id: "botToken",
+              label: "Bot Token",
+              placeholder: "xoxb-123456789-xxx",
+              type: "password",
+            },
+            {
+              id: "appToken",
+              label: "App Token (Socket Mode)",
+              placeholder: "xapp-123456789-xxx",
+              type: "password",
+              required: false,
+            },
+            {
+              id: "defaultChannel",
+              label: "Default channel (optional)",
+              placeholder: "#ops or C012ABCDEF",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncChannels", label: "Channel history", description: "Sync recent channel messages.", defaultEnabled: true },
+        { id: "syncDMs", label: "Direct messages", description: "Allow agents to respond in DMs.", defaultEnabled: false },
+      ],
     },
     {
       id: "notion",
@@ -108,6 +257,40 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       icon: <NotionIcon className="h-6 w-6" />,
       description: "Sync pages and databases with your workspace",
       connected: false,
+      authMethods: [
+        {
+          id: "notion-oauth",
+          label: "Notion OAuth",
+          description: "Authorize with Notion and pick pages",
+          type: "oauth",
+          badge: "Recommended",
+          ctaLabel: "Continue with Notion",
+        },
+        {
+          id: "notion-token",
+          label: "Internal Integration Token",
+          description: "Use a token for shared pages/databases",
+          type: "api_key",
+          fields: [
+            {
+              id: "integrationToken",
+              label: "Integration Token",
+              placeholder: "secret_xxxxxxxxxxxxxx",
+              type: "password",
+            },
+            {
+              id: "workspaceId",
+              label: "Workspace ID (optional)",
+              placeholder: "workspace-id",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncPages", label: "Pages", description: "Index pages and sub-pages.", defaultEnabled: true },
+        { id: "syncDatabases", label: "Databases", description: "Sync databases and views.", defaultEnabled: true },
+      ],
     },
     {
       id: "linear",
@@ -115,6 +298,42 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       icon: <LinearIcon className="h-6 w-6" />,
       description: "Track issues and projects from Linear",
       connected: false,
+      authMethods: [
+        {
+          id: "linear-oauth",
+          label: "Linear OAuth",
+          description: "Connect your Linear workspace",
+          type: "oauth",
+          badge: "Recommended",
+          scopes: ["read", "write"],
+          ctaLabel: "Continue with Linear",
+        },
+        {
+          id: "linear-api-key",
+          label: "Personal API Key",
+          description: "Use a personal API key",
+          type: "api_key",
+          fields: [
+            {
+              id: "apiKey",
+              label: "API Key",
+              placeholder: "lin_api_xxxxxxxxxxxxxx",
+              type: "password",
+            },
+            {
+              id: "teamId",
+              label: "Default Team ID (optional)",
+              placeholder: "team-id",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncIssues", label: "Issues", description: "Sync issue updates.", defaultEnabled: true },
+        { id: "syncProjects", label: "Projects", description: "Track projects and milestones.", defaultEnabled: true },
+        { id: "syncRoadmap", label: "Roadmap", description: "Keep product roadmap in view.", defaultEnabled: false },
+      ],
     },
     {
       id: "discord",
@@ -122,38 +341,74 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       icon: <DiscordIcon className="h-6 w-6" />,
       description: "Connect your Discord servers and channels",
       connected: false,
+      authMethods: [
+        {
+          id: "discord-oauth",
+          label: "Discord OAuth",
+          description: "Install your bot into servers",
+          type: "oauth",
+          badge: "Recommended",
+          scopes: ["bot", "applications.commands"],
+          ctaLabel: "Continue with Discord",
+        },
+        {
+          id: "discord-token",
+          label: "Bot Token",
+          description: "Use a bot token from the Developer Portal",
+          type: "token",
+          fields: [
+            {
+              id: "botToken",
+              label: "Bot Token",
+              placeholder: "MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.XXXXXX.XXXXXXXXX",
+              type: "password",
+            },
+            {
+              id: "applicationId",
+              label: "Application ID (optional)",
+              placeholder: "123456789012345678",
+              required: false,
+            },
+          ],
+        },
+      ],
+      syncOptions: [
+        { id: "syncServers", label: "Server activity", description: "Sync guilds and channels.", defaultEnabled: true },
+        { id: "syncDMs", label: "Direct messages", description: "Allow DM routing.", defaultEnabled: false },
+      ],
     },
   ]);
 
-  const [loadingId, setLoadingId] = React.useState<string | null>(null);
+  const [activeConnectionId, setActiveConnectionId] = React.useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = React.useState(false);
 
-  const handleToggleConnection = async (id: string) => {
-    setLoadingId(id);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+  const activeConnection = connections.find((connection) => connection.id === activeConnectionId);
 
+  const handleOpenWizard = (id: string) => {
+    setActiveConnectionId(id);
+    setWizardOpen(true);
+  };
+
+  const handleConnect = async (id: string) => {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     setConnections((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              connected: !c.connected,
-              lastSync: !c.connected ? "Just now" : undefined,
-            }
-          : c
+      prev.map((connection) =>
+        connection.id === id
+          ? { ...connection, connected: true, lastSync: "Just now" }
+          : connection
       )
     );
+  };
 
-    const connection = connections.find((c) => c.id === id);
-    if (connection) {
-      toast.success(
-        connection.connected
-          ? `${connection.name} disconnected`
-          : `${connection.name} connected successfully`
-      );
-    }
-
-    setLoadingId(null);
+  const handleDisconnect = async (id: string) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setConnections((prev) =>
+      prev.map((connection) =>
+        connection.id === id
+          ? { ...connection, connected: false, lastSync: undefined }
+          : connection
+      )
+    );
   };
 
   return (
@@ -166,7 +421,7 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {connections.map((connection) => (
+              {connections.map((connection) => (
             <Card key={connection.id} className="p-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
@@ -194,15 +449,13 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
                 <Button
                   variant={connection.connected ? "outline" : "default"}
                   size="sm"
-                  onClick={() => handleToggleConnection(connection.id)}
-                  disabled={loadingId === connection.id}
+                  onClick={() => handleOpenWizard(connection.id)}
+                  className={connection.connected ? "gap-2" : "gap-2"}
                 >
-                  {loadingId === connection.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : connection.connected ? (
+                  {connection.connected ? (
                     <>
-                      <Link2Off className="h-4 w-4" />
-                      Disconnect
+                      <Settings2 className="h-4 w-4" />
+                      Manage
                     </>
                   ) : (
                     <>
@@ -216,6 +469,20 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
           ))}
         </div>
       </CardContent>
+
+      {activeConnection && (
+        <ConnectionWizardDialog
+          open={wizardOpen}
+          onOpenChange={setWizardOpen}
+          connection={activeConnection}
+          onConnect={async (_payload) => handleConnect(activeConnection.id)}
+          onDisconnect={
+            activeConnection.connected
+              ? async () => handleDisconnect(activeConnection.id)
+              : undefined
+          }
+        />
+      )}
     </Card>
   );
 }

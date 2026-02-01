@@ -12,6 +12,7 @@ export {
 } from "./GatewayConfig";
 export { default as GatewayConfigConnected } from "./GatewayConfigConnected";
 export { default as ModelProviderConfig } from "./ModelProviderConfig";
+export { default as ModelProviderSelector } from "./ModelProviderSelector";
 export { default as ChannelConfig } from "./ChannelConfig";
 export { default as ChannelConfigConnected } from "./ChannelConfigConnected";
 export { default as HealthDashboard } from "./HealthDashboard";

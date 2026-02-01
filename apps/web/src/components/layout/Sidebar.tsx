@@ -26,6 +26,7 @@ import { useUIStore } from "@/stores/useUIStore";
 import { NavItem } from "./NavItem";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { GatewayStatusIndicator } from "@/components/composed/GatewayStatusIndicator";
+import { AgentSessionsIndicator } from "@/components/composed/AgentSessionsIndicator";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -250,22 +251,34 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="border-t border-border p-2 space-y-0.5">
-        {/* Gateway Status Indicator */}
-        <GatewayStatusIndicator collapsed={sidebarCollapsed} />
+      <div className="border-t border-border p-2">
+        {/* Status Indicators Section */}
+        <div className="space-y-0.5 mb-2">
+          <GatewayStatusIndicator collapsed={sidebarCollapsed} />
+          <AgentSessionsIndicator collapsed={sidebarCollapsed} />
+        </div>
 
-        <NavItem
-          href="/settings"
-          icon={Settings}
-          label="Settings"
-          collapsed={sidebarCollapsed}
-        />
-        <NavItem
-          href="/connections"
-          icon={Plug}
-          label="Connections"
-          collapsed={sidebarCollapsed}
-        />
+        {/* Separator between status and actions */}
+        <Separator className="my-2" />
+
+        {/* Actions Section */}
+        <div className="space-y-0.5">
+          <NavItem
+            href="/settings"
+            icon={Settings}
+            label="Settings"
+            collapsed={sidebarCollapsed}
+            inactiveWhenSearch={{ section: "connections" }}
+          />
+          <NavItem
+            href="/settings"
+            search={{ section: "connections" }}
+            icon={Plug}
+            label="Connections"
+            collapsed={sidebarCollapsed}
+            exactMatch
+          />
+        </div>
       </div>
 
       {/* Collapse Toggle */}

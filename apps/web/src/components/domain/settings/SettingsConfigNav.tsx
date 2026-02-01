@@ -1,38 +1,42 @@
 "use client";
 
-import { User, Settings, Zap, Plug, CreditCard, Brain, Server, MessageSquare, Bot, Activity } from "lucide-react";
+import {
+  Zap,
+  Plug,
+  CreditCard,
+  Brain,
+  Server,
+  MessageSquare,
+  Bot,
+  Activity,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type SettingsSection =
-  | "profile"
-  | "preferences"
+export type ConfigSection =
+  | "health"
   | "ai-provider"
   | "gateway"
   | "channels"
   | "agents"
-  | "health"
   | "advanced"
   | "connections"
   | "usage";
 
 interface NavItem {
-  id: SettingsSection;
+  id: ConfigSection;
   label: string;
-  icon: typeof User;
-  group?: "user" | "system" | "power";
+  icon: typeof Activity;
+  group: "system" | "power";
 }
 
-interface SettingsNavProps {
-  activeSection: SettingsSection;
-  onSectionChange: (section: SettingsSection) => void;
+interface SettingsConfigNavProps {
+  activeSection: ConfigSection;
+  onSectionChange: (section: ConfigSection) => void;
   className?: string;
 }
 
 const navItems: NavItem[] = [
-  // User-focused
-  { id: "profile", label: "Profile", icon: User, group: "user" },
-  { id: "preferences", label: "Preferences", icon: Settings, group: "user" },
   // System config
   { id: "health", label: "System Health", icon: Activity, group: "system" },
   { id: "ai-provider", label: "Model & Provider", icon: Brain, group: "system" },
@@ -46,16 +50,19 @@ const navItems: NavItem[] = [
 ];
 
 const groupLabels: Record<string, string> = {
-  user: "Account",
   system: "Configuration",
   power: "Advanced",
 };
 
-export function SettingsNav({ activeSection, onSectionChange, className }: SettingsNavProps) {
+export function SettingsConfigNav({
+  activeSection,
+  onSectionChange,
+  className,
+}: SettingsConfigNavProps) {
   // Group items by their group
   const groups = navItems.reduce(
     (acc, item) => {
-      const group = item.group || "user";
+      const group = item.group;
       if (!acc[group]) acc[group] = [];
       acc[group].push(item);
       return acc;
@@ -63,7 +70,7 @@ export function SettingsNav({ activeSection, onSectionChange, className }: Setti
     {} as Record<string, NavItem[]>
   );
 
-  const groupOrder = ["user", "system", "power"] as const;
+  const groupOrder = ["system", "power"] as const;
 
   return (
     <nav className={cn("space-y-6", className)}>
@@ -104,4 +111,4 @@ export function SettingsNav({ activeSection, onSectionChange, className }: Setti
   );
 }
 
-export default SettingsNav;
+export default SettingsConfigNav;

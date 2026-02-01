@@ -76,6 +76,10 @@ export function ImportConfigDialog({
           setValidationResult({ valid: false, errors: validateResult.errors });
           return;
         }
+        if (!validateResult.data) {
+          setValidationResult({ valid: false, errors: ["Validation returned no data"] });
+          return;
+        }
 
         setValidationResult({ valid: true, data: validateResult.data });
         // Select all available sections by default

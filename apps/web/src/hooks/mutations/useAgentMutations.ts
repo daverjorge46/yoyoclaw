@@ -1,11 +1,23 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { uuidv7 } from "@/lib/ids";
+import { getConfig, patchConfig } from "@/lib/api";
+import {
+  buildAgentEntry,
+  buildAgentsPatch,
+  getAgentsList,
+  mapAgentEntryToAgent,
+} from "@/lib/agents";
 import type { Agent, AgentStatus } from "../queries/useAgents";
 import { agentKeys } from "../queries/useAgents";
+import { configKeys } from "../queries/useConfig";
 
-// Mock API functions - replace with real API calls later
-async function createAgent(
+type MutationSource = "gateway" | "mock";
+type AgentResult = { agent: Agent; source: MutationSource };
+type DeleteResult = { id: string; source: MutationSource };
+
+// Mock API functions - retained for offline testing
+async function createAgentMock(
   data: Omit<Agent, "id" | "lastActive">
 ): Promise<Agent> {
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -16,20 +28,19 @@ async function createAgent(
   };
 }
 
-async function updateAgent(
+async function updateAgentMock(
   data: Partial<Agent> & { id: string }
 ): Promise<Agent> {
   await new Promise((resolve) => setTimeout(resolve, 400));
-  // In real implementation, this would merge with existing data
   return data as Agent;
 }
 
-async function deleteAgent(id: string): Promise<string> {
+async function deleteAgentMock(id: string): Promise<string> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return id;
 }
 
-async function updateAgentStatus(
+async function updateAgentStatusMock(
   id: string,
   status: AgentStatus
 ): Promise<{ id: string; status: AgentStatus }> {
@@ -37,18 +48,97 @@ async function updateAgentStatus(
   return { id, status };
 }
 
+async function resolveConfigSnapshot() {
+  try {
+    const snapshot = await getConfig();
+    if (!snapshot?.hash) return null;
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+async function patchAgentsList(
+  snapshot: { hash: string; config?: unknown },
+  nextList: ReturnType<typeof getAgentsList>,
+  note: string
+) {
+  const patch = buildAgentsPatch(snapshot.config, nextList);
+  await patchConfig({
+    baseHash: snapshot.hash,
+    raw: JSON.stringify(patch),
+    note,
+  });
+}
+
+async function createAgentConfig(
+  snapshot: { hash: string; config?: unknown },
+  data: Omit<Agent, "id" | "lastActive">
+): Promise<Agent> {
+  const currentList = getAgentsList(snapshot.config);
+  const id = uuidv7();
+  const nextEntry = buildAgentEntry(
+    {
+      ...data,
+      id,
+    },
+    undefined
+  );
+  const nextList = [...currentList, nextEntry];
+  await patchAgentsList(snapshot, nextList, "Add agent");
+  return mapAgentEntryToAgent(nextEntry);
+}
+
+async function updateAgentConfig(
+  snapshot: { hash: string; config?: unknown },
+  data: Partial<Agent> & { id: string }
+): Promise<Agent> {
+  const currentList = getAgentsList(snapshot.config);
+  const existing = currentList.find((agent) => agent.id === data.id);
+  if (!existing) {
+    return updateAgentMock(data);
+  }
+  const nextEntry = buildAgentEntry(data, existing);
+  const nextList = currentList.map((agent) =>
+    agent.id === data.id ? nextEntry : agent
+  );
+  await patchAgentsList(snapshot, nextList, "Update agent");
+  return mapAgentEntryToAgent(nextEntry);
+}
+
+async function deleteAgentConfig(
+  snapshot: { hash: string; config?: unknown },
+  id: string
+): Promise<string> {
+  const currentList = getAgentsList(snapshot.config);
+  const nextList = currentList.filter((agent) => agent.id !== id);
+  await patchAgentsList(snapshot, nextList, "Delete agent");
+  return id;
+}
+
 // Mutation hooks
 export function useCreateAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createAgent,
-    onSuccess: (newAgent) => {
+    mutationFn: async (data: Omit<Agent, "id" | "lastActive">): Promise<AgentResult> => {
+      const snapshot = await resolveConfigSnapshot();
+      if (!snapshot) {
+        return { agent: await createAgentMock(data), source: "mock" };
+      }
+      const agent = await createAgentConfig(snapshot, data);
+      return { agent, source: "gateway" };
+    },
+    onSuccess: (result) => {
+      const newAgent = result.agent;
       // Optimistically add to cache
       queryClient.setQueryData<Agent[]>(agentKeys.lists(), (old) =>
         old ? [...old, newAgent] : [newAgent]
       );
       queryClient.invalidateQueries({ queryKey: agentKeys.all });
+      if (result.source === "gateway") {
+        queryClient.invalidateQueries({ queryKey: configKeys.all });
+      }
       toast.success("Agent created successfully");
     },
     onError: (error) => {
@@ -63,7 +153,16 @@ export function useUpdateAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateAgent,
+    mutationFn: async (
+      data: Partial<Agent> & { id: string }
+    ): Promise<AgentResult> => {
+      const snapshot = await resolveConfigSnapshot();
+      if (!snapshot) {
+        return { agent: await updateAgentMock(data), source: "mock" };
+      }
+      const agent = await updateAgentConfig(snapshot, data);
+      return { agent, source: "gateway" };
+    },
     onMutate: async (updatedAgent) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
@@ -83,9 +182,12 @@ export function useUpdateAgent() {
 
       return { previousAgent };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: agentKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: agentKeys.lists() });
+      if (result.source === "gateway") {
+        queryClient.invalidateQueries({ queryKey: configKeys.all });
+      }
       toast.success("Agent updated successfully");
     },
     onError: (error, variables, context) => {
@@ -107,7 +209,14 @@ export function useDeleteAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteAgent,
+    mutationFn: async (id: string): Promise<DeleteResult> => {
+      const snapshot = await resolveConfigSnapshot();
+      if (!snapshot) {
+        return { id: await deleteAgentMock(id), source: "mock" };
+      }
+      const deletedId = await deleteAgentConfig(snapshot, id);
+      return { id: deletedId, source: "gateway" };
+    },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: agentKeys.lists() });
 
@@ -122,8 +231,11 @@ export function useDeleteAgent() {
 
       return { previousAgents };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: agentKeys.all });
+      if (result.source === "gateway") {
+        queryClient.invalidateQueries({ queryKey: configKeys.all });
+      }
       toast.success("Agent deleted successfully");
     },
     onError: (error, _, context) => {
@@ -142,7 +254,7 @@ export function useUpdateAgentStatus() {
 
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: AgentStatus }) =>
-      updateAgentStatus(id, status),
+      updateAgentStatusMock(id, status),
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: agentKeys.detail(id) });
 

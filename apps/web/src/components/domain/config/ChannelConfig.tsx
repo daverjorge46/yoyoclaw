@@ -20,6 +20,7 @@ import {
   type SlackConfig,
   type WhatsAppConfig,
   type SignalConfig,
+  type iMessageConfig,
   type PlatformType,
   MAC_RELAY_PROVIDERS,
 } from "./channels";
@@ -39,6 +40,18 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
+    activity: [
+      {
+        id: "tg-live-1",
+        title: "Inbound support triage",
+        summary: "Handling new customer questions",
+        status: "active",
+        agentId: "agent-001",
+        agentName: "Support Concierge",
+        sessionId: "session-tele-001",
+        timestamp: "2m ago",
+      },
+    ],
   },
   {
     id: "whatsapp",
@@ -47,6 +60,18 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
+    activity: [
+      {
+        id: "wa-last-1",
+        title: "Last sync",
+        summary: "No active session",
+        status: "idle",
+        agentId: "agent-002",
+        agentName: "Inbox Keeper",
+        sessionId: "session-wa-014",
+        timestamp: "48m ago",
+      },
+    ],
   },
   {
     id: "discord",
@@ -55,6 +80,18 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "messaging",
     platform: { supported: ["any"] },
+    activity: [
+      {
+        id: "dc-live-1",
+        title: "Community moderation",
+        summary: "Watching #general and #help",
+        status: "active",
+        agentId: "agent-003",
+        agentName: "Community Mod",
+        sessionId: "session-dc-902",
+        timestamp: "Just now",
+      },
+    ],
   },
   {
     id: "signal",
@@ -69,6 +106,18 @@ const defaultChannels: ChannelConfigType[] = [
       installationApp: "signal-cli",
       installationUrl: "https://docs.clawdbrain.bot/channels/signal",
     },
+    activity: [
+      {
+        id: "sig-last-1",
+        title: "Awaiting verification",
+        summary: "Signal number pending",
+        status: "idle",
+        agentId: "agent-004",
+        agentName: "Secure Ops",
+        sessionId: "session-sig-003",
+        timestamp: "—",
+      },
+    ],
   },
   {
     id: "imessage",
@@ -115,6 +164,18 @@ const defaultChannels: ChannelConfigType[] = [
     status: "not_configured",
     category: "enterprise",
     platform: { supported: ["any"] },
+    activity: [
+      {
+        id: "slk-live-1",
+        title: "Incident updates",
+        summary: "Monitoring #ops-alerts",
+        status: "active",
+        agentId: "agent-005",
+        agentName: "Ops Relay",
+        sessionId: "session-slk-221",
+        timestamp: "5m ago",
+      },
+    ],
   },
   {
     id: "msteams",
@@ -174,13 +235,28 @@ const defaultChannels: ChannelConfigType[] = [
 ];
 
 // Channel-specific field configs
-const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label: string; placeholder: string; type?: "text" | "password" | "url"; helpText?: string }>; helpSteps: string[]; docsUrl?: string }> = {
+const channelFieldConfigs: Record<string, {
+  fields?: Array<{ name: string; label: string; placeholder: string; type?: "text" | "password" | "url"; helpText?: string; required?: boolean; multiline?: boolean; rows?: number }>;
+  authModes?: Array<{ id: string; label: string; description: string; type: "oauth" | "api_key" | "token" | "service_account" | "webhook"; badge?: string; fields?: Array<{ name: string; label: string; placeholder: string; type?: "text" | "password" | "url"; helpText?: string; required?: boolean; multiline?: boolean; rows?: number }>; scopes?: string[]; ctaLabel?: string; ctaHint?: string }>;
+  behaviorFields?: Array<{ name: string; label: string; placeholder: string; type?: "text" | "password" | "url"; helpText?: string; required?: boolean; multiline?: boolean; rows?: number }>;
+  helpSteps: string[];
+  docsUrl?: string;
+}> = {
   msteams: {
-    fields: [
-      { name: "tenantId", label: "Tenant ID", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", helpText: "Your Azure AD tenant ID" },
-      { name: "clientId", label: "Client ID", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
-      { name: "clientSecret", label: "Client Secret", placeholder: "Your client secret", type: "password" },
-      { name: "botId", label: "Bot ID (optional)", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
+    authModes: [
+      {
+        id: "msteams-credentials",
+        label: "Azure Bot Credentials",
+        description: "Use Azure AD app registration credentials.",
+        type: "api_key",
+        badge: "Recommended",
+        fields: [
+          { name: "tenantId", label: "Tenant ID", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", helpText: "Your Azure AD tenant ID" },
+          { name: "clientId", label: "Client ID", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
+          { name: "clientSecret", label: "Client Secret", placeholder: "Your client secret", type: "password" },
+          { name: "botId", label: "Bot ID (optional)", placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", required: false },
+        ],
+      },
     ],
     helpSteps: [
       "Go to Azure Portal and create a new App Registration",
@@ -192,9 +268,31 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
     docsUrl: "https://docs.microsoft.com/en-us/microsoftteams/platform/bots/how-to/create-a-bot-for-teams",
   },
   googlechat: {
-    fields: [
-      { name: "webhookUrl", label: "Webhook URL (optional)", placeholder: "https://chat.googleapis.com/v1/spaces/...", type: "url" },
-      { name: "serviceAccountKey", label: "Service Account Key", placeholder: "Paste JSON key content", helpText: "Full JSON key from Google Cloud Console" },
+    authModes: [
+      {
+        id: "googlechat-service-account",
+        label: "Service Account",
+        description: "Use a Google Cloud service account JSON key.",
+        type: "service_account",
+        badge: "Recommended",
+        fields: [
+          { name: "serviceAccountKey", label: "Service Account Key", placeholder: "Paste JSON key content", helpText: "Full JSON key from Google Cloud Console", multiline: true, rows: 4 },
+        ],
+      },
+      {
+        id: "googlechat-webhook",
+        label: "Incoming Webhook",
+        description: "Use a webhook URL for a single space.",
+        type: "webhook",
+        fields: [
+          { name: "webhookUrl", label: "Webhook URL", placeholder: "https://chat.googleapis.com/v1/spaces/...", type: "url" },
+          { name: "spaceId", label: "Space ID (optional)", placeholder: "spaces/AAA..." , required: false},
+        ],
+      },
+    ],
+    behaviorFields: [
+      { name: "audienceType", label: "Audience Type", placeholder: "space | member | domain", helpText: "Scopes delivery for Chat events", required: false },
+      { name: "audience", label: "Audience (optional)", placeholder: "users/123 or domains/example.com", required: false },
     ],
     helpSteps: [
       "Go to Google Cloud Console",
@@ -225,6 +323,9 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
       { name: "accessToken", label: "Access Token", placeholder: "Your Matrix access token", type: "password" },
       { name: "userId", label: "User ID", placeholder: "@bot:matrix.org" },
     ],
+    behaviorFields: [
+      { name: "allowFrom", label: "Allowed rooms/users (optional)", placeholder: "!roomId:matrix.org\\n@user:matrix.org", multiline: true, rows: 3, required: false },
+    ],
     helpSteps: [
       "Create a Matrix account on any homeserver (e.g., matrix.org)",
       "Log in using the Element web client or CLI",
@@ -237,6 +338,9 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
     fields: [
       { name: "serverUrl", label: "Server URL", placeholder: "http://localhost:1234", type: "url", helpText: "URL of your BlueBubbles Mac server" },
       { name: "password", label: "Server Password", placeholder: "Your BlueBubbles password", type: "password" },
+    ],
+    behaviorFields: [
+      { name: "autoReconnect", label: "Auto reconnect (optional)", placeholder: "true/false", required: false },
     ],
     helpSteps: [
       "Install BlueBubbles Server on a Mac with iMessage configured",
@@ -251,6 +355,10 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
       { name: "serverUrl", label: "Server URL", placeholder: "https://your-mattermost.example.com", type: "url" },
       { name: "botToken", label: "Bot Token", placeholder: "Your Mattermost bot token", type: "password" },
     ],
+    behaviorFields: [
+      { name: "teamId", label: "Default Team ID (optional)", placeholder: "team-id", required: false },
+      { name: "defaultChannel", label: "Default Channel (optional)", placeholder: "town-square", required: false },
+    ],
     helpSteps: [
       "Log in to your Mattermost server as an admin",
       "Go to Integrations → Bot Accounts → Add Bot Account",
@@ -260,8 +368,28 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
     docsUrl: "https://docs.mattermost.com/integrations/cloud-bot-accounts.html",
   },
   notion: {
-    fields: [
-      { name: "integrationToken", label: "Integration Token", placeholder: "secret_xxxxx", type: "password", helpText: "Internal integration token from Notion" },
+    authModes: [
+      {
+        id: "notion-oauth",
+        label: "Notion OAuth",
+        description: "Authorize with Notion and choose pages/databases.",
+        type: "oauth",
+        badge: "Recommended",
+        ctaLabel: "Continue with Notion",
+      },
+      {
+        id: "notion-token",
+        label: "Integration Token",
+        description: "Use an internal integration token.",
+        type: "api_key",
+        fields: [
+          { name: "integrationToken", label: "Integration Token", placeholder: "secret_xxxxx", type: "password", helpText: "Internal integration token from Notion" },
+          { name: "workspaceId", label: "Workspace ID (optional)", placeholder: "workspace-id", required: false },
+        ],
+      },
+    ],
+    behaviorFields: [
+      { name: "databaseIds", label: "Database IDs (optional)", placeholder: "database-id-1\\ndatabase-id-2", multiline: true, rows: 3, required: false },
     ],
     helpSteps: [
       "Go to Notion Integrations page (notion.so/my-integrations)",
@@ -273,9 +401,29 @@ const channelFieldConfigs: Record<string, { fields: Array<{ name: string; label:
     docsUrl: "https://developers.notion.com/docs/getting-started",
   },
   obsidian: {
-    fields: [
-      { name: "vaultPath", label: "Vault Path", placeholder: "/path/to/your/vault" },
-      { name: "apiKey", label: "API Key (if using REST API)", placeholder: "Your API key", type: "password" },
+    authModes: [
+      {
+        id: "obsidian-rest",
+        label: "Local REST API",
+        description: "Connect via the Obsidian Local REST API plugin.",
+        type: "api_key",
+        fields: [
+          { name: "vaultPath", label: "Vault Path", placeholder: "/path/to/your/vault" },
+          { name: "apiKey", label: "API Key", placeholder: "Your API key", type: "password" },
+        ],
+      },
+      {
+        id: "obsidian-filesystem",
+        label: "Filesystem only",
+        description: "Read files directly without the REST API.",
+        type: "token",
+        fields: [
+          { name: "vaultPath", label: "Vault Path", placeholder: "/path/to/your/vault" },
+        ],
+      },
+    ],
+    behaviorFields: [
+      { name: "syncMode", label: "Sync Mode", placeholder: "read | read_write", required: false },
     ],
     helpSteps: [
       "Install the Obsidian Local REST API plugin",
@@ -297,6 +445,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
   const [whatsappConfig, setWhatsappConfig] = React.useState<WhatsAppConfig>();
   const [slackConfig, setSlackConfig] = React.useState<SlackConfig>();
   const [signalConfig, setSignalConfig] = React.useState<SignalConfig>();
+  const [imessageConfig, setIMessageConfig] = React.useState<iMessageConfig>();
   const [, setGenericConfigs] = React.useState<Record<string, Record<string, string>>>({});
 
   const updateChannelStatus = (
@@ -380,6 +529,13 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
     toast.success("Slack connected successfully");
   };
 
+  const handleSlackTokenSave = async (config: SlackConfig) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setSlackConfig(config);
+    updateChannelStatus("slack", "connected", undefined, "just now");
+    toast.success("Slack configured successfully");
+  };
+
   const handleSlackDisconnect = async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setSlackConfig(undefined);
@@ -400,6 +556,13 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
     setSignalConfig(undefined);
     updateChannelStatus("signal", "not_configured");
     toast.success("Signal disconnected");
+  };
+
+  const handleIMessageSave = async (config: iMessageConfig) => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    setIMessageConfig(config);
+    updateChannelStatus("imessage", "connected", undefined, "just now");
+    toast.success("iMessage configured successfully");
   };
 
   // Generic handler for new channels
@@ -469,6 +632,8 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
           onOpenChange={(open) => !open && closeSheet()}
           channel={channel}
           fields={config?.fields}
+          authModes={config?.authModes}
+          behaviorFields={config?.behaviorFields}
           helpSteps={config?.helpSteps}
           docsUrl={config?.docsUrl}
           isConnected={getChannelStatus(channelId) === "connected"}
@@ -537,6 +702,7 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
         onOpenChange={(open) => !open && closeSheet()}
         config={slackConfig}
         onConnect={handleSlackConnect}
+        onSaveTokenConfig={handleSlackTokenSave}
         onDisconnect={handleSlackDisconnect}
         isConnected={getChannelStatus("slack") === "connected"}
       />
@@ -555,6 +721,8 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
         onOpenChange={(open) => !open && closeSheet()}
         isConnected={getChannelStatus("imessage") === "connected"}
         isMacOS={currentPlatform === "macos"}
+        config={imessageConfig}
+        onSave={handleIMessageSave}
       />
 
       {/* Generic dialogs for new channels */}

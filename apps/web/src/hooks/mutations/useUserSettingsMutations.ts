@@ -32,6 +32,7 @@ export interface UpdatePreferencesParams {
   timezone?: string;
   language?: string;
   defaultAgentId?: string;
+  notifications?: NotificationPreference[];
 }
 
 export interface UpdateNotificationParams {

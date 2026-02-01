@@ -78,8 +78,10 @@ function sanitizeChannelsConfig(channels?: ChannelsConfig): SanitizedChannelsCon
 
   for (const [key, value] of Object.entries(channels)) {
     if (value && typeof value === "object" && "enabled" in value) {
+      const enabled = (value as { enabled?: unknown }).enabled;
+      if (typeof enabled !== "boolean") continue;
       // Only include enabled status, strip tokens/credentials
-      sanitized[key as keyof ChannelsConfig] = { enabled: value.enabled };
+      sanitized[key as keyof ChannelsConfig] = { enabled };
     }
   }
 

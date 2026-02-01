@@ -6,6 +6,9 @@ export interface Agent {
   id: string;
   name: string;
   role: string;
+  model?: string;
+  runtime?: "pi" | "ccsdk";
+  ccsdkProvider?: "anthropic" | "zai" | "openrouter";
   avatar?: string;
   status: AgentStatus;
   description?: string;

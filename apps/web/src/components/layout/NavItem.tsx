@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 export interface NavItemProps {
   /** The route path to navigate to */
   href: string;
+  /** Optional search params to append to the URL */
+  search?: Record<string, string>;
   /** Lucide icon component */
   icon: LucideIcon;
   /** Label text for the navigation item */
@@ -16,16 +18,31 @@ export interface NavItemProps {
   badge?: number;
   /** Click handler (used for non-navigation items) */
   onClick?: () => void;
+  /** Whether to require exact match including search params for active state */
+  exactMatch?: boolean;
+  /** Search params that should exclude this item from being active */
+  inactiveWhenSearch?: Record<string, string>;
 }
 
 export function NavItem({
   href,
+  search,
   icon: Icon,
   label,
   collapsed = false,
   badge,
   onClick,
+  exactMatch = false,
+  inactiveWhenSearch,
 }: NavItemProps) {
+  // Check if we should force inactive state based on current search params
+  const routerState = useRouterState();
+  const currentSearch = routerState.location.search as Record<string, string>;
+
+  const shouldBeInactive = inactiveWhenSearch && Object.entries(inactiveWhenSearch).some(
+    ([key, value]) => currentSearch[key] === value
+  );
+
   const content = (
     <>
       <Icon className="size-5 shrink-0" />
@@ -66,10 +83,10 @@ export function NavItem({
   return (
     <Link
       to={href}
+      search={search}
       className={baseClasses}
-      activeProps={{
-        className: "active",
-      }}
+      activeProps={shouldBeInactive ? undefined : { className: "active" }}
+      activeOptions={exactMatch ? { exact: true, includeSearch: true } : undefined}
     >
       {content}
     </Link>

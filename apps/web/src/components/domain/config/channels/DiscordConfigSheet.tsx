@@ -11,6 +11,14 @@ import { showSuccess } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { WizardSteps } from "@/components/composed/WizardSteps";
 import { useFieldValidation } from "@/hooks/useFieldValidation";
 import { DiscordIcon } from "./icons";
 import type { DiscordConfig } from "./types";
@@ -41,6 +50,14 @@ export function DiscordConfigSheet({
   isConnected,
 }: DiscordConfigSheetProps) {
   const [botToken, setBotToken] = React.useState(config?.botToken ?? "");
+  const [applicationId, setApplicationId] = React.useState(config?.applicationId ?? "");
+  const [allowFrom, setAllowFrom] = React.useState(
+    config?.allowFrom ? config.allowFrom.join("\n") : ""
+  );
+  const [dmPolicy, setDmPolicy] = React.useState<DiscordConfig["dmPolicy"]>(
+    config?.dmPolicy ?? "mentions"
+  );
+  const [currentStep, setCurrentStep] = React.useState(0);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
   const [hasInteracted, setHasInteracted] = React.useState(false);
@@ -57,6 +74,10 @@ export function DiscordConfigSheet({
   React.useEffect(() => {
     if (open) {
       setBotToken(config?.botToken ?? "");
+      setApplicationId(config?.applicationId ?? "");
+      setAllowFrom(config?.allowFrom ? config.allowFrom.join("\n") : "");
+      setDmPolicy(config?.dmPolicy ?? "mentions");
+      setCurrentStep(0);
       setHasInteracted(false);
       setShowSaveConfirmation(false);
       setHelpOpen(false);
@@ -67,7 +88,15 @@ export function DiscordConfigSheet({
     if (!botToken.trim()) return;
     setIsSaving(true);
     try {
-      await onSave({ botToken: botToken.trim() });
+      await onSave({
+        botToken: botToken.trim(),
+        applicationId: applicationId.trim() || undefined,
+        allowFrom: allowFrom
+          .split(/[,\n]/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+        dmPolicy,
+      });
       setShowSaveConfirmation(true);
       showSuccess("Discord bot token saved successfully");
       setTimeout(() => {
@@ -89,6 +118,10 @@ export function DiscordConfigSheet({
     }
   };
 
+  const steps = ["Access", "Behavior", "Review"];
+  const isReviewStep = currentStep === steps.length - 1;
+  const canProceedFromAccess = !!botToken.trim() && tokenValidation.isValid;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -108,6 +141,8 @@ export function DiscordConfigSheet({
         </DialogHeader>
 
         <div className="mt-6 space-y-4">
+          <WizardSteps steps={steps} currentStep={currentStep} onStepChange={setCurrentStep} />
+
           {/* Save confirmation */}
           <AnimatePresence>
             {showSaveConfirmation && (
@@ -125,41 +160,103 @@ export function DiscordConfigSheet({
             )}
           </AnimatePresence>
 
-          <div className="space-y-2">
-            <Label htmlFor="discord-token">Bot Token</Label>
-            <Input
-              id="discord-token"
-              type="password"
-              placeholder="MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.XXXXXX.XXXXXXXXX"
-              value={botToken}
-              onChange={(e) => {
-                setHasInteracted(true);
-                setBotToken(e.target.value);
-              }}
-              className={cn(
-                showValidationError && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
-              )}
-              aria-invalid={!!showValidationError}
-            />
-            {showValidationError ? (
-              <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
-                {tokenValidation.error}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Get your bot token from the{" "}
-                <a
-                  href="https://discord.com/developers/applications"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  Discord Developer Portal
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </p>
-            )}
-          </div>
+          {currentStep === 0 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="discord-token">Bot Token</Label>
+                <Input
+                  id="discord-token"
+                  type="password"
+                  placeholder="MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.XXXXXX.XXXXXXXXX"
+                  value={botToken}
+                  onChange={(e) => {
+                    setHasInteracted(true);
+                    setBotToken(e.target.value);
+                  }}
+                  className={cn(
+                    showValidationError && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                  )}
+                  aria-invalid={!!showValidationError}
+                />
+                {showValidationError ? (
+                  <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
+                    {tokenValidation.error}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Get your bot token from the{" "}
+                    <a
+                      href="https://discord.com/developers/applications"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Discord Developer Portal
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discord-app-id">Application ID (optional)</Label>
+                <Input
+                  id="discord-app-id"
+                  type="text"
+                  placeholder="123456789012345678"
+                  value={applicationId}
+                  onChange={(e) => setApplicationId(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Direct message policy</Label>
+                <Select value={dmPolicy ?? "mentions"} onValueChange={(value) => setDmPolicy(value as DiscordConfig["dmPolicy"])}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose policy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="allow">Allow all DMs</SelectItem>
+                    <SelectItem value="mentions">Only when mentioned</SelectItem>
+                    <SelectItem value="disabled">Disable DMs</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discord-allowlist">Allowed servers/users (optional)</Label>
+                <Textarea
+                  id="discord-allowlist"
+                  rows={4}
+                  placeholder="Server ID or User ID, one per line"
+                  value={allowFrom}
+                  onChange={(e) => setAllowFrom(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Limit access to specific guilds or users. Leave blank to allow all.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-4 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">DM policy</span>
+                <span className="font-medium">
+                  {dmPolicy === "allow" ? "Allow all" : dmPolicy === "disabled" ? "Disabled" : "Mentions only"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Allowlist</span>
+                <span className="font-medium">{allowFrom.trim() ? "Configured" : "All servers"}</span>
+              </div>
+            </div>
+          )}
 
           {/* Server/Guild hint */}
           <div className="rounded-lg border border-border bg-muted/50 p-3">
@@ -246,13 +343,27 @@ export function DiscordConfigSheet({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving || !botToken.trim() || !tokenValidation.isValid}
-          >
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isConnected ? "Update" : "Connect"}
-          </Button>
+          {currentStep > 0 && (
+            <Button variant="outline" onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 0))}>
+              Back
+            </Button>
+          )}
+          {isReviewStep ? (
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || !botToken.trim() || !tokenValidation.isValid}
+            >
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isConnected ? "Update" : "Connect"}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))}
+              disabled={currentStep === 0 && !canProceedFromAccess}
+            >
+              Next
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

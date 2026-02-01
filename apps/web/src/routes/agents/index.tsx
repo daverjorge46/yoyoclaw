@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,17 +25,26 @@ import {
   Sparkles,
 } from "lucide-react";
 
+type SortOption = "recent" | "name" | "status";
+// Extended filter includes "waiting" which maps to "paused" status
+type StatusFilter = "all" | AgentStatus | "waiting";
+
 export const Route = createFileRoute("/agents/")({
   component: AgentsPage,
+  validateSearch: (search: Record<string, unknown>): { status?: StatusFilter } => {
+    const validStatuses: StatusFilter[] = ["all", "online", "busy", "paused", "offline", "waiting"];
+    const status = search.status as StatusFilter | undefined;
+    return {
+      status: status && validStatuses.includes(status) ? status : undefined,
+    };
+  },
 });
 
-type SortOption = "recent" | "name" | "status";
-type StatusFilter = "all" | AgentStatus;
-
 function AgentsPage() {
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
+  const { status: searchStatus } = Route.useSearch();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>(searchStatus || "all");
   const [sortBy, setSortBy] = React.useState<SortOption>("recent");
   const [wizardOpen, setWizardOpen] = React.useState(false);
 
@@ -43,6 +52,22 @@ function AgentsPage() {
 
   const { data: agents, isLoading, error } = useAgents();
   const updateStatus = useUpdateAgentStatus();
+
+  // Sync status filter with URL
+  React.useEffect(() => {
+    if (searchStatus && searchStatus !== statusFilter) {
+      setStatusFilter(searchStatus);
+    }
+  }, [searchStatus, statusFilter]);
+
+  // Update URL when filter changes
+  const handleStatusFilterChange = (value: StatusFilter) => {
+    setStatusFilter(value);
+    navigate({
+      search: (prev) => (value === "all" ? {} : { ...prev, status: value }),
+      replace: true,
+    });
+  };
 
   const handleViewSession = (agent: Agent) => {
     navigate({ to: "/agents/$agentId", params: { agentId: agent.id }, search: { tab: "activity" } });
@@ -73,7 +98,9 @@ function AgentsPage() {
 
     // Filter by status
     if (statusFilter !== "all") {
-      result = result.filter((agent) => agent.status === statusFilter);
+      // "waiting" maps to "paused" status (agents waiting for user input)
+      const effectiveStatus = statusFilter === "waiting" ? "paused" : statusFilter;
+      result = result.filter((agent) => agent.status === effectiveStatus);
     }
 
     const statusOrder: Record<AgentStatus, number> = {
@@ -204,15 +231,16 @@ function AgentsPage() {
           {/* Status Filter */}
           <Select
             value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+            onValueChange={(v) => handleStatusFilterChange(v as StatusFilter)}
           >
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="online">Online</SelectItem>
-              <SelectItem value="busy">Busy</SelectItem>
+              <SelectItem value="busy">Active / Working</SelectItem>
+              <SelectItem value="waiting">Waiting for Input</SelectItem>
               <SelectItem value="paused">Paused</SelectItem>
               <SelectItem value="offline">Offline</SelectItem>
             </SelectContent>

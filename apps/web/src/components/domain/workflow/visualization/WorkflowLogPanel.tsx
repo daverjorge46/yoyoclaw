@@ -68,7 +68,7 @@ export function WorkflowLogPanel({
           </div>
         </SheetHeader>
 
-        <div className="h-full overflow-y-auto p-3 font-mono text-xs scrollbar-thin">
+        <div className="selectable-text h-full overflow-y-auto p-3 font-mono text-xs scrollbar-thin">
           {filtered.length === 0 ? (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               No logs yet
@@ -96,4 +96,3 @@ export function WorkflowLogPanel({
     </Sheet>
   );
 }
-

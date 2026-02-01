@@ -209,7 +209,7 @@ export const WebTerminal = React.forwardRef<WebTerminalRef, WebTerminalProps>(
     return (
       <div
         className={cn(
-          "rounded-xl border border-border bg-card/50 backdrop-blur-sm",
+          "web-terminal rounded-xl border border-border bg-card/50 backdrop-blur-sm",
           className
         )}
         style={{ height, ...style }}

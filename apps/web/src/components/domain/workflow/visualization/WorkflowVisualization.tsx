@@ -189,7 +189,7 @@ function WorkflowVisualizationInner({ className }: { className?: string }) {
     if (positionChanges.length > 0) {
       // Save to history after drag completes
       setTimeout(() => {
-        setNodes((currentNodes) => {
+        setNodes((currentNodes: Array<Node<WorkflowVizNode>>) => {
           // Trim any redo history
           historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
           // Add new entry
