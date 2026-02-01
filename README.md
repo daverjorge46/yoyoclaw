@@ -1,5 +1,7 @@
 # 🦞 ZoidbergBot — Personal AI Assistant
 
+> **ZoidbergBot** is a themed flavor of [ClawdBot](https://github.com/openclaw/openclaw) (also known as OpenClaw/MoltBot). Same codebase, same features, different name and branding. Why not Zoidberg?
+
 <p align="center">
     <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/zoidbergbot/zoidbergbot/main/docs/assets/zoidbergbot-logo-text-dark.png">
@@ -25,7 +27,7 @@ If you want a personal, single-user assistant that feels local, fast, and always
 
 [Website](https://zoidbergbot.ai) · [Docs](https://docs.zoidbergbot.ai) · [DeepWiki](https://deepwiki.com/zoidbergbot/zoidbergbot) · [Getting Started](https://docs.zoidbergbot.ai/start/getting-started) · [Updating](https://docs.zoidbergbot.ai/install/updating) · [Showcase](https://docs.zoidbergbot.ai/start/showcase) · [FAQ](https://docs.zoidbergbot.ai/start/faq) · [Wizard](https://docs.zoidbergbot.ai/start/wizard) · [Nix](https://github.com/zoidbergbot/nix-clawdbot) · [Docker](https://docs.zoidbergbot.ai/install/docker) · [Discord](https://discord.gg/clawd)
 
-Preferred setup: run the onboarding wizard (`openclaw onboard`). It walks through gateway, workspace, channels, and skills. The CLI wizard is the recommended path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Preferred setup: run the onboarding wizard (`zoidbergbot onboard`). It walks through gateway, workspace, channels, and skills. The CLI wizard is the recommended path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
 New install? Start here: [Getting started](https://docs.zoidbergbot.ai/start/getting-started)
 
@@ -49,7 +51,7 @@ Runtime: **Node ≥22**.
 npm install -g zoidbergbot@latest
 # or: pnpm add -g zoidbergbot@latest
 
-openclaw onboard --install-daemon
+zoidbergbot onboard --install-daemon
 ```
 
 The wizard installs the Gateway daemon (launchd/systemd user service) so it stays running.
@@ -61,7 +63,7 @@ Runtime: **Node ≥22**.
 Full beginner guide (auth, pairing, channels): [Getting started](https://docs.zoidbergbot.ai/start/getting-started)
 
 ```bash
-openclaw onboard --install-daemon
+zoidbergbot onboard --install-daemon
 
 zoidbergbot gateway --port 18789 --verbose
 
