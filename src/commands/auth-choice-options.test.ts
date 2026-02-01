@@ -84,14 +84,14 @@ describe("buildAuthChoiceOptions", () => {
     expect(options.some((opt) => opt.value === "synthetic-api-key")).toBe(true);
   });
 
-  it("includes Chutes OAuth auth choice", () => {
+  it("includes Chutes API key auth choice", () => {
     const store: AuthProfileStore = { version: 1, profiles: {} };
     const options = buildAuthChoiceOptions({
       store,
       includeSkip: false,
     });
 
-    expect(options.some((opt) => opt.value === "chutes")).toBe(true);
+    expect(options.some((opt) => opt.value === "chutes-api-key")).toBe(true);
   });
 
   it("includes Qwen auth choice", () => {

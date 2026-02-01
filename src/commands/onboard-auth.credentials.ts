@@ -113,6 +113,20 @@ export async function setVeniceApiKey(key: string, agentDir?: string) {
   });
 }
 
+export async function setChutesApiKey(key: string, agentDir?: string) {
+  // Write to resolved agent dir so gateway finds credentials on startup.
+  upsertAuthProfile({
+    profileId: "chutes:default",
+    credential: {
+      type: "api_key",
+      provider: "chutes",
+      key,
+    },
+    agentDir: resolveAuthAgentDir(agentDir),
+  });
+}
+
+export const CHUTES_DEFAULT_MODEL_REF = "chutes/deepseek-ai/DeepSeek-V3-0324";
 export const ZAI_DEFAULT_MODEL_REF = "zai/glm-4.7";
 export const XIAOMI_DEFAULT_MODEL_REF = "xiaomi/mimo-v2-flash";
 export const OPENROUTER_DEFAULT_MODEL_REF = "openrouter/auto";

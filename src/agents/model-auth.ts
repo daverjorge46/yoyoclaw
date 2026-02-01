@@ -253,7 +253,7 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
   }
 
   if (normalized === "chutes") {
-    return pick("CHUTES_OAUTH_TOKEN") ?? pick("CHUTES_API_KEY");
+    return pick("CHUTES_API_KEY") ?? pick("CHUTES_API_TOKEN");
   }
 
   if (normalized === "zai") {

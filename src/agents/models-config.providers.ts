@@ -66,7 +66,6 @@ const QWEN_PORTAL_DEFAULT_COST = {
 };
 
 const CHUTES_BASE_URL = "https://llm.chutes.ai/v1";
-const CHUTES_OAUTH_PLACEHOLDER = "chutes-oauth";
 const CHUTES_DEFAULT_MAX_TOKENS = 8192;
 const CHUTES_DEFAULT_COST = {
   input: 0,
@@ -513,17 +512,12 @@ export async function resolveImplicitProviders(params: {
     providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
   }
 
-  // Chutes provider - supports both API key and OAuth
-  const chutesEnvKey = resolveEnvApiKeyVarName("chutes");
-  const chutesProfiles = listProfilesForProvider(authStore, "chutes");
-  const chutesProfileKey =
-    chutesProfiles.length > 0
-      ? resolveApiKeyFromProfiles({ provider: "chutes", store: authStore })
-      : undefined;
-  if (chutesEnvKey ?? chutesProfileKey) {
-    providers.chutes = { ...buildChutesProvider(), apiKey: (chutesEnvKey ?? chutesProfileKey)! };
-  } else if (chutesProfiles.length > 0) {
-    providers.chutes = { ...buildChutesProvider(), apiKey: CHUTES_OAUTH_PLACEHOLDER };
+  // Chutes provider
+  const chutesKey =
+    resolveEnvApiKeyVarName("chutes") ??
+    resolveApiKeyFromProfiles({ provider: "chutes", store: authStore });
+  if (chutesKey) {
+    providers.chutes = { ...buildChutesProvider(), apiKey: chutesKey };
   }
 
   // Ollama provider - only add if explicitly configured

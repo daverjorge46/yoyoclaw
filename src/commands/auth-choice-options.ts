@@ -82,8 +82,8 @@ const AUTH_CHOICE_GROUP_DEFS: {
   {
     value: "chutes",
     label: "Chutes",
-    hint: "OAuth (open-source models)",
-    choices: ["chutes"],
+    hint: "API key (open-source models)",
+    choices: ["chutes-api-key"],
   },
   {
     value: "zai",
@@ -146,7 +146,7 @@ export function buildAuthChoiceOptions(params: {
     value: "openai-codex",
     label: "OpenAI Codex (ChatGPT OAuth)",
   });
-  options.push({ value: "chutes", label: "Chutes (OAuth)" });
+  options.push({ value: "chutes-api-key", label: "Chutes API key" });
   options.push({ value: "openai-api-key", label: "OpenAI API key" });
   options.push({ value: "openrouter-api-key", label: "OpenRouter API key" });
   options.push({
