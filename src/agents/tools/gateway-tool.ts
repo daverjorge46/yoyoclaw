@@ -9,7 +9,13 @@ import {
 } from "../../infra/restart-sentinel.js";
 import { scheduleGatewaySigusr1Restart } from "../../infra/restart.js";
 import { stringEnum } from "../schema/typebox.js";
-import { type AnyAgentTool, jsonResult, readStringParam, truncatedJsonResult } from "./common.js";
+import {
+  type AnyAgentTool,
+  GATEWAY_TOOL_RESULT_MAX_CHARS,
+  jsonResult,
+  readStringParam,
+  truncatedJsonResult,
+} from "./common.js";
 import { callGatewayTool } from "./gateway.js";
 
 function resolveBaseHashFromSnapshot(snapshot: unknown): string | undefined {
@@ -164,7 +170,10 @@ export function createGatewayTool(opts?: {
 
       if (action === "config.get") {
         const result = await callGatewayTool("config.get", gatewayOpts, {});
-        return truncatedJsonResult({ ok: true, result }, { maxChars: 30_000 });
+        return truncatedJsonResult(
+          { ok: true, result },
+          { maxChars: GATEWAY_TOOL_RESULT_MAX_CHARS },
+        );
       }
       if (action === "config.schema") {
         const schema = await callGatewayTool("config.schema", gatewayOpts, {});
@@ -182,7 +191,6 @@ export function createGatewayTool(opts?: {
         }
 
         const summary = {
-          ok: true,
           version: schema?.version,
           generatedAt: schema?.generatedAt,
           sections: Object.keys(schemaProperties),
@@ -190,7 +198,7 @@ export function createGatewayTool(opts?: {
           uiHintCount: Object.keys((schema?.uiHints ?? {}) as Record<string, unknown>).length,
           note: "Schema summarized to reduce context size. Use config.get to see current values or ask about specific sections.",
         };
-        return jsonResult(summary);
+        return jsonResult({ ok: true, result: summary });
       }
       if (action === "config.apply") {
         const raw = readStringParam(params, "raw", { required: true });
@@ -216,7 +224,10 @@ export function createGatewayTool(opts?: {
           note,
           restartDelayMs,
         });
-        return truncatedJsonResult({ ok: true, result }, { maxChars: 30_000 });
+        return truncatedJsonResult(
+          { ok: true, result },
+          { maxChars: GATEWAY_TOOL_RESULT_MAX_CHARS },
+        );
       }
       if (action === "config.patch") {
         const raw = readStringParam(params, "raw", { required: true });
@@ -242,7 +253,10 @@ export function createGatewayTool(opts?: {
           note,
           restartDelayMs,
         });
-        return truncatedJsonResult({ ok: true, result }, { maxChars: 30_000 });
+        return truncatedJsonResult(
+          { ok: true, result },
+          { maxChars: GATEWAY_TOOL_RESULT_MAX_CHARS },
+        );
       }
       if (action === "update.run") {
         const sessionKey =
@@ -261,7 +275,10 @@ export function createGatewayTool(opts?: {
           restartDelayMs,
           timeoutMs,
         });
-        return truncatedJsonResult({ ok: true, result }, { maxChars: 30_000 });
+        return truncatedJsonResult(
+          { ok: true, result },
+          { maxChars: GATEWAY_TOOL_RESULT_MAX_CHARS },
+        );
       }
 
       throw new Error(`Unknown action: ${action}`);

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createActionGate,
   DEFAULT_TOOL_RESULT_MAX_CHARS,
+  GATEWAY_TOOL_RESULT_MAX_CHARS,
   readNumberParam,
   readReactionParams,
   readStringOrNumberParam,
@@ -138,5 +139,33 @@ describe("truncatedJsonResult", () => {
 
   it("uses default max chars constant", () => {
     expect(DEFAULT_TOOL_RESULT_MAX_CHARS).toBe(50_000);
+  });
+
+  it("uses gateway max chars constant", () => {
+    expect(GATEWAY_TOOL_RESULT_MAX_CHARS).toBe(30_000);
+  });
+
+  it("handles serialization errors gracefully", () => {
+    // Create circular reference
+    const circular: Record<string, unknown> = { name: "test" };
+    circular.self = circular;
+
+    const result = truncatedJsonResult(circular);
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(text).toContain("[Serialization failed:");
+    expect(result.details).toEqual({
+      _serializationError: true,
+      _error: expect.any(String),
+    });
+  });
+
+  it("handles BigInt serialization errors", () => {
+    const payload = { value: BigInt(123) };
+    const result = truncatedJsonResult(payload);
+    const text = (result.content[0] as { type: "text"; text: string }).text;
+    expect(text).toContain("[Serialization failed:");
+    expect(result.details).toMatchObject({
+      _serializationError: true,
+    });
   });
 });

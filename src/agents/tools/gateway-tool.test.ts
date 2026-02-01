@@ -59,18 +59,18 @@ describe("gateway tool config.schema", () => {
     const content = result.content[0] as { type: "text"; text: string };
     const parsed = JSON.parse(content.text);
 
-    // Verify summarized structure
+    // Verify summarized structure wrapped in { ok, result }
     expect(parsed.ok).toBe(true);
-    expect(parsed.version).toBe("1.0.0");
-    expect(parsed.generatedAt).toBe("2024-01-01T00:00:00Z");
-    expect(parsed.sections).toEqual(["agent", "channels", "gateway"]);
-    expect(parsed.sectionSummary).toEqual({
+    expect(parsed.result.version).toBe("1.0.0");
+    expect(parsed.result.generatedAt).toBe("2024-01-01T00:00:00Z");
+    expect(parsed.result.sections).toEqual(["agent", "channels", "gateway"]);
+    expect(parsed.result.sectionSummary).toEqual({
       agent: { type: "object", keys: ["name", "model", "temperature"] },
       channels: { type: "object", keys: ["discord", "telegram", "slack"] },
       gateway: { type: "object", keys: ["port", "host"] },
     });
-    expect(parsed.uiHintCount).toBe(3);
-    expect(parsed.note).toContain("Schema summarized");
+    expect(parsed.result.uiHintCount).toBe(3);
+    expect(parsed.result.note).toContain("Schema summarized");
   });
 
   it("returns reasonably sized response (under 25KB)", async () => {

@@ -199,6 +199,7 @@ export function jsonResult(payload: unknown): AgentToolResult<unknown> {
 }
 
 export const DEFAULT_TOOL_RESULT_MAX_CHARS = 50_000;
+export const GATEWAY_TOOL_RESULT_MAX_CHARS = 30_000;
 
 export function truncatedJsonResult(
   payload: unknown,
@@ -208,7 +209,18 @@ export function truncatedJsonResult(
   },
 ): AgentToolResult<unknown> {
   const maxChars = options?.maxChars ?? DEFAULT_TOOL_RESULT_MAX_CHARS;
-  const text = JSON.stringify(payload, null, 2);
+
+  let text: string;
+  try {
+    text = JSON.stringify(payload, null, 2);
+  } catch (err) {
+    // Handle BigInt, circular references, or other non-serializable values
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return {
+      content: [{ type: "text", text: `[Serialization failed: ${errorMessage}]` }],
+      details: { _serializationError: true, _error: errorMessage },
+    };
+  }
 
   if (text.length <= maxChars) {
     return {
