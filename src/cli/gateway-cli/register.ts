@@ -12,8 +12,6 @@ import { colorize, isRich, theme } from "../../terminal/theme.js";
 import { formatTokenCount, formatUsd } from "../../utils/usage-format.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
 import {
-  DaemonInstallOptions,
-  DaemonStatusOptions,
   runDaemonInstall,
   runDaemonRestart,
   runDaemonStart,
@@ -21,7 +19,11 @@ import {
   runDaemonStop,
   runDaemonUninstall,
 } from "../daemon-cli.js";
-import { DaemonLifecycleOptions } from "../daemon-cli/types.js";
+import {
+  DaemonLifecycleOptions,
+  DaemonInstallOptions,
+  DaemonStatusOptions,
+} from "../daemon-cli/types.js";
 import { withProgress } from "../progress.js";
 import { callGatewayCli, gatewayCallOpts, GatewayRpcOpts } from "./call.js";
 import {
@@ -196,7 +198,7 @@ export function registerGatewayCli(program: Command) {
     .command("restart")
     .description("Restart the Gateway service (launchd/systemd/schtasks)")
     .option("--json", "Output JSON", false)
-    .action(async (opts: DaemonLifecycleOptions | undefined) => {
+    .action(async (opts: DaemonLifecycleOptions) => {
       await runDaemonRestart(opts);
     });
 
