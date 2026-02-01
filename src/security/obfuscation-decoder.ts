@@ -231,7 +231,7 @@ export function deobfuscate(text: string): DeobfuscationResult {
 
   // Stage 3: Decode leetspeak
   const afterLeet = decodeLeetspeak(current);
-  if (afterLeet.toLowerCase() !== current.toLowerCase()) {
+  if (afterLeet !== current) {
     current = afterLeet;
     stages.push(current);
     detectedTechniques.push("leetspeak");

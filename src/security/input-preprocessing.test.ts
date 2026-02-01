@@ -83,7 +83,7 @@ describe("obfuscation-decoder", () => {
   describe("reverseText", () => {
     it("reverses text", () => {
       expect(reverseText("metsys")).toBe("system");
-      expect(reverseText("tpmorcp")).toBe("promort"); // intentionally not "prompt" - tests exact reversal
+      expect(reverseText("tpmorp")).toBe("prompt");
       expect(reverseText("tpmorpmetsys")).toBe("systemprompt");
     });
   });

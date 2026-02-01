@@ -286,21 +286,20 @@ export function checkMessageSecurity(content: string): SecurityCheckResult {
   if (matchedPatterns.length >= 3) {
     riskLevel = "high";
   } else if (matchedPatterns.length >= 1) {
-    // Check for high-risk patterns
+    // Check for high-risk patterns by testing against the original content
+    // Note: matchedPatterns contains regex sources, so we test content directly
     const highRiskPatterns = [
-      "ADMIN",
-      "SYSTEM",
-      "ROOT",
-      "SUDO",
-      "jailbreak",
-      "DAN",
-      "override",
-      "reveal.*prompt",
-      "output.*prompt",
+      /\[ADMIN\]/i,
+      /\[SYSTEM\]/i,
+      /\[ROOT\]/i,
+      /\[SUDO\]/i,
+      /jailbreak/i,
+      /\bDAN\b/i,
+      /override.*instruction/i,
+      /reveal.*(your|the|my)?\s*(system\s*)?prompt/i,
+      /output.*(your|the|my)?\s*(system\s*)?prompt/i,
     ];
-    const hasHighRisk = matchedPatterns.some((p) =>
-      highRiskPatterns.some((hr) => p.toLowerCase().includes(hr.toLowerCase())),
-    );
+    const hasHighRisk = highRiskPatterns.some((hr) => hr.test(content));
     riskLevel = hasHighRisk ? "high" : "medium";
   }
 

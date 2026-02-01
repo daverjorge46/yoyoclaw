@@ -40,17 +40,23 @@ const ROT13_KEYWORDS =
 
 // Reversed versions of common keywords
 const REVERSED_KEYWORDS =
-  /\b(metsys|tpmorcp|noitcurtsni|erongi|suoiverp|laever|terces|laitnedifnoc|ssapyb|edirrrevo|nimda|toor|odus)\b/gi;
+  /\b(metsys|tpmorp|noitcurtsni|erongi|suoiverp|laever|terces|laitnedifnoc|ssapyb|edirrevo|nimda|toor|odus)\b/gi;
 
 /**
  * Extract all matches of a pattern from text.
+ * Ensures global flag is set and guards against zero-width match infinite loops.
  */
 function extractMatches(text: string, pattern: RegExp): string[] {
   const matches: string[] = [];
   let match: RegExpExecArray | null;
-  const regex = new RegExp(pattern.source, pattern.flags);
+  const flags = pattern.flags.includes("g") ? pattern.flags : pattern.flags + "g";
+  const regex = new RegExp(pattern.source, flags);
   while ((match = regex.exec(text)) !== null) {
     matches.push(match[0]);
+    // Guard against zero-width matches causing infinite loops
+    if (match.index === regex.lastIndex) {
+      regex.lastIndex++;
+    }
   }
   return matches;
 }
