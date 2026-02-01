@@ -465,6 +465,7 @@ By default, OpenClaw reads any absolute path returned by the local API server. T
 ```
 
 When `localApiDataDir` is set:
+
 - File paths must be within that directory (after resolving `..` traversal attempts)
 - Paths outside the allowed directory are rejected with an error
 - This prevents a compromised local API server from reading arbitrary files
