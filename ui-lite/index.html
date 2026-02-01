@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jet Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      padding: 12px 20px;
+      background: #252525;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: #333;
+    }
+
+    .status.connected {
+      background: #1a472a;
+      color: #4ade80;
+    }
+
+    .status.disconnected {
+      background: #4a1a1a;
+      color: #f87171;
+    }
+
+    /* Messages */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #2563eb;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #333;
+      color: #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.assistant.streaming {
+      border: 1px solid #444;
+    }
+
+    .message.error {
+      background: #4a1a1a;
+      color: #f87171;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: #e0e0e0;
+      margin-left: 2px;
+      animation: blink 1s infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* Input */
+    .input-area {
+      padding: 16px 20px;
+      background: #252525;
+      border-top: 1px solid #333;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .input-wrapper textarea {
+      flex: 1;
+      padding: 12px 16px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      min-height: 48px;
+      max-height: 200px;
+    }
+
+    .input-wrapper textarea:focus {
+      border-color: #2563eb;
+    }
+
+    .input-wrapper textarea::placeholder {
+      color: #666;
+    }
+
+    .input-wrapper button {
+      padding: 12px 24px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .input-wrapper button:hover {
+      background: #1d4ed8;
+    }
+
+    .input-wrapper button:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    /* Empty state */
+    .empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Jet</h1>
+    <span id="status" class="status disconnected">Connecting...</span>
+  </div>
+
+  <div id="messages" class="messages">
+    <div class="empty">Start a conversation...</div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea
+        id="input"
+        placeholder="Type a message..."
+        rows="1"
+        disabled
+      ></textarea>
+      <button id="send" disabled>Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Config
+    const GATEWAY_URL = 'ws://127.0.0.1:18789';
+    const GATEWAY_TOKEN = '3e5c8174623ea4dbbc20c6ed05b0f08aa23026ba49d48ddb';
+    const SESSION_KEY = 'agent:main:main';
+    const TYPEWRITER_SPEED = 15; // ms per character
+
+    // State
+    let ws = null;
+    let connected = false;
+    let pendingRequests = new Map();
+    let currentStream = '';
+    let displayedLength = 0;
+    let typewriterInterval = null;
+    let streamingMessageEl = null;
+
+    // DOM
+    const statusEl = document.getElementById('status');
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+
+    // UUID generator
+    function uuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
+    // Connect to gateway
+    function connect() {
+      ws = new WebSocket(GATEWAY_URL);
+
+      ws.onopen = () => {
+        // Wait for challenge or send connect after timeout
+        setTimeout(() => sendConnect(), 500);
+      };
+
+      ws.onmessage = (e) => {
+        try {
+          const frame = JSON.parse(e.data);
+          handleFrame(frame);
+        } catch (err) {
+          console.error('Parse error:', err);
+        }
+      };
+
+      ws.onclose = () => {
+        setConnected(false);
+        setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => {};
+    }
+
+    // Send connect handshake
+    function sendConnect() {
+      request('connect', {
+        minProtocol: 3,
+        maxProtocol: 3,
+        client: {
+          id: 'webchat',
+          version: '1.0.0',
+          platform: 'web',
+          mode: 'webchat'
+        },
+        role: 'operator',
+        scopes: ['operator.admin'],
+        auth: { token: GATEWAY_TOKEN }
+      }).then(() => {
+        setConnected(true);
+        loadHistory();
+      }).catch(err => {
+        console.error('Connect failed:', err);
+      });
+    }
+
+    // Handle incoming frames
+    function handleFrame(frame) {
+      if (frame.type === 'res') {
+        const pending = pendingRequests.get(frame.id);
+        if (pending) {
+          pendingRequests.delete(frame.id);
+          if (frame.ok) pending.resolve(frame.payload);
+          else pending.reject(new Error(frame.error?.message || 'Request failed'));
+        }
+      } else if (frame.type === 'event') {
+        handleEvent(frame);
+      }
+    }
+
+    // Handle events
+    function handleEvent(frame) {
+      if (frame.event === 'chat') {
+        const payload = frame.payload;
+        if (payload.sessionKey !== SESSION_KEY) return;
+
+        if (payload.state === 'delta') {
+          handleStreamDelta(payload.message);
+        } else if (payload.state === 'final') {
+          handleStreamEnd(payload.message);
+        } else if (payload.state === 'error') {
+          handleStreamError(payload.errorMessage);
+        } else if (payload.state === 'aborted') {
+          handleStreamEnd(null);
+        }
+      }
+    }
+
+    // Extract text from message
+    function extractText(msg) {
+      if (!msg || !msg.content) return '';
+      if (typeof msg.content === 'string') return msg.content;
+      if (Array.isArray(msg.content)) {
+        return msg.content
+          .filter(b => b.type === 'text')
+          .map(b => b.text || '')
+          .join('');
+      }
+      return '';
+    }
+
+    // Handle streaming delta
+    function handleStreamDelta(message) {
+      const text = extractText(message);
+      if (text.length > currentStream.length) {
+        currentStream = text;
+        startTypewriter();
+      }
+    }
+
+    // Handle stream end
+    function handleStreamEnd(message) {
+      if (message) {
+        currentStream = extractText(message);
+      }
+      // Finish typewriter immediately
+      if (streamingMessageEl) {
+        streamingMessageEl.textContent = currentStream;
+        streamingMessageEl.classList.remove('streaming');
+        const cursor = streamingMessageEl.querySelector('.cursor');
+        if (cursor) cursor.remove();
+      }
+      stopTypewriter();
+      streamingMessageEl = null;
+      currentStream = '';
+      displayedLength = 0;
+      enableInput();
+    }
+
+    // Handle stream error
+    function handleStreamError(error) {
+      stopTypewriter();
+      if (streamingMessageEl) {
+        streamingMessageEl.textContent = 'Error: ' + (error || 'Unknown error');
+        streamingMessageEl.classList.add('error');
+        streamingMessageEl.classList.remove('streaming');
+      }
+      streamingMessageEl = null;
+      currentStream = '';
+      displayedLength = 0;
+      enableInput();
+    }
+
+    // Typewriter effect
+    function startTypewriter() {
+      if (typewriterInterval) return;
+
+      if (!streamingMessageEl) {
+        streamingMessageEl = addMessage('', 'assistant');
+        streamingMessageEl.classList.add('streaming');
+        streamingMessageEl.innerHTML = '<span class="cursor"></span>';
+      }
+
+      typewriterInterval = setInterval(() => {
+        if (displayedLength < currentStream.length) {
+          displayedLength++;
+          streamingMessageEl.innerHTML =
+            escapeHtml(currentStream.slice(0, displayedLength)) +
+            '<span class="cursor"></span>';
+          scrollToBottom();
+        }
+      }, TYPEWRITER_SPEED);
+    }
+
+    function stopTypewriter() {
+      if (typewriterInterval) {
+        clearInterval(typewriterInterval);
+        typewriterInterval = null;
+      }
+    }
+
+    // Request helper
+    function request(method, params) {
+      return new Promise((resolve, reject) => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          return reject(new Error('Not connected'));
+        }
+        const id = uuid();
+        pendingRequests.set(id, { resolve, reject });
+        ws.send(JSON.stringify({ type: 'req', id, method, params }));
+      });
+    }
+
+    // Load chat history
+    async function loadHistory() {
+      try {
+        const res = await request('chat.history', {
+          sessionKey: SESSION_KEY,
+          limit: 100
+        });
+        if (res.messages && res.messages.length > 0) {
+          clearMessages();
+          res.messages.forEach(msg => {
+            const text = extractText(msg);
+            if (text) addMessage(text, msg.role);
+          });
+          scrollToBottom();
+        }
+      } catch (err) {
+        console.error('Load history failed:', err);
+      }
+    }
+
+    // Send message
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text || !connected) return;
+
+      inputEl.value = '';
+      disableInput();
+      clearEmpty();
+      addMessage(text, 'user');
+      scrollToBottom();
+
+      try {
+        await request('chat.send', {
+          sessionKey: SESSION_KEY,
+          message: text,
+          deliver: false,
+          idempotencyKey: uuid()
+        });
+      } catch (err) {
+        addMessage('Error: ' + err.message, 'assistant').classList.add('error');
+        enableInput();
+      }
+    }
+
+    // UI helpers
+    function setConnected(state) {
+      connected = state;
+      statusEl.textContent = state ? 'Connected' : 'Disconnected';
+      statusEl.className = 'status ' + (state ? 'connected' : 'disconnected');
+      if (state) enableInput();
+      else disableInput();
+    }
+
+    function enableInput() {
+      inputEl.disabled = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+
+    function disableInput() {
+      inputEl.disabled = true;
+      sendBtn.disabled = true;
+    }
+
+    function addMessage(text, role) {
+      const div = document.createElement('div');
+      div.className = 'message ' + role;
+      div.textContent = text;
+      messagesEl.appendChild(div);
+      return div;
+    }
+
+    function clearMessages() {
+      messagesEl.innerHTML = '';
+    }
+
+    function clearEmpty() {
+      const empty = messagesEl.querySelector('.empty');
+      if (empty) empty.remove();
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Auto-resize textarea
+    inputEl.addEventListener('input', () => {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + 'px';
+    });
+
+    // Send on Enter (Shift+Enter for newline)
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Send button click
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Start
+    connect();
+  </script>
+</body>
+</html>
