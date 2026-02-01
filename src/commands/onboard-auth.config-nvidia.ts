@@ -1,10 +1,11 @@
 import {
   getNvidiaStaticFallbackModels,
   NVIDIA_API_BASE_URL,
+  NVIDIA_DEFAULT_MODEL_REF,
 } from "../agents/nvidia-models.js";
 import type { OpenClawConfig } from "../config/config.js";
 
-export const NVIDIA_DEFAULT_MODEL_REF = "nvidia/llama-3.3-70b-instruct";
+export { NVIDIA_DEFAULT_MODEL_REF };
 
 /**
  * Apply NVIDIA NIM provider configuration without changing the default model.

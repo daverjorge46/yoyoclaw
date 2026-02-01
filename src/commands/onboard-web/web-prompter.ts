@@ -35,12 +35,15 @@ function generatePromptId(): string {
   return `prompt_${++promptCounter}_${Date.now()}`;
 }
 
+interface PendingPrompt {
+  resolve: (value: unknown) => void;
+  reject: (error: Error) => void;
+  validate?: (value: string) => string | undefined;
+}
+
 export class WebPrompter implements WizardPrompter {
   private ws: WebSocket;
-  private pendingPrompts = new Map<string, {
-    resolve: (value: unknown) => void;
-    reject: (error: Error) => void;
-  }>();
+  private pendingPrompts = new Map<string, PendingPrompt>();
 
   constructor(ws: WebSocket) {
     this.ws = ws;
@@ -65,23 +68,43 @@ export class WebPrompter implements WizardPrompter {
     const pending = this.pendingPrompts.get(message.id);
 
     if (pending) {
-      this.pendingPrompts.delete(message.id);
-
       if (message.cancelled) {
+        this.pendingPrompts.delete(message.id);
         pending.reject(new WizardCancelledError());
-      } else {
-        pending.resolve(message.value);
+        return;
       }
+
+      // Run validation if provided (for text inputs)
+      if (pending.validate && typeof message.value === "string") {
+        const validationError = pending.validate(message.value);
+        if (validationError) {
+          // Send validation error back to client for re-input
+          this.ws.send(JSON.stringify({
+            type: "validation_error",
+            id: message.id,
+            error: validationError,
+          }));
+          return; // Don't resolve yet, wait for corrected input
+        }
+      }
+
+      this.pendingPrompts.delete(message.id);
+      pending.resolve(message.value);
     }
   }
 
-  private sendPrompt<T>(type: PromptType, params: unknown): Promise<T> {
+  private sendPrompt<T>(
+    type: PromptType,
+    params: unknown,
+    options?: { validate?: (value: string) => string | undefined },
+  ): Promise<T> {
     return new Promise((resolve, reject) => {
       const id = generatePromptId();
 
       this.pendingPrompts.set(id, {
         resolve: resolve as (value: unknown) => void,
         reject,
+        validate: options?.validate,
       });
 
       const message: PromptMessage = { type, id, params };
@@ -126,12 +149,15 @@ export class WebPrompter implements WizardPrompter {
   }
 
   async text(params: WizardTextParams): Promise<string> {
-    return this.sendPrompt<string>("text", {
-      message: params.message,
-      initialValue: params.initialValue,
-      placeholder: params.placeholder,
-      // Note: validation will be done on the server side after receiving the response
-    });
+    return this.sendPrompt<string>(
+      "text",
+      {
+        message: params.message,
+        initialValue: params.initialValue,
+        placeholder: params.placeholder,
+      },
+      { validate: params.validate },
+    );
   }
 
   async confirm(params: WizardConfirmParams): Promise<boolean> {

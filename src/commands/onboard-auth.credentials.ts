@@ -202,6 +202,3 @@ export async function setSiliconflowApiKey(key: string, agentDir?: string) {
     agentDir: resolveAuthAgentDir(agentDir),
   });
 }
-
-export const NVIDIA_DEFAULT_MODEL_REF = "nvidia/llama-3.3-70b-instruct";
-export const SILICONFLOW_DEFAULT_MODEL_REF = "siliconflow/DeepSeek-R1";
