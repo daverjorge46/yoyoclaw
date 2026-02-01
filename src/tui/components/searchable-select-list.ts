@@ -179,6 +179,12 @@ export class SearchableSelectList implements Component {
       lines.push(
         visibleWidth(noMatchLine) > width ? truncateToWidth(noMatchLine, width, "") : noMatchLine,
       );
+      // Truncate before returning to prevent width overflow crash
+      for (let i = 0; i < lines.length; i++) {
+        if (visibleWidth(lines[i]) > width) {
+          lines[i] = truncateToWidth(lines[i], width, "");
+        }
+      }
       return lines;
     }
 
