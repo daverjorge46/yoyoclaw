@@ -999,7 +999,7 @@ async function runCliEntry(params: {
   config?: MediaUnderstandingConfig;
 }): Promise<MediaUnderstandingOutput | null> {
   const { entry, capability, cfg, ctx } = params;
-  const command = entry.command?.trim();
+  const command = expandHomeDir(entry.command?.trim() ?? "");
   const args = entry.args ?? [];
   if (!command) {
     throw new Error(`CLI entry missing command for ${capability}`);
