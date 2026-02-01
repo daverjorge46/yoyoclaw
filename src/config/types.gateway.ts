@@ -16,8 +16,12 @@ export type RateLimitsWsConfig = {
   messagesPerMinute?: number;
   /** Agent invocations per client per minute — default: 10. */
   agentPerMinute?: number;
+  /** TTS conversions per client per minute — default: 20. */
+  ttsPerMinute?: number;
   /** Max concurrent WS connections — default: 50. */
   maxConnections?: number;
+  /** Max concurrent WS connections per IP — default: 5. */
+  perIpMaxConnections?: number;
 };
 
 export type RateLimitsAuthConfig = {
@@ -56,7 +60,9 @@ const RATE_LIMITS_HTTP_DEFAULTS: ResolvedRateLimitsHttpConfig = {
 const RATE_LIMITS_WS_DEFAULTS: ResolvedRateLimitsWsConfig = {
   messagesPerMinute: 60,
   agentPerMinute: 10,
+  ttsPerMinute: 20,
   maxConnections: 50,
+  perIpMaxConnections: 5,
 };
 
 const RATE_LIMITS_AUTH_DEFAULTS: ResolvedRateLimitsAuthConfig = {

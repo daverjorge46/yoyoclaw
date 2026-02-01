@@ -13,6 +13,7 @@ import type { GatewayWsClient } from "./server/ws-types.js";
 import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
 import { type CanvasHostHandler, createCanvasHostHandler } from "../canvas-host/server.js";
 import { resolveRateLimitsConfig } from "../config/types.gateway.js";
+import { AuthRateLimiter } from "./auth-rate-limit.js";
 import { createHttpRateLimiters, type HttpRateLimiters } from "./http-rate-limit.js";
 import { resolveGatewayListenHosts } from "./net.js";
 import { createGatewayBroadcaster } from "./server-broadcast.js";
@@ -22,6 +23,12 @@ import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-h
 import { createGatewayHooksRequestHandler } from "./server/hooks.js";
 import { listenGatewayHttpServer } from "./server/http-listen.js";
 import { createGatewayPluginRequestHandler } from "./server/plugins-http.js";
+import {
+  createWsConnectionTracker,
+  createWsMessageRateLimiters,
+  type WsConnectionTracker,
+  type WsMessageRateLimitState,
+} from "./ws-rate-limit.js";
 
 export async function createGatewayRuntimeState(params: {
   cfg: import("../config/config.js").OpenClawConfig;
@@ -97,6 +104,15 @@ export async function createGatewayRuntimeState(params: {
   const rateLimitsConfig = resolveRateLimitsConfig(params.cfg.gateway?.rateLimits);
   const rateLimiters: HttpRateLimiters | null = rateLimitsConfig.enabled
     ? createHttpRateLimiters(rateLimitsConfig)
+    : null;
+  const wsConnectionTracker: WsConnectionTracker | null = rateLimitsConfig.enabled
+    ? createWsConnectionTracker(rateLimitsConfig.ws)
+    : null;
+  const wsMessageRateLimiters: WsMessageRateLimitState | null = rateLimitsConfig.enabled
+    ? createWsMessageRateLimiters(rateLimitsConfig.ws)
+    : null;
+  const authRateLimiter: AuthRateLimiter | null = rateLimitsConfig.enabled
+    ? new AuthRateLimiter(rateLimitsConfig.auth)
     : null;
 
   const handleHooksRequest = createGatewayHooksRequestHandler({
@@ -188,5 +204,8 @@ export async function createGatewayRuntimeState(params: {
     addChatRun,
     removeChatRun,
     chatAbortControllers,
+    wsConnectionTracker,
+    wsMessageRateLimiters,
+    authRateLimiter,
   };
 }
