@@ -34,6 +34,11 @@ export type AgentConfig = {
   subagents?: {
     /** Allow spawning sub-agents under other agent ids. Use "*" to allow any. */
     allowAgents?: string[];
+    /**
+     * Auto-discover agents from `agents.list[]` and add them to the spawn allowlist.
+     * When true, all agent ids defined in the config are implicitly allowed.
+     */
+    autoDiscoverAgents?: boolean;
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
   };

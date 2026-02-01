@@ -22,6 +22,8 @@ export type OpenClawSkillMetadata = {
   primaryEnv?: string;
   emoji?: string;
   homepage?: string;
+  /** Semver version string for skill versioning (e.g. "1.0.0"). */
+  version?: string;
   os?: string[];
   requires?: {
     bins?: string[];

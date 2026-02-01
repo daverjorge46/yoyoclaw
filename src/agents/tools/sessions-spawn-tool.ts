@@ -145,6 +145,16 @@ export function createSessionsSpawnTool(opts?: {
             .filter((value) => value.trim() && value.trim() !== "*")
             .map((value) => normalizeAgentId(value).toLowerCase()),
         );
+        // Auto-discover: add all agents from agents.list[] to allowlist
+        const autoDiscover =
+          resolveAgentConfig(cfg, requesterAgentId)?.subagents?.autoDiscoverAgents ??
+          cfg.agents?.defaults?.subagents?.autoDiscoverAgents ??
+          false;
+        if (autoDiscover) {
+          for (const agent of cfg.agents?.list ?? []) {
+            if (agent.id) allowSet.add(normalizeAgentId(agent.id).toLowerCase());
+          }
+        }
         if (!allowAny && !allowSet.has(normalizedTargetId)) {
           const allowedText = allowAny
             ? "*"

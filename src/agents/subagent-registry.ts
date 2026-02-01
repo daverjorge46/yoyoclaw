@@ -25,6 +25,10 @@ export type SubagentRunRecord = {
   archiveAtMs?: number;
   cleanupCompletedAt?: number;
   cleanupHandled?: boolean;
+  /** Current round in a multi-round collaboration (1-based). */
+  currentRound?: number;
+  /** Maximum rounds allowed before auto-termination (0 = unlimited). */
+  maxRounds?: number;
 };
 
 const subagentRuns = new Map<string, SubagentRunRecord>();
@@ -259,6 +263,7 @@ export function registerSubagentRun(params: {
   const archiveAtMs = archiveAfterMs ? now + archiveAfterMs : undefined;
   const waitTimeoutMs = resolveSubagentWaitTimeoutMs(cfg, params.runTimeoutSeconds);
   const requesterOrigin = normalizeDeliveryContext(params.requesterOrigin);
+  const maxRounds = cfg.agents?.defaults?.subagents?.maxRounds ?? 0;
   subagentRuns.set(params.runId, {
     runId: params.runId,
     childSessionKey: params.childSessionKey,
@@ -272,6 +277,8 @@ export function registerSubagentRun(params: {
     startedAt: now,
     archiveAtMs,
     cleanupHandled: false,
+    currentRound: 1,
+    maxRounds: maxRounds > 0 ? maxRounds : undefined,
   });
   ensureListener();
   persistSubagentRuns();

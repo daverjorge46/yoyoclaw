@@ -204,6 +204,13 @@ export type AgentDefaultsConfig = {
     archiveAfterMinutes?: number;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /**
+     * Auto-discover agents from `agents.list[]` and add them to the spawn allowlist.
+     * When true, all agent ids defined in the config are implicitly allowed for every agent.
+     */
+    autoDiscoverAgents?: boolean;
+    /** Max rounds for multi-agent collaboration sessions (0 = unlimited). */
+    maxRounds?: number;
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: {
