@@ -147,7 +147,8 @@ function isKnownBinaryMedia(buffer?: Buffer): boolean {
   if (hasMagic(buffer, "fLaC")) {
     return true;
   }
-  if (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0) {
+  // MP3 frame sync: 0xFF followed by 0xE2..0xFB, but exclude UTF-16 BOM (0xFF 0xFE)
+  if (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0 && buffer[1] !== 0xfe) {
     return true;
   }
   return false;
