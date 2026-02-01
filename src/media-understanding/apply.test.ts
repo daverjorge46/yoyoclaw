@@ -616,6 +616,35 @@ describe("applyMediaUnderstanding", () => {
     expect(ctx.Body).toContain("Hi");
   });
 
+  it("skips binary audio attachments that are not text-like", async () => {
+    const { applyMediaUnderstanding } = await loadApply();
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
+    const filePath = path.join(dir, "binary.mp3");
+    const bytes = Buffer.from(Array.from({ length: 256 }, (_, index) => index));
+    await fs.writeFile(filePath, bytes);
+
+    const ctx: MsgContext = {
+      Body: "<media:audio>",
+      MediaPath: filePath,
+      MediaType: "audio/mpeg",
+    };
+    const cfg: OpenClawConfig = {
+      tools: {
+        media: {
+          audio: { enabled: false },
+          image: { enabled: false },
+          video: { enabled: false },
+        },
+      },
+    };
+
+    const result = await applyMediaUnderstanding({ ctx, cfg });
+
+    expect(result.appliedFile).toBe(false);
+    expect(ctx.Body).toBe("<media:audio>");
+    expect(ctx.Body).not.toContain("<file");
+  });
+
   it("respects configured allowedMimes for text-like audio attachments", async () => {
     const { applyMediaUnderstanding } = await loadApply();
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));

@@ -168,53 +168,96 @@ function resolveUtf16Charset(buffer?: Buffer): "utf-16le" | "utf-16be" | undefin
   return undefined;
 }
 
-function isMostlyPrintable(text: string): boolean {
+const WORDISH_CHAR = /[\p{L}\p{N}]/u;
+const CP1252_MAP: Array<string | undefined> = [
+  "\u20ac",
+  undefined,
+  "\u201a",
+  "\u0192",
+  "\u201e",
+  "\u2026",
+  "\u2020",
+  "\u2021",
+  "\u02c6",
+  "\u2030",
+  "\u0160",
+  "\u2039",
+  "\u0152",
+  undefined,
+  "\u017d",
+  undefined,
+  undefined,
+  "\u2018",
+  "\u2019",
+  "\u201c",
+  "\u201d",
+  "\u2022",
+  "\u2013",
+  "\u2014",
+  "\u02dc",
+  "\u2122",
+  "\u0161",
+  "\u203a",
+  "\u0153",
+  undefined,
+  "\u017e",
+  "\u0178",
+];
+
+function decodeLegacyText(buffer: Buffer): string {
+  let output = "";
+  for (const byte of buffer) {
+    if (byte >= 0x80 && byte <= 0x9f) {
+      const mapped = CP1252_MAP[byte - 0x80];
+      output += mapped ?? String.fromCharCode(byte);
+      continue;
+    }
+    output += String.fromCharCode(byte);
+  }
+  return output;
+}
+
+function getTextStats(text: string): { printableRatio: number; wordishRatio: number } {
   if (!text) {
-    return false;
+    return { printableRatio: 0, wordishRatio: 0 };
   }
   let printable = 0;
   let control = 0;
+  let wordish = 0;
   for (const char of text) {
     const code = char.codePointAt(0) ?? 0;
-    if (code === 9 || code === 10 || code === 13) {
+    if (code === 9 || code === 10 || code === 13 || code === 32) {
       printable += 1;
+      wordish += 1;
       continue;
     }
     if (code < 32 || (code >= 0x7f && code <= 0x9f)) {
       control += 1;
-    } else {
-      printable += 1;
+      continue;
+    }
+    printable += 1;
+    if (WORDISH_CHAR.test(char)) {
+      wordish += 1;
     }
   }
   const total = printable + control;
   if (total === 0) {
-    return false;
+    return { printableRatio: 0, wordishRatio: 0 };
   }
-  return printable / total > 0.85;
+  return { printableRatio: printable / total, wordishRatio: wordish / total };
+}
+
+function isMostlyPrintable(text: string): boolean {
+  return getTextStats(text).printableRatio > 0.85;
 }
 
 function looksLikeLegacyTextBytes(buffer: Buffer): boolean {
   if (buffer.length === 0) {
     return false;
   }
-  let printable = 0;
-  let control = 0;
-  for (const byte of buffer) {
-    if (byte === 9 || byte === 10 || byte === 13) {
-      printable += 1;
-      continue;
-    }
-    if (byte === 0 || byte < 32 || byte === 0x7f) {
-      control += 1;
-      continue;
-    }
-    printable += 1;
-  }
-  const total = printable + control;
-  if (total === 0) {
-    return false;
-  }
-  return printable / total > 0.85;
+  const text = decodeLegacyText(buffer);
+  const { printableRatio, wordishRatio } = getTextStats(text);
+  return printableRatio > 0.95 && wordishRatio > 0.3;
 }
 
 function looksLikeUtf8Text(buffer?: Buffer): boolean {

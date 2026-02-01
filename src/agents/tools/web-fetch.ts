@@ -292,10 +292,25 @@ function wrapWebFetchContent(
   rawLength: number;
   wrappedLength: number;
 } {
+  if (maxChars <= 0) {
+    return { text: "", truncated: true, rawLength: 0, wrappedLength: 0 };
+  }
   const includeWarning = maxChars >= WEB_FETCH_WRAPPER_WITH_WARNING_OVERHEAD;
   const wrapperOverhead = includeWarning
     ? WEB_FETCH_WRAPPER_WITH_WARNING_OVERHEAD
     : WEB_FETCH_WRAPPER_NO_WARNING_OVERHEAD;
+  if (wrapperOverhead > maxChars) {
+    const minimal = includeWarning
+      ? wrapWebContent("", "web_fetch")
+      : wrapExternalContent("", { source: "web_fetch", includeWarning: false });
+    const truncatedWrapper = truncateText(minimal, maxChars);
+    return {
+      text: truncatedWrapper.text,
+      truncated: true,
+      rawLength: 0,
+      wrappedLength: truncatedWrapper.text.length,
+    };
+  }
   const maxInner = Math.max(0, maxChars - wrapperOverhead);
   let truncated = truncateText(value, maxInner);
   let wrappedText = includeWarning
