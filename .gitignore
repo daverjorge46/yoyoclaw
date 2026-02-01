@@ -69,6 +69,7 @@ IDENTITY.md
 USER.md
 .tgz
 .githooks/
+error.log
 
 # local tooling
 .serena/
