@@ -138,12 +138,17 @@ export async function applyAuthChoiceLmStudio(
   const modelId = normalizeLmStudioModelId(String(modelInput)) as string;
   const modelRef = `lmstudio/${modelId}`;
 
+  const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
   const nextProvider: ModelProviderConfig = {
-    ...(existingProvider ?? {}),
+    ...(existingProvider ?? {
+      baseUrl: normalizedBaseUrl,
+      api: DEFAULT_LMSTUDIO_API,
+      models: existingModels,
+    }),
     baseUrl: normalizedBaseUrl,
     apiKey: existingProvider?.apiKey ?? "lmstudio",
     api: existingProvider?.api ?? DEFAULT_LMSTUDIO_API,
-    models: Array.isArray(existingProvider?.models) ? existingProvider.models : [],
+    models: existingModels,
   };
 
   let nextConfig: OpenClawConfig = {
