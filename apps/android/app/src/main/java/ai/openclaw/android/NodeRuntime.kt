@@ -1118,11 +1118,11 @@ class NodeRuntime(context: Context) {
     val nodeRaw = nodeSession.currentCanvasHostUrl()?.trim().orEmpty()
     val operatorRaw = operatorSession.currentCanvasHostUrl()?.trim().orEmpty()
     val raw = if (nodeRaw.isNotBlank()) nodeRaw else operatorRaw
-    android.util.Log.d("OpenClawCanvas", "resolveA2uiHostUrl: nodeRaw=$nodeRaw operatorRaw=$operatorRaw raw=$raw")
+    if (BuildConfig.DEBUG) android.util.Log.d("OpenClawCanvas", "resolveA2uiHostUrl: nodeRaw=$nodeRaw operatorRaw=$operatorRaw raw=$raw")
     if (raw.isBlank()) return null
     val base = raw.trimEnd('/')
     val result = "${base}/__clawdbot__/a2ui/?platform=android"
-    android.util.Log.d("OpenClawCanvas", "resolveA2uiHostUrl: result=$result")
+    if (BuildConfig.DEBUG) android.util.Log.d("OpenClawCanvas", "resolveA2uiHostUrl: result=$result")
     return result
   }
 

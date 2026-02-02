@@ -159,13 +159,20 @@ class DeviceIdentityStore(context: Context) {
 
     private var bcRegistered = false
 
+    /**
+     * Ensures BouncyCastle is registered for Ed25519 support.
+     * Required on Android <13 where native Ed25519 support is missing or incomplete.
+     * Positioned at index 1 to take precedence over potentially broken platform providers.
+     */
     @Synchronized
     private fun ensureBouncyCastle() {
-      if (!bcRegistered) {
+      if (bcRegistered) return
+      val existing = Security.getProvider("BC")
+      if (existing == null || existing !is BouncyCastleProvider) {
         Security.removeProvider("BC")
         Security.insertProviderAt(BouncyCastleProvider(), 1)
-        bcRegistered = true
       }
+      bcRegistered = true
     }
   }
 }
