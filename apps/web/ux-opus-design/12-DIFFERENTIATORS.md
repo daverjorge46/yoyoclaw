@@ -67,6 +67,19 @@ Docs:
 - `apps/web/ux-opus-design/00-CANONICAL-CONFIG-AND-TERMS.md`
 - `apps/web/ux-opus-design/07-SYSTEM-SETTINGS-DESIGN.md`
 
+### 4.5) Quiet Hours as a Policy Layer (Reduce Interruptions Without Losing Capability)
+
+"Quiet hours" is not just a schedule. It is a policy layer that governs what agents are allowed to do (and how they behave) during certain times:
+- mute outbound messages vs "respond only when mentioned"
+- optional queueing vs skipping
+- optional tool-execution limits for high-safety/business environments
+
+The moat is making this legible and controllable while preserving power-user configurability.
+
+Docs:
+- `apps/web/ux-opus-design/00-CANONICAL-CONFIG-AND-TERMS.md` (proposed schema)
+- `apps/web/ux-opus-design/08-AGENT-CONFIGURATION-DESIGN.md` (agent UI surfaces)
+
 ### 5) Capability Gating (No Mystery Knobs)
 
 We support many power-user knobs, but only show controls that actually work for the chosen runtime/provider/model.
@@ -113,4 +126,3 @@ See `apps/web/ux-opus-design/19-DEFENSIBILITY-PLAN.md` for the pitch-ready plan.
 
 ### Engineer / Technical Expert
 “Reproducible, debuggable agent configs with safety and auditability built in.”
-

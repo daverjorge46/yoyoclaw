@@ -296,12 +296,12 @@ export function CreateRitualModal({
                           <Bot className="h-4 w-4 text-muted-foreground" />
                           Assign to Agent
                         </Label>
-                        <Select value={agentId} onValueChange={setAgentId}>
+                        <Select value={agentId || "none"} onValueChange={(value) => setAgentId(value === "none" ? "" : value)}>
                           <SelectTrigger className="h-11 rounded-xl">
                             <SelectValue placeholder="Select an agent (optional)" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">No agent</SelectItem>
+                            <SelectItem value="none">No agent</SelectItem>
                             {agents.map((agent) => (
                               <SelectItem key={agent.id} value={agent.id}>
                                 {agent.name}

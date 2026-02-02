@@ -193,8 +193,10 @@ This roadmap focuses on what is missing (Basics/More composition surfaces, per-a
 | Implement empty states for config surfaces | Various | 2 | M | 80-200 | 1-2d | Design specs |
 | Add loading skeletons for config surfaces | Various | 2 | M | 80-200 | 1-2d | None |
 | Implement save error recovery UI (retry/undo/copy) | Various | 4 | M | 150-350 | 2-3d | None |
+| Implement draft editing + Save/Discard bar + navigate-away prompt (agents) | Agent panels/routes | 5 | L | 300-700 | 3-6d | Phase 1 |
 | Implement secrets UX primitives (mask/reveal/copy + audit hooks) | Providers/Channels/Connections forms | 5 | L | 300-700 | 3-6d | `apps/web/docs/plans/2026-02-01-auth-oauth-pairing-secrets-and-errors.md` |
 | Implement explicit error states: save/test/models list | Providers/Models surfaces | 4 | L | 250-600 | 2-5d | `apps/web/docs/plans/2026-02-01-auth-oauth-pairing-secrets-and-errors.md` |
+| Implement OAuth (browser) connect flow for OpenAI/Anthropic/Gemini + pairing fallback | Settings: Providers & Auth | 5 | L | 400-900 | 4-8d | `apps/web/docs/plans/2026-02-01-auth-oauth-pairing-secrets-and-errors.md` |
 | Implement Configuration Command Palette destinations/actions for config surfaces | `src/components/composed/CommandPalette.tsx` | 4 | M | 200-500 | 2-4d | `apps/web/ux-opus-design/16-STATE-NAV-AND-COMMAND-PALETTE.md` |
 | Tab persistence + deep links | Routes | 3 | S | 80-200 | 1-2d | None |
 | Configuration summary card (inherit vs override diff) | `src/components/domain/agents/AgentBasicsTab.tsx` | 4 | M | 200-450 | 2-3d | Phase 1 |

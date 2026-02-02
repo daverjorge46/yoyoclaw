@@ -8,9 +8,10 @@ import { AgentConfig } from "@/components/domain/config";
 
 interface AgentsSectionProps {
   className?: string;
+  initialEditAgentId?: string;
 }
 
-export function AgentsSection({ className }: AgentsSectionProps) {
+export function AgentsSection({ className, initialEditAgentId }: AgentsSectionProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header Card */}
@@ -51,7 +52,7 @@ export function AgentsSection({ className }: AgentsSectionProps) {
       </Card>
 
       {/* Agent Config Component */}
-      <AgentConfig />
+      <AgentConfig initialEditAgentId={initialEditAgentId} />
     </div>
   );
 }

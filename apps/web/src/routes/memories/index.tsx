@@ -502,6 +502,11 @@ function MemoriesPage() {
         open={!!deleteConfirmId}
         onOpenChange={(open) => !open && setDeleteConfirmId(null)}
         title="Delete Memory"
+        resource={
+          deleteConfirmTitle
+            ? { title: deleteConfirmTitle, subtitle: "Memory" }
+            : undefined
+        }
         description={`Are you sure you want to delete "${deleteConfirmTitle}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="destructive"

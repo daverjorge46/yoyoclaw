@@ -130,7 +130,7 @@ This document details the system-wide settings page that configures defaults for
 
 ### MVP Support Matrix (Model Providers)
 
-This matrix is for **model providers only** (OpenAI, Anthropic, Gemini, OpenRouter, Z.AI).
+This matrix is for **model providers only**.
 Channels and other Connections may also support OAuth; they must reuse the same auth patterns and UI primitives described below.
 
 Legend:
@@ -144,17 +144,27 @@ Auth method families (canonical):
 - **OAuth (device code)**: show a code + URL, user completes auth elsewhere.
 - **Pair from local machine**: generate a pairing code in the web UI, complete the flow via CLI on a machine that can open a browser.
 
-| Provider | API key / Token | OAuth (browser) | OAuth (device code) | Pair from local machine | Platforms supported |
-|----------|------------------|-----------------|----------------------|-------------------------|--------------------|
-| OpenAI | ✅ | 🔶 | 🔶 | ✅ | Browser UI + headless server via pairing |
-| Anthropic | ✅ | 🔶 | 🔶 | ✅ | Browser UI + headless server via pairing |
-| Gemini | ✅ | 🔶 | 🔶 | ✅ | Browser UI + headless server via pairing |
-| OpenRouter | ✅ | ❌ | ❌ | ✅ | Browser UI + headless server via pairing |
-| Z.AI | ✅ | ❌ | ❌ | ✅ | Browser UI + headless server via pairing |
+MVP-required provider set (by user decision, 2026-02-01):
+- OpenAI, Anthropic, Gemini
+- OpenRouter, Z.AI
+- Azure OpenAI, Bedrock, Vertex AI
+- plus at least 3 additional online providers (TBD)
+
+| Provider | API key | Token(s) / Cloud creds | Service account JSON | OAuth (browser) | OAuth (device code) | Pair from local machine | Platforms supported |
+|----------|---------|------------------------|----------------------|----------------|----------------------|-------------------------|--------------------|
+| OpenAI | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | Browser UI + headless gateway via pairing |
+| Anthropic | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | Browser UI + headless gateway via pairing |
+| Gemini | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | Browser UI + headless gateway via pairing |
+| OpenRouter | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Browser UI + headless gateway via pairing |
+| Z.AI | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | Browser UI + headless gateway via pairing |
+| Azure OpenAI | ✅ | 🔶 | ❌ | ❌ | ❌ | ✅ | Browser UI + headless gateway via pairing |
+| Bedrock | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ | Browser UI + headless gateway via pairing |
+| Vertex AI | ❌ | 🔶 | ✅ | ✅ | 🔶 | ✅ | Browser UI + headless gateway via pairing |
 
 Notes:
-- “OAuth” support is provider-specific; the UI must be capable of supporting it wherever available, but the MVP must ship with a clear per-provider status and fallback paths.
-- “Pair from local machine” is required for headless deployments.
+- OAuth (browser) is a target MVP for OpenAI/Anthropic/Gemini when possible.
+- A headless gateway is not inherently a blocker for OAuth (browser) because OAuth happens in the user’s browser; the key requirement is a reachable callback endpoint and secure server-side token storage.
+- “Pair from local machine” is required for headless deployments when callbacks are not reachable or provider apps are misconfigured.
 
 Canonical cross-integration auth UX (Providers + Channels + Connections):
 - `apps/web/docs/plans/2026-02-01-auth-oauth-pairing-secrets-and-errors.md`
@@ -225,7 +235,7 @@ Canonical cross-integration auth UX (Providers + Channels + Connections):
 
 - Provider cards already exist in `ModelProviderSection.tsx`
 - Need to add CLI pairing option (requires backend)
-- OAuth flow needs device code implementation
+- OAuth (browser) flow should be implemented for OpenAI/Anthropic/Gemini (requires gateway endpoints + callback handling); device code is post-MVP.
 
 ### Secrets Handling Requirements (MVP)
 

@@ -62,6 +62,14 @@ These rules keep labels consistent across providers, pages, and components.
 - Title: `Basics`
 - Subtitle: `The controls most people change. Everything else inherits system defaults.`
 
+### Quiet hours
+- Title: `Quiet hours`
+- Helper: `Reduce interruptions and limit what this agent can do during certain times.`
+- Policy presets:
+  - `Mute outbound messages (recommended)`
+  - `Respond only when mentioned`
+  - `Pause agent`
+
 ### More tab
 - Title: `More`
 - Subtitle: `Detailed settings and logs. Use Expert Mode to see everything at once.`

@@ -85,7 +85,7 @@ export function ChatSettingsPanel({
                     <Clock className="h-3.5 w-3.5" />
                     Created
                   </span>
-                  <span className="text-foreground whitespace-nowrap tabular-nums">
+                  <span className="text-foreground whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(conversation.createdAt)}
                   </span>
                 </div>
@@ -95,7 +95,7 @@ export function ChatSettingsPanel({
                     <Clock className="h-3.5 w-3.5" />
                     Last Updated
                   </span>
-                  <span className="text-foreground whitespace-nowrap tabular-nums">
+                  <span className="text-foreground whitespace-nowrap tabular-nums shrink-0">
                     {formatDate(conversation.updatedAt)}
                   </span>
                 </div>

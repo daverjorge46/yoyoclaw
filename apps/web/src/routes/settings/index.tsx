@@ -20,7 +20,7 @@ import { SettingsConfigMobileNav } from "@/components/domain/settings/SettingsCo
 
 export const Route = createFileRoute("/settings/")({
   component: SettingsPage,
-  validateSearch: (search: Record<string, unknown>): { section?: ConfigSection } => {
+  validateSearch: (search: Record<string, unknown>): { section?: ConfigSection; agentId?: string } => {
     const validSections: ConfigSection[] = [
       "health",
       "ai-provider",
@@ -33,15 +33,17 @@ export const Route = createFileRoute("/settings/")({
       "usage",
     ];
     const section = search.section as ConfigSection | undefined;
+    const agentId = typeof search.agentId === "string" ? search.agentId : undefined;
     return {
       section: section && validSections.includes(section) ? section : undefined,
+      agentId,
     };
   },
 });
 
 function SettingsPage() {
   const navigate = Route.useNavigate();
-  const { section: searchSection } = Route.useSearch();
+  const { section: searchSection, agentId } = Route.useSearch();
 
   const [activeSection, setActiveSection] = React.useState<ConfigSection>(
     searchSection || "health"
@@ -64,6 +66,14 @@ function SettingsPage() {
     }
   }, [searchSection, activeSection]);
 
+  React.useEffect(() => {
+    if (searchSection !== "agents" || !agentId) return;
+    navigate({
+      search: (prev) => ({ ...prev, agentId: undefined }),
+      replace: true,
+    });
+  }, [searchSection, agentId, navigate]);
+
   const renderSection = () => {
     switch (activeSection) {
       case "health":
@@ -75,7 +85,7 @@ function SettingsPage() {
       case "channels":
         return <ChannelsSection />;
       case "agents":
-        return <AgentsSection />;
+        return <AgentsSection initialEditAgentId={agentId} />;
       case "toolsets":
         return <ToolsetsSection />;
       case "advanced":

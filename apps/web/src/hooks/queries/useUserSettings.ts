@@ -5,7 +5,8 @@
  * gateway API integration when user settings endpoints are available.
  */
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 // Types
 
@@ -30,14 +31,51 @@ export interface UserPreferences {
   notifications: NotificationPreference[];
 }
 
+export interface InteractionStyle {
+  tone: "casual" | "balanced" | "professional";
+  verbosity: "brief" | "balanced" | "detailed";
+  useAnalogies: boolean;
+  technicalLevel: number;
+  proactive: boolean;
+}
+
+export interface Appearance {
+  sidebarCollapsedDefault: boolean;
+  dateFormat: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
+  timeFormat: "12h" | "24h";
+}
+
+export interface Accessibility {
+  reduceMotion: boolean;
+  highContrast: boolean;
+  fontSize: "default" | "large" | "extra-large";
+  showKeyboardHints: boolean;
+  screenReaderOptimized: boolean;
+}
+
+export interface NotificationSettings {
+  emailEnabled: boolean;
+  soundEnabled: boolean;
+  pauseDuringQuietHours: boolean;
+  digestFrequency: "immediately" | "daily" | "weekly";
+}
+
 export interface UserSettings {
   profile: UserProfile;
   preferences: UserPreferences;
+  interactionStyle: InteractionStyle;
+  appearance: Appearance;
+  accessibility: Accessibility;
+  notificationSettings: NotificationSettings;
 }
 
 // Storage keys
 const STORAGE_KEY_PROFILE = "clawdbrain:user:profile";
 const STORAGE_KEY_PREFERENCES = "clawdbrain:user:preferences";
+const STORAGE_KEY_INTERACTION_STYLE = "clawdbrain:user:interaction-style";
+const STORAGE_KEY_APPEARANCE = "clawdbrain:user:appearance";
+const STORAGE_KEY_ACCESSIBILITY = "clawdbrain:user:accessibility";
+const STORAGE_KEY_NOTIFICATION_SETTINGS = "clawdbrain:user:notification-settings";
 
 // Default values
 const DEFAULT_PROFILE: UserProfile = {
@@ -87,11 +125,44 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   notifications: DEFAULT_NOTIFICATIONS,
 };
 
+const DEFAULT_INTERACTION_STYLE: InteractionStyle = {
+  tone: "balanced",
+  verbosity: "balanced",
+  useAnalogies: true,
+  technicalLevel: 50,
+  proactive: true,
+};
+
+const DEFAULT_APPEARANCE: Appearance = {
+  sidebarCollapsedDefault: false,
+  dateFormat: "MM/DD/YYYY",
+  timeFormat: "12h",
+};
+
+const DEFAULT_ACCESSIBILITY: Accessibility = {
+  reduceMotion: false,
+  highContrast: false,
+  fontSize: "default",
+  showKeyboardHints: true,
+  screenReaderOptimized: false,
+};
+
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  emailEnabled: false,
+  soundEnabled: true,
+  pauseDuringQuietHours: false,
+  digestFrequency: "immediately",
+};
+
 // Query keys factory
 export const userSettingsKeys = {
   all: ["userSettings"] as const,
   profile: () => [...userSettingsKeys.all, "profile"] as const,
   preferences: () => [...userSettingsKeys.all, "preferences"] as const,
+  interactionStyle: () => [...userSettingsKeys.all, "interactionStyle"] as const,
+  appearance: () => [...userSettingsKeys.all, "appearance"] as const,
+  accessibility: () => [...userSettingsKeys.all, "accessibility"] as const,
+  notificationSettings: () => [...userSettingsKeys.all, "notificationSettings"] as const,
 };
 
 // Storage helpers
@@ -133,6 +204,58 @@ function getStoredPreferences(): UserPreferences {
   return DEFAULT_PREFERENCES;
 }
 
+function getStoredInteractionStyle(): InteractionStyle {
+  if (typeof window === "undefined") return DEFAULT_INTERACTION_STYLE;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_INTERACTION_STYLE);
+    if (stored) {
+      return { ...DEFAULT_INTERACTION_STYLE, ...JSON.parse(stored) };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return DEFAULT_INTERACTION_STYLE;
+}
+
+function getStoredAppearance(): Appearance {
+  if (typeof window === "undefined") return DEFAULT_APPEARANCE;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_APPEARANCE);
+    if (stored) {
+      return { ...DEFAULT_APPEARANCE, ...JSON.parse(stored) };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return DEFAULT_APPEARANCE;
+}
+
+function getStoredAccessibility(): Accessibility {
+  if (typeof window === "undefined") return DEFAULT_ACCESSIBILITY;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_ACCESSIBILITY);
+    if (stored) {
+      return { ...DEFAULT_ACCESSIBILITY, ...JSON.parse(stored) };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return DEFAULT_ACCESSIBILITY;
+}
+
+function getStoredNotificationSettings(): NotificationSettings {
+  if (typeof window === "undefined") return DEFAULT_NOTIFICATION_SETTINGS;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_NOTIFICATION_SETTINGS);
+    if (stored) {
+      return { ...DEFAULT_NOTIFICATION_SETTINGS, ...JSON.parse(stored) };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return DEFAULT_NOTIFICATION_SETTINGS;
+}
+
 // API functions (localStorage-based, ready for gateway migration)
 
 export async function getUserProfile(): Promise<UserProfile> {
@@ -146,12 +269,36 @@ export async function getUserPreferences(): Promise<UserPreferences> {
   return getStoredPreferences();
 }
 
+export async function getInteractionStyle(): Promise<InteractionStyle> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return getStoredInteractionStyle();
+}
+
+export async function getAppearance(): Promise<Appearance> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return getStoredAppearance();
+}
+
+export async function getAccessibility(): Promise<Accessibility> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return getStoredAccessibility();
+}
+
+export async function getNotificationSettings(): Promise<NotificationSettings> {
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  return getStoredNotificationSettings();
+}
+
 export async function getUserSettings(): Promise<UserSettings> {
-  const [profile, preferences] = await Promise.all([
+  const [profile, preferences, interactionStyle, appearance, accessibility, notificationSettings] = await Promise.all([
     getUserProfile(),
     getUserPreferences(),
+    getInteractionStyle(),
+    getAppearance(),
+    getAccessibility(),
+    getNotificationSettings(),
   ]);
-  return { profile, preferences };
+  return { profile, preferences, interactionStyle, appearance, accessibility, notificationSettings };
 }
 
 // Query hooks
@@ -181,7 +328,55 @@ export function useUserPreferences() {
 }
 
 /**
- * Hook to get all user settings (profile + preferences)
+ * Hook to get interaction style preferences
+ */
+export function useInteractionStyle() {
+  return useQuery({
+    queryKey: userSettingsKeys.interactionStyle(),
+    queryFn: getInteractionStyle,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+}
+
+/**
+ * Hook to get appearance preferences
+ */
+export function useAppearance() {
+  return useQuery({
+    queryKey: userSettingsKeys.appearance(),
+    queryFn: getAppearance,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+}
+
+/**
+ * Hook to get accessibility preferences
+ */
+export function useAccessibility() {
+  return useQuery({
+    queryKey: userSettingsKeys.accessibility(),
+    queryFn: getAccessibility,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+}
+
+/**
+ * Hook to get notification settings
+ */
+export function useNotificationSettings() {
+  return useQuery({
+    queryKey: userSettingsKeys.notificationSettings(),
+    queryFn: getNotificationSettings,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+}
+
+/**
+ * Hook to get all user settings (profile + preferences + all new settings)
  */
 export function useUserSettings() {
   return useQuery({
@@ -207,5 +402,183 @@ export function usePrefetchUserSettings() {
       queryKey: userSettingsKeys.preferences(),
       queryFn: getUserPreferences,
     });
+    queryClient.prefetchQuery({
+      queryKey: userSettingsKeys.interactionStyle(),
+      queryFn: getInteractionStyle,
+    });
+    queryClient.prefetchQuery({
+      queryKey: userSettingsKeys.appearance(),
+      queryFn: getAppearance,
+    });
+    queryClient.prefetchQuery({
+      queryKey: userSettingsKeys.accessibility(),
+      queryFn: getAccessibility,
+    });
   };
+}
+
+// Mutation hooks
+
+/**
+ * Hook to update interaction style
+ */
+export function useUpdateInteractionStyle() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: Partial<InteractionStyle>) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const current = getStoredInteractionStyle();
+      const updated = { ...current, ...params };
+      localStorage.setItem(STORAGE_KEY_INTERACTION_STYLE, JSON.stringify(updated));
+      return updated;
+    },
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: userSettingsKeys.interactionStyle() });
+      const previous = queryClient.getQueryData<InteractionStyle>(userSettingsKeys.interactionStyle());
+      if (previous) {
+        queryClient.setQueryData<InteractionStyle>(userSettingsKeys.interactionStyle(), {
+          ...previous,
+          ...params,
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(userSettingsKeys.interactionStyle(), context.previous);
+      }
+      toast.error("Failed to update interaction style");
+    },
+    onSuccess: () => {
+      toast.success("Interaction style updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.interactionStyle() });
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to update appearance
+ */
+export function useUpdateAppearance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: Partial<Appearance>) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const current = getStoredAppearance();
+      const updated = { ...current, ...params };
+      localStorage.setItem(STORAGE_KEY_APPEARANCE, JSON.stringify(updated));
+      return updated;
+    },
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: userSettingsKeys.appearance() });
+      const previous = queryClient.getQueryData<Appearance>(userSettingsKeys.appearance());
+      if (previous) {
+        queryClient.setQueryData<Appearance>(userSettingsKeys.appearance(), {
+          ...previous,
+          ...params,
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(userSettingsKeys.appearance(), context.previous);
+      }
+      toast.error("Failed to update appearance");
+    },
+    onSuccess: () => {
+      toast.success("Appearance updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.appearance() });
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to update accessibility
+ */
+export function useUpdateAccessibility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: Partial<Accessibility>) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const current = getStoredAccessibility();
+      const updated = { ...current, ...params };
+      localStorage.setItem(STORAGE_KEY_ACCESSIBILITY, JSON.stringify(updated));
+      return updated;
+    },
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: userSettingsKeys.accessibility() });
+      const previous = queryClient.getQueryData<Accessibility>(userSettingsKeys.accessibility());
+      if (previous) {
+        queryClient.setQueryData<Accessibility>(userSettingsKeys.accessibility(), {
+          ...previous,
+          ...params,
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(userSettingsKeys.accessibility(), context.previous);
+      }
+      toast.error("Failed to update accessibility settings");
+    },
+    onSuccess: () => {
+      toast.success("Accessibility settings updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.accessibility() });
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to update notification settings
+ */
+export function useUpdateNotificationSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: Partial<NotificationSettings>) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const current = getStoredNotificationSettings();
+      const updated = { ...current, ...params };
+      localStorage.setItem(STORAGE_KEY_NOTIFICATION_SETTINGS, JSON.stringify(updated));
+      return updated;
+    },
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: userSettingsKeys.notificationSettings() });
+      const previous = queryClient.getQueryData<NotificationSettings>(userSettingsKeys.notificationSettings());
+      if (previous) {
+        queryClient.setQueryData<NotificationSettings>(userSettingsKeys.notificationSettings(), {
+          ...previous,
+          ...params,
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(userSettingsKeys.notificationSettings(), context.previous);
+      }
+      toast.error("Failed to update notification settings");
+    },
+    onSuccess: () => {
+      toast.success("Notification settings updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.notificationSettings() });
+      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all });
+    },
+  });
 }

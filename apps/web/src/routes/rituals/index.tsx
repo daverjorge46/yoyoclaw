@@ -3,6 +3,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,6 +33,7 @@ import {
   SlidersHorizontal,
   Pause,
   Play,
+  Calendar,
 } from "lucide-react";
 import type { Ritual, RitualStatus, RitualFrequency } from "@/hooks/queries/useRituals";
 
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/rituals/")({
 });
 
 type StatusFilter = "all" | RitualStatus;
+type FrequencyFilter = "all" | RitualFrequency;
 
 const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All Rituals" },
@@ -47,6 +50,15 @@ const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: "paused", label: "Paused" },
   { value: "completed", label: "Completed" },
   { value: "failed", label: "Failed" },
+];
+
+const frequencyOptions: { value: FrequencyFilter; label: string }[] = [
+  { value: "all", label: "All Frequencies" },
+  { value: "hourly", label: "Hourly" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "custom", label: "Custom" },
 ];
 
 // Animation variants for staggered list
@@ -76,6 +88,7 @@ const itemVariants = {
 function RitualsPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
+  const [frequencyFilter, setFrequencyFilter] = React.useState<FrequencyFilter>("all");
   const [density, setDensity] = React.useState<"compact" | "expanded">("compact");
   const [selectedRitual, setSelectedRitual] = React.useState<Ritual | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
@@ -98,6 +111,9 @@ function RitualsPage() {
   const resolvedStatusFilter = statusOptions.some((option) => option.value === statusFilter)
     ? statusFilter
     : "all";
+  const resolvedFrequencyFilter = frequencyOptions.some((option) => option.value === frequencyFilter)
+    ? frequencyFilter
+    : "all";
 
   const filteredRituals = React.useMemo(() => {
     if (!rituals) return [];
@@ -105,6 +121,10 @@ function RitualsPage() {
     return rituals.filter((ritual) => {
       // Status filter
       if (resolvedStatusFilter !== "all" && ritual.status !== resolvedStatusFilter) {
+        return false;
+      }
+
+      if (resolvedFrequencyFilter !== "all" && ritual.frequency !== resolvedFrequencyFilter) {
         return false;
       }
 
@@ -119,7 +139,7 @@ function RitualsPage() {
 
       return true;
     });
-  }, [rituals, resolvedStatusFilter, debouncedSearch]);
+  }, [rituals, resolvedStatusFilter, resolvedFrequencyFilter, debouncedSearch]);
 
   const activeCount = filteredRituals.filter((r) => r.status === "active").length;
   const pausedCount = filteredRituals.filter((r) => r.status === "paused").length;
@@ -135,6 +155,11 @@ function RitualsPage() {
     } else if (ritual.status === "paused") {
       resumeRitual.mutate(ritual.id);
     }
+  };
+
+  const handleSkipNext = (id: string) => {
+    toast.success("Next run skipped (mock)");
+    console.log("Skip next ritual:", id);
   };
 
   const handleCreateRitual = (data: {
@@ -268,6 +293,24 @@ function RitualsPage() {
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Frequency Filter */}
+          <Select
+            value={resolvedFrequencyFilter}
+            onValueChange={(value) => setFrequencyFilter((value || "all") as FrequencyFilter)}
+          >
+            <SelectTrigger className="h-11 w-full sm:w-[180px] rounded-xl">
+              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Filter by frequency" />
+            </SelectTrigger>
+            <SelectContent>
+              {frequencyOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -445,6 +488,7 @@ function RitualsPage() {
           onClose={() => setIsDetailOpen(false)}
           onPause={(id) => pauseRitual.mutate(id)}
           onResume={(id) => resumeRitual.mutate(id)}
+          onSkipNext={handleSkipNext}
           onUpdateSchedule={(id, schedule) => {
             updateRitual.mutate({
               id,

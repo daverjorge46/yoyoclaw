@@ -82,13 +82,16 @@ These are internal param keys stored under model params (system defaults and per
 | `heartbeat.schedule` | **Schedule** | How often to check in. | Cron-like picker |
 | `heartbeat.target` | **Check-in target** | What to monitor during heartbeat. | Dropdown |
 | `heartbeat.model` | **Heartbeat model** | AI model for background tasks. | Dropdown |
-| `quietHours` | **Quiet hours** | Times when the agent won't interrupt. | Time range picker |
+| `availability.quietHours` | **Quiet hours** | Reduce interruptions and limit what agents can do during certain times. | Composition control + policy presets |
+| `availability.quietHours.policy` | **Quiet hours policy** | Choose what to limit during quiet hours. | Presets + Expert overrides |
+| `availability.quietHours.schedule` | **Quiet hours schedule** | When quiet hours apply. | Timezone-aware |
+| `availability.quietHours.behaviorDuringQuietHours` | **When quiet hours start** | Queue work, respond only when mentioned, or pause. | Depends on runtime semantics |
 
 ### System Components
 
 | Technical Term | Friendly Label | Helper Text | Notes |
 |---------------|----------------|-------------|-------|
-| `agents.main` | **System Brain** | Always-on intelligence for system tasks. | Card |
+| `agents.main` | **System Brain** | System-level intelligence for system tasks. | Card |
 | `agents.defaults` | **System defaults** | Settings inherited by all agents. | Section |
 | `model.primary` | **Default model** | Main AI model for text generation. | Dropdown |
 | `model.fallbacks` | **Fallback models** | Backup models if primary is unavailable. | Drag list |

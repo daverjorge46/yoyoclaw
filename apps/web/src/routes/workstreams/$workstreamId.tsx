@@ -245,12 +245,12 @@ function AddTaskModal({ open, onClose, workstreamId, existingTasks }: AddTaskMod
           {/* Assignee */}
           <div className="space-y-2">
             <Label>Assignee (optional)</Label>
-            <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Unassigned" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+              <Select value={assigneeId || "unassigned"} onValueChange={(value) => setAssigneeId(value === "unassigned" ? "" : value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Unassigned" />
+                </SelectTrigger>
+                <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {agents.map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     <div className="flex items-center gap-2">
@@ -322,6 +322,8 @@ function WorkstreamDetailPage() {
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<WorkstreamStatus | null>(null);
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
 
   const { data: workstream, isLoading, error } = useWorkstream(workstreamId);
   const { data: agents = [] } = useAgents();
@@ -341,8 +343,25 @@ function WorkstreamDetailPage() {
     setSelectedTask(task);
   }, []);
 
+  const activeTasks = useMemo(() => {
+    return workstream?.tasks.filter(
+      (task) => task.status === "in_progress" || task.status === "review"
+    ) ?? [];
+  }, [workstream?.tasks]);
+
   const handleStatusChange = (newStatus: WorkstreamStatus) => {
     if (!workstream) return;
+    const requiresConfirmation =
+      (newStatus === "paused" || newStatus === "archived") &&
+      activeTasks.length > 0 &&
+      newStatus !== workstream.status;
+
+    if (requiresConfirmation) {
+      setPendingStatus(newStatus);
+      setStatusConfirmOpen(true);
+      return;
+    }
+
     updateStatus.mutate({ id: workstream.id, status: newStatus });
   };
 
@@ -543,6 +562,69 @@ function WorkstreamDetailPage() {
         workstreamId={workstreamId}
         existingTasks={workstream.tasks}
       />
+
+      <Dialog
+        open={statusConfirmOpen}
+        onOpenChange={(open) => {
+          setStatusConfirmOpen(open);
+          if (!open) setPendingStatus(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {pendingStatus === "archived" ? "Archive workstream?" : "Pause workstream?"}
+            </DialogTitle>
+            <DialogDescription>
+              This workstream has active nodes running. Confirming will terminate them immediately.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="text-muted-foreground">Active nodes</div>
+            <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-border/60 bg-secondary/30 p-3">
+              {activeTasks.map((task) => (
+                <div key={task.id} className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">{task.title}</div>
+                    {task.description && (
+                      <div className="truncate text-xs text-muted-foreground">
+                        {task.description}
+                      </div>
+                    )}
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {task.status === "review" ? "Review" : "In progress"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStatusConfirmOpen(false);
+                setPendingStatus(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (!pendingStatus) return;
+                updateStatus.mutate({ id: workstream.id, status: pendingStatus });
+                setStatusConfirmOpen(false);
+                setPendingStatus(null);
+              }}
+            >
+              {pendingStatus === "archived" ? "Archive anyway" : "Pause anyway"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Task Detail Panel */}
       <TaskDetailPanel

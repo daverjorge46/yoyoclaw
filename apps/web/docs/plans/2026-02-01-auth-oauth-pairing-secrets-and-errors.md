@@ -21,6 +21,7 @@ All integrations must map onto one or more of these auth families:
 
 2) **Token(s)**
    - Bot/app tokens or multiple related secrets (e.g. Slack bot token + app token).
+   - Also covers cloud credential pairs where applicable (e.g. AWS access key + secret).
 
 3) **OAuth (browser)**
    - Web UI initiates OAuth in the user’s browser (redirect/popup), then returns with a success/failure result.
@@ -33,6 +34,9 @@ All integrations must map onto one or more of these auth families:
 
 6) **Pair from local machine** (required fallback)
    - Web UI displays a pairing code and a CLI command; user completes auth on a machine that can open a browser.
+
+7) **Service account / JSON credential**
+   - A structured credential blob (e.g. Google service account JSON) uploaded/pasted into the UI.
 
 ## 2) MVP Support Matrix (Integration x Auth x Platform)
 
@@ -47,13 +51,34 @@ Platforms:
 
 ### 2.1 Model Providers (MVP subset)
 
-| Provider | API key | OAuth (browser) | OAuth (device code) | Pair from local machine | Platforms |
-|----------|---------|------------------|----------------------|-------------------------|----------|
-| OpenAI | ✅ | 🔶 | 🔶 | ✅ | local + headless via pairing |
-| Anthropic | ✅ | 🔶 | 🔶 | ✅ | local + headless via pairing |
-| Gemini | ✅ | 🔶 | 🔶 | ✅ | local + headless via pairing |
-| OpenRouter | ✅ | ❌ | ❌ | ✅ | local + headless via pairing |
-| Z.AI | ✅ | ❌ | ❌ | ✅ | local + headless via pairing |
+MVP-required provider set includes:
+- OpenAI, Anthropic, Gemini
+- OpenRouter, Z.AI
+- Azure OpenAI, Bedrock, Vertex AI
+- plus at least 3 additional online providers (TBD)
+
+Candidate additional providers (pick at least 3; do not assume final set):
+- Groq
+- Mistral
+- Cohere
+- Together AI
+- Replicate
+
+| Provider | API key | Token(s) / Cloud creds | Service account JSON | OAuth (browser) | OAuth (device code) | Pair from local machine | Platforms |
+|----------|---------|------------------------|----------------------|----------------|----------------------|-------------------------|----------|
+| OpenAI | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | local + headless via pairing |
+| Anthropic | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | local + headless via pairing |
+| Gemini | ✅ | ❌ | ❌ | ✅ | 🔶 | ✅ | local + headless via pairing |
+| OpenRouter | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | local + headless via pairing |
+| Z.AI | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | local + headless via pairing |
+| Azure OpenAI | ✅ | 🔶 | ❌ | ❌ | ❌ | ✅ | local + headless via pairing |
+| Bedrock | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ | local + headless via pairing |
+| Vertex AI | ❌ | 🔶 | ✅ | ✅ | 🔶 | ✅ | local + headless via pairing |
+
+Notes:
+- OAuth (browser) is the target MVP for OpenAI/Anthropic/Gemini when possible.
+- “Headless gateway” is not inherently a blocker for OAuth (browser) because OAuth occurs in the user’s browser; the key requirements are correct callback hosting and secure server-side token storage (see Section 6).
+- Azure OpenAI and Bedrock often authenticate via cloud credentials rather than consumer OAuth; ship with keys/creds first.
 
 ### 2.2 Channels (current `apps/web` surfaces)
 

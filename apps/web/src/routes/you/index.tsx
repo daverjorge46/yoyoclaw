@@ -5,19 +5,36 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   ProfileSection,
-  PreferencesSection,
   ProfileNav,
   ProfileMobileNav,
+  InteractionStyleSection,
+  AppearanceSection,
+  AccessibilitySection,
+  NotificationsSection,
+  AvailabilitySection,
+  PrivacyDataSection,
+  ActivitySessionsSection,
   type ProfileSectionType,
 } from "@/components/domain/settings";
+import { useUIStore } from "@/stores/useUIStore";
+
+const ALL_SECTIONS: ProfileSectionType[] = [
+  "profile",
+  "interaction-style",
+  "appearance",
+  "notifications",
+  "accessibility",
+  "availability",
+  "privacy",
+  "activity",
+];
 
 export const Route = createFileRoute("/you/")({
   component: YouPage,
   validateSearch: (search: Record<string, unknown>): { section?: ProfileSectionType } => {
-    const validSections: ProfileSectionType[] = ["profile", "preferences"];
     const section = search.section as ProfileSectionType | undefined;
     return {
-      section: section && validSections.includes(section) ? section : undefined,
+      section: section && ALL_SECTIONS.includes(section) ? section : undefined,
     };
   },
 });
@@ -25,19 +42,23 @@ export const Route = createFileRoute("/you/")({
 function YouPage() {
   const navigate = Route.useNavigate();
   const { section: searchSection } = Route.useSearch();
+  const powerUserMode = useUIStore((state) => state.powerUserMode);
 
   const [activeSection, setActiveSection] = React.useState<ProfileSectionType>(
     searchSection || "profile"
   );
 
   // Sync URL with active section
-  const handleSectionChange = (section: ProfileSectionType) => {
-    setActiveSection(section);
-    navigate({
-      search: (prev) => (section === "profile" ? {} : { ...prev, section }),
-      replace: true,
-    });
-  };
+  const handleSectionChange = React.useCallback(
+    (section: ProfileSectionType) => {
+      setActiveSection(section);
+      navigate({
+        search: (prev) => (section === "profile" ? {} : { ...prev, section }),
+        replace: true,
+      });
+    },
+    [navigate]
+  );
 
   // Update active section when URL changes
   React.useEffect(() => {
@@ -46,12 +67,31 @@ function YouPage() {
     }
   }, [searchSection, activeSection]);
 
+  // If user navigates to activity section without power user mode, redirect to profile
+  React.useEffect(() => {
+    if (activeSection === "activity" && !powerUserMode) {
+      handleSectionChange("profile");
+    }
+  }, [activeSection, powerUserMode, handleSectionChange]);
+
   const renderSection = () => {
     switch (activeSection) {
       case "profile":
         return <ProfileSection />;
-      case "preferences":
-        return <PreferencesSection />;
+      case "interaction-style":
+        return <InteractionStyleSection />;
+      case "appearance":
+        return <AppearanceSection />;
+      case "notifications":
+        return <NotificationsSection />;
+      case "accessibility":
+        return <AccessibilitySection />;
+      case "availability":
+        return <AvailabilitySection />;
+      case "privacy":
+        return <PrivacyDataSection />;
+      case "activity":
+        return powerUserMode ? <ActivitySessionsSection /> : <ProfileSection />;
       default:
         return <ProfileSection />;
     }

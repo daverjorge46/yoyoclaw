@@ -63,7 +63,7 @@ This document provides a detailed comparison of what the design specifies versus
 | Provider cards grid | ✅ Complete | In ModelProviderSection |
 | Status indicators | ✅ Complete | Connected/Missing |
 | API key input + test | ✅ Complete | — |
-| OAuth flow | 🔶 Partial | Placeholder only |
+| OAuth (browser) flow | ❌ Missing | MVP target for OpenAI/Anthropic/Gemini; needs gateway endpoints + callback handling |
 | CLI pairing | ❌ Missing | Requires backend |
 | Advanced options (collapsed) | ❓ Unknown | Need to verify |
 

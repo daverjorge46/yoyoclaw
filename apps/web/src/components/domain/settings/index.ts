@@ -14,6 +14,16 @@ export { UsageSection } from "./UsageSection";
 export { HealthSection } from "./HealthSection";
 export { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 
+// New "You" page sections
+export { ComingSoonSection } from "./ComingSoonSection";
+export { InteractionStyleSection } from "./InteractionStyleSection";
+export { AppearanceSection } from "./AppearanceSection";
+export { AccessibilitySection } from "./AccessibilitySection";
+export { NotificationsSection } from "./NotificationsSection";
+export { AvailabilitySection } from "./AvailabilitySection";
+export { PrivacyDataSection } from "./PrivacyDataSection";
+export { ActivitySessionsSection } from "./ActivitySessionsSection";
+
 // Legacy navigation (includes all sections - may be removed later)
 export { SettingsNav, type SettingsSection } from "./SettingsNav";
 export { SettingsMobileNav } from "./SettingsMobileNav";

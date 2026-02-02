@@ -98,27 +98,34 @@ Canonical dual-mode wizard plan:
     │  Streaming: [ON]                        │
     └────────────────┬────────────────────────┘
                      │
-              Auto-save on change
+              User edits draft values
                      │
+                     ▼
+    ┌─────────────────────────────────────────┐
+    │  Unsaved changes                        │
+    │  [Discard]                 [Save changes]│
+    └─────────────────────────────────────────┘
+
+     (on save success)
                      ▼
     ┌─────────────────────────────────────────┐
     │  Saved                                  │
     │  ✓ Changes saved                        │
     └─────────────────────────────────────────┘
 
-     (on error)
+     (on save error)
                      ▼
     ┌─────────────────────────────────────────┐
     │  Save failed                            │
     │  Failed to save changes                 │
-    │  [Try again]                            │
+    │  [Try again]  [Copy changes]            │
     └─────────────────────────────────────────┘
 ```
 
 **Key UX Decisions:**
 - Default state is "use system defaults"
 - Single click to enable customization
-- Auto-save with visual feedback
+- Draft values with an explicit commit point (Save/Discard)
 - Easy reset back to defaults
 
 ---

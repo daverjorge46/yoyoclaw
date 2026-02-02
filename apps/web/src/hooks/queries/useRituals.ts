@@ -13,11 +13,16 @@ export type RitualFrequency =
 export interface RitualExecution {
   id: string;
   ritualId: string;
-  status: "success" | "failed" | "skipped";
+  status: "success" | "failed" | "skipped" | "running";
   startedAt: string;
   completedAt?: string;
   result?: string;
   error?: string;
+  sessionKey?: string;
+  toolCalls?: number;
+  tokens?: number;
+  costUsd?: number;
+  tools?: string[];
 }
 
 export interface Ritual {
@@ -170,14 +175,20 @@ async function fetchRitualExecutions(
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   // Mock execution history
+  const isLive = ritualId === "ritual-1";
   return [
     {
       id: "exec-1",
       ritualId,
-      status: "success",
+      status: isLive ? "running" : "success",
       startedAt: new Date(Date.now() - 86400000).toISOString(),
-      completedAt: new Date(Date.now() - 86300000).toISOString(),
-      result: "Completed successfully",
+      completedAt: isLive ? undefined : new Date(Date.now() - 86300000).toISOString(),
+      result: isLive ? "Running now" : "Completed successfully",
+      sessionKey: `${ritualId}-session-1`,
+      toolCalls: 6,
+      tokens: isLive ? 380 : 1420,
+      costUsd: isLive ? 0.06 : 0.22,
+      tools: ["calendar.read", "docs.search", "email.send"],
     },
     {
       id: "exec-2",
@@ -186,6 +197,11 @@ async function fetchRitualExecutions(
       startedAt: new Date(Date.now() - 172800000).toISOString(),
       completedAt: new Date(Date.now() - 172700000).toISOString(),
       result: "Completed successfully",
+      sessionKey: `${ritualId}-session-2`,
+      toolCalls: 5,
+      tokens: 1210,
+      costUsd: 0.18,
+      tools: ["metrics.fetch", "report.generate"],
     },
     {
       id: "exec-3",
@@ -194,6 +210,11 @@ async function fetchRitualExecutions(
       startedAt: new Date(Date.now() - 259200000).toISOString(),
       completedAt: new Date(Date.now() - 259150000).toISOString(),
       error: "Network timeout during execution",
+      sessionKey: `${ritualId}-session-3`,
+      toolCalls: 2,
+      tokens: 320,
+      costUsd: 0.05,
+      tools: ["http.request"],
     },
   ];
 }

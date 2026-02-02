@@ -27,6 +27,8 @@ export interface PlatformRequirements {
   supported: PlatformType[];
   /** Whether local app installation is required */
   requiresInstallation?: boolean;
+  /** Whether the required installation is currently present */
+  installed?: boolean;
   /** Name of the app/binary to install */
   installationApp?: string;
   /** URL to installation docs */

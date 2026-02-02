@@ -102,7 +102,7 @@ export function Sidebar({ className }: SidebarProps) {
     <motion.aside
       initial={false}
       animate={{
-        width: sidebarCollapsed ? 64 : 256,
+        width: sidebarCollapsed ? 72 : 256,
       }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
       className={cn(
@@ -195,17 +195,6 @@ export function Sidebar({ className }: SidebarProps) {
               collapsed={sidebarCollapsed}
             />
           </NavSection>
-
-          {/* Workspace Switcher */}
-          <div className="mt-2">
-            <WorkspaceSwitcher
-              collapsed={sidebarCollapsed}
-              onCreateWorkspace={() => {
-                // TODO: Open create workspace modal
-                console.log("Create workspace");
-              }}
-            />
-          </div>
         </div>
 
         {/* Power User Section - Only visible when powerUserMode is enabled */}
@@ -252,10 +241,24 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Bottom Navigation */}
       <div className="border-t border-border p-2">
-        {/* Status Indicators Section */}
+        {/* Agent Session Indicators */}
+        <div className="space-y-0.5 mb-2">
+          <AgentSessionsIndicator collapsed={sidebarCollapsed} />
+        </div>
+
+        {/* Separator between agent status and system status */}
+        <Separator className="my-2" />
+
+        {/* Gateway Status + Workspace Switcher (centered when collapsed) */}
         <div className="space-y-0.5 mb-2">
           <GatewayStatusIndicator collapsed={sidebarCollapsed} />
-          <AgentSessionsIndicator collapsed={sidebarCollapsed} />
+          <WorkspaceSwitcher
+            collapsed={sidebarCollapsed}
+            onCreateWorkspace={() => {
+              // TODO: Open create workspace modal
+              console.log("Create workspace");
+            }}
+          />
         </div>
 
         {/* Separator between status and actions */}
@@ -286,16 +289,16 @@ export function Sidebar({ className }: SidebarProps) {
         type="button"
         onClick={toggleSidebar}
         className={cn(
-          "absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm",
+          "absolute -right-4 top-20 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm",
           "hover:bg-accent hover:text-accent-foreground transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         )}
         aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {sidebarCollapsed ? (
-          <ChevronRight className="size-3" />
+          <ChevronRight className="size-4" />
         ) : (
-          <ChevronLeft className="size-3" />
+          <ChevronLeft className="size-4" />
         )}
       </button>
     </motion.aside>

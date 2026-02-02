@@ -154,9 +154,40 @@ interface SegmentedControlProps<T extends string> {
 
 ---
 
-### 4. TimeRangePicker
+### 4. UnsavedChangesBar (Draft Save/Discard)
 
-For quiet hours and availability schedules.
+Per-agent configuration uses draft values with an explicit commit point. This component is the shared pattern.
+
+```typescript
+// src/components/ui/unsaved-changes-bar.tsx
+
+type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
+
+interface UnsavedChangesBarProps {
+  saveState: SaveState;
+  errorMessage?: string;
+  onSave: () => void;
+  onDiscard: () => void;
+  onCopyChanges?: () => void;
+}
+```
+
+Behavior:
+- Hidden when `saveState` is `idle`.
+- Appears when `dirty` with actions: `Discard` and `Save changes`.
+- When `saving`: disable actions, show progress.
+- When `error`: keep bar visible with retry + (optional) `Copy changes`.
+- When navigating away while `dirty`: show a confirm dialog that routes through Save/Discard.
+
+Accessibility:
+- Bar must be reachable by keyboard and announced on appearance (non-disruptive).
+- On save failure, focus should move to the first failing field if known.
+
+---
+
+### 5. TimeRangePicker
+
+For quiet hours and availability schedules (single range). Weekly schedules compose multiple ranges per day/week.
 
 ```typescript
 // src/components/ui/time-range-picker.tsx
@@ -195,7 +226,7 @@ Start: [10:00 PM ▼]    End: [7:00 AM ▼]
 
 ---
 
-### 5. ProviderModelSelector
+### 6. ProviderModelSelector
 
 Cascading provider → model dropdowns.
 

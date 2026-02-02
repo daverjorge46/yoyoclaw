@@ -35,9 +35,10 @@ type FilterStatus = "all" | AgentStatus;
 
 interface AgentConfigProps {
   className?: string;
+  initialEditAgentId?: string;
 }
 
-export function AgentConfig({ className }: AgentConfigProps) {
+export function AgentConfig({ className, initialEditAgentId }: AgentConfigProps) {
   const { data: agents = [], isLoading, error, refetch, isFetching } = useAgents();
   const [isRetrying, setIsRetrying] = React.useState(false);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
@@ -57,6 +58,17 @@ export function AgentConfig({ className }: AgentConfigProps) {
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editingAgent, setEditingAgent] = React.useState<Agent | null>(null);
   const [deletingAgent, setDeletingAgent] = React.useState<Agent | null>(null);
+  const initialEditHandledRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!initialEditAgentId) return;
+    if (initialEditHandledRef.current) return;
+    const agent = agents.find((item) => item.id === initialEditAgentId);
+    if (!agent) return;
+    setEditingAgent(agent);
+    setIsFormOpen(true);
+    initialEditHandledRef.current = true;
+  }, [agents, initialEditAgentId]);
 
   // Filter agents based on search and status
   const filteredAgents = React.useMemo(() => {
@@ -288,6 +300,14 @@ export function AgentConfig({ className }: AgentConfigProps) {
         open={!!deletingAgent}
         onOpenChange={(open) => !open && setDeletingAgent(null)}
         title="Delete Agent"
+        resource={
+          deletingAgent
+            ? {
+                title: deletingAgent.name,
+                subtitle: deletingAgent.role || "Agent",
+              }
+            : undefined
+        }
         description={`Are you sure you want to delete "${deletingAgent?.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         onConfirm={handleConfirmDelete}

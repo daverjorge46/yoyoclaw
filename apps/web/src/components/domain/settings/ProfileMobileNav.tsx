@@ -1,15 +1,27 @@
 "use client";
 
 import * as React from "react";
-import { User, Settings, type LucideIcon } from "lucide-react";
+import {
+  User,
+  MessageSquare,
+  Palette,
+  Bell,
+  Accessibility,
+  Clock,
+  Shield,
+  Activity,
+  type LucideIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/useUIStore";
 import type { ProfileSection } from "./ProfileNav";
 
 interface NavItem {
   id: ProfileSection;
   label: string;
   icon: LucideIcon;
+  expertOnly?: boolean;
 }
 
 interface ProfileMobileNavProps {
@@ -20,7 +32,13 @@ interface ProfileMobileNavProps {
 
 const navItems: NavItem[] = [
   { id: "profile", label: "Profile", icon: User },
-  { id: "preferences", label: "Preferences", icon: Settings },
+  { id: "interaction-style", label: "Interaction", icon: MessageSquare },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "accessibility", label: "Accessibility", icon: Accessibility },
+  { id: "availability", label: "Availability", icon: Clock },
+  { id: "privacy", label: "Privacy", icon: Shield },
+  { id: "activity", label: "Activity", icon: Activity, expertOnly: true },
 ];
 
 export function ProfileMobileNav({
@@ -29,6 +47,7 @@ export function ProfileMobileNav({
   className,
 }: ProfileMobileNavProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+  const powerUserMode = useUIStore((state) => state.powerUserMode);
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -39,6 +58,10 @@ export function ProfileMobileNav({
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
+  const visibleItems = navItems.filter(
+    (item) => !item.expertOnly || powerUserMode
+  );
+
   return (
     <nav
       className={cn("relative", className)}
@@ -47,13 +70,13 @@ export function ProfileMobileNav({
     >
       <div
         className={cn(
-          "flex gap-2 pb-2 px-1",
+          "flex gap-2 pb-2 px-1 overflow-x-auto",
           "scrollbar-thin"
         )}
         role="tablist"
         aria-orientation="horizontal"
       >
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
 

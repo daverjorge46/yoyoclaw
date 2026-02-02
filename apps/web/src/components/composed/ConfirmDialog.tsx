@@ -18,6 +18,12 @@ export interface ConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description: string;
+  resource?: {
+    title: string;
+    subtitle?: string;
+    meta?: string;
+    icon?: React.ReactNode;
+  };
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "default" | "destructive";
@@ -31,6 +37,7 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
+  resource,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   variant = "default",
@@ -63,6 +70,26 @@ export function ConfirmDialog({
             />
           </div>
           <DialogTitle className="text-center">{title}</DialogTitle>
+          {resource && (
+            <div className="mt-3 rounded-xl border border-border/60 bg-secondary/30 p-3 text-left">
+              <div className="flex items-center gap-3">
+                {resource.icon ? (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-foreground">
+                    {resource.icon}
+                  </div>
+                ) : null}
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground truncate">{resource.title}</div>
+                  {resource.subtitle && (
+                    <div className="text-xs text-muted-foreground truncate">{resource.subtitle}</div>
+                  )}
+                  {resource.meta && (
+                    <div className="text-xs text-muted-foreground/80">{resource.meta}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <DialogDescription className="text-center">
             {description}
           </DialogDescription>

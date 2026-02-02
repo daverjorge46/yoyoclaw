@@ -37,6 +37,10 @@ export function AgentSessionsIndicator({
 
   useAgentLiveUpdates();
 
+  const formatCollapsedCount = React.useCallback((count: number) => {
+    return String(Math.min(count, 99));
+  }, []);
+
   // Calculate stats from agents
   const stats = React.useMemo(() => {
     if (!agents) return { active: 0, waiting: 0 };
@@ -73,13 +77,18 @@ export function AgentSessionsIndicator({
               to="/agents"
               search={{ status: "busy" }}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                collapsed && "justify-center px-2"
+                collapsed && "px-2 gap-2"
               )}
+              aria-label={
+                collapsed
+                  ? `${stats.active} agent${stats.active !== 1 ? "s" : ""} active`
+                  : undefined
+              }
             >
               <span className="relative flex size-5 shrink-0 items-center justify-center">
-                <Bot className="size-4 text-emerald-500" />
+                <Bot className="size-5 text-emerald-500" />
               </span>
               <AnimatePresence initial={false}>
                 {!collapsed && (
@@ -95,6 +104,11 @@ export function AgentSessionsIndicator({
                   </motion.span>
                 )}
               </AnimatePresence>
+              {collapsed && (
+                <span className="flex items-center justify-center min-w-[20px] h-5 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-1.5 text-[11px] font-semibold text-emerald-500">
+                  {formatCollapsedCount(stats.active)}
+                </span>
+              )}
             </Link>
           </TooltipTrigger>
           <TooltipContent side="right" sideOffset={8}>
@@ -114,14 +128,14 @@ export function AgentSessionsIndicator({
                 <button
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                    collapsed && "justify-center px-2"
+                    collapsed && "px-2 gap-2"
                   )}
                   aria-label="View waiting agents"
                 >
                   <span className="relative flex size-5 shrink-0 items-center justify-center">
-                    <AlertCircle className="size-4 text-amber-500" />
+                    <AlertCircle className="size-5 text-amber-500" />
                   </span>
                   <AnimatePresence initial={false}>
                     {!collapsed && (
@@ -137,6 +151,11 @@ export function AgentSessionsIndicator({
                       </motion.span>
                     )}
                   </AnimatePresence>
+                  {collapsed && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 rounded-md bg-amber-500/15 border border-amber-500/30 px-1.5 text-[11px] font-semibold text-amber-500">
+                      {formatCollapsedCount(stats.waiting)}
+                    </span>
+                  )}
                 </button>
               </PopoverTrigger>
             </TooltipTrigger>

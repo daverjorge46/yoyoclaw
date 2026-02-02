@@ -26,7 +26,7 @@ These belong to the **Graph + Ingestion/RAG Track** (separate MVP, separate risk
 
 ## Crisp Definitions (One Paragraph)
 
-In the Clawdbrain web app, an **Agent** is a named assistant the user interacts with directly (chatting, running tools, doing work) whose behavior can inherit system defaults or be overridden per-agent; the **System Brain** is a special always-available “default agent” used for system-level tasks and fallbacks (routing, safety, background decisions) that can be configured separately from normal agents; and the **Gateway** is the running backend service (local or remote) that stores config, connects to providers/channels, executes tools, and exposes APIs/events to the web UI.
+In the Clawdbrain web app, an **Agent** is a named assistant the user interacts with directly (chatting, running tools, doing work) whose behavior can inherit system defaults or be overridden per-agent; the **System Brain** is a special system-level “default agent” used for system tasks and fallbacks (routing, safety, background decisions) that can be configured separately from normal agents; and the **Gateway** is the running backend service (local or remote) that stores config, connects to providers/channels, executes tools, and exposes APIs/events to the web UI.
 
 ---
 
@@ -54,6 +54,24 @@ All UX + monetization docs must use **exactly** these four personas (no extras, 
 
 ## Canonical Internal Keys (Use These in Docs and UI Logic)
 
+## Canonical Provider IDs (apps/web)
+
+Docs and UI must normalize on stable internal provider ids (not marketing names).
+
+MVP-required providers (by user decision, 2026-02-01):
+- `openai` (OpenAI)
+- `anthropic` (Anthropic / Claude)
+- `google` (Gemini)
+- `openrouter` (OpenRouter)
+- `zai` (Z.AI)
+- `azureOpenai` (Azure OpenAI)
+- `bedrock` (Amazon Bedrock)
+- `vertex` (Google Vertex AI)
+
+Additional providers (MVP-required: "at least 3 most-used online providers besides OpenRouter"):
+- TBD (do not invent ids in code until we confirm the exact set)
+- Candidates (not yet confirmed): Groq, Mistral, Cohere, Together AI, Replicate
+
 ### Agents (system defaults)
 - Default runtime: `agents.defaults.runtime`
 - Main (System Brain) runtime overrides:
@@ -74,6 +92,47 @@ All UX + monetization docs must use **exactly** these four personas (no extras, 
   - `agents.defaults.humanDelay.*`
 - Heartbeat (system-wide):
   - `agents.defaults.heartbeat.*` (schedule, active hours, model, target, etc.)
+
+### Quiet Hours (proposed canonical schema; to be implemented)
+
+Quiet hours are a differentiator: they are a **policy layer** that governs when agents are allowed to initiate or emit certain kinds of actions.
+
+Proposed config placement (system default + per-agent overrides):
+- System default: `agents.defaults.availability.quietHours`
+- Per-agent override: `agents.list[].availability.quietHours`
+
+Proposed schema (illustrative; keep fields optional and extendable):
+```json
+{
+  "enabled": true,
+  "timezone": "America/Los_Angeles",
+  "schedule": [
+    { "days": ["mon","tue","wed","thu","fri"], "start": "22:00", "end": "07:00" },
+    { "days": ["sat","sun"], "start": "00:00", "end": "09:00" }
+  ],
+  "policy": {
+    "blockOutboundMessages": true,
+    "blockProactiveMessages": true,
+    "blockToolExecution": false,
+    "allowMentions": true,
+    "allowOwnerOnlyOverride": true,
+    "allowCriticalAlerts": true
+  },
+  "exceptions": {
+    "channelsAllow": [],
+    "agentsAllow": [],
+    "toolsAllow": [],
+    "messageTypesAllow": ["error","security"]
+  },
+  "behaviorDuringQuietHours": "queue" 
+}
+```
+
+Canonical meaning options (must be surfaced in UI copy):
+- "Mute outbound messages" (agent may still think/act, but cannot message users).
+- "No proactive messages" (agent may respond if addressed/mentioned, but won't initiate).
+- "No tool execution" (strongest safety posture; often for business environments).
+- "Queue until quiet hours end" vs "Drop/skip" (behaviorDuringQuietHours).
 
 ### System Brain (main agent)
 - Model for System Brain “SDK” behavior:
@@ -129,4 +188,3 @@ Recommended approach (implementation detail for future subagents):
 - `agents.main.*`: **System Brain**
 - `tools.elevated.enabled`: **Elevated mode**
 - `agents.defaults.blockStreamingDefault`: **Streaming replies**
-

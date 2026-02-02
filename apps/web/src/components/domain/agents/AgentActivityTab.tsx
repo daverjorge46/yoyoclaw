@@ -58,6 +58,15 @@ interface Activity {
   description?: string;
   timestamp: string;
   progress?: number; // 0..100 (only shown for live tasks)
+  sessionKey?: string;
+  durationMs?: number;
+  tokens?: number;
+  costUsd?: number;
+  toolCalls?: Array<{
+    name: string;
+    count?: number;
+    status?: "running" | "done" | "error";
+  }>;
   metadata?: Record<string, unknown>;
 }
 
@@ -154,6 +163,11 @@ const generateMockActivities = (): Activity[] => [
     description: "Refreshing workspace context and indexing recent events",
     progress: 42,
     timestamp: new Date(Date.now() - 90000).toISOString(),
+    sessionKey: "session-ctx-sync",
+    toolCalls: [
+      { name: "context.fetch", count: 3, status: "running" },
+      { name: "indexer.sync", count: 1, status: "running" },
+    ],
   },
   {
     id: "1",
@@ -161,6 +175,11 @@ const generateMockActivities = (): Activity[] => [
     title: "Responded to user query",
     description: "Provided research summary on market trends",
     timestamp: new Date(Date.now() - 1800000).toISOString(),
+    sessionKey: "session-research-1",
+    durationMs: 92000,
+    tokens: 2840,
+    costUsd: 0.36,
+    toolCalls: [{ name: "search.web", count: 4, status: "done" }],
   },
   {
     id: "2",
@@ -168,6 +187,14 @@ const generateMockActivities = (): Activity[] => [
     title: "Completed task: Data Analysis",
     description: "Analyzed Q4 sales data and generated report",
     timestamp: new Date(Date.now() - 3600000).toISOString(),
+    sessionKey: "session-data-4q",
+    durationMs: 246000,
+    tokens: 8120,
+    costUsd: 1.42,
+    toolCalls: [
+      { name: "files.read", count: 6, status: "done" },
+      { name: "python.exec", count: 2, status: "done" },
+    ],
   },
   {
     id: "3",
@@ -175,6 +202,11 @@ const generateMockActivities = (): Activity[] => [
     title: "Web search performed",
     description: 'Searched for "latest AI developments 2024"',
     timestamp: new Date(Date.now() - 5400000).toISOString(),
+    sessionKey: "session-research-1",
+    durationMs: 18000,
+    tokens: 640,
+    costUsd: 0.08,
+    toolCalls: [{ name: "search.web", count: 2, status: "done" }],
   },
   {
     id: "4",
@@ -182,6 +214,11 @@ const generateMockActivities = (): Activity[] => [
     title: "Code execution",
     description: "Executed Python script for data processing",
     timestamp: new Date(Date.now() - 7200000).toISOString(),
+    sessionKey: "session-data-4q",
+    durationMs: 54000,
+    tokens: 980,
+    costUsd: 0.11,
+    toolCalls: [{ name: "python.exec", count: 1, status: "done" }],
   },
   {
     id: "5",
@@ -189,6 +226,14 @@ const generateMockActivities = (): Activity[] => [
     title: "Daily Standup Summary",
     description: "Automatically compiled and sent standup notes",
     timestamp: new Date(Date.now() - 14400000).toISOString(),
+    sessionKey: "session-ritual-standup",
+    durationMs: 78000,
+    tokens: 2100,
+    costUsd: 0.28,
+    toolCalls: [
+      { name: "calendar.read", count: 1, status: "done" },
+      { name: "email.send", count: 1, status: "done" },
+    ],
   },
   {
     id: "6",
@@ -196,6 +241,11 @@ const generateMockActivities = (): Activity[] => [
     title: "API call failed",
     description: "External service temporarily unavailable",
     timestamp: new Date(Date.now() - 18000000).toISOString(),
+    sessionKey: "session-ops-1",
+    durationMs: 12000,
+    tokens: 420,
+    costUsd: 0.05,
+    toolCalls: [{ name: "http.request", count: 1, status: "error" }],
   },
   {
     id: "7",
@@ -203,6 +253,8 @@ const generateMockActivities = (): Activity[] => [
     title: "Started task: Report Generation",
     description: "Beginning weekly metrics report",
     timestamp: new Date(Date.now() - 21600000).toISOString(),
+    sessionKey: "session-metrics-1",
+    toolCalls: [{ name: "files.read", count: 2, status: "running" }],
   },
   {
     id: "8",
@@ -210,6 +262,10 @@ const generateMockActivities = (): Activity[] => [
     title: "Answered question",
     description: "Explained technical concept to user",
     timestamp: new Date(Date.now() - 28800000).toISOString(),
+    sessionKey: "session-support-1",
+    durationMs: 64000,
+    tokens: 1460,
+    costUsd: 0.19,
   },
   {
     id: "9",
@@ -217,6 +273,11 @@ const generateMockActivities = (): Activity[] => [
     title: "Completed task: Document Review",
     description: "Reviewed and annotated 15 pages of documentation",
     timestamp: new Date(Date.now() - 43200000).toISOString(),
+    sessionKey: "session-docs-1",
+    durationMs: 198000,
+    tokens: 5340,
+    costUsd: 0.78,
+    toolCalls: [{ name: "files.annotate", count: 3, status: "done" }],
   },
   {
     id: "10",
@@ -224,6 +285,11 @@ const generateMockActivities = (): Activity[] => [
     title: "Research completed",
     description: "Found 12 relevant sources for user query",
     timestamp: new Date(Date.now() - 86400000).toISOString(),
+    sessionKey: "session-research-1",
+    durationMs: 42000,
+    tokens: 1240,
+    costUsd: 0.15,
+    toolCalls: [{ name: "search.web", count: 3, status: "done" }],
   },
 ];
 
@@ -291,6 +357,25 @@ export function AgentActivityTab({
     return date.toLocaleDateString();
   };
 
+  const formatDuration = (durationMs?: number) => {
+    if (!durationMs || durationMs <= 0) return "—";
+    const totalSeconds = Math.round(durationMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes === 0) return `${seconds}s`;
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  };
+
+  const formatCost = (costUsd?: number) => {
+    if (costUsd === undefined) return "—";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    }).format(costUsd);
+  };
+
   const selectActivity = React.useCallback(
     (activity: Activity) => {
       setDetailsOpen(true);
@@ -305,6 +390,13 @@ export function AgentActivityTab({
     if (!selectedActivityId) return null;
     return activities.find((a) => a.id === selectedActivityId) ?? null;
   }, [activities, selectedActivityId]);
+
+  const selectedSessionKey = React.useMemo(() => {
+    if (!selectedActivity) return undefined;
+    if (selectedActivity.sessionKey) return selectedActivity.sessionKey;
+    const metaSession = selectedActivity.metadata?.sessionKey;
+    return typeof metaSession === "string" ? metaSession : undefined;
+  }, [selectedActivity, agentId]);
 
   React.useEffect(() => {
     if (!selectedActivityId) return;
@@ -353,8 +445,8 @@ export function AgentActivityTab({
   }, []);
 
   const relatedLinks = React.useMemo(() => {
-    if (!selectedActivity?.metadata) return [];
-    const meta = selectedActivity.metadata;
+    if (!selectedActivity) return [];
+    const meta: Record<string, unknown> = selectedActivity.metadata ?? {};
 
     const items: Array<{ label: string; href: string; external: boolean }> = [];
 
@@ -366,6 +458,15 @@ export function AgentActivityTab({
     const conversationId = meta.conversationId;
     if (typeof conversationId === "string" && conversationId.length > 0) {
       items.push({ label: "Open conversation", href: `/conversations/${encodeURIComponent(conversationId)}`, external: false });
+    }
+
+    const sessionKey = selectedActivity.sessionKey ?? meta.sessionKey;
+    if (typeof sessionKey === "string" && sessionKey.length > 0) {
+      items.push({
+        label: "Open session",
+        href: `/agents/${encodeURIComponent(agentId)}/session/${encodeURIComponent(sessionKey)}`,
+        external: false,
+      });
     }
 
     const workstreamId = meta.workstreamId;
@@ -720,6 +821,34 @@ export function AgentActivityTab({
               </div>
             ) : null}
 
+            {selectedSessionKey ? (
+              <div className="rounded-xl border border-border/60 bg-secondary/30 p-3">
+                <div className="text-xs font-medium text-muted-foreground">
+                  Session
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button asChild size="sm" variant="outline" className="gap-2">
+                    <Link to="/agents/$agentId/session/$sessionKey" params={{ agentId, sessionKey: selectedSessionKey }}>
+                      <ExternalLink className="h-4 w-4" />
+                      Open session
+                    </Link>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => handleCopy("Session key", selectedSessionKey)}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy session key
+                  </Button>
+                  <span className="text-xs text-muted-foreground font-mono break-all">
+                    {selectedSessionKey}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
@@ -804,6 +933,60 @@ export function AgentActivityTab({
                     </span>
                   </div>
                   <Progress value={Math.max(0, Math.min(100, selectedActivity.progress))} />
+                </div>
+              ) : null}
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Duration
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-foreground">
+                    {formatDuration(selectedActivity.durationMs)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Tokens
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-foreground">
+                    {selectedActivity.tokens !== undefined
+                      ? new Intl.NumberFormat("en-US").format(selectedActivity.tokens)
+                      : "—"}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Est. cost
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-foreground">
+                    {formatCost(selectedActivity.costUsd)}
+                  </div>
+                </div>
+              </div>
+
+              {selectedActivity.toolCalls && selectedActivity.toolCalls.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Tool uses
+                  </div>
+                  <div className="space-y-2 rounded-xl border border-border/60 bg-secondary/30 p-3">
+                    {selectedActivity.toolCalls.map((tool, index) => (
+                      <div key={`${tool.name}-${index}`} className="flex items-center justify-between gap-3 text-xs">
+                        <div className="font-medium text-foreground">{tool.name}</div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          {tool.count !== undefined ? (
+                            <span className="font-mono">{tool.count}x</span>
+                          ) : null}
+                          {tool.status ? (
+                            <Badge variant="secondary" className="text-[10px]">
+                              {tool.status === "done" ? "Done" : tool.status === "error" ? "Error" : "Running"}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 

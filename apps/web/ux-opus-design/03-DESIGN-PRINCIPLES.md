@@ -142,7 +142,9 @@ Agent Status:
 ### Inline Feedback
 
 - **Validation errors:** Appear immediately below the field
-- **Save status:** Auto-save with subtle confirmation
+- **Save status:**
+  - System settings: auto-save with subtle confirmation (existing pattern).
+  - Per-agent config: draft edits with an explicit Save/Discard commit point (to avoid accidental partial changes).
 - **Connection tests:** Inline success/failure with retry option
 
 ---
@@ -251,6 +253,10 @@ Expert Mode is a persisted preference. Separately, each agent detail view must o
 - `View: Simple / Full` (local-only; does not persist; defaults from Expert Mode)
 
 This prevents “global preference lock-in” while still keeping progressive disclosure as the default.
+
+MVP requirement:
+- **Agent detail:** required
+- **Settings pages:** optional (can rely on Expert Mode), but allowed if it improves usability without introducing inconsistent patterns
 
 | Surface | Simple | Full |
 |--------|--------|------|

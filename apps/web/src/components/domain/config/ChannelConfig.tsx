@@ -2,8 +2,11 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
+import * as Collapsible from "@radix-ui/react-collapsible";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   ChannelCard,
   TelegramConfigSheet,
@@ -103,6 +106,7 @@ const defaultChannels: ChannelConfigType[] = [
     platform: {
       supported: ["any"],
       requiresInstallation: true,
+      installed: false,
       installationApp: "signal-cli",
       installationUrl: "https://docs.clawdbrain.bot/channels/signal",
     },
@@ -129,6 +133,7 @@ const defaultChannels: ChannelConfigType[] = [
     platform: {
       supported: ["macos"],
       requiresInstallation: true,
+      installed: false,
       installationApp: "imsg",
       installationUrl: "https://github.com/steipete/imsg",
       relayProviders: MAC_RELAY_PROVIDERS,
@@ -144,6 +149,7 @@ const defaultChannels: ChannelConfigType[] = [
       supported: ["any"],
       requiresMacServer: true,
       requiresInstallation: true,
+      installed: false,
       installationApp: "BlueBubbles Server",
       installationUrl: "https://bluebubbles.app/",
     },
@@ -228,6 +234,7 @@ const defaultChannels: ChannelConfigType[] = [
     platform: {
       supported: ["any"],
       requiresInstallation: true,
+      installed: false,
       installationApp: "Obsidian Local REST API",
       installationUrl: "https://github.com/coddingtonbear/obsidian-local-rest-api",
     },
@@ -438,6 +445,7 @@ const channelFieldConfigs: Record<string, {
 export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelConfigProps) {
   const [channels, setChannels] = React.useState<ChannelConfigType[]>(defaultChannels);
   const [activeSheet, setActiveSheet] = React.useState<ChannelId | null>(null);
+  const [gettingStartedOpen, setGettingStartedOpen] = React.useState(true);
 
   // Channel-specific config state
   const [telegramConfig, setTelegramConfig] = React.useState<TelegramConfig>();
@@ -614,6 +622,58 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
     productivity: "Productivity",
   };
 
+  const gettingStartedSteps: Array<{
+    id: ChannelId;
+    title: string;
+    description: string;
+  }> = [
+    {
+      id: "telegram",
+      title: "Telegram",
+      description: "Create a bot via @BotFather and paste the token.",
+    },
+    {
+      id: "discord",
+      title: "Discord",
+      description: "Create a bot in the Discord Developer Portal.",
+    },
+    {
+      id: "whatsapp",
+      title: "WhatsApp",
+      description: "Scan the QR code with your WhatsApp app.",
+    },
+    {
+      id: "slack",
+      title: "Slack",
+      description: "Install the Clawdbrain app in your workspace.",
+    },
+  ];
+
+  const pendingGettingStarted = gettingStartedSteps.filter((step) => {
+    const status = getChannelStatus(step.id);
+    return status === "not_configured" || status === "error";
+  });
+
+  const handleUninstall = async (channelId: ChannelId) => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    setChannels((prev) =>
+      prev.map((ch) =>
+        ch.id === channelId
+          ? {
+              ...ch,
+              platform: ch.platform
+                ? {
+                    ...ch.platform,
+                    installed: false,
+                  }
+                : ch.platform,
+            }
+          : ch
+      )
+    );
+    toast.success(`${getChannel(channelId)?.name} uninstalled`);
+  };
+
   // Render generic dialogs for new channels
   const renderGenericDialogs = () => {
     const genericChannelIds: ChannelId[] = ["msteams", "googlechat", "line", "matrix", "bluebubbles", "mattermost", "notion", "obsidian"];
@@ -648,24 +708,80 @@ export function ChannelConfig({ className, currentPlatform = "macos" }: ChannelC
 
   return (
     <div className={cn("space-y-8", className)}>
+      <Collapsible.Root open={gettingStartedOpen} onOpenChange={setGettingStartedOpen}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Getting Started</h3>
+            <p className="text-sm text-muted-foreground">
+              Recommendations update as channels are configured.
+            </p>
+          </div>
+          <Collapsible.Trigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  gettingStartedOpen && "rotate-180"
+                )}
+              />
+              {gettingStartedOpen ? "Collapse" : "Expand"}
+            </Button>
+          </Collapsible.Trigger>
+        </div>
+        <Collapsible.Content className="pt-4">
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            {pendingGettingStarted.length > 0 ? (
+              <div className="space-y-3 text-sm">
+                {pendingGettingStarted.map((step) => (
+                  <div key={step.id} className="flex flex-wrap items-start gap-2">
+                    <span className="font-medium text-foreground">{step.title}</span>
+                    <span className="text-muted-foreground">{step.description}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                All core channels are configured. Add more channels below when you are ready.
+              </p>
+            )}
+          </div>
+        </Collapsible.Content>
+      </Collapsible.Root>
+
       {/* Channels by category */}
       {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
         categoryChannels.length > 0 && (
-          <div key={category} className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              {categoryLabels[category]}
-            </h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {categoryChannels.map((channel) => (
-                <ChannelCard
-                  key={channel.id}
-                  channel={channel}
-                  currentPlatform={currentPlatform}
-                  onConfigure={() => openSheet(channel.id)}
-                />
-              ))}
+          <Collapsible.Root key={category} defaultOpen={category === "messaging"}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  {categoryLabels[category]}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {categoryChannels.length} channel{categoryChannels.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <Collapsible.Trigger asChild>
+                <Button variant="ghost" size="sm" className="group gap-2">
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                  Toggle
+                </Button>
+              </Collapsible.Trigger>
             </div>
-          </div>
+            <Collapsible.Content className="pt-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {categoryChannels.map((channel) => (
+                  <ChannelCard
+                    key={channel.id}
+                    channel={channel}
+                    currentPlatform={currentPlatform}
+                    onConfigure={() => openSheet(channel.id)}
+                    onUninstall={() => handleUninstall(channel.id)}
+                  />
+                ))}
+              </div>
+            </Collapsible.Content>
+          </Collapsible.Root>
         )
       ))}
 

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import {
   Plus,
   RefreshCw,
   Zap,
+  ChevronRight,
 } from "lucide-react";
 
 interface AgentRitualsTabProps {
@@ -220,6 +222,12 @@ export function AgentRitualsTab({ agentId }: AgentRitualsTabProps) {
 
                   {/* Toggle */}
                   <div className="flex items-center gap-2 ml-4">
+                    <Button variant="ghost" size="sm" asChild className="gap-1">
+                      <Link to={`/rituals?ritualId=${encodeURIComponent(ritual.id)}`}>
+                        View
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
                     <Switch
                       checked={ritual.status === "active"}
                       onCheckedChange={() => {

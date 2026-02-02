@@ -2,7 +2,20 @@
 
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { Settings2, Shield, Monitor, AlertCircle, Check, Loader2, Download, AlertTriangle, XCircle, Activity } from "lucide-react";
+import {
+  Settings2,
+  Shield,
+  Monitor,
+  AlertCircle,
+  Check,
+  Loader2,
+  Download,
+  AlertTriangle,
+  XCircle,
+  Activity,
+  Trash2,
+  ChevronDown,
+} from "lucide-react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 
 import { cn } from "@/lib/utils";
@@ -22,6 +35,7 @@ interface ChannelCardProps {
   channel: ChannelConfig;
   currentPlatform?: PlatformType;
   onConfigure: () => void;
+  onUninstall?: () => void;
   className?: string;
 }
 
@@ -65,10 +79,16 @@ function isPlatformSupported(supported: PlatformType[], current: PlatformType): 
   return supported.includes("any") || supported.includes(current);
 }
 
-export function ChannelCard({ channel, currentPlatform = "any", onConfigure, className }: ChannelCardProps) {
+export function ChannelCard({
+  channel,
+  currentPlatform = "any",
+  onConfigure,
+  onUninstall,
+  className,
+}: ChannelCardProps) {
   const IconComponent = channelIconMap[channel.id];
   const channelColor = channelColorMap[channel.id];
-  const [activityOpen, setActivityOpen] = React.useState(false);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
 
   // Determine if the channel is supported on current platform
   const isSupported = channel.platform
@@ -84,6 +104,18 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
   const requiresMacServer = channel.platform?.requiresMacServer;
   const hasRelayProviders = channel.platform?.relayProviders && channel.platform.relayProviders.length > 0;
   const activities = channel.activity ?? [];
+  const isInstalled = Boolean(channel.platform?.installed);
+  const showActivity =
+    activities.length > 0 &&
+    effectiveStatus !== "not_configured" &&
+    effectiveStatus !== "unsupported";
+  const showDetails =
+    showActivity ||
+    Boolean(channel.platform) ||
+    Boolean(channel.lastConnected) ||
+    Boolean(channel.statusMessage) ||
+    effectiveStatus === "unsupported";
+  const showStatusMessageInline = effectiveStatus === "error";
 
   const statusTooltip = (
     <div className="space-y-0.5">
@@ -171,29 +203,6 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
               )}
             </div>
 
-            {/* Platform badges */}
-            {channel.platform && (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {channel.platform.supported.map((platform) => (
-                  <Badge
-                    key={platform}
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] px-1.5 py-0",
-                      platform === currentPlatform && "border-primary/50 bg-primary/5"
-                    )}
-                  >
-                    {platform === "any" ? "All Platforms" : platform}
-                  </Badge>
-                ))}
-                {requiresInstallation && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-warning/50 text-warning">
-                    Install Required
-                  </Badge>
-                )}
-              </div>
-            )}
-
             {/* Footer: Status + Configure Button */}
             <div className="flex items-center justify-between gap-2 pt-1">
               <div className="flex items-center gap-2">
@@ -241,64 +250,23 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
                         : "Info"
                       : "Configure"}
                 </Button>
-              </div>
-            </div>
-
-            {activities.length > 0 && (
-              <Collapsible.Root open={activityOpen} onOpenChange={setActivityOpen}>
-                <Collapsible.Trigger asChild>
+                {requiresInstallation && isInstalled && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => onUninstall?.()}
+                    disabled={!onUninstall || channel.status === "connecting"}
+                    className="gap-1.5 text-muted-foreground hover:text-foreground"
                   >
-                    <Activity className="h-4 w-4" />
-                    {activityOpen ? "Hide activity" : "View activity"}
+                    <Trash2 className="h-4 w-4" />
+                    Uninstall
                   </Button>
-                </Collapsible.Trigger>
-                <Collapsible.Content>
-                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Channel Activity</p>
-                    {activities.map((activity) => (
-                      <Link
-                        key={activity.id}
-                        to={buildActivityHref(activity)}
-                        className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm transition hover:border-primary/40"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="relative flex h-4 w-4 items-center justify-center">
-                            <span
-                              className={cn(
-                                "h-2.5 w-2.5 rounded-full",
-                                activity.status === "active" && "bg-green-500 shadow-[0_0_8px_2px] shadow-green-500/50",
-                                activity.status === "error" && "bg-red-500 shadow-[0_0_8px_2px] shadow-red-500/50",
-                                activity.status === "idle" && "bg-muted-foreground/60"
-                              )}
-                            />
-                            {activity.status === "active" && (
-                              <span className="absolute h-2.5 w-2.5 rounded-full bg-green-500/40 animate-ping" />
-                            )}
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium">{activity.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {activity.agentName} • {activity.timestamp}
-                            </p>
-                            {activity.summary && (
-                              <p className="text-xs text-muted-foreground">{activity.summary}</p>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">View session</span>
-                      </Link>
-                    ))}
-                  </div>
-                </Collapsible.Content>
-              </Collapsible.Root>
-            )}
+                )}
+              </div>
+            </div>
 
             {/* Status message (error or info) */}
-            {channel.statusMessage && (
+            {channel.statusMessage && showStatusMessageInline && (
               <p
                 className={cn(
                   "text-xs",
@@ -309,20 +277,123 @@ export function ChannelCard({ channel, currentPlatform = "any", onConfigure, cla
               </p>
             )}
 
-            {/* Last connected */}
-            {effectiveStatus === "connected" && channel.lastConnected && (
-              <p className="text-xs text-muted-foreground">
-                Connected {channel.lastConnected}
-              </p>
-            )}
+            {showDetails && (
+              <Collapsible.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
+                <Collapsible.Trigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      {detailsOpen ? "Hide details" : "View details"}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        detailsOpen && "rotate-180"
+                      )}
+                    />
+                  </Button>
+                </Collapsible.Trigger>
+                <Collapsible.Content className="pt-3">
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-3">
+                    {channel.platform && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Platform</p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {channel.platform.supported.map((platform) => (
+                            <Badge
+                              key={platform}
+                              variant="outline"
+                              className={cn(
+                                "text-[10px] px-1.5 py-0",
+                                platform === currentPlatform && "border-primary/50 bg-primary/5"
+                              )}
+                            >
+                              {platform === "any" ? "All Platforms" : platform}
+                            </Badge>
+                          ))}
+                          {requiresInstallation && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 border-warning/50 text-warning"
+                            >
+                              Install Required
+                            </Badge>
+                          )}
+                          {isInstalled && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 border-success/50 text-success"
+                            >
+                              Installed
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-            {/* Unsupported platform message */}
-            {effectiveStatus === "unsupported" && (
-              <p className="text-xs text-muted-foreground">
-                {hasRelayProviders
-                  ? "Not available on this platform. Alternative options available."
-                  : `Only available on: ${channel.platform?.supported.join(", ")}`}
-              </p>
+                    {showActivity && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Channel Activity</p>
+                        {activities.map((activity) => (
+                          <Link
+                            key={activity.id}
+                            to={buildActivityHref(activity)}
+                            className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm transition hover:border-primary/40"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="relative flex h-4 w-4 items-center justify-center">
+                                <span
+                                  className={cn(
+                                    "h-2.5 w-2.5 rounded-full",
+                                    activity.status === "active" && "bg-green-500 shadow-[0_0_8px_2px] shadow-green-500/50",
+                                    activity.status === "error" && "bg-red-500 shadow-[0_0_8px_2px] shadow-red-500/50",
+                                    activity.status === "idle" && "bg-muted-foreground/60"
+                                  )}
+                                />
+                                {activity.status === "active" && (
+                                  <span className="absolute h-2.5 w-2.5 rounded-full bg-green-500/40 animate-ping" />
+                                )}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">{activity.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {activity.agentName} • {activity.timestamp}
+                                </p>
+                                {activity.summary && (
+                                  <p className="text-xs text-muted-foreground">{activity.summary}</p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-xs text-muted-foreground">View session</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {channel.statusMessage && !showStatusMessageInline && (
+                      <p className="text-xs text-muted-foreground">{channel.statusMessage}</p>
+                    )}
+
+                    {effectiveStatus === "connected" && channel.lastConnected && (
+                      <p className="text-xs text-muted-foreground">
+                        Connected {channel.lastConnected}
+                      </p>
+                    )}
+
+                    {effectiveStatus === "unsupported" && (
+                      <p className="text-xs text-muted-foreground">
+                        {hasRelayProviders
+                          ? "Not available on this platform. Alternative options available."
+                          : `Only available on: ${channel.platform?.supported.join(", ")}`}
+                      </p>
+                    )}
+                  </div>
+                </Collapsible.Content>
+              </Collapsible.Root>
             )}
           </div>
         </CardContent>

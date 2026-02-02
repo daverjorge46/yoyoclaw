@@ -115,7 +115,7 @@ export function RitualScheduler({
               whileTap={{ scale: 0.98 }}
               onClick={() => setFrequency(option.value)}
               className={cn(
-                "relative rounded-xl border p-3 text-left transition-all",
+                "group relative rounded-xl border p-3 text-left transition-all",
                 frequency === option.value
                   ? "border-primary bg-primary/10"
                   : "border-border/50 bg-secondary/30 hover:border-primary/40 hover:bg-secondary/70"
@@ -133,12 +133,12 @@ export function RitualScheduler({
                 </motion.div>
               )}
               <span className={cn(
-                "block text-sm font-medium",
-                frequency === option.value ? "text-primary" : "text-foreground"
+                "block text-sm font-medium transition-colors",
+                frequency === option.value ? "text-primary" : "text-foreground/90 group-hover:text-foreground"
               )}>
                 {option.label}
               </span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-xs text-muted-foreground/80 transition-colors group-hover:text-muted-foreground">
                 {option.description}
               </span>
             </motion.button>

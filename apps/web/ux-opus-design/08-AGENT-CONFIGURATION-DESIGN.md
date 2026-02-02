@@ -16,6 +16,16 @@ This document details the per-agent configuration panels that allow users to cus
 
 **Purpose:** Allow users to configure individual agents with overrides from system defaults.
 
+### Editing Model (Draft + Explicit Save)
+
+For per-agent configuration, the MVP uses **draft values** with an explicit commit point:
+- Users edit fields freely (local draft state).
+- A contextual action bar appears when there are unsaved changes:
+  - `Save changes` and `Discard`
+- Navigating away with unsaved changes prompts the user (or blocks until save/discard).
+
+This prevents accidental partial changes while still keeping the UI fast for power users.
+
 ---
 
 ## Tab Structure
@@ -359,7 +369,7 @@ Note: a toolset dropdown and read-only mode already exist in the current `apps/w
 ## Availability Tab (NEW)
 
 **Component:** `AgentAvailabilityPanel.tsx`
-**Config path:** `agents.list[].quietHours`, `agents.list[].heartbeat`
+**Config path (proposed):** `agents.list[].availability.quietHours`, `agents.list[].heartbeat`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -368,18 +378,26 @@ Note: a toolset dropdown and read-only mode already exist in the current `apps/w
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Quiet hours                                                    │
-│  Times when this agent won't send messages.                     │
+│  Reduce interruptions and limit what this agent can do during   │
+│  certain times.                                                 │
 │                                                                 │
+│  Policy                                                        │
+│  ○ Mute outbound messages (recommended)                         │
+│  ○ No proactive messages (respond only when mentioned)          │
+│  ○ Pause agent (strong)                                         │
+│  ○ Custom (Expert)                                              │
+│                                                                 │
+│  Schedule                                                      │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │     12am  3am  6am  9am  12pm  3pm  6pm  9pm  12am     │   │
 │  │     [===]                                  [========]   │   │
 │  │      ↑ quiet                                quiet ↑     │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
-│  Currently: Quiet from 10:00 PM to 7:00 AM                      │
-│                                                                 │
-│  [✓] Auto-pause outside quiet hours                             │
-│      Completely stop the agent during quiet hours.              │
+│  Behavior during quiet hours                                    │
+│  ○ Queue and send later                                          │
+│  ○ Skip (do nothing)                                             │
+│  ○ Respond only when mentioned                                   │
 │                                                                 │
 │  Time zone                                                      │
 │  [America/Los_Angeles (PST) ▼]                                  │

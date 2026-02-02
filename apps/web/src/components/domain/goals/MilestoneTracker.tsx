@@ -19,7 +19,6 @@ export function MilestoneTracker({
   className,
 }: MilestoneTrackerProps) {
   const completedCount = milestones.filter((m) => m.completed).length;
-  const progress = milestones.length > 0 ? (completedCount / milestones.length) * 100 : 0;
 
   if (milestones.length === 0) {
     return (
@@ -45,61 +44,64 @@ export function MilestoneTracker({
 
         {/* Vertical timeline */}
         <div className="relative ml-3">
-          {/* Connecting line */}
-          <div className="absolute bottom-4 left-[7px] top-4 w-0.5 bg-border" />
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: `${progress}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute left-[7px] top-4 w-0.5 bg-success"
-            style={{ maxHeight: `calc(100% - 2rem)` }}
-          />
-
           {/* Milestones */}
           <div className="space-y-4">
-            {milestones.map((milestone, index) => (
-              <motion.div
-                key={milestone.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="relative flex items-start gap-4 pl-6"
-              >
-                {/* Checkpoint icon */}
-                <div className="absolute left-0 flex h-4 w-4 items-center justify-center">
-                  {milestone.completed ? (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, delay: index * 0.1 }}
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-success" />
-                    </motion.div>
-                  ) : (
-                    <Circle className="h-4 w-4 text-muted-foreground" />
+            {milestones.map((milestone, index) => {
+              const isLast = index === milestones.length - 1;
+              const segmentIsComplete = milestone.completed;
+              return (
+                <motion.div
+                  key={milestone.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="relative flex items-start gap-4 pl-6"
+                >
+                  {!isLast && (
+                    <span
+                      className={cn(
+                        "absolute left-[7px] top-4 h-[calc(100%+1rem)] w-0.5",
+                        segmentIsComplete ? "bg-success" : "bg-border"
+                      )}
+                    />
                   )}
-                </div>
 
-                {/* Milestone content */}
-                <div className="min-w-0 flex-1 pb-4">
-                  <p
-                    className={cn(
-                      "text-sm font-medium transition-colors",
-                      milestone.completed
-                        ? "text-foreground"
-                        : "text-muted-foreground"
+                  {/* Checkpoint icon */}
+                  <div className="absolute left-0 flex h-4 w-4 items-center justify-center rounded-full bg-background">
+                    {milestone.completed ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, delay: index * 0.1 }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      </motion.div>
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground" />
                     )}
-                  >
-                    {milestone.title}
-                  </p>
-                  {milestone.completedAt && (
-                    <p className="mt-0.5 text-xs text-muted-foreground/70">
-                      Completed {new Date(milestone.completedAt).toLocaleDateString()}
+                  </div>
+
+                  {/* Milestone content */}
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={cn(
+                        "text-sm font-medium transition-colors",
+                        milestone.completed
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {milestone.title}
                     </p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                    {milestone.completedAt && (
+                      <p className="mt-0.5 text-xs text-muted-foreground/70">
+                        Completed {new Date(milestone.completedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>

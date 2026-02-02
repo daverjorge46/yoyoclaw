@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   NewSessionDialog,
 } from "@/components/domain/agents";
 import { useAgent } from "@/hooks/queries/useAgents";
+import { useConversationsByAgent } from "@/hooks/queries/useConversations";
 import { useWorkstreamsByOwner } from "@/hooks/queries/useWorkstreams";
 import { useRitualsByAgent } from "@/hooks/queries/useRituals";
 import { useUpdateAgentStatus } from "@/hooks/mutations/useAgentMutations";
@@ -73,10 +74,35 @@ function AgentDetailPage() {
 
   // All hooks must be called before any conditional returns
   const { data: agent, isLoading, error } = useAgent(agentId);
+  const { data: conversations } = useConversationsByAgent(agentId);
   const { data: workstreams } = useWorkstreamsByOwner(agentId);
   const { data: rituals } = useRitualsByAgent(agentId);
   const updateStatus = useUpdateAgentStatus();
   const useLiveGateway = useUIStore((state) => state.useLiveGateway);
+
+  const latestConversation = React.useMemo(() => {
+    if (!conversations || conversations.length === 0) return null;
+    return [...conversations].sort((a, b) => {
+      const aTime = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
+      const bTime = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
+      return bTime - aTime;
+    })[0] ?? null;
+  }, [conversations]);
+
+  const handleChatClick = () => {
+    if (latestConversation) {
+      navigate({ to: "/conversations/$id", params: { id: latestConversation.id } });
+      return;
+    }
+    navigate({ to: "/conversations" });
+  };
+
+  const handleEditClick = () => {
+    navigate({
+      to: "/settings",
+      search: (prev) => ({ ...prev, section: "agents", agentId }),
+    });
+  };
 
   // Handle newSession param - show dialog and clear param
   React.useEffect(() => {
@@ -270,16 +296,11 @@ function AgentDetailPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      <Button asChild className="gap-2">
-                        <Link
-                          to="/agents/$agentId/session/$sessionKey"
-                          params={{ agentId, sessionKey: "current" }}
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                          Chat
-                        </Link>
+                      <Button className="gap-2" onClick={handleChatClick}>
+                        <MessageSquare className="h-4 w-4" />
+                        Chat
                       </Button>
-                      <Button variant="outline" className="gap-2">
+                      <Button variant="outline" className="gap-2" onClick={handleEditClick}>
                         <Edit className="h-4 w-4" />
                         Edit
                       </Button>
@@ -329,9 +350,12 @@ function AgentDetailPage() {
                       <Calendar className="h-4 w-4" />
                       Created {formatDate(agent.lastActive)}
                     </span>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      Last active {formatRelativeTime(agent.lastActive)}
+                      <span className="text-muted-foreground">Last active</span>
+                      <Badge variant="secondary" className="text-xs font-medium">
+                        {formatRelativeTime(agent.lastActive)}
+                      </Badge>
                     </span>
                     {agent.taskCount !== undefined && agent.taskCount > 0 && (
                       <span className="text-primary font-medium">

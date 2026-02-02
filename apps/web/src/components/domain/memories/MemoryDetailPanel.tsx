@@ -357,6 +357,10 @@ export function MemoryDetailPanel({
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         title="Delete Memory"
+        resource={{
+          title: memory.title,
+          subtitle: memory.category ?? "Memory",
+        }}
         description={`Are you sure you want to delete "${memory.title}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="destructive"

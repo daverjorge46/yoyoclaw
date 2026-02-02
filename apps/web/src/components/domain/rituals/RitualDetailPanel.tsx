@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DetailPanel } from "@/components/composed/DetailPanel";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
+import { TokenCostIndicator } from "@/components/composed/TokenCostIndicator";
 import { RitualScheduler } from "./RitualScheduler";
 import {
   RefreshCw,
@@ -22,6 +24,10 @@ import {
   History,
   Settings,
   Zap,
+  ArrowUpRight,
+  SkipForward,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { Ritual, RitualExecution, RitualStatus, RitualFrequency } from "@/hooks/queries/useRituals";
 
@@ -34,6 +40,7 @@ interface RitualDetailPanelProps {
   onResume?: (id: string) => void;
   onDelete?: (id: string) => void;
   onTrigger?: (id: string) => void;
+  onSkipNext?: (id: string) => void;
   onUpdateSchedule?: (id: string, schedule: { time: string; frequency: RitualFrequency }) => void;
   agents?: { id: string; name: string }[];
   className?: string;
@@ -93,6 +100,7 @@ export function RitualDetailPanel({
   onResume,
   onDelete,
   onTrigger,
+  onSkipNext,
   onUpdateSchedule,
   agents = [],
   className,
@@ -100,10 +108,19 @@ export function RitualDetailPanel({
   const [showScheduler, setShowScheduler] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showScheduleConfirm, setShowScheduleConfirm] = React.useState(false);
+  const [toolsOpen, setToolsOpen] = React.useState(false);
   const [pendingSchedule, setPendingSchedule] = React.useState<{
     time: string;
     frequency: RitualFrequency;
   } | null>(null);
+  const sortedExecutions = React.useMemo(() => {
+    return [...executions].sort((a, b) => {
+      return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
+    });
+  }, [executions]);
+  const latestExecution = sortedExecutions[0];
+  const isRunning = executions.some((execution) => execution.status === "running");
+  const canSkipNext = Boolean(onSkipNext);
 
   if (!ritual) return null;
 
@@ -181,6 +198,15 @@ export function RitualDetailPanel({
                 <Calendar className="h-3 w-3" />
                 {frequencyLabels[ritual.frequency]}
               </Badge>
+              {isRunning && (
+                <div className="flex items-center gap-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-400">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  </span>
+                  Running
+                </div>
+              )}
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-1">
               {ritual.name}
@@ -202,9 +228,22 @@ export function RitualDetailPanel({
         >
           {ritual.nextRun && (
             <div className="rounded-xl bg-secondary/30 p-4 border border-border/50">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Next Run</span>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">Next Run</span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 rounded-lg text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => onSkipNext?.(ritual.id)}
+                  disabled={!canSkipNext}
+                >
+                  <SkipForward className="mr-1 h-3.5 w-3.5" />
+                  Skip next
+                </Button>
               </div>
               <p className="text-sm font-medium text-foreground">
                 {formatDate(ritual.nextRun)}
@@ -267,13 +306,33 @@ export function RitualDetailPanel({
             transition={{ delay: 0.2 }}
             className="rounded-xl bg-secondary/30 p-4 border border-border/50"
           >
-            <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
               Assigned Agent
             </h4>
-            <p className="text-sm text-muted-foreground">
-              {assignedAgent?.name || `Agent #${ritual.agentId}`}
-            </p>
+            <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-background/40 p-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 text-lg font-semibold text-foreground">
+                {(assignedAgent?.name ?? ritual.agentId).charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-foreground truncate">
+                  {assignedAgent?.name || `Agent #${ritual.agentId}`}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Click to view agent profile
+                </div>
+              </div>
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-lg bg-secondary/50 hover:bg-secondary"
+              >
+                <Link to={`/agents/${encodeURIComponent(ritual.agentId)}`}>
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </motion.div>
         )}
 
@@ -287,7 +346,7 @@ export function RitualDetailPanel({
           >
             <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              Actions
+              Goals
             </h4>
             <div className="flex flex-wrap gap-2">
               {ritual.actions.map((action, index) => (
@@ -295,6 +354,33 @@ export function RitualDetailPanel({
                   {action.replace(/-/g, " ")}
                 </Badge>
               ))}
+            </div>
+            <div className="mt-4 rounded-lg border border-border/60 bg-background/40">
+              <button
+                type="button"
+                onClick={() => setToolsOpen((prev) => !prev)}
+                className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                <span>Tools used in latest session</span>
+                {toolsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </button>
+              {toolsOpen && (
+                <div className="border-t border-border/60 px-3 py-2">
+                  {latestExecution?.tools && latestExecution.tools.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {latestExecution.tools.map((tool, index) => (
+                        <Badge key={`${tool}-${index}`} variant="outline" className="text-xs">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">
+                      No tools recorded for the latest session.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -309,9 +395,13 @@ export function RitualDetailPanel({
             <History className="h-4 w-4 text-primary" />
             Recent Executions
           </h4>
-          {executions.length > 0 ? (
+          {sortedExecutions.length > 0 ? (
             <div className="space-y-2">
-              {executions.slice(0, 5).map((execution) => (
+              {sortedExecutions.slice(0, 5).map((execution) => {
+                const sessionHref = ritual.agentId && execution.sessionKey
+                  ? `/agents/${encodeURIComponent(ritual.agentId)}/session/${encodeURIComponent(execution.sessionKey)}`
+                  : null;
+                return (
                 <div
                   key={execution.id}
                   className="flex items-center gap-3 rounded-lg bg-secondary/30 p-3 border border-border/50"
@@ -320,6 +410,8 @@ export function RitualDetailPanel({
                     <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
                   ) : execution.status === "failed" ? (
                     <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+                  ) : execution.status === "running" ? (
+                    <AlertCircle className="h-4 w-4 text-emerald-400 shrink-0 animate-pulse" />
                   ) : (
                     <AlertCircle className="h-4 w-4 text-yellow-500 shrink-0" />
                   )}
@@ -330,9 +422,29 @@ export function RitualDetailPanel({
                     <p className="text-xs text-muted-foreground">
                       {formatDate(execution.startedAt)}
                     </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {execution.toolCalls !== undefined && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {execution.toolCalls} tool calls
+                        </Badge>
+                      )}
+                      <TokenCostIndicator
+                        tokens={execution.tokens}
+                        costUsd={execution.costUsd}
+                        size="sm"
+                      />
+                    </div>
                   </div>
+                  {sessionHref && (
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-background/50">
+                      <Link to={sessionHref}>
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           ) : (
             <div className="rounded-xl bg-secondary/20 p-4 border border-border/50 text-center">
@@ -435,6 +547,10 @@ export function RitualDetailPanel({
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         title="Delete Ritual"
+        resource={{
+          title: ritual.name,
+          subtitle: frequencyLabels[ritual.frequency],
+        }}
         description={`Are you sure you want to delete "${ritual.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="destructive"
@@ -449,6 +565,10 @@ export function RitualDetailPanel({
           }
         }}
         title="Confirm schedule change"
+        resource={{
+          title: ritual.name,
+          subtitle: frequencyLabels[ritual.frequency],
+        }}
         description={
           pendingSchedule
             ? `Update this ritual to run ${pendingSchedule.frequency} at ${pendingSchedule.time}?`

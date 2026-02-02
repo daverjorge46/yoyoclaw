@@ -26,6 +26,17 @@ Canonical agent tab ids (design intent):
 - Primary: `basics`, `more`
 - Full view (Expert Mode): `overview`, `behavior`, `tools`, `memory`, `availability`, `advanced`, `activity`, plus existing feature tabs.
 
+### Deep Links While in Simple View (Canonical Recommendation)
+
+If a user deep-links to a Full-view tab while they are currently in Simple view (e.g. `/agents/abc123?tab=tools`):
+- Do **not** force-switch the user into Full view automatically.
+- Render the requested surface inside **More** (or an equivalent nested section container) while still honoring the same `?tab=` id.
+- Show a single, explicit affordance: `Open in Full view` (switches view mode locally for this page).
+
+This avoids duplicating component definitions: the same `AgentToolsTab` / `AgentActivityTab` components can be mounted either as:
+- full-page tab content (Full view), or
+- nested content inside More (Simple view).
+
 ### Local-Only UI State (not shareable; persisted optionally)
 
 | State | Storage | Notes |
