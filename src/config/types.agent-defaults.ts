@@ -237,6 +237,13 @@ export type AgentDefaultsConfig = {
     archiveAfterMinutes?: number;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /**
+     * Runtime for sub-agents. If not set, inherits from parent agent's runtime.
+     * - "pi": Pi Agent embedded runner (default fallback)
+     * - "ccsdk": Claude Code SDK runner
+     * - "inherit": Explicitly inherit from parent (same as not setting this)
+     */
+    runtime?: AgentRuntime | "inherit";
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: {

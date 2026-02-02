@@ -404,10 +404,7 @@ export async function fetchFirecrawlContent(params: {
   };
 
   if (!res.ok || payload?.success === false) {
-    const detail = payload?.error ?? "";
-    throw new Error(
-      `Firecrawl fetch failed (${res.status}): ${wrapWebContent(detail || res.statusText, "web_fetch")}`.trim(),
-    );
+    throw new Error(`Firecrawl fetch failed (${res.status}): ${payload?.error || res.statusText}`);
   }
 
   const data = payload?.data ?? {};

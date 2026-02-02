@@ -32,7 +32,7 @@ import { logDebug, logError } from "../../logger.js";
 import { normalizeToolName } from "../tool-policy.js";
 
 // ---------------------------------------------------------------------------
-// Schema conversion: TypeBox → JSON Schema (passthrough)
+// Schema conversion: TypeBox → JSON Schema → Zod
 // ---------------------------------------------------------------------------
 
 /**
@@ -53,6 +53,200 @@ export function extractJsonSchema(tool: AnyAgentTool): Record<string, unknown> {
     // Schema is not serializable (shouldn't happen with TypeBox, but be safe).
     logDebug(`tool-bridge: schema for "${tool.name}" is not JSON-serializable, using empty schema`);
     return { type: "object", properties: {} };
+  }
+}
+
+/**
+ * Convert a JSON Schema property to a Zod schema.
+ *
+ * This handles the common JSON Schema types and patterns used by TypeBox,
+ * ensuring Claude receives proper type information for tool parameters.
+ */
+function convertJsonSchemaPropertyToZod(
+  propSchema: Record<string, unknown>,
+  propName: string,
+): z.ZodTypeAny {
+  // Handle enums first (critical for action parameters)
+  if (Array.isArray(propSchema.enum) && propSchema.enum.length > 0) {
+    const enumValues = propSchema.enum.filter((v): v is string => typeof v === "string");
+    if (enumValues.length > 0) {
+      // Zod v4 enum requires at least one value
+      const zodEnum = z.enum(enumValues as [string, ...string[]]);
+      const desc = propSchema.description;
+      return typeof desc === "string" ? zodEnum.describe(desc) : zodEnum;
+    }
+  }
+
+  // Handle const (single allowed value)
+  if ("const" in propSchema) {
+    const constVal = propSchema.const;
+    if (typeof constVal === "string") {
+      return z.literal(constVal);
+    }
+    if (typeof constVal === "number") {
+      return z.literal(constVal);
+    }
+    if (typeof constVal === "boolean") {
+      return z.literal(constVal);
+    }
+  }
+
+  // Handle type-based conversion
+  const schemaType = propSchema.type;
+  const description =
+    typeof propSchema.description === "string" ? propSchema.description : undefined;
+
+  switch (schemaType) {
+    case "string": {
+      let schema = z.string();
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+
+    case "number":
+    case "integer": {
+      let schema = z.number();
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+
+    case "boolean": {
+      let schema = z.boolean();
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+
+    case "array": {
+      const itemsSchema = propSchema.items as Record<string, unknown> | undefined;
+      let itemZod: z.ZodTypeAny = z.unknown();
+      if (itemsSchema && typeof itemsSchema === "object") {
+        itemZod = convertJsonSchemaPropertyToZod(itemsSchema, `${propName}[]`);
+      }
+      let schema = z.array(itemZod);
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+
+    case "object": {
+      // Nested object - recursively convert properties if available
+      const nestedProps = propSchema.properties as
+        | Record<string, Record<string, unknown>>
+        | undefined;
+      if (nestedProps && typeof nestedProps === "object") {
+        const nestedRequired = new Set(
+          Array.isArray(propSchema.required)
+            ? (propSchema.required as string[]).filter((k) => typeof k === "string")
+            : [],
+        );
+        const shape: Record<string, z.ZodTypeAny> = {};
+        for (const [nestedKey, nestedPropSchema] of Object.entries(nestedProps)) {
+          if (!nestedPropSchema || typeof nestedPropSchema !== "object") continue;
+          let nestedZod = convertJsonSchemaPropertyToZod(
+            nestedPropSchema,
+            `${propName}.${nestedKey}`,
+          );
+          if (!nestedRequired.has(nestedKey)) {
+            nestedZod = nestedZod.optional();
+          }
+          shape[nestedKey] = nestedZod;
+        }
+        let schema = z.object(shape);
+        if (description) schema = schema.describe(description);
+        return schema;
+      }
+      // Generic object without defined properties
+      let schema = z.record(z.string(), z.unknown());
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+
+    default: {
+      // Fallback for unknown types
+      let schema = z.unknown();
+      if (description) schema = schema.describe(description);
+      return schema;
+    }
+  }
+}
+
+/**
+ * Convert a JSON Schema (from TypeBox) to a Zod schema.
+ *
+ * This is the key function that ensures Claude receives proper parameter
+ * information including:
+ * - Parameter names and types
+ * - Required vs optional fields
+ * - Enum values (critical for action parameters)
+ * - Descriptions for each parameter
+ *
+ * The MCP SDK converts Zod schemas to JSON Schema for the wire protocol,
+ * so this round-trip preserves all the type information for Claude.
+ */
+export function jsonSchemaToZod(jsonSchema: Record<string, unknown>): z.ZodTypeAny {
+  // Handle object schemas (the common case for tool parameters)
+  if (jsonSchema.type === "object" || jsonSchema.properties) {
+    const properties = jsonSchema.properties as Record<string, Record<string, unknown>> | undefined;
+    if (!properties || typeof properties !== "object") {
+      // No properties defined - return a permissive record schema
+      return z.record(z.string(), z.unknown());
+    }
+
+    const required = new Set(
+      Array.isArray(jsonSchema.required)
+        ? (jsonSchema.required as string[]).filter((k) => typeof k === "string")
+        : [],
+    );
+
+    const shape: Record<string, z.ZodTypeAny> = {};
+
+    for (const [propName, propSchema] of Object.entries(properties)) {
+      if (!propSchema || typeof propSchema !== "object") {
+        continue;
+      }
+
+      let zodType = convertJsonSchemaPropertyToZod(propSchema, propName);
+
+      // Mark as optional if not in required list
+      if (!required.has(propName)) {
+        zodType = zodType.optional();
+      }
+
+      shape[propName] = zodType;
+    }
+
+    // If we have properties, create an object schema
+    if (Object.keys(shape).length > 0) {
+      return z.object(shape);
+    }
+
+    // Fallback to permissive schema
+    return z.record(z.string(), z.unknown());
+  }
+
+  // Non-object root schema (rare for tools, but handle it)
+  return z.record(z.string(), z.unknown());
+}
+
+/**
+ * Build a Zod schema for a tool from its TypeBox parameters.
+ *
+ * This extracts the JSON Schema from the tool and converts it to Zod,
+ * ensuring Claude receives full parameter information.
+ */
+export function buildZodSchemaForTool(tool: AnyAgentTool): z.ZodTypeAny {
+  const jsonSchema = extractJsonSchema(tool);
+  try {
+    const zodSchema = jsonSchemaToZod(jsonSchema);
+    logDebug(
+      `[tool-bridge] Built Zod schema for "${tool.name}" with ${Object.keys((jsonSchema.properties as object) ?? {}).length} properties`,
+    );
+    return zodSchema;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logDebug(
+      `[tool-bridge] Failed to convert schema for "${tool.name}": ${message}, using passthrough`,
+    );
+    return z.record(z.string(), z.unknown());
   }
 }
 
@@ -318,12 +512,6 @@ export async function bridgeClawdbrainToolsToMcpServer(
   const registered: string[] = [];
   const skipped: string[] = [];
 
-  // Create a permissive Zod schema that accepts any object.
-  // The MCP SDK requires Zod schemas (not JSON Schema) for input validation.
-  // We use a passthrough object schema so all arguments flow through to our handlers,
-  // which perform their own validation via TypeBox schemas.
-  const passthroughSchema = z.record(z.string(), z.unknown());
-
   for (const tool of options.tools) {
     const toolName = tool.name;
     if (!toolName?.trim()) {
@@ -335,14 +523,16 @@ export async function bridgeClawdbrainToolsToMcpServer(
     try {
       const handler = wrapToolHandler(tool, options.abortSignal);
 
+      // Convert TypeBox schema to Zod so Claude receives proper parameter information.
+      // This ensures the model knows parameter names, types, required fields, and enum values.
+      const inputSchema = buildZodSchemaForTool(tool);
+
       // Use registerTool() (the recommended API) instead of deprecated tool().
-      // The inputSchema must be a Zod schema - we use a passthrough schema that
-      // accepts any object, since our tools do their own validation.
       server.registerTool(
         toolName,
         {
           description: tool.description ?? `Clawdbrain tool: ${toolName}`,
-          inputSchema: passthroughSchema,
+          inputSchema,
         },
         handler,
       );
@@ -409,9 +599,6 @@ export function bridgeClawdbrainToolsSync(
   const registered: string[] = [];
   const skipped: string[] = [];
 
-  // Create a permissive Zod schema that accepts any object
-  const passthroughSchema = z.record(z.string(), z.unknown());
-
   for (const tool of options.tools) {
     const toolName = tool.name;
     if (!toolName?.trim()) {
@@ -422,11 +609,15 @@ export function bridgeClawdbrainToolsSync(
 
     try {
       const handler = wrapToolHandler(tool, options.abortSignal);
+
+      // Convert TypeBox schema to Zod so Claude receives proper parameter information.
+      const inputSchema = buildZodSchemaForTool(tool);
+
       server.registerTool(
         toolName,
         {
           description: tool.description ?? `Clawdbrain tool: ${toolName}`,
-          inputSchema: passthroughSchema,
+          inputSchema,
         },
         handler,
       );

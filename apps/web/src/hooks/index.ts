@@ -26,6 +26,10 @@ export {
   type UseGatewayConnectionResult,
 } from "./useGatewayConnection";
 export {
+  useGatewayStreamHandler,
+  type UseGatewayStreamHandlerOptions,
+} from "./useGatewayStreamHandler";
+export {
   useFieldValidation,
   useMultiFieldValidation,
   createFieldValidator,

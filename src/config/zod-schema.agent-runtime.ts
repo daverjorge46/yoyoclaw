@@ -448,6 +448,8 @@ export const AgentEntrySchema = z
               .strict(),
           ])
           .optional(),
+        /** Runtime for sub-agents spawned from this agent. "inherit" means inherit from this agent's runtime. */
+        runtime: z.enum(["pi", "ccsdk", "inherit"]).optional(),
       })
       .strict()
       .optional(),

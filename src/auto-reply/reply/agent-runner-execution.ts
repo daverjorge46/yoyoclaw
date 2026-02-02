@@ -10,7 +10,7 @@ import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId } from "../../agents/cli-session.js";
 import {
   createSdkMainAgentRuntime,
-  resolveAgentRuntimeKind,
+  resolveSessionRuntimeKind,
 } from "../../agents/main-agent-runtime-factory.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
@@ -235,9 +235,11 @@ export async function runAgentTurnWithFallback(params: {
               : undefined;
 
           // Check runtime configuration to decide between Pi agent and Claude Code SDK
-          const runtimeKind = resolveAgentRuntimeKind(
+          // Use resolveSessionRuntimeKind for proper subagent inheritance
+          const runtimeKind = resolveSessionRuntimeKind(
             params.followupRun.run.config,
             params.followupRun.run.agentId,
+            params.sessionKey,
           );
 
           // If using Claude Code SDK runtime, create and use SDK runtime

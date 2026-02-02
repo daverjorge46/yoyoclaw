@@ -121,6 +121,7 @@ function applySdkOptionsOverrides(
   if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) return options;
 
   // Clawdbrain must keep these consistent with its own tool plumbing + prompt building.
+  // Also protect session-related keys to ensure auto-compaction works correctly.
   const protectedKeys = new Set([
     "cwd",
     "mcpServers",
@@ -131,6 +132,8 @@ function applySdkOptionsOverrides(
     "systemPrompt",
     "model",
     "hooks",
+    "persistSession", // Required for auto-compaction (must stay true)
+    "resume", // Managed by claudeSessionId param
   ]);
 
   const record = overrides as Record<string, unknown>;
@@ -319,6 +322,10 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   const sdkOptions: SdkRunnerQueryOptions = {
     cwd: params.workspaceDir,
     maxTurns: params.maxTurns ?? params.provider?.maxTurns ?? DEFAULT_MAX_TURNS,
+    // Ensure session persistence is enabled for auto-compaction to work.
+    // When persistSession is false, sessions are not saved to ~/.claude/projects/
+    // and cannot be compacted (the SDK loses the ability to manage context window).
+    persistSession: true,
   };
 
   // MCP server with bridged Clawdbrain tools.
@@ -393,6 +400,14 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
   // Model override from provider config.
   if (params.provider?.model) {
     sdkOptions.model = params.provider.model;
+  }
+
+  // Beta features (e.g., 1M context window for Sonnet 4/4.5).
+  // Priority: params.betas > provider.betas
+  const betas = params.betas ?? params.provider?.betas;
+  if (betas && betas.length > 0) {
+    sdkOptions.betas = betas;
+    logInfo(`[sdk-runner] Beta features enabled: ${betas.join(", ")}`);
   }
 
   // Hook callbacks (Claude Code hooks; richer tool + lifecycle signals).
@@ -514,6 +529,30 @@ export async function runSdkAgent(params: SdkRunnerParams): Promise<SdkRunnerRes
             );
           }
         }
+      }
+
+      // Handle compact_boundary events — SDK emits these after compaction completes.
+      // This allows us to emit a Pi Agent-compatible "compaction end" event.
+      if (isRecord(event) && event.type === "system" && event.subtype === "compact_boundary") {
+        const compactMeta = isRecord(event.compact_metadata) ? event.compact_metadata : undefined;
+        const trigger = typeof compactMeta?.trigger === "string" ? compactMeta.trigger : "auto";
+        const preTokens =
+          typeof compactMeta?.pre_tokens === "number" ? compactMeta.pre_tokens : undefined;
+
+        logInfo(
+          `[sdk-runner] Compaction completed: trigger=${trigger}` +
+            (preTokens !== undefined ? `, pre_tokens=${preTokens}` : ""),
+        );
+
+        // Emit compaction end event matching Pi Agent's format
+        // (stream: "compaction", data: { phase: "end", willRetry: false })
+        emitEvent("compaction", {
+          phase: "end",
+          trigger,
+          preTokens,
+          willRetry: false, // SDK doesn't expose retry info
+          source: "claude-agent-sdk",
+        });
       }
 
       const { kind } = classifyEvent(event);

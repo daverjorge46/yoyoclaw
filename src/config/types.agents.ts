@@ -50,6 +50,13 @@ export type AgentConfig = {
     allowAgents?: string[];
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
+    /**
+     * Runtime for sub-agents spawned from this agent.
+     * - "pi": Pi Agent embedded runner
+     * - "ccsdk": Claude Code SDK runner
+     * - "inherit": Inherit from this agent's runtime (default)
+     */
+    runtime?: "pi" | "ccsdk" | "inherit";
   };
   sandbox?: {
     mode?: "off" | "non-main" | "all";

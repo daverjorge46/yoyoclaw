@@ -464,3 +464,164 @@ describe("getApiKeyForModel", () => {
     }
   });
 });
+
+describe("isProviderConfigured", () => {
+  it("returns true when provider has auth profiles", async () => {
+    const previousStateDir = process.env.OPENCLAW_STATE_DIR;
+    const previousAgentDir = process.env.OPENCLAW_AGENT_DIR;
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-provider-check-"));
+
+    try {
+      process.env.OPENCLAW_STATE_DIR = tempDir;
+      process.env.OPENCLAW_AGENT_DIR = path.join(tempDir, "agent");
+
+      const authProfilesPath = path.join(tempDir, "agent", "auth-profiles.json");
+      await fs.mkdir(path.dirname(authProfilesPath), { recursive: true, mode: 0o700 });
+      await fs.writeFile(
+        authProfilesPath,
+        `${JSON.stringify(
+          {
+            version: 1,
+            profiles: {
+              "anthropic:default": {
+                type: "api_key",
+                provider: "anthropic",
+                key: "sk-ant-test",
+              },
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+
+      vi.resetModules();
+      const { isProviderConfigured } = await import("./model-auth.js");
+      const { ensureAuthProfileStore } = await import("./auth-profiles.js");
+
+      const store = ensureAuthProfileStore(process.env.OPENCLAW_AGENT_DIR);
+      const configured = isProviderConfigured({ provider: "anthropic", store });
+
+      expect(configured).toBe(true);
+    } finally {
+      if (previousStateDir === undefined) {
+        delete process.env.OPENCLAW_STATE_DIR;
+      } else {
+        process.env.OPENCLAW_STATE_DIR = previousStateDir;
+      }
+      if (previousAgentDir === undefined) {
+        delete process.env.OPENCLAW_AGENT_DIR;
+      } else {
+        process.env.OPENCLAW_AGENT_DIR = previousAgentDir;
+      }
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns true when provider has env var", async () => {
+    const previousOpenAiKey = process.env.OPENAI_API_KEY;
+
+    try {
+      process.env.OPENAI_API_KEY = "sk-test-key";
+
+      vi.resetModules();
+      const { isProviderConfigured } = await import("./model-auth.js");
+
+      const configured = isProviderConfigured({
+        provider: "openai",
+        store: { version: 1, profiles: {} },
+      });
+
+      expect(configured).toBe(true);
+    } finally {
+      if (previousOpenAiKey === undefined) {
+        delete process.env.OPENAI_API_KEY;
+      } else {
+        process.env.OPENAI_API_KEY = previousOpenAiKey;
+      }
+    }
+  });
+
+  it("returns true when provider has custom key in models.json", async () => {
+    vi.resetModules();
+    const { isProviderConfigured } = await import("./model-auth.js");
+
+    const configured = isProviderConfigured({
+      provider: "openai",
+      cfg: {
+        models: {
+          providers: {
+            openai: {
+              apiKey: "sk-custom-key",
+              baseUrl: "https://api.openai.com",
+              models: [],
+            },
+          },
+        },
+      } as never,
+      store: { version: 1, profiles: {} },
+    });
+
+    expect(configured).toBe(true);
+  });
+
+  it("returns true for aws-sdk auth mode", async () => {
+    vi.resetModules();
+    const { isProviderConfigured } = await import("./model-auth.js");
+
+    const configured = isProviderConfigured({
+      provider: "amazon-bedrock",
+      cfg: {
+        models: {
+          providers: {
+            "amazon-bedrock": {
+              auth: "aws-sdk",
+              baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
+              models: [],
+            },
+          },
+        },
+      } as never,
+      store: { version: 1, profiles: {} },
+    });
+
+    expect(configured).toBe(true);
+  });
+
+  it("returns true for amazon-bedrock by default", async () => {
+    vi.resetModules();
+    const { isProviderConfigured } = await import("./model-auth.js");
+
+    const configured = isProviderConfigured({
+      provider: "amazon-bedrock",
+      store: { version: 1, profiles: {} },
+    });
+
+    expect(configured).toBe(true);
+  });
+
+  it("returns false when no auth available", async () => {
+    const previousOpenAiKey = process.env.OPENAI_API_KEY;
+
+    try {
+      delete process.env.OPENAI_API_KEY;
+
+      vi.resetModules();
+      const { isProviderConfigured } = await import("./model-auth.js");
+
+      const configured = isProviderConfigured({
+        provider: "openai",
+        store: { version: 1, profiles: {} },
+      });
+
+      expect(configured).toBe(false);
+    } finally {
+      if (previousOpenAiKey === undefined) {
+        delete process.env.OPENAI_API_KEY;
+      } else {
+        process.env.OPENAI_API_KEY = previousOpenAiKey;
+      }
+    }
+  });
+});

@@ -2,7 +2,11 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { AgentRuntime } from "./agent-runtime.js";
 import type { SandboxContext } from "./sandbox.js";
 import type { AnyAgentTool } from "./tools/common.js";
-import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
+import {
+  DEFAULT_AGENT_ID,
+  isSubagentSessionKey,
+  normalizeAgentId,
+} from "../routing/session-key.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
 import { resolveThinkingBudget } from "./claude-agent-sdk/sdk-runner.config.js";
@@ -53,6 +57,52 @@ export function resolveAgentRuntimeKind(
   // 3. Use global default
   const globalRuntime = config.agents?.defaults?.runtime;
   return globalRuntime === "ccsdk" ? "ccsdk" : "pi";
+}
+
+/**
+ * Resolve the runtime kind for a session, with proper subagent inheritance.
+ *
+ * For subagent sessions (e.g., `agent:main:subagent:UUID`), this function:
+ * 1. Checks for explicit subagent runtime config on the parent agent
+ * 2. Checks for global subagent runtime defaults
+ * 3. Falls back to the parent agent's runtime (inheritance)
+ *
+ * This ensures subagents inherit their parent's runtime by default, which is
+ * important when using Claude Code SDK (ccsdk) - subagents should also use
+ * ccsdk rather than falling back to Pi (which requires separate API keys).
+ */
+export function resolveSessionRuntimeKind(
+  config: OpenClawConfig | undefined,
+  agentId: string,
+  sessionKey?: string,
+): MainAgentRuntimeKind {
+  if (!config) {
+    return "pi";
+  }
+
+  const normalized = normalizeAgentId(agentId);
+  const isSubagent = sessionKey ? isSubagentSessionKey(sessionKey) : false;
+
+  // For subagents, check for explicit subagent runtime config first
+  if (isSubagent) {
+    // 1. Check per-agent subagent runtime config
+    const agentConfig = resolveAgentConfig(config, normalized);
+    const subagentRuntime = agentConfig?.subagents?.runtime;
+    if (subagentRuntime && subagentRuntime !== "inherit") {
+      return subagentRuntime === "ccsdk" ? "ccsdk" : "pi";
+    }
+
+    // 2. Check global subagent runtime defaults
+    const globalSubagentRuntime = config.agents?.defaults?.subagents?.runtime;
+    if (globalSubagentRuntime && globalSubagentRuntime !== "inherit") {
+      return globalSubagentRuntime === "ccsdk" ? "ccsdk" : "pi";
+    }
+
+    // 3. Inherit from parent agent's runtime (fall through to regular resolution)
+  }
+
+  // Regular agent runtime resolution (also used as inheritance source for subagents)
+  return resolveAgentRuntimeKind(config, agentId);
 }
 
 export type CreateSdkMainAgentRuntimeParams = {
