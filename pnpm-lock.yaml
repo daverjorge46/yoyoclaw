@@ -10,7 +10,7 @@ overrides:
   '@hono/node-server>hono': 4.11.7
   hono: 4.11.7
   qs: 6.14.1
-  '@sinclair/typebox': 0.34.47
+  '@sinclair/typebox': 0.34.48
   tar: 7.5.7
   tough-cookie: 4.1.3
 
@@ -64,8 +64,8 @@ importers:
         specifier: ^0.1.89
         version: 0.1.89
       '@sinclair/typebox':
-        specifier: 0.34.47
-        version: 0.34.47
+        specifier: 0.34.48
+        version: 0.34.48
       '@slack/bolt':
         specifier: ^4.6.0
         version: 4.6.0(@types/express@5.0.6)
@@ -383,8 +383,8 @@ importers:
         specifier: ^0.23.0
         version: 0.23.0(apache-arrow@18.1.0)
       '@sinclair/typebox':
-        specifier: 0.34.47
-        version: 0.34.47
+        specifier: 0.34.48
+        version: 0.34.48
       openai:
         specifier: ^6.17.0
         version: 6.17.0(ws@8.19.0)(zod@4.3.6)
@@ -497,8 +497,8 @@ importers:
   extensions/voice-call:
     dependencies:
       '@sinclair/typebox':
-        specifier: 0.34.47
-        version: 0.34.47
+        specifier: 0.34.48
+        version: 0.34.48
       ws:
         specifier: ^8.19.0
         version: 8.19.0
@@ -528,8 +528,8 @@ importers:
   extensions/zalouser:
     dependencies:
       '@sinclair/typebox':
-        specifier: 0.34.47
-        version: 0.34.47
+        specifier: 0.34.48
+        version: 0.34.48
       openclaw:
         specifier: workspace:*
         version: link:../..
@@ -2317,7 +2317,7 @@ packages:
   '@silvia-odwyer/photon-node@0.3.4':
     resolution: {integrity: sha512-bnly4BKB3KDTFxrUIcgCLbaeVVS8lrAkri1pEzskpmxu9MdfGQTy8b8EgcD83ywD3RPMsIulY8xJH5Awa+t9fA==}
 
-  '@sinclair/typebox@0.34.47':
+  '@sinclair/typebox@0.34.48':
     resolution: {integrity: sha512-ZGIBQ+XDvO5JQku9wmwtabcVTHJsgSWAHYtVuM9pBNNR5E88v6Jcj/llpmsjivig5X8A8HHOb4/mbEKPS5EvAw==}
 
   '@slack/bolt@4.6.0':
@@ -6437,7 +6437,7 @@ snapshots:
       '@aws-sdk/client-bedrock-runtime': 3.980.0
       '@google/genai': 1.34.0
       '@mistralai/mistralai': 1.10.0
-      '@sinclair/typebox': 0.34.47
+      '@sinclair/typebox': 0.34.48
       ajv: 8.17.1
       ajv-formats: 3.0.1(ajv@8.17.1)
       chalk: 5.6.2
@@ -7299,7 +7299,7 @@ snapshots:
 
   '@silvia-odwyer/photon-node@0.3.4': {}
 
-  '@sinclair/typebox@0.34.47': {}
+  '@sinclair/typebox@0.34.48': {}
 
   '@slack/bolt@4.6.0(@types/express@5.0.6)':
     dependencies:
