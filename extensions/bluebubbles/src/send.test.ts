@@ -438,6 +438,81 @@ describe("send", () => {
       expect(body.method).toBeUndefined();
     });
 
+    it("strips markdown formatting from outbound messages", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              data: [
+                {
+                  guid: "iMessage;-;+15551234567",
+                  participants: [{ address: "+15551234567" }],
+                },
+              ],
+            }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                data: { guid: "msg-uuid-stripped" },
+              }),
+            ),
+        });
+
+      const result = await sendMessageBlueBubbles(
+        "+15551234567",
+        "**Bold** and *italic* with `code`\n## Header",
+        {
+          serverUrl: "http://localhost:1234",
+          password: "test",
+        },
+      );
+
+      expect(result.messageId).toBe("msg-uuid-stripped");
+
+      const sendCall = mockFetch.mock.calls[1];
+      const body = JSON.parse(sendCall[1].body);
+      // Markdown should be stripped: no asterisks, backticks, or hashes
+      expect(body.message).toBe("Bold and italic with code\nHeader");
+    });
+
+    it("strips markdown when creating a new chat", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                data: { guid: "new-msg-stripped" },
+              }),
+            ),
+        });
+
+      const result = await sendMessageBlueBubbles(
+        "+15550009999",
+        "**Welcome** to the _chat_!",
+        {
+          serverUrl: "http://localhost:1234",
+          password: "test",
+        },
+      );
+
+      expect(result.messageId).toBe("new-msg-stripped");
+
+      const createCall = mockFetch.mock.calls[1];
+      expect(createCall[0]).toContain("/api/v1/chat/new");
+      const body = JSON.parse(createCall[1].body);
+      // Markdown should be stripped
+      expect(body.message).toBe("Welcome to the chat!");
+    });
+
     it("creates a new chat when handle target is missing", async () => {
       mockFetch
         .mockResolvedValueOnce({

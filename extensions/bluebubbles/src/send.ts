@@ -1,4 +1,5 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import { stripMarkdown } from "openclaw/plugin-sdk";
 import crypto from "node:crypto";
 import { resolveBlueBubblesAccount } from "./accounts.js";
 import {
@@ -331,7 +332,7 @@ async function createNewChatWithMessage(params: {
   });
   const payload = {
     addresses: [params.address],
-    message: params.message,
+    message: stripMarkdown(params.message),
   };
   const res = await blueBubblesFetchWithTimeout(
     url,
@@ -419,7 +420,7 @@ export async function sendMessageBlueBubbles(
   const payload: Record<string, unknown> = {
     chatGuid,
     tempGuid: crypto.randomUUID(),
-    message: trimmedText,
+    message: stripMarkdown(trimmedText),
   };
   if (needsPrivateApi) {
     payload.method = "private-api";
