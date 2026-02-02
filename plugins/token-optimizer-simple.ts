@@ -433,6 +433,17 @@ const tokenOptimizerPlugin = {
         };
       }
 
+      // Store classification for agent_end hook to access
+      (globalThis as any).tokenOptimizerLastClassification = {
+        classification: classification.complexity,
+        effectiveTier,
+        metadata: {
+          recommendedModel: tierConfig.model,
+          classificationReasoning: classification.reasoning,
+        },
+        timestamp: Date.now(),
+      };
+
       // Modify event content if compressed
       if (processedContent !== content) {
         event.content = processedContent;
@@ -446,11 +457,15 @@ const tokenOptimizerPlugin = {
       );
     });
 
-    // Register agent_end hook to inject tier badge into chat responses
-    api.on("agent_end", async (event: any, ctx: any) => {
+    // Register message_sending hook to inject tier badge into outgoing messages
+    api.on("message_sending", async (event: any, ctx: any) => {
       const lastClassification = (globalThis as any)
         .tokenOptimizerLastClassification;
-      if (!lastClassification) return;
+
+      // Only modify assistant messages with classification
+      if (event?.role !== "assistant" || !lastClassification) {
+        return event;
+      }
 
       const tierColors: Record<string, string> = {
         TRIVIAL: "#10b981", // Green
@@ -476,26 +491,103 @@ const tokenOptimizerPlugin = {
   <span style="color: #475569; font-size: 11px; font-family: monospace;">${modelName}</span>
 </div>`;
 
+      // Add badge to message content
+      if (typeof event.content === "string") {
+        event.content = event.content + badge;
+      } else if (Array.isArray(event.content)) {
+        const textContent = event.content.find((c: any) => c?.type === "text");
+        if (textContent && textContent.text) {
+          textContent.text = textContent.text + badge;
+        }
+      }
+
+      api.logger.info(
+        `[Token Optimizer] Added ${lastClassification.effectiveTier} badge to outgoing message`,
+      );
+
+      return event;
+    });
+
+    // Register agent_end hook to inject tier badge into chat responses
+    api.on("agent_end", async (event: any, ctx: any) => {
+      api.logger.info("[Token Optimizer] agent_end hook fired");
+
+      const lastClassification = (globalThis as any)
+        .tokenOptimizerLastClassification;
+
+      api.logger.info(
+        `[Token Optimizer] lastClassification: ${lastClassification ? "exists" : "null"}`,
+      );
+
+      if (!lastClassification) {
+        api.logger.warn(
+          "[Token Optimizer] No classification found in agent_end",
+        );
+        return;
+      }
+
+      const tierColors: Record<string, string> = {
+        TRIVIAL: "#10b981", // Green
+        LOW: "#3b82f6", // Blue
+        MEDIUM: "#f59e0b", // Orange
+        HIGH: "#ef4444", // Red
+        CRITICAL: "#dc2626", // Dark Red
+      };
+
+      const tierColor =
+        tierColors[lastClassification.effectiveTier] || "#6b7280";
+      const modelName =
+        lastClassification.metadata?.recommendedModel?.split("/").pop() ||
+        "Unknown";
+
+      api.logger.info(
+        `[Token Optimizer] Processing badge: ${lastClassification.effectiveTier} | ${modelName}`,
+      );
+
+      // Create HTML badge for Control UI chat
+      const badge = `
+
+<div style="margin-top: 12px; padding: 8px 12px; background: ${tierColor}15; border-left: 3px solid ${tierColor}; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; font-family: system-ui, -apple-system, sans-serif;">
+  <span style="width: 10px; height: 10px; background: ${tierColor}; border-radius: 50%; display: inline-block;"></span>
+  <span style="color: ${tierColor}; font-weight: 600; font-size: 12px; text-transform: uppercase;">${lastClassification.effectiveTier}</span>
+  <span style="color: #64748b; font-size: 11px;">|</span>
+  <span style="color: #475569; font-size: 11px; font-family: monospace;">${modelName}</span>
+</div>`;
+
       // Append badge to last assistant message if exists
       const messages = event?.messages || [];
       const lastAssistantIndex = messages
         .map((m: any) => m?.role)
         .lastIndexOf("assistant");
 
+      api.logger.info(
+        `[Token Optimizer] Messages count: ${messages.length}, Last assistant index: ${lastAssistantIndex}`,
+      );
+
       if (lastAssistantIndex >= 0 && messages[lastAssistantIndex]) {
         const msg = messages[lastAssistantIndex];
+        api.logger.info(
+          `[Token Optimizer] Found assistant message, content type: ${typeof msg.content}`,
+        );
+
         if (typeof msg.content === "string") {
           msg.content = msg.content + badge;
+          api.logger.info(`[Token Optimizer] Added badge to string content`);
         } else if (Array.isArray(msg.content)) {
           // Handle array content format
           const textContent = msg.content.find((c: any) => c?.type === "text");
           if (textContent && textContent.text) {
             textContent.text = textContent.text + badge;
+            api.logger.info(`[Token Optimizer] Added badge to array content`);
           }
         }
+      } else {
+        api.logger.warn(
+          "[Token Optimizer] No assistant message found to modify",
+        );
       }
 
-      api.logger.debug(
+      api.logger.info(
         `[Token Optimizer] Injected ${lastClassification.effectiveTier} badge into chat response`,
       );
     });
