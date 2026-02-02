@@ -179,9 +179,7 @@ export async function migrateLegacyConfigBackups(
           continue;
         } catch (innerErr) {
           skipped.push(entry);
-          deps.logger.warn(
-            `Failed to move legacy config backup ${source}: ${String(innerErr)}`,
-          );
+          deps.logger.warn(`Failed to move legacy config backup ${source}: ${String(innerErr)}`);
           continue;
         }
       }
