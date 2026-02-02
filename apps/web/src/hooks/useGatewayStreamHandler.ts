@@ -21,7 +21,10 @@ interface GatewayChatEvent {
   state: "delta" | "final" | "error" | "aborted";
   message?: unknown;
   // Older clients sometimes send a delta field; keep as a best-effort fallback.
-  delta?: { type: string; text?: string };
+  delta?: {
+    type: string;
+    text?: string;
+  };
   errorMessage?: string;
 }
 
@@ -52,6 +55,9 @@ function toPrettyString(value: unknown): string | undefined {
   }
 }
 
+/**
+ * Extracts text content from message structure
+ */
 function extractTextContent(message: unknown): string {
   if (!isRecord(message)) return "";
   const content = message.content;
@@ -64,10 +70,15 @@ function extractTextContent(message: unknown): string {
   return textBlocks.join("\n");
 }
 
+/**
+ * Extracts tool calls from message structure
+ */
 function extractToolCalls(message: unknown): ToolCall[] {
   if (!isRecord(message)) return [];
   const toolUse = message.toolUse;
-  if (!Array.isArray(toolUse)) return [];
+  if (!Array.isArray(toolUse)) {
+    return [];
+  }
 
   return toolUse
     .filter((tool) => isRecord(tool))
@@ -108,42 +119,45 @@ export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions 
 
   const handleChatEvent = useCallback(
     (event: GatewayChatEvent) => {
-      ensureStreaming(event.sessionKey, event.runId);
+      const { sessionKey, state } = event;
+      ensureStreaming(sessionKey, event.runId);
 
-      switch (event.state) {
+      switch (state) {
         case "delta": {
-          // Gateway `chat` delta is a snapshot of the full assistant buffer.
+          // Gateway `chat` delta uses the full assistant buffer in `message.content[]` (not a token delta).
           if (event.message) {
-            setStreamingContent(event.sessionKey, extractTextContent(event.message));
+            setStreamingContent(sessionKey, extractTextContent(event.message));
             break;
           }
 
           // Fallback for any older/alternate delta shapes.
           if (event.delta?.type === "text" && event.delta.text) {
-            appendStreamingContent(event.sessionKey, event.delta.text);
+            appendStreamingContent(sessionKey, event.delta.text);
           }
           break;
         }
 
         case "final": {
           if (event.message) {
-            setStreamingContent(event.sessionKey, extractTextContent(event.message));
+            setStreamingContent(sessionKey, extractTextContent(event.message));
             for (const toolCall of extractToolCalls(event.message)) {
-              updateToolCall(event.sessionKey, toolCall);
+              updateToolCall(sessionKey, toolCall);
             }
           }
-          finishStreaming(event.sessionKey);
+
+          finishStreaming(sessionKey);
           break;
         }
 
         case "error": {
           console.error("[StreamHandler] Chat error:", event.errorMessage);
-          finishStreaming(event.sessionKey);
+          finishStreaming(sessionKey);
           break;
         }
 
         case "aborted": {
-          clearStreaming(event.sessionKey);
+          console.debug("[StreamHandler] Chat aborted");
+          clearStreaming(sessionKey);
           break;
         }
       }
@@ -170,6 +184,8 @@ export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions 
           status = "done";
         } else if (phase === "error" || phase === "failed") {
           status = "error";
+        } else if (phase === "start" || phase === "running") {
+          status = "running";
         }
 
         const duration =
@@ -206,12 +222,16 @@ export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions 
 
   const handleEvent = useCallback(
     (event: GatewayEvent) => {
+      // Handle chat streaming events
       if (event.event === "chat") {
         handleChatEvent(event.payload as GatewayChatEvent);
         return;
       }
+
+      // Tool output + compaction come from `agent` stream events.
       if (event.event === "agent") {
         handleAgentEvent(event.payload as GatewayAgentEvent);
+        return;
       }
     },
     [handleAgentEvent, handleChatEvent]
