@@ -1,9 +1,63 @@
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { normalizeVerboseLevel } from "../auto-reply/thinking.js";
 import { loadConfig } from "../config/config.js";
 import { type AgentEventPayload, getAgentRunContext } from "../infra/agent-events.js";
 import { resolveHeartbeatVisibility } from "../infra/heartbeat-visibility.js";
 import { loadSessionEntry } from "./session-utils.js";
 import { formatForLog } from "./ws-log.js";
+
+/**
+ * Persist assistant message to transcript for CLI backend responses.
+ * This ensures webchat history is preserved when using claude-cli or similar backends.
+ * Fixes: #5660, #2977
+ */
+function saveAssistantToTranscript(chatLink: ChatRunEntry | undefined, text: string): void {
+  // Only persist for CLI providers - chatLink only exists for CLI runs
+  // Embedded backends handle their own persistence via the session manager
+  if (!chatLink) {
+    return;
+  }
+
+  const { sessionId, storePath, sessionFile } = chatLink;
+  if (!sessionId || !storePath) {
+    return;
+  }
+
+  try {
+    const transcriptPath = sessionFile
+      ? sessionFile
+      : path.join(path.dirname(storePath), `${sessionId}.jsonl`);
+
+    // Create transcript file if missing (first message scenario)
+    if (!fs.existsSync(transcriptPath)) {
+      const header = {
+        type: "session",
+        sessionId,
+        createdAt: new Date().toISOString(),
+      };
+      fs.writeFileSync(transcriptPath, `${JSON.stringify(header)}\n`, "utf-8");
+    }
+    const now = Date.now();
+    const messageId = randomUUID().slice(0, 8);
+    const transcriptEntry = {
+      type: "message",
+      id: messageId,
+      timestamp: new Date(now).toISOString(),
+      message: {
+        role: "assistant",
+        content: [{ type: "text", text }],
+        timestamp: now,
+        stopReason: "end_turn",
+        usage: { input: 0, output: 0, totalTokens: 0 },
+      },
+    };
+    fs.appendFileSync(transcriptPath, JSON.stringify(transcriptEntry) + "\n", "utf-8");
+  } catch {
+    // Silently ignore persistence errors to avoid disrupting the chat flow
+  }
+}
 
 /**
  * Check if webchat broadcasts should be suppressed for heartbeat runs.
@@ -26,6 +80,12 @@ function shouldSuppressHeartbeatBroadcast(runId: string): boolean {
 }
 
 export type ChatRunEntry = {
+  /** Session ID for transcript path resolution (CLI runs only) */
+  sessionId?: string;
+  /** Store path for transcript path resolution (CLI runs only) */
+  storePath?: string;
+  /** Direct session file path if available (CLI runs only) */
+  sessionFile?: string;
   sessionKey: string;
   clientRunId: string;
 };
@@ -172,6 +232,7 @@ export function createAgentEventHandler({
   };
 
   const emitChatFinal = (
+    chatLink: ChatRunEntry | undefined,
     sessionKey: string,
     clientRunId: string,
     seq: number,
@@ -182,6 +243,10 @@ export function createAgentEventHandler({
     chatRunState.buffers.delete(clientRunId);
     chatRunState.deltaSentAt.delete(clientRunId);
     if (jobState === "done") {
+      // Persist assistant message to transcript for CLI backends only
+      if (text) {
+        saveAssistantToTranscript(chatLink, text);
+      }
       const payload = {
         runId: clientRunId,
         sessionKey,
@@ -279,6 +344,7 @@ export function createAgentEventHandler({
             return;
           }
           emitChatFinal(
+            finished,
             finished.sessionKey,
             finished.clientRunId,
             evt.seq,
@@ -287,6 +353,7 @@ export function createAgentEventHandler({
           );
         } else {
           emitChatFinal(
+            undefined,
             sessionKey,
             evt.runId,
             evt.seq,
