@@ -116,6 +116,37 @@ describe("probeTelegram", () => {
     expect(result.webhook?.lastErrorDate).toBe(oldErrorDate);
   });
 
+  it("returns ok:true in polling mode even with recent webhook errors (no active webhook URL)", async () => {
+    const recentErrorDate = Math.floor(Date.now() / 1000) - 60; // 1 minute ago
+
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ok: true,
+          result: { id: 123, username: "testbot" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ok: true,
+          result: {
+            url: "", // empty URL = polling mode
+            has_custom_certificate: false,
+            pending_update_count: 2,
+            last_error_date: recentErrorDate,
+            last_error_message: "Wrong response from the webhook: 500 INTERNAL SERVER ERROR",
+          },
+        }),
+      );
+
+    const result = await probeTelegram("fake-token", 5000);
+
+    expect(result.ok).toBe(true);
+    expect(result.error).toBeNull();
+    expect(result.webhook?.url).toBe("");
+    expect(result.webhook?.lastErrorDate).toBe(recentErrorDate);
+  });
+
   it("still returns ok:true when getWebhookInfo request itself fails", async () => {
     fetchMock
       .mockResolvedValueOnce(

@@ -117,9 +117,12 @@ export async function probeTelegram(
         };
 
         // If there is a recent webhook delivery error, mark the probe as degraded.
+        // Only relevant when a webhook URL is actively set (not polling mode).
         // "Recent" = error occurred within the last 10 minutes.
         const RECENT_ERROR_THRESHOLD_S = 600;
+        const hasActiveWebhook = !!wr?.url;
         if (
+          hasActiveWebhook &&
           lastErrorDate != null &&
           Math.floor(Date.now() / 1000) - lastErrorDate < RECENT_ERROR_THRESHOLD_S
         ) {
