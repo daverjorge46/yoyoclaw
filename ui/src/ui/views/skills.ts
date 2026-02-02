@@ -8,10 +8,12 @@ export type SkillsProps = {
   report: SkillStatusReport | null;
   error: string | null;
   filter: string;
+  installFilter: string;
   edits: Record<string, string>;
   busyKey: string | null;
   messages: SkillMessageMap;
   onFilterChange: (next: string) => void;
+  onInstallFilterChange: (next: string) => void;
   onRefresh: () => void;
   onToggle: (skillKey: string, enabled: boolean) => void;
   onEdit: (skillKey: string, value: string) => void;
@@ -22,11 +24,18 @@ export type SkillsProps = {
 export function renderSkills(props: SkillsProps) {
   const skills = props.report?.skills ?? [];
   const filter = props.filter.trim().toLowerCase();
-  const filtered = filter
+  const searchFiltered = filter
     ? skills.filter((skill) =>
         [skill.name, skill.description, skill.source].join(" ").toLowerCase().includes(filter),
       )
     : skills;
+  const installFilter = props.installFilter;
+  const filtered =
+    installFilter === "installed"
+      ? searchFiltered.filter((skill) => skill.missing.bins.length === 0)
+      : installFilter === "not-installed"
+        ? searchFiltered.filter((skill) => skill.missing.bins.length > 0)
+        : searchFiltered;
 
   return html`
     <section class="card">
@@ -48,6 +57,18 @@ export function renderSkills(props: SkillsProps) {
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
             placeholder="Search skills"
           />
+        </label>
+        <label class="field" style="min-width: 200px;">
+          <span>Install status</span>
+          <select
+            .value=${props.installFilter}
+            @change=${(e: Event) =>
+              props.onInstallFilterChange((e.target as HTMLSelectElement).value)}
+          >
+            <option value="all">All</option>
+            <option value="installed">Installed</option>
+            <option value="not-installed">Not installed</option>
+          </select>
         </label>
         <div class="muted">${filtered.length} shown</div>
       </div>
