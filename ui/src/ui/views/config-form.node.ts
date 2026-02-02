@@ -99,7 +99,7 @@ export function renderNode(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
@@ -296,7 +296,7 @@ function renderTextInput(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   disabled: boolean;
   showLabel?: boolean;
   inputType: "text" | "number";
@@ -372,7 +372,7 @@ function renderNumberInput(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   disabled: boolean;
   showLabel?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
@@ -422,7 +422,7 @@ function renderSelect(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   disabled: boolean;
   showLabel?: boolean;
   options: unknown[];
@@ -467,7 +467,7 @@ function renderObject(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
@@ -487,14 +487,17 @@ function renderObject(params: {
   const entries = Object.entries(props);
 
   // Sort by hint order
-  const sorted = entries.toSorted((a, b) => {
-    const orderA = hintForPath([...path, a[0]], hints)?.order ?? 0;
-    const orderB = hintForPath([...path, b[0]], hints)?.order ?? 0;
-    if (orderA !== orderB) {
-      return orderA - orderB;
-    }
-    return a[0].localeCompare(b[0]);
-  });
+  const sorted =
+    entries.length > 0
+      ? entries.toSorted((a, b) => {
+          const orderA = hintForPath([...path, a[0]], hints)?.order ?? 0;
+          const orderB = hintForPath([...path, b[0]], hints)?.order ?? 0;
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
+          return a[0].localeCompare(b[0]);
+        })
+      : [];
 
   const reserved = new Set(Object.keys(props));
   const additional = schema.additionalProperties;
@@ -576,7 +579,7 @@ function renderArray(params: {
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
@@ -672,7 +675,7 @@ function renderMapField(params: {
   schema: JsonSchema;
   value: Record<string, unknown>;
   path: Array<string | number>;
-  hints: ConfigUiHints;
+  hints: ConfigUiHints | Record<string, unknown>;
   unsupported: Set<string>;
   disabled: boolean;
   reservedKeys: Set<string>;

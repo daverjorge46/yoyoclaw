@@ -6,7 +6,7 @@ import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-for
 
 export type ConfigFormProps = {
   schema: JsonSchema | null;
-  uiHints: ConfigUiHints;
+  uiHints: ConfigUiHints | Record<string, unknown>;
   value: Record<string, unknown> | null;
   disabled?: boolean;
   unsupportedPaths?: string[];

@@ -7,7 +7,7 @@ type ChannelConfigFormProps = {
   channelId: string;
   configValue: Record<string, unknown> | null;
   schema: unknown;
-  uiHints: ConfigUiHints;
+  uiHints: ConfigUiHints | Record<string, unknown>;
   disabled: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 };

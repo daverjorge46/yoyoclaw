@@ -29,7 +29,7 @@ export type ChannelsProps = {
   configSchema: unknown;
   configSchemaLoading: boolean;
   configForm: Record<string, unknown> | null;
-  configUiHints: ConfigUiHints;
+  configUiHints: ConfigUiHints | Record<string, unknown>;
   configSaving: boolean;
   configFormDirty: boolean;
   nostrProfileFormState: NostrProfileFormState | null;

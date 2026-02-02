@@ -15,7 +15,7 @@ export type ConfigProps = {
   connected: boolean;
   schema: unknown;
   schemaLoading: boolean;
-  uiHints: ConfigUiHints;
+  uiHints: ConfigUiHints | Record<string, unknown>;
   formMode: "form" | "raw";
   formValue: Record<string, unknown> | null;
   originalValue: Record<string, unknown> | null;
@@ -311,7 +311,7 @@ function resolveSectionMeta(
 function resolveSubsections(params: {
   key: string;
   schema: JsonSchema | undefined;
-  uiHints: ConfigUiHints;
+  uiHints: ConfigUiHints | Record<string, unknown>;
 }): SubsectionEntry[] {
   const { key, schema, uiHints } = params;
   if (!schema || schemaType(schema) !== "object" || !schema.properties) {

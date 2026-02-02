@@ -44,7 +44,7 @@ export type ChatProps = {
   // Focus mode
   focusMode: boolean;
   // Sidebar state
-  sidebarOpen?: boolean;
+  sidebarOpen?: boolean | null;
   sidebarContent?: string | null;
   sidebarError?: string | null;
   splitRatio?: number;

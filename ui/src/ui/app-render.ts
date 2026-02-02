@@ -12,6 +12,7 @@ import {
   saveConfig,
   updateConfigFormValue,
   removeConfigFormValue,
+  ConfigState,
 } from "./controllers/config";
 import {
   loadCronRuns,
@@ -34,7 +35,7 @@ import {
   saveExecApprovals,
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals";
-import { loadLogs } from "./controllers/logs";
+import { loadLogs, LogsState } from "./controllers/logs";
 import { loadNodes } from "./controllers/nodes";
 import { loadPresence } from "./controllers/presence";
 import { deleteSession, loadSessions, patchSession } from "./controllers/sessions";
@@ -368,7 +369,7 @@ export function renderApp(state: AppViewState) {
                 onDeviceRotate: (deviceId, role, scopes) =>
                   rotateDeviceToken(state, { deviceId, role, scopes }),
                 onDeviceRevoke: (deviceId, role) => revokeDeviceToken(state, { deviceId, role }),
-                onLoadConfig: () => loadConfig(state),
+                onLoadConfig: () => loadConfig(state as unknown as ConfigState),
                 onLoadExecApprovals: () => {
                   const target =
                     state.execApprovalsTarget === "node" && state.execApprovalsTargetNodeId
@@ -391,7 +392,7 @@ export function renderApp(state: AppViewState) {
                     removeConfigFormValue(state, basePath);
                   }
                 },
-                onSaveBindings: () => saveConfig(state),
+                onSaveBindings: () => saveConfig(state as unknown as ConfigState),
                 onExecApprovalsTargetChange: (kind, nodeId) => {
                   state.execApprovalsTarget = kind;
                   state.execApprovalsTargetNodeId = nodeId;
@@ -484,7 +485,7 @@ export function renderApp(state: AppViewState) {
                 onScrollToBottom: () => state.scrollToBottom(),
                 // Sidebar props for tool output viewing
                 sidebarOpen: state.sidebarOpen,
-                sidebarContent: state.sidebarContent,
+                sidebarContent: state.sidebarContent ?? undefined,
                 sidebarError: state.sidebarError,
                 splitRatio: state.splitRatio,
                 onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
@@ -528,10 +529,10 @@ export function renderApp(state: AppViewState) {
                   state.configActiveSubsection = null;
                 },
                 onSubsectionChange: (section) => (state.configActiveSubsection = section),
-                onReload: () => loadConfig(state),
-                onSave: () => saveConfig(state),
-                onApply: () => applyConfig(state),
-                onUpdate: () => runUpdate(state),
+                onReload: () => loadConfig(state as unknown as ConfigState),
+                onSave: () => saveConfig(state as unknown as ConfigState),
+                onApply: () => applyConfig(state as unknown as ConfigState),
+                onUpdate: () => runUpdate(state as unknown as ConfigState),
               })
             : nothing
         }
@@ -573,7 +574,7 @@ export function renderApp(state: AppViewState) {
                   state.logsLevelFilters = { ...state.logsLevelFilters, [level]: enabled };
                 },
                 onToggleAutoFollow: (next) => (state.logsAutoFollow = next),
-                onRefresh: () => loadLogs(state, { reset: true }),
+                onRefresh: () => loadLogs(state as unknown as LogsState, { reset: true }),
                 onExport: (lines, label) => state.exportLogs(lines, label),
                 onScroll: (event) => state.handleLogsScroll(event),
               })
