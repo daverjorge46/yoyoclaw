@@ -370,6 +370,8 @@ export type GuardrailEvaluationContext = {
 export type GuardrailBaseConfig = {
   /** If true, allow content through when guardrail evaluation fails (default: true). */
   failOpen?: boolean;
+  /** Hook priority for this guardrail (higher runs first, default: 50). */
+  guardrailPriority?: number;
   stages?: {
     beforeRequest?: BaseStageConfig;
     beforeToolCall?: BaseStageConfig;
@@ -459,6 +461,10 @@ export function createGuardrailPlugin<TConfig extends GuardrailBaseConfig>(
       definition.onRegister?.(api, config);
 
       const defaultPriority = 50;
+      const guardrailPriority =
+        typeof config.guardrailPriority === "number" && Number.isFinite(config.guardrailPriority)
+          ? config.guardrailPriority
+          : defaultPriority;
 
       // Helper to handle evaluation errors
       const handleEvaluationError = (
@@ -520,7 +526,7 @@ export function createGuardrailPlugin<TConfig extends GuardrailBaseConfig>(
             );
             return { block: true, blockResponse: message };
           },
-          { priority: defaultPriority },
+          { priority: guardrailPriority },
         );
       }
 
@@ -574,7 +580,7 @@ export function createGuardrailPlugin<TConfig extends GuardrailBaseConfig>(
             );
             return { block: true, blockReason: message };
           },
-          { priority: defaultPriority },
+          { priority: guardrailPriority },
         );
       }
 
@@ -636,7 +642,7 @@ export function createGuardrailPlugin<TConfig extends GuardrailBaseConfig>(
                   : replaceToolResultWithWarning(event.result, message),
             };
           },
-          { priority: defaultPriority },
+          { priority: guardrailPriority },
         );
       }
 
@@ -694,7 +700,7 @@ export function createGuardrailPlugin<TConfig extends GuardrailBaseConfig>(
             }
             return { block: true, blockResponse: message };
           },
-          { priority: defaultPriority },
+          { priority: guardrailPriority },
         );
       }
     },

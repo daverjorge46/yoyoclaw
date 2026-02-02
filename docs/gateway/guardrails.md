@@ -27,7 +27,8 @@ OpenClaw evaluates stages in this order:
 3. `after_tool_call` — inspect and optionally modify tool results before they go back to the model.
 4. `after_response` — inspect and optionally modify the assistant response before it is returned.
 
-Within a stage, hooks run by descending `priority` (default `0`).
+Within a stage, hooks run by descending `priority` (higher first).
+Guardrail plugins created with `createGuardrailPlugin` default to priority `50`, and you can override that with `guardrailPriority` in the plugin config.
 If any hook **blocks**, later hooks do not run for that stage.
 
 ## Writing a guardrail plugin
@@ -143,6 +144,7 @@ Configuration example:
           "violationThreshold": 0.5,
           "timeoutMs": 30000,
           "failOpen": true,
+          "guardrailPriority": 80,
           "stages": {
             "beforeRequest": { "enabled": true, "mode": "block" },
             "beforeToolCall": { "enabled": true, "mode": "block" },
@@ -190,6 +192,7 @@ Configuration example:
           "outputFormat": "json",
           "timeoutMs": 30000,
           "failOpen": true,
+          "guardrailPriority": 60,
           "stages": {
             "beforeRequest": { "enabled": true, "mode": "block" },
             "afterResponse": { "enabled": true, "mode": "monitor" }

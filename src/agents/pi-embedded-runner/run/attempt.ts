@@ -804,7 +804,7 @@ export async function runEmbeddedAttempt(
           if (hookResult?.block) {
             guardrailBlock = {
               stage: "before_request",
-              hookId: "before_request_hook",
+              hookId: hookResult.pluginId ?? "before_request_hook",
               response: hookResult.blockResponse,
             };
             if (sessionManager) {
@@ -968,7 +968,7 @@ export async function runEmbeddedAttempt(
             const blockResponse = hookResult.blockResponse?.trim() || "Response blocked by policy.";
             guardrailBlock = {
               stage: "after_response",
-              hookId: "after_response_hook",
+              hookId: hookResult.pluginId ?? "after_response_hook",
               response: blockResponse,
             };
             assistantTexts.splice(0, assistantTexts.length, blockResponse);
