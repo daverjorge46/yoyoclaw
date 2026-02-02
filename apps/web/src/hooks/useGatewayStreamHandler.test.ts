@@ -53,29 +53,33 @@ const findSessionKeyByRunId = vi.fn((runId: string) => {
   return null;
 });
 
-const useSessionStoreMock = vi.fn((selector?: (s: unknown) => unknown) => {
-  const store = {
-    ...state,
-    startStreaming,
-    setStreamingContent,
-    appendStreamingContent,
-    updateToolCall,
-    finishStreaming,
-    clearStreaming,
-    findSessionKeyByRunId,
-  };
-  return selector ? selector(store) : store;
-});
-useSessionStoreMock.getState = () => ({
-  ...state,
-  startStreaming,
-  setStreamingContent,
-  appendStreamingContent,
-  updateToolCall,
-  finishStreaming,
-  clearStreaming,
-  findSessionKeyByRunId,
-});
+const useSessionStoreMock = Object.assign(
+  vi.fn((selector?: (s: unknown) => unknown) => {
+    const store = {
+      ...state,
+      startStreaming,
+      setStreamingContent,
+      appendStreamingContent,
+      updateToolCall,
+      finishStreaming,
+      clearStreaming,
+      findSessionKeyByRunId,
+    };
+    return selector ? selector(store) : store;
+  }),
+  {
+    getState: () => ({
+      ...state,
+      startStreaming,
+      setStreamingContent,
+      appendStreamingContent,
+      updateToolCall,
+      finishStreaming,
+      clearStreaming,
+      findSessionKeyByRunId,
+    }),
+  },
+);
 
 vi.mock("@/stores/useSessionStore", () => ({
   useSessionStore: useSessionStoreMock,
