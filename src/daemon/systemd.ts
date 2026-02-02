@@ -39,11 +39,11 @@ function resolveSystemdUnitPathForName(
 }
 
 function resolveSystemdServiceName(env: Record<string, string | undefined>): string {
-  const override = env.CLAWDBOT_SYSTEMD_UNIT?.trim();
+  const override = env.OPENCLAW_SYSTEMD_UNIT?.trim();
   if (override) {
     return override.endsWith(".service") ? override.slice(0, -".service".length) : override;
   }
-  return resolveGatewaySystemdServiceName(env.CLAWDBOT_PROFILE);
+  return resolveGatewaySystemdServiceName(env.OPENCLAW_PROFILE);
 }
 
 function resolveSystemdUnitPath(env: Record<string, string | undefined>): string {
