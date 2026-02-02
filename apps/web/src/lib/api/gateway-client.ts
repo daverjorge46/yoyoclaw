@@ -20,12 +20,43 @@ import {
   buildDeviceAuthPayload,
   type DeviceIdentity,
 } from "@/lib/crypto";
+ * This provides a simplified interface to connect to the gateway server
+ * and make RPC-style requests. The client handles:
+ * - WebSocket connection management with Protocol v3
+ * - Device authentication with ed25519 keypairs
+ * - Challenge-response flow for secure auth
+ * - Request/response correlation via message IDs
+ * - Automatic reconnection with exponential backoff
+ * - Event subscriptions
+ * - Connection state machine for UI integration
+ */
+
+import { uuidv7 } from "@/lib/ids";
+import { loadOrCreateDeviceIdentity, signDevicePayload, type DeviceIdentity } from "./device-identity";
+import {
+  loadDeviceAuthToken,
+  storeDeviceAuthToken,
+  clearDeviceAuthToken,
+  loadSharedGatewayToken,
+  storeSharedGatewayToken,
+} from "./device-auth-storage";
 
 function newMessageId(): string {
   return uuidv7();
 }
 
-export type GatewayStatus = "disconnected" | "connecting" | "connected" | "error";
+// =====================================================================
+// Connection State Machine
+// =====================================================================
+
+export type GatewayConnectionState =
+  | { status: "disconnected" }
+  | { status: "connecting" }
+  | { status: "auth_required"; error?: string }
+  | { status: "connected" }
+  | { status: "error"; error: string };
+
+export type GatewayStatus = GatewayConnectionState["status"];
 
 export interface GatewayEvent {
   event: string;
@@ -38,8 +69,12 @@ export interface GatewayRequestOptions {
   timeout?: number;
 }
 
+export interface GatewayAuthCredentials {
+  type: "token" | "password";
+  value: string;
+}
+
 export interface GatewayHelloOk {
-  type: "hello-ok";
   protocol: number;
   features?: { methods?: string[]; events?: string[] };
   snapshot?: unknown;
@@ -95,10 +130,11 @@ const GATEWAY_CLIENT_MODES = {
 class GatewayClient {
   private ws: WebSocket | null = null;
   private config: GatewayClientConfig;
-  private status: GatewayStatus = "disconnected";
+  private connectionState: GatewayConnectionState = { status: "disconnected" };
   private pending = new Map<string, PendingRequest>();
   private backoffMs = 800;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private connectTimer: ReturnType<typeof setTimeout> | null = null;
   private stopped = false;
   private connectPromise: Promise<void> | null = null;
   private connectResolve: (() => void) | null = null;
@@ -116,21 +152,88 @@ class GatewayClient {
 
   constructor(config: GatewayClientConfig = {}) {
     this.config = config;
+    this.authToken = config.token ?? null;
+    this.authPassword = config.password ?? null;
   }
 
-  private setStatus(status: GatewayStatus) {
-    if (this.status !== status) {
-      this.status = status;
-      this.config.onStatusChange?.(status);
+  private setConnectionState(state: GatewayConnectionState) {
+    if (
+      this.connectionState.status !== state.status ||
+      (state.status === "auth_required" && this.connectionState.status === "auth_required" &&
+        (state as { error?: string }).error !== (this.connectionState as { error?: string }).error) ||
+      (state.status === "error" && this.connectionState.status === "error" &&
+        (state as { error: string }).error !== (this.connectionState as { error: string }).error)
+    ) {
+      this.connectionState = state;
+      this.config.onStateChange?.(state);
+      this.notifyStateChange();
     }
   }
 
+  private notifyStateChange() {
+    for (const listener of this.stateListeners) {
+      try {
+        listener(this.connectionState);
+      } catch (err) {
+        console.error("[gateway] state listener error:", err);
+      }
+    }
+  }
+
+  getConnectionState(): GatewayConnectionState {
+    return this.connectionState;
+  }
+
   getStatus(): GatewayStatus {
-    return this.status;
+    return this.connectionState.status;
   }
 
   isConnected(): boolean {
-    return this.status === "connected" && this.ws?.readyState === WebSocket.OPEN;
+    return this.connectionState.status === "connected" && this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Subscribe to connection state changes.
+   * Returns an unsubscribe function.
+   */
+  onStateChange(listener: (state: GatewayConnectionState) => void): () => void {
+    this.stateListeners.add(listener);
+    return () => this.stateListeners.delete(listener);
+  }
+
+  /**
+   * Set auth credentials from the auth modal.
+   * Call retryConnect() after setting credentials to attempt connection.
+   */
+  setAuthCredentials(credentials: GatewayAuthCredentials) {
+    if (credentials.type === "token") {
+      this.authToken = credentials.value;
+      this.authPassword = null;
+      // Store for persistence
+      storeSharedGatewayToken(credentials.value);
+    } else {
+      this.authPassword = credentials.value;
+      // Don't store password
+    }
+  }
+
+  /**
+   * Clear stored credentials.
+   */
+  clearCredentials() {
+    this.authToken = null;
+    this.authPassword = null;
+    if (this.deviceIdentity) {
+      clearDeviceAuthToken({ deviceId: this.deviceIdentity.deviceId, role: "operator" });
+    }
+  }
+
+  /**
+   * Retry connection after setting credentials.
+   */
+  retryConnect(): Promise<void> {
+    this.setConnectionState({ status: "connecting" });
+    return this.connect();
   }
 
   getHelloData(): GatewayHelloOk | null {
@@ -178,7 +281,7 @@ class GatewayClient {
     if (this.stopped) return;
 
     const url = this.config.url || DEFAULT_GATEWAY_URL;
-    this.setStatus("connecting");
+    this.setConnectionState({ status: "connecting" });
 
     try {
       this.ws = new WebSocket(url);
@@ -196,17 +299,31 @@ class GatewayClient {
         this.ws = null;
         this.flushPending(new Error(`Connection closed (${event.code}): ${reason}`));
 
+        // Check if this was an auth failure
+        if (event.code === CONNECT_FAILED_CLOSE_CODE || reason.includes("auth") || reason.includes("unauthorized")) {
+          this.setConnectionState({
+            status: "auth_required",
+            error: reason || "Authentication failed",
+          });
+          // Don't auto-reconnect on auth failure
+          this.connectPromise = null;
+          this.connectReject?.(new Error(reason || "Authentication failed"));
+          this.connectReject = null;
+          this.connectResolve = null;
+          return;
+        }
+
         if (!this.stopped) {
-          this.setStatus("disconnected");
+          this.setConnectionState({ status: "disconnected" });
           this.scheduleReconnect();
         }
       };
 
       this.ws.onerror = () => {
-        // Ignore; close handler will fire
+        // Error will be followed by close, so we let close handler manage state
       };
     } catch (error) {
-      this.setStatus("error");
+      this.setConnectionState({ status: "error", error: String(error) });
       this.config.onError?.(error instanceof Error ? error : new Error(String(error)));
       this.scheduleReconnect();
     }
@@ -218,10 +335,10 @@ class GatewayClient {
     if (this.connectTimer !== null) {
       clearTimeout(this.connectTimer);
     }
-    // Wait for connect.challenge event, but send connect after 750ms if none arrives
+    // Wait for challenge event, but send connect anyway after timeout
     this.connectTimer = setTimeout(() => {
       void this.sendConnect();
-    }, 750);
+    }, CONNECT_DELAY);
   }
 
   private async sendConnect() {
@@ -234,29 +351,40 @@ class GatewayClient {
 
     // crypto.subtle is only available in secure contexts (HTTPS, localhost).
     // Over plain HTTP, we skip device identity and fall back to token-only auth.
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    // crypto.subtle is only available in secure contexts (HTTPS, localhost)
     const isSecureContext = typeof crypto !== "undefined" && !!crypto.subtle;
 
     const scopes = ["operator.admin", "operator.approvals", "operator.pairing"];
     const role = "operator";
     let deviceIdentity: DeviceIdentity | null = null;
     let canFallbackToShared = false;
-    let authToken = this.config.token;
+
+    // Try to load or use provided credentials
+    let authToken = this.config.token || loadSharedGatewayToken();
 
     if (isSecureContext) {
-      deviceIdentity = await loadOrCreateDeviceIdentity();
+      // Load or create device identity
+      this.deviceIdentity = await loadOrCreateDeviceIdentity();
+
+      // Check for stored device token
       const storedToken = loadDeviceAuthToken({
-        deviceId: deviceIdentity.deviceId,
+        deviceId: this.deviceIdentity.deviceId,
         role,
       })?.token;
-      authToken = storedToken ?? this.config.token;
-      canFallbackToShared = Boolean(storedToken && this.config.token);
+
+      if (storedToken) {
+        canFallbackToShared = Boolean(authToken);
+        authToken = storedToken;
+      }
     }
 
     const auth =
       authToken || this.config.password
         ? {
-            token: authToken,
-            password: this.config.password,
+            token: authToken ?? undefined,
+            password: this.config.password ?? undefined,
           }
         : undefined;
 
@@ -302,6 +430,8 @@ class GatewayClient {
         platform: this.config.platform ?? "web",
         mode: this.config.mode ?? GATEWAY_CLIENT_MODES.WEBCHAT,
         instanceId: this.config.instanceId,
+        mode: "webchat",
+        displayName: "Clawdbrain Web UI",
       },
       role,
       scopes,
@@ -434,7 +564,20 @@ class GatewayClient {
         } catch (err) {
           console.error("[gateway] wildcard subscriber error:", err);
         }
+        this.lastSeq = seq;
       }
+      this.config.onEvent?.({
+        event: frame.event,
+        payload: frame.payload,
+        seq: frame.seq,
+      });
+      return;
+    }
+
+    // Handle responses
+    if (frame.type === "res" && frame.id) {
+      const error = frame.error as { code: string; message: string } | undefined;
+      this.handleResponse(frame.id, frame.ok === true, frame.payload, error);
     }
   }
 
@@ -475,7 +618,7 @@ class GatewayClient {
     }
 
     this.flushPending(new Error("Client stopped"));
-    this.setStatus("disconnected");
+    this.setConnectionState({ status: "disconnected" });
     this.connectPromise = null;
     this.connectResolve = null;
     this.connectReject = null;
@@ -524,7 +667,46 @@ class GatewayClient {
   }
 }
 
-// Singleton instance for the app
+// =====================================================================
+// Device Auth Payload Builder (copied from src/gateway/device-auth.ts)
+// =====================================================================
+
+interface DeviceAuthPayloadParams {
+  deviceId: string;
+  clientId: string;
+  clientMode: string;
+  role: string;
+  scopes: string[];
+  signedAtMs: number;
+  token?: string | null;
+  nonce?: string | null;
+  version?: "v1" | "v2";
+}
+
+function buildDeviceAuthPayload(params: DeviceAuthPayloadParams): string {
+  const version = params.version ?? (params.nonce ? "v2" : "v1");
+  const scopes = params.scopes.join(",");
+  const token = params.token ?? "";
+  const base = [
+    version,
+    params.deviceId,
+    params.clientId,
+    params.clientMode,
+    params.role,
+    scopes,
+    String(params.signedAtMs),
+    token,
+  ];
+  if (version === "v2") {
+    base.push(params.nonce ?? "");
+  }
+  return base.join("|");
+}
+
+// =====================================================================
+// Singleton & Factory
+// =====================================================================
+
 let gatewayClient: GatewayClient | null = null;
 
 export function getGatewayClient(config?: GatewayClientConfig): GatewayClient {
@@ -536,6 +718,13 @@ export function getGatewayClient(config?: GatewayClientConfig): GatewayClient {
 
 export function createGatewayClient(config?: GatewayClientConfig): GatewayClient {
   return new GatewayClient(config);
+}
+
+export function resetGatewayClient(): void {
+  if (gatewayClient) {
+    gatewayClient.stop();
+    gatewayClient = null;
+  }
 }
 
 export { GatewayClient };
