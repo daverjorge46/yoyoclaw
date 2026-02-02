@@ -47,6 +47,7 @@ export type ChatProps = {
   // Sidebar state
   sidebarOpen?: boolean;
   sidebarContent?: string | null;
+  sidebarImages?: Array<{ url: string; alt?: string }>;
   sidebarError?: string | null;
   splitRatio?: number;
   assistantName: string;
@@ -65,7 +66,7 @@ export type ChatProps = {
   onAbort?: () => void;
   onQueueRemove: (id: string) => void;
   onNewSession: () => void;
-  onOpenSidebar?: (content: string) => void;
+  onOpenSidebar?: (content: string, images?: Array<{ url: string; alt?: string }>) => void;
   onCloseSidebar?: () => void;
   onSplitRatioChange?: (ratio: number) => void;
   onChatScroll?: (event: Event) => void;
@@ -128,18 +129,24 @@ const ALLOWED_FILE_TYPES = [
 const MAX_FILE_SIZE_MB = 25;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-function isAllowedFileType(mimeType: string): boolean {
+export function isAllowedFileType(mimeType: string): boolean {
   return ALLOWED_FILE_TYPES.includes(mimeType) || mimeType.startsWith("image/");
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function processFile(file: File, props: ChatProps): void {
-  if (!props.onAttachmentsChange) return;
+  if (!props.onAttachmentsChange) {
+    return;
+  }
 
   if (!isAllowedFileType(file.type)) {
     console.warn(`File type not allowed: ${file.type}`);
@@ -189,7 +196,9 @@ function handlePaste(e: ClipboardEvent, props: ChatProps) {
 
   for (const item of fileItems) {
     const file = item.getAsFile();
-    if (!file) continue;
+    if (!file) {
+      continue;
+    }
     processFile(file, props);
   }
 }
@@ -198,10 +207,14 @@ function handleFileDrop(e: DragEvent, props: ChatProps): void {
   e.preventDefault();
   e.stopPropagation();
 
-  if (!props.onAttachmentsChange) return;
+  if (!props.onAttachmentsChange) {
+    return;
+  }
 
   const files = e.dataTransfer?.files;
-  if (!files || files.length === 0) return;
+  if (!files || files.length === 0) {
+    return;
+  }
 
   for (let i = 0; i < files.length; i++) {
     processFile(files[i], props);
@@ -225,7 +238,9 @@ function handleDragLeave(e: DragEvent): void {
 function handleFileInputChange(e: Event, props: ChatProps): void {
   const input = e.target as HTMLInputElement;
   const files = input.files;
-  if (!files || files.length === 0) return;
+  if (!files || files.length === 0) {
+    return;
+  }
 
   for (let i = 0; i < files.length; i++) {
     processFile(files[i], props);
@@ -240,9 +255,15 @@ function isImageMimeType(mimeType: string): boolean {
 }
 
 function getFileIcon(mimeType: string): string {
-  if (mimeType === "application/pdf") return "📄";
-  if (mimeType.startsWith("text/")) return "📝";
-  if (mimeType === "application/json") return "📋";
+  if (mimeType === "application/pdf") {
+    return "📄";
+  }
+  if (mimeType.startsWith("text/")) {
+    return "📝";
+  }
+  if (mimeType === "application/json") {
+    return "📋";
+  }
   return "📎";
 }
 
@@ -261,15 +282,16 @@ function renderAttachmentPreview(props: ChatProps) {
 
         return html`
           <div class="chat-attachment ${isImage ? "" : "chat-attachment--file"}">
-            ${isImage
-              ? html`
+            ${
+              isImage
+                ? html`
                   <img
                     src=${att.dataUrl}
                     alt=${fileName}
                     class="chat-attachment__img"
                   />
                 `
-              : html`
+                : html`
                   <div class="chat-attachment__file">
                     <span class="chat-attachment__icon">${getFileIcon(att.mimeType)}</span>
                     <div class="chat-attachment__info">
@@ -279,7 +301,8 @@ function renderAttachmentPreview(props: ChatProps) {
                       ${fileSize ? html`<span class="chat-attachment__size">${fileSize}</span>` : nothing}
                     </div>
                   </div>
-                `}
+                `
+            }
             <button
               class="chat-attachment__remove"
               type="button"
@@ -409,6 +432,7 @@ export function renderChat(props: ChatProps) {
               <div class="chat-sidebar">
                 ${renderMarkdownSidebar({
                   content: props.sidebarContent ?? null,
+                  images: props.sidebarImages,
                   error: props.sidebarError ?? null,
                   onClose: props.onCloseSidebar!,
                   onViewRawText: () => {

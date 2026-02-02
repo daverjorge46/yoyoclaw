@@ -40,8 +40,8 @@ function extractImages(message: unknown): ImageBlock[] {
           images.push({ url });
         } else if (typeof b.data === "string" && b.data.length > 0) {
           // Handle tool result format: { type: "image", data: base64, mimeType: "image/png" }
-          const data = b.data as string;
-          const mimeType = (b.mimeType as string) || "image/png";
+          const data = b.data;
+          const mimeType = typeof b.mimeType === "string" ? b.mimeType : "image/png";
           const url = data.startsWith("data:") ? data : `data:${mimeType};base64,${data}`;
           images.push({ url });
         } else if (typeof b.url === "string") {
@@ -87,7 +87,7 @@ export function renderReadingIndicatorGroup(assistant?: AssistantIdentity) {
 export function renderStreamingGroup(
   text: string,
   startedAt: number,
-  onOpenSidebar?: (content: string) => void,
+  onOpenSidebar?: (content: string, images?: Array<{ url: string; alt?: string }>) => void,
   assistant?: AssistantIdentity,
 ) {
   const timestamp = new Date(startedAt).toLocaleTimeString([], {
@@ -121,7 +121,7 @@ export function renderStreamingGroup(
 export function renderMessageGroup(
   group: MessageGroup,
   opts: {
-    onOpenSidebar?: (content: string) => void;
+    onOpenSidebar?: (content: string, images?: Array<{ url: string; alt?: string }>) => void;
     showReasoning: boolean;
     assistantName?: string;
     assistantAvatar?: string | null;
@@ -233,7 +233,7 @@ function renderMessageImages(images: ImageBlock[]) {
 function renderGroupedMessage(
   message: unknown,
   opts: { isStreaming: boolean; showReasoning: boolean },
-  onOpenSidebar?: (content: string) => void,
+  onOpenSidebar?: (content: string, images?: Array<{ url: string; alt?: string }>) => void,
 ) {
   const m = message as Record<string, unknown>;
   const role = typeof m.role === "string" ? m.role : "unknown";
