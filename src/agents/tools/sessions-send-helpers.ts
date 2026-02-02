@@ -72,17 +72,21 @@ export function resolveAnnounceTargetFromKey(sessionKey: string): AnnounceTarget
   };
 }
 
-function buildAgentLabel(agentId: string | undefined, config: OpenClawConfig | undefined): string {
-  if (!agentId) {
-    return "unknown";
-  }
+function buildAgentLabel(agentId: string, config: OpenClawConfig | undefined): string {
   if (!config) {
     return agentId;
   }
   const agentConfig = resolveAgentConfig(config, agentId);
-  const name = agentConfig?.name;
-  if (name) {
-    return `${name} (${agentId})`;
+  const rawName = agentConfig?.name;
+  if (rawName) {
+    // Sanitize: collapse whitespace/newlines to single spaces, strip parentheses
+    const name = rawName
+      .replace(/[\r\n]+/g, " ")
+      .replace(/[()]/g, "")
+      .trim();
+    if (name) {
+      return `${name} (${agentId})`;
+    }
   }
   return agentId;
 }
@@ -98,7 +102,9 @@ export function buildAgentToAgentMessageContext(params: {
     : undefined;
   const targetAgentId = resolveAgentIdFromSessionKey(params.targetSessionKey);
 
-  const requesterLabel = buildAgentLabel(requesterAgentId, params.config);
+  const requesterLabel = requesterAgentId
+    ? buildAgentLabel(requesterAgentId, params.config)
+    : undefined;
   const targetLabel = buildAgentLabel(targetAgentId, params.config);
 
   const lines = [
