@@ -25,12 +25,16 @@ function parseRestartDelayMs(value: unknown): number | undefined {
 
 export const gatewayHandlers: GatewayRequestHandlers = {
   "gateway.restart": async ({ params, respond }) => {
-    const reason = typeof params.reason === "string" ? params.reason.trim() : "";
-    const note = typeof params.note === "string" ? params.note.trim() : "";
-    const sessionKey =
-      typeof params.sessionKey === "string" ? params.sessionKey.trim() || undefined : undefined;
-
+    const reasonRaw = (params as { reason?: unknown }).reason;
+    const noteRaw = (params as { note?: unknown }).note;
+    const sessionKeyRaw = (params as { sessionKey?: unknown }).sessionKey;
     const restartDelayMsRaw = (params as { restartDelayMs?: unknown }).restartDelayMs;
+
+    const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : "";
+    const note = typeof noteRaw === "string" ? noteRaw.trim() : "";
+    const sessionKey =
+      typeof sessionKeyRaw === "string" ? sessionKeyRaw.trim() || undefined : undefined;
+
     const restartDelayMs = parseRestartDelayMs(restartDelayMsRaw);
 
     const restartReason = reason || "gateway.restart";
