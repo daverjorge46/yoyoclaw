@@ -63,8 +63,8 @@ describe("cron jobs catch-up logic", () => {
   it("schedules missed job immediately on restart", () => {
     const createdAt = Date.parse("2025-12-13T00:00:00.000Z");
     const interval = 3600000; // 1 hour
-    // Restart 2 hours later - job should have run once but didn't
-    const restartTime = createdAt + 2 * interval;
+    // Restart 1.5 intervals later (not on boundary) - job should have run once but didn't
+    const restartTime = createdAt + Math.floor(1.5 * interval);
 
     const job: CronJob = {
       id: "test-id",

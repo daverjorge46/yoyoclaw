@@ -76,8 +76,8 @@ export function recomputeNextRuns(state: CronServiceState) {
     if (job.schedule.kind === "every") {
       const lastRan = job.state.lastRunAtMs ?? job.createdAtMs;
       const interval = job.schedule.everyMs;
-      if (now - lastRan >= interval && job.state.nextRunAtMs && job.state.nextRunAtMs > now) {
-        // Job should have run at least once since lastRan but hasn't - schedule now
+      if (now - lastRan >= interval) {
+        // At least one interval has passed since last run - catch up now
         state.deps.log.info(
           { jobId: job.id, lastRanAtMs: lastRan, intervalMs: interval },
           "cron: catch-up scheduling missed job",
