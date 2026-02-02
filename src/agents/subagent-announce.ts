@@ -176,6 +176,9 @@ function loadRequesterSessionEntry(requesterSessionKey: string | undefined) {
   }
   const cfg = loadConfig();
   const canonicalKey = resolveRequesterStoreKey(cfg, requesterSessionKey);
+  if (!canonicalKey) {
+    return { cfg, entry: undefined, canonicalKey: undefined };
+  }
   const agentId = resolveAgentIdFromSessionKey(canonicalKey);
   const storePath = resolveStorePath(cfg.session?.store, { agentId });
   const store = loadSessionStore(storePath);
@@ -476,7 +479,7 @@ export async function runSubagentAnnounceFlow(params: {
       const { entry } = loadRequesterSessionEntry(params.requesterSessionKey);
       directOrigin = deliveryContextFromSession(entry);
     }
-    
+
     // Only send announcement if we have a valid session key
     if (params.requesterSessionKey) {
       await callGateway({
@@ -498,7 +501,7 @@ export async function runSubagentAnnounceFlow(params: {
         timeoutMs: 60_000,
       });
     } else {
-      defaultRuntime.warn?.("No requesterSessionKey provided, skipping announcement");
+      defaultRuntime.log?.("No requesterSessionKey provided, skipping announcement");
     }
 
     didAnnounce = true;
