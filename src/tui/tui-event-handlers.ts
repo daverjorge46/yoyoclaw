@@ -163,6 +163,11 @@ export function createEventHandlers(context: EventHandlerContext) {
       }
       if (phase === "start") {
         chatLog.startTool(toolCallId, toolName, data.args);
+        // Show tool status in status bar if emoji provided in event data
+        const emoji = asString(data.emoji, "");
+        if (emoji) {
+          setActivityStatus(`${emoji} ${toolName}…`);
+        }
       } else if (phase === "update") {
         chatLog.updateToolResult(toolCallId, data.partialResult, {
           partial: true,
@@ -171,6 +176,8 @@ export function createEventHandlers(context: EventHandlerContext) {
         chatLog.updateToolResult(toolCallId, data.result, {
           isError: Boolean(data.isError),
         });
+        // Reset status after tool completes (agent still running)
+        setActivityStatus("running");
       }
       tui.requestRender();
       return;
