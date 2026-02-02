@@ -97,6 +97,11 @@ function collectErrorCandidates(err: unknown): unknown[] {
           }
         }
       }
+      // Grammy's HttpError wraps the underlying error in .error (not .cause)
+      const wrappedError = (current as { error?: unknown }).error;
+      if (wrappedError && !seen.has(wrappedError)) {
+        queue.push(wrappedError);
+      }
     }
   }
 
