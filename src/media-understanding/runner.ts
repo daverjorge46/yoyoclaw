@@ -270,18 +270,17 @@ async function probeGeminiCli(): Promise<boolean> {
     return cached;
   }
   const resolved = (async () => {
-    if (await hasBinary("gemini")) {
-      try {
-        const { stdout } = await runExec("gemini", ["--output-format", "json", "ok"], {
-          timeoutMs: 8000,
-        });
-        return Boolean(extractGeminiResponse(stdout) ?? stdout.toLowerCase().includes("ok"));
-      } catch {
-        return false;
-      }
+    if (!(await hasBinary("gemini"))) {
+      return false;
     }
-
-    return false;
+    try {
+      const { stdout } = await runExec("gemini", ["--output-format", "json", "ok"], {
+        timeoutMs: 8000,
+      });
+      return Boolean(extractGeminiResponse(stdout) ?? stdout.toLowerCase().includes("ok"));
+    } catch {
+      return false;
+    }
   })();
   geminiProbeCache.set("gemini", resolved);
   return resolved;
@@ -653,7 +652,6 @@ async function resolveCliOutput(params: {
   mediaPath: string;
 }): Promise<string> {
   const commandId = commandBase(params.command);
-  const isGemini = commandId === "gemini";
   const fileOutput =
     commandId === "whisper-cli"
       ? resolveWhisperCppOutputPath(params.args)
@@ -669,7 +667,7 @@ async function resolveCliOutput(params: {
     } catch {}
   }
 
-  if (isGemini) {
+  if (commandId === "gemini") {
     const response = extractGeminiResponse(params.stdout);
     if (response) {
       return response;
@@ -1037,9 +1035,9 @@ async function runCliEntry(params: {
     Prompt: prompt,
     MaxChars: maxChars,
   };
-  const argv = [command, ...args].map((part, index) => {
-    return index === 0 ? part : applyTemplate(part, templCtx);
-  });
+  const argv = [command, ...args].map((part, index) =>
+    index === 0 ? part : applyTemplate(part, templCtx),
+  );
   try {
     if (shouldLogVerbose()) {
       logVerbose(`Media understanding via CLI: ${argv.join(" ")}`);
