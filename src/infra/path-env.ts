@@ -66,10 +66,11 @@ function candidateBinDirs(opts: EnsureOpenClawPathOpts): string[] {
     // ignore
   }
 
-  // Project-local installs (best effort): if a `node_modules/.bin/openclaw` exists near cwd,
-  // include it. This helps when running under launchd or other minimal PATH environments.
+  // Project-local installs (best effort): if a `node_modules/.bin` exists near cwd,
+  // include it. This helps when running under launchd or other minimal PATH environments,
+  // and ensures peer dependencies (like gemini-cli) are found naturally.
   const localBinDir = path.join(cwd, "node_modules", ".bin");
-  if (isExecutable(path.join(localBinDir, "openclaw"))) {
+  if (isDirectory(localBinDir)) {
     candidates.push(localBinDir);
   }
 
