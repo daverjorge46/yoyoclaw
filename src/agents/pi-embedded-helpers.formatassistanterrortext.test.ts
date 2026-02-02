@@ -61,6 +61,6 @@ describe("formatAssistantErrorText", () => {
     );
     const result = formatAssistantErrorText(msg);
     expect(result).not.toContain("Message ordering conflict");
-    expect(result).toContain("invalid_request_error");
+    expect(result).toContain("invalid role parameter");
   });
 });
