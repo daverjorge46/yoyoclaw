@@ -34,6 +34,7 @@ import {
   formatXHighModelHint,
   normalizeThinkLevel,
   normalizeVerboseLevel,
+  resolveMaxThinkLevel,
   supportsXHighThinking,
   type ThinkLevel,
   type VerboseLevel,
@@ -370,6 +371,7 @@ export async function agentCommand(
         catalog: catalogForThinking,
       });
     }
+    resolvedThinkLevel = resolveMaxThinkLevel(resolvedThinkLevel, provider, model);
     if (resolvedThinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
       const explicitThink = Boolean(thinkOnce || thinkOverride);
       if (explicitThink) {
