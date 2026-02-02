@@ -443,7 +443,7 @@ openclaw system event --mode now --text "Next heartbeat: check battery."
 - If you see `telegram:...` prefixes in logs or stored "last route" targets, that's normal;
   cron delivery accepts them and still parses topic IDs correctly.
 
-### "isolated cron jobs require payload.kind=agentTurn"
+### Isolated sessions require agentTurn payload
 
 This error occurs when using `--session isolated` with `--system-event`. Isolated sessions require a dedicated agent turn, not a system event injection.
 
