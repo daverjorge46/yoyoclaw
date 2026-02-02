@@ -386,6 +386,34 @@ const tokenOptimizerPlugin = {
       // Get tier configuration
       const tierConfig = COMPLEXITY_PATTERNS[effectiveTier];
 
+      // ANSI color codes for terminal output
+      const tierColors: Record<string, string> = {
+        TRIVIAL: "\x1b[32m", // Green
+        LOW: "\x1b[34m", // Blue
+        MEDIUM: "\x1b[33m", // Yellow/Orange
+        HIGH: "\x1b[31m", // Red
+        CRITICAL: "\x1b[35m", // Magenta
+      };
+      const resetColor = "\x1b[0m";
+      const tierColor = tierColors[effectiveTier] || "\x1b[36m";
+
+      // Output colored tier status to console for immediate visibility
+      console.log(
+        `${tierColor}┌────────────────────────────────────────────────────────────┐${resetColor}`,
+      );
+      console.log(
+        `${tierColor}│  🎯 TOKEN OPTIMIZER                                        │${resetColor}`,
+      );
+      console.log(
+        `${tierColor}│  Tier: ${effectiveTier.padEnd(8)} │ Model: ${tierConfig.model.split("/").pop()?.substring(0, 25).padEnd(25)} │${resetColor}`,
+      );
+      console.log(
+        `${tierColor}│  Reason: ${classification.reasoning.substring(0, 45).padEnd(45)} │${resetColor}`,
+      );
+      console.log(
+        `${tierColor}└────────────────────────────────────────────────────────────┘${resetColor}`,
+      );
+
       // Apply context compression for lower tiers
       let processedContent = content;
       if (effectiveTier === "TRIVIAL" || effectiveTier === "LOW") {
@@ -458,6 +486,325 @@ const tokenOptimizerPlugin = {
           lastClassification: (globalThis as any)
             .tokenOptimizerLastClassification,
         };
+      },
+    });
+
+    // Register HTTP route for visual dashboard
+    api.registerHttpRoute?.({
+      method: "GET",
+      path: "/token-optimizer",
+      handler: async (req: any, res: any) => {
+        const usage = tokenBudget.getTodayUsage();
+        const remaining = tokenBudget.getRemainingBudget();
+        const percentUsed = (
+          (usage / (tokenBudget as any).dailyLimit) *
+          100
+        ).toFixed(1);
+        const lastClassification = (globalThis as any)
+          .tokenOptimizerLastClassification;
+
+        const getTierColor = (tier: string) => {
+          const colors: Record<string, string> = {
+            TRIVIAL: "#10b981", // Green
+            LOW: "#3b82f6", // Blue
+            MEDIUM: "#f59e0b", // Orange
+            HIGH: "#ef4444", // Red
+            CRITICAL: "#dc2626", // Dark Red
+          };
+          return colors[tier] || "#6b7280";
+        };
+
+        const getBudgetColor = (percent: number) => {
+          if (percent < 50) return "#10b981";
+          if (percent < 70) return "#f59e0b";
+          if (percent < 90) return "#ef4444";
+          return "#dc2626";
+        };
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎯 Token Optimizer Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: white;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      color: #94a3b8;
+      font-size: 1.1em;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.12);
+    }
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.9em;
+    }
+    .budget-section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .budget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .budget-title {
+      font-size: 1.3em;
+      font-weight: 600;
+    }
+    .budget-amount {
+      color: #94a3b8;
+    }
+    .progress-bar {
+      height: 24px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 12px;
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    .tiers-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    .tier-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 18px;
+      border-left: 4px solid;
+      transition: all 0.2s;
+    }
+    .tier-card:hover {
+      background: rgba(255,255,255,0.12);
+      transform: scale(1.02);
+    }
+    .tier-name {
+      font-weight: 600;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .tier-model {
+      font-size: 0.8em;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+    .tier-savings {
+      font-size: 0.75em;
+      color: #10b981;
+    }
+    .current-status {
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 25px;
+      text-align: center;
+      border: 2px solid ${lastClassification ? getTierColor(lastClassification.effectiveTier) : "#6b7280"};
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 1.1em;
+      margin-bottom: 15px;
+    }
+    .status-details {
+      color: #94a3b8;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+    .refresh-btn {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: linear-gradient(90deg, #60a5fa, #a78bfa);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .refresh-btn:hover {
+      opacity: 0.9;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .live-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎯 Token Optimizer</h1>
+      <p><span class="live-indicator"></span>Live Dashboard | Intelligent Model Routing</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" style="color: ${getBudgetColor(parseFloat(percentUsed))}">${percentUsed}%</div>
+        <div class="stat-label">Budget Used</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #3b82f6">${usage.toLocaleString()}</div>
+        <div class="stat-label">Tokens Used Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #10b981">${remaining.toLocaleString()}</div>
+        <div class="stat-label">Tokens Remaining</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: ${(tokenBudget as any).shouldDowngrade() ? "#ef4444" : "#10b981"}">${(tokenBudget as any).shouldDowngrade() ? "⚠️ Yes" : "✓ No"}</div>
+        <div class="stat-label">Downgrade Active</div>
+      </div>
+    </div>
+
+    <div class="budget-section">
+      <div class="budget-header">
+        <span class="budget-title">📊 Daily Token Budget</span>
+        <span class="budget-amount">${usage.toLocaleString()} / ${(tokenBudget as any).dailyLimit.toLocaleString()} tokens</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${Math.min(parseFloat(percentUsed), 100)}%; background: ${getBudgetColor(parseFloat(percentUsed))}">
+          ${percentUsed}%
+        </div>
+      </div>
+    </div>
+
+    <div class="tiers-section">
+      <div class="tier-card" style="border-left-color: ${getTierColor("TRIVIAL")}">
+        <div class="tier-name" style="color: ${getTierColor("TRIVIAL")}">🟢 TRIVIAL</div>
+        <div class="tier-model">Haiku</div>
+        <div class="tier-savings">~90% savings</div>
+      </div>
+      <div class="tier-card" style="border-left-color: ${getTierColor("LOW")}">
+        <div class="tier-name" style="color: ${getTierColor("LOW")}">🔵 LOW</div>
+        <div class="tier-model">Haiku</div>
+        <div class="tier-savings">~85% savings</div>
+      </div>
+      <div class="tier-card" style="border-left-color: ${getTierColor("MEDIUM")}">
+        <div class="tier-name" style="color: ${getTierColor("MEDIUM")}">🟠 MEDIUM</div>
+        <div class="tier-model">Sonnet 3.5</div>
+        <div class="tier-savings">Standard</div>
+      </div>
+      <div class="tier-card" style="border-left-color: ${getTierColor("HIGH")}">
+        <div class="tier-name" style="color: ${getTierColor("HIGH")}">🔴 HIGH</div>
+        <div class="tier-model">Sonnet 4.5</div>
+        <div class="tier-savings">Premium</div>
+      </div>
+      <div class="tier-card" style="border-left-color: ${getTierColor("CRITICAL")}">
+        <div class="tier-name" style="color: ${getTierColor("CRITICAL")}">⚫ CRITICAL</div>
+        <div class="tier-model">Sonnet 4.5</div>
+        <div class="tier-savings">Premium</div>
+      </div>
+    </div>
+
+    <div class="current-status">
+      ${
+        lastClassification
+          ? `
+        <div class="status-badge" style="background: ${getTierColor(lastClassification.effectiveTier)}20; color: ${getTierColor(lastClassification.effectiveTier)}; border: 2px solid ${getTierColor(lastClassification.effectiveTier)}">
+          ${lastClassification.effectiveTier}
+        </div>
+        <div class="status-details">
+          <strong>Last Classification:</strong> ${lastClassification.classification} → ${lastClassification.effectiveTier}<br>
+          <strong>Model:</strong> ${lastClassification.metadata?.recommendedModel || "N/A"}<br>
+          <strong>Time:</strong> ${new Date(lastClassification.timestamp).toLocaleTimeString()}<br>
+          ${lastClassification.metadata?.classificationReasoning ? `<em>${lastClassification.metadata.classificationReasoning}</em>` : ""}
+        </div>
+      `
+          : `
+        <div class="status-badge" style="background: rgba(255,255,255,0.1); color: #94a3b8;">
+          Waiting for first message...
+        </div>
+        <div class="status-details">
+          Send a message to see the classification in action!<br>
+          Try: "hi" for TRIVIAL or "debug complex issue" for HIGH
+        </div>
+      `
+      }
+      <br>
+      <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        res.setHeader("Content-Type", "text/html");
+        res.end(html);
       },
     });
 
