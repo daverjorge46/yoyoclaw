@@ -1,33 +1,37 @@
-import fs from "node:fs/promises";
-import os from "node:os";
-
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { AssistantMessage, ImageContent } from "@mariozechner/pi-ai";
+import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import { createAgentSession, SessionManager, SettingsManager } from "@mariozechner/pi-coding-agent";
-
+import fs from "node:fs/promises";
+import os from "node:os";
+import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
+import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
+import { getMachineDisplayName } from "../../../infra/machine-name.js";
+import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
+import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
+import { isSubagentSessionKey } from "../../../routing/session-key.js";
+import { resolveSignalReactionLevel } from "../../../signal/reaction-level.js";
+import { resolveTelegramInlineButtonsScope } from "../../../telegram/inline-buttons.js";
+import { resolveTelegramReactionLevel } from "../../../telegram/reaction-level.js";
+import { buildTtsSystemPromptHint } from "../../../tts/tts.js";
+import { resolveUserPath } from "../../../utils.js";
+import { normalizeMessageChannel } from "../../../utils/message-channel.js";
+import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
+import { resolveOpenClawAgentDir } from "../../agent-paths.js";
+import { resolveSessionAgentIds } from "../../agent-scope.js";
+import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
+import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
+import { createCacheTrace } from "../../cache-trace.js";
 import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
-import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
-import { getMachineDisplayName } from "../../../infra/machine-name.js";
-import { resolveTelegramInlineButtonsScope } from "../../../telegram/inline-buttons.js";
-import { resolveTelegramReactionLevel } from "../../../telegram/reaction-level.js";
-import { resolveSignalReactionLevel } from "../../../signal/reaction-level.js";
-import { normalizeMessageChannel } from "../../../utils/message-channel.js";
-import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
-import { isSubagentSessionKey } from "../../../routing/session-key.js";
-import { resolveUserPath } from "../../../utils.js";
-import { createCacheTrace } from "../../cache-trace.js";
-import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
-import { setupLlmProxy } from "../../llm-proxy.js";
-import { resolveOpenClawAgentDir } from "../../agent-paths.js";
-import { resolveSessionAgentIds } from "../../agent-scope.js";
-import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
+import { isTimeoutError } from "../../failover-error.js";
+import { setupLlmProxy } from "../../llm-proxy.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
+import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import {
   isCloudCodeAssistFormatError,
   resolveBootstrapMaxChars,
@@ -39,10 +43,11 @@ import {
   ensurePiCompactionReserveTokens,
   resolveCompactionReserveTokensFloor,
 } from "../../pi-settings.js";
+import { toClientToolDefinitions } from "../../pi-tool-definition-adapter.js";
 import { createOpenClawCodingTools } from "../../pi-tools.js";
 import { resolveSandboxContext } from "../../sandbox.js";
+import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
-import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { acquireSessionWriteLock } from "../../session-write-lock.js";
 import {
   applySkillEnvOverrides,
@@ -50,14 +55,14 @@ import {
   loadWorkspaceSkillEntries,
   resolveSkillsPromptForRun,
 } from "../../skills.js";
-import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
+import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
-import { resolveDefaultModelForAgent } from "../../model-selection.js";
-
+import { resolveTranscriptPolicy } from "../../transcript-policy.js";
+import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isAbortError } from "../abort.js";
+import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import { buildEmbeddedExtensionPaths } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
-import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import {
   logToolSchemasForGoogle,
   sanitizeSessionHistory,
@@ -74,29 +79,29 @@ import {
 import { buildEmbeddedSandboxInfo } from "../sandbox-info.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "../session-manager-cache.js";
 import { prepareSessionManagerForRun } from "../session-manager-init.js";
-import { buildEmbeddedSystemPrompt, createSystemPromptOverride } from "../system-prompt.js";
+import {
+  applySystemPromptOverrideToSession,
+  buildEmbeddedSystemPrompt,
+  createSystemPromptOverride,
+} from "../system-prompt.js";
 import { splitSdkTools } from "../tool-split.js";
-import { toClientToolDefinitions } from "../../pi-tool-definition-adapter.js";
-import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
-import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
-import { buildTtsSystemPromptHint } from "../../../tts/tts.js";
-import { isTimeoutError } from "../../failover-error.js";
-import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
-import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
-import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 import { detectAndLoadPromptImages } from "./images.js";
 
 export function injectHistoryImagesIntoMessages(
   messages: AgentMessage[],
   historyImagesByIndex: Map<number, ImageContent[]>,
 ): boolean {
-  if (historyImagesByIndex.size === 0) return false;
+  if (historyImagesByIndex.size === 0) {
+    return false;
+  }
   let didMutate = false;
 
   for (const [msgIndex, images] of historyImagesByIndex) {
     // Bounds check: ensure index is valid before accessing
-    if (msgIndex < 0 || msgIndex >= messages.length) continue;
+    if (msgIndex < 0 || msgIndex >= messages.length) {
+      continue;
+    }
     const msg = messages[msgIndex];
     if (msg && msg.role === "user") {
       // Convert string content to array format if needed
@@ -255,7 +260,9 @@ export async function runEmbeddedAttempt(
         accountId: params.agentAccountId ?? undefined,
       });
       if (inlineButtonsScope !== "off") {
-        if (!runtimeCapabilities) runtimeCapabilities = [];
+        if (!runtimeCapabilities) {
+          runtimeCapabilities = [];
+        }
         if (
           !runtimeCapabilities.some((cap) => String(cap).trim().toLowerCase() === "inlinebuttons")
         ) {
@@ -386,7 +393,8 @@ export async function runEmbeddedAttempt(
       skillsPrompt,
       tools,
     });
-    const systemPrompt = createSystemPromptOverride(appendPrompt);
+    const systemPromptOverride = createSystemPromptOverride(appendPrompt);
+    const systemPromptText = systemPromptOverride();
 
     const sessionLock = await acquireSessionWriteLock({
       sessionFile: params.sessionFile,
@@ -428,7 +436,8 @@ export async function runEmbeddedAttempt(
         minReserveTokens: resolveCompactionReserveTokensFloor(params.config),
       });
 
-      const additionalExtensionPaths = buildEmbeddedExtensionPaths({
+      // Call for side effects (sets compaction/pruning runtime state)
+      buildEmbeddedExtensionPaths({
         cfg: params.config,
         sessionManager,
         provider: params.provider,
@@ -444,9 +453,16 @@ export async function runEmbeddedAttempt(
       // Add client tools (OpenResponses hosted tools) to customTools
       let clientToolCallDetected: { name: string; params: Record<string, unknown> } | null = null;
       const clientToolDefs = params.clientTools
-        ? toClientToolDefinitions(params.clientTools, (toolName, toolParams) => {
-            clientToolCallDetected = { name: toolName, params: toolParams };
-          })
+        ? toClientToolDefinitions(
+            params.clientTools,
+            (toolName, toolParams) => {
+              clientToolCallDetected = { name: toolName, params: toolParams };
+            },
+            {
+              agentId: sessionAgentId,
+              sessionKey: params.sessionKey,
+            },
+          )
         : [];
 
       const allCustomTools = [...customTools, ...clientToolDefs];
@@ -458,15 +474,12 @@ export async function runEmbeddedAttempt(
         modelRegistry: params.modelRegistry,
         model: params.model,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        systemPrompt,
         tools: builtInTools,
         customTools: allCustomTools,
         sessionManager,
         settingsManager,
-        skills: [],
-        contextFiles: [],
-        additionalExtensionPaths,
       }));
+      applySystemPromptOverrideToSession(session, systemPromptOverride);
       if (!session) {
         throw new Error("Embedded agent session missing");
       }
@@ -507,7 +520,7 @@ export async function runEmbeddedAttempt(
       if (cacheTrace) {
         cacheTrace.recordStage("session:loaded", {
           messages: activeSession.messages,
-          system: systemPrompt,
+          system: systemPromptText,
           note: "after session create",
         });
         activeSession.agent.streamFn = cacheTrace.wrapStreamFn(activeSession.agent.streamFn);
@@ -566,7 +579,9 @@ export async function runEmbeddedAttempt(
       };
       const abortRun = (isTimeout = false, reason?: unknown) => {
         aborted = true;
-        if (isTimeout) timedOut = true;
+        if (isTimeout) {
+          timedOut = true;
+        }
         if (isTimeout) {
           runAbortController.abort(reason ?? makeTimeoutAbortReason());
         } else {
@@ -651,7 +666,9 @@ export async function runEmbeddedAttempt(
           abortRun(true);
           if (!abortWarnTimer) {
             abortWarnTimer = setTimeout(() => {
-              if (!activeSession.isStreaming) return;
+              if (!activeSession.isStreaming) {
+                return;
+              }
               if (!isProbeSession) {
                 log.warn(
                   `embedded run abort still streaming: runId=${params.runId} sessionId=${params.sessionId}`,
@@ -799,7 +816,9 @@ export async function runEmbeddedAttempt(
           await waitForCompactionRetry();
         } catch (err) {
           if (isAbortError(err)) {
-            if (!promptError) promptError = err;
+            if (!promptError) {
+              promptError = err;
+            }
           } else {
             throw err;
           }
@@ -837,7 +856,9 @@ export async function runEmbeddedAttempt(
         }
       } finally {
         clearTimeout(abortTimer);
-        if (abortWarnTimer) clearTimeout(abortWarnTimer);
+        if (abortWarnTimer) {
+          clearTimeout(abortWarnTimer);
+        }
         unsubscribe();
         clearActiveEmbeddedRun(params.sessionId, queueHandle);
         params.abortSignal?.removeEventListener?.("abort", onAbort);
@@ -845,8 +866,8 @@ export async function runEmbeddedAttempt(
 
       const lastAssistant = messagesSnapshot
         .slice()
-        .reverse()
-        .find((m) => (m as AgentMessage)?.role === "assistant") as AssistantMessage | undefined;
+        .toReversed()
+        .find((m) => m.role === "assistant");
 
       const toolMetasNormalized = toolMetas
         .filter(
