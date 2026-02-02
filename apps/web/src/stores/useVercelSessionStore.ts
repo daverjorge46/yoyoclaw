@@ -5,11 +5,19 @@
 
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { ChatMessage } from "@/lib/api/sessions";
+import type { VercelToolCall } from "@/integrations/vercel-ai/vercel-agent-adapter";
+
+/** Chat message type for Vercel AI sessions (uses VercelToolCall instead of gateway ToolCall) */
+export interface VercelChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp?: string;
+  toolCalls?: VercelToolCall[];
+}
 
 export interface VercelStreamingMessage {
   content: string;
-  toolCalls?: any[];
+  toolCalls?: VercelToolCall[];
   isStreaming: boolean;
   idempotencyKey?: string;
 }
@@ -19,7 +27,7 @@ interface VercelSessionState {
   streamingMessages: Record<string, VercelStreamingMessage>;
 
   // Chat history per session (cached locally)
-  sessionHistories: Record<string, ChatMessage[]>;
+  sessionHistories: Record<string, VercelChatMessage[]>;
 
   // Current run IDs per session
   currentRunIds: Record<string, string>;
@@ -27,7 +35,7 @@ interface VercelSessionState {
   // Actions
   startStreaming: (sessionKey: string, idempotencyKey?: string) => void;
   appendStreamingContent: (sessionKey: string, content: string) => void;
-  addToolCall: (sessionKey: string, toolCall: any) => void;
+  addToolCall: (sessionKey: string, toolCall: VercelToolCall) => void;
   finishStreaming: (sessionKey: string, finalContent?: string) => void;
   clearStreaming: (sessionKey: string) => void;
 
@@ -35,9 +43,9 @@ interface VercelSessionState {
   getCurrentRunId: (sessionKey: string) => string | undefined;
 
   // History management
-  addMessageToHistory: (sessionKey: string, message: ChatMessage) => void;
-  setHistory: (sessionKey: string, messages: ChatMessage[]) => void;
-  getHistory: (sessionKey: string) => ChatMessage[];
+  addMessageToHistory: (sessionKey: string, message: VercelChatMessage) => void;
+  setHistory: (sessionKey: string, messages: VercelChatMessage[]) => void;
+  getHistory: (sessionKey: string) => VercelChatMessage[];
   clearHistory: (sessionKey: string) => void;
 }
 

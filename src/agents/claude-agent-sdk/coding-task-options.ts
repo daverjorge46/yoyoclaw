@@ -1,6 +1,5 @@
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { CodingTaskPermissionMode, CodingTaskToolPreset } from "../../config/types.tools.js";
-
 import {
   CODING_TASK_CLAUDE_CODE_ALLOWED_TOOLS,
   CODING_TASK_DEFAULT_DISALLOWED_TOOLS,
@@ -38,7 +37,7 @@ export type CodingTaskSdkResolved = {
 };
 
 export function buildCodingTaskSdkOptions(params: {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   cwd: string;
 }): CodingTaskSdkResolved {
   const cfg = params.config;

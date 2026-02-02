@@ -167,9 +167,6 @@ export function RitualDetailPanel({
   agents = [],
   className,
 }: RitualDetailPanelProps) {
-  // Early return BEFORE any hooks
-  if (!ritual) return null;
-
   const [showScheduler, setShowScheduler] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showScheduleConfirm, setShowScheduleConfirm] = React.useState(false);
@@ -187,10 +184,11 @@ export function RitualDetailPanel({
   const isRunning = executions.some((execution) => execution.status === "running");
   const canSkipNext = Boolean(onSkipNext);
 
-  const status = statusConfig[ritual.status];
+  const status = ritual ? statusConfig[ritual.status] : statusConfig.paused;
   const StatusIcon = status.icon;
 
   const handlePauseResume = () => {
+    if (!ritual) return;
     if (ritual.status === "active") {
       onPause?.(ritual.id);
     } else if (ritual.status === "paused") {
@@ -203,6 +201,7 @@ export function RitualDetailPanel({
   };
 
   const confirmDelete = () => {
+    if (!ritual) return;
     onDelete?.(ritual.id);
     onClose();
   };
@@ -215,22 +214,25 @@ export function RitualDetailPanel({
   // Extract time from schedule string (simplified - in real app, parse cron)
   const getTimeFromSchedule = () => {
     // For mock purposes, extract from nextRun or default
-    if (ritual.nextRun) {
+    if (ritual?.nextRun) {
       const date = new Date(ritual.nextRun);
       return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
     }
     return "09:00";
   };
 
-  const assignedAgent = agents.find((a) => a.id === ritual.agentId);
+  const assignedAgent = agents.find((a) => a.id === ritual?.agentId);
   const guidancePacks = useGuidancePackStore((state) => state.packs);
   const attachedPacks = React.useMemo(() => {
-    if (!ritual.guidancePackIds?.length) return [];
+    if (!ritual?.guidancePackIds?.length) return [];
     const byId = new Map(guidancePacks.map((pack) => [pack.id, pack]));
     return ritual.guidancePackIds
       .map((id) => byId.get(id))
       .filter((pack): pack is NonNullable<typeof pack> => Boolean(pack));
-  }, [guidancePacks, ritual.guidancePackIds]);
+  }, [guidancePacks, ritual]);
+
+  // Early return after hooks
+  if (!ritual) return null;
 
   return (
     <DetailPanel
@@ -399,7 +401,7 @@ export function RitualDetailPanel({
                 size="icon"
                 className="h-9 w-9 rounded-lg bg-secondary/50 hover:bg-secondary"
               >
-                <Link to={`/agents/${encodeURIComponent(ritual.agentId)}`}>
+                <Link to="/agents/$agentId" params={{ agentId: ritual.agentId }}>
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </Button>

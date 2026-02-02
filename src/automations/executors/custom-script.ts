@@ -8,10 +8,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { runCommandWithTimeout } from "../../process/exec.js";
 import type { AutomationRunnerResult } from "../runner.js";
-import type { CustomScriptConfig, AutomationArtifact, AutomationMilestone } from "../types.js";
 import type { AutomationServiceState } from "../service/state.js";
+import type { CustomScriptConfig, AutomationArtifact, AutomationMilestone } from "../types.js";
+import { runCommandWithTimeout } from "../../process/exec.js";
 import { ArtifactStorage } from "../artifacts.js";
 import { emitAutomationProgress } from "../events.js";
 
@@ -222,7 +222,7 @@ export class CustomScriptExecutor {
         }
       }
     } catch (err) {
-      throw new Error(`Failed to check script permissions: ${String(err)}`);
+      throw new Error(`Failed to check script permissions: ${String(err)}`, { cause: err });
     }
   }
 

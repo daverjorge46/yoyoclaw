@@ -105,7 +105,7 @@ export function AgentCard({
     .toUpperCase();
 
   // Model display - use role as fallback
-  const modelRef = splitModelRef(agent.model);
+  const modelRef = React.useMemo(() => splitModelRef(agent.model), [agent.model]);
   const modelEntry = React.useMemo(() => {
     if (!modelsData?.models || !modelRef.modelId) return undefined;
     if (modelRef.provider) {
@@ -114,7 +114,7 @@ export function AgentCard({
       );
     }
     return modelsData.models.find((model) => model.id === modelRef.modelId);
-  }, [modelsData?.models, modelRef.modelId, modelRef.provider]);
+  }, [modelsData, modelRef]);
 
   const modelDisplay =
     modelEntry?.name ??

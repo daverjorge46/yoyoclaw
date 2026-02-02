@@ -21,7 +21,7 @@ import type { iMessageConfig } from "./types";
 
 type ConnectionStatus = "connected" | "not_configured" | "unavailable";
 
-interface iMessageConfigSheetProps {
+interface IMessageConfigSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isConnected?: boolean;
@@ -33,7 +33,7 @@ interface iMessageConfigSheetProps {
   onSave?: (config: iMessageConfig) => Promise<void>;
 }
 
-export function iMessageConfigSheet({
+export function IMessageConfigSheet({
   open,
   onOpenChange,
   isConnected,
@@ -41,7 +41,7 @@ export function iMessageConfigSheet({
   statusMessage,
   config,
   onSave,
-}: iMessageConfigSheetProps) {
+}: IMessageConfigSheetProps) {
   const [cliPath, setCliPath] = React.useState(config?.cliPath ?? "");
   const [dbPath, setDbPath] = React.useState(config?.dbPath ?? "");
   const [isSaving, setIsSaving] = React.useState(false);

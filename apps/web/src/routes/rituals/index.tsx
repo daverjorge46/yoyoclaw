@@ -40,6 +40,10 @@ import type { Ritual, RitualStatus, RitualFrequency } from "@/hooks/queries/useR
 
 export const Route = createFileRoute("/rituals/")({
   component: RitualsPage,
+  validateSearch: (search: Record<string, unknown>): { ritualId?: string } => {
+    const ritualId = typeof search.ritualId === "string" ? search.ritualId : undefined;
+    return { ritualId };
+  },
 });
 
 type StatusFilter = "all" | RitualStatus;
@@ -87,6 +91,8 @@ const itemVariants = {
 };
 
 function RitualsPage() {
+  const { ritualId } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
   const [frequencyFilter, setFrequencyFilter] = React.useState<FrequencyFilter>("all");
@@ -107,6 +113,14 @@ function RitualsPage() {
   const resumeRitual = useResumeRitual();
   const deleteRitual = useDeleteRitual();
   const triggerRitual = useTriggerRitual();
+
+  React.useEffect(() => {
+    if (!ritualId || !rituals || rituals.length === 0) return;
+    const ritual = rituals.find((r) => r.id === ritualId);
+    if (!ritual) return;
+    setSelectedRitual(ritual);
+    setIsDetailOpen(true);
+  }, [ritualId, rituals]);
 
   // Filter rituals based on search and status
   const resolvedStatusFilter = statusOptions.some((option) => option.value === statusFilter)
@@ -158,9 +172,16 @@ function RitualsPage() {
   const pausedCount = filteredRituals.filter((r) => r.status === "paused").length;
 
   const handleViewDetails = (ritual: Ritual) => {
+    navigate({ search: { ritualId: ritual.id } });
     setSelectedRitual(ritual);
     setIsDetailOpen(true);
   };
+
+  const handleCloseDetail = React.useCallback(() => {
+    setIsDetailOpen(false);
+    setSelectedRitual(null);
+    navigate({ search: {} });
+  }, [navigate]);
 
   const handleToggle = (ritual: Ritual) => {
     if (ritual.status === "active") {
@@ -534,7 +555,7 @@ function RitualsPage() {
           ritual={selectedRitual}
           executions={executions}
           open={isDetailOpen}
-          onClose={() => setIsDetailOpen(false)}
+          onClose={handleCloseDetail}
           onPause={(id) => pauseRitual.mutate(id)}
           onResume={(id) => resumeRitual.mutate(id)}
           onSkipNext={handleSkipNext}
@@ -547,7 +568,7 @@ function RitualsPage() {
           }}
           onDelete={(id) => {
             deleteRitual.mutate(id);
-            setIsDetailOpen(false);
+            handleCloseDetail();
           }}
           onTrigger={(id) => triggerRitual.mutate(id)}
           agents={agentOptions}

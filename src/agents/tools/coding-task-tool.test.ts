@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-
 import "../test-helpers/fast-core-tools.js";
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 
 vi.mock("../claude-agent-sdk/sdk.js", () => ({
   loadClaudeAgentSdk: async () => {
@@ -18,7 +17,7 @@ describe("coding_task tool", () => {
   });
 
   it("registers when enabled and fails gracefully when SDK is missing", async () => {
-    const cfg: ClawdbrainConfig = {
+    const cfg: OpenClawConfig = {
       tools: { codingTask: { enabled: true } },
     };
     const tool = createClawdbrainTools({ config: cfg }).find(

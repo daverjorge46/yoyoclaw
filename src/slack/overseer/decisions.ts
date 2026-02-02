@@ -4,9 +4,11 @@
  */
 
 import type { App, SlackActionMiddlewareArgs, ViewSubmitAction } from "@slack/bolt";
-
-import type { ClawdbrainConfig } from "../../config/types.js";
+import type { OpenClawConfig } from "../../config/types.js";
 import type { CreateDecisionParams, DecisionRecord } from "../../infra/decisions/store.types.js";
+import type { SlackOverseerBridge } from "./bridge.js";
+import { AGENT_LANE_SUBAGENT } from "../../agents/lanes.js";
+import { callGateway } from "../../gateway/call.js";
 import {
   createDecision,
   getDecision,
@@ -14,12 +16,8 @@ import {
   updateDecisionSlackInfo,
 } from "../../infra/decisions/store.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-import { callGateway } from "../../gateway/call.js";
-import { AGENT_LANE_SUBAGENT } from "../../agents/lanes.js";
-
 import { buildDecisionBlocks, buildDecisionResolvedBlocks } from "./blocks.js";
 import { resolveSlackOverseerConfig } from "./config.js";
-import type { SlackOverseerBridge } from "./bridge.js";
 
 const log = createSubsystemLogger("slack/decisions");
 
@@ -44,7 +42,7 @@ function parseDecisionButtonValue(value: string): {
 export type SlackDecisionManagerParams = {
   app: App;
   botToken: string;
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   bridge: SlackOverseerBridge;
   accountId?: string;
 };

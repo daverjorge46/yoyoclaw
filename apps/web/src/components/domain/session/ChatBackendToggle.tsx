@@ -3,7 +3,6 @@
  * Allows switching between Gateway and Vercel AI backends
  */
 
-import * as React from "react";
 import { usePreferencesStore, type ChatBackend } from "@/stores/usePreferencesStore";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,11 +20,6 @@ import { Settings2, Check } from "lucide-react";
 export interface ChatBackendToggleProps {
   className?: string;
 }
-
-const BACKEND_LABELS: Record<ChatBackend, string> = {
-  gateway: "Gateway (Current)",
-  "vercel-ai": "Vercel AI (Beta)",
-};
 
 const BACKEND_DESCRIPTIONS: Record<ChatBackend, string> = {
   gateway: "Production gateway with full feature support",

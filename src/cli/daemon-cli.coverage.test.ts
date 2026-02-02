@@ -81,36 +81,44 @@ vi.mock("./progress.js", () => ({
 
 describe("daemon-cli coverage", () => {
   const originalEnv = {
-    CLAWDBRAIN_STATE_DIR: process.env.CLAWDBRAIN_STATE_DIR,
-    CLAWDBRAIN_CONFIG_PATH: process.env.CLAWDBRAIN_CONFIG_PATH,
-    CLAWDBRAIN_GATEWAY_PORT: process.env.CLAWDBRAIN_GATEWAY_PORT,
-    CLAWDBRAIN_PROFILE: process.env.CLAWDBRAIN_PROFILE,
+    OPENCLAW_STATE_DIR: process.env.OPENCLAW_STATE_DIR,
+    OPENCLAW_CONFIG_PATH: process.env.OPENCLAW_CONFIG_PATH,
+    OPENCLAW_GATEWAY_PORT: process.env.OPENCLAW_GATEWAY_PORT,
+    OPENCLAW_PROFILE: process.env.OPENCLAW_PROFILE,
   };
 
   beforeEach(() => {
-    process.env.CLAWDBRAIN_STATE_DIR = "/tmp/clawdbrain-cli-state";
-    process.env.CLAWDBRAIN_CONFIG_PATH = "/tmp/clawdbrain-cli-state/clawdbrain.json";
-    delete process.env.CLAWDBRAIN_GATEWAY_PORT;
-    delete process.env.CLAWDBRAIN_PROFILE;
+    process.env.OPENCLAW_STATE_DIR = "/tmp/openclaw-cli-state";
+    process.env.OPENCLAW_CONFIG_PATH = "/tmp/openclaw-cli-state/openclaw.json";
+    delete process.env.OPENCLAW_GATEWAY_PORT;
+    delete process.env.OPENCLAW_PROFILE;
     serviceReadCommand.mockResolvedValue(null);
   });
 
   afterEach(() => {
-    if (originalEnv.CLAWDBRAIN_STATE_DIR !== undefined)
-      process.env.CLAWDBRAIN_STATE_DIR = originalEnv.CLAWDBRAIN_STATE_DIR;
-    else delete process.env.CLAWDBRAIN_STATE_DIR;
+    if (originalEnv.OPENCLAW_STATE_DIR !== undefined) {
+      process.env.OPENCLAW_STATE_DIR = originalEnv.OPENCLAW_STATE_DIR;
+    } else {
+      delete process.env.OPENCLAW_STATE_DIR;
+    }
 
-    if (originalEnv.CLAWDBRAIN_CONFIG_PATH !== undefined)
-      process.env.CLAWDBRAIN_CONFIG_PATH = originalEnv.CLAWDBRAIN_CONFIG_PATH;
-    else delete process.env.CLAWDBRAIN_CONFIG_PATH;
+    if (originalEnv.OPENCLAW_CONFIG_PATH !== undefined) {
+      process.env.OPENCLAW_CONFIG_PATH = originalEnv.OPENCLAW_CONFIG_PATH;
+    } else {
+      delete process.env.OPENCLAW_CONFIG_PATH;
+    }
 
-    if (originalEnv.CLAWDBRAIN_GATEWAY_PORT !== undefined)
-      process.env.CLAWDBRAIN_GATEWAY_PORT = originalEnv.CLAWDBRAIN_GATEWAY_PORT;
-    else delete process.env.CLAWDBRAIN_GATEWAY_PORT;
+    if (originalEnv.OPENCLAW_GATEWAY_PORT !== undefined) {
+      process.env.OPENCLAW_GATEWAY_PORT = originalEnv.OPENCLAW_GATEWAY_PORT;
+    } else {
+      delete process.env.OPENCLAW_GATEWAY_PORT;
+    }
 
-    if (originalEnv.CLAWDBRAIN_PROFILE !== undefined)
-      process.env.CLAWDBRAIN_PROFILE = originalEnv.CLAWDBRAIN_PROFILE;
-    else delete process.env.CLAWDBRAIN_PROFILE;
+    if (originalEnv.OPENCLAW_PROFILE !== undefined) {
+      process.env.OPENCLAW_PROFILE = originalEnv.OPENCLAW_PROFILE;
+    } else {
+      delete process.env.OPENCLAW_PROFILE;
+    }
   });
 
   it("probes gateway status by default", async () => {
@@ -140,12 +148,12 @@ describe("daemon-cli coverage", () => {
     serviceReadCommand.mockResolvedValueOnce({
       programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
       environment: {
-        CLAWDBRAIN_PROFILE: "dev",
-        CLAWDBRAIN_STATE_DIR: "/tmp/clawdbrain-daemon-state",
-        CLAWDBRAIN_CONFIG_PATH: "/tmp/clawdbrain-daemon-state/clawdbrain.json",
-        CLAWDBRAIN_GATEWAY_PORT: "19001",
+        OPENCLAW_PROFILE: "dev",
+        OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon-state",
+        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon-state/openclaw.json",
+        OPENCLAW_GATEWAY_PORT: "19001",
       },
-      sourcePath: "/tmp/com.clawdbrain.gateway.plist",
+      sourcePath: "/tmp/bot.molt.gateway.plist",
     });
 
     const { registerDaemonCli } = await import("./daemon-cli.js");

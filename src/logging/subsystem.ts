@@ -1,15 +1,13 @@
-import { Chalk } from "chalk";
 import type { Logger as TsLogger } from "tslog";
-
+import { Chalk } from "chalk";
 import { CHAT_CHANNEL_ORDER } from "../channels/registry.js";
-import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
-import { getConsoleSettings, shouldLogSubsystemToConsole } from "./console.js";
 import { isVerbose } from "../globals.js";
+import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
+import { clearActiveProgressLine } from "../terminal/progress-line.js";
+import { getConsoleSettings, shouldLogSubsystemToConsole } from "./console.js";
 import { type LogLevel, levelToMinLevel } from "./levels.js";
 import { getChildLogger } from "./logger.js";
 import { loggingState } from "./state.js";
-import { clearActiveProgressLine } from "../terminal/progress-line.js";
-import { createSensitiveRedactor, getConfiguredRedactOptions } from "./redact.js";
 
 type LogObj = { date?: Date } & Record<string, unknown>;
 
@@ -26,7 +24,9 @@ export type SubsystemLogger = {
 };
 
 function shouldLogToConsole(level: LogLevel, settings: { level: LogLevel }): boolean {
-  if (settings.level === "silent") return false;
+  if (settings.level === "silent") {
+    return false;
+  }
   const current = levelToMinLevel(level);
   const min = levelToMinLevel(settings.level);
   return current <= min;
@@ -36,7 +36,9 @@ type ChalkInstance = InstanceType<typeof Chalk>;
 
 function isRichConsoleEnv(): boolean {
   const term = (process.env.TERM ?? "").toLowerCase();
-  if (process.env.COLORTERM || process.env.TERM_PROGRAM) return true;
+  if (process.env.COLORTERM || process.env.TERM_PROGRAM) {
+    return true;
+  }
   return term.length > 0 && term !== "dumb";
 }
 
@@ -45,7 +47,9 @@ function getColorForConsole(): ChalkInstance {
     typeof process.env.FORCE_COLOR === "string" &&
     process.env.FORCE_COLOR.trim().length > 0 &&
     process.env.FORCE_COLOR.trim() !== "0";
-  if (process.env.NO_COLOR && !hasForceColor) return new Chalk({ level: 0 });
+  if (process.env.NO_COLOR && !hasForceColor) {
+    return new Chalk({ level: 0 });
+  }
   const hasTty = Boolean(process.stdout.isTTY || process.stderr.isTTY);
   return hasTty || isRichConsoleEnv() ? new Chalk({ level: 1 }) : new Chalk({ level: 0 });
 }
@@ -60,7 +64,9 @@ const CHANNEL_SUBSYSTEM_PREFIXES = new Set<string>(CHAT_CHANNEL_ORDER);
 
 function pickSubsystemColor(color: ChalkInstance, subsystem: string): ChalkInstance {
   const override = SUBSYSTEM_COLOR_OVERRIDES[subsystem];
-  if (override) return color[override];
+  if (override) {
+    return color[override];
+  }
   let hash = 0;
   for (let i = 0; i < subsystem.length; i += 1) {
     hash = (hash * 31 + subsystem.charCodeAt(i)) | 0;
@@ -79,7 +85,9 @@ function formatSubsystemForConsole(subsystem: string): string {
   ) {
     parts.shift();
   }
-  if (parts.length === 0) return original;
+  if (parts.length === 0) {
+    return original;
+  }
   if (CHANNEL_SUBSYSTEM_PREFIXES.has(parts[0])) {
     return parts[0];
   }
@@ -93,7 +101,9 @@ export function stripRedundantSubsystemPrefixForConsole(
   message: string,
   displaySubsystem: string,
 ): string {
-  if (!displaySubsystem) return message;
+  if (!displaySubsystem) {
+    return message;
+  }
 
   // Common duplication: "[discord] discord: ..." (when a message manually includes the subsystem tag).
   if (message.startsWith("[")) {
@@ -102,22 +112,34 @@ export function stripRedundantSubsystemPrefixForConsole(
       const bracketTag = message.slice(1, closeIdx);
       if (bracketTag.toLowerCase() === displaySubsystem.toLowerCase()) {
         let i = closeIdx + 1;
-        while (message[i] === " ") i += 1;
+        while (message[i] === " ") {
+          i += 1;
+        }
         return message.slice(i);
       }
     }
   }
 
   const prefix = message.slice(0, displaySubsystem.length);
-  if (prefix.toLowerCase() !== displaySubsystem.toLowerCase()) return message;
+  if (prefix.toLowerCase() !== displaySubsystem.toLowerCase()) {
+    return message;
+  }
 
   const next = message.slice(displaySubsystem.length, displaySubsystem.length + 1);
-  if (next !== ":" && next !== " ") return message;
+  if (next !== ":" && next !== " ") {
+    return message;
+  }
 
   let i = displaySubsystem.length;
-  while (message[i] === " ") i += 1;
-  if (message[i] === ":") i += 1;
-  while (message[i] === " ") i += 1;
+  while (message[i] === " ") {
+    i += 1;
+  }
+  if (message[i] === ":") {
+    i += 1;
+  }
+  while (message[i] === " ") {
+    i += 1;
+  }
   return message.slice(i);
 }
 
@@ -187,12 +209,16 @@ function logToFile(
   message: string,
   meta?: Record<string, unknown>,
 ) {
-  if (level === "silent") return;
-  const safeLevel = level as Exclude<LogLevel, "silent">;
-  const method = (fileLogger as unknown as Record<string, unknown>)[safeLevel] as unknown as
+  if (level === "silent") {
+    return;
+  }
+  const safeLevel = level;
+  const method = (fileLogger as unknown as Record<string, unknown>)[safeLevel] as
     | ((...args: unknown[]) => void)
     | undefined;
-  if (typeof method !== "function") return;
+  if (typeof method !== "function") {
+    return;
+  }
   if (meta && Object.keys(meta).length > 0) {
     method.call(fileLogger, meta, message);
   } else {
@@ -201,10 +227,11 @@ function logToFile(
 }
 
 export function createSubsystemLogger(subsystem: string): SubsystemLogger {
-  const redactor = createSensitiveRedactor(getConfiguredRedactOptions());
   let fileLogger: TsLogger<LogObj> | null = null;
   const getFileLogger = () => {
-    if (!fileLogger) fileLogger = getChildLogger({ subsystem });
+    if (!fileLogger) {
+      fileLogger = getChildLogger({ subsystem });
+    }
     return fileLogger;
   };
   const emit = (level: LogLevel, message: string, meta?: Record<string, unknown>) => {
@@ -220,18 +247,14 @@ export function createSubsystemLogger(subsystem: string): SubsystemLogger {
       }
       fileMeta = Object.keys(rest).length > 0 ? rest : undefined;
     }
-
-    const redactedMessage = redactor.redactText(message);
-    const redactedMeta =
-      fileMeta && Object.keys(fileMeta).length > 0
-        ? (redactor.redactValue(fileMeta) as Record<string, unknown>)
-        : undefined;
-
-    logToFile(getFileLogger(), level, redactedMessage, redactedMeta);
-    if (!shouldLogToConsole(level, { level: consoleSettings.level })) return;
-    if (!shouldLogSubsystemToConsole(subsystem)) return;
-    const consoleMessageRaw = consoleMessageOverride ?? message;
-    const consoleMessage = redactor.redactText(consoleMessageRaw);
+    logToFile(getFileLogger(), level, message, fileMeta);
+    if (!shouldLogToConsole(level, { level: consoleSettings.level })) {
+      return;
+    }
+    if (!shouldLogSubsystemToConsole(subsystem)) {
+      return;
+    }
+    const consoleMessage = consoleMessageOverride ?? message;
     if (
       !isVerbose() &&
       subsystem === "agent/embedded" &&
@@ -242,9 +265,9 @@ export function createSubsystemLogger(subsystem: string): SubsystemLogger {
     const line = formatConsoleLine({
       level,
       subsystem,
-      message: consoleSettings.style === "json" ? redactedMessage : consoleMessage,
+      message: consoleSettings.style === "json" ? message : consoleMessage,
       style: consoleSettings.style,
-      meta: redactedMeta,
+      meta: fileMeta,
     });
     writeConsoleLine(level, line);
   };

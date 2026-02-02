@@ -5,14 +5,14 @@
  * and from directory-based discovery (bundled, managed, workspace)
  */
 
-import { pathToFileURL } from "node:url";
 import path from "node:path";
-import { registerInternalHook } from "./internal-hooks.js";
-import type { ClawdbrainConfig } from "../config/config.js";
+import { pathToFileURL } from "node:url";
+import type { OpenClawConfig } from "../config/config.js";
 import type { InternalHookHandler } from "./internal-hooks.js";
-import { loadWorkspaceHookEntries } from "./workspace.js";
 import { resolveHookConfig } from "./config.js";
 import { shouldIncludeHook } from "./config.js";
+import { registerInternalHook } from "./internal-hooks.js";
+import { loadWorkspaceHookEntries } from "./workspace.js";
 
 /**
  * Load and register all hook handlers
@@ -21,7 +21,7 @@ import { shouldIncludeHook } from "./config.js";
  * 1. Directory-based discovery (bundled, managed, workspace)
  * 2. Legacy config handlers (backwards compatibility)
  *
- * @param cfg - Clawdbrain configuration
+ * @param cfg - OpenClaw configuration
  * @param workspaceDir - Workspace directory for hook discovery
  * @returns Number of handlers successfully loaded
  *
@@ -34,7 +34,7 @@ import { shouldIncludeHook } from "./config.js";
  * ```
  */
 export async function loadInternalHooks(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   workspaceDir: string,
 ): Promise<number> {
   // Check if hooks are enabled

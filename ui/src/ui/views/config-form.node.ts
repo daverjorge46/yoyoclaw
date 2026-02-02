@@ -4,14 +4,9 @@ import {
   defaultValue,
   hintForPath,
   humanize,
-  isCompactField,
   isSensitivePath,
   pathKey,
-  schemaMax,
-  schemaMin,
   schemaType,
-  shouldUseSlider,
-  type ConfigValidationMap,
   type JsonSchema,
 } from "./config-form.shared";
 
@@ -33,12 +28,69 @@ function jsonValue(value: unknown): string {
 
 // SVG Icons as template literals
 const icons = {
-  chevronDown: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
-  plus: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-  minus: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-  trash: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
-  edit: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-  panelIcon: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
+  chevronDown: html`
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  `,
+  plus: html`
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  `,
+  minus: html`
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  `,
+  trash: html`
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  `,
+  edit: html`
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+  `,
 };
 
 export function renderNode(params: {
@@ -49,29 +101,15 @@ export function renderNode(params: {
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
-  /** Render boolean toggles in compact inline style (no card wrapper) */
-  compactToggles?: boolean;
-  /** Render nested objects flat (no collapsible details) */
-  flattenObjects?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult | typeof nothing {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
-  const compactToggles = params.compactToggles ?? false;
-  const flattenObjects = params.flattenObjects ?? false;
   const type = schemaType(schema);
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
   const help = hint?.help ?? schema.description;
   const key = pathKey(path);
-  const validationIssues = params.validation?.[key] ?? [];
-  const severity =
-    validationIssues.find((issue) => issue.severity === "error")?.severity ??
-    validationIssues.find((issue) => issue.severity === "warn")?.severity ??
-    validationIssues[0]?.severity ??
-    null;
-  const validationMessage = validationIssues[0]?.message ?? "";
 
   if (unsupported.has(key)) {
     return html`<div class="cfg-field cfg-field--error">
@@ -84,7 +122,7 @@ export function renderNode(params: {
   if (schema.anyOf || schema.oneOf) {
     const variants = schema.anyOf ?? schema.oneOf ?? [];
     const nonNull = variants.filter(
-      (v) => !(v.type === "null" || (Array.isArray(v.type) && v.type.includes("null")))
+      (v) => !(v.type === "null" || (Array.isArray(v.type) && v.type.includes("null"))),
     );
 
     if (nonNull.length === 1) {
@@ -104,26 +142,22 @@ export function renderNode(params: {
       // Use segmented control for small sets
       const resolvedValue = value ?? schema.default;
       return html`
-        <div
-          class="cfg-field ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-          data-config-path=${key}
-        >
+        <div class="cfg-field">
           ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
           ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-          ${severity
-            ? html`<div class="cfg-field__validation">${validationMessage}</div>`
-            : nothing}
           <div class="cfg-segmented">
-            ${literals.map((lit, idx) => html`
+            ${literals.map(
+              (lit, idx) => html`
               <button
                 type="button"
-                class="cfg-segmented__btn ${lit === resolvedValue || String(lit) === String(resolvedValue) ? 'active' : ''}"
+                class="cfg-segmented__btn ${lit === resolvedValue || String(lit) === String(resolvedValue) ? "active" : ""}"
                 ?disabled=${disabled}
                 @click=${() => onPatch(path, lit)}
               >
                 ${String(lit)}
               </button>
-            `)}
+            `,
+            )}
           </div>
         </div>
       `;
@@ -135,11 +169,9 @@ export function renderNode(params: {
     }
 
     // Handle mixed primitive types
-    const primitiveTypes = new Set(
-      nonNull.map((variant) => schemaType(variant)).filter(Boolean)
-    );
+    const primitiveTypes = new Set(nonNull.map((variant) => schemaType(variant)).filter(Boolean));
     const normalizedTypes = new Set(
-      [...primitiveTypes].map((v) => (v === "integer" ? "number" : v))
+      [...primitiveTypes].map((v) => (v === "integer" ? "number" : v)),
     );
 
     if ([...normalizedTypes].every((v) => ["string", "number", "boolean"].includes(v as string))) {
@@ -163,70 +195,28 @@ export function renderNode(params: {
     }
   }
 
-  // Fallback for complex unions: render as JSON textarea
-  if (schema.anyOf || schema.oneOf) {
-    const resolvedValue = value ?? schema.default;
-    const jsonStr = resolvedValue !== undefined ? jsonValue(resolvedValue) : "";
-    return html`
-      <div
-        class="cfg-field ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-        data-config-path=${key}
-      >
-        ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
-        ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-        <div class="cfg-field__help">Complex type — edit as JSON</div>
-        ${severity
-          ? html`<div class="cfg-field__validation">${validationMessage}</div>`
-          : nothing}
-        <textarea
-          class="cfg-textarea cfg-textarea--sm"
-          rows="3"
-          placeholder="JSON value"
-          .value=${jsonStr}
-          ?disabled=${disabled}
-          @change=${(e: Event) => {
-            const raw = (e.target as HTMLTextAreaElement).value.trim();
-            if (!raw) {
-              onPatch(path, undefined);
-              return;
-            }
-            try {
-              onPatch(path, JSON.parse(raw));
-            } catch {
-              // Invalid JSON - don't update
-            }
-          }}
-        ></textarea>
-      </div>
-    `;
-  }
-
   // Enum - use segmented for small, dropdown for large
   if (schema.enum) {
     const options = schema.enum;
     if (options.length <= 5) {
       const resolvedValue = value ?? schema.default;
       return html`
-        <div
-          class="cfg-field ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-          data-config-path=${key}
-        >
+        <div class="cfg-field">
           ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
           ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-          ${severity
-            ? html`<div class="cfg-field__validation">${validationMessage}</div>`
-            : nothing}
           <div class="cfg-segmented">
-            ${options.map((opt) => html`
+            ${options.map(
+              (opt) => html`
               <button
                 type="button"
-                class="cfg-segmented__btn ${opt === resolvedValue || String(opt) === String(resolvedValue) ? 'active' : ''}"
+                class="cfg-segmented__btn ${opt === resolvedValue || String(opt) === String(resolvedValue) ? "active" : ""}"
                 ?disabled=${disabled}
                 @click=${() => onPatch(path, opt)}
               >
                 ${String(opt)}
               </button>
-            `)}
+            `,
+            )}
           </div>
         </div>
       `;
@@ -234,59 +224,29 @@ export function renderNode(params: {
     return renderSelect({ ...params, options, value: value ?? schema.default });
   }
 
-  // Object type - collapsible or flat section
+  // Object type - collapsible section
   if (type === "object") {
-    return renderObject({ ...params, flattenObjects });
+    return renderObject(params);
   }
 
   // Array type
   if (type === "array") {
-    return renderArray({ ...params, compactToggles, flattenObjects });
+    return renderArray(params);
   }
 
-  // Boolean - toggle row (compact or card style)
+  // Boolean - toggle row
   if (type === "boolean") {
-    const displayValue = typeof value === "boolean" ? value : typeof schema.default === "boolean" ? schema.default : false;
-
-    // Compact inline toggle (no card wrapper)
-    if (compactToggles) {
-      return html`
-        <label
-          class="cfg-toggle-inline ${disabled ? 'disabled' : ''} ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-          data-config-path=${key}
-        >
-          <div class="cfg-toggle cfg-toggle--sm">
-            <input
-              type="checkbox"
-              .checked=${displayValue}
-              ?disabled=${disabled}
-              @change=${(e: Event) => onPatch(path, (e.target as HTMLInputElement).checked)}
-            />
-            <span class="cfg-toggle__track"></span>
-          </div>
-          <div class="cfg-toggle-inline__content">
-            <span class="cfg-toggle-inline__label">${label}</span>
-            ${help ? html`<span class="cfg-toggle-inline__help">${help}</span>` : nothing}
-          </div>
-          ${severity
-            ? html`<span class="cfg-field__validation">${validationMessage}</span>`
-            : nothing}
-        </label>
-      `;
-    }
-
-    // Default card-style toggle
+    const displayValue =
+      typeof value === "boolean"
+        ? value
+        : typeof schema.default === "boolean"
+          ? schema.default
+          : false;
     return html`
-      <label
-        class="cfg-toggle-row ${disabled ? 'disabled' : ''} ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-        data-config-path=${key}
-      >
+      <label class="cfg-toggle-row ${disabled ? "disabled" : ""}">
         <div class="cfg-toggle-row__content">
           <span class="cfg-toggle-row__label">${label}</span>
           ${help ? html`<span class="cfg-toggle-row__help">${help}</span>` : nothing}
-          ${severity
-            ? html`<span class="cfg-field__validation">${validationMessage}</span>`
-            : nothing}
         </div>
         <div class="cfg-toggle">
           <input
@@ -303,9 +263,6 @@ export function renderNode(params: {
 
   // Number/Integer
   if (type === "number" || type === "integer") {
-    if (shouldUseSlider(schema, hint)) {
-      return renderSliderInput(params);
-    }
     return renderNumberInput(params);
   }
 
@@ -330,7 +287,6 @@ function renderTextInput(params: {
   hints: ConfigUiHints;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
   inputType: "text" | "number";
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
@@ -344,23 +300,11 @@ function renderTextInput(params: {
     hint?.placeholder ??
     (isSensitive ? "••••" : schema.default !== undefined ? `Default: ${schema.default}` : "");
   const displayValue = value ?? "";
-  const key = pathKey(path);
-  const validationIssues = params.validation?.[key] ?? [];
-  const severity =
-    validationIssues.find((issue) => issue.severity === "error")?.severity ??
-    validationIssues.find((issue) => issue.severity === "warn")?.severity ??
-    validationIssues[0]?.severity ??
-    null;
-  const validationMessage = validationIssues[0]?.message ?? "";
 
   return html`
-    <div
-      class="cfg-field ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-      data-config-path=${key}
-    >
+    <div class="cfg-field">
       ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
       ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-      ${severity ? html`<div class="cfg-field__validation">${validationMessage}</div>` : nothing}
       <div class="cfg-input-wrap">
         <input
           type=${isSensitive ? "password" : inputType}
@@ -381,8 +325,15 @@ function renderTextInput(params: {
             }
             onPatch(path, raw);
           }}
+          @change=${(e: Event) => {
+            if (inputType === "number") return;
+            const raw = (e.target as HTMLInputElement).value;
+            onPatch(path, raw.trim());
+          }}
         />
-        ${schema.default !== undefined ? html`
+        ${
+          schema.default !== undefined
+            ? html`
           <button
             type="button"
             class="cfg-input__reset"
@@ -390,77 +341,10 @@ function renderTextInput(params: {
             ?disabled=${disabled}
             @click=${() => onPatch(path, schema.default)}
           >↺</button>
-        ` : nothing}
+        `
+            : nothing
+        }
       </div>
-    </div>
-  `;
-}
-
-function renderSliderInput(params: {
-  schema: JsonSchema;
-  value: unknown;
-  path: Array<string | number>;
-  hints: ConfigUiHints;
-  disabled: boolean;
-  showLabel?: boolean;
-  validation?: ConfigValidationMap;
-  onPatch: (path: Array<string | number>, value: unknown) => void;
-}): TemplateResult {
-  const { schema, value, path, hints, disabled, onPatch } = params;
-  const showLabel = params.showLabel ?? true;
-  const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
-  const type = schemaType(schema);
-  const key = pathKey(path);
-  const validationIssues = params.validation?.[key] ?? [];
-  const severity =
-    validationIssues.find((issue) => issue.severity === "error")?.severity ??
-    validationIssues.find((issue) => issue.severity === "warn")?.severity ??
-    validationIssues[0]?.severity ??
-    null;
-  const validationMessage = validationIssues[0]?.message ?? "";
-
-  const min = schemaMin(schema) ?? 0;
-  const max = schemaMax(schema) ?? 100;
-  const range = max - min;
-  const isInt = type === "integer";
-  const step = isInt ? 1 : range <= 1 ? 0.01 : range <= 10 ? 0.1 : 1;
-  const numValue = typeof value === "number" ? value : typeof schema.default === "number" ? schema.default : min;
-  const pct = range > 0 ? ((numValue - min) / range) * 100 : 0;
-  // Format display: integers show whole, floats show appropriate precision
-  const displayStr = isInt ? String(numValue) : Number(numValue.toFixed(step < 1 ? 2 : 1)).toString();
-
-  return html`
-    <div
-      class="cfg-field cfg-field--compact ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-      data-config-path=${key}
-    >
-      <div class="cfg-slider-header">
-        ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
-        <span class="cfg-slider-value">${displayStr}</span>
-      </div>
-      ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-      ${severity ? html`<div class="cfg-field__validation">${validationMessage}</div>` : nothing}
-      <input
-        type="range"
-        class="cfg-slider"
-        min=${min}
-        max=${max}
-        step=${step}
-        .value=${String(numValue)}
-        ?disabled=${disabled}
-        style="background: linear-gradient(to right, var(--accent) ${pct}%, var(--border-strong) ${pct}%)"
-        @input=${(e: Event) => {
-          const raw = (e.target as HTMLInputElement).value;
-          const parsed = Number(raw);
-          // Update the track fill on input
-          const el = e.target as HTMLInputElement;
-          const newPct = range > 0 ? ((parsed - min) / range) * 100 : 0;
-          el.style.background = `linear-gradient(to right, var(--accent) ${newPct}%, var(--border-strong) ${newPct}%)`;
-          onPatch(path, isInt ? Math.round(parsed) : parsed);
-        }}
-      />
     </div>
   `;
 }
@@ -472,7 +356,6 @@ function renderNumberInput(params: {
   hints: ConfigUiHints;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
   const { schema, value, path, hints, disabled, onPatch } = params;
@@ -482,45 +365,23 @@ function renderNumberInput(params: {
   const help = hint?.help ?? schema.description;
   const displayValue = value ?? schema.default ?? "";
   const numValue = typeof displayValue === "number" ? displayValue : 0;
-  const key = pathKey(path);
-  const validationIssues = params.validation?.[key] ?? [];
-  const severity =
-    validationIssues.find((issue) => issue.severity === "error")?.severity ??
-    validationIssues.find((issue) => issue.severity === "warn")?.severity ??
-    validationIssues[0]?.severity ??
-    null;
-  const validationMessage = validationIssues[0]?.message ?? "";
-
-  const min = schemaMin(schema);
-  const max = schemaMax(schema);
-  const atMin = min != null && numValue <= min;
-  const atMax = max != null && numValue >= max;
 
   return html`
-    <div
-      class="cfg-field cfg-field--compact ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-      data-config-path=${key}
-    >
+    <div class="cfg-field">
       ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
       ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-      ${severity ? html`<div class="cfg-field__validation">${validationMessage}</div>` : nothing}
       <div class="cfg-number">
         <button
           type="button"
           class="cfg-number__btn"
-          ?disabled=${disabled || atMin}
-          @click=${() => {
-            const next = numValue - 1;
-            onPatch(path, min != null ? Math.max(min, next) : next);
-          }}
+          ?disabled=${disabled}
+          @click=${() => onPatch(path, numValue - 1)}
         >−</button>
         <input
           type="number"
           class="cfg-number__input"
           .value=${displayValue == null ? "" : String(displayValue)}
           ?disabled=${disabled}
-          min=${min != null ? min : nothing}
-          max=${max != null ? max : nothing}
           @input=${(e: Event) => {
             const raw = (e.target as HTMLInputElement).value;
             const parsed = raw === "" ? undefined : Number(raw);
@@ -530,11 +391,8 @@ function renderNumberInput(params: {
         <button
           type="button"
           class="cfg-number__btn"
-          ?disabled=${disabled || atMax}
-          @click=${() => {
-            const next = numValue + 1;
-            onPatch(path, max != null ? Math.min(max, next) : next);
-          }}
+          ?disabled=${disabled}
+          @click=${() => onPatch(path, numValue + 1)}
         >+</button>
       </div>
     </div>
@@ -548,7 +406,6 @@ function renderSelect(params: {
   hints: ConfigUiHints;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
   options: unknown[];
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
@@ -562,23 +419,11 @@ function renderSelect(params: {
     (opt) => opt === resolvedValue || String(opt) === String(resolvedValue),
   );
   const unset = "__unset__";
-  const key = pathKey(path);
-  const validationIssues = params.validation?.[key] ?? [];
-  const severity =
-    validationIssues.find((issue) => issue.severity === "error")?.severity ??
-    validationIssues.find((issue) => issue.severity === "warn")?.severity ??
-    validationIssues[0]?.severity ??
-    null;
-  const validationMessage = validationIssues[0]?.message ?? "";
 
   return html`
-    <div
-      class="cfg-field ${severity ? `cfg-field--invalid cfg-field--${severity}` : ""}"
-      data-config-path=${key}
-    >
+    <div class="cfg-field">
       ${showLabel ? html`<label class="cfg-field__label">${label}</label>` : nothing}
       ${help ? html`<div class="cfg-field__help">${help}</div>` : nothing}
-      ${severity ? html`<div class="cfg-field__validation">${validationMessage}</div>` : nothing}
       <select
         class="cfg-select"
         ?disabled=${disabled}
@@ -589,75 +434,14 @@ function renderSelect(params: {
         }}
       >
         <option value=${unset}>Select...</option>
-        ${options.map((opt, idx) => html`
+        ${options.map(
+          (opt, idx) => html`
           <option value=${String(idx)}>${String(opt)}</option>
-        `)}
+        `,
+        )}
       </select>
     </div>
   `;
-}
-
-/**
- * Partition sorted entries into runs of compact and wide fields.
- * Consecutive compact fields get wrapped in a multi-column grid.
- */
-type FieldRun = { compact: boolean; entries: [string, JsonSchema][] };
-
-function partitionFieldRuns(
-  sorted: [string, JsonSchema][],
-  path: Array<string | number>,
-  hints: ConfigUiHints,
-): FieldRun[] {
-  const runs: FieldRun[] = [];
-  for (const entry of sorted) {
-    const [propKey, node] = entry;
-    const fieldHint = hintForPath([...path, propKey], hints);
-    const compact = isCompactField(node, fieldHint);
-    const last = runs.at(-1);
-    if (last && last.compact === compact) {
-      last.entries.push(entry);
-    } else {
-      runs.push({ compact, entries: [entry] });
-    }
-  }
-  return runs;
-}
-
-function renderFieldRuns(
-  runs: FieldRun[],
-  obj: Record<string, unknown>,
-  baseParams: {
-    path: Array<string | number>;
-    hints: ConfigUiHints;
-    unsupported: Set<string>;
-    disabled: boolean;
-    validation?: ConfigValidationMap;
-    compactToggles: boolean;
-    flattenObjects: boolean;
-    onPatch: (path: Array<string | number>, value: unknown) => void;
-  },
-): TemplateResult[] {
-  const { path, hints, unsupported, disabled, onPatch } = baseParams;
-  return runs.map((run) => {
-    const nodes = run.entries.map(([propKey, node]) =>
-      renderNode({
-        schema: node,
-        value: obj[propKey],
-        path: [...path, propKey],
-        hints,
-        unsupported,
-        disabled,
-        validation: baseParams.validation,
-        compactToggles: baseParams.compactToggles,
-        flattenObjects: baseParams.flattenObjects,
-        onPatch,
-      })
-    );
-    if (run.compact && run.entries.length >= 1) {
-      return html`<div class="cfg-fields-compact">${nodes}</div>`;
-    }
-    return html`${nodes}`;
-  });
 }
 
 function renderObject(params: {
@@ -668,23 +452,19 @@ function renderObject(params: {
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
-  flattenObjects?: boolean;
-  compactToggles?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
-  const flattenObjects = params.flattenObjects ?? false;
-  const compactToggles = params.compactToggles ?? false;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
   const help = hint?.help ?? schema.description;
 
   const fallback = value ?? schema.default;
-  const obj = fallback && typeof fallback === "object" && !Array.isArray(fallback)
-    ? (fallback as Record<string, unknown>)
-    : {};
+  const obj =
+    fallback && typeof fallback === "object" && !Array.isArray(fallback)
+      ? (fallback as Record<string, unknown>)
+      : {};
   const props = schema.properties ?? {};
   const entries = Object.entries(props);
 
@@ -700,73 +480,73 @@ function renderObject(params: {
   const additional = schema.additionalProperties;
   const allowExtra = Boolean(additional) && typeof additional === "object";
 
-  // Partition fields into compact/wide runs for multi-column layout
-  const runs = partitionFieldRuns(sorted, path, hints);
-  const baseRunParams = {
-    path,
-    hints,
-    unsupported,
-    disabled,
-    validation: params.validation,
-    compactToggles,
-    flattenObjects,
-    onPatch,
-  };
-
-  const extraMap = allowExtra ? renderMapField({
-    schema: additional as JsonSchema,
-    value: obj,
-    path,
-    hints,
-    unsupported,
-    disabled,
-    reservedKeys: reserved,
-    validation: params.validation,
-    onPatch,
-  }) : nothing;
-
-  // Render flat (no collapsible wrapper) for top-level objects or when
-  // showLabel is false (parent already provides the section title)
-  if (path.length === 1 || !showLabel) {
+  // For top-level, don't wrap in collapsible
+  if (path.length === 1) {
     return html`
       <div class="cfg-fields">
-        ${renderFieldRuns(runs, obj, baseRunParams)}
-        ${extraMap}
+        ${sorted.map(([propKey, node]) =>
+          renderNode({
+            schema: node,
+            value: obj[propKey],
+            path: [...path, propKey],
+            hints,
+            unsupported,
+            disabled,
+            onPatch,
+          }),
+        )}
+        ${
+          allowExtra
+            ? renderMapField({
+                schema: additional as JsonSchema,
+                value: obj,
+                path,
+                hints,
+                unsupported,
+                disabled,
+                reservedKeys: reserved,
+                onPatch,
+              })
+            : nothing
+        }
       </div>
     `;
   }
 
-  // Flat object rendering (for wizard context) - only for shallow nesting (path.length <= 3)
-  // Uses <details> (collapsed by default) so users can expand nested config objects on demand
-  if (flattenObjects && path.length <= 3) {
-    return html`
-      <details class="cfg-object-flat" data-config-path=${pathKey(path)}>
-        <summary class="cfg-object-flat__header">
-          <span class="cfg-object__icon">${icons.panelIcon}</span>
-          <span class="cfg-object-flat__title">${label}</span>
-          <span class="cfg-object-flat__chevron">${icons.chevronDown}</span>
-        </summary>
-        ${help ? html`<div class="cfg-object-flat__help">${help}</div>` : nothing}
-        <div class="cfg-object-flat__content">
-          ${renderFieldRuns(runs, obj, baseRunParams)}
-          ${extraMap}
-        </div>
-      </details>
-    `;
-  }
-
-  // Deep nested objects still get collapsible treatment
+  // Nested objects get collapsible treatment
   return html`
-    <details class="cfg-object" data-config-path=${pathKey(path)}>
+    <details class="cfg-object" open>
       <summary class="cfg-object__header">
-        <span class="cfg-object__icon">${icons.panelIcon}</span>
         <span class="cfg-object__title">${label}</span>
         <span class="cfg-object__chevron">${icons.chevronDown}</span>
       </summary>
       ${help ? html`<div class="cfg-object__help">${help}</div>` : nothing}
       <div class="cfg-object__content">
-        ${renderFieldRuns(runs, obj, baseRunParams)}
-        ${extraMap}
+        ${sorted.map(([propKey, node]) =>
+          renderNode({
+            schema: node,
+            value: obj[propKey],
+            path: [...path, propKey],
+            hints,
+            unsupported,
+            disabled,
+            onPatch,
+          }),
+        )}
+        ${
+          allowExtra
+            ? renderMapField({
+                schema: additional as JsonSchema,
+                value: obj,
+                path,
+                hints,
+                unsupported,
+                disabled,
+                reservedKeys: reserved,
+                onPatch,
+              })
+            : nothing
+        }
       </div>
     </details>
   `;
@@ -780,15 +560,10 @@ function renderArray(params: {
   unsupported: Set<string>;
   disabled: boolean;
   showLabel?: boolean;
-  validation?: ConfigValidationMap;
-  compactToggles?: boolean;
-  flattenObjects?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
   const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
-  const compactToggles = params.compactToggles ?? false;
-  const flattenObjects = params.flattenObjects ?? false;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
   const help = hint?.help ?? schema.description;
@@ -806,10 +581,10 @@ function renderArray(params: {
   const arr = Array.isArray(value) ? value : Array.isArray(schema.default) ? schema.default : [];
 
   return html`
-    <div class="cfg-array" data-config-path=${pathKey(path)}>
+    <div class="cfg-array">
       <div class="cfg-array__header">
         ${showLabel ? html`<span class="cfg-array__label">${label}</span>` : nothing}
-        <span class="cfg-array__count">${arr.length} item${arr.length !== 1 ? 's' : ''}</span>
+        <span class="cfg-array__count">${arr.length} item${arr.length !== 1 ? "s" : ""}</span>
         <button
           type="button"
           class="cfg-array__add"
@@ -825,25 +600,18 @@ function renderArray(params: {
       </div>
       ${help ? html`<div class="cfg-array__help">${help}</div>` : nothing}
 
-      ${arr.length === 0 ? html`
-        <div class="cfg-array__empty">
-          No items yet. Click "Add" to create one.
-        </div>
-      ` : html`
+      ${
+        arr.length === 0
+          ? html`
+              <div class="cfg-array__empty">No items yet. Click "Add" to create one.</div>
+            `
+          : html`
         <div class="cfg-array__items">
-          ${arr.map((item, idx) => html`
+          ${arr.map(
+            (item, idx) => html`
             <div class="cfg-array__item">
               <div class="cfg-array__item-header">
-                <span class="cfg-array__item-index">${(() => {
-                  if (item && typeof item === "object") {
-                    const obj = item as Record<string, unknown>;
-                    const name = obj.name ?? obj.id ?? obj.label ?? obj.key;
-                    if (name && typeof name === "string") {
-                      return `#${idx + 1} — ${name}`;
-                    }
-                  }
-                  return `#${idx + 1}`;
-                })()}</span>
+                <span class="cfg-array__item-index">#${idx + 1}</span>
                 <button
                   type="button"
                   class="cfg-array__item-remove"
@@ -867,16 +635,15 @@ function renderArray(params: {
                   unsupported,
                   disabled,
                   showLabel: false,
-                  validation: params.validation,
-                  compactToggles,
-                  flattenObjects,
                   onPatch,
                 })}
               </div>
             </div>
-          `)}
+          `,
+          )}
         </div>
-      `}
+      `
+      }
     </div>
   `;
 }
@@ -889,7 +656,6 @@ function renderMapField(params: {
   unsupported: Set<string>;
   disabled: boolean;
   reservedKeys: Set<string>;
-  validation?: ConfigValidationMap;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
   const { schema, value, path, hints, unsupported, disabled, reservedKeys, onPatch } = params;
@@ -921,9 +687,12 @@ function renderMapField(params: {
         </button>
       </div>
 
-      ${entries.length === 0 ? html`
-        <div class="cfg-map__empty">No custom entries.</div>
-      ` : html`
+      ${
+        entries.length === 0
+          ? html`
+              <div class="cfg-map__empty">No custom entries.</div>
+            `
+          : html`
         <div class="cfg-map__items">
           ${entries.map(([key, entryValue]) => {
             const valuePath = [...path, key];
@@ -949,8 +718,9 @@ function renderMapField(params: {
                   />
                 </div>
                 <div class="cfg-map__item-value">
-                  ${anySchema
-                    ? html`
+                  ${
+                    anySchema
+                      ? html`
                         <textarea
                           class="cfg-textarea cfg-textarea--sm"
                           placeholder="JSON value"
@@ -972,17 +742,17 @@ function renderMapField(params: {
                           }}
                         ></textarea>
                       `
-                    : renderNode({
-                        schema,
-                        value: entryValue,
-                        path: valuePath,
-                        hints,
-                        unsupported,
-                        disabled,
-                        showLabel: false,
-                        validation: params.validation,
-                        onPatch,
-                      })}
+                      : renderNode({
+                          schema,
+                          value: entryValue,
+                          path: valuePath,
+                          hints,
+                          unsupported,
+                          disabled,
+                          showLabel: false,
+                          onPatch,
+                        })
+                  }
                 </div>
                 <button
                   type="button"
@@ -1001,7 +771,8 @@ function renderMapField(params: {
             `;
           })}
         </div>
-      `}
+      `
+      }
     </div>
   `;
 }

@@ -41,7 +41,12 @@ function plural(count: number, singular: string, pluralWord = `${singular}s`) {
 }
 
 export function ApprovalAttentionNudge(props: ApprovalAttentionNudgeProps) {
-  const now = Date.now();
+  const [now, setNow] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    // Update "now" periodically so snooze expiration is detected
+    const id = window.setInterval(() => setNow(Date.now()), 10_000);
+    return () => window.clearInterval(id);
+  }, []);
   const snoozed = props.snoozeUntilMs > now;
   const show = props.pendingApprovals > 0 && !snoozed;
 
@@ -143,14 +148,11 @@ export function ApprovalAttentionNudgeConnected(props: ApprovalAttentionNudgeCon
   const clearSnooze = useUIStore((s) => s.clearAttentionSnooze);
 
   const summary = React.useMemo(() => derivePendingApprovalsSummary(agents), [agents]);
-  const currentAgentId = (() => {
-    const params = routerState.location.params as Record<string, string> | undefined;
-    return params?.agentId ?? null;
-  })();
-  const isViewingCurrentAgent =
-    summary.pendingAgents === 1 &&
-    summary.nextAgentId &&
-    summary.nextAgentId === currentAgentId;
+  const currentAgentId = React.useMemo(() => {
+    const match = routerState.location.pathname.match(/^\/agents\/([^/]+)/);
+    return match?.[1] ?? null;
+  }, [routerState.location.pathname]);
+  const isViewingCurrentAgent = summary.pendingAgents === 1 && summary.nextAgentId === currentAgentId;
   const openNextDisabled = summary.pendingAgents <= 1 && isViewingCurrentAgent;
 
   const latestRef = React.useRef({

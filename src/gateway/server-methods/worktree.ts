@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { GatewayRequestHandlers } from "./types.js";
 import {
   ErrorCodes,
   errorShape,
@@ -24,7 +25,6 @@ import {
   type WorktreeMkdirResult,
   type WorktreeFileEntry,
 } from "../protocol/index.js";
-import type { GatewayRequestHandlers } from "./types.js";
 import { validateAndResolvePath, getAndValidateWorkspace, getFileStats } from "./worktree-utils.js";
 
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -92,7 +92,7 @@ export const worktreeHandlers: GatewayRequestHandlers = {
             );
             entries.push(...subResult);
           }
-        } catch (error) {
+        } catch (_error) {
           // Skip entries that can't be stat'd (permissions, etc.)
           continue;
         }
@@ -562,12 +562,12 @@ async function listRecursive(
           const subEntries = await listRecursive(workspaceRoot, entryRelPath, includeHidden);
           entries.push(...subEntries);
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip entries that can't be accessed
         continue;
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Skip directories that can't be read
   }
 

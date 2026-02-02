@@ -436,7 +436,9 @@ export const validateWorktreeMoveParams = ajv.compile(ProtocolSchemas.WorktreeMo
 export const validateWorktreeMkdirParams = ajv.compile(ProtocolSchemas.WorktreeMkdirParams);
 
 export function formatValidationErrors(errors: ErrorObject[] | null | undefined) {
-  if (!errors?.length) return "unknown validation error";
+  if (!errors?.length) {
+    return "unknown validation error";
+  }
 
   const parts: string[] = [];
 

@@ -3,7 +3,9 @@ summary: "Diagnostics flags for targeted debug logs"
 read_when:
   - You need targeted debug logs without raising global logging levels
   - You need to capture subsystem-specific logs for support
+title: "Diagnostics Flags"
 ---
+
 # Diagnostics Flags
 
 Diagnostics flags let you enable targeted debug logs without turning on verbose logging everywhere. Flags are opt-in and have no effect unless a subsystem checks them.
@@ -41,13 +43,13 @@ Restart the gateway after changing flags.
 ## Env override (one-off)
 
 ```bash
-CLAWDBRAIN_DIAGNOSTICS=telegram.http,telegram.payload
+OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload
 ```
 
 Disable all flags:
 
 ```bash
-CLAWDBRAIN_DIAGNOSTICS=0
+OPENCLAW_DIAGNOSTICS=0
 ```
 
 ## Where logs go
@@ -55,7 +57,7 @@ CLAWDBRAIN_DIAGNOSTICS=0
 Flags emit logs into the standard diagnostics log file. By default:
 
 ```
-/tmp/clawdbrain/clawdbrain-YYYY-MM-DD.log
+/tmp/openclaw/openclaw-YYYY-MM-DD.log
 ```
 
 If you set `logging.file`, use that path instead. Logs are JSONL (one JSON object per line). Redaction still applies based on `logging.redactSensitive`.
@@ -65,22 +67,22 @@ If you set `logging.file`, use that path instead. Logs are JSONL (one JSON objec
 Pick the latest log file:
 
 ```bash
-ls -t /tmp/clawdbrain/clawdbrain-*.log | head -n 1
+ls -t /tmp/openclaw/openclaw-*.log | head -n 1
 ```
 
 Filter for Telegram HTTP diagnostics:
 
 ```bash
-rg "telegram http error" /tmp/clawdbrain/clawdbrain-*.log
+rg "telegram http error" /tmp/openclaw/openclaw-*.log
 ```
 
 Or tail while reproducing:
 
 ```bash
-tail -f /tmp/clawdbrain/clawdbrain-$(date +%F).log | rg "telegram http error"
+tail -f /tmp/openclaw/openclaw-$(date +%F).log | rg "telegram http error"
 ```
 
-For remote gateways, you can also use `clawdbrain logs --follow` (see [/cli/logs](/cli/logs)).
+For remote gateways, you can also use `openclaw logs --follow` (see [/cli/logs](/cli/logs)).
 
 ## Notes
 

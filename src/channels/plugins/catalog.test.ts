@@ -2,13 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-
 import { getChannelPluginCatalogEntry, listChannelPluginCatalogEntries } from "./catalog.js";
 
 describe("channel plugin catalog", () => {
   it("includes Microsoft Teams", () => {
     const entry = getChannelPluginCatalogEntry("msteams");
-    expect(entry?.install.npmSpec).toBe("@clawdbrain/msteams");
+    expect(entry?.install.npmSpec).toBe("@openclaw/msteams");
     expect(entry?.meta.aliases).toContain("teams");
   });
 
@@ -18,15 +17,15 @@ describe("channel plugin catalog", () => {
   });
 
   it("includes external catalog entries", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "clawdbrain-catalog-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-catalog-"));
     const catalogPath = path.join(dir, "catalog.json");
     fs.writeFileSync(
       catalogPath,
       JSON.stringify({
         entries: [
           {
-            name: "@clawdbrain/demo-channel",
-            clawdbrain: {
+            name: "@openclaw/demo-channel",
+            openclaw: {
               channel: {
                 id: "demo-channel",
                 label: "Demo Channel",
@@ -36,7 +35,7 @@ describe("channel plugin catalog", () => {
                 order: 999,
               },
               install: {
-                npmSpec: "@clawdbrain/demo-channel",
+                npmSpec: "@openclaw/demo-channel",
               },
             },
           },

@@ -1,10 +1,7 @@
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
-
-import { emitTurnCompletion } from "../auto-reply/continuation/emit.js";
-import { emitAgentEvent } from "../infra/agent-events.js";
-import { parseStructuredUpdateFromTexts } from "../infra/overseer/monitor.js";
-import { createInlineCodeState } from "../markdown/code-spans.js";
 import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handlers.types.js";
+import { emitAgentEvent } from "../infra/agent-events.js";
+import { createInlineCodeState } from "../markdown/code-spans.js";
 
 export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
   ctx.log.debug(`embedded run agent start: runId=${ctx.params.runId}`);
@@ -16,18 +13,10 @@ export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
       startedAt: Date.now(),
     },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "lifecycle",
-        data: { phase: "start" },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (lifecycle/start): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (lifecycle/start): ${String(err)}`);
-  }
+  void ctx.params.onAgentEvent?.({
+    stream: "lifecycle",
+    data: { phase: "start" },
+  });
 }
 
 export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
@@ -39,18 +28,10 @@ export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
     stream: "compaction",
     data: { phase: "start" },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "compaction",
-        data: { phase: "start" },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (compaction/start): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (compaction/start): ${String(err)}`);
-  }
+  void ctx.params.onAgentEvent?.({
+    stream: "compaction",
+    data: { phase: "start" },
+  });
 }
 
 export function handleAutoCompactionEnd(
@@ -71,18 +52,10 @@ export function handleAutoCompactionEnd(
     stream: "compaction",
     data: { phase: "end", willRetry },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "compaction",
-        data: { phase: "end", willRetry },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (compaction/end): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (compaction/end): ${String(err)}`);
-  }
+  void ctx.params.onAgentEvent?.({
+    stream: "compaction",
+    data: { phase: "end", willRetry },
+  });
 }
 
 export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
@@ -95,31 +68,9 @@ export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
       endedAt: Date.now(),
     },
   });
-  try {
-    void Promise.resolve(
-      ctx.params.onAgentEvent?.({
-        stream: "lifecycle",
-        data: { phase: "end" },
-      }),
-    ).catch((err) => {
-      ctx.log.debug(`onAgentEvent callback error (lifecycle/end): ${String(err)}`);
-    });
-  } catch (err) {
-    ctx.log.debug(`onAgentEvent callback error (lifecycle/end): ${String(err)}`);
-  }
-
-  // Emit turn completion for continuation system (fire-and-forget)
-  // Parse any structured Overseer update from agent response
-  const structuredUpdate = parseStructuredUpdateFromTexts(ctx.state.assistantTexts);
-  emitTurnCompletion({
-    runId: ctx.params.runId,
-    sessionId: ctx.params.sessionId ?? "",
-    sessionKey: ctx.params.sessionKey,
-    assistantTexts: ctx.state.assistantTexts.slice(),
-    toolMetas: ctx.state.toolMetas.slice(),
-    didSendViaMessagingTool: ctx.state.messagingToolSentTexts.length > 0,
-    lastToolError: ctx.state.lastToolError,
-    structuredUpdate,
+  void ctx.params.onAgentEvent?.({
+    stream: "lifecycle",
+    data: { phase: "end" },
   });
 
   if (ctx.params.onBlockReply) {

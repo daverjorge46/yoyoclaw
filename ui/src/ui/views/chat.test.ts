@@ -1,6 +1,5 @@
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
-
 import type { SessionsListResult } from "../types";
 import { renderChat, type ChatProps } from "./chat";
 
@@ -9,7 +8,7 @@ function createSessions(): SessionsListResult {
     ts: 0,
     path: "",
     count: 0,
-    defaults: { modelProvider: null, model: null, contextTokens: null, thinkingDefault: null, verboseDefault: null, reasoningDefault: null, elevatedDefault: null },
+    defaults: { model: null, contextTokens: null },
     sessions: [],
   };
 }
@@ -33,29 +32,16 @@ function createProps(overrides: Partial<ChatProps> = {}): ChatProps {
     queue: [],
     connected: true,
     canSend: true,
-    audioInputSupported: false,
-    audioRecording: false,
-    audioInputError: null,
-    readAloudSupported: false,
-    readAloudActive: false,
-    readAloudError: null,
-    ttsLoading: false,
-    ttsError: null,
-    ttsProviders: [],
-    ttsActiveProvider: null,
     disabledReason: null,
     error: null,
     sessions: createSessions(),
     focusMode: false,
-    assistantName: "Clawdbrain",
+    assistantName: "OpenClaw",
     assistantAvatar: null,
     onRefresh: () => undefined,
     onToggleFocusMode: () => undefined,
     onDraftChange: () => undefined,
     onSend: () => undefined,
-    onToggleAudioRecording: () => undefined,
-    onReadAloud: () => undefined,
-    onTtsProviderChange: () => undefined,
     onQueueRemove: () => undefined,
     onNewSession: () => undefined,
     ...overrides,
@@ -70,22 +56,19 @@ describe("chat view", () => {
       renderChat(
         createProps({
           canAbort: true,
-          sending: true,
           onAbort,
         }),
       ),
       container,
     );
 
-    const stopButton = container.querySelector("button.chat-compose__abort") as
-      | HTMLButtonElement
-      | null;
-    expect(stopButton).not.toBeNull();
+    const stopButton = Array.from(container.querySelectorAll("button")).find(
+      (btn) => btn.textContent?.trim() === "Stop",
+    );
+    expect(stopButton).not.toBeUndefined();
     stopButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onAbort).toHaveBeenCalledTimes(1);
-
-    const sendButton = container.querySelector("button.chat-compose__send");
-    expect(sendButton).toBeNull();
+    expect(container.textContent).not.toContain("New session");
   });
 
   it("shows a new session button when aborting is unavailable", () => {
@@ -101,14 +84,12 @@ describe("chat view", () => {
       container,
     );
 
-    const newSessionButton = container.querySelector(
-      'button[title="New session"]',
-    ) as HTMLButtonElement | null;
-    expect(newSessionButton).not.toBeNull();
+    const newSessionButton = Array.from(container.querySelectorAll("button")).find(
+      (btn) => btn.textContent?.trim() === "New session",
+    );
+    expect(newSessionButton).not.toBeUndefined();
     newSessionButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onNewSession).toHaveBeenCalledTimes(1);
-
-    const stopButton = container.querySelector("button.chat-compose__abort");
-    expect(stopButton).toBeNull();
+    expect(container.textContent).not.toContain("Stop");
   });
 });

@@ -475,7 +475,7 @@ export function ConnectionsSection({ className }: ConnectionsSectionProps) {
           open={wizardOpen}
           onOpenChange={setWizardOpen}
           connection={activeConnection}
-          onConnect={async (_payload) => handleConnect(activeConnection.id)}
+          onConnect={async () => handleConnect(activeConnection.id)}
           onDisconnect={
             activeConnection.connected
               ? async () => handleDisconnect(activeConnection.id)

@@ -29,6 +29,7 @@ describe("exportConfiguration", () => {
     sidebarCollapsed: false,
     powerUserMode: true,
     useLiveGateway: false,
+    attentionSnoozeUntilMs: 0,
   };
 
   const mockGatewayConfig: ClawdbrainConfig = {

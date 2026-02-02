@@ -10,8 +10,7 @@ import { useVercelSessionStore } from "@/stores/useVercelSessionStore";
 import { VercelAgentAdapter } from "@/integrations/vercel-ai/vercel-agent-adapter";
 import { sendChatMessage, abortChat } from "@/lib/api/sessions";
 import { uuidv7 } from "@/lib/ids";
-import type { Agent } from "@/lib/api/agents";
-import type { ChatMessage } from "@/lib/api/sessions";
+import type { Agent } from "@/stores/useAgentStore";
 import type { StreamingMessage as GatewayStreamingMessage } from "@/stores/useSessionStore";
 import type { VercelStreamingMessage } from "@/stores/useVercelSessionStore";
 

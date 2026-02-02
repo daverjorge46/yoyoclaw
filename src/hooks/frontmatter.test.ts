@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseFrontmatter,
-  resolveClawdbrainMetadata,
+  resolveOpenClawMetadata,
   resolveHookInvocationPolicy,
 } from "./frontmatter.js";
 
@@ -41,7 +41,7 @@ name: session-memory
 description: "Save session context"
 metadata:
   {
-    "clawdbrain": {
+    "openclaw": {
       "emoji": "💾",
       "events": ["command:new"]
     }
@@ -57,9 +57,9 @@ metadata:
     expect(typeof result.metadata).toBe("string");
 
     // Verify the metadata is valid JSON
-    const parsed = JSON.parse(result.metadata as string);
-    expect(parsed.clawdbrain.emoji).toBe("💾");
-    expect(parsed.clawdbrain.events).toEqual(["command:new"]);
+    const parsed = JSON.parse(result.metadata);
+    expect(parsed.openclaw.emoji).toBe("💾");
+    expect(parsed.openclaw.events).toEqual(["command:new"]);
   });
 
   it("parses multi-line metadata with complex nested structure", () => {
@@ -68,7 +68,7 @@ name: command-logger
 description: "Log all command events"
 metadata:
   {
-    "clawdbrain":
+    "openclaw":
       {
         "emoji": "📝",
         "events": ["command"],
@@ -82,22 +82,22 @@ metadata:
     expect(result.name).toBe("command-logger");
     expect(result.metadata).toBeDefined();
 
-    const parsed = JSON.parse(result.metadata as string);
-    expect(parsed.clawdbrain.emoji).toBe("📝");
-    expect(parsed.clawdbrain.events).toEqual(["command"]);
-    expect(parsed.clawdbrain.requires.config).toEqual(["workspace.dir"]);
-    expect(parsed.clawdbrain.install[0].kind).toBe("bundled");
+    const parsed = JSON.parse(result.metadata);
+    expect(parsed.openclaw.emoji).toBe("📝");
+    expect(parsed.openclaw.events).toEqual(["command"]);
+    expect(parsed.openclaw.requires.config).toEqual(["workspace.dir"]);
+    expect(parsed.openclaw.install[0].kind).toBe("bundled");
   });
 
   it("handles single-line metadata (inline JSON)", () => {
     const content = `---
 name: simple-hook
-metadata: {"clawdbrain": {"events": ["test"]}}
+metadata: {"openclaw": {"events": ["test"]}}
 ---
 `;
     const result = parseFrontmatter(content);
     expect(result.name).toBe("simple-hook");
-    expect(result.metadata).toBe('{"clawdbrain": {"events": ["test"]}}');
+    expect(result.metadata).toBe('{"openclaw": {"events": ["test"]}}');
   });
 
   it("handles mixed single-line and multi-line values", () => {
@@ -107,7 +107,7 @@ description: "A hook with mixed values"
 homepage: https://example.com
 metadata:
   {
-    "clawdbrain": {
+    "openclaw": {
       "events": ["command:new"]
     }
   }
@@ -148,12 +148,12 @@ description: 'single-quoted'
   });
 });
 
-describe("resolveClawdbrainMetadata", () => {
-  it("extracts clawdbrain metadata from parsed frontmatter", () => {
+describe("resolveOpenClawMetadata", () => {
+  it("extracts openclaw metadata from parsed frontmatter", () => {
     const frontmatter = {
       name: "test-hook",
       metadata: JSON.stringify({
-        clawdbrain: {
+        openclaw: {
           emoji: "🔥",
           events: ["command:new", "command:reset"],
           requires: {
@@ -164,7 +164,7 @@ describe("resolveClawdbrainMetadata", () => {
       }),
     };
 
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result).toBeDefined();
     expect(result?.emoji).toBe("🔥");
     expect(result?.events).toEqual(["command:new", "command:reset"]);
@@ -174,15 +174,15 @@ describe("resolveClawdbrainMetadata", () => {
 
   it("returns undefined when metadata is missing", () => {
     const frontmatter = { name: "no-metadata" };
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result).toBeUndefined();
   });
 
-  it("returns undefined when clawdbrain key is missing", () => {
+  it("returns undefined when openclaw key is missing", () => {
     const frontmatter = {
       metadata: JSON.stringify({ other: "data" }),
     };
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result).toBeUndefined();
   });
 
@@ -190,41 +190,41 @@ describe("resolveClawdbrainMetadata", () => {
     const frontmatter = {
       metadata: "not valid json {",
     };
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result).toBeUndefined();
   });
 
   it("handles install specs", () => {
     const frontmatter = {
       metadata: JSON.stringify({
-        clawdbrain: {
+        openclaw: {
           events: ["command"],
           install: [
-            { id: "bundled", kind: "bundled", label: "Bundled with Clawdbrain" },
-            { id: "npm", kind: "npm", package: "@clawdbrain/hook" },
+            { id: "bundled", kind: "bundled", label: "Bundled with OpenClaw" },
+            { id: "npm", kind: "npm", package: "@openclaw/hook" },
           ],
         },
       }),
     };
 
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result?.install).toHaveLength(2);
     expect(result?.install?.[0].kind).toBe("bundled");
     expect(result?.install?.[1].kind).toBe("npm");
-    expect(result?.install?.[1].package).toBe("@clawdbrain/hook");
+    expect(result?.install?.[1].package).toBe("@openclaw/hook");
   });
 
   it("handles os restrictions", () => {
     const frontmatter = {
       metadata: JSON.stringify({
-        clawdbrain: {
+        openclaw: {
           events: ["command"],
           os: ["darwin", "linux"],
         },
       }),
     };
 
-    const result = resolveClawdbrainMetadata(frontmatter);
+    const result = resolveOpenClawMetadata(frontmatter);
     expect(result?.os).toEqual(["darwin", "linux"]);
   });
 
@@ -233,15 +233,15 @@ describe("resolveClawdbrainMetadata", () => {
     const content = `---
 name: session-memory
 description: "Save session context to memory when /new command is issued"
-homepage: https://docs.clawdbrain.bot/hooks#session-memory
+homepage: https://docs.openclaw.ai/hooks#session-memory
 metadata:
   {
-    "clawdbrain":
+    "openclaw":
       {
         "emoji": "💾",
         "events": ["command:new"],
         "requires": { "config": ["workspace.dir"] },
-        "install": [{ "id": "bundled", "kind": "bundled", "label": "Bundled with Clawdbrain" }],
+        "install": [{ "id": "bundled", "kind": "bundled", "label": "Bundled with OpenClaw" }],
       },
   }
 ---
@@ -253,28 +253,28 @@ metadata:
     expect(frontmatter.name).toBe("session-memory");
     expect(frontmatter.metadata).toBeDefined();
 
-    const clawdbrain = resolveClawdbrainMetadata(frontmatter);
-    expect(clawdbrain).toBeDefined();
-    expect(clawdbrain?.emoji).toBe("💾");
-    expect(clawdbrain?.events).toEqual(["command:new"]);
-    expect(clawdbrain?.requires?.config).toEqual(["workspace.dir"]);
-    expect(clawdbrain?.install?.[0].kind).toBe("bundled");
+    const openclaw = resolveOpenClawMetadata(frontmatter);
+    expect(openclaw).toBeDefined();
+    expect(openclaw?.emoji).toBe("💾");
+    expect(openclaw?.events).toEqual(["command:new"]);
+    expect(openclaw?.requires?.config).toEqual(["workspace.dir"]);
+    expect(openclaw?.install?.[0].kind).toBe("bundled");
   });
 
   it("parses YAML metadata map", () => {
     const content = `---
 name: yaml-metadata
 metadata:
-  clawdbrain:
+  openclaw:
     emoji: disk
     events:
       - command:new
 ---
 `;
     const frontmatter = parseFrontmatter(content);
-    const clawdbrain = resolveClawdbrainMetadata(frontmatter);
-    expect(clawdbrain?.emoji).toBe("disk");
-    expect(clawdbrain?.events).toEqual(["command:new"]);
+    const openclaw = resolveOpenClawMetadata(frontmatter);
+    expect(openclaw?.emoji).toBe("disk");
+    expect(openclaw?.events).toEqual(["command:new"]);
   });
 });
 

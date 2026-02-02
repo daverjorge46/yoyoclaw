@@ -1,5 +1,4 @@
 import type { Static } from "@sinclair/typebox";
-
 import type {
   AgentEventSchema,
   AgentIdentityParamsSchema,
@@ -70,6 +69,13 @@ import type {
   CronUpdateParamsSchema,
 } from "./cron.js";
 import type {
+  DevicePairApproveParamsSchema,
+  DevicePairListParamsSchema,
+  DevicePairRejectParamsSchema,
+  DeviceTokenRevokeParamsSchema,
+  DeviceTokenRotateParamsSchema,
+} from "./devices.js";
+import type {
   ExecApprovalsGetParamsSchema,
   ExecApprovalsNodeGetParamsSchema,
   ExecApprovalsNodeSetParamsSchema,
@@ -78,13 +84,6 @@ import type {
   ExecApprovalRequestParamsSchema,
   ExecApprovalResolveParamsSchema,
 } from "./exec-approvals.js";
-import type {
-  DevicePairApproveParamsSchema,
-  DevicePairListParamsSchema,
-  DevicePairRejectParamsSchema,
-  DeviceTokenRevokeParamsSchema,
-  DeviceTokenRotateParamsSchema,
-} from "./devices.js";
 import type {
   ConnectParamsSchema,
   ErrorShapeSchema,

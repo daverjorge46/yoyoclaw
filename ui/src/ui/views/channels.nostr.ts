@@ -1,8 +1,8 @@
-import { html, nothing, type TemplateResult } from "lit";
-
-import { formatAgo } from "../format";
+import { html, nothing } from "lit";
 import type { ChannelAccountSnapshot, NostrStatus } from "../types";
-import { renderChannelIntegrationCard, type ChannelCardFrame } from "./channels.shared";
+import type { ChannelsProps } from "./channels.types";
+import { formatAgo } from "../format";
+import { renderChannelConfigSection } from "./channels.config";
 import {
   renderNostrProfileForm,
   type NostrProfileFormState,
@@ -19,12 +19,10 @@ function truncatePubkey(pubkey: string | null | undefined): string {
 }
 
 export function renderNostrCard(params: {
+  props: ChannelsProps;
   nostr?: NostrStatus | null;
   nostrAccounts: ChannelAccountSnapshot[];
-  frame: ChannelCardFrame;
-  actions: TemplateResult;
-  facts: TemplateResult;
-  error: string | null;
+  accountCountLabel: unknown;
   /** Profile form state (optional - if provided, shows form) */
   profileFormState?: NostrProfileFormState | null;
   /** Profile form callbacks */
@@ -33,21 +31,19 @@ export function renderNostrCard(params: {
   onEditProfile?: () => void;
 }) {
   const {
+    props,
     nostr,
     nostrAccounts,
-    frame,
-    actions,
-    facts,
-    error,
+    accountCountLabel,
     profileFormState,
     profileFormCallbacks,
     onEditProfile,
   } = params;
   const primaryAccount = nostrAccounts[0];
   const summaryConfigured = nostr?.configured ?? primaryAccount?.configured ?? false;
+  const summaryRunning = nostr?.running ?? primaryAccount?.running ?? false;
   const summaryPublicKey =
-    nostr?.publicKey ??
-    (primaryAccount as { publicKey?: string } | undefined)?.publicKey;
+    nostr?.publicKey ?? (primaryAccount as { publicKey?: string } | undefined)?.publicKey;
   const summaryLastStartAt = nostr?.lastStartAt ?? primaryAccount?.lastStartAt ?? null;
   const summaryLastError = nostr?.lastError ?? primaryAccount?.lastError ?? null;
   const hasMultipleAccounts = nostrAccounts.length > 1;
@@ -81,11 +77,13 @@ export function renderNostrCard(params: {
             <span class="label">Last inbound</span>
             <span>${account.lastInboundAt ? formatAgo(account.lastInboundAt) : "n/a"}</span>
           </div>
-          ${account.lastError
-            ? html`
+          ${
+            account.lastError
+              ? html`
                 <div class="account-card-error">${account.lastError}</div>
               `
-            : nothing}
+              : nothing
+          }
         </div>
       </div>
     `;
@@ -102,17 +100,19 @@ export function renderNostrCard(params: {
     }
 
     const profile =
-      (primaryAccount as
-        | {
-            profile?: {
-              name?: string;
-              displayName?: string;
-              about?: string;
-              picture?: string;
-              nip05?: string;
-            };
-          }
-        | undefined)?.profile ?? nostr?.profile;
+      (
+        primaryAccount as
+          | {
+              profile?: {
+                name?: string;
+                displayName?: string;
+                about?: string;
+                picture?: string;
+                nip05?: string;
+              };
+            }
+          | undefined
+      )?.profile ?? nostr?.profile;
     const { name, displayName, about, picture, nip05 } = profile ?? {};
     const hasAnyProfileData = name || displayName || about || picture || nip05;
 
@@ -120,8 +120,9 @@ export function renderNostrCard(params: {
       <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div style="font-weight: 500;">Profile</div>
-          ${summaryConfigured
-            ? html`
+          ${
+            summaryConfigured
+              ? html`
                 <button
                   class="btn btn-sm"
                   @click=${onEditProfile}
@@ -130,13 +131,16 @@ export function renderNostrCard(params: {
                   Edit Profile
                 </button>
               `
-            : nothing}
+              : nothing
+          }
         </div>
-        ${hasAnyProfileData
-          ? html`
+        ${
+          hasAnyProfileData
+            ? html`
               <div class="status-list">
-                ${picture
-                  ? html`
+                ${
+                  picture
+                    ? html`
                       <div style="margin-bottom: 8px;">
                         <img
                           src=${picture}
@@ -148,60 +152,82 @@ export function renderNostrCard(params: {
                         />
                       </div>
                     `
-                  : nothing}
+                    : nothing
+                }
                 ${name ? html`<div><span class="label">Name</span><span>${name}</span></div>` : nothing}
-                ${displayName
-                  ? html`<div><span class="label">Display Name</span><span>${displayName}</span></div>`
-                  : nothing}
-                ${about
-                  ? html`<div><span class="label">About</span><span style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${about}</span></div>`
-                  : nothing}
+                ${
+                  displayName
+                    ? html`<div><span class="label">Display Name</span><span>${displayName}</span></div>`
+                    : nothing
+                }
+                ${
+                  about
+                    ? html`<div><span class="label">About</span><span style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${about}</span></div>`
+                    : nothing
+                }
                 ${nip05 ? html`<div><span class="label">NIP-05</span><span>${nip05}</span></div>` : nothing}
               </div>
             `
-          : html`
-              <div style="color: var(--text-muted); font-size: 13px;">
-                No profile set. Click "Edit Profile" to add your name, bio, and avatar.
-              </div>
-            `}
+            : html`
+                <div style="color: var(--text-muted); font-size: 13px">
+                  No profile set. Click "Edit Profile" to add your name, bio, and avatar.
+                </div>
+              `
+        }
       </div>
     `;
   };
 
-  const details = html`
-    ${hasMultipleAccounts
-      ? html`
-          <div class="account-card-list">
-            ${nostrAccounts.map((account) => renderAccountCard(account))}
-          </div>
-        `
-      : html`
-          <div class="status-list" style="margin-top: 16px;">
-            ${summaryPublicKey
-              ? html`<div>
-                  <span class="label">Public Key</span>
-                  <span class="monospace" title="${summaryPublicKey}"
-                    >${truncatePubkey(summaryPublicKey)}</span
-                  >
-                </div>`
-              : nothing}
-            ${summaryLastStartAt
-              ? html`<div>
-                  <span class="label">Last start</span>
-                  <span>${formatAgo(summaryLastStartAt)}</span>
-                </div>`
-              : nothing}
-          </div>
-        `}
+  return html`
+    <div class="card">
+      <div class="card-title">Nostr</div>
+      <div class="card-sub">Decentralized DMs via Nostr relays (NIP-04).</div>
+      ${accountCountLabel}
 
-    ${renderProfileSection()}
+      ${
+        hasMultipleAccounts
+          ? html`
+            <div class="account-card-list">
+              ${nostrAccounts.map((account) => renderAccountCard(account))}
+            </div>
+          `
+          : html`
+            <div class="status-list" style="margin-top: 16px;">
+              <div>
+                <span class="label">Configured</span>
+                <span>${summaryConfigured ? "Yes" : "No"}</span>
+              </div>
+              <div>
+                <span class="label">Running</span>
+                <span>${summaryRunning ? "Yes" : "No"}</span>
+              </div>
+              <div>
+                <span class="label">Public Key</span>
+                <span class="monospace" title="${summaryPublicKey ?? ""}"
+                  >${truncatePubkey(summaryPublicKey)}</span
+                >
+              </div>
+              <div>
+                <span class="label">Last start</span>
+                <span>${summaryLastStartAt ? formatAgo(summaryLastStartAt) : "n/a"}</span>
+              </div>
+            </div>
+          `
+      }
+
+      ${
+        summaryLastError
+          ? html`<div class="callout danger" style="margin-top: 12px;">${summaryLastError}</div>`
+          : nothing
+      }
+
+      ${renderProfileSection()}
+
+      ${renderChannelConfigSection({ channelId: "nostr", props })}
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" @click=${() => props.onRefresh(false)}>Refresh</button>
+      </div>
+    </div>
   `;
-
-  return renderChannelIntegrationCard({
-    frame,
-    actions,
-    facts,
-    details,
-    error: error ?? (summaryLastError ?? null),
-  });
 }

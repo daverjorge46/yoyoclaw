@@ -14,7 +14,7 @@ export type DeviceIdentity = {
   privateKey: string;
 };
 
-const STORAGE_KEY = "clawdbrain-device-identity-v1";
+const STORAGE_KEY = "openclaw-device-identity-v1";
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = "";
@@ -38,9 +38,7 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 async function fingerprintPublicKey(publicKey: Uint8Array): Promise<string> {
-  // Create a new ArrayBuffer to avoid SharedArrayBuffer type issues
-  const buffer = new Uint8Array(publicKey).buffer;
-  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  const hash = await crypto.subtle.digest("SHA-256", publicKey);
   return bytesToHex(new Uint8Array(hash));
 }
 

@@ -2,9 +2,9 @@
  * Tests for Vercel AI Agent Adapter
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { VercelAgentAdapter } from "./vercel-agent-adapter";
-import type { Agent } from "@/lib/api/agents";
+import type { Agent } from "@/stores/useAgentStore";
 
 // Mock the agent package
 vi.mock("@clawdbrain/vercel-ai-agent", () => ({
@@ -24,9 +24,10 @@ describe("VercelAgentAdapter", () => {
 		mockAgent = {
 			id: "test-agent",
 			name: "Test Agent",
-			provider: "anthropic",
+			ccsdkProvider: "anthropic",
 			model: "claude-3-5-sonnet-20241022",
-			systemPrompt: "You are a helpful assistant",
+			role: "Assistant",
+			status: "offline",
 		} as Agent;
 
 		vi.clearAllMocks();
@@ -37,8 +38,7 @@ describe("VercelAgentAdapter", () => {
 			const config = {
 				agent: {
 					...mockAgent,
-					provider: "openai",
-					model: "gpt-4-turbo",
+					model: "openai/gpt-4-turbo",
 				},
 			};
 
@@ -59,7 +59,7 @@ describe("VercelAgentAdapter", () => {
 			const config = {
 				agent: {
 					...mockAgent,
-					provider: "unknown",
+					model: "unknown/whatever",
 				},
 			};
 
@@ -89,7 +89,7 @@ describe("VercelAgentAdapter", () => {
 				},
 			});
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});
@@ -137,7 +137,7 @@ describe("VercelAgentAdapter", () => {
 				},
 			});
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});
@@ -166,7 +166,7 @@ describe("VercelAgentAdapter", () => {
 			const testError = new Error("Test error");
 			mockRunStream.mockRejectedValue(testError);
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});
@@ -203,7 +203,7 @@ describe("VercelAgentAdapter", () => {
 				},
 			});
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});
@@ -246,7 +246,7 @@ describe("VercelAgentAdapter", () => {
 				},
 			});
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});
@@ -283,7 +283,7 @@ describe("VercelAgentAdapter", () => {
 				},
 			});
 
-			(createAgent as any).mockReturnValue({
+			(createAgent as Mock).mockReturnValue({
 				runStream: mockRunStream,
 				getConversationHistory: vi.fn(() => []),
 			});

@@ -91,6 +91,7 @@ export function ExportConfigSection({ className }: ExportConfigSectionProps) {
           sidebarCollapsed: uiState.sidebarCollapsed,
           powerUserMode: uiState.powerUserMode,
           useLiveGateway: uiState.useLiveGateway,
+          attentionSnoozeUntilMs: uiState.attentionSnoozeUntilMs,
         },
         gatewayConfig: configSnapshot?.config,
         toolsets: {

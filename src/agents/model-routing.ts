@@ -1,4 +1,4 @@
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { ModelRoutingPolicy, ModelRoutingTier } from "../config/types.model-routing.js";
 import { DEFAULT_PROVIDER } from "./defaults.js";
 import {
@@ -25,7 +25,7 @@ function mergePolicies(
 }
 
 function resolveRefFromConfig(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   raw?: string;
   fallback: ModelRef;
 }): ModelRef {
@@ -45,7 +45,7 @@ function resolveRefFromConfig(params: {
 }
 
 function resolveTierModel(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   tier: ModelRoutingTier;
   base: ModelRef;
 }): ModelRef {
@@ -69,7 +69,7 @@ function resolveTierModel(params: {
   return resolveRefFromConfig({ cfg: params.cfg, raw: models?.remote, fallback: params.base });
 }
 
-function defaultHybridTier(cfg: ClawdbrainConfig): ModelRoutingTier {
+function defaultHybridTier(cfg: OpenClawConfig): ModelRoutingTier {
   const routing = cfg.agents?.defaults?.modelRouting;
   const models = routing?.models;
   if (models?.localLarge?.trim()) return "local-large";
@@ -78,7 +78,7 @@ function defaultHybridTier(cfg: ClawdbrainConfig): ModelRoutingTier {
 }
 
 function chooseTierFromSignals(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   policy: ModelRoutingPolicy;
 }): ModelRoutingTier {
   const stakes = params.policy.stakes ?? "medium";
@@ -99,7 +99,7 @@ function chooseTierFromSignals(params: {
 }
 
 export function resolveModelRoutingSelection(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   intent: ModelRoutingIntent;
   base: ModelRef;
   sessionHasModelOverride?: boolean;

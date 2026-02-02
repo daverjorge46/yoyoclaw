@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ToolsSchema } from "./zod-schema.agent-runtime.js";
-import { ApprovalsSchema } from "./zod-schema.approvals.js";
 import { AgentsSchema, AudioSchema, BindingsSchema, BroadcastSchema } from "./zod-schema.agents.js";
+import { ApprovalsSchema } from "./zod-schema.approvals.js";
 import { HexColorSchema, ModelsConfigSchema } from "./zod-schema.core.js";
 import { HookMappingSchema, HooksGmailSchema, InternalHooksSchema } from "./zod-schema.hooks.js";
 import { ChannelsSchema } from "./zod-schema.providers.js";
@@ -27,7 +27,7 @@ const NodeHostSchema = z
   .strict()
   .optional();
 
-export const ClawdbrainSchema = z
+export const OpenClawSchema = z
   .object({
     meta: z
       .object({
@@ -154,7 +154,7 @@ export const ClawdbrainSchema = z
               .object({
                 cdpPort: z.number().int().min(1).max(65535).optional(),
                 cdpUrl: z.string().optional(),
-                driver: z.union([z.literal("clawd"), z.literal("extension")]).optional(),
+                driver: z.union([z.literal("openclaw"), z.literal("extension")]).optional(),
                 color: HexColorSchema,
               })
               .strict()
@@ -231,46 +231,6 @@ export const ClawdbrainSchema = z
       })
       .strict()
       .optional(),
-    overseer: z
-      .object({
-        enabled: z.boolean().optional(),
-        tickEvery: z.string().optional(),
-        idleAfter: z.string().optional(),
-        maxRetries: z.number().int().nonnegative().optional(),
-        minResendInterval: z.string().optional(),
-        backoff: z
-          .object({
-            base: z.string().optional(),
-            max: z.string().optional(),
-          })
-          .strict()
-          .optional(),
-        planner: z
-          .object({
-            model: z.string().optional(),
-            maxPlanPhases: z.number().int().min(1).optional(),
-            maxTasksPerPhase: z.number().int().min(1).optional(),
-            maxSubtasksPerTask: z.number().int().min(1).optional(),
-            maxRepairAttempts: z.number().int().min(0).optional(),
-          })
-          .strict()
-          .optional(),
-        policy: z
-          .object({
-            allowAgents: z.array(z.string()).optional(),
-            allowCrossAgent: z.boolean().optional(),
-          })
-          .strict()
-          .optional(),
-        storage: z
-          .object({
-            dir: z.string().optional(),
-          })
-          .strict()
-          .optional(),
-      })
-      .strict()
-      .optional(),
     hooks: z
       .object({
         enabled: z.boolean().optional(),
@@ -303,23 +263,12 @@ export const ClawdbrainSchema = z
       .strict()
       .optional(),
     channels: ChannelsSchema,
-    automations: z
-      .object({
-        enabled: z.boolean().optional(),
-        store: z.string().optional(),
-        artifactsDir: z.string().optional(),
-        maxConcurrentRuns: z.number().int().positive().optional(),
-        maxRunDurationMs: z.number().int().positive().optional(),
-        historyRetentionDays: z.number().int().positive().optional(),
-        historyMaxRunsPerAutomation: z.number().int().positive().optional(),
-      })
-      .strict()
-      .optional(),
     discovery: z
       .object({
         wideArea: z
           .object({
             enabled: z.boolean().optional(),
+            domain: z.string().optional(),
           })
           .strict()
           .optional(),
@@ -583,15 +532,23 @@ export const ClawdbrainSchema = z
   .strict()
   .superRefine((cfg, ctx) => {
     const agents = cfg.agents?.list ?? [];
-    if (agents.length === 0) return;
+    if (agents.length === 0) {
+      return;
+    }
     const agentIds = new Set(agents.map((agent) => agent.id));
 
     const broadcast = cfg.broadcast;
-    if (!broadcast) return;
+    if (!broadcast) {
+      return;
+    }
 
     for (const [peerId, ids] of Object.entries(broadcast)) {
-      if (peerId === "strategy") continue;
-      if (!Array.isArray(ids)) continue;
+      if (peerId === "strategy") {
+        continue;
+      }
+      if (!Array.isArray(ids)) {
+        continue;
+      }
       for (let idx = 0; idx < ids.length; idx += 1) {
         const agentId = ids[idx];
         if (!agentIds.has(agentId)) {

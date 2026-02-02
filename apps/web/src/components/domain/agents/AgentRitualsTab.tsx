@@ -276,7 +276,7 @@ export function AgentRitualsTab({ agentId }: AgentRitualsTabProps) {
                   {/* Toggle */}
                   <div className="flex items-center gap-2 ml-4">
                     <Button variant="ghost" size="sm" asChild className="gap-1">
-                      <Link to={`/rituals?ritualId=${encodeURIComponent(ritual.id)}`}>
+                      <Link to="/rituals" search={{ ritualId: ritual.id }}>
                         View
                         <ChevronRight className="h-4 w-4" />
                       </Link>

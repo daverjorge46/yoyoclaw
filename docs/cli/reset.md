@@ -1,17 +1,17 @@
 ---
-summary: "CLI reference for `clawdbrain reset` (reset local state/config)"
+summary: "CLI reference for `openclaw reset` (reset local state/config)"
 read_when:
   - You want to wipe local state while keeping the CLI installed
   - You want a dry-run of what would be removed
+title: "reset"
 ---
 
-# `clawdbrain reset`
+# `openclaw reset`
 
 Reset local config/state (keeps the CLI installed).
 
 ```bash
-clawdbrain reset
-clawdbrain reset --dry-run
-clawdbrain reset --scope config+creds+sessions --yes --non-interactive
+openclaw reset
+openclaw reset --dry-run
+openclaw reset --scope config+creds+sessions --yes --non-interactive
 ```
-

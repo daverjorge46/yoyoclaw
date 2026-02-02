@@ -4,8 +4,24 @@
  */
 
 import { ConversationalAgent, createAgent } from "@clawdbrain/vercel-ai-agent";
-import type { Agent } from "@/lib/api/agents";
+import type { Agent } from "@/stores/useAgentStore";
 import type { ChatMessage } from "@/lib/api/sessions";
+
+/** Tool call shape - compatible with both Vercel AI SDK and gateway ToolCall */
+export interface VercelToolCall {
+  id: string;  // Required to match gateway ToolCall
+  toolCallId?: string;
+  name: string;  // Required to match gateway ToolCall
+  toolName?: string;
+  arguments?: Record<string, unknown>;
+  args?: Record<string, unknown>;
+  // Gateway ToolCall compatibility fields (optional for Vercel AI)
+  status?: "running" | "done" | "error";
+  input?: string;
+  output?: string;
+  duration?: string;
+  progress?: number;
+}
 
 export interface VercelAgentConfig {
   agent: Agent;
@@ -19,7 +35,7 @@ export interface SendMessageOptions {
   sessionKey: string;
   message: string;
   onStream?: (content: string) => void;
-  onToolCall?: (toolCall: any) => void;
+  onToolCall?: (toolCall: VercelToolCall) => void;
   onComplete?: (finalContent: string) => void;
   onError?: (error: Error) => void;
 }
@@ -47,7 +63,7 @@ export class VercelAgentAdapter {
       this.conversationalAgent = createAgent({
         model: modelConfig,
         tools: {}, // TODO: Add tool support
-        systemPrompt: this.config.agent.systemPrompt || undefined,
+        systemPrompt: undefined, // TODO: Add system prompt support
         defaultExecutionConfig: {
           maxSteps: 10,
           stream: false,
@@ -61,20 +77,22 @@ export class VercelAgentAdapter {
 
   private getModelConfig(agent: Agent) {
     // Map gateway provider/model to v5 ModelConfig
-    const provider = agent.provider?.toLowerCase() || "anthropic";
     const model = agent.model || "";
+    const providerFromModel = model.split("/")[0]?.toLowerCase();
+    const provider = providerFromModel || agent.ccsdkProvider?.toLowerCase() || "anthropic";
+    const modelIdFromModel = model.includes("/") ? model.split("/").slice(1).join("/") : model;
 
-    if (provider === "openai" || model.includes("gpt")) {
+    if (provider === "openai" || modelIdFromModel.includes("gpt")) {
       return {
         provider: "openai" as const,
-        modelId: model || "gpt-4-turbo",
+        modelId: modelIdFromModel || "gpt-4-turbo",
       };
     }
 
-    if (provider === "anthropic" || model.includes("claude")) {
+    if (provider === "anthropic" || modelIdFromModel.includes("claude")) {
       return {
         provider: "anthropic" as const,
-        modelId: model || "claude-3-5-sonnet-20241022",
+        modelId: modelIdFromModel || "claude-3-5-sonnet-20241022",
       };
     }
 

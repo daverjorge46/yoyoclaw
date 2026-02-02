@@ -14,7 +14,7 @@ import {
   WhatsAppConfigSheet,
   SlackConfigSheet,
   SignalConfigSheet,
-  iMessageConfigSheet as IMessageConfigSheet,
+  IMessageConfigSheet,
   GenericChannelConfigDialog,
   type ChannelConfig as ChannelConfigType,
   type ChannelId,

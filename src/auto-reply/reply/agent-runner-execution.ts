@@ -1,28 +1,22 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import type { TemplateContext } from "../templating.js";
+import type { VerboseLevel } from "../thinking.js";
+import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import type { FollowupRun } from "./queue.js";
+import type { TypingSignaler } from "./typing-mode.js";
 import { resolveAgentModelFallbacksOverride } from "../../agents/agent-scope.js";
 import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId } from "../../agents/cli-session.js";
-import { createSdkMainAgentRuntime } from "../../agents/main-agent-runtime-factory.js";
-import { isSdkRunnerEnabled } from "../../agents/claude-agent-sdk/sdk-runner.config.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
-import {
-  createPiAgentRuntime,
-  splitRunEmbeddedPiAgentParamsForRuntime,
-} from "../../agents/pi-agent-runtime.js";
-import {
-  isCompactionEndWithoutRetry,
-  isToolStartOrUpdatePhase,
-} from "../../agents/agent-event-checks.js";
 import {
   isCompactionFailureError,
   isContextOverflowError,
   isLikelyContextOverflowError,
   sanitizeUserFacingText,
 } from "../../agents/pi-embedded-helpers.js";
-import type { EmbeddedPiRunResult } from "../../agents/pi-embedded-runner/types.js";
-import type { RunEmbeddedPiAgentParams } from "../../agents/pi-embedded-runner/run/params.js";
+import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import {
   resolveAgentIdFromSessionKey,
   resolveGroupSessionKey,
@@ -38,21 +32,16 @@ import {
   resolveMessageChannel,
 } from "../../utils/message-channel.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
-import type { TemplateContext } from "../templating.js";
-import type { VerboseLevel } from "../thinking.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
-import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { buildThreadingToolContext, resolveEnforceFinalTag } from "./agent-runner-utils.js";
 import { createBlockReplyPayloadKey, type BlockReplyPipeline } from "./block-reply-pipeline.js";
-import type { FollowupRun } from "./queue.js";
 import { parseReplyDirectives } from "./reply-directives.js";
 import { applyReplyTagsToPayload, isRenderablePayload } from "./reply-payloads.js";
-import type { TypingSignaler } from "./typing-mode.js";
 
 export type AgentRunLoopResult =
   | {
       kind: "success";
-      runResult: EmbeddedPiRunResult;
+      runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
       fallbackProvider?: string;
       fallbackModel?: string;
       didLogHeartbeatStrip: boolean;
@@ -103,7 +92,7 @@ export async function runAgentTurnWithFallback(params: {
       isHeartbeat: params.isHeartbeat,
     });
   }
-  let runResult: EmbeddedPiRunResult;
+  let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
   let fallbackProvider = params.followupRun.run.provider;
   let fallbackModel = params.followupRun.run.model;
   let didResetAfterCompactionFailure = false;
@@ -114,7 +103,9 @@ export async function runAgentTurnWithFallback(params: {
         params.followupRun.run.reasoningLevel === "stream" && params.opts?.onReasoningStream
       );
       const normalizeStreamingText = (payload: ReplyPayload): { text?: string; skip: boolean } => {
-        if (!allowPartialStream) return { skip: true };
+        if (!allowPartialStream) {
+          return { skip: true };
+        }
         let text = payload.text;
         if (!params.isHeartbeat && text?.includes("HEARTBEAT_OK")) {
           const stripped = stripHeartbeatToken(text, {
@@ -132,147 +123,25 @@ export async function runAgentTurnWithFallback(params: {
         if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
           return { skip: true };
         }
-        if (!text) return { skip: true };
+        if (!text) {
+          return { skip: true };
+        }
         const sanitized = sanitizeUserFacingText(text);
-        if (!sanitized.trim()) return { skip: true };
+        if (!sanitized.trim()) {
+          return { skip: true };
+        }
         return { text: sanitized, skip: false };
       };
       const handlePartialForTyping = async (payload: ReplyPayload): Promise<string | undefined> => {
         const { text, skip } = normalizeStreamingText(payload);
-        if (skip || !text) return undefined;
+        if (skip || !text) {
+          return undefined;
+        }
         await params.typingSignals.signalTextDelta(text);
         return text;
       };
       const blockReplyPipeline = params.blockReplyPipeline;
       const onToolResult = params.opts?.onToolResult;
-
-      // Check if this agent (main or worker) should use the Claude Code SDK runtime.
-      // For main agent: uses mainRuntime or agents.defaults.runtime
-      // For workers: uses agents.defaults.runtime
-      const agentIdForRuntime = resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey);
-      const useSdkRuntime = isSdkRunnerEnabled(params.followupRun.run.config, agentIdForRuntime);
-      if (useSdkRuntime) {
-        // SDK agent runtime — uses Claude Code's native session management and tools.
-        // Doesn't follow the normal provider/model selection + fallback semantics.
-        params.opts?.onModelSelected?.({
-          provider: "ccsdk",
-          model: "default",
-          thinkLevel: params.followupRun.run.thinkLevel,
-        });
-
-        const groupSession = resolveGroupSessionKey(params.sessionCtx);
-        const threadingContext = buildThreadingToolContext({
-          sessionCtx: params.sessionCtx,
-          config: params.followupRun.run.config,
-          hasRepliedRef: params.opts?.hasRepliedRef,
-        });
-
-        const sdkRuntime = await createSdkMainAgentRuntime({
-          config: params.followupRun.run.config,
-          sessionKey: params.sessionKey,
-          sessionFile: params.followupRun.run.sessionFile,
-          workspaceDir: params.followupRun.run.workspaceDir,
-          agentDir: params.followupRun.run.agentDir,
-          abortSignal: params.opts?.abortSignal,
-          messageProvider: params.sessionCtx.Provider?.trim().toLowerCase() || undefined,
-          agentAccountId: params.sessionCtx.AccountId,
-          messageTo: params.sessionCtx.OriginatingTo ?? params.sessionCtx.To,
-          messageThreadId: params.sessionCtx.MessageThreadId ?? undefined,
-          groupId: groupSession?.id,
-          groupChannel:
-            params.sessionCtx.GroupChannel?.trim() ?? params.sessionCtx.GroupSubject?.trim(),
-          groupSpace: params.sessionCtx.GroupSpace?.trim() ?? undefined,
-          currentChannelId: threadingContext.currentChannelId,
-          currentThreadTs: threadingContext.currentThreadTs,
-          replyToMode: threadingContext.replyToMode,
-          hasRepliedRef: params.opts?.hasRepliedRef,
-          // Use SDK's native session resume instead of client-side history serialization.
-          claudeSessionId: params.getActiveSessionEntry()?.claudeCliSessionId,
-        });
-
-        runResult = await sdkRuntime.run({
-          sessionId: params.followupRun.run.sessionId,
-          sessionKey: params.sessionKey,
-          sessionFile: params.followupRun.run.sessionFile,
-          workspaceDir: params.followupRun.run.workspaceDir,
-          agentDir: params.followupRun.run.agentDir,
-          config: params.followupRun.run.config,
-          prompt: params.commandBody,
-          extraSystemPrompt: params.followupRun.run.extraSystemPrompt,
-          ownerNumbers: params.followupRun.run.ownerNumbers,
-          timeoutMs: params.followupRun.run.timeoutMs,
-          runId,
-          abortSignal: params.opts?.abortSignal,
-          onPartialReply: allowPartialStream
-            ? async (payload) => {
-                const textForTyping = await handlePartialForTyping(payload as ReplyPayload);
-                if (!params.opts?.onPartialReply || textForTyping === undefined) return;
-                await params.opts.onPartialReply({ text: textForTyping });
-              }
-            : undefined,
-          onAssistantMessageStart: async () => {
-            await params.typingSignals.signalMessageStart();
-          },
-          onToolResult: onToolResult
-            ? (payload) => {
-                void (async () => {
-                  const { text, skip } = normalizeStreamingText(payload as ReplyPayload);
-                  if (skip) return;
-                  await params.typingSignals.signalTextDelta(text);
-                  await onToolResult({ text });
-                })().catch((err) => {
-                  logVerbose(`tool result delivery failed: ${String(err)}`);
-                });
-              }
-            : undefined,
-          onAgentEvent: (evt) => {
-            // Forward SDK events into the shared agent event bus.
-            // This keeps server-chat / UIs consistent across runtimes.
-            emitAgentEvent({
-              runId,
-              stream: evt.stream,
-              data: evt.data,
-              sessionKey: params.sessionKey,
-            });
-
-            if (evt.stream === "tool") {
-              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
-              if (isToolStartOrUpdatePhase(phase)) {
-                void params.typingSignals.signalToolStart().catch((err) => {
-                  logVerbose(`tool typing signal failed: ${String(err)}`);
-                });
-              }
-            }
-          },
-        });
-
-        fallbackProvider = runResult.meta.agentMeta?.provider ?? fallbackProvider;
-        fallbackModel = runResult.meta.agentMeta?.model ?? fallbackModel;
-
-        // Persist returned Claude session ID for next resume (native session continuity).
-        const returnedClaudeSessionId = runResult.meta.agentMeta?.claudeSessionId;
-        if (
-          returnedClaudeSessionId &&
-          params.sessionKey &&
-          params.activeSessionStore &&
-          params.storePath
-        ) {
-          const entry = params.getActiveSessionEntry();
-          if (entry && entry.claudeCliSessionId !== returnedClaudeSessionId) {
-            entry.claudeCliSessionId = returnedClaudeSessionId;
-            void updateSessionStore(params.storePath, (store) => {
-              if (store[params.sessionKey!]) {
-                store[params.sessionKey!].claudeCliSessionId = returnedClaudeSessionId;
-              }
-            }).catch((err) => {
-              logVerbose(`Failed to persist Claude session ID: ${String(err)}`);
-            });
-          }
-        }
-
-        break;
-      }
-
       const fallbackResult = await runWithModelFallback({
         cfg: params.followupRun.run.config,
         provider: params.followupRun.run.provider,
@@ -356,12 +225,11 @@ export async function runAgentTurnWithFallback(params: {
                 throw err;
               });
           }
-
           const authProfileId =
             provider === params.followupRun.run.provider
               ? params.followupRun.run.authProfileId
               : undefined;
-          const piParams: RunEmbeddedPiAgentParams = {
+          return runEmbeddedPiAgent({
             sessionId: params.followupRun.run.sessionId,
             sessionKey: params.sessionKey,
             messageProvider: params.sessionCtx.Provider?.trim().toLowerCase() || undefined,
@@ -406,7 +274,9 @@ export async function runAgentTurnWithFallback(params: {
                 params.sessionCtx.Surface,
                 params.sessionCtx.Provider,
               );
-              if (!channel) return "markdown";
+              if (!channel) {
+                return "markdown";
+              }
               return isMarkdownCapableMessageChannel(channel) ? "markdown" : "plain";
             })(),
             bashElevated: params.followupRun.run.bashElevated,
@@ -419,7 +289,9 @@ export async function runAgentTurnWithFallback(params: {
             onPartialReply: allowPartialStream
               ? async (payload) => {
                   const textForTyping = await handlePartialForTyping(payload);
-                  if (!params.opts?.onPartialReply || textForTyping === undefined) return;
+                  if (!params.opts?.onPartialReply || textForTyping === undefined) {
+                    return;
+                  }
                   await params.opts.onPartialReply({
                     text: textForTyping,
                     mediaUrls: payload.mediaUrls,
@@ -444,7 +316,7 @@ export async function runAgentTurnWithFallback(params: {
               // Must await to ensure typing indicator starts before tool summaries are emitted.
               if (evt.stream === "tool") {
                 const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
-                if (isToolStartOrUpdatePhase(phase)) {
+                if (phase === "start" || phase === "update") {
                   await params.typingSignals.signalToolStart();
                 }
               }
@@ -452,7 +324,7 @@ export async function runAgentTurnWithFallback(params: {
               if (evt.stream === "compaction") {
                 const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
                 const willRetry = Boolean(evt.data.willRetry);
-                if (isCompactionEndWithoutRetry(phase, willRetry)) {
+                if (phase === "end" && !willRetry) {
                   autoCompactionCompleted = true;
                 }
               }
@@ -464,7 +336,9 @@ export async function runAgentTurnWithFallback(params: {
               ? async (payload) => {
                   const { text, skip } = normalizeStreamingText(payload);
                   const hasPayloadMedia = (payload.mediaUrls?.length ?? 0) > 0;
-                  if (skip && !hasPayloadMedia) return;
+                  if (skip && !hasPayloadMedia) {
+                    return;
+                  }
                   const currentMessageId =
                     params.sessionCtx.MessageSidFull ?? params.sessionCtx.MessageSid;
                   const taggedPayload = applyReplyTagsToPayload(
@@ -479,7 +353,9 @@ export async function runAgentTurnWithFallback(params: {
                     currentMessageId,
                   );
                   // Let through payloads with audioAsVoice flag even if empty (need to track it)
-                  if (!isRenderablePayload(taggedPayload) && !payload.audioAsVoice) return;
+                  if (!isRenderablePayload(taggedPayload) && !payload.audioAsVoice) {
+                    return;
+                  }
                   const parsed = parseReplyDirectives(taggedPayload.text ?? "", {
                     currentMessageId,
                     silentToken: SILENT_REPLY_TOKEN,
@@ -493,9 +369,12 @@ export async function runAgentTurnWithFallback(params: {
                     !hasRenderableMedia &&
                     !payload.audioAsVoice &&
                     !parsed.audioAsVoice
-                  )
+                  ) {
                     return;
-                  if (parsed.isSilent && !hasRenderableMedia) return;
+                  }
+                  if (parsed.isSilent && !hasRenderableMedia) {
+                    return;
+                  }
 
                   const blockPayload: ReplyPayload = params.applyReplyToMode({
                     ...taggedPayload,
@@ -539,7 +418,9 @@ export async function runAgentTurnWithFallback(params: {
                   // a typing loop that never sees a matching markRunComplete(). Track and drain.
                   const task = (async () => {
                     const { text, skip } = normalizeStreamingText(payload);
-                    if (skip) return;
+                    if (skip) {
+                      return;
+                    }
                     await params.typingSignals.signalTextDelta(text);
                     await onToolResult({
                       text,
@@ -555,9 +436,7 @@ export async function runAgentTurnWithFallback(params: {
                   params.pendingToolTasks.add(task);
                 }
               : undefined,
-          };
-          const { context, run } = splitRunEmbeddedPiAgentParamsForRuntime(piParams);
-          return createPiAgentRuntime(context).run(run);
+          });
         },
       });
       runResult = fallbackResult.result;
@@ -677,7 +556,7 @@ export async function runAgentTurnWithFallback(params: {
         ? "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model."
         : isRoleOrderingError
           ? "⚠️ Message ordering conflict - please try again. If this persists, use /new to start a fresh session."
-          : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: clawdbrain logs --follow`;
+          : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
 
       return {
         kind: "final",

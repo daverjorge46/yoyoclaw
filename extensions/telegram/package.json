@@ -1,9 +1,12 @@
 {
-  "name": "@clawdbrain/telegram",
-  "version": "2026.1.26",
+  "name": "@openclaw/telegram",
+  "version": "2026.1.30",
+  "description": "OpenClaw Telegram channel plugin",
   "type": "module",
-  "description": "Clawdbrain Telegram channel plugin",
-  "clawdbrain": {
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
     "extensions": [
       "./index.ts"
     ]

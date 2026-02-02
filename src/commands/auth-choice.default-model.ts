@@ -1,16 +1,16 @@
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 
 export async function applyDefaultModelChoice(params: {
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
   setDefaultModel: boolean;
   defaultModel: string;
-  applyDefaultConfig: (config: ClawdbrainConfig) => ClawdbrainConfig;
-  applyProviderConfig: (config: ClawdbrainConfig) => ClawdbrainConfig;
+  applyDefaultConfig: (config: OpenClawConfig) => OpenClawConfig;
+  applyProviderConfig: (config: OpenClawConfig) => OpenClawConfig;
   noteDefault?: string;
   noteAgentModel: (model: string) => Promise<void>;
   prompter: WizardPrompter;
-}): Promise<{ config: ClawdbrainConfig; agentModelOverride?: string }> {
+}): Promise<{ config: OpenClawConfig; agentModelOverride?: string }> {
   if (params.setDefaultModel) {
     const next = params.applyDefaultConfig(params.config);
     if (params.noteDefault) {

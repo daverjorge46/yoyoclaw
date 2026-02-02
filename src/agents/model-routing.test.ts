@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 import { resolveModelRoutingSelection } from "./model-routing.js";
 
 describe("model-routing", () => {
@@ -11,7 +10,7 @@ describe("model-routing", () => {
           modelRouting: { enabled: false },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,
@@ -39,7 +38,7 @@ describe("model-routing", () => {
           },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,
@@ -70,7 +69,7 @@ describe("model-routing", () => {
           },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,
@@ -96,7 +95,7 @@ describe("model-routing", () => {
           },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,
@@ -126,7 +125,7 @@ describe("model-routing", () => {
           },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,
@@ -153,7 +152,7 @@ describe("model-routing", () => {
           },
         },
       },
-    } satisfies ClawdbrainConfig;
+    } satisfies OpenClawConfig;
 
     const selection = resolveModelRoutingSelection({
       cfg,

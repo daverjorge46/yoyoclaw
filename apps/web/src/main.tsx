@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
@@ -37,6 +38,17 @@ declare module "@tanstack/react-router" {
   }
 }
 
+// Gateway provider wrapper - defined before render for fast refresh compatibility
+function AppGatewayProviders({ children }: { children: React.ReactNode }) {
+  const useLiveGateway = useUIStore((state) => state.useLiveGateway);
+  const liveMode = (import.meta.env?.DEV ?? false) && useLiveGateway;
+  return (
+    <OpenClawProvider autoConnect={liveMode}>
+      {children}
+    </OpenClawProvider>
+  );
+}
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Root element not found");
@@ -56,13 +68,3 @@ createRoot(rootElement).render(
     </QueryClientProvider>
   </StrictMode>
 );
-
-function AppGatewayProviders({ children }: { children: React.ReactNode }) {
-  const useLiveGateway = useUIStore((state) => state.useLiveGateway);
-  const liveMode = (import.meta.env?.DEV ?? false) && useLiveGateway;
-  return (
-    <OpenClawProvider autoConnect={liveMode}>
-      {children}
-    </OpenClawProvider>
-  );
-}

@@ -359,7 +359,7 @@ export function MemoryDetailPanel({
         title="Delete Memory"
         resource={{
           title: memory.title,
-          subtitle: memory.category ?? "Memory",
+          subtitle: memory.source ?? "Memory",
         }}
         description={`Are you sure you want to delete "${memory.title}"? This action cannot be undone.`}
         confirmLabel="Delete"

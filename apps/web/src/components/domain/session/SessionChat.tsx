@@ -8,14 +8,39 @@ import { useAutoScroll } from "@/hooks/use-auto-scroll";
 import { SessionChatMessage } from "./SessionChatMessage";
 import { SessionChatInput } from "./SessionChatInput";
 import { ChatMessageSkeleton } from "@/components/composed";
-import type { ChatMessage } from "@/lib/api/sessions";
+import type { ChatMessage, ToolCall } from "@/lib/api/sessions";
 import type { StreamingMessage } from "@/stores/useSessionStore";
+import type { VercelToolCall } from "@/integrations/vercel-ai/vercel-agent-adapter";
+import type { VercelChatMessage, VercelStreamingMessage } from "@/stores/useVercelSessionStore";
+
+type IncomingMessage = ChatMessage | VercelChatMessage;
+type IncomingStreamingMessage = StreamingMessage | VercelStreamingMessage;
+
+function isGatewayToolCall(call: ToolCall | VercelToolCall): call is ToolCall {
+  return typeof (call as ToolCall).status === "string";
+}
+
+function normalizeToolCalls(toolCalls: ToolCall[] | VercelToolCall[] | undefined): ToolCall[] | undefined {
+  if (!toolCalls || toolCalls.length === 0) return undefined;
+  return toolCalls.map((call, index) => {
+    if (isGatewayToolCall(call)) return call;
+    const id = call.id ?? call.toolCallId ?? `tool-${index}`;
+    const name = call.name ?? call.toolName ?? "tool";
+    const args = call.arguments ?? call.args;
+    return {
+      id,
+      name,
+      status: "done",
+      input: args ? JSON.stringify(args) : undefined,
+    };
+  });
+}
 
 export interface SessionChatProps {
   /** Chat messages to display */
-  messages: ChatMessage[];
+  messages: ReadonlyArray<IncomingMessage>;
   /** Streaming message state (if currently streaming) */
-  streamingMessage?: StreamingMessage | null;
+  streamingMessage?: IncomingStreamingMessage | null;
   /** Agent name for avatar */
   agentName: string;
   /** Agent status for avatar */
@@ -61,7 +86,10 @@ export function SessionChat({
       agentStatus?: "active" | "ready";
       isStreaming?: boolean;
     }> = messages.map((msg, i) => ({
-      ...msg,
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      toolCalls: normalizeToolCalls(msg.toolCalls),
       id: `msg-${i}`,
       agentName: msg.role === "assistant" ? agentName : undefined,
       agentStatus: msg.role === "assistant" ? agentStatus : undefined,
@@ -72,7 +100,7 @@ export function SessionChat({
       result.push({
         role: "assistant",
         content: streamingMessage.content,
-        toolCalls: streamingMessage.toolCalls,
+        toolCalls: normalizeToolCalls(streamingMessage.toolCalls),
         id: "streaming",
         agentName,
         agentStatus: "active",

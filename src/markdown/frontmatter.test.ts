@@ -1,6 +1,5 @@
 import JSON5 from "json5";
 import { describe, expect, it } from "vitest";
-
 import { parseFrontmatterBlock } from "./frontmatter.js";
 
 describe("parseFrontmatterBlock", () => {
@@ -22,7 +21,7 @@ description: |
 name: session-memory
 metadata:
   {
-    "clawdbrain":
+    "openclaw":
       {
         "emoji": "disk",
         "events": ["command:new"],
@@ -33,18 +32,18 @@ metadata:
     const result = parseFrontmatterBlock(content);
     expect(result.metadata).toBeDefined();
 
-    const parsed = JSON5.parse(result.metadata ?? "") as { clawdbrain?: { emoji?: string } };
-    expect(parsed.clawdbrain?.emoji).toBe("disk");
+    const parsed = JSON5.parse(result.metadata ?? "");
+    expect(parsed.openclaw?.emoji).toBe("disk");
   });
 
   it("preserves inline JSON values", () => {
     const content = `---
 name: inline-json
-metadata: {"clawdbrain": {"events": ["test"]}}
+metadata: {"openclaw": {"events": ["test"]}}
 ---
 `;
     const result = parseFrontmatterBlock(content);
-    expect(result.metadata).toBe('{"clawdbrain": {"events": ["test"]}}');
+    expect(result.metadata).toBe('{"openclaw": {"events": ["test"]}}');
   });
 
   it("stringifies YAML objects and arrays", () => {
@@ -56,7 +55,7 @@ tags:
   - alpha
   - beta
 metadata:
-  clawdbrain:
+  openclaw:
     events:
       - command:new
 ---
@@ -65,8 +64,8 @@ metadata:
     expect(result.enabled).toBe("true");
     expect(result.retries).toBe("3");
     expect(JSON.parse(result.tags ?? "[]")).toEqual(["alpha", "beta"]);
-    const parsed = JSON5.parse(result.metadata ?? "") as { clawdbrain?: { events?: string[] } };
-    expect(parsed.clawdbrain?.events).toEqual(["command:new"]);
+    const parsed = JSON5.parse(result.metadata ?? "");
+    expect(parsed.openclaw?.events).toEqual(["command:new"]);
   });
 
   it("returns empty when frontmatter is missing", () => {

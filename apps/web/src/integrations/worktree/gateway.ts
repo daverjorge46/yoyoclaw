@@ -2,7 +2,6 @@
 
 import type {
   WorktreeAdapter,
-  WorktreeAdapterContext,
   WorktreeDeleteInput,
   WorktreeListResult,
   WorktreeMkdirInput,
@@ -30,7 +29,7 @@ import {
  */
 export function createWorktreeGatewayAdapter(): WorktreeAdapter {
   return {
-    list: async (agentId: string, path: string, _ctx: WorktreeAdapterContext): Promise<WorktreeListResult> => {
+    list: async (agentId: string, path: string): Promise<WorktreeListResult> => {
       const result = await listWorktreeFiles({ agentId, path });
       return {
         path: result.path,
@@ -44,7 +43,7 @@ export function createWorktreeGatewayAdapter(): WorktreeAdapter {
       };
     },
 
-    readFile: async (agentId: string, path: string, _ctx: WorktreeAdapterContext): Promise<WorktreeReadResult> => {
+    readFile: async (agentId: string, path: string): Promise<WorktreeReadResult> => {
       const result = await readWorktreeFile({ agentId, path });
       return {
         path: result.path,
@@ -54,8 +53,7 @@ export function createWorktreeGatewayAdapter(): WorktreeAdapter {
 
     writeFile: async (
       agentId: string,
-      input: WorktreeWriteInput,
-      _ctx: WorktreeAdapterContext
+      input: WorktreeWriteInput
     ): Promise<WorktreeWriteResult> => {
       const result = await writeWorktreeFile({
         agentId,
@@ -68,7 +66,7 @@ export function createWorktreeGatewayAdapter(): WorktreeAdapter {
       };
     },
 
-    move: async (agentId: string, input: WorktreeMoveInput, _ctx: WorktreeAdapterContext): Promise<void> => {
+    move: async (agentId: string, input: WorktreeMoveInput): Promise<void> => {
       await moveWorktreeFile({
         agentId,
         fromPath: input.fromPath,
@@ -76,14 +74,14 @@ export function createWorktreeGatewayAdapter(): WorktreeAdapter {
       });
     },
 
-    delete: async (agentId: string, input: WorktreeDeleteInput, _ctx: WorktreeAdapterContext): Promise<void> => {
+    delete: async (agentId: string, input: WorktreeDeleteInput): Promise<void> => {
       await deleteWorktreeFile({
         agentId,
         path: input.path,
       });
     },
 
-    mkdir: async (agentId: string, input: WorktreeMkdirInput, _ctx: WorktreeAdapterContext): Promise<void> => {
+    mkdir: async (agentId: string, input: WorktreeMkdirInput): Promise<void> => {
       await createWorktreeDir({
         agentId,
         path: input.path,

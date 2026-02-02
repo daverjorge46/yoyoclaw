@@ -1,11 +1,8 @@
-import { html, nothing } from "lit";
-
+import { html } from "lit";
 import type { GatewayHelloOk } from "../gateway";
+import type { UiSettings } from "../storage";
 import { formatAgo, formatDurationMs } from "../format";
 import { formatNextRun } from "../presenter";
-import type { UiSettings } from "../storage";
-import { icon } from "../icons";
-import { hrefForTab } from "../navigation";
 
 export type OverviewProps = {
   connected: boolean;
@@ -18,14 +15,11 @@ export type OverviewProps = {
   cronEnabled: boolean | null;
   cronNext: number | null;
   lastChannelsRefresh: number | null;
-  // New: UI state for collapsible sections
-  showSystemMetrics: boolean;
   onSettingsChange: (next: UiSettings) => void;
   onPasswordChange: (next: string) => void;
   onSessionKeyChange: (next: string) => void;
   onConnect: () => void;
   onRefresh: () => void;
-  onToggleSystemMetrics?: () => void;
 };
 
 export function renderOverview(props: OverviewProps) {
@@ -33,9 +27,7 @@ export function renderOverview(props: OverviewProps) {
     | { uptimeMs?: number; policy?: { tickIntervalMs?: number } }
     | undefined;
   const uptime = snapshot?.uptimeMs ? formatDurationMs(snapshot.uptimeMs) : "n/a";
-  const tick = snapshot?.policy?.tickIntervalMs
-    ? `${snapshot.policy.tickIntervalMs}ms`
-    : "n/a";
+  const tick = snapshot?.policy?.tickIntervalMs ? `${snapshot.policy.tickIntervalMs}ms` : "n/a";
   const authHint = (() => {
     if (props.connected || !props.lastError) return null;
     const lower = props.lastError.toLowerCase();
@@ -45,38 +37,37 @@ export function renderOverview(props: OverviewProps) {
     const hasPassword = Boolean(props.password.trim());
     if (!hasToken && !hasPassword) {
       return html`
-        <div class="muted" style="margin-top: 8px;">
+        <div class="muted" style="margin-top: 8px">
           This gateway requires auth. Add a token or password, then click Connect.
-          <div style="margin-top: 6px;">
-            <span class="mono">clawdbrain dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">clawdbrain doctor --generate-gateway-token</span> → set token
+          <div style="margin-top: 6px">
+            <span class="mono">openclaw dashboard --no-open</span> → tokenized URL<br />
+            <span class="mono">openclaw doctor --generate-gateway-token</span> → set token
           </div>
-          <div style="margin-top: 6px;">
+          <div style="margin-top: 6px">
             <a
               class="session-link"
-              href="https://docs.clawdbrain.bot/web/dashboard"
+              href="https://docs.openclaw.ai/web/dashboard"
               target="_blank"
               rel="noreferrer"
-              title="Web UI auth docs (opens in new tab)"
-              >Docs: Web UI auth</a
+              title="Control UI auth docs (opens in new tab)"
+              >Docs: Control UI auth</a
             >
           </div>
         </div>
       `;
     }
     return html`
-      <div class="muted" style="margin-top: 8px;">
+      <div class="muted" style="margin-top: 8px">
         Auth failed. Re-copy a tokenized URL with
-        <span class="mono">clawdbrain dashboard --no-open</span>, or update the token,
-        then click Connect.
-        <div style="margin-top: 6px;">
+        <span class="mono">openclaw dashboard --no-open</span>, or update the token, then click Connect.
+        <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.clawdbrain.bot/web/dashboard"
+            href="https://docs.openclaw.ai/web/dashboard"
             target="_blank"
             rel="noreferrer"
-            title="Web UI auth docs (opens in new tab)"
-            >Docs: Web UI auth</a
+            title="Control UI auth docs (opens in new tab)"
+            >Docs: Control UI auth</a
           >
         </div>
       </div>
@@ -91,17 +82,17 @@ export function renderOverview(props: OverviewProps) {
       return null;
     }
     return html`
-      <div class="muted" style="margin-top: 8px;">
-        This page is HTTP, so the browser blocks device identity. Use HTTPS (Tailscale Serve) or
-        open <span class="mono">http://127.0.0.1:18789</span> on the gateway host.
-        <div style="margin-top: 6px;">
+      <div class="muted" style="margin-top: 8px">
+        This page is HTTP, so the browser blocks device identity. Use HTTPS (Tailscale Serve) or open
+        <span class="mono">http://127.0.0.1:18789</span> on the gateway host.
+        <div style="margin-top: 6px">
           If you must stay on HTTP, set
-          <span class="mono">gateway.controlUi.allowInsecureAuth: true</span> in the Web UI config (token-only).
+          <span class="mono">gateway.controlUi.allowInsecureAuth: true</span> (token-only).
         </div>
-        <div style="margin-top: 6px;">
+        <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.clawdbrain.bot/gateway/tailscale"
+            href="https://docs.openclaw.ai/gateway/tailscale"
             target="_blank"
             rel="noreferrer"
             title="Tailscale Serve docs (opens in new tab)"
@@ -110,7 +101,7 @@ export function renderOverview(props: OverviewProps) {
           <span class="muted"> · </span>
           <a
             class="session-link"
-            href="https://docs.clawdbrain.bot/web/control-ui#insecure-http"
+            href="https://docs.openclaw.ai/web/control-ui#insecure-http"
             target="_blank"
             rel="noreferrer"
             title="Insecure HTTP docs (opens in new tab)"
@@ -122,312 +113,141 @@ export function renderOverview(props: OverviewProps) {
   })();
 
   return html`
-    <section class="overview-layout">
-      <!-- Primary Status Card -->
-      <div class="card overview-status-card">
-        <div class="overview-status-card__main">
-          <div class="overview-status-card__icon ${props.connected ? "overview-status-card__icon--connected" : "overview-status-card__icon--disconnected"}">
-            ${props.connected
-              ? icon("check", { size: 32 })
-              : icon("alert-circle", { size: 32 })}
-          </div>
-          <div class="overview-status-card__content">
-            <div class="overview-status-card__title">
+    <section class="grid grid-cols-2">
+      <div class="card">
+        <div class="card-title">Gateway Access</div>
+        <div class="card-sub">Where the dashboard connects and how it authenticates.</div>
+        <div class="form-grid" style="margin-top: 16px;">
+          <label class="field">
+            <span>WebSocket URL</span>
+            <input
+              .value=${props.settings.gatewayUrl}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({ ...props.settings, gatewayUrl: v });
+              }}
+              placeholder="ws://100.x.y.z:18789"
+            />
+          </label>
+          <label class="field">
+            <span>Gateway Token</span>
+            <input
+              .value=${props.settings.token}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({ ...props.settings, token: v });
+              }}
+              placeholder="OPENCLAW_GATEWAY_TOKEN"
+            />
+          </label>
+          <label class="field">
+            <span>Password (not stored)</span>
+            <input
+              type="password"
+              .value=${props.password}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onPasswordChange(v);
+              }}
+              placeholder="system or shared password"
+            />
+          </label>
+          <label class="field">
+            <span>Default Session Key</span>
+            <input
+              .value=${props.settings.sessionKey}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSessionKeyChange(v);
+              }}
+            />
+          </label>
+        </div>
+        <div class="row" style="margin-top: 14px;">
+          <button class="btn" @click=${() => props.onConnect()}>Connect</button>
+          <button class="btn" @click=${() => props.onRefresh()}>Refresh</button>
+          <span class="muted">Click Connect to apply connection changes.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Snapshot</div>
+        <div class="card-sub">Latest gateway handshake information.</div>
+        <div class="stat-grid" style="margin-top: 16px;">
+          <div class="stat">
+            <div class="stat-label">Status</div>
+            <div class="stat-value ${props.connected ? "ok" : "warn"}">
               ${props.connected ? "Connected" : "Disconnected"}
             </div>
-            <div class="overview-status-card__subtitle">
-              ${props.connected
-                ? `${props.sessionsCount ?? 0} active sessions`
-                : "Gateway is not connected"}
+          </div>
+          <div class="stat">
+            <div class="stat-label">Uptime</div>
+            <div class="stat-value">${uptime}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Tick Interval</div>
+            <div class="stat-value">${tick}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Last Channels Refresh</div>
+            <div class="stat-value">
+              ${props.lastChannelsRefresh ? formatAgo(props.lastChannelsRefresh) : "n/a"}
             </div>
           </div>
         </div>
-        <div class="overview-status-card__actions">
-          ${!props.connected
-            ? html`<button class="btn btn--primary" @click=${() => props.onConnect()}>
-                ${icon("link", { size: 16 })}
-                <span>Reconnect</span>
-              </button>`
-            : nothing}
-          <button class="btn btn--secondary" @click=${() => props.onRefresh()}>
-            ${icon("refresh-cw", { size: 16 })}
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Quick Actions Card -->
-      <div class="card overview-quick-actions">
-        <div class="card-header">
-          <div class="card-header__icon">${icon("zap", { size: 18 })}</div>
-          <div class="card-title">Quick Actions</div>
-        </div>
-        <div class="overview-quick-actions__grid">
-          <a href="${hrefForTab("sessions")}" class="overview-action-card">
-            <div class="overview-action-card__icon">${icon("file-text", { size: 20 })}</div>
-            <div class="overview-action-card__content">
-              <div class="overview-action-card__title">View Sessions</div>
-              <div class="overview-action-card__desc">${props.sessionsCount ?? 0} active</div>
-            </div>
-          </a>
-          <a href="${hrefForTab("channels")}" class="overview-action-card">
-            <div class="overview-action-card__icon">${icon("link", { size: 20 })}</div>
-            <div class="overview-action-card__content">
-              <div class="overview-action-card__title">Configure Channels</div>
-              <div class="overview-action-card__desc">Link messaging apps</div>
-            </div>
-          </a>
-          <a href="${hrefForTab("logs")}" class="overview-action-card">
-            <div class="overview-action-card__icon">${icon("scroll-text", { size: 20 })}</div>
-            <div class="overview-action-card__content">
-              <div class="overview-action-card__title">View Logs</div>
-              <div class="overview-action-card__desc">Debug issues</div>
-            </div>
-          </a>
-          <a href="${hrefForTab("config")}" class="overview-action-card">
-            <div class="overview-action-card__icon">${icon("settings", { size: 20 })}</div>
-            <div class="overview-action-card__content">
-              <div class="overview-action-card__title">Settings</div>
-              <div class="overview-action-card__desc">Configure gateway</div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <!-- Error Message (if any) - Prioritize auth errors over insecure context -->
-      ${(props.lastError && authHint) || (props.lastError && !insecureContextHint)
-        ? html`<div class="callout callout--danger">
-            <div class="callout__icon">${icon("alert-triangle", { size: 18 })}</div>
-            <div class="callout__content">
+        ${
+          props.lastError
+            ? html`<div class="callout danger" style="margin-top: 14px;">
               <div>${props.lastError}</div>
               ${authHint ?? ""}
-            </div>
-          </div>`
-        : (props.lastError && insecureContextHint)
-          ? html`<div class="callout callout--warning">
-              <div class="callout__icon">${icon("alert-triangle", { size: 18 })}</div>
-              <div class="callout__content">
-                <div>${props.lastError}</div>
-                ${insecureContextHint}
-              </div>
+              ${insecureContextHint ?? ""}
             </div>`
-          : nothing}
-    </section>
-
-    <section class="overview-grid">
-      <!-- Gateway Access Card (simplified) -->
-      <div class="card card--gateway">
-        <div class="card-header">
-          <div class="card-header__icon">${icon("link", { size: 20 })}</div>
-          <div>
-            <div class="card-title">Gateway Access</div>
-            <div class="card-sub">Connection and authentication</div>
-          </div>
-        </div>
-        <div class="form-grid" style="margin-top: 20px;">
-          <label class="field field--modern">
-            <span class="field__label">WebSocket URL</span>
-            <div class="field__input-wrapper">
-              ${icon("server", { size: 16, class: "field__icon" })}
-              <input
-                class="field__input field__input--mono"
-                .value=${props.settings.gatewayUrl}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onSettingsChange({ ...props.settings, gatewayUrl: v });
-                }}
-                placeholder="ws://100.x.y.z:18789"
-              />
-            </div>
-          </label>
-          <label class="field field--modern">
-            <span class="field__label">Gateway Token</span>
-            <div class="field__input-wrapper">
-              ${icon("zap", { size: 16, class: "field__icon" })}
-              <input
-                class="field__input field__input--mono"
-                .value=${props.settings.token}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onSettingsChange({ ...props.settings, token: v });
-                }}
-                placeholder="CLAWDBRAIN_GATEWAY_TOKEN"
-              />
-            </div>
-          </label>
-          <label class="field field--modern">
-            <span class="field__label">Password (not stored)</span>
-            <div class="field__input-wrapper">
-              ${icon("user", { size: 16, class: "field__icon" })}
-              <input
-                class="field__input"
-                type="password"
-                .value=${props.password}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onPasswordChange(v);
-                }}
-                placeholder="system or shared password"
-              />
-            </div>
-          </label>
-          <label class="field field--modern">
-            <span class="field__label">Default Session Key</span>
-            <div class="field__input-wrapper">
-              ${icon("file-text", { size: 16, class: "field__icon" })}
-              <input
-                class="field__input field__input--mono"
-                .value=${props.settings.sessionKey}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onSessionKeyChange(v);
-                }}
-              />
-            </div>
-          </label>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn--primary" @click=${() => props.onConnect()}>
-            ${icon("link", { size: 16 })}
-            <span>Connect</span>
-          </button>
-          <span class="muted">Click Connect to apply changes</span>
-        </div>
-      </div>
-
-      <!-- System Metrics (collapsible) -->
-      <div class="card card--snapshot">
-        <div class="card-header">
-          <div class="card-header__icon">${icon("layout-dashboard", { size: 20 })}</div>
-          <div style="flex: 1;">
-            <div class="card-title">System Metrics</div>
-            <div class="card-sub">Gateway handshake information</div>
-          </div>
-          <button
-            class="card-header__toggle"
-            @click=${() => props.onToggleSystemMetrics?.()}
-            title="${props.showSystemMetrics ? "Hide" : "Show"} system metrics"
-          >
-            ${props.showSystemMetrics
-              ? icon("chevron-up", { size: 18 })
-              : icon("chevron-down", { size: 18 })}
-          </button>
-        </div>
-        ${props.showSystemMetrics
-          ? html`<div class="stat-grid stat-grid--compact" style="margin-top: 20px;">
-              <div class="stat stat--modern ${props.connected ? "stat--ok" : "stat--warn"}">
-                <div class="stat__icon">
-                  ${props.connected
-                    ? icon("check", { size: 18 })
-                    : icon("alert-circle", { size: 18 })}
+            : html`
+                <div class="callout" style="margin-top: 14px">
+                  Use Channels to link WhatsApp, Telegram, Discord, Signal, or iMessage.
                 </div>
-                <div class="stat__content">
-                  <div class="stat-label">Status</div>
-                  <div class="stat-value">
-                    ${props.connected ? "Connected" : "Disconnected"}
-                  </div>
-                </div>
-              </div>
-              <div class="stat stat--modern">
-                <div class="stat__icon">${icon("clock", { size: 18 })}</div>
-                <div class="stat__content">
-                  <div class="stat-label">Uptime</div>
-                  <div class="stat-value">${uptime}</div>
-                </div>
-              </div>
-              <div class="stat stat--modern">
-                <div class="stat__icon">${icon("zap", { size: 18 })}</div>
-                <div class="stat__content">
-                  <div class="stat-label">Tick Interval</div>
-                  <div class="stat-value">${tick}</div>
-                </div>
-              </div>
-              <div class="stat stat--modern">
-                <div class="stat__icon">${icon("refresh-cw", { size: 18 })}</div>
-                <div class="stat__content">
-                  <div class="stat-label">Last Refresh</div>
-                  <div class="stat-value">
-                    ${props.lastChannelsRefresh
-                      ? formatAgo(props.lastChannelsRefresh)
-                      : "n/a"}
-                  </div>
-                </div>
-              </div>
-            </div>`
-          : nothing}
-        ${!props.lastError && !props.showSystemMetrics
-          ? html`<div class="callout callout--info" style="margin-top: 16px;">
-              <div class="callout__icon">${icon("info", { size: 18 })}</div>
-              <div class="callout__content">
-                Use Channels to link WhatsApp, Telegram, Discord, Signal, or iMessage.
-              </div>
-            </div>`
-          : nothing}
+              `
+        }
       </div>
     </section>
 
-    <section class="overview-stats">
-      <div class="stat-card stat-card--large">
-        <div class="stat-card__icon">${icon("radio", { size: 24 })}</div>
-        <div class="stat-card__value">${props.presenceCount}</div>
-        <div class="stat-card__label">Instances</div>
-        <div class="stat-card__desc">Presence beacons in the last 5 minutes</div>
+    <section class="grid grid-cols-3" style="margin-top: 18px;">
+      <div class="card stat-card">
+        <div class="stat-label">Instances</div>
+        <div class="stat-value">${props.presenceCount}</div>
+        <div class="muted">Presence beacons in the last 5 minutes.</div>
       </div>
-      <div class="stat-card stat-card--large">
-        <div class="stat-card__icon">${icon("file-text", { size: 24 })}</div>
-        <div class="stat-card__value">${props.sessionsCount ?? "n/a"}</div>
-        <div class="stat-card__label">Sessions</div>
-        <div class="stat-card__desc">Recent session keys tracked by gateway</div>
+      <div class="card stat-card">
+        <div class="stat-label">Sessions</div>
+        <div class="stat-value">${props.sessionsCount ?? "n/a"}</div>
+        <div class="muted">Recent session keys tracked by the gateway.</div>
       </div>
-      <div class="stat-card stat-card--large ${props.cronEnabled ? "stat-card--active" : ""}">
-        <div class="stat-card__icon">${icon("clock", { size: 24 })}</div>
-        <div class="stat-card__value">
-          ${props.cronEnabled == null
-            ? "n/a"
-            : props.cronEnabled
-              ? "Enabled"
-              : "Disabled"}
+      <div class="card stat-card">
+        <div class="stat-label">Cron</div>
+        <div class="stat-value">
+          ${props.cronEnabled == null ? "n/a" : props.cronEnabled ? "Enabled" : "Disabled"}
         </div>
-        <div class="stat-card__label">Cron</div>
-        <div class="stat-card__desc">Next wake ${formatNextRun(props.cronNext)}</div>
+        <div class="muted">Next wake ${formatNextRun(props.cronNext)}</div>
       </div>
     </section>
 
-    <section class="card card--notes">
-      <div class="card-header">
-        <div class="card-header__icon">${icon("book-open", { size: 20 })}</div>
+    <section class="card" style="margin-top: 18px;">
+      <div class="card-title">Notes</div>
+      <div class="card-sub">Quick reminders for remote control setups.</div>
+      <div class="note-grid" style="margin-top: 14px;">
         <div>
-          <div class="card-title">Quick Tips</div>
-          <div class="card-sub">Reminders for remote control setups</div>
-        </div>
-      </div>
-      <div class="notes-grid">
-        <div class="note-card">
-          <div class="note-card__icon">${icon("server", { size: 18 })}</div>
-          <div class="note-card__content">
-            <div class="note-card__title">Tailscale Serve</div>
-            <div class="note-card__desc">
-              Prefer serve mode to keep the gateway on loopback with tailnet auth.
-            </div>
+          <div class="note-title">Tailscale serve</div>
+          <div class="muted">
+            Prefer serve mode to keep the gateway on loopback with tailnet auth.
           </div>
         </div>
-        <div class="note-card">
-          <div class="note-card__icon">${icon("file-text", { size: 18 })}</div>
-          <div class="note-card__content">
-            <div class="note-card__title">Session Hygiene</div>
-            <div class="note-card__desc">
-              Use /new or sessions.patch to reset context.
-            </div>
-          </div>
+        <div>
+          <div class="note-title">Session hygiene</div>
+          <div class="muted">Use /new or sessions.patch to reset context.</div>
         </div>
-        <div class="note-card">
-          <div class="note-card__icon">${icon("clock", { size: 18 })}</div>
-          <div class="note-card__content">
-            <div class="note-card__title">Cron Reminders</div>
-            <div class="note-card__desc">
-              Use isolated sessions for recurring runs.
-            </div>
-          </div>
+        <div>
+          <div class="note-title">Cron reminders</div>
+          <div class="muted">Use isolated sessions for recurring runs.</div>
         </div>
       </div>
     </section>

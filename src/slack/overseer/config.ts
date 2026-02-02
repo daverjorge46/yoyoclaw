@@ -2,7 +2,7 @@
  * Configuration resolution for Slack Overseer integration.
  */
 
-import type { ClawdbrainConfig } from "../../config/types.js";
+import type { OpenClawConfig } from "../../config/types.js";
 import type { SlackOverseerConfig } from "../../config/types.slack.js";
 import { resolveSlackAccount } from "../accounts.js";
 
@@ -21,7 +21,7 @@ export type ResolvedSlackOverseerConfig = {
 const DEFAULT_DECISION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 export function resolveSlackOverseerConfig(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   accountId?: string,
 ): ResolvedSlackOverseerConfig | null {
   const account = resolveSlackAccount({ cfg, accountId });
@@ -45,7 +45,7 @@ export function resolveSlackOverseerConfig(
 }
 
 export function resolveDashboardUrl(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   params?: {
     agentId?: string;
     goalId?: string;

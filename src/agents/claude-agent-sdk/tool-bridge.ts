@@ -19,9 +19,6 @@
 
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import * as z from "zod/v4";
-
-import { logDebug, logError } from "../../logger.js";
-import { normalizeToolName } from "../tool-policy.js";
 import type { AnyAgentTool } from "../tools/common.js";
 import type {
   McpCallToolResult,
@@ -31,6 +28,8 @@ import type {
   McpServerLike,
   McpToolHandlerExtra,
 } from "./tool-bridge.types.js";
+import { logDebug, logError } from "../../logger.js";
+import { normalizeToolName } from "../tool-policy.js";
 
 // ---------------------------------------------------------------------------
 // Schema conversion: TypeBox → JSON Schema (passthrough)
@@ -228,6 +227,7 @@ async function loadMcpServerClass(): Promise<McpServerConstructor> {
     throw new Error(
       `Failed to load MCP SDK. Ensure @modelcontextprotocol/sdk is installed ` +
         `(required for Claude Agent SDK tool bridging).\n\nError: ${message}`,
+      { cause: err },
     );
   }
 }

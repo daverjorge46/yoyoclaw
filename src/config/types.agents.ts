@@ -110,6 +110,21 @@ export type AgentsConfig = {
        */
       thinkingBudget?: SdkThinkingBudgetTier;
       /**
+       * Model mappings for Claude Code SDK thinking tiers.
+       * Maps shorthand keys ("opus", "sonnet", "haiku") to full model identifiers.
+       * These are passed as environment variables to the SDK:
+       * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+       * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+       * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+       * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+       */
+      models?: {
+        opus?: string;
+        sonnet?: string;
+        haiku?: string;
+        subagent?: string;
+      };
+      /**
        * Additional SDK `query({ options })` fields to pass through.
        *
        * NOTE: Clawdbrain still controls tool bridging (`mcpServers`, `allowedTools`, etc.).

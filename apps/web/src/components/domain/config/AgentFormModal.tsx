@@ -35,8 +35,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useModels } from "@/hooks/queries/useModels";
+import type { ModelEntry } from "@/lib/api";
 import type { Agent, AgentStatus } from "@/stores/useAgentStore";
 import type { Workspace } from "@/stores/useWorkspaceStore";
+
+// Stable empty array for fallback (avoids new reference each render)
+const EMPTY_MODELS: ModelEntry[] = [];
 
 // Avatar color options
 const AVATAR_COLORS = [
@@ -101,7 +105,7 @@ export function AgentFormModal({
 }: AgentFormModalProps) {
   const isEditing = !!agent;
   const { data: modelsData, isLoading: modelsLoading } = useModels();
-  const models = modelsData?.models ?? [];
+  const models = modelsData?.models ?? EMPTY_MODELS;
   const modelIndex = React.useMemo(
     () => new Map(models.map((model) => [model.id, model])),
     [models]

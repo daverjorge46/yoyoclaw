@@ -23,6 +23,9 @@ import { WizardSteps } from "@/components/composed/WizardSteps";
 import { channelIconMap, channelColorMap } from "./icons";
 import type { ChannelConfig, RelayProvider } from "./types";
 
+// Stable empty array for fallback (avoids new reference each render)
+const EMPTY_FIELDS: FieldConfig[] = [];
+
 interface FieldConfig {
   name: string;
   label: string;
@@ -118,7 +121,7 @@ export function GenericChannelConfigDialog({
   }, [authModes, fields]);
 
   const activeAuthMode = resolvedAuthModes.find((mode) => mode.id === selectedAuthMode) ?? resolvedAuthModes[0];
-  const accessFields = activeAuthMode?.fields ?? [];
+  const accessFields = activeAuthMode?.fields ?? EMPTY_FIELDS;
   const steps = React.useMemo(() => {
     const list = ["Access"];
     if (behaviorFields.length > 0) list.push("Behavior");

@@ -1,10 +1,9 @@
 import { Type } from "@sinclair/typebox";
-
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { AnyAgentTool } from "./common.js";
 import { buildCodingTaskSdkOptions } from "../claude-agent-sdk/coding-task-options.js";
 import { extractTextFromClaudeAgentSdkEvent } from "../claude-agent-sdk/extract.js";
 import { loadClaudeAgentSdk } from "../claude-agent-sdk/sdk.js";
-import type { AnyAgentTool } from "./common.js";
 import { readStringParam } from "./common.js";
 
 const CodingTaskToolSchema = Type.Object({
@@ -29,12 +28,12 @@ async function coerceAsyncIterable(value: unknown): Promise<AsyncIterable<unknow
   throw new Error("Claude Agent SDK query did not return an async iterable");
 }
 
-function resolveCodingTaskEnabled(cfg?: ClawdbrainConfig): boolean {
+function resolveCodingTaskEnabled(cfg?: OpenClawConfig): boolean {
   return cfg?.tools?.codingTask?.enabled === true;
 }
 
 export function createCodingTaskTool(opts?: {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   workspaceDir?: string;
 }): AnyAgentTool {
   return {

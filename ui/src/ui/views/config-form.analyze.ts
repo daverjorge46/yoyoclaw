@@ -42,15 +42,12 @@ function normalizeSchemaNode(
   if (schema.anyOf || schema.oneOf || schema.allOf) {
     const union = normalizeUnion(schema, path);
     if (union) return union;
-    // renderNode handles unresolvable unions via a JSON textarea fallback,
-    // so don't mark them as unsupported — let the form render them.
-    return { schema, unsupportedPaths: [] };
+    return { schema, unsupportedPaths: [pathLabel] };
   }
 
   const nullable = Array.isArray(schema.type) && schema.type.includes("null");
   const type =
-    schemaType(schema) ??
-    (schema.properties || schema.additionalProperties ? "object" : undefined);
+    schemaType(schema) ?? (schema.properties || schema.additionalProperties ? "object" : undefined);
   normalized.type = type ?? schema.type;
   normalized.nullable = nullable || schema.nullable;
 
@@ -72,48 +69,24 @@ function normalizeSchemaNode(
     normalized.properties = normalizedProps;
 
     if (schema.additionalProperties === true) {
-      // Only mark as unsupported if there are no known properties to render
-      if (Object.keys(properties).length === 0) {
-        unsupported.add(pathLabel);
-      }
+      unsupported.add(pathLabel);
     } else if (schema.additionalProperties === false) {
       normalized.additionalProperties = false;
-    } else if (
-      schema.additionalProperties &&
-      typeof schema.additionalProperties === "object"
-    ) {
+    } else if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
       if (!isAnySchema(schema.additionalProperties as JsonSchema)) {
-        const res = normalizeSchemaNode(
-          schema.additionalProperties as JsonSchema,
-          [...path, "*"],
-        );
-        normalized.additionalProperties =
-          res.schema ?? (schema.additionalProperties as JsonSchema);
-        // Propagate nested unsupported paths individually rather than
-        // blocking the whole object. Map entry values that are unsupported
-        // will render their own fallback (JSON textarea).
-        for (const p of res.unsupportedPaths) unsupported.add(p);
+        const res = normalizeSchemaNode(schema.additionalProperties as JsonSchema, [...path, "*"]);
+        normalized.additionalProperties = res.schema ?? (schema.additionalProperties as JsonSchema);
+        if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
       }
     }
   } else if (type === "array") {
-    const itemsSchema = Array.isArray(schema.items)
-      ? schema.items[0]
-      : schema.items;
+    const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items;
     if (!itemsSchema) {
       unsupported.add(pathLabel);
     } else {
       const res = normalizeSchemaNode(itemsSchema, [...path, "*"]);
       normalized.items = res.schema ?? itemsSchema;
-      const itemPathLabel = pathKey([...path, "*"]);
-      if (res.unsupportedPaths.some((p) => p === itemPathLabel)) {
-        // Items schema itself is entirely unsupported — can't render items
-        unsupported.add(pathLabel);
-      } else {
-        // Only nested fields within items are unsupported — propagate them
-        // individually so the array renders and nested fields show their
-        // own error messages or JSON textarea fallbacks.
-        for (const p of res.unsupportedPaths) unsupported.add(p);
-      }
+      if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
     }
   } else if (
     type !== "string" &&
@@ -131,63 +104,11 @@ function normalizeSchemaNode(
   };
 }
 
-function mergeAllOf(
-  schema: JsonSchema,
-  path: Array<string | number>,
-): ConfigSchemaAnalysis | null {
-  const entries = schema.allOf;
-  if (!entries || entries.length === 0) return null;
-
-  // Simple case: single entry in allOf
-  if (entries.length === 1 && entries[0]) {
-    return normalizeSchemaNode({ ...schema, ...entries[0], allOf: undefined }, path);
-  }
-
-  // Try to merge object schemas
-  const mergedProps: Record<string, JsonSchema> = {};
-  let mergedType: string | undefined;
-
-  for (const entry of entries) {
-    if (!entry || typeof entry !== "object") continue;
-
-    const entryType = schemaType(entry);
-    if (entryType === "object" || entry.properties) {
-      mergedType = "object";
-      if (entry.properties) {
-        for (const [key, prop] of Object.entries(entry.properties)) {
-          mergedProps[key] = prop;
-        }
-      }
-    } else if (entryType) {
-      // Non-object type in allOf - can't merge incompatible types
-      if (mergedType && mergedType !== entryType) return null;
-      mergedType = entryType;
-    }
-  }
-
-  if (mergedType === "object" && Object.keys(mergedProps).length > 0) {
-    const merged: JsonSchema = {
-      ...schema,
-      type: "object",
-      properties: mergedProps,
-      allOf: undefined,
-    };
-    return normalizeSchemaNode(merged, path);
-  }
-
-  return null;
-}
-
 function normalizeUnion(
   schema: JsonSchema,
   path: Array<string | number>,
 ): ConfigSchemaAnalysis | null {
-  if (schema.allOf) {
-    // Try to merge allOf into a single object schema
-    const merged = mergeAllOf(schema, path);
-    if (merged) return merged;
-    return null;
-  }
+  if (schema.allOf) return null;
   const union = schema.anyOf ?? schema.oneOf;
   if (!union) return null;
 

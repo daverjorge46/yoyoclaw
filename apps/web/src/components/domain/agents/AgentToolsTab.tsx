@@ -21,7 +21,7 @@ import {
 import {
   getAllToolsets,
   getToolsetById,
-} from "@/components/domain/settings/ToolsetsSection";
+} from "@/components/domain/settings/toolsets-utils";
 import { useToolsetsStore } from "@/stores";
 
 interface AgentToolsTabProps {

@@ -1,11 +1,11 @@
 import type { Server as HttpServer } from "node:http";
 import type { WebSocketServer } from "ws";
 import type { CanvasHostHandler, CanvasHostServer } from "../canvas-host/server.js";
-import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
-import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import type { OverseerRunner } from "../infra/overseer/runner.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
+import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
+import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 
 export function createGatewayCloseHandler(params: {
   bonjourStop: (() => Promise<void>) | null;
@@ -17,7 +17,7 @@ export function createGatewayCloseHandler(params: {
   pluginCronJobs?: { stop: () => void }[];
   cron: { stop: () => void };
   heartbeatRunner: HeartbeatRunner;
-  overseerRunner: OverseerRunner;
+  overseerRunner?: OverseerRunner | null;
   nodePresenceTimers: Map<string, ReturnType<typeof setInterval>>;
   broadcast: (event: string, payload: unknown, opts?: { dropIfSlow?: boolean }) => void;
   tickInterval: ReturnType<typeof setInterval>;
@@ -82,7 +82,9 @@ export function createGatewayCloseHandler(params: {
     await stopGmailWatcher();
     params.cron.stop();
     params.heartbeatRunner.stop();
-    params.overseerRunner.stop();
+    if (params.overseerRunner) {
+      params.overseerRunner.stop();
+    }
     for (const timer of params.nodePresenceTimers.values()) {
       clearInterval(timer);
     }

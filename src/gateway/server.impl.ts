@@ -1,11 +1,13 @@
-import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import { initSubagentRegistry } from "../agents/subagent-registry.js";
-import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
 import type { CanvasHostServer } from "../canvas-host/server.js";
-import { Cron } from "croner";
+import type { PluginServicesHandle } from "../plugins/services.js";
+import type { RuntimeEnv } from "../runtime.js";
+import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
+import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
+import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
+import { initSubagentRegistry } from "../agents/subagent-registry.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
-import { createDefaultDeps } from "../cli/deps.js";
 import { formatCliCommand } from "../cli/command-format.js";
+import { createDefaultDeps } from "../cli/deps.js";
 import {
   CONFIG_PATH,
   isNixMode,
@@ -14,33 +16,52 @@ import {
   readConfigFileSnapshot,
   writeConfigFile,
 } from "../config/config.js";
-import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
-import { logAcceptedEnvOption } from "../infra/env.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
+import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
+import { logAcceptedEnvOption } from "../infra/env.js";
+import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner } from "../infra/heartbeat-runner.js";
-import { startOverseerRunner } from "../infra/overseer/runner.js";
-import {
-  startOverseerContinuationBridge,
-  stopOverseerContinuationBridge,
-} from "../infra/overseer/continuation-bridge.js";
-import { resolveOverseerStorePath } from "../infra/overseer/store.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
-import { ensureClawdbrainCliOnPath } from "../infra/path-env.js";
+import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { setGatewaySigusr1RestartPolicy } from "../infra/restart.js";
 import {
   primeRemoteSkillsCache,
   refreshRemoteBinsForConnectedNodes,
   setSkillsRemoteRegistry,
 } from "../infra/skills-remote.js";
 import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
-import { setGatewaySigusr1RestartPolicy } from "../infra/restart.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
-import type { PluginServicesHandle } from "../plugins/services.js";
-import type { RuntimeEnv } from "../runtime.js";
 import { runOnboardingWizard } from "../wizard/onboarding.js";
 import { startGatewayConfigReloader } from "./config-reload.js";
+import { ExecApprovalManager } from "./exec-approval-manager.js";
+import { NodeRegistry } from "./node-registry.js";
+import { createChannelManager } from "./server-channels.js";
+import { createAgentEventHandler } from "./server-chat.js";
+import { createGatewayCloseHandler } from "./server-close.js";
+import { buildGatewayCronService } from "./server-cron.js";
+import { startGatewayDiscovery } from "./server-discovery-runtime.js";
+import { applyGatewayLaneConcurrency } from "./server-lanes.js";
+import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
+import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
+import { coreGatewayHandlers } from "./server-methods.js";
+import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
+import { safeParseJson } from "./server-methods/nodes.helpers.js";
+import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
+import { loadGatewayModelCatalog } from "./server-model-catalog.js";
+import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
+import { loadGatewayPlugins } from "./server-plugins.js";
+import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
+import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
+import { createGatewayRuntimeState } from "./server-runtime-state.js";
+import { resolveSessionKeyForRun } from "./server-session-key.js";
+import { logGatewayStartup } from "./server-startup-log.js";
+import { startGatewaySidecars } from "./server-startup.js";
+import { startGatewayTailscaleExposure } from "./server-tailscale.js";
+import { createWizardSessionTracker } from "./server-wizard-sessions.js";
+import { attachGatewayWsHandlers } from "./server-ws-runtime.js";
 import {
   getHealthCache,
   getHealthVersion,
@@ -48,40 +69,11 @@ import {
   incrementPresenceVersion,
   refreshGatewayHealthSnapshot,
 } from "./server/health-state.js";
-import { startGatewayDiscovery } from "./server-discovery-runtime.js";
-import { ExecApprovalManager } from "./exec-approval-manager.js";
-import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
-import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
-import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
-import { createChannelManager } from "./server-channels.js";
-import { createAgentEventHandler } from "./server-chat.js";
-import { createGatewayCloseHandler } from "./server-close.js";
-import { buildGatewayCronService } from "./server-cron.js";
-import { buildGatewayAutomationsService } from "./server-automations.js";
-import { applyGatewayLaneConcurrency } from "./server-lanes.js";
-import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
-import { coreGatewayHandlers } from "./server-methods.js";
-import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
-import { loadGatewayModelCatalog } from "./server-model-catalog.js";
-import { NodeRegistry } from "./node-registry.js";
-import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
-import { safeParseJson } from "./server-methods/nodes.helpers.js";
-import { loadGatewayPlugins } from "./server-plugins.js";
-import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
-import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
-import { createGatewayRuntimeState } from "./server-runtime-state.js";
-import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
-import { resolveSessionKeyForRun } from "./server-session-key.js";
-import { startGatewaySidecars } from "./server-startup.js";
-import { logGatewayStartup } from "./server-startup-log.js";
-import { startGatewayTailscaleExposure } from "./server-tailscale.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
-import { createWizardSessionTracker } from "./server-wizard-sessions.js";
-import { attachGatewayWsHandlers } from "./server-ws-runtime.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
-ensureClawdbrainCliOnPath();
+ensureOpenClawCliOnPath();
 
 const log = createSubsystemLogger("gateway");
 const logCanvas = log.child("canvas");
@@ -91,7 +83,6 @@ const logChannels = log.child("channels");
 const logBrowser = log.child("browser");
 const logHealth = log.child("health");
 const logCron = log.child("cron");
-const logAutomations = log.child("automations");
 const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
@@ -158,13 +149,13 @@ export async function startGatewayServer(
   opts: GatewayServerOptions = {},
 ): Promise<GatewayServer> {
   // Ensure all default port derivations (browser/canvas) see the actual runtime port.
-  process.env.CLAWDBRAIN_GATEWAY_PORT = String(port);
+  process.env.OPENCLAW_GATEWAY_PORT = String(port);
   logAcceptedEnvOption({
-    key: "CLAWDBRAIN_RAW_STREAM",
+    key: "OPENCLAW_RAW_STREAM",
     description: "raw stream logging enabled",
   });
   logAcceptedEnvOption({
-    key: "CLAWDBRAIN_RAW_STREAM_PATH",
+    key: "OPENCLAW_RAW_STREAM_PATH",
     description: "raw stream log path override",
   });
 
@@ -178,7 +169,7 @@ export async function startGatewayServer(
     const { config: migrated, changes } = migrateLegacyConfig(configSnapshot.parsed);
     if (!migrated) {
       throw new Error(
-        `Legacy config entries detected but auto-migration failed. Run "${formatCliCommand("clawdbrain doctor")}" to migrate.`,
+        `Legacy config entries detected but auto-migration failed. Run "${formatCliCommand("openclaw doctor")}" to migrate.`,
       );
     }
     await writeConfigFile(migrated);
@@ -200,7 +191,7 @@ export async function startGatewayServer(
             .join("\n")
         : "Unknown validation issue.";
     throw new Error(
-      `Invalid config at ${configSnapshot.path}.\n${issues}\nRun "${formatCliCommand("clawdbrain doctor")}" to repair, then retry.`,
+      `Invalid config at ${configSnapshot.path}.\n${issues}\nRun "${formatCliCommand("openclaw doctor")}" to repair, then retry.`,
     );
   }
 
@@ -344,13 +335,6 @@ export async function startGatewayServer(
   });
   let { cron, storePath: cronStorePath } = cronState;
 
-  let automationsState = buildGatewayAutomationsService({
-    cfg: cfgAtStart,
-    deps,
-    broadcast,
-  });
-  let { automations, artifactStorage, storePath: automationsStorePath } = automationsState;
-
   const channelManager = createChannelManager({
     loadConfig,
     channelLogs,
@@ -367,6 +351,7 @@ export async function startGatewayServer(
       ? { enabled: true, fingerprintSha256: gatewayTls.fingerprintSha256 }
       : undefined,
     wideAreaDiscoveryEnabled: cfgAtStart.discovery?.wideArea?.enabled === true,
+    wideAreaDiscoveryDomain: cfgAtStart.discovery?.wideArea?.domain,
     tailscaleMode,
     mdnsMode: cfgAtStart.discovery?.mdns?.mode,
     logDiscovery,
@@ -381,8 +366,12 @@ export async function startGatewayServer(
   let skillsRefreshTimer: ReturnType<typeof setTimeout> | null = null;
   const skillsRefreshDelayMs = 30_000;
   const skillsChangeUnsub = registerSkillsChangeListener((event) => {
-    if (event.reason === "remote-node") return;
-    if (skillsRefreshTimer) clearTimeout(skillsRefreshTimer);
+    if (event.reason === "remote-node") {
+      return;
+    }
+    if (skillsRefreshTimer) {
+      clearTimeout(skillsRefreshTimer);
+    }
     skillsRefreshTimer = setTimeout(() => {
       skillsRefreshTimer = null;
       const latest = loadConfig();
@@ -424,62 +413,7 @@ export async function startGatewayServer(
 
   let heartbeatRunner = startHeartbeatRunner({ cfg: cfgAtStart });
 
-  // Start Overseer runner with hooks that relay to continuation bridge
-  let overseerRunner = startOverseerRunner({
-    cfg: cfgAtStart,
-    hooks: {
-      onAssignmentStalled: (assignment) => {
-        log.debug(`Overseer assignment stalled: ${assignment.assignmentId}`);
-      },
-      onAssignmentActive: (assignment) => {
-        log.debug(`Overseer assignment active: ${assignment.assignmentId}`);
-      },
-      onAssignmentDone: (assignment) => {
-        log.debug(`Overseer assignment done: ${assignment.assignmentId}`);
-      },
-    },
-  });
-
-  // Start continuation bridge if Overseer is enabled
-  if (cfgAtStart.overseer?.enabled) {
-    startOverseerContinuationBridge({
-      storePath: resolveOverseerStorePath(cfgAtStart),
-      autoTriggerTick: true,
-      hooks: {
-        onTurnIssue: ({ event: _event, assignment, issue }) => {
-          log.debug(
-            `Overseer turn issue: ${issue} for assignment ${assignment?.assignmentId ?? "unknown"}`,
-          );
-        },
-        onAssignmentActivity: ({ assignment, source }) => {
-          log.debug(`Overseer activity from ${source}: ${assignment.assignmentId}`);
-        },
-      },
-    });
-  }
-
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
-
-  const runningPluginCronJobs: Cron[] = [];
-  for (const plugin of pluginRegistry.plugins) {
-    if (plugin.status !== "loaded") continue;
-    for (const job of plugin.cronJobs) {
-      try {
-        logCron.info(`scheduling plugin cron job: ${plugin.id}:${job.id} (${job.schedule})`);
-        const instance = new Cron(job.schedule, async () => {
-          try {
-            logCron.debug(`running plugin cron job: ${plugin.id}:${job.id}`);
-            await job.handler();
-          } catch (err) {
-            logCron.error(`plugin cron job failed: ${plugin.id}:${job.id}: ${String(err)}`);
-          }
-        });
-        runningPluginCronJobs.push(instance);
-      } catch (err) {
-        logCron.error(`failed to schedule plugin cron job: ${plugin.id}:${job.id}: ${String(err)}`);
-      }
-    }
-  }
 
   const execApprovalManager = new ExecApprovalManager();
   const execApprovalForwarder = createExecApprovalForwarder();
@@ -511,9 +445,6 @@ export async function startGatewayServer(
       deps,
       cron,
       cronStorePath,
-      automations,
-      automationsStorePath,
-      artifactStorage,
       loadGatewayModelCatalog,
       getHealthCache,
       refreshHealthSnapshot: refreshGatewayHealthSnapshot,
@@ -546,7 +477,6 @@ export async function startGatewayServer(
       markChannelLoggedOut,
       wizardRunner,
       broadcastVoiceWakeChanged,
-      overseerRunner,
     },
   });
   logGatewayStartup({
@@ -586,22 +516,15 @@ export async function startGatewayServer(
     getState: () => ({
       hooksConfig,
       heartbeatRunner,
-      overseerRunner,
       cronState,
-      automationsState,
       browserControl,
     }),
     setState: (nextState) => {
       hooksConfig = nextState.hooksConfig;
       heartbeatRunner = nextState.heartbeatRunner;
-      overseerRunner = nextState.overseerRunner;
       cronState = nextState.cronState;
       cron = cronState.cron;
       cronStorePath = cronState.storePath;
-      automationsState = nextState.automationsState;
-      automations = automationsState.automations;
-      artifactStorage = automationsState.artifactStorage;
-      automationsStorePath = automationsState.storePath;
       browserControl = nextState.browserControl;
     },
     startChannel,
@@ -610,7 +533,6 @@ export async function startGatewayServer(
     logBrowser,
     logChannels,
     logCron,
-    logAutomations,
     logReload,
   });
 
@@ -634,10 +556,8 @@ export async function startGatewayServer(
     canvasHostServer,
     stopChannel,
     pluginServices,
-    pluginCronJobs: runningPluginCronJobs,
     cron,
     heartbeatRunner,
-    overseerRunner,
     nodePresenceTimers,
     broadcast,
     tickInterval,
@@ -664,7 +584,6 @@ export async function startGatewayServer(
         skillsRefreshTimer = null;
       }
       skillsChangeUnsub();
-      stopOverseerContinuationBridge();
       await close(opts);
     },
   };

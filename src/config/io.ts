@@ -1,16 +1,16 @@
+import JSON5 from "json5";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
-import JSON5 from "json5";
-
+import type { OpenClawConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
 import {
   loadShellEnvFallback,
   resolveShellEnvFallbackTimeoutMs,
   shouldDeferShellEnvFallback,
   shouldEnableShellEnvFallback,
 } from "../infra/shell-env.js";
+import { VERSION } from "../version.js";
 import { DuplicateAgentDirError, findDuplicateAgentDirs } from "./agent-dirs.js";
 import {
   applyCompactionDefaults,
@@ -22,7 +22,6 @@ import {
   applySessionDefaults,
   applyTalkApiKey,
 } from "./defaults.js";
-import { VERSION } from "../version.js";
 import { MissingEnvVarError, resolveConfigEnvVars } from "./env-substitution.js";
 import { collectConfigEnvVars } from "./env-vars.js";
 import { ConfigIncludeError, resolveConfigIncludes } from "./includes.js";
@@ -30,9 +29,8 @@ import { findLegacyConfigIssues } from "./legacy.js";
 import { normalizeConfigPaths } from "./normalize-paths.js";
 import { resolveConfigPath, resolveDefaultConfigCandidates, resolveStateDir } from "./paths.js";
 import { applyConfigOverrides } from "./runtime-overrides.js";
-import type { ClawdbrainConfig, ConfigFileSnapshot, LegacyConfigIssue } from "./types.js";
 import { validateConfigObjectWithPlugins } from "./validation.js";
-import { compareClawdbrainVersions } from "./version.js";
+import { compareOpenClawVersions } from "./version.js";
 
 // Re-export for backwards compatibility
 export { CircularIncludeError, ConfigIncludeError } from "./includes.js";
@@ -53,8 +51,8 @@ const SHELL_ENV_EXPECTED_KEYS = [
   "DISCORD_BOT_TOKEN",
   "SLACK_BOT_TOKEN",
   "SLACK_APP_TOKEN",
-  "CLAWDBRAIN_GATEWAY_TOKEN",
-  "CLAWDBRAIN_GATEWAY_PASSWORD",
+  "OPENCLAW_GATEWAY_TOKEN",
+  "OPENCLAW_GATEWAY_PASSWORD",
 ];
 
 const CONFIG_BACKUP_COUNT = 5;
@@ -75,21 +73,27 @@ export function resolveConfigSnapshotHash(snapshot: {
 }): string | null {
   if (typeof snapshot.hash === "string") {
     const trimmed = snapshot.hash.trim();
-    if (trimmed) return trimmed;
+    if (trimmed) {
+      return trimmed;
+    }
   }
-  if (typeof snapshot.raw !== "string") return null;
+  if (typeof snapshot.raw !== "string") {
+    return null;
+  }
   return hashConfigRaw(snapshot.raw);
 }
 
-function coerceConfig(value: unknown): ClawdbrainConfig {
+function coerceConfig(value: unknown): OpenClawConfig {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
   }
-  return value as ClawdbrainConfig;
+  return value as OpenClawConfig;
 }
 
 async function rotateConfigBackups(configPath: string, ioFs: typeof fs.promises): Promise<void> {
-  if (CONFIG_BACKUP_COUNT <= 1) return;
+  if (CONFIG_BACKUP_COUNT <= 1) {
+    return;
+  }
   const backupBase = `${configPath}.bak`;
   const maxIndex = CONFIG_BACKUP_COUNT - 1;
   await ioFs.unlink(`${backupBase}.${maxIndex}`).catch(() => {
@@ -115,9 +119,13 @@ export type ConfigIoDeps = {
 };
 
 function warnOnConfigMiskeys(raw: unknown, logger: Pick<typeof console, "warn">): void {
-  if (!raw || typeof raw !== "object") return;
+  if (!raw || typeof raw !== "object") {
+    return;
+  }
   const gateway = (raw as Record<string, unknown>).gateway;
-  if (!gateway || typeof gateway !== "object") return;
+  if (!gateway || typeof gateway !== "object") {
+    return;
+  }
   if ("token" in (gateway as Record<string, unknown>)) {
     logger.warn(
       'Config uses "gateway.token". This key is ignored; use "gateway.auth.token" instead.',
@@ -125,7 +133,7 @@ function warnOnConfigMiskeys(raw: unknown, logger: Pick<typeof console, "warn">)
   }
 }
 
-function stampConfigVersion(cfg: ClawdbrainConfig): ClawdbrainConfig {
+function stampConfigVersion(cfg: OpenClawConfig): OpenClawConfig {
   const now = new Date().toISOString();
   return {
     ...cfg,
@@ -137,28 +145,36 @@ function stampConfigVersion(cfg: ClawdbrainConfig): ClawdbrainConfig {
   };
 }
 
-function warnIfConfigFromFuture(cfg: ClawdbrainConfig, logger: Pick<typeof console, "warn">): void {
+function warnIfConfigFromFuture(cfg: OpenClawConfig, logger: Pick<typeof console, "warn">): void {
   const touched = cfg.meta?.lastTouchedVersion;
-  if (!touched) return;
-  const cmp = compareClawdbrainVersions(VERSION, touched);
-  if (cmp === null) return;
+  if (!touched) {
+    return;
+  }
+  const cmp = compareOpenClawVersions(VERSION, touched);
+  if (cmp === null) {
+    return;
+  }
   if (cmp < 0) {
     logger.warn(
-      `Config was last written by a newer Clawdbrain (${touched}); current version is ${VERSION}.`,
+      `Config was last written by a newer OpenClaw (${touched}); current version is ${VERSION}.`,
     );
   }
 }
 
-function applyConfigEnv(cfg: ClawdbrainConfig, env: NodeJS.ProcessEnv): void {
+function applyConfigEnv(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): void {
   const entries = collectConfigEnvVars(cfg);
   for (const [key, value] of Object.entries(entries)) {
-    if (env[key]?.trim()) continue;
+    if (env[key]?.trim()) {
+      continue;
+    }
     env[key] = value;
   }
 }
 
 function resolveConfigPathForDeps(deps: Required<ConfigIoDeps>): string {
-  if (deps.configPath) return deps.configPath;
+  if (deps.configPath) {
+    return deps.configPath;
+  }
   return resolveConfigPath(deps.env, resolveStateDir(deps.env, deps.homedir));
 }
 
@@ -178,7 +194,7 @@ export function parseConfigJson5(
   json5: { parse: (value: string) => unknown } = JSON5,
 ): ParseConfigJson5Result {
   try {
-    return { ok: true, parsed: json5.parse(raw) as unknown };
+    return { ok: true, parsed: json5.parse(raw) };
   } catch (err) {
     return { ok: false, error: String(err) };
   }
@@ -193,7 +209,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
   const configPath =
     candidatePaths.find((candidate) => deps.fs.existsSync(candidate)) ?? requestedConfigPath;
 
-  function loadConfig(): ClawdbrainConfig {
+  function loadConfig(): OpenClawConfig {
     try {
       if (!deps.fs.existsSync(configPath)) {
         if (shouldEnableShellEnvFallback(deps.env) && !shouldDeferShellEnvFallback(deps.env)) {
@@ -218,7 +234,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 
       // Apply config.env to process.env BEFORE substitution so ${VAR} can reference config-defined vars
       if (resolved && typeof resolved === "object" && "env" in resolved) {
-        applyConfigEnv(resolved as ClawdbrainConfig, deps.env);
+        applyConfigEnv(resolved as OpenClawConfig, deps.env);
       }
 
       // Substitute ${VAR} env var references
@@ -226,8 +242,10 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 
       const resolvedConfig = substituted;
       warnOnConfigMiskeys(resolvedConfig, deps.logger);
-      if (typeof resolvedConfig !== "object" || resolvedConfig === null) return {};
-      const preValidationDuplicates = findDuplicateAgentDirs(resolvedConfig as ClawdbrainConfig, {
+      if (typeof resolvedConfig !== "object" || resolvedConfig === null) {
+        return {};
+      }
+      const preValidationDuplicates = findDuplicateAgentDirs(resolvedConfig as OpenClawConfig, {
         env: deps.env,
         homedir: deps.homedir,
       });
@@ -377,7 +395,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 
       // Apply config.env to process.env BEFORE substitution so ${VAR} can reference config-defined vars
       if (resolved && typeof resolved === "object" && "env" in resolved) {
-        applyConfigEnv(resolved as ClawdbrainConfig, deps.env);
+        applyConfigEnv(resolved as OpenClawConfig, deps.env);
       }
 
       // Substitute ${VAR} env var references
@@ -459,7 +477,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
     }
   }
 
-  async function writeConfigFile(cfg: ClawdbrainConfig) {
+  async function writeConfigFile(cfg: OpenClawConfig) {
     clearConfigCache();
     const validated = validateConfigObjectWithPlugins(cfg);
     if (!validated.ok) {
@@ -527,26 +545,34 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 }
 
 // NOTE: These wrappers intentionally do *not* cache the resolved config path at
-// module scope. `CLAWDBRAIN_CONFIG_PATH` (and friends) are expected to work even
+// module scope. `OPENCLAW_CONFIG_PATH` (and friends) are expected to work even
 // when set after the module has been imported (tests, one-off scripts, etc.).
 const DEFAULT_CONFIG_CACHE_MS = 200;
 let configCache: {
   configPath: string;
   expiresAt: number;
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
 } | null = null;
 
 function resolveConfigCacheMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.CLAWDBRAIN_CONFIG_CACHE_MS?.trim();
-  if (raw === "" || raw === "0") return 0;
-  if (!raw) return DEFAULT_CONFIG_CACHE_MS;
+  const raw = env.OPENCLAW_CONFIG_CACHE_MS?.trim();
+  if (raw === "" || raw === "0") {
+    return 0;
+  }
+  if (!raw) {
+    return DEFAULT_CONFIG_CACHE_MS;
+  }
   const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) return DEFAULT_CONFIG_CACHE_MS;
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_CONFIG_CACHE_MS;
+  }
   return Math.max(0, parsed);
 }
 
 function shouldUseConfigCache(env: NodeJS.ProcessEnv): boolean {
-  if (env.CLAWDBRAIN_DISABLE_CONFIG_CACHE?.trim()) return false;
+  if (env.OPENCLAW_DISABLE_CONFIG_CACHE?.trim()) {
+    return false;
+  }
   return resolveConfigCacheMs(env) > 0;
 }
 
@@ -554,21 +580,9 @@ function clearConfigCache(): void {
   configCache = null;
 }
 
-/**
- * Resolve the config file path by searching the default candidate locations
- * (new, legacy, oldest-legacy dirs and filenames) and returning the first
- * existing file.  Falls back to the canonical default when nothing exists yet.
- *
- * Use this instead of the bare `CONFIG_PATH` / `resolveConfigPath()` whenever
- * you need the path the runtime will actually read from.
- */
-export function resolveEffectiveConfigPath(env: NodeJS.ProcessEnv = process.env): string {
-  const candidates = resolveDefaultConfigCandidates(env);
-  return candidates.find((c) => fs.existsSync(c)) ?? resolveConfigPath(env);
-}
-
-export function loadConfig(): ClawdbrainConfig {
-  const configPath = resolveEffectiveConfigPath();
+export function loadConfig(): OpenClawConfig {
+  const io = createConfigIO();
+  const configPath = io.configPath;
   const now = Date.now();
   if (shouldUseConfigCache(process.env)) {
     const cached = configCache;
@@ -576,7 +590,7 @@ export function loadConfig(): ClawdbrainConfig {
       return cached.config;
     }
   }
-  const config = createConfigIO({ configPath }).loadConfig();
+  const config = io.loadConfig();
   if (shouldUseConfigCache(process.env)) {
     const cacheMs = resolveConfigCacheMs(process.env);
     if (cacheMs > 0) {
@@ -591,12 +605,10 @@ export function loadConfig(): ClawdbrainConfig {
 }
 
 export async function readConfigFileSnapshot(): Promise<ConfigFileSnapshot> {
-  return await createConfigIO({
-    configPath: resolveEffectiveConfigPath(),
-  }).readConfigFileSnapshot();
+  return await createConfigIO().readConfigFileSnapshot();
 }
 
-export async function writeConfigFile(cfg: ClawdbrainConfig): Promise<void> {
+export async function writeConfigFile(cfg: OpenClawConfig): Promise<void> {
   clearConfigCache();
-  await createConfigIO({ configPath: resolveEffectiveConfigPath() }).writeConfigFile(cfg);
+  await createConfigIO().writeConfigFile(cfg);
 }

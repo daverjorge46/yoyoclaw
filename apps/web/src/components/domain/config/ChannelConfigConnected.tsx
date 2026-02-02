@@ -13,7 +13,7 @@ import {
   WhatsAppConfigSheet,
   SlackConfigSheet,
   SignalConfigSheet,
-  iMessageConfigSheet as IMessageConfigSheet,
+  IMessageConfigSheet,
   type ChannelConfig as ChannelConfigType,
   type ChannelId,
   type TelegramConfig,

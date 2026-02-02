@@ -1,14 +1,12 @@
 import { createRequire } from "node:module";
 import util from "node:util";
-
-import type { ClawdbrainConfig } from "../config/types.js";
+import type { OpenClawConfig } from "../config/types.js";
 import { isVerbose } from "../globals.js";
 import { stripAnsi } from "../terminal/ansi.js";
+import { readLoggingConfig } from "./config.js";
 import { type LogLevel, normalizeLogLevel } from "./levels.js";
 import { getLogger, type LoggerSettings } from "./logger.js";
-import { readLoggingConfig } from "./config.js";
 import { loggingState } from "./state.js";
-import { createSensitiveRedactor } from "./redact.js";
 
 export type ConsoleStyle = "pretty" | "compact" | "json";
 type ConsoleSettings = {
@@ -20,7 +18,9 @@ export type ConsoleLoggerSettings = ConsoleSettings;
 const requireConfig = createRequire(import.meta.url);
 
 function normalizeConsoleLevel(level?: string): LogLevel {
-  if (isVerbose()) return "debug";
+  if (isVerbose()) {
+    return "debug";
+  }
   return normalizeLogLevel(level, "info");
 }
 
@@ -28,12 +28,14 @@ function normalizeConsoleStyle(style?: string): ConsoleStyle {
   if (style === "compact" || style === "json" || style === "pretty") {
     return style;
   }
-  if (!process.stdout.isTTY) return "compact";
+  if (!process.stdout.isTTY) {
+    return "compact";
+  }
   return "pretty";
 }
 
 function resolveConsoleSettings(): ConsoleSettings {
-  let cfg: ClawdbrainConfig["logging"] | undefined =
+  let cfg: OpenClawConfig["logging"] | undefined =
     (loggingState.overrideSettings as LoggerSettings | null) ?? readLoggingConfig();
   if (!cfg) {
     if (loggingState.resolvingConsoleSettings) {
@@ -42,7 +44,7 @@ function resolveConsoleSettings(): ConsoleSettings {
       loggingState.resolvingConsoleSettings = true;
       try {
         const loaded = requireConfig("../config/config.js") as {
-          loadConfig?: () => ClawdbrainConfig;
+          loadConfig?: () => OpenClawConfig;
         };
         cfg = loaded.loadConfig?.().logging;
       } catch {
@@ -58,7 +60,9 @@ function resolveConsoleSettings(): ConsoleSettings {
 }
 
 function consoleSettingsChanged(a: ConsoleSettings | null, b: ConsoleSettings) {
-  if (!a) return true;
+  if (!a) {
+    return true;
+  }
   return a.level !== b.level || a.style !== b.style;
 }
 
@@ -111,7 +115,9 @@ const SUPPRESSED_CONSOLE_PREFIXES = [
 ] as const;
 
 function shouldSuppressConsoleMessage(message: string): boolean {
-  if (isVerbose()) return false;
+  if (isVerbose()) {
+    return false;
+  }
   if (SUPPRESSED_CONSOLE_PREFIXES.some((prefix) => message.startsWith(prefix))) {
     return true;
   }
@@ -131,7 +137,9 @@ function isEpipeError(err: unknown): boolean {
 
 function formatConsoleTimestamp(style: ConsoleStyle): string {
   const now = new Date().toISOString();
-  if (style === "pretty") return now.slice(11, 19);
+  if (style === "pretty") {
+    return now.slice(11, 19);
+  }
   return now;
 }
 
@@ -141,7 +149,9 @@ function hasTimestampPrefix(value: string): boolean {
 
 function isJsonPayload(value: string): boolean {
   const trimmed = value.trim();
-  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+    return false;
+  }
   try {
     JSON.parse(trimmed);
     return true;
@@ -155,17 +165,10 @@ function isJsonPayload(value: string): boolean {
  * This keeps user-facing output unchanged but guarantees every console call is captured in log files.
  */
 export function enableConsoleCapture(): void {
-  if (loggingState.consolePatched) return;
+  if (loggingState.consolePatched) {
+    return;
+  }
   loggingState.consolePatched = true;
-
-  // Avoid config fallback (loadConfig) here: console capture is used by config loading paths,
-  // and config loading may itself log to console. Using the raw logging config keeps capture
-  // safe (non-recursive) while still respecting configured redaction.
-  const loggingCfg = readLoggingConfig();
-  const redactor = createSensitiveRedactor({
-    mode: loggingCfg?.redactSensitive,
-    patterns: loggingCfg?.redactPatterns,
-  });
 
   let logger: ReturnType<typeof getLogger> | null = null;
   const getLoggerLazy = () => {
@@ -193,9 +196,10 @@ export function enableConsoleCapture(): void {
   const forward =
     (level: LogLevel, orig: (...args: unknown[]) => void) =>
     (...args: unknown[]) => {
-      const redactedArgs = redactor.redactArgs(args);
-      const formatted = util.format(...redactedArgs);
-      if (shouldSuppressConsoleMessage(formatted)) return;
+      const formatted = util.format(...args);
+      if (shouldSuppressConsoleMessage(formatted)) {
+        return;
+      }
       const trimmed = stripAnsi(formatted).trimStart();
       const shouldPrefixTimestamp =
         loggingState.consoleTimestampPrefix &&
@@ -230,26 +234,30 @@ export function enableConsoleCapture(): void {
           const line = timestamp ? `${timestamp} ${formatted}` : formatted;
           process.stderr.write(`${line}\n`);
         } catch (err) {
-          if (isEpipeError(err)) return;
+          if (isEpipeError(err)) {
+            return;
+          }
           throw err;
         }
       } else {
         try {
           if (!timestamp) {
-            orig.apply(console, redactedArgs as []);
+            orig.apply(console, args as []);
             return;
           }
-          if (redactedArgs.length === 0) {
+          if (args.length === 0) {
             orig.call(console, timestamp);
             return;
           }
-          if (typeof redactedArgs[0] === "string") {
-            orig.call(console, `${timestamp} ${redactedArgs[0]}`, ...redactedArgs.slice(1));
+          if (typeof args[0] === "string") {
+            orig.call(console, `${timestamp} ${args[0]}`, ...args.slice(1));
             return;
           }
-          orig.call(console, timestamp, ...redactedArgs);
+          orig.call(console, timestamp, ...args);
         } catch (err) {
-          if (isEpipeError(err)) return;
+          if (isEpipeError(err)) {
+            return;
+          }
           throw err;
         }
       }

@@ -1,4 +1,12 @@
 import type { Component, TUI } from "@mariozechner/pi-tui";
+import type { ChatLog } from "./components/chat-log.js";
+import type { GatewayChatClient } from "./gateway-chat.js";
+import type {
+  AgentSummary,
+  GatewayStatusSummary,
+  TuiOptions,
+  TuiStateAccess,
+} from "./tui-types.js";
 import {
   formatThinkingLevels,
   normalizeUsageDisplay,
@@ -7,20 +15,12 @@ import {
 import { normalizeAgentId } from "../routing/session-key.js";
 import { formatRelativeTime } from "../utils/time-format.js";
 import { helpText, parseCommand } from "./commands.js";
-import type { ChatLog } from "./components/chat-log.js";
 import {
   createFilterableSelectList,
   createSearchableSelectList,
   createSettingsList,
 } from "./components/selectors.js";
-import type { GatewayChatClient } from "./gateway-chat.js";
 import { formatStatusSummary } from "./tui-status-summary.js";
-import type {
-  AgentSummary,
-  GatewayStatusSummary,
-  TuiOptions,
-  TuiStateAccess,
-} from "./tui-types.js";
 
 type CommandHandlerContext = {
   client: GatewayChatClient;
@@ -153,13 +153,13 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         agentId: state.currentAgentId,
       });
       const items = result.sessions.map((session) => {
-        const title = session.derivedTitle ?? session.displayName;
+        const title = (session as any).derivedTitle ?? session.displayName;
         const formattedKey = formatSessionKey(session.key);
         // Avoid redundant "title (key)" when title matches key
         const label = title && title !== formattedKey ? `${title} (${formattedKey})` : formattedKey;
         // Build description: time + message preview
         const timePart = session.updatedAt ? formatRelativeTime(session.updatedAt) : "";
-        const preview = (session.description ?? session.lastMessagePreview)
+        const preview = ((session as any).description ?? session.lastMessagePreview)
           ?.replace(/\s+/g, " ")
           .trim();
         const description =
@@ -174,7 +174,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             session.subject,
             session.sessionId,
             session.key,
-            session.description,
+            (session as any).description,
             session.lastMessagePreview,
           ]
             .filter(Boolean)
@@ -240,7 +240,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
 
   const handleCommand = async (raw: string) => {
     const { name, args } = parseCommand(raw);
-    if (!name) return;
+    if (!name) {
+      return;
+    }
     switch (name) {
       case "help":
         chatLog.addSystem(
@@ -259,7 +261,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           }
           if (status && typeof status === "object") {
             const lines = formatStatusSummary(status as GatewayStatusSummary);
-            for (const line of lines) chatLog.addSystem(line);
+            for (const line of lines) {
+              chatLog.addSystem(line);
+            }
             break;
           }
           chatLog.addSystem("status: unknown response");

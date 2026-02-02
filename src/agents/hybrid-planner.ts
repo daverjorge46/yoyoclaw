@@ -1,9 +1,8 @@
 import os from "node:os";
 import path from "node:path";
-
-import type { ClawdbrainConfig } from "../config/config.js";
-import { runEmbeddedPiAgent } from "./pi-embedded.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { ModelRef } from "./model-selection.js";
+import { runEmbeddedPiAgent } from "./pi-embedded.js";
 
 function extractLastText(payloads: Array<{ text?: string }> | undefined): string {
   if (!payloads || payloads.length === 0) return "";
@@ -26,7 +25,7 @@ export type HybridPlannerSpec = {
 };
 
 export async function planHybridSpec(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   intent: string;
   planner: ModelRef;
   hints?: {

@@ -1,60 +1,21 @@
 import { html } from "lit";
-
+import { repeat } from "lit/directives/repeat.js";
 import type { AppViewState } from "./app-view-state";
-import { hrefForTab, titleForTab, type Tab, PRIMARY_TABS, SECONDARY_TABS, ADVANCED_TABS } from "./navigation";
-import { loadChatHistory } from "./controllers/chat";
-import { syncUrlWithSessionKey } from "./app-settings";
 import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
-import { iconForTabSvg, icon, icons } from "./icons";
-import {
-  renderSessionNavigatorTrigger,
-  renderSessionNavigatorPanel,
-  type SessionNavigatorProps,
-} from "./components/session-navigator";
-
-export function renderNavigationTabs(state: AppViewState) {
-  const showAdvanced = state.navShowAdvanced;
-
-  return html`
-    <!-- Primary Tabs -->
-    <div class="nav-group">
-      ${PRIMARY_TABS.map((tab) => renderTab(state, tab))}
-    </div>
-
-    <!-- Secondary Tabs -->
-    <div class="nav-group">
-      ${SECONDARY_TABS.map((tab) => renderTab(state, tab))}
-    </div>
-
-    <!-- Advanced Tabs (collapsible) -->
-    <div class="nav-group ${!showAdvanced ? "nav-group--advanced" : ""}">
-      <button
-        class="nav-label"
-        @click=${() => {
-          state.navShowAdvanced = !state.navShowAdvanced;
-          state.persistNavShowAdvanced(state.navShowAdvanced);
-        }}
-        aria-expanded=${showAdvanced}
-      >
-        <span class="nav-label__text">Advanced Features</span>
-        <span class="nav-label__chevron">${icon(showAdvanced ? "chevron-up" : "chevron-down", { size: 14 })}</span>
-      </button>
-      <div class="nav-group__items">
-        ${ADVANCED_TABS.map((tab) => renderTab(state, tab))}
-      </div>
-    </div>
-  `;
-}
+import type { SessionsListResult } from "./types";
+import { refreshChat } from "./app-chat";
+import { syncUrlWithSessionKey } from "./app-settings";
+import { loadChatHistory } from "./controllers/chat";
+import { icons } from "./icons";
+import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation";
 
 export function renderTab(state: AppViewState, tab: Tab) {
-  const href = hrefForTab(tab, state.basePath);
-  const isActive = state.tab === tab;
+  const href = pathForTab(tab, state.basePath);
   return html`
     <a
       href=${href}
-      class="nav-item ${isActive ? "active" : ""}"
-      aria-current=${isActive ? "page" : "false"}
+      class="nav-item ${state.tab === tab ? "active" : ""}"
       @click=${(event: MouseEvent) => {
         if (
           event.defaultPrevented ||
@@ -71,97 +32,100 @@ export function renderTab(state: AppViewState, tab: Tab) {
       }}
       title=${titleForTab(tab)}
     >
-      <span class="nav-item__icon" aria-hidden="true">${iconForTabSvg(tab, { size: 18 })}</span>
+      <span class="nav-item__icon" aria-hidden="true">${icons[iconForTab(tab)]}</span>
       <span class="nav-item__text">${titleForTab(tab)}</span>
     </a>
   `;
 }
 
 export function renderChatControls(state: AppViewState) {
+  const mainSessionKey = resolveMainSessionKey(state.hello, state.sessionsResult);
+  const sessionOptions = resolveSessionOptions(
+    state.sessionKey,
+    state.sessionsResult,
+    mainSessionKey,
+  );
   const disableThinkingToggle = state.onboarding;
   const disableFocusToggle = state.onboarding;
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
   // Refresh icon
-  const refreshIcon = html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>`;
-  const focusIcon = html`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-
-  const selectSession = (next: string) => {
-    state.sessionKey = next;
-    state.chatMessage = "";
-    state.chatStream = null;
-    state.chatStreamStartedAt = null;
-    state.chatRunId = null;
-    state.resetToolStream();
-    state.resetChatScroll();
-    state.applySettings({
-      ...state.settings,
-      sessionKey: next,
-      lastActiveSessionKey: next,
-    });
-    void state.loadAssistantIdentity();
-    syncUrlWithSessionKey(state, next, true);
-    void loadChatHistory(state);
-  };
-
-  const navProps: SessionNavigatorProps = {
-    sessionKey: state.sessionKey,
-    connected: state.connected,
-    sessionsResult: state.sessionsResult,
-    agentsList: state.agentsList,
-    navigatorState: state.sessionNavigator,
-    onSelectSession: selectSession,
-    onToggleOpen: () => {
-      state.sessionNavigator = {
-        ...state.sessionNavigator,
-        open: !state.sessionNavigator.open,
-      };
-    },
-    onSelectAgent: (agentId: string) => {
-      state.sessionNavigator = {
-        ...state.sessionNavigator,
-        selectedAgentId: agentId,
-      };
-    },
-    onSearchChange: (search: string) => {
-      state.sessionNavigator = {
-        ...state.sessionNavigator,
-        search,
-      };
-    },
-    onToggleGroup: (groupKey: string) => {
-      const next = new Set(state.sessionNavigator.expandedGroups);
-      if (next.has(groupKey)) next.delete(groupKey);
-      else next.add(groupKey);
-      state.sessionNavigator = {
-        ...state.sessionNavigator,
-        expandedGroups: next,
-      };
-    },
-    onClose: () => {
-      state.sessionNavigator = {
-        ...state.sessionNavigator,
-        open: false,
-        search: "",
-      };
-    },
-  };
-
+  const refreshIcon = html`
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+      <path d="M21 3v5h-5"></path>
+    </svg>
+  `;
+  const focusIcon = html`
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M4 7V4h3"></path>
+      <path d="M20 7V4h-3"></path>
+      <path d="M4 17v3h3"></path>
+      <path d="M20 17v3h-3"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  `;
   return html`
     <div class="chat-controls">
-      <div class="sn-wrapper">
-        ${renderSessionNavigatorTrigger(navProps)}
-        ${renderSessionNavigatorPanel(navProps)}
-      </div>
+      <label class="field chat-controls__session">
+        <select
+          .value=${state.sessionKey}
+          ?disabled=${!state.connected}
+          @change=${(e: Event) => {
+            const next = (e.target as HTMLSelectElement).value;
+            state.sessionKey = next;
+            state.chatMessage = "";
+            state.chatStream = null;
+            state.chatStreamStartedAt = null;
+            state.chatRunId = null;
+            state.resetToolStream();
+            state.resetChatScroll();
+            state.applySettings({
+              ...state.settings,
+              sessionKey: next,
+              lastActiveSessionKey: next,
+            });
+            void state.loadAssistantIdentity();
+            syncUrlWithSessionKey(state, next, true);
+            void loadChatHistory(state);
+          }}
+        >
+          ${repeat(
+            sessionOptions,
+            (entry) => entry.key,
+            (entry) =>
+              html`<option value=${entry.key}>
+                ${entry.displayName ?? entry.key}
+              </option>`,
+          )}
+        </select>
+      </label>
       <button
         class="btn btn--sm btn--icon"
         ?disabled=${state.chatLoading || !state.connected}
         @click=${() => {
           state.resetToolStream();
-          void loadChatHistory(state);
+          void refreshChat(state as unknown as Parameters<typeof refreshChat>[0]);
         }}
-        title="Refresh chat history"
-        aria-label="Refresh chat history"
+        title="Refresh chat data"
       >
         ${refreshIcon}
       </button>
@@ -177,12 +141,11 @@ export function renderChatControls(state: AppViewState) {
           });
         }}
         aria-pressed=${showThinking}
-        aria-label=${disableThinkingToggle
-          ? "Toggle thinking (disabled during onboarding)"
-          : "Toggle assistant thinking/working output"}
-        title=${disableThinkingToggle
-          ? "Disabled during onboarding"
-          : "Toggle assistant thinking/working output"}
+        title=${
+          disableThinkingToggle
+            ? "Disabled during onboarding"
+            : "Toggle assistant thinking/working output"
+        }
       >
         ${icons.brain}
       </button>
@@ -197,17 +160,87 @@ export function renderChatControls(state: AppViewState) {
           });
         }}
         aria-pressed=${focusActive}
-        aria-label=${disableFocusToggle
-          ? "Toggle focus mode (disabled during onboarding)"
-          : "Toggle focus mode (hide sidebar + page header)"}
-        title=${disableFocusToggle
-          ? "Disabled during onboarding"
-          : "Toggle focus mode (hide sidebar + page header)"}
+        title=${
+          disableFocusToggle
+            ? "Disabled during onboarding"
+            : "Toggle focus mode (hide sidebar + page header)"
+        }
       >
         ${focusIcon}
       </button>
     </div>
   `;
+}
+
+type SessionDefaultsSnapshot = {
+  mainSessionKey?: string;
+  mainKey?: string;
+};
+
+function resolveMainSessionKey(
+  hello: AppViewState["hello"],
+  sessions: SessionsListResult | null,
+): string | null {
+  const snapshot = hello?.snapshot as { sessionDefaults?: SessionDefaultsSnapshot } | undefined;
+  const mainSessionKey = snapshot?.sessionDefaults?.mainSessionKey?.trim();
+  if (mainSessionKey) return mainSessionKey;
+  const mainKey = snapshot?.sessionDefaults?.mainKey?.trim();
+  if (mainKey) return mainKey;
+  if (sessions?.sessions?.some((row) => row.key === "main")) return "main";
+  return null;
+}
+
+function resolveSessionDisplayName(key: string, row?: SessionsListResult["sessions"][number]) {
+  const label = row?.label?.trim();
+  if (label) return `${label} (${key})`;
+  const displayName = row?.displayName?.trim();
+  if (displayName) return displayName;
+  return key;
+}
+
+function resolveSessionOptions(
+  sessionKey: string,
+  sessions: SessionsListResult | null,
+  mainSessionKey?: string | null,
+) {
+  const seen = new Set<string>();
+  const options: Array<{ key: string; displayName?: string }> = [];
+
+  const resolvedMain = mainSessionKey && sessions?.sessions?.find((s) => s.key === mainSessionKey);
+  const resolvedCurrent = sessions?.sessions?.find((s) => s.key === sessionKey);
+
+  // Add main session key first
+  if (mainSessionKey) {
+    seen.add(mainSessionKey);
+    options.push({
+      key: mainSessionKey,
+      displayName: resolveSessionDisplayName(mainSessionKey, resolvedMain),
+    });
+  }
+
+  // Add current session key next
+  if (!seen.has(sessionKey)) {
+    seen.add(sessionKey);
+    options.push({
+      key: sessionKey,
+      displayName: resolveSessionDisplayName(sessionKey, resolvedCurrent),
+    });
+  }
+
+  // Add sessions from the result
+  if (sessions?.sessions) {
+    for (const s of sessions.sessions) {
+      if (!seen.has(s.key)) {
+        seen.add(s.key);
+        options.push({
+          key: s.key,
+          displayName: resolveSessionDisplayName(s.key, s),
+        });
+      }
+    }
+  }
+
+  return options;
 }
 
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];

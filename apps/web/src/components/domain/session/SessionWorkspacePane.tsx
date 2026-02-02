@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { FilePreviewPanel } from "./FilePreviewPanel";
 import { createWorktreeGatewayAdapter } from "@/integrations/worktree/gateway";
-import type { WorktreeAdapter } from "@/integrations/worktree/types";
 
 export interface SessionWorkspacePaneProps {
   /** Whether the pane is maximized */

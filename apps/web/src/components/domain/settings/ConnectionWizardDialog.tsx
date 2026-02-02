@@ -21,6 +21,10 @@ import {
 } from "@/components/ui/dialog";
 import { WizardSteps } from "@/components/composed/WizardSteps";
 
+// Stable empty arrays for fallback (avoids new reference each render)
+const EMPTY_SYNC_OPTIONS: ConnectionSyncOption[] = [];
+const EMPTY_AUTH_FIELDS: ConnectionAuthField[] = [];
+
 export type ConnectionAuthMethodType = "oauth" | "api_key" | "token";
 
 export interface ConnectionAuthField {
@@ -101,7 +105,7 @@ export function ConnectionWizardDialog({
   const [isDisconnecting, setIsDisconnecting] = React.useState(false);
 
   const method = connection.authMethods.find((m) => m.id === selectedMethodId);
-  const syncOptions = connection.syncOptions ?? [];
+  const syncOptions = connection.syncOptions ?? EMPTY_SYNC_OPTIONS;
 
   React.useEffect(() => {
     if (!open) return;
@@ -127,7 +131,7 @@ export function ConnectionWizardDialog({
   }, [syncOptions.length]);
 
   const stepId = steps[currentStep] ?? steps[0];
-  const authFields = method?.fields ?? [];
+  const authFields = method?.fields ?? EMPTY_AUTH_FIELDS;
 
   const isAccessComplete = React.useMemo(() => {
     if (!method) return false;

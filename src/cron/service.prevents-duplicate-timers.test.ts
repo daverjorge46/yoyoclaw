@@ -1,9 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import { CronService } from "./service.js";
 
 const noopLogger = {
@@ -14,7 +12,7 @@ const noopLogger = {
 };
 
 async function makeStorePath() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbrain-cron-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-cron-"));
   return {
     storePath: path.join(dir, "cron", "jobs.json"),
     cleanup: async () => {
@@ -76,8 +74,8 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cronA._waitForTimerRun();
-    await cronB._waitForTimerRun();
+    await cronA.status();
+    await cronB.status();
 
     expect(enqueueSystemEvent).toHaveBeenCalledTimes(1);
     expect(requestHeartbeatNow).toHaveBeenCalledTimes(1);

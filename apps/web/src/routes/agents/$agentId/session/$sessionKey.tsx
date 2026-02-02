@@ -15,7 +15,8 @@ import { useAgentSessions, useChatHistory } from "@/hooks/queries/useSessions";
 import { useChatBackend } from "@/hooks/useChatBackend";
 import { usePreferencesStore } from "@/stores/usePreferencesStore";
 import { useVercelSessionStore } from "@/stores/useVercelSessionStore";
-import { buildAgentSessionKey } from "@/lib/api/sessions";
+import { buildAgentSessionKey, type ChatMessage } from "@/lib/api/sessions";
+import type { StreamingMessage } from "@/stores/useSessionStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -101,13 +102,14 @@ function AgentSessionPage() {
   const { data: chatHistory, isLoading: chatLoading } = useChatHistory(sessionKey);
 
   // Use unified chat backend hook
-  const { streamingMessage, handleSend, handleStop, isStreaming } = useChatBackend(sessionKey, agent);
+  const { streamingMessage, handleSend, handleStop, isStreaming } = useChatBackend(sessionKey, agent ?? undefined);
 
   // Get messages based on active backend
-  const messages = React.useMemo(() => {
+  // Type assertion: VercelChatMessage is structurally compatible with ChatMessage for display
+  const messages = React.useMemo((): ChatMessage[] => {
     if (chatBackend === "vercel-ai") {
-      // Use Vercel AI local history
-      return vercelStore.getHistory(sessionKey);
+      // Use Vercel AI local history (cast for type compatibility)
+      return vercelStore.getHistory(sessionKey) as ChatMessage[];
     }
     // Use gateway history from server
     return chatHistory?.messages ?? [];
@@ -191,7 +193,7 @@ function AgentSessionPage() {
         >
           <SessionChat
             messages={messages}
-            streamingMessage={streamingMessage}
+            streamingMessage={streamingMessage as StreamingMessage | null}
             agentName={agent.name}
             agentStatus={agent.status === "online" ? "active" : "ready"}
             isLoading={chatBackend === "gateway" ? chatLoading : false}

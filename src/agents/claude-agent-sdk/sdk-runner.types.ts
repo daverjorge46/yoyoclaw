@@ -3,7 +3,7 @@
  * embedded runner that uses the Claude Agent SDK as the main agent runtime.
  */
 
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { AnyAgentTool } from "../tools/common.js";
 
 // ---------------------------------------------------------------------------
@@ -24,6 +24,7 @@ export type SdkProviderEnv = {
   ANTHROPIC_DEFAULT_SONNET_MODEL?: string;
   ANTHROPIC_DEFAULT_OPUS_MODEL?: string;
   ANTHROPIC_DEFAULT_HAIKU_MODEL?: string;
+  CLAUDE_CODE_SUBAGENT_MODEL?: string;
   [key: string]: string | undefined;
 };
 
@@ -60,11 +61,11 @@ export type SdkRunnerParams = {
   agentDir?: string;
 
   /** Clawdbrain configuration (for tool creation, policies, etc.). */
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
 
   /**
    * Pre-built Clawdbrain tools to expose to the agent.
-   * These should already be policy-filtered (via createClawdbrainCodingTools).
+   * These should already be policy-filtered (via createOpenClawCodingTools).
    */
   tools: AnyAgentTool[];
 

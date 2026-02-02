@@ -13,11 +13,10 @@ const createEmptyRegistry = (): PluginRegistry => ({
   cliRegistrars: [],
   services: [],
   commands: [],
-  cronJobs: [],
   diagnostics: [],
 });
 
-const REGISTRY_STATE = Symbol.for("clawdbrain.pluginRegistryState");
+const REGISTRY_STATE = Symbol.for("openclaw.pluginRegistryState");
 
 type RegistryState = {
   registry: PluginRegistry | null;
@@ -34,7 +33,7 @@ const state: RegistryState = (() => {
       key: null,
     };
   }
-  return globalState[REGISTRY_STATE] as RegistryState;
+  return globalState[REGISTRY_STATE];
 })();
 
 export function setActivePluginRegistry(registry: PluginRegistry, cacheKey?: string) {

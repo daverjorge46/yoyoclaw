@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import type { AgentRuntime, AgentRuntimeRunParams } from "./agent-runtime.js";
-import { createPiAgentRuntime } from "./pi-agent-runtime.js";
 import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
 import { isSdkRunnerEnabled } from "./claude-agent-sdk/sdk-runner.config.js";
-import type { ClawdbrainConfig } from "../config/config.js";
+import { createPiAgentRuntime } from "./pi-agent-runtime.js";
 
 // ---------------------------------------------------------------------------
 // Mock the underlying runners so we don't need real infra.
@@ -72,14 +72,14 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
   it("returns true when agents.main.runtime is ccsdk", () => {
     const config = {
       agents: { main: { runtime: "ccsdk" } },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 
   it("returns false when agents.main.runtime is pi", () => {
     const config = {
       agents: { main: { runtime: "pi" } },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(false);
   });
 
@@ -88,20 +88,20 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
   });
 
   it("returns false when config is empty", () => {
-    expect(isSdkRunnerEnabled({} as ClawdbrainConfig)).toBe(false);
+    expect(isSdkRunnerEnabled({} as OpenClawConfig)).toBe(false);
   });
 
   it("falls back to agents.defaults.runtime when agents.main.runtime is unset", () => {
     const config = {
       agents: { defaults: { runtime: "ccsdk" } },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 
   it("agents.main.runtime takes precedence over agents.defaults.runtime", () => {
     const config = {
       agents: { main: { runtime: "pi" }, defaults: { runtime: "ccsdk" } },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(false);
   });
 
@@ -115,7 +115,7 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
           },
         },
       },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(false);
   });
 
@@ -123,21 +123,21 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
     it("mainRuntime=ccsdk enables SDK for main agent", () => {
       const config = {
         agents: { defaults: { mainRuntime: "ccsdk" } },
-      } as ClawdbrainConfig;
+      } as OpenClawConfig;
       expect(isSdkRunnerEnabled(config, "main")).toBe(true);
     });
 
     it("mainRuntime=ccsdk does not affect non-main agents", () => {
       const config = {
         agents: { defaults: { mainRuntime: "ccsdk" } },
-      } as ClawdbrainConfig;
+      } as OpenClawConfig;
       expect(isSdkRunnerEnabled(config, "assistant2")).toBe(false);
     });
 
     it("mainRuntime=pi overrides runtime=ccsdk for main agent", () => {
       const config = {
         agents: { defaults: { mainRuntime: "pi", runtime: "ccsdk" } },
-      } as ClawdbrainConfig;
+      } as OpenClawConfig;
       expect(isSdkRunnerEnabled(config, "main")).toBe(false);
       expect(isSdkRunnerEnabled(config, "assistant2")).toBe(true);
     });
@@ -145,14 +145,14 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
     it("falls back to runtime when mainRuntime is unset", () => {
       const config = {
         agents: { defaults: { runtime: "ccsdk" } },
-      } as ClawdbrainConfig;
+      } as OpenClawConfig;
       expect(isSdkRunnerEnabled(config, "main")).toBe(true);
     });
 
     it("no agentId falls back to runtime (backward compat)", () => {
       const config = {
         agents: { defaults: { mainRuntime: "ccsdk" } },
-      } as ClawdbrainConfig;
+      } as OpenClawConfig;
       expect(isSdkRunnerEnabled(config)).toBe(false);
     });
   });
@@ -165,7 +165,7 @@ describe("Runtime selection via isSdkRunnerEnabled", () => {
           enabled: false,
         },
       },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(isSdkRunnerEnabled(config)).toBe(true);
   });
 });

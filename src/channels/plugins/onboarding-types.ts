@@ -1,4 +1,4 @@
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { DmPolicy } from "../../config/types.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
@@ -23,11 +23,11 @@ export type SetupChannelsOptions = {
 };
 
 export type PromptAccountIdParams = {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   prompter: WizardPrompter;
   label: string;
   currentId?: string;
-  listAccountIds: (cfg: ClawdbrainConfig) => string[];
+  listAccountIds: (cfg: OpenClawConfig) => string[];
   defaultAccountId: string;
 };
 
@@ -42,13 +42,13 @@ export type ChannelOnboardingStatus = {
 };
 
 export type ChannelOnboardingStatusContext = {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   options?: SetupChannelsOptions;
   accountOverrides: Partial<Record<ChannelId, string>>;
 };
 
 export type ChannelOnboardingConfigureContext = {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   runtime: RuntimeEnv;
   prompter: WizardPrompter;
   options?: SetupChannelsOptions;
@@ -58,7 +58,7 @@ export type ChannelOnboardingConfigureContext = {
 };
 
 export type ChannelOnboardingResult = {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   accountId?: string;
 };
 
@@ -67,13 +67,13 @@ export type ChannelOnboardingDmPolicy = {
   channel: ChannelId;
   policyKey: string;
   allowFromKey: string;
-  getCurrent: (cfg: ClawdbrainConfig) => DmPolicy;
-  setPolicy: (cfg: ClawdbrainConfig, policy: DmPolicy) => ClawdbrainConfig;
+  getCurrent: (cfg: OpenClawConfig) => DmPolicy;
+  setPolicy: (cfg: OpenClawConfig, policy: DmPolicy) => OpenClawConfig;
   promptAllowFrom?: (params: {
-    cfg: ClawdbrainConfig;
+    cfg: OpenClawConfig;
     prompter: WizardPrompter;
     accountId?: string;
-  }) => Promise<ClawdbrainConfig>;
+  }) => Promise<OpenClawConfig>;
 };
 
 export type ChannelOnboardingAdapter = {
@@ -82,5 +82,5 @@ export type ChannelOnboardingAdapter = {
   configure: (ctx: ChannelOnboardingConfigureContext) => Promise<ChannelOnboardingResult>;
   dmPolicy?: ChannelOnboardingDmPolicy;
   onAccountRecorded?: (accountId: string, options?: SetupChannelsOptions) => void;
-  disable?: (cfg: ClawdbrainConfig) => ClawdbrainConfig;
+  disable?: (cfg: OpenClawConfig) => OpenClawConfig;
 };

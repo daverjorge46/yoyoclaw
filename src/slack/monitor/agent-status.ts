@@ -4,15 +4,14 @@
  */
 
 import type { App, SlackCommandMiddlewareArgs, SlackActionMiddlewareArgs } from "@slack/bolt";
-
-import type { ClawdbrainConfig } from "../../config/types.js";
+import type { OpenClawConfig } from "../../config/types.js";
+import type { OverseerAssignmentRecord } from "../../infra/overseer/store.types.js";
 import { listAgentIds } from "../../agents/agent-scope.js";
 import {
   loadSessionEntry,
   loadCombinedSessionStoreForGateway,
 } from "../../gateway/session-utils.js";
 import { loadOverseerStoreFromDisk } from "../../infra/overseer/store.js";
-import type { OverseerAssignmentRecord } from "../../infra/overseer/store.types.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { normalizeAgentId, parseAgentSessionKey } from "../../routing/session-key.js";
 
@@ -47,7 +46,7 @@ type AgentStatusSummary = {
   tokenCount?: number;
 };
 
-function getAgentStatusSummaries(cfg: ClawdbrainConfig): AgentStatusSummary[] {
+function getAgentStatusSummaries(cfg: OpenClawConfig): AgentStatusSummary[] {
   const agentIds = listAgentIds(cfg);
   const { store } = loadCombinedSessionStoreForGateway(cfg);
   const overseerStore = loadOverseerStoreFromDisk(cfg);
@@ -119,7 +118,7 @@ function capitalizeStatus(status: string): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function buildAgentListBlocks(cfg: ClawdbrainConfig, _dashboardBaseUrl?: string): SlackBlock[] {
+function buildAgentListBlocks(cfg: OpenClawConfig, _dashboardBaseUrl?: string): SlackBlock[] {
   const summaries = getAgentStatusSummaries(cfg);
 
   const activeCnt = summaries.filter((s) => s.status === "active").length;
@@ -176,7 +175,7 @@ function buildAgentListBlocks(cfg: ClawdbrainConfig, _dashboardBaseUrl?: string)
 }
 
 function buildAgentDetailBlocks(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   agentId: string,
   dashboardBaseUrl?: string,
 ): SlackBlock[] {
@@ -381,7 +380,7 @@ function buildAgentDetailBlocks(
 
 export type AgentStatusCommandParams = {
   app: App;
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   dashboardBaseUrl?: string;
 };
 

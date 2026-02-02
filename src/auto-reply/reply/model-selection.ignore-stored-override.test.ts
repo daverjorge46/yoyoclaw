@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions.js";
 import { createModelSelectionState } from "./model-selection.js";
 
 describe("createModelSelectionState(ignoreStoredOverride)", () => {
   it("does not apply stored session overrides when ignoreStoredOverride is true", async () => {
-    const cfg = {} satisfies ClawdbrainConfig;
+    const cfg = {} satisfies OpenClawConfig;
     const sessionEntry: SessionEntry = {
       sessionId: "s1",
       updatedAt: Date.now(),

@@ -7,30 +7,30 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  const dir = path.join(os.tmpdir(), `clawdbrain-plugins-${randomUUID()}`);
+  const dir = path.join(os.tmpdir(), `openclaw-plugins-${randomUUID()}`);
   fs.mkdirSync(dir, { recursive: true });
   tempDirs.push(dir);
   return dir;
 }
 
 async function withStateDir<T>(stateDir: string, fn: () => Promise<T>) {
-  const prev = process.env.CLAWDBRAIN_STATE_DIR;
-  const prevBundled = process.env.CLAWDBRAIN_BUNDLED_PLUGINS_DIR;
-  process.env.CLAWDBRAIN_STATE_DIR = stateDir;
-  process.env.CLAWDBRAIN_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+  const prev = process.env.OPENCLAW_STATE_DIR;
+  const prevBundled = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+  process.env.OPENCLAW_STATE_DIR = stateDir;
+  process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
   vi.resetModules();
   try {
     return await fn();
   } finally {
     if (prev === undefined) {
-      delete process.env.CLAWDBRAIN_STATE_DIR;
+      delete process.env.OPENCLAW_STATE_DIR;
     } else {
-      process.env.CLAWDBRAIN_STATE_DIR = prev;
+      process.env.OPENCLAW_STATE_DIR = prev;
     }
     if (prevBundled === undefined) {
-      delete process.env.CLAWDBRAIN_BUNDLED_PLUGINS_DIR;
+      delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
     } else {
-      process.env.CLAWDBRAIN_BUNDLED_PLUGINS_DIR = prevBundled;
+      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = prevBundled;
     }
     vi.resetModules();
   }
@@ -46,7 +46,7 @@ afterEach(() => {
   }
 });
 
-describe("discoverClawdbrainPlugins", () => {
+describe("discoverOpenClawPlugins", () => {
   it("discovers global and workspace extensions", async () => {
     const stateDir = makeTempDir();
     const workspaceDir = path.join(stateDir, "workspace");
@@ -55,13 +55,13 @@ describe("discoverClawdbrainPlugins", () => {
     fs.mkdirSync(globalExt, { recursive: true });
     fs.writeFileSync(path.join(globalExt, "alpha.ts"), "export default function () {}", "utf-8");
 
-    const workspaceExt = path.join(workspaceDir, ".clawdbrain", "extensions");
+    const workspaceExt = path.join(workspaceDir, ".openclaw", "extensions");
     fs.mkdirSync(workspaceExt, { recursive: true });
     fs.writeFileSync(path.join(workspaceExt, "beta.ts"), "export default function () {}", "utf-8");
 
     const { candidates } = await withStateDir(stateDir, async () => {
-      const { discoverClawdbrainPlugins } = await import("./discovery.js");
-      return discoverClawdbrainPlugins({ workspaceDir });
+      const { discoverOpenClawPlugins } = await import("./discovery.js");
+      return discoverOpenClawPlugins({ workspaceDir });
     });
 
     const ids = candidates.map((c) => c.idHint);
@@ -78,7 +78,7 @@ describe("discoverClawdbrainPlugins", () => {
       path.join(globalExt, "package.json"),
       JSON.stringify({
         name: "pack",
-        clawdbrain: { extensions: ["./src/one.ts", "./src/two.ts"] },
+        openclaw: { extensions: ["./src/one.ts", "./src/two.ts"] },
       }),
       "utf-8",
     );
@@ -94,8 +94,8 @@ describe("discoverClawdbrainPlugins", () => {
     );
 
     const { candidates } = await withStateDir(stateDir, async () => {
-      const { discoverClawdbrainPlugins } = await import("./discovery.js");
-      return discoverClawdbrainPlugins({});
+      const { discoverOpenClawPlugins } = await import("./discovery.js");
+      return discoverOpenClawPlugins({});
     });
 
     const ids = candidates.map((c) => c.idHint);
@@ -111,8 +111,8 @@ describe("discoverClawdbrainPlugins", () => {
     fs.writeFileSync(
       path.join(globalExt, "package.json"),
       JSON.stringify({
-        name: "@clawdbrain/voice-call",
-        clawdbrain: { extensions: ["./src/index.ts"] },
+        name: "@openclaw/voice-call",
+        openclaw: { extensions: ["./src/index.ts"] },
       }),
       "utf-8",
     );
@@ -123,8 +123,8 @@ describe("discoverClawdbrainPlugins", () => {
     );
 
     const { candidates } = await withStateDir(stateDir, async () => {
-      const { discoverClawdbrainPlugins } = await import("./discovery.js");
-      return discoverClawdbrainPlugins({});
+      const { discoverOpenClawPlugins } = await import("./discovery.js");
+      return discoverOpenClawPlugins({});
     });
 
     const ids = candidates.map((c) => c.idHint);
@@ -139,16 +139,16 @@ describe("discoverClawdbrainPlugins", () => {
     fs.writeFileSync(
       path.join(packDir, "package.json"),
       JSON.stringify({
-        name: "@clawdbrain/demo-plugin-dir",
-        clawdbrain: { extensions: ["./index.js"] },
+        name: "@openclaw/demo-plugin-dir",
+        openclaw: { extensions: ["./index.js"] },
       }),
       "utf-8",
     );
     fs.writeFileSync(path.join(packDir, "index.js"), "module.exports = {}", "utf-8");
 
     const { candidates } = await withStateDir(stateDir, async () => {
-      const { discoverClawdbrainPlugins } = await import("./discovery.js");
-      return discoverClawdbrainPlugins({ extraPaths: [packDir] });
+      const { discoverOpenClawPlugins } = await import("./discovery.js");
+      return discoverOpenClawPlugins({ extraPaths: [packDir] });
     });
 
     const ids = candidates.map((c) => c.idHint);

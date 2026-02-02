@@ -1,41 +1,65 @@
-import { html, nothing, type TemplateResult } from "lit";
-
-import { formatAgo } from "../format";
+import { html, nothing } from "lit";
 import type { DiscordStatus } from "../types";
-import { renderChannelIntegrationCard, renderProbeBadge, type ChannelCardFrame } from "./channels.shared";
+import type { ChannelsProps } from "./channels.types";
+import { formatAgo } from "../format";
+import { renderChannelConfigSection } from "./channels.config";
 
 export function renderDiscordCard(params: {
+  props: ChannelsProps;
   discord?: DiscordStatus | null;
-  frame: ChannelCardFrame;
-  actions: TemplateResult;
-  facts: TemplateResult;
-  error: string | null;
+  accountCountLabel: unknown;
 }) {
-  const { discord, frame, actions, facts, error } = params;
+  const { props, discord, accountCountLabel } = params;
 
-  const details = html`
-    <div class="status-list" style="margin-top: 16px;">
-      ${discord?.lastStartAt
-        ? html`<div>
-            <span class="label">Last start</span>
-            <span>${formatAgo(discord.lastStartAt)}</span>
+  return html`
+    <div class="card">
+      <div class="card-title">Discord</div>
+      <div class="card-sub">Bot status and channel configuration.</div>
+      ${accountCountLabel}
+
+      <div class="status-list" style="margin-top: 16px;">
+        <div>
+          <span class="label">Configured</span>
+          <span>${discord?.configured ? "Yes" : "No"}</span>
+        </div>
+        <div>
+          <span class="label">Running</span>
+          <span>${discord?.running ? "Yes" : "No"}</span>
+        </div>
+        <div>
+          <span class="label">Last start</span>
+          <span>${discord?.lastStartAt ? formatAgo(discord.lastStartAt) : "n/a"}</span>
+        </div>
+        <div>
+          <span class="label">Last probe</span>
+          <span>${discord?.lastProbeAt ? formatAgo(discord.lastProbeAt) : "n/a"}</span>
+        </div>
+      </div>
+
+      ${
+        discord?.lastError
+          ? html`<div class="callout danger" style="margin-top: 12px;">
+            ${discord.lastError}
           </div>`
-        : nothing}
-      ${discord?.lastProbeAt
-        ? html`<div>
-            <span class="label">Last probe</span>
-            <span>${formatAgo(discord.lastProbeAt)}</span>
+          : nothing
+      }
+
+      ${
+        discord?.probe
+          ? html`<div class="callout" style="margin-top: 12px;">
+            Probe ${discord.probe.ok ? "ok" : "failed"} ·
+            ${discord.probe.status ?? ""} ${discord.probe.error ?? ""}
           </div>`
-        : nothing}
+          : nothing
+      }
+
+      ${renderChannelConfigSection({ channelId: "discord", props })}
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" @click=${() => props.onRefresh(true)}>
+          Probe
+        </button>
+      </div>
     </div>
-    ${renderProbeBadge(discord?.probe)}
   `;
-
-  return renderChannelIntegrationCard({
-    frame,
-    actions,
-    facts,
-    details,
-    error: error ?? null,
-  });
 }

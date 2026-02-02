@@ -1,8 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-
 import { beforeEach, describe, expect, it, type MockInstance, vi } from "vitest";
-
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 
 vi.mock("../agents/pi-embedded.js", () => ({
@@ -13,39 +11,19 @@ vi.mock("../agents/pi-embedded.js", () => ({
 vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(),
 }));
-vi.mock("../agents/sandbox.js", () => ({
-  resolveSandboxContext: vi.fn(async () => null),
-}));
-vi.mock("../agents/pi-tools.js", () => ({
-  createClawdbrainCodingTools: vi.fn(() => []),
-}));
-vi.mock("../agents/claude-agent-sdk/sdk-session-history.js", () => ({
-  loadSessionHistoryForSdk: vi.fn(() => []),
-}));
-vi.mock("../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
-  createSdkAgentRuntime: vi.fn(() => ({
-    kind: "ccsdk",
-    displayName: "Claude Agent SDK",
-    run: vi.fn(async () => ({
-      payloads: [{ text: "sdk-ok" }],
-      meta: { durationMs: 5, agentMeta: { sessionId: "s", provider: "ccsdk", model: "default" } },
-    })),
-  })),
-}));
 
+import type { OpenClawConfig } from "../config/config.js";
+import type { RuntimeEnv } from "../runtime.js";
+import { telegramPlugin } from "../../extensions/telegram/src/channel.js";
+import { setTelegramRuntime } from "../../extensions/telegram/src/runtime.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
-import { createSdkAgentRuntime } from "../agents/claude-agent-sdk/sdk-agent-runtime.js";
-import type { ClawdbrainConfig } from "../config/config.js";
 import * as configModule from "../config/config.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
-import type { RuntimeEnv } from "../runtime.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import { createPluginRuntime } from "../plugins/runtime/index.js";
 import { createTestRegistry } from "../test-utils/channel-plugins.js";
 import { agentCommand } from "./agent.js";
-import { telegramPlugin } from "../../extensions/telegram/src/channel.js";
-import { setTelegramRuntime } from "../../extensions/telegram/src/runtime.js";
 
 const runtime: RuntimeEnv = {
   log: vi.fn(),
@@ -58,24 +36,22 @@ const runtime: RuntimeEnv = {
 const configSpy = vi.spyOn(configModule, "loadConfig");
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(fn, { prefix: "clawdbrain-agent-" });
+  return withTempHomeBase(fn, { prefix: "openclaw-agent-" });
 }
 
 function mockConfig(
   home: string,
   storePath: string,
-  agentOverrides?: Partial<NonNullable<NonNullable<ClawdbrainConfig["agents"]>["defaults"]>>,
-  telegramOverrides?: Partial<NonNullable<ClawdbrainConfig["telegram"]>>,
+  agentOverrides?: Partial<NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>>,
+  telegramOverrides?: Partial<NonNullable<OpenClawConfig["telegram"]>>,
   agentsList?: Array<{ id: string; default?: boolean }>,
-  agentsMainRuntime?: "pi" | "ccsdk",
 ) {
   configSpy.mockReturnValue({
     agents: {
-      main: agentsMainRuntime ? { runtime: agentsMainRuntime } : undefined,
       defaults: {
         model: { primary: "anthropic/claude-opus-4-5" },
         models: { "anthropic/claude-opus-4-5": {} },
-        workspace: path.join(home, "clawd"),
+        workspace: path.join(home, "openclaw"),
         ...agentOverrides,
       },
       list: agentsList,
@@ -135,18 +111,6 @@ describe("agentCommand", () => {
     });
   });
 
-  it("runs SDK main agent when agents.main.runtime is sdk", async () => {
-    await withTempHome(async (home) => {
-      const store = path.join(home, "sessions.json");
-      mockConfig(home, store, undefined, undefined, undefined, "ccsdk");
-
-      await agentCommand({ message: "hi", to: "+1555" }, runtime);
-
-      expect(vi.mocked(createSdkAgentRuntime)).toHaveBeenCalledTimes(1);
-      expect(vi.mocked(runEmbeddedPiAgent)).not.toHaveBeenCalled();
-    });
-  });
-
   it("resumes when session-id is provided", async () => {
     await withTempHome(async (home) => {
       const store = path.join(home, "sessions.json");
@@ -181,10 +145,12 @@ describe("agentCommand", () => {
 
       const assistantEvents: Array<{ runId: string; text?: string }> = [];
       const stop = onAgentEvent((evt) => {
-        if (evt.stream !== "assistant") return;
+        if (evt.stream !== "assistant") {
+          return;
+        }
         assistantEvents.push({
           runId: evt.runId,
-          text: typeof evt.data?.text === "string" ? (evt.data.text as string) : undefined,
+          text: typeof evt.data?.text === "string" ? evt.data.text : undefined,
         });
       });
 

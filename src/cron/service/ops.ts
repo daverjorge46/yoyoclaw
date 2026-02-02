@@ -1,4 +1,5 @@
 import type { CronJobCreate, CronJobPatch } from "../types.js";
+import type { CronServiceState } from "./state.js";
 import {
   applyJobPatch,
   computeJobNextRunAtMs,
@@ -9,7 +10,6 @@ import {
   recomputeNextRuns,
 } from "./jobs.js";
 import { locked } from "./locked.js";
-import type { CronServiceState } from "./state.js";
 import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
 import { armTimer, emit, executeJob, stopTimer, wake } from "./timer.js";
 
@@ -38,38 +38,24 @@ export function stop(state: CronServiceState) {
   stopTimer(state);
 }
 
-/** Lock-free snapshot: safe because JS is single-threaded and .filter() creates new arrays. */
-function statusSnapshot(state: CronServiceState) {
-  return {
-    enabled: state.deps.cronEnabled,
-    storePath: state.deps.storePath,
-    jobs: state.store?.jobs.length ?? 0,
-    nextWakeAtMs: state.deps.cronEnabled === true ? (nextWakeAtMs(state) ?? null) : null,
-  };
-}
-
-/** Lock-free snapshot: safe because JS is single-threaded and .filter()/.sort() create new arrays. */
-function listSnapshot(state: CronServiceState, opts?: { includeDisabled?: boolean }) {
-  const includeDisabled = opts?.includeDisabled === true;
-  const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
-  return jobs.sort((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
-}
-
 export async function status(state: CronServiceState) {
-  // Fast path: store already loaded — return snapshot without acquiring the lock.
-  if (state.store) return statusSnapshot(state);
   return await locked(state, async () => {
     await ensureLoaded(state);
-    return statusSnapshot(state);
+    return {
+      enabled: state.deps.cronEnabled,
+      storePath: state.deps.storePath,
+      jobs: state.store?.jobs.length ?? 0,
+      nextWakeAtMs: state.deps.cronEnabled ? (nextWakeAtMs(state) ?? null) : null,
+    };
   });
 }
 
 export async function list(state: CronServiceState, opts?: { includeDisabled?: boolean }) {
-  // Fast path: store already loaded — return snapshot without acquiring the lock.
-  if (state.store) return listSnapshot(state, opts);
   return await locked(state, async () => {
     await ensureLoaded(state);
-    return listSnapshot(state, opts);
+    const includeDisabled = opts?.includeDisabled === true;
+    const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
+    return jobs.toSorted((a, b) => (a.state.nextRunAtMs ?? 0) - (b.state.nextRunAtMs ?? 0));
   });
 }
 
@@ -121,44 +107,35 @@ export async function remove(state: CronServiceState, id: string) {
     warnIfDisabled(state, "remove");
     await ensureLoaded(state);
     const before = state.store?.jobs.length ?? 0;
-    if (!state.store) return { ok: false, removed: false } as const;
+    if (!state.store) {
+      return { ok: false, removed: false } as const;
+    }
     state.store.jobs = state.store.jobs.filter((j) => j.id !== id);
     const removed = (state.store.jobs.length ?? 0) !== before;
     await persist(state);
     armTimer(state);
-    if (removed) emit(state, { jobId: id, action: "removed" });
+    if (removed) {
+      emit(state, { jobId: id, action: "removed" });
+    }
     return { ok: true, removed } as const;
   });
 }
 
 export async function run(state: CronServiceState, id: string, mode?: "due" | "force") {
-  const forced = mode === "force";
-
-  // Phase 1 (locked): validate, mark running (in-memory only; Phase 3 persists).
-  const job = await locked(state, async () => {
+  return await locked(state, async () => {
     warnIfDisabled(state, "run");
     await ensureLoaded(state);
-    const j = findJobOrThrow(state, id);
+    const job = findJobOrThrow(state, id);
     const now = state.deps.nowMs();
-    const due = isJobDue(j, now, { forced });
-    if (!due) return null;
-    j.state.runningAtMs = state.deps.nowMs();
-    return j;
-  });
-
-  if (!job) return { ok: true, ran: false, reason: "not-due" as const };
-
-  // Phase 2 (unlocked): execute — the long-running part.
-  const now = state.deps.nowMs();
-  await executeJob(state, job, now, { forced });
-
-  // Phase 3 (locked): persist final state, re-arm timer.
-  await locked(state, async () => {
+    const due = isJobDue(job, now, { forced: mode === "force" });
+    if (!due) {
+      return { ok: true, ran: false, reason: "not-due" as const };
+    }
+    await executeJob(state, job, now, { forced: mode === "force" });
     await persist(state);
     armTimer(state);
+    return { ok: true, ran: true } as const;
   });
-
-  return { ok: true, ran: true } as const;
 }
 
 export function wakeNow(

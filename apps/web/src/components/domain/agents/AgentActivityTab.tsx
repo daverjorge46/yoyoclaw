@@ -396,7 +396,7 @@ export function AgentActivityTab({
     if (selectedActivity.sessionKey) return selectedActivity.sessionKey;
     const metaSession = selectedActivity.metadata?.sessionKey;
     return typeof metaSession === "string" ? metaSession : undefined;
-  }, [selectedActivity, agentId]);
+  }, [selectedActivity]);
 
   React.useEffect(() => {
     if (!selectedActivityId) return;
@@ -490,7 +490,7 @@ export function AgentActivityTab({
     }
 
     return items;
-  }, [selectedActivity]);
+  }, [selectedActivity, agentId]);
 
   // Group activities by day
   const groupedActivities = React.useMemo(() => {

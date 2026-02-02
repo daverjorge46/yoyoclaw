@@ -253,7 +253,7 @@ describe("provider usage loading", () => {
     await withTempHome(
       async (tempHome) => {
         const agentDir = path.join(
-          process.env.CLAWDBRAIN_STATE_DIR ?? path.join(tempHome, ".clawdbrain"),
+          process.env.OPENCLAW_STATE_DIR ?? path.join(tempHome, ".openclaw"),
           "agents",
           "main",
           "agent",
@@ -328,9 +328,9 @@ describe("provider usage loading", () => {
       },
       {
         env: {
-          CLAWDBRAIN_STATE_DIR: (home) => path.join(home, ".clawdbrain"),
+          OPENCLAW_STATE_DIR: (home) => path.join(home, ".openclaw"),
         },
-        prefix: "clawdbrain-provider-usage-",
+        prefix: "openclaw-provider-usage-",
       },
     );
   });
@@ -383,8 +383,11 @@ describe("provider usage loading", () => {
       expect(claude?.windows.some((w) => w.label === "5h")).toBe(true);
       expect(claude?.windows.some((w) => w.label === "Week")).toBe(true);
     } finally {
-      if (cookieSnapshot === undefined) delete process.env.CLAUDE_AI_SESSION_KEY;
-      else process.env.CLAUDE_AI_SESSION_KEY = cookieSnapshot;
+      if (cookieSnapshot === undefined) {
+        delete process.env.CLAUDE_AI_SESSION_KEY;
+      } else {
+        process.env.CLAUDE_AI_SESSION_KEY = cookieSnapshot;
+      }
     }
   });
 });

@@ -223,25 +223,25 @@ describe("buildServiceEnvironment", () => {
     } else {
       expect(env.PATH).toContain("/usr/bin");
     }
-    expect(env.CLAWDBRAIN_GATEWAY_PORT).toBe("18789");
-    expect(env.CLAWDBRAIN_GATEWAY_TOKEN).toBe("secret");
-    expect(env.CLAWDBRAIN_SERVICE_MARKER).toBe("clawdbrain");
-    expect(env.CLAWDBRAIN_SERVICE_KIND).toBe("gateway");
-    expect(typeof env.CLAWDBRAIN_SERVICE_VERSION).toBe("string");
-    expect(env.CLAWDBRAIN_SYSTEMD_UNIT).toBe("clawdbrain-gateway.service");
+    expect(env.OPENCLAW_GATEWAY_PORT).toBe("18789");
+    expect(env.OPENCLAW_GATEWAY_TOKEN).toBe("secret");
+    expect(env.OPENCLAW_SERVICE_MARKER).toBe("openclaw");
+    expect(env.OPENCLAW_SERVICE_KIND).toBe("gateway");
+    expect(typeof env.OPENCLAW_SERVICE_VERSION).toBe("string");
+    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("openclaw-gateway.service");
     if (process.platform === "darwin") {
-      expect(env.CLAWDBRAIN_LAUNCHD_LABEL).toBe("com.clawdbrain.gateway");
+      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.openclaw.gateway");
     }
   });
 
   it("uses profile-specific unit and label", () => {
     const env = buildServiceEnvironment({
-      env: { HOME: "/home/user", CLAWDBRAIN_PROFILE: "work" },
+      env: { HOME: "/home/user", OPENCLAW_PROFILE: "work" },
       port: 18789,
     });
-    expect(env.CLAWDBRAIN_SYSTEMD_UNIT).toBe("clawdbrain-gateway-work.service");
+    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("openclaw-gateway-work.service");
     if (process.platform === "darwin") {
-      expect(env.CLAWDBRAIN_LAUNCHD_LABEL).toBe("com.clawdbrain.work");
+      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.openclaw.work");
     }
   });
 });
