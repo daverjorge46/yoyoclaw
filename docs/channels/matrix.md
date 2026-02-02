@@ -188,6 +188,61 @@ Once verified, the bot can decrypt messages in encrypted rooms.
 - `channels.matrix.replyToMode` controls reply-to metadata when not replying in a thread:
   - `off` (default), `first`, `all`
 
+### Thread context
+
+When the bot receives a message in a thread, it can fetch the full thread history for context-aware responses.
+
+- `channels.matrix.threadContext.enabled` - Enable thread context fetching (default: `true`)
+- `channels.matrix.threadContext.maxMessages` - Maximum thread messages to fetch (default: `50`)
+
+When enabled, messages in threads include:
+
+1. **Text summary** in the message body for readability
+2. **JSON data** in the `ThreadContext` field with full metadata
+
+Text summary format:
+
+```
+--- Thread Context ---
+[Thread Root] @user1:server.org: We should migrate to the new API
+[Reply 1] @user2:server.org: Agreed, but we need to update docs first [m.image]
+[Reply 2] @user3:server.org: I can handle the docs
+--- Current Message ---
+```
+
+JSON structure (`ThreadContext` field):
+
+```json
+{
+  "roomId": "!abc123:server.org",
+  "root": {
+    "eventId": "$root_event_id",
+    "sender": "@user1:server.org",
+    "body": "We should migrate to the new API",
+    "timestamp": 1706889600000,
+    "msgtype": "m.text"
+  },
+  "replies": [
+    {
+      "eventId": "$reply1_event_id",
+      "sender": "@user2:server.org",
+      "body": "Here is the architecture diagram",
+      "timestamp": 1706889660000,
+      "msgtype": "m.image",
+      "mediaPath": "/tmp/openclaw/media/abc123.png",
+      "mediaType": "image/png"
+    }
+  ]
+}
+```
+
+This enables the bot to:
+
+- Summarize threads with full context
+- Create issues/tickets with proper attribution (sender IDs)
+- Link to specific messages using event IDs (Matrix permalinks)
+- Access media files directly (downloaded to local paths, same as regular messages)
+
 ## Capabilities
 
 | Feature         | Status                                                                                |
@@ -217,6 +272,8 @@ Provider options:
 - `channels.matrix.encryption`: enable E2EE (default: false).
 - `channels.matrix.initialSyncLimit`: initial sync limit.
 - `channels.matrix.threadReplies`: `off | inbound | always` (default: inbound).
+- `channels.matrix.threadContext.enabled`: fetch thread context for messages in threads (default: true).
+- `channels.matrix.threadContext.maxMessages`: max thread messages to fetch (default: 50).
 - `channels.matrix.textChunkLimit`: outbound text chunk size (chars).
 - `channels.matrix.chunkMode`: `length` (default) or `newline` to split on blank lines (paragraph boundaries) before length chunking.
 - `channels.matrix.dm.policy`: `pairing | allowlist | open | disabled` (default: pairing).
