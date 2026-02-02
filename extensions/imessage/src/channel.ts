@@ -228,7 +228,6 @@ export const imessagePlugin: ChannelPlugin<ResolvedIMessageAccount> = {
         const probe = await getIMessageRuntime().channel.imessage.probeIMessage(2000, {
           cliPath: account.config.cliPath,
           dbPath: account.config.dbPath,
-          runtime: (deps as { runtime?: unknown })?.runtime,
         });
         if (!probe.ok) {
           return {
