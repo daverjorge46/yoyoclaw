@@ -231,4 +231,45 @@ describe("cron tool", () => {
     expect(call.method).toBe("cron.add");
     expect(call.params?.agentId).toBeNull();
   });
+
+  it("rejects past timestamp for schedule.kind='at'", async () => {
+    const tool = createCronTool();
+    const pastTimestamp = Date.now() - 60000; // 1 minute ago
+
+    await expect(
+      tool.execute("call-past", {
+        action: "add",
+        job: {
+          name: "reminder",
+          schedule: { kind: "at", atMs: pastTimestamp },
+          payload: { kind: "systemEvent", text: "Should fail" },
+        },
+      }),
+    ).rejects.toThrow(/schedule\.atMs must be in the future/);
+
+    // Should not call gateway when validation fails
+    expect(callGatewayMock).not.toHaveBeenCalled();
+  });
+
+  it("allows future timestamp for schedule.kind='at'", async () => {
+    callGatewayMock.mockResolvedValueOnce({ ok: true });
+
+    const tool = createCronTool();
+    const futureTimestamp = Date.now() + 60000; // 1 minute from now
+
+    await tool.execute("call-future", {
+      action: "add",
+      job: {
+        name: "reminder",
+        schedule: { kind: "at", atMs: futureTimestamp },
+        payload: { kind: "systemEvent", text: "Should succeed" },
+      },
+    });
+
+    expect(callGatewayMock).toHaveBeenCalledTimes(1);
+    const call = callGatewayMock.mock.calls[0]?.[0] as {
+      method?: string;
+    };
+    expect(call.method).toBe("cron.add");
+  });
 });
