@@ -102,9 +102,13 @@ function normalizeSchemaNode(
         }
         const res = normalizeSchemaNode(item, [...path, i]);
         normalizedItems[i] = res.schema ?? item;
-        for (const entry of res.unsupportedPaths) unsupported.add(entry);
+        for (const entry of res.unsupportedPaths) {
+          unsupported.add(entry);
+        }
       }
-      if (normalizedItems.length === 0) unsupported.add(pathLabel);
+      if (normalizedItems.length === 0) {
+        unsupported.add(pathLabel);
+      }
       normalized.items = normalizedItems;
     } else {
       const itemsSchema = schema.items;
@@ -113,7 +117,9 @@ function normalizeSchemaNode(
       } else {
         const res = normalizeSchemaNode(itemsSchema, [...path, "*"]);
         normalized.items = res.schema ?? itemsSchema;
-        if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
+        if (res.unsupportedPaths.length > 0) {
+          unsupported.add(pathLabel);
+        }
       }
     }
   } else if (

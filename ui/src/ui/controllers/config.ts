@@ -35,11 +35,13 @@ export type ConfigState = {
 };
 
 export async function loadConfig(state: ConfigState, opts: { resetDirty?: boolean } = {}) {
-  if (!state.client || !state.connected) return;
+  if (!state.client || !state.connected) {
+    return;
+  }
   state.configLoading = true;
   state.lastError = null;
   try {
-    const res = (await state.client.request("config.get", {})) as ConfigSnapshot;
+    const res = await state.client.request("config.get", {});
     if (opts.resetDirty) {
       state.configFormDirty = false;
     }

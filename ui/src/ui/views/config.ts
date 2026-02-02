@@ -329,19 +329,23 @@ function resolveSubsections(params: {
 }
 
 function applySchemaDefaults(value: unknown, schema: JsonSchema | undefined): unknown {
-  if (!schema) return value;
+  if (!schema) {
+    return value;
+  }
   const type = schemaType(schema);
   if (value === undefined && schema.default !== undefined) {
     return schema.default;
   }
   if (type === "object" && schema.properties && value && typeof value === "object") {
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      return value;
+    }
     const record = value as Record<string, unknown>;
     let mutated = false;
     const next: Record<string, unknown> = { ...record };
     for (const [key, childSchema] of Object.entries(schema.properties)) {
       const before = record[key];
-      const after = applySchemaDefaults(before, childSchema as JsonSchema);
+      const after = applySchemaDefaults(before, childSchema);
       if (after !== before) {
         next[key] = after;
         mutated = true;
@@ -353,9 +357,13 @@ function applySchemaDefaults(value: unknown, schema: JsonSchema | undefined): un
     let mutated = false;
     const next = value.map((entry, index) => {
       const itemSchema = Array.isArray(schema.items) ? schema.items[index] : schema.items;
-      if (!itemSchema) return entry;
-      const normalized = applySchemaDefaults(entry, itemSchema as JsonSchema);
-      if (normalized !== entry) mutated = true;
+      if (!itemSchema) {
+        return entry;
+      }
+      const normalized = applySchemaDefaults(entry, itemSchema);
+      if (normalized !== entry) {
+        mutated = true;
+      }
       return normalized;
     });
     return mutated ? next : value;
