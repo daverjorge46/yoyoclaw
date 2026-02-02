@@ -5,6 +5,17 @@ import * as tar from "tar";
 
 export type ArchiveKind = "tar" | "zip";
 
+/**
+ * Check if a resolved path is safely contained within a destination directory.
+ * Uses path.relative() to avoid prefix-matching vulnerabilities where
+ * /tmp/extract could match /tmp/extract2 (sibling directory escape).
+ */
+function isPathContained(destDir: string, targetPath: string): boolean {
+  const relative = path.relative(destDir, targetPath);
+  // Path escapes if it starts with '..' or is absolute
+  return !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
 export type ArchiveLogger = {
   info?: (message: string) => void;
   warn?: (message: string) => void;
@@ -78,7 +89,7 @@ async function extractZip(params: { archivePath: string; destDir: string }): Pro
     const entryPath = entry.name.replaceAll("\\", "/");
     if (!entryPath || entryPath.endsWith("/")) {
       const dirPath = path.resolve(params.destDir, entryPath);
-      if (!dirPath.startsWith(params.destDir)) {
+      if (!isPathContained(params.destDir, dirPath)) {
         throw new Error(`zip entry escapes destination: ${entry.name}`);
       }
       await fs.mkdir(dirPath, { recursive: true });
@@ -86,7 +97,7 @@ async function extractZip(params: { archivePath: string; destDir: string }): Pro
     }
 
     const outPath = path.resolve(params.destDir, entryPath);
-    if (!outPath.startsWith(params.destDir)) {
+    if (!isPathContained(params.destDir, outPath)) {
       throw new Error(`zip entry escapes destination: ${entry.name}`);
     }
     await fs.mkdir(path.dirname(outPath), { recursive: true });
