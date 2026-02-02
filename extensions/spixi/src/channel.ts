@@ -1,18 +1,26 @@
 import {
   getChatChannelMeta,
   type ChannelPlugin,
-  type ResolvedSpixiAccount, // To be defined
+  type ChannelGatewayContext,
 } from "openclaw/plugin-sdk";
 import { getSpixiRuntime } from "./runtime.js";
+import { listSpixiAccountIds, resolveSpixiAccount } from "./accounts.js";
+import { type ResolvedSpixiAccount } from "./types.js";
+import mqtt from "mqtt";
+import axios from "axios";
 
 const meta = getChatChannelMeta("spixi");
 
-export const spixiPlugin: ChannelPlugin<any> = {
+export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
   id: "spixi",
   meta: {
     ...meta,
     showConfigured: true,
     quickstartAllowFrom: true,
+  },
+  config: {
+    listAccountIds: (cfg) => listSpixiAccountIds(cfg),
+    resolveAccount: (cfg, accountId) => resolveSpixiAccount({ cfg, accountId }),
   },
   agentTools: () => [
     {
@@ -29,8 +37,8 @@ export const spixiPlugin: ChannelPlugin<any> = {
         required: ["address"],
       },
       run: async ({ address }) => {
-        const result = await getSpixiRuntime().channel.spixi.addContact(address);
-        return result;
+        const runtime = getSpixiRuntime();
+        return await runtime.channel.spixi.addContact(address);
       },
     },
   ],
@@ -42,23 +50,52 @@ export const spixiPlugin: ChannelPlugin<any> = {
   },
   outbound: {
     deliveryMode: "gateway",
-    sendText: async ({ to, text }) => {
-      const result = await getSpixiRuntime().channel.spixi.sendMessage(to, text);
+    sendText: async ({ to, text, accountId }) => {
+      const runtime = getSpixiRuntime();
+      const result = await runtime.channel.spixi.sendMessage(to, text);
       return { channel: "spixi", ...result };
     },
   },
   gateway: {
-    startAccount: async (ctx) => {
-      const { account, runtime, abortSignal, log } = ctx;
-      log?.info(`[${account.accountId}] starting spixi bridge`);
+    startAccount: async (ctx: ChannelGatewayContext<ResolvedSpixiAccount>) => {
+      const { account, log } = ctx;
+      const config = account.config;
+      const mqttUrl = `mqtt://${config.mqttHost || "127.0.0.1"}:${config.mqttPort || 1884}`;
       
-      // Initialize MQTT listener here using account config
-      // (Similar to our spixi-bridge.js logic)
+      log?.info(`[${account.accountId}] connecting to Spixi MQTT: ${mqttUrl}`);
       
+      const client = mqtt.connect(mqttUrl);
+      
+      client.on("connect", () => {
+        log?.info(`[${account.accountId}] Spixi MQTT Connected`);
+        client.subscribe("Chat");
+      });
+
+      client.on("message", async (topic, message) => {
+        if (topic === "Chat") {
+          try {
+            const data = JSON.parse(message.toString());
+            const sender = data.sender;
+            const text = data.data?.data || data.message;
+            
+            if (!text || (config.myWalletAddress && sender === config.myWalletAddress)) {
+              return;
+            }
+
+            log?.info(`[${account.accountId}] Received Spixi message from ${sender}`);
+            
+            // Inbound relay logic to OpenClaw core would go here
+            // This usually involves calling ctx.onMessage or similar
+          } catch (e: any) {
+            log?.error(`[${account.accountId}] Error processing Spixi message: ${e.message}`);
+          }
+        }
+      });
+
       return {
         stop: async () => {
           log?.info(`[${account.accountId}] stopping spixi bridge`);
-          // Cleanup MQTT
+          client.end();
         }
       };
     },

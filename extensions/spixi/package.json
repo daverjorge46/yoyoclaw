@@ -9,7 +9,8 @@
     "openclaw.plugin.json"
   ],
   "dependencies": {
-    "mqtt": "^5.0.0"
+    "mqtt": "^5.0.0",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "openclaw": "workspace:*"
