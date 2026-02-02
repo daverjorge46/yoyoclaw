@@ -330,12 +330,35 @@ const tokenOptimizerPlugin = {
       (tokenBudget as any).dailyLimit = api.pluginConfig.dailyLimit;
     }
 
-    // Register the message_received hook for pre-flight classification
-    api.on("message_received", async (event: any, ctx: any) => {
-      const { content, metadata } = event;
+    // Register the before_agent_start hook for pre-flight classification
+    api.on("before_agent_start", async (event: any, ctx: any) => {
+      api.logger.info(`[Token Optimizer] Hook fired!`);
+      api.logger.debug(
+        `[Token Optimizer] Event keys: ${Object.keys(event || {}).join(", ")}`,
+      );
+      api.logger.debug(
+        `[Token Optimizer] Ctx keys: ${Object.keys(ctx || {}).join(", ")}`,
+      );
+
+      // The event contains 'prompt' with the actual message
+      const content = event?.prompt || "";
+
+      if (!content) {
+        api.logger.debug(
+          `[Token Optimizer] No content in event - skipping classification`,
+        );
+        return;
+      }
+
+      api.logger.info(
+        `[Token Optimizer] Classifying: "${content.substring(0, 50)}..."`,
+      );
 
       // Extract context
-      const msgContext = extractContext(content, metadata);
+      const msgContext = extractContext(
+        content,
+        event?.metadata || ctx?.metadata || {},
+      );
 
       // Classify complexity
       const classification = classifyComplexity(content, msgContext);
