@@ -1,7 +1,7 @@
 import type { ModelDefinitionConfig } from "../config/types.js";
 
 export const BASETEN_BASE_URL = "https://inference.baseten.co/v1";
-export const BASETEN_DEFAULT_MODEL_ID = "zai-org/GLM-4.7";
+export const BASETEN_DEFAULT_MODEL_ID = "moonshotai/Kimi-K2.5";
 export const BASETEN_DEFAULT_MODEL_REF = `baseten/${BASETEN_DEFAULT_MODEL_ID}`;
 
 // Baseten uses pay-per-token pricing; rates vary by model.
@@ -26,25 +26,17 @@ export const BASETEN_MODEL_CATALOG = [
     name: "OpenAI GPT OSS 120B",
     reasoning: true,
     input: ["text"] as const,
-    contextWindow: 131072,
+    contextWindow: 128000,
     maxTokens: 8192,
   },
 
   // DeepSeek models
   {
-    id: "deepseek-ai/DeepSeek-V3.2",
-    name: "DeepSeek V3.2",
-    reasoning: false,
-    input: ["text"] as const,
-    contextWindow: 131072,
-    maxTokens: 8192,
-  },
-  {
     id: "deepseek-ai/DeepSeek-V3.1",
     name: "DeepSeek V3.1",
     reasoning: false,
     input: ["text"] as const,
-    contextWindow: 163840,
+    contextWindow: 164000,
     maxTokens: 8192,
   },
   {
@@ -52,17 +44,25 @@ export const BASETEN_MODEL_CATALOG = [
     name: "DeepSeek V3 0324",
     reasoning: false,
     input: ["text"] as const,
-    contextWindow: 163840,
+    contextWindow: 164000,
     maxTokens: 8192,
   },
 
   // Kimi models
   {
+    id: "moonshotai/Kimi-K2.5",
+    name: "Kimi K2.5",
+    reasoning: true,
+    input: ["text"] as const,
+    contextWindow: 256000,
+    maxTokens: 8192,
+  },
+  {
     id: "moonshotai/Kimi-K2-Thinking",
     name: "Kimi K2 Thinking",
     reasoning: true,
     input: ["text"] as const,
-    contextWindow: 262144,
+    contextWindow: 262000,
     maxTokens: 8192,
   },
   {
@@ -70,7 +70,7 @@ export const BASETEN_MODEL_CATALOG = [
     name: "Kimi K2 Instruct 0905",
     reasoning: false,
     input: ["text"] as const,
-    contextWindow: 131072,
+    contextWindow: 128000,
     maxTokens: 8192,
   },
 
@@ -80,7 +80,7 @@ export const BASETEN_MODEL_CATALOG = [
     name: "Qwen3 Coder 480B A35B Instruct",
     reasoning: false,
     input: ["text"] as const,
-    contextWindow: 262144,
+    contextWindow: 262000,
     maxTokens: 8192,
   },
 

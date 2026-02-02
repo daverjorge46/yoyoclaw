@@ -471,7 +471,7 @@ export function applyBasetenProviderConfig(cfg: OpenClawConfig): OpenClawConfig 
   const models = { ...cfg.agents?.defaults?.models };
   models[BASETEN_DEFAULT_MODEL_REF] = {
     ...models[BASETEN_DEFAULT_MODEL_REF],
-    alias: models[BASETEN_DEFAULT_MODEL_REF]?.alias ?? "DeepSeek V3.2",
+    alias: models[BASETEN_DEFAULT_MODEL_REF]?.alias ?? "Kimi K2.5",
   };
 
   const providers = { ...cfg.models?.providers };
