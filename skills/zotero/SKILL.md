@@ -2,31 +2,7 @@
 name: zotero
 description: "Manage academic references and citations using Zotero via pyzotero-cli. Search, list, and organize papers, books, and articles in your library."
 homepage: https://www.zotero.org/
-metadata:
-  {
-    "openclaw":
-    {
-      "emoji": "📚",
-      "requires": { "bins": ["zot"] },
-      "install":
-      [
-        {
-          "id": "pip",
-          "kind": "pip",
-          "package": "pyzotero-cli",
-          "bins": ["zot"],
-          "label": "Install pyzotero-cli (pip)"
-        },
-        {
-          "id": "uv",
-          "kind": "uv",
-          "package": "pyzotero-cli",
-          "bins": ["zot"],
-          "label": "Install pyzotero-cli (uv)"
-        }
-      ]
-    }
-  }
+metadata: {"openclaw":{"emoji":"📚","requires":{"bins":["zot"]},"install":[{"id":"pip","kind":"pip","package":"pyzotero-cli","bins":["zot"],"label":"Install pyzotero-cli (pip)"},{"id":"uv","kind":"uv","package":"pyzotero-cli","bins":["zot"],"label":"Install pyzotero-cli (uv)"}]}}
 ---
 
 # Zotero Skill
