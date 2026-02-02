@@ -17,7 +17,12 @@ import { formatCliCommand } from "./command-format.js";
 function runBrowserCommand(action: () => Promise<void>) {
   return runCommandWithRuntime(defaultRuntime, action, (err) => {
     let msg = String(err);
-    if (msg.includes("gateway closed") || msg.includes("gateway timeout")) {
+    const lower = msg.toLowerCase();
+    if (
+      lower.includes("gateway closed") ||
+      lower.includes("gateway timeout") ||
+      lower.includes("econnrefused")
+    ) {
       msg += `\n\nIs the gateway running?\nTry starting it with: ${formatCliCommand("openclaw gateway")}`;
     }
     defaultRuntime.error(danger(msg));
