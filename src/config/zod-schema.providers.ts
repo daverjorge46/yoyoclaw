@@ -9,12 +9,15 @@ import {
   MSTeamsConfigSchema,
   SignalConfigSchema,
   SlackConfigSchema,
+  SpixiConfigSchema,
   TelegramConfigSchema,
 } from "./zod-schema.providers-core.js";
 import { WhatsAppConfigSchema } from "./zod-schema.providers-whatsapp.js";
+import { SpixiConfigSchema } from "./zod-schema.providers-spixi.js";
 
 export * from "./zod-schema.providers-core.js";
 export * from "./zod-schema.providers-whatsapp.js";
+export * from "./zod-schema.providers-spixi.js";
 export { ChannelHeartbeatVisibilitySchema } from "./zod-schema.channels.js";
 
 export const ChannelsSchema = z
@@ -33,6 +36,7 @@ export const ChannelsSchema = z
     slack: SlackConfigSchema.optional(),
     signal: SignalConfigSchema.optional(),
     imessage: IMessageConfigSchema.optional(),
+    spixi: SpixiConfigSchema.optional(),
     bluebubbles: BlueBubblesConfigSchema.optional(),
     msteams: MSTeamsConfigSchema.optional(),
   })
