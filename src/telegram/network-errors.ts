@@ -28,14 +28,29 @@ const RECOVERABLE_ERROR_NAMES = new Set([
 ]);
 
 const RECOVERABLE_MESSAGE_SNIPPETS = [
+  // Primary network failure patterns
   "fetch failed",
   "typeerror: fetch failed",
   "undici",
   "network error",
-  "network request",
+  "network request failed",
+  "network socket disconnected",
   "client network socket disconnected",
   "socket hang up",
+  "socket closed",
+  "socket timeout",
   "getaddrinfo",
+  // Connection-specific patterns (more specific than generic "timeout"/"socket")
+  "connection reset",
+  "connection refused",
+  "connection timed out",
+  "connect etimedout",
+  "connect econnrefused",
+  "econnreset",
+  "econnrefused",
+  "etimedout",
+  "enetunreach",
+  "ehostunreach",
 ];
 
 function normalizeCode(code?: string): string {
