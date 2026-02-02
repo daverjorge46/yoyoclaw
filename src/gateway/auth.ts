@@ -255,3 +255,95 @@ export async function authorizeGatewayConnect(params: {
 
   return { ok: false, reason: "unauthorized" };
 }
+
+// --- Auth Rate Limiter ---
+
+type RateLimitEntry = {
+  count: number;
+  lastFailure: number;
+};
+
+export type AuthRateLimiterConfig = {
+  /** Max failures before blocking. Default: 5 */
+  maxFailures?: number;
+  /** Window in ms after which entries expire. Default: 15 min */
+  windowMs?: number;
+  /** Base delay in ms for exponential backoff. Default: 1000 */
+  baseDelayMs?: number;
+  /** Max delay in ms. Default: 60000 (1 min) */
+  maxDelayMs?: number;
+};
+
+export class AuthRateLimiter {
+  private entries = new Map<string, RateLimitEntry>();
+  private readonly maxFailures: number;
+  private readonly windowMs: number;
+  private readonly baseDelayMs: number;
+  private readonly maxDelayMs: number;
+
+  constructor(config?: AuthRateLimiterConfig) {
+    this.maxFailures = config?.maxFailures ?? 5;
+    this.windowMs = config?.windowMs ?? 15 * 60 * 1000;
+    this.baseDelayMs = config?.baseDelayMs ?? 1_000;
+    this.maxDelayMs = config?.maxDelayMs ?? 60_000;
+  }
+
+  /** Check if an IP is currently blocked. Returns delay ms if throttled, 0 if ok, -1 if blocked. */
+  check(ip: string, now = Date.now()): { allowed: boolean; retryAfterMs: number } {
+    const entry = this.entries.get(ip);
+    if (!entry) return { allowed: true, retryAfterMs: 0 };
+
+    // Expire old entries
+    if (now - entry.lastFailure > this.windowMs) {
+      this.entries.delete(ip);
+      return { allowed: true, retryAfterMs: 0 };
+    }
+
+    if (entry.count >= this.maxFailures) {
+      const delay = Math.min(
+        this.maxDelayMs,
+        this.baseDelayMs * 2 ** Math.min(entry.count - this.maxFailures, 6),
+      );
+      const elapsed = now - entry.lastFailure;
+      if (elapsed < delay) {
+        return { allowed: false, retryAfterMs: delay - elapsed };
+      }
+    }
+
+    return { allowed: true, retryAfterMs: 0 };
+  }
+
+  /** Record a failed auth attempt. */
+  recordFailure(ip: string, now = Date.now()): void {
+    const entry = this.entries.get(ip);
+    if (entry && now - entry.lastFailure > this.windowMs) {
+      // Reset if window expired
+      this.entries.set(ip, { count: 1, lastFailure: now });
+      return;
+    }
+    if (entry) {
+      entry.count++;
+      entry.lastFailure = now;
+    } else {
+      this.entries.set(ip, { count: 1, lastFailure: now });
+    }
+  }
+
+  /** Record a successful auth (resets counter). */
+  recordSuccess(ip: string): void {
+    this.entries.delete(ip);
+  }
+
+  /** Prune expired entries. */
+  prune(now = Date.now()): void {
+    for (const [ip, entry] of this.entries) {
+      if (now - entry.lastFailure > this.windowMs) {
+        this.entries.delete(ip);
+      }
+    }
+  }
+
+  get size(): number {
+    return this.entries.size;
+  }
+}

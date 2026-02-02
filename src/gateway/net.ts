@@ -78,16 +78,18 @@ export function isLocalGatewayAddress(ip: string | undefined): boolean {
 }
 
 /**
- * Resolves gateway bind host with fallback strategy.
+ * Resolves gateway bind host.
  *
  * Modes:
- * - loopback: 127.0.0.1 (rarely fails, but handled gracefully)
- * - lan: always 0.0.0.0 (no fallback)
+ * - loopback: 127.0.0.1 only (fails if unavailable — no 0.0.0.0 fallback)
+ * - lan: always 0.0.0.0
+ * - all: explicit 0.0.0.0 binding (use --bind all)
  * - tailnet: Tailnet IPv4 if available, else loopback
- * - auto: Loopback if available, else 0.0.0.0
- * - custom: User-specified IP, fallback to 0.0.0.0 if unavailable
+ * - auto: Loopback if available, else error
+ * - custom: User-specified IP, error if unavailable
  *
- * @returns The bind address to use (never null)
+ * @returns The bind address to use
+ * @throws When the requested bind mode cannot be satisfied
  */
 export async function resolveGatewayBindHost(
   bind: import("../config/config.js").GatewayBindMode | undefined,
@@ -96,37 +98,40 @@ export async function resolveGatewayBindHost(
   const mode = bind ?? "loopback";
 
   if (mode === "loopback") {
-    // 127.0.0.1 rarely fails, but handle gracefully
     if (await canBindToHost("127.0.0.1")) return "127.0.0.1";
-    return "0.0.0.0"; // extreme fallback
+    throw new Error("Cannot bind to 127.0.0.1. Use --bind all to bind to all interfaces.");
   }
 
   if (mode === "tailnet") {
     const tailnetIP = pickPrimaryTailnetIPv4();
     if (tailnetIP && (await canBindToHost(tailnetIP))) return tailnetIP;
     if (await canBindToHost("127.0.0.1")) return "127.0.0.1";
-    return "0.0.0.0";
+    throw new Error(
+      "Cannot bind to Tailnet or loopback. Use --bind all to bind to all interfaces.",
+    );
   }
 
-  if (mode === "lan") {
+  if (mode === "lan" || mode === "all") {
     return "0.0.0.0";
   }
 
   if (mode === "custom") {
     const host = customHost?.trim();
-    if (!host) return "0.0.0.0"; // invalid config → fall back to all
-
+    if (!host) {
+      throw new Error(
+        "Custom bind mode requires a host address. Use --bind all to bind to all interfaces.",
+      );
+    }
     if (isValidIPv4(host) && (await canBindToHost(host))) return host;
-    // Custom IP failed → fall back to LAN
-    return "0.0.0.0";
+    throw new Error(`Cannot bind to ${host}. Use --bind all to bind to all interfaces.`);
   }
 
   if (mode === "auto") {
     if (await canBindToHost("127.0.0.1")) return "127.0.0.1";
-    return "0.0.0.0";
+    throw new Error("Cannot bind to loopback. Use --bind all to bind to all interfaces.");
   }
 
-  return "0.0.0.0";
+  throw new Error(`Unknown bind mode: ${mode as string}`);
 }
 
 /**

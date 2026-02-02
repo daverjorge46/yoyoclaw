@@ -1,4 +1,4 @@
-export type GatewayBindMode = "auto" | "lan" | "loopback" | "custom" | "tailnet";
+export type GatewayBindMode = "auto" | "lan" | "loopback" | "custom" | "tailnet" | "all";
 
 export type GatewayTlsConfig = {
   /** Enable TLS for the gateway server. */

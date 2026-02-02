@@ -301,13 +301,40 @@ export function createGatewayHttpServer(opts: {
   return httpServer;
 }
 
+const DEFAULT_ALLOWED_WS_ORIGINS = new Set(["localhost", "127.0.0.1", "::1"]);
+
+export function isAllowedWsOrigin(origin: string | undefined, allowedHosts?: Set<string>): boolean {
+  // No Origin header (non-browser clients like CLI, curl) — allow
+  if (!origin) return true;
+  try {
+    const parsed = new URL(origin);
+    // Strip IPv6 brackets if present
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, "");
+    const hosts = allowedHosts ?? DEFAULT_ALLOWED_WS_ORIGINS;
+    if (hosts.has(hostname)) return true;
+    // Allow *.ts.net (Tailscale)
+    if (hostname.endsWith(".ts.net")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function attachGatewayUpgradeHandler(opts: {
   httpServer: HttpServer;
   wss: WebSocketServer;
   canvasHost: CanvasHostHandler | null;
+  allowedWsOrigins?: Set<string>;
 }) {
-  const { httpServer, wss, canvasHost } = opts;
+  const { httpServer, wss, canvasHost, allowedWsOrigins } = opts;
   httpServer.on("upgrade", (req, socket, head) => {
+    // DNS rebinding defense: validate Origin header
+    const origin = req.headers.origin;
+    if (!isAllowedWsOrigin(origin, allowedWsOrigins)) {
+      socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+      socket.destroy();
+      return;
+    }
     if (canvasHost?.handleUpgrade(req, socket, head)) return;
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit("connection", ws, req);
