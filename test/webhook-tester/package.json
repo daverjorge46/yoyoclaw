@@ -2,7 +2,6 @@
   "name": "openclaw-webhook-tester",
   "version": "1.0.0",
   "description": "Webhook event receiver for OpenClaw queue testing",
-  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
