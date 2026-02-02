@@ -1,23 +1,17 @@
 import { html, nothing } from "lit";
+import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { SessionsListResult } from "../types";
-import type { ChatAttachment, ChatQueueItem } from "../ui-types";
 import type { ChatItem, MessageGroup } from "../types/chat-types";
-import type { ChatTask, ChatActivityLog } from "../types/task-types";
-import type { TtsProviderId, TtsProviderInfo } from "../controllers/tts";
-import {
-  normalizeMessage,
-  normalizeRoleForGrouping,
-} from "../chat/message-normalizer";
-import { extractText } from "../chat/message-extract";
+import type { ChatAttachment, ChatQueueItem } from "../ui-types";
 import {
   renderMessageGroup,
   renderReadingIndicatorGroup,
   renderStreamingGroup,
 } from "../chat/grouped-render";
+import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer";
+import { icons } from "../icons";
 import { renderMarkdownSidebar } from "./markdown-sidebar";
-import { renderChatTaskSidebar } from "./chat-task-sidebar";
-import { icon, icons } from "../icons";
 import "../components/resizable-divider";
 
 export type CompactionIndicatorStatus = {
@@ -44,16 +38,6 @@ export type ChatProps = {
   queue: ChatQueueItem[];
   connected: boolean;
   canSend: boolean;
-  audioInputSupported: boolean;
-  audioRecording: boolean;
-  audioInputError: string | null;
-  readAloudSupported: boolean;
-  readAloudActive: boolean;
-  readAloudError: string | null;
-  ttsLoading: boolean;
-  ttsError: string | null;
-  ttsProviders: TtsProviderInfo[];
-  ttsActiveProvider: TtsProviderId | null;
   disabledReason: string | null;
   error: string | null;
   sessions: SessionsListResult | null;
@@ -75,73 +59,19 @@ export type ChatProps = {
   onDraftChange: (next: string) => void;
   onSend: () => void;
   onAbort?: () => void;
-  onToggleAudioRecording: () => void;
-  onReadAloud: (text?: string | null) => void;
-  onTtsProviderChange: (provider: TtsProviderId) => void;
   onQueueRemove: (id: string) => void;
   onNewSession: () => void;
   onOpenSidebar?: (content: string) => void;
   onCloseSidebar?: () => void;
   onSplitRatioChange?: (ratio: number) => void;
   onChatScroll?: (event: Event) => void;
-  // Task sidebar props
-  taskSidebarOpen?: boolean;
-  tasks?: ChatTask[];
-  activityLog?: ChatActivityLog[];
-  expandedTaskIds?: Set<string>;
-  taskCount?: number;
-  onOpenTaskSidebar?: () => void;
-  onCloseTaskSidebar?: () => void;
-  onToggleTaskExpanded?: (taskId: string) => void;
-  // Voice dropdown state
-  _voiceDropdownOpen?: boolean;
-  _onToggleVoiceDropdown?: () => void;
-  // Navigation
-  onNavigateToSettings?: () => void;
 };
 
 const COMPACTION_TOAST_DURATION_MS = 5000;
 
-/**
- * Render skeleton loading state for chat messages
- */
-function renderChatSkeleton() {
-  return html`
-    <div class="chat-skeleton" aria-busy="true" aria-label="Loading chat history">
-      <!-- User message skeleton -->
-      <div class="chat-skeleton__bubble chat-skeleton__bubble--user">
-        <div class="chat-skeleton__avatar skeleton skeleton--circle"></div>
-        <div class="chat-skeleton__content">
-          <div class="skeleton skeleton--text" style="width: 60%;"></div>
-          <div class="skeleton skeleton--text" style="width: 40%;"></div>
-        </div>
-      </div>
-      <!-- Assistant message skeleton -->
-      <div class="chat-skeleton__bubble chat-skeleton__bubble--assistant">
-        <div class="chat-skeleton__avatar skeleton skeleton--circle"></div>
-        <div class="chat-skeleton__content">
-          <div class="skeleton skeleton--text" style="width: 80%;"></div>
-          <div class="skeleton skeleton--text" style="width: 70%;"></div>
-          <div class="skeleton skeleton--text" style="width: 50%;"></div>
-        </div>
-      </div>
-      <!-- Another user message skeleton -->
-      <div class="chat-skeleton__bubble chat-skeleton__bubble--user">
-        <div class="chat-skeleton__avatar skeleton skeleton--circle"></div>
-        <div class="chat-skeleton__content">
-          <div class="skeleton skeleton--text" style="width: 45%;"></div>
-        </div>
-      </div>
-      <!-- Another assistant message skeleton -->
-      <div class="chat-skeleton__bubble chat-skeleton__bubble--assistant">
-        <div class="chat-skeleton__avatar skeleton skeleton--circle"></div>
-        <div class="chat-skeleton__content">
-          <div class="skeleton skeleton--text" style="width: 90%;"></div>
-          <div class="skeleton skeleton--text" style="width: 75%;"></div>
-        </div>
-      </div>
-    </div>
-  `;
+function adjustTextareaHeight(el: HTMLTextAreaElement) {
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
 }
 
 function renderCompactionIndicator(status: CompactionIndicatorStatus | null | undefined) {
@@ -171,31 +101,11 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
   return nothing;
 }
 
-function resolveReadAloudText(props: ChatProps): string | null {
-  for (let i = props.messages.length - 1; i >= 0; i -= 1) {
-    const message = props.messages[i];
-    const normalized = normalizeMessage(message);
-    const role = normalizeRoleForGrouping(normalized.role);
-    if (role !== "assistant") continue;
-    const text = extractText(message)?.trim();
-    if (text) return text;
-  }
-  return null;
-}
-
-function formatTtsProviderLabel(provider: TtsProviderInfo): string {
-  const base = provider.id === "edge" ? "Local (Edge)" : provider.name;
-  return provider.configured ? base : `${base} (not configured)`;
-}
-
 function generateAttachmentId(): string {
   return `att-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function handlePaste(
-  e: ClipboardEvent,
-  props: ChatProps,
-) {
+function handlePaste(e: ClipboardEvent, props: ChatProps) {
   const items = e.clipboardData?.items;
   if (!items || !props.onAttachmentsChange) return;
 
@@ -249,9 +159,7 @@ function renderAttachmentPreview(props: ChatProps) {
               type="button"
               aria-label="Remove attachment"
               @click=${() => {
-                const next = (props.attachments ?? []).filter(
-                  (a) => a.id !== att.id,
-                );
+                const next = (props.attachments ?? []).filter((a) => a.id !== att.id);
                 props.onAttachmentsChange?.(next);
               }}
             >
@@ -267,11 +175,8 @@ function renderAttachmentPreview(props: ChatProps) {
 export function renderChat(props: ChatProps) {
   const canCompose = props.connected;
   const isBusy = props.sending || props.stream !== null;
-  const canSend = props.canSend && !props.audioRecording;
   const canAbort = Boolean(props.canAbort && props.onAbort);
-  const activeSession = props.sessions?.sessions?.find(
-    (row) => row.key === props.sessionKey,
-  );
+  const activeSession = props.sessions?.sessions?.find((row) => row.key === props.sessionKey);
   const reasoningLevel = activeSession?.reasoningLevel ?? "off";
   const showReasoning = props.showThinking && reasoningLevel !== "off";
   const assistantIdentity = {
@@ -286,38 +191,6 @@ export function renderChat(props: ChatProps) {
       : "Message (↩ to send, Shift+↩ for line breaks, paste images)"
     : "Connect to the gateway to start chatting…";
 
-  const readAloudText = resolveReadAloudText(props);
-  const canReadAloud = props.readAloudSupported && Boolean(readAloudText);
-  const canRecordAudio = props.audioInputSupported && props.connected;
-  const recordTitle = !props.audioInputSupported
-    ? "Audio input is not supported in this browser"
-    : !props.connected
-      ? "Connect to start recording"
-      : props.audioRecording
-        ? "Stop recording"
-        : "Record audio";
-  const playTitle = !props.readAloudSupported
-    ? "Read-aloud is not supported in this browser"
-    : !readAloudText
-      ? "No assistant reply to play yet"
-      : "Play last reply";
-  const ttsProviders = Array.isArray(props.ttsProviders) ? props.ttsProviders : [];
-  const configuredTtsProviders = ttsProviders.filter((provider) => provider.configured);
-  const hasServerTts = configuredTtsProviders.length > 0;
-  const ttsSelectValue =
-    props.ttsActiveProvider ??
-    ttsProviders.find((p) => p.id === "edge")?.id ??
-    configuredTtsProviders[0]?.id ??
-    ttsProviders[0]?.id ??
-    "";
-  const ttsSelectDisabled = !props.connected || props.ttsLoading || ttsProviders.length === 0;
-  const ttsSelectTitle = !props.connected
-    ? "Connect to select a server voice"
-    : hasServerTts
-      ? "Select server TTS provider"
-      : "Configure a server TTS provider to enable server playback";
-  const audioError = props.readAloudError ?? props.ttsError;
-
   const splitRatio = props.splitRatio ?? 0.6;
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
   const thread = html`
@@ -327,49 +200,56 @@ export function renderChat(props: ChatProps) {
       aria-live="polite"
       @scroll=${props.onChatScroll}
     >
-      ${props.loading && props.messages.length === 0 ? renderChatSkeleton() : nothing}
-      ${repeat(buildChatItems(props), (item) => item.key, (item) => {
-        if (item.kind === "reading-indicator") {
-          return renderReadingIndicatorGroup(assistantIdentity);
-        }
+      ${
+        props.loading
+          ? html`
+              <div class="muted">Loading chat…</div>
+            `
+          : nothing
+      }
+      ${repeat(
+        buildChatItems(props),
+        (item) => item.key,
+        (item) => {
+          if (item.kind === "reading-indicator") {
+            return renderReadingIndicatorGroup(assistantIdentity);
+          }
 
-        if (item.kind === "stream") {
-          return renderStreamingGroup(
-            item.text,
-            item.startedAt,
-            props.onOpenSidebar,
-            assistantIdentity,
-          );
-        }
+          if (item.kind === "stream") {
+            return renderStreamingGroup(
+              item.text,
+              item.startedAt,
+              props.onOpenSidebar,
+              assistantIdentity,
+            );
+          }
 
-        if (item.kind === "group") {
-          return renderMessageGroup(item, {
-            onOpenSidebar: props.onOpenSidebar,
-            showReasoning,
-            assistantName: props.assistantName,
-            assistantAvatar: assistantIdentity.avatar,
-          });
-        }
+          if (item.kind === "group") {
+            return renderMessageGroup(item, {
+              onOpenSidebar: props.onOpenSidebar,
+              showReasoning,
+              assistantName: props.assistantName,
+              assistantAvatar: assistantIdentity.avatar,
+            });
+          }
 
-        return nothing;
-      })}
+          return nothing;
+        },
+      )}
     </div>
   `;
 
   return html`
     <section class="card chat">
-      ${props.disabledReason
-        ? html`<div class="callout">${props.disabledReason}</div>`
-        : nothing}
+      ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
 
-      ${props.error
-        ? html`<div class="callout danger">${props.error}</div>`
-        : nothing}
+      ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
 
       ${renderCompactionIndicator(props.compactionStatus)}
 
-      ${props.focusMode
-        ? html`
+      ${
+        props.focusMode
+          ? html`
             <button
               class="chat-focus-exit"
               type="button"
@@ -377,10 +257,11 @@ export function renderChat(props: ChatProps) {
               aria-label="Exit focus mode"
               title="Exit focus mode"
             >
-              ${icon("x", { size: 16 })}
+              ${icons.x}
             </button>
           `
-        : nothing}
+          : nothing
+      }
 
       <div
         class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}"
@@ -392,12 +273,12 @@ export function renderChat(props: ChatProps) {
           ${thread}
         </div>
 
-        ${sidebarOpen
-          ? html`
+        ${
+          sidebarOpen
+            ? html`
               <resizable-divider
                 .splitRatio=${splitRatio}
-                @resize=${(e: CustomEvent) =>
-                  props.onSplitRatioChange?.(e.detail.splitRatio)}
+                @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
               ></resizable-divider>
               <div class="chat-sidebar">
                 ${renderMarkdownSidebar({
@@ -411,11 +292,13 @@ export function renderChat(props: ChatProps) {
                 })}
               </div>
             `
-          : nothing}
+            : nothing
+        }
       </div>
 
-      ${props.queue.length
-        ? html`
+      ${
+        props.queue.length
+          ? html`
             <div class="chat-queue" role="status" aria-live="polite">
               <div class="chat-queue__title">Queued (${props.queue.length})</div>
               <div class="chat-queue__list">
@@ -423,10 +306,10 @@ export function renderChat(props: ChatProps) {
                   (item) => html`
                     <div class="chat-queue__item">
                       <div class="chat-queue__text">
-                        ${item.text ||
-                        (item.attachments?.length
-                          ? `Image (${item.attachments.length})`
-                          : "")}
+                        ${
+                          item.text ||
+                          (item.attachments?.length ? `Image (${item.attachments.length})` : "")
+                        }
                       </div>
                       <button
                         class="btn chat-queue__remove"
@@ -434,7 +317,7 @@ export function renderChat(props: ChatProps) {
                         aria-label="Remove queued message"
                         @click=${() => props.onQueueRemove(item.id)}
                       >
-                        ${icon("x", { size: 14 })}
+                        ${icons.x}
                       </button>
                     </div>
                   `,
@@ -442,193 +325,53 @@ export function renderChat(props: ChatProps) {
               </div>
             </div>
           `
-        : nothing}
+          : nothing
+      }
 
       <div class="chat-compose">
         ${renderAttachmentPreview(props)}
-        <div class="chat-compose-card">
-          <label class="chat-compose__field">
+        <div class="chat-compose__row">
+          <label class="field chat-compose__field">
             <span>Message</span>
             <textarea
+              ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
               .value=${props.draft}
               ?disabled=${!props.connected}
               @keydown=${(e: KeyboardEvent) => {
                 if (e.key !== "Enter") return;
                 if (e.isComposing || e.keyCode === 229) return;
-                if (e.shiftKey) return;
+                if (e.shiftKey) return; // Allow Shift+Enter for line breaks
                 if (!props.connected) return;
-                if (props.audioRecording) return;
                 e.preventDefault();
                 if (canCompose) props.onSend();
               }}
-              @input=${(e: Event) =>
-                props.onDraftChange((e.target as HTMLTextAreaElement).value)}
+              @input=${(e: Event) => {
+                const target = e.target as HTMLTextAreaElement;
+                adjustTextareaHeight(target);
+                props.onDraftChange(target.value);
+              }}
               @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
               placeholder=${composePlaceholder}
-              ?readonly=${props.audioRecording}
             ></textarea>
           </label>
-          ${isBusy
-            ? html`
-                <div class="chat-compose__streaming">
-                  <span class="chat-compose__streaming-dots">
-                    <span></span><span></span><span></span>
-                  </span>
-                  AI is responding...
-                </div>
-              `
-            : nothing}
-          <div class="chat-compose__divider"></div>
-          <div class="chat-compose__toolbar">
-            <div class="chat-compose__toolbar-left">
-              <button
-                class="icon-btn ${props.audioRecording ? "icon-btn--recording" : ""}"
-                type="button"
-                ?disabled=${!canRecordAudio}
-                @click=${props.onToggleAudioRecording}
-                data-tooltip=${recordTitle}
-                aria-pressed=${props.audioRecording}
-                aria-label=${recordTitle}
-              >
-                ${icon(props.audioRecording ? "stop" : "mic", { size: 18 })}
-              </button>
-              ${props.audioRecording
-                ? html`<span class="chat-compose__recording-label">Listening...</span>`
-                : nothing}
-              <button
-                class="icon-btn ${props.readAloudActive ? "icon-btn--active" : ""}"
-                type="button"
-                ?disabled=${!canReadAloud}
-                @click=${() => props.onReadAloud(readAloudText)}
-                data-tooltip=${playTitle}
-                aria-pressed=${props.readAloudActive}
-                aria-label=${playTitle}
-              >
-                ${icon(props.readAloudActive ? "pause" : "volume-2", { size: 18 })}
-              </button>
-              ${ttsProviders.length
-                ? html`
-                    <div class="voice-select ${props._voiceDropdownOpen ? "voice-select--open" : ""}"
-                      data-tooltip=${ttsSelectTitle}
-                    >
-                      <button
-                        class="voice-select__trigger"
-                        type="button"
-                        ?disabled=${ttsSelectDisabled}
-                        @click=${(e: Event) => {
-                          e.stopPropagation();
-                          props._onToggleVoiceDropdown?.();
-                        }}
-                      >
-                        <span>${(() => {
-                          const active = ttsProviders.find((p) => p.id === ttsSelectValue);
-                          return active ? (active.id === "edge" ? "Local (Edge)" : active.name) : "Voice";
-                        })()}</span>
-                        ${icon("chevron-down", { size: 12 })}
-                      </button>
-                      ${props._voiceDropdownOpen
-                        ? html`
-                            <div class="voice-select__dropdown">
-                              ${ttsProviders.map(
-                                (provider) => html`
-                                  <button
-                                    class="voice-select__option ${provider.id === ttsSelectValue ? "voice-select__option--active" : ""} ${!provider.configured && provider.id !== "edge" ? "voice-select__option--unconfigured" : ""}"
-                                    type="button"
-                                    @click=${() => {
-                                      if (!provider.configured && provider.id !== "edge") {
-                                        props._onToggleVoiceDropdown?.();
-                                        const goToConfigure = window.confirm(
-                                          `${provider.name} requires an API key to use.\n\nWould you like to go to Settings to configure it?`,
-                                        );
-                                        if (goToConfigure && props.onNavigateToSettings) {
-                                          props.onNavigateToSettings();
-                                        }
-                                        return;
-                                      }
-                                      props.onTtsProviderChange(provider.id);
-                                      props._onToggleVoiceDropdown?.();
-                                    }}
-                                  >
-                                    ${formatTtsProviderLabel(provider)}
-                                  </button>
-                                `,
-                              )}
-                            </div>
-                          `
-                        : nothing}
-                    </div>
-                  `
-                : nothing}
-              ${audioError
-                ? html`<span class="chat-compose__audio-error">${audioError}</span>`
-                : nothing}
-              <div class="toolbar-separator"></div>
-              <button
-                class="icon-btn"
-                type="button"
-                @click=${props.onNewSession}
-                data-tooltip="New Session"
-                aria-label="New session"
-              >
-                ${icon("plus", { size: 18 })}
-              </button>
-              ${props.onOpenTaskSidebar
-                ? html`
-                    <button
-                      class="icon-btn ${props.taskSidebarOpen ? "icon-btn--active" : ""}"
-                      type="button"
-                      @click=${props.onOpenTaskSidebar}
-                      data-tooltip="Tasks"
-                      aria-label="View task breakdown"
-                    >
-                      ${icon("layers", { size: 18 })}
-                      ${(props.taskCount ?? 0) > 0
-                        ? html`<span class="icon-btn__badge">${props.taskCount}</span>`
-                        : nothing}
-                    </button>
-                  `
-                : nothing}
-            </div>
-            <div class="chat-compose__toolbar-right">
-              ${isBusy && canAbort
-                ? html`
-                    <button
-                      class="icon-btn icon-btn--abort"
-                      type="button"
-                      @click=${props.onAbort}
-                      data-tooltip="Stop Generation"
-                      aria-label="Stop generation"
-                    >
-                      ${icon("square", { size: 18 })}
-                    </button>
-                  `
-                : html`
-                    <button
-                      class="icon-btn icon-btn--send"
-                      type="button"
-                      ?disabled=${!canSend || !props.draft.trim()}
-                      @click=${props.onSend}
-                      data-tooltip=${isBusy ? "Queue Message" : "Send"}
-                      aria-label=${isBusy ? "Queue message" : "Send message"}
-                    >
-                      ${icon("send", { size: 18 })}
-                    </button>
-                  `}
-            </div>
+          <div class="chat-compose__actions">
+            <button
+              class="btn"
+              ?disabled=${!props.connected || (!canAbort && props.sending)}
+              @click=${canAbort ? props.onAbort : props.onNewSession}
+            >
+              ${canAbort ? "Stop" : "New session"}
+            </button>
+            <button
+              class="btn primary"
+              ?disabled=${!props.connected}
+              @click=${props.onSend}
+            >
+              ${isBusy ? "Queue" : "Send"}<kbd class="btn-kbd">↵</kbd>
+            </button>
           </div>
         </div>
       </div>
-      ${props.taskSidebarOpen && props.onCloseTaskSidebar
-        ? renderChatTaskSidebar({
-            open: props.taskSidebarOpen,
-            tasks: props.tasks ?? [],
-            activityLog: props.activityLog ?? [],
-            expandedIds: props.expandedTaskIds ?? new Set(),
-            onClose: props.onCloseTaskSidebar,
-            onToggleExpanded: (taskId) => props.onToggleTaskExpanded?.(taskId),
-            onOpenToolOutput: props.onOpenSidebar,
-          })
-        : nothing}
     </section>
   `;
 }

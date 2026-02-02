@@ -3,22 +3,23 @@ summary: "Logging surfaces, file logs, WS log styles, and console formatting"
 read_when:
   - Changing logging output or formats
   - Debugging CLI or gateway output
+title: "Logging"
 ---
 
 # Logging
 
 For a user-facing overview (CLI + Control UI + config), see [/logging](/logging).
 
-Clawdbrain has two log “surfaces”:
+OpenClaw has two log “surfaces”:
 
 - **Console output** (what you see in the terminal / Debug UI).
 - **File logs** (JSON lines) written by the gateway logger.
 
 ## File-based logger
 
-- Default rolling log file is under `/tmp/clawdbrain/` (one file per day): `clawdbrain-YYYY-MM-DD.log`
+- Default rolling log file is under `/tmp/openclaw/` (one file per day): `openclaw-YYYY-MM-DD.log`
   - Date uses the gateway host's local timezone.
-- The log file path and level can be configured via `~/.clawdbrain/clawdbrain.json`:
+- The log file path and level can be configured via `~/.openclaw/openclaw.json`:
   - `logging.file`
   - `logging.level`
 
@@ -28,7 +29,7 @@ The Control UI Logs tab tails this file via the gateway (`logs.tail`).
 CLI can do the same:
 
 ```bash
-clawdbrain logs --follow
+openclaw logs --follow
 ```
 
 **Verbose vs. log levels**
@@ -49,17 +50,15 @@ You can tune console verbosity independently via:
 - `logging.consoleLevel` (default `info`)
 - `logging.consoleStyle` (`pretty` | `compact` | `json`)
 
-## Sensitive redaction
+## Tool summary redaction
 
-Clawdbrain can mask sensitive values (passwords, tokens, API keys) before they hit the
-console stream or file logs. This applies to structured log objects, console capture,
-and verbose tool summaries (e.g. `🛠️ Exec: ...`).
+Verbose tool summaries (e.g. `🛠️ Exec: ...`) can mask sensitive tokens before they hit the
+console stream. This is **tools-only** and does not alter file logs.
 
 - `logging.redactSensitive`: `off` | `tools` (default: `tools`)
 - `logging.redactPatterns`: array of regex strings (overrides defaults)
   - Use raw regex strings (auto `gi`), or `/pattern/flags` if you need custom flags.
   - Matches are masked by keeping the first 6 + last 4 chars (length >= 18), otherwise `***`.
-  - Structured fields with keys like `password`, `token`, `apiKey`, and `authorization` are also masked (`password`/`passwd` always becomes `***`).
   - Defaults cover common key assignments, CLI flags, JSON fields, bearer headers, PEM blocks, and popular token prefixes.
 
 ## Gateway WebSocket logs
@@ -74,7 +73,7 @@ The gateway prints WebSocket protocol logs in two modes:
 
 ### WS log style
 
-`clawdbrain gateway` supports a per-gateway style switch:
+`openclaw gateway` supports a per-gateway style switch:
 
 - `--ws-log auto` (default): normal mode is optimized; verbose mode uses compact output
 - `--ws-log compact`: compact output (paired request/response) when verbose
@@ -85,13 +84,13 @@ Examples:
 
 ```bash
 # optimized (only errors/slow)
-clawdbrain gateway
+openclaw gateway
 
 # show all WS traffic (paired)
-clawdbrain gateway --verbose --ws-log compact
+openclaw gateway --verbose --ws-log compact
 
 # show all WS traffic (full meta)
-clawdbrain gateway --verbose --ws-log full
+openclaw gateway --verbose --ws-log full
 ```
 
 ## Console formatting (subsystem logging)

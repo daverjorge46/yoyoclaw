@@ -1,15 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { ClawdbrainConfig } from "../../config/config.js";
-import { setActivePluginRegistry } from "../../plugins/runtime.js";
-import { createIMessageTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
+import type { ChannelPlugin } from "../../channels/plugins/types.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import { slackPlugin } from "../../../extensions/slack/src/channel.js";
 import { telegramPlugin } from "../../../extensions/telegram/src/channel.js";
 import { whatsappPlugin } from "../../../extensions/whatsapp/src/channel.js";
+import { jsonResult } from "../../agents/tools/common.js";
+import { setActivePluginRegistry } from "../../plugins/runtime.js";
+import { createIMessageTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
 import { loadWebMedia } from "../../web/media.js";
 import { runMessageAction } from "./message-action-runner.js";
-import { jsonResult } from "../../agents/tools/common.js";
-import type { ChannelPlugin } from "../../channels/plugins/types.js";
 
 vi.mock("../../web/media.js", async () => {
   const actual = await vi.importActual<typeof import("../../web/media.js")>("../../web/media.js");
@@ -26,7 +25,7 @@ const slackConfig = {
       appToken: "xapp-test",
     },
   },
-} as ClawdbrainConfig;
+} as OpenClawConfig;
 
 const whatsappConfig = {
   channels: {
@@ -34,7 +33,7 @@ const whatsappConfig = {
       allowFrom: ["*"],
     },
   },
-} as ClawdbrainConfig;
+} as OpenClawConfig;
 
 describe("runMessageAction context isolation", () => {
   beforeEach(async () => {
@@ -150,7 +149,7 @@ describe("runMessageAction context isolation", () => {
         toolContext: { currentChannelId: "C12345678" },
         dryRun: true,
       }),
-    ).rejects.toThrow(/Missing required parameter 'message'/i);
+    ).rejects.toThrow(/message required/i);
   });
 
   it("blocks send when target differs from current channel", async () => {
@@ -263,7 +262,7 @@ describe("runMessageAction context isolation", () => {
           token: "tg-test",
         },
       },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
 
     const result = await runMessageAction({
       cfg: multiConfig,
@@ -305,7 +304,7 @@ describe("runMessageAction context isolation", () => {
           },
         },
       },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
 
     await expect(
       runMessageAction({
@@ -423,7 +422,7 @@ describe("runMessageAction sendAttachment hydration", () => {
           password: "test-password",
         },
       },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
 
     const result = await runMessageAction({
       cfg,
@@ -491,7 +490,7 @@ describe("runMessageAction accountId defaults", () => {
 
   it("propagates defaultAccountId into params", async () => {
     await runMessageAction({
-      cfg: {} as ClawdbrainConfig,
+      cfg: {} as OpenClawConfig,
       action: "send",
       params: {
         channel: "discord",

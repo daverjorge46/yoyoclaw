@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelDock } from "../channels/dock.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
@@ -5,21 +6,20 @@ import type {
   GatewayRequestHandler,
   GatewayRequestHandlers,
 } from "../gateway/server-methods/types.js";
-import { registerInternalHook } from "../hooks/internal-hooks.js";
-import { resolveUserPath } from "../utils.js";
+import type { HookEntry } from "../hooks/types.js";
+import type { PluginRuntime } from "./runtime/types.js";
 import type {
-  ClawdbrainPluginApi,
-  ClawdbrainPluginChannelRegistration,
-  ClawdbrainPluginCliRegistrar,
-  ClawdbrainPluginCommandDefinition,
-  ClawdbrainPluginCronJob,
-  ClawdbrainPluginHttpHandler,
-  ClawdbrainPluginHttpRouteHandler,
-  ClawdbrainPluginHookOptions,
+  OpenClawPluginApi,
+  OpenClawPluginChannelRegistration,
+  OpenClawPluginCliRegistrar,
+  OpenClawPluginCommandDefinition,
+  OpenClawPluginHttpHandler,
+  OpenClawPluginHttpRouteHandler,
+  OpenClawPluginHookOptions,
   ProviderPlugin,
-  ClawdbrainPluginService,
-  ClawdbrainPluginToolContext,
-  ClawdbrainPluginToolFactory,
+  OpenClawPluginService,
+  OpenClawPluginToolContext,
+  OpenClawPluginToolFactory,
   PluginConfigUiHint,
   PluginDiagnostic,
   PluginLogger,
@@ -29,15 +29,14 @@ import type {
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
 } from "./types.js";
+import { registerInternalHook } from "../hooks/internal-hooks.js";
+import { resolveUserPath } from "../utils.js";
 import { registerPluginCommand } from "./commands.js";
-import type { PluginRuntime } from "./runtime/types.js";
-import type { HookEntry } from "../hooks/types.js";
-import path from "node:path";
 import { normalizePluginHttpPath } from "./http-path.js";
 
 export type PluginToolRegistration = {
   pluginId: string;
-  factory: ClawdbrainPluginToolFactory;
+  factory: OpenClawPluginToolFactory;
   names: string[];
   optional: boolean;
   source: string;
@@ -45,21 +44,21 @@ export type PluginToolRegistration = {
 
 export type PluginCliRegistration = {
   pluginId: string;
-  register: ClawdbrainPluginCliRegistrar;
+  register: OpenClawPluginCliRegistrar;
   commands: string[];
   source: string;
 };
 
 export type PluginHttpRegistration = {
   pluginId: string;
-  handler: ClawdbrainPluginHttpHandler;
+  handler: OpenClawPluginHttpHandler;
   source: string;
 };
 
 export type PluginHttpRouteRegistration = {
   pluginId?: string;
   path: string;
-  handler: ClawdbrainPluginHttpRouteHandler;
+  handler: OpenClawPluginHttpRouteHandler;
   source?: string;
 };
 
@@ -85,19 +84,13 @@ export type PluginHookRegistration = {
 
 export type PluginServiceRegistration = {
   pluginId: string;
-  service: ClawdbrainPluginService;
+  service: OpenClawPluginService;
   source: string;
 };
 
 export type PluginCommandRegistration = {
   pluginId: string;
-  command: ClawdbrainPluginCommandDefinition;
-  source: string;
-};
-
-export type PluginCronRegistration = {
-  pluginId: string;
-  job: ClawdbrainPluginCronJob;
+  command: OpenClawPluginCommandDefinition;
   source: string;
 };
 
@@ -121,7 +114,6 @@ export type PluginRecord = {
   cliCommands: string[];
   services: string[];
   commands: string[];
-  cronJobs: ClawdbrainPluginCronJob[];
   httpHandlers: number;
   hookCount: number;
   configSchema: boolean;
@@ -142,8 +134,8 @@ export type PluginRegistry = {
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
   commands: PluginCommandRegistration[];
-  cronJobs: PluginCronRegistration[];
   diagnostics: PluginDiagnostic[];
+  cronJobs?: any; // TODO: Add proper cron jobs type
 };
 
 export type PluginRegistryParams = {
@@ -166,7 +158,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     cliRegistrars: [],
     services: [],
     commands: [],
-    cronJobs: [],
+    cronJobs: undefined,
     diagnostics: [],
   };
   const coreGatewayMethods = new Set(Object.keys(registryParams.coreGatewayHandlers ?? {}));
@@ -177,13 +169,13 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerTool = (
     record: PluginRecord,
-    tool: AnyAgentTool | ClawdbrainPluginToolFactory,
+    tool: AnyAgentTool | OpenClawPluginToolFactory,
     opts?: { name?: string; names?: string[]; optional?: boolean },
   ) => {
     const names = opts?.names ?? (opts?.name ? [opts.name] : []);
     const optional = opts?.optional === true;
-    const factory: ClawdbrainPluginToolFactory =
-      typeof tool === "function" ? tool : (_ctx: ClawdbrainPluginToolContext) => tool;
+    const factory: OpenClawPluginToolFactory =
+      typeof tool === "function" ? tool : (_ctx: OpenClawPluginToolContext) => tool;
 
     if (typeof tool !== "function") {
       names.push(tool.name);
@@ -206,8 +198,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     record: PluginRecord,
     events: string | string[],
     handler: Parameters<typeof registerInternalHook>[1],
-    opts: ClawdbrainPluginHookOptions | undefined,
-    config: ClawdbrainPluginApi["config"],
+    opts: OpenClawPluginHookOptions | undefined,
+    config: OpenClawPluginApi["config"],
   ) => {
     const eventList = Array.isArray(events) ? events : [events];
     const normalizedEvents = eventList.map((event) => event.trim()).filter(Boolean);
@@ -231,7 +223,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
             ...entry.hook,
             name,
             description,
-            source: "clawdbrain-plugin",
+            source: "openclaw-plugin",
             pluginId: record.id,
           },
           metadata: {
@@ -243,7 +235,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
           hook: {
             name,
             description,
-            source: "clawdbrain-plugin",
+            source: "openclaw-plugin",
             pluginId: record.id,
             filePath: record.source,
             baseDir: path.dirname(record.source),
@@ -278,7 +270,9 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     handler: GatewayRequestHandler,
   ) => {
     const trimmed = method.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
     if (coreGatewayMethods.has(trimmed) || registry.gatewayHandlers[trimmed]) {
       pushDiagnostic({
         level: "error",
@@ -292,7 +286,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     record.gatewayMethods.push(trimmed);
   };
 
-  const registerHttpHandler = (record: PluginRecord, handler: ClawdbrainPluginHttpHandler) => {
+  const registerHttpHandler = (record: PluginRecord, handler: OpenClawPluginHttpHandler) => {
     record.httpHandlers += 1;
     registry.httpHandlers.push({
       pluginId: record.id,
@@ -303,7 +297,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerHttpRoute = (
     record: PluginRecord,
-    params: { path: string; handler: ClawdbrainPluginHttpRouteHandler },
+    params: { path: string; handler: OpenClawPluginHttpRouteHandler },
   ) => {
     const normalizedPath = normalizePluginHttpPath(params.path);
     if (!normalizedPath) {
@@ -335,11 +329,11 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerChannel = (
     record: PluginRecord,
-    registration: ClawdbrainPluginChannelRegistration | ChannelPlugin,
+    registration: OpenClawPluginChannelRegistration | ChannelPlugin,
   ) => {
     const normalized =
-      typeof (registration as ClawdbrainPluginChannelRegistration).plugin === "object"
-        ? (registration as ClawdbrainPluginChannelRegistration)
+      typeof (registration as OpenClawPluginChannelRegistration).plugin === "object"
+        ? (registration as OpenClawPluginChannelRegistration)
         : { plugin: registration as ChannelPlugin };
     const plugin = normalized.plugin;
     const id = typeof plugin?.id === "string" ? plugin.id.trim() : String(plugin?.id ?? "").trim();
@@ -392,7 +386,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
 
   const registerCli = (
     record: PluginRecord,
-    registrar: ClawdbrainPluginCliRegistrar,
+    registrar: OpenClawPluginCliRegistrar,
     opts?: { commands?: string[] },
   ) => {
     const commands = (opts?.commands ?? []).map((cmd) => cmd.trim()).filter(Boolean);
@@ -405,9 +399,11 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
-  const registerService = (record: PluginRecord, service: ClawdbrainPluginService) => {
+  const registerService = (record: PluginRecord, service: OpenClawPluginService) => {
     const id = service.id.trim();
-    if (!id) return;
+    if (!id) {
+      return;
+    }
     record.services.push(id);
     registry.services.push({
       pluginId: record.id,
@@ -416,25 +412,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
-  const registerCron = (record: PluginRecord, job: ClawdbrainPluginCronJob) => {
-    if (!job.id || !job.schedule || !job.handler) {
-      pushDiagnostic({
-        level: "error",
-        pluginId: record.id,
-        source: record.source,
-        message: "cron registration missing id, schedule, or handler",
-      });
-      return;
-    }
-    record.cronJobs.push(job);
-    registry.cronJobs.push({
-      pluginId: record.id,
-      job,
-      source: record.source,
-    });
-  };
-
-  const registerCommand = (record: PluginRecord, command: ClawdbrainPluginCommandDefinition) => {
+  const registerCommand = (record: PluginRecord, command: OpenClawPluginCommandDefinition) => {
     const name = command.name.trim();
     if (!name) {
       pushDiagnostic({
@@ -492,10 +470,10 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
   const createApi = (
     record: PluginRecord,
     params: {
-      config: ClawdbrainPluginApi["config"];
+      config: OpenClawPluginApi["config"];
       pluginConfig?: Record<string, unknown>;
     },
-  ): ClawdbrainPluginApi => {
+  ): OpenClawPluginApi => {
     return {
       id: record.id,
       name: record.name,
@@ -516,7 +494,6 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerGatewayMethod: (method, handler) => registerGatewayMethod(record, method, handler),
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
-      registerCron: (job) => registerCron(record, job),
       registerCommand: (command) => registerCommand(record, command),
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),

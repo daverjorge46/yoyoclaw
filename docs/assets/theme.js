@@ -1,4 +1,4 @@
-const THEME_STORAGE_KEY = "clawdbrain:theme";
+const THEME_STORAGE_KEY = "openclaw:theme";
 
 function safeGet(key) {
   try {

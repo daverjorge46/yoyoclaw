@@ -1,15 +1,15 @@
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
+import type { AgentRuntime } from "./agent-runtime.js";
+import type { SandboxContext } from "./sandbox.js";
+import type { AnyAgentTool } from "./tools/common.js";
 import { createSdkAgentRuntime } from "./claude-agent-sdk/sdk-agent-runtime.js";
 import { resolveThinkingBudget } from "./claude-agent-sdk/sdk-runner.config.js";
-import type { AgentRuntime } from "./agent-runtime.js";
-import { createClawdbrainCodingTools } from "./pi-tools.js";
-import type { AnyAgentTool } from "./tools/common.js";
+import { createOpenClawCodingTools } from "./pi-tools.js";
 import { resolveSandboxContext } from "./sandbox.js";
-import type { SandboxContext } from "./sandbox.js";
 
 export type MainAgentRuntimeKind = "pi" | "ccsdk";
 
-export function resolveMainAgentRuntimeKind(config?: ClawdbrainConfig): MainAgentRuntimeKind {
+export function resolveMainAgentRuntimeKind(config?: OpenClawConfig): MainAgentRuntimeKind {
   // mainRuntime overrides the global runtime for the main agent only.
   const configured =
     config?.agents?.defaults?.mainRuntime ??
@@ -19,7 +19,7 @@ export function resolveMainAgentRuntimeKind(config?: ClawdbrainConfig): MainAgen
 }
 
 export type CreateSdkMainAgentRuntimeParams = {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   sessionKey?: string;
   sessionFile: string;
   workspaceDir: string;
@@ -64,7 +64,7 @@ export async function createSdkMainAgentRuntime(
 
   const tools =
     params.tools ??
-    createClawdbrainCodingTools({
+    createOpenClawCodingTools({
       config: params.config,
       sandbox,
       workspaceDir: params.workspaceDir,

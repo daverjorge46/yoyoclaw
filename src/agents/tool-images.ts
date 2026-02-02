@@ -1,6 +1,5 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
-
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getImageMetadata, resizeToJpeg } from "../media/image-ops.js";
 
@@ -8,41 +7,55 @@ type ToolContentBlock = AgentToolResult<unknown>["content"][number];
 type ImageContentBlock = Extract<ToolContentBlock, { type: "image" }>;
 type TextContentBlock = Extract<ToolContentBlock, { type: "text" }>;
 
-// Anthropic Messages API limitations (observed in Clawdbrain sessions):
-// - Images over 10MB are rejected by the API.
+// Anthropic Messages API limitations (observed in OpenClaw sessions):
+// - Images over ~2000px per side can fail in multi-image requests.
+// - Images over 5MB are rejected by the API.
 //
-// To keep sessions resilient (and avoid "silent" WhatsApp non-replies), we recompress
-// base64 image blocks when they exceed this limit.
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+// To keep sessions resilient (and avoid "silent" WhatsApp non-replies), we auto-downscale
+// and recompress base64 image blocks when they exceed these limits.
+const MAX_IMAGE_DIMENSION_PX = 2000;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const log = createSubsystemLogger("agents/tool-images");
 
 function isImageBlock(block: unknown): block is ImageContentBlock {
-  if (!block || typeof block !== "object") return false;
+  if (!block || typeof block !== "object") {
+    return false;
+  }
   const rec = block as Record<string, unknown>;
   return rec.type === "image" && typeof rec.data === "string" && typeof rec.mimeType === "string";
 }
 
 function isTextBlock(block: unknown): block is TextContentBlock {
-  if (!block || typeof block !== "object") return false;
+  if (!block || typeof block !== "object") {
+    return false;
+  }
   const rec = block as Record<string, unknown>;
   return rec.type === "text" && typeof rec.text === "string";
 }
 
 function inferMimeTypeFromBase64(base64: string): string | undefined {
   const trimmed = base64.trim();
-  if (!trimmed) return undefined;
-  if (trimmed.startsWith("/9j/")) return "image/jpeg";
-  if (trimmed.startsWith("iVBOR")) return "image/png";
-  if (trimmed.startsWith("R0lGOD")) return "image/gif";
+  if (!trimmed) {
+    return undefined;
+  }
+  if (trimmed.startsWith("/9j/")) {
+    return "image/jpeg";
+  }
+  if (trimmed.startsWith("iVBOR")) {
+    return "image/png";
+  }
+  if (trimmed.startsWith("R0lGOD")) {
+    return "image/gif";
+  }
   return undefined;
 }
 
 async function resizeImageBase64IfNeeded(params: {
   base64: string;
   mimeType: string;
+  maxDimensionPx: number;
   maxBytes: number;
   label?: string;
-  maxDimensionPx?: number;
 }): Promise<{
   base64: string;
   mimeType: string;
@@ -56,7 +69,12 @@ async function resizeImageBase64IfNeeded(params: {
   const height = meta?.height;
   const overBytes = buf.byteLength > params.maxBytes;
   const hasDimensions = typeof width === "number" && typeof height === "number";
-  if (!overBytes) {
+  if (
+    hasDimensions &&
+    !overBytes &&
+    width <= params.maxDimensionPx &&
+    height <= params.maxDimensionPx
+  ) {
     return {
       base64: params.base64,
       mimeType: params.mimeType,
@@ -65,23 +83,26 @@ async function resizeImageBase64IfNeeded(params: {
       height,
     };
   }
-  if (hasDimensions) {
-    log.warn("Image exceeds size limit; resizing", {
+  if (
+    hasDimensions &&
+    (width > params.maxDimensionPx || height > params.maxDimensionPx || overBytes)
+  ) {
+    log.warn("Image exceeds limits; resizing", {
       label: params.label,
       width,
       height,
+      maxDimensionPx: params.maxDimensionPx,
       maxBytes: params.maxBytes,
     });
   }
 
   const qualities = [85, 75, 65, 55, 45, 35];
-  const maxDim = hasDimensions ? Math.max(width ?? 0, height ?? 0) : 0;
-  const explicitMax = typeof params.maxDimensionPx === "number" ? params.maxDimensionPx : undefined;
-  const sideStart = maxDim > 0 ? (explicitMax ? Math.min(explicitMax, maxDim) : maxDim) : 0;
-  const scaleSteps = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
-  const sideGrid = sideStart
-    ? scaleSteps.map((scale) => Math.max(1, Math.round(sideStart * scale)))
-    : [explicitMax ?? 0].filter((v, i, arr) => v > 0 && arr.indexOf(v) === i).sort((a, b) => b - a);
+  const maxDim = hasDimensions ? Math.max(width ?? 0, height ?? 0) : params.maxDimensionPx;
+  const sideStart = maxDim > 0 ? Math.min(params.maxDimensionPx, maxDim) : params.maxDimensionPx;
+  const sideGrid = [sideStart, 1800, 1600, 1400, 1200, 1000, 800]
+    .map((v) => Math.min(params.maxDimensionPx, v))
+    .filter((v, i, arr) => v > 0 && arr.indexOf(v) === i)
+    .toSorted((a, b) => b - a);
 
   let smallest: { buffer: Buffer; size: number } | null = null;
   for (const side of sideGrid) {
@@ -100,6 +121,7 @@ async function resizeImageBase64IfNeeded(params: {
           label: params.label,
           width,
           height,
+          maxDimensionPx: params.maxDimensionPx,
           maxBytes: params.maxBytes,
           originalBytes: buf.byteLength,
           resizedBytes: out.byteLength,
@@ -128,8 +150,7 @@ export async function sanitizeContentBlocksImages(
   label: string,
   opts: { maxDimensionPx?: number; maxBytes?: number } = {},
 ): Promise<ToolContentBlock[]> {
-  const maxDimensionPx =
-    typeof opts.maxDimensionPx === "number" ? Math.max(opts.maxDimensionPx, 1) : undefined;
+  const maxDimensionPx = Math.max(opts.maxDimensionPx ?? MAX_IMAGE_DIMENSION_PX, 1);
   const maxBytes = Math.max(opts.maxBytes ?? MAX_IMAGE_BYTES, 1);
   const out: ToolContentBlock[] = [];
 
@@ -154,9 +175,9 @@ export async function sanitizeContentBlocksImages(
       const resized = await resizeImageBase64IfNeeded({
         base64: data,
         mimeType,
+        maxDimensionPx,
         maxBytes,
         label,
-        maxDimensionPx,
       });
       out.push({
         ...block,
@@ -179,9 +200,11 @@ export async function sanitizeImageBlocks(
   label: string,
   opts: { maxDimensionPx?: number; maxBytes?: number } = {},
 ): Promise<{ images: ImageContent[]; dropped: number }> {
-  if (images.length === 0) return { images, dropped: 0 };
+  if (images.length === 0) {
+    return { images, dropped: 0 };
+  }
   const sanitized = await sanitizeContentBlocksImages(images as ToolContentBlock[], label, opts);
-  const next = sanitized.filter(isImageBlock) as ImageContent[];
+  const next = sanitized.filter(isImageBlock);
   return { images: next, dropped: Math.max(0, images.length - next.length) };
 }
 
@@ -191,7 +214,9 @@ export async function sanitizeToolResultImages(
   opts: { maxDimensionPx?: number; maxBytes?: number } = {},
 ): Promise<AgentToolResult<unknown>> {
   const content = Array.isArray(result.content) ? result.content : [];
-  if (!content.some((b) => isImageBlock(b) || isTextBlock(b))) return result;
+  if (!content.some((b) => isImageBlock(b) || isTextBlock(b))) {
+    return result;
+  }
 
   const next = await sanitizeContentBlocksImages(content, label, opts);
   return { ...result, content: next };

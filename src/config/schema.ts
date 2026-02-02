@@ -1,6 +1,6 @@
 import { CHANNEL_IDS } from "../channels/registry.js";
 import { VERSION } from "../version.js";
-import { ClawdbrainSchema } from "./zod-schema.js";
+import { OpenClawSchema } from "./zod-schema.js";
 
 export type ConfigUiHint = {
   label?: string;
@@ -11,15 +11,11 @@ export type ConfigUiHint = {
   sensitive?: boolean;
   placeholder?: string;
   itemTemplate?: unknown;
-  /** Override widget type: "slider" | "stepper" | "text" */
-  widget?: string;
-  /** Force compact/non-compact layout */
-  compact?: boolean;
 };
 
 export type ConfigUiHints = Record<string, ConfigUiHint>;
 
-export type ConfigSchema = ReturnType<typeof ClawdbrainSchema.toJSONSchema>;
+export type ConfigSchema = ReturnType<typeof OpenClawSchema.toJSONSchema>;
 
 type JsonSchemaNode = Record<string, unknown>;
 
@@ -65,7 +61,6 @@ const GROUP_LABELS: Record<string, string> = {
   commands: "Commands",
   session: "Session",
   cron: "Cron",
-  overseer: "Overseer",
   hooks: "Hooks",
   ui: "UI",
   browser: "Browser",
@@ -93,7 +88,6 @@ const GROUP_ORDER: Record<string, number> = {
   commands: 85,
   session: 90,
   cron: 100,
-  overseer: 105,
   hooks: 110,
   ui: 120,
   browser: 130,
@@ -125,21 +119,6 @@ const FIELD_LABELS: Record<string, string> = {
   "diagnostics.otel.sampleRate": "OpenTelemetry Trace Sample Rate",
   "diagnostics.otel.flushIntervalMs": "OpenTelemetry Flush Interval (ms)",
   "diagnostics.cacheTrace.enabled": "Cache Trace Enabled",
-  "overseer.enabled": "Overseer Enabled",
-  "overseer.tickEvery": "Overseer Tick Interval",
-  "overseer.idleAfter": "Overseer Idle Threshold",
-  "overseer.maxRetries": "Overseer Max Retries",
-  "overseer.minResendInterval": "Overseer Min Resend Interval",
-  "overseer.backoff.base": "Overseer Backoff Base",
-  "overseer.backoff.max": "Overseer Backoff Max",
-  "overseer.planner.model": "Overseer Planner Model",
-  "overseer.planner.maxPlanPhases": "Overseer Planner Max Phases",
-  "overseer.planner.maxTasksPerPhase": "Overseer Planner Max Tasks",
-  "overseer.planner.maxSubtasksPerTask": "Overseer Planner Max Subtasks",
-  "overseer.planner.maxRepairAttempts": "Overseer Planner Max Repairs",
-  "overseer.policy.allowAgents": "Overseer Allow Agents",
-  "overseer.policy.allowCrossAgent": "Overseer Allow Cross-Agent",
-  "overseer.storage.dir": "Overseer Storage Directory",
   "diagnostics.cacheTrace.filePath": "Cache Trace File Path",
   "diagnostics.cacheTrace.includeMessages": "Cache Trace Include Messages",
   "diagnostics.cacheTrace.includePrompt": "Cache Trace Include Prompt",
@@ -220,10 +199,9 @@ const FIELD_LABELS: Record<string, string> = {
   "tools.web.fetch.cacheTtlMinutes": "Web Fetch Cache TTL (min)",
   "tools.web.fetch.maxRedirects": "Web Fetch Max Redirects",
   "tools.web.fetch.userAgent": "Web Fetch User-Agent",
-  "gateway.controlUi": "Web UI",
-  "gateway.controlUi.basePath": "Web UI Base Path",
-  "gateway.controlUi.allowInsecureAuth": "Allow Insecure Web UI Auth",
-  "gateway.controlUi.dangerouslyDisableDeviceAuth": "Dangerously Disable Web UI Device Auth",
+  "gateway.controlUi.basePath": "Control UI Base Path",
+  "gateway.controlUi.allowInsecureAuth": "Allow Insecure Control UI Auth",
+  "gateway.controlUi.dangerouslyDisableDeviceAuth": "Dangerously Disable Control UI Device Auth",
   "gateway.http.endpoints.chatCompletions.enabled": "OpenAI Chat Completions Endpoint",
   "gateway.reload.mode": "Config Reload Mode",
   "gateway.reload.debounceMs": "Config Reload Debounce (ms)",
@@ -231,17 +209,8 @@ const FIELD_LABELS: Record<string, string> = {
   "gateway.nodes.browser.node": "Gateway Node Browser Pin",
   "gateway.nodes.allowCommands": "Gateway Node Allowlist (Extra Commands)",
   "gateway.nodes.denyCommands": "Gateway Node Denylist",
-  nodeHost: "Node Host",
-  "nodeHost.browserProxy": "Browser Proxy",
   "nodeHost.browserProxy.enabled": "Node Browser Proxy Enabled",
   "nodeHost.browserProxy.allowProfiles": "Node Browser Proxy Allowed Profiles",
-  "skills.allowBundled": "Allowed Bundled Skills",
-  "skills.load": "Skill Loading",
-  "skills.load.extraDirs": "Extra Skill Directories",
-  "skills.install": "Skill Installation",
-  "skills.install.preferBrew": "Prefer Homebrew",
-  "skills.install.nodeManager": "Node Package Manager",
-  "skills.entries": "Skill Entries",
   "skills.load.watch": "Watch Skills",
   "skills.load.watchDebounceMs": "Skills Watch Debounce (ms)",
   "agents.defaults.workspace": "Workspace",
@@ -253,6 +222,7 @@ const FIELD_LABELS: Record<string, string> = {
   "agents.defaults.memorySearch": "Memory Search",
   "agents.defaults.memorySearch.enabled": "Enable Memory Search",
   "agents.defaults.memorySearch.sources": "Memory Search Sources",
+  "agents.defaults.memorySearch.extraPaths": "Extra Memory Paths",
   "agents.defaults.memorySearch.experimental.sessionMemory":
     "Memory Search Session Index (Experimental)",
   "agents.defaults.memorySearch.provider": "Memory Search Provider",
@@ -289,10 +259,6 @@ const FIELD_LABELS: Record<string, string> = {
   "auth.cooldowns.billingBackoffHoursByProvider": "Billing Backoff Overrides",
   "auth.cooldowns.billingMaxHours": "Billing Backoff Cap (hours)",
   "auth.cooldowns.failureWindowHours": "Failover Window (hours)",
-  "agents.defaults.runtime": "Default Runtime",
-  "agents.defaults.mainRuntime": "Main Agent Runtime",
-  "agents.defaults.mainCcsdkProvider": "Main Agent CCSDK Provider",
-  "agents.defaults.ccsdkProvider": "Worker Agent CCSDK Provider",
   "agents.defaults.models": "Models",
   "agents.defaults.model.primary": "Primary Model",
   "agents.defaults.model.fallbacks": "Model Fallbacks",
@@ -362,6 +328,8 @@ const FIELD_LABELS: Record<string, string> = {
   "channels.discord.maxLinesPerMessage": "Discord Max Lines Per Message",
   "channels.discord.intents.presence": "Discord Presence Intent",
   "channels.discord.intents.guildMembers": "Discord Guild Members Intent",
+  "channels.discord.pluralkit.enabled": "Discord PluralKit Enabled",
+  "channels.discord.pluralkit.token": "Discord PluralKit Token",
   "channels.slack.dm.policy": "Slack DM Policy",
   "channels.slack.allowBots": "Slack Allow Bot Messages",
   "channels.discord.token": "Discord Bot Token",
@@ -399,7 +367,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const FIELD_HELP: Record<string, string> = {
-  "meta.lastTouchedVersion": "Auto-set when Clawdbrain writes the config.",
+  "meta.lastTouchedVersion": "Auto-set when OpenClaw writes the config.",
   "meta.lastTouchedAt": "ISO timestamp of the last config write (auto-set).",
   "update.channel": 'Update channel for git + npm installs ("stable", "beta", or "dev").',
   "update.checkOnStart": "Check for npm updates when the gateway starts (default: true).",
@@ -417,11 +385,11 @@ const FIELD_HELP: Record<string, string> = {
     "Required by default for gateway access (unless using Tailscale Serve identity); required for non-loopback binds.",
   "gateway.auth.password": "Required for Tailscale funnel.",
   "gateway.controlUi.basePath":
-    "Optional URL prefix where the Web UI is served (e.g. /clawdbrain).",
+    "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
   "gateway.controlUi.allowInsecureAuth":
-    "Allow Web UI auth over insecure HTTP (token-only; not recommended).",
+    "Allow Control UI auth over insecure HTTP (token-only; not recommended).",
   "gateway.controlUi.dangerouslyDisableDeviceAuth":
-    "DANGEROUS. Disable Web UI device identity checks (token/password only).",
+    "DANGEROUS. Disable Control UI device identity checks (token/password only).",
   "gateway.http.endpoints.chatCompletions.enabled":
     "Enable the OpenAI-compatible `POST /v1/chat/completions` endpoint (default: false).",
   "gateway.reload.mode": 'Hot reload strategy for config changes ("hybrid" recommended).',
@@ -433,27 +401,15 @@ const FIELD_HELP: Record<string, string> = {
     "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings).",
   "gateway.nodes.denyCommands":
     "Commands to block even if present in node claims or default allowlist.",
-  nodeHost:
-    "Node host configuration. Nodes are compute agents that run tools and commands on behalf of the gateway.",
-  "nodeHost.browserProxy": "Proxy local browser control server via the node connection.",
   "nodeHost.browserProxy.enabled": "Expose the local browser control server via node proxy.",
   "nodeHost.browserProxy.allowProfiles":
     "Optional allowlist of browser profile names exposed via the node proxy.",
-  "skills.allowBundled":
-    "Allowlist of bundled skill names. If set, only these built-in skills are loaded.",
-  "skills.load.extraDirs": "Additional directories to scan for skill packages.",
-  "skills.load.watch": "Watch skill directories for changes and auto-reload.",
-  "skills.load.watchDebounceMs": "Delay before reloading after a file change (ms).",
-  "skills.install.preferBrew": "Prefer Homebrew-installed tool binaries over npm-installed ones.",
-  "skills.install.nodeManager": "Package manager to use for installing skill dependencies.",
-  "skills.entries":
-    "Per-skill configuration overrides. Key is the skill name, value contains enabled, apiKey, env, and config.",
   "diagnostics.flags":
     'Enable targeted diagnostics logs by flag (e.g. ["telegram.http"]). Supports wildcards like "telegram.*" or "*".',
   "diagnostics.cacheTrace.enabled":
     "Log cache trace snapshots for embedded agent runs (default: false).",
   "diagnostics.cacheTrace.filePath":
-    "JSONL output path for cache trace logs (default: $CLAWDBRAIN_STATE_DIR/logs/cache-trace.jsonl).",
+    "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
   "diagnostics.cacheTrace.includeMessages":
     "Include full message payloads in trace output (default: true).",
   "diagnostics.cacheTrace.includePrompt": "Include prompt text in trace output (default: true).",
@@ -541,19 +497,13 @@ const FIELD_HELP: Record<string, string> = {
   "agents.defaults.envelopeTimestamp":
     'Include absolute timestamps in message envelopes ("on" or "off").',
   "agents.defaults.envelopeElapsed": 'Include elapsed time in message envelopes ("on" or "off").',
-  "agents.defaults.runtime":
-    'Global agent runtime engine ("pi" = embedded Pi Agent, "ccsdk" = Claude Code SDK).',
-  "agents.defaults.mainRuntime":
-    'Runtime override for the main agent loop only. Falls back to "Default Runtime" when unset.',
-  "agents.defaults.mainCcsdkProvider":
-    'Which provider backend to use for the main agent when running in CCSDK mode ("anthropic", "zai", or "openrouter").',
-  "agents.defaults.ccsdkProvider":
-    "Default provider backend for worker agents when running in CCSDK mode. Falls back to mainCcsdkProvider if unset.",
   "agents.defaults.models": "Configured model catalog (keys are full provider/model IDs).",
   "agents.defaults.memorySearch":
     "Vector search over MEMORY.md and memory/*.md (per-agent overrides supported).",
   "agents.defaults.memorySearch.sources":
     'Sources to index for memory search (default: ["memory"]; add "sessions" to include session transcripts).',
+  "agents.defaults.memorySearch.extraPaths":
+    "Extra paths to include in memory search (directories or .md files; relative paths resolved from workspace).",
   "agents.defaults.memorySearch.experimental.sessionMemory":
     "Enable experimental session transcript indexing for memory search (default: false).",
   "agents.defaults.memorySearch.provider": 'Embedding provider ("openai", "gemini", or "local").',
@@ -577,7 +527,7 @@ const FIELD_HELP: Record<string, string> = {
   "agents.defaults.memorySearch.fallback":
     'Fallback provider when embeddings fail ("openai", "gemini", "local", or "none").',
   "agents.defaults.memorySearch.store.path":
-    "SQLite index path (default: ~/.clawdbrain/memory/{agentId}.sqlite).",
+    "SQLite index path (default: ~/.openclaw/memory/{agentId}.sqlite).",
   "agents.defaults.memorySearch.store.vector.enabled":
     "Enable sqlite-vec extension for vector search (default: true).",
   "agents.defaults.memorySearch.store.vector.extensionPath":
@@ -612,12 +562,12 @@ const FIELD_HELP: Record<string, string> = {
   "plugins.entries.*.enabled": "Overrides plugin enable/disable for this entry (restart required).",
   "plugins.entries.*.config": "Plugin-defined config payload (schema is provided by the plugin).",
   "plugins.installs":
-    "CLI-managed install metadata (used by `clawdbrain plugins update` to locate install sources).",
+    "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
   "plugins.installs.*.source": 'Install source ("npm", "archive", or "path").',
   "plugins.installs.*.spec": "Original npm spec used for install (if source is npm).",
   "plugins.installs.*.sourcePath": "Original archive/path used for install (if any).",
   "plugins.installs.*.installPath":
-    "Resolved install directory (usually ~/.clawdbrain/extensions/<id>).",
+    "Resolved install directory (usually ~/.openclaw/extensions/<id>).",
   "plugins.installs.*.version": "Version recorded at install time (if available).",
   "plugins.installs.*.installedAt": "ISO timestamp of last install/update.",
   "agents.list.*.identity.avatar":
@@ -646,7 +596,7 @@ const FIELD_HELP: Record<string, string> = {
   "commands.restart": "Allow /restart and gateway restart tool actions (default: false).",
   "commands.useAccessGroups": "Enforce access-group allowlists/policies for commands.",
   "session.dmScope":
-    'DM session scoping: "main" keeps continuity; "per-peer" or "per-channel-peer" isolates DM history (recommended for shared inboxes).',
+    'DM session scoping: "main" keeps continuity; "per-peer", "per-channel-peer", or "per-account-channel-peer" isolates DM history (recommended for shared inboxes/multi-account).',
   "session.identityLinks":
     "Map canonical identities to provider-prefixed peer IDs for DM session linking (example: telegram:123456).",
   "channels.telegram.configWrites":
@@ -726,6 +676,10 @@ const FIELD_HELP: Record<string, string> = {
     "Enable the Guild Presences privileged intent. Must also be enabled in the Discord Developer Portal. Allows tracking user activities (e.g. Spotify). Default: false.",
   "channels.discord.intents.guildMembers":
     "Enable the Guild Members privileged intent. Must also be enabled in the Discord Developer Portal. Default: false.",
+  "channels.discord.pluralkit.enabled":
+    "Resolve PluralKit proxied messages and treat system members as distinct senders.",
+  "channels.discord.pluralkit.token":
+    "Optional PluralKit token for resolving private systems or members.",
   "channels.slack.dm.policy":
     'Direct message access control ("pairing" recommended). "open" requires channels.slack.dm.allowFrom=["*"].',
 };
@@ -734,26 +688,9 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
   "gateway.remote.url": "ws://host:18789",
   "gateway.remote.tlsFingerprint": "sha256:ab12cd34…",
   "gateway.remote.sshTarget": "user@host",
-  "gateway.controlUi.basePath": "/clawdbrain",
+  "gateway.controlUi.basePath": "/openclaw",
   "channels.mattermost.baseUrl": "https://chat.example.com",
-  "agents.list[].identity.avatar": "avatars/clawd.png",
-};
-
-const FIELD_ORDER: Record<string, number> = {
-  // Auth section ordering - push Tailscale to the bottom
-  "gateway.auth.mode": 10,
-  "gateway.auth.token": 20,
-  "gateway.auth.password": 30,
-  "gateway.auth.allowTailscale": 90,
-  // Tailscale subsection
-  "gateway.tailscale": 90,
-  "gateway.tailscale.mode": 91,
-  "gateway.tailscale.resetOnExit": 92,
-  // Skills section ordering
-  "skills.allowBundled": 10,
-  "skills.load": 20,
-  "skills.install": 30,
-  "skills.entries": 40,
+  "agents.list[].identity.avatar": "avatars/openclaw.png",
 };
 
 const SENSITIVE_PATTERNS = [/token/i, /password/i, /secret/i, /api.?key/i];
@@ -770,19 +707,27 @@ type JsonSchemaObject = JsonSchemaNode & {
 };
 
 function cloneSchema<T>(value: T): T {
-  if (typeof structuredClone === "function") return structuredClone(value);
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function asSchemaObject(value: unknown): JsonSchemaObject | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
   return value as JsonSchemaObject;
 }
 
 function isObjectSchema(schema: JsonSchemaObject): boolean {
   const type = schema.type;
-  if (type === "object") return true;
-  if (Array.isArray(type) && type.includes("object")) return true;
+  if (type === "object") {
+    return true;
+  }
+  if (Array.isArray(type) && type.includes("object")) {
+    return true;
+  }
   return Boolean(schema.properties || schema.additionalProperties);
 }
 
@@ -800,7 +745,9 @@ function mergeObjectSchema(base: JsonSchemaObject, extension: JsonSchemaObject):
     merged.required = Array.from(mergedRequired);
   }
   const additional = extension.additionalProperties ?? base.additionalProperties;
-  if (additional !== undefined) merged.additionalProperties = additional;
+  if (additional !== undefined) {
+    merged.additionalProperties = additional;
+  }
   return merged;
 }
 
@@ -825,10 +772,6 @@ function buildBaseHints(): ConfigUiHints {
     const current = hints[path];
     hints[path] = current ? { ...current, placeholder } : { placeholder };
   }
-  for (const [path, order] of Object.entries(FIELD_ORDER)) {
-    const current = hints[path];
-    hints[path] = current ? { ...current, order } : { order };
-  }
   return hints;
 }
 
@@ -846,7 +789,9 @@ function applyPluginHints(hints: ConfigUiHints, plugins: PluginUiMetadata[]): Co
   const next: ConfigUiHints = { ...hints };
   for (const plugin of plugins) {
     const id = plugin.id.trim();
-    if (!id) continue;
+    if (!id) {
+      continue;
+    }
     const name = (plugin.name ?? id).trim() || id;
     const basePath = `plugins.entries.${id}`;
 
@@ -870,7 +815,9 @@ function applyPluginHints(hints: ConfigUiHints, plugins: PluginUiMetadata[]): Co
     const uiHints = plugin.configUiHints ?? {};
     for (const [relPathRaw, hint] of Object.entries(uiHints)) {
       const relPath = relPathRaw.trim().replace(/^\./, "");
-      if (!relPath) continue;
+      if (!relPath) {
+        continue;
+      }
       const key = `${basePath}.config.${relPath}`;
       next[key] = {
         ...next[key],
@@ -885,7 +832,9 @@ function applyChannelHints(hints: ConfigUiHints, channels: ChannelUiMetadata[]):
   const next: ConfigUiHints = { ...hints };
   for (const channel of channels) {
     const id = channel.id.trim();
-    if (!id) continue;
+    if (!id) {
+      continue;
+    }
     const basePath = `channels.${id}`;
     const current = next[basePath] ?? {};
     const label = channel.label?.trim();
@@ -899,7 +848,9 @@ function applyChannelHints(hints: ConfigUiHints, channels: ChannelUiMetadata[]):
     const uiHints = channel.configUiHints ?? {};
     for (const [relPathRaw, hint] of Object.entries(uiHints)) {
       const relPath = relPathRaw.trim().replace(/^\./, "");
-      if (!relPath) continue;
+      if (!relPath) {
+        continue;
+      }
       const key = `${basePath}.${relPath}`;
       next[key] = {
         ...next[key],
@@ -915,13 +866,17 @@ function listHeartbeatTargetChannels(channels: ChannelUiMetadata[]): string[] {
   const ordered: string[] = [];
   for (const id of CHANNEL_IDS) {
     const normalized = id.trim().toLowerCase();
-    if (!normalized || seen.has(normalized)) continue;
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
     seen.add(normalized);
     ordered.push(normalized);
   }
   for (const channel of channels) {
     const normalized = channel.id.trim().toLowerCase();
-    if (!normalized || seen.has(normalized)) continue;
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
     seen.add(normalized);
     ordered.push(normalized);
   }
@@ -953,14 +908,18 @@ function applyPluginSchemas(schema: ConfigSchema, plugins: PluginUiMetadata[]): 
   const root = asSchemaObject(next);
   const pluginsNode = asSchemaObject(root?.properties?.plugins);
   const entriesNode = asSchemaObject(pluginsNode?.properties?.entries);
-  if (!entriesNode) return next;
+  if (!entriesNode) {
+    return next;
+  }
 
   const entryBase = asSchemaObject(entriesNode.additionalProperties);
   const entryProperties = entriesNode.properties ?? {};
   entriesNode.properties = entryProperties;
 
   for (const plugin of plugins) {
-    if (!plugin.configSchema) continue;
+    if (!plugin.configSchema) {
+      continue;
+    }
     const entrySchema = entryBase
       ? cloneSchema(entryBase)
       : ({ type: "object" } as JsonSchemaObject);
@@ -989,12 +948,16 @@ function applyChannelSchemas(schema: ConfigSchema, channels: ChannelUiMetadata[]
   const next = cloneSchema(schema);
   const root = asSchemaObject(next);
   const channelsNode = asSchemaObject(root?.properties?.channels);
-  if (!channelsNode) return next;
+  if (!channelsNode) {
+    return next;
+  }
   const channelProps = channelsNode.properties ?? {};
   channelsNode.properties = channelProps;
 
   for (const channel of channels) {
-    if (!channel.configSchema) continue;
+    if (!channel.configSchema) {
+      continue;
+    }
     const existing = asSchemaObject(channelProps[channel.id]);
     const incoming = asSchemaObject(channel.configSchema);
     if (existing && incoming && isObjectSchema(existing) && isObjectSchema(incoming)) {
@@ -1012,7 +975,9 @@ let cachedBase: ConfigSchemaResponse | null = null;
 function stripChannelSchema(schema: ConfigSchema): ConfigSchema {
   const next = cloneSchema(schema);
   const root = asSchemaObject(next);
-  if (!root || !root.properties) return next;
+  if (!root || !root.properties) {
+    return next;
+  }
   const channelsNode = asSchemaObject(root.properties.channels);
   if (channelsNode) {
     channelsNode.properties = {};
@@ -1023,12 +988,14 @@ function stripChannelSchema(schema: ConfigSchema): ConfigSchema {
 }
 
 function buildBaseConfigSchema(): ConfigSchemaResponse {
-  if (cachedBase) return cachedBase;
-  const schema = ClawdbrainSchema.toJSONSchema({
+  if (cachedBase) {
+    return cachedBase;
+  }
+  const schema = OpenClawSchema.toJSONSchema({
     target: "draft-07",
     unrepresentable: "any",
   });
-  schema.title = "ClawdbrainConfig";
+  schema.title = "OpenClawConfig";
   const hints = applySensitiveHints(buildBaseHints());
   const next = {
     schema: stripChannelSchema(schema),
@@ -1047,7 +1014,9 @@ export function buildConfigSchema(params?: {
   const base = buildBaseConfigSchema();
   const plugins = params?.plugins ?? [];
   const channels = params?.channels ?? [];
-  if (plugins.length === 0 && channels.length === 0) return base;
+  if (plugins.length === 0 && channels.length === 0) {
+    return base;
+  }
   const mergedHints = applySensitiveHints(
     applyHeartbeatTargetHints(
       applyChannelHints(applyPluginHints(base.uiHints, plugins), channels),

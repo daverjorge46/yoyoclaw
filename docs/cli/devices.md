@@ -1,55 +1,56 @@
 ---
-summary: "CLI reference for `clawdbrain devices` (device pairing + token rotation/revocation)"
+summary: "CLI reference for `openclaw devices` (device pairing + token rotation/revocation)"
 read_when:
   - You are approving device pairing requests
   - You need to rotate or revoke device tokens
+title: "devices"
 ---
 
-# `clawdbrain devices`
+# `openclaw devices`
 
 Manage device pairing requests and device-scoped tokens.
 
 ## Commands
 
-### `clawdbrain devices list`
+### `openclaw devices list`
 
 List pending pairing requests and paired devices.
 
 ```
-clawdbrain devices list
-clawdbrain devices list --json
+openclaw devices list
+openclaw devices list --json
 ```
 
-### `clawdbrain devices approve <requestId>`
+### `openclaw devices approve <requestId>`
 
 Approve a pending device pairing request.
 
 ```
-clawdbrain devices approve <requestId>
+openclaw devices approve <requestId>
 ```
 
-### `clawdbrain devices reject <requestId>`
+### `openclaw devices reject <requestId>`
 
 Reject a pending device pairing request.
 
 ```
-clawdbrain devices reject <requestId>
+openclaw devices reject <requestId>
 ```
 
-### `clawdbrain devices rotate --device <id> --role <role> [--scope <scope...>]`
+### `openclaw devices rotate --device <id> --role <role> [--scope <scope...>]`
 
 Rotate a device token for a specific role (optionally updating scopes).
 
 ```
-clawdbrain devices rotate --device <deviceId> --role operator --scope operator.read --scope operator.write
+openclaw devices rotate --device <deviceId> --role operator --scope operator.read --scope operator.write
 ```
 
-### `clawdbrain devices revoke --device <id> --role <role>`
+### `openclaw devices revoke --device <id> --role <role>`
 
 Revoke a device token for a specific role.
 
 ```
-clawdbrain devices revoke --device <deviceId> --role node
+openclaw devices revoke --device <deviceId> --role node
 ```
 
 ## Common options

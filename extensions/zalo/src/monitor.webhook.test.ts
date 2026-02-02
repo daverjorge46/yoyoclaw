@@ -1,10 +1,28 @@
-import { Readable } from "node:stream";
-
+import type { AddressInfo } from "node:net";
+import type { OpenClawConfig, PluginRuntime } from "openclaw/plugin-sdk";
+import { createServer } from "node:http";
 import { describe, expect, it } from "vitest";
-
-import type { ClawdbrainConfig, PluginRuntime } from "clawdbrain/plugin-sdk";
 import type { ResolvedZaloAccount } from "./types.js";
 import { handleZaloWebhookRequest, registerZaloWebhookTarget } from "./monitor.js";
+
+async function withServer(
+  handler: Parameters<typeof createServer>[0],
+  fn: (baseUrl: string) => Promise<void>,
+) {
+  const server = createServer(handler);
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", () => resolve());
+  });
+  const address = server.address() as AddressInfo | null;
+  if (!address) {
+    throw new Error("missing server address");
+  }
+  try {
+    await fn(`http://127.0.0.1:${address.port}`);
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+}
 
 describe("handleZaloWebhookRequest", () => {
   it("returns 400 for non-object payloads", async () => {
@@ -19,7 +37,7 @@ describe("handleZaloWebhookRequest", () => {
     const unregister = registerZaloWebhookTarget({
       token: "tok",
       account,
-      config: {} as ClawdbrainConfig,
+      config: {} as OpenClawConfig,
       runtime: {},
       core,
       secret: "secret",
@@ -28,26 +46,26 @@ describe("handleZaloWebhookRequest", () => {
     });
 
     try {
-      const req = Readable.from(["null"]) as unknown as Parameters<
-        typeof handleZaloWebhookRequest
-      >[0];
-      Object.assign(req, {
-        method: "POST",
-        url: "/hook",
-        headers: {
-          "x-bot-api-secret-token": "secret",
+      await withServer(
+        async (req, res) => {
+          const handled = await handleZaloWebhookRequest(req, res);
+          if (!handled) {
+            res.statusCode = 404;
+            res.end("not found");
+          }
         },
-      });
+        async (baseUrl) => {
+          const response = await fetch(`${baseUrl}/hook`, {
+            method: "POST",
+            headers: {
+              "x-bot-api-secret-token": "secret",
+            },
+            body: "null",
+          });
 
-      const res = {
-        statusCode: 0,
-        setHeader: () => {},
-        end: () => {},
-      } as Parameters<typeof handleZaloWebhookRequest>[1];
-
-      const handled = await handleZaloWebhookRequest(req, res);
-      expect(handled).toBe(true);
-      expect(res.statusCode).toBe(400);
+          expect(response.status).toBe(400);
+        },
+      );
     } finally {
       unregister();
     }

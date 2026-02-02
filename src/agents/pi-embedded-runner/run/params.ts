@@ -1,7 +1,7 @@
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { ReasoningLevel, ThinkLevel, VerboseLevel } from "../../../auto-reply/thinking.js";
-import type { ClawdbrainConfig } from "../../../config/config.js";
 import type { AgentStreamParams } from "../../../commands/agent/types.js";
+import type { OpenClawConfig } from "../../../config/config.js";
 import type { enqueueCommand } from "../../../process/command-queue.js";
 import type { ExecElevatedDefaults, ExecToolDefaults } from "../../bash-tools.js";
 import type { BlockReplyChunking, ToolResultFormat } from "../../pi-embedded-subscribe.js";
@@ -50,7 +50,7 @@ export type RunEmbeddedPiAgentParams = {
   sessionFile: string;
   workspaceDir: string;
   agentDir?: string;
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   skillsSnapshot?: SkillSnapshot;
   prompt: string;
   images?: ImageContent[];
@@ -88,7 +88,7 @@ export type RunEmbeddedPiAgentParams = {
   blockReplyChunking?: BlockReplyChunking;
   onReasoningStream?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
   onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
-  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
+  onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
   lane?: string;
   enqueue?: typeof enqueueCommand;
   extraSystemPrompt?: string;

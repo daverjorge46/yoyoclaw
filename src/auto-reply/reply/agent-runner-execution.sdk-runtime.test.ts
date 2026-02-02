@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { FollowupRun } from "./queue.js";
 import type { TemplateContext } from "../templating.js";
+import type { FollowupRun } from "./queue.js";
 
 vi.mock("../../agents/model-fallback.js", () => ({
   runWithModelFallback: vi.fn(
@@ -15,7 +14,7 @@ vi.mock("../../agents/model-fallback.js", () => ({
 }));
 
 vi.mock("../../agents/pi-tools.js", () => ({
-  createClawdbrainCodingTools: vi.fn(() => []),
+  createOpenClawCodingTools: vi.fn(() => []),
 }));
 
 vi.mock("../../agents/claude-agent-sdk/sdk-session-history.js", () => ({
@@ -46,7 +45,7 @@ vi.mock("../../agents/claude-agent-sdk/sdk-agent-runtime.js", () => ({
   })),
 }));
 
-import { createClawdbrainCodingTools } from "../../agents/pi-tools.js";
+import { createOpenClawCodingTools } from "../../agents/pi-tools.js";
 import { onAgentEvent } from "../../infra/agent-events.js";
 import { runAgentTurnWithFallback } from "./agent-runner-execution.js";
 
@@ -141,8 +140,8 @@ describe("runAgentTurnWithFallback (SDK runtime)", () => {
     expect(seenEvents.some((evt) => evt.stream === "assistant")).toBe(true);
 
     // Tool context: ensure the SDK tool bridge gets message + threading context.
-    expect(createClawdbrainCodingTools).toHaveBeenCalledTimes(1);
-    const [toolArgs] = vi.mocked(createClawdbrainCodingTools).mock.calls[0] ?? [];
+    expect(createOpenClawCodingTools).toHaveBeenCalledTimes(1);
+    const [toolArgs] = vi.mocked(createOpenClawCodingTools).mock.calls[0] ?? [];
     expect(toolArgs).toMatchObject({
       messageProvider: "slack",
       agentAccountId: "acct-1",

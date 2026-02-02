@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { BackoffPolicy } from "../infra/backoff.js";
 import { computeBackoff, sleepWithAbort } from "../infra/backoff.js";
 
@@ -19,14 +18,16 @@ export const DEFAULT_RECONNECT_POLICY: ReconnectPolicy = {
 
 const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
-export function resolveHeartbeatSeconds(cfg: ClawdbrainConfig, overrideSeconds?: number): number {
+export function resolveHeartbeatSeconds(cfg: OpenClawConfig, overrideSeconds?: number): number {
   const candidate = overrideSeconds ?? cfg.web?.heartbeatSeconds;
-  if (typeof candidate === "number" && candidate > 0) return candidate;
+  if (typeof candidate === "number" && candidate > 0) {
+    return candidate;
+  }
   return DEFAULT_HEARTBEAT_SECONDS;
 }
 
 export function resolveReconnectPolicy(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   overrides?: Partial<ReconnectPolicy>,
 ): ReconnectPolicy {
   const reconnectOverrides = cfg.web?.reconnect ?? {};

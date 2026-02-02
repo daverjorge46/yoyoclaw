@@ -1,5 +1,3 @@
-import { toast } from "./components/toast";
-
 type ScrollHost = {
   updateComplete: Promise<unknown>;
   querySelector: (selectors: string) => Element | null;
@@ -37,8 +35,7 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
       host.chatScrollFrame = null;
       const target = pickScrollTarget();
       if (!target) return;
-      const distanceFromBottom =
-        target.scrollHeight - target.scrollTop - target.clientHeight;
+      const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
       const shouldStick = force || host.chatUserNearBottom || distanceFromBottom < 200;
       if (!shouldStick) return;
       if (force) host.chatHasAutoScrolled = true;
@@ -51,8 +48,7 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
         if (!latest) return;
         const latestDistanceFromBottom =
           latest.scrollHeight - latest.scrollTop - latest.clientHeight;
-        const shouldStickRetry =
-          force || host.chatUserNearBottom || latestDistanceFromBottom < 200;
+        const shouldStickRetry = force || host.chatUserNearBottom || latestDistanceFromBottom < 200;
         if (!shouldStickRetry) return;
         latest.scrollTop = latest.scrollHeight;
         host.chatUserNearBottom = true;
@@ -66,9 +62,7 @@ export function scheduleLogsScroll(host: ScrollHost, force = false) {
   void host.updateComplete.then(() => {
     host.logsScrollFrame = requestAnimationFrame(() => {
       host.logsScrollFrame = null;
-      // Try the new terminal viewer first, fall back to legacy selector
-      const container = (host.querySelector(".logs-terminal-viewer") ??
-        host.querySelector(".log-stream")) as HTMLElement | null;
+      const container = host.querySelector(".log-stream") as HTMLElement | null;
       if (!container) return;
       const distanceFromBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -79,26 +73,17 @@ export function scheduleLogsScroll(host: ScrollHost, force = false) {
   });
 }
 
-export function jumpToLogsBottom(host: ScrollHost) {
-  const container = (host.querySelector(".logs-terminal-viewer") ??
-    host.querySelector(".log-stream")) as HTMLElement | null;
-  if (!container) return;
-  container.scrollTop = container.scrollHeight;
-}
-
 export function handleChatScroll(host: ScrollHost, event: Event) {
   const container = event.currentTarget as HTMLElement | null;
   if (!container) return;
-  const distanceFromBottom =
-    container.scrollHeight - container.scrollTop - container.clientHeight;
+  const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
   host.chatUserNearBottom = distanceFromBottom < 200;
 }
 
 export function handleLogsScroll(host: ScrollHost, event: Event) {
   const container = event.currentTarget as HTMLElement | null;
   if (!container) return;
-  const distanceFromBottom =
-    container.scrollHeight - container.scrollTop - container.clientHeight;
+  const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
   host.logsAtBottom = distanceFromBottom < 80;
 }
 
@@ -114,10 +99,9 @@ export function exportLogs(lines: string[], label: string) {
   const anchor = document.createElement("a");
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
   anchor.href = url;
-  anchor.download = `clawdbrain-logs-${label}-${stamp}.log`;
+  anchor.download = `openclaw-logs-${label}-${stamp}.log`;
   anchor.click();
   URL.revokeObjectURL(url);
-  toast.success(`Logs exported (${lines.length} entries)`);
 }
 
 export function observeTopbar(host: ScrollHost) {

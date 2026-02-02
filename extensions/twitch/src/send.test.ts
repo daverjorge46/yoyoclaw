@@ -10,9 +10,9 @@
  * - Registry integration
  */
 
+import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sendMessageTwitchInternal } from "./send.js";
-import type { ClawdbrainConfig } from "clawdbrain/plugin-sdk";
 
 // Mock dependencies
 vi.mock("./config.js", () => ({
@@ -57,7 +57,7 @@ describe("send", () => {
         },
       },
     },
-  } as unknown as ClawdbrainConfig;
+  } as unknown as OpenClawConfig;
 
   beforeEach(() => {
     vi.clearAllMocks();

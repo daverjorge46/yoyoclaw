@@ -1,28 +1,20 @@
 import crypto from "node:crypto";
+import type { TypingMode } from "../../config/types.js";
+import type { OriginatingChannelType } from "../templating.js";
+import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import type { FollowupRun } from "./queue.js";
+import type { TypingController } from "./typing.js";
 import { resolveAgentModelFallbacksOverride } from "../../agents/agent-scope.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
-import {
-  createSdkMainAgentRuntime,
-  resolveMainAgentRuntimeKind,
-} from "../../agents/main-agent-runtime-factory.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
-import {
-  createPiAgentRuntime,
-  splitRunEmbeddedPiAgentParamsForRuntime,
-} from "../../agents/pi-agent-runtime.js";
-import type { EmbeddedPiRunResult } from "../../agents/pi-embedded-runner/types.js";
+import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import { resolveAgentIdFromSessionKey, type SessionEntry } from "../../config/sessions.js";
-import type { TypingMode } from "../../config/types.js";
 import { logVerbose } from "../../globals.js";
-import { emitAgentEvent, registerAgentRunContext } from "../../infra/agent-events.js";
+import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { defaultRuntime } from "../../runtime.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
-import type { OriginatingChannelType } from "../templating.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
-import type { GetReplyOptions, ReplyPayload } from "../types.js";
-import type { FollowupRun } from "./queue.js";
-import { isCompactionEndWithoutRetry } from "../../agents/agent-event-checks.js";
 import {
   applyReplyThreading,
   filterMessagingToolDuplicates,
@@ -30,9 +22,8 @@ import {
 } from "./reply-payloads.js";
 import { resolveReplyToMode } from "./reply-threading.js";
 import { isRoutableChannel, routeReply } from "./route-reply.js";
-import { persistSessionUsageUpdate } from "./session-usage.js";
 import { incrementCompactionCount } from "./session-updates.js";
-import type { TypingController } from "./typing.js";
+import { persistSessionUsageUpdate } from "./session-usage.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
 export function createFollowupRunner(params: {
@@ -130,121 +121,72 @@ export function createFollowupRunner(params: {
         });
       }
       let autoCompactionCompleted = false;
-      let runResult: EmbeddedPiRunResult;
+      let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
       let fallbackProvider = queued.run.provider;
       let fallbackModel = queued.run.model;
       try {
-        const runtimeKind = resolveMainAgentRuntimeKind(queued.run.config);
-        if (runtimeKind === "ccsdk") {
-          const sdkRuntime = await createSdkMainAgentRuntime({
-            config: queued.run.config,
-            sessionKey: queued.run.sessionKey,
-            sessionFile: queued.run.sessionFile,
-            workspaceDir: queued.run.workspaceDir,
-            agentDir: queued.run.agentDir,
-            abortSignal: opts?.abortSignal,
-            messageProvider: queued.run.messageProvider,
-            agentAccountId: queued.run.agentAccountId,
-            messageTo: queued.originatingTo,
-            messageThreadId: queued.originatingThreadId,
-            groupId: queued.run.groupId,
-            groupChannel: queued.run.groupChannel,
-            groupSpace: queued.run.groupSpace,
-            senderId: queued.run.senderId,
-            senderName: queued.run.senderName,
-            senderUsername: queued.run.senderUsername,
-            senderE164: queued.run.senderE164,
-          });
-
-          runResult = await sdkRuntime.run({
-            sessionId: queued.run.sessionId,
-            sessionKey: queued.run.sessionKey,
-            sessionFile: queued.run.sessionFile,
-            workspaceDir: queued.run.workspaceDir,
-            agentDir: queued.run.agentDir,
-            config: queued.run.config,
-            prompt: queued.prompt,
-            extraSystemPrompt: queued.run.extraSystemPrompt,
-            ownerNumbers: queued.run.ownerNumbers,
-            timeoutMs: queued.run.timeoutMs,
-            runId,
-            abortSignal: opts?.abortSignal,
-            onAgentEvent: (evt) => {
-              emitAgentEvent({
-                runId,
-                stream: evt.stream,
-                data: evt.data,
-                sessionKey: queued.run.sessionKey,
-              });
-            },
-          });
-
-          fallbackProvider = runResult.meta.agentMeta?.provider ?? "sdk";
-          fallbackModel = runResult.meta.agentMeta?.model ?? "default";
-        } else {
-          const fallbackResult = await runWithModelFallback({
-            cfg: queued.run.config,
-            provider: queued.run.provider,
-            model: queued.run.model,
-            agentDir: queued.run.agentDir,
-            fallbacksOverride: resolveAgentModelFallbacksOverride(
-              queued.run.config,
-              resolveAgentIdFromSessionKey(queued.run.sessionKey),
-            ),
-            run: (provider, model) => {
-              const authProfileId =
-                provider === queued.run.provider ? queued.run.authProfileId : undefined;
-              const piParams = {
-                sessionId: queued.run.sessionId,
-                sessionKey: queued.run.sessionKey,
-                messageProvider: queued.run.messageProvider,
-                agentAccountId: queued.run.agentAccountId,
-                messageTo: queued.originatingTo,
-                messageThreadId: queued.originatingThreadId,
-                groupId: queued.run.groupId,
-                groupChannel: queued.run.groupChannel,
-                groupSpace: queued.run.groupSpace,
-                senderId: queued.run.senderId,
-                senderName: queued.run.senderName,
-                senderUsername: queued.run.senderUsername,
-                senderE164: queued.run.senderE164,
-                sessionFile: queued.run.sessionFile,
-                workspaceDir: queued.run.workspaceDir,
-                config: queued.run.config,
-                skillsSnapshot: queued.run.skillsSnapshot,
-                prompt: queued.prompt,
-                extraSystemPrompt: queued.run.extraSystemPrompt,
-                ownerNumbers: queued.run.ownerNumbers,
-                enforceFinalTag: queued.run.enforceFinalTag,
-                provider,
-                model,
-                authProfileId,
-                authProfileIdSource: authProfileId ? queued.run.authProfileIdSource : undefined,
-                thinkLevel: queued.run.thinkLevel,
-                verboseLevel: queued.run.verboseLevel,
-                reasoningLevel: queued.run.reasoningLevel,
-                execOverrides: queued.run.execOverrides,
-                bashElevated: queued.run.bashElevated,
-                timeoutMs: queued.run.timeoutMs,
-                runId,
-                blockReplyBreak: queued.run.blockReplyBreak,
-                onAgentEvent: (evt: { stream: string; data: Record<string, unknown> }) => {
-                  if (evt.stream !== "compaction") return;
-                  const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
-                  const willRetry = Boolean(evt.data.willRetry);
-                  if (isCompactionEndWithoutRetry(phase, willRetry)) {
-                    autoCompactionCompleted = true;
-                  }
-                },
-              };
-              const { context, run } = splitRunEmbeddedPiAgentParamsForRuntime(piParams);
-              return createPiAgentRuntime(context).run(run);
-            },
-          });
-          runResult = fallbackResult.result;
-          fallbackProvider = fallbackResult.provider;
-          fallbackModel = fallbackResult.model;
-        }
+        const fallbackResult = await runWithModelFallback({
+          cfg: queued.run.config,
+          provider: queued.run.provider,
+          model: queued.run.model,
+          agentDir: queued.run.agentDir,
+          fallbacksOverride: resolveAgentModelFallbacksOverride(
+            queued.run.config,
+            resolveAgentIdFromSessionKey(queued.run.sessionKey),
+          ),
+          run: (provider, model) => {
+            const authProfileId =
+              provider === queued.run.provider ? queued.run.authProfileId : undefined;
+            return runEmbeddedPiAgent({
+              sessionId: queued.run.sessionId,
+              sessionKey: queued.run.sessionKey,
+              messageProvider: queued.run.messageProvider,
+              agentAccountId: queued.run.agentAccountId,
+              messageTo: queued.originatingTo,
+              messageThreadId: queued.originatingThreadId,
+              groupId: queued.run.groupId,
+              groupChannel: queued.run.groupChannel,
+              groupSpace: queued.run.groupSpace,
+              senderId: queued.run.senderId,
+              senderName: queued.run.senderName,
+              senderUsername: queued.run.senderUsername,
+              senderE164: queued.run.senderE164,
+              sessionFile: queued.run.sessionFile,
+              workspaceDir: queued.run.workspaceDir,
+              config: queued.run.config,
+              skillsSnapshot: queued.run.skillsSnapshot,
+              prompt: queued.prompt,
+              extraSystemPrompt: queued.run.extraSystemPrompt,
+              ownerNumbers: queued.run.ownerNumbers,
+              enforceFinalTag: queued.run.enforceFinalTag,
+              provider,
+              model,
+              authProfileId,
+              authProfileIdSource: authProfileId ? queued.run.authProfileIdSource : undefined,
+              thinkLevel: queued.run.thinkLevel,
+              verboseLevel: queued.run.verboseLevel,
+              reasoningLevel: queued.run.reasoningLevel,
+              execOverrides: queued.run.execOverrides,
+              bashElevated: queued.run.bashElevated,
+              timeoutMs: queued.run.timeoutMs,
+              runId,
+              blockReplyBreak: queued.run.blockReplyBreak,
+              onAgentEvent: (evt) => {
+                if (evt.stream !== "compaction") {
+                  return;
+                }
+                const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
+                const willRetry = Boolean(evt.data.willRetry);
+                if (phase === "end" && !willRetry) {
+                  autoCompactionCompleted = true;
+                }
+              },
+            });
+          },
+        });
+        runResult = fallbackResult.result;
+        fallbackProvider = fallbackResult.provider;
+        fallbackModel = fallbackResult.model;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         defaultRuntime.error?.(`Followup agent failed before reply: ${message}`);
@@ -272,13 +214,19 @@ export function createFollowupRunner(params: {
       }
 
       const payloadArray = runResult.payloads ?? [];
-      if (payloadArray.length === 0) return;
+      if (payloadArray.length === 0) {
+        return;
+      }
       const sanitizedPayloads = payloadArray.flatMap((payload) => {
         const text = payload.text;
-        if (!text || !text.includes("HEARTBEAT_OK")) return [payload];
+        if (!text || !text.includes("HEARTBEAT_OK")) {
+          return [payload];
+        }
         const stripped = stripHeartbeatToken(text, { mode: "message" });
         const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
-        if (stripped.shouldSkip && !hasMedia) return [];
+        if (stripped.shouldSkip && !hasMedia) {
+          return [];
+        }
         return [{ ...payload, text: stripped.text }];
       });
       const replyToChannel =
@@ -309,7 +257,9 @@ export function createFollowupRunner(params: {
       });
       const finalPayloads = suppressMessagingToolReplies ? [] : dedupedPayloads;
 
-      if (finalPayloads.length === 0) return;
+      if (finalPayloads.length === 0) {
+        return;
+      }
 
       if (autoCompactionCompleted) {
         const count = await incrementCompactionCount({

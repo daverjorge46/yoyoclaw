@@ -5,7 +5,7 @@
  * Progress is stored in config.wizard.onboarding for resumption safety.
  */
 
-import type { ClawdbotConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 
 // ============================================================================
 // Types
@@ -33,7 +33,7 @@ export type OnboardingMetadata = {
  * Extract onboarding progress from the config object.
  * Returns undefined if no onboarding is in progress.
  */
-export function readOnboardingProgress(config: ClawdbotConfig): OnboardingProgress | undefined {
+export function readOnboardingProgress(config: OpenClawConfig): OnboardingProgress | undefined {
   const wizard = config.wizard as Record<string, unknown> | undefined;
   if (!wizard) return undefined;
 
@@ -58,7 +58,7 @@ export function readOnboardingProgress(config: ClawdbotConfig): OnboardingProgre
  * Check if onboarding is complete.
  * Onboarding is complete if all required phases are done.
  */
-export function isOnboardingComplete(config: ClawdbotConfig): boolean {
+export function isOnboardingComplete(config: OpenClawConfig): boolean {
   const progress = readOnboardingProgress(config);
   if (!progress) return false;
 
@@ -70,7 +70,7 @@ export function isOnboardingComplete(config: ClawdbotConfig): boolean {
 /**
  * Check if onboarding is in progress (started but not complete).
  */
-export function isOnboardingInProgress(config: ClawdbotConfig): boolean {
+export function isOnboardingInProgress(config: OpenClawConfig): boolean {
   const progress = readOnboardingProgress(config);
   return progress !== undefined && !isOnboardingComplete(config);
 }
@@ -79,7 +79,7 @@ export function isOnboardingInProgress(config: ClawdbotConfig): boolean {
  * Determine which phase to resume from.
  * Returns the currentPhase if not completed, otherwise the next incomplete phase.
  */
-export function getResumptionPhase(config: ClawdbotConfig): string | null {
+export function getResumptionPhase(config: OpenClawConfig): string | null {
   const progress = readOnboardingProgress(config);
   if (!progress) return null;
 
@@ -104,7 +104,7 @@ export function getResumptionPhase(config: ClawdbotConfig): string | null {
  * Get phase-specific data that was saved during onboarding.
  */
 export function getPhaseData(
-  config: ClawdbotConfig,
+  config: OpenClawConfig,
   phaseId: string,
 ): Record<string, unknown> | undefined {
   const progress = readOnboardingProgress(config);
@@ -121,7 +121,7 @@ export function getPhaseData(
  * Initialize onboarding progress in the config.
  * This should be called when the user starts the onboarding wizard.
  */
-export function initOnboardingProgress(config: ClawdbotConfig): ClawdbotConfig {
+export function initOnboardingProgress(config: OpenClawConfig): OpenClawConfig {
   const now = new Date().toISOString();
 
   return {
@@ -144,10 +144,10 @@ export function initOnboardingProgress(config: ClawdbotConfig): ClawdbotConfig {
  * Merges phase data with config and updates progress tracking.
  */
 export function writeOnboardingProgress(
-  config: ClawdbotConfig,
+  config: OpenClawConfig,
   phaseId: string,
   phaseData: Record<string, unknown>,
-): ClawdbotConfig {
+): OpenClawConfig {
   const progress = readOnboardingProgress(config);
   const now = new Date().toISOString();
 
@@ -197,7 +197,7 @@ export function writeOnboardingProgress(
  * Update the current phase without marking it complete.
  * Use this when the user navigates to a different phase.
  */
-export function updateCurrentPhase(config: ClawdbotConfig, phaseId: string): ClawdbotConfig {
+export function updateCurrentPhase(config: OpenClawConfig, phaseId: string): OpenClawConfig {
   const progress = readOnboardingProgress(config);
   if (!progress) return config;
 
@@ -220,7 +220,7 @@ export function updateCurrentPhase(config: ClawdbotConfig, phaseId: string): Cla
  * Mark onboarding as complete and clean up metadata.
  * This removes the onboarding progress from the config.
  */
-export function completeOnboarding(config: ClawdbotConfig): ClawdbotConfig {
+export function completeOnboarding(config: OpenClawConfig): OpenClawConfig {
   const wizard = config.wizard as Record<string, unknown> | undefined;
   if (!wizard) return config;
 
@@ -237,7 +237,7 @@ export function completeOnboarding(config: ClawdbotConfig): ClawdbotConfig {
  * Reset onboarding progress.
  * Use this to start fresh or clear incomplete onboarding.
  */
-export function resetOnboarding(config: ClawdbotConfig): ClawdbotConfig {
+export function resetOnboarding(config: OpenClawConfig): OpenClawConfig {
   return completeOnboarding(config);
 }
 
@@ -246,9 +246,9 @@ export function resetOnboarding(config: ClawdbotConfig): ClawdbotConfig {
  * This merges the phase-specific config changes into the main config.
  */
 export function applyPhaseData(
-  config: ClawdbotConfig,
+  config: OpenClawConfig,
   phaseData: Record<string, unknown>,
-): ClawdbotConfig {
+): OpenClawConfig {
   // Deep merge phase data into config
   return deepMerge(config, phaseData);
 }

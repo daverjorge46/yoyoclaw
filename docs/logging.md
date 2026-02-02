@@ -4,11 +4,12 @@ read_when:
   - You need a beginner-friendly overview of logging
   - You want to configure log levels or formats
   - You are troubleshooting and need to find logs quickly
+title: "Logging"
 ---
 
 # Logging
 
-Clawdbrain logs in two places:
+OpenClaw logs in two places:
 
 - **File logs** (JSON lines) written by the Gateway.
 - **Console output** shown in terminals and the Control UI.
@@ -20,16 +21,16 @@ levels and formats.
 
 By default, the Gateway writes a rolling log file under:
 
-`/tmp/clawdbrain/clawdbrain-YYYY-MM-DD.log`
+`/tmp/openclaw/openclaw-YYYY-MM-DD.log`
 
 The date uses the gateway host's local timezone.
 
-You can override this in `~/.clawdbrain/clawdbrain.json`:
+You can override this in `~/.openclaw/openclaw.json`:
 
 ```json
 {
   "logging": {
-    "file": "/path/to/clawdbrain.log"
+    "file": "/path/to/openclaw.log"
   }
 }
 ```
@@ -41,7 +42,7 @@ You can override this in `~/.clawdbrain/clawdbrain.json`:
 Use the CLI to tail the gateway log file via RPC:
 
 ```bash
-clawdbrain logs --follow
+openclaw logs --follow
 ```
 
 Output modes:
@@ -62,7 +63,7 @@ In JSON mode, the CLI emits `type`-tagged objects:
 If the Gateway is unreachable, the CLI prints a short hint to run:
 
 ```bash
-clawdbrain doctor
+openclaw doctor
 ```
 
 ### Control UI (web)
@@ -75,7 +76,7 @@ See [/web/control-ui](/web/control-ui) for how to open it.
 To filter channel activity (WhatsApp/Telegram/etc), use:
 
 ```bash
-clawdbrain channels logs --channel whatsapp
+openclaw channels logs --channel whatsapp
 ```
 
 ## Log formats
@@ -97,19 +98,17 @@ Console formatting is controlled by `logging.consoleStyle`.
 
 ## Configuring logging
 
-All logging configuration lives under `logging` in `~/.clawdbrain/clawdbrain.json`.
+All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
 
 ```json
 {
   "logging": {
     "level": "info",
-    "file": "/tmp/clawdbrain/clawdbrain-YYYY-MM-DD.log",
+    "file": "/tmp/openclaw/openclaw-YYYY-MM-DD.log",
     "consoleLevel": "info",
     "consoleStyle": "pretty",
     "redactSensitive": "tools",
-    "redactPatterns": [
-      "sk-.*"
-    ]
+    "redactPatterns": ["sk-.*"]
   }
 }
 ```
@@ -131,13 +130,12 @@ All logging configuration lives under `logging` in `~/.clawdbrain/clawdbrain.jso
 
 ### Redaction
 
-Clawdbrain can redact common secrets (passwords, tokens, API keys) before they hit logs:
+Tool summaries can redact sensitive tokens before they hit the console:
 
 - `logging.redactSensitive`: `off` | `tools` (default: `tools`)
 - `logging.redactPatterns`: list of regex strings to override the default set
 
-Redaction applies to both **console output** and **file logs**.
-Structured fields with keys like `password`, `token`, and `apiKey` are also masked.
+Redaction affects **console output only** and does not alter file logs.
 
 ## Diagnostics + OpenTelemetry
 
@@ -152,7 +150,7 @@ diagnostics + the exporter plugin are enabled.
 
 - **OpenTelemetry (OTel)**: the data model + SDKs for traces, metrics, and logs.
 - **OTLP**: the wire protocol used to export OTel data to a collector/backend.
-- Clawdbrain exports via **OTLP/HTTP (protobuf)** today.
+- OpenClaw exports via **OTLP/HTTP (protobuf)** today.
 
 ### Signals exported
 
@@ -164,9 +162,11 @@ diagnostics + the exporter plugin are enabled.
 ### Diagnostic event catalog
 
 Model usage:
+
 - `model.usage`: tokens, cost, duration, context, provider/model/channel, session ids.
 
 Message flow:
+
 - `webhook.received`: webhook ingress per channel.
 - `webhook.processed`: webhook handled + duration.
 - `webhook.error`: webhook handler errors.
@@ -174,6 +174,7 @@ Message flow:
 - `message.processed`: outcome + duration + optional error.
 
 Queue + session:
+
 - `queue.lane.enqueue`: command queue lane enqueue + depth.
 - `queue.lane.dequeue`: command queue lane dequeue + wait time.
 - `session.state`: session state transition + reason.
@@ -209,10 +210,11 @@ Flags are case-insensitive and support wildcards (e.g. `telegram.*` or `*`).
 Env override (one-off):
 
 ```
-CLAWDBRAIN_DIAGNOSTICS=telegram.http,telegram.payload
+OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload
 ```
 
 Notes:
+
 - Flag logs go to the standard log file (same as `logging.file`).
 - Output is still redacted according to `logging.redactSensitive`.
 - Full guide: [/diagnostics/flags](/diagnostics/flags).
@@ -238,7 +240,7 @@ works with any OpenTelemetry collector/backend that accepts OTLP/HTTP.
       "enabled": true,
       "endpoint": "http://otel-collector:4318",
       "protocol": "http/protobuf",
-      "serviceName": "clawdbrain-gateway",
+      "serviceName": "openclaw-gateway",
       "traces": true,
       "metrics": true,
       "logs": true,
@@ -250,7 +252,8 @@ works with any OpenTelemetry collector/backend that accepts OTLP/HTTP.
 ```
 
 Notes:
-- You can also enable the plugin with `clawdbrain plugins enable diagnostics-otel`.
+
+- You can also enable the plugin with `openclaw plugins enable diagnostics-otel`.
 - `protocol` currently supports `http/protobuf` only. `grpc` is ignored.
 - Metrics include token usage, cost, context size, run duration, and message-flow
   counters/histograms (webhooks, queueing, session state, queue depth/wait).
@@ -263,58 +266,61 @@ Notes:
 ### Exported metrics (names + types)
 
 Model usage:
-- `clawdbrain.tokens` (counter, attrs: `clawdbrain.token`, `clawdbrain.channel`,
-  `clawdbrain.provider`, `clawdbrain.model`)
-- `clawdbrain.cost.usd` (counter, attrs: `clawdbrain.channel`, `clawdbrain.provider`,
-  `clawdbrain.model`)
-- `clawdbrain.run.duration_ms` (histogram, attrs: `clawdbrain.channel`,
-  `clawdbrain.provider`, `clawdbrain.model`)
-- `clawdbrain.context.tokens` (histogram, attrs: `clawdbrain.context`,
-  `clawdbrain.channel`, `clawdbrain.provider`, `clawdbrain.model`)
+
+- `openclaw.tokens` (counter, attrs: `openclaw.token`, `openclaw.channel`,
+  `openclaw.provider`, `openclaw.model`)
+- `openclaw.cost.usd` (counter, attrs: `openclaw.channel`, `openclaw.provider`,
+  `openclaw.model`)
+- `openclaw.run.duration_ms` (histogram, attrs: `openclaw.channel`,
+  `openclaw.provider`, `openclaw.model`)
+- `openclaw.context.tokens` (histogram, attrs: `openclaw.context`,
+  `openclaw.channel`, `openclaw.provider`, `openclaw.model`)
 
 Message flow:
-- `clawdbrain.webhook.received` (counter, attrs: `clawdbrain.channel`,
-  `clawdbrain.webhook`)
-- `clawdbrain.webhook.error` (counter, attrs: `clawdbrain.channel`,
-  `clawdbrain.webhook`)
-- `clawdbrain.webhook.duration_ms` (histogram, attrs: `clawdbrain.channel`,
-  `clawdbrain.webhook`)
-- `clawdbrain.message.queued` (counter, attrs: `clawdbrain.channel`,
-  `clawdbrain.source`)
-- `clawdbrain.message.processed` (counter, attrs: `clawdbrain.channel`,
-  `clawdbrain.outcome`)
-- `clawdbrain.message.duration_ms` (histogram, attrs: `clawdbrain.channel`,
-  `clawdbrain.outcome`)
+
+- `openclaw.webhook.received` (counter, attrs: `openclaw.channel`,
+  `openclaw.webhook`)
+- `openclaw.webhook.error` (counter, attrs: `openclaw.channel`,
+  `openclaw.webhook`)
+- `openclaw.webhook.duration_ms` (histogram, attrs: `openclaw.channel`,
+  `openclaw.webhook`)
+- `openclaw.message.queued` (counter, attrs: `openclaw.channel`,
+  `openclaw.source`)
+- `openclaw.message.processed` (counter, attrs: `openclaw.channel`,
+  `openclaw.outcome`)
+- `openclaw.message.duration_ms` (histogram, attrs: `openclaw.channel`,
+  `openclaw.outcome`)
 
 Queues + sessions:
-- `clawdbrain.queue.lane.enqueue` (counter, attrs: `clawdbrain.lane`)
-- `clawdbrain.queue.lane.dequeue` (counter, attrs: `clawdbrain.lane`)
-- `clawdbrain.queue.depth` (histogram, attrs: `clawdbrain.lane` or
-  `clawdbrain.channel=heartbeat`)
-- `clawdbrain.queue.wait_ms` (histogram, attrs: `clawdbrain.lane`)
-- `clawdbrain.session.state` (counter, attrs: `clawdbrain.state`, `clawdbrain.reason`)
-- `clawdbrain.session.stuck` (counter, attrs: `clawdbrain.state`)
-- `clawdbrain.session.stuck_age_ms` (histogram, attrs: `clawdbrain.state`)
-- `clawdbrain.run.attempt` (counter, attrs: `clawdbrain.attempt`)
+
+- `openclaw.queue.lane.enqueue` (counter, attrs: `openclaw.lane`)
+- `openclaw.queue.lane.dequeue` (counter, attrs: `openclaw.lane`)
+- `openclaw.queue.depth` (histogram, attrs: `openclaw.lane` or
+  `openclaw.channel=heartbeat`)
+- `openclaw.queue.wait_ms` (histogram, attrs: `openclaw.lane`)
+- `openclaw.session.state` (counter, attrs: `openclaw.state`, `openclaw.reason`)
+- `openclaw.session.stuck` (counter, attrs: `openclaw.state`)
+- `openclaw.session.stuck_age_ms` (histogram, attrs: `openclaw.state`)
+- `openclaw.run.attempt` (counter, attrs: `openclaw.attempt`)
 
 ### Exported spans (names + key attributes)
 
-- `clawdbrain.model.usage`
-  - `clawdbrain.channel`, `clawdbrain.provider`, `clawdbrain.model`
-  - `clawdbrain.sessionKey`, `clawdbrain.sessionId`
-  - `clawdbrain.tokens.*` (input/output/cache_read/cache_write/total)
-- `clawdbrain.webhook.processed`
-  - `clawdbrain.channel`, `clawdbrain.webhook`, `clawdbrain.chatId`
-- `clawdbrain.webhook.error`
-  - `clawdbrain.channel`, `clawdbrain.webhook`, `clawdbrain.chatId`,
-    `clawdbrain.error`
-- `clawdbrain.message.processed`
-  - `clawdbrain.channel`, `clawdbrain.outcome`, `clawdbrain.chatId`,
-    `clawdbrain.messageId`, `clawdbrain.sessionKey`, `clawdbrain.sessionId`,
-    `clawdbrain.reason`
-- `clawdbrain.session.stuck`
-  - `clawdbrain.state`, `clawdbrain.ageMs`, `clawdbrain.queueDepth`,
-    `clawdbrain.sessionKey`, `clawdbrain.sessionId`
+- `openclaw.model.usage`
+  - `openclaw.channel`, `openclaw.provider`, `openclaw.model`
+  - `openclaw.sessionKey`, `openclaw.sessionId`
+  - `openclaw.tokens.*` (input/output/cache_read/cache_write/total)
+- `openclaw.webhook.processed`
+  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`
+- `openclaw.webhook.error`
+  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`,
+    `openclaw.error`
+- `openclaw.message.processed`
+  - `openclaw.channel`, `openclaw.outcome`, `openclaw.chatId`,
+    `openclaw.messageId`, `openclaw.sessionKey`, `openclaw.sessionId`,
+    `openclaw.reason`
+- `openclaw.session.stuck`
+  - `openclaw.state`, `openclaw.ageMs`, `openclaw.queueDepth`,
+    `openclaw.sessionKey`, `openclaw.sessionId`
 
 ### Sampling + flushing
 
@@ -338,7 +344,7 @@ Queues + sessions:
 
 ## Troubleshooting tips
 
-- **Gateway not reachable?** Run `clawdbrain doctor` first.
+- **Gateway not reachable?** Run `openclaw doctor` first.
 - **Logs empty?** Check that the Gateway is running and writing to the file path
   in `logging.file`.
 - **Need more detail?** Set `logging.level` to `debug` or `trace` and retry.

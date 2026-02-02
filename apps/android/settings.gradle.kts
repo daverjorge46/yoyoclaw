@@ -14,5 +14,5 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "ClawdbrainNodeAndroid"
+rootProject.name = "OpenClawNodeAndroid"
 include(":app")

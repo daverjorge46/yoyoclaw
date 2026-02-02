@@ -5,8 +5,8 @@ import {
   type SessionEntry,
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
-import { queueSessionDescriptionRefresh } from "../../sessions/session-description.js";
 import { logVerbose } from "../../globals.js";
+import { queueSessionDescriptionRefresh } from "../../sessions/session-description.js";
 
 export async function persistSessionUsageUpdate(params: {
   storePath?: string;
@@ -20,7 +20,9 @@ export async function persistSessionUsageUpdate(params: {
   logLabel?: string;
 }): Promise<void> {
   const { storePath, sessionKey } = params;
-  if (!storePath || !sessionKey) return;
+  if (!storePath || !sessionKey) {
+    return;
+  }
 
   const label = params.logLabel ? `${params.logLabel} ` : "";
   if (hasNonzeroUsage(params.usage)) {

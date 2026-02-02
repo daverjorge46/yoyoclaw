@@ -2,16 +2,13 @@ import type { ModelCatalogEntry } from "../../agents/model-catalog.js";
 import type { createDefaultDeps } from "../../cli/deps.js";
 import type { HealthSummary } from "../../commands/health.js";
 import type { CronService } from "../../cron/service.js";
-import type { AutomationService } from "../../automations/service.js";
-import type { ArtifactStorage } from "../../automations/artifacts.js";
+import type { createSubsystemLogger } from "../../logging/subsystem.js";
 import type { WizardSession } from "../../wizard/session.js";
 import type { ChatAbortControllerEntry } from "../chat-abort.js";
 import type { NodeRegistry } from "../node-registry.js";
 import type { ConnectParams, ErrorShape, RequestFrame } from "../protocol/index.js";
 import type { ChannelRuntimeSnapshot } from "../server-channels.js";
 import type { DedupeEntry } from "../server-shared.js";
-import type { createSubsystemLogger } from "../../logging/subsystem.js";
-import type { OverseerRunner } from "../../infra/overseer/runner.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -30,9 +27,6 @@ export type GatewayRequestContext = {
   deps: ReturnType<typeof createDefaultDeps>;
   cron: CronService;
   cronStorePath: string;
-  automations: AutomationService;
-  automationsStorePath: string;
-  artifactStorage: ArtifactStorage;
   loadGatewayModelCatalog: () => Promise<ModelCatalogEntry[]>;
   getHealthCache: () => HealthSummary | null;
   refreshHealthSnapshot: (opts?: { probe?: boolean }) => Promise<HealthSummary>;
@@ -90,7 +84,9 @@ export type GatewayRequestContext = {
     prompter: import("../../wizard/prompts.js").WizardPrompter,
   ) => Promise<void>;
   broadcastVoiceWakeChanged: (triggers: string[]) => void;
-  overseerRunner: OverseerRunner;
+  automations?: any; // TODO: Add proper type
+  overseerRunner?: any; // TODO: Add proper type
+  artifactStorage?: any; // TODO: Add proper type
 };
 
 export type GatewayRequestOptions = {

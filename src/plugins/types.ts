@@ -1,21 +1,19 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Command } from "commander";
-
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-
+import type { Command } from "commander";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
+import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelDock } from "../channels/dock.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { createVpsAwareOAuthHandlers } from "../commands/oauth-flow.js";
+import type { OpenClawConfig } from "../config/config.js";
+import type { ModelProviderConfig } from "../config/types.js";
+import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import type { InternalHookHandler } from "../hooks/internal-hooks.js";
 import type { HookEntry } from "../hooks/types.js";
-import type { ModelProviderConfig } from "../config/types.js";
 import type { RuntimeEnv } from "../runtime.js";
-import type { ReplyPayload } from "../auto-reply/types.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
-import type { createVpsAwareOAuthHandlers } from "../commands/oauth-flow.js";
-import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import type { PluginRuntime } from "./runtime/types.js";
 
 export type { PluginRuntime } from "./runtime/types.js";
@@ -41,7 +39,7 @@ export type PluginConfigValidation =
   | { ok: true; value?: unknown }
   | { ok: false; errors: string[] };
 
-export type ClawdbrainPluginConfigSchema = {
+export type OpenClawPluginConfigSchema = {
   safeParse?: (value: unknown) => {
     success: boolean;
     data?: unknown;
@@ -55,8 +53,8 @@ export type ClawdbrainPluginConfigSchema = {
   jsonSchema?: Record<string, unknown>;
 };
 
-export type ClawdbrainPluginToolContext = {
-  config?: ClawdbrainConfig;
+export type OpenClawPluginToolContext = {
+  config?: OpenClawConfig;
   workspaceDir?: string;
   agentDir?: string;
   agentId?: string;
@@ -66,17 +64,17 @@ export type ClawdbrainPluginToolContext = {
   sandboxed?: boolean;
 };
 
-export type ClawdbrainPluginToolFactory = (
-  ctx: ClawdbrainPluginToolContext,
+export type OpenClawPluginToolFactory = (
+  ctx: OpenClawPluginToolContext,
 ) => AnyAgentTool | AnyAgentTool[] | null | undefined;
 
-export type ClawdbrainPluginToolOptions = {
+export type OpenClawPluginToolOptions = {
   name?: string;
   names?: string[];
   optional?: boolean;
 };
 
-export type ClawdbrainPluginHookOptions = {
+export type OpenClawPluginHookOptions = {
   entry?: HookEntry;
   name?: string;
   description?: string;
@@ -87,13 +85,13 @@ export type ProviderAuthKind = "oauth" | "api_key" | "token" | "device_code" | "
 
 export type ProviderAuthResult = {
   profiles: Array<{ profileId: string; credential: AuthProfileCredential }>;
-  configPatch?: Partial<ClawdbrainConfig>;
+  configPatch?: Partial<OpenClawConfig>;
   defaultModel?: string;
   notes?: string[];
 };
 
 export type ProviderAuthContext = {
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
   agentDir?: string;
   workspaceDir?: string;
   prompter: WizardPrompter;
@@ -125,7 +123,7 @@ export type ProviderPlugin = {
   refreshOAuth?: (cred: OAuthCredential) => Promise<OAuthCredential>;
 };
 
-export type ClawdbrainPluginGatewayMethod = {
+export type OpenClawPluginGatewayMethod = {
   method: string;
   handler: GatewayRequestHandler;
 };
@@ -148,8 +146,8 @@ export type PluginCommandContext = {
   args?: string;
   /** The full normalized command body */
   commandBody: string;
-  /** Current clawdbrain configuration */
-  config: ClawdbrainConfig;
+  /** Current OpenClaw configuration */
+  config: OpenClawConfig;
 };
 
 /**
@@ -167,7 +165,7 @@ export type PluginCommandHandler = (
 /**
  * Definition for a plugin-registered command.
  */
-export type ClawdbrainPluginCommandDefinition = {
+export type OpenClawPluginCommandDefinition = {
   /** Command name without leading slash (e.g., "tts") */
   name: string;
   /** Description shown in /help and command menus */
@@ -180,100 +178,90 @@ export type ClawdbrainPluginCommandDefinition = {
   handler: PluginCommandHandler;
 };
 
-export type ClawdbrainPluginHttpHandler = (
+export type OpenClawPluginHttpHandler = (
   req: IncomingMessage,
   res: ServerResponse,
 ) => Promise<boolean> | boolean;
 
-export type ClawdbrainPluginHttpRouteHandler = (
+export type OpenClawPluginHttpRouteHandler = (
   req: IncomingMessage,
   res: ServerResponse,
 ) => Promise<void> | void;
 
-export type ClawdbrainPluginCliContext = {
+export type OpenClawPluginCliContext = {
   program: Command;
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
   workspaceDir?: string;
   logger: PluginLogger;
 };
 
-export type ClawdbrainPluginCliRegistrar = (
-  ctx: ClawdbrainPluginCliContext,
-) => void | Promise<void>;
+export type OpenClawPluginCliRegistrar = (ctx: OpenClawPluginCliContext) => void | Promise<void>;
 
-export type ClawdbrainPluginServiceContext = {
-  config: ClawdbrainConfig;
+export type OpenClawPluginServiceContext = {
+  config: OpenClawConfig;
   workspaceDir?: string;
   stateDir: string;
   logger: PluginLogger;
 };
 
-export type ClawdbrainPluginService = {
+export type OpenClawPluginService = {
   id: string;
-  start: (ctx: ClawdbrainPluginServiceContext) => void | Promise<void>;
-  stop?: (ctx: ClawdbrainPluginServiceContext) => void | Promise<void>;
+  start: (ctx: OpenClawPluginServiceContext) => void | Promise<void>;
+  stop?: (ctx: OpenClawPluginServiceContext) => void | Promise<void>;
 };
 
-export type ClawdbrainPluginChannelRegistration = {
+export type OpenClawPluginChannelRegistration = {
   plugin: ChannelPlugin;
   dock?: ChannelDock;
 };
 
-export type ClawdbrainPluginDefinition = {
+export type OpenClawPluginDefinition = {
   id?: string;
   name?: string;
   description?: string;
   version?: string;
   kind?: PluginKind;
-  configSchema?: ClawdbrainPluginConfigSchema;
-  register?: (api: ClawdbrainPluginApi) => void | Promise<void>;
-  activate?: (api: ClawdbrainPluginApi) => void | Promise<void>;
+  configSchema?: OpenClawPluginConfigSchema;
+  register?: (api: OpenClawPluginApi) => void | Promise<void>;
+  activate?: (api: OpenClawPluginApi) => void | Promise<void>;
 };
 
-export type ClawdbrainPluginModule =
-  | ClawdbrainPluginDefinition
-  | ((api: ClawdbrainPluginApi) => void | Promise<void>);
+export type OpenClawPluginModule =
+  | OpenClawPluginDefinition
+  | ((api: OpenClawPluginApi) => void | Promise<void>);
 
-export type ClawdbrainPluginCronJob = {
-  id: string;
-  schedule: string;
-  handler: () => void | Promise<void>;
-  description?: string;
-};
-
-export type ClawdbrainPluginApi = {
+export type OpenClawPluginApi = {
   id: string;
   name: string;
   version?: string;
   description?: string;
   source: string;
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
   pluginConfig?: Record<string, unknown>;
   runtime: PluginRuntime;
   logger: PluginLogger;
   registerTool: (
-    tool: AnyAgentTool | ClawdbrainPluginToolFactory,
-    opts?: ClawdbrainPluginToolOptions,
+    tool: AnyAgentTool | OpenClawPluginToolFactory,
+    opts?: OpenClawPluginToolOptions,
   ) => void;
   registerHook: (
     events: string | string[],
     handler: InternalHookHandler,
-    opts?: ClawdbrainPluginHookOptions,
+    opts?: OpenClawPluginHookOptions,
   ) => void;
-  registerHttpHandler: (handler: ClawdbrainPluginHttpHandler) => void;
-  registerHttpRoute: (params: { path: string; handler: ClawdbrainPluginHttpRouteHandler }) => void;
-  registerChannel: (registration: ClawdbrainPluginChannelRegistration | ChannelPlugin) => void;
+  registerHttpHandler: (handler: OpenClawPluginHttpHandler) => void;
+  registerHttpRoute: (params: { path: string; handler: OpenClawPluginHttpRouteHandler }) => void;
+  registerChannel: (registration: OpenClawPluginChannelRegistration | ChannelPlugin) => void;
   registerGatewayMethod: (method: string, handler: GatewayRequestHandler) => void;
-  registerCli: (registrar: ClawdbrainPluginCliRegistrar, opts?: { commands?: string[] }) => void;
-  registerService: (service: ClawdbrainPluginService) => void;
-  registerCron: (job: ClawdbrainPluginCronJob) => void;
+  registerCli: (registrar: OpenClawPluginCliRegistrar, opts?: { commands?: string[] }) => void;
+  registerService: (service: OpenClawPluginService) => void;
   registerProvider: (provider: ProviderPlugin) => void;
   /**
    * Register a custom command that bypasses the LLM agent.
    * Plugin commands are processed before built-in commands and before agent invocation.
    * Use this for simple state-toggling or status commands that don't need AI reasoning.
    */
-  registerCommand: (command: ClawdbrainPluginCommandDefinition) => void;
+  registerCommand: (command: OpenClawPluginCommandDefinition) => void;
   resolvePath: (input: string) => string;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(

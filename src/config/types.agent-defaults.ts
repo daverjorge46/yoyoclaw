@@ -1,16 +1,16 @@
+import type { ChannelId } from "../channels/plugins/types.js";
 import type {
   BlockStreamingChunkConfig,
   BlockStreamingCoalesceConfig,
   HumanDelayConfig,
   TypingMode,
 } from "./types.base.js";
-import type { ChannelId } from "../channels/plugins/types.js";
+import type { ModelRoutingConfig } from "./types.model-routing.js";
 import type {
   SandboxBrowserSettings,
   SandboxDockerSettings,
   SandboxPruneSettings,
 } from "./types.sandbox.js";
-import type { ModelRoutingConfig } from "./types.model-routing.js";
 import type { MemorySearchConfig } from "./types.tools.js";
 
 export type AgentModelEntryConfig = {
@@ -108,6 +108,21 @@ export type AgentDefaultsConfig = {
   mainCcsdkProvider?: ClaudeCodeSDKProviderKey;
   /** Default CCSDK provider backend for worker agents (when runtime is "ccsdk"). Falls back to mainCcsdkProvider if unset. */
   ccsdkProvider?: ClaudeCodeSDKProviderKey;
+  /**
+   * Model mappings for Claude Code SDK thinking tiers (applies to all CCSDK agents).
+   * Maps shorthand keys to full model identifiers for the SDK's internal model selection.
+   * These are passed as environment variables to the SDK:
+   * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+   * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+   * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+   * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+   */
+  ccsdkModels?: {
+    opus?: string;
+    sonnet?: string;
+    haiku?: string;
+    subagent?: string;
+  };
   /** Primary model and fallbacks (provider/model). */
   model?: AgentModelListConfig;
   /** Optional image-capable model and fallbacks (provider/model). */
@@ -140,7 +155,7 @@ export type AgentDefaultsConfig = {
    * Include elapsed time in message envelopes ("on" | "off", default: "on").
    */
   envelopeElapsed?: "on" | "off";
-  /** Optional display-only context window override (used for % in status UIs). */
+  /** Optional context window cap (used for runtime estimates + status %). */
   contextTokens?: number;
   /** Optional CLI backends for text-only fallback (claude-cli, etc.). */
   cliBackends?: Record<string, CliBackendConfig>;

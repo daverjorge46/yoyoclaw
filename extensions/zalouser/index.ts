@@ -1,16 +1,15 @@
-import type { ClawdbrainPluginApi } from "clawdbrain/plugin-sdk";
-import { emptyPluginConfigSchema } from "clawdbrain/plugin-sdk";
-
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
 import { zalouserDock, zalouserPlugin } from "./src/channel.js";
-import { ZalouserToolSchema, executeZalouserTool } from "./src/tool.js";
 import { setZalouserRuntime } from "./src/runtime.js";
+import { ZalouserToolSchema, executeZalouserTool } from "./src/tool.js";
 
 const plugin = {
   id: "zalouser",
   name: "Zalo Personal",
   description: "Zalo personal account messaging via zca-cli",
   configSchema: emptyPluginConfigSchema(),
-  register(api: ClawdbrainPluginApi) {
+  register(api: OpenClawPluginApi) {
     setZalouserRuntime(api.runtime);
     // Register channel plugin (for onboarding & gateway)
     api.registerChannel({ plugin: zalouserPlugin, dock: zalouserDock });

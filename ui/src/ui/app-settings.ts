@@ -1,49 +1,36 @@
-import { loadAgents } from "./controllers/agents";
-import { loadConfig, loadConfigSchema, saveConfig } from "./controllers/config";
-import { loadCronJobs, loadCronStatus } from "./controllers/cron";
-import { loadAutomations } from "./controllers/automations";
+import type { OpenClawApp } from "./app";
+import { refreshChat } from "./app-chat";
+import {
+  startLogsPolling,
+  stopLogsPolling,
+  startDebugPolling,
+  stopDebugPolling,
+} from "./app-polling";
+import { scheduleChatScroll, scheduleLogsScroll } from "./app-scroll";
 import { loadChannels } from "./controllers/channels";
+import { loadConfig, loadConfigSchema } from "./controllers/config";
+import { loadCronJobs, loadCronStatus } from "./controllers/cron";
 import { loadDebug } from "./controllers/debug";
-import { loadLogs } from "./controllers/logs";
 import { loadDevices } from "./controllers/devices";
-import { loadNodes } from "./controllers/nodes";
 import { loadExecApprovals } from "./controllers/exec-approvals";
+import { loadLogs } from "./controllers/logs";
+import { loadNodes } from "./controllers/nodes";
 import { loadPresence } from "./controllers/presence";
 import { loadSessions } from "./controllers/sessions";
 import { loadSkills } from "./controllers/skills";
-import { refreshOverseer } from "./controllers/overseer";
 import {
-  hashForTab,
   inferBasePathFromPathname,
   normalizeBasePath,
-  parseHashRoute,
-  rootPathForBasePath,
-  tabFromHash,
+  normalizePath,
+  pathForTab,
   tabFromPath,
   type Tab,
 } from "./navigation";
 import { saveSettings, type UiSettings } from "./storage";
 import { resolveTheme, type ResolvedTheme, type ThemeMode } from "./theme";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition";
-import { jumpToLogsBottom, scheduleChatScroll, scheduleLogsScroll } from "./app-scroll";
-import { startLogsPolling, stopLogsPolling, startDebugPolling, stopDebugPolling, startOverseerPolling, stopOverseerPolling } from "./app-polling";
-import { refreshChat } from "./app-chat";
-import type { ClawdbrainApp } from "./app";
-import { setupLogsKeyboardShortcuts } from "./views/logs";
-import { setupConfigKeyboardShortcuts } from "./views/config";
-import { setupOverseerKeyboardShortcuts } from "./views/overseer";
-import { analyzeConfigSchema } from "./views/config-form";
 
-/**
- * Internal type for app-settings helper functions.
- * This includes both public properties from AppViewState and internal/private
- * properties from ClawdbrainApp that these helpers need to access.
- *
- * Note: Functions here are called with ClawdbrainApp instances and use
- * `as unknown as ClawdbrainApp` casts when they need full class access.
- */
 type SettingsHost = {
-  // Public properties (from AppViewState)
   settings: UiSettings;
   theme: ThemeMode;
   themeResolved: ResolvedTheme;
@@ -51,20 +38,14 @@ type SettingsHost = {
   sessionKey: string;
   tab: Tab;
   connected: boolean;
-  logsAtBottom: boolean;
-  logsAutoFollow: boolean;
-  logsFilterText: string;
-  logsShowRelativeTime: boolean;
-  eventLog: unknown[];
-  basePath: string;
-  // Internal properties (private on ClawdbrainApp, needed by these helpers)
   chatHasAutoScrolled: boolean;
-  logsKeyboardCleanup: (() => void) | null;
-  configKeyboardCleanup: (() => void) | null;
-  overseerKeyboardCleanup: (() => void) | null;
+  logsAtBottom: boolean;
+  eventLog: unknown[];
   eventLogBuffer: unknown[];
+  basePath: string;
   themeMedia: MediaQueryList | null;
   themeMediaHandler: ((event: MediaQueryListEvent) => void) | null;
+  pendingGatewayUrl?: string | null;
 };
 
 export function applySettings(host: SettingsHost, next: UiSettings) {
@@ -89,12 +70,11 @@ export function setLastActiveSessionKey(host: SettingsHost, next: string) {
 }
 
 export function applySettingsFromUrl(host: SettingsHost) {
-  if (!window.location.search && !window.location.hash) return;
+  if (!window.location.search) return;
   const params = new URLSearchParams(window.location.search);
-  const hashParams = parseHashRoute(window.location.hash).searchParams;
   const tokenRaw = params.get("token");
   const passwordRaw = params.get("password");
-  const sessionRaw = params.get("session") ?? hashParams.get("session");
+  const sessionRaw = params.get("session");
   const gatewayUrlRaw = params.get("gatewayUrl");
   let shouldCleanUrl = false;
 
@@ -110,7 +90,7 @@ export function applySettingsFromUrl(host: SettingsHost) {
   if (passwordRaw != null) {
     const password = passwordRaw.trim();
     if (password) {
-      (host as unknown as { password: string }).password = password;
+      (host as { password: string }).password = password;
     }
     params.delete("password");
     shouldCleanUrl = true;
@@ -131,7 +111,7 @@ export function applySettingsFromUrl(host: SettingsHost) {
   if (gatewayUrlRaw != null) {
     const gatewayUrl = gatewayUrlRaw.trim();
     if (gatewayUrl && gatewayUrl !== host.settings.gatewayUrl) {
-      applySettings(host, { ...host.settings, gatewayUrl });
+      host.pendingGatewayUrl = gatewayUrl;
     }
     params.delete("gatewayUrl");
     shouldCleanUrl = true;
@@ -146,38 +126,16 @@ export function applySettingsFromUrl(host: SettingsHost) {
 export function setTab(host: SettingsHost, next: Tab) {
   if (host.tab !== next) host.tab = next;
   if (next === "chat") host.chatHasAutoScrolled = false;
-  if (next === "logs") {
-    startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
-    setupLogsKeyboardShortcutsForHost(host);
-  } else {
-    stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
-    cleanupLogsKeyboardShortcuts(host);
-  }
-  if (next === "config") {
-    setupConfigKeyboardShortcutsForHost(host);
-  } else {
-    cleanupConfigKeyboardShortcuts(host);
-  }
+  if (next === "logs") startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
+  else stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   if (next === "debug")
     startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
   else stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
-  if (next === "overseer")
-    startOverseerPolling(host as unknown as Parameters<typeof startOverseerPolling>[0]);
-  else stopOverseerPolling(host as unknown as Parameters<typeof stopOverseerPolling>[0]);
-  if (next === "overseer") {
-    setupOverseerKeyboardShortcutsForHost(host);
-  } else {
-    cleanupOverseerKeyboardShortcuts(host);
-  }
   void refreshActiveTab(host);
   syncUrlWithTab(host, next, false);
 }
 
-export function setTheme(
-  host: SettingsHost,
-  next: ThemeMode,
-  context?: ThemeTransitionContext,
-) {
+export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTransitionContext) {
   const applyTheme = () => {
     host.theme = next;
     applySettings(host, { ...host.settings, theme: next });
@@ -193,69 +151,42 @@ export function setTheme(
 
 export async function refreshActiveTab(host: SettingsHost) {
   if (host.tab === "overview") await loadOverview(host);
-  if (host.tab === "agents") {
-    await loadSessions(host as unknown as ClawdbrainApp);
-  }
   if (host.tab === "channels") await loadChannelsTab(host);
-  if (host.tab === "instances") await loadPresence(host as unknown as ClawdbrainApp);
-  if (host.tab === "sessions") {
-    await Promise.all([
-      loadSessions(host as unknown as ClawdbrainApp),
-      loadAgents(host as unknown as ClawdbrainApp),
-    ]);
-  }
+  if (host.tab === "instances") await loadPresence(host as unknown as OpenClawApp);
+  if (host.tab === "sessions") await loadSessions(host as unknown as OpenClawApp);
   if (host.tab === "cron") await loadCron(host);
-  if (host.tab === "automations") await loadAutomations(host as unknown as Parameters<typeof loadAutomations>[0]);
-  if (host.tab === "skills") await loadSkills(host as unknown as ClawdbrainApp);
-  if (host.tab === "overseer") {
-    await refreshOverseer(host as unknown as ClawdbrainApp);
-    await Promise.all([
-      loadAgents(host as unknown as ClawdbrainApp),
-      loadNodes(host as unknown as ClawdbrainApp),
-      loadSessions(host as unknown as ClawdbrainApp),
-      loadChannels(host as unknown as ClawdbrainApp, false),
-      loadPresence(host as unknown as ClawdbrainApp),
-      loadCron(host),
-      loadSkills(host as unknown as ClawdbrainApp),
-    ]);
-  }
+  if (host.tab === "skills") await loadSkills(host as unknown as OpenClawApp);
   if (host.tab === "nodes") {
-    await loadNodes(host as unknown as ClawdbrainApp);
-    await loadDevices(host as unknown as ClawdbrainApp);
-    await loadConfig(host as unknown as ClawdbrainApp);
-    await loadExecApprovals(host as unknown as ClawdbrainApp);
+    await loadNodes(host as unknown as OpenClawApp);
+    await loadDevices(host as unknown as OpenClawApp);
+    await loadConfig(host as unknown as OpenClawApp);
+    await loadExecApprovals(host as unknown as OpenClawApp);
   }
   if (host.tab === "chat") {
-    await Promise.all([
-      refreshChat(host as unknown as Parameters<typeof refreshChat>[0]),
-      loadAgents(host as unknown as ClawdbrainApp),
-    ]);
+    await refreshChat(host as unknown as Parameters<typeof refreshChat>[0]);
     scheduleChatScroll(
       host as unknown as Parameters<typeof scheduleChatScroll>[0],
       !host.chatHasAutoScrolled,
     );
   }
   if (host.tab === "config") {
-    await loadConfigSchema(host as unknown as ClawdbrainApp);
-    await loadConfig(host as unknown as ClawdbrainApp);
+    await loadConfigSchema(host as unknown as OpenClawApp);
+    await loadConfig(host as unknown as OpenClawApp);
   }
   if (host.tab === "debug") {
-    await loadDebug(host as unknown as ClawdbrainApp);
+    await loadDebug(host as unknown as OpenClawApp);
     host.eventLog = host.eventLogBuffer;
   }
   if (host.tab === "logs") {
     host.logsAtBottom = true;
-    await loadLogs(host as unknown as ClawdbrainApp, { reset: true });
-    scheduleLogsScroll(
-      host as unknown as Parameters<typeof scheduleLogsScroll>[0],
-      true,
-    );
+    await loadLogs(host as unknown as OpenClawApp, { reset: true });
+    scheduleLogsScroll(host as unknown as Parameters<typeof scheduleLogsScroll>[0], true);
   }
 }
 
 export function inferBasePath() {
   if (typeof window === "undefined") return "";
-  const configured = window.__CLAWDBRAIN_CONTROL_UI_BASE_PATH__;
+  const configured = window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
   if (typeof configured === "string" && configured.trim()) {
     return normalizeBasePath(configured);
   }
@@ -308,24 +239,18 @@ export function detachThemeListener(host: SettingsHost) {
 
 export function syncTabWithLocation(host: SettingsHost, replace: boolean) {
   if (typeof window === "undefined") return;
-  const resolved =
-    tabFromHash(window.location.hash) ??
-    tabFromPath(window.location.pathname, host.basePath) ??
-    "chat";
+  const resolved = tabFromPath(window.location.pathname, host.basePath) ?? "chat";
   setTabFromRoute(host, resolved);
   syncUrlWithTab(host, resolved, replace);
 }
 
 export function onPopState(host: SettingsHost) {
   if (typeof window === "undefined") return;
-  const resolved =
-    tabFromHash(window.location.hash) ??
-    tabFromPath(window.location.pathname, host.basePath);
+  const resolved = tabFromPath(window.location.pathname, host.basePath);
   if (!resolved) return;
 
   const url = new URL(window.location.href);
-  const hashSession = parseHashRoute(url.hash).searchParams.get("session")?.trim();
-  const session = (url.searchParams.get("session")?.trim() || hashSession) ?? "";
+  const session = url.searchParams.get("session")?.trim();
   if (session) {
     host.sessionKey = session;
     applySettings(host, {
@@ -341,13 +266,8 @@ export function onPopState(host: SettingsHost) {
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
   if (host.tab !== next) host.tab = next;
   if (next === "chat") host.chatHasAutoScrolled = false;
-  if (next === "logs") {
-    startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
-    setupLogsKeyboardShortcutsForHost(host);
-  } else {
-    stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
-    cleanupLogsKeyboardShortcuts(host);
-  }
+  if (next === "logs") startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
+  else stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   if (next === "debug")
     startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
   else stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
@@ -356,20 +276,19 @@ export function setTabFromRoute(host: SettingsHost, next: Tab) {
 
 export function syncUrlWithTab(host: SettingsHost, tab: Tab, replace: boolean) {
   if (typeof window === "undefined") return;
+  const targetPath = normalizePath(pathForTab(tab, host.basePath));
+  const currentPath = normalizePath(window.location.pathname);
   const url = new URL(window.location.href);
-  const rootPath = rootPathForBasePath(host.basePath);
-  const targetHash = (() => {
-    const params = new URLSearchParams();
-    if (tab === "chat" && host.sessionKey) params.set("session", host.sessionKey);
-    return hashForTab(tab, params);
-  })();
 
-  // Canonicalize the chat session param into the hash route query so we can
-  // reload and deep-link reliably on static/file hosts.
-  url.searchParams.delete("session");
+  if (tab === "chat" && host.sessionKey) {
+    url.searchParams.set("session", host.sessionKey);
+  } else {
+    url.searchParams.delete("session");
+  }
 
-  if (url.pathname !== rootPath) url.pathname = rootPath;
-  if (url.hash !== targetHash) url.hash = targetHash;
+  if (currentPath !== targetPath) {
+    url.pathname = targetPath;
+  }
 
   if (replace) {
     window.history.replaceState({}, "", url.toString());
@@ -378,142 +297,36 @@ export function syncUrlWithTab(host: SettingsHost, tab: Tab, replace: boolean) {
   }
 }
 
-export function syncUrlWithSessionKey(
-  _host: unknown,
-  sessionKey: string,
-  replace: boolean,
-) {
+export function syncUrlWithSessionKey(host: SettingsHost, sessionKey: string, replace: boolean) {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
-  url.searchParams.delete("session");
-  const params = new URLSearchParams(parseHashRoute(url.hash).searchParams);
-  params.set("session", sessionKey);
-  url.hash = hashForTab("chat", params);
+  url.searchParams.set("session", sessionKey);
   if (replace) window.history.replaceState({}, "", url.toString());
   else window.history.pushState({}, "", url.toString());
 }
 
 export async function loadOverview(host: SettingsHost) {
   await Promise.all([
-    loadChannels(host as unknown as ClawdbrainApp, false),
-    loadPresence(host as unknown as ClawdbrainApp),
-    loadSessions(host as unknown as ClawdbrainApp),
-    loadCronStatus(host as unknown as ClawdbrainApp),
-    loadDebug(host as unknown as ClawdbrainApp),
+    loadChannels(host as unknown as OpenClawApp, false),
+    loadPresence(host as unknown as OpenClawApp),
+    loadSessions(host as unknown as OpenClawApp),
+    loadCronStatus(host as unknown as OpenClawApp),
+    loadDebug(host as unknown as OpenClawApp),
   ]);
 }
 
 export async function loadChannelsTab(host: SettingsHost) {
   await Promise.all([
-    loadChannels(host as unknown as ClawdbrainApp, true),
-    loadConfigSchema(host as unknown as ClawdbrainApp),
-    loadConfig(host as unknown as ClawdbrainApp),
+    loadChannels(host as unknown as OpenClawApp, true),
+    loadConfigSchema(host as unknown as OpenClawApp),
+    loadConfig(host as unknown as OpenClawApp),
   ]);
 }
 
 export async function loadCron(host: SettingsHost) {
   await Promise.all([
-    loadChannels(host as unknown as ClawdbrainApp, false),
-    loadCronStatus(host as unknown as ClawdbrainApp),
-    loadCronJobs(host as unknown as ClawdbrainApp),
+    loadChannels(host as unknown as OpenClawApp, false),
+    loadCronStatus(host as unknown as OpenClawApp),
+    loadCronJobs(host as unknown as OpenClawApp),
   ]);
-}
-
-function setupLogsKeyboardShortcutsForHost(host: SettingsHost) {
-  // Clean up any existing shortcuts first
-  cleanupLogsKeyboardShortcuts(host);
-
-  host.logsKeyboardCleanup = setupLogsKeyboardShortcuts({
-    onFocusSearch: () => {
-      const input = document.getElementById("logs-search-input") as HTMLInputElement | null;
-      input?.focus();
-    },
-    onJumpToBottom: () => {
-      jumpToLogsBottom(host as unknown as Parameters<typeof jumpToLogsBottom>[0]);
-    },
-    onRefresh: () => {
-      void loadLogs(host as unknown as ClawdbrainApp, { reset: true });
-    },
-    onToggleAutoFollow: () => {
-      host.logsAutoFollow = !host.logsAutoFollow;
-    },
-  });
-}
-
-function cleanupLogsKeyboardShortcuts(host: SettingsHost) {
-  if (host.logsKeyboardCleanup) {
-    host.logsKeyboardCleanup();
-    host.logsKeyboardCleanup = null;
-  }
-}
-
-function setupConfigKeyboardShortcutsForHost(host: SettingsHost) {
-  cleanupConfigKeyboardShortcuts(host);
-
-  const state = host as unknown as ClawdbrainApp;
-
-  host.configKeyboardCleanup = setupConfigKeyboardShortcuts({
-    getFormMode: () => state.configFormMode,
-    getSearchQuery: () => state.configSearchQuery,
-    getCanSave: () => {
-      if (!state.connected) return false;
-      if (state.configSaving) return false;
-      if (state.configLoading) return false;
-
-      const hasChanges =
-        state.configFormMode === "raw"
-          ? state.configRaw !== state.configRawOriginal
-          : Boolean(state.configFormDirty);
-      if (!hasChanges) return false;
-
-      if (state.configFormMode === "form") {
-        if (!state.configForm) return false;
-        const analysis = analyzeConfigSchema(state.configSchema);
-        if (analysis.schema && analysis.unsupportedPaths.length > 0) return false;
-      }
-
-      return true;
-    },
-    getIsDirty: () => {
-      const hasChanges =
-        state.configFormMode === "raw"
-          ? state.configRaw !== state.configRawOriginal
-          : Boolean(state.configFormDirty);
-      return hasChanges;
-    },
-    onFocusSearch: () => {
-      const input = document.getElementById("config-search-input") as HTMLInputElement | null;
-      input?.focus();
-    },
-    onClearSearch: () => {
-      state.configSearchQuery = "";
-    },
-    onSave: () => {
-      void saveConfig(state);
-    },
-  });
-}
-
-function cleanupConfigKeyboardShortcuts(host: SettingsHost) {
-  if (host.configKeyboardCleanup) {
-    host.configKeyboardCleanup();
-    host.configKeyboardCleanup = null;
-  }
-}
-
-function setupOverseerKeyboardShortcutsForHost(host: SettingsHost) {
-  cleanupOverseerKeyboardShortcuts(host);
-
-  const state = host as unknown as ClawdbrainApp;
-  host.overseerKeyboardCleanup = setupOverseerKeyboardShortcuts({
-    getDrawerOpen: () => state.overseerDrawerOpen,
-    onCloseDrawer: () => state.handleOverseerDrawerClose(),
-  });
-}
-
-function cleanupOverseerKeyboardShortcuts(host: SettingsHost) {
-  if (host.overseerKeyboardCleanup) {
-    host.overseerKeyboardCleanup();
-    host.overseerKeyboardCleanup = null;
-  }
 }

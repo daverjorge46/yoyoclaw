@@ -1,8 +1,8 @@
-import ClawdbrainKit
+import OpenClawKit
 import Foundation
 import Testing
 import UIKit
-@testable import Clawdbrain
+@testable import OpenClaw
 
 private func withUserDefaults<T>(_ updates: [String: Any?], _ body: () throws -> T) rethrows -> T {
     let defaults = UserDefaults.standard
@@ -49,31 +49,31 @@ private func withUserDefaults<T>(_ updates: [String: Any?], _ body: () throws ->
             "node.instanceId": "ios-test",
             "node.displayName": "Test Node",
             "camera.enabled": true,
-            "location.enabledMode": ClawdbrainLocationMode.always.rawValue,
+            "location.enabledMode": OpenClawLocationMode.always.rawValue,
             VoiceWakePreferences.enabledKey: true,
         ]) {
             let appModel = NodeAppModel()
             let controller = GatewayConnectionController(appModel: appModel, startDiscovery: false)
             let caps = Set(controller._test_currentCaps())
 
-            #expect(caps.contains(ClawdbrainCapability.canvas.rawValue))
-            #expect(caps.contains(ClawdbrainCapability.screen.rawValue))
-            #expect(caps.contains(ClawdbrainCapability.camera.rawValue))
-            #expect(caps.contains(ClawdbrainCapability.location.rawValue))
-            #expect(caps.contains(ClawdbrainCapability.voiceWake.rawValue))
+            #expect(caps.contains(OpenClawCapability.canvas.rawValue))
+            #expect(caps.contains(OpenClawCapability.screen.rawValue))
+            #expect(caps.contains(OpenClawCapability.camera.rawValue))
+            #expect(caps.contains(OpenClawCapability.location.rawValue))
+            #expect(caps.contains(OpenClawCapability.voiceWake.rawValue))
         }
     }
 
     @Test @MainActor func currentCommandsIncludeLocationWhenEnabled() {
         withUserDefaults([
             "node.instanceId": "ios-test",
-            "location.enabledMode": ClawdbrainLocationMode.whileUsing.rawValue,
+            "location.enabledMode": OpenClawLocationMode.whileUsing.rawValue,
         ]) {
             let appModel = NodeAppModel()
             let controller = GatewayConnectionController(appModel: appModel, startDiscovery: false)
             let commands = Set(controller._test_currentCommands())
 
-            #expect(commands.contains(ClawdbrainLocationCommand.get.rawValue))
+            #expect(commands.contains(OpenClawLocationCommand.get.rawValue))
         }
     }
 }

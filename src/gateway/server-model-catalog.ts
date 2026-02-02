@@ -1,20 +1,19 @@
-import {
-  loadModelCatalog,
-  type ModelCatalogEntry,
-  type GatewayModelEntry,
-  resetModelCatalogCacheForTest,
-} from "../agents/model-catalog.js";
-import { ensureAuthProfileStore } from "../agents/auth-profiles/store.js";
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import { listProfilesForProvider } from "../agents/auth-profiles.js";
+import { ensureAuthProfileStore } from "../agents/auth-profiles/store.js";
 import {
   getCustomProviderApiKey,
   resolveAwsSdkEnvVarName,
   resolveEnvApiKey,
 } from "../agents/model-auth.js";
-import { type ClawdbrainConfig, loadConfig } from "../config/config.js";
+import {
+  loadModelCatalog,
+  type ModelCatalogEntry,
+  resetModelCatalogCacheForTest,
+} from "../agents/model-catalog.js";
+import { type OpenClawConfig, loadConfig } from "../config/config.js";
 
-export type GatewayModelChoice = GatewayModelEntry;
+export type GatewayModelChoice = ModelCatalogEntry;
 
 // Test-only escape hatch: model catalog is cached at module scope for the
 // process lifetime, which is fine for the real gateway daemon, but makes
@@ -25,7 +24,7 @@ export function __resetModelCatalogCacheForTest() {
 
 function hasAuthForProvider(
   provider: string,
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
   authStore: AuthProfileStore,
 ): boolean {
   if (listProfilesForProvider(authStore, provider).length > 0) return true;

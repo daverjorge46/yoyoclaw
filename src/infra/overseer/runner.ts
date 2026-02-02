@@ -1,18 +1,4 @@
 import crypto from "node:crypto";
-
-import { loadConfig } from "../../config/config.js";
-import { parseDurationMs } from "../../cli/parse-duration.js";
-import { getQueueSize } from "../../process/command-queue.js";
-import { CommandLane } from "../../process/lanes.js";
-import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
-import { normalizeAgentId, resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
-import { createSubsystemLogger } from "../../logging/subsystem.js";
-import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
-import { appendOverseerEvent } from "./events.js";
-import { executeOverseerActions, type OverseerDispatchAction } from "./dispatcher.js";
-import { createOverseerMonitor, type OverseerTelemetrySnapshot } from "./monitor.js";
-import { generateOverseerPlan } from "./planner.js";
-import { updateOverseerStore, loadOverseerStoreFromDisk } from "./store.js";
 import type {
   OverseerAssignmentRecord,
   OverseerGoalRecord,
@@ -21,6 +7,19 @@ import type {
   OverseerStructuredUpdate,
   OverseerWorkStatus,
 } from "./store.types.js";
+import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
+import { parseDurationMs } from "../../cli/parse-duration.js";
+import { loadConfig } from "../../config/config.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { getQueueSize } from "../../process/command-queue.js";
+import { CommandLane } from "../../process/lanes.js";
+import { normalizeAgentId, resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
+import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
+import { executeOverseerActions, type OverseerDispatchAction } from "./dispatcher.js";
+import { appendOverseerEvent } from "./events.js";
+import { createOverseerMonitor, type OverseerTelemetrySnapshot } from "./monitor.js";
+import { generateOverseerPlan } from "./planner.js";
+import { updateOverseerStore, loadOverseerStoreFromDisk } from "./store.js";
 import { requestOverseerNow, setOverseerWakeHandler, type OverseerTickResult } from "./wake.js";
 
 const log = createSubsystemLogger("gateway/overseer");
@@ -110,11 +109,11 @@ function resolveOverseerConfig(cfg = loadConfig()): OverseerResolvedConfig {
   const backoffMaxMs = safeDuration(cfg.overseer?.backoff?.max ?? DEFAULT_BACKOFF_MAX, 30 * 60_000);
   const allowCrossAgent = cfg.overseer?.policy?.allowCrossAgent === true;
   const allowAgentsRaw = cfg.overseer?.policy?.allowAgents ?? [];
-  const allowAnyAgent = allowAgentsRaw.some((value) => value.trim() === "*");
-  const allowAgents = new Set(
+  const allowAnyAgent = allowAgentsRaw.some((value: any) => value.trim() === "*");
+  const allowAgents = new Set<string>(
     allowAgentsRaw
-      .filter((value) => value.trim() && value.trim() !== "*")
-      .map((value) => normalizeAgentId(value)),
+      .filter((value: any) => value.trim() && value.trim() !== "*")
+      .map((value: any) => normalizeAgentId(value)),
   );
   return {
     enabled,

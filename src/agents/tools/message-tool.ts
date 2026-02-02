@@ -1,4 +1,7 @@
 import { Type } from "@sinclair/typebox";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { AnyAgentTool } from "./common.js";
+import { BLUEBUBBLES_GROUP_ACTIONS } from "../../channels/plugins/bluebubbles-actions.js";
 import {
   listChannelMessageActions,
   supportsChannelMessageButtons,
@@ -8,18 +11,16 @@ import {
   CHANNEL_MESSAGE_ACTION_NAMES,
   type ChannelMessageActionName,
 } from "../../channels/plugins/types.js";
-import { BLUEBUBBLES_GROUP_ACTIONS } from "../../channels/plugins/bluebubbles-actions.js";
-import type { ClawdbrainConfig } from "../../config/config.js";
 import { loadConfig } from "../../config/config.js";
 import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../gateway/protocol/client-info.js";
-import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
 import { getToolResult, runMessageAction } from "../../infra/outbound/message-action-runner.js";
-import { resolveSessionAgentId } from "../agent-scope.js";
+import { normalizeTargetForProvider } from "../../infra/outbound/target-normalization.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
-import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
-import { listChannelSupportedActions } from "../channel-tools.js";
 import { normalizeMessageChannel } from "../../utils/message-channel.js";
-import type { AnyAgentTool } from "./common.js";
+import { resolveSessionAgentId } from "../agent-scope.js";
+import { listChannelSupportedActions } from "../channel-tools.js";
+import { assertSandboxPath } from "../sandbox-paths.js";
+import { channelTargetSchema, channelTargetsSchema, stringEnum } from "../schema/typebox.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 
 const AllMessageActions = CHANNEL_MESSAGE_ACTION_NAMES;
@@ -57,13 +58,12 @@ function buildSendSchema(options: { includeButtons: boolean; includeCards: boole
     path: Type.Optional(Type.String()),
     filePath: Type.Optional(Type.String()),
     replyTo: Type.Optional(Type.String()),
-    threadId: Type.Optional(
-      Type.String({
-        description: "Thread ID for fetch action (to get messages from a specific thread).",
-      }),
-    ),
+    threadId: Type.Optional(Type.String()),
     asVoice: Type.Optional(Type.Boolean()),
     silent: Type.Optional(Type.Boolean()),
+    quoteText: Type.Optional(
+      Type.String({ description: "Quote text for Telegram reply_parameters" }),
+    ),
     bestEffort: Type.Optional(Type.Boolean()),
     gifPlayback: Type.Optional(Type.Boolean()),
     buttons: Type.Optional(
@@ -89,8 +89,12 @@ function buildSendSchema(options: { includeButtons: boolean; includeCards: boole
       ),
     ),
   };
-  if (!options.includeButtons) delete props.buttons;
-  if (!options.includeCards) delete props.card;
+  if (!options.includeButtons) {
+    delete props.buttons;
+  }
+  if (!options.includeCards) {
+    delete props.card;
+  }
   return props;
 }
 
@@ -107,16 +111,10 @@ function buildReactionSchema() {
 
 function buildFetchSchema() {
   return {
-    limit: Type.Optional(
-      Type.Number({ description: "Maximum number of messages to fetch (default 50, max 100)." }),
-    ),
-    before: Type.Optional(
-      Type.String({ description: "Fetch messages before this message ID (pagination)." }),
-    ),
-    after: Type.Optional(
-      Type.String({ description: "Fetch messages after this message ID (pagination)." }),
-    ),
-    around: Type.Optional(Type.String({ description: "Fetch messages around this message ID." })),
+    limit: Type.Optional(Type.Number()),
+    before: Type.Optional(Type.String()),
+    after: Type.Optional(Type.String()),
+    around: Type.Optional(Type.String()),
     fromMe: Type.Optional(Type.Boolean()),
     includeArchived: Type.Optional(Type.Boolean()),
   };
@@ -236,10 +234,7 @@ function buildMessageToolSchemaFromActions(
 ) {
   const props = buildMessageToolSchemaProps(options);
   return Type.Object({
-    action: stringEnum(actions, {
-      description:
-        "REQUIRED. The message action to perform. Must be one of the supported actions (e.g., 'send', 'react', 'delete').",
-    }),
+    action: stringEnum(actions),
     ...props,
   });
 }
@@ -252,15 +247,16 @@ const MessageToolSchema = buildMessageToolSchemaFromActions(AllMessageActions, {
 type MessageToolOptions = {
   agentAccountId?: string;
   agentSessionKey?: string;
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   currentChannelId?: string;
   currentChannelProvider?: string;
   currentThreadTs?: string;
   replyToMode?: "off" | "first" | "all";
   hasRepliedRef?: { value: boolean };
+  sandboxRoot?: string;
 };
 
-function buildMessageToolSchema(cfg: ClawdbrainConfig) {
+function buildMessageToolSchema(cfg: OpenClawConfig) {
   const actions = listChannelMessageActions(cfg);
   const includeButtons = supportsChannelMessageButtons(cfg);
   const includeCards = supportsChannelMessageCards(cfg);
@@ -272,7 +268,9 @@ function buildMessageToolSchema(cfg: ClawdbrainConfig) {
 
 function resolveAgentAccountId(value?: string): string | undefined {
   const trimmed = value?.trim();
-  if (!trimmed) return undefined;
+  if (!trimmed) {
+    return undefined;
+  }
   return normalizeAccountId(trimmed);
 }
 
@@ -282,9 +280,13 @@ function filterActionsForContext(params: {
   currentChannelId?: string;
 }): ChannelMessageActionName[] {
   const channel = normalizeMessageChannel(params.channel);
-  if (!channel || channel !== "bluebubbles") return params.actions;
+  if (!channel || channel !== "bluebubbles") {
+    return params.actions;
+  }
   const currentChannelId = params.currentChannelId?.trim();
-  if (!currentChannelId) return params.actions;
+  if (!currentChannelId) {
+    return params.actions;
+  }
   const normalizedTarget =
     normalizeTargetForProvider(channel, currentChannelId) ?? currentChannelId;
   const lowered = normalizedTarget.trim().toLowerCase();
@@ -293,22 +295,18 @@ function filterActionsForContext(params: {
     lowered.startsWith("chat_id:") ||
     lowered.startsWith("chat_identifier:") ||
     lowered.startsWith("group:");
-  if (isGroupTarget) return params.actions;
+  if (isGroupTarget) {
+    return params.actions;
+  }
   return params.actions.filter((action) => !BLUEBUBBLES_GROUP_ACTIONS.has(action));
 }
 
 function buildMessageToolDescription(options?: {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   currentChannel?: string;
   currentChannelId?: string;
 }): string {
-  const baseDescription =
-    "Send, fetch, delete, and manage messages via channel plugins. " +
-    "REQUIRED PARAMETER: action (string) - must be one of the supported actions. " +
-    "Examples: " +
-    "Send: { action: 'send', message: 'Hello!', target: '#general' } -> { ok: true, messageId: '123' }. " +
-    "Fetch messages: { action: 'fetch', target: '#general', limit: 50 } -> { ok: true, messages: [...] }. " +
-    "Fetch thread: { action: 'fetch', threadId: '123456', limit: 20 } -> { ok: true, messages: [...] }.";
+  const baseDescription = "Send, delete, and manage messages via channel plugins.";
 
   // If we have a current channel, show only its supported actions
   if (options?.currentChannel) {
@@ -323,7 +321,7 @@ function buildMessageToolDescription(options?: {
     if (channelActions.length > 0) {
       // Always include "send" as a base action
       const allActions = new Set(["send", ...channelActions]);
-      const actionList = Array.from(allActions).sort().join(", ");
+      const actionList = Array.from(allActions).toSorted().join(", ");
       return `${baseDescription} Current channel (${options.currentChannel}) supports: ${actionList}.`;
     }
   }
@@ -365,6 +363,17 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
       const action = readStringParam(params, "action", {
         required: true,
       }) as ChannelMessageActionName;
+
+      // Validate file paths against sandbox root to prevent host file access.
+      const sandboxRoot = options?.sandboxRoot;
+      if (sandboxRoot) {
+        for (const key of ["filePath", "path"] as const) {
+          const raw = readStringParam(params, key, { trim: false });
+          if (raw) {
+            await assertSandboxPath({ filePath: raw, cwd: sandboxRoot, root: sandboxRoot });
+          }
+        }
+      }
 
       const accountId = readStringParam(params, "accountId") ?? agentAccountId;
       if (accountId) {
@@ -412,7 +421,9 @@ export function createMessageTool(options?: MessageToolOptions): AnyAgentTool {
       });
 
       const toolResult = getToolResult(result);
-      if (toolResult) return toolResult;
+      if (toolResult) {
+        return toolResult;
+      }
       return jsonResult(result.payload);
     },
   };

@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import type { ClawdbrainConfig } from "../config/config.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(fn, { prefix: "clawdbrain-models-" });
+  return withTempHomeBase(fn, { prefix: "openclaw-models-" });
 }
 
-const _MODELS_CONFIG: ClawdbrainConfig = {
+const _MODELS_CONFIG: OpenClawConfig = {
   models: {
     providers: {
       "custom-proxy": {
@@ -46,10 +46,10 @@ describe("models-config", () => {
   it("normalizes gemini 3 ids to preview for google providers", async () => {
     await withTempHome(async () => {
       vi.resetModules();
-      const { ensureClawdbrainModelsJson } = await import("./models-config.js");
-      const { resolveClawdbrainAgentDir } = await import("./agent-paths.js");
+      const { ensureOpenClawModelsJson } = await import("./models-config.js");
+      const { resolveOpenClawAgentDir } = await import("./agent-paths.js");
 
-      const cfg: ClawdbrainConfig = {
+      const cfg: OpenClawConfig = {
         models: {
           providers: {
             google: {
@@ -83,9 +83,9 @@ describe("models-config", () => {
         },
       };
 
-      await ensureClawdbrainModelsJson(cfg);
+      await ensureOpenClawModelsJson(cfg);
 
-      const modelPath = path.join(resolveClawdbrainAgentDir(), "models.json");
+      const modelPath = path.join(resolveOpenClawAgentDir(), "models.json");
       const raw = await fs.readFile(modelPath, "utf8");
       const parsed = JSON.parse(raw) as {
         providers: Record<string, { models: Array<{ id: string }> }>;

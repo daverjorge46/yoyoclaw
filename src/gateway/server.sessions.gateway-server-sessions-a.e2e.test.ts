@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { WebSocket } from "ws";
+import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import {
   connectOk,
   embeddedRunMock,
@@ -14,7 +15,6 @@ import {
   testState,
   writeSessionStore,
 } from "./test-helpers.js";
-import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 
 const sessionCleanupMocks = vi.hoisted(() => ({
   clearSessionQueues: vi.fn(() => ({ followupCleared: 0, laneCleared: 0, keys: [] })),
@@ -48,16 +48,19 @@ let port = 0;
 let previousToken: string | undefined;
 
 beforeAll(async () => {
-  previousToken = process.env.CLAWDBRAIN_GATEWAY_TOKEN;
-  delete process.env.CLAWDBRAIN_GATEWAY_TOKEN;
+  previousToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+  delete process.env.OPENCLAW_GATEWAY_TOKEN;
   port = await getFreePort();
   server = await startGatewayServer(port);
 });
 
 afterAll(async () => {
   await server.close();
-  if (previousToken === undefined) delete process.env.CLAWDBRAIN_GATEWAY_TOKEN;
-  else process.env.CLAWDBRAIN_GATEWAY_TOKEN = previousToken;
+  if (previousToken === undefined) {
+    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+  } else {
+    process.env.OPENCLAW_GATEWAY_TOKEN = previousToken;
+  }
 });
 
 const openClient = async (opts?: Parameters<typeof connectOk>[1]) => {
@@ -74,7 +77,7 @@ describe("gateway server sessions", () => {
   });
 
   test("lists and patches session store via sessions.* RPC", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbrain-sessions-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-sessions-"));
     const storePath = path.join(dir, "sessions.json");
     const now = Date.now();
     const recent = now - 30_000;
@@ -213,16 +216,6 @@ describe("gateway server sessions", () => {
     expect(sendPolicyPatched.ok).toBe(true);
     expect(sendPolicyPatched.payload?.entry.sendPolicy).toBe("deny");
 
-    const tagsPatched = await rpcReq<{
-      ok: true;
-      entry: { tags?: string[] };
-    }>(ws, "sessions.patch", {
-      key: "agent:main:main",
-      tags: ["project-x", "Urgent", "project-x"],
-    });
-    expect(tagsPatched.ok).toBe(true);
-    expect(tagsPatched.payload?.entry.tags).toEqual(["project-x", "Urgent"]);
-
     const labelPatched = await rpcReq<{
       ok: true;
       entry: { label?: string };
@@ -245,7 +238,6 @@ describe("gateway server sessions", () => {
         thinkingLevel?: string;
         verboseLevel?: string;
         sendPolicy?: string;
-        tags?: string[];
         label?: string;
         displayName?: string;
       }>;
@@ -255,7 +247,6 @@ describe("gateway server sessions", () => {
     expect(main2?.thinkingLevel).toBe("medium");
     expect(main2?.verboseLevel).toBe("off");
     expect(main2?.sendPolicy).toBe("deny");
-    expect(main2?.tags).toEqual(["project-x", "Urgent"]);
     const subagent = list2.payload?.sessions.find((s) => s.key === "agent:main:subagent:one");
     expect(subagent?.label).toBe("Briefing");
     expect(subagent?.displayName).toBe("Briefing");
@@ -382,7 +373,7 @@ describe("gateway server sessions", () => {
   });
 
   test("sessions.preview returns transcript previews", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbrain-sessions-preview-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-sessions-preview-"));
     const storePath = path.join(dir, "sessions.json");
     testState.sessionStorePath = storePath;
     const sessionId = "sess-preview";
@@ -427,7 +418,7 @@ describe("gateway server sessions", () => {
   });
 
   test("sessions.delete rejects main and aborts active runs", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbrain-sessions-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-sessions-"));
     const storePath = path.join(dir, "sessions.json");
     testState.sessionStorePath = storePath;
 

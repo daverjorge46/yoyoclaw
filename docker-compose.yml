@@ -1,19 +1,19 @@
 services:
-  clawdbrain-gateway:
-    image: ${CLAWDBRAIN_IMAGE:-clawdbrain:local}
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
       HOME: /home/node
       TERM: xterm-256color
-      CLAWDBRAIN_GATEWAY_TOKEN: ${CLAWDBRAIN_GATEWAY_TOKEN}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
     volumes:
-      - ${CLAWDBRAIN_CONFIG_DIR}:/home/node/.clawdbrain
-      - ${CLAWDBRAIN_WORKSPACE_DIR}:/home/node/clawd
+      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
     ports:
-      - "${CLAWDBRAIN_GATEWAY_PORT:-18789}:18789"
-      - "${CLAWDBRAIN_BRIDGE_PORT:-18790}:18790"
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
     init: true
     restart: unless-stopped
     command:
@@ -22,13 +22,13 @@ services:
         "dist/index.js",
         "gateway",
         "--bind",
-        "${CLAWDBRAIN_GATEWAY_BIND:-lan}",
+        "${OPENCLAW_GATEWAY_BIND:-lan}",
         "--port",
-        "${CLAWDBRAIN_GATEWAY_PORT:-18789}"
+        "18789",
       ]
 
-  clawdbrain-cli:
-    image: ${CLAWDBRAIN_IMAGE:-clawdbrain:local}
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
       HOME: /home/node
       TERM: xterm-256color
@@ -37,8 +37,8 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
     volumes:
-      - ${CLAWDBRAIN_CONFIG_DIR}:/home/node/.clawdbrain
-      - ${CLAWDBRAIN_WORKSPACE_DIR}:/home/node/clawd
+      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
     stdin_open: true
     tty: true
     init: true

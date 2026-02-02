@@ -1,9 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { HeartbeatRunResult } from "../infra/heartbeat-wake.js";
 import { CronService } from "./service.js";
 
@@ -15,7 +13,7 @@ const noopLogger = {
 };
 
 async function makeStorePath() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbrain-cron-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-cron-"));
   return {
     storePath: path.join(dir, "cron", "jobs.json"),
     cleanup: async () => {
@@ -67,7 +65,6 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:02.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cron._waitForTimerRun();
 
     const jobs = await cron.list({ includeDisabled: true });
     const updated = jobs.find((j) => j.id === job.id);
@@ -110,7 +107,6 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:02.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cron._waitForTimerRun();
 
     const jobs = await cron.list({ includeDisabled: true });
     expect(jobs.find((j) => j.id === job.id)).toBeUndefined();
@@ -165,7 +161,9 @@ describe("CronService", () => {
 
     const runPromise = cron.run(job.id, "force");
     for (let i = 0; i < 10; i++) {
-      if (runHeartbeatOnce.mock.calls.length > 0) break;
+      if (runHeartbeatOnce.mock.calls.length > 0) {
+        break;
+      }
       // Let the locked() chain progress.
       await Promise.resolve();
     }
@@ -218,7 +216,6 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cron._waitForTimerRun();
 
     await cron.list({ includeDisabled: true });
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
@@ -363,7 +360,6 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cron._waitForTimerRun();
     await cron.list({ includeDisabled: true });
 
     expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron (error): last output", {
@@ -454,7 +450,6 @@ describe("CronService", () => {
 
     vi.setSystemTime(new Date("2025-12-13T00:00:01.000Z"));
     await vi.runOnlyPendingTimersAsync();
-    await cron._waitForTimerRun();
 
     expect(enqueueSystemEvent).not.toHaveBeenCalled();
     expect(requestHeartbeatNow).not.toHaveBeenCalled();

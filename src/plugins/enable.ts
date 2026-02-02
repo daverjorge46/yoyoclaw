@@ -1,14 +1,16 @@
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 
 export type PluginEnableResult = {
-  config: ClawdbrainConfig;
+  config: OpenClawConfig;
   enabled: boolean;
   reason?: string;
 };
 
-function ensureAllowlisted(cfg: ClawdbrainConfig, pluginId: string): ClawdbrainConfig {
+function ensureAllowlisted(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
   const allow = cfg.plugins?.allow;
-  if (!Array.isArray(allow) || allow.includes(pluginId)) return cfg;
+  if (!Array.isArray(allow) || allow.includes(pluginId)) {
+    return cfg;
+  }
   return {
     ...cfg,
     plugins: {
@@ -18,7 +20,7 @@ function ensureAllowlisted(cfg: ClawdbrainConfig, pluginId: string): ClawdbrainC
   };
 }
 
-export function enablePluginInConfig(cfg: ClawdbrainConfig, pluginId: string): PluginEnableResult {
+export function enablePluginInConfig(cfg: OpenClawConfig, pluginId: string): PluginEnableResult {
   if (cfg.plugins?.enabled === false) {
     return { config: cfg, enabled: false, reason: "plugins disabled" };
   }
@@ -33,7 +35,7 @@ export function enablePluginInConfig(cfg: ClawdbrainConfig, pluginId: string): P
       enabled: true,
     },
   };
-  let next: ClawdbrainConfig = {
+  let next: OpenClawConfig = {
     ...cfg,
     plugins: {
       ...cfg.plugins,

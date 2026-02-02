@@ -1,18 +1,12 @@
 import { describe, expect, it } from "vitest";
-
 import {
   TAB_GROUPS,
-  hrefForTab,
   iconForTab,
   inferBasePathFromPathname,
-  parseHashRoute,
   normalizeBasePath,
   normalizePath,
-  rootPathForBasePath,
-  hashForTab,
   pathForTab,
   subtitleForTab,
-  tabFromHash,
   tabFromPath,
   titleForTab,
   type Tab,
@@ -78,7 +72,7 @@ describe("subtitleForTab", () => {
 
   it("returns descriptive subtitles", () => {
     expect(subtitleForTab("chat")).toContain("chat session");
-    expect(subtitleForTab("config")).toContain("clawdbrain.json");
+    expect(subtitleForTab("config")).toContain("openclaw.json");
   });
 });
 
@@ -100,7 +94,7 @@ describe("normalizeBasePath", () => {
   });
 
   it("handles nested paths", () => {
-    expect(normalizeBasePath("/apps/clawdbrain")).toBe("/apps/clawdbrain");
+    expect(normalizeBasePath("/apps/openclaw")).toBe("/apps/openclaw");
   });
 });
 
@@ -127,7 +121,7 @@ describe("pathForTab", () => {
 
   it("prepends base path", () => {
     expect(pathForTab("chat", "/ui")).toBe("/ui/chat");
-    expect(pathForTab("sessions", "/apps/clawdbrain")).toBe("/apps/clawdbrain/sessions");
+    expect(pathForTab("sessions", "/apps/openclaw")).toBe("/apps/openclaw/sessions");
   });
 });
 
@@ -138,13 +132,13 @@ describe("tabFromPath", () => {
     expect(tabFromPath("/sessions")).toBe("sessions");
   });
 
-  it("returns landing for root path", () => {
-    expect(tabFromPath("/")).toBe("landing");
+  it("returns chat for root path", () => {
+    expect(tabFromPath("/")).toBe("chat");
   });
 
   it("handles base paths", () => {
     expect(tabFromPath("/ui/chat", "/ui")).toBe("chat");
-    expect(tabFromPath("/apps/clawdbrain/sessions", "/apps/clawdbrain")).toBe("sessions");
+    expect(tabFromPath("/apps/openclaw/sessions", "/apps/openclaw")).toBe("sessions");
   });
 
   it("returns null for unknown path", () => {
@@ -154,38 +148,6 @@ describe("tabFromPath", () => {
   it("is case-insensitive", () => {
     expect(tabFromPath("/CHAT")).toBe("chat");
     expect(tabFromPath("/Overview")).toBe("overview");
-  });
-});
-
-describe("hash routing", () => {
-  it("parses hash routes into a path + query", () => {
-    const parsed = parseHashRoute("#/chat?session=main");
-    expect(parsed.path).toBe("/chat");
-    expect(parsed.searchParams.get("session")).toBe("main");
-  });
-
-  it("builds stable hash routes for tabs", () => {
-    expect(hashForTab("chat")).toBe("#/chat");
-    expect(hashForTab("landing")).toBe("#/");
-  });
-
-  it("returns tab for valid hashes", () => {
-    expect(tabFromHash("#/chat")).toBe("chat");
-    expect(tabFromHash("#/CHAT")).toBe("chat");
-    expect(tabFromHash("#/")).toBe("landing");
-  });
-
-  it("treats empty hashes as absent routing state", () => {
-    expect(tabFromHash("")).toBeNull();
-    expect(tabFromHash("#")).toBeNull();
-  });
-
-  it("builds hrefs that keep the app rooted at basePath", () => {
-    expect(rootPathForBasePath("")).toBe("/");
-    expect(rootPathForBasePath("/ui")).toBe("/ui/");
-    expect(hrefForTab("chat")).toBe("/#/chat");
-    expect(hrefForTab("chat", "/ui")).toBe("/ui/#/chat");
-    expect(hrefForTab("chat", "/ui", { session: "main" })).toBe("/ui/#/chat?session=main");
   });
 });
 
@@ -201,7 +163,7 @@ describe("inferBasePathFromPathname", () => {
 
   it("infers base path from nested paths", () => {
     expect(inferBasePathFromPathname("/ui/chat")).toBe("/ui");
-    expect(inferBasePathFromPathname("/apps/clawdbrain/sessions")).toBe("/apps/clawdbrain");
+    expect(inferBasePathFromPathname("/apps/openclaw/sessions")).toBe("/apps/openclaw");
   });
 
   it("handles index.html suffix", () => {

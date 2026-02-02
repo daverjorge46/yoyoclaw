@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import type { ClawdbrainConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
 import {
   capArrayByJsonBytes,
@@ -46,7 +46,7 @@ describe("gateway session utils", () => {
     const cfg = {
       session: { mainKey: "work" },
       agents: { list: [{ id: "ops", default: true }] },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(resolveSessionStoreKey({ cfg, sessionKey: "main" })).toBe("agent:ops:work");
     expect(resolveSessionStoreKey({ cfg, sessionKey: "work" })).toBe("agent:ops:work");
     expect(resolveSessionStoreKey({ cfg, sessionKey: "agent:ops:main" })).toBe("agent:ops:work");
@@ -56,7 +56,7 @@ describe("gateway session utils", () => {
     const cfg = {
       session: { mainKey: "main" },
       agents: { list: [{ id: "ops", default: true }] },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(resolveSessionStoreKey({ cfg, sessionKey: "discord:group:123" })).toBe(
       "agent:ops:discord:group:123",
     );
@@ -69,7 +69,7 @@ describe("gateway session utils", () => {
     const cfg = {
       session: { scope: "global", mainKey: "work" },
       agents: { list: [{ id: "ops", default: true }] },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     expect(resolveSessionStoreKey({ cfg, sessionKey: "main" })).toBe("global");
     const target = resolveGatewaySessionStoreTarget({ cfg, key: "main" });
     expect(target.canonicalKey).toBe("global");
@@ -79,14 +79,14 @@ describe("gateway session utils", () => {
   test("resolveGatewaySessionStoreTarget uses canonical key for main alias", () => {
     const storeTemplate = path.join(
       os.tmpdir(),
-      "clawdbrain-session-utils",
+      "openclaw-session-utils",
       "{agentId}",
       "sessions.json",
     );
     const cfg = {
       session: { mainKey: "main", store: storeTemplate },
       agents: { list: [{ id: "ops", default: true }] },
-    } as ClawdbrainConfig;
+    } as OpenClawConfig;
     const target = resolveGatewaySessionStoreTarget({ cfg, key: "main" });
     expect(target.canonicalKey).toBe("agent:ops:main");
     expect(target.storeKeys).toEqual(expect.arrayContaining(["agent:ops:main", "main"]));
@@ -193,7 +193,7 @@ describe("listSessionsFromStore search", () => {
   const baseCfg = {
     session: { mainKey: "main" },
     agents: { list: [{ id: "main", default: true }] },
-  } as ClawdbrainConfig;
+  } as OpenClawConfig;
 
   const makeStore = (): Record<string, SessionEntry> => ({
     "agent:main:work-project": {
@@ -201,7 +201,6 @@ describe("listSessionsFromStore search", () => {
       updatedAt: Date.now(),
       displayName: "Work Project Alpha",
       label: "work",
-      description: "Planning an API design for the work project",
     } as SessionEntry,
     "agent:main:personal-chat": {
       sessionId: "sess-personal-1",
@@ -273,18 +272,6 @@ describe("listSessionsFromStore search", () => {
     });
     expect(result.sessions.length).toBe(1);
     expect(result.sessions[0].label).toBe("discord");
-  });
-
-  test("filters by description", () => {
-    const store = makeStore();
-    const result = listSessionsFromStore({
-      cfg: baseCfg,
-      storePath: "/tmp/sessions.json",
-      store,
-      opts: { search: "api design" },
-    });
-    expect(result.sessions.length).toBe(1);
-    expect(result.sessions[0].key).toBe("agent:main:work-project");
   });
 
   test("filters by sessionId", () => {

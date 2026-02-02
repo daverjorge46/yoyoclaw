@@ -8,14 +8,14 @@
 
 import { execSync } from "node:child_process";
 import os from "node:os";
-
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { EmbeddedPiRunResult } from "../pi-embedded-runner/types.js";
+import type { AnyAgentTool } from "../tools/common.js";
+import type { SdkRunnerResult } from "./sdk-runner.types.js";
 import { logDebug, logInfo, logWarn } from "../../logger.js";
 import { resolveAgentIdFromSessionKey } from "../agent-scope.js";
 import { resolveApiKeyForProfile } from "../auth-profiles/oauth.js";
 import { ensureAuthProfileStore } from "../auth-profiles/store.js";
-import type { AnyAgentTool } from "../tools/common.js";
-import type { EmbeddedPiRunResult } from "../pi-embedded-runner/types.js";
 import {
   enrichProvidersWithAuthProfiles,
   resolveDefaultSdkProvider,
@@ -23,7 +23,6 @@ import {
 } from "./sdk-runner.config.js";
 import { runSdkAgent } from "./sdk-runner.js";
 import { appendSdkTurnPairToSessionTranscript } from "./sdk-session-transcript.js";
-import type { SdkRunnerResult } from "./sdk-runner.types.js";
 
 // ---------------------------------------------------------------------------
 // Async OAuth token resolution
@@ -43,7 +42,7 @@ const PROVIDER_AUTH_PROFILES: Record<string, string> = {
  */
 async function tryAsyncOAuthResolution(
   entry: SdkProviderEntry,
-  params: { config?: ClawdbrainConfig; agentDir?: string },
+  params: { config?: OpenClawConfig; agentDir?: string },
 ): Promise<SdkProviderEntry> {
   // Only attempt if we still don't have an auth token.
   if (entry.config.env?.ANTHROPIC_AUTH_TOKEN) return entry;
@@ -369,7 +368,7 @@ export type RunSdkAgentAdaptedParams = {
   sessionFile: string;
   workspaceDir: string;
   agentDir?: string;
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   prompt: string;
   extraSystemPrompt?: string;
   ownerNumbers?: string[];

@@ -1,70 +1,250 @@
 /**
- * Clawdbrain Memory (LanceDB) Plugin
+ * OpenClaw Memory (LanceDB) Plugin
  *
  * Long-term memory with vector search for AI conversations.
- * Uses LanceDB for storage and OpenAI for embeddings/extraction.
- * Provides seamless auto-recall and auto-capture via semantic analysis.
+ * Uses LanceDB for storage and OpenAI for embeddings.
+ * Provides seamless auto-recall and auto-capture via lifecycle hooks.
  */
 
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import * as lancedb from "@lancedb/lancedb";
 import { Type } from "@sinclair/typebox";
-import { join } from "node:path";
-import { homedir } from "node:os";
-import type { ClawdbrainPluginApi } from "clawdbrain/plugin-sdk";
-import { stringEnum } from "clawdbrain/plugin-sdk";
-
+import { randomUUID } from "node:crypto";
+import OpenAI from "openai";
+import { stringEnum } from "openclaw/plugin-sdk";
 import {
   MEMORY_CATEGORIES,
+  type MemoryCategory,
   memoryConfigSchema,
   vectorDimsForModel,
 } from "./config.js";
 
-import { LanceDbStore } from "./src/services/lancedb-store.js";
-import { OpenAiEmbedder } from "./src/services/openai-embedder.js";
-import { OpenAiExtractor } from "./src/services/openai-extractor.js";
-import { OpenAiExpander } from "./src/services/openai-expander.js";
-import { OpenAiSynthesizer } from "./src/services/openai-synthesizer.js";
-import { DigestService } from "./src/services/digest-service.js";
-import type { Notifier } from "./src/types.js";
+// ============================================================================
+// Types
+// ============================================================================
 
-// ============================================================================ 
+type MemoryEntry = {
+  id: string;
+  text: string;
+  vector: number[];
+  importance: number;
+  category: MemoryCategory;
+  createdAt: number;
+};
+
+type MemorySearchResult = {
+  entry: MemoryEntry;
+  score: number;
+};
+
+// ============================================================================
+// LanceDB Provider
+// ============================================================================
+
+const TABLE_NAME = "memories";
+
+class MemoryDB {
+  private db: lancedb.Connection | null = null;
+  private table: lancedb.Table | null = null;
+  private initPromise: Promise<void> | null = null;
+
+  constructor(
+    private readonly dbPath: string,
+    private readonly vectorDim: number,
+  ) {}
+
+  private async ensureInitialized(): Promise<void> {
+    if (this.table) {
+      return;
+    }
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = this.doInitialize();
+    return this.initPromise;
+  }
+
+  private async doInitialize(): Promise<void> {
+    this.db = await lancedb.connect(this.dbPath);
+    const tables = await this.db.tableNames();
+
+    if (tables.includes(TABLE_NAME)) {
+      this.table = await this.db.openTable(TABLE_NAME);
+    } else {
+      this.table = await this.db.createTable(TABLE_NAME, [
+        {
+          id: "__schema__",
+          text: "",
+          vector: Array.from({ length: this.vectorDim }).fill(0),
+          importance: 0,
+          category: "other",
+          createdAt: 0,
+        },
+      ]);
+      await this.table.delete('id = "__schema__"');
+    }
+  }
+
+  async store(entry: Omit<MemoryEntry, "id" | "createdAt">): Promise<MemoryEntry> {
+    await this.ensureInitialized();
+
+    const fullEntry: MemoryEntry = {
+      ...entry,
+      id: randomUUID(),
+      createdAt: Date.now(),
+    };
+
+    await this.table!.add([fullEntry]);
+    return fullEntry;
+  }
+
+  async search(vector: number[], limit = 5, minScore = 0.5): Promise<MemorySearchResult[]> {
+    await this.ensureInitialized();
+
+    const results = await this.table!.vectorSearch(vector).limit(limit).toArray();
+
+    // LanceDB uses L2 distance by default; convert to similarity score
+    const mapped = results.map((row) => {
+      const distance = row._distance ?? 0;
+      // Use inverse for a 0-1 range: sim = 1 / (1 + d)
+      const score = 1 / (1 + distance);
+      return {
+        entry: {
+          id: row.id as string,
+          text: row.text as string,
+          vector: row.vector as number[],
+          importance: row.importance as number,
+          category: row.category as MemoryEntry["category"],
+          createdAt: row.createdAt as number,
+        },
+        score,
+      };
+    });
+
+    return mapped.filter((r) => r.score >= minScore);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    // Validate UUID format to prevent injection
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      throw new Error(`Invalid memory ID format: ${id}`);
+    }
+    await this.table!.delete(`id = '${id}'`);
+    return true;
+  }
+
+  async count(): Promise<number> {
+    await this.ensureInitialized();
+    return this.table!.countRows();
+  }
+}
+
+// ============================================================================
+// OpenAI Embeddings
+// ============================================================================
+
+class Embeddings {
+  private client: OpenAI;
+
+  constructor(
+    apiKey: string,
+    private model: string,
+  ) {
+    this.client = new OpenAI({ apiKey });
+  }
+
+  async embed(text: string): Promise<number[]> {
+    const response = await this.client.embeddings.create({
+      model: this.model,
+      input: text,
+    });
+    return response.data[0].embedding;
+  }
+}
+
+// ============================================================================
+// Rule-based capture filter
+// ============================================================================
+
+const MEMORY_TRIGGERS = [
+  /zapamatuj si|pamatuj|remember/i,
+  /preferuji|radši|nechci|prefer/i,
+  /rozhodli jsme|budeme používat/i,
+  /\+\d{10,}/,
+  /[\w.-]+@[\w.-]+\.\w+/,
+  /můj\s+\w+\s+je|je\s+můj/i,
+  /my\s+\w+\s+is|is\s+my/i,
+  /i (like|prefer|hate|love|want|need)/i,
+  /always|never|important/i,
+];
+
+function shouldCapture(text: string): boolean {
+  if (text.length < 10 || text.length > 500) {
+    return false;
+  }
+  // Skip injected context from memory recall
+  if (text.includes("<relevant-memories>")) {
+    return false;
+  }
+  // Skip system-generated content
+  if (text.startsWith("<") && text.includes("</")) {
+    return false;
+  }
+  // Skip agent summary responses (contain markdown formatting)
+  if (text.includes("**") && text.includes("\n-")) {
+    return false;
+  }
+  // Skip emoji-heavy responses (likely agent output)
+  const emojiCount = (text.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
+  if (emojiCount > 3) {
+    return false;
+  }
+  return MEMORY_TRIGGERS.some((r) => r.test(text));
+}
+
+function detectCategory(text: string): MemoryCategory {
+  const lower = text.toLowerCase();
+  if (/prefer|radši|like|love|hate|want/i.test(lower)) {
+    return "preference";
+  }
+  if (/rozhodli|decided|will use|budeme/i.test(lower)) {
+    return "decision";
+  }
+  if (/\+\d{10,}|@[\w.-]+\.\w+|is called|jmenuje se/i.test(lower)) {
+    return "entity";
+  }
+  if (/is|are|has|have|je|má|jsou/i.test(lower)) {
+    return "fact";
+  }
+  return "other";
+}
+
+// ============================================================================
 // Plugin Definition
-// ============================================================================ 
+// ============================================================================
 
 const memoryPlugin = {
   id: "memory-lancedb",
   name: "Memory (LanceDB)",
-  description: "LanceDB-backed long-term memory with semantic extraction",
+  description: "LanceDB-backed long-term memory with auto-recall/capture",
   kind: "memory" as const,
   configSchema: memoryConfigSchema,
 
-  register(api: ClawdbrainPluginApi) {
+  register(api: OpenClawPluginApi) {
     const cfg = memoryConfigSchema.parse(api.pluginConfig);
     const resolvedDbPath = api.resolvePath(cfg.dbPath!);
     const vectorDim = vectorDimsForModel(cfg.embedding.model ?? "text-embedding-3-small");
-    
-    // Initialize Services
-    const db = new LanceDbStore(resolvedDbPath, vectorDim);
-    const embeddings = new OpenAiEmbedder(cfg.embedding.apiKey, cfg.embedding.model!);
-    const extraction = new OpenAiExtractor(cfg.extraction!.apiKey!, cfg.extraction!.model!);
-    const expansion = new OpenAiExpander(cfg.extraction!.apiKey!, cfg.extraction!.model!)
-    const synthesizer = new OpenAiSynthesizer(cfg.extraction!.apiKey!, cfg.extraction!.model!)
-    
-    // Default Notifier (Logger only for now, extensible later)
-    const loggerNotifier: Notifier = {
-      notify: async (msg) => {
-        api.logger.info(`[Morning Briefing] ${msg}`);
-      }
-    };
+    const db = new MemoryDB(resolvedDbPath, vectorDim);
+    const embeddings = new Embeddings(cfg.embedding.apiKey, cfg.embedding.model!);
 
-    const digest = new DigestService(db, synthesizer, embeddings, loggerNotifier);
+    api.logger.info(`memory-lancedb: plugin registered (db: ${resolvedDbPath}, lazy init)`);
 
-    api.logger.info(
-      `memory-lancedb: plugin registered (db: ${resolvedDbPath}, extraction: ${cfg.extraction?.model})`,
-    );
-
-    // ======================================================================== 
+    // ========================================================================
     // Tools
-    // ======================================================================== 
+    // ========================================================================
 
     api.registerTool(
       {
@@ -96,19 +276,17 @@ const memoryPlugin = {
             )
             .join("\n");
 
+          // Strip vector data for serialization (typed arrays can't be cloned)
           const sanitizedResults = results.map((r) => ({
             id: r.entry.id,
             text: r.entry.text,
             category: r.entry.category,
             importance: r.entry.importance,
             score: r.score,
-            tags: r.entry.tags,
           }));
 
           return {
-            content: [
-              { type: "text", text: `Found ${results.length} memories:\n\n${text}` },
-            ],
+            content: [{ type: "text", text: `Found ${results.length} memories:\n\n${text}` }],
             details: { count: results.length, memories: sanitizedResults },
           };
         },
@@ -124,34 +302,37 @@ const memoryPlugin = {
           "Save important information in long-term memory. Use for preferences, facts, decisions.",
         parameters: Type.Object({
           text: Type.String({ description: "Information to remember" }),
-          importance: Type.Optional(
-            Type.Number({ description: "Importance 0-1 (default: 0.7)" }),
-          ),
+          importance: Type.Optional(Type.Number({ description: "Importance 0-1 (default: 0.7)" })),
           category: Type.Optional(stringEnum(MEMORY_CATEGORIES)),
-          tags: Type.Optional(Type.Array(Type.String())),
         }),
         async execute(_toolCallId, params) {
           const {
             text,
             importance = 0.7,
             category = "other",
-            tags = [],
           } = params as {
             text: string;
             importance?: number;
-            category?: any;
-            tags?: string[];
+            category?: MemoryEntry["category"];
           };
 
           const vector = await embeddings.embed(text);
 
+          // Check for duplicates
           const existing = await db.search(vector, 1, 0.95);
           if (existing.length > 0) {
             return {
               content: [
-                { type: "text", text: `Similar memory already exists: "${existing[0].entry.text}"` },
+                {
+                  type: "text",
+                  text: `Similar memory already exists: "${existing[0].entry.text}"`,
+                },
               ],
-              details: { action: "duplicate", existingId: existing[0].entry.id, existingText: existing[0].entry.text },
+              details: {
+                action: "duplicate",
+                existingId: existing[0].entry.id,
+                existingText: existing[0].entry.text,
+              },
             };
           }
 
@@ -160,12 +341,10 @@ const memoryPlugin = {
             vector,
             importance,
             category,
-            tags,
-            confidence: 1.0,
           });
 
           return {
-            content: [{ type: "text", text: `Stored: "${text.slice(0, 100)}"..."` }],
+            content: [{ type: "text", text: `Stored: "${text.slice(0, 100)}..."` }],
             details: { action: "created", id: entry.id },
           };
         },
@@ -173,33 +352,84 @@ const memoryPlugin = {
       { name: "memory_store" },
     );
 
-    // ======================================================================== 
-    // Cron Jobs (The Gardener)
-    // ======================================================================== 
+    api.registerTool(
+      {
+        name: "memory_forget",
+        label: "Memory Forget",
+        description: "Delete specific memories. GDPR-compliant.",
+        parameters: Type.Object({
+          query: Type.Optional(Type.String({ description: "Search to find memory" })),
+          memoryId: Type.Optional(Type.String({ description: "Specific memory ID" })),
+        }),
+        async execute(_toolCallId, params) {
+          const { query, memoryId } = params as { query?: string; memoryId?: string };
 
-    api.registerCron({
-      id: "memory-maintenance",
-      description: "Daily memory synthesis and cleanup",
-      schedule: "0 4 * * *", // 4 AM Daily
-      handler: async () => {
-        try {
-          const summary = await digest.runDailyMaintenance(api);
-          api.logger.info(`[Gardener] Daily maintenance complete: ${summary}`);
-        } catch (err) {
-          api.logger.error(`[Gardener] Daily maintenance failed: ${String(err)}`);
-        }
-      }
-    });
+          if (memoryId) {
+            await db.delete(memoryId);
+            return {
+              content: [{ type: "text", text: `Memory ${memoryId} forgotten.` }],
+              details: { action: "deleted", id: memoryId },
+            };
+          }
 
-    // ======================================================================== 
+          if (query) {
+            const vector = await embeddings.embed(query);
+            const results = await db.search(vector, 5, 0.7);
+
+            if (results.length === 0) {
+              return {
+                content: [{ type: "text", text: "No matching memories found." }],
+                details: { found: 0 },
+              };
+            }
+
+            if (results.length === 1 && results[0].score > 0.9) {
+              await db.delete(results[0].entry.id);
+              return {
+                content: [{ type: "text", text: `Forgotten: "${results[0].entry.text}"` }],
+                details: { action: "deleted", id: results[0].entry.id },
+              };
+            }
+
+            const list = results
+              .map((r) => `- [${r.entry.id.slice(0, 8)}] ${r.entry.text.slice(0, 60)}...`)
+              .join("\n");
+
+            // Strip vector data for serialization
+            const sanitizedCandidates = results.map((r) => ({
+              id: r.entry.id,
+              text: r.entry.text,
+              category: r.entry.category,
+              score: r.score,
+            }));
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Found ${results.length} candidates. Specify memoryId:\n${list}`,
+                },
+              ],
+              details: { action: "candidates", candidates: sanitizedCandidates },
+            };
+          }
+
+          return {
+            content: [{ type: "text", text: "Provide query or memoryId." }],
+            details: { error: "missing_param" },
+          };
+        },
+      },
+      { name: "memory_forget" },
+    );
+
+    // ========================================================================
     // CLI Commands
-    // ======================================================================== 
+    // ========================================================================
 
     api.registerCli(
       ({ program }) => {
-        const memory = program
-          .command("ltm")
-          .description("LanceDB memory plugin commands");
+        const memory = program.command("ltm").description("LanceDB memory plugin commands");
 
         memory
           .command("list")
@@ -210,16 +440,6 @@ const memoryPlugin = {
           });
 
         memory
-          .command("maintain")
-          .description("Run synthesis and digest (The Gardener)")
-          .option("--dry-run", "Preview changes without applying")
-          .action(async (opts) => {
-            const summary = await digest.runDailyMaintenance(api, opts.dryRun);
-            console.log("Maintenance Summary:");
-            console.log(summary);
-          });
-
-        memory
           .command("search")
           .description("Search memories")
           .argument("<query>", "Search query")
@@ -227,102 +447,55 @@ const memoryPlugin = {
           .action(async (query, opts) => {
             const vector = await embeddings.embed(query);
             const results = await db.search(vector, parseInt(opts.limit), 0.3);
+            // Strip vectors for output
             const output = results.map((r) => ({
               id: r.entry.id,
               text: r.entry.text,
               category: r.entry.category,
+              importance: r.entry.importance,
               score: r.score,
-              tags: r.entry.tags,
             }));
             console.log(JSON.stringify(output, null, 2));
           });
-        
-        memory
-          .command("query")
-          .description("Debug query expansion and search")
-          .argument("<prompt>", "User prompt")
-          .option("--history <msgs...>")
-          .action(async (prompt, opts) => {
-             const mockHistory = (opts.history || []).map((content: string, i: number) => ({
-               role: i % 2 === 0 ? "user" : "assistant",
-               content
-             }));
-             
-             console.log(`[Query Expansion] Input: "${prompt}"`);
-             const expanded = await expansion.expand(mockHistory, prompt, api);
-             console.log(`[Query Expansion] Expanded: "${expanded}"`);
-
-             console.log(`[Search] Embedding...`);
-             const vector = await embeddings.embed(expanded);
-             const results = await db.search(vector, 5, 0.1);
-             
-             console.log(`[Search] Found ${results.length} results:`);
-             results.forEach((r, i) => {
-               console.log(`${i+1}. [${r.entry.category}] ${r.entry.text} (${(r.score*100).toFixed(0)}%)`);
-             });
-          });
 
         memory
-          .command("trace")
-          .description("Show recent memory extraction traces")
-          .option("--tail <n>", "Number of entries to show", "10")
-          .action(async (opts) => {
-            const logPath = join(homedir(), ".clawdbrain", "logs", "memory-trace.jsonl");
-            try {
-              const { readFileSync } = await import("node:fs");
-              const lines = readFileSync(logPath, "utf8").trim().split("\n");
-              const tail = lines.slice(-parseInt(opts.tail));
-              tail.forEach(l => console.log(l));
-            } catch (err) {
-              console.error("No traces found or failed to read.");
-            }
+          .command("stats")
+          .description("Show memory statistics")
+          .action(async () => {
+            const count = await db.count();
+            console.log(`Total memories: ${count}`);
           });
       },
       { commands: ["ltm"] },
     );
 
-    // ======================================================================== 
+    // ========================================================================
     // Lifecycle Hooks
-    // ======================================================================== 
+    // ========================================================================
 
+    // Auto-recall: inject relevant memories before agent starts
     if (cfg.autoRecall) {
       api.on("before_agent_start", async (event) => {
-        if (!event.prompt || event.prompt.length < 2) return;
+        if (!event.prompt || event.prompt.length < 5) {
+          return;
+        }
 
         try {
-          const history = (event as any).history ?? [];
-          
-          let searchQuery = event.prompt;
-          if (history.length > 0) {
-            searchQuery = await expansion.expand(history, event.prompt, api);
+          const vector = await embeddings.embed(event.prompt);
+          const results = await db.search(vector, 3, 0.3);
+
+          if (results.length === 0) {
+            return;
           }
 
-          const vector = await embeddings.embed(searchQuery);
-          const results = await db.search(vector, 5, 0.3);
+          const memoryContext = results
+            .map((r) => `- [${r.entry.category}] ${r.entry.text}`)
+            .join("\n");
 
-          if (results.length === 0) return;
-
-          const facts = results.filter(r => r.entry.category === 'fact');
-          const entities = results.filter(r => r.entry.category === 'entity');
-          const prefs = results.filter(r => r.entry.category === 'preference');
-          const others = results.filter(r => !['fact', 'entity', 'preference'].includes(r.entry.category));
-
-          const formatGroup = (items: MemorySearchResult[]) => 
-            items.map(r => `    - ${r.entry.text}`).join("\n");
-
-          let memoryContext = "<memory_context>\n";
-          if (facts.length) memoryContext += `  <facts>\n${formatGroup(facts)}\n  </facts>\n`;
-          if (entities.length) memoryContext += `  <entities>\n${formatGroup(entities)}\n  </entities>\n`;
-          if (prefs.length) memoryContext += `  <preferences>\n${formatGroup(prefs)}\n  </preferences>\n`;
-          if (others.length) memoryContext += `  <history>\n${formatGroup(others)}\n  </history>\n`;
-          memoryContext += "</memory_context>";
-
-          api.logger.info?.(
-            `memory-lancedb: injecting ${results.length} memories (query: "${searchQuery}")`,
-          );
+          api.logger.info?.(`memory-lancedb: injecting ${results.length} memories into context`);
 
           return {
-            prependContext: memoryContext,
+            prependContext: `<relevant-memories>\nThe following memories may be relevant to this conversation:\n${memoryContext}\n</relevant-memories>`,
           };
         } catch (err) {
           api.logger.warn(`memory-lancedb: recall failed: ${String(err)}`);
@@ -330,6 +503,7 @@ const memoryPlugin = {
       });
     }
 
+    // Auto-capture: analyze and store important information after agent ends
     if (cfg.autoCapture) {
       api.on("agent_end", async (event) => {
         if (!event.success || !event.messages || event.messages.length === 0) {
@@ -337,96 +511,91 @@ const memoryPlugin = {
         }
 
         try {
-          const extractionMessages: { role: string; content: string }[] = [];
+          // Extract text content from messages (handling unknown[] type)
+          const texts: string[] = [];
           for (const msg of event.messages) {
-            if (!msg || typeof msg !== "object") continue;
-            const msgObj = msg as any;
-            const role = msgObj.role;
-            if (role !== "user" && role !== "assistant") continue;
-
-            let text = "";
-            if (typeof msgObj.content === "string") {
-              text = msgObj.content;
-            } else if (Array.isArray(msgObj.content)) {
-              text = msgObj.content
-                .filter((b: any) => b.type === "text")
-                .map((b: any) => b.text)
-                .join("\n");
+            // Type guard for message object
+            if (!msg || typeof msg !== "object") {
+              continue;
             }
-            if (text) extractionMessages.push({ role, content: text });
-          }
+            const msgObj = msg as Record<string, unknown>;
 
-          if (extractionMessages.length < 2) return; 
+            // Only process user and assistant messages
+            const role = msgObj.role;
+            if (role !== "user" && role !== "assistant") {
+              continue;
+            }
 
-          // 1. Semantic Extraction
-          const items = await extraction.extract(extractionMessages, api); 
-          
-          let storedCount = 0;
-          for (const item of items) {
-            if (item.confidence < 0.6) continue;
+            const content = msgObj.content;
 
-            const vector = await embeddings.embed(item.text);
-            const existing = await db.search(vector, 1, 0.9);
-            if (existing.length > 0) continue;
+            // Handle string content directly
+            if (typeof content === "string") {
+              texts.push(content);
+              continue;
+            }
 
-            await db.store({
-              text: item.text,
-              vector,
-              importance: item.importance,
-              category: item.category,
-              tags: item.tags,
-              confidence: item.confidence,
-              sourceChannel: event.channelId,
-              originalText: extractionMessages[extractionMessages.length - 1].content,
-            });
-            storedCount++;
-          }
-
-          // 2. Inbox logic (URLs in DMs)
-          const lastUserMsg = [...extractionMessages].reverse().find(m => m.role === "user");
-          if (lastUserMsg && event.channelType === "dm") {
-            const urlMatch = lastUserMsg.content.match(/https?:\/\/[^\s]+/);
-            if (urlMatch) {
-              const url = urlMatch[0];
-              api.logger.debug?.(`memory-lancedb: found URL in DM, attempting auto-summarization: ${url}`);
-              const summary = await extraction.summarizeUrl(url, api);
-              
-              if (summary) {
-                const vector = await embeddings.embed(summary);
-                await db.store({
-                  text: `[Resource] ${summary}`,
-                  vector,
-                  importance: 0.5,
-                  category: "resource",
-                  tags: ["auto-resource", "inbox"],
-                  confidence: 1.0,
-                  sourceChannel: event.channelId,
-                  originalText: `Shared URL: ${url}`,
-                });
-                storedCount++;
+            // Handle array content (content blocks)
+            if (Array.isArray(content)) {
+              for (const block of content) {
+                if (
+                  block &&
+                  typeof block === "object" &&
+                  "type" in block &&
+                  (block as Record<string, unknown>).type === "text" &&
+                  "text" in block &&
+                  typeof (block as Record<string, unknown>).text === "string"
+                ) {
+                  texts.push((block as Record<string, unknown>).text as string);
+                }
               }
             }
           }
 
-          if (storedCount > 0) {
-            api.logger.info(`memory-lancedb: auto-captured ${storedCount} semantic memories`);
+          // Filter for capturable content
+          const toCapture = texts.filter((text) => text && shouldCapture(text));
+          if (toCapture.length === 0) {
+            return;
           }
 
+          // Store each capturable piece (limit to 3 per conversation)
+          let stored = 0;
+          for (const text of toCapture.slice(0, 3)) {
+            const category = detectCategory(text);
+            const vector = await embeddings.embed(text);
+
+            // Check for duplicates (high similarity threshold)
+            const existing = await db.search(vector, 1, 0.95);
+            if (existing.length > 0) {
+              continue;
+            }
+
+            await db.store({
+              text,
+              vector,
+              importance: 0.7,
+              category,
+            });
+            stored++;
+          }
+
+          if (stored > 0) {
+            api.logger.info(`memory-lancedb: auto-captured ${stored} memories`);
+          }
         } catch (err) {
-          api.logger.warn(`memory-lancedb: auto-capture failed: ${String(err)}`);
+          api.logger.warn(`memory-lancedb: capture failed: ${String(err)}`);
         }
       });
     }
 
-    // ======================================================================== 
+    // ========================================================================
     // Service
-    // ======================================================================== 
+    // ========================================================================
 
     api.registerService({
       id: "memory-lancedb",
       start: () => {
         api.logger.info(
-          `memory-lancedb: initialized (db: ${resolvedDbPath})`,
+          `memory-lancedb: initialized (db: ${resolvedDbPath}, model: ${cfg.embedding.model})`,
         );
       },
       stop: () => {

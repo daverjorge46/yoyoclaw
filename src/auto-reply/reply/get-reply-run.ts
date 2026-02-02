@@ -1,13 +1,19 @@
 import crypto from "node:crypto";
+import type { ExecToolDefaults } from "../../agents/bash-tools.js";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { MsgContext, TemplateContext } from "../templating.js";
+import type { GetReplyOptions, ReplyPayload } from "../types.js";
+import type { buildCommandContext } from "./commands.js";
+import type { InlineDirectives } from "./directive-handling.js";
+import type { createModelSelectionState } from "./model-selection.js";
+import type { TypingController } from "./typing.js";
+import { resolveSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
 import {
   abortEmbeddedPiRun,
   isEmbeddedPiRunActive,
   isEmbeddedPiRunStreaming,
   resolveEmbeddedSessionLane,
 } from "../../agents/pi-embedded.js";
-import { resolveSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
-import type { ExecToolDefaults } from "../../agents/bash-tools.js";
-import type { ClawdbrainConfig } from "../../config/config.js";
 import {
   resolveGroupSessionKey,
   resolveSessionFilePath,
@@ -20,7 +26,6 @@ import { normalizeMainKey } from "../../routing/session-key.js";
 import { isReasoningTagProvider } from "../../utils/provider-utils.js";
 import { hasControlCommand } from "../command-detection.js";
 import { buildInboundMediaNote } from "../media-note.js";
-import type { MsgContext, TemplateContext } from "../templating.js";
 import {
   type ElevatedLevel,
   formatXHighModelHint,
@@ -31,36 +36,28 @@ import {
   type VerboseLevel,
 } from "../thinking.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
-import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { runReplyAgent } from "./agent-runner.js";
 import { applySessionHints } from "./body.js";
-import { routeReply } from "./route-reply.js";
-import type { buildCommandContext } from "./commands.js";
-import type { InlineDirectives } from "./directive-handling.js";
 import { buildGroupIntro } from "./groups.js";
-import type { createModelSelectionState } from "./model-selection.js";
 import { resolveQueueSettings } from "./queue.js";
+import { routeReply } from "./route-reply.js";
 import { ensureSkillSnapshot, prependSystemEvents } from "./session-updates.js";
-import type { TypingController } from "./typing.js";
 import { resolveTypingMode } from "./typing-mode.js";
-import type { ModelRoutingSelection } from "../../agents/model-routing.js";
-import { planHybridSpec } from "../../agents/hybrid-planner.js";
-import { isSdkRunnerEnabled } from "../../agents/claude-agent-sdk/sdk-runner.config.js";
 
-type AgentDefaults = NonNullable<ClawdbrainConfig["agents"]>["defaults"];
+type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
 
 const BARE_SESSION_RESET_PROMPT =
-  "A new session was started via /new or /reset. Say hi briefly (1-2 sentences) and ask what the user wants to do next. If the runtime model differs from default_model in the system prompt, mention the default model in the greeting. Do not mention internal steps, files, tools, or reasoning.";
+  "A new session was started via /new or /reset. Greet the user in your configured persona, if one is provided. Be yourself - use your defined voice, mannerisms, and mood. Keep it to 1-3 sentences and ask what they want to do. If the runtime model differs from default_model in the system prompt, mention the default model. Do not mention internal steps, files, tools, or reasoning.";
 
 type RunPreparedReplyParams = {
   ctx: MsgContext;
   sessionCtx: TemplateContext;
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   agentId: string;
   agentDir: string;
   agentCfg: AgentDefaults;
-  sessionCfg: ClawdbrainConfig["session"];
+  sessionCfg: OpenClawConfig["session"];
   commandAuthorized: boolean;
   command: ReturnType<typeof buildCommandContext>;
   commandSource: string;
@@ -82,7 +79,6 @@ type RunPreparedReplyParams = {
   };
   resolvedBlockStreamingBreak: "text_end" | "message_end";
   modelState: Awaited<ReturnType<typeof createModelSelectionState>>;
-  modelRoutingSelection?: ModelRoutingSelection;
   provider: string;
   model: string;
   perMessageQueueMode?: InlineDirectives["queueMode"];
@@ -131,7 +127,6 @@ export async function runPreparedReply(
     blockReplyChunking,
     resolvedBlockStreamingBreak,
     modelState,
-    modelRoutingSelection,
     provider,
     model,
     perMessageQueueMode,
@@ -184,7 +179,7 @@ export async function runPreparedReply(
       })
     : "";
   const groupSystemPrompt = sessionCtx.GroupSystemPrompt?.trim() ?? "";
-  let extraSystemPrompt = [groupIntro, groupSystemPrompt].filter(Boolean).join("\n\n");
+  const extraSystemPrompt = [groupIntro, groupSystemPrompt].filter(Boolean).join("\n\n");
   const baseBody = sessionCtx.BodyStripped ?? sessionCtx.Body ?? "";
   // Use CommandBody/RawBody for bare reset detection (clean message without structural context).
   const rawBodyTrimmed = (ctx.CommandBody ?? ctx.RawBody ?? ctx.Body ?? "").trim();
@@ -253,45 +248,11 @@ export async function runPreparedReply(
   const prefixedBody = [threadStarterNote, prefixedBodyBase].filter(Boolean).join("\n\n");
   const mediaNote = buildInboundMediaNote(ctx);
   const mediaReplyHint = mediaNote
-    ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:/path or MEDIA:https://example.com/image.jpg (spaces ok, quote if needed). Keep caption in the text body."
+    ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:https://example.com/image.jpg (spaces ok, quote if needed) or a safe relative path like MEDIA:./image.jpg. Avoid absolute paths (MEDIA:/...) and ~ paths — they are blocked for security. Keep caption in the text body."
     : undefined;
   let prefixedCommandBody = mediaNote
     ? [mediaNote, mediaReplyHint, prefixedBody ?? ""].filter(Boolean).join("\n").trim()
     : prefixedBody;
-
-  // Hybrid mode: let a strong remote planner produce a compact execution spec, then
-  // inject it as system prompt guidance for a cheaper local executor model.
-  if (
-    modelRoutingSelection?.mode === "hybrid" &&
-    modelRoutingSelection.planner &&
-    !isSdkRunnerEnabled(cfg, agentId)
-  ) {
-    const planned = await planHybridSpec({
-      cfg,
-      intent: modelRoutingSelection.intent,
-      planner: modelRoutingSelection.planner,
-      hints: {
-        stakes: modelRoutingSelection.policy?.stakes,
-        verifiability: modelRoutingSelection.policy?.verifiability,
-        maxToolCalls: modelRoutingSelection.policy?.maxToolCalls,
-        allowWriteTools: modelRoutingSelection.policy?.allowWriteTools,
-      },
-      prompt: prefixedCommandBody,
-      workspaceDir,
-      agentDir,
-      timeoutMs: Math.min(timeoutMs, 120_000),
-      abortSignal: opts?.abortSignal,
-    });
-    if (planned.raw.trim()) {
-      const specBlock = [
-        `ModelRouting spec (planner=${modelRoutingSelection.planner.provider}/${modelRoutingSelection.planner.model}):`,
-        planned.raw.trim(),
-        "",
-        "Executor instructions: Follow the spec. If you cannot comply or constraints conflict, say so and ask to escalate to the planner model.",
-      ].join("\n");
-      extraSystemPrompt = [extraSystemPrompt?.trim(), specBlock].filter(Boolean).join("\n\n");
-    }
-  }
   if (!resolvedThinkLevel && prefixedCommandBody) {
     const parts = prefixedCommandBody.split(/\s+/);
     const maybeLevel = normalizeThinkLevel(parts[0]);

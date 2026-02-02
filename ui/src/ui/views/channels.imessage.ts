@@ -1,41 +1,65 @@
-import { html, nothing, type TemplateResult } from "lit";
-
-import { formatAgo } from "../format";
+import { html, nothing } from "lit";
 import type { IMessageStatus } from "../types";
-import { renderChannelIntegrationCard, renderProbeBadge, type ChannelCardFrame } from "./channels.shared";
+import type { ChannelsProps } from "./channels.types";
+import { formatAgo } from "../format";
+import { renderChannelConfigSection } from "./channels.config";
 
 export function renderIMessageCard(params: {
+  props: ChannelsProps;
   imessage?: IMessageStatus | null;
-  frame: ChannelCardFrame;
-  actions: TemplateResult;
-  facts: TemplateResult;
-  error: string | null;
+  accountCountLabel: unknown;
 }) {
-  const { imessage, frame, actions, facts, error } = params;
+  const { props, imessage, accountCountLabel } = params;
 
-  const details = html`
-    <div class="status-list" style="margin-top: 16px;">
-      ${imessage?.lastStartAt
-        ? html`<div>
-            <span class="label">Last start</span>
-            <span>${formatAgo(imessage.lastStartAt)}</span>
+  return html`
+    <div class="card">
+      <div class="card-title">iMessage</div>
+      <div class="card-sub">macOS bridge status and channel configuration.</div>
+      ${accountCountLabel}
+
+      <div class="status-list" style="margin-top: 16px;">
+        <div>
+          <span class="label">Configured</span>
+          <span>${imessage?.configured ? "Yes" : "No"}</span>
+        </div>
+        <div>
+          <span class="label">Running</span>
+          <span>${imessage?.running ? "Yes" : "No"}</span>
+        </div>
+        <div>
+          <span class="label">Last start</span>
+          <span>${imessage?.lastStartAt ? formatAgo(imessage.lastStartAt) : "n/a"}</span>
+        </div>
+        <div>
+          <span class="label">Last probe</span>
+          <span>${imessage?.lastProbeAt ? formatAgo(imessage.lastProbeAt) : "n/a"}</span>
+        </div>
+      </div>
+
+      ${
+        imessage?.lastError
+          ? html`<div class="callout danger" style="margin-top: 12px;">
+            ${imessage.lastError}
           </div>`
-        : nothing}
-      ${imessage?.lastProbeAt
-        ? html`<div>
-            <span class="label">Last probe</span>
-            <span>${formatAgo(imessage.lastProbeAt)}</span>
+          : nothing
+      }
+
+      ${
+        imessage?.probe
+          ? html`<div class="callout" style="margin-top: 12px;">
+            Probe ${imessage.probe.ok ? "ok" : "failed"} ·
+            ${imessage.probe.error ?? ""}
           </div>`
-        : nothing}
+          : nothing
+      }
+
+      ${renderChannelConfigSection({ channelId: "imessage", props })}
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn" @click=${() => props.onRefresh(true)}>
+          Probe
+        </button>
+      </div>
     </div>
-    ${renderProbeBadge(imessage?.probe)}
   `;
-
-  return renderChannelIntegrationCard({
-    frame,
-    actions,
-    facts,
-    details,
-    error: error ?? null,
-  });
 }

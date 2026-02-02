@@ -1,9 +1,6 @@
+import type { OAuthCredentials } from "@mariozechner/pi-ai";
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
-
-import type { OAuthCredentials } from "@mariozechner/pi-ai";
-
-import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { ChutesOAuthAppConfig } from "../agents/chutes-oauth.js";
 import {
   CHUTES_AUTHORIZE_ENDPOINT,
@@ -11,8 +8,6 @@ import {
   generateChutesPkce,
   parseOAuthCallbackInput,
 } from "../agents/chutes-oauth.js";
-
-const log = createSubsystemLogger("commands/chutes-oauth");
 
 type OAuthPrompt = {
   message: string;
@@ -87,21 +82,27 @@ async function waitForLocalCallback(params: {
             "<!doctype html>",
             "<html><head><meta charset='utf-8' /></head>",
             "<body><h2>Chutes OAuth complete</h2>",
-            "<p>You can close this window and return to clawdbrain.</p></body></html>",
+            "<p>You can close this window and return to OpenClaw.</p></body></html>",
           ].join(""),
         );
-        if (timeout) clearTimeout(timeout);
+        if (timeout) {
+          clearTimeout(timeout);
+        }
         server.close();
         resolve({ code, state });
       } catch (err) {
-        if (timeout) clearTimeout(timeout);
+        if (timeout) {
+          clearTimeout(timeout);
+        }
         server.close();
         reject(err);
       }
     });
 
     server.once("error", (err) => {
-      if (timeout) clearTimeout(timeout);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
       server.close();
       reject(err);
     });
@@ -112,9 +113,7 @@ async function waitForLocalCallback(params: {
     timeout = setTimeout(() => {
       try {
         server.close();
-      } catch (err) {
-        log.debug(`server.close() error: ${String(err)}`);
-      }
+      } catch {}
       reject(new Error("OAuth callback timeout"));
     }, params.timeoutMs);
   });
@@ -126,7 +125,6 @@ export async function loginChutes(params: {
   timeoutMs?: number;
   createPkce?: typeof generateChutesPkce;
   createState?: () => string;
-  waitForCallback?: typeof waitForLocalCallback;
   onAuth: (event: { url: string }) => Promise<void>;
   onPrompt: (prompt: OAuthPrompt) => Promise<string>;
   onProgress?: (message: string) => void;
@@ -156,12 +154,15 @@ export async function loginChutes(params: {
       placeholder: `${params.app.redirectUri}?code=...&state=...`,
     });
     const parsed = parseOAuthCallbackInput(String(input), state);
-    if ("error" in parsed) throw new Error(parsed.error);
-    if (parsed.state !== state) throw new Error("Invalid OAuth state");
+    if ("error" in parsed) {
+      throw new Error(parsed.error);
+    }
+    if (parsed.state !== state) {
+      throw new Error("Invalid OAuth state");
+    }
     codeAndState = parsed;
   } else {
-    const waitForCallback = params.waitForCallback ?? waitForLocalCallback;
-    const callback = waitForCallback({
+    const callback = waitForLocalCallback({
       redirectUri: params.app.redirectUri,
       expectedState: state,
       timeoutMs,
@@ -173,8 +174,12 @@ export async function loginChutes(params: {
         placeholder: `${params.app.redirectUri}?code=...&state=...`,
       });
       const parsed = parseOAuthCallbackInput(String(input), state);
-      if ("error" in parsed) throw new Error(parsed.error);
-      if (parsed.state !== state) throw new Error("Invalid OAuth state");
+      if ("error" in parsed) {
+        throw new Error(parsed.error);
+      }
+      if (parsed.state !== state) {
+        throw new Error("Invalid OAuth state");
+      }
       return parsed;
     });
 

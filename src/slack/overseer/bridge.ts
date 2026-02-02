@@ -4,13 +4,11 @@
  */
 
 import type { App } from "@slack/bolt";
-
-import type { ClawdbrainConfig } from "../../config/types.js";
-import type { OverseerAssignmentRecord } from "../../infra/overseer/store.types.js";
+import type { OpenClawConfig } from "../../config/types.js";
 import type { OverseerRunnerHooks } from "../../infra/overseer/runner.js";
+import type { OverseerAssignmentRecord } from "../../infra/overseer/store.types.js";
 import { loadOverseerStoreFromDisk } from "../../infra/overseer/store.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-
 import { buildActivityBlocks, buildEscalationBlocks, buildGoalCompletedBlocks } from "./blocks.js";
 import {
   resolveSlackOverseerConfig,
@@ -23,7 +21,7 @@ const log = createSubsystemLogger("slack/overseer");
 export type SlackOverseerBridgeParams = {
   app: App;
   botToken: string;
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   accountId?: string;
 };
 

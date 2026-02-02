@@ -1,6 +1,6 @@
-name: Clawdbrain
+name: OpenClaw
 options:
-  bundleIdPrefix: com.clawdbrain
+  bundleIdPrefix: ai.openclaw
   deploymentTarget:
     iOS: "18.0"
   xcodeVersion: "16.0"
@@ -10,33 +10,33 @@ settings:
     SWIFT_VERSION: "6.0"
 
 packages:
-  ClawdbrainKit:
-    path: ../shared/ClawdbrainKit
+  OpenClawKit:
+    path: ../shared/OpenClawKit
   Swabble:
     path: ../../Swabble
 
 schemes:
-  Clawdbrain:
+  OpenClaw:
     shared: true
     build:
       targets:
-        Clawdbrain: all
+        OpenClaw: all
     test:
       targets:
-        - ClawdbrainTests
+        - OpenClawTests
 
 targets:
-  Clawdbrain:
+  OpenClaw:
     type: application
     platform: iOS
     sources:
       - path: Sources
     dependencies:
-      - package: ClawdbrainKit
-      - package: ClawdbrainKit
-        product: ClawdbrainChatUI
-      - package: ClawdbrainKit
-        product: ClawdbrainProtocol
+      - package: OpenClawKit
+      - package: OpenClawKit
+        product: OpenClawChatUI
+      - package: OpenClawKit
+        product: OpenClawProtocol
       - package: Swabble
         product: SwabbleKit
       - sdk: AppIntents.framework
@@ -71,33 +71,33 @@ targets:
         CODE_SIGN_IDENTITY: "Apple Development"
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: Y5PE65HELJ
-        PRODUCT_BUNDLE_IDENTIFIER: com.clawdbrain.ios
-        PROVISIONING_PROFILE_SPECIFIER: "com.clawdbrain.ios Development"
+        PRODUCT_BUNDLE_IDENTIFIER: ai.openclaw.ios
+        PROVISIONING_PROFILE_SPECIFIER: "ai.openclaw.ios Development"
         SWIFT_VERSION: "6.0"
         SWIFT_STRICT_CONCURRENCY: complete
         ENABLE_APPINTENTS_METADATA: NO
     info:
       path: Sources/Info.plist
       properties:
-        CFBundleDisplayName: Clawdbrain
+        CFBundleDisplayName: OpenClaw
         CFBundleIconName: AppIcon
-        CFBundleShortVersionString: "2026.1.26"
+        CFBundleShortVersionString: "2026.1.27-beta.1"
         CFBundleVersion: "20260126"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIBackgroundModes:
           - audio
-        NSLocalNetworkUsageDescription: Clawdbrain discovers and connects to your Clawdbrain gateway on the local network.
+        NSLocalNetworkUsageDescription: OpenClaw discovers and connects to your OpenClaw gateway on the local network.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoadsInWebContent: true
         NSBonjourServices:
-          - _clawdbrain-gw._tcp
-        NSCameraUsageDescription: Clawdbrain can capture photos or short video clips when requested via the gateway.
-        NSLocationWhenInUseUsageDescription: Clawdbrain uses your location when you allow location sharing.
-        NSLocationAlwaysAndWhenInUseUsageDescription: Clawdbrain can share your location in the background when you enable Always.
-        NSMicrophoneUsageDescription: Clawdbrain needs microphone access for voice wake.
-        NSSpeechRecognitionUsageDescription: Clawdbrain uses on-device speech recognition for voice wake.
+          - _openclaw-gw._tcp
+        NSCameraUsageDescription: OpenClaw can capture photos or short video clips when requested via the gateway.
+        NSLocationWhenInUseUsageDescription: OpenClaw uses your location when you allow location sharing.
+        NSLocationAlwaysAndWhenInUseUsageDescription: OpenClaw can share your location in the background when you enable Always.
+        NSMicrophoneUsageDescription: OpenClaw needs microphone access for voice wake.
+        NSSpeechRecognitionUsageDescription: OpenClaw uses on-device speech recognition for voice wake.
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
@@ -109,26 +109,26 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
 
-  ClawdbrainTests:
+  OpenClawTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: Tests
     dependencies:
-      - target: Clawdbrain
+      - target: OpenClaw
       - package: Swabble
         product: SwabbleKit
       - sdk: AppIntents.framework
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.clawdbrain.ios.tests
+        PRODUCT_BUNDLE_IDENTIFIER: ai.openclaw.ios.tests
         SWIFT_VERSION: "6.0"
         SWIFT_STRICT_CONCURRENCY: complete
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Clawdbrain.app/Clawdbrain"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/OpenClaw.app/OpenClaw"
         BUNDLE_LOADER: "$(TEST_HOST)"
     info:
       path: Tests/Info.plist
       properties:
-        CFBundleDisplayName: ClawdbrainTests
-        CFBundleShortVersionString: "2026.1.26"
+        CFBundleDisplayName: OpenClawTests
+        CFBundleShortVersionString: "2026.1.27-beta.1"
         CFBundleVersion: "20260126"

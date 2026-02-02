@@ -1,7 +1,5 @@
-import fs from "node:fs/promises";
-
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
-
+import fs from "node:fs/promises";
 import { detectMime } from "../../media/mime.js";
 import { sanitizeToolResultImages } from "../tool-images.js";
 
@@ -25,7 +23,9 @@ export function createActionGate<T extends Record<string, boolean | undefined>>(
 ): ActionGate<T> {
   return (key, defaultValue = true) => {
     const value = actions?.[key];
-    if (value === undefined) return defaultValue;
+    if (value === undefined) {
+      return defaultValue;
+    }
     return value !== false;
   };
 }
@@ -49,20 +49,14 @@ export function readStringParam(
   const raw = params[key];
   if (typeof raw !== "string") {
     if (required) {
-      const receivedType = raw === null ? "null" : raw === undefined ? "undefined" : typeof raw;
-      throw new Error(
-        `Missing required parameter '${key}'. Expected a non-empty string but received ${receivedType}. ` +
-          `Please provide the '${key}' parameter as a string value.`,
-      );
+      throw new Error(`${label} required`);
     }
     return undefined;
   }
   const value = trim ? raw.trim() : raw;
   if (!value && !allowEmpty) {
     if (required) {
-      throw new Error(
-        `Parameter '${key}' cannot be empty. Please provide a non-empty string value for '${key}'.`,
-      );
+      throw new Error(`${label} required`);
     }
     return undefined;
   }
@@ -74,21 +68,19 @@ export function readStringOrNumberParam(
   key: string,
   options: { required?: boolean; label?: string } = {},
 ): string | undefined {
-  const { required = false } = options;
+  const { required = false, label = key } = options;
   const raw = params[key];
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return String(raw);
   }
   if (typeof raw === "string") {
     const value = raw.trim();
-    if (value) return value;
+    if (value) {
+      return value;
+    }
   }
   if (required) {
-    const receivedType = raw === null ? "null" : raw === undefined ? "undefined" : typeof raw;
-    throw new Error(
-      `Missing required parameter '${key}'. Expected a string or number but received ${receivedType}. ` +
-        `Please provide the '${key}' parameter.`,
-    );
+    throw new Error(`${label} required`);
   }
   return undefined;
 }
@@ -98,7 +90,7 @@ export function readNumberParam(
   key: string,
   options: { required?: boolean; label?: string; integer?: boolean } = {},
 ): number | undefined {
-  const { required = false, integer = false } = options;
+  const { required = false, label = key, integer = false } = options;
   const raw = params[key];
   let value: number | undefined;
   if (typeof raw === "number" && Number.isFinite(raw)) {
@@ -107,16 +99,14 @@ export function readNumberParam(
     const trimmed = raw.trim();
     if (trimmed) {
       const parsed = Number.parseFloat(trimmed);
-      if (Number.isFinite(parsed)) value = parsed;
+      if (Number.isFinite(parsed)) {
+        value = parsed;
+      }
     }
   }
   if (value === undefined) {
     if (required) {
-      const receivedType = raw === null ? "null" : raw === undefined ? "undefined" : typeof raw;
-      throw new Error(
-        `Missing required parameter '${key}'. Expected a number but received ${receivedType}. ` +
-          `Please provide the '${key}' parameter as a numeric value.`,
-      );
+      throw new Error(`${label} required`);
     }
     return undefined;
   }
@@ -138,7 +128,7 @@ export function readStringArrayParam(
   key: string,
   options: StringParamOptions = {},
 ) {
-  const { required = false } = options;
+  const { required = false, label = key } = options;
   const raw = params[key];
   if (Array.isArray(raw)) {
     const values = raw
@@ -147,9 +137,7 @@ export function readStringArrayParam(
       .filter(Boolean);
     if (values.length === 0) {
       if (required) {
-        throw new Error(
-          `Parameter '${key}' cannot be an empty array. Please provide at least one non-empty string value.`,
-        );
+        throw new Error(`${label} required`);
       }
       return undefined;
     }
@@ -159,20 +147,14 @@ export function readStringArrayParam(
     const value = raw.trim();
     if (!value) {
       if (required) {
-        throw new Error(
-          `Parameter '${key}' cannot be empty. Please provide a non-empty string or array of strings.`,
-        );
+        throw new Error(`${label} required`);
       }
       return undefined;
     }
     return [value];
   }
   if (required) {
-    const receivedType = raw === null ? "null" : raw === undefined ? "undefined" : typeof raw;
-    throw new Error(
-      `Missing required parameter '${key}'. Expected a string or array of strings but received ${receivedType}. ` +
-        `Please provide the '${key}' parameter.`,
-    );
+    throw new Error(`${label} required`);
   }
   return undefined;
 }

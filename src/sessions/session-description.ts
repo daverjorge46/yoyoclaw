@@ -1,11 +1,10 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
+import type { OpenClawConfig } from "../config/config.js";
+import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
-import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
-import type { ClawdbrainConfig } from "../config/config.js";
 import { loadConfig } from "../config/config.js";
 import {
   resolveSessionTranscriptPath,
@@ -185,7 +184,7 @@ function scoreMicroModelId(id: string): number {
 }
 
 async function resolveMicroModelRef(
-  cfg: ClawdbrainConfig,
+  cfg: OpenClawConfig,
 ): Promise<{ provider: string; model: string } | null> {
   try {
     const catalog = await loadModelCatalog({ config: cfg });
@@ -202,7 +201,7 @@ async function resolveMicroModelRef(
 }
 
 async function generateDescriptionViaLLM(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   agentId: string;
   conversation: string;
 }): Promise<{ description: string; provider: string; model: string } | null> {

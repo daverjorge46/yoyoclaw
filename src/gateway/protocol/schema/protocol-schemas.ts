@@ -1,5 +1,4 @@
 import type { TSchema } from "@sinclair/typebox";
-
 import {
   AgentEventSchema,
   AgentIdentityParamsSchema,
@@ -23,24 +22,6 @@ import {
   SkillsStatusParamsSchema,
   SkillsUpdateParamsSchema,
 } from "./agents-models-skills.js";
-import {
-  AutomationsArtifactDownloadParamsSchema,
-  AutomationsArtifactDownloadResultSchema,
-  AutomationArtifactSchema,
-  AutomationConflictSchema,
-  AutomationRunRecordSchema,
-  AutomationRunMilestoneSchema,
-  AutomationSchema,
-  AutomationsCancelParamsSchema,
-  AutomationsCreateParamsSchema,
-  AutomationsDeleteParamsSchema,
-  AutomationsHistoryParamsSchema,
-  AutomationsHistoryResultSchema,
-  AutomationsListParamsSchema,
-  AutomationsListResultSchema,
-  AutomationsRunParamsSchema,
-  AutomationsUpdateParamsSchema,
-} from "./automations.js";
 import {
   ChannelsLogoutParamsSchema,
   ChannelsStatusParamsSchema,
@@ -70,16 +51,14 @@ import {
   CronUpdateParamsSchema,
 } from "./cron.js";
 import {
-  OverseerGoalCreateParamsSchema,
-  OverseerGoalCreateResultSchema,
-  OverseerGoalStatusParamsSchema,
-  OverseerGoalUpdateParamsSchema,
-  OverseerGoalStatusResultSchema,
-  OverseerStatusParamsSchema,
-  OverseerStatusResultSchema,
-  OverseerTickParamsSchema,
-  OverseerWorkUpdateParamsSchema,
-} from "./overseer.js";
+  DevicePairApproveParamsSchema,
+  DevicePairListParamsSchema,
+  DevicePairRejectParamsSchema,
+  DevicePairRequestedEventSchema,
+  DevicePairResolvedEventSchema,
+  DeviceTokenRevokeParamsSchema,
+  DeviceTokenRotateParamsSchema,
+} from "./devices.js";
 import {
   ExecApprovalsGetParamsSchema,
   ExecApprovalsNodeGetParamsSchema,
@@ -89,15 +68,6 @@ import {
   ExecApprovalRequestParamsSchema,
   ExecApprovalResolveParamsSchema,
 } from "./exec-approvals.js";
-import {
-  DevicePairApproveParamsSchema,
-  DevicePairListParamsSchema,
-  DevicePairRejectParamsSchema,
-  DevicePairRequestedEventSchema,
-  DevicePairResolvedEventSchema,
-  DeviceTokenRevokeParamsSchema,
-  DeviceTokenRotateParamsSchema,
-} from "./devices.js";
 import {
   ConnectParamsSchema,
   ErrorShapeSchema,
@@ -152,6 +122,21 @@ import {
   WizardStatusResultSchema,
   WizardStepSchema,
 } from "./wizard.js";
+import {
+  WorktreeListParams,
+  WorktreeListResult,
+  WorktreeReadParams,
+  WorktreeReadResult,
+  WorktreeWriteParams,
+  WorktreeWriteResult,
+  WorktreeDeleteParams,
+  WorktreeDeleteResult,
+  WorktreeMoveParams,
+  WorktreeMoveResult,
+  WorktreeMkdirParams,
+  WorktreeMkdirResult,
+  WorktreeFileEntry,
+} from "./worktree.js";
 
 export const ProtocolSchemas: Record<string, TSchema> = {
   ConnectParams: ConnectParamsSchema,
@@ -230,15 +215,6 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   CronRemoveParams: CronRemoveParamsSchema,
   CronRunParams: CronRunParamsSchema,
   CronRunsParams: CronRunsParamsSchema,
-  OverseerStatusParams: OverseerStatusParamsSchema,
-  OverseerStatusResult: OverseerStatusResultSchema,
-  OverseerGoalCreateParams: OverseerGoalCreateParamsSchema,
-  OverseerGoalCreateResult: OverseerGoalCreateResultSchema,
-  OverseerGoalStatusParams: OverseerGoalStatusParamsSchema,
-  OverseerGoalUpdateParams: OverseerGoalUpdateParamsSchema,
-  OverseerGoalStatusResult: OverseerGoalStatusResultSchema,
-  OverseerWorkUpdateParams: OverseerWorkUpdateParamsSchema,
-  OverseerTickParams: OverseerTickParamsSchema,
   CronRunLogEntry: CronRunLogEntrySchema,
   LogsTailParams: LogsTailParamsSchema,
   LogsTailResult: LogsTailResultSchema,
@@ -264,22 +240,19 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   UpdateRunParams: UpdateRunParamsSchema,
   TickEvent: TickEventSchema,
   ShutdownEvent: ShutdownEventSchema,
-  Automation: AutomationSchema,
-  AutomationRunMilestone: AutomationRunMilestoneSchema,
-  AutomationArtifact: AutomationArtifactSchema,
-  AutomationConflict: AutomationConflictSchema,
-  AutomationRunRecord: AutomationRunRecordSchema,
-  AutomationsListParams: AutomationsListParamsSchema,
-  AutomationsListResult: AutomationsListResultSchema,
-  AutomationsRunParams: AutomationsRunParamsSchema,
-  AutomationsUpdateParams: AutomationsUpdateParamsSchema,
-  AutomationsDeleteParams: AutomationsDeleteParamsSchema,
-  AutomationsCancelParams: AutomationsCancelParamsSchema,
-  AutomationsHistoryParams: AutomationsHistoryParamsSchema,
-  AutomationsHistoryResult: AutomationsHistoryResultSchema,
-  AutomationsCreateParams: AutomationsCreateParamsSchema,
-  AutomationsArtifactDownloadParams: AutomationsArtifactDownloadParamsSchema,
-  AutomationsArtifactDownloadResult: AutomationsArtifactDownloadResultSchema,
+  WorktreeListParams: WorktreeListParams,
+  WorktreeListResult: WorktreeListResult,
+  WorktreeReadParams: WorktreeReadParams,
+  WorktreeReadResult: WorktreeReadResult,
+  WorktreeWriteParams: WorktreeWriteParams,
+  WorktreeWriteResult: WorktreeWriteResult,
+  WorktreeDeleteParams: WorktreeDeleteParams,
+  WorktreeDeleteResult: WorktreeDeleteResult,
+  WorktreeMoveParams: WorktreeMoveParams,
+  WorktreeMoveResult: WorktreeMoveResult,
+  WorktreeMkdirParams: WorktreeMkdirParams,
+  WorktreeMkdirResult: WorktreeMkdirResult,
+  WorktreeFileEntry: WorktreeFileEntry,
 };
 
 export const PROTOCOL_VERSION = 3 as const;

@@ -1,8 +1,6 @@
 import type { GatewayBrowserClient } from "../gateway";
-import { loadOrCreateDeviceIdentity } from "../device-identity";
 import { clearDeviceAuthToken, storeDeviceAuthToken } from "../device-auth";
-import { showDangerConfirmDialog } from "../components/confirm-dialog";
-import { toast } from "../components/toast";
+import { loadOrCreateDeviceIdentity } from "../device-identity";
 
 export type DeviceTokenSummary = {
   role: string;
@@ -77,19 +75,13 @@ export async function approveDevicePairing(state: DevicesState, requestId: strin
 
 export async function rejectDevicePairing(state: DevicesState, requestId: string) {
   if (!state.client || !state.connected) return;
-  const confirmed = await showDangerConfirmDialog(
-    "Reject Device",
-    "Reject this device pairing request?",
-    "Reject",
-  );
+  const confirmed = window.confirm("Reject this device pairing request?");
   if (!confirmed) return;
   try {
     await state.client.request("device.pair.reject", { requestId });
-    toast.success("Device pairing rejected");
     await loadDevices(state);
   } catch (err) {
     state.devicesError = String(err);
-    toast.error("Failed to reject device");
   }
 }
 
@@ -126,11 +118,7 @@ export async function revokeDeviceToken(
   params: { deviceId: string; role: string },
 ) {
   if (!state.client || !state.connected) return;
-  const confirmed = await showDangerConfirmDialog(
-    "Revoke Token",
-    `Revoke token for ${params.deviceId} (${params.role})? This action cannot be undone.`,
-    "Revoke",
-  );
+  const confirmed = window.confirm(`Revoke token for ${params.deviceId} (${params.role})?`);
   if (!confirmed) return;
   try {
     await state.client.request("device.token.revoke", params);
@@ -138,10 +126,8 @@ export async function revokeDeviceToken(
     if (params.deviceId === identity.deviceId) {
       clearDeviceAuthToken({ deviceId: identity.deviceId, role: params.role });
     }
-    toast.success("Token revoked");
     await loadDevices(state);
   } catch (err) {
     state.devicesError = String(err);
-    toast.error("Failed to revoke token");
   }
 }

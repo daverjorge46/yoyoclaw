@@ -1,23 +1,19 @@
+import type { OpenClawApp } from "./app";
+import { loadDebug } from "./controllers/debug";
 import { loadLogs } from "./controllers/logs";
 import { loadNodes } from "./controllers/nodes";
-import { loadDebug } from "./controllers/debug";
-import { refreshOverseer } from "./controllers/overseer";
-import { loadAutomations } from "./controllers/automations";
-import type { ClawdbrainApp } from "./app";
 
 type PollingHost = {
   nodesPollInterval: number | null;
   logsPollInterval: number | null;
   debugPollInterval: number | null;
-  overseerPollInterval: number | null;
-  automationsPollInterval: number | null;
   tab: string;
 };
 
 export function startNodesPolling(host: PollingHost) {
   if (host.nodesPollInterval != null) return;
   host.nodesPollInterval = window.setInterval(
-    () => void loadNodes(host as unknown as ClawdbrainApp, { quiet: true }),
+    () => void loadNodes(host as unknown as OpenClawApp, { quiet: true }),
     5000,
   );
 }
@@ -32,7 +28,7 @@ export function startLogsPolling(host: PollingHost) {
   if (host.logsPollInterval != null) return;
   host.logsPollInterval = window.setInterval(() => {
     if (host.tab !== "logs") return;
-    void loadLogs(host as unknown as ClawdbrainApp, { quiet: true });
+    void loadLogs(host as unknown as OpenClawApp, { quiet: true });
   }, 2000);
 }
 
@@ -46,7 +42,7 @@ export function startDebugPolling(host: PollingHost) {
   if (host.debugPollInterval != null) return;
   host.debugPollInterval = window.setInterval(() => {
     if (host.tab !== "debug") return;
-    void loadDebug(host as unknown as ClawdbrainApp);
+    void loadDebug(host as unknown as OpenClawApp);
   }, 3000);
 }
 
@@ -54,32 +50,4 @@ export function stopDebugPolling(host: PollingHost) {
   if (host.debugPollInterval == null) return;
   clearInterval(host.debugPollInterval);
   host.debugPollInterval = null;
-}
-
-export function startOverseerPolling(host: PollingHost) {
-  if (host.overseerPollInterval != null) return;
-  host.overseerPollInterval = window.setInterval(() => {
-    if (host.tab !== "overseer") return;
-    void refreshOverseer(host as unknown as ClawdbrainApp, { quiet: true });
-  }, 5000);
-}
-
-export function stopOverseerPolling(host: PollingHost) {
-  if (host.overseerPollInterval == null) return;
-  clearInterval(host.overseerPollInterval);
-  host.overseerPollInterval = null;
-}
-
-export function startAutomationsPolling(host: PollingHost) {
-  if (host.automationsPollInterval != null) return;
-  host.automationsPollInterval = window.setInterval(() => {
-    if (host.tab !== "automations") return;
-    void loadAutomations(host as any);
-  }, 5000);
-}
-
-export function stopAutomationsPolling(host: PollingHost) {
-  if (host.automationsPollInterval == null) return;
-  clearInterval(host.automationsPollInterval);
-  host.automationsPollInterval = null;
 }

@@ -1,6 +1,5 @@
-import type { ClawdbrainPluginApi } from "clawdbrain/plugin-sdk";
-import { emptyPluginConfigSchema } from "clawdbrain/plugin-sdk";
-
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
 import { nextcloudTalkPlugin } from "./src/channel.js";
 import { setNextcloudTalkRuntime } from "./src/runtime.js";
 
@@ -9,7 +8,7 @@ const plugin = {
   name: "Nextcloud Talk",
   description: "Nextcloud Talk channel plugin",
   configSchema: emptyPluginConfigSchema(),
-  register(api: ClawdbrainPluginApi) {
+  register(api: OpenClawPluginApi) {
     setNextcloudTalkRuntime(api.runtime);
     api.registerChannel({ plugin: nextcloudTalkPlugin });
   },

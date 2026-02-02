@@ -1,3 +1,7 @@
+import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.js";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { AgentDefaultsConfig } from "../../config/types.js";
+import type { CronJob } from "../types.js";
 import {
   resolveAgentConfig,
   resolveAgentDir,
@@ -8,6 +12,11 @@ import {
 import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
+import {
+  formatUserTime,
+  resolveUserTimeFormat,
+  resolveUserTimezone,
+} from "../../agents/date-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
@@ -19,26 +28,12 @@ import {
   resolveHooksGmailModel,
   resolveThinkingDefault,
 } from "../../agents/model-selection.js";
-import {
-  createSdkMainAgentRuntime,
-  resolveMainAgentRuntimeKind,
-} from "../../agents/main-agent-runtime-factory.js";
-import {
-  createPiAgentRuntime,
-  splitRunEmbeddedPiAgentParamsForRuntime,
-} from "../../agents/pi-agent-runtime.js";
-import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.js";
-import type { EmbeddedPiRunResult } from "../../agents/pi-embedded-runner/types.js";
+import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import { buildWorkspaceSkillSnapshot } from "../../agents/skills.js";
 import { getSkillsSnapshotVersion } from "../../agents/skills/refresh.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { hasNonzeroUsage } from "../../agents/usage.js";
 import { ensureAgentWorkspace } from "../../agents/workspace.js";
-import {
-  formatUserTime,
-  resolveUserTimeFormat,
-  resolveUserTimezone,
-} from "../../agents/date-time.js";
 import {
   formatXHighModelHint,
   normalizeThinkLevel,
@@ -46,12 +41,11 @@ import {
   supportsXHighThinking,
 } from "../../auto-reply/thinking.js";
 import { createOutboundSendDeps, type CliDeps } from "../../cli/outbound-send-deps.js";
-import type { ClawdbrainConfig } from "../../config/config.js";
 import { resolveSessionTranscriptPath, updateSessionStore } from "../../config/sessions.js";
-import type { AgentDefaultsConfig } from "../../config/types.js";
-import { emitAgentEvent, registerAgentRunContext } from "../../infra/agent-events.js";
+import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
+import { logWarn } from "../../logger.js";
 import { buildAgentMainSessionKey, normalizeAgentId } from "../../routing/session-key.js";
 import {
   buildSafeExternalPrompt,
@@ -59,8 +53,6 @@ import {
   getHookType,
   isExternalHookSession,
 } from "../../security/external-content.js";
-import { logWarn } from "../../logger.js";
-import type { CronJob } from "../types.js";
 import { resolveDeliveryTarget } from "./delivery-target.js";
 import {
   isHeartbeatOnlyResponse,
@@ -75,10 +67,14 @@ function matchesMessagingToolDeliveryTarget(
   target: MessagingToolSend,
   delivery: { channel: string; to?: string; accountId?: string },
 ): boolean {
-  if (!delivery.to || !target.to) return false;
+  if (!delivery.to || !target.to) {
+    return false;
+  }
   const channel = delivery.channel.trim().toLowerCase();
   const provider = target.provider?.trim().toLowerCase();
-  if (provider && provider !== "message" && provider !== channel) return false;
+  if (provider && provider !== "message" && provider !== channel) {
+    return false;
+  }
   if (target.accountId && delivery.accountId && target.accountId !== delivery.accountId) {
     return false;
   }
@@ -94,7 +90,7 @@ export type RunCronAgentTurnResult = {
 };
 
 export async function runCronIsolatedAgentTurn(params: {
-  cfg: ClawdbrainConfig;
+  cfg: OpenClawConfig;
   deps: CliDeps;
   job: CronJob;
   message: string;
@@ -125,12 +121,10 @@ export async function runCronIsolatedAgentTurn(params: {
   } else if (overrideModel) {
     agentCfg.model = overrideModel;
   }
-  const cfgWithAgentDefaults: ClawdbrainConfig = {
+  const cfgWithAgentDefaults: OpenClawConfig = {
     ...params.cfg,
     agents: Object.assign({}, params.cfg.agents, { defaults: agentCfg }),
   };
-  const mainRuntimeKind = resolveMainAgentRuntimeKind(cfgWithAgentDefaults);
-  const isMainSdk = mainRuntimeKind === "ccsdk";
 
   const baseSessionKey = (params.sessionKey?.trim() || `cron:${params.job.id}`).trim();
   const agentSessionKey = buildAgentMainSessionKey({
@@ -162,45 +156,43 @@ export async function runCronIsolatedAgentTurn(params: {
   };
   // Resolve model - prefer hooks.gmail.model for Gmail hooks.
   const isGmailHook = baseSessionKey.startsWith("hook:gmail:");
-  if (!isMainSdk) {
-    const hooksGmailModelRef = isGmailHook
-      ? resolveHooksGmailModel({
-          cfg: params.cfg,
-          defaultProvider: DEFAULT_PROVIDER,
-        })
-      : null;
-    if (hooksGmailModelRef) {
-      const status = getModelRefStatus({
+  const hooksGmailModelRef = isGmailHook
+    ? resolveHooksGmailModel({
         cfg: params.cfg,
-        catalog: await loadCatalog(),
-        ref: hooksGmailModelRef,
-        defaultProvider: resolvedDefault.provider,
-        defaultModel: resolvedDefault.model,
-      });
-      if (status.allowed) {
-        provider = hooksGmailModelRef.provider;
-        model = hooksGmailModelRef.model;
-      }
+        defaultProvider: DEFAULT_PROVIDER,
+      })
+    : null;
+  if (hooksGmailModelRef) {
+    const status = getModelRefStatus({
+      cfg: params.cfg,
+      catalog: await loadCatalog(),
+      ref: hooksGmailModelRef,
+      defaultProvider: resolvedDefault.provider,
+      defaultModel: resolvedDefault.model,
+    });
+    if (status.allowed) {
+      provider = hooksGmailModelRef.provider;
+      model = hooksGmailModelRef.model;
     }
-    const modelOverrideRaw =
-      params.job.payload.kind === "agentTurn" ? params.job.payload.model : undefined;
-    if (modelOverrideRaw !== undefined) {
-      if (typeof modelOverrideRaw !== "string") {
-        return { status: "error", error: "invalid model: expected string" };
-      }
-      const resolvedOverride = resolveAllowedModelRef({
-        cfg: cfgWithAgentDefaults,
-        catalog: await loadCatalog(),
-        raw: modelOverrideRaw,
-        defaultProvider: resolvedDefault.provider,
-        defaultModel: resolvedDefault.model,
-      });
-      if ("error" in resolvedOverride) {
-        return { status: "error", error: resolvedOverride.error };
-      }
-      provider = resolvedOverride.ref.provider;
-      model = resolvedOverride.ref.model;
+  }
+  const modelOverrideRaw =
+    params.job.payload.kind === "agentTurn" ? params.job.payload.model : undefined;
+  if (modelOverrideRaw !== undefined) {
+    if (typeof modelOverrideRaw !== "string") {
+      return { status: "error", error: "invalid model: expected string" };
     }
+    const resolvedOverride = resolveAllowedModelRef({
+      cfg: cfgWithAgentDefaults,
+      catalog: await loadCatalog(),
+      raw: modelOverrideRaw,
+      defaultProvider: resolvedDefault.provider,
+      defaultModel: resolvedDefault.model,
+    });
+    if ("error" in resolvedOverride) {
+      return { status: "error", error: resolvedOverride.error };
+    }
+    provider = resolvedOverride.ref.provider;
+    model = resolvedOverride.ref.model;
   }
   const now = Date.now();
   const cronSession = resolveCronSession({
@@ -220,18 +212,16 @@ export async function runCronIsolatedAgentTurn(params: {
       undefined,
   );
   let thinkLevel = jobThink ?? hooksGmailThinking ?? thinkOverride;
-  if (!isMainSdk) {
-    if (!thinkLevel) {
-      thinkLevel = resolveThinkingDefault({
-        cfg: cfgWithAgentDefaults,
-        provider,
-        model,
-        catalog: await loadCatalog(),
-      });
-    }
-    if (thinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
-      throw new Error(`Thinking level "xhigh" is only supported for ${formatXHighModelHint()}.`);
-    }
+  if (!thinkLevel) {
+    thinkLevel = resolveThinkingDefault({
+      cfg: cfgWithAgentDefaults,
+      provider,
+      model,
+      catalog: await loadCatalog(),
+    });
+  }
+  if (thinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
+    throw new Error(`Thinking level "xhigh" is only supported for ${formatXHighModelHint()}.`);
   }
 
   const timeoutMs = resolveAgentTimeoutMs({
@@ -328,7 +318,7 @@ export async function runCronIsolatedAgentTurn(params: {
     store[agentSessionKey] = cronSession.sessionEntry;
   });
 
-  let runResult: EmbeddedPiRunResult;
+  let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
   let fallbackProvider = provider;
   let fallbackModel = model;
   try {
@@ -342,89 +332,53 @@ export async function runCronIsolatedAgentTurn(params: {
       verboseLevel: resolvedVerboseLevel,
     });
     const messageChannel = resolvedDelivery.channel;
-    if (isMainSdk) {
-      const sdkRuntime = await createSdkMainAgentRuntime({
-        config: cfgWithAgentDefaults,
-        sessionKey: agentSessionKey,
-        sessionFile,
-        workspaceDir,
-        agentDir,
-        messageProvider: messageChannel,
-        agentAccountId: resolvedDelivery.accountId,
-        messageTo: resolvedDelivery.to,
-      });
-      runResult = await sdkRuntime.run({
-        sessionId: cronSession.sessionEntry.sessionId,
-        sessionKey: agentSessionKey,
-        sessionFile,
-        workspaceDir,
-        agentDir,
-        config: cfgWithAgentDefaults,
-        prompt: commandBody,
-        timeoutMs,
-        runId: cronSession.sessionEntry.sessionId,
-        onAgentEvent: (evt) => {
-          emitAgentEvent({
-            runId: cronSession.sessionEntry.sessionId,
-            stream: evt.stream,
-            data: evt.data,
-            sessionKey: agentSessionKey,
-          });
-        },
-      });
-      fallbackProvider = runResult.meta.agentMeta?.provider ?? fallbackProvider;
-      fallbackModel = runResult.meta.agentMeta?.model ?? fallbackModel;
-    } else {
-      const fallbackResult = await runWithModelFallback({
-        cfg: cfgWithAgentDefaults,
-        provider,
-        model,
-        agentDir,
-        fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
-        run: (providerOverride, modelOverride) => {
-          if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
-            const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
-            return runCliAgent({
-              sessionId: cronSession.sessionEntry.sessionId,
-              sessionKey: agentSessionKey,
-              sessionFile,
-              workspaceDir,
-              config: cfgWithAgentDefaults,
-              prompt: commandBody,
-              provider: providerOverride,
-              model: modelOverride,
-              thinkLevel,
-              timeoutMs,
-              runId: cronSession.sessionEntry.sessionId,
-              cliSessionId,
-            });
-          }
-          const piParams = {
+    const fallbackResult = await runWithModelFallback({
+      cfg: cfgWithAgentDefaults,
+      provider,
+      model,
+      agentDir,
+      fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
+      run: (providerOverride, modelOverride) => {
+        if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
+          const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
+          return runCliAgent({
             sessionId: cronSession.sessionEntry.sessionId,
             sessionKey: agentSessionKey,
-            messageChannel,
-            agentAccountId: resolvedDelivery.accountId,
             sessionFile,
             workspaceDir,
             config: cfgWithAgentDefaults,
-            skillsSnapshot,
             prompt: commandBody,
-            lane: params.lane ?? "cron",
             provider: providerOverride,
             model: modelOverride,
             thinkLevel,
-            verboseLevel: resolvedVerboseLevel,
             timeoutMs,
             runId: cronSession.sessionEntry.sessionId,
-          };
-          const { context, run } = splitRunEmbeddedPiAgentParamsForRuntime(piParams);
-          return createPiAgentRuntime(context).run(run);
-        },
-      });
-      runResult = fallbackResult.result;
-      fallbackProvider = fallbackResult.provider;
-      fallbackModel = fallbackResult.model;
-    }
+            cliSessionId,
+          });
+        }
+        return runEmbeddedPiAgent({
+          sessionId: cronSession.sessionEntry.sessionId,
+          sessionKey: agentSessionKey,
+          messageChannel,
+          agentAccountId: resolvedDelivery.accountId,
+          sessionFile,
+          workspaceDir,
+          config: cfgWithAgentDefaults,
+          skillsSnapshot,
+          prompt: commandBody,
+          lane: params.lane ?? "cron",
+          provider: providerOverride,
+          model: modelOverride,
+          thinkLevel,
+          verboseLevel: resolvedVerboseLevel,
+          timeoutMs,
+          runId: cronSession.sessionEntry.sessionId,
+        });
+      },
+    });
+    runResult = fallbackResult.result;
+    fallbackProvider = fallbackResult.provider;
+    fallbackModel = fallbackResult.model;
   } catch (err) {
     return { status: "error", error: String(err) };
   }

@@ -1,4 +1,4 @@
-# Clawdbrain (iOS)
+# OpenClaw (iOS)
 
 Internal-only SwiftUI app scaffold.
 
@@ -11,11 +11,11 @@ brew install swiftformat swiftlint
 ```bash
 cd apps/ios
 xcodegen generate
-open Clawdbrain.xcodeproj
+open OpenClaw.xcodeproj
 ```
 
 ## Shared packages
-- `../shared/ClawdbrainKit` — shared types/constants used by iOS (and later macOS bridge + gateway routing).
+- `../shared/OpenClawKit` — shared types/constants used by iOS (and later macOS bridge + gateway routing).
 
 ## fastlane
 ```bash

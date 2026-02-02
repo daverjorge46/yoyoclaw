@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import Clawdbrain
+@testable import OpenClaw
 
 @Suite struct AppCoverageTests {
     @Test @MainActor func nodeAppModelUpdatesBackgroundedState() {

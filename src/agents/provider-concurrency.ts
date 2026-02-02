@@ -1,8 +1,7 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-
-import type { ClawdbrainConfig } from "../config/config.js";
-import { normalizeProviderId } from "./model-selection.js";
+import type { OpenClawConfig } from "../config/config.js";
 import { diagnosticLogger as diag } from "../logging/diagnostic.js";
+import { normalizeProviderId } from "./model-selection.js";
 
 /** Safety timeout: release the semaphore if the stream hasn't completed after this many ms. */
 const SAFETY_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
@@ -69,7 +68,7 @@ export function setProviderMaxConcurrent(provider: string, maxConcurrent: number
  * Read `models.providers.*.maxConcurrent` from config and initialize
  * semaphores for every provider that defines a concurrency limit.
  */
-export function initProviderConcurrencyFromConfig(cfg: ClawdbrainConfig | undefined): void {
+export function initProviderConcurrencyFromConfig(cfg: OpenClawConfig | undefined): void {
   const providers = cfg?.models?.providers;
   if (!providers) return;
   for (const [rawId, entry] of Object.entries(providers)) {
@@ -84,7 +83,7 @@ export function initProviderConcurrencyFromConfig(cfg: ClawdbrainConfig | undefi
  * Resolve the configured maxConcurrent for a provider (or undefined if unlimited).
  */
 export function resolveProviderMaxConcurrent(
-  cfg: ClawdbrainConfig | undefined,
+  cfg: OpenClawConfig | undefined,
   provider: string,
 ): number | undefined {
   const providers = cfg?.models?.providers;

@@ -1,13 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import { ClawdbrainApp } from "./app";
+import { OpenClawApp } from "./app";
 import "../styles.css";
 
-const originalConnect = ClawdbrainApp.prototype.connect;
+const originalConnect = OpenClawApp.prototype.connect;
 
 function mountApp(pathname: string) {
   window.history.replaceState({}, "", pathname);
-  const app = document.createElement("clawdbrain-app") as ClawdbrainApp;
+  const app = document.createElement("openclaw-app") as OpenClawApp;
   document.body.append(app);
   return app;
 }
@@ -19,82 +18,73 @@ function nextFrame() {
 }
 
 beforeEach(() => {
-  ClawdbrainApp.prototype.connect = () => {
+  OpenClawApp.prototype.connect = () => {
     // no-op: avoid real gateway WS connections in browser tests
   };
-  window.__CLAWDBRAIN_CONTROL_UI_BASE_PATH__ = undefined;
+  window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = undefined;
   localStorage.clear();
   document.body.innerHTML = "";
 });
 
 afterEach(() => {
-  ClawdbrainApp.prototype.connect = originalConnect;
-  window.__CLAWDBRAIN_CONTROL_UI_BASE_PATH__ = undefined;
+  OpenClawApp.prototype.connect = originalConnect;
+  window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = undefined;
   localStorage.clear();
   document.body.innerHTML = "";
 });
 
 describe("control UI routing", () => {
   it("hydrates the tab from the location", async () => {
-    const app = mountApp("/#/sessions");
+    const app = mountApp("/sessions");
     await app.updateComplete;
 
     expect(app.tab).toBe("sessions");
-    expect(window.location.pathname).toBe("/");
-    expect(window.location.hash).toBe("#/sessions");
+    expect(window.location.pathname).toBe("/sessions");
   });
 
   it("respects /ui base paths", async () => {
-    const app = mountApp("/ui/#/cron");
+    const app = mountApp("/ui/cron");
     await app.updateComplete;
 
     expect(app.basePath).toBe("/ui");
     expect(app.tab).toBe("cron");
-    expect(window.location.pathname).toBe("/ui/");
-    expect(window.location.hash).toBe("#/cron");
+    expect(window.location.pathname).toBe("/ui/cron");
   });
 
   it("infers nested base paths", async () => {
-    const app = mountApp("/apps/clawdbrain/#/cron");
+    const app = mountApp("/apps/openclaw/cron");
     await app.updateComplete;
 
-    expect(app.basePath).toBe("/apps/clawdbrain");
+    expect(app.basePath).toBe("/apps/openclaw");
     expect(app.tab).toBe("cron");
-    expect(window.location.pathname).toBe("/apps/clawdbrain/");
-    expect(window.location.hash).toBe("#/cron");
+    expect(window.location.pathname).toBe("/apps/openclaw/cron");
   });
 
   it("honors explicit base path overrides", async () => {
-    window.__CLAWDBRAIN_CONTROL_UI_BASE_PATH__ = "/clawdbrain";
-    const app = mountApp("/clawdbrain/#/sessions");
+    window.__OPENCLAW_CONTROL_UI_BASE_PATH__ = "/openclaw";
+    const app = mountApp("/openclaw/sessions");
     await app.updateComplete;
 
-    expect(app.basePath).toBe("/clawdbrain");
+    expect(app.basePath).toBe("/openclaw");
     expect(app.tab).toBe("sessions");
-    expect(window.location.pathname).toBe("/clawdbrain/");
-    expect(window.location.hash).toBe("#/sessions");
+    expect(window.location.pathname).toBe("/openclaw/sessions");
   });
 
   it("updates the URL when clicking nav items", async () => {
-    const app = mountApp("/#/chat");
+    const app = mountApp("/chat");
     await app.updateComplete;
 
-    const link = app.querySelector<HTMLAnchorElement>(
-      'a.nav-item[href="/#/channels"]',
-    );
+    const link = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/channels"]');
     expect(link).not.toBeNull();
-    link?.dispatchEvent(
-      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }),
-    );
+    link?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
 
     await app.updateComplete;
     expect(app.tab).toBe("channels");
-    expect(window.location.pathname).toBe("/");
-    expect(window.location.hash).toBe("#/channels");
+    expect(window.location.pathname).toBe("/channels");
   });
 
   it("keeps chat and nav usable on narrow viewports", async () => {
-    const app = mountApp("/#/chat");
+    const app = mountApp("/chat");
     await app.updateComplete;
 
     expect(window.matchMedia("(max-width: 768px)").matches).toBe(true);
@@ -122,7 +112,7 @@ describe("control UI routing", () => {
   });
 
   it("auto-scrolls chat history to the latest message", async () => {
-    const app = mountApp("/#/chat");
+    const app = mountApp("/chat");
     await app.updateComplete;
 
     const initialContainer = app.querySelector(".chat-thread") as HTMLElement | null;
@@ -155,36 +145,33 @@ describe("control UI routing", () => {
   });
 
   it("hydrates token from URL params and strips it", async () => {
-    const app = mountApp("/ui/?token=abc123#/overview");
+    const app = mountApp("/ui/overview?token=abc123");
     await app.updateComplete;
 
     expect(app.settings.token).toBe("abc123");
-    expect(window.location.pathname).toBe("/ui/");
-    expect(window.location.hash).toBe("#/overview");
+    expect(window.location.pathname).toBe("/ui/overview");
     expect(window.location.search).toBe("");
   });
 
   it("hydrates password from URL params and strips it", async () => {
-    const app = mountApp("/ui/?password=sekret#/overview");
+    const app = mountApp("/ui/overview?password=sekret");
     await app.updateComplete;
 
     expect(app.password).toBe("sekret");
-    expect(window.location.pathname).toBe("/ui/");
-    expect(window.location.hash).toBe("#/overview");
+    expect(window.location.pathname).toBe("/ui/overview");
     expect(window.location.search).toBe("");
   });
 
   it("hydrates token from URL params even when settings already set", async () => {
     localStorage.setItem(
-      "clawdbrain.control.settings.v1",
+      "openclaw.control.settings.v1",
       JSON.stringify({ token: "existing-token" }),
     );
-    const app = mountApp("/ui/?token=abc123#/overview");
+    const app = mountApp("/ui/overview?token=abc123");
     await app.updateComplete;
 
     expect(app.settings.token).toBe("abc123");
-    expect(window.location.pathname).toBe("/ui/");
-    expect(window.location.hash).toBe("#/overview");
+    expect(window.location.pathname).toBe("/ui/overview");
     expect(window.location.search).toBe("");
   });
 });

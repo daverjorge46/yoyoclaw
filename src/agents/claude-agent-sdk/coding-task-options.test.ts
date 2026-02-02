@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import { buildCodingTaskSdkOptions } from "./coding-task-options.js";
 
 describe("buildCodingTaskSdkOptions", () => {
@@ -27,7 +26,7 @@ describe("buildCodingTaskSdkOptions", () => {
   });
 
   it("canonicalizes tool rules and supports wildcard allow with explicit deny", async () => {
-    const cfg: ClawdbrainConfig = {
+    const cfg: OpenClawConfig = {
       tools: {
         codingTask: {
           enabled: true,
@@ -58,7 +57,7 @@ describe("buildCodingTaskSdkOptions", () => {
   });
 
   it("allows tools when allowedTools contains a rule pattern for that tool", async () => {
-    const cfg: ClawdbrainConfig = {
+    const cfg: OpenClawConfig = {
       tools: {
         codingTask: {
           enabled: true,
@@ -79,7 +78,7 @@ describe("buildCodingTaskSdkOptions", () => {
   });
 
   it("sets systemPrompt preset for claude_code toolPreset", () => {
-    const cfg: ClawdbrainConfig = {
+    const cfg: OpenClawConfig = {
       tools: {
         codingTask: {
           enabled: true,

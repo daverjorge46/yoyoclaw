@@ -1,17 +1,18 @@
 /**
  * Configuration helpers for the Claude Agent SDK runner.
  *
- * Bridges Clawdbrain's config system (ClawdbrainConfig) to the SDK runner's
+ * Bridges Clawdbrain's config system (OpenClawConfig) to the SDK runner's
  * SdkRunnerParams, including provider environment resolution and tool
  * assembly.
  */
 
-import type { ClawdbrainConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { SdkThinkingBudgetTier } from "../../config/types.agents.js";
-import { logDebug } from "../../logger.js";
-import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import type { AuthProfileStore } from "../auth-profiles/types.js";
 import type { SdkProviderConfig, SdkProviderEnv } from "./sdk-runner.types.js";
+import { logDebug } from "../../logger.js";
+import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
+import { resolveAgentConfig } from "../agent-scope.js";
 import { resolveMainAgentRuntimeKind } from "../main-agent-runtime-factory.js";
 
 // ---------------------------------------------------------------------------
@@ -70,11 +71,33 @@ export function buildZaiSdkProvider(apiKey: string): SdkProviderConfig {
 /**
  * Build the SDK provider config for the default Anthropic backend.
  * No env overrides needed — uses the local Claude Code auth.
+ *
+ * @param modelMappings Optional model mappings for opus/sonnet/haiku/subagent
  */
-export function buildAnthropicSdkProvider(): SdkProviderConfig {
+export function buildAnthropicSdkProvider(modelMappings?: {
+  opus?: string;
+  sonnet?: string;
+  haiku?: string;
+  subagent?: string;
+}): SdkProviderConfig {
+  const env: SdkProviderEnv = {};
+
+  if (modelMappings?.opus) {
+    env.ANTHROPIC_DEFAULT_OPUS_MODEL = modelMappings.opus;
+  }
+  if (modelMappings?.sonnet) {
+    env.ANTHROPIC_DEFAULT_SONNET_MODEL = modelMappings.sonnet;
+  }
+  if (modelMappings?.haiku) {
+    env.ANTHROPIC_DEFAULT_HAIKU_MODEL = modelMappings.haiku;
+  }
+  if (modelMappings?.subagent) {
+    env.CLAUDE_CODE_SUBAGENT_MODEL = modelMappings.subagent;
+  }
+
   return {
     name: "Anthropic (Claude Code)",
-    // No env override — uses local Claude Code credentials.
+    env: Object.keys(env).length > 0 ? env : undefined,
   };
 }
 
@@ -107,11 +130,22 @@ export function buildOpenRouterSdkProvider(): SdkProviderConfig {
  * NOTE: For providers that require an API key (z.AI, OpenRouter), the key is
  * NOT pre-filled — it must be resolved separately from the auth profile store
  * or environment at runtime.
+ *
+ * @param key The provider key ("anthropic", "zai", "openrouter")
+ * @param modelMappings Optional model mappings for opus/sonnet/haiku/subagent
  */
-export function resolveWellKnownProvider(key: string): SdkProviderEntry | undefined {
+export function resolveWellKnownProvider(
+  key: string,
+  modelMappings?: {
+    opus?: string;
+    sonnet?: string;
+    haiku?: string;
+    subagent?: string;
+  },
+): SdkProviderEntry | undefined {
   switch (key) {
     case "anthropic":
-      return { key: "anthropic", config: buildAnthropicSdkProvider() };
+      return { key: "anthropic", config: buildAnthropicSdkProvider(modelMappings) };
     case "zai":
       return {
         key: "zai",
@@ -145,6 +179,29 @@ export type SdkProviderEntry = {
 };
 
 /**
+ * Resolve CCSDK model mappings from config.
+ *
+ * Resolution order:
+ * 1. agents.main.sdk.models (for main agent)
+ * 2. agents.defaults.ccsdkModels (global defaults)
+ */
+export function resolveCcsdkModelMappings(params: {
+  config?: OpenClawConfig;
+  agentId?: string;
+}): { opus?: string; sonnet?: string; haiku?: string; subagent?: string } | undefined {
+  const isMainAgent = !params.agentId || normalizeAgentId(params.agentId) === DEFAULT_AGENT_ID;
+
+  // For main agent, prefer agents.main.sdk.models
+  if (isMainAgent) {
+    const mainSdkModels = params.config?.agents?.main?.sdk?.models;
+    if (mainSdkModels) return mainSdkModels;
+  }
+
+  // Fall back to global defaults
+  return params.config?.agents?.defaults?.ccsdkModels;
+}
+
+/**
  * Resolve SDK provider configurations from Clawdbrain config.
  *
  * Reads from `tools.codingTask.providers` and builds SdkProviderConfig for
@@ -152,7 +209,7 @@ export type SdkProviderEntry = {
  * profile references (${VAR_NAME} syntax).
  */
 export function resolveSdkProviders(params: {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   env?: NodeJS.ProcessEnv;
 }): SdkProviderEntry[] {
   const codingTaskCfg = params.config?.tools?.codingTask;
@@ -217,18 +274,26 @@ function resolveEnvValue(value: string, env: NodeJS.ProcessEnv): string {
 /**
  * Check whether the Claude Agent SDK runner is enabled for a given agent.
  *
- * Resolution order for the main agent (agentId === "main"):
- * 1. `agents.defaults.mainRuntime` (explicit main-agent override)
- * 2. `agents.defaults.runtime` (global fallback)
- *
- * For all other agents (or when agentId is omitted):
- * 1. `agents.defaults.runtime` only
+ * Resolution order:
+ * 1. Per-agent override: `agents.list[i].runtime` (NEW)
+ * 2. Main agent override: `agents.defaults.mainRuntime` (if agent is "main")
+ * 3. Global default: `agents.defaults.runtime`
+ * 4. Fallback: "pi"
  *
  * IMPORTANT: `tools.codingTask.*` is tool-level configuration and must not
  * implicitly change the gateway-wide/main-agent runtime selection.
  */
-export function isSdkRunnerEnabled(config?: ClawdbrainConfig, agentId?: string): boolean {
+export function isSdkRunnerEnabled(config?: OpenClawConfig, agentId?: string): boolean {
   const defaults = config?.agents?.defaults;
+
+  // NEW: Try per-agent override first
+  if (agentId) {
+    const agentConfig = resolveAgentConfig(config ?? {}, agentId);
+    if (agentConfig?.runtime) {
+      return agentConfig.runtime === "ccsdk";
+    }
+  }
+
   // For the main agent (or when agentId is not provided but agents.main.runtime is set),
   // prefer mainRuntime when explicitly set.
   if (agentId && normalizeAgentId(agentId) === DEFAULT_AGENT_ID) {
@@ -245,42 +310,53 @@ export function isSdkRunnerEnabled(config?: ClawdbrainConfig, agentId?: string):
 /**
  * Resolve the default SDK provider from config.
  *
- * Resolution order for main agent (agentId === "main" or undefined):
- * 1. `agents.defaults.mainCcsdkProvider` — explicit main agent provider selection.
- * 2. `agents.defaults.ccsdkProvider` — fallback default provider.
- * 3. `tools.codingTask.providers` — legacy provider configuration fallback.
- *
- * Resolution order for worker agents (agentId !== "main"):
- * 1. `agents.defaults.ccsdkProvider` — explicit worker provider selection.
- * 2. `agents.defaults.mainCcsdkProvider` — fallback to main provider.
- * 3. `tools.codingTask.providers` — legacy provider configuration fallback.
+ * Resolution order:
+ * 1. Per-agent override: `agents.list[i].ccsdkProvider` (NEW)
+ * 2. Main agent provider: `agents.defaults.mainCcsdkProvider` (if agent is "main")
+ * 3. Global default provider: `agents.defaults.ccsdkProvider`
+ * 4. Legacy fallback: `tools.codingTask.providers`
  *
  * Within the legacy fallback, prefers "zai" if configured, then "anthropic",
  * then the first available provider.
  * Returns undefined if no providers are configured.
  */
 export function resolveDefaultSdkProvider(params: {
-  config?: ClawdbrainConfig;
+  config?: OpenClawConfig;
   env?: NodeJS.ProcessEnv;
   agentId?: string;
 }): SdkProviderEntry | undefined {
   const defaults = params.config?.agents?.defaults;
   const isMainAgent = !params.agentId || normalizeAgentId(params.agentId) === DEFAULT_AGENT_ID;
 
+  // Resolve model mappings for this agent
+  const modelMappings = resolveCcsdkModelMappings({
+    config: params.config,
+    agentId: params.agentId,
+  });
+
+  // NEW: Try per-agent override first
+  if (params.agentId) {
+    const agentConfig = resolveAgentConfig(params.config ?? {}, params.agentId);
+    if (agentConfig?.ccsdkProvider) {
+      const wellKnown = resolveWellKnownProvider(agentConfig.ccsdkProvider, modelMappings);
+      if (wellKnown) return wellKnown;
+    }
+  }
+
   // For main agent: prefer mainCcsdkProvider, then ccsdkProvider
   // For workers: prefer ccsdkProvider, then mainCcsdkProvider
   const primaryProvider = isMainAgent ? defaults?.mainCcsdkProvider : defaults?.ccsdkProvider;
   const fallbackProvider = isMainAgent ? defaults?.ccsdkProvider : defaults?.mainCcsdkProvider;
 
-  // 1. Try primary provider for this agent type.
+  // 2. Try primary provider for this agent type.
   if (primaryProvider) {
-    const wellKnown = resolveWellKnownProvider(primaryProvider);
+    const wellKnown = resolveWellKnownProvider(primaryProvider, modelMappings);
     if (wellKnown) return wellKnown;
   }
 
-  // 2. Try fallback provider.
+  // 3. Try fallback provider.
   if (fallbackProvider) {
-    const wellKnown = resolveWellKnownProvider(fallbackProvider);
+    const wellKnown = resolveWellKnownProvider(fallbackProvider, modelMappings);
     if (wellKnown) return wellKnown;
   }
 

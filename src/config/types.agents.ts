@@ -1,4 +1,8 @@
-import type { AgentDefaultsConfig } from "./types.agent-defaults.js";
+import type {
+  AgentDefaultsConfig,
+  AgentRuntime,
+  ClaudeCodeSDKProviderKey,
+} from "./types.agent-defaults.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type {
@@ -30,6 +34,10 @@ export type AgentConfig = {
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;
+  /** Per-agent runtime override (pi or ccsdk). */
+  runtime?: AgentRuntime;
+  /** Per-agent Claude Code SDK provider override (when runtime is ccsdk). */
+  ccsdkProvider?: ClaudeCodeSDKProviderKey;
   memorySearch?: MemorySearchConfig;
   /** Human-like delay between block replies for this agent. */
   humanDelay?: HumanDelayConfig;
@@ -101,6 +109,21 @@ export type AgentsConfig = {
        * Default: "low"
        */
       thinkingBudget?: SdkThinkingBudgetTier;
+      /**
+       * Model mappings for Claude Code SDK thinking tiers.
+       * Maps shorthand keys ("opus", "sonnet", "haiku") to full model identifiers.
+       * These are passed as environment variables to the SDK:
+       * - opus → ANTHROPIC_DEFAULT_OPUS_MODEL
+       * - sonnet → ANTHROPIC_DEFAULT_SONNET_MODEL
+       * - haiku → ANTHROPIC_DEFAULT_HAIKU_MODEL
+       * - subagent → CLAUDE_CODE_SUBAGENT_MODEL
+       */
+      models?: {
+        opus?: string;
+        sonnet?: string;
+        haiku?: string;
+        subagent?: string;
+      };
       /**
        * Additional SDK `query({ options })` fields to pass through.
        *

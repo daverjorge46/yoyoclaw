@@ -1,9 +1,7 @@
-import { toNumber } from "../format";
 import type { GatewayBrowserClient } from "../gateway";
 import type { CronJob, CronRunLogEntry, CronStatus } from "../types";
 import type { CronFormState } from "../ui-types";
-import { showDangerConfirmDialog } from "../components/confirm-dialog";
-import { toast } from "../components/toast";
+import { toNumber } from "../format";
 
 export type CronState = {
   client: GatewayBrowserClient | null;
@@ -16,13 +14,12 @@ export type CronState = {
   cronRunsJobId: string | null;
   cronRuns: CronRunLogEntry[];
   cronBusy: boolean;
-  cronModalOpen: boolean;
 };
 
 export async function loadCronStatus(state: CronState) {
   if (!state.client || !state.connected) return;
   try {
-    const res = (await state.client.request("cron.status", {}, { timeoutMs: 10_000 })) as CronStatus;
+    const res = (await state.client.request("cron.status", {})) as CronStatus;
     state.cronStatus = res;
   } catch (err) {
     state.cronError = String(err);
@@ -37,7 +34,7 @@ export async function loadCronJobs(state: CronState) {
   try {
     const res = (await state.client.request("cron.list", {
       includeDisabled: true,
-    }, { timeoutMs: 10_000 })) as { jobs?: CronJob[] };
+    })) as { jobs?: CronJob[] };
     state.cronJobs = Array.isArray(res.jobs) ? res.jobs : [];
   } catch (err) {
     state.cronError = String(err);
@@ -106,36 +103,28 @@ export async function addCronJob(state: CronState) {
       wakeMode: state.cronForm.wakeMode,
       payload,
       isolation:
-        state.cronForm.postToMainPrefix.trim() &&
-        state.cronForm.sessionTarget === "isolated"
+        state.cronForm.postToMainPrefix.trim() && state.cronForm.sessionTarget === "isolated"
           ? { postToMainPrefix: state.cronForm.postToMainPrefix.trim() }
           : undefined,
     };
     if (!job.name) throw new Error("Name required.");
     await state.client.request("cron.add", job);
-    await loadCronJobs(state);
-    await loadCronStatus(state);
     state.cronForm = {
       ...state.cronForm,
       name: "",
       description: "",
       payloadText: "",
     };
-    state.cronModalOpen = false;
-    toast.success("Cron job created");
+    await loadCronJobs(state);
+    await loadCronStatus(state);
   } catch (err) {
     state.cronError = String(err);
-    toast.error(`Failed to create cron job: ${err}`);
   } finally {
     state.cronBusy = false;
   }
 }
 
-export async function toggleCronJob(
-  state: CronState,
-  job: CronJob,
-  enabled: boolean,
-) {
+export async function toggleCronJob(state: CronState, job: CronJob, enabled: boolean) {
   if (!state.client || !state.connected || state.cronBusy) return;
   state.cronBusy = true;
   state.cronError = null;
@@ -143,11 +132,8 @@ export async function toggleCronJob(
     await state.client.request("cron.update", { id: job.id, patch: { enabled } });
     await loadCronJobs(state);
     await loadCronStatus(state);
-    const label = job.name?.trim() || job.id;
-    toast.success(`Cron job "${label}" ${enabled ? "enabled" : "disabled"}`);
   } catch (err) {
     state.cronError = String(err);
-    toast.error(`Failed to update cron job: ${err}`);
   } finally {
     state.cronBusy = false;
   }
@@ -160,11 +146,8 @@ export async function runCronJob(state: CronState, job: CronJob) {
   try {
     await state.client.request("cron.run", { id: job.id, mode: "force" });
     await loadCronRuns(state, job.id);
-    const label = job.name?.trim() || job.id;
-    toast.success(`Cron job "${label}" triggered`);
   } catch (err) {
     state.cronError = String(err);
-    toast.error(`Failed to run cron job: ${err}`);
   } finally {
     state.cronBusy = false;
   }
@@ -172,13 +155,6 @@ export async function runCronJob(state: CronState, job: CronJob) {
 
 export async function removeCronJob(state: CronState, job: CronJob) {
   if (!state.client || !state.connected || state.cronBusy) return;
-  const jobLabel = job.name?.trim() || job.id;
-  const confirmed = await showDangerConfirmDialog(
-    "Delete Cron Job",
-    `Delete cron job "${jobLabel}"? This action cannot be undone.`,
-    "Delete",
-  );
-  if (!confirmed) return;
   state.cronBusy = true;
   state.cronError = null;
   try {
@@ -187,12 +163,10 @@ export async function removeCronJob(state: CronState, job: CronJob) {
       state.cronRunsJobId = null;
       state.cronRuns = [];
     }
-    toast.success("Cron job deleted");
     await loadCronJobs(state);
     await loadCronStatus(state);
   } catch (err) {
     state.cronError = String(err);
-    toast.error("Failed to delete cron job");
   } finally {
     state.cronBusy = false;
   }
@@ -204,18 +178,10 @@ export async function loadCronRuns(state: CronState, jobId: string) {
     const res = (await state.client.request("cron.runs", {
       id: jobId,
       limit: 50,
-    }, { timeoutMs: 10_000 })) as { entries?: CronRunLogEntry[] };
+    })) as { entries?: CronRunLogEntry[] };
     state.cronRunsJobId = jobId;
     state.cronRuns = Array.isArray(res.entries) ? res.entries : [];
   } catch (err) {
     state.cronError = String(err);
   }
-}
-
-export function openCronModal(state: CronState) {
-  state.cronModalOpen = true;
-}
-
-export function closeCronModal(state: CronState) {
-  state.cronModalOpen = false;
 }
