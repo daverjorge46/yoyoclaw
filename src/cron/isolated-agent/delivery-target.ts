@@ -1,18 +1,18 @@
 import type { ChannelId } from "../../channels/plugins/types.js";
-import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import type { OutboundChannel } from "../../infra/outbound/targets.js";
+import type { CronDeliveryMode, CronOrigin } from "../types.js";
+import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
 import {
   loadSessionStore,
   resolveAgentMainSessionKey,
   resolveStorePath,
 } from "../../config/sessions.js";
 import { resolveMessageChannelSelection } from "../../infra/outbound/channel-selection.js";
-import type { OutboundChannel } from "../../infra/outbound/targets.js";
 import {
   resolveOutboundTarget,
   resolveSessionDeliveryTarget,
 } from "../../infra/outbound/targets.js";
-import type { CronDeliveryMode, CronOrigin } from "../types.js";
 
 export async function resolveDeliveryTarget(
   cfg: OpenClawConfig,
