@@ -93,13 +93,21 @@ export function isUndiciTlsNullError(err: unknown): boolean {
     return false;
   }
   const message = err.message ?? "";
-  // Match: "Cannot read properties of null (reading 'setSession')"
-  if (!message.includes("null") || !message.includes("setSession")) {
+  // Match exact Node error format: "Cannot read properties of null (reading 'setSession')"
+  // or older format: "Cannot read property 'setSession' of null"
+  const isSetSessionNull = /Cannot read propert(?:y|ies) (?:of null \(reading )?'setSession'/.test(
+    message,
+  );
+  if (!isSetSessionNull) {
     return false;
   }
-  // Verify it's from undici/node TLS stack
+  // Verify it's specifically from undici/node TLS stack via stack signature
+  // Must have TLSSocket.setSession in the stack to confirm it's the known race condition
   const stack = err.stack ?? "";
-  return stack.includes("_tls_wrap") || stack.includes("undici") || stack.includes("TLSSocket");
+  return (
+    stack.includes("TLSSocket.setSession") &&
+    (stack.includes("node:_tls_wrap") || stack.includes("undici"))
+  );
 }
 
 /**
