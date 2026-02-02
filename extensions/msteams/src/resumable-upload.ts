@@ -63,7 +63,9 @@ export async function createUploadSession(params: {
   }
 
   const data = (await res.json()) as { uploadUrl?: string; expirationDateTime?: string };
-    if (!data.uploadUrl) throw new Error("Missing uploadUrl in response");
+    if (!data.uploadUrl) {
+            throw new Error("Missing uploadUrl in response");
+    }
 
   return { uploadUrl: data.uploadUrl, expirationDateTime: data.expirationDateTime ?? "" };
 }
