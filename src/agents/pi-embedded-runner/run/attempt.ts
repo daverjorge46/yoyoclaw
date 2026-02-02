@@ -502,10 +502,6 @@ export async function runEmbeddedAttempt(
       // Add client tools (OpenResponses hosted tools) to customTools
       let clientToolCallDetected: { name: string; params: Record<string, unknown> } | null = null;
       const rawClientTools = params.clientTools ?? [];
-      console.log("[openresponses] params.clientTools", {
-        count: rawClientTools.length,
-        names: rawClientTools.map((tool) => tool?.function?.name).filter(Boolean),
-      });
       const clientToolDefs = params.clientTools
         ? toClientToolDefinitions(
             params.clientTools,
@@ -518,10 +514,6 @@ export async function runEmbeddedAttempt(
             },
           )
         : [];
-      console.log("[openresponses] clientToolDefs", {
-        count: clientToolDefs.length,
-        names: clientToolDefs.map((tool) => tool?.name).filter(Boolean),
-      });
 
       const allCustomTools = [...customTools, ...clientToolDefs];
 
@@ -797,7 +789,6 @@ export async function runEmbeddedAttempt(
           prompt: sanitizePromptForLog(effectivePrompt),
           messages: redactLogValue(activeSession.messages),
         };
-        log.info(`[openresponses] prompt snapshot ${safeJsonStringify(promptSnapshot)}`);
         cacheTrace?.recordStage("prompt:before", {
           prompt: effectivePrompt,
           messages: activeSession.messages,

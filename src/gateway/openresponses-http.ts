@@ -413,24 +413,13 @@ export async function handleOpenResponsesHttpRequest(
   if (body === undefined) {
     return true;
   }
-  console.log("[openresponses] rawBody.input", {
-    count: Array.isArray((body as { input?: unknown })?.input)
-      ? (body as { input: unknown[] }).input.length
-      : body && (body as { input?: unknown }).input
-        ? 1
-        : 0,
-    preview: redactOpenResponsesForLog((body as { input?: unknown })?.input),
-  });
+  
   const rawToolNames = Array.isArray((body as { tools?: unknown })?.tools)
     ? ((body as { tools: Array<{ function?: { name?: string } }> }).tools || [])
         .map((tool) => tool?.function?.name)
         .filter(Boolean)
     : [];
-  console.log("[openresponses] rawBody.tools", {
-    isArray: Array.isArray((body as { tools?: unknown })?.tools),
-    count: rawToolNames.length,
-    names: rawToolNames,
-  });
+  
 
   // Validate request body with Zod
   const parseResult = CreateResponseBodySchema.safeParse(body);
@@ -528,10 +517,7 @@ export async function handleOpenResponsesHttpRequest(
   }
 
   const clientTools = extractClientTools(payload);
-  console.log("[openresponses] clientTools", {
-    count: clientTools.length,
-    names: clientTools.map((tool) => tool?.function?.name).filter(Boolean),
-  });
+  
   let toolChoicePrompt: string | undefined;
   let resolvedClientTools = clientTools;
   try {
@@ -541,10 +527,7 @@ export async function handleOpenResponsesHttpRequest(
     });
     resolvedClientTools = toolChoiceResult.tools;
     toolChoicePrompt = toolChoiceResult.extraSystemPrompt;
-    console.log("[openresponses] resolvedClientTools", {
-      count: resolvedClientTools.length,
-      names: resolvedClientTools.map((tool) => tool?.function?.name).filter(Boolean),
-    });
+    
   } catch (err) {
     sendJson(res, 400, {
       error: { message: String(err), type: "invalid_request_error" },
@@ -556,12 +539,7 @@ export async function handleOpenResponsesHttpRequest(
 
   // Build prompt from input
   const prompt = buildAgentPrompt(payload.input);
-  console.log("[openresponses] prompt", {
-    message: prompt.message ? truncateLogValue(prompt.message) : null,
-    extraSystemPrompt: prompt.extraSystemPrompt
-      ? truncateLogValue(prompt.extraSystemPrompt)
-      : null,
-  });
+  
 
   const fileContext = fileContexts.length > 0 ? fileContexts.join("\n\n") : undefined;
   const toolChoiceContext = toolChoicePrompt?.trim();
