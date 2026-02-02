@@ -201,9 +201,14 @@ async function loadWebMediaInternal(
 
   if (/^https?:\/\//i.test(mediaUrl)) {
     // Enforce a download cap during fetch to avoid unbounded memory usage.
-    // Use the largest per-kind cap (documents) to allow oversize images to
-    // be fetched and then compressed under a smaller maxBytes.
-    const fetchCap = Math.max(maxBytes ?? 0, maxBytesForKind("unknown"));
+    // For optimized images, allow fetching larger payloads before compression.
+    const defaultFetchCap = maxBytesForKind("unknown");
+    const fetchCap =
+      maxBytes === undefined
+        ? defaultFetchCap
+        : optimizeImages
+          ? Math.max(maxBytes, defaultFetchCap)
+          : maxBytes;
     const fetched = await fetchRemoteMedia({ url: mediaUrl, maxBytes: fetchCap });
     const { buffer, contentType, fileName } = fetched;
     const kind = mediaKindFromMime(contentType);
