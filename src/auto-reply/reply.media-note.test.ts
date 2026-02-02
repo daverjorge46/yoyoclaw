@@ -86,4 +86,29 @@ describe("getReplyFromConfig media note plumbing", () => {
       expect((idxA ?? 0) < (idxB ?? 0)).toBe(true);
     });
   });
+
+  it("passes image-only messages (no text body) to the agent", async () => {
+    await withTempHome(async (home) => {
+      vi.mocked(runEmbeddedPiAgent).mockImplementation(async () => {
+        return makeResult("I see an image");
+      });
+
+      const cfg = makeCfg(home);
+      const res = await getReplyFromConfig(
+        {
+          Body: "",
+          From: "+1001",
+          To: "+2000",
+          MediaPaths: ["/tmp/photo.jpg"],
+          MediaUrls: ["/tmp/photo.jpg"],
+        },
+        {},
+        cfg,
+      );
+
+      const text = Array.isArray(res) ? res[0]?.text : res?.text;
+      // Should reach the agent, not return the hardcoded empty-body message
+      expect(text).toBe("I see an image");
+    });
+  });
 });
