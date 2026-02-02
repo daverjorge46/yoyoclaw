@@ -399,8 +399,9 @@ export function extractThinkingFromTaggedStream(text: string): string {
     return closed;
   }
 
-  const openRe = /<\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
-  const closeRe = /<\s*\/\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
+  // Match thinking tags with optional attributes (e.g., <thinking reason="...">)
+  const openRe = /<\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>/gi;
+  const closeRe = /<\s*\/\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>/gi;
   const openMatches = [...text.matchAll(openRe)];
   if (openMatches.length === 0) {
     return "";
