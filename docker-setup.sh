@@ -150,7 +150,7 @@ upsert_env() {
   fi
 
   for k in "${keys[@]}"; do
-    if [[ "$seen" != *":$k:"* ]]; then
+    if ! printf '%s' "$seen" | grep -qF ":$k:"; then
       printf '%s=%s\n' "$k" "${!k-}" >>"$tmp"
     fi
   done
