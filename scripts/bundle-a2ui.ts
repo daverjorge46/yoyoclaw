@@ -1,7 +1,7 @@
+import { spawn } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -77,17 +77,27 @@ async function computeHash(): Promise<string> {
 
 function run(cmd: string, args: string[], label: string) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: "inherit", cwd: repoRoot, shell: process.platform === "win32" });
+    const child = spawn(cmd, args, {
+      stdio: "inherit",
+      cwd: repoRoot,
+      shell: process.platform === "win32",
+    });
     child.on("exit", (code, signal) => {
-      if (code === 0) return resolve();
-      reject(new Error(`${label} failed (code=${code ?? "?"}${signal ? ` signal=${signal}` : ""})`));
+      if (code === 0) {
+        return resolve();
+      }
+      reject(
+        new Error(`${label} failed (code=${code ?? "?"}${signal ? ` signal=${signal}` : ""})`),
+      );
     });
   });
 }
 
 async function main() {
   const currentHash = await computeHash();
-  const previousHash = (await exists(HASH_FILE)) ? (await fs.readFile(HASH_FILE, "utf8")).trim() : null;
+  const previousHash = (await exists(HASH_FILE))
+    ? (await fs.readFile(HASH_FILE, "utf8")).trim()
+    : null;
 
   if (previousHash && previousHash === currentHash && (await exists(OUTPUT_FILE))) {
     console.log("A2UI bundle up to date; skipping.");
@@ -95,14 +105,30 @@ async function main() {
   }
 
   // Build vendor A2UI lit renderer TS output, then bundle our bootstrap.
-  await run("pnpm", ["-s", "exec", "tsc", "-p", "vendor/a2ui/renderers/lit/tsconfig.json"], "A2UI lit tsc");
-  await run("pnpm", ["-s", "exec", "rolldown", "-c", "apps/shared/OpenClawKit/Tools/CanvasA2UI/rolldown.config.mjs"], "A2UI rolldown");
+  await run(
+    "pnpm",
+    ["-s", "exec", "tsc", "-p", "vendor/a2ui/renderers/lit/tsconfig.json"],
+    "A2UI lit tsc",
+  );
+  await run(
+    "pnpm",
+    [
+      "-s",
+      "exec",
+      "rolldown",
+      "-c",
+      "apps/shared/OpenClawKit/Tools/CanvasA2UI/rolldown.config.mjs",
+    ],
+    "A2UI rolldown",
+  );
 
   await fs.writeFile(HASH_FILE, `${currentHash}\n`, "utf8");
 
   // sanity
   const outHash = await sha256File(OUTPUT_FILE);
-  if (!outHash) throw new Error("A2UI bundle not generated");
+  if (!outHash) {
+    throw new Error("A2UI bundle not generated");
+  }
 }
 
 main().catch((err) => {
