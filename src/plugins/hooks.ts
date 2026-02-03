@@ -198,7 +198,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     for (const hook of hooks) {
       try {
         const handlerResult = await (
-          hook.handler as (event: unknown, ctx: unknown) => Promise<PluginHookBeforeAgentStartResult>
+          hook.handler as (
+            event: unknown,
+            ctx: unknown,
+          ) => Promise<PluginHookBeforeAgentStartResult>
         )(
           {
             ...event,
@@ -219,7 +222,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
               result?.prependContext && next.prependContext
                 ? `${result.prependContext}\n\n${next.prependContext}`
                 : (next.prependContext ?? result?.prependContext),
-            promptOverride: currentPrompt !== originalPrompt ? currentPrompt : result?.promptOverride,
+            promptOverride:
+              currentPrompt !== originalPrompt ? currentPrompt : result?.promptOverride,
           };
         }
       } catch (err) {
