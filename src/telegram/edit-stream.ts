@@ -9,15 +9,19 @@ import { formatErrorMessage } from "../infra/errors.js";
 import { createTelegramRetryRunner } from "../infra/retry-policy.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import { buildTelegramThreadParams, type TelegramThreadSpec } from "./bot/helpers.js";
-import { renderTelegramHtmlText } from "./format.js";
+import { markdownToTelegramPlainText, renderTelegramHtmlText } from "./format.js";
 import { isRecoverableTelegramNetworkError } from "./network-errors.js";
 import { editMessageTelegram } from "./send.js";
 
 const PARSE_ERR_RE = /can't parse entities|parse entities|find end of the entity/i;
+const BAD_REQUEST_RE = /bad request/i;
 const NOT_MODIFIED_RE = /message is not modified/i;
 const TELEGRAM_TEXT_MAX = 4096;
 
 const normalizeText = (text: string) => text.trimEnd();
+
+const shouldFallbackPlain = (errText: string) =>
+  PARSE_ERR_RE.test(errText) || BAD_REQUEST_RE.test(errText);
 
 const getCutoff = (isGroup: boolean, contentLength: number) => {
   if (isGroup) {
@@ -91,6 +95,7 @@ export function createTelegramEditStream(params: {
   });
   const linkPreviewEnabled = params.linkPreview ?? true;
   const linkPreviewOptions = linkPreviewEnabled ? undefined : { is_disabled: true };
+  const renderPlainText = (value: string) => markdownToTelegramPlainText(value, { tableMode });
   const request = createTelegramRetryRunner({
     configRetry: params.retry,
     verbose: false,
@@ -133,12 +138,13 @@ export function createTelegramEditStream(params: {
       "message",
     ).catch(async (err) => {
       const errText = formatErrorMessage(err);
-      if (!PARSE_ERR_RE.test(errText)) {
+      if (!shouldFallbackPlain(errText)) {
         throw err;
       }
+      const fallbackText = renderPlainText(text);
       return await requestWithDiag(
         () =>
-          params.api.sendMessage(chatId, text, {
+          params.api.sendMessage(chatId, fallbackText, {
             ...paramsWithPreview,
           }),
         "message-plain",
@@ -151,8 +157,9 @@ export function createTelegramEditStream(params: {
     if (!messageId) {
       return;
     }
+    const currentMessageId = messageId;
     try {
-      await editMessageTelegram(chatId, messageId, text, {
+      await editMessageTelegram(chatId, currentMessageId, text, {
         api: params.api,
         cfg: params.cfg,
         accountId: params.accountId ?? undefined,
@@ -160,7 +167,14 @@ export function createTelegramEditStream(params: {
     } catch (err) {
       const errText = formatErrorMessage(err);
       if (!NOT_MODIFIED_RE.test(errText)) {
-        throw err;
+        if (!shouldFallbackPlain(errText)) {
+          throw err;
+        }
+        const fallbackText = renderPlainText(text);
+        await requestWithDiag(
+          () => params.api.editMessageText(chatId, currentMessageId, fallbackText),
+          "editMessage-plain",
+        );
       }
     }
   };

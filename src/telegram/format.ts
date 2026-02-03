@@ -75,6 +75,19 @@ export function renderTelegramHtmlText(
   return markdownToTelegramHtml(text, { tableMode: options.tableMode });
 }
 
+export function markdownToTelegramPlainText(
+  markdown: string,
+  options: { tableMode?: MarkdownTableMode } = {},
+): string {
+  const ir = markdownToIR(markdown ?? "", {
+    linkify: true,
+    headingStyle: "none",
+    blockquotePrefix: "",
+    tableMode: options.tableMode,
+  });
+  return ir.text;
+}
+
 export function markdownToTelegramChunks(
   markdown: string,
   limit: number,
