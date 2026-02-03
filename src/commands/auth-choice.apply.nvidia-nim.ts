@@ -143,7 +143,7 @@ function buildNvidiaNimModelDefinition(entry: NvidiaNimCatalogEntry) {
     name: entry.name,
     reasoning: entry.reasoning,
     input: [...entry.input],
-    cost: NVIDIA_NIM_DEFAULT_COST,
+    cost: { ...NVIDIA_NIM_DEFAULT_COST },
     contextWindow: entry.contextWindow,
     maxTokens: entry.maxTokens,
   };
@@ -219,7 +219,7 @@ export async function applyAuthChoiceNvidiaNim(
     return null;
   }
 
-  const envKey = resolveEnvApiKey("nvidia") ?? resolveEnvApiKey("nvidia-nim");
+  const envKey = resolveEnvApiKey("nvidia-nim");
   if (envKey) {
     const useExisting = await params.prompter.confirm({
       message: `Use existing NVIDIA_API_KEY (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})?`,
@@ -242,9 +242,10 @@ export async function applyAuthChoiceNvidiaNim(
   }
 
   let key: string | undefined;
+  const tokenProvider = params.opts?.tokenProvider?.trim().toLowerCase();
   if (params.opts?.nvidiaNimApiKey) {
     key = params.opts.nvidiaNimApiKey;
-  } else if (params.opts?.token && params.opts?.tokenProvider === "nvidia-nim") {
+  } else if (params.opts?.token && (tokenProvider === "nvidia-nim" || tokenProvider === "nvidia")) {
     key = params.opts.token;
   } else {
     key = await params.prompter.text({
