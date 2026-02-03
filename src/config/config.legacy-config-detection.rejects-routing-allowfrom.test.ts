@@ -250,6 +250,36 @@ describe("legacy config detection", () => {
     expect(res.config?.gateway?.auth?.mode).toBe("token");
     expect((res.config?.gateway as { token?: string })?.token).toBeUndefined();
   });
+  it("rejects channels.telegram.token", async () => {
+    vi.resetModules();
+    const { validateConfigObject } = await import("./config.js");
+    const res = validateConfigObject({
+      channels: { telegram: { token: "123:ABC" } },
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues[0]?.path).toBe("channels.telegram.token");
+    }
+  });
+  it("migrates channels.telegram.token to botToken", async () => {
+    vi.resetModules();
+    const { migrateLegacyConfig } = await import("./config.js");
+    const res = migrateLegacyConfig({
+      channels: { telegram: { token: "123:ABC" } },
+    });
+    expect(res.changes).toContain("Moved channels.telegram.token → channels.telegram.botToken.");
+    expect(res.config?.channels?.telegram?.botToken).toBe("123:ABC");
+    expect((res.config?.channels?.telegram as { token?: string })?.token).toBeUndefined();
+  });
+  it("migrates channels.telegram.accounts.*.token to botToken", async () => {
+    vi.resetModules();
+    const { migrateLegacyConfig } = await import("./config.js");
+    const res = migrateLegacyConfig({
+      channels: { telegram: { accounts: { work: { token: "456:DEF" } } } },
+    });
+    expect(res.changes).toContain("Moved channels.telegram.accounts.work.token → botToken.");
+    expect(res.config?.channels?.telegram?.accounts?.work?.botToken).toBe("456:DEF");
+  });
   it("keeps gateway.bind tailnet", async () => {
     vi.resetModules();
     const { migrateLegacyConfig, validateConfigObject } = await import("./config.js");
