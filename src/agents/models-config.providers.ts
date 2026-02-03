@@ -519,7 +519,7 @@ export async function resolveImplicitProviders(params: {
   }
 
   const nebiusTokenFactoryKey =
-    resolveEnvApiKeyVarName("nebius-token-factory") ??
+    resolveEnvApiKey("nebius-token-factory")?.apiKey ??
     resolveApiKeyFromProfiles({ provider: "nebius-token-factory", store: authStore });
   if (nebiusTokenFactoryKey) {
     providers["nebius-token-factory"] = {
