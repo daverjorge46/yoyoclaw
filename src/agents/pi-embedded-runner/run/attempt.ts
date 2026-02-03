@@ -81,7 +81,6 @@ import { prepareSessionManagerForRun } from "../session-manager-init.js";
 import {
   applySystemPromptOverrideToSession,
   buildEmbeddedSystemPrompt,
-  createSystemPromptOverride,
 } from "../system-prompt.js";
 import { splitSdkTools } from "../tool-split.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";

@@ -67,7 +67,6 @@ import { prewarmSessionFile, trackSessionManagerAccess } from "./session-manager
 import {
   applySystemPromptOverrideToSession,
   buildEmbeddedSystemPrompt,
-  createSystemPromptOverride,
 } from "./system-prompt.js";
 import { splitSdkTools } from "./tool-split.js";
 import { describeUnknownError, mapThinkingLevel, resolveExecToolDefaults } from "./utils.js";
