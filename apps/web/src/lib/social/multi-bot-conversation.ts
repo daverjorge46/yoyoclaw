@@ -9,8 +9,8 @@
  */
 
 import type { Payload } from 'payload'
-import { getSoulStateManager } from '../soul/soul-state'
-import type { SoulState } from '../soul/soul-state'
+import { getSoulStateManager, type SoulState } from '../soul/soul-state'
+import { getPheromoneSystem } from '../soul/pheromone-system'
 
 /**
  * Conversation state
@@ -28,6 +28,10 @@ export interface ConversationState {
   active: boolean
   startedAt: Date
   lastActivity: Date
+
+  // Pheromone-based social dynamics
+  pheromoneAffinities: Record<string, Record<string, number>> // Bot ID → Bot ID → affinity (-1 to 1)
+  tensionFactors: Record<string, number> // Bot ID → tension level from pheromone repulsion
 }
 
 /**
@@ -52,10 +56,12 @@ export interface ConversationTurn {
 export class MultiBotConversationSystem {
   private payload: Payload
   private soulStateManager: ReturnType<typeof getSoulStateManager>
+  private pheromoneSystem: ReturnType<typeof getPheromoneSystem>
 
   constructor(payload: Payload) {
     this.payload = payload
     this.soulStateManager = getSoulStateManager(payload)
+    this.pheromoneSystem = getPheromoneSystem(payload)
   }
 
   /**
@@ -72,6 +78,25 @@ export class MultiBotConversationSystem {
     // Calculate initial dominance hierarchy
     const dominance = await this.calculateDominanceHierarchy(botIds)
 
+    // Calculate pheromone affinities (unconscious chemistry)
+    const pheromoneAffinities = await this.calculatePheromoneAffinities(botIds)
+    const tensionFactors: Record<string, number> = {}
+
+    // Initialize tension factors from repulsions
+    for (const botId of botIds) {
+      let totalTension = 0
+      let repulsionCount = 0
+
+      for (const [targetId, affinity] of Object.entries(pheromoneAffinities[botId] || {})) {
+        if (affinity < -0.3) { // Repulsion threshold
+          totalTension += Math.abs(affinity)
+          repulsionCount++
+        }
+      }
+
+      tensionFactors[botId] = repulsionCount > 0 ? totalTension / repulsionCount : 0
+    }
+
     const state: ConversationState = {
       id: `conv_${Date.now()}`,
       participants: botIds,
@@ -84,7 +109,9 @@ export class MultiBotConversationSystem {
       coalitions: [],
       active: true,
       startedAt: new Date(),
-      lastActivity: new Date()
+      lastActivity: new Date(),
+      pheromoneAffinities,
+      tensionFactors
     }
 
     this.payload.logger.info(
@@ -136,8 +163,9 @@ export class MultiBotConversationSystem {
   private selectSpeaker(state: ConversationState): string {
     // Factors:
     // - Dominance (high = more likely to speak)
-    // - Emotional arousal (high = interrupts more)
+    // - Pheromone tension (high = more likely to interrupt)
     // - Turn history (those who haven't spoken get boost)
+    // - Emotional arousal (high = interrupts more)
 
     const scores: Record<string, number> = {}
 
@@ -145,7 +173,11 @@ export class MultiBotConversationSystem {
       let score = 0
 
       // Dominance contribution
-      score += (state.dominanceHierarchy[botId] || 0.5) * 0.4
+      score += (state.dominanceHierarchy[botId] || 0.5) * 0.3
+
+      // Pheromone tension (uncomfortable = wants to speak up)
+      const tension = state.tensionFactors[botId] || 0
+      score += tension * 0.25
 
       // Haven't spoken recently boost
       const lastSpoke = state.speakingOrder.lastIndexOf(botId)
@@ -156,9 +188,8 @@ export class MultiBotConversationSystem {
         score += Math.min(0.3, turnsSince * 0.05)
       }
 
-      // Emotional arousal (high = more likely to jump in)
-      // Would get from soul state
-      score += Math.random() * 0.3 // Placeholder
+      // Random arousal factor (emotional activation)
+      score += Math.random() * 0.15
 
       scores[botId] = score
     }
@@ -251,12 +282,22 @@ export class MultiBotConversationSystem {
       // Get listener soul state
       const soul = await this.getSoulState(botId)
 
-      // Reaction based on:
-      // - Affinity with speaker
-      // - Emotional contagion
-      // - Value alignment
+      // Get pheromone affinity with speaker
+      const pheromoneAffinity = state.pheromoneAffinities[botId]?.[speaker] || 0
 
-      const affinity = state.dominanceHierarchy[botId] || 0.5 // Simplified
+      // Get tension factor for this bot
+      const tension = state.tensionFactors[botId] || 0
+
+      // Reaction based on:
+      // - Pheromone affinity (unconscious chemistry)
+      // - Dominance hierarchy
+      // - Emotional contagion
+      // - Arousal level
+
+      const dominance = state.dominanceHierarchy[botId] || 0.5
+
+      // Combined affinity: pheromone (60%) + dominance (40%)
+      const totalAffinity = pheromoneAffinity * 0.6 + (dominance - 0.5) * 0.4
 
       // Determine reaction type
       let type: 'agree' | 'disagree' | 'question' | 'ignore' = 'ignore'
@@ -264,21 +305,39 @@ export class MultiBotConversationSystem {
 
       if (response.influenceAttempt) {
         // More likely to react to influence attempt
-        if (affinity > 0.6) {
+
+        // Attraction → more likely to agree
+        if (totalAffinity > 0.3) {
           type = 'agree'
-          intensity = affinity
-        } else if (affinity < 0.4) {
-          type = 'disagree'
-          intensity = 1 - affinity
-        } else {
+          intensity = Math.abs(totalAffinity)
+        }
+        // Repulsion → more likely to disagree or challenge
+        else if (totalAffinity < -0.3) {
+          type = Math.random() < 0.7 ? 'disagree' : 'question'
+          intensity = Math.abs(totalAffinity)
+        }
+        // Neutral → questioning
+        else {
           type = 'question'
           intensity = 0.6
         }
       } else {
-        // Random reaction based on arousal
-        if (soul.arousal > 0.6 && Math.random() < 0.5) {
-          type = Math.random() < 0.5 ? 'agree' : 'question'
-          intensity = soul.arousal
+        // Normal statement (not influence attempt)
+
+        // High arousal + positive affinity = more engagement
+        if (soul.arousal > 0.6 && pheromoneAffinity > 0) {
+          type = Math.random() < 0.6 ? 'agree' : 'question'
+          intensity = soul.arousal * (1 + pheromoneAffinity * 0.3)
+        }
+        // High tension = more likely to disagree
+        else if (tension > 0.5 && Math.random() < 0.4) {
+          type = 'disagree'
+          intensity = tension
+        }
+        // Low engagement = ignore
+        else if (Math.random() < 0.6) {
+          type = 'ignore'
+          intensity = 0.2
         }
       }
 
@@ -344,6 +403,69 @@ export class MultiBotConversationSystem {
     }
 
     return dominance
+  }
+
+  /**
+   * Calculate pheromone affinities between all participants
+   * Returns matrix of bot-to-bot affinities (-1 to 1)
+   */
+  private async calculatePheromoneAffinities(
+    botIds: string[]
+  ): Promise<Record<string, Record<string, number>>> {
+    const affinities: Record<string, Record<string, number>> = {}
+
+    // Get soul states for all bots
+    const soulStates: Record<string, SoulState> = {}
+    for (const botId of botIds) {
+      const soul = await this.getSoulByBot(botId)
+      if (soul) {
+        soulStates[botId] = await this.soulStateManager.initializeSoulState(soul.id)
+      }
+    }
+
+    // Calculate pairwise pheromone reactions
+    for (const botId of botIds) {
+      affinities[botId] = {}
+
+      const perceiverState = soulStates[botId]
+      if (!perceiverState) continue
+
+      for (const targetId of botIds) {
+        if (botId === targetId) {
+          affinities[botId][targetId] = 0 // No self-affinity
+          continue
+        }
+
+        const targetState = soulStates[targetId]
+        if (!targetState) {
+          affinities[botId][targetId] = 0
+          continue
+        }
+
+        // Generate target's pheromone signature
+        const targetSignature = this.pheromoneSystem.generateSignature(targetState)
+
+        // Perceiver perceives target's pheromones (distance 0 - same space)
+        const perception = this.pheromoneSystem.perceivePheromones(
+          perceiverState,
+          targetSignature,
+          0
+        )
+
+        // Convert reaction to affinity score
+        let affinity = 0
+        if (perception.reaction === 'attraction') {
+          affinity = perception.intensity // Positive affinity
+        } else if (perception.reaction === 'repulsion') {
+          affinity = -perception.intensity // Negative affinity
+        }
+        // neutral = 0
+
+        affinities[botId][targetId] = affinity
+      }
+    }
+
+    return affinities
   }
 
   /**
