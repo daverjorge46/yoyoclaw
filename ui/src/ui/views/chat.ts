@@ -13,6 +13,7 @@ import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-norm
 import { icons } from "../icons";
 import { renderMarkdownSidebar } from "./markdown-sidebar";
 import { t } from "../i18n";
+import type { ConfiguredModelOption } from "./agents";
 import "../components/resizable-divider";
 
 export type CompactionIndicatorStatus = {
@@ -29,6 +30,9 @@ export type ChatProps = {
   loading: boolean;
   sending: boolean;
   canAbort?: boolean;
+  availableModels: ConfiguredModelOption[];
+  selectedModel: string | null;
+  onModelChange: (model: string) => void;
   compactionStatus?: CompactionIndicatorStatus | null;
   messages: unknown[];
   toolMessages: unknown[];
@@ -353,6 +357,22 @@ export function renderChat(props: ChatProps) {
     }
 
       <div class="chat-compose">
+        ${props.availableModels.length > 0 ? html`
+          <div class="chat-model-selector" style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <select
+              class="select select--sm"
+              style="max-width: 200px; font-size: 0.85rem;" title="Select Model"
+              .value=${props.selectedModel || ""}
+              ?disabled=${!props.connected}
+              @change=${(e: Event) => props.onModelChange((e.target as HTMLSelectElement).value)}
+            >
+              <option value="" ?selected=${!props.selectedModel}>Default Model</option>
+              ${props.availableModels.map(
+                (m) => html`<option value=${m.value} ?selected=${m.value === props.selectedModel}>${m.label}</option>`
+              )}
+            </select>
+          </div>
+        ` : nothing}
         ${renderAttachmentPreview(props)}
         <div class="chat-compose__row">
           <label class="field chat-compose__field">

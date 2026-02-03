@@ -51,7 +51,7 @@ import {
 } from "./controllers/skills";
 import { icons } from "./icons";
 import { TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation";
-import { renderAgents } from "./views/agents";
+import { renderAgents, resolveConfiguredModels } from "./views/agents";
 import { renderChannels } from "./views/channels";
 import { renderChat } from "./views/chat";
 import { renderConfig } from "./views/config";
@@ -771,7 +771,10 @@ export function renderApp(state: AppViewState) {
 
         ${state.tab === "chat"
       ? renderChat({
-        sessionKey: state.sessionKey,
+        availableModels: resolveConfiguredModels(state.configForm),
+            selectedModel: state.sessionsResult?.sessions?.find((s) => s.key === state.sessionKey)?.model ?? null,
+            onModelChange: (model: string) => state.handleSessionsPatch(state.sessionKey, { model: model || null }),
+            sessionKey: state.sessionKey,
         onSessionKeyChange: (next) => {
           state.sessionKey = next;
           state.chatMessage = "";
