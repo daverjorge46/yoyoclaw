@@ -491,6 +491,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       (acc, next) => ({
         block: next.block ?? acc?.block,
         blockReason: next.blockReason ?? acc?.blockReason,
+        blockStatusCode: next.blockStatusCode ?? acc?.blockStatusCode,
         modifiedContent: next.modifiedContent ?? acc?.modifiedContent,
         modifiedResponseBody: next.modifiedResponseBody ?? acc?.modifiedResponseBody,
       }),
@@ -515,6 +516,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       (acc, next) => ({
         block: next.block ?? acc?.block,
         blockReason: next.blockReason ?? acc?.blockReason,
+        blockStatusCode: next.blockStatusCode ?? acc?.blockStatusCode,
         modifiedParams: next.modifiedParams ?? acc?.modifiedParams,
       }),
     );
@@ -539,6 +541,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       (acc, next) => ({
         block: next.block ?? acc?.block,
         blockReason: next.blockReason ?? acc?.blockReason,
+        blockStatusCode: next.blockStatusCode ?? acc?.blockStatusCode,
         modifiedResult: next.modifiedResult ?? acc?.modifiedResult,
       }),
     );

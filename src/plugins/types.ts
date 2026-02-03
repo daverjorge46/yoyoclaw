@@ -569,6 +569,8 @@ export type PluginHookHttpToolInvokeResult = {
   block?: boolean;
   /** Reason for blocking */
   blockReason?: string;
+  /** HTTP status code for block response (default: 400) */
+  blockStatusCode?: number;
   /** Modified parameters */
   modifiedParams?: Record<string, unknown>;
 };
@@ -596,6 +598,8 @@ export type PluginHookHttpToolResultResult = {
   block?: boolean;
   /** Reason for blocking */
   blockReason?: string;
+  /** HTTP status code for block response (default: 400) */
+  blockStatusCode?: number;
   /** Modified result */
   modifiedResult?: unknown;
 };

@@ -373,7 +373,7 @@ export async function handleToolsInvokeHttpRequest(
       );
 
       if (preHook?.block) {
-        sendJson(res, 400, {
+        sendJson(res, preHook.blockStatusCode ?? 400, {
           ok: false,
           error: {
             type: "security_block",
@@ -424,7 +424,7 @@ export async function handleToolsInvokeHttpRequest(
         );
 
         if (postHook?.block) {
-          sendJson(res, 400, {
+          sendJson(res, postHook.blockStatusCode ?? 400, {
             ok: false,
             error: {
               type: "security_block",
