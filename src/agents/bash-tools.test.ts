@@ -561,4 +561,29 @@ describe("buildDockerExecArgs env var blocking", () => {
     const envArgs = args.filter((_, i) => args[i - 1] === "-e");
     expect(envArgs).toContain("PATH=/custom/bin:/usr/bin");
   });
+
+  it("blocks mixed-case variants of dangerous env vars", () => {
+    const args = buildDockerExecArgs({
+      containerName: "test-container",
+      command: "echo hello",
+      env: {
+        node_options: "--require=/tmp/malicious.js",
+        Node_Options: "--require=/tmp/malicious.js",
+        ld_preload: "/tmp/malicious.so",
+        Ld_Preload: "/tmp/malicious.so",
+        pythonpath: "/tmp/malicious-python",
+        SAFE_VAR: "safe-value",
+        HOME: "/home/user",
+      },
+      tty: false,
+    });
+
+    const envArgs = args.filter((_, i) => args[i - 1] === "-e");
+    // All mixed-case dangerous vars should be blocked
+    expect(envArgs.some((arg) => arg.toLowerCase().startsWith("node_options="))).toBe(false);
+    expect(envArgs.some((arg) => arg.toLowerCase().startsWith("ld_preload="))).toBe(false);
+    expect(envArgs.some((arg) => arg.toLowerCase().startsWith("pythonpath="))).toBe(false);
+    // Safe vars should still be passed
+    expect(envArgs).toContain("SAFE_VAR=safe-value");
+  });
 });
