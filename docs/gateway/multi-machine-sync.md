@@ -31,7 +31,7 @@ OpenClaw's [`$include` directive](/gateway/configuration#config-includes-include
 
 ### Step 1: Create Machine-Specific Config Files
 
-On your **server** (e.g., `chex`):
+On your **server**:
 
 ```bash
 cat > ~/.openclaw/gateway-local.json5 << 'EOF'
