@@ -34,7 +34,7 @@ export function useConfig() {
 export function useConfigSchema() {
   return useQuery({
     queryKey: configKeys.schema(),
-    queryFn: getConfigSchema,
+    queryFn: () => getConfigSchema(),
     staleTime: 1000 * 60 * 60, // 1 hour (schema rarely changes)
   });
 }

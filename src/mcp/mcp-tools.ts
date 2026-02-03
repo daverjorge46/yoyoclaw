@@ -78,79 +78,6 @@ function mcpPiToolName(serverId: string, toolName: string): string {
   return `mcp__${s}__${t}`;
 }
 
-function detectAuthRequired(server: McpServerConfig): boolean {
-  // HTTP or SSE transports use headers
-  if ("headers" in server && server.headers) {
-    const headerEntries = Object.entries(server.headers).filter(
-      (e): e is [string, string] => typeof e[0] === "string" && typeof e[1] === "string",
-    );
-    if (headerEntries.length > 0) {
-      return true;
-    }
-  }
-  // STDIO transport uses environment variables
-  if ("env" in server && server.env) {
-    const envEntries = Object.entries(server.env).filter(
-      (e): e is [string, string] => typeof e[0] === "string" && typeof e[1] === "string",
-    );
-    if (envEntries.length > 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function getTransportHint(server: McpServerConfig): string {
-  if (server.transport === "http") {
-    return "[HTTP]";
-  } else if (server.transport === "sse") {
-    return "[SSE]";
-  } else if (server.transport === "stdio") {
-    return "[Local]";
-  }
-  return "[Unknown]";
-}
-
-function buildEnhancedDescription(
-  originalDescription: string,
-  server: McpServerConfig,
-  serverLabel: string = "MCP Server",
-): string {
-  const hint = getTransportHint(server);
-  const authHint = detectAuthRequired(server) ? "[Requires Auth]" : "";
-
-  const parts = [hint];
-  if (authHint) {
-    parts.push(authHint);
-  }
-
-  const description = originalDescription || "Tool";
-  parts.push(`${description} (via ${serverLabel})`);
-
-  return parts.join(" ");
-}
-
-function enhanceParameterDescription(schema: Record<string, unknown>): string {
-  // Preserve existing description
-  if (typeof schema.description === "string" && schema.description.trim()) {
-    return schema.description;
-  }
-
-  // Build description from type and enum
-  const parts: string[] = [];
-
-  if (typeof schema.type === "string") {
-    parts.push(schema.type);
-  }
-
-  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-    const enumValues = schema.enum.map((v) => JSON.stringify(v)).join(", ");
-    parts.push(`values: ${enumValues}`);
-  }
-
-  return parts.join("; ") || "Parameter";
-}
-
 function coerceHeaders(headers: Record<string, string> | undefined): HeadersInit | undefined {
   if (!headers) {
     return undefined;
@@ -245,12 +172,21 @@ function enhanceParameterDescription(
     return param;
   }
 
-  // Add a minimal description based on parameter name and type
-  const type = param.type || "unknown";
+  // Build description from parameter name, type, and enum values
   const enhanced = { ...param };
   const displayName = paramName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  enhanced.description = `${displayName} (${type})`;
 
+  const parts: string[] = [];
+  const type = typeof param.type === "string" ? param.type : "unknown";
+  parts.push(`${displayName} (${type})`);
+
+  // Include enum values if present
+  if (Array.isArray(param.enum) && param.enum.length > 0) {
+    const enumValues = param.enum.map((v) => JSON.stringify(v)).join(", ");
+    parts.push(`values: ${enumValues}`);
+  }
+
+  enhanced.description = parts.join("; ");
   return enhanced;
 }
 
@@ -490,15 +426,6 @@ function buildMcpPiTool(params: {
         params.serverId,
         params.serverLabel,
         params.serverConfig,
-      )
-    : (params.tool.description ?? `MCP tool: ${params.tool.name}`);
-
-  // Build enhanced description when serverConfig is provided
-  const description = params.serverConfig
-    ? buildEnhancedDescription(
-        params.tool.description || "",
-        params.serverConfig,
-        params.serverLabel || params.serverId,
       )
     : (params.tool.description ?? `MCP tool: ${params.tool.name}`);
 

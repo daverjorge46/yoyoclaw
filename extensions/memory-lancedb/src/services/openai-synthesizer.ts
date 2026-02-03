@@ -5,7 +5,7 @@ import { join } from "node:path";
 import OpenAI from "openai";
 import type { Synthesizer, MemoryEntry } from "../types.js";
 
-async function logLedger(api: ClawdbrainPluginApi, action: string, data: any) {
+async function logLedger(api: ClawdbrainPluginApi, action: string, data: Record<string, unknown>) {
   const logDir = join(homedir(), ".clawdbrain", "logs");
   const logPath = join(logDir, "memory-ledger.jsonl");
   const entry = {
@@ -80,7 +80,7 @@ Return JSON:
       const content = response.choices[0].message.content ?? "{}";
       const result = JSON.parse(content);
 
-      const merged: MemoryEntry[] = (result.merged || []).map((m: any) => ({
+      const merged: MemoryEntry[] = (result.merged || []).map((m: Record<string, unknown>) => ({
         id: "new-" + Math.random().toString(36).slice(2, 9), // Temp ID
         text: m.text,
         vector: [], // Will need re-embedding
