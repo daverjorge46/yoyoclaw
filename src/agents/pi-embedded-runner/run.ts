@@ -93,8 +93,24 @@ export async function runEmbeddedPiAgent(
       const resolvedWorkspace = resolveUserPath(params.workspaceDir);
       const prevCwd = process.cwd();
 
-      const provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
-      const modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+      // Resolve provider/model: params > config primary > hardcoded defaults
+      let targetProvider = params.provider?.trim();
+      let targetModel = params.model?.trim();
+
+      if (!targetProvider && !targetModel) {
+        const primary = params.config?.agents?.defaults?.model?.primary?.trim();
+        if (primary) {
+          // Parse "provider/model" or "provider/namespace/model" by splitting on first slash
+          const firstSlash = primary.indexOf("/");
+          if (firstSlash > 0 && firstSlash < primary.length - 1) {
+            targetProvider = primary.substring(0, firstSlash).trim();
+            targetModel = primary.substring(firstSlash + 1).trim();
+          }
+        }
+      }
+
+      const provider = targetProvider || DEFAULT_PROVIDER;
+      const modelId = targetModel || DEFAULT_MODEL;
       const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
       const fallbackConfigured =
         (params.config?.agents?.defaults?.model?.fallbacks?.length ?? 0) > 0;
