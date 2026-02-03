@@ -8,29 +8,32 @@
   const assetsBase = isDocsSite ? "" : "https://docs.openclaw.ai";
   const apiBase = "https://claw-api.openknot.ai/api";
 
-  // Load @create-markdown/preview for markdown rendering (via CDN)
-  let markdownToHTML = null;
+  // Load marked for markdown rendering (via CDN)
+  let markedReady = false;
   const loadMarkdownLib = () => {
-    if (window.CreateMarkdownPreview) {
-      markdownToHTML = window.CreateMarkdownPreview.markdownToHTML;
+    if (window.marked) {
+      markedReady = true;
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://unpkg.com/@create-markdown/preview@0.1.0/dist/index.global.js";
+    script.src = "https://cdn.jsdelivr.net/npm/marked@15.0.6/marked.min.js";
     script.onload = () => {
-      if (window.CreateMarkdownPreview) {
-        markdownToHTML = window.CreateMarkdownPreview.markdownToHTML;
+      if (window.marked) {
+        markedReady = true;
       }
     };
-    script.onerror = () => console.warn("Failed to load create-markdown library");
+    script.onerror = () => console.warn("Failed to load marked library");
     document.head.appendChild(script);
   };
   loadMarkdownLib();
 
   // Markdown renderer with fallback before module loads
   const renderMarkdown = (text) => {
-    if (markdownToHTML) {
-      return markdownToHTML(text, { sanitize: true, linkTarget: "_blank" });
+    if (markedReady && window.marked) {
+      // Configure marked for security: disable HTML pass-through
+      const html = window.marked.parse(text, { async: false, gfm: true, breaks: true });
+      // Open links in new tab by rewriting <a> tags
+      return html.replace(/<a href="/g, '<a target="_blank" rel="noopener" href="');
     }
     // Fallback: escape HTML and preserve newlines
     return text
