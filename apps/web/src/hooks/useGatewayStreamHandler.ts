@@ -2,32 +2,25 @@
  * Gateway Stream Handler Hook
  *
  * Processes gateway streaming events and routes them appropriately:
- * - Text deltas go to message content
- * - Tool outputs go ONLY to tool calls (not message content)
- *
- * Uses the gateway client subscription API for event handling.
+ * - `chat` events update streaming message content
+ * - `agent` events with `stream=tool` update tool call UI
+ * - `agent` events with `stream=compaction` update compaction UI
  */
 
-import { useEffect, useCallback } from "react";
-import { getGatewayClient, type GatewayEvent } from "@/lib/api";
-import { useSessionStore } from "@/stores/useSessionStore";
+import { useCallback, useEffect } from "react";
+import { toast } from "sonner";
+import type { GatewayEvent } from "@/lib/api";
 import type { ToolCall } from "@/lib/api/sessions";
+import { useOptionalGateway } from "@/providers/GatewayProvider";
+import { useSessionStore } from "@/stores/useSessionStore";
 
 interface GatewayChatEvent {
   runId: string;
   sessionKey: string;
   seq: number;
   state: "delta" | "final" | "error" | "aborted";
-  message?: {
-    role: string;
-    content?: Array<{ type: string; text?: string; [key: string]: unknown }>;
-    toolUse?: Array<{
-      id: string;
-      name: string;
-      input?: unknown;
-    }>;
-    [key: string]: unknown;
-  };
+  message?: unknown;
+  // Older clients sometimes send a delta field; keep as a best-effort fallback.
   delta?: {
     type: string;
     text?: string;
@@ -35,46 +28,44 @@ interface GatewayChatEvent {
   errorMessage?: string;
 }
 
-interface GatewayToolEvent {
+type GatewayAgentEvent = {
   runId: string;
-  sessionKey: string;
-  toolCallId: string;
-  toolName: string;
-  status: "running" | "done" | "error";
-  input?: string;
-  output?: string;
-  duration?: string;
-  error?: string;
+  seq: number;
+  stream: string;
+  ts: number;
+  data: Record<string, unknown>;
+  sessionKey?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object";
 }
 
-/**
- * Detects if text contains tool output markers
- * Tool outputs typically have patterns like:
- * - "exec" followed by output block
- * - Tool result formatting
- */
-function isToolOutputText(text: string): boolean {
-  // Common tool output patterns
-  const toolOutputPatterns = [
-    /^exec\s*$/m, // "exec" command marker
-    /^```[\s\S]*?```$/m, // Code blocks (often tool output)
-    /^total \d+\s*$/m, // ls output
-    /^drwxr-xr-x/m, // File permissions (ls -la)
-    /^\w+@\w+:/m, // Terminal prompts
-  ];
+function asString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
 
-  return toolOutputPatterns.some((pattern) => pattern.test(text));
+function toPrettyString(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 /**
  * Extracts text content from message structure
  */
-function extractTextContent(message: GatewayChatEvent["message"]): string {
-  if (!message?.content) return "";
+function extractTextContent(message: unknown): string {
+  if (!isRecord(message)) return "";
+  const content = message.content;
+  if (!Array.isArray(content)) return "";
 
-  const textBlocks = message.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text || "");
+  const textBlocks = content
+    .filter((block) => isRecord(block) && block.type === "text")
+    .map((block) => (typeof block.text === "string" ? block.text : ""));
 
   return textBlocks.join("\n");
 }
@@ -82,17 +73,21 @@ function extractTextContent(message: GatewayChatEvent["message"]): string {
 /**
  * Extracts tool calls from message structure
  */
-function extractToolCalls(message: GatewayChatEvent["message"]): ToolCall[] {
-  if (!message?.toolUse || !Array.isArray(message.toolUse)) {
+function extractToolCalls(message: unknown): ToolCall[] {
+  if (!isRecord(message)) return [];
+  const toolUse = message.toolUse;
+  if (!Array.isArray(toolUse)) {
     return [];
   }
 
-  return message.toolUse.map((tool) => ({
-    id: tool.id,
-    name: tool.name,
-    status: "done" as const,
-    input: typeof tool.input === "string" ? tool.input : JSON.stringify(tool.input, null, 2),
-  }));
+  return toolUse
+    .filter((tool) => isRecord(tool))
+    .map((tool) => ({
+      id: asString(tool.id) ?? "unknown",
+      name: asString(tool.name) ?? "unknown",
+      status: "done" as const,
+      input: toPrettyString(tool.input),
+    }));
 }
 
 export interface UseGatewayStreamHandlerOptions {
@@ -100,119 +95,151 @@ export interface UseGatewayStreamHandlerOptions {
   enabled?: boolean;
 }
 
-/**
- * Hook that processes gateway streaming events and updates session store appropriately.
- *
- * Ensures tool outputs are NEVER added to message content - they only go to tool calls.
- * Uses the gateway client subscription API for proper event handling.
- */
 export function useGatewayStreamHandler(options: UseGatewayStreamHandlerOptions = {}) {
   const { enabled = true } = options;
-  const sessionStore = useSessionStore();
+  const gatewayCtx = useOptionalGateway();
+
+  const startStreaming = useSessionStore((s) => s.startStreaming);
+  const setStreamingContent = useSessionStore((s) => s.setStreamingContent);
+  const appendStreamingContent = useSessionStore((s) => s.appendStreamingContent);
+  const updateToolCall = useSessionStore((s) => s.updateToolCall);
+  const finishStreaming = useSessionStore((s) => s.finishStreaming);
+  const clearStreaming = useSessionStore((s) => s.clearStreaming);
+  const findSessionKeyByRunId = useSessionStore((s) => s.findSessionKeyByRunId);
+
+  const ensureStreaming = useCallback(
+    (sessionKey: string, runId: string) => {
+      const existing = useSessionStore.getState().streamingMessages[sessionKey];
+      if (!existing) {
+        startStreaming(sessionKey, runId);
+      }
+    },
+    [startStreaming]
+  );
 
   const handleChatEvent = useCallback(
     (event: GatewayChatEvent) => {
       const { sessionKey, state } = event;
+      ensureStreaming(sessionKey, event.runId);
 
       switch (state) {
         case "delta": {
-          // Only append text deltas that are NOT tool outputs
+          // Gateway `chat` delta uses the full assistant buffer in `message.content[]` (not a token delta).
+          if (event.message) {
+            setStreamingContent(sessionKey, extractTextContent(event.message));
+            break;
+          }
+
+          // Fallback for any older/alternate delta shapes.
           if (event.delta?.type === "text" && event.delta.text) {
-            const text = event.delta.text;
-
-            // Skip if this looks like tool output
-            if (isToolOutputText(text)) {
-              console.debug(
-                "[StreamHandler] Skipping tool output from message content:",
-                text.substring(0, 50)
-              );
-              return;
-            }
-
-            sessionStore.appendStreamingContent(sessionKey, text);
+            appendStreamingContent(sessionKey, event.delta.text);
           }
           break;
         }
 
         case "final": {
-          // Extract text content and tool calls separately
           if (event.message) {
-            const textContent = extractTextContent(event.message);
-            const toolCalls = extractToolCalls(event.message);
-
-            // Only set text content if it's not empty and not a tool output
-            if (textContent && !isToolOutputText(textContent)) {
-              sessionStore.appendStreamingContent(sessionKey, textContent);
+            setStreamingContent(sessionKey, extractTextContent(event.message));
+            for (const toolCall of extractToolCalls(event.message)) {
+              updateToolCall(sessionKey, toolCall);
             }
-
-            // Add tool calls separately
-            toolCalls.forEach((toolCall) => {
-              sessionStore.updateToolCall(sessionKey, toolCall);
-            });
           }
 
-          sessionStore.finishStreaming(sessionKey);
+          finishStreaming(sessionKey);
           break;
         }
 
         case "error": {
           console.error("[StreamHandler] Chat error:", event.errorMessage);
-          sessionStore.finishStreaming(sessionKey);
+          finishStreaming(sessionKey);
           break;
         }
 
         case "aborted": {
           console.debug("[StreamHandler] Chat aborted");
-          sessionStore.clearStreaming(sessionKey);
+          clearStreaming(sessionKey);
           break;
         }
       }
     },
-    [sessionStore]
+    [appendStreamingContent, clearStreaming, ensureStreaming, finishStreaming, setStreamingContent, updateToolCall]
   );
 
-  const handleToolEvent = useCallback(
-    (event: GatewayToolEvent) => {
-      const { sessionKey, toolCallId, toolName, status, input, output, duration, error } = event;
+  const handleAgentEvent = useCallback(
+    (raw: GatewayAgentEvent) => {
+      const data = raw.data ?? {};
+      const explicitSessionKey = asString(raw.sessionKey) ?? asString(data.sessionKey);
+      const sessionKey = explicitSessionKey ?? findSessionKeyByRunId(raw.runId);
+      if (!sessionKey) return;
 
-      sessionStore.updateToolCall(sessionKey, {
-        id: toolCallId,
-        name: toolName,
-        status,
-        input,
-        output,
-        duration,
-      });
+      if (raw.stream === "tool") {
+        const toolCallId = asString(data.toolCallId) ?? asString(data.id);
+        if (!toolCallId) return;
 
-      if (error) {
-        console.error(`[StreamHandler] Tool error (${toolName}):`, error);
+        const toolName = asString(data.name) ?? asString(data.toolName) ?? "unknown";
+        const phase = asString(data.phase) ?? asString(data.status);
+
+        let status: ToolCall["status"] = "running";
+        if (phase === "finish" || phase === "done" || phase === "end" || phase === "complete") {
+          status = "done";
+        } else if (phase === "error" || phase === "failed") {
+          status = "error";
+        } else if (phase === "start" || phase === "running") {
+          status = "running";
+        }
+
+        const duration =
+          asString(data.duration) ??
+          (typeof data.durationMs === "number" ? `${Math.round(data.durationMs)}ms` : undefined);
+
+        ensureStreaming(sessionKey, raw.runId);
+        updateToolCall(sessionKey, {
+          id: toolCallId,
+          name: toolName,
+          status,
+          input: toPrettyString(data.input),
+          output: toPrettyString(data.output ?? data.result ?? data.text),
+          duration,
+          progress: typeof data.progress === "number" ? data.progress : undefined,
+        });
+        return;
+      }
+
+      if (raw.stream === "compaction") {
+        const phase = asString(data.phase);
+        const toastId = `compaction:${sessionKey}`;
+        if (phase === "start") {
+          toast.loading("Compacting context…", { id: toastId });
+        } else if (phase === "end" || phase === "done") {
+          toast.dismiss(toastId);
+        } else if (phase === "error") {
+          toast.error("Compaction failed", { id: toastId });
+        }
       }
     },
-    [sessionStore]
+    [ensureStreaming, findSessionKeyByRunId, updateToolCall]
+  );
+
+  const handleEvent = useCallback(
+    (event: GatewayEvent) => {
+      // Handle chat streaming events
+      if (event.event === "chat") {
+        handleChatEvent(event.payload as GatewayChatEvent);
+        return;
+      }
+
+      // Tool output + compaction come from `agent` stream events.
+      if (event.event === "agent") {
+        handleAgentEvent(event.payload as GatewayAgentEvent);
+        return;
+      }
+    },
+    [handleAgentEvent, handleChatEvent]
   );
 
   useEffect(() => {
     if (!enabled) return;
-
-    const client = getGatewayClient();
-
-    // Subscribe to chat and tool events using the subscription API
-    const unsubscribeChat = client.subscribe("chat", (event: GatewayEvent) => {
-      handleChatEvent(event.payload as GatewayChatEvent);
-    });
-
-    const unsubscribeTool = client.subscribe("tool", (event: GatewayEvent) => {
-      handleToolEvent(event.payload as GatewayToolEvent);
-    });
-
-    // Connect if not already connected
-    if (!client.isConnected()) {
-      void client.connect();
-    }
-
-    return () => {
-      unsubscribeChat();
-      unsubscribeTool();
-    };
-  }, [enabled, handleChatEvent, handleToolEvent]);
+    if (!gatewayCtx) return;
+    return gatewayCtx.addEventListener(handleEvent);
+  }, [enabled, gatewayCtx, handleEvent]);
 }

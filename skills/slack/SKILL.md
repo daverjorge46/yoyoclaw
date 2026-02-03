@@ -20,16 +20,17 @@ Message context lines include `slack message id` and `channel` fields you can re
 
 ---
 
-### ⚠️ CRITICAL: Channel ID Format
+### ℹ️ Channel ID Format
 
-**Channel IDs MUST be UPPERCASE.** Lowercase IDs will fail with "Slack channels require a channel id".
+**Channel IDs are automatically normalized to uppercase.** You can use lowercase IDs and the tool will handle the conversion.
 
-| ❌ WRONG | ✅ CORRECT |
-|----------|-----------|
-| `channel:c0aap72r7l5` | `channel:C0AAP72R7L5` |
-| `c0aap72r7l5` | `C0AAP72R7L5` |
+| Input                 | Normalized    |
+| --------------------- | ------------- |
+| `channel:c0aap72r7l5` | `C0AAP72R7L5` |
+| `#c0aap72r7l5`        | `C0AAP72R7L5` |
+| `C0AAP72R7L5`         | `C0AAP72R7L5` |
 
-When extracting channel IDs from context (like `[channel: C0AAP72R7L5]`), use them **exactly as shown** — they're already uppercase.
+When extracting channel IDs from context (like `[channel: C0AAP72R7L5]`), you can use them directly.
 
 ---
 

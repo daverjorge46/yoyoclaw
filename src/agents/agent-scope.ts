@@ -19,6 +19,7 @@ type ResolvedAgentConfig = {
   workspace?: string;
   agentDir?: string;
   model?: AgentEntry["model"];
+  skills?: AgentEntry["skills"];
   memorySearch?: AgentEntry["memorySearch"];
   humanDelay?: AgentEntry["humanDelay"];
   heartbeat?: AgentEntry["heartbeat"];
@@ -27,6 +28,7 @@ type ResolvedAgentConfig = {
   subagents?: AgentEntry["subagents"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
+  mcpServers?: AgentEntry["mcpServers"];
   runtime?: any; // TODO: Add proper runtime type
   claudeSdkOptions?: any; // TODO: Add proper ClaudeSdkOptions type
 };
@@ -114,10 +116,12 @@ export function resolveAgentConfig(
       typeof entry.model === "string" || (entry.model && typeof entry.model === "object")
         ? entry.model
         : undefined,
+    skills: Array.isArray(entry.skills) ? entry.skills : undefined,
     memorySearch: entry.memorySearch,
     humanDelay: entry.humanDelay,
     heartbeat: entry.heartbeat,
     identity: entry.identity,
+    mcpServers: entry.mcpServers,
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
     sandbox: entry.sandbox,
@@ -125,6 +129,18 @@ export function resolveAgentConfig(
     runtime: entry.runtime,
     claudeSdkOptions: entry.claudeSdkOptions,
   };
+}
+
+export function resolveAgentSkillsFilter(
+  cfg: OpenClawConfig,
+  agentId: string,
+): string[] | undefined {
+  const raw = resolveAgentConfig(cfg, agentId)?.skills;
+  if (!raw) {
+    return undefined;
+  }
+  const normalized = raw.map((entry) => String(entry).trim()).filter(Boolean);
+  return normalized.length > 0 ? normalized : [];
 }
 
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {

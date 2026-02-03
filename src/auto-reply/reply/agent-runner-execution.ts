@@ -67,6 +67,7 @@ export async function runAgentTurnWithFallback(params: {
     minChars: number;
     maxChars: number;
     breakPreference: "paragraph" | "newline" | "sentence";
+    flushOnParagraph?: boolean;
   };
   resolvedBlockStreamingBreak: "text_end" | "message_end";
   applyReplyToMode: (payload: ReplyPayload) => ReplyPayload;
@@ -146,6 +147,12 @@ export async function runAgentTurnWithFallback(params: {
       };
       const blockReplyPipeline = params.blockReplyPipeline;
       const onToolResult = params.opts?.onToolResult;
+      // Resolve runtime kind before runWithModelFallback so auth filtering is aware of claude SDK
+      const runtimeKind = resolveSessionRuntimeKind(
+        params.followupRun.run.config,
+        params.followupRun.run.agentId,
+        params.sessionKey,
+      );
       const fallbackResult = await runWithModelFallback({
         cfg: params.followupRun.run.config,
         provider: params.followupRun.run.provider,
@@ -155,6 +162,7 @@ export async function runAgentTurnWithFallback(params: {
           params.followupRun.run.config,
           resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey),
         ),
+        runtimeKind,
         run: async (provider, model) => {
           // Notify that model selection is complete (including after fallback).
           // This allows responsePrefix template interpolation with the actual model.
@@ -175,24 +183,27 @@ export async function runAgentTurnWithFallback(params: {
               },
             });
             const cliSessionId = getCliSessionId(params.getActiveSessionEntry(), provider);
-            return runCliAgent({
-              sessionId: params.followupRun.run.sessionId,
-              sessionKey: params.sessionKey,
-              sessionFile: params.followupRun.run.sessionFile,
-              workspaceDir: params.followupRun.run.workspaceDir,
-              config: params.followupRun.run.config,
-              prompt: params.commandBody,
-              provider,
-              model,
-              thinkLevel: params.followupRun.run.thinkLevel,
-              timeoutMs: params.followupRun.run.timeoutMs,
-              runId,
-              extraSystemPrompt: params.followupRun.run.extraSystemPrompt,
-              ownerNumbers: params.followupRun.run.ownerNumbers,
-              cliSessionId,
-              images: params.opts?.images,
-            })
-              .then((result) => {
+            return (async () => {
+              let lifecycleTerminalEmitted = false;
+              try {
+                const result = await runCliAgent({
+                  sessionId: params.followupRun.run.sessionId,
+                  sessionKey: params.sessionKey,
+                  sessionFile: params.followupRun.run.sessionFile,
+                  workspaceDir: params.followupRun.run.workspaceDir,
+                  config: params.followupRun.run.config,
+                  prompt: params.commandBody,
+                  provider,
+                  model,
+                  thinkLevel: params.followupRun.run.thinkLevel,
+                  timeoutMs: params.followupRun.run.timeoutMs,
+                  runId,
+                  extraSystemPrompt: params.followupRun.run.extraSystemPrompt,
+                  ownerNumbers: params.followupRun.run.ownerNumbers,
+                  cliSessionId,
+                  images: params.opts?.images,
+                });
+
                 // CLI backends don't emit streaming assistant events, so we need to
                 // emit one with the final text so server-chat can populate its buffer
                 // and send the response to TUI/WebSocket clients.
@@ -204,6 +215,7 @@ export async function runAgentTurnWithFallback(params: {
                     data: { text: cliText },
                   });
                 }
+
                 emitAgentEvent({
                   runId,
                   stream: "lifecycle",
@@ -213,9 +225,10 @@ export async function runAgentTurnWithFallback(params: {
                     endedAt: Date.now(),
                   },
                 });
+                lifecycleTerminalEmitted = true;
+
                 return result;
-              })
-              .catch((err) => {
+              } catch (err) {
                 emitAgentEvent({
                   runId,
                   stream: "lifecycle",
@@ -223,25 +236,35 @@ export async function runAgentTurnWithFallback(params: {
                     phase: "error",
                     startedAt,
                     endedAt: Date.now(),
-                    error: err instanceof Error ? err.message : String(err),
+                    error: String(err),
                   },
                 });
+                lifecycleTerminalEmitted = true;
                 throw err;
-              });
+              } finally {
+                // Defensive backstop: never let a CLI run complete without a terminal
+                // lifecycle event, otherwise downstream consumers can hang.
+                if (!lifecycleTerminalEmitted) {
+                  emitAgentEvent({
+                    runId,
+                    stream: "lifecycle",
+                    data: {
+                      phase: "error",
+                      startedAt,
+                      endedAt: Date.now(),
+                      error: "CLI run completed without lifecycle terminal event",
+                    },
+                  });
+                }
+              }
+            })();
           }
           const authProfileId =
             provider === params.followupRun.run.provider
               ? params.followupRun.run.authProfileId
               : undefined;
 
-          // Check runtime configuration to decide between Pi agent and Claude Code SDK
-          // Use resolveSessionRuntimeKind for proper subagent inheritance
-          const runtimeKind = resolveSessionRuntimeKind(
-            params.followupRun.run.config,
-            params.followupRun.run.agentId,
-            params.sessionKey,
-          );
-
+          // runtimeKind is resolved before runWithModelFallback for auth filtering
           // If using Claude Code SDK runtime, create and use SDK runtime
           if (runtimeKind === "claude") {
             // Retrieve Claude SDK session ID from session entry for native session resume

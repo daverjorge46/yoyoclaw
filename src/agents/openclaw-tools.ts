@@ -2,6 +2,8 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { resolvePluginTools } from "../plugins/tools.js";
+import { createSlackInteractiveQuestionTool } from "../slack/tools/interactive-question-tool.js";
+import { createSlackRichMessageTool } from "../slack/tools/rich-message-tool.js";
 import { resolveSessionAgentId } from "./agent-scope.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createBrowserTool } from "./tools/browser-tool.js";
@@ -53,6 +55,8 @@ export function createOpenClawTools(options?: {
   modelHasVision?: boolean;
   /** Explicit agent ID override for cron/hook sessions. */
   requesterAgentIdOverride?: string;
+  /** When true, tools are being exposed in a Claude Agent SDK / tool-bridge context. */
+  isToolBridgeContext?: boolean;
 }): AnyAgentTool[] {
   const imageTool = options?.agentDir?.trim()
     ? createImageTool({
@@ -69,6 +73,15 @@ export function createOpenClawTools(options?: {
   const webFetchTool = createWebFetchTool({
     config: options?.config,
     sandboxed: options?.sandboxed,
+  });
+  const slackRichMessageTool = createSlackRichMessageTool({
+    accountId: options?.agentAccountId,
+    currentChannelId: options?.currentChannelId,
+    currentThreadTs: options?.currentThreadTs,
+  });
+  const slackInteractiveQuestionTool = createSlackInteractiveQuestionTool({
+    accountId: options?.agentAccountId,
+    sessionKey: options?.agentSessionKey,
   });
   const tools: AnyAgentTool[] = [
     createBrowserTool({
@@ -130,6 +143,7 @@ export function createOpenClawTools(options?: {
       agentGroupSpace: options?.agentGroupSpace,
       sandboxed: options?.sandboxed,
       requesterAgentIdOverride: options?.requesterAgentIdOverride,
+      isToolBridgeContext: options?.isToolBridgeContext,
     }),
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
@@ -138,6 +152,8 @@ export function createOpenClawTools(options?: {
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
+    slackRichMessageTool,
+    slackInteractiveQuestionTool,
   ];
 
   const pluginTools = resolvePluginTools({

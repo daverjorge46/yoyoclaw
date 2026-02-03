@@ -83,7 +83,6 @@ export function useGatewayConnection(
 
   const mountedRef = useRef(true);
   const wasConnectedRef = useRef(false);
-  const clientRef = useRef<ReturnType<typeof getGatewayClient> | null>(null);
 
   // Legacy state for backward compatibility
   const [helloData, setHelloData] = useState<GatewayHelloOk | null>(null);
@@ -112,9 +111,7 @@ export function useGatewayConnection(
         }
       },
     };
-    const c = getGatewayClient(config);
-    clientRef.current = c;
-    return c;
+    return getGatewayClient(config);
   }, [url, token, password, onEvent, onGap, onHello]);
 
   const [state, setState] = useState<GatewayConnectionState>(client.getConnectionState());

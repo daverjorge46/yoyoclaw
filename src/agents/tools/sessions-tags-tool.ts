@@ -1,5 +1,4 @@
 import { Type } from "@sinclair/typebox";
-import type { SessionsPatchResult } from "../../gateway/session-utils.types.js";
 import type { AnyAgentTool } from "./common.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
@@ -183,7 +182,7 @@ export function createSessionsTagsTool(opts?: {
         return jsonResult({ ok: false, error: "Provide one of: tags, add/remove, or clear" });
       }
 
-      const patched = await callGateway<SessionsPatchResult>({
+      const patched = await callGateway<{ entry?: { tags?: unknown } }>({
         method: "sessions.patch",
         params: {
           key: canonicalKey,

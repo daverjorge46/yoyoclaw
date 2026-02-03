@@ -4,6 +4,7 @@ import {
   resolveAgentDir,
   resolveAgentModelFallbacksOverride,
   resolveAgentModelPrimary,
+  resolveAgentSkillsFilter,
   resolveAgentWorkspaceDir,
 } from "../agents/agent-scope.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
@@ -11,6 +12,10 @@ import { clearSessionAuthProfileOverride } from "../agents/auth-profiles/session
 import { runCliAgent } from "../agents/cli-runner.js";
 import { getCliSessionId } from "../agents/cli-session.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
+import {
+  createSdkMainAgentRuntime,
+  resolveSessionRuntimeKind,
+} from "../agents/main-agent-runtime-factory.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runWithModelFallback } from "../agents/model-fallback.js";
 import {
@@ -187,11 +192,13 @@ export async function agentCommand(
 
     const needsSkillsSnapshot = isNewSession || !sessionEntry?.skillsSnapshot;
     const skillsSnapshotVersion = getSkillsSnapshotVersion(workspaceDir);
+    const skillFilter = resolveAgentSkillsFilter(cfg, sessionAgentId);
     const skillsSnapshot = needsSkillsSnapshot
       ? buildWorkspaceSkillSnapshot(workspaceDir, {
           config: cfg,
           eligibility: { remote: getRemoteSkillEligibility() },
           snapshotVersion: skillsSnapshotVersion,
+          skillFilter,
         })
       : sessionEntry?.skillsSnapshot;
 
@@ -383,13 +390,16 @@ export async function agentCommand(
         opts.replyChannel ?? opts.channel,
       );
       const spawnedBy = opts.spawnedBy ?? sessionEntry?.spawnedBy;
+      // Resolve runtime kind before runWithModelFallback so auth filtering is aware of claude SDK
+      const runtimeKind = resolveSessionRuntimeKind(cfg, sessionAgentId, sessionKey);
       const fallbackResult = await runWithModelFallback({
         cfg,
         provider,
         model,
         agentDir,
         fallbacksOverride: resolveAgentModelFallbacksOverride(cfg, sessionAgentId),
-        run: (providerOverride, modelOverride) => {
+        runtimeKind,
+        run: async (providerOverride, modelOverride) => {
           if (isCliProvider(providerOverride, cfg)) {
             const cliSessionId = getCliSessionId(sessionEntry, providerOverride);
             return runCliAgent({
@@ -412,6 +422,57 @@ export async function agentCommand(
           }
           const authProfileId =
             providerOverride === provider ? sessionEntry?.authProfileOverride : undefined;
+
+          // runtimeKind is resolved before runWithModelFallback for auth filtering
+          if (runtimeKind === "claude") {
+            const claudeSdkSessionId = sessionEntry?.claudeSdkSessionId?.trim() || undefined;
+            const sdkRuntime = await createSdkMainAgentRuntime({
+              config: cfg,
+              sessionKey,
+              sessionFile,
+              workspaceDir,
+              agentDir,
+              abortSignal: opts.abortSignal,
+              messageProvider: messageChannel,
+              agentAccountId: runContext.accountId,
+              messageTo: opts.replyTo ?? opts.to,
+              messageThreadId: opts.threadId,
+              groupId: runContext.groupId,
+              groupChannel: runContext.groupChannel,
+              groupSpace: runContext.groupSpace,
+              spawnedBy,
+              currentChannelId: runContext.currentChannelId,
+              currentThreadTs: runContext.currentThreadTs,
+              replyToMode: runContext.replyToMode,
+              hasRepliedRef: runContext.hasRepliedRef,
+              claudeSessionId: claudeSdkSessionId,
+            });
+            return sdkRuntime.run({
+              sessionId,
+              sessionKey,
+              sessionFile,
+              workspaceDir,
+              agentDir,
+              config: cfg,
+              prompt: body,
+              extraSystemPrompt: opts.extraSystemPrompt,
+              ownerNumbers: undefined,
+              timeoutMs,
+              runId,
+              abortSignal: opts.abortSignal,
+              images: opts.images,
+              onAgentEvent: (evt) => {
+                if (
+                  evt.stream === "lifecycle" &&
+                  typeof evt.data?.phase === "string" &&
+                  (evt.data.phase === "end" || evt.data.phase === "error")
+                ) {
+                  lifecycleEnded = true;
+                }
+              },
+            });
+          }
+
           return runEmbeddedPiAgent({
             sessionId,
             sessionKey,

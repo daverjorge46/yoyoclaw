@@ -123,6 +123,8 @@ export function createOpenClawCodingTools(options?: {
   workspaceDir?: string;
   config?: OpenClawConfig;
   abortSignal?: AbortSignal;
+  /** Extra tools to append before policy filtering (e.g., MCP tools). */
+  extraTools?: AnyAgentTool[];
   /**
    * Provider of the currently selected model (used for provider-specific tool quirks).
    * Example: "anthropic", "openai", "google", "openai-codex".
@@ -157,6 +159,8 @@ export function createOpenClawCodingTools(options?: {
   hasRepliedRef?: { value: boolean };
   /** If true, the model has native vision capability */
   modelHasVision?: boolean;
+  /** When true, tools are being exposed in a Claude Agent SDK / tool-bridge context. */
+  isToolBridgeContext?: boolean;
 }): AnyAgentTool[] {
   const execToolName = "exec";
   const sandbox = options?.sandbox?.enabled ? options.sandbox : undefined;
@@ -316,6 +320,8 @@ export function createOpenClawCodingTools(options?: {
     processTool as unknown as AnyAgentTool,
     // Channel docking: include channel-defined agent tools (login, etc.).
     ...listChannelAgentTools({ cfg: options?.config }),
+    // External/native tool extensions (e.g., MCP server tools).
+    ...(options?.extraTools ?? []),
     ...createOpenClawTools({
       sandboxBrowserBridgeUrl: sandbox?.browser?.bridgeUrl,
       allowHostBrowserControl: sandbox ? sandbox.browserAllowHostControl : true,
@@ -349,6 +355,7 @@ export function createOpenClawCodingTools(options?: {
       hasRepliedRef: options?.hasRepliedRef,
       modelHasVision: options?.modelHasVision,
       requesterAgentIdOverride: agentId,
+      isToolBridgeContext: options?.isToolBridgeContext,
     }),
   ];
   const coreToolNames = new Set(

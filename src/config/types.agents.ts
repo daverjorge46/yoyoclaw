@@ -4,6 +4,7 @@ import type {
   ClaudeSdkOptions,
 } from "./types.agent-defaults.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
+import type { McpServersConfig } from "./types.mcp.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type {
   SandboxBrowserSettings,
@@ -38,6 +39,8 @@ export type AgentConfig = {
   runtime?: AgentRuntime;
   /** Per-agent Claude SDK options (when runtime is claude). */
   claudeSdkOptions?: ClaudeSdkOptions;
+  /** Optional allowlist of skills for this agent (omit = all skills; empty = none). */
+  skills?: string[];
   memorySearch?: MemorySearchConfig;
   /** Human-like delay between block replies for this agent. */
   humanDelay?: HumanDelayConfig;
@@ -80,6 +83,8 @@ export type AgentConfig = {
     /** Auto-prune overrides for this agent. */
     prune?: SandboxPruneSettings;
   };
+  /** Per-agent MCP server overrides/additions. Merged with root-level `mcpServers`. */
+  mcpServers?: McpServersConfig;
   tools?: AgentToolsConfig;
 };
 

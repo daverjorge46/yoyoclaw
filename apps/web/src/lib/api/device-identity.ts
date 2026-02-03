@@ -31,7 +31,7 @@ const STORAGE_KEY = "clawdbrain-device-identity-v1";
  */
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  for (const byte of bytes) {binary += String.fromCharCode(byte);}
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
 }
 
@@ -43,7 +43,7 @@ function base64UrlDecode(input: string): Uint8Array {
   const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
   const binary = atob(padded);
   const out = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) out[i] = binary.charCodeAt(i);
+  for (let i = 0; i < binary.length; i += 1) {out[i] = binary.charCodeAt(i);}
   return out;
 }
 
@@ -61,10 +61,7 @@ function bytesToHex(bytes: Uint8Array): string {
  * The device ID is the SHA-256 hash of the raw public key bytes.
  */
 async function fingerprintPublicKey(publicKey: Uint8Array): Promise<string> {
-  // Create a new ArrayBuffer to avoid TypeScript issues with ArrayBufferLike
-  const buffer = new ArrayBuffer(publicKey.length);
-  new Uint8Array(buffer).set(publicKey);
-  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  const hash = await crypto.subtle.digest("SHA-256", publicKey as Uint8Array<ArrayBuffer>);
   return bytesToHex(new Uint8Array(hash));
 }
 
@@ -138,10 +135,6 @@ export async function loadOrCreateDeviceIdentity(): Promise<DeviceIdentity> {
   return identity;
 }
 
-/**
- * Signs a payload string with the device's private key.
- * Returns the signature as a base64url-encoded string.
- */
 export async function signDevicePayload(privateKeyBase64Url: string, payload: string): Promise<string> {
   const key = base64UrlDecode(privateKeyBase64Url);
   const data = new TextEncoder().encode(payload);

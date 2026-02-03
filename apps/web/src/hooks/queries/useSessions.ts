@@ -19,7 +19,8 @@ import {
   type ChatEventPayload,
   type AgentEventPayload,
 } from "@/lib/api/sessions";
-import { getGatewayClient, type GatewayEvent } from "@/lib/api";
+import type { GatewayEvent } from "@/lib/api";
+import { useOptionalGateway } from "@/providers/GatewayProvider";
 
 // Query keys factory
 export const sessionKeys = {
@@ -190,6 +191,7 @@ export function useChatEventSubscription(
   }
 ) {
   const queryClient = useQueryClient();
+  const gatewayCtx = useOptionalGateway();
 
   const handleChatEvent = useCallback(
     (event: GatewayEvent) => {
@@ -233,18 +235,18 @@ export function useChatEventSubscription(
     [sessionKey, handlers]
   );
 
+  // Unified event handler that routes to specific handlers
+  const handleEvent = useCallback(
+    (event: GatewayEvent) => {
+      handleChatEvent(event);
+      handleAgentEvent(event);
+    },
+    [handleChatEvent, handleAgentEvent]
+  );
+
   useEffect(() => {
     if (!sessionKey) return;
-
-    const client = getGatewayClient();
-
-    // Subscribe to chat events using the new subscription API
-    const unsubscribeChat = client.subscribe("chat", handleChatEvent);
-    const unsubscribeAgent = client.subscribe("agent", handleAgentEvent);
-
-    return () => {
-      unsubscribeChat();
-      unsubscribeAgent();
-    };
-  }, [sessionKey, handleChatEvent, handleAgentEvent]);
+    if (!gatewayCtx) return;
+    return gatewayCtx.addEventListener(handleEvent);
+  }, [gatewayCtx, handleEvent, sessionKey]);
 }
