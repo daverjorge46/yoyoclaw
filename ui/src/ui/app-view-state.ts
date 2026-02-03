@@ -10,8 +10,6 @@ import type { ThemeMode } from "./theme";
 import type { ThemeTransitionContext } from "./theme-transition";
 import type {
   AgentsListResult,
-  AgentsFilesListResult,
-  AgentIdentityResult,
   ChannelsStatusSnapshot,
   ConfigSnapshot,
   CronJob,
@@ -58,8 +56,6 @@ export type AppViewState = {
   chatQueue: ChatQueueItem[];
   nodesLoading: boolean;
   nodes: Array<Record<string, unknown>>;
-  chatNewMessagesBelow: boolean;
-  scrollToBottom: () => void;
   devicesLoading: boolean;
   devicesError: string | null;
   devicesList: DevicePairingList | null;
@@ -84,7 +80,7 @@ export type AppViewState = {
   configApplying: boolean;
   updateRunning: boolean;
   configSnapshot: ConfigSnapshot | null;
-  configSchema: unknown;
+  configSchema: unknown | null;
   configSchemaLoading: boolean;
   configUiHints: Record<string, unknown>;
   configForm: Record<string, unknown> | null;
@@ -108,22 +104,6 @@ export type AppViewState = {
   agentsLoading: boolean;
   agentsList: AgentsListResult | null;
   agentsError: string | null;
-  agentsSelectedId: string | null;
-  agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
-  agentFilesLoading: boolean;
-  agentFilesError: string | null;
-  agentFilesList: AgentsFilesListResult | null;
-  agentFileContents: Record<string, string>;
-  agentFileDrafts: Record<string, string>;
-  agentFileActive: string | null;
-  agentFileSaving: boolean;
-  agentIdentityLoading: boolean;
-  agentIdentityError: string | null;
-  agentIdentityById: Record<string, AgentIdentityResult>;
-  agentSkillsLoading: boolean;
-  agentSkillsError: string | null;
-  agentSkillsReport: SkillStatusReport | null;
-  agentSkillsAgentId: string | null;
   sessionsLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
@@ -150,7 +130,7 @@ export type AppViewState = {
   debugStatus: StatusSummary | null;
   debugHealth: HealthSnapshot | null;
   debugModels: unknown[];
-  debugHeartbeat: unknown;
+  debugHeartbeat: unknown | null;
   debugCallMethod: string;
   debugCallParams: string;
   debugCallResult: string | null;

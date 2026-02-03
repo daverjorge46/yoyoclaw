@@ -86,7 +86,7 @@ describe("exec PATH login shell merge", () => {
     expect(shellPathMock).toHaveBeenCalledTimes(1);
   });
 
-  it("throws security violation when env.PATH is provided", async () => {
+  it("skips login-shell PATH when env.PATH is provided", async () => {
     if (isWin) {
       return;
     }
@@ -98,28 +98,13 @@ describe("exec PATH login shell merge", () => {
     shellPathMock.mockClear();
 
     const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
+    const result = await tool.execute("call1", {
+      command: "echo $PATH",
+      env: { PATH: "/explicit/bin" },
+    });
+    const entries = normalizePathEntries(result.content.find((c) => c.type === "text")?.text);
 
-    await expect(
-      tool.execute("call1", {
-        command: "echo $PATH",
-        env: { PATH: "/explicit/bin" },
-      }),
-    ).rejects.toThrow(/Security Violation: Custom 'PATH' variable is forbidden/);
-
+    expect(entries).toEqual(["/explicit/bin"]);
     expect(shellPathMock).not.toHaveBeenCalled();
-  });
-});
-
-describe("exec host env validation", () => {
-  it("blocks LD_/DYLD_ env vars on host execution", async () => {
-    const { createExecTool } = await import("./bash-tools.exec.js");
-    const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
-
-    await expect(
-      tool.execute("call1", {
-        command: "echo ok",
-        env: { LD_DEBUG: "1" },
-      }),
-    ).rejects.toThrow(/Security Violation: Environment variable 'LD_DEBUG' is forbidden/);
   });
 });

@@ -114,7 +114,6 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify([subscription]),
-      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok && response.status !== 204) {
@@ -131,7 +130,6 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify(this.subscriptions),
-      signal: AbortSignal.timeout(30_000),
     });
 
     if (!createResp.ok && createResp.status !== 204) {
@@ -154,7 +152,6 @@ export class UrbitSSEClient {
           json: "Opening API channel",
         },
       ]),
-      signal: AbortSignal.timeout(30_000),
     });
 
     if (!pokeResp.ok && pokeResp.status !== 204) {
@@ -167,22 +164,13 @@ export class UrbitSSEClient {
   }
 
   async openStream() {
-    // Use AbortController with manual timeout so we only abort during initial connection,
-    // not after the SSE stream is established and actively streaming.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60_000);
-
     const response = await fetch(this.channelUrl, {
       method: "GET",
       headers: {
         Accept: "text/event-stream",
         Cookie: this.cookie,
       },
-      signal: controller.signal,
     });
-
-    // Clear timeout once connection established (headers received)
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Stream connection failed: ${response.status}`);
@@ -291,7 +279,6 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify([pokeData]),
-      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok && response.status !== 204) {
@@ -309,7 +296,6 @@ export class UrbitSSEClient {
       headers: {
         Cookie: this.cookie,
       },
-      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -378,7 +364,6 @@ export class UrbitSSEClient {
           Cookie: this.cookie,
         },
         body: JSON.stringify(unsubscribes),
-        signal: AbortSignal.timeout(30_000),
       });
 
       await fetch(this.channelUrl, {
@@ -386,7 +371,6 @@ export class UrbitSSEClient {
         headers: {
           Cookie: this.cookie,
         },
-        signal: AbortSignal.timeout(30_000),
       });
     } catch (error) {
       this.logger.error?.(`Error closing channel: ${String(error)}`);

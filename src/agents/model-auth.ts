@@ -192,10 +192,12 @@ export async function resolveApiKeyForProvider(params: {
 
   const envResolved = resolveEnvApiKey(provider);
   if (envResolved) {
+    const isOauth = envResolved.source.includes("OAUTH_TOKEN");
+    const isToken = !isOauth && envResolved.source.includes("AUTH_TOKEN");
     return {
       apiKey: envResolved.apiKey,
       source: envResolved.source,
-      mode: envResolved.source.includes("OAUTH_TOKEN") ? "oauth" : "api-key",
+      mode: isOauth ? "oauth" : isToken ? "token" : "api-key",
     };
   }
 
@@ -359,7 +361,9 @@ export function resolveModelAuthMode(
 
   const envKey = resolveEnvApiKey(resolved);
   if (envKey?.apiKey) {
-    return envKey.source.includes("OAUTH_TOKEN") ? "oauth" : "api-key";
+    const isOauth = envKey.source.includes("OAUTH_TOKEN");
+    const isToken = !isOauth && envKey.source.includes("AUTH_TOKEN");
+    return isOauth ? "oauth" : isToken ? "token" : "api-key";
   }
 
   if (getCustomProviderApiKey(cfg, resolved)) {

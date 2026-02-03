@@ -1,9 +1,4 @@
-import {
-  getOAuthApiKey,
-  getOAuthProviders,
-  type OAuthCredentials,
-  type OAuthProvider,
-} from "@mariozechner/pi-ai";
+import { getOAuthApiKey, type OAuthCredentials } from "@mariozechner/pi-ai";
 import lockfile from "proper-lockfile";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AuthProfileStore } from "./types.js";
@@ -14,14 +9,6 @@ import { formatAuthDoctorHint } from "./doctor.js";
 import { ensureAuthStoreFile, resolveAuthStorePath } from "./paths.js";
 import { suggestOAuthProfileIdForLegacyDefault } from "./repair.js";
 import { ensureAuthProfileStore, saveAuthProfileStore } from "./store.js";
-
-const OAUTH_PROVIDER_IDS = new Set<string>(getOAuthProviders().map((provider) => provider.id));
-
-const isOAuthProvider = (provider: string): provider is OAuthProvider =>
-  OAUTH_PROVIDER_IDS.has(provider);
-
-const resolveOAuthProvider = (provider: string): OAuthProvider | null =>
-  isOAuthProvider(provider) ? provider : null;
 
 function buildOAuthApiKey(provider: string, credentials: OAuthCredentials): string {
   const needsProjectId = provider === "google-gemini-cli" || provider === "google-antigravity";
@@ -76,13 +63,7 @@ async function refreshOAuthTokenWithLock(params: {
               const newCredentials = await refreshQwenPortalCredentials(cred);
               return { apiKey: newCredentials.access, newCredentials };
             })()
-          : await (async () => {
-              const oauthProvider = resolveOAuthProvider(cred.provider);
-              if (!oauthProvider) {
-                return null;
-              }
-              return await getOAuthApiKey(oauthProvider, oauthCreds);
-            })();
+          : await getOAuthApiKey(cred.provider, oauthCreds);
     if (!result) {
       return null;
     }

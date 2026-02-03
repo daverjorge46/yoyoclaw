@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { resetInboundDedupe } from "../auto-reply/reply/inbound-dedupe.js";
-import { createTelegramBot } from "./bot.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+let createTelegramBot: typeof import("./bot.js").createTelegramBot;
+let resetInboundDedupe: typeof import("../auto-reply/reply/inbound-dedupe.js").resetInboundDedupe;
 
 const { sessionStorePath } = vi.hoisted(() => ({
   sessionStorePath: `/tmp/openclaw-telegram-reply-threading-${Math.random()
@@ -139,11 +140,11 @@ const getOnHandler = (event: string) => {
 };
 
 describe("createTelegramBot", () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ resetInboundDedupe } = await import("../auto-reply/reply/inbound-dedupe.js"));
+    ({ createTelegramBot } = await import("./bot.js"));
     replyModule = await import("../auto-reply/reply.js");
-  });
-
-  beforeEach(() => {
     resetInboundDedupe();
     loadConfig.mockReturnValue({
       channels: {
