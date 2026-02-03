@@ -468,7 +468,6 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
         },
       });
 
-      // Append thread marker for session isolation
       const route = {
         ...baseRoute,
         sessionKey: threadRootId
@@ -476,13 +475,11 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
           : baseRoute.sessionKey,
       };
 
-      // Fetch thread root context for new thread sessions
       let threadStarterBody: string | undefined;
       let threadLabel: string | undefined;
       let parentSessionKey: string | undefined;
 
       if (threadRootId) {
-        // Check if this is a new thread session (no prior history)
         const existingSession = core.channel.session.readSessionUpdatedAt({
           storePath: core.channel.session.resolveStorePath(cfg.session?.store, {
             agentId: baseRoute.agentId,
@@ -490,12 +487,10 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
           sessionKey: route.sessionKey,
         });
 
-        // Only fetch thread root for new sessions (avoid repeated API calls)
         if (existingSession === undefined) {
           try {
             const rootEvent = await fetchEventSummary(client, roomId, threadRootId);
             if (rootEvent?.body) {
-              // Get the sender's display name for the thread root
               const rootSenderName = rootEvent.sender
                 ? await getMemberDisplayName(roomId, rootEvent.sender)
                 : undefined;
@@ -511,8 +506,10 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
               threadLabel = `Matrix thread in ${roomName ?? roomId}`;
               parentSessionKey = baseRoute.sessionKey;
             }
-          } catch {
-            // Failed to fetch thread root - continue without context
+          } catch (err) {
+            logVerboseMessage(
+              `matrix: failed to fetch thread root ${threadRootId}: ${String(err)}`,
+            );
           }
         }
       }
