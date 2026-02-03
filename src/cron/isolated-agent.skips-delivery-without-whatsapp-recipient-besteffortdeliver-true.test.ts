@@ -484,7 +484,8 @@ describe("runCronIsolatedAgentTurn", () => {
 
       // Job still succeeds, but no delivery happens.
       expect(res.status).toBe("ok");
-      expect(res.summary).toBe("HEARTBEAT_OK");
+      expect(res.summary).toMatch(/heartbeat-only/i);
+      expect(res.summary).toMatch(/delivery suppressed/i);
       expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
     });
   });

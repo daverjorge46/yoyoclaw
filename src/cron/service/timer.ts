@@ -209,6 +209,11 @@ export async function executeJob(
       return;
     }
 
+    if (!job.payload.message.trim()) {
+      await finish("skipped", "isolated job requires non-empty agentTurn message");
+      return;
+    }
+
     const res = await state.deps.runIsolatedAgentJob({
       job,
       message: job.payload.message,

@@ -415,13 +415,23 @@ export async function runCronIsolatedAgentTurn(params: {
       store[agentSessionKey] = cronSession.sessionEntry;
     });
   }
+
+  const ackMaxChars = resolveHeartbeatAckMaxChars(agentCfg);
+  const heartbeatOnly = isHeartbeatOnlyResponse(payloads, ackMaxChars);
+
   const firstText = payloads[0]?.text ?? "";
-  const summary = pickSummaryFromPayloads(payloads) ?? pickSummaryFromOutput(firstText);
-  const outputText = pickLastNonEmptyTextFromPayloads(payloads);
+  let summary = pickSummaryFromPayloads(payloads) ?? pickSummaryFromOutput(firstText);
+  let outputText = pickLastNonEmptyTextFromPayloads(payloads);
+
+  if (heartbeatOnly) {
+    const baseSummary = "No-op (heartbeat-only response; agent returned HEARTBEAT_OK).";
+    summary = deliveryRequested ? `${baseSummary} Delivery suppressed.` : baseSummary;
+    // Avoid feeding HEARTBEAT_OK back into postToMainMode="full".
+    outputText = undefined;
+  }
 
   // Skip delivery for heartbeat-only responses (HEARTBEAT_OK with no real content).
-  const ackMaxChars = resolveHeartbeatAckMaxChars(agentCfg);
-  const skipHeartbeatDelivery = deliveryRequested && isHeartbeatOnlyResponse(payloads, ackMaxChars);
+  const skipHeartbeatDelivery = deliveryRequested && heartbeatOnly;
   const skipMessagingToolDelivery =
     deliveryRequested &&
     deliveryMode === "auto" &&
