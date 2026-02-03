@@ -491,3 +491,101 @@ describe("isMcpServerEnabled", () => {
     ).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Real-world configuration examples
+// ---------------------------------------------------------------------------
+
+describe("Real-world MCP server configurations", () => {
+  it("loads sequential thinking tools MCP configuration", () => {
+    const cfg: any = {
+      mcpServers: {
+        "mcp-sequentialthinking-tools": {
+          command: "npx",
+          args: ["-y", "mcp-sequentialthinking-tools"],
+          env: {
+            MAX_HISTORY_SIZE: "1000",
+          },
+        },
+      },
+    };
+
+    const merged = resolveEffectiveMcpServers({ config: cfg, agentId: "main" });
+    expect(Object.keys(merged)).toEqual(["mcp-sequentialthinking-tools"]);
+    expect((merged["mcp-sequentialthinking-tools"] as any).command).toBe("npx");
+    expect((merged["mcp-sequentialthinking-tools"] as any).args).toEqual([
+      "-y",
+      "mcp-sequentialthinking-tools",
+    ]);
+    expect((merged["mcp-sequentialthinking-tools"] as any).env).toEqual({
+      MAX_HISTORY_SIZE: "1000",
+    });
+  });
+
+  it("loads sequential thinking tools with per-agent override", () => {
+    const cfg: any = {
+      mcpServers: {
+        "mcp-sequentialthinking-tools": {
+          command: "npx",
+          args: ["-y", "mcp-sequentialthinking-tools"],
+          env: {
+            MAX_HISTORY_SIZE: "1000",
+          },
+        },
+      },
+      agents: {
+        list: [
+          {
+            id: "research",
+            mcpServers: {
+              "mcp-sequentialthinking-tools": {
+                command: "npx",
+                args: ["-y", "mcp-sequentialthinking-tools"],
+                env: {
+                  MAX_HISTORY_SIZE: "5000",
+                },
+              },
+            },
+          },
+        ],
+      },
+    };
+
+    const merged = resolveEffectiveMcpServers({ config: cfg, agentId: "research" });
+    expect((merged["mcp-sequentialthinking-tools"] as any).env).toEqual({
+      MAX_HISTORY_SIZE: "5000",
+    });
+  });
+
+  it("loads multiple MCP servers including sequential thinking", () => {
+    const cfg: any = {
+      mcpServers: {
+        filesystem: {
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+        },
+        github: {
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-github"],
+          env: {
+            GITHUB_TOKEN: "token",
+          },
+        },
+        "mcp-sequentialthinking-tools": {
+          command: "npx",
+          args: ["-y", "mcp-sequentialthinking-tools"],
+          env: {
+            MAX_HISTORY_SIZE: "1000",
+          },
+        },
+      },
+    };
+
+    const merged = resolveEffectiveMcpServers({ config: cfg, agentId: "main" });
+    expect(Object.keys(merged).toSorted()).toEqual([
+      "filesystem",
+      "github",
+      "mcp-sequentialthinking-tools",
+    ]);
+  });
+});

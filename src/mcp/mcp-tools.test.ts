@@ -1649,6 +1649,136 @@ describe("Tool label handling", () => {
 // STDIO transport configuration
 // ---------------------------------------------------------------------------
 
+describe("Real-world MCP server configurations", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    agentStates.clear();
+    mockConnect.mockResolvedValue(undefined);
+    mockListTools.mockResolvedValue({
+      tools: [
+        {
+          name: "think_deeply",
+          description: "Perform deep sequential thinking",
+          inputSchema: { type: "object" },
+        },
+        {
+          name: "analyze_problem",
+          description: "Analyze a problem with steps",
+          inputSchema: { type: "object" },
+        },
+      ],
+    });
+  });
+
+  afterEach(async () => {
+    await shutdownAllMcpServers();
+  });
+
+  it("loads sequential thinking tools MCP configuration", async () => {
+    const tools = await resolveMcpToolsForAgent({
+      config: {
+        mcpServers: {
+          "mcp-sequentialthinking-tools": {
+            command: "npx",
+            args: ["-y", "mcp-sequentialthinking-tools"],
+            env: {
+              MAX_HISTORY_SIZE: "1000",
+            },
+          },
+        },
+      } as any,
+      agentId: "main",
+    });
+
+    expect(tools).toHaveLength(2);
+    expect(tools[0]?.name).toBe("mcp__mcp-sequentialthinking-tools__analyze_problem");
+    expect(tools[1]?.name).toBe("mcp__mcp-sequentialthinking-tools__think_deeply");
+  });
+
+  it("passes environment variables to sequential thinking tools", async () => {
+    await resolveMcpToolsForAgent({
+      config: {
+        mcpServers: {
+          "mcp-sequentialthinking-tools": {
+            command: "npx",
+            args: ["-y", "mcp-sequentialthinking-tools"],
+            env: {
+              MAX_HISTORY_SIZE: "1000",
+            },
+          },
+        },
+      } as any,
+      agentId: "main",
+    });
+
+    const { StdioClientTransport } = await import("@modelcontextprotocol/sdk/client/stdio.js");
+    expect(StdioClientTransport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "npx",
+        args: ["-y", "mcp-sequentialthinking-tools"],
+        env: expect.objectContaining({
+          MAX_HISTORY_SIZE: "1000",
+        }),
+      }),
+    );
+  });
+
+  it("loads sequential thinking tools with per-agent override", async () => {
+    mockListTools.mockClear();
+    mockListTools.mockResolvedValue({
+      tools: [{ name: "analyze", inputSchema: {} }],
+    });
+
+    const config = {
+      mcpServers: {
+        "mcp-sequentialthinking-tools": {
+          command: "npx",
+          args: ["-y", "mcp-sequentialthinking-tools"],
+          env: {
+            MAX_HISTORY_SIZE: "1000",
+          },
+        },
+      },
+      agents: {
+        list: [
+          {
+            id: "research",
+            mcpServers: {
+              "mcp-sequentialthinking-tools": {
+                command: "npx",
+                args: ["-y", "mcp-sequentialthinking-tools"],
+                env: {
+                  MAX_HISTORY_SIZE: "5000",
+                },
+              },
+            },
+          },
+        ],
+      },
+    } as any;
+
+    // Load for main (uses global config with MAX_HISTORY_SIZE: 1000)
+    const mainTools = await resolveMcpToolsForAgent({ config, agentId: "main" });
+    expect(mainTools).toHaveLength(1);
+
+    // Clear mock to verify second call uses different env
+    mockListTools.mockClear();
+
+    // Load for research agent (uses agent-specific override with MAX_HISTORY_SIZE: 5000)
+    const researchTools = await resolveMcpToolsForAgent({ config, agentId: "research" });
+    expect(researchTools).toHaveLength(1);
+
+    // Verify different env was passed on second call
+    const { StdioClientTransport } = await import("@modelcontextprotocol/sdk/client/stdio.js");
+    const secondCall = vi.mocked(StdioClientTransport).mock.calls[1];
+    expect(secondCall?.[0]).toMatchObject({
+      env: expect.objectContaining({
+        MAX_HISTORY_SIZE: "5000",
+      }),
+    });
+  });
+});
+
 describe("STDIO transport configuration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
