@@ -11,7 +11,6 @@ title: "FLock.io"
 
 **FLock** is a decentralized AI training platform that combines federated learning with blockchain-based verification. Through its API Platform, developers get access to community-validated open-source models with transparent, on-chain performance metrics — all via an OpenAI-compatible API.
 
-
 ## Why FLock in OpenClaw
 
 - **Community-driven**: Model catalog is curated and validated by the FLock community.
@@ -25,9 +24,9 @@ title: "FLock.io"
 
 FLock solves two problems at once:
 
-| Challenge | FLock's Solution |
-| --- | --- |
-| **Privacy in AI training** | Federated learning — data never leaves participants' devices |
+| Challenge                  | FLock's Solution                                                            |
+| -------------------------- | --------------------------------------------------------------------------- |
+| **Privacy in AI training** | Federated learning — data never leaves participants' devices                |
 | **Trust in model quality** | Blockchain verification — all training contributions are validated on-chain |
 
 Participants in FL Alliance are randomly assigned as **Proposers** (who train models using local data and submit updates) or **Voters** (who validate updates and aggregate contributions). This produces optimized global models from diverse data sources while maintaining data sovereignty.
@@ -107,27 +106,27 @@ openclaw models list | grep flock
 
 ## Which Model Should I Use?
 
-| Use Case | Recommended Model | Why |
-| --- | --- | --- |
-| **General chat** | `kimi-k2.5` | 1T MoE, native multimodal, strong all-around |
-| **Deep reasoning** | `kimi-k2-thinking` | Thinking-only mode, 99.1% AIME 2025, 71.3% SWE-Bench |
-| **Vision tasks** | `kimi-k2.5` | Native MoonViT encoder, text + image + video |
-| **Agentic tasks** | `kimi-k2.5` | Agent Swarm mode, up to 100 sub-agents |
-| **Coding** | `qwen3-30b-a3b-instruct-coding` | Specialized for agentic coding, 256K context |
-| **Math / Science** | `qwen3-235b-a22b-thinking-2507` | 92.3% AIME 2025, strong multi-step reasoning |
-| **Fast + lightweight** | `qwen3-30b-a3b-instruct-2507` | 3.3B active params, efficient inference |
-| **Finance** | `qwen3-235b-a22b-thinking-qwfin` | AI Arena fine-tune for financial/on-chain tasks |
-| **General reasoning** | `deepseek-v3.2` | 671B MoE, thinking + tool-use in one model |
-| **Multilingual coding** | `minimax-m2.1` | 74% SWE-Bench, Rust/Java/Go/C++/TS support |
+| Use Case                | Recommended Model                | Why                                                  |
+| ----------------------- | -------------------------------- | ---------------------------------------------------- |
+| **General chat**        | `kimi-k2.5`                      | 1T MoE, native multimodal, strong all-around         |
+| **Deep reasoning**      | `kimi-k2-thinking`               | Thinking-only mode, 99.1% AIME 2025, 71.3% SWE-Bench |
+| **Vision tasks**        | `kimi-k2.5`                      | Native MoonViT encoder, text + image + video         |
+| **Agentic tasks**       | `kimi-k2.5`                      | Agent Swarm mode, up to 100 sub-agents               |
+| **Coding**              | `qwen3-30b-a3b-instruct-coding`  | Specialized for agentic coding, 256K context         |
+| **Math / Science**      | `qwen3-235b-a22b-thinking-2507`  | 92.3% AIME 2025, strong multi-step reasoning         |
+| **Fast + lightweight**  | `qwen3-30b-a3b-instruct-2507`    | 3.3B active params, efficient inference              |
+| **Finance**             | `qwen3-235b-a22b-thinking-qwfin` | AI Arena fine-tune for financial/on-chain tasks      |
+| **General reasoning**   | `deepseek-v3.2`                  | 671B MoE, thinking + tool-use in one model           |
+| **Multilingual coding** | `minimax-m2.1`                   | 74% SWE-Bench, Rust/Java/Go/C++/TS support           |
 
 ## Available Models (9)
 
 ### Kimi Models (Moonshot AI)
 
-| Model ID | Params (Total / Active) | Context | Key Capabilities |
-| --- | --- | --- | --- |
-| `kimi-k2.5` | 1T / 32B | 256K | Vision, Instant/Thinking/Agent/Swarm modes, multimodal |
-| `kimi-k2-thinking` | 1T / 32B | 256K | Deep reasoning, 200+ consecutive tool calls, thinking mode |
+| Model ID           | Params (Total / Active) | Context | Key Capabilities                                           |
+| ------------------ | ----------------------- | ------- | ---------------------------------------------------------- |
+| `kimi-k2.5`        | 1T / 32B                | 256K    | Vision, Instant/Thinking/Agent/Swarm modes, multimodal     |
+| `kimi-k2-thinking` | 1T / 32B                | 256K    | Deep reasoning, 200+ consecutive tool calls, thinking mode |
 
 **Kimi K2.5** is an open-source native multimodal agentic model. Built via continual pretraining on ~15T mixed visual and text tokens atop the Kimi-K2-Base, it integrates vision (MoonViT 400M encoder) and language understanding with four operational modes: Instant, Thinking, Agent, and Agent Swarm (beta — self-directed up to 100 sub-agents, 1,500 tool calls). Modified MIT license.
 
@@ -135,13 +134,13 @@ openclaw models list | grep flock
 
 ### Qwen3 Models (Alibaba Cloud)
 
-| Model ID | Params (Total / Active) | Context | Key Capabilities |
-| --- | --- | --- | --- |
-| `qwen3-235b-a22b-thinking-2507` | 235B / 22B | 262K | Deep reasoning (thinking mode always on) |
-| `qwen3-235b-a22b-instruct-2507` | 235B / 22B | 262K | General instruction following, conversation |
-| `qwen3-235b-a22b-thinking-qwfin` | 235B / 22B | 262K | AI Arena fine-tune for Web3/finance tasks |
-| `qwen3-30b-a3b-instruct-2507` | 30.5B / 3.3B | 262K | Lightweight general-purpose, efficient |
-| `qwen3-30b-a3b-instruct-coding` | 30.5B / 3.3B | 256K | Specialized agentic coding, extendable to 1M context |
+| Model ID                         | Params (Total / Active) | Context | Key Capabilities                                     |
+| -------------------------------- | ----------------------- | ------- | ---------------------------------------------------- |
+| `qwen3-235b-a22b-thinking-2507`  | 235B / 22B              | 262K    | Deep reasoning (thinking mode always on)             |
+| `qwen3-235b-a22b-instruct-2507`  | 235B / 22B              | 262K    | General instruction following, conversation          |
+| `qwen3-235b-a22b-thinking-qwfin` | 235B / 22B              | 262K    | AI Arena fine-tune for Web3/finance tasks            |
+| `qwen3-30b-a3b-instruct-2507`    | 30.5B / 3.3B            | 262K    | Lightweight general-purpose, efficient               |
+| `qwen3-30b-a3b-instruct-coding`  | 30.5B / 3.3B            | 256K    | Specialized agentic coding, extendable to 1M context |
 
 The **235B** models are the flagship Qwen3 MoE models (128 experts, 8 active per token, 94 layers). The Thinking-2507 variant scores 92.3% on AIME 2025. The **QwFin** variant is a community fine-tune from FLock's AI Arena, trained via federated learning for financial and on-chain tasks.
 
@@ -149,10 +148,10 @@ The **30B** models are the lightweight Qwen3 MoE series — only 3.3B active par
 
 ### Other Models
 
-| Model ID | Developer | Params (Total / Active) | Context | Key Capabilities |
-| --- | --- | --- | --- | --- |
-| `deepseek-v3.2` | DeepSeek | 671B / 37B | 131K | Thinking + non-thinking, tool-use, coding, math |
-| `minimax-m2.1` | MiniMax | 230B / 10B | 200K | Interleaved thinking, multilingual coding, 74% SWE-Bench |
+| Model ID        | Developer | Params (Total / Active) | Context | Key Capabilities                                         |
+| --------------- | --------- | ----------------------- | ------- | -------------------------------------------------------- |
+| `deepseek-v3.2` | DeepSeek  | 671B / 37B              | 131K    | Thinking + non-thinking, tool-use, coding, math          |
+| `minimax-m2.1`  | MiniMax   | 230B / 10B              | 200K    | Interleaved thinking, multilingual coding, 74% SWE-Bench |
 
 **DeepSeek V3.2** integrates thinking directly into tool-use — the first model to do so. It supports both thinking and non-thinking modes in a single model with DeepSeek Sparse Attention for efficient long-context processing. MIT license.
 
@@ -162,19 +161,19 @@ The **30B** models are the lightweight Qwen3 MoE series — only 3.3B active par
 
 ## Streaming & Parameter Support
 
-| Feature | Support |
-| --- | --- |
-| **Streaming** | ✅ All models |
-| **temperature** | ✅ Range 0–2 |
-| **max_tokens** | ✅ Default: 16 |
-| **top_p** | ✅ Nucleus sampling |
-| **frequency_penalty** | ✅ Range -2.0 to 2.0 |
-| **presence_penalty** | ✅ Range -2.0 to 2.0 |
-| **stop** | ✅ Stop sequences |
-| **seed** | ✅ Reproducible outputs |
-| **logprobs** | ✅ Token probabilities |
-| **logit_bias** | ✅ Token likelihood customization |
-| **n** | ✅ Multiple completions |
+| Feature               | Support                           |
+| --------------------- | --------------------------------- |
+| **Streaming**         | ✅ All models                     |
+| **temperature**       | ✅ Range 0–2                      |
+| **max_tokens**        | ✅ Default: 16                    |
+| **top_p**             | ✅ Nucleus sampling               |
+| **frequency_penalty** | ✅ Range -2.0 to 2.0              |
+| **presence_penalty**  | ✅ Range -2.0 to 2.0              |
+| **stop**              | ✅ Stop sequences                 |
+| **seed**              | ✅ Reproducible outputs           |
+| **logprobs**          | ✅ Token probabilities            |
+| **logit_bias**        | ✅ Token likelihood customization |
+| **n**                 | ✅ Multiple completions           |
 
 ## AI Usage & Analytics
 
@@ -203,14 +202,14 @@ FLock uses a custom authentication header `x-litellm-api-key` instead of the sta
 
 ## Comparison: FLock vs Traditional API Providers
 
-| Aspect | FLock | Traditional Providers |
-| --- | --- | --- |
-| **Training** | Decentralized federated learning | Centralized |
-| **Validation** | On-chain metrics, community-verified | Provider self-reported |
-| **Model catalog** | Community-driven, includes AI Arena fine-tunes | Provider-curated |
-| **Pricing** | Credit-based | Fixed per-token pricing |
-| **Privacy** | Federated — training data never leaves participants | Varies by provider |
-| **Usage analytics** | Built-in dashboard with real-time metrics | Varies by provider |
+| Aspect              | FLock                                               | Traditional Providers   |
+| ------------------- | --------------------------------------------------- | ----------------------- |
+| **Training**        | Decentralized federated learning                    | Centralized             |
+| **Validation**      | On-chain metrics, community-verified                | Provider self-reported  |
+| **Model catalog**   | Community-driven, includes AI Arena fine-tunes      | Provider-curated        |
+| **Pricing**         | Credit-based                                        | Fixed per-token pricing |
+| **Privacy**         | Federated — training data never leaves participants | Varies by provider      |
+| **Usage analytics** | Built-in dashboard with real-time metrics           | Varies by provider      |
 
 ## Usage Examples
 
