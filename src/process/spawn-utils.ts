@@ -25,10 +25,13 @@ const DEFAULT_RETRY_CODES = ["EBADF"];
 
 export function resolveCommandStdio(params: {
   hasInput: boolean;
-  preferInherit: boolean;
-}): ["pipe" | "inherit" | "ignore", "pipe", "pipe"] {
-  const stdin = params.hasInput ? "pipe" : params.preferInherit ? "inherit" : "pipe";
-  return [stdin, "pipe", "pipe"];
+  preferInheritStdIn: boolean;
+  preferInheritStdOut?: boolean;
+}): ["pipe" | "inherit" | "ignore", "pipe" | "inherit" | "ignore", "pipe" | "inherit" | "ignore"] {
+  const stdin = params.hasInput ? "pipe" : params.preferInheritStdIn ? "inherit" : "pipe";
+  const stdout = params.preferInheritStdOut ? "inherit" : "pipe";
+  const stderr = params.preferInheritStdOut ? "inherit" : "pipe";
+  return [stdin, stdout, stderr];
 }
 
 export function formatSpawnError(err: unknown): string {

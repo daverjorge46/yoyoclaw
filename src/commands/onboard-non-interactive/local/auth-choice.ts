@@ -63,6 +63,17 @@ export async function applyNonInteractiveAuthChoice(params: {
     return null;
   }
 
+  if (authChoice === "openai-device-code") {
+    runtime.error(
+      [
+        'Auth choice "openai-device-code" requires interactive mode.',
+        'Run "openclaw onboard" and select OpenAI device code (Codex CLI), or use "--auth-choice openai-codex".',
+      ].join("\n"),
+    );
+    runtime.exit(1);
+    return null;
+  }
+
   if (authChoice === "setup-token") {
     runtime.error(
       [

@@ -76,6 +76,7 @@ export type CommandOptions = {
   input?: string;
   env?: NodeJS.ProcessEnv;
   windowsVerbatimArguments?: boolean;
+  inheritChildStdOut?: boolean;
 };
 
 export async function runCommandWithTimeout(
@@ -85,7 +86,7 @@ export async function runCommandWithTimeout(
   const options: CommandOptions =
     typeof optionsOrTimeout === "number" ? { timeoutMs: optionsOrTimeout } : optionsOrTimeout;
   const { timeoutMs, cwd, input, env } = options;
-  const { windowsVerbatimArguments } = options;
+  const { windowsVerbatimArguments, inheritChildStdOut } = options;
   const hasInput = input !== undefined;
 
   const shouldSuppressNpmFund = (() => {
@@ -110,7 +111,11 @@ export async function runCommandWithTimeout(
     }
   }
 
-  const stdio = resolveCommandStdio({ hasInput, preferInherit: true });
+  const stdio = resolveCommandStdio({
+    hasInput,
+    preferInheritStdIn: true,
+    preferInheritStdOut: Boolean(inheritChildStdOut),
+  });
   const child = spawn(resolveCommand(argv[0]), argv.slice(1), {
     stdio,
     cwd,

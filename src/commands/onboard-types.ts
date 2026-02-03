@@ -10,6 +10,7 @@ export type AuthChoice =
   | "token"
   | "chutes"
   | "openai-codex"
+  | "openai-device-code"
   | "openai-api-key"
   | "openrouter-api-key"
   | "ai-gateway-api-key"
