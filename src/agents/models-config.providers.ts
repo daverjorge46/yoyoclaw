@@ -54,6 +54,17 @@ const MOONSHOT_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+const NEBIUS_TOKEN_FACTORY_BASE_URL = "https://api.tokenfactory.nebius.com/v1";
+const NEBIUS_TOKEN_FACTORY_DEFAULT_MODEL_ID = "zai-org/GLM-4.7-FP8";
+const NEBIUS_TOKEN_FACTORY_DEFAULT_CONTEXT_WINDOW = 131072;
+const NEBIUS_TOKEN_FACTORY_DEFAULT_MAX_TOKENS = 8192;
+const NEBIUS_TOKEN_FACTORY_DEFAULT_COST = {
+  input: 0,
+  output: 0,
+  cacheRead: 0,
+  cacheWrite: 0,
+};
+
 const QWEN_PORTAL_BASE_URL = "https://portal.qwen.ai/v1";
 const QWEN_PORTAL_OAUTH_PLACEHOLDER = "qwen-oauth";
 const QWEN_PORTAL_DEFAULT_CONTEXT_WINDOW = 128000;
@@ -90,6 +101,24 @@ interface OllamaModel {
 interface OllamaTagsResponse {
   models: OllamaModel[];
 }
+
+type OpenAiModelEntry = {
+  id?: string;
+  created?: number | string;
+  object?: string;
+  owned_by?: string;
+};
+type OpenAiModelsResponse = { object?: string; data?: OpenAiModelEntry[] };
+
+type NebiusTokenFactoryModel = {
+  id: string;
+  name: string;
+  reasoning: boolean;
+  input: Array<"text" | "image">;
+  cost: ModelDefinitionConfig["cost"];
+  contextWindow: number;
+  maxTokens: number;
+};
 
 async function discoverOllamaModels(): Promise<ModelDefinitionConfig[]> {
   // Skip Ollama discovery in test environments
@@ -394,6 +423,71 @@ async function buildOllamaProvider(): Promise<ProviderConfig> {
   };
 }
 
+function coerceNebiusTokenFactoryModel(entry: OpenAiModelEntry): NebiusTokenFactoryModel | null {
+  const id = typeof entry.id === "string" ? entry.id.trim() : "";
+  if (!id) {
+    return null;
+  }
+  return {
+    id,
+    name: id,
+    reasoning: false,
+    input: ["text"],
+    cost: NEBIUS_TOKEN_FACTORY_DEFAULT_COST,
+    contextWindow: NEBIUS_TOKEN_FACTORY_DEFAULT_CONTEXT_WINDOW,
+    maxTokens: NEBIUS_TOKEN_FACTORY_DEFAULT_MAX_TOKENS,
+  };
+}
+
+async function discoverNebiusTokenFactoryModels(apiKey?: string): Promise<ModelDefinitionConfig[]> {
+  if (!apiKey || process.env.VITEST || process.env.NODE_ENV === "test") {
+    return [];
+  }
+  try {
+    const res = await fetch(`${NEBIUS_TOKEN_FACTORY_BASE_URL}/models`, {
+      headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) {
+      console.warn(`Failed to discover Nebius Token Factory models: ${res.status}`);
+      return [];
+    }
+    const payload = (await res.json()) as OpenAiModelsResponse;
+    const entries = Array.isArray(payload.data) ? payload.data : [];
+    return entries
+      .map(coerceNebiusTokenFactoryModel)
+      .filter((m): m is NebiusTokenFactoryModel => Boolean(m))
+      .map((m) => ({ ...m }) satisfies ModelDefinitionConfig);
+  } catch (err) {
+    console.warn(`Failed to discover Nebius Token Factory models: ${String(err)}`);
+    return [];
+  }
+}
+
+function buildNebiusTokenFactoryDefaultModel(): ModelDefinitionConfig {
+  return {
+    id: NEBIUS_TOKEN_FACTORY_DEFAULT_MODEL_ID,
+    name: "GLM 4.7 FP8",
+    reasoning: false,
+    input: ["text"],
+    cost: NEBIUS_TOKEN_FACTORY_DEFAULT_COST,
+    contextWindow: NEBIUS_TOKEN_FACTORY_DEFAULT_CONTEXT_WINDOW,
+    maxTokens: NEBIUS_TOKEN_FACTORY_DEFAULT_MAX_TOKENS,
+  };
+}
+
+async function buildNebiusTokenFactoryProvider(apiKey?: string): Promise<ProviderConfig> {
+  const discovered = await discoverNebiusTokenFactoryModels(apiKey);
+  const defaultModel = buildNebiusTokenFactoryDefaultModel();
+  const hasDefault = discovered.some((m) => m.id === defaultModel.id);
+  const models = hasDefault ? discovered : [defaultModel, ...discovered];
+  return {
+    baseUrl: NEBIUS_TOKEN_FACTORY_BASE_URL,
+    api: "openai-completions",
+    models,
+  };
+}
+
 export async function resolveImplicitProviders(params: {
   agentDir: string;
 }): Promise<ModelsConfig["providers"]> {
@@ -422,6 +516,16 @@ export async function resolveImplicitProviders(params: {
     resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
   if (moonshotKey) {
     providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
+  }
+
+  const nebiusTokenFactoryKey =
+    resolveEnvApiKeyVarName("nebius-token-factory") ??
+    resolveApiKeyFromProfiles({ provider: "nebius-token-factory", store: authStore });
+  if (nebiusTokenFactoryKey) {
+    providers["nebius-token-factory"] = {
+      ...(await buildNebiusTokenFactoryProvider(nebiusTokenFactoryKey)),
+      apiKey: nebiusTokenFactoryKey,
+    };
   }
 
   const syntheticKey =

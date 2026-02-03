@@ -298,6 +298,7 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
     xiaomi: "XIAOMI_API_KEY",
     synthetic: "SYNTHETIC_API_KEY",
     venice: "VENICE_API_KEY",
+    "nebius-token-factory": "NEBIUS_TOKEN_FACTORY",
     mistral: "MISTRAL_API_KEY",
     opencode: "OPENCODE_API_KEY",
   };
