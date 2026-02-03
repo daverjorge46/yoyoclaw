@@ -92,7 +92,7 @@ type JsonResponse<T> = {
   text: string;
 };
 
-const DEFAULT_CSRG_URL = "https://csrg-execution-service-staging-969432608491.us-central1.run.app";
+const DEFAULT_CSRG_URL = "http://localhost:8000";
 
 function resolveIapBaseUrl(fallback?: string): string {
   const configured = process.env.IAP_BACKEND_URL || process.env.CONMAP_AUTO_URL;

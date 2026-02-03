@@ -203,11 +203,15 @@ function resolveIdentities(cfg: ArmorIqConfig, ctx: ToolContext): IdentityBundle
 
 function resolveRunKey(ctx: ToolContext): string | null {
   const runId = ctx.runId?.trim();
+  const sessionKey = ctx.sessionKey?.trim();
+  
   if (runId) {
-    const sessionKey = ctx.sessionKey?.trim();
-    return sessionKey ? `${sessionKey}::${runId}` : runId;
+    if (sessionKey && sessionKey !== runId) {
+      return `${sessionKey}::${runId}`;
+    }
+    return runId;
   }
-  return null;
+  return sessionKey || null;
 }
 
 function normalizeToolName(value: string): string {
@@ -429,7 +433,7 @@ function checkIntentTokenPlan(params: {
   intentTokenRaw: string;
   toolName: string;
   toolParams: unknown;
-}): { matched: boolean; blockReason?: string; params?: unknown; plan?: Record<string, unknown> } {
+}): { matched: boolean; blockReason?: string; params?: Record<string, unknown>; plan?: Record<string, unknown> } {
   const parsed = extractPlanFromIntentToken(params.intentTokenRaw);
   if (!parsed) {
     return { matched: false };
@@ -448,8 +452,8 @@ function checkIntentTokenPlan(params: {
   }
   const step = findPlanStep(parsed.plan, params.toolName);
   if (step) {
-    const toolParams = isPlainObject(params.toolParams) ? params.toolParams : {};
-    if (!isParamsAllowedByPlan(step, toolParams)) {
+    const toolParams = isPlainObject(params.toolParams) ? (params.toolParams as Record<string, unknown>) : undefined;
+    if (toolParams && !isParamsAllowedByPlan(step, toolParams)) {
       return {
         matched: true,
         blockReason: `ArmorIQ intent mismatch: parameters not allowed for ${params.toolName}`,
@@ -457,7 +461,7 @@ function checkIntentTokenPlan(params: {
       };
     }
   }
-  return { matched: true, params: params.toolParams, plan: parsed.plan };
+  return { matched: true, params: isPlainObject(params.toolParams) ? (params.toolParams as Record<string, unknown>) : undefined, plan: parsed.plan };
 }
 
 function buildToolList(tools?: Array<{ name: string; description?: string }>): string {
@@ -567,13 +571,14 @@ async function buildPlanFromPrompt(params: {
     },
   );
 
+  const content = response.content as string | { type?: string; text?: string }[] | undefined;
   const text =
-    typeof response.content === "string"
-      ? response.content.trim()
-      : Array.isArray(response.content)
-        ? response.content
-            .filter((block) => block && (block as { type?: string }).type === "text")
-            .map((block) => (block as { text?: string }).text ?? "")
+    typeof content === "string"
+      ? content.trim()
+      : Array.isArray(content)
+        ? content
+            .filter((block) => block && block.type === "text")
+            .map((block) => block.text ?? "")
             .join(" ")
             .trim()
         : "";
@@ -583,14 +588,14 @@ async function buildPlanFromPrompt(params: {
   }
 
   try {
-    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const parsed = JSON.parse(text) as { steps?: unknown[]; metadata?: Record<string, unknown> };
     if (!parsed.steps || !Array.isArray(parsed.steps)) {
       parsed.steps = [];
     }
     if (!parsed.metadata || typeof parsed.metadata !== "object" || Array.isArray(parsed.metadata)) {
       parsed.metadata = { goal: params.prompt };
     }
-    for (const step of parsed.steps) {
+    for (const step of parsed.steps as Record<string, unknown>[]) {
       if (!step || typeof step !== "object") {
         continue;
       }
@@ -828,7 +833,7 @@ export default function register(api: OpenClawPluginApi) {
     const normalizedTool = normalizeToolName(event.toolName);
     const toolCtx = ctx as ToolContext;
     const intentTokenRaw = readString(toolCtx.intentTokenRaw);
-    const verifyWithCsrg = async (
+    const verifyWithIap = async (
       tokenRaw: string,
       plan: Record<string, unknown>,
     ): Promise<{ block: true; blockReason: string } | null> => {
@@ -838,40 +843,39 @@ export default function register(api: OpenClawPluginApi) {
       }
       let proofs = proofParse.proofs;
       if (!proofs) {
-        proofs = resolveCsrgProofsFromToken({
+        const resolvedProofs = resolveCsrgProofsFromToken({
           intentTokenRaw: tokenRaw,
           plan,
           toolName: event.toolName,
           toolParams: event.params,
         });
+        proofs = resolvedProofs ?? undefined;
       }
-      const proofError = validateCsrgProofHeaders(
-        proofs,
-        verificationService.csrgProofsRequired(),
-      );
+      const proofsRequired =
+        verificationService.csrgProofsRequired() && verificationService.csrgVerifyIsEnabled();
+      const proofError = validateCsrgProofHeaders(proofs, proofsRequired);
       if (proofError) {
         return { block: true, blockReason: proofError };
       }
-      if (proofs && verificationService.csrgVerifyIsEnabled()) {
-        try {
-          const verifyResult = await verificationService.verifyStep(
-            tokenRaw,
-            proofs,
-            event.toolName,
-          );
-          if (!verifyResult.allowed) {
-            return {
-              block: true,
-              blockReason: verifyResult.reason || "ArmorIQ intent verification denied",
-            };
-          }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+
+      try {
+        const verifyResult = await verificationService.verifyStep(
+          tokenRaw,
+          proofs,
+          event.toolName,
+        );
+        if (!verifyResult.allowed) {
           return {
             block: true,
-            blockReason: `ArmorIQ intent verification failed: ${message}`,
+            blockReason: verifyResult.reason || "ArmorIQ intent verification denied",
           };
         }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          block: true,
+          blockReason: `ArmorIQ intent verification failed: ${message}`,
+        };
       }
       return null;
     };
@@ -886,11 +890,12 @@ export default function register(api: OpenClawPluginApi) {
         if (tokenCheck.blockReason) {
           return { block: true, blockReason: tokenCheck.blockReason };
         }
-        const csrgResult = await verifyWithCsrg(intentTokenRaw, tokenCheck.plan ?? {});
+        const csrgResult = await verifyWithIap(intentTokenRaw, tokenCheck.plan ?? {});
         if (csrgResult) {
           return csrgResult;
         }
-        return { params: tokenCheck.params ?? event.params };
+        const resultParams = tokenCheck.params ?? event.params;
+        return resultParams ? { params: resultParams as Record<string, unknown> } : undefined;
       }
 
       const proofParse = parseCsrgProofHeaders(toolCtx);
@@ -905,11 +910,11 @@ export default function register(api: OpenClawPluginApi) {
         return { block: true, blockReason: proofError };
       }
 
-      const csrgResult = await verifyWithCsrg(intentTokenRaw, { steps: [] });
+      const csrgResult = await verifyWithIap(intentTokenRaw, { steps: [] });
       if (csrgResult) {
         return csrgResult;
       }
-      return { params: event.params };
+      return event.params ? { params: event.params } : undefined;
     }
 
     if (!cfg.apiKey) {
@@ -1015,16 +1020,12 @@ export default function register(api: OpenClawPluginApi) {
         if (tokenCheck.blockReason) {
           return { block: true, blockReason: tokenCheck.blockReason };
         }
-        const csrgResult = await verifyWithCsrg(cached.tokenRaw, tokenCheck.plan ?? {});
+        const csrgResult = await verifyWithIap(cached.tokenRaw, tokenCheck.plan ?? {});
         if (csrgResult) {
           return csrgResult;
         }
         return { params: tokenCheck.params ?? event.params };
       }
-      return {
-        block: true,
-        blockReason: "ArmorIQ intent token missing plan",
-      };
     }
 
     if (cached.expiresAt && Date.now() / 1000 > cached.expiresAt) {
