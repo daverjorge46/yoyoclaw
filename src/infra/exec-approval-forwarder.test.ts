@@ -56,7 +56,6 @@ describe("telegram exec approval callback data", () => {
     expect(parsed).toEqual({ approvalId: "my-approval-id", action: "allow-always" });
   });
 });
-
 const baseRequest = {
   id: "req-1",
   request: {
@@ -78,7 +77,7 @@ describe("exec approval forwarder", () => {
     const deliver = vi.fn().mockResolvedValue([]);
     const cfg = {
       approvals: { exec: { enabled: true, mode: "session" } },
-    } as MoltbotConfig;
+    } as OpenClawConfig;
 
     const forwarder = createExecApprovalForwarder({
       getConfig: () => cfg,
@@ -113,7 +112,7 @@ describe("exec approval forwarder", () => {
           targets: [{ channel: "telegram", to: "123" }],
         },
       },
-    } as MoltbotConfig;
+    } as OpenClawConfig;
 
     const forwarder = createExecApprovalForwarder({
       getConfig: () => cfg,
