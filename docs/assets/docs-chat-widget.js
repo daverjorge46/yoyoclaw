@@ -4,17 +4,33 @@
   // Select API URL: prefer explicit config, else localhost for dev, else production
   const hostname = window.location.hostname;
   const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+  // Determine if we're on the docs site or embedded elsewhere
+  const isDocsSite = hostname.includes("docs.openclaw") || hostname.endsWith(".mintlify.app");
+  const assetsBase = isDocsSite || isLocal ? "" : "https://docs.openclaw.ai";
   const apiBase =
     window.DOCS_CHAT_API_URL ||
     (isLocal ? "http://localhost:3001" : "https://claw-api.openknot.ai");
 
   // Load vendored @create-markdown/preview@0.1.0 for markdown rendering
+  // Uses script tag + global to avoid ES module issues with Mintlify's bundler
   let markdownToHTML = null;
-  import("/assets/create-markdown-preview.js")
-    .then((mod) => {
-      markdownToHTML = mod.markdownToHTML;
-    })
-    .catch((err) => console.warn("Failed to load create-markdown:", err));
+  const loadMarkdownLib = () => {
+    // Check if already loaded (e.g., via separate script tag)
+    if (window.CreateMarkdownPreview) {
+      markdownToHTML = window.CreateMarkdownPreview.markdownToHTML;
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `${assetsBase}/assets/create-markdown-preview.js`;
+    script.onload = () => {
+      if (window.CreateMarkdownPreview) {
+        markdownToHTML = window.CreateMarkdownPreview.markdownToHTML;
+      }
+    };
+    script.onerror = () => console.warn("Failed to load create-markdown library");
+    document.head.appendChild(script);
+  };
+  loadMarkdownLib();
 
   // Markdown renderer with fallback before module loads
   const renderMarkdown = (text) => {
@@ -368,7 +384,7 @@ html[data-theme="dark"] .docs-chat-user {
   button.id = "docs-chat-button";
   button.type = "button";
   button.innerHTML =
-    `<img class="docs-chat-logo" src="/assets/pixel-lobster.svg" alt="OpenClaw">` +
+    `<img class="docs-chat-logo" src="${assetsBase}/assets/pixel-lobster.svg" alt="OpenClaw">` +
     `<span>Ask Molty</span>`;
 
   const panel = document.createElement("div");
@@ -383,7 +399,7 @@ html[data-theme="dark"] .docs-chat-user {
   header.id = "docs-chat-header";
   header.innerHTML =
     `<div id="docs-chat-header-title">` +
-    `<img class="docs-chat-logo" src="/assets/pixel-lobster.svg" alt="OpenClaw">` +
+    `<img class="docs-chat-logo" src="${assetsBase}/assets/pixel-lobster.svg" alt="OpenClaw">` +
     `<span>OpenClaw Docs</span>` +
     `</div>` +
     `<div id="docs-chat-header-actions"></div>`;

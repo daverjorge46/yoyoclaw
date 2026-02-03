@@ -1140,6 +1140,8 @@ function Pe(e) {
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'");
 }
+// IIFE wrapper - exposes global window.CreateMarkdownPreview for classic script loading
+(function(global) {
 var _ = class extends HTMLElement {
     shadow;
     plugins;
@@ -1269,19 +1271,22 @@ function Fe() {
   typeof window < "u" && typeof customElements < "u" && Se();
 }
 var Ue = "0.1.0";
-export {
-  _ as MarkdownPreviewElement,
-  Ue as VERSION,
-  Fe as autoRegister,
-  C as blocksToHTML,
-  Re as createMermaidPlugin,
-  He as createShikiPlugin,
-  Ne as getThemePath,
-  qe as markdownToHTML,
-  Ee as mermaidPlugin,
-  Se as registerPreviewElement,
-  me as renderAsync,
-  Te as shikiPlugin,
-  Ce as themes,
+
+// Expose public API as global
+global.CreateMarkdownPreview = {
+  MarkdownPreviewElement: _,
+  VERSION: Ue,
+  autoRegister: Fe,
+  blocksToHTML: C,
+  createMermaidPlugin: Re,
+  createShikiPlugin: He,
+  getThemePath: Ne,
+  markdownToHTML: qe,
+  mermaidPlugin: Ee,
+  registerPreviewElement: Se,
+  renderAsync: me,
+  shikiPlugin: Te,
+  themes: Ce,
 };
+})(typeof window !== 'undefined' ? window : this);
 //# sourceMappingURL=preview.bundle.mjs.map
