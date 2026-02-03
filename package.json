@@ -127,6 +127,7 @@
     "security:demo:dev": "pnpm --filter @openclaw/security-info-demo dev",
     "security:demo:gateway-dev": "concurrently --kill-others-on-fail --prefix '[{name}]' --names 'gateway,demo' --prefix-colors 'cyan.bold,yellow.bold' 'pnpm gateway:watch:skip-channels' 'pnpm security:demo:dev'",
     "security:demo:preview": "pnpm --filter @openclaw/security-info-demo preview",
+    "setup-completion": "node scripts/setup-completion.js",
     "start": "node scripts/run-node.mjs",
     "test": "node scripts/test-parallel.mjs",
     "test:all": "pnpm lint && pnpm build && pnpm test && pnpm test:e2e && pnpm test:live && pnpm test:docker:all",

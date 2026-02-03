@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -273,43 +272,14 @@ function applyPatchFile({ patchPath, targetDir }) {
   applyPatchSet({ patchText, targetDir });
 }
 
-function trySetupCompletion(repoRoot) {
-  // Skip in CI or if explicitly disabled
-  if (process.env.CI || process.env.OPENCLAW_SKIP_COMPLETION_SETUP) {
-    return;
-  }
-
-  const binPath = path.join(repoRoot, "openclaw.mjs");
-  if (!fs.existsSync(binPath)) {
-    return;
-  }
-
-  // In development, dist might not exist yet during postinstall
-  const distEntry = path.join(repoRoot, "dist", "index.js");
-  if (!fs.existsSync(distEntry)) {
-    return;
-  }
-
-  try {
-    // Run with OPENCLAW_SKIP_POSTINSTALL to avoid any weird recursion,
-    // though distinct from this script.
-    spawnSync(process.execPath, [binPath, "completion", "--install", "--yes"], {
-      cwd: repoRoot,
-      stdio: "inherit",
-      env: { ...process.env, OPENCLAW_SKIP_POSTINSTALL: "1" },
-    });
-  } catch {
-    // Ignore errors to not break install
-  }
-}
-
 function main() {
   const repoRoot = getRepoRoot();
   process.chdir(repoRoot);
 
   ensureExecutable(path.join(repoRoot, "dist", "/entry.js"));
   setupGitHooks({ repoRoot });
-  trySetupCompletion(repoRoot);
+  // Completion setup is slow (loads all plugins via jiti) and not needed on every install.
+  // Run `pnpm setup-completion` manually if you want shell completions.
 
   if (!shouldApplyPnpmPatchedDependenciesFallback()) {
     return;
