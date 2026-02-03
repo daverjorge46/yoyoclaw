@@ -1,11 +1,11 @@
-import type { GatewayBrowserClient } from "../gateway";
-import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types";
+import type { GatewayBrowserClient } from "../gateway.ts";
+import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types.ts";
 import {
   cloneConfigObject,
   removePathValue,
   serializeConfigForm,
   setPathValue,
-} from "./config/form-utils";
+} from "./config/form-utils.ts";
 
 export type ConfigState = {
   client: GatewayBrowserClient | null;
@@ -62,7 +62,7 @@ export async function loadConfigSchema(state: ConfigState) {
   }
   state.configSchemaLoading = true;
   try {
-    const res = await state.client.request("config.schema", {});
+    const res = await state.client.request<ConfigSchemaResponse>("config.schema", {});
     applyConfigSchema(state, res);
   } catch (err) {
     state.lastError = String(err);

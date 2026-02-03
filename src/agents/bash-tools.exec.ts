@@ -799,7 +799,7 @@ async function runExecProcess(opts: {
 
 export function createExecTool(
   defaults?: ExecToolDefaults,
-  // biome-ignore lint/suspicious/noExplicitAny: TypeBox schema type from pi-agent-core uses a different module instance.
+  // oxlint-disable-next-line typescript/no-explicit-any
 ): AgentTool<any, ExecToolDetails> {
   const defaultBackgroundMs = clampNumber(
     defaults?.backgroundMs ?? readEnvInt("PI_BASH_YIELD_MS"),
@@ -1046,6 +1046,7 @@ export function createExecTool(
           safeBins: new Set(),
           cwd: workdir,
           env,
+          platform: nodeInfo?.platform,
         });
         let analysisOk = baseAllowlistEval.analysisOk;
         let allowlistSatisfied = false;
@@ -1073,6 +1074,7 @@ export function createExecTool(
                 safeBins: new Set(),
                 cwd: workdir,
                 env,
+                platform: nodeInfo?.platform,
               });
               allowlistSatisfied = allowlistEval.allowlistSatisfied;
               analysisOk = allowlistEval.analysisOk;
@@ -1282,6 +1284,7 @@ export function createExecTool(
           safeBins,
           cwd: workdir,
           env,
+          platform: process.platform,
         });
         const allowlistMatches = allowlistEval.allowlistMatches;
         const analysisOk = allowlistEval.analysisOk;
