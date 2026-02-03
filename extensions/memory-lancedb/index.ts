@@ -195,6 +195,10 @@ class MiniMaxEmbeddings implements EmbeddingProvider {
     if (this.groupId) {
       headers["X-GroupId"] = this.groupId;
     }
+
+    const response = await fetch(this.baseUrl, {
+      method: "POST",
+      headers,
       body: JSON.stringify({
         model: this.model,
         texts: [text],
