@@ -31,7 +31,13 @@ const DEFAULT_RETRY_CODES = ["EBADF"];
 export function resolveCommandStdio(params: {
   hasInput: boolean;
   preferInherit: boolean;
-}): ["pipe" | "inherit" | "ignore", "pipe", "pipe"] {
+  ignoreOutput?: boolean;
+}): ["pipe" | "inherit" | "ignore", "pipe" | "ignore", "pipe" | "ignore"] {
+  // EBADF workaround: always ignore output to prevent pipe creation failures
+  // Set ignoreOutput=false explicitly to override (at your own risk)
+  if (params.ignoreOutput !== false) {
+    return ["ignore", "ignore", "ignore"];
+  }
   const stdin = params.hasInput ? "pipe" : params.preferInherit ? "inherit" : "pipe";
   return [stdin, "pipe", "pipe"];
 }
@@ -108,19 +114,22 @@ async function spawnAndWaitForSpawn(
 }
 
 /**
- * Create a fake ChildProcess that uses file-capture for stdout/stderr.
- * This is the EBADF workaround - avoids pipe creation which causes EBADF.
- * Output is captured to temp files and replayed after process completes.
+ * Async file-capture fallback for EBADF spawn failures (macOS only).
+ * Uses stdio:"ignore" to bypass pipe creation, captures output to temp files.
+ *
+ * NOTE: Shell wrapper may alter argv semantics (quoting, env inheritance).
+ * Acceptable trade-off vs. total spawn failure on EBADF-affected macOS.
  */
 function createFileCaptureChild(
   spawnImpl: typeof spawn,
   argv: string[],
   options: SpawnOptions,
 ): ChildProcess {
-  const tmpDir = os.tmpdir();
-  const id = `openclaw-spawn-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const stdoutFile = path.join(tmpDir, `${id}.stdout`);
-  const stderrFile = path.join(tmpDir, `${id}.stderr`);
+  // Create private temp dir to avoid symlink attacks in shared tmpdir
+  const tmpBase = path.join(os.tmpdir(), "openclaw-");
+  const tmpDir = fs.mkdtempSync(tmpBase); // mode 0700 by default
+  const stdoutFile = path.join(tmpDir, "stdout");
+  const stderrFile = path.join(tmpDir, "stderr");
 
   // Create a fake ChildProcess with readable stdout/stderr streams
   const fakeChild = new EventEmitter() as ChildProcess;
@@ -137,59 +146,59 @@ function createFileCaptureChild(
   const wrappedCommand = `${escapedCommand} >"${stdoutFile}" 2>"${stderrFile}"`;
 
   // Spawn the shell with stdio: "ignore" to bypass EBADF
-  const realChild = spawnImpl("/bin/sh", ["-c", wrappedCommand], {
-    ...options,
-    stdio: "ignore",
-    detached: false,
-  });
+  let realChild: ChildProcess;
+  try {
+    realChild = spawnImpl("/bin/sh", ["-c", wrappedCommand], {
+      ...options,
+      stdio: "ignore",
+      detached: false,
+    });
+  } catch (err) {
+    // Even stdio:ignore failed, clean up and emit error async
+    fs.promises.rm(tmpDir, { recursive: true }).catch(() => {});
+    setImmediate(() => {
+      fakeChild.emit("error", err);
+    });
+    return fakeChild;
+  }
 
   // Forward pid
   (fakeChild as { pid: number | undefined }).pid = realChild.pid;
 
-  // Track if we've emitted spawn
-  let spawnEmitted = false;
-
-  realChild.once("spawn", () => {
-    spawnEmitted = true;
-    fakeChild.emit("spawn");
-  });
-
+  // Forward errors unconditionally - callers expect error events regardless of timing
   realChild.once("error", (err) => {
-    // Clean up temp files on error
-    try {
-      fs.unlinkSync(stdoutFile);
-    } catch {}
-    try {
-      fs.unlinkSync(stderrFile);
-    } catch {}
-
-    if (!spawnEmitted) {
-      fakeChild.emit("error", err);
-    }
+    fs.promises.rm(tmpDir, { recursive: true }).catch(() => {});
+    fakeChild.emit("error", err);
   });
 
   realChild.once("close", (code, signal) => {
-    // Read captured output and push to streams
-    const readAndPush = (file: string, stream: Readable) => {
+    // Read captured output asynchronously
+    const readAndPush = async (file: string, stream: Readable): Promise<void> => {
       try {
-        if (fs.existsSync(file)) {
-          const data = fs.readFileSync(file, "utf8");
-          if (data.length > 0) {
-            stream.push(data);
-          }
-          fs.unlinkSync(file);
-        }
+        const data = await fs.promises.readFile(file, "utf8");
+        if (data) stream.push(data);
       } catch {
-        // Ignore read errors
+        // File may not exist or read failed
       }
-      stream.push(null); // Signal end of stream
+      stream.push(null);
     };
 
-    readAndPush(stdoutFile, stdoutStream);
-    readAndPush(stderrFile, stderrStream);
+    Promise.all([
+      readAndPush(stdoutFile, stdoutStream),
+      readAndPush(stderrFile, stderrStream),
+    ]).then(() => {
+      // Clean up temp directory
+      fs.promises.rm(tmpDir, { recursive: true }).catch(() => {});
+      fakeChild.emit("close", code, signal);
+      fakeChild.emit("exit", code, signal);
+    });
+  });
 
-    fakeChild.emit("close", code, signal);
-    fakeChild.emit("exit", code, signal);
+  // Emit spawn event async (after realChild has pid)
+  setImmediate(() => {
+    if (realChild.pid) {
+      fakeChild.emit("spawn");
+    }
   });
 
   // Add kill method
@@ -221,35 +230,19 @@ async function spawnWithFileCapture(
 ): Promise<ChildProcess> {
   const child = createFileCaptureChild(spawnImpl, argv, options);
 
-  return await new Promise((resolve, reject) => {
-    let settled = false;
-    const cleanup = () => {
+  return new Promise((resolve, reject) => {
+    const onSpawn = () => {
       child.removeListener("error", onError);
-      child.removeListener("spawn", onSpawn);
-    };
-    const finishResolve = () => {
-      if (settled) return;
-      settled = true;
-      cleanup();
       resolve(child);
     };
     const onError = (err: unknown) => {
-      if (settled) return;
-      settled = true;
-      cleanup();
+      child.removeListener("spawn", onSpawn);
       reject(err);
     };
-    const onSpawn = () => {
-      finishResolve();
-    };
-    child.once("error", onError);
+
     child.once("spawn", onSpawn);
-    // Handle case where child already has a pid (sync spawn)
-    process.nextTick(() => {
-      if (typeof child.pid === "number" && !settled) {
-        finishResolve();
-      }
-    });
+    child.once("error", onError);
+    // No nextTick/pid shortcut — wait for real spawn event
   });
 }
 
@@ -261,7 +254,7 @@ export async function spawnWithFallback(
   const baseOptions = { ...params.options };
   const fallbacks = params.fallbacks ?? [];
 
-  // Build attempt list: user options, user fallbacks, then file-capture fallback
+  // Build attempt list: user options, user fallbacks
   const attempts: Array<{
     label?: string;
     options: SpawnOptions;
@@ -272,9 +265,12 @@ export async function spawnWithFallback(
       label: fallback.label,
       options: { ...baseOptions, ...fallback.options },
     })),
-    // Final fallback: file-capture to bypass EBADF on pipe creation
-    { label: "file-capture", options: baseOptions, useFileCapture: true },
   ];
+
+  // EBADF file-capture fallback: macOS only, shell semantics may differ
+  if (process.platform === "darwin") {
+    attempts.push({ label: "file-capture", options: baseOptions, useFileCapture: true });
+  }
 
   let lastError: unknown;
   for (let index = 0; index < attempts.length; index += 1) {
