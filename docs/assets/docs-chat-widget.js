@@ -198,19 +198,21 @@ html[data-theme="dark"] {
   text-underline-offset: 2px;
 }
 .docs-chat-assistant a:hover { opacity: 0.8; }
-.docs-chat-assistant ul {
+.docs-chat-assistant ul, .docs-chat-assistant ol {
   margin: 8px 0;
-  padding-left: 22px;
-  list-style-type: disc;
-}
-.docs-chat-assistant ol {
-  margin: 8px 0;
-  padding-left: 22px;
-  list-style-type: decimal;
+  padding-left: 18px;
+  list-style: none;
 }
 .docs-chat-assistant li {
   margin: 4px 0;
-  display: list-item;
+  position: relative;
+  padding-left: 14px;
+}
+.docs-chat-assistant li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--docs-chat-muted);
 }
 .docs-chat-assistant strong { font-weight: 600; }
 .docs-chat-assistant em { font-style: italic; }
@@ -236,6 +238,43 @@ html[data-theme="dark"] {
   background: var(--docs-chat-panel-border);
   margin: 12px 0;
 }
+/* Copy buttons */
+.docs-chat-assistant { position: relative; }
+.docs-chat-copy-response {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--docs-chat-code-bg);
+  border: 1px solid var(--docs-chat-panel-border);
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--docs-chat-muted);
+}
+.docs-chat-assistant:hover .docs-chat-copy-response { opacity: 1; }
+.docs-chat-copy-response:hover { color: var(--docs-chat-text); }
+.docs-chat-assistant pre {
+  position: relative;
+}
+.docs-chat-copy-code {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--docs-chat-assistant-bg);
+  border: 1px solid var(--docs-chat-panel-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--docs-chat-muted);
+}
+.docs-chat-assistant pre:hover .docs-chat-copy-code { opacity: 1; }
+.docs-chat-copy-code:hover { color: var(--docs-chat-text); }
 `;
   document.head.appendChild(style);
 
@@ -293,7 +332,7 @@ html[data-theme="dark"] {
   // Auto-expand textarea as user types (up to max-height set in CSS)
   const autoExpand = () => {
     textarea.style.height = "auto";
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
+    textarea.style.height = Math.min(textarea.scrollHeight, 224) + "px";
   };
   textarea.addEventListener("input", autoExpand);
 
@@ -312,6 +351,45 @@ html[data-theme="dark"] {
   root.appendChild(button);
   root.appendChild(panel);
   document.body.appendChild(root);
+
+  // Add copy buttons to assistant bubble
+  const addCopyButtons = (bubble, rawText) => {
+    // Add copy response button
+    const copyResponse = document.createElement("button");
+    copyResponse.className = "docs-chat-copy-response";
+    copyResponse.textContent = "Copy";
+    copyResponse.type = "button";
+    copyResponse.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(rawText);
+        copyResponse.textContent = "Copied!";
+        setTimeout(() => (copyResponse.textContent = "Copy"), 1500);
+      } catch (e) {
+        copyResponse.textContent = "Failed";
+      }
+    });
+    bubble.appendChild(copyResponse);
+
+    // Add copy buttons to code blocks
+    bubble.querySelectorAll("pre").forEach((pre) => {
+      const code = pre.querySelector("code") || pre;
+      const copyCode = document.createElement("button");
+      copyCode.className = "docs-chat-copy-code";
+      copyCode.textContent = "Copy";
+      copyCode.type = "button";
+      copyCode.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        try {
+          await navigator.clipboard.writeText(code.textContent);
+          copyCode.textContent = "Copied!";
+          setTimeout(() => (copyCode.textContent = "Copy"), 1500);
+        } catch (err) {
+          copyCode.textContent = "Failed";
+        }
+      });
+      pre.appendChild(copyCode);
+    });
+  };
 
   const addBubble = (text, role, isMarkdown = false) => {
     const bubble = document.createElement("div");
@@ -364,6 +442,7 @@ html[data-theme="dark"] {
     const assistantBubble = addBubble("...", "assistant");
     assistantBubble.innerHTML = "";
 
+    let fullText = "";
     try {
       const response = await fetch(`${apiBase}/chat`, {
         method: "POST",
@@ -371,13 +450,13 @@ html[data-theme="dark"] {
         body: JSON.stringify({ message: text }),
       });
       if (!response.body) {
-        const respText = await response.text();
-        assistantBubble.innerHTML = renderMarkdown(respText);
+        fullText = await response.text();
+        assistantBubble.innerHTML = renderMarkdown(fullText);
+        addCopyButtons(assistantBubble, fullText);
         return;
       }
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let fullText = "";
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -386,8 +465,12 @@ html[data-theme="dark"] {
         assistantBubble.innerHTML = renderMarkdown(fullText);
         messages.scrollTop = messages.scrollHeight;
       }
+      // Add copy buttons after streaming completes
+      addCopyButtons(assistantBubble, fullText);
     } catch (err) {
-      assistantBubble.innerHTML = renderMarkdown("Failed to reach docs chat API.");
+      fullText = "Failed to reach docs chat API.";
+      assistantBubble.innerHTML = renderMarkdown(fullText);
+      addCopyButtons(assistantBubble, fullText);
     }
   };
 
