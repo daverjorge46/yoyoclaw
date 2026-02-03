@@ -1,21 +1,27 @@
-import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { Type } from "@sinclair/typebox";
 import { stringEnum } from "openclaw/plugin-sdk";
+import type { MessagePriority, OutboundMessage } from "./src/types.ts";
 import { NatsWakeConfigSchema } from "./src/config.ts";
 import { createNatsWakeService, type NatsWakeHandle } from "./src/service.ts";
-import type { MessagePriority, OutboundMessage } from "./src/types.ts";
 
 const PRIORITIES = ["urgent", "normal", "low"] as const;
 const ACTIONS = ["publish", "request"] as const;
 const AGENT_SUBJECT_RE = /^agent\.([^.]+)\.inbox$/;
 
 const NatsToolSchema = Type.Object({
-  action: stringEnum(ACTIONS, { description: "publish = fire-and-forget, request = wait for reply" }),
+  action: stringEnum(ACTIONS, {
+    description: "publish = fire-and-forget, request = wait for reply",
+  }),
   subject: Type.Optional(Type.String({ description: "NATS subject (e.g. 'agent.gizmo.inbox')" })),
   to: Type.Optional(Type.String({ description: "Shorthand: 'gizmo' becomes 'agent.gizmo.inbox'" })),
   message: Type.String({ description: "Message body to send" }),
-  priority: Type.Optional(stringEnum(PRIORITIES, { description: "Priority level (default: normal)" })),
-  timeoutMs: Type.Optional(Type.Number({ description: "Timeout for request action (default: 5000)" })),
+  priority: Type.Optional(
+    stringEnum(PRIORITIES, { description: "Priority level (default: normal)" }),
+  ),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Timeout for request action (default: 5000)" }),
+  ),
 });
 
 function resolveOutboundTo(params: { to: string; subject: string; defaultAgent?: string }): string {
@@ -144,7 +150,7 @@ function createNatsTool(handle: NatsWakeHandle) {
       }
 
       return {
-        content: [{ type: "text", text: `Unknown action: ${action}` }],
+        content: [{ type: "text", text: `Unknown action: ${String(action)}` }],
         details: { error: "unknown_action" },
       };
     },

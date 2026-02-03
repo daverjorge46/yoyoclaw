@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createMessageProcessor } from "./processor.ts";
 import type { NatsMessage } from "./types.ts";
+import { createMessageProcessor } from "./processor.ts";
 
 function createNatsMessage(payload: unknown): NatsMessage {
   const data = new TextEncoder().encode(JSON.stringify(payload));

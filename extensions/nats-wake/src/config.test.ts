@@ -241,7 +241,10 @@ describe("NatsWakeConfigSchema", () => {
 
       expect(result?.success).toBe(false);
       expect(result?.error?.issues).toContainEqual(
-        expect.objectContaining({ path: ["reconnect", "maxDelayMs"], message: "must be >= delayMs" }),
+        expect.objectContaining({
+          path: ["reconnect", "maxDelayMs"],
+          message: "must be >= delayMs",
+        }),
       );
     });
 

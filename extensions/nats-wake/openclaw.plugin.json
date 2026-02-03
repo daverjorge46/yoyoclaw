@@ -7,7 +7,10 @@
   "uiHints": {
     "enabled": { "label": "Enabled", "help": "Enable NATS wake plugin" },
     "url": { "label": "NATS URL", "placeholder": "nats://localhost:4222" },
-    "subjects": { "label": "Subjects", "help": "Patterns like agent.*.inbox (wildcards supported)" },
+    "subjects": {
+      "label": "Subjects",
+      "help": "Patterns like agent.*.inbox (wildcards supported)"
+    },
     "credentials.token": { "label": "Token", "sensitive": true },
     "credentials.user": { "label": "Username" },
     "credentials.pass": { "label": "Password", "sensitive": true },
@@ -15,7 +18,11 @@
     "reconnect.delayMs": { "label": "Reconnect Delay (ms)", "advanced": true },
     "reconnect.maxDelayMs": { "label": "Max Reconnect Delay (ms)", "advanced": true },
     "defaultAgent": { "label": "Default Agent", "placeholder": "main", "advanced": true },
-    "agentName": { "label": "Agent Name", "placeholder": "nyx", "help": "Used as 'from' in outgoing messages" }
+    "agentName": {
+      "label": "Agent Name",
+      "placeholder": "nyx",
+      "help": "Used as 'from' in outgoing messages"
+    }
   },
   "configSchema": {
     "type": "object",
@@ -39,13 +46,22 @@
       "reconnect": {
         "type": "object",
         "properties": {
-          "maxAttempts": { "type": "number", "description": "Max reconnect attempts (-1 = infinite)" },
+          "maxAttempts": {
+            "type": "number",
+            "description": "Max reconnect attempts (-1 = infinite)"
+          },
           "delayMs": { "type": "number", "description": "Initial reconnect delay (ms)" },
           "maxDelayMs": { "type": "number", "description": "Max reconnect delay (ms)" }
         }
       },
-      "defaultAgent": { "type": "string", "description": "Default agent for messages without 'to' field" },
-      "agentName": { "type": "string", "description": "This agent's name for outgoing message 'from' field" }
+      "defaultAgent": {
+        "type": "string",
+        "description": "Default agent for messages without 'to' field"
+      },
+      "agentName": {
+        "type": "string",
+        "description": "This agent's name for outgoing message 'from' field"
+      }
     }
   }
 }

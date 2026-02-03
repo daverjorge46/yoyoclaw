@@ -158,7 +158,7 @@ async function executeNatsTool(
   }
 
   return {
-    content: [{ type: "text", text: `Unknown action: ${action}` }],
+    content: [{ type: "text", text: `Unknown action: ${String(action)}` }],
     details: { error: "unknown_action" },
   };
 }
@@ -236,10 +236,7 @@ describe("nats tool", () => {
         message: "hello",
       });
 
-      expect(publishFn).toHaveBeenCalledWith(
-        "custom.subject",
-        expect.any(Uint8Array),
-      );
+      expect(publishFn).toHaveBeenCalledWith("custom.subject", expect.any(Uint8Array));
     });
 
     it("uses defaultAgent as outbound to for non-agent subjects", async () => {
@@ -287,10 +284,7 @@ describe("nats tool", () => {
         message: "hello",
       });
 
-      expect(publishFn).toHaveBeenCalledWith(
-        "agent.gizmo.inbox",
-        expect.any(Uint8Array),
-      );
+      expect(publishFn).toHaveBeenCalledWith("agent.gizmo.inbox", expect.any(Uint8Array));
     });
 
     it("prefers subject over to when both provided", async () => {
@@ -304,10 +298,7 @@ describe("nats tool", () => {
         message: "hello",
       });
 
-      expect(publishFn).toHaveBeenCalledWith(
-        "explicit.subject",
-        expect.any(Uint8Array),
-      );
+      expect(publishFn).toHaveBeenCalledWith("explicit.subject", expect.any(Uint8Array));
     });
   });
 
@@ -326,7 +317,11 @@ describe("nats tool", () => {
         priority: "urgent",
       });
 
-      expect(result.details).toEqual({ ok: true, subject: "agent.gizmo.inbox", priority: "urgent" });
+      expect(result.details).toEqual({
+        ok: true,
+        subject: "agent.gizmo.inbox",
+        priority: "urgent",
+      });
       expect(publishFn).toHaveBeenCalledTimes(1);
 
       const sentData = publishFn.mock.calls[0][1];
@@ -411,9 +406,9 @@ describe("nats tool", () => {
 
   describe("request action", () => {
     it("sends request and returns parsed JSON response", async () => {
-      const requestFn = vi.fn().mockResolvedValue(
-        new TextEncoder().encode(JSON.stringify({ status: "ok", data: 42 })),
-      );
+      const requestFn = vi
+        .fn()
+        .mockResolvedValue(new TextEncoder().encode(JSON.stringify({ status: "ok", data: 42 })));
       const handle = createMockHandle({ requestFn });
 
       const result = await executeNatsTool(handle, {
@@ -424,17 +419,11 @@ describe("nats tool", () => {
       });
 
       expect(result.details).toEqual({ ok: true, response: { status: "ok", data: 42 } });
-      expect(requestFn).toHaveBeenCalledWith(
-        "agent.gizmo.inbox",
-        expect.any(Uint8Array),
-        10000,
-      );
+      expect(requestFn).toHaveBeenCalledWith("agent.gizmo.inbox", expect.any(Uint8Array), 10000);
     });
 
     it("uses default timeout of 5000ms", async () => {
-      const requestFn = vi.fn().mockResolvedValue(
-        new TextEncoder().encode("{}"),
-      );
+      const requestFn = vi.fn().mockResolvedValue(new TextEncoder().encode("{}"));
       const handle = createMockHandle({ requestFn });
 
       await executeNatsTool(handle, {
@@ -443,17 +432,11 @@ describe("nats tool", () => {
         message: "Hello",
       });
 
-      expect(requestFn).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Uint8Array),
-        5000,
-      );
+      expect(requestFn).toHaveBeenCalledWith(expect.any(String), expect.any(Uint8Array), 5000);
     });
 
     it("handles non-JSON responses as strings", async () => {
-      const requestFn = vi.fn().mockResolvedValue(
-        new TextEncoder().encode("plain text response"),
-      );
+      const requestFn = vi.fn().mockResolvedValue(new TextEncoder().encode("plain text response"));
       const handle = createMockHandle({ requestFn });
 
       const result = await executeNatsTool(handle, {

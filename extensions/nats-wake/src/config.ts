@@ -44,7 +44,11 @@ export const NatsWakeConfigSchema: OpenClawPluginConfigSchema = {
     }
 
     if (cfg.credentials !== undefined) {
-      if (!cfg.credentials || typeof cfg.credentials !== "object" || Array.isArray(cfg.credentials)) {
+      if (
+        !cfg.credentials ||
+        typeof cfg.credentials !== "object" ||
+        Array.isArray(cfg.credentials)
+      ) {
         issues.push({ path: ["credentials"], message: "must be object" });
       }
     }
@@ -113,8 +117,14 @@ export const NatsWakeConfigSchema: OpenClawPluginConfigSchema = {
           maxDelayMs: { type: "number", description: "Max reconnect delay (ms)" },
         },
       },
-      defaultAgent: { type: "string", description: "Default agent for messages without 'to' field" },
-      agentName: { type: "string", description: "This agent's name for outgoing message 'from' field" },
+      defaultAgent: {
+        type: "string",
+        description: "Default agent for messages without 'to' field",
+      },
+      agentName: {
+        type: "string",
+        description: "This agent's name for outgoing message 'from' field",
+      },
     },
   },
 
@@ -129,7 +139,11 @@ export const NatsWakeConfigSchema: OpenClawPluginConfigSchema = {
     "reconnect.delayMs": { label: "Reconnect Delay (ms)", advanced: true },
     "reconnect.maxDelayMs": { label: "Max Reconnect Delay (ms)", advanced: true },
     defaultAgent: { label: "Default Agent", placeholder: "main", advanced: true },
-    agentName: { label: "Agent Name", placeholder: "nyx", help: "Used as 'from' in outgoing messages" },
+    agentName: {
+      label: "Agent Name",
+      placeholder: "nyx",
+      help: "Used as 'from' in outgoing messages",
+    },
   },
 };
 

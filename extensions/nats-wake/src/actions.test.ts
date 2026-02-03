@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createActionDispatcher } from "./actions.ts";
-import type { ProcessedMessage } from "./types.ts";
 import type { PluginRuntime, PluginLogger } from "openclaw/plugin-sdk";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { ProcessedMessage } from "./types.ts";
+import { createActionDispatcher } from "./actions.ts";
 
 describe("createActionDispatcher", () => {
   let mockRuntime: {
@@ -231,10 +231,9 @@ describe("createActionDispatcher", () => {
 
         dispatcher.dispatch(msg);
 
-        expect(mockRuntime.system.enqueueSystemEvent).toHaveBeenCalledWith(
-          "Test message",
-          { sessionKey },
-        );
+        expect(mockRuntime.system.enqueueSystemEvent).toHaveBeenCalledWith("Test message", {
+          sessionKey,
+        });
       }
     });
   });

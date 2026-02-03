@@ -85,10 +85,7 @@ export function createNatsClient(
       return;
     }
 
-    if (
-      reconnectConfig.maxAttempts >= 0 &&
-      state.reconnectAttempt >= reconnectConfig.maxAttempts
-    ) {
+    if (reconnectConfig.maxAttempts >= 0 && state.reconnectAttempt >= reconnectConfig.maxAttempts) {
       logger.error(
         `nats-wake: max reconnect attempts (${reconnectConfig.maxAttempts}) reached, giving up`,
       );

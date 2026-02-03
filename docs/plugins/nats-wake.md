@@ -82,9 +82,9 @@ Set config under `plugins.entries.nats-wake.config`:
 
           // Optional: reconnection settings
           reconnect: {
-            maxAttempts: -1,    // -1 = infinite
-            delayMs: 1000,      // initial delay
-            maxDelayMs: 30000,  // max backoff
+            maxAttempts: -1, // -1 = infinite
+            delayMs: 1000, // initial delay
+            maxDelayMs: 30000, // max backoff
           },
 
           // Optional: default agent for messages without "to" field
@@ -101,19 +101,19 @@ Set config under `plugins.entries.nats-wake.config`:
 
 ### Config fields
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `enabled` | boolean | `false` | Enable the plugin |
-| `url` | string | required | NATS server URL (`nats://`, `tls://`, `ws://`, `wss://`) |
-| `subjects` | string[] | required | NATS subjects to subscribe (wildcards supported) |
-| `credentials.token` | string | - | NATS auth token |
-| `credentials.user` | string | - | NATS username |
-| `credentials.pass` | string | - | NATS password |
-| `reconnect.maxAttempts` | number | `-1` | Max reconnect attempts (-1 = infinite) |
-| `reconnect.delayMs` | number | `1000` | Initial reconnect delay (ms) |
-| `reconnect.maxDelayMs` | number | `30000` | Maximum reconnect delay (ms) |
-| `defaultAgent` | string | `"main"` | Default agent when `to` field is missing |
-| `agentName` | string | - | This agent's name (used as `from` in outgoing messages) |
+| Field                   | Type     | Default  | Description                                              |
+| ----------------------- | -------- | -------- | -------------------------------------------------------- |
+| `enabled`               | boolean  | `false`  | Enable the plugin                                        |
+| `url`                   | string   | required | NATS server URL (`nats://`, `tls://`, `ws://`, `wss://`) |
+| `subjects`              | string[] | required | NATS subjects to subscribe (wildcards supported)         |
+| `credentials.token`     | string   | -        | NATS auth token                                          |
+| `credentials.user`      | string   | -        | NATS username                                            |
+| `credentials.pass`      | string   | -        | NATS password                                            |
+| `reconnect.maxAttempts` | number   | `-1`     | Max reconnect attempts (-1 = infinite)                   |
+| `reconnect.delayMs`     | number   | `1000`   | Initial reconnect delay (ms)                             |
+| `reconnect.maxDelayMs`  | number   | `30000`  | Maximum reconnect delay (ms)                             |
+| `defaultAgent`          | string   | `"main"` | Default agent when `to` field is missing                 |
+| `agentName`             | string   | -        | This agent's name (used as `from` in outgoing messages)  |
 
 ## Message format
 
@@ -130,21 +130,21 @@ Publish JSON messages to your configured subjects:
 
 ### Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `to` | string | no | Target agent name. Routes to `agent:{to}:main` session. Defaults to `defaultAgent` config. |
-| `from` | string | **yes** | Sender identifier (shown in event text) |
-| `body` | string | **yes** | Message content |
-| `priority` | string | no | `urgent`, `normal`, or `low`. Default: `normal` |
-| `metadata` | object | no | Additional metadata (not currently used) |
+| Field      | Type   | Required | Description                                                                                |
+| ---------- | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `to`       | string | no       | Target agent name. Routes to `agent:{to}:main` session. Defaults to `defaultAgent` config. |
+| `from`     | string | **yes**  | Sender identifier (shown in event text)                                                    |
+| `body`     | string | **yes**  | Message content                                                                            |
+| `priority` | string | no       | `urgent`, `normal`, or `low`. Default: `normal`                                            |
+| `metadata` | object | no       | Additional metadata (not currently used)                                                   |
 
 ### Priority levels
 
-| Priority | Behavior | Use case |
-|----------|----------|----------|
-| `urgent` | Inject event + wake immediately | Critical alerts, agent-to-agent requests |
-| `normal` | Inject event only (waits for heartbeat) | Regular notifications |
-| `low` | Inject event only (no immediate wake) | Informational, debug logs |
+| Priority | Behavior                                | Use case                                 |
+| -------- | --------------------------------------- | ---------------------------------------- |
+| `urgent` | Inject event + wake immediately         | Critical alerts, agent-to-agent requests |
+| `normal` | Inject event only (waits for heartbeat) | Regular notifications                    |
+| `low`    | Inject event only (no immediate wake)   | Informational, debug logs                |
 
 ### Event format
 
@@ -161,14 +161,14 @@ The plugin registers a `nats` tool that agents can use to publish messages to ot
 
 ### Tool parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `action` | string | **yes** | `publish` (fire-and-forget) or `request` (wait for reply) |
-| `subject` | string | no | Full NATS subject (e.g. `agent.gizmo.inbox`) |
-| `to` | string | no | Shorthand: `gizmo` becomes `agent.gizmo.inbox` |
-| `message` | string | **yes** | Message body to send |
-| `priority` | string | no | `urgent`, `normal`, or `low` (default: `normal`) |
-| `timeoutMs` | number | no | Timeout for `request` action (default: 5000) |
+| Parameter   | Type   | Required | Description                                               |
+| ----------- | ------ | -------- | --------------------------------------------------------- |
+| `action`    | string | **yes**  | `publish` (fire-and-forget) or `request` (wait for reply) |
+| `subject`   | string | no       | Full NATS subject (e.g. `agent.gizmo.inbox`)              |
+| `to`        | string | no       | Shorthand: `gizmo` becomes `agent.gizmo.inbox`            |
+| `message`   | string | **yes**  | Message body to send                                      |
+| `priority`  | string | no       | `urgent`, `normal`, or `low` (default: `normal`)          |
+| `timeoutMs` | number | no       | Timeout for `request` action (default: 5000)              |
 
 Either `subject` or `to` must be provided.
 If `to` is omitted and `subject` is not `agent.<name>.inbox`, the `to` field in the outgoing payload defaults to `defaultAgent` (or `unknown`).
@@ -212,20 +212,20 @@ The `from` field is automatically set from the `agentName` config (falls back to
 
 The plugin supports NATS wildcards:
 
-| Pattern | Matches |
-|---------|---------|
-| `agent.*.inbox` | `agent.gizmo.inbox`, `agent.alice.inbox` |
-| `agent.>` | `agent.gizmo.inbox`, `agent.gizmo.alerts`, etc. |
-| `alerts.critical` | Exact match only |
+| Pattern           | Matches                                         |
+| ----------------- | ----------------------------------------------- |
+| `agent.*.inbox`   | `agent.gizmo.inbox`, `agent.alice.inbox`        |
+| `agent.>`         | `agent.gizmo.inbox`, `agent.gizmo.alerts`, etc. |
+| `alerts.critical` | Exact match only                                |
 
 Example multi-subject config:
 
 ```json5
 {
   subjects: [
-    "agent.*.inbox",      // Per-agent inboxes
-    "system.broadcast",   // System-wide broadcasts
-    "alerts.>",           // All alert topics
+    "agent.*.inbox", // Per-agent inboxes
+    "system.broadcast", // System-wide broadcasts
+    "alerts.>", // All alert topics
   ],
 }
 ```
@@ -235,7 +235,7 @@ Example multi-subject config:
 Messages are routed to agents based on the `to` field:
 
 ```json
-{"to": "alice", "from": "bob", "body": "Hello", "priority": "urgent"}
+{ "to": "alice", "from": "bob", "body": "Hello", "priority": "urgent" }
 ```
 
 Routes to session key: `agent:alice:main`
@@ -268,12 +268,15 @@ import { connect } from "nats";
 const nc = await connect({ servers: "nats://localhost:4222" });
 
 // Send urgent alert
-nc.publish("agent.gizmo.inbox", JSON.stringify({
-  to: "gizmo",
-  from: "monitoring",
-  body: "CPU usage at 95%",
-  priority: "urgent",
-}));
+nc.publish(
+  "agent.gizmo.inbox",
+  JSON.stringify({
+    to: "gizmo",
+    from: "monitoring",
+    body: "CPU usage at 95%",
+    priority: "urgent",
+  }),
+);
 
 await nc.drain();
 ```
@@ -365,21 +368,23 @@ docker run -d --name nats-auth -p 4222:4222 \
 
 ## Comparison with webhooks
 
-| Feature | NATS Wake | HTTP Webhooks |
-|---------|-----------|---------------|
-| Latency | ~250ms (push) | ~250ms (push) |
-| Protocol | NATS (TCP) | HTTP |
-| Multi-agent | Native (wildcards) | Requires routing logic |
-| Persistence | Optional (JetStream) | No (fire-and-forget) |
-| Auth | Token/user-pass | Bearer token |
-| Best for | Internal systems, high throughput | External integrations |
+| Feature     | NATS Wake                         | HTTP Webhooks          |
+| ----------- | --------------------------------- | ---------------------- |
+| Latency     | ~250ms (push)                     | ~250ms (push)          |
+| Protocol    | NATS (TCP)                        | HTTP                   |
+| Multi-agent | Native (wildcards)                | Requires routing logic |
+| Persistence | Optional (JetStream)              | No (fire-and-forget)   |
+| Auth        | Token/user-pass                   | Bearer token           |
+| Best for    | Internal systems, high throughput | External integrations  |
 
 Use NATS Wake when:
+
 - You already have NATS infrastructure
 - You need fan-out to multiple agents
 - You want persistent message delivery (with JetStream)
 
 Use HTTP webhooks when:
+
 - Integrating with external services
 - You need simple REST-based triggers
 - No NATS infrastructure available
@@ -417,12 +422,14 @@ nats server check connection --server nats://localhost:4222 --creds /path/to/cre
 ### Messages not waking agent
 
 1. Verify subject pattern matches:
+
    ```bash
    nats sub "agent.>" --server nats://localhost:4222
    # Then publish and see if message appears
    ```
 
 2. Check message format (must be valid JSON with `from` and `body`):
+
    ```bash
    nats pub agent.main.inbox '{"from":"test","body":"hello","priority":"urgent"}'
    ```

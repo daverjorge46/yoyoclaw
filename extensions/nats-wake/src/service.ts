@@ -3,10 +3,10 @@ import type {
   OpenClawPluginServiceContext,
   PluginRuntime,
 } from "openclaw/plugin-sdk";
+import type { NatsWakeConfig } from "./types.ts";
 import { createActionDispatcher, type ActionDispatcher } from "./actions.ts";
 import { createNatsClient, type NatsClient } from "./client.ts";
 import { resolveNatsWakeConfig } from "./config.ts";
-import type { NatsWakeConfig } from "./types.ts";
 import { createMessageProcessor, type MessageProcessor } from "./processor.ts";
 
 type ServiceState = {
@@ -57,7 +57,8 @@ export function createNatsWakeService(runtime: PluginRuntime): NatsWakeServiceRe
           ? (rawPluginConfig as Record<string, unknown>)
           : undefined;
       const config = resolveNatsWakeConfig(pluginConfig?.config ?? pluginConfig);
-      const entryEnabled = typeof pluginConfig?.enabled === "boolean" ? pluginConfig.enabled : undefined;
+      const entryEnabled =
+        typeof pluginConfig?.enabled === "boolean" ? pluginConfig.enabled : undefined;
       state.config = {
         ...config,
         enabled: entryEnabled ?? config.enabled,
