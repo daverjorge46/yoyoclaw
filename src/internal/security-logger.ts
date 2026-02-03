@@ -59,9 +59,23 @@ export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void 
  * Log types for common firewall events
  */
 export const SecurityEventTypes = {
+  // Phase 1: Soul-evil neutralization
   SOUL_SWAP_BLOCKED: "SOUL_SWAP_BLOCKED",
   CONFIG_ACCESS_BLOCKED: "CONFIG_ACCESS_BLOCKED",
   UNAUTHORIZED_HOOK_CALL: "UNAUTHORIZED_HOOK_CALL",
   DIRECT_FILE_ACCESS_BLOCKED: "DIRECT_FILE_ACCESS_BLOCKED",
   INTEGRITY_CHECK_FAILED: "INTEGRITY_CHECK_FAILED",
+
+  // Phase 2: Internal Config API
+  CONFIG_API_REQUEST: "CONFIG_API_REQUEST",
+  CONFIG_API_AUTH_SUCCESS: "CONFIG_API_AUTH_SUCCESS",
+  CONFIG_API_AUTH_FAILURE: "CONFIG_API_AUTH_FAILURE",
+  CONFIG_API_HASH_MISMATCH: "CONFIG_API_HASH_MISMATCH",
+  CONFIG_API_NON_TAILSCALE: "CONFIG_API_NON_TAILSCALE",
+
+  // Phase 2: WriteGate consent
+  WRITEGATE_CONSENT_GRANTED: "WRITEGATE_CONSENT_GRANTED",
+  WRITEGATE_CONSENT_DENIED: "WRITEGATE_CONSENT_DENIED",
 } as const;
+
+export type SecurityEventType = (typeof SecurityEventTypes)[keyof typeof SecurityEventTypes];
