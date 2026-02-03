@@ -6,7 +6,6 @@ import {
   nip19,
   type Event,
 } from "nostr-tools";
-import * as nip44 from "nostr-tools/nip44";
 import * as nip59 from "nostr-tools/nip59";
 import type { NostrProfile } from "./config-schema.js";
 import {
@@ -409,7 +408,6 @@ export async function startNostrBus(options: NostrBusOptions): Promise<NostrBusH
         metrics.emit("event.duplicate");
         return;
       }
-      inflight.add(event.id);
 
       // Self-message loop prevention: skip our own messages
       if (event.pubkey === pk) {
@@ -442,6 +440,9 @@ export async function startNostrBus(options: NostrBusOptions): Promise<NostrBusH
         onError?.(new Error("Invalid signature"), `event ${event.id}`);
         return;
       }
+
+      // Add to inflight AFTER all validation checks pass
+      inflight.add(event.id);
 
       // Mark seen AFTER verify (don't cache invalid IDs)
       seen.add(event.id);
