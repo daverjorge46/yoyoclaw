@@ -6,7 +6,7 @@ import {
   nip19,
   type Event,
 } from "nostr-tools";
-import { wrapEvent, unwrapEvent, type Rumor } from "nostr-tools/nip59";
+import { unwrapEvent, wrapEvent, type Rumor } from "nostr-tools/nip59";
 import type { NostrProfile } from "./config-schema.js";
 import {
   createMetrics,
