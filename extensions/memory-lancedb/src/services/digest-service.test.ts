@@ -38,7 +38,7 @@ describe("DigestService", () => {
 
   test("runDailyMaintenance performs merge and archive", async () => {
     const service = new DigestService(mockStore, mockSynthesizer, mockEmbedder, mockNotifier);
-    const summary = await service.runDailyMaintenance(mockApi as any, false);
+    const summary = await service.runDailyMaintenance(mockApi as unknown as ClawdbrainPluginApi, false);
 
     expect(summary).toBe("Merged 2 items.");
     
@@ -59,7 +59,7 @@ describe("DigestService", () => {
   test("runDailyMaintenance dry-run does not apply changes", async () => {
     vi.clearAllMocks();
     const service = new DigestService(mockStore, mockSynthesizer, mockEmbedder, mockNotifier);
-    await service.runDailyMaintenance(mockApi as any, true);
+    await service.runDailyMaintenance(mockApi as unknown as ClawdbrainPluginApi, true);
 
     expect(mockStore.delete).not.toHaveBeenCalled();
     expect(mockStore.store).not.toHaveBeenCalled();

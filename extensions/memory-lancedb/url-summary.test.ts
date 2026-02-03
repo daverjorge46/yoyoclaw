@@ -53,8 +53,8 @@ vi.mock("./src/services/digest-service.js", () => {
 
 vi.mock("./config.js", () => ({
   memoryConfigSchema: {
-    parse: (cfg: any) => ({
-      ...cfg,
+    parse: (cfg: unknown) => ({
+      ...(cfg as Record<string, unknown>),
       embedding: { apiKey: "sk-mock", model: "text-embedding-3-small" },
       extraction: { apiKey: "sk-mock", model: "gpt-4o-mini" },
     }),
@@ -64,8 +64,8 @@ vi.mock("./config.js", () => ({
 }));
 
 describe("Inbox URL Summarization", () => {
-  let memoryPlugin: any;
-  let mockApi: any;
+  let memoryPlugin: unknown;
+  let mockApi: unknown;
   let agentEndHandler: Function;
 
   beforeEach(async () => {
@@ -81,7 +81,7 @@ describe("Inbox URL Summarization", () => {
     vi.spyOn(extractorModule.OpenAiExtractor.prototype, "summarizeUrl");
     vi.spyOn(extractorModule.OpenAiExtractor.prototype, "extract");
 
-    const registeredHooks: Record<string, any> = {};
+    const registeredHooks: Record<string, unknown> = {};
     mockApi = {
       pluginConfig: {
         dbPath: "/tmp/test",

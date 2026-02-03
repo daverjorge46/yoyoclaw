@@ -5,13 +5,13 @@ import { homedir } from "node:os";
 import type { ClawdbrainPluginApi } from "clawdbrain/plugin-sdk";
 import type { Expander } from "../types.js";
 
-async function logTrace(api: ClawdbrainPluginApi, type: string, data: any) {
+async function logTrace(api: ClawdbrainPluginApi, type: string, data: unknown) {
   const logDir = join(homedir(), ".clawdbrain", "logs");
   const logPath = join(logDir, "memory-trace.jsonl");
   const entry = {
     timestamp: new Date().toISOString(),
     type,
-    ...data,
+    ...(data as Record<string, unknown>),
   };
   try {
     await appendFile(logPath, JSON.stringify(entry) + "\n");
