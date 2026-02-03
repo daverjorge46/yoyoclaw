@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -9,8 +10,32 @@ async function makeTempDir(prefix = "moltbot-memory-test-"): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), prefix));
 }
 
+function canCreateSymlinks(): boolean {
+  let tempDir: string | undefined;
+  try {
+    tempDir = fsSync.mkdtempSync(path.join(os.tmpdir(), "moltbot-symlink-test-"));
+    const target = path.join(tempDir, "target.txt");
+    const link = path.join(tempDir, "link.txt");
+    fsSync.writeFileSync(target, "ok");
+    fsSync.symlinkSync(target, link, "file");
+    return true;
+  } catch {
+    return false;
+  } finally {
+    if (tempDir) {
+      try {
+        fsSync.rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        // Best-effort cleanup; ignore failures on CI.
+      }
+    }
+  }
+}
+
 describe("listMemoryFiles", () => {
-  it("includes symlinked markdown files", async () => {
+  const symlinksAvailable = canCreateSymlinks();
+
+  it.skipIf(!symlinksAvailable)("includes symlinked markdown files", async () => {
     const tempDir = await makeTempDir();
     const memoryDir = path.join(tempDir, "memory");
     await fs.mkdir(memoryDir);
@@ -30,7 +55,7 @@ describe("listMemoryFiles", () => {
     await fs.rm(tempDir, { recursive: true });
   });
 
-  it("includes files inside symlinked directories", async () => {
+  it.skipIf(!symlinksAvailable)("includes files inside symlinked directories", async () => {
     const tempDir = await makeTempDir();
     const memoryDir = path.join(tempDir, "memory");
     await fs.mkdir(memoryDir);
@@ -51,7 +76,7 @@ describe("listMemoryFiles", () => {
     await fs.rm(tempDir, { recursive: true });
   });
 
-  it("skips dangling symlinks gracefully", async () => {
+  it.skipIf(!symlinksAvailable)("skips dangling symlinks gracefully", async () => {
     const tempDir = await makeTempDir();
     const memoryDir = path.join(tempDir, "memory");
     await fs.mkdir(memoryDir);
