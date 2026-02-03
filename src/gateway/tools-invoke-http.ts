@@ -184,7 +184,7 @@ export async function handleToolsInvokeHttpRequest(
   const accountId = getHeader(req, "x-openclaw-account-id")?.trim() || undefined;
   const headerRunId = getHeader(req, "x-openclaw-run-id")?.trim();
   const bodyRunId = resolveRunIdFromBody(body);
-  const runId = headerRunId || bodyRunId || `http-${Date.now()}`;
+  const runId = headerRunId || bodyRunId || `http-${sessionKey}`;
   const senderId = getHeader(req, "x-openclaw-sender-id")?.trim() || undefined;
   const senderName = getHeader(req, "x-openclaw-sender-name")?.trim() || undefined;
   const senderUsername = getHeader(req, "x-openclaw-sender-username")?.trim() || undefined;
