@@ -16,7 +16,7 @@ Sondera adds a **deterministic safety layer** that checks every tool call agains
 
 **OpenClaw 2026.2.0 or later** with plugin hook support.
 
-If the extension installs but doesn't block anything, your OpenClaw version may not have the required hooks yet. Check for updates or [join our Slack](https://join.slack.com/t/sonderacommunity/shared_invite/zt-3onw10qhj-5UNQ7EMuAbPk0nTwh_sNcw) for the latest compatibility info.
+If the extension installs but doesn't block anything, your OpenClaw version may not have the required hooks yet. Check for updates or [join the OpenClaw Discord](https://discord.gg/clawd) for the latest compatibility info.
 
 ## Installation
 
@@ -315,8 +315,8 @@ For more examples and advanced patterns, see the [Writing Policies Guide](https:
 
 ## Community
 
-- [Slack](https://join.slack.com/t/sonderacommunity/shared_invite/zt-3onw10qhj-5UNQ7EMuAbPk0nTwh_sNcw): Questions and support
-- [GitHub Issues](https://github.com/sondera-ai/sondera-harness-python/issues): Bug reports and feature requests
+- [OpenClaw Discord](https://discord.gg/clawd): Questions and support
+- [OpenClaw GitHub Issues](https://github.com/openclaw/openclaw/issues): Bug reports and feature requests
 
 ## License
 
