@@ -4,7 +4,7 @@ import lockfile from "proper-lockfile";
 import type { AuthProfileCredential, AuthProfileStore, ProfileUsageStats } from "./types.js";
 import { resolveOAuthPath } from "../../config/paths.js";
 import {
-  loadSecureJsonFile,
+  loadSecureJsonFileWithResult,
   migratePlaintextJsonFile,
   saveSecureJsonFile,
 } from "../../infra/crypto-store.js";
@@ -12,6 +12,33 @@ import { loadJsonFile } from "../../infra/json-file.js";
 import { AUTH_STORE_LOCK_OPTIONS, AUTH_STORE_VERSION, log } from "./constants.js";
 import { syncExternalCliCredentials } from "./external-cli-sync.js";
 import { ensureAuthStoreFile, resolveAuthStorePath, resolveLegacyAuthStorePath } from "./paths.js";
+
+/**
+ * Safely load a secure JSON file, logging errors instead of throwing.
+ * Returns undefined on missing or error (with warning logged for errors).
+ */
+function loadSecureJsonFileSafe(pathname: string): unknown {
+  const result = loadSecureJsonFileWithResult(pathname);
+  switch (result.status) {
+    case "missing":
+      return undefined;
+    case "success":
+      return result.data;
+    case "error":
+      // Log warning but don't throw - allow fallback to legacy/empty store
+      log.warn("failed to load encrypted auth store", {
+        path: pathname,
+        reason: result.reason,
+        recoverable: result.recoverable,
+      });
+      if (result.recoverable) {
+        log.warn(
+          "credentials may be encrypted with a different master key; check ~/.openclaw/master.key",
+        );
+      }
+      return undefined;
+  }
+}
 
 type LegacyAuthStore = Record<string, AuthProfileCredential>;
 
@@ -200,7 +227,7 @@ function mergeOAuthFileIntoStore(store: AuthProfileStore): boolean {
 export function loadAuthProfileStore(): AuthProfileStore {
   const authPath = resolveAuthStorePath();
   migratePlaintextJsonFile(authPath);
-  const raw = loadSecureJsonFile(authPath);
+  const raw = loadSecureJsonFileSafe(authPath);
   const asStore = coerceAuthStore(raw);
   if (asStore) {
     // Sync from external CLI tools on every load
@@ -264,7 +291,7 @@ function loadAuthProfileStoreForAgent(
 ): AuthProfileStore {
   const authPath = resolveAuthStorePath(agentDir);
   migratePlaintextJsonFile(authPath);
-  const raw = loadSecureJsonFile(authPath);
+  const raw = loadSecureJsonFileSafe(authPath);
   const asStore = coerceAuthStore(raw);
   if (asStore) {
     // Sync from external CLI tools on every load
@@ -279,7 +306,7 @@ function loadAuthProfileStoreForAgent(
   if (agentDir) {
     const mainAuthPath = resolveAuthStorePath(); // without agentDir = main
     migratePlaintextJsonFile(mainAuthPath);
-    const mainRaw = loadSecureJsonFile(mainAuthPath);
+    const mainRaw = loadSecureJsonFileSafe(mainAuthPath);
     const mainStore = coerceAuthStore(mainRaw);
     if (mainStore && Object.keys(mainStore.profiles).length > 0) {
       // Clone main store to subagent directory for auth inheritance
