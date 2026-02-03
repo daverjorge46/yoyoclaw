@@ -165,6 +165,12 @@ export async function startGatewayServer(
   const minimalTestGateway =
     process.env.VITEST === "1" && process.env.OPENCLAW_TEST_MINIMAL_GATEWAY === "1";
 
+  // Capture initial CWD immediately before any async operations that might
+  // change it (e.g., agent runs calling process.chdir to workspace directories).
+  // This ensures Control UI path resolution finds assets correctly even after
+  // the working directory changes. See issue #8325.
+  const initialCwd = process.cwd();
+
   // Ensure all default port derivations (browser/canvas) see the actual runtime port.
   process.env.OPENCLAW_GATEWAY_PORT = String(port);
   logAcceptedEnvOption({
@@ -318,7 +324,7 @@ export async function startGatewayServer(
     let resolvedRoot = resolveControlUiRootSync({
       moduleUrl: import.meta.url,
       argv1: process.argv[1],
-      cwd: process.cwd(),
+      cwd: initialCwd,
     });
     if (!resolvedRoot) {
       const ensureResult = await ensureControlUiAssetsBuilt(gatewayRuntime);
@@ -328,7 +334,7 @@ export async function startGatewayServer(
       resolvedRoot = resolveControlUiRootSync({
         moduleUrl: import.meta.url,
         argv1: process.argv[1],
-        cwd: process.cwd(),
+        cwd: initialCwd,
       });
     }
     controlUiRootState = resolvedRoot
