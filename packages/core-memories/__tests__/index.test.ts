@@ -22,7 +22,7 @@ describe("CoreMemories v2.1", () => {
     it("should add a normal entry without user flag", () => {
       const normal = cm.addFlashEntry(
         "We discussed the weather today",
-        "louis",
+        "user",
         "conversation",
       );
 
@@ -33,8 +33,8 @@ describe("CoreMemories v2.1", () => {
 
     it("should detect user-flagged entries with boosted salience", () => {
       const flagged = cm.addFlashEntry(
-        "Remember this: I am launching Card Sync next month. This is important for my business.",
-        "louis",
+        "Remember this: The API integration is scheduled for next month. This is important for the project.",
+        "user",
         "conversation",
       );
 
@@ -45,8 +45,8 @@ describe("CoreMemories v2.1", () => {
 
     it("should detect high-emotion decisions", () => {
       const decision = cm.addFlashEntry(
-        "I decided to quit my job and focus on entrepreneurship full time. This is terrifying but exciting!",
-        "louis",
+        "We decided to migrate to the new database system. This is a major change but will improve performance!",
+        "user",
         "decision",
       );
 
@@ -70,8 +70,8 @@ describe("CoreMemories v2.1", () => {
         ).toISOString(),
         type: "conversation",
         content:
-          "Remember this: My test recovery code is TEST1234EXAMPLE5678. This is test information.",
-        speaker: "louis",
+          "Remember this: The test recovery code is TEST1234EXAMPLE5678. This is test information.",
+        speaker: "user",
         keywords: ["recovery", "code", "test", "information"],
         emotionalSalience: 0.9,
         userFlagged: true,
@@ -95,7 +95,7 @@ describe("CoreMemories v2.1", () => {
         type: "decision",
         content:
           "We decided to build CoreMemories with 3-layer architecture and MEMORY.md integration.",
-        speaker: "louis",
+        speaker: "user",
         keywords: ["decided", "coreMemories", "architecture", "integration"],
         emotionalSalience: 0.8,
         userFlagged: false,
@@ -123,8 +123,8 @@ describe("CoreMemories v2.1", () => {
         id: `mem_${Date.now()}_high_emotion`,
         timestamp: new Date().toISOString(),
         type: "milestone",
-        content: "This is an amazing achievement! I'm so proud!",
-        speaker: "louis",
+        content: "This is an amazing achievement! We are so proud!",
+        speaker: "user",
         keywords: ["amazing", "achievement", "proud"],
         emotionalSalience: 0.9,
         userFlagged: false,

@@ -168,7 +168,7 @@ class MemoryMdIntegration {
 **Sections:**
 - `## Decisions Made` - For decision type entries
 - `## Milestones` - For achievements
-- `## Projects` - For project updates (Card Sync, etc.)
+- `## Projects` - For project updates
 - `## Key Learnings` - For insights
 - `## Important Memories` - Default catch-all
 
@@ -216,7 +216,7 @@ Archive after 7 days
 ### Example 2: Important Decision
 
 ```
-User: "Remember this: I'm launching Card Sync next month. This is huge!"
+User: "Remember this: We're launching the new feature next month. This is huge!"
         ↓
 CoreMemories.addFlashEntry()
   - emotionalSalience: 0.85 (boosted by "remember this")

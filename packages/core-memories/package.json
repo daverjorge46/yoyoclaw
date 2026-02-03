@@ -33,9 +33,9 @@
     "hierarchical-memory",
     "compression"
   ],
-  "author": "Louis Angeli <lucas.was.here@proton.me>",
+  "author": "OpenClaw Contributors <contributors@openclaw.org>",
   "contributors": [
-    "Lucas (OpenClaw Agent)"
+    "OpenClaw Community"
   ],
   "license": "MIT",
   "repository": {
