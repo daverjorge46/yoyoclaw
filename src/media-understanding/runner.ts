@@ -1206,38 +1206,62 @@ export async function runCapability(params: {
 
   // Skip image understanding when the primary model supports vision natively.
   // The image will be injected directly into the model context instead.
-  const activeProvider = params.activeModel?.provider?.trim();
-  if (capability === "image" && activeProvider) {
-    const catalog = await loadModelCatalog({ config: cfg });
-    const entry = findModelInCatalog(catalog, activeProvider, params.activeModel?.model ?? "");
-    if (modelSupportsVision(entry)) {
-      if (shouldLogVerbose()) {
-        logVerbose("Skipping image understanding: primary model supports vision natively");
+  // However, check attachment sizes first - don't skip CLI for oversized images.
+  const MAX_NATIVE_VISION_BYTES = 5_000_000; // 5MB limit for providers like Anthropic
+  let hasOversizedAttachment = false;
+
+  if (capability === "image") {
+    for (const att of selected) {
+      try {
+        const size = await params.attachments.getSize(att.index);
+        if (size !== undefined && size > MAX_NATIVE_VISION_BYTES) {
+          hasOversizedAttachment = true;
+          break;
+        }
+      } catch {
+        // If we can't determine size, be conservative and use CLI
+        hasOversizedAttachment = true;
+        break;
       }
-      const model = params.activeModel?.model?.trim();
-      const reason = "primary model supports vision natively";
-      return {
-        outputs: [],
-        decision: {
-          capability,
-          outcome: "skipped",
-          attachments: selected.map((item) => {
-            const attempt = {
-              type: "provider" as const,
-              provider: activeProvider,
-              model: model || undefined,
-              outcome: "skipped" as const,
-              reason,
-            };
-            return {
-              attachmentIndex: item.index,
-              attempts: [attempt],
-              chosen: attempt,
-            };
-          }),
-        },
-      };
     }
+  }
+
+  if (!hasOversizedAttachment) {
+    const activeProvider = params.activeModel?.provider?.trim();
+    if (capability === "image" && activeProvider) {
+      const catalog = await loadModelCatalog({ config: cfg });
+      const entry = findModelInCatalog(catalog, activeProvider, params.activeModel?.model ?? "");
+      if (modelSupportsVision(entry)) {
+        if (shouldLogVerbose()) {
+          logVerbose("Skipping image understanding: primary model supports vision natively");
+        }
+        const model = params.activeModel?.model?.trim();
+        const reason = "primary model supports vision natively";
+        return {
+          outputs: [],
+          decision: {
+            capability,
+            outcome: "skipped",
+            attachments: selected.map((item) => {
+              const attempt = {
+                type: "provider" as const,
+                provider: activeProvider,
+                model: model || undefined,
+                outcome: "skipped" as const,
+                reason,
+              };
+              return {
+                attachmentIndex: item.index,
+                attempts: [attempt],
+                chosen: attempt,
+              };
+            }),
+          },
+        };
+      }
+    }
+  } else if (shouldLogVerbose()) {
+    logVerbose("Using CLI for image understanding: attachment exceeds native vision size limit");
   }
 
   const entries = resolveModelEntries({
