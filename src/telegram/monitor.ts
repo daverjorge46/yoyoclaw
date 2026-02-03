@@ -42,9 +42,10 @@ function getInstanceState(accountId: string): InstanceState {
 function setInstanceRunning(accountId: string, running: boolean): void {
   const state = getInstanceState(accountId);
   state.running = running;
-  if (!running) {
-    state.starting = false;
-  }
+  // Clear starting flag on any state transition:
+  // - running=true means we successfully started, so no longer "starting"
+  // - running=false means we stopped, so also no longer "starting"
+  state.starting = false;
 }
 
 function setInstanceStarting(accountId: string, starting: boolean): void {
@@ -150,37 +151,43 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
   const logError = opts.runtime?.error ?? console.error;
   const logInfo = opts.runtime?.log ?? console.log;
 
-  // Resolve account early for instance tracking
-  const cfg = opts.config ?? loadConfig();
-  const account = resolveTelegramAccount({
-    cfg,
-    accountId: opts.accountId,
-  });
-  const accountId = account.accountId;
+  // Use mutable ref so handler closure sees updated accountId after resolution
+  let resolvedAccountId = opts.accountId ?? "default";
 
-  // Single-instance enforcement: check if already running or starting
-  const skipReason = shouldSkipStart(accountId);
-  if (skipReason) {
-    logInfo(`[telegram:${accountId}] skipping start: ${skipReason}`);
-    return;
-  }
-
-  // Mark as starting to prevent concurrent start attempts
-  setInstanceStarting(accountId, true);
-
-  // Register handler for Grammy HttpError unhandled rejections.
+  // Register handler for Grammy HttpError unhandled rejections FIRST,
+  // before any operations that could throw/reject.
   // This catches network errors that escape the polling loop's try-catch
   // (e.g., from setMyCommands during bot setup).
   // We gate on isGrammyHttpError to avoid suppressing non-Telegram errors.
   const unregisterHandler = registerUnhandledRejectionHandler((err) => {
     if (isGrammyHttpError(err) && isRecoverableTelegramNetworkError(err, { context: "polling" })) {
-      logError(`[telegram:${accountId}] Suppressed network error: ${formatErrorMessage(err)}`);
+      logError(
+        `[telegram:${resolvedAccountId}] Suppressed network error: ${formatErrorMessage(err)}`,
+      );
       return true; // handled - don't crash
     }
     return false;
   });
 
   try {
+    // Resolve account early for instance tracking
+    const cfg = opts.config ?? loadConfig();
+    const account = resolveTelegramAccount({
+      cfg,
+      accountId: opts.accountId,
+    });
+    const accountId = account.accountId;
+    resolvedAccountId = accountId; // Update for handler logging
+
+    // Single-instance enforcement: check if already running or starting
+    const skipReason = shouldSkipStart(accountId);
+    if (skipReason) {
+      logInfo(`[telegram:${accountId}] skipping start: ${skipReason}`);
+      return;
+    }
+
+    // Mark as starting to prevent concurrent start attempts
+    setInstanceStarting(accountId, true);
     const token = opts.token?.trim() || account.token;
     if (!token) {
       throw new Error(
@@ -292,9 +299,10 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
       }
     }
   } finally {
-    // Always clean up instance state on exit
-    setInstanceRunning(accountId, false);
-    logInfo(`[telegram:${accountId}] provider stopped`);
+    // Always clean up instance state and unregister handler on exit.
+    // Use resolvedAccountId which is always available (initialized before try block).
+    setInstanceRunning(resolvedAccountId, false);
+    logInfo(`[telegram:${resolvedAccountId}] provider stopped`);
     unregisterHandler();
   }
 }
