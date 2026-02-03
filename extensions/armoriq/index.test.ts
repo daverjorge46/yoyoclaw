@@ -1020,4 +1020,181 @@ describe("ArmorIQ plugin", () => {
 
     expect(iapCallCount).toBe(3);
   });
+
+  it("DUPLICATE TOOLS: selects correct proof when same tool appears multiple times with different params", async () => {
+    process.env.REQUIRE_CSRG_PROOFS = "false";
+    process.env.CSRG_VERIFY_ENABLED = "true";
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          allowed: true,
+          reason: "Step verified",
+          verification_source: "csrg",
+          step: { step_index: 2, action: "send_email", params: {} },
+          execution_state: {
+            plan_id: "plan-duplicate",
+            intent_reference: "plan-duplicate",
+            executed_steps: [0, 1],
+            current_step: 3,
+            total_steps: 3,
+            status: "in_progress",
+            is_completed: false,
+          },
+        }),
+    });
+
+    const { api, handlers } = createApi({
+      enabled: true,
+      apiKey: "ak_live_test",
+      userId: "user-duplicate",
+      agentId: "agent-duplicate",
+      backendEndpoint: "https://customer-iap.armoriq.ai",
+    });
+    register(api as any);
+
+    const intentToken = {
+      plan: {
+        steps: [
+          {
+            action: "send_email",
+            params: { to: "alice@example.com" },
+            metadata: { inputs: { to: "alice@example.com" } },
+            mcp: "openclaw",
+          },
+          {
+            action: "send_email",
+            params: { to: "bob@example.com" },
+            metadata: { inputs: { to: "bob@example.com" } },
+            mcp: "openclaw",
+          },
+          {
+            action: "send_email",
+            params: { to: "charlie@example.com" },
+            metadata: { inputs: { to: "charlie@example.com" } },
+            mcp: "openclaw",
+          },
+        ],
+        metadata: { goal: "Send multiple emails" },
+      },
+      expiresAt: Date.now() / 1000 + 3600,
+      step_proofs: [
+        {
+          step_index: 0,
+          path: "/steps/[0]/action",
+          proof: [{ position: "left", sibling_hash: "hash_alice" }],
+          value_digest: "digest_alice",
+        },
+        {
+          step_index: 1,
+          path: "/steps/[1]/action",
+          proof: [{ position: "right", sibling_hash: "hash_bob" }],
+          value_digest: "digest_bob",
+        },
+        {
+          step_index: 2,
+          path: "/steps/[2]/action",
+          proof: [{ position: "left", sibling_hash: "hash_charlie" }],
+          value_digest: "digest_charlie",
+        },
+      ],
+    };
+
+    const ctx = {
+      ...createCtx("duplicate-tools-run"),
+      intentTokenRaw: JSON.stringify(intentToken),
+    };
+
+    const beforeToolCall = handlers.get("before_tool_call")?.[0];
+    const result = await beforeToolCall?.(
+      { toolName: "send_email", params: { to: "charlie@example.com" } },
+      ctx,
+    );
+
+    expect(result?.block).not.toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const callBody = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body || "{}");
+    expect(callBody.path).toBe("/steps/[2]/action");
+    expect(callBody.step_index).toBe(2);
+    expect(callBody.proof).toEqual([{ position: "left", sibling_hash: "hash_charlie" }]);
+  });
+
+  it("DUPLICATE TOOLS: blocks when same tool appears multiple times without distinguishing params", async () => {
+    process.env.REQUIRE_CSRG_PROOFS = "true";
+    process.env.CSRG_VERIFY_ENABLED = "true";
+
+    const { api, handlers } = createApi({
+      enabled: true,
+      apiKey: "ak_live_test",
+      userId: "user-ambiguous",
+      agentId: "agent-ambiguous",
+      backendEndpoint: "https://customer-iap.armoriq.ai",
+    });
+    register(api as any);
+
+    const intentToken = {
+      plan: {
+        steps: [
+          { action: "send_email", params: {}, mcp: "openclaw" },
+          { action: "send_email", params: {}, mcp: "openclaw" },
+          { action: "send_email", params: {}, mcp: "openclaw" },
+        ],
+        metadata: { goal: "Send multiple emails without distinct params" },
+      },
+      expiresAt: Date.now() / 1000 + 3600,
+      step_proofs: [
+        {
+          step_index: 0,
+          path: "/steps/[0]/action",
+          proof: [{ position: "left", sibling_hash: "hash_1" }],
+          value_digest: "digest_1",
+        },
+        {
+          step_index: 1,
+          path: "/steps/[1]/action",
+          proof: [{ position: "right", sibling_hash: "hash_2" }],
+          value_digest: "digest_2",
+        },
+        {
+          step_index: 2,
+          path: "/steps/[2]/action",
+          proof: [{ position: "left", sibling_hash: "hash_3" }],
+          value_digest: "digest_3",
+        },
+      ],
+    };
+
+    const ctx = {
+      ...createCtx("ambiguous-tools-run"),
+      intentTokenRaw: JSON.stringify(intentToken),
+    };
+
+    const beforeToolCall = handlers.get("before_tool_call")?.[0];
+    const result = await beforeToolCall?.({ toolName: "send_email", params: {} }, ctx);
+
+    expect(result?.block).toBe(true);
+    expect(result?.blockReason).toContain("CSRG proof headers");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("NO CACHED PLAN: blocks when there is no cached plan and no intent token", async () => {
+    const { api, handlers } = createApi({
+      enabled: true,
+      apiKey: "ak_live_test",
+      userId: "user-no-plan",
+      agentId: "agent-no-plan",
+    });
+    register(api as any);
+
+    const ctx = createCtx("no-plan-run");
+
+    const beforeToolCall = handlers.get("before_tool_call")?.[0];
+    const result = await beforeToolCall?.({ toolName: "send_email", params: {} }, ctx);
+
+    expect(result?.block).toBe(true);
+    expect(result?.blockReason).toContain("ArmorIQ intent plan missing");
+  });
 });
