@@ -12,6 +12,7 @@ import { queueEmbeddedPiMessage } from "../../agents/pi-embedded.js";
 import { hasNonzeroUsage } from "../../agents/usage.js";
 import {
   resolveAgentIdFromSessionKey,
+  countSessionMessages,
   resolveSessionFilePath,
   resolveSessionTranscriptPath,
   type SessionEntry,
@@ -19,6 +20,7 @@ import {
   updateSessionStoreEntry,
 } from "../../config/sessions.js";
 import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import { defaultRuntime } from "../../runtime.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../../utils/usage-format.js";
 import { resolveResponseUsageMode, type VerboseLevel } from "../thinking.js";
@@ -245,7 +247,38 @@ export async function runReplyAgent(params: {
       return false;
     }
     const prevSessionId = cleanupTranscripts ? prevEntry.sessionId : undefined;
+    const hookRunner = getGlobalHookRunner();
+    const hookAgentId = resolveAgentIdFromSessionKey(sessionKey);
+    if (hookRunner?.hasHooks("session_end")) {
+      const messageCount = await countSessionMessages({
+        sessionId: prevEntry.sessionId,
+        entry: prevEntry,
+        agentId: hookAgentId,
+      }).catch(() => 0);
+      void hookRunner.runSessionEnd(
+        {
+          sessionId: prevEntry.sessionId,
+          messageCount,
+        },
+        {
+          agentId: hookAgentId,
+          sessionId: prevEntry.sessionId,
+        },
+      );
+    }
     const nextSessionId = crypto.randomUUID();
+    if (hookRunner?.hasHooks("session_start")) {
+      void hookRunner.runSessionStart(
+        {
+          sessionId: nextSessionId,
+          resumedFrom: prevEntry.sessionId,
+        },
+        {
+          agentId: hookAgentId,
+          sessionId: nextSessionId,
+        },
+      );
+    }
     const nextEntry: SessionEntry = {
       ...prevEntry,
       sessionId: nextSessionId,
