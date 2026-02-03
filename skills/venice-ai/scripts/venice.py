@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Venice AI CLI — Full platform access: models, chat, embeddings, TTS, transcription."""
 
+from __future__ import annotations
+
 import argparse
 import base64
 import datetime as dt
@@ -61,10 +63,10 @@ def api_request(endpoint: str, method: str = "GET", payload: dict | None = None,
         headers["Authorization"] = f"Bearer {api_key}"
 
     data = None
-    if payload:
+    if payload is not None:
         headers["Content-Type"] = "application/json"
         data = json.dumps(payload).encode()
-    elif raw_data:
+    elif raw_data is not None:
         if content_type:
             headers["Content-Type"] = content_type
         data = raw_data
