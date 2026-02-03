@@ -2,9 +2,28 @@
   "name": "@openclaw/core-memories",
   "version": "1.0.0",
   "description": "Hierarchical memory system for OpenClaw agents with progressive compression and event-driven retrieval",
-  "main": "src/index.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./integration": {
+      "import": "./dist/integration.js",
+      "types": "./dist/integration.d.ts"
+    }
+  },
   "scripts": {
-    "test": "node __tests__/index.test.js"
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "oxfmt --check",
+    "format:fix": "oxfmt --write",
+    "lint": "oxlint --type-aware --tsconfig tsconfig.json",
+    "lint:fix": "oxlint --type-aware --tsconfig tsconfig.json --fix",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "openclaw",
@@ -29,5 +48,12 @@
   },
   "peerDependencies": {
     "openclaw": ">=2026.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "oxfmt": "0.27.0",
+    "oxlint": "^1.42.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
