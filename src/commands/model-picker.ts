@@ -156,17 +156,18 @@ export async function promptDefaultModel(
     a.localeCompare(b),
   );
 
+  // Ensure we only auto-filter if the preferred provider actually exists in the current list
   const hasPreferredProvider = preferredProvider ? providers.includes(preferredProvider) : false;
   
-  // PR CHANGE: Stricter filtering logic.
-  // If we have a preferred provider (e.g. from Auth), default to filtering by it immediately,
+  // Stricter filtering logic: default to filtering by preferred provider immediately
   // unless the user has < 5 models total (very small catalog).
-  // This reduces noise for users who just authed with Google/Anthropic/OpenAI.
   const shouldAutoFilter = hasPreferredProvider && preferredProvider && models.length > 5;
 
+  // Show provider prompt if we aren't auto-filtering AND we have many models.
+  // We use `preferredProvider` presence (not just validity in catalog) to decide if we *attempted* auto-filtering.
+  // If auto-filter failed (provider not found), we should fall back to prompting if the list is huge.
   const shouldPromptProvider =
     !shouldAutoFilter &&
-    !hasPreferredProvider &&
     providers.length > 1 &&
     models.length > PROVIDER_FILTER_THRESHOLD;
 
@@ -192,15 +193,7 @@ export async function promptDefaultModel(
 
   // Apply the auto-filter or preferred provider logic
   if (hasPreferredProvider && preferredProvider) {
-    // If we auto-filtered, we just narrow the list silently. 
-    // If not, we still prioritize showing them if they exist.
-    if (shouldAutoFilter) {
-       models = models.filter((entry) => entry.provider === preferredProvider);
-    } else {
-       // Fallback: mixed list but might want to filter? 
-       // Current logic just filtered if explicit. Let's enforce filtering if we have a preference.
-       models = models.filter((entry) => entry.provider === preferredProvider);
-    }
+    models = models.filter((entry) => entry.provider === preferredProvider);
   }
 
   const authStore = ensureAuthProfileStore(params.agentDir, {
