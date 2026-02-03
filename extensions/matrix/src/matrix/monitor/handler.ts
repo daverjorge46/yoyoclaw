@@ -469,6 +469,13 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
         isThreadRoot: false, // @vector-im/matrix-bot-sdk doesn't have this info readily available
       });
 
+      // DEBUG: Log thread target (controls where replies go)
+      console.log("[matrix-thread-debug] outbound:", {
+        threadReplies,
+        threadTarget,
+        threadRootId,
+      });
+
       const baseRoute = core.channel.routing.resolveAgentRoute({
         cfg,
         channel: "matrix",
