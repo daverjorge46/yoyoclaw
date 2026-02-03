@@ -9,7 +9,7 @@
   const assetsBase = isDocsSite || isLocal ? "" : "https://docs.openclaw.ai";
   const apiBase =
     window.DOCS_CHAT_API_URL ||
-    (isLocal ? "http://localhost:3001" : "https://claw-api.openknot.ai");
+    (isLocal ? "http://localhost:3001" : "https://claw-api.openknot.ai/api");
 
   // Load vendored @create-markdown/preview@0.1.0 for markdown rendering
   // Uses script tag + global to avoid ES module issues with Mintlify's bundler

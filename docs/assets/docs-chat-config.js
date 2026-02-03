@@ -13,5 +13,5 @@
 
   // Production (docs.openclaw.ai and *.mintlify.app previews)
   // TODO: Update this to the actual production URL
-  window.DOCS_CHAT_API_URL = "https://claw-api.openknot.ai";
+  window.DOCS_CHAT_API_URL = "https://claw-api.openknot.ai/api";
 })();
