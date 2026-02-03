@@ -100,7 +100,15 @@ export async function transcribeSarvamAudio(
   }
 
   const payload = (await res.json()) as SarvamTranscriptResponse;
-  const transcript = payload.transcript?.trim();
+  let transcript = payload.transcript?.trim();
+
+  // If no top-level transcript but diarized output exists, join segments
+  if (!transcript && payload.diarized_transcript?.entries?.length) {
+    transcript = payload.diarized_transcript.entries
+      .map((e) => e.transcript)
+      .filter(Boolean)
+      .join(" ");
+  }
 
   if (!transcript) {
     throw new Error("Audio transcription response missing transcript");
