@@ -157,12 +157,16 @@ async function resolveSlackChannelType(params: {
   if (!channelId) {
     return "unknown";
   }
-  const cached = SLACK_CHANNEL_TYPE_CACHE.get(`${params.accountId ?? "default"}:${channelId}`);
+
+  // Resolve account first to get the canonical accountId for consistent cache keys.
+  const account = resolveSlackAccount({ cfg: params.cfg, accountId: params.accountId });
+  const cacheKey = `${account.accountId}:${channelId}`;
+  const cached = SLACK_CHANNEL_TYPE_CACHE.get(cacheKey);
   if (cached) {
+    // Update recency on cache hit (move to end for LRU).
+    setSlackChannelTypeCache(cacheKey, cached);
     return cached;
   }
-
-  const account = resolveSlackAccount({ cfg: params.cfg, accountId: params.accountId });
   const groupChannels = normalizeAllowListLower(account.dm?.groupChannels);
   const channelIdLower = channelId.toLowerCase();
   if (
@@ -172,7 +176,7 @@ async function resolveSlackChannelType(params: {
     groupChannels.includes(`group:${channelIdLower}`) ||
     groupChannels.includes(`mpim:${channelIdLower}`)
   ) {
-    setSlackChannelTypeCache(`${account.accountId}:${channelId}`, "group");
+    setSlackChannelTypeCache(cacheKey, "group");
     return "group";
   }
 
@@ -187,7 +191,7 @@ async function resolveSlackChannelType(params: {
       );
     })
   ) {
-    setSlackChannelTypeCache(`${account.accountId}:${channelId}`, "channel");
+    setSlackChannelTypeCache(cacheKey, "channel");
     return "channel";
   }
 
@@ -195,7 +199,7 @@ async function resolveSlackChannelType(params: {
     account.botToken?.trim() ||
     (typeof account.config.userToken === "string" ? account.config.userToken.trim() : "");
   if (!token) {
-    setSlackChannelTypeCache(`${account.accountId}:${channelId}`, "unknown");
+    setSlackChannelTypeCache(cacheKey, "unknown");
     return "unknown";
   }
 
@@ -204,10 +208,10 @@ async function resolveSlackChannelType(params: {
     const info = await client.conversations.info({ channel: channelId });
     const channel = info.channel as { is_im?: boolean; is_mpim?: boolean } | undefined;
     const type = channel?.is_im ? "dm" : channel?.is_mpim ? "group" : "channel";
-    setSlackChannelTypeCache(`${account.accountId}:${channelId}`, type);
+    setSlackChannelTypeCache(cacheKey, type);
     return type;
   } catch {
-    setSlackChannelTypeCache(`${account.accountId}:${channelId}`, "unknown");
+    setSlackChannelTypeCache(cacheKey, "unknown");
     return "unknown";
   }
 }
