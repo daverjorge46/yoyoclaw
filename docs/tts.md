@@ -31,12 +31,12 @@ It works anywhere OpenClaw can send audio; Telegram gets a round voice-note bubb
       cartesia: {
         // apiKey: "..." // or set CARTESIA_API_KEY env var
         voiceId: "694f9389-aac1-45b6-b726-9d9369183238",
-        modelId: "sonic-3",    // or "sonic-turbo" for lower latency
-        language: "it",        // 40+ languages, auto-detect if omitted
-        speed: "normal",       // slowest | slow | normal | fast | fastest
-      }
-    }
-  }
+        modelId: "sonic-3", // or "sonic-turbo" for lower latency
+        language: "it", // 40+ languages, auto-detect if omitted
+        speed: "normal", // slowest | slow | normal | fast | fastest
+      },
+    },
+  },
 }
 ```
 
