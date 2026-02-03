@@ -5,6 +5,8 @@
 import * as lancedb from "@lancedb/lancedb";
 
 const TABLE_NAME = "docs_chunks";
+/** LanceDB uses L2 (Euclidean) distance by default; similarity conversion below assumes this. */
+const _DISTANCE_METRIC = "L2" as const;
 
 export interface DocsChunk {
   id: string;
@@ -82,7 +84,14 @@ export class DocsStore {
       return;
     }
 
-    this.table = await this.db.createTable(TABLE_NAME, chunks);
+    this.table = await this.db.createTable(TABLE_NAME, chunks.map(chunk => ({
+      id: chunk.id,
+      path: chunk.path,
+      title: chunk.title,
+      content: chunk.content,
+      url: chunk.url,
+      vector: chunk.vector,
+    })));
   }
 
   /**
@@ -97,10 +106,11 @@ export class DocsStore {
 
     const results = await this.table.vectorSearch(vector).limit(limit).toArray();
 
-    // LanceDB uses L2 distance by default; convert to similarity score
+    // Convert L2 distance to similarity: sim = 1 / (1 + d), bounded [0, 1].
+    // This assumes DISTANCE_METRIC is L2 (non-negative). If metric changes,
+    // update this conversion or use raw distance for ranking.
     return results.map((row) => {
       const distance = (row._distance as number) ?? 0;
-      // Inverse for 0-1 range: sim = 1 / (1 + d)
       const similarity = 1 / (1 + distance);
       return {
         chunk: {
