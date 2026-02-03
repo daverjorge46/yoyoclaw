@@ -132,7 +132,7 @@ describe("sanitizeSessionHistory", () => {
       mockMessages,
       "session:history",
       expect.objectContaining({
-        sanitizeMode: "full",
+        sanitizeMode: "images-only",
         sanitizeToolCallIds: true,
         toolCallIdMode: "strict",
       }),
