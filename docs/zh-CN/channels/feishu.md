@@ -109,6 +109,8 @@ Lark（国际版）请使用 https://open.larksuite.com/app，并在配置中设
       "application:application.app_message_stats.overview:readonly",
       "application:application:self_manage",
       "application:bot.menu:write",
+      "cardkit:card:read",
+      "cardkit:card:write",
       "contact:user.employee_id:readonly",
       "corehr:file:download",
       "event:ip_list",
