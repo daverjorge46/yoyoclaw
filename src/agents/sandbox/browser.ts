@@ -1,3 +1,4 @@
+import os from "node:os";
 import type { SandboxBrowserContext, SandboxConfig } from "./types.js";
 import { startBrowserBridgeServer, stopBrowserBridgeServer } from "../../browser/bridge-server.js";
 import { type ResolvedBrowserConfig, resolveProfile } from "../../browser/config.js";
@@ -17,6 +18,20 @@ import {
 import { updateBrowserRegistry } from "./registry.js";
 import { slugifySessionKey } from "./shared.js";
 import { isToolAllowed } from "./tool-policy.js";
+
+/**
+ * Returns the host address that Docker containers can use to reach the gateway.
+ * On macOS/Windows Docker Desktop, host.docker.internal works.
+ * On Linux, use the Docker bridge IP (172.17.0.1).
+ */
+function resolveDockerHostAddress(): string {
+  const platform = os.platform();
+  if (platform === "darwin" || platform === "win32") {
+    return "host.docker.internal";
+  }
+  // Linux: Docker bridge default gateway
+  return "172.17.0.1";
+}
 
 async function waitForSandboxCdp(params: { cdpPort: number; timeoutMs: number }): Promise<boolean> {
   const deadline = Date.now() + Math.max(0, params.timeoutMs);
@@ -189,6 +204,9 @@ export async function ensureSandboxBrowser(params: {
         }
       : undefined;
 
+    // Bind to all interfaces so containers can reach the bridge.
+    // Use Docker host address in the URL so containers can connect.
+    const dockerHost = resolveDockerHostAddress();
     return await startBrowserBridgeServer({
       resolved: buildSandboxBrowserResolvedConfig({
         controlPort: 0,
@@ -196,6 +214,8 @@ export async function ensureSandboxBrowser(params: {
         headless: params.cfg.browser.headless,
         evaluateEnabled: params.evaluateEnabled ?? DEFAULT_BROWSER_EVALUATE_ENABLED,
       }),
+      host: "0.0.0.0",
+      baseUrlHost: dockerHost,
       onEnsureAttachTarget,
     });
   };
