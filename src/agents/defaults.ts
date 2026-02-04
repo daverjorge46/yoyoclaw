@@ -24,7 +24,7 @@ const useBedrockDefaults = hasBedrockAuth();
 
 export const DEFAULT_PROVIDER = useBedrockDefaults ? "bedrock" : "anthropic";
 export const DEFAULT_MODEL = useBedrockDefaults
-  ? "us.anthropic.claude-sonnet-4-20250514-v1:0"
+  ? "bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0"
   : "claude-opus-4-5";
 // Context window: Both Opus 4.5 and Bedrock Sonnet 4 support ~200k tokens.
 export const DEFAULT_CONTEXT_TOKENS = 200_000;
