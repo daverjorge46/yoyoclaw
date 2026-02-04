@@ -10,6 +10,7 @@ import { createServer as createHttpsServer } from "node:https";
 import type { CanvasHostHandler } from "../canvas-host/server.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveAgentAvatar } from "../agents/identity-avatar.js";
+import { safeEqual } from "./auth.js";
 import { handleA2uiHttpRequest } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
@@ -83,7 +84,7 @@ export function createHooksRequestHandler(
     }
 
     const { token, fromQuery } = extractHookToken(req, url);
-    if (!token || token !== hooksConfig.token) {
+    if (!token || !safeEqual(token, hooksConfig.token)) {
       res.statusCode = 401;
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
       res.end("Unauthorized");
