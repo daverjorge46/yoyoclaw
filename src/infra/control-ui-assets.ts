@@ -63,6 +63,15 @@ export async function ensureControlUiAssetsBuilt(
   runtime: RuntimeEnv = defaultRuntime,
   opts?: { timeoutMs?: number },
 ): Promise<EnsureControlUiAssetsResult> {
+  // Deployment (e.g. ClickDeploy) sets this; use it first so we don't rely on argv/cwd.
+  const envRoot = process.env.OPENCLAW_CONTROL_UI_ROOT?.trim();
+  if (envRoot) {
+    const indexInEnv = path.join(path.resolve(envRoot), "index.html");
+    if (fs.existsSync(indexInEnv)) {
+      return { ok: true, built: false };
+    }
+  }
+
   const indexFromDist = resolveControlUiDistIndexPath(process.argv[1]);
   if (indexFromDist && fs.existsSync(indexFromDist)) {
     return { ok: true, built: false };
