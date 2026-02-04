@@ -51,9 +51,11 @@ function setInstanceRunning(accountId: string, running: boolean): void {
 function setInstanceStarting(accountId: string, starting: boolean): void {
   const state = getInstanceState(accountId);
   state.starting = starting;
-  if (starting) {
-    state.lastStartAttempt = Date.now();
-  }
+}
+
+function recordStartAttempt(accountId: string): void {
+  const state = getInstanceState(accountId);
+  state.lastStartAttempt = Date.now();
 }
 
 /**
@@ -148,19 +150,17 @@ const isGrammyHttpError = (err: unknown): boolean => {
 };
 
 export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
-  const logError = opts.runtime?.error ?? console.error;
-  const logInfo = opts.runtime?.log ?? console.log;
-
   // Use mutable ref so handler closure sees updated accountId after resolution
   let resolvedAccountId = opts.accountId ?? "default";
 
   // Register handler for Grammy HttpError unhandled rejections FIRST,
-  // before any operations that could throw/reject.
+  // before ANY other operations (including logger setup).
   // This catches network errors that escape the polling loop's try-catch
   // (e.g., from setMyCommands during bot setup).
   // We gate on isGrammyHttpError to avoid suppressing non-Telegram errors.
   const unregisterHandler = registerUnhandledRejectionHandler((err) => {
     if (isGrammyHttpError(err) && isRecoverableTelegramNetworkError(err, { context: "polling" })) {
+      const logError = opts.runtime?.error ?? console.error;
       logError(
         `[telegram:${resolvedAccountId}] Suppressed network error: ${formatErrorMessage(err)}`,
       );
@@ -168,6 +168,9 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     }
     return false;
   });
+
+  const logError = opts.runtime?.error ?? console.error;
+  const logInfo = opts.runtime?.log ?? console.log;
 
   try {
     // Resolve account early for instance tracking
@@ -194,6 +197,8 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
         `Telegram bot token missing for account "${account.accountId}" (set channels.telegram.accounts.${account.accountId}.botToken/tokenFile or TELEGRAM_BOT_TOKEN for default).`,
       );
     }
+    // Record timestamp AFTER validation passes (P2 fix: don't debounce on validation failures)
+    recordStartAttempt(accountId);
 
     const proxyFetch =
       opts.proxyFetch ?? (account.config.proxy ? makeProxyFetch(account.config.proxy) : undefined);
@@ -229,6 +234,8 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     });
 
     if (opts.useWebhook) {
+      // Explicitly clear starting flag before transitioning to running (P1 fix)
+      setInstanceStarting(accountId, false);
       setInstanceRunning(accountId, true);
       try {
         await startTelegramWebhook({
@@ -249,7 +256,8 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
       return;
     }
 
-    // Mark as running now that we're about to start the polling loop
+    // Explicitly clear starting flag before transitioning to running (P1 fix)
+    setInstanceStarting(accountId, false);
     setInstanceRunning(accountId, true);
     logInfo(`[telegram:${accountId}] provider started (polling mode)`);
 
