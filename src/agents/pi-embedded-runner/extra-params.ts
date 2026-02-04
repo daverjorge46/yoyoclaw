@@ -10,6 +10,20 @@ const OPENROUTER_APP_HEADERS: Record<string, string> = {
 };
 
 /**
+ * Default headers for GitHub Copilot Enterprise accounts.
+ * Without these headers, Enterprise accounts receive HTTP 421 Misdirected Request.
+ * See: https://github.com/openclaw/openclaw/issues/1797
+ *
+ * These can be overridden via config: models.providers["github-copilot"].headers
+ */
+const DEFAULT_GITHUB_COPILOT_HEADERS: Record<string, string> = {
+  "User-Agent": "GitHubCopilotChat/0.35.0",
+  "Editor-Version": "vscode/1.107.0",
+  "Editor-Plugin-Version": "copilot-chat/0.35.0",
+  "Copilot-Integration-Id": "vscode-chat",
+};
+
+/**
  * Resolve provider-specific extra params from model config.
  * Used to pass through stream params like temperature/maxTokens.
  *
@@ -118,6 +132,29 @@ function createOpenRouterHeadersWrapper(baseStreamFn: StreamFn | undefined): Str
 }
 
 /**
+ * Create a streamFn wrapper that adds GitHub Copilot IDE headers.
+ * Required for Enterprise accounts to avoid HTTP 421 Misdirected Request.
+ * See: https://github.com/openclaw/openclaw/issues/1797
+ *
+ * @param configHeaders - Optional headers from config to override defaults
+ */
+function createGitHubCopilotHeadersWrapper(
+  baseStreamFn: StreamFn | undefined,
+  configHeaders?: Record<string, string>,
+): StreamFn {
+  const underlying = baseStreamFn ?? streamSimple;
+  const headers = { ...DEFAULT_GITHUB_COPILOT_HEADERS, ...configHeaders };
+  return (model, context, options) =>
+    underlying(model, context, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options?.headers,
+      },
+    });
+}
+
+/**
  * Apply extra params (like temperature) to an agent's streamFn.
  * Also adds OpenRouter app attribution headers when using the OpenRouter provider.
  *
@@ -138,7 +175,9 @@ export function applyExtraParamsToAgent(
   const override =
     extraParamsOverride && Object.keys(extraParamsOverride).length > 0
       ? Object.fromEntries(
-          Object.entries(extraParamsOverride).filter(([, value]) => value !== undefined),
+          Object.entries(extraParamsOverride).filter(
+            ([, value]) => value !== undefined && value !== null,
+          ),
         )
       : undefined;
   const merged = Object.assign({}, extraParams, override);
@@ -152,5 +191,12 @@ export function applyExtraParamsToAgent(
   if (provider === "openrouter") {
     log.debug(`applying OpenRouter app attribution headers for ${provider}/${modelId}`);
     agent.streamFn = createOpenRouterHeadersWrapper(agent.streamFn);
+  }
+
+  if (provider === "github-copilot") {
+    const providerConfig = cfg?.models?.providers?.["github-copilot"];
+    const configHeaders = providerConfig?.headers;
+    log.debug(`applying GitHub Copilot IDE headers for ${provider}/${modelId}`);
+    agent.streamFn = createGitHubCopilotHeadersWrapper(agent.streamFn, configHeaders);
   }
 }
