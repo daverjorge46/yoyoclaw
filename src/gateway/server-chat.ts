@@ -2,8 +2,13 @@ import { normalizeVerboseLevel } from "../auto-reply/thinking.js";
 import { loadConfig } from "../config/config.js";
 import { type AgentEventPayload, getAgentRunContext } from "../infra/agent-events.js";
 import { resolveHeartbeatVisibility } from "../infra/heartbeat-visibility.js";
-import { loadSessionEntry } from "./session-utils.js";
+import { loadSessionEntry, resolveGatewaySessionStoreTarget } from "./session-utils.js";
 import { formatForLog } from "./ws-log.js";
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { CURRENT_SESSION_VERSION } from "@mariozechner/pi-coding-agent";
+import { resolveStorePath, updateSessionStore } from "../config/sessions.js";
 
 /**
  * Check if webchat broadcasts should be suppressed for heartbeat runs.
@@ -439,6 +444,71 @@ import type { SubsystemLogger } from "../logging/subsystem.js";
 import { resolveDefaultAgentId, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 
+function ensureTranscriptFile(params: { transcriptPath: string; sessionId: string }): {
+  ok: boolean;
+  error?: string;
+} {
+  if (fs.existsSync(params.transcriptPath)) {
+    return { ok: true };
+  }
+  try {
+    fs.mkdirSync(path.dirname(params.transcriptPath), { recursive: true });
+    const header = {
+      type: "session",
+      version: CURRENT_SESSION_VERSION,
+      id: params.sessionId,
+      timestamp: new Date().toISOString(),
+      cwd: process.cwd(),
+    };
+    fs.writeFileSync(params.transcriptPath, `${JSON.stringify(header)}\n`, "utf-8");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function appendTranscriptMessage(params: {
+  role: "user" | "assistant";
+  message: string;
+  sessionId: string;
+  storePath: string | undefined;
+  sessionFile?: string;
+}): { ok: boolean; message?: Record<string, unknown>; error?: string } {
+  if (!params.storePath) return { ok: false, error: "store path missing" };
+
+  const transcriptPath = params.sessionFile
+    ? params.sessionFile
+    : path.join(path.dirname(params.storePath), `${params.sessionId}.jsonl`);
+
+  if (!fs.existsSync(transcriptPath)) {
+    const ensured = ensureTranscriptFile({ transcriptPath, sessionId: params.sessionId });
+    if (!ensured.ok) return { ok: false, error: ensured.error };
+  }
+
+  const now = Date.now();
+  const messageId = randomUUID().slice(0, 8);
+  const messageBody: Record<string, unknown> = {
+    role: params.role,
+    content: [{ type: "text", text: params.message }],
+    timestamp: now,
+    stopReason: params.role === "assistant" ? "injected" : undefined,
+  };
+
+  const transcriptEntry = {
+    type: "message",
+    id: messageId,
+    timestamp: new Date(now).toISOString(),
+    message: messageBody,
+  };
+
+  try {
+    fs.appendFileSync(transcriptPath, `${JSON.stringify(transcriptEntry)}\n`, "utf-8");
+    return { ok: true, message: messageBody };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
 // Helper to handle inbound messages from channels (like Spixi, Telegram, etc)
 export function createChannelMessageHandler(deps: {
   loadConfig: () => OpenClawConfig;
@@ -455,12 +525,67 @@ export function createChannelMessageHandler(deps: {
   // Or check if there's a convention.
   // In v1, we used "channel:id:from".
   resolveSessionKey: (channel: string, from: string) => string;
+  onReply?: (channelId: string, accountId: string, to: string, text: string) => Promise<void>;
 }) {
   return async (channelId: string, accountId: string, msg: ChannelMessage) => {
     const cfg = deps.loadConfig();
     const sessionKey = deps.resolveSessionKey(channelId, msg.from);
 
-    deps.log.info(`[${channelId}:${accountId}] Inbound message from ${msg.from} mapped to session ${sessionKey}`);
+    deps.log.info(`[${channelId}:${accountId}] Inbound message from ${msg.from} to session ${sessionKey}`);
+
+    // EXPLICITLY ENSURE SESSION EXISTS
+    const target = resolveGatewaySessionStoreTarget({ cfg, key: sessionKey });
+    let sessionId: string | undefined;
+    let storePath = target.storePath;
+    let sessionFile: string | undefined;
+
+    await updateSessionStore(target.storePath, (store) => {
+      const primaryKey = target.storeKeys[0] ?? sessionKey;
+      const existingKey = target.storeKeys.find((candidate) => store[candidate]);
+
+      let entry = existingKey ? store[existingKey] : undefined;
+      if (!entry) {
+        // Create new session entry
+        entry = {
+          sessionId: randomUUID(),
+          updatedAt: Date.now(),
+          systemSent: false,
+          abortedLastRun: false,
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          label: `Channel ${msg.from}`,
+          origin: { type: "user" },
+          lastChannel: channelId,
+          lastTo: msg.from,
+        };
+        store[primaryKey] = entry;
+        deps.log.info(`[${channelId}] Created new session entry for ${sessionKey} (si=${entry.sessionId})`);
+      } else {
+        // Update entry
+        entry.updatedAt = Date.now();
+        entry.lastChannel = channelId;
+        entry.lastTo = msg.from;
+      }
+      sessionId = entry.sessionId;
+      sessionFile = entry.sessionFile;
+      // Don't return anything to imply "no structural change" other than in-place mutation which updateSessionStore handles
+      return undefined;
+    });
+
+    if (!sessionId) {
+      deps.log.error(`[${channelId}] Failed to resolve sessionId for ${sessionKey}`);
+      return;
+    }
+
+    // APPEND USER MESSAGE TO TRANSCRIPT
+    appendTranscriptMessage({
+      role: "user",
+      message: msg.text,
+      sessionId,
+      storePath,
+      sessionFile
+    });
 
     const clientRunId = msg.id || `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const now = Date.now();
@@ -468,10 +593,6 @@ export function createChannelMessageHandler(deps: {
 
     // Create abort controller for run
     const abortController = new AbortController();
-    // We don't have a dedicated map for this? We can use chatAboutControllers but they are keyed by runId
-    // To properly support "stop" command, we should register it.
-    // But context.chatAbortControllers is not passed here.
-    // For now, simpler implementation: just dispatch.
 
     const stampedMessage = injectTimestamp(msg.text, timestampOptsFromConfig(cfg));
 
@@ -486,14 +607,14 @@ export function createChannelMessageHandler(deps: {
       Surface: channelId,
       OriginatingChannel: channelId,
       ChatType: "direct",
-      CommandAuthorized: true, // TODO: verify allowlist?
+      CommandAuthorized: true,
       MessageSid: clientRunId,
       SenderId: msg.from,
-      SenderName: msg.from, // Spixi doesn't provide name yet
+      SenderName: msg.from,
       SenderUsername: msg.from,
     };
 
-    const agentId = resolveDefaultAgentId(cfg); // Use default agent for now
+    const agentId = resolveDefaultAgentId(cfg);
     let prefixContext: ResponsePrefixContext = {
       identityName: resolveIdentityName(cfg, agentId),
     };
@@ -550,16 +671,12 @@ export function createChannelMessageHandler(deps: {
       // Or we assume the agent uses tools?
       // Usually, standard "chat" response should be sent back.
 
-      // For now, let's just log the reply.
-      // Real implementation requires invoking `channel.outbound.sendText`.
-
       if (finalReplyParts.length > 0) {
         const replyText = finalReplyParts.join("\n\n");
         deps.log.info(`[${channelId}] Agent reply: ${replyText}`);
-        // TODO: Send this back to the channel!
-        // We can emit an event or call a callback provided by the caller?
-        // But simpler: The agent usually uses tools for external channels?
-        // Actually, for "chat", the LLM response IS the message.
+        if (deps.onReply) {
+          await deps.onReply(channelId, accountId, msg.from, replyText);
+        }
       }
 
     } catch (err) {
