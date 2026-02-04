@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { logWarn } from "../logger.js";
 import { MigrationService } from "./MigrationService.js";
 
 // Mock the logger to avoid console output during tests
@@ -11,6 +12,7 @@ describe("MigrationService.getEnv", () => {
   let mockExistsSync: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     // Reset the strict mode cache before each test
     // @ts-expect-error - accessing private static for testing
     MigrationService.strictModeCache = undefined;
@@ -57,6 +59,14 @@ describe("MigrationService.getEnv", () => {
   test("returns undefined when no matching env var exists", () => {
     const env = {};
     expect(MigrationService.getEnv("GATEWAY_TOKEN", env)).toBeUndefined();
+  });
+
+  test("warns with the actual legacy key used", () => {
+    const warn = vi.mocked(logWarn);
+    const env = { MOLTBOT_GATEWAY_TOKEN: "ancient-token" };
+    MigrationService.getEnv("GATEWAY_TOKEN", env);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("MOLTBOT_GATEWAY_TOKEN");
   });
 
   test("strict mode ignores legacy vars when ~/.openclaw exists", () => {

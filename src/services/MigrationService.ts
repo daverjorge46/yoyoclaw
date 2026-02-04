@@ -53,11 +53,20 @@ export class MigrationService {
     // 3. Fallback: Check legacy keys (CLAWDBOT_*, MOLTBOT_*)
     const legacyKey = `CLAWDBOT_${key}`;
     const ancientKey = `MOLTBOT_${key}`;
-    const fallback = env[legacyKey] ?? env[ancientKey];
+    let fallback: string | undefined;
+    let usedKey: string | undefined;
+
+    if (env[legacyKey] !== undefined) {
+      fallback = env[legacyKey];
+      usedKey = legacyKey;
+    } else if (env[ancientKey] !== undefined) {
+      fallback = env[ancientKey];
+      usedKey = ancientKey;
+    }
 
     if (fallback !== undefined) {
       logWarn(
-        `[SECURITY WARNING] Legacy environment variable detected: ${legacyKey}. ` +
+        `[SECURITY WARNING] Legacy environment variable detected: ${usedKey ?? legacyKey}. ` +
           `Please migrate to ${newKey}. Legacy support will be removed in v2.1.0.`,
       );
     }
