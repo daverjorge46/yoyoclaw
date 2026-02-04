@@ -441,3 +441,42 @@ export function extractTelegramLocation(msg: Message): NormalizedLocation | null
 
   return null;
 }
+
+/** Normalized shared contact from a Telegram message. */
+export type NormalizedContact = {
+  phoneNumber: string;
+  firstName: string;
+  lastName?: string;
+  userId?: number;
+  vcard?: string;
+};
+
+/**
+ * Extract a shared contact from a Telegram message, if present.
+ */
+export function extractTelegramContact(msg: Message): NormalizedContact | null {
+  const { contact } = msg;
+  if (!contact) {
+    return null;
+  }
+
+  return {
+    phoneNumber: contact.phone_number,
+    firstName: contact.first_name,
+    lastName: contact.last_name ?? undefined,
+    userId: contact.user_id ?? undefined,
+    vcard: contact.vcard ?? undefined,
+  };
+}
+
+/**
+ * Format a contact as human-readable text for the agent.
+ */
+export function formatContactText(contact: NormalizedContact): string {
+  const name = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
+  const parts = [`[Contact: ${name}]`, `Phone: ${contact.phoneNumber}`];
+  if (contact.userId) {
+    parts.push(`Telegram ID: ${contact.userId}`);
+  }
+  return parts.join("\n");
+}
