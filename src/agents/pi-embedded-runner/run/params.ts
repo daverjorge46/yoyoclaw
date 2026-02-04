@@ -39,6 +39,8 @@ export type RunEmbeddedPiAgentParams = {
   senderName?: string | null;
   senderUsername?: string | null;
   senderE164?: string | null;
+  /** Whether the sender is authorized to invoke owner-gated tools. */
+  senderAuthorized?: boolean;
   /** Current channel ID for auto-threading (Slack). */
   currentChannelId?: string;
   /** Current thread timestamp for auto-threading (Slack). */

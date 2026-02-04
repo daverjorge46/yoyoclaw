@@ -92,6 +92,7 @@ export const handleCompactCommand: CommandHandler = async (params) => {
       defaultLevel: "off",
     },
     customInstructions,
+    senderAuthorized: params.command.isAuthorizedSender,
     ownerNumbers: params.command.ownerList.length > 0 ? params.command.ownerList : undefined,
   });
 

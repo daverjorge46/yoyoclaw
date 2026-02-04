@@ -157,6 +157,8 @@ export function createOpenClawCodingTools(options?: {
   hasRepliedRef?: { value: boolean };
   /** If true, the model has native vision capability */
   modelHasVision?: boolean;
+  /** Whether the sender is authorized to invoke owner-gated tools. */
+  senderAuthorized?: boolean;
 }): AnyAgentTool[] {
   const execToolName = "exec";
   const sandbox = options?.sandbox?.enabled ? options.sandbox : undefined;
@@ -351,14 +353,19 @@ export function createOpenClawCodingTools(options?: {
       requesterAgentIdOverride: agentId,
     }),
   ];
+  const senderAuthorized = options?.senderAuthorized;
+  const toolsByAuthorization =
+    senderAuthorized === false
+      ? tools.filter((tool) => normalizeToolName(tool.name) !== "whatsapp_login")
+      : tools;
   const coreToolNames = new Set(
-    tools
+    toolsByAuthorization
       .filter((tool) => !getPluginToolMeta(tool))
       .map((tool) => normalizeToolName(tool.name))
       .filter(Boolean),
   );
   const pluginGroups = buildPluginToolGroups({
-    tools,
+    tools: toolsByAuthorization,
     toolMeta: (tool) => getPluginToolMeta(tool),
   });
   const resolvePolicy = (policy: typeof profilePolicy, label: string) => {
@@ -395,8 +402,8 @@ export function createOpenClawCodingTools(options?: {
   const subagentPolicyExpanded = expandPolicyWithPluginGroups(subagentPolicy, pluginGroups);
 
   const toolsFiltered = profilePolicyExpanded
-    ? filterToolsByPolicy(tools, profilePolicyExpanded)
-    : tools;
+    ? filterToolsByPolicy(toolsByAuthorization, profilePolicyExpanded)
+    : toolsByAuthorization;
   const providerProfileFiltered = providerProfileExpanded
     ? filterToolsByPolicy(toolsFiltered, providerProfileExpanded)
     : toolsFiltered;

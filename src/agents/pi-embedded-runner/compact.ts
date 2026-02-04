@@ -87,6 +87,8 @@ export type CompactEmbeddedPiSessionParams = {
   groupSpace?: string | null;
   /** Parent session key for subagent policy inheritance. */
   spawnedBy?: string | null;
+  /** Whether the sender is authorized to invoke owner-gated tools. */
+  senderAuthorized?: boolean;
   sessionFile: string;
   workspaceDir: string;
   agentDir?: string;
@@ -226,6 +228,7 @@ export async function compactEmbeddedPiSessionDirect(
       groupChannel: params.groupChannel,
       groupSpace: params.groupSpace,
       spawnedBy: params.spawnedBy,
+      senderAuthorized: params.senderAuthorized,
       agentDir,
       workspaceDir: effectiveWorkspace,
       config: params.config,
