@@ -182,6 +182,14 @@ export async function prepareSanitizedMounts(): Promise<SanitizedMounts> {
   }
   
   // =========================================================================
+  // 4. CONTROL UI (canvas) - read-only
+  // =========================================================================
+  const canvasDir = path.join(openclawDir, "canvas");
+  if (fs.existsSync(canvasDir)) {
+    binds.push(`${canvasDir}:/home/node/.openclaw/canvas:ro`);
+  }
+  
+  // =========================================================================
   // 4. DO NOT MOUNT CREDENTIALS (stay on host only)
   // =========================================================================
   // ~/.openclaw/credentials/ contains real OAuth tokens
