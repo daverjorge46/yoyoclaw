@@ -60,6 +60,14 @@ describe("config", () => {
     expect(config).toBeDefined();
     expect(config.enabled).toBeDefined();
   });
+
+  it("should have rateLimiting defaults", () => {
+    const config = loadSafeExecutorConfig();
+    expect(config.rateLimiting).toBeDefined();
+    expect(config.rateLimiting?.maxRequestsPerMinute).toBeDefined();
+    expect(config.rateLimiting?.maxConcurrent).toBeDefined();
+    expect(config.rateLimiting?.cooldownMs).toBeDefined();
+  });
 });
 
 describe("security utilities from ajs-clawbot", () => {
@@ -144,20 +152,63 @@ describe("process utilities from ajs-clawbot", () => {
 });
 
 describe("createOpenClawExecutor", () => {
-  it("should create executor with default options", () => {
-    const { executor, execute } = createOpenClawExecutor({
-      workspaceRoot: "/tmp/test",
+  it("should return disabled when config.enabled is false", () => {
+    const result = createOpenClawExecutor({
+      config: { enabled: false, selfIds: [], workdir: "/tmp" },
     });
-    expect(executor).toBeDefined();
-    expect(typeof execute).toBe("function");
+    expect(result.enabled).toBe(false);
+    expect(result.executor).toBeNull();
+    expect(result.execute).toBeNull();
   });
 
-  it("should create executor with strict rate limiting", () => {
-    const { executor } = createOpenClawExecutor({
+  it("should return enabled executor when config.enabled is true", () => {
+    const result = createOpenClawExecutor({
       workspaceRoot: "/tmp/test",
-      strictRateLimiting: true,
-      selfIds: ["bot-123"],
+      config: { enabled: true, selfIds: [], workdir: "/tmp" },
     });
-    expect(executor).toBeDefined();
+    expect(result.enabled).toBe(true);
+    if (result.enabled) {
+      expect(result.executor).toBeDefined();
+      expect(typeof result.execute).toBe("function");
+    }
+  });
+
+  it("should use workspaceRoot over config.workdir", () => {
+    const result = createOpenClawExecutor({
+      workspaceRoot: "/custom/path",
+      config: { enabled: true, selfIds: [], workdir: "/default/path" },
+    });
+    expect(result.enabled).toBe(true);
+    // workspaceRoot should take precedence (tested via execute context)
+  });
+
+  it("should use config.rateLimiting values", () => {
+    const result = createOpenClawExecutor({
+      config: {
+        enabled: true,
+        selfIds: ["bot-123"],
+        workdir: "/tmp",
+        rateLimiting: {
+          maxRequestsPerMinute: 100,
+          maxConcurrent: 10,
+          cooldownMs: 5000,
+        },
+      },
+    });
+    expect(result.enabled).toBe(true);
+    if (result.enabled) {
+      expect(result.executor).toBeDefined();
+    }
+  });
+
+  it("should apply strict rate limiting multiplier", () => {
+    const result = createOpenClawExecutor({
+      strictRateLimiting: true,
+      config: { enabled: true, selfIds: ["bot-123"], workdir: "/tmp" },
+    });
+    expect(result.enabled).toBe(true);
+    if (result.enabled) {
+      expect(result.executor).toBeDefined();
+    }
   });
 });

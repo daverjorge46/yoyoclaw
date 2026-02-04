@@ -29,8 +29,8 @@ export type MessageSource = {
  * Options for creating an OpenClaw executor
  */
 export interface OpenClawExecutorOptions {
-  /** Workspace root directory */
-  workspaceRoot: string;
+  /** Workspace root directory (overrides config.workdir) */
+  workspaceRoot?: string;
 
   /** LLM predict function */
   llmPredict?: (prompt: string, options?: unknown) => Promise<string>;
@@ -53,6 +53,28 @@ export interface OpenClawExecutorOptions {
   /** Custom config (otherwise loads from ~/.openclaw/safe-executor.json) */
   config?: SafeExecutorConfig;
 }
+
+/**
+ * Result of createOpenClawExecutor when enabled
+ */
+export type OpenClawExecutorResult = {
+  enabled: true;
+  executor: SafeExecutor;
+  execute: (
+    skillPath: string,
+    args: Record<string, unknown>,
+    source: MessageSource,
+  ) => Promise<ExecutionResult>;
+};
+
+/**
+ * Result of createOpenClawExecutor when disabled
+ */
+export type OpenClawExecutorDisabled = {
+  enabled: false;
+  executor: null;
+  execute: null;
+};
 
 /**
  * Map OpenClaw message source to ajs-clawbot trust level
@@ -107,28 +129,46 @@ function trustLevelToSource(trust: TrustLevel): "main" | "dm" | "group" | "publi
 
 /**
  * Create an OpenClaw-integrated executor
+ *
+ * Returns { enabled: false, executor: null, execute: null } if config.enabled is false.
+ * This allows callers to check and fall back to default behavior.
  */
-export function createOpenClawExecutor(options: OpenClawExecutorOptions): {
-  executor: SafeExecutor;
-  execute: (
-    skillPath: string,
-    args: Record<string, unknown>,
-    source: MessageSource,
-  ) => Promise<ExecutionResult>;
-} {
+export function createOpenClawExecutor(
+  options: OpenClawExecutorOptions = {},
+): OpenClawExecutorResult | OpenClawExecutorDisabled {
   const config = options.config ?? loadSafeExecutorConfig();
-  const selfIds = options.selfIds ?? config.selfIds ?? [];
 
-  // Build rate limiter options based on strictness
+  // Respect the enabled flag - return no-op if disabled
+  if (!config.enabled) {
+    return { enabled: false, executor: null, execute: null };
+  }
+
+  const selfIds = options.selfIds ?? config.selfIds ?? [];
+  const workdir = options.workspaceRoot ?? config.workdir;
+  const rateLimitConfig = config.rateLimiting ?? {};
+
+  // Build rate limiter options from config, with strictRateLimiting as multiplier
+  const baseMaxRequests = rateLimitConfig.maxRequestsPerMinute ?? 10;
+  const baseMaxConcurrent = rateLimitConfig.maxConcurrent ?? 2;
+  const cooldownMs = rateLimitConfig.cooldownMs ?? 30000;
+
   const rateLimiterOptions: RateLimiterOptions = {
     selfIds,
     perRequester: options.strictRateLimiting
-      ? { maxRequests: 5, windowMs: 60000, maxConcurrent: 1 }
-      : { maxRequests: 20, windowMs: 60000, maxConcurrent: 3 },
+      ? {
+          maxRequests: Math.max(1, Math.floor(baseMaxRequests / 2)),
+          windowMs: 60000,
+          maxConcurrent: 1,
+        }
+      : { maxRequests: baseMaxRequests * 2, windowMs: 60000, maxConcurrent: baseMaxConcurrent * 2 },
     global: options.strictRateLimiting
-      ? { maxRequests: 50, windowMs: 60000, maxConcurrent: 5 }
-      : { maxRequests: 200, windowMs: 60000, maxConcurrent: 20 },
-    cooldownMs: options.strictRateLimiting ? 60000 : 30000,
+      ? { maxRequests: baseMaxRequests * 5, windowMs: 60000, maxConcurrent: baseMaxConcurrent * 3 }
+      : {
+          maxRequests: baseMaxRequests * 20,
+          windowMs: 60000,
+          maxConcurrent: baseMaxConcurrent * 10,
+        },
+    cooldownMs: options.strictRateLimiting ? cooldownMs * 2 : cooldownMs,
   };
 
   const executor = new SafeExecutor({
@@ -148,7 +188,7 @@ export function createOpenClawExecutor(options: OpenClawExecutorOptions): {
       source: trustLevelToSource(trustLevel),
       userId: source.userId,
       channelId: source.channelId,
-      workdir: options.workspaceRoot,
+      workdir,
       allowedHosts: options.allowedHosts ?? config.allowedHosts ?? [],
       llmPredict: options.llmPredict,
     };
@@ -160,5 +200,5 @@ export function createOpenClawExecutor(options: OpenClawExecutorOptions): {
     return result;
   }
 
-  return { executor, execute };
+  return { enabled: true, executor, execute };
 }
