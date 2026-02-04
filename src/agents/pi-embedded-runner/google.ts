@@ -12,7 +12,10 @@ import {
   sanitizeSessionMessagesImages,
 } from "../pi-embedded-helpers.js";
 import { cleanToolSchemaForGemini } from "../pi-tools.schema.js";
-import { sanitizeToolUseResultPairing } from "../session-transcript-repair.js";
+import {
+  removeOrphanedToolResults,
+  sanitizeToolUseResultPairing,
+} from "../session-transcript-repair.js";
 import { resolveTranscriptPolicy } from "../transcript-policy.js";
 import { log } from "./logger.js";
 import { describeUnknownError } from "./utils.js";
@@ -350,6 +353,12 @@ export async function sanitizeSessionHistory(params: {
     ? sanitizeToolUseResultPairing(sanitizedThinking)
     : sanitizedThinking;
 
+  // Remove orphaned tool_results that reference non-existent tool_use IDs.
+  // This catches edge cases from compaction/truncation where tool_use messages
+  // are removed but their corresponding tool_results remain.
+  const orphanCleanup = removeOrphanedToolResults(repairedTools, log);
+  const cleanedMessages = orphanCleanup.messages;
+
   const isOpenAIResponsesApi =
     params.modelApi === "openai-responses" || params.modelApi === "openai-codex-responses";
   const hasSnapshot = Boolean(params.provider || params.modelApi || params.modelId);
@@ -364,8 +373,8 @@ export async function sanitizeSessionHistory(params: {
     : false;
   const sanitizedOpenAI =
     isOpenAIResponsesApi && modelChanged
-      ? downgradeOpenAIReasoningBlocks(repairedTools)
-      : repairedTools;
+      ? downgradeOpenAIReasoningBlocks(cleanedMessages)
+      : cleanedMessages;
 
   if (hasSnapshot && (!priorSnapshot || modelChanged)) {
     appendModelSnapshot(params.sessionManager, {

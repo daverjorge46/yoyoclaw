@@ -218,3 +218,101 @@ export function repairToolUseResultPairing(messages: AgentMessage[]): ToolUseRep
     moved: changedOrMoved,
   };
 }
+
+// --- Orphaned Tool Result Removal ---
+// Handles the case where compaction or history truncation removes an assistant message
+// containing tool_use blocks, but leaves behind orphaned tool_result messages that
+// reference non-existent tool_use IDs. This causes API rejections like:
+// "unexpected tool_use_id found in tool_result blocks: <id>"
+
+export type OrphanedToolResultReport = {
+  messages: AgentMessage[];
+  removedCount: number;
+  removedIds: string[];
+};
+
+/**
+ * Remove orphaned tool_result messages that reference tool_use IDs not present
+ * in any assistant message. This is a defensive cleanup that runs after the main
+ * repair pass to catch edge cases from compaction/truncation.
+ *
+ * @param messages - Array of session messages in OpenClaw internal format
+ * @param logger - Optional logger for debug/warn output
+ * @returns Report with cleaned messages and removal stats
+ */
+export function removeOrphanedToolResults(
+  messages: AgentMessage[],
+  logger?: { debug?: (msg: string) => void; warn?: (msg: string) => void },
+): OrphanedToolResultReport {
+  // Phase 1: Collect all valid tool_use IDs from assistant messages
+  const validToolUseIds = new Set<string>();
+
+  for (const msg of messages) {
+    if (!msg || typeof msg !== "object") {
+      continue;
+    }
+    const role = (msg as { role?: unknown }).role;
+    if (role !== "assistant") {
+      continue;
+    }
+    const toolCalls = extractToolCallsFromAssistant(
+      msg as Extract<AgentMessage, { role: "assistant" }>,
+    );
+    for (const call of toolCalls) {
+      validToolUseIds.add(call.id);
+    }
+  }
+
+  // Phase 2: Filter out tool_result messages with invalid IDs
+  const cleanedMessages: AgentMessage[] = [];
+  const removedIds: string[] = [];
+
+  for (const msg of messages) {
+    if (!msg || typeof msg !== "object") {
+      cleanedMessages.push(msg);
+      continue;
+    }
+
+    const role = (msg as { role?: unknown }).role;
+    if (role !== "toolResult") {
+      cleanedMessages.push(msg);
+      continue;
+    }
+
+    const toolResult = msg as Extract<AgentMessage, { role: "toolResult" }>;
+    const id = extractToolResultId(toolResult);
+
+    if (!id) {
+      // No ID to validate - keep the message (shouldn't happen in practice)
+      cleanedMessages.push(msg);
+      continue;
+    }
+
+    if (validToolUseIds.has(id)) {
+      // Valid tool_result - keep it
+      cleanedMessages.push(msg);
+    } else {
+      // Orphaned tool_result - remove it
+      removedIds.push(id);
+      logger?.debug?.(
+        `[transcript-repair] Removing orphaned tool_result: tool_use_id=${id} (no matching tool_use found)`,
+      );
+    }
+  }
+
+  // Log summary if any orphans were removed
+  if (removedIds.length > 0) {
+    logger?.warn?.(
+      `[transcript-repair] Removed ${removedIds.length} orphaned tool_result(s): ${removedIds.join(", ")}`,
+    );
+  }
+
+  return {
+    messages: removedIds.length > 0 ? cleanedMessages : messages,
+    removedCount: removedIds.length,
+    removedIds,
+  };
+}
+
+// Re-export extractToolCallsFromAssistant for use in tests and other modules
+export { extractToolCallsFromAssistant };
