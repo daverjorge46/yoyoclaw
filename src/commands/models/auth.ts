@@ -12,11 +12,13 @@ import {
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
 import { upsertAuthProfile } from "../../agents/auth-profiles.js";
+import { invalidateModelCatalogCache } from "../../agents/model-catalog.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
+import { ensureOpenClawModelsJson } from "../../agents/models-config.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { formatCliCommand } from "../../cli/command-format.js";
 import { parseDurationMs } from "../../cli/parse-duration.js";
-import { readConfigFileSnapshot, type OpenClawConfig } from "../../config/config.js";
+import { loadConfig, readConfigFileSnapshot, type OpenClawConfig } from "../../config/config.js";
 import { logConfigUpdated } from "../../config/logging.js";
 import { resolvePluginProviders } from "../../plugins/providers.js";
 import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
@@ -114,6 +116,7 @@ export async function modelsAuthSetupTokenCommand(
 
   logConfigUpdated(runtime);
   runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
+  await discoverModelsAfterAuth(runtime);
 }
 
 export async function modelsAuthPasteTokenCommand(
@@ -156,6 +159,7 @@ export async function modelsAuthPasteTokenCommand(
 
   logConfigUpdated(runtime);
   runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
+  await discoverModelsAfterAuth(runtime);
 }
 
 export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime: RuntimeEnv) {
@@ -315,6 +319,20 @@ function applyDefaultModel(cfg: OpenClawConfig, model: string): OpenClawConfig {
   };
 }
 
+async function discoverModelsAfterAuth(runtime: RuntimeEnv, agentDir?: string): Promise<void> {
+  try {
+    const cfg = loadConfig();
+    const { wrote } = await ensureOpenClawModelsJson(cfg, agentDir);
+    invalidateModelCatalogCache();
+    if (wrote) {
+      runtime.log("Model catalog refreshed.");
+    }
+  } catch (error) {
+    // Non-fatal: model discovery failure should not block auth
+    runtime.log(`Note: model discovery skipped (${String(error)})`);
+  }
+}
+
 function credentialMode(credential: AuthProfileCredential): "api_key" | "oauth" | "token" {
   if (credential.type === "api_key") {
     return "api_key";
@@ -444,4 +462,6 @@ export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: Runtim
   if (result.notes && result.notes.length > 0) {
     await prompter.note(result.notes.join("\n"), "Provider notes");
   }
+
+  await discoverModelsAfterAuth(runtime, agentDir);
 }
