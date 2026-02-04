@@ -59,6 +59,8 @@ export type CronJobState = {
   lastStatus?: "ok" | "error" | "skipped";
   lastError?: string;
   lastDurationMs?: number;
+  /** Consecutive failure count for retry backoff. Reset on success. */
+  consecutiveFailures?: number;
 };
 
 export type CronJob = {

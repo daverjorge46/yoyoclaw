@@ -20,6 +20,15 @@ import {
 
 const STUCK_RUN_MS = 2 * 60 * 60 * 1000;
 
+/** Max consecutive failures before disabling a one-shot job. */
+export const MAX_CONSECUTIVE_FAILURES = 5;
+
+/** Base delay for exponential backoff (ms). First retry: 30s, then 60s, 2m, 4m, 8m. */
+const RETRY_BACKOFF_BASE_MS = 30_000;
+
+/** Maximum backoff delay (1 hour). */
+const RETRY_BACKOFF_MAX_MS = 60 * 60 * 1000;
+
 export function assertSupportedJobSpec(job: Pick<CronJob, "sessionTarget" | "payload">) {
   if (job.sessionTarget === "main" && job.payload.kind !== "systemEvent") {
     throw new Error('main cron jobs require payload.kind="systemEvent"');
@@ -43,6 +52,16 @@ export function findJobOrThrow(state: CronServiceState, id: string) {
   return job;
 }
 
+/**
+ * Compute exponential backoff delay for failed jobs.
+ * Returns the next retry time based on consecutive failure count.
+ */
+function computeRetryBackoffMs(consecutiveFailures: number): number {
+  const failures = Math.max(0, consecutiveFailures);
+  const delay = RETRY_BACKOFF_BASE_MS * Math.pow(2, Math.min(failures, 10));
+  return Math.min(delay, RETRY_BACKOFF_MAX_MS);
+}
+
 export function computeJobNextRunAtMs(job: CronJob, nowMs: number): number | undefined {
   if (!job.enabled) {
     return undefined;
@@ -51,6 +70,12 @@ export function computeJobNextRunAtMs(job: CronJob, nowMs: number): number | und
     // One-shot jobs stay due until they successfully finish.
     if (job.state.lastStatus === "ok" && job.state.lastRunAtMs) {
       return undefined;
+    }
+    // If the job has failed, apply exponential backoff before retry.
+    const failures = job.state.consecutiveFailures ?? 0;
+    if (failures > 0 && job.state.lastRunAtMs) {
+      const backoffMs = computeRetryBackoffMs(failures);
+      return job.state.lastRunAtMs + backoffMs;
     }
     const atMs = parseAbsoluteTimeMs(job.schedule.at);
     return atMs !== null ? atMs : undefined;
