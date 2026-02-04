@@ -65,6 +65,17 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
     startAccount: async (ctx: ChannelGatewayContext<ResolvedSpixiAccount>) => {
       const { account, log } = ctx;
       const config = account.config;
+
+      // Debug logging
+      log?.info(`[${account.accountId}] Spixi config:`, JSON.stringify({
+        enabled: account.enabled,
+        configured: account.configured,
+        mqttHost: config.mqttHost,
+        mqttPort: config.mqttPort,
+        quixiApiUrl: config.quixiApiUrl,
+        allowFrom: config.allowFrom,
+      }));
+
       const mqttUrl = `mqtt://${config.mqttHost || "127.0.0.1"}:${config.mqttPort || 1884}`;
 
       log?.info(`[${account.accountId}] connecting to Spixi MQTT: ${mqttUrl}`);

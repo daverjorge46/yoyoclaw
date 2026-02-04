@@ -65,8 +65,8 @@ export const getSpixiRuntime = () => {
           getFriendList: async (opts?: { baseUrl?: string }) => {
             const baseUrl = opts?.baseUrl || defaultBaseUrl;
             try {
-              // QuIXI uses GET: /getContactList
-              const url = new URL("/getContactList", baseUrl);
+              // QuIXI uses GET: /contacts
+              const url = new URL("/contacts", baseUrl);
               const res = await axios.get(url.toString());
               // Response is array of contact objects with address field
               const contacts = res.data || [];
