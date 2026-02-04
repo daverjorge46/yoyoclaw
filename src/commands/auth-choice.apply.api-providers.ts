@@ -818,7 +818,7 @@ export async function applyAuthChoiceApiProviders(
     });
 
     if (serviceType === "foundry") {
-      // Azure Foundry - manual setup
+      // Azure Foundry - discover deployments
       const endpoint = await params.prompter.text({
         message: "Enter Azure AI Foundry endpoint",
         placeholder: "https://YOUR-PROJECT.services.ai.azure.com",
@@ -837,22 +837,109 @@ export async function applyAuthChoiceApiProviders(
         },
       });
 
-      const apiType = await params.prompter.select({
-        message: "Which model API type?",
-        options: [
-          { value: "anthropic-messages", label: "Anthropic (Claude)" },
-          { value: "openai-completions", label: "OpenAI-compatible (Llama, Mistral, etc.)" },
-        ],
-      });
-
-      const modelId = await params.prompter.text({
-        message: "Enter model deployment name",
-        placeholder: "claude-opus-4-5",
-      });
-
       const endpointStr = String(endpoint).trim();
-      const modelIdStr = String(modelId).trim();
-      const apiTypeStr = String(apiType);
+
+      // Discover deployed models
+      const spinner = params.prompter.spinner();
+      spinner.start("Discovering Azure AI Foundry deployments...");
+
+      let deployments: Array<{
+        name: string;
+        model: string;
+        api?: string;
+        publisher?: string;
+      }> = [];
+
+      try {
+        const { listAzureFoundryDeployments } = await import("../agents/azure-discovery.js");
+        const apiKey = process.env.AZURE_FOUNDRY_API_KEY ?? null;
+        const rawDeployments = await listAzureFoundryDeployments(endpointStr, apiKey);
+
+        deployments = rawDeployments
+          .filter((d) => {
+            const state = d.properties?.provisioningState?.toLowerCase();
+            return !state || state === "succeeded";
+          })
+          .map((d) => ({
+            name: d.name,
+            model: d.model.name,
+            api: d.api,
+            publisher: d.model.publisher,
+          }));
+
+        spinner.stop(
+          `Found ${deployments.length} deployed model${deployments.length === 1 ? "" : "s"}`,
+        );
+      } catch (error) {
+        spinner.stop("Could not discover deployments");
+        await params.prompter.note(
+          `Discovery failed: ${error instanceof Error ? error.message : String(error)}`,
+          "Warning",
+        );
+      }
+
+      let apiType: string;
+      let modelId: string;
+
+      if (deployments.length === 0) {
+        // Fall back to manual entry
+        await params.prompter.note(
+          "No deployments found. Please enter details manually.",
+          "Manual setup",
+        );
+
+        apiType = String(
+          await params.prompter.select({
+            message: "Which model API type?",
+            options: [
+              { value: "anthropic-messages", label: "Anthropic (Claude)" },
+              { value: "openai-completions", label: "OpenAI-compatible (Llama, Mistral, etc.)" },
+            ],
+          }),
+        );
+
+        modelId = String(
+          await params.prompter.text({
+            message: "Enter model deployment name",
+            placeholder: "claude-opus-4-5",
+          }),
+        ).trim();
+      } else {
+        // Show deployed models
+        const deployment = await params.prompter.select({
+          message: "Select deployed model",
+          options: deployments.map((d) => ({
+            value: d.name,
+            label: `${d.name} (${d.model}${d.publisher ? ` - ${d.publisher}` : ""})`,
+            hint: d.api,
+          })),
+        });
+
+        const selectedDeployment = deployments.find((d) => d.name === deployment);
+        if (!selectedDeployment) {
+          throw new Error(`Deployment ${String(deployment)} not found`);
+        }
+
+        modelId = selectedDeployment.name;
+
+        // Infer API type from publisher/model
+        if (
+          selectedDeployment.publisher === "anthropic" ||
+          selectedDeployment.model.toLowerCase().includes("claude")
+        ) {
+          apiType = "anthropic-messages";
+        } else {
+          apiType = "openai-completions";
+        }
+
+        await params.prompter.note(
+          `Using API type: ${apiType === "anthropic-messages" ? "Anthropic (Claude)" : "OpenAI-compatible"}`,
+          "Detected",
+        );
+      }
+
+      const modelIdStr = modelId;
+      const apiTypeStr = apiType;
 
       // Create provider config
       const providerName = "azure-foundry";

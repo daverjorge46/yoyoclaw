@@ -150,6 +150,63 @@ async function listAzureDeployments(
   return data.data ?? [];
 }
 
+type AzureFoundryDeployment = {
+  id: string;
+  name: string;
+  model: {
+    publisher?: string;
+    name: string;
+    version?: string;
+  };
+  properties?: {
+    provisioningState?: string;
+  };
+  api?: string;
+};
+
+async function getAzureFoundryAccessToken(): Promise<string | null> {
+  try {
+    const { exec } = await import("node:child_process");
+    const { promisify } = await import("node:util");
+    const execAsync = promisify(exec);
+
+    const { stdout } = await execAsync(
+      "az account get-access-token --resource https://ml.azure.com --query accessToken -o tsv",
+      { timeout: 10000 },
+    );
+    const token = stdout.trim();
+    return token || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function listAzureFoundryDeployments(
+  endpoint: string,
+  apiKey: string | null,
+): Promise<AzureFoundryDeployment[]> {
+  const url = `${endpoint}/models?api-version=2024-08-01-preview`;
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers["api-key"] = apiKey;
+  } else {
+    const token = await getAzureFoundryAccessToken();
+    if (!token) {
+      throw new Error("No Azure credentials available (tried az CLI and AZURE_FOUNDRY_API_KEY)");
+    }
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, { headers });
+  if (!response.ok) {
+    throw new Error(`Azure AI Foundry API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = (await response.json()) as { data?: AzureFoundryDeployment[] };
+  return data.data ?? [];
+}
+
 export function resetAzureDiscoveryCacheForTest(): void {
   discoveryCache.clear();
   hasLoggedAzureError = false;
