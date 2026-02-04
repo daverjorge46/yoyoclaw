@@ -32,7 +32,9 @@ async function withRetry<T>(
     try {
       return await fn();
     } catch (error) {
-      if (attempt === retries) throw error;
+      if (attempt === retries) {
+        throw error;
+      }
       log.warn(`OAuth refresh attempt ${attempt}/${retries} failed, retrying in ${delayMs * attempt}ms`, {
         error: error instanceof Error ? error.message : String(error),
         errorName: error instanceof Error ? error.name : undefined,
