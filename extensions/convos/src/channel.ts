@@ -90,6 +90,33 @@ export const convosPlugin: ChannelPlugin<ResolvedConvosAccount> = {
       allowFromPath: "channels.convos.allowFrom",
     }),
   },
+  pairing: {
+    idLabel: "inbox ID",
+    normalizeAllowEntry: (entry) => {
+      const trimmed = entry.trim();
+      if (!trimmed) return trimmed;
+      // Remove convos: prefix if present for storage
+      if (trimmed.toLowerCase().startsWith("convos:")) {
+        return trimmed.slice("convos:".length).trim();
+      }
+      return trimmed;
+    },
+    notifyApproval: async ({ cfg, id, runtime }) => {
+      const account = resolveConvosAccount({ cfg: cfg as CoreConfig });
+      const client = clients.get(account.accountId);
+      if (!client || !account.ownerConversationId) {
+        return;
+      }
+      try {
+        await client.sendMessage(
+          account.ownerConversationId,
+          `✅ Device paired successfully (inbox: ${id.slice(0, 12)}...)`,
+        );
+      } catch {
+        // Ignore notification errors
+      }
+    },
+  },
   messaging: {
     normalizeTarget: normalizeConvosMessagingTarget,
     targetResolver: {
