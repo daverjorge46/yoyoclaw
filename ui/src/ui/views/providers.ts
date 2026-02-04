@@ -174,11 +174,14 @@ function renderQuickStatus(entry: ProviderHealthEntry) {
   }
 
   if (entry.lastUsed) {
-    parts.push(
-      html`<span class="muted" style="font-size: 12px;">
-        Last used: ${formatTimeAgo(new Date(entry.lastUsed).getTime())}
-      </span>`,
-    );
+    const lastUsedTs = new Date(entry.lastUsed).getTime();
+    if (Number.isFinite(lastUsedTs)) {
+      parts.push(
+        html`<span class="muted" style="font-size: 12px;">
+          Last used: ${formatTimeAgo(lastUsedTs)}
+        </span>`,
+      );
+    }
   }
 
   if (parts.length === 0) {
@@ -235,7 +238,7 @@ function renderCredentialInfo(entry: ProviderHealthEntry) {
         <span>${entry.errorCount}</span>
 
         ${
-          entry.inCooldown
+          entry.inCooldown && entry.cooldownRemainingMs > 0
             ? html`
               <span class="muted">Cooldown</span>
               <span style="color: var(--danger);">

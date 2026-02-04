@@ -93,6 +93,8 @@ function mapEntry(raw: RawEntry): ProviderHealthEntry {
   };
 }
 
+let requestGeneration = 0;
+
 export async function loadProvidersHealth(host: ProvidersHealthHost): Promise<void> {
   if (!host.client || !host.connected) {
     return;
@@ -102,20 +104,29 @@ export async function loadProvidersHealth(host: ProvidersHealthHost): Promise<vo
   }
   host.providersHealthLoading = true;
   host.providersHealthError = null;
+  const gen = ++requestGeneration;
   try {
     const res = await host.client.request("providers.health", {
       all: host.providersHealthShowAll,
       includeUsage: true,
     });
+    if (gen !== requestGeneration) {
+      return;
+    }
     const data = res as { providers?: RawEntry[]; updatedAt?: number } | undefined;
     if (data && Array.isArray(data.providers)) {
       host.providersHealthEntries = data.providers.map(mapEntry);
       host.providersHealthUpdatedAt = typeof data.updatedAt === "number" ? data.updatedAt : null;
     }
   } catch (err) {
+    if (gen !== requestGeneration) {
+      return;
+    }
     host.providersHealthError = String(err);
   } finally {
-    host.providersHealthLoading = false;
+    if (gen === requestGeneration) {
+      host.providersHealthLoading = false;
+    }
   }
 }
 
@@ -151,33 +162,46 @@ export function startProvidersCountdown(host: ProvidersHealthHost): void {
     if (host.providersHealthEntries.length === 0) {
       return;
     }
+    const now = Date.now();
     let changed = false;
     const next = host.providersHealthEntries.map((entry) => {
       let updated = false;
-      let tokenRemainingMs = entry.tokenRemainingMs;
-      let cooldownRemainingMs = entry.cooldownRemainingMs;
       let healthStatus = entry.healthStatus;
 
-      if (tokenRemainingMs !== null && tokenRemainingMs > 0) {
-        tokenRemainingMs = Math.max(0, tokenRemainingMs - 1000);
-        updated = true;
-        if (tokenRemainingMs === 0 && healthStatus !== "expired") {
-          healthStatus = "expired";
-        }
-      }
-
-      if (cooldownRemainingMs > 0) {
-        cooldownRemainingMs = Math.max(0, cooldownRemainingMs - 1000);
-        updated = true;
-        if (cooldownRemainingMs === 0 && healthStatus === "cooldown") {
-          healthStatus = "healthy";
-        }
-      }
-
-      const usageWindows = entry.usageWindows.map((w) => {
-        if (w.resetRemainingMs !== null && w.resetRemainingMs > 0) {
+      // Recompute token remaining from absolute timestamp
+      let tokenRemainingMs = entry.tokenRemainingMs;
+      if (entry.tokenExpiresAt !== null) {
+        const remaining = Math.max(0, entry.tokenExpiresAt - now);
+        if (remaining !== tokenRemainingMs) {
+          tokenRemainingMs = remaining;
           updated = true;
-          return { ...w, resetRemainingMs: Math.max(0, w.resetRemainingMs - 1000) };
+          if (remaining === 0 && healthStatus !== "expired") {
+            healthStatus = "expired";
+          }
+        }
+      }
+
+      // Recompute cooldown remaining from absolute timestamp
+      let cooldownRemainingMs = entry.cooldownRemainingMs;
+      if (entry.cooldownEndsAt !== null) {
+        const remaining = Math.max(0, entry.cooldownEndsAt - now);
+        if (remaining !== cooldownRemainingMs) {
+          cooldownRemainingMs = remaining;
+          updated = true;
+          if (remaining === 0 && healthStatus === "cooldown") {
+            healthStatus = "healthy";
+          }
+        }
+      }
+
+      // Recompute usage window reset remaining from absolute timestamp
+      const usageWindows = entry.usageWindows.map((w) => {
+        if (w.resetAt !== null) {
+          const remaining = Math.max(0, w.resetAt - now);
+          if (remaining !== w.resetRemainingMs) {
+            updated = true;
+            return { ...w, resetRemainingMs: remaining };
+          }
         }
         return w;
       });

@@ -17,6 +17,7 @@ import {
   syncTabWithLocation,
   syncThemeWithSettings,
 } from "./app-settings.ts";
+import { stopProvidersPolling, stopProvidersCountdown } from "./controllers/providers-health.ts";
 
 type LifecycleHost = {
   basePath: string;
@@ -93,6 +94,8 @@ export function handleFirstUpdated(host: LifecycleHost) {
 
 export function handleDisconnected(host: LifecycleHost) {
   stopClock();
+  stopProvidersPolling();
+  stopProvidersCountdown();
   window.removeEventListener("popstate", host.popStateHandler);
   stopNodesPolling(host as unknown as Parameters<typeof stopNodesPolling>[0]);
   stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);

@@ -143,7 +143,7 @@ export function iconForTab(tab: Tab): IconName {
     case "nodes":
       return "monitor";
     case "providers":
-      return "barChart";
+      return "plug";
     case "config":
       return "settings";
     case "debug":
