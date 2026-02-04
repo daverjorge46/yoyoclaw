@@ -21,6 +21,7 @@ import {
   modelsImageFallbacksRemoveCommand,
   modelsListCommand,
   modelsScanCommand,
+  modelsDiscoverCommand,
   modelsSetCommand,
   modelsSetImageCommand,
   modelsStatusCommand,
@@ -272,6 +273,21 @@ export function registerModelsCli(program: Command) {
     .action(async (opts) => {
       await runModelsCommand(async () => {
         await modelsScanCommand(opts, defaultRuntime);
+      });
+    });
+
+  models
+    .command("discover")
+    .description("Discover local/catalog models (Windsurf, Cursor, Antigravity) and optionally set as fallbacks")
+    .option("--providers <name>", "Filter providers by substring")
+    .option("--json", "Output JSON", false)
+    .option("--set-default", "Set agents.defaults.model to first discovered model", false)
+    .action(async (opts) => {
+      await runModelsCommand(async () => {
+        await modelsDiscoverCommand(
+          { providers: opts.providers as string | undefined, json: Boolean(opts.json), setDefault: Boolean(opts.setDefault) },
+          defaultRuntime,
+        );
       });
     });
 
