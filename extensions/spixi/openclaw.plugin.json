@@ -2,6 +2,37 @@
   "id": "spixi",
   "name": "Spixi",
   "description": "Decentralized P2P messaging via Ixian network",
-  "type": "channel",
-  "entry": "./dist/index.js"
+  "channels": [
+    "spixi"
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "quixiApiUrl": {
+        "type": "string"
+      },
+      "mqttHost": {
+        "type": "string"
+      },
+      "mqttPort": {
+        "type": "integer"
+      },
+      "myWalletAddress": {
+        "type": "string"
+      },
+      "openclawRecipient": {
+        "type": "string"
+      },
+      "allowFrom": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }
