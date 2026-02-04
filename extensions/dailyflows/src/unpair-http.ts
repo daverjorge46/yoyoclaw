@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import type { OpenClawConfig, OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { timingSafeEqual } from "node:crypto";
 import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk";
 import { resolveDailyflowsAccount, resolveDailyflowsWebhookSecret } from "./config.js";
 
@@ -53,6 +53,19 @@ function buildUnpairConfigUpdate(params: { current: Record<string, unknown>; acc
   return next;
 }
 
+function safeCompare(a?: string, b?: string): boolean {
+  if (!a || !b) {
+    return false;
+  }
+  const bufA = Buffer.from(a.trim());
+  const bufB = Buffer.from(b.trim());
+  if (bufA.length !== bufB.length) {
+    timingSafeEqual(bufA, bufA); // Dummy check for timing consistency
+    return false;
+  }
+  return timingSafeEqual(bufA, bufB);
+}
+
 function isUnpairAuthorized(params: {
   cfg: Record<string, unknown>;
   accountId: string;
@@ -61,12 +74,11 @@ function isUnpairAuthorized(params: {
 }) {
   const cfg = params.cfg as unknown as OpenClawConfig;
   const account = resolveDailyflowsAccount(cfg, params.accountId);
-  const expectedToken = account.outboundToken?.trim() ?? "";
-  const expectedSecret = resolveDailyflowsWebhookSecret({ cfg, accountId: params.accountId }) ?? "";
-  const tokenOk =
-    expectedToken && params.outboundToken && params.outboundToken.trim() === expectedToken;
-  const secretOk =
-    expectedSecret && params.webhookSecret && params.webhookSecret.trim() === expectedSecret;
+  const expectedToken = account.outboundToken;
+  const expectedSecret = resolveDailyflowsWebhookSecret({ cfg, accountId: params.accountId });
+
+  const tokenOk = safeCompare(expectedToken, params.outboundToken);
+  const secretOk = safeCompare(expectedSecret ?? undefined, params.webhookSecret);
   return tokenOk || secretOk;
 }
 
