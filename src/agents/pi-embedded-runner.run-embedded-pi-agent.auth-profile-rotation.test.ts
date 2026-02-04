@@ -165,20 +165,6 @@ const writeCopilotAuthStore = async (agentDir: string, token = "gh-token") => {
 const buildCopilotAssistant = (overrides: Partial<AssistantMessage> = {}) =>
   buildAssistant({ provider: "github-copilot", model: copilotModelId, ...overrides });
 
-function createDeferred<T>() {
-  let resolve: (value: T) => void;
-  let reject: (error: unknown) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return {
-    promise,
-    resolve: resolve as (value: T) => void,
-    reject: reject as (error: unknown) => void,
-  };
-}
-
 describe("runEmbeddedPiAgent auth profile rotation", () => {
   it("refreshes copilot token after auth error and retries once", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
@@ -192,7 +178,7 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
       resolveCopilotApiTokenMock
         .mockResolvedValueOnce({
           token: "copilot-initial",
-          expiresAt: now + 30 * 60 * 1000,
+          expiresAt: now + 2 * 60 * 1000,
           source: "mock",
           baseUrl: "https://api.copilot.example",
         })
@@ -259,13 +245,13 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
       resolveCopilotApiTokenMock
         .mockResolvedValueOnce({
           token: "copilot-initial",
-          expiresAt: now + 30 * 60 * 1000,
+          expiresAt: now + 2 * 60 * 1000,
           source: "mock",
           baseUrl: "https://api.copilot.example",
         })
         .mockResolvedValueOnce({
           token: "copilot-refresh-1",
-          expiresAt: now + 35 * 60 * 1000,
+          expiresAt: now + 4 * 60 * 1000,
           source: "mock",
           baseUrl: "https://api.copilot.example",
         })

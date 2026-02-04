@@ -63,6 +63,7 @@ type CopilotTokenState = {
 
 const COPILOT_REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const COPILOT_REFRESH_RETRY_MS = 60 * 1000;
+const COPILOT_REFRESH_MIN_DELAY_MS = 5 * 1000;
 
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
@@ -238,7 +239,7 @@ export async function runEmbeddedPiAgent(
         clearCopilotRefreshTimer();
         const now = Date.now();
         const refreshAt = copilotTokenState.expiresAt - COPILOT_REFRESH_MARGIN_MS;
-        const delayMs = Math.max(0, refreshAt - now);
+        const delayMs = Math.max(COPILOT_REFRESH_MIN_DELAY_MS, refreshAt - now);
         const timer = setTimeout(() => {
           if (copilotRefreshCancelled) {
             return;
@@ -419,6 +420,10 @@ export async function runEmbeddedPiAgent(
           return false;
         }
         if (classifyFailoverReason(errorText) !== "auth") {
+          return false;
+        }
+        const remaining = copilotTokenState.expiresAt - Date.now();
+        if (remaining > COPILOT_REFRESH_MARGIN_MS) {
           return false;
         }
         try {
