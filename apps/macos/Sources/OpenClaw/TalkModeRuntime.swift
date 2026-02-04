@@ -5,6 +5,12 @@ import Foundation
 import OSLog
 import Speech
 
+/// TTS provider selection
+enum TTSProvider: String {
+    case elevenlabs
+    case kokoro
+}
+
 actor TalkModeRuntime {
     static let shared = TalkModeRuntime()
 
@@ -64,6 +70,11 @@ actor TalkModeRuntime {
     private var apiKey: String?
     private var fallbackVoiceId: String?
     private var lastPlaybackWasPCM: Bool = false
+    
+    // MARK: - TTS Provider Configuration
+    private var ttsProvider: TTSProvider = .elevenlabs
+    private var kokoroApiKey: String = "dk-super-secret"
+    private var kokoroBaseURL: String = "http://localhost:3000/api/v1"
 
     private let silenceWindow: TimeInterval = 0.7
     private let minSpeechRMS: Double = 1e-3
@@ -439,10 +450,16 @@ actor TalkModeRuntime {
     private func playAssistant(text: String) async {
         guard let input = await self.preparePlaybackInput(text: text) else { return }
         do {
-            if let apiKey = input.apiKey, !apiKey.isEmpty, let voiceId = input.voiceId {
-                try await self.playElevenLabs(input: input, apiKey: apiKey, voiceId: voiceId)
-            } else {
-                try await self.playSystemVoice(input: input)
+            switch self.ttsProvider {
+            case .kokoro:
+                let kokoroVoice = input.voiceId ?? "af_heart"
+                try await self.playKokoro(input: input, voiceId: kokoroVoice)
+            case .elevenlabs:
+                if let apiKey = input.apiKey, !apiKey.isEmpty, let voiceId = input.voiceId {
+                    try await self.playElevenLabs(input: input, apiKey: apiKey, voiceId: voiceId)
+                } else {
+                    try await self.playSystemVoice(input: input)
+                }
             }
         } catch {
             self.ttsLogger
@@ -643,6 +660,49 @@ actor TalkModeRuntime {
         return await self.playMP3(stream: stream)
     }
 
+    private func playKokoro(input: TalkPlaybackInput, voiceId: String) async throws {
+        self.ttsLogger.info("talk Kokoro TTS start voiceId=\(voiceId, privacy: .public) chars=\(input.cleanedText.count, privacy: .public)")
+        
+        let request = KokoroTTSRequest(
+            text: input.cleanedText,
+            modelId: input.directive?.modelId,
+            normalize: false,
+            language: input.language,
+            latencyTier: nil
+        )
+        
+        let client = KokoroTTSClient(apiKey: self.kokoroApiKey, baseURL: self.kokoroBaseURL)
+        let stream = client.streamSynthesize(voiceId: voiceId, request: request)
+        guard self.isCurrent(input.generation) else { return }
+        
+        if self.interruptOnSpeech {
+            guard await self.prepareForPlayback(generation: input.generation) else { return }
+        }
+        
+        await MainActor.run { TalkModeController.shared.updatePhase(.speaking) }
+        self.phase = .speaking
+        
+        // Kokoro always returns MP3
+        self.lastPlaybackWasPCM = false
+        let result = await self.playMP3(stream: stream)
+        
+        self.ttsLogger
+            .info(
+                "talk Kokoro audio result finished=\(result.finished, privacy: .public) " +
+                    "interruptedAt=\(String(describing: result.interruptedAt), privacy: .public)")
+        
+        if !result.finished, result.interruptedAt == nil {
+            throw NSError(domain: "KokoroTTSClient", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "Kokoro audio playback failed",
+            ])
+        }
+        if !result.finished, let interruptedAt = result.interruptedAt, self.phase == .speaking {
+            if self.interruptOnSpeech {
+                self.lastInterruptedAtSeconds = interruptedAt
+            }
+        }
+    }
+    
     private func playSystemVoice(input: TalkPlaybackInput) async throws {
         self.ttsLogger.info("talk system voice start chars=\(input.cleanedText.count, privacy: .public)")
         if self.interruptOnSpeech {
@@ -772,12 +832,16 @@ extension TalkModeRuntime {
         self.defaultOutputFormat = cfg.outputFormat
         self.interruptOnSpeech = cfg.interruptOnSpeech
         self.apiKey = cfg.apiKey
+        self.ttsProvider = cfg.ttsProvider
+        self.kokoroApiKey = cfg.kokoroApiKey
+        self.kokoroBaseURL = cfg.kokoroBaseURL
         let hasApiKey = (cfg.apiKey?.isEmpty == false)
         let voiceLabel = (cfg.voiceId?.isEmpty == false) ? cfg.voiceId! : "none"
         let modelLabel = (cfg.modelId?.isEmpty == false) ? cfg.modelId! : "none"
         self.logger
             .info(
-                "talk config voiceId=\(voiceLabel, privacy: .public) " +
+                "talk config provider=\(cfg.ttsProvider.rawValue, privacy: .public) " +
+                    "voiceId=\(voiceLabel, privacy: .public) " +
                     "modelId=\(modelLabel, privacy: .public) " +
                     "apiKey=\(hasApiKey, privacy: .public) " +
                     "interrupt=\(cfg.interruptOnSpeech, privacy: .public)")
@@ -790,6 +854,9 @@ extension TalkModeRuntime {
         let outputFormat: String?
         let interruptOnSpeech: Bool
         let apiKey: String?
+        let ttsProvider: TTSProvider
+        let kokoroApiKey: String
+        let kokoroBaseURL: String
     }
 
     private func fetchTalkConfig() async -> TalkRuntimeConfig {
@@ -830,25 +897,48 @@ extension TalkModeRuntime {
             let resolvedApiKey =
                 (envApiKey?.isEmpty == false ? envApiKey : nil) ??
                 (apiKey?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? apiKey : nil)
+            
+            // TTS provider configuration
+            let providerStr = talk?["ttsProvider"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() 
+                ?? env["TTS_PROVIDER"]?.lowercased() 
+                ?? "kokoro"
+            let provider = TTSProvider(rawValue: providerStr) ?? .kokoro
+            let kokoroApiKey = talk?["kokoroApiKey"]?.stringValue 
+                ?? env["KOKORO_API_KEY"] 
+                ?? "dk-super-secret"
+            let kokoroBaseURL = talk?["kokoroBaseURL"]?.stringValue 
+                ?? env["KOKORO_BASE_URL"] 
+                ?? "http://localhost:3000/api/v1"
+            
             return TalkRuntimeConfig(
                 voiceId: resolvedVoice,
                 voiceAliases: resolvedAliases,
                 modelId: resolvedModel,
                 outputFormat: outputFormat,
                 interruptOnSpeech: interrupt ?? true,
-                apiKey: resolvedApiKey)
+                apiKey: resolvedApiKey,
+                ttsProvider: provider,
+                kokoroApiKey: kokoroApiKey,
+                kokoroBaseURL: kokoroBaseURL)
         } catch {
             let resolvedVoice =
                 (envVoice?.isEmpty == false ? envVoice : nil) ??
                 (sagVoice?.isEmpty == false ? sagVoice : nil)
             let resolvedApiKey = envApiKey?.isEmpty == false ? envApiKey : nil
+            let providerStr = env["TTS_PROVIDER"]?.lowercased() ?? "kokoro"
+            let provider = TTSProvider(rawValue: providerStr) ?? .kokoro
+            let kokoroApiKey = env["KOKORO_API_KEY"] ?? "dk-super-secret"
+            let kokoroBaseURL = env["KOKORO_BASE_URL"] ?? "http://localhost:3000/api/v1"
             return TalkRuntimeConfig(
                 voiceId: resolvedVoice,
                 voiceAliases: [:],
                 modelId: Self.defaultModelIdFallback,
                 outputFormat: nil,
                 interruptOnSpeech: true,
-                apiKey: resolvedApiKey)
+                apiKey: resolvedApiKey,
+                ttsProvider: provider,
+                kokoroApiKey: kokoroApiKey,
+                kokoroBaseURL: kokoroBaseURL)
         }
     }
 

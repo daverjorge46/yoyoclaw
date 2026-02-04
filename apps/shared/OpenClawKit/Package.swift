@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/steipete/ElevenLabsKit", exact: "0.1.0"),
         .package(url: "https://github.com/gonzalezreal/textual", exact: "0.3.1"),
+        .package(path: "../../../packages/KokoroTTSKit"),
     ],
     targets: [
         .target(
@@ -29,6 +30,7 @@ let package = Package(
             dependencies: [
                 "OpenClawProtocol",
                 .product(name: "ElevenLabsKit", package: "ElevenLabsKit"),
+                .product(name: "KokoroTTSKit", package: "KokoroTTSKit"),
             ],
             path: "Sources/OpenClawKit",
             resources: [
