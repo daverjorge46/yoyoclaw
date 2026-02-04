@@ -3,6 +3,8 @@ import { request } from "undici";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 import { loadAllowlist, isDomainAllowed } from "./secrets-proxy-allowlist.js";
+import type { SecretRegistry } from "./secrets-registry.js";
+import { resolveOAuthToken } from "./secrets-registry.js";
 
 const logger = createSubsystemLogger("security/secrets-proxy");
 
@@ -19,38 +21,125 @@ const REQUEST_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 // Methods that should NOT have a body per HTTP spec
 const BODYLESS_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
 
+// Placeholder patterns
+const PATTERNS = {
+  CONFIG: /\{\{CONFIG:([\w.]+)\}\}/g,      // {{CONFIG:channels.discord.token}}
+  OAUTH: /\{\{OAUTH:([\w-]+)\}\}/g,         // {{OAUTH:google-gemini-cli}}
+  APIKEY: /\{\{APIKEY:([\w-]+)\}\}/g,       // {{APIKEY:anthropic}}
+  TOKEN: /\{\{TOKEN:([\w-]+)\}\}/g,         // {{TOKEN:github-copilot}}
+  ENV: /\{\{([A-Z_][A-Z0-9_]*)\}\}/g,       // {{ANTHROPIC_API_KEY}}
+};
+
 /**
- * Replaces {{VAR_NAME}} with process.env.VAR_NAME.
+ * Resolve CONFIG placeholder by traversing the config secrets object.
+ */
+function resolveConfigPath(path: string, registry: SecretRegistry): string | null {
+  const parts = path.split(".");
+  let current: any = registry;
+  
+  // Navigate: channels.disco rd.token -> registry.channelSecrets.discord.token
+  if (parts[0] === "channels") {
+    current = registry.channelSecrets[parts[1] as keyof typeof registry.channelSecrets];
+    if (parts.length === 3 && current) {
+      return current[parts[2]] ?? null;
+    }
+  } else if (parts[0] === "gateway") {
+    // gateway.auth.token -> registry.gatewaySecrets.authToken
+    const key = parts.slice(1).join(""); // auth.token -> authToken
+    const camelKey = key.charAt(0).toLowerCase() + key.slice(1).replace(/\./g, "");
+    return (registry.gatewaySecrets as any)[camelKey] ?? null;
+  } else if (parts[0] === "talk" && parts[1] === "apiKey") {
+    return registry.gatewaySecrets.talkApiKey ?? null;
+  }
+  
+  return null;
+}
+
+/**
+ * Replaces all placeholder types with actual secrets.
  * Includes DoS protection with replacement limits.
  */
-function replacePlaceholders(text: string): string {
+async function replacePlaceholders(text: string, registry: SecretRegistry): Promise<string> {
   let count = 0;
   const startTime = Date.now();
   
-  return text.replace(/\{\{(\w+)\}\}/g, (match, name) => {
-    // Check timeout
+  const checkLimits = () => {
     if (Date.now() - startTime > PLACEHOLDER_LIMITS.timeoutMs) {
       logger.warn(`Placeholder replacement timeout reached`);
-      return match; // Return original on timeout
+      return true;
     }
-    
-    // Check replacement limit
     if (count++ >= PLACEHOLDER_LIMITS.maxReplacements) {
       logger.warn(`Placeholder replacement limit reached (${PLACEHOLDER_LIMITS.maxReplacements})`);
-      return `{{LIMIT_REACHED:${name}}}`;
+      return true;
     }
-    
-    return process.env[name] ?? "";
+    return false;
+  };
+  
+  // 1. Replace CONFIG placeholders
+  text = text.replace(PATTERNS.CONFIG, (match, path) => {
+    if (checkLimits()) return match;
+    const value = resolveConfigPath(path, registry);
+    if (value === null || value === undefined) {
+      logger.warn(`Config secret not found: ${path}`);
+      return "";
+    }
+    // Handle object values (like serviceAccount)
+    return typeof value === "object" ? JSON.stringify(value) : String(value);
   });
+  
+  // 2. Replace OAUTH placeholders (async, with refresh)
+  const oauthMatches = [...text.matchAll(PATTERNS.OAUTH)];
+  for (const match of oauthMatches) {
+    if (checkLimits()) break;
+    const profileId = match[1];
+    const token = await resolveOAuthToken(registry, profileId);
+    if (token) {
+      text = text.replace(match[0], token);
+    } else {
+      logger.warn(`OAuth token not found for profile: ${profileId}`);
+    }
+  }
+  
+  // 3. Replace APIKEY placeholders
+  text = text.replace(PATTERNS.APIKEY, (match, profileId) => {
+    if (checkLimits()) return match;
+    const key = registry.apiKeys.get(profileId);
+    if (!key) {
+      logger.warn(`API key not found for profile: ${profileId}`);
+      return "";
+    }
+    return key;
+  });
+  
+  // 4. Replace TOKEN placeholders
+  text = text.replace(PATTERNS.TOKEN, (match, profileId) => {
+    if (checkLimits()) return match;
+    const token = registry.tokens.get(profileId);
+    if (!token) {
+      logger.warn(`Token not found for profile: ${profileId}`);
+      return "";
+    }
+    return token;
+  });
+  
+  // 5. Replace ENV placeholders (process.env)
+  text = text.replace(PATTERNS.ENV, (match, name) => {
+    if (checkLimits()) return match;
+    return process.env[name] ?? registry.envVars[name] ?? "";
+  });
+  
+  return text;
 }
 
 export type SecretsProxyOptions = {
   port: number;
   bind?: string;
+  registry: SecretRegistry;
 };
 
 export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http.Server> {
   const allowedDomains = loadAllowlist();
+  const { registry } = opts;
 
   const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
     // Set request timeout
@@ -107,7 +196,7 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
         
         if (chunks.length > 0) {
           const rawBody = Buffer.concat(chunks).toString("utf8");
-          modifiedBody = replacePlaceholders(rawBody);
+          modifiedBody = await replacePlaceholders(rawBody, registry);
         }
       } else {
         // Drain the body for bodyless methods (ignore any sent body)
@@ -130,10 +219,11 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
           continue;
         }
         if (typeof value === "string") {
-          headers[key] = replacePlaceholders(value);
+          headers[key] = await replacePlaceholders(value, registry);
         } else if (Array.isArray(value)) {
           // P1 Fix: Handle string[] headers by joining
-          headers[key] = value.map(v => replacePlaceholders(v)).join(", ");
+          const replaced = await Promise.all(value.map(v => replacePlaceholders(v, registry)));
+          headers[key] = replaced.join(", ");
         }
       }
 

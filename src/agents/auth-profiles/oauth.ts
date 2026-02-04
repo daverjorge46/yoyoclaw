@@ -168,6 +168,22 @@ export async function resolveApiKeyForProfile(params: {
     }
   }
 
+  // SECURE MODE: Return placeholders instead of actual credentials
+  if (process.env.OPENCLAW_SECURE_MODE === "1") {
+    let placeholder: string;
+    if (cred.type === "oauth") {
+      placeholder = `{{OAUTH:${profileId}}}`;
+    } else if (cred.type === "api_key") {
+      placeholder = `{{APIKEY:${profileId}}}`;
+    } else if (cred.type === "token") {
+      placeholder = `{{TOKEN:${profileId}}}`;
+    } else {
+      // Fallback for unknown types
+      placeholder = `{{AUTH:${profileId}}}`;
+    }
+    return { apiKey: placeholder, provider: cred.provider, email: cred.email };
+  }
+
   if (cred.type === "api_key") {
     return { apiKey: cred.key, provider: cred.provider, email: cred.email };
   }

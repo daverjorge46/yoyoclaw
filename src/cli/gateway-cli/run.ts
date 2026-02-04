@@ -22,6 +22,7 @@ import { forceFreePortAndWait } from "../ports.js";
 import { ensureDevGatewayConfig } from "./dev.js";
 import { runGatewayLoop } from "./run-loop.js";
 import { startSecretsProxy } from "../../security/secrets-proxy.js";
+import { createSecretsRegistry } from "../../security/secrets-registry.js";
 import { startGatewayContainer, stopGatewayContainer, isGatewayContainerRunning, getGatewayContainerLogs } from "../../security/gateway-container.js";
 import {
   describeUnknownError,
@@ -270,10 +271,15 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       const proxyPort = 8080;
       const proxyUrl = `http://host.docker.internal:${proxyPort}`;
       
+      // Initialize secrets registry (loads all credentials from host)
+      gatewayLog.info("Loading secrets registry...");
+      const registry = await createSecretsRegistry();
+      gatewayLog.info(`Loaded ${registry.oauthProfiles.size} OAuth profiles, ${registry.apiKeys.size} API keys`);
+      
       // Start secrets proxy first
       let proxyServer: Awaited<ReturnType<typeof startSecretsProxy>>;
       try {
-        proxyServer = await startSecretsProxy({ port: proxyPort });
+        proxyServer = await startSecretsProxy({ port: proxyPort, registry });
         gatewayLog.info(`Secrets proxy started on port ${proxyPort}`);
       } catch (err) {
         gatewayLog.error(`Failed to start secrets proxy: ${String(err)}`);

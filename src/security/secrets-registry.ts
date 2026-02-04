@@ -1,0 +1,186 @@
+import fs from "node:fs";
+import path from "node:path";
+import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
+import { resolveApiKeyForProfile } from "../agents/auth-profiles/oauth.js";
+import type { AuthProfileStore, OAuthCredential } from "../agents/auth-profiles/types.js";
+import { loadConfig } from "../config/config.js";
+import type { OpenClawConfig } from "../config/types.openclaw.js";
+
+/**
+ * Central registry of all secrets available to the proxy.
+ * This is loaded on the HOST and used by the proxy to inject secrets
+ * into placeholder values before they reach external APIs.
+ */
+export type SecretRegistry = {
+  /** OAuth credentials indexed by profile ID (with refresh capability). */
+  oauthProfiles: Map<string, OAuthCredential>;
+  
+  /** Static API keys indexed by profile ID. */
+  apiKeys: Map<string, string>;
+  
+  /** Static tokens indexed by profile ID. */
+  tokens: Map<string, string>;
+  
+  /** Channel secrets from openclaw.yaml. */
+  channelSecrets: {
+    discord?: { token?: string };
+    telegram?: { botToken?: string; webhookSecret?: string };
+    slack?: { botToken?: string; appToken?: string; userToken?: string; signingSecret?: string };
+    feishu?: { appId?: string; appSecret?: string };
+    googlechat?: { serviceAccount?: string | object };
+  };
+  
+  /** Gateway auth secrets. */
+  gatewaySecrets: {
+    authToken?: string;
+    authPassword?: string;
+    remoteToken?: string;
+    remotePassword?: string;
+    talkApiKey?: string;
+  };
+  
+  /** Environment variables from config. */
+  envVars: Record<string, string>;
+  
+  /** Raw auth profile store (for OAuth refresh). */
+  authStore: AuthProfileStore;
+  
+  /** Agent directory for auth profiles. */
+  agentDir?: string;
+};
+
+/**
+ * Load all auth profiles from auth-profiles.json.
+ */
+function loadAuthProfiles(agentDir?: string): {
+  oauthProfiles: Map<string, OAuthCredential>;
+  apiKeys: Map<string, string>;
+  tokens: Map<string, string>;
+  authStore: AuthProfileStore;
+} {
+  const store = ensureAuthProfileStore(agentDir);
+  
+  const oauthProfiles = new Map<string, OAuthCredential>();
+  const apiKeys = new Map<string, string>();
+  const tokens = new Map<string, string>();
+  
+  for (const [profileId, credential] of Object.entries(store.profiles)) {
+    if (credential.type === "oauth") {
+      oauthProfiles.set(profileId, credential);
+    } else if (credential.type === "api_key") {
+      apiKeys.set(profileId, credential.key);
+    } else if (credential.type === "token") {
+      tokens.set(profileId, credential.token);
+    }
+  }
+  
+  return { oauthProfiles, apiKeys, tokens, authStore: store };
+}
+
+/**
+ * Extract secrets from openclaw.yaml config.
+ */
+function loadConfigSecrets(config: OpenClawConfig): Pick<
+  SecretRegistry,
+  "channelSecrets" | "gatewaySecrets" | "envVars"
+> {
+  const channelSecrets: SecretRegistry["channelSecrets"] = {};
+  const gatewaySecrets: SecretRegistry["gatewaySecrets"] = {};
+  const envVars: Record<string, string> = {};
+  
+  // Extract channel secrets
+  if (config.channels?.discord?.token) {
+    channelSecrets.discord = { token: config.channels.discord.token };
+  }
+  
+  if (config.channels?.telegram) {
+    channelSecrets.telegram = {
+      botToken: config.channels.telegram.botToken,
+      webhookSecret: config.channels.telegram.webhookSecret,
+    };
+  }
+  
+  if (config.channels?.slack) {
+    channelSecrets.slack = {
+      botToken: config.channels.slack.botToken,
+      appToken: config.channels.slack.appToken,
+      userToken: config.channels.slack.userToken,
+      signingSecret: config.channels.slack.signingSecret,
+    };
+  }
+  
+  if (config.channels?.feishu) {
+    channelSecrets.feishu = {
+      appId: config.channels.feishu.appId,
+      appSecret: config.channels.feishu.appSecret,
+    };
+  }
+  
+  if (config.channels?.googlechat?.serviceAccount) {
+    channelSecrets.googlechat = {
+      serviceAccount: config.channels.googlechat.serviceAccount,
+    };
+  }
+  
+  // Extract gateway secrets
+  if (config.gateway?.auth) {
+    gatewaySecrets.authToken = config.gateway.auth.token;
+    gatewaySecrets.authPassword = config.gateway.auth.password;
+  }
+  
+  if (config.gateway?.remote) {
+    gatewaySecrets.remoteToken = config.gateway.remote.token;
+    gatewaySecrets.remotePassword = config.gateway.remote.password;
+  }
+  
+  if (config.talk?.apiKey) {
+    gatewaySecrets.talkApiKey = config.talk.apiKey;
+  }
+  
+  // Extract env vars
+  if (config.env?.vars) {
+    Object.assign(envVars, config.env.vars);
+  }
+  
+  return { channelSecrets, gatewaySecrets, envVars };
+}
+
+/**
+ * Create a complete secrets registry from the host filesystem.
+ * This should only be called on the HOST, never inside the container.
+ */
+export async function createSecretsRegistry(agentDir?: string): Promise<SecretRegistry> {
+  // Load auth profiles
+  const { oauthProfiles, apiKeys, tokens, authStore } = loadAuthProfiles(agentDir);
+  
+  // Load config secrets
+  const config = await loadConfig();
+  const { channelSecrets, gatewaySecrets, envVars } = loadConfigSecrets(config);
+  
+  return {
+    oauthProfiles,
+    apiKeys,
+    tokens,
+    channelSecrets,
+    gatewaySecrets,
+    envVars,
+    authStore,
+    agentDir,
+  };
+}
+
+/**
+ * Resolve an OAuth token for a profile, refreshing if needed.
+ */
+export async function resolveOAuthToken(
+  registry: SecretRegistry,
+  profileId: string,
+): Promise<string | null> {
+  const result = await resolveApiKeyForProfile({
+    store: registry.authStore,
+    profileId,
+    agentDir: registry.agentDir,
+  });
+  
+  return result?.apiKey ?? null;
+}

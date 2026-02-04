@@ -31,6 +31,7 @@ import { resolveConfigPath, resolveDefaultConfigCandidates, resolveStateDir } fr
 import { applyConfigOverrides } from "./runtime-overrides.js";
 import { validateConfigObjectWithPlugins } from "./validation.js";
 import { compareOpenClawVersions } from "./version.js";
+import { sanitizeConfigSecrets } from "./sanitize-secrets.js";
 
 // Re-export for backwards compatibility
 export { CircularIncludeError, ConfigIncludeError } from "./includes.js";
@@ -590,7 +591,11 @@ export function loadConfig(): OpenClawConfig {
       return cached.config;
     }
   }
-  const config = io.loadConfig();
+  let config = io.loadConfig();
+  
+  // Sanitize secrets in secure mode
+  config = sanitizeConfigSecrets(config);
+  
   if (shouldUseConfigCache(process.env)) {
     const cacheMs = resolveConfigCacheMs(process.env);
     if (cacheMs > 0) {
