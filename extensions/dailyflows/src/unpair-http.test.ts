@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { buildUnpairConfigUpdate, isUnpairAuthorized } from "./unpair-http.js";
 
 describe("dailyflows unpair", () => {
@@ -50,15 +49,9 @@ describe("dailyflows unpair", () => {
       },
     };
 
-    expect(
-      isUnpairAuthorized({ cfg, accountId: "default", outboundToken: "token" }),
-    ).toBe(true);
-    expect(
-      isUnpairAuthorized({ cfg, accountId: "default", webhookSecret: "secret" }),
-    ).toBe(true);
-    expect(
-      isUnpairAuthorized({ cfg, accountId: "default", outboundToken: "nope" }),
-    ).toBe(false);
+    expect(isUnpairAuthorized({ cfg, accountId: "default", outboundToken: "token" })).toBe(true);
+    expect(isUnpairAuthorized({ cfg, accountId: "default", webhookSecret: "secret" })).toBe(true);
+    expect(isUnpairAuthorized({ cfg, accountId: "default", outboundToken: "nope" })).toBe(false);
 
     if (prevEnvGlobal === undefined) {
       delete process.env.DAILYFLOWS_WEBHOOK_SECRET;

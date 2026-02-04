@@ -1,10 +1,6 @@
-import { randomUUID } from "node:crypto";
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
-
-import type {
-  DailyflowsOutboundPayload,
-  DailyflowsOutboundResult,
-} from "./types.js";
+import { randomUUID } from "node:crypto";
+import type { DailyflowsOutboundPayload, DailyflowsOutboundResult } from "./types.js";
 import { resolveDailyflowsAccount } from "./config.js";
 
 type SendResult = {
@@ -42,9 +38,7 @@ export async function sendDailyflowsMessage(params: {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      ...(account.outboundToken
-        ? { authorization: `Bearer ${account.outboundToken}` }
-        : {}),
+      ...(account.outboundToken ? { authorization: `Bearer ${account.outboundToken}` } : {}),
     },
     body: JSON.stringify(resolvedPayload),
   });

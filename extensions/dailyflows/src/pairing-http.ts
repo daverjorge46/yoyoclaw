@@ -1,7 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-
 import { DEFAULT_WEBHOOK_PATH } from "./config.js";
 import {
   consumeDailyflowsPairing,
@@ -32,8 +30,7 @@ function resolveGatewayUrlFromRequest(req: IncomingMessage): string | null {
   if (!host) {
     return null;
   }
-  const scheme =
-    proto || ((req.socket as { encrypted?: boolean }).encrypted ? "https" : "http");
+  const scheme = proto || ((req.socket as { encrypted?: boolean }).encrypted ? "https" : "http");
   return `${scheme}://${host}`;
 }
 
@@ -134,8 +131,12 @@ function buildConfigUpdate(params: {
   channels.dailyflows = dailyflows;
   next.channels = channels;
 
-  const plugins: Record<string, unknown> = { ...(next.plugins as Record<string, unknown> | undefined) };
-  const entries: Record<string, unknown> = { ...(plugins.entries as Record<string, unknown> | undefined) };
+  const plugins: Record<string, unknown> = {
+    ...(next.plugins as Record<string, unknown> | undefined),
+  };
+  const entries: Record<string, unknown> = {
+    ...(plugins.entries as Record<string, unknown> | undefined),
+  };
   entries.dailyflows = {
     ...(entries.dailyflows as Record<string, unknown> | undefined),
     enabled: true,
@@ -152,12 +153,16 @@ export function createDailyflowsPairingRoute(api: OpenClawPluginApi) {
 
     if (req.method === "GET") {
       const accountId = url.searchParams.get("accountId")?.trim() || "default";
-      const gatewayUrlRaw = url.searchParams.get("gatewayUrl")?.trim() || resolveGatewayUrlFromRequest(req) || "";
+      const gatewayUrlRaw =
+        url.searchParams.get("gatewayUrl")?.trim() || resolveGatewayUrlFromRequest(req) || "";
       const gatewayUrl = normalizeGatewayUrl(gatewayUrlRaw);
 
       if (!gatewayUrl) {
         if (wantsJson(req, url)) {
-          sendJson(res, 400, { ok: false, error: "gatewayUrl missing or invalid (https required)" });
+          sendJson(res, 400, {
+            ok: false,
+            error: "gatewayUrl missing or invalid (https required)",
+          });
           return;
         }
         res.statusCode = 200;
@@ -214,7 +219,8 @@ export function createDailyflowsPairingRoute(api: OpenClawPluginApi) {
       const outboundToken = typeof body.outboundToken === "string" ? body.outboundToken.trim() : "";
       const webhookSecret = typeof body.webhookSecret === "string" ? body.webhookSecret.trim() : "";
       const accountIdRaw = typeof body.accountId === "string" ? body.accountId.trim() : "";
-      const webhookPath = typeof body.webhookPath === "string" ? body.webhookPath.trim() : DEFAULT_WEBHOOK_PATH;
+      const webhookPath =
+        typeof body.webhookPath === "string" ? body.webhookPath.trim() : DEFAULT_WEBHOOK_PATH;
 
       if (!pairCode || !outboundUrl || !outboundToken || !webhookSecret) {
         sendJson(res, 400, { ok: false, error: "missing required fields" });

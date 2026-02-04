@@ -1,14 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-
-import {
-  resolveDailyflowsWebhookPath,
-  resolveDailyflowsWebhookSecret,
-} from "./config.js";
+import type { DailyflowsWebhookPayload } from "./types.js";
+import { resolveDailyflowsWebhookPath, resolveDailyflowsWebhookSecret } from "./config.js";
 import { handleDailyflowsInbound } from "./inbound.js";
 import { isDailyflowsSignatureValid } from "./signature.js";
-import type { DailyflowsWebhookPayload } from "./types.js";
 
 const MAX_SKEW_MS = 5 * 60 * 1000;
 

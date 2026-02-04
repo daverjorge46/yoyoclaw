@@ -25,7 +25,10 @@ function cleanupExpired() {
 export function normalizeGatewayUrl(value: string): string | null {
   try {
     const url = new URL(value.trim());
-    if (url.protocol !== "https:" && !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1"))) {
+    if (
+      url.protocol !== "https:" &&
+      !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1"))
+    ) {
       return null;
     }
     return url.origin;

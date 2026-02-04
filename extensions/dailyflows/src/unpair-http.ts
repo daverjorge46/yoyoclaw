@@ -1,9 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
-
+import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk";
 import { resolveDailyflowsAccount, resolveDailyflowsWebhookSecret } from "./config.js";
 
 function sendJson(res: ServerResponse, status: number, body: unknown) {
@@ -29,10 +27,7 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown> |
   });
 }
 
-function buildUnpairConfigUpdate(params: {
-  current: Record<string, unknown>;
-  accountId: string;
-}) {
+function buildUnpairConfigUpdate(params: { current: Record<string, unknown>; accountId: string }) {
   const next = { ...params.current } as Record<string, unknown>;
   const channels = { ...(next.channels as Record<string, unknown> | undefined) };
   const dailyflows = {
@@ -67,8 +62,7 @@ function isUnpairAuthorized(params: {
   const cfg = params.cfg as unknown as OpenClawConfig;
   const account = resolveDailyflowsAccount(cfg, params.accountId);
   const expectedToken = account.outboundToken?.trim() ?? "";
-  const expectedSecret =
-    resolveDailyflowsWebhookSecret({ cfg, accountId: params.accountId }) ?? "";
+  const expectedSecret = resolveDailyflowsWebhookSecret({ cfg, accountId: params.accountId }) ?? "";
   const tokenOk =
     expectedToken && params.outboundToken && params.outboundToken.trim() === expectedToken;
   const secretOk =

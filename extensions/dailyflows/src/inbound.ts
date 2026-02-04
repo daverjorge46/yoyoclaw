@@ -1,8 +1,7 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
-
-import { sendDailyflowsMessage } from "./send.js";
-import { getDailyflowsRuntime } from "./runtime.js";
 import type { DailyflowsInboundMessage, DailyflowsWebhookPayload } from "./types.js";
+import { getDailyflowsRuntime } from "./runtime.js";
+import { sendDailyflowsMessage } from "./send.js";
 
 function formatInboundBody(message: DailyflowsInboundMessage): string {
   const text = message.text?.trim() ?? "";

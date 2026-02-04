@@ -1,6 +1,5 @@
-import { DEFAULT_ACCOUNT_ID, normalizePluginHttpPath } from "openclaw/plugin-sdk";
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
-
+import { DEFAULT_ACCOUNT_ID, normalizePluginHttpPath } from "openclaw/plugin-sdk";
 import type {
   DailyflowsAccountConfig,
   DailyflowsChannelConfig,
