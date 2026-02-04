@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { Type } from "@sinclair/typebox";
 
 import { formatThinkingLevels, normalizeThinkLevel } from "../../auto-reply/thinking.js";
+import { resolveSubagentMaxConcurrent } from "../../config/agent-limits.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
 import {
@@ -16,7 +17,7 @@ import { resolveAgentConfig } from "../agent-scope.js";
 import { AGENT_LANE_SUBAGENT } from "../lanes.js";
 import { optionalStringEnum } from "../schema/typebox.js";
 import { buildSubagentSystemPrompt } from "../subagent-announce.js";
-import { registerSubagentRun } from "../subagent-registry.js";
+import { countActiveSubagentRuns, registerSubagentRun } from "../subagent-registry.js";
 import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readStringParam } from "./common.js";
 import {
@@ -109,6 +110,19 @@ export function createSessionsSpawnTool(opts?: {
       let modelApplied = false;
 
       const cfg = loadConfig();
+
+      // Check maxConcurrent limit before spawning
+      const maxConcurrent = resolveSubagentMaxConcurrent(cfg);
+      const activeCount = countActiveSubagentRuns();
+      if (activeCount >= maxConcurrent) {
+        return jsonResult({
+          status: "rate_limited",
+          error: `subagent maxConcurrent limit reached (${activeCount}/${maxConcurrent})`,
+          activeCount,
+          maxConcurrent,
+        });
+      }
+
       const { mainKey, alias } = resolveMainSessionAlias(cfg);
       const requesterSessionKey = opts?.agentSessionKey;
       if (typeof requesterSessionKey === "string" && isSubagentSessionKey(requesterSessionKey)) {
