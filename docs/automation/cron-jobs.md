@@ -28,9 +28,9 @@ cron is the mechanism.
 
 ## Troubleshooting (fast)
 
-### 1) Multi-profile / multi-Gateway “cross-server” confusion
+### 1) Multi-profile / multi-gateway cross server confusion
 
-Cron state is **per-Gateway**, not per persona. If you run multiple profiles (or multiple
+Cron state is **per Gateway**, not per profile. If you run multiple profiles (or multiple
 Gateways on different ports), each Gateway has its own `storePath` (jobs.json) and its
 own scheduler loop.
 
@@ -42,7 +42,7 @@ Fix:
 - Always confirm **which Gateway** you are talking to (profile + port).
 - When debugging, record these three things together: `{gateway port, storePath, jobId}`.
 
-### 2) `nextWakeAtMs: null` means “no eligible future job”, not “scheduler is dead”
+### 2) nextWakeAtMs is null means "no eligible future job", not "scheduler is dead"
 
 `nextWakeAtMs` is only set when the scheduler has at least one **enabled** job with a
 future `nextRunAtMs`.
