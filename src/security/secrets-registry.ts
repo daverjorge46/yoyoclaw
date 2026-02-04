@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { AuthProfileStore, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
 import { resolveApiKeyForProfile } from "../agents/auth-profiles/oauth.js";
-import type { AuthProfileStore, OAuthCredential } from "../agents/auth-profiles/types.js";
 import { loadConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 /**
  * Central registry of all secrets available to the proxy.
@@ -14,13 +14,13 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 export type SecretRegistry = {
   /** OAuth credentials indexed by profile ID (with refresh capability). */
   oauthProfiles: Map<string, OAuthCredential>;
-  
+
   /** Static API keys indexed by profile ID. */
   apiKeys: Map<string, string>;
-  
+
   /** Static tokens indexed by profile ID. */
   tokens: Map<string, string>;
-  
+
   /** Channel secrets from openclaw.yaml. */
   channelSecrets: {
     discord?: { token?: string };
@@ -29,7 +29,7 @@ export type SecretRegistry = {
     feishu?: { appId?: string; appSecret?: string };
     googlechat?: { serviceAccount?: string | object };
   };
-  
+
   /** Gateway auth secrets. */
   gatewaySecrets: {
     authToken?: string;
@@ -38,13 +38,22 @@ export type SecretRegistry = {
     remotePassword?: string;
     talkApiKey?: string;
   };
-  
+
+  /** Tool secrets from openclaw.yaml (web search/fetch API keys). */
+  toolSecrets: {
+    web?: {
+      search?: { apiKey?: string; perplexity?: { apiKey?: string } };
+      fetch?: { firecrawl?: { apiKey?: string } };
+    };
+    memory?: { remote?: { apiKey?: string } };
+  };
+
   /** Environment variables from config. */
   envVars: Record<string, string>;
-  
+
   /** Raw auth profile store (for OAuth refresh). */
   authStore: AuthProfileStore;
-  
+
   /** Agent directory for auth profiles. */
   agentDir?: string;
 };
@@ -59,11 +68,11 @@ function loadAuthProfiles(agentDir?: string): {
   authStore: AuthProfileStore;
 } {
   const store = ensureAuthProfileStore(agentDir);
-  
+
   const oauthProfiles = new Map<string, OAuthCredential>();
   const apiKeys = new Map<string, string>();
   const tokens = new Map<string, string>();
-  
+
   for (const [profileId, credential] of Object.entries(store.profiles)) {
     if (credential.type === "oauth") {
       oauthProfiles.set(profileId, credential);
@@ -73,33 +82,32 @@ function loadAuthProfiles(agentDir?: string): {
       tokens.set(profileId, credential.token);
     }
   }
-  
+
   return { oauthProfiles, apiKeys, tokens, authStore: store };
 }
 
 /**
  * Extract secrets from openclaw.yaml config.
  */
-function loadConfigSecrets(config: OpenClawConfig): Pick<
-  SecretRegistry,
-  "channelSecrets" | "gatewaySecrets" | "envVars"
-> {
+function loadConfigSecrets(
+  config: OpenClawConfig,
+): Pick<SecretRegistry, "channelSecrets" | "gatewaySecrets" | "toolSecrets" | "envVars"> {
   const channelSecrets: SecretRegistry["channelSecrets"] = {};
   const gatewaySecrets: SecretRegistry["gatewaySecrets"] = {};
   const envVars: Record<string, string> = {};
-  
+
   // Extract channel secrets
   if (config.channels?.discord?.token) {
     channelSecrets.discord = { token: config.channels.discord.token };
   }
-  
+
   if (config.channels?.telegram) {
     channelSecrets.telegram = {
       botToken: config.channels.telegram.botToken,
       webhookSecret: config.channels.telegram.webhookSecret,
     };
   }
-  
+
   if (config.channels?.slack) {
     channelSecrets.slack = {
       botToken: config.channels.slack.botToken,
@@ -108,41 +116,62 @@ function loadConfigSecrets(config: OpenClawConfig): Pick<
       signingSecret: config.channels.slack.signingSecret,
     };
   }
-  
+
   if (config.channels?.feishu) {
     channelSecrets.feishu = {
       appId: config.channels.feishu.appId,
       appSecret: config.channels.feishu.appSecret,
     };
   }
-  
+
   if (config.channels?.googlechat?.serviceAccount) {
     channelSecrets.googlechat = {
       serviceAccount: config.channels.googlechat.serviceAccount,
     };
   }
-  
+
   // Extract gateway secrets
   if (config.gateway?.auth) {
     gatewaySecrets.authToken = config.gateway.auth.token;
     gatewaySecrets.authPassword = config.gateway.auth.password;
   }
-  
+
   if (config.gateway?.remote) {
     gatewaySecrets.remoteToken = config.gateway.remote.token;
     gatewaySecrets.remotePassword = config.gateway.remote.password;
   }
-  
+
   if (config.talk?.apiKey) {
     gatewaySecrets.talkApiKey = config.talk.apiKey;
   }
-  
+
   // Extract env vars
   if (config.env?.vars) {
     Object.assign(envVars, config.env.vars);
   }
-  
-  return { channelSecrets, gatewaySecrets, envVars };
+
+  // Extract tool secrets
+  const toolSecrets: SecretRegistry["toolSecrets"] = {};
+  if (config.tools?.web?.search?.apiKey) {
+    toolSecrets.web = toolSecrets.web || {};
+    toolSecrets.web.search = toolSecrets.web.search || {};
+    toolSecrets.web.search.apiKey = config.tools.web.search.apiKey;
+  }
+  if (config.tools?.web?.search?.perplexity?.apiKey) {
+    toolSecrets.web = toolSecrets.web || {};
+    toolSecrets.web.search = toolSecrets.web.search || {};
+    toolSecrets.web.search.perplexity = { apiKey: config.tools.web.search.perplexity.apiKey };
+  }
+  if (config.tools?.web?.fetch?.firecrawl?.apiKey) {
+    toolSecrets.web = toolSecrets.web || {};
+    toolSecrets.web.fetch = { firecrawl: { apiKey: config.tools.web.fetch.firecrawl.apiKey } };
+  }
+  const memoryConfig = (config as any).tools?.memory;
+  if (memoryConfig?.remote?.apiKey) {
+    toolSecrets.memory = { remote: { apiKey: memoryConfig.remote.apiKey } };
+  }
+
+  return { channelSecrets, gatewaySecrets, toolSecrets, envVars };
 }
 
 /**
@@ -152,17 +181,18 @@ function loadConfigSecrets(config: OpenClawConfig): Pick<
 export async function createSecretsRegistry(agentDir?: string): Promise<SecretRegistry> {
   // Load auth profiles
   const { oauthProfiles, apiKeys, tokens, authStore } = loadAuthProfiles(agentDir);
-  
+
   // Load config secrets
   const config = await loadConfig();
-  const { channelSecrets, gatewaySecrets, envVars } = loadConfigSecrets(config);
-  
+  const { channelSecrets, gatewaySecrets, toolSecrets, envVars } = loadConfigSecrets(config);
+
   return {
     oauthProfiles,
     apiKeys,
     tokens,
     channelSecrets,
     gatewaySecrets,
+    toolSecrets,
     envVars,
     authStore,
     agentDir,
@@ -177,43 +207,35 @@ export async function resolveOAuthToken(
   registry: SecretRegistry,
   profileId: string,
 ): Promise<string | null> {
-  console.log(`[DEBUG] resolveOAuthToken called for profile: ${profileId}`);
-  
   // Get the credential to check provider type
   const cred = registry.oauthProfiles.get(profileId);
   if (!cred) {
-    console.log(`[DEBUG] No credential found for profile: ${profileId}`);
-    console.log(`[DEBUG] Available profiles: ${Array.from(registry.oauthProfiles.keys()).join(", ")}`);
     return null;
   }
-  
-  console.log(`[DEBUG] Found credential for provider: ${cred.provider}`);
-  
+
   // Always call resolveApiKeyForProfile - it handles refresh internally
   const result = await resolveApiKeyForProfile({
     store: registry.authStore,
     profileId,
     agentDir: registry.agentDir,
   });
-  
-  console.log(`[DEBUG] resolveApiKeyForProfile returned: ${result?.apiKey ? `${result.apiKey.slice(0, 50)}...` : "null"}`);
-  
+
   if (!result?.apiKey) {
     return null;
   }
-  
+
   // For google-gemini-cli, the apiKey is JSON - extract the token
   if (cred.provider === "google-gemini-cli" || cred.provider === "google-antigravity") {
     try {
       const parsed = JSON.parse(result.apiKey);
-      console.log(`[DEBUG] Extracted token from JSON: ${parsed.token?.slice(0, 20)}...`);
+
       return parsed.token ?? null;
     } catch {
       // If not JSON, return as-is
-      console.log(`[DEBUG] apiKey is not JSON, returning as-is`);
+
       return result.apiKey;
     }
   }
-  
+
   return result.apiKey;
 }

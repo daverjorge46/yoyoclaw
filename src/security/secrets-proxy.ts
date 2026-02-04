@@ -1,9 +1,8 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { request } from "undici";
-import { createSubsystemLogger } from "../logging/subsystem.js";
-
-import { loadAllowlist, isDomainAllowed } from "./secrets-proxy-allowlist.js";
 import type { SecretRegistry } from "./secrets-registry.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
+import { loadAllowlist, isDomainAllowed } from "./secrets-proxy-allowlist.js";
 import { resolveOAuthToken } from "./secrets-registry.js";
 
 const logger = createSubsystemLogger("security/secrets-proxy");
@@ -24,11 +23,11 @@ const BODYLESS_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
 // Placeholder patterns
 // Profile IDs can contain: word chars, hyphens, colons, @, dots (e.g., google-gemini-cli:developer@example.com)
 const PATTERNS = {
-  CONFIG: /\{\{CONFIG:([\w.]+)\}\}/g,         // {{CONFIG:channels.discord.token}}
-  OAUTH: /\{\{OAUTH:([\w\-:@.]+)\}\}/g,       // {{OAUTH:google-gemini-cli:user@example.com}}
-  APIKEY: /\{\{APIKEY:([\w\-:@.]+)\}\}/g,     // {{APIKEY:anthropic}}
-  TOKEN: /\{\{TOKEN:([\w\-:@.]+)\}\}/g,       // {{TOKEN:github-copilot}}
-  ENV: /\{\{([A-Z_][A-Z0-9_]*)\}\}/g,         // {{ANTHROPIC_API_KEY}}
+  CONFIG: /\{\{CONFIG:([\w.]+)\}\}/g, // {{CONFIG:channels.discord.token}}
+  OAUTH: /\{\{OAUTH:([\w\-:@.]+)\}\}/g, // {{OAUTH:google-gemini-cli:user@example.com}}
+  APIKEY: /\{\{APIKEY:([\w\-:@.]+)\}\}/g, // {{APIKEY:anthropic}}
+  TOKEN: /\{\{TOKEN:([\w\-:@.]+)\}\}/g, // {{TOKEN:github-copilot}}
+  ENV: /\{\{([A-Z_][A-Z0-9_]*)\}\}/g, // {{ANTHROPIC_API_KEY}}
 };
 
 /**
@@ -37,8 +36,8 @@ const PATTERNS = {
 function resolveConfigPath(path: string, registry: SecretRegistry): string | null {
   const parts = path.split(".");
   let current: any = registry;
-  
-  // Navigate: channels.disco rd.token -> registry.channelSecrets.discord.token
+
+  // Navigate: channels.discord.token -> registry.channelSecrets.discord.token
   if (parts[0] === "channels") {
     current = registry.channelSecrets[parts[1] as keyof typeof registry.channelSecrets];
     if (parts.length === 3 && current) {
@@ -51,8 +50,15 @@ function resolveConfigPath(path: string, registry: SecretRegistry): string | nul
     return (registry.gatewaySecrets as any)[camelKey] ?? null;
   } else if (parts[0] === "talk" && parts[1] === "apiKey") {
     return registry.gatewaySecrets.talkApiKey ?? null;
+  } else if (parts[0] === "tools") {
+    // Traverse tools.* paths: tools.web.search.apiKey, tools.web.fetch.firecrawl.apiKey, etc.
+    current = registry.toolSecrets;
+    for (let i = 1; i < parts.length && current; i++) {
+      current = current[parts[i]];
+    }
+    return typeof current === "string" ? current : null;
   }
-  
+
   return null;
 }
 
@@ -63,7 +69,7 @@ function resolveConfigPath(path: string, registry: SecretRegistry): string | nul
 async function replacePlaceholders(text: string, registry: SecretRegistry): Promise<string> {
   let count = 0;
   const startTime = Date.now();
-  
+
   const checkLimits = () => {
     if (Date.now() - startTime > PLACEHOLDER_LIMITS.timeoutMs) {
       logger.warn(`Placeholder replacement timeout reached`);
@@ -75,7 +81,7 @@ async function replacePlaceholders(text: string, registry: SecretRegistry): Prom
     }
     return false;
   };
-  
+
   // 1. Replace CONFIG placeholders
   text = text.replace(PATTERNS.CONFIG, (match, path) => {
     if (checkLimits()) return match;
@@ -87,7 +93,7 @@ async function replacePlaceholders(text: string, registry: SecretRegistry): Prom
     // Handle object values (like serviceAccount)
     return typeof value === "object" ? JSON.stringify(value) : String(value);
   });
-  
+
   // 2. Replace OAUTH placeholders (async, with refresh)
   const oauthMatches = [...text.matchAll(PATTERNS.OAUTH)];
   for (const match of oauthMatches) {
@@ -100,7 +106,7 @@ async function replacePlaceholders(text: string, registry: SecretRegistry): Prom
       logger.warn(`OAuth token not found for profile: ${profileId}`);
     }
   }
-  
+
   // 3. Replace APIKEY placeholders
   text = text.replace(PATTERNS.APIKEY, (match, profileId) => {
     if (checkLimits()) return match;
@@ -111,7 +117,7 @@ async function replacePlaceholders(text: string, registry: SecretRegistry): Prom
     }
     return key;
   });
-  
+
   // 4. Replace TOKEN placeholders
   text = text.replace(PATTERNS.TOKEN, (match, profileId) => {
     if (checkLimits()) return match;
@@ -122,13 +128,13 @@ async function replacePlaceholders(text: string, registry: SecretRegistry): Prom
     }
     return token;
   });
-  
+
   // 5. Replace ENV placeholders (process.env)
   text = text.replace(PATTERNS.ENV, (match, name) => {
     if (checkLimits()) return match;
     return process.env[name] ?? registry.envVars[name] ?? "";
   });
-  
+
   return text;
 }
 
@@ -194,7 +200,7 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
           }
           chunks.push(chunk);
         }
-        
+
         if (chunks.length > 0) {
           const rawBody = Buffer.concat(chunks).toString("utf8");
           modifiedBody = await replacePlaceholders(rawBody, registry);
@@ -223,7 +229,7 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
           headers[key] = await replacePlaceholders(value, registry);
         } else if (Array.isArray(value)) {
           // P1 Fix: Handle string[] headers by joining
-          const replaced = await Promise.all(value.map(v => replacePlaceholders(v, registry)));
+          const replaced = await Promise.all(value.map((v) => replacePlaceholders(v, registry)));
           headers[key] = replaced.join(", ");
         }
       }
@@ -238,19 +244,19 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
       });
 
       res.statusCode = response.statusCode;
-      
+
       // P1 Fix: Properly handle response headers (string | string[] | undefined)
       for (const [key, value] of Object.entries(response.headers)) {
         if (value === undefined || value === null) {
           continue;
         }
-        
+
         // Skip hop-by-hop headers
         const lowerKey = key.toLowerCase();
         if (lowerKey === "transfer-encoding" || lowerKey === "connection") {
           continue;
         }
-        
+
         if (typeof value === "string") {
           res.setHeader(key, value);
         } else if (Array.isArray(value)) {

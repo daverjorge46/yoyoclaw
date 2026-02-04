@@ -58,7 +58,8 @@ export function sanitizeConfigSecrets(cfg: OpenClawConfig): OpenClawConfig {
 
     // Google Chat
     if (sanitized.channels.googlechat?.serviceAccount) {
-      sanitized.channels.googlechat.serviceAccount = "{{CONFIG:channels.googlechat.serviceAccount}}";
+      sanitized.channels.googlechat.serviceAccount =
+        "{{CONFIG:channels.googlechat.serviceAccount}}";
     }
   }
 
@@ -94,17 +95,29 @@ export function sanitizeConfigSecrets(cfg: OpenClawConfig): OpenClawConfig {
     }
   }
 
+  // Sanitize tool API keys
+  if (sanitized.tools?.web?.search?.apiKey) {
+    sanitized.tools.web.search.apiKey = "{{CONFIG:tools.web.search.apiKey}}";
+  }
+  if (sanitized.tools?.web?.search?.perplexity?.apiKey) {
+    sanitized.tools.web.search.perplexity.apiKey = "{{CONFIG:tools.web.search.perplexity.apiKey}}";
+  }
+  if (sanitized.tools?.web?.fetch?.firecrawl?.apiKey) {
+    sanitized.tools.web.fetch.firecrawl.apiKey = "{{CONFIG:tools.web.fetch.firecrawl.apiKey}}";
+  }
+  // Memory search remote API key
+  if ((sanitized as any).tools?.memory?.remote?.apiKey) {
+    (sanitized as any).tools.memory.remote.apiKey = "{{CONFIG:tools.memory.remote.apiKey}}";
+  }
+
   // Sanitize agent workspace paths (rewrite host home dir to container path)
   if (sanitized.agents) {
     // Handle agents.defaults.workspace
     const defaults = (sanitized.agents as any).defaults;
     if (defaults?.workspace && typeof defaults.workspace === "string") {
-      defaults.workspace = defaults.workspace.replace(
-        /^\/home\/[^/]+\//,
-        "/home/node/"
-      );
+      defaults.workspace = defaults.workspace.replace(/^\/home\/[^/]+\//, "/home/node/");
     }
-    
+
     // Handle per-agent workspaces (agents[agentId].workspace)
     const agents = sanitized.agents as Record<string, { workspace?: string } | undefined>;
     for (const agentId of Object.keys(agents)) {
@@ -113,10 +126,7 @@ export function sanitizeConfigSecrets(cfg: OpenClawConfig): OpenClawConfig {
       if (agent?.workspace && typeof agent.workspace === "string") {
         // Replace any home directory path with container path
         // This handles paths like /home/username/.openclaw/workspace
-        agent.workspace = agent.workspace.replace(
-          /^\/home\/[^/]+\//,
-          "/home/node/"
-        );
+        agent.workspace = agent.workspace.replace(/^\/home\/[^/]+\//, "/home/node/");
       }
     }
   }
