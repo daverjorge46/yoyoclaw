@@ -19,6 +19,7 @@ import {
   updatePairedDeviceMetadata,
   verifyDeviceToken,
 } from "../../../infra/device-pairing.js";
+import { isTruthyEnvValue } from "../../../infra/env.js";
 import { updatePairedNodeMetadata } from "../../../infra/node-pairing.js";
 import { recordRemoteNodeInfo, refreshRemoteNodeBins } from "../../../infra/skills-remote.js";
 import { upsertPresence } from "../../../infra/system-presence.js";
@@ -404,7 +405,9 @@ export function attachGatewayWsMessageHandler(params: {
         const hasPasswordAuth = Boolean(connectParams.auth?.password);
         const hasSharedAuth = hasTokenAuth || hasPasswordAuth;
         const allowInsecureControlUi =
-          isControlUi && configSnapshot.gateway?.controlUi?.allowInsecureAuth === true;
+          isControlUi &&
+          (configSnapshot.gateway?.controlUi?.allowInsecureAuth === true ||
+            isTruthyEnvValue(process.env.OPENCLAW_GATEWAY_CONTROLUI_ALLOWINSECUREAUTH));
         const disableControlUiDeviceAuth =
           isControlUi && configSnapshot.gateway?.controlUi?.dangerouslyDisableDeviceAuth === true;
         const allowControlUiBypass = allowInsecureControlUi || disableControlUiDeviceAuth;

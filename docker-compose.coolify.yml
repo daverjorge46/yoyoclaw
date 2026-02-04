@@ -12,16 +12,17 @@ services:
       - NODE_ENV=production
       - OPENCLAW_GATEWAY_BIND=lan
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN} # REQUIRED: Set in Coolify Env Vars
+      - OPENCLAW_GATEWAY_CONTROLUI_ALLOWINSECUREAUTH=${OPENCLAW_GATEWAY_CONTROLUI_ALLOWINSECUREAUTH:-false}
       - REDIS_URL=redis://openclaw_redis:6379
-      
+
       # Mem0 / Memory Configuration
       - MEM0_API_KEY=${MEM0_API_KEY}
       - MEM0_ORG_ID=${MEM0_ORG_ID:-omnis_v3}
-      
+
       # AI Model Keys
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      
+
       # Skills & Integrations
       - HUBSPOT_API_KEY=${HUBSPOT_API_KEY}
       - BIGQUERY_PROJECT_ID=${BIGQUERY_PROJECT_ID}

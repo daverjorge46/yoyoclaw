@@ -2,6 +2,7 @@ import chalk from "chalk";
 import type { loadConfig } from "../config/config.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
+import { isTruthyEnvValue } from "../infra/env.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 
 export function logGatewayStartup(params: {
@@ -36,5 +37,10 @@ export function logGatewayStartup(params: {
   params.log.info(`log file: ${getResolvedLoggerSettings().file}`);
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
+  }
+  if (isTruthyEnvValue(process.env.OPENCLAW_GATEWAY_CONTROLUI_ALLOWINSECUREAUTH)) {
+    params.log.info(
+      "gateway: insecure control ui auth bypass enabled (OPENCLAW_GATEWAY_CONTROLUI_ALLOWINSECUREAUTH=true)",
+    );
   }
 }
