@@ -43,7 +43,7 @@ import {
 import { loadLogs, LogsState } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
-import { loadProvidersHealth } from "./controllers/providers-health.ts";
+import { loadProvidersHealth, saveModelSelection } from "./controllers/providers-health.ts";
 import { deleteSession, loadSessions, patchSession } from "./controllers/sessions.ts";
 import {
   installSkill,
@@ -348,6 +348,10 @@ export function renderApp(state: AppViewState) {
                 instanceCount: state.presenceEntries.length,
                 sessionCount: state.sessionsResult?.count ?? null,
                 agentRunning: Boolean(state.chatRunId || state.chatSending),
+                modelAllowlist: state.providersModelAllowlist,
+                primaryModel: state.providersPrimaryModel,
+                modelsSaving: state.providersModelsSaving,
+                modelsCostFilter: state.providersModelsCostFilter,
                 onRefresh: () => loadProvidersHealth(state),
                 onToggleShowAll: () => {
                   state.providersHealthShowAll = !state.providersHealthShowAll;
@@ -355,6 +359,24 @@ export function renderApp(state: AppViewState) {
                 },
                 onToggleExpand: (id) => {
                   state.providersHealthExpanded = state.providersHealthExpanded === id ? null : id;
+                },
+                onToggleModel: (key) => {
+                  const next = new Set(state.providersModelAllowlist);
+                  if (next.has(key)) next.delete(key);
+                  else next.add(key);
+                  state.providersModelAllowlist = next;
+                },
+                onSetPrimary: (key) => {
+                  state.providersPrimaryModel = key;
+                  if (!state.providersModelAllowlist.has(key)) {
+                    const next = new Set(state.providersModelAllowlist);
+                    next.add(key);
+                    state.providersModelAllowlist = next;
+                  }
+                },
+                onSaveModels: () => void saveModelSelection(state),
+                onCostFilterChange: (filter) => {
+                  state.providersModelsCostFilter = filter;
                 },
               })
             : nothing

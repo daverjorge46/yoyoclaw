@@ -251,6 +251,11 @@ export class OpenClawApp extends LitElement {
   @state() providersHealthUpdatedAt: number | null = null;
   @state() providersHealthShowAll = false;
   @state() providersHealthExpanded: string | null = null;
+  @state() providersModelAllowlist: Set<string> = new Set();
+  @state() providersPrimaryModel: string | null = null;
+  @state() providersConfigHash: string | null = null;
+  @state() providersModelsSaving = false;
+  @state() providersModelsCostFilter: "all" | "high" | "medium" | "low" = "all";
   @state() clockDisplay = "";
 
   @state() debugLoading = false;

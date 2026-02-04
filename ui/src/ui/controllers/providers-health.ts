@@ -7,6 +7,18 @@ export type UsageWindowEntry = {
   resetRemainingMs: number | null;
 };
 
+export type ModelCostTier = "free" | "cheap" | "moderate" | "expensive";
+
+export type ProviderModelEntry = {
+  id: string;
+  name: string;
+  key: string;
+  contextWindow?: number;
+  reasoning?: boolean;
+  input?: string[];
+  costTier: ModelCostTier;
+};
+
 export type ProviderHealthEntry = {
   id: string;
   name: string;
@@ -27,6 +39,7 @@ export type ProviderHealthEntry = {
   usagePlan?: string;
   usageError?: string;
   isLocal: boolean;
+  models: ProviderModelEntry[];
 };
 
 export type ProvidersHealthHost = {
@@ -39,6 +52,11 @@ export type ProvidersHealthHost = {
   providersHealthUpdatedAt: number | null;
   providersHealthShowAll: boolean;
   providersHealthExpanded: string | null;
+  providersModelAllowlist: Set<string>;
+  providersPrimaryModel: string | null;
+  providersConfigHash: string | null;
+  providersModelsSaving: boolean;
+  providersModelsCostFilter: "all" | "high" | "medium" | "low";
 };
 
 type RawEntry = {
@@ -63,7 +81,7 @@ type RawEntry = {
   isLocal?: boolean;
 };
 
-function mapEntry(raw: RawEntry): ProviderHealthEntry {
+function mapEntry(raw: RawEntry, models: ProviderModelEntry[] = []): ProviderHealthEntry {
   const now = Date.now();
   return {
     id: raw.id,
@@ -90,10 +108,77 @@ function mapEntry(raw: RawEntry): ProviderHealthEntry {
     usagePlan: raw.usagePlan,
     usageError: raw.usageError,
     isLocal: raw.isLocal ?? false,
+    models,
   };
 }
 
 let requestGeneration = 0;
+
+type RawModel = {
+  id: string;
+  name?: string;
+  provider?: string;
+  contextWindow?: number;
+  reasoning?: boolean;
+  input?: string[];
+};
+
+// Client-side cost tier lookup based on well-known model IDs.
+// Mirrors MODEL_CAPABILITIES_REGISTRY from src/agents/model-capabilities.ts.
+const COST_TIER_PATTERNS: Array<{ pattern: string; tier: ModelCostTier }> = [
+  // Expensive (powerful models)
+  { pattern: "claude-opus", tier: "expensive" },
+  { pattern: "claude-3-opus", tier: "expensive" },
+  { pattern: "o1-preview", tier: "expensive" },
+  { pattern: "o1-2024", tier: "expensive" },
+  { pattern: "gemini-exp", tier: "expensive" },
+  // Moderate
+  { pattern: "claude-sonnet", tier: "moderate" },
+  { pattern: "claude-3-5-sonnet", tier: "moderate" },
+  { pattern: "claude-3-sonnet", tier: "moderate" },
+  { pattern: "gpt-4o-2024", tier: "moderate" },
+  { pattern: "gpt-4-turbo", tier: "moderate" },
+  { pattern: "gpt-4", tier: "moderate" },
+  { pattern: "o1-mini", tier: "moderate" },
+  { pattern: "o3-mini", tier: "moderate" },
+  { pattern: "gemini-1.5-pro", tier: "moderate" },
+  { pattern: "gemini-2.0-flash-thinking", tier: "moderate" },
+  { pattern: "gemini-2.5-pro", tier: "moderate" },
+  { pattern: "gemini-3-pro", tier: "moderate" },
+  { pattern: "mistral-large", tier: "moderate" },
+  { pattern: "mistral-medium", tier: "moderate" },
+  { pattern: "codestral", tier: "moderate" },
+  { pattern: "grok-2", tier: "moderate" },
+  { pattern: "grok-beta", tier: "moderate" },
+  { pattern: "command-r-plus", tier: "moderate" },
+  { pattern: "deepseek-reasoner", tier: "moderate" },
+  // Cheap (fast/small models)
+  { pattern: "claude-3-5-haiku", tier: "cheap" },
+  { pattern: "claude-3-haiku", tier: "cheap" },
+  { pattern: "gpt-4o-mini", tier: "cheap" },
+  { pattern: "gpt-3.5", tier: "cheap" },
+  { pattern: "gemini-2.0-flash", tier: "cheap" },
+  { pattern: "gemini-2.5-flash", tier: "cheap" },
+  { pattern: "gemini-3-flash", tier: "cheap" },
+  { pattern: "gemini-1.5-flash", tier: "cheap" },
+  { pattern: "llama", tier: "cheap" },
+  { pattern: "mixtral", tier: "cheap" },
+  { pattern: "mistral-small", tier: "cheap" },
+  { pattern: "deepseek-chat", tier: "cheap" },
+  { pattern: "deepseek-coder", tier: "cheap" },
+  { pattern: "command-r", tier: "cheap" },
+  { pattern: "qwen", tier: "cheap" },
+];
+
+function resolveModelCostTier(modelId: string): ModelCostTier {
+  const lower = modelId.toLowerCase();
+  for (const { pattern, tier } of COST_TIER_PATTERNS) {
+    if (lower.startsWith(pattern) || lower.includes(pattern)) {
+      return tier;
+    }
+  }
+  return "moderate";
+}
 
 export async function loadProvidersHealth(host: ProvidersHealthHost): Promise<void> {
   if (!host.client || !host.connected) {
@@ -106,16 +191,56 @@ export async function loadProvidersHealth(host: ProvidersHealthHost): Promise<vo
   host.providersHealthError = null;
   const gen = ++requestGeneration;
   try {
-    const res = await host.client.request("providers.health", {
-      all: host.providersHealthShowAll,
-      includeUsage: true,
-    });
+    const [healthRes, modelsRes, configRes] = await Promise.all([
+      host.client.request("providers.health", {
+        all: host.providersHealthShowAll,
+        includeUsage: true,
+      }),
+      host.client.request("models.list", {}).catch(() => ({ models: [] })),
+      host.client.request("config.get", {}).catch(() => null),
+    ]);
     if (gen !== requestGeneration) {
       return;
     }
-    const data = res as { providers?: RawEntry[]; updatedAt?: number } | undefined;
+
+    // Extract allowlist and primary model from config
+    const config = (configRes as { config?: Record<string, unknown> } | null)?.config;
+    const agentsDefaults = (config?.agents as { defaults?: Record<string, unknown> } | undefined)
+      ?.defaults;
+    const allowlistRecord = (agentsDefaults?.models ?? {}) as Record<string, unknown>;
+    host.providersModelAllowlist = new Set(Object.keys(allowlistRecord));
+    const primaryRaw = agentsDefaults?.model;
+    host.providersPrimaryModel =
+      typeof primaryRaw === "string"
+        ? primaryRaw
+        : ((primaryRaw as { primary?: string } | undefined)?.primary ?? null);
+    host.providersConfigHash = (configRes as { hash?: string } | null)?.hash ?? null;
+
+    // Group models by provider
+    const modelsByProvider = new Map<string, ProviderModelEntry[]>();
+    const rawModels = (modelsRes as { models?: RawModel[] }).models ?? [];
+    for (const m of rawModels) {
+      const provider = String(m.provider ?? "").toLowerCase();
+      if (!provider) continue;
+      const key = `${provider}/${m.id}`;
+      const list = modelsByProvider.get(provider) ?? [];
+      list.push({
+        id: m.id,
+        name: m.name ?? m.id,
+        key,
+        contextWindow: m.contextWindow,
+        reasoning: m.reasoning,
+        input: m.input,
+        costTier: resolveModelCostTier(m.id),
+      });
+      modelsByProvider.set(provider, list);
+    }
+
+    const data = healthRes as { providers?: RawEntry[]; updatedAt?: number } | undefined;
     if (data && Array.isArray(data.providers)) {
-      host.providersHealthEntries = data.providers.map(mapEntry);
+      host.providersHealthEntries = data.providers.map((raw) =>
+        mapEntry(raw, modelsByProvider.get(raw.id.toLowerCase()) ?? []),
+      );
       host.providersHealthUpdatedAt = typeof data.updatedAt === "number" ? data.updatedAt : null;
     }
   } catch (err) {
@@ -127,6 +252,39 @@ export async function loadProvidersHealth(host: ProvidersHealthHost): Promise<vo
     if (gen === requestGeneration) {
       host.providersHealthLoading = false;
     }
+  }
+}
+
+export async function saveModelSelection(host: ProvidersHealthHost): Promise<void> {
+  if (!host.client || !host.providersConfigHash) return;
+  host.providersModelsSaving = true;
+  try {
+    const models: Record<string, object> = {};
+    for (const key of host.providersModelAllowlist) {
+      models[key] = {};
+    }
+
+    const patch: Record<string, unknown> = {
+      agents: {
+        defaults: {
+          models: Object.keys(models).length > 0 ? models : null,
+          ...(host.providersPrimaryModel ? { model: { primary: host.providersPrimaryModel } } : {}),
+        },
+      },
+    };
+
+    await host.client.request("config.patch", {
+      raw: JSON.stringify(patch),
+      baseHash: host.providersConfigHash,
+      note: "Model selection updated from Providers UI",
+    });
+
+    // Reload to get new hash
+    await loadProvidersHealth(host);
+  } catch (err) {
+    host.providersHealthError = String(err);
+  } finally {
+    host.providersModelsSaving = false;
   }
 }
 

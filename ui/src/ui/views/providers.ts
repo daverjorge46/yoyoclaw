@@ -1,5 +1,10 @@
 import { html, nothing } from "lit";
-import type { ProviderHealthEntry, UsageWindowEntry } from "../controllers/providers-health.ts";
+import type {
+  ModelCostTier,
+  ProviderHealthEntry,
+  ProviderModelEntry,
+  UsageWindowEntry,
+} from "../controllers/providers-health.ts";
 
 export type ProvidersProps = {
   loading: boolean;
@@ -11,9 +16,17 @@ export type ProvidersProps = {
   instanceCount: number;
   sessionCount: number | null;
   agentRunning: boolean;
+  modelAllowlist: Set<string>;
+  primaryModel: string | null;
+  modelsSaving: boolean;
+  modelsCostFilter: "all" | "high" | "medium" | "low";
   onRefresh: () => void;
   onToggleShowAll: () => void;
   onToggleExpand: (id: string) => void;
+  onToggleModel: (key: string) => void;
+  onSetPrimary: (key: string) => void;
+  onSaveModels: () => void;
+  onCostFilterChange: (filter: "all" | "high" | "medium" | "low") => void;
 };
 
 export function renderProviders(props: ProvidersProps) {
@@ -76,7 +89,7 @@ export function renderProviders(props: ProvidersProps) {
                 <div class="muted">No providers found.</div>
               `
             : props.entries.map((entry) =>
-                renderProviderCard(entry, props.expandedId === entry.id, () =>
+                renderProviderCard(entry, props.expandedId === entry.id, props, () =>
                   props.onToggleExpand(entry.id),
                 ),
               )
@@ -86,7 +99,12 @@ export function renderProviders(props: ProvidersProps) {
   `;
 }
 
-function renderProviderCard(entry: ProviderHealthEntry, expanded: boolean, onToggle: () => void) {
+function renderProviderCard(
+  entry: ProviderHealthEntry,
+  expanded: boolean,
+  props: ProvidersProps,
+  onToggle: () => void,
+) {
   const color = getHealthColor(entry.healthStatus);
   const label = getHealthLabel(entry.healthStatus);
   const dotStyle = `width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;`;
@@ -135,7 +153,9 @@ function renderProviderCard(entry: ProviderHealthEntry, expanded: boolean, onTog
               style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); width: 100%;"
               @click=${(e: Event) => e.stopPropagation()}
             >
-              ${renderCredentialInfo(entry)} ${renderUsageSection(entry)}
+              ${renderCredentialInfo(entry)}
+              ${renderModelsSection(entry, props)}
+              ${renderUsageSection(entry)}
             </div>
           `
           : nothing
@@ -254,6 +274,256 @@ function renderCredentialInfo(entry: ProviderHealthEntry) {
               <span style="color: var(--danger);">${entry.disabledReason}</span>
             `
             : nothing
+        }
+      </div>
+    </div>
+  `;
+}
+
+function formatContextWindow(n: number): string {
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000;
+    return Number.isInteger(m) ? `${m}M` : `${m.toFixed(1)}M`;
+  }
+  const k = n / 1000;
+  return Number.isInteger(k) ? `${k}k` : `${k.toFixed(0)}k`;
+}
+
+type CostFilterOption = { value: "all" | "high" | "medium" | "low"; label: string };
+const COST_FILTER_OPTIONS: CostFilterOption[] = [
+  { value: "all", label: "All" },
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+];
+
+function matchesCostFilter(
+  tier: ModelCostTier,
+  filter: "all" | "high" | "medium" | "low",
+): boolean {
+  if (filter === "all") return true;
+  if (filter === "high") return tier === "expensive";
+  if (filter === "medium") return tier === "moderate";
+  // low = cheap + free
+  return tier === "cheap" || tier === "free";
+}
+
+function costTierLabel(tier: ModelCostTier): string {
+  switch (tier) {
+    case "expensive":
+      return "High";
+    case "moderate":
+      return "Medium";
+    case "cheap":
+      return "Low";
+    case "free":
+      return "Free";
+    default:
+      return tier;
+  }
+}
+
+function costTierColor(tier: ModelCostTier): string {
+  switch (tier) {
+    case "expensive":
+      return "var(--danger, #ef4444)";
+    case "moderate":
+      return "var(--warning, #eab308)";
+    case "cheap":
+      return "var(--ok, #22c55e)";
+    case "free":
+      return "var(--info, #3b82f6)";
+    default:
+      return "var(--muted-fg, #888)";
+  }
+}
+
+function renderModelsSection(entry: ProviderHealthEntry, props: ProvidersProps) {
+  if (!entry.detected || entry.models.length === 0) {
+    if (entry.detected) {
+      return html`
+        <div style="margin-bottom: 12px">
+          <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px">Models</div>
+          <div class="muted" style="font-size: 12px">No models discovered.</div>
+        </div>
+      `;
+    }
+    return nothing;
+  }
+
+  const allowlistEmpty = props.modelAllowlist.size === 0;
+  const filteredModels = entry.models.filter((m) =>
+    matchesCostFilter(m.costTier, props.modelsCostFilter),
+  );
+
+  return html`
+    <div style="margin-bottom: 12px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"
+      >
+        <div style="font-weight: 600; font-size: 13px;">
+          Models (${entry.models.length})
+        </div>
+        <button
+          class="btn btn-sm"
+          ?disabled=${props.modelsSaving}
+          @click=${(e: Event) => {
+            e.stopPropagation();
+            props.onSaveModels();
+          }}
+        >
+          ${props.modelsSaving ? "Saving..." : "Save"}
+        </button>
+      </div>
+
+      <div
+        style="display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap;"
+        @click=${(e: Event) => e.stopPropagation()}
+      >
+        ${COST_FILTER_OPTIONS.map(
+          (opt) => html`
+            <button
+              class="chip"
+              style="cursor: pointer; font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); ${
+                props.modelsCostFilter === opt.value
+                  ? "background: var(--fg); color: var(--bg); border-color: var(--fg);"
+                  : ""
+              }"
+              @click=${() => props.onCostFilterChange(opt.value)}
+            >
+              ${opt.label}
+            </button>
+          `,
+        )}
+      </div>
+
+      ${
+        allowlistEmpty
+          ? html`
+              <div class="muted" style="font-size: 11px; margin-bottom: 6px">
+                No allowlist configured — all models are available.
+              </div>
+            `
+          : nothing
+      }
+      <div
+        style="display: flex; flex-direction: column; gap: 4px; font-size: 13px;"
+      >
+        ${
+          filteredModels.length === 0
+            ? html`
+                <div class="muted" style="font-size: 12px">No models match this filter.</div>
+              `
+            : filteredModels.map((model) => renderModelRow(model, props, allowlistEmpty))
+        }
+      </div>
+    </div>
+  `;
+}
+
+function renderModelRow(model: ProviderModelEntry, props: ProvidersProps, allowlistEmpty: boolean) {
+  const isAllowed = allowlistEmpty || props.modelAllowlist.has(model.key);
+  const isPrimary = props.primaryModel === model.key;
+  const hasVision = model.input?.includes("image");
+
+  return html`
+    <div
+      style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px; background: var(--surface, rgba(128,128,128,0.05));"
+    >
+      <label
+        style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; cursor: pointer;"
+        @click=${(e: Event) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          ?checked=${isAllowed}
+          @change=${() => props.onToggleModel(model.key)}
+        />
+        <span
+          style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+          title=${model.key}
+        >
+          ${model.name}
+        </span>
+      </label>
+      <div
+        style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;"
+      >
+        ${
+          model.contextWindow
+            ? html`<span
+              class="chip"
+              style="font-size: 11px;"
+              title="Context window"
+            >
+              ${formatContextWindow(model.contextWindow)}
+            </span>`
+            : nothing
+        }
+        ${
+          model.reasoning
+            ? html`
+                <span
+                  class="chip"
+                  style="
+                    font-size: 11px;
+                    background: color-mix(in srgb, var(--ok, #22c55e) 12%, transparent);
+                    color: var(--ok, #22c55e);
+                  "
+                >
+                  reasoning
+                </span>
+              `
+            : nothing
+        }
+        ${
+          hasVision
+            ? html`
+                <span
+                  class="chip"
+                  style="
+                    font-size: 11px;
+                    background: color-mix(in srgb, var(--info, #3b82f6) 12%, transparent);
+                    color: var(--info, #3b82f6);
+                  "
+                >
+                  vision
+                </span>
+              `
+            : nothing
+        }
+        <span
+          class="chip"
+          style="font-size: 10px; background: color-mix(in srgb, ${costTierColor(model.costTier)} 12%, transparent); color: ${costTierColor(model.costTier)}; border-color: color-mix(in srgb, ${costTierColor(model.costTier)} 25%, transparent);"
+          title="Cost tier: ${model.costTier}"
+        >
+          ${costTierLabel(model.costTier)}
+        </span>
+        ${
+          isPrimary
+            ? html`
+                <span
+                  class="chip"
+                  style="
+                    font-size: 11px;
+                    background: color-mix(in srgb, var(--warning, #eab308) 15%, transparent);
+                    color: var(--warning, #eab308);
+                    border-color: color-mix(in srgb, var(--warning, #eab308) 30%, transparent);
+                  "
+                >
+                  Default
+                </span>
+              `
+            : html`<button
+              class="btn btn-sm"
+              style="font-size: 11px; padding: 1px 6px;"
+              @click=${(e: Event) => {
+                e.stopPropagation();
+                props.onSetPrimary(model.key);
+              }}
+            >
+              Set default
+            </button>`
         }
       </div>
     </div>

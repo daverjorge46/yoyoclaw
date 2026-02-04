@@ -170,6 +170,11 @@ export type AppViewState = {
   providersHealthUpdatedAt: number | null;
   providersHealthShowAll: boolean;
   providersHealthExpanded: string | null;
+  providersModelAllowlist: Set<string>;
+  providersPrimaryModel: string | null;
+  providersConfigHash: string | null;
+  providersModelsSaving: boolean;
+  providersModelsCostFilter: "all" | "high" | "medium" | "low";
   clockDisplay: string;
   client: GatewayBrowserClient | null;
   connect: () => void;
