@@ -179,27 +179,27 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract AgentEscrow {
     IERC20 public usdc;
-    
+
     struct Escrow {
         address agent;
         uint256 amount;
         uint256 deadline;
         bool completed;
     }
-    
+
     mapping(uint256 => Escrow) public escrows;
     uint256 public escrowCount;
-    
+
     event EscrowCreated(uint256 indexed escrowId, address indexed agent, uint256 amount);
     event EscrowCompleted(uint256 indexed escrowId);
-    
+
     constructor(address _usdc) {
         usdc = IERC20(_usdc);
     }
-    
+
     function createEscrow(uint256 amount, uint256 duration) external returns (uint256) {
         require(usdc.transferFrom(msg.sender, address(this), amount), "Transfer failed");
-        
+
         uint256 escrowId = escrowCount++;
         escrows[escrowId] = Escrow({
             agent: msg.sender,
@@ -207,19 +207,19 @@ contract AgentEscrow {
             deadline: block.timestamp + duration,
             completed: false
         });
-        
+
         emit EscrowCreated(escrowId, msg.sender, amount);
         return escrowId;
     }
-    
+
     function completeEscrow(uint256 escrowId, address recipient) external {
         Escrow storage escrow = escrows[escrowId];
         require(!escrow.completed, "Already completed");
         require(block.timestamp >= escrow.deadline, "Too early");
-        
+
         escrow.completed = true;
         require(usdc.transfer(recipient, escrow.amount), "Transfer failed");
-        
+
         emit EscrowCompleted(escrowId);
     }
 }
@@ -243,12 +243,12 @@ const hre = require("hardhat");
 
 async function main() {
   const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"; // Base Sepolia
-  
+
   const AgentEscrow = await hre.ethers.getContractFactory("AgentEscrow");
   const escrow = await AgentEscrow.deploy(USDC_ADDRESS);
-  
+
   await escrow.waitForDeployment();
-  
+
   console.log(`AgentEscrow deployed to: ${await escrow.getAddress()}`);
 }
 
@@ -312,13 +312,13 @@ async function createEscrow(amount, duration) {
     ethers.parseUnits(amount.toString(), 6), // USDC has 6 decimals
     duration
   );
-  
+
   console.log(`Creating escrow... TX: ${tx.hash}`);
   const receipt = await tx.wait();
-  
+
   const event = receipt.logs.find(log => log.topics[0] === ethers.id("EscrowCreated(uint256,address,uint256)"));
   const escrowId = ethers.toBigInt(event.topics[1]);
-  
+
   console.log(`✅ Escrow created: ID ${escrowId}`);
 }
 
@@ -418,14 +418,14 @@ contract AgentRoulette {
         bool verified;
         bool correct;
     }
-    
+
     mapping(uint256 => Bet) public bets;
     uint256 public betCount;
-    
+
     function placeBet(string memory claim, uint8 confidence) external payable {
         require(confidence >= 50 && confidence <= 99);
         require(msg.value >= 0.1 ether && msg.value <= 10 ether);
-        
+
         bets[betCount++] = Bet({
             agent: msg.sender,
             claim: claim,
@@ -435,12 +435,12 @@ contract AgentRoulette {
             correct: false
         });
     }
-    
+
     function verifyBet(uint256 betId, bool correct) external onlyOracle {
         Bet storage bet = bets[betId];
         bet.verified = true;
         bet.correct = correct;
-        
+
         if (correct) {
             uint256 payout = calculatePayout(bet.stake, bet.confidence);
             payable(bet.agent).transfer(payout);
