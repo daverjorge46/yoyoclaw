@@ -72,10 +72,14 @@ export function resolveSessionKeyForRequest(opts: {
     sessionKey = explicitSessionKey;
   } else if (to && opts.channel) {
     // Use dmScope-aware session key builder for DMs with a known channel.
+    // Prefer explicit agentId if provided, otherwise fall back to storeAgentId.
+    const agentIdForKey = opts.agentId?.trim()
+      ? normalizeAgentId(opts.agentId)
+      : normalizeAgentId(storeAgentId);
     const dmScope = sessionCfg?.dmScope ?? "main";
     const identityLinks = sessionCfg?.identityLinks;
     sessionKey = buildAgentSessionKey({
-      agentId: normalizeAgentId(storeAgentId),
+      agentId: agentIdForKey,
       channel: opts.channel,
       peer: { kind: "dm", id: to },
       dmScope,
