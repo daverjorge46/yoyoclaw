@@ -54,7 +54,13 @@ export async function prepareSanitizedMounts(): Promise<SanitizedMounts> {
   const configPath = resolveConfigPath();
   if (configPath && fs.existsSync(configPath)) {
     const originalSecureMode = process.env.OPENCLAW_SECURE_MODE;
+    const originalCacheDisable = process.env.OPENCLAW_DISABLE_CONFIG_CACHE;
+    
+    // Set secure mode so sanitizeConfigSecrets runs
     process.env.OPENCLAW_SECURE_MODE = "1";
+    // Disable config cache to ensure we get a fresh sanitized config
+    // Otherwise we might get a cached unsanitized version
+    process.env.OPENCLAW_DISABLE_CONFIG_CACHE = "1";
     
     try {
       // Load config (sanitizeConfigSecrets is applied automatically)
@@ -88,6 +94,11 @@ export async function prepareSanitizedMounts(): Promise<SanitizedMounts> {
         delete process.env.OPENCLAW_SECURE_MODE;
       } else {
         process.env.OPENCLAW_SECURE_MODE = originalSecureMode;
+      }
+      if (originalCacheDisable === undefined) {
+        delete process.env.OPENCLAW_DISABLE_CONFIG_CACHE;
+      } else {
+        process.env.OPENCLAW_DISABLE_CONFIG_CACHE = originalCacheDisable;
       }
     }
   }
