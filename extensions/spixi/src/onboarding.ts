@@ -65,7 +65,7 @@ export const spixiOnboardingAdapter: ChannelOnboardingAdapter = {
                 "2. QuIXI Node (Ixian API bridge):",
                 "   • https://github.com/ixian-platform/QuIXI",
                 "",
-                "3. Spixi Wallet (to get your Ixian address):",
+                "3. Spixi Wallet:",
                 "   • https://spixi.io/",
             ].join("\n"),
             "Spixi Prerequisites"
