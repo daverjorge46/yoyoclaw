@@ -50,6 +50,12 @@ vi.mock("../gateway/call.js", () => ({
   }),
 }));
 vi.mock("./deps.js", () => ({ createDefaultDeps: () => ({}) }));
+vi.mock("./plugin-registry.js", () => ({
+  ensurePluginRegistryLoaded: vi.fn(),
+}));
+vi.mock("./program/config-guard.js", () => ({
+  ensureConfigReady: vi.fn().mockResolvedValue(undefined),
+}));
 
 const { buildProgram } = await import("./program.js");
 
