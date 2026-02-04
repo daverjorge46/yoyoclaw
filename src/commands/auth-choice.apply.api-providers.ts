@@ -50,6 +50,7 @@ import {
   ZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.js";
 import { OPENCODE_ZEN_DEFAULT_MODEL } from "./opencode-zen-model-default.js";
+import { setBonsaiApiKey, applyBonsaiConfig } from "./onboard-auth.js";
 
 export async function applyAuthChoiceApiProviders(
   params: ApplyAuthChoiceParams,
@@ -96,7 +97,68 @@ export async function applyAuthChoiceApiProviders(
       authChoice = "venice-api-key";
     } else if (params.opts.tokenProvider === "opencode") {
       authChoice = "opencode-zen";
+    } else if (params.opts.tokenProvider === "bonsai") {
+      authChoice = "bonsai";
     }
+  }
+
+  if (authChoice === "bonsai") {
+    let hasCredential = false;
+    if (!hasCredential && params.opts?.token && params.opts?.tokenProvider === "bonsai") {
+      await setBonsaiApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
+      hasCredential = true;
+    }
+
+    if (!hasCredential) {
+      await params.prompter.note(
+        [
+          "Bonsai provides free access to frontier coding models in stealth mode.",
+          "Use your BONSAI_API_KEY or ANTHROPIC_AUTH_TOKEN.",
+        ].join("\n"),
+        "Bonsai",
+      );
+    }
+
+    const envKey = resolveEnvApiKey("bonsai");
+    if (envKey) {
+      const useExisting = await params.prompter.confirm({
+        message: `Use existing ${envKey.source.includes("AUTH_TOKEN") ? "ANTHROPIC_AUTH_TOKEN" : "BONSAI_API_KEY"} (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})?`,
+        initialValue: true,
+      });
+      if (useExisting) {
+        // No need to set if using env, but we'll fall through to config application
+        hasCredential = true;
+      }
+    }
+
+    if (!hasCredential) {
+      const key = await params.prompter.text({
+        message: "Enter Bonsai API key (or ANTHROPIC_AUTH_TOKEN)",
+        validate: validateApiKeyInput,
+      });
+      await setBonsaiApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
+      hasCredential = true;
+    }
+
+    // Bonsai works via env vars or manual auth profile setup, but primarily env vars for now.
+    // We don't strictly need an auth profile if using env vars, but let's apply a config
+    // that points to bonsai/auto.
+
+    {
+      const applied = await applyDefaultModelChoice({
+        config: nextConfig,
+        setDefaultModel: params.setDefaultModel,
+        defaultModel: "bonsai/auto",
+        applyDefaultConfig: applyBonsaiConfig,
+        applyProviderConfig: (c) => c, // No special provider config needed, default behavior works
+        noteDefault: "bonsai/auto",
+        noteAgentModel,
+        prompter: params.prompter,
+      });
+      nextConfig = applied.config;
+      agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+    }
+    return { config: nextConfig, agentModelOverride };
   }
 
   if (authChoice === "openrouter-api-key") {

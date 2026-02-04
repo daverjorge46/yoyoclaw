@@ -42,12 +42,41 @@ export function applyZaiConfig(cfg: OpenClawConfig): OpenClawConfig {
         ...cfg.agents?.defaults,
         models,
         model: {
-          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+          ...(typeof existingModel === "object" && existingModel && "fallbacks" in existingModel
             ? {
                 fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
               }
             : undefined),
           primary: ZAI_DEFAULT_MODEL_REF,
+        },
+      },
+    },
+  };
+}
+
+export function applyBonsaiConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  const bonsaiRef = "bonsai/auto";
+  models[bonsaiRef] = {
+    ...models[bonsaiRef],
+    alias: models[bonsaiRef]?.alias ?? "Bonsai",
+  };
+
+  const existingModel = cfg.agents?.defaults?.model;
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        models,
+        model: {
+          ...(typeof existingModel === "object" && existingModel && "fallbacks" in existingModel
+            ? {
+                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+              }
+            : undefined),
+          primary: bonsaiRef,
         },
       },
     },

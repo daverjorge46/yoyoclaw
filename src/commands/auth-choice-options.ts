@@ -21,7 +21,8 @@ export type AuthChoiceGroupId =
   | "minimax"
   | "synthetic"
   | "venice"
-  | "qwen";
+  | "qwen"
+  | "bonsai";
 
 export type AuthChoiceGroup = {
   value: AuthChoiceGroupId;
@@ -120,6 +121,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     hint: "Privacy-focused (uncensored models)",
     choices: ["venice-api-key"],
   },
+  {
+    value: "bonsai",
+    label: "Bonsai",
+    hint: "Free access to frontier models",
+    choices: ["bonsai"],
+  },
 ];
 
 export function buildAuthChoiceOptions(params: {
@@ -198,6 +205,11 @@ export function buildAuthChoiceOptions(params: {
     value: "minimax-api-lightning",
     label: "MiniMax M2.1 Lightning",
     hint: "Faster, higher output cost",
+  });
+  options.push({
+    value: "bonsai",
+    label: "Bonsai API Key",
+    hint: "Uses BONSAI_API_KEY or ANTHROPIC_AUTH_TOKEN",
   });
   if (params.includeSkip) {
     options.push({ value: "skip", label: "Skip for now" });
