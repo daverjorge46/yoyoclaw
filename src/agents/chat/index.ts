@@ -401,7 +401,7 @@ export type {
   AgentConfig,
   IncomingMessage,
   MessageContext,
-  AgentResponse,
+  AgentResponse as AgentMessageResponse,
 } from "./agent-integration.js";
 
 export {

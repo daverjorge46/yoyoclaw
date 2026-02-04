@@ -349,6 +349,7 @@ export function mergeConfig(userConfig: Partial<AgentChannelsConfig>): AgentChan
       ...DEFAULT_CONFIG.autoJoin,
       ...userConfig.autoJoin,
       defaultActivation: {
+        mode: "mention-only" as AgentListeningMode,
         ...DEFAULT_CONFIG.autoJoin?.defaultActivation,
         ...userConfig.autoJoin?.defaultActivation,
       },

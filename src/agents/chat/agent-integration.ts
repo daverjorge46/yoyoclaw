@@ -9,9 +9,11 @@
  * - Bridge between session-based and channel-based messaging
  */
 
+import type { ParsedMention } from "./routing/mention-parser.js";
 import type { AgentChannel, AgentChannelMember, AgentListeningMode } from "./types/channels.js";
 import type { ChannelMessage, CreateMessageParams } from "./types/messages.js";
-import { getActiveSession, coordinateMessage } from "./collaboration/coordinator.js";
+import { coordinateMessage } from "./collaboration/coordinator.js";
+import { getActiveSession } from "./collaboration/session-manager.js";
 import { emitNewMessage } from "./events/channel-events.js";
 import { updatePresence, heartbeat, setOffline, type AgentStatus } from "./presence/manager.js";
 import { startTyping, stopTyping, onMessageSent } from "./presence/typing.js";
@@ -176,11 +178,11 @@ export async function handleIncomingMessage(params: {
       isBroadcast: false,
       reason: decision.reason,
       mentions: {
-        explicitMentions: [],
-        patternMentions: [],
+        explicitMentions: [] as string[],
+        patternMentions: [] as string[],
         isBroadcast: false,
         strippedMessage: params.content,
-        allMentions: [],
+        allMentions: [] as ParsedMention[],
       },
     };
   } else {

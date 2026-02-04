@@ -276,7 +276,7 @@ export async function agentCommand(
     let model = defaultModel;
 
     // Log task classification when using specialized model
-    if (hasSpecializedModel && taskType !== "general") {
+    if (hasSpecializedModel) {
       console.log(
         `\x1b[36m[agent]\x1b[0m Task classified as "${taskType}" → using ${provider}/${model}`,
       );

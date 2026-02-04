@@ -256,7 +256,7 @@ registerCommand({
     // Parse duration
     let durationSeconds: number | undefined;
     if (durationArg) {
-      durationSeconds = parseDuration(durationArg);
+      durationSeconds = parseDuration(durationArg) ?? undefined;
       if (!durationSeconds) {
         return {
           success: false,

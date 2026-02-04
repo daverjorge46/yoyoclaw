@@ -3,7 +3,7 @@
  * Works with Redis from Docker, Homebrew, or any external source.
  */
 
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 
 export type RedisConfig = {
   host: string;
@@ -45,7 +45,7 @@ export function getRedis(): Redis {
     connectTimeout: config.connectTimeout,
     maxRetriesPerRequest: config.maxRetriesPerRequest,
     lazyConnect: true,
-    retryStrategy: (times) => {
+    retryStrategy: (times: number) => {
       if (times > 3) {
         return null;
       }

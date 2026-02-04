@@ -60,7 +60,9 @@ export async function cacheDeletePattern(pattern: string): Promise<number> {
     // Remove prefix from keys as del() will add it back
     const config = await import("./redis.js").then((m) => m.getRedisConfig());
     const prefix = config.keyPrefix ?? "";
-    const unprefixedKeys = keys.map((k) => (k.startsWith(prefix) ? k.slice(prefix.length) : k));
+    const unprefixedKeys = keys.map((k: string) =>
+      k.startsWith(prefix) ? k.slice(prefix.length) : k,
+    );
     return await redis.del(...unprefixedKeys);
   } catch {
     return 0;

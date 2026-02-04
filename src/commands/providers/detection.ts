@@ -36,8 +36,8 @@ function getTokenValidity(credential?: AuthProfileCredential): {
   let expiresMs: number | undefined;
   if (credential.type === "token" && credential.expires) {
     expiresMs = credential.expires;
-  } else if (credential.type === "oauth" && credential.expiresAt) {
-    expiresMs = credential.expiresAt;
+  } else if (credential.type === "oauth" && credential.expires) {
+    expiresMs = credential.expires;
   }
 
   if (!expiresMs) {
