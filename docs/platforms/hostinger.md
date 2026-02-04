@@ -1,4 +1,5 @@
 ---
+title: "Hostinger"
 summary: "OpenClaw on Hostinger VPS (simplest UI-based setup)"
 read_when:
   - Setting up OpenClaw on Hostinger VPS
@@ -24,7 +25,6 @@ This is the **simplest setup path** if you prefer a graphical interface over SSH
 ## Prerequisites
 
 - Hostinger account ([signup](https://www.hostinger.com/vps/docker/openclaw))
-- ~10 minutes
 
 That's it. No SSH keys, no terminal experience required.
 
@@ -75,7 +75,7 @@ You can also configure these later via the Control UI.
 Once deployed, access OpenClaw at:
 
 ```
-http://YOUR_VPS_IP:PORT
+https://YOUR_VPS_IP:PORT
 ```
 
 Replace:
@@ -119,7 +119,7 @@ All management happens through Docker Manager in hPanel:
 
 ---
 
-## Advanced: SSH Access
+## Advanced: Terminal Access
 
 If you need command-line access for troubleshooting:
 
@@ -146,7 +146,7 @@ docker exec -it <container_id> /bin/bash
 Docker Manager configures volumes automatically. Your data persists across container restarts:
 
 - `~/.openclaw/` — config, credentials, session data
-- `~/openclaw/` — workspace (SOUL.md, memory, artifacts)
+- `~/openclaw/workspace/` — workspace (SOUL.md, memory, artifacts)
 
 ---
 
