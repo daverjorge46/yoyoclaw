@@ -9,6 +9,7 @@ import {
   resolveStorePath,
 } from "../config/sessions.js";
 import { callGateway } from "../gateway/call.js";
+import { logSpawnComplete } from "../hooks/bundled/compliance/handler.js";
 import { normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import {
@@ -431,6 +432,17 @@ export async function runSubagentAnnounceFlow(params: {
           : outcome.status === "error"
             ? `failed: ${outcome.error || "unknown error"}`
             : "finished with unknown status";
+
+    // Log SPAWN_COMPLETE to compliance system (if enabled)
+    const requesterAgentId = resolveAgentIdFromSessionKey(params.requesterSessionKey);
+    const cfg = loadConfig();
+    logSpawnComplete(
+      cfg,
+      requesterAgentId || "main",
+      params.label || params.task,
+      params.requesterSessionKey,
+      outcome.status,
+    );
 
     // Build instructional message for main agent
     const taskLabel = params.label || params.task || "background task";

@@ -5,6 +5,7 @@ import type { AnyAgentTool } from "./common.js";
 import { formatThinkingLevels, normalizeThinkLevel } from "../../auto-reply/thinking.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { logSpawnStart } from "../../hooks/bundled/compliance/handler.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -251,6 +252,14 @@ export function createSessionsSpawnTool(opts?: {
       } catch (err) {
         const messageText =
           err instanceof Error ? err.message : typeof err === "string" ? err : "error";
+        // Log failed spawn to compliance system (if enabled)
+        logSpawnStart(
+          cfg,
+          requesterAgentId || "main",
+          task,
+          childSessionKey,
+          targetAgentId !== requesterAgentId ? targetAgentId : undefined,
+        );
         return jsonResult({
           status: "error",
           error: messageText,
@@ -258,6 +267,15 @@ export function createSessionsSpawnTool(opts?: {
           runId: childRunId,
         });
       }
+
+      // Log spawn to compliance system (if enabled)
+      logSpawnStart(
+        cfg,
+        requesterAgentId || "main",
+        task,
+        childSessionKey,
+        targetAgentId !== requesterAgentId ? targetAgentId : undefined,
+      );
 
       registerSubagentRun({
         runId: childRunId,
