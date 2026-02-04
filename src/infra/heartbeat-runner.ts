@@ -54,7 +54,6 @@ import {
   resolveHeartbeatSenderContext,
 } from "./outbound/targets.js";
 import { hasSystemEvents, peekSystemEvents } from "./system-events.js";
-import { peekSystemEvents } from "./system-events.js";
 
 type HeartbeatDeps = OutboundSendDeps &
   ChannelHeartbeatDeps & {
