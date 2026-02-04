@@ -90,10 +90,11 @@ export function getDiskSpace(checkPath: string = "."): DiskSpaceInfo | null {
  * Run cache cleanup commands safely.
  * Returns the number of bytes freed (estimate).
  */
-function runCleanupCommands(): number {
+function runCleanupCommands(opts?: { aggressive?: boolean }): number {
   let freedBytes = 0;
   const homeDir = os.homedir();
   const openclawDir = path.join(homeDir, ".openclaw");
+  const { aggressive = false } = opts || {};
 
   try {
     // Clean npm cache
@@ -175,6 +176,64 @@ function runCleanupCommands(): number {
         // Ignore errors
       }
     }
+
+    // Clean /data volume (Render-specific persistent disk)
+    const dataOpenclawDir = "/data/.openclaw";
+    if (existsSync(dataOpenclawDir)) {
+      try {
+        // Clean old session logs from /data
+        const dataAgentsDir = path.join(dataOpenclawDir, "agents");
+        if (existsSync(dataAgentsDir)) {
+          const ageThreshold = aggressive ? 1 : 7; // 1 day if aggressive, 7 days otherwise
+          execSync(`find "${dataAgentsDir}" -name "*.jsonl" -mtime +${ageThreshold} -delete`, {
+            timeout: 10000,
+            stdio: "pipe",
+          });
+          freedBytes += aggressive ? 100 * 1024 * 1024 : 50 * 1024 * 1024; // Estimate 100MB aggressive, 50MB normal
+        }
+
+        // Clean browser cache from /data
+        const dataBrowserDir = path.join(dataOpenclawDir, "browser");
+        if (existsSync(dataBrowserDir)) {
+          execSync(`rm -rf "${dataBrowserDir}"/*`, { timeout: 10000, stdio: "pipe" });
+          freedBytes += 100 * 1024 * 1024; // Estimate 100MB
+        }
+
+        // Clean old memory snapshots from /data
+        const dataMemoryDir = path.join(dataOpenclawDir, "memory");
+        if (existsSync(dataMemoryDir)) {
+          const keepCount = aggressive ? 3 : 10; // Keep fewer snapshots if aggressive
+          execSync(
+            `cd "${dataMemoryDir}" && ls -t snapshot-*.json 2>/dev/null | tail -n +${keepCount + 1} | xargs rm -f`,
+            {
+              timeout: 10000,
+              stdio: "pipe",
+              shell: "/bin/bash",
+            },
+          );
+          freedBytes += 10 * 1024 * 1024; // Estimate 10MB
+        }
+
+        // Clean large workspace files (>100MB, older than threshold)
+        const dataWorkspaceDir = "/data/workspace";
+        if (existsSync(dataWorkspaceDir) && aggressive) {
+          try {
+            execSync(
+              `find "${dataWorkspaceDir}" -type f -size +100M -mtime +${aggressive ? 1 : 7} -delete`,
+              {
+                timeout: 30000,
+                stdio: "pipe",
+              },
+            );
+            freedBytes += 200 * 1024 * 1024; // Estimate 200MB
+          } catch {
+            // Ignore errors - workspace might be in use
+          }
+        }
+      } catch {
+        // Ignore errors
+      }
+    }
   } catch {
     // Global catch for any unexpected errors
   }
@@ -220,7 +279,13 @@ export function autoCleanDiskSpace(opts: {
     `disk usage above ${thresholdPercent}% (${Math.round(before.usagePercent)}%), running cleanup...`,
   );
 
-  const freedBytes = runCleanupCommands();
+  // Use aggressive cleanup if disk is critically full (>95%)
+  const aggressive = before.usagePercent > 95;
+  if (aggressive) {
+    log?.warn("disk critically full (>95%), using aggressive cleanup...");
+  }
+
+  const freedBytes = runCleanupCommands({ aggressive });
 
   const after = getDiskSpace(checkPath);
   if (!after) {

@@ -1,8 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse arguments
+AGGRESSIVE=true
+if [[ "${1:-}" == "--aggressive" ]]; then
+  AGGRESSIVE=true
+  shift
+fi
+
 echo "=== OpenClaw Disk Space Cleanup Script ==="
+if [ "$AGGRESSIVE" = true ]; then
+  echo "(AGGRESSIVE MODE: cleaning files >1 day, keeping fewer snapshots)"
+fi
 echo ""
+
+# Show disk usage diagnostics for /data if it exists
+if [ -d /data ]; then
+  echo "Checking /data volume usage..."
+  df -h /data 2>/dev/null || true
+  echo ""
+  echo "Top 10 largest items in /data:"
+  du -sh /data/* 2>/dev/null | sort -h | tail -10 || true
+  echo ""
+fi
 
 # Function to show size before and after
 show_cleanup() {
@@ -66,17 +86,56 @@ if show_cleanup "OpenClaw browser cache" ~/.openclaw/browser; then
   echo "  ✓ OpenClaw browser cache cleaned"
 fi
 
-# Clean old OpenClaw session logs (keep last 7 days)
-echo "Cleaning old OpenClaw session logs (>7 days)..."
-find ~/.openclaw/agents/*/sessions -name "*.jsonl" -mtime +7 -delete 2>/dev/null || true
+# Set thresholds based on aggressive mode
+AGE_THRESHOLD=7
+SNAPSHOT_KEEP=10
+if [ "$AGGRESSIVE" = true ]; then
+  AGE_THRESHOLD=1
+  SNAPSHOT_KEEP=3
+fi
+
+# Clean old OpenClaw session logs
+echo "Cleaning old OpenClaw session logs (>${AGE_THRESHOLD} days)..."
+find ~/.openclaw/agents/*/sessions -name "*.jsonl" -mtime +${AGE_THRESHOLD} -delete 2>/dev/null || true
 echo "  ✓ Old session logs cleaned"
 
-# Clean OpenClaw memory snapshots (keep last 10)
+# Clean OpenClaw memory snapshots
 if [ -d ~/.openclaw/memory ]; then
-  echo "Cleaning old OpenClaw memory snapshots (keep last 10)..."
+  echo "Cleaning old OpenClaw memory snapshots (keep last ${SNAPSHOT_KEEP})..."
   cd ~/.openclaw/memory
-  ls -t snapshot-*.json 2>/dev/null | tail -n +11 | xargs rm -f || true
+  ls -t snapshot-*.json 2>/dev/null | tail -n +$((SNAPSHOT_KEEP + 1)) | xargs rm -f || true
   echo "  ✓ Old memory snapshots cleaned"
+fi
+
+# Clean /data volume (Render-specific persistent disk)
+if [ -d /data/.openclaw ]; then
+  echo "Cleaning /data/.openclaw (Render persistent volume)..."
+
+  # Clean old session logs from /data
+  find /data/.openclaw/agents/*/sessions -name "*.jsonl" -mtime +${AGE_THRESHOLD} -delete 2>/dev/null || true
+
+  # Clean browser cache from /data
+  rm -rf /data/.openclaw/browser/* 2>/dev/null || true
+
+  # Clean old memory snapshots from /data
+  if [ -d /data/.openclaw/memory ]; then
+    cd /data/.openclaw/memory
+    ls -t snapshot-*.json 2>/dev/null | tail -n +$((SNAPSHOT_KEEP + 1)) | xargs rm -f || true
+  fi
+
+  # Clean large workspace files
+  if [ -d /data/workspace ]; then
+    if [ "$AGGRESSIVE" = true ]; then
+      echo "  - Removing large workspace files (>100MB, >1 day)..."
+      find /data/workspace -type f -size +100M -mtime +1 -delete 2>/dev/null || true
+      echo "  - Removing all workspace files >7 days..."
+      find /data/workspace -type f -mtime +7 -delete 2>/dev/null || true
+    else
+      find /data/workspace -type f -size +100M -mtime +7 -delete 2>/dev/null || true
+    fi
+  fi
+
+  echo "  ✓ /data volume cleaned"
 fi
 
 echo ""
@@ -84,6 +143,16 @@ echo "=== Cleanup Complete ==="
 echo ""
 echo "Disk usage after cleanup:"
 df -h /
+# Also show /data if it exists
+if [ -d /data ]; then
+  echo ""
+  echo "/data volume usage:"
+  df -h /data || true
+fi
 echo ""
 echo "OpenClaw directory size:"
 du -sh ~/.openclaw
+if [ -d /data/.openclaw ]; then
+  echo "OpenClaw /data directory size:"
+  du -sh /data/.openclaw || true
+fi

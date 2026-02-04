@@ -8,6 +8,7 @@ import { loadConfig } from "../config/config.js";
 import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { info } from "../globals.js";
+import { getDiskSpace, type DiskSpaceInfo } from "../infra/disk-space.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import {
@@ -68,6 +69,7 @@ export type HealthSummary = {
       age: number | null;
     }>;
   };
+  diskSpace?: DiskSpaceInfo | null;
 };
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -539,6 +541,8 @@ export async function getHealthSnapshot(params?: {
     }
   }
 
+  const diskSpace = getDiskSpace(".");
+
   const summary: HealthSummary = {
     ok: true,
     ts: Date.now(),
@@ -554,6 +558,7 @@ export async function getHealthSnapshot(params?: {
       count: sessions.count,
       recent: sessions.recent,
     },
+    diskSpace,
   };
 
   return summary;
