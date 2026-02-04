@@ -8,9 +8,6 @@ set -euo pipefail
 OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/opt/openclaw/runtime}"
 BOOTSTRAP_DIR="$OPENCLAW_REPO_DIR/infra/bootstrap"
 
-mkdir -p "$OPENCLAW_REPO_DIR"
-git clone --depth 1 https://github.com/aron98/openclaw.git "$OPENCLAW_REPO_DIR"
-
 echo "Deploying OpenClaw bootstrap scripts..."
 
 # Check if running as root
