@@ -24,6 +24,7 @@ import { runGatewayLoop } from "./run-loop.js";
 import { startSecretsProxy } from "../../security/secrets-proxy.js";
 import { createSecretsRegistry } from "../../security/secrets-registry.js";
 import { startGatewayContainer, stopGatewayContainer, isGatewayContainerRunning, getGatewayContainerLogs } from "../../security/gateway-container.js";
+import { prepareSanitizedMounts, cleanupSanitizedMounts } from "../../config/prepare-sanitized-mounts.js";
 import {
   describeUnknownError,
   extractGatewayMiskeys,
@@ -287,14 +288,26 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
         return;
       }
       
-      // Start gateway container
+      // Prepare sanitized config files for mounting
+      gatewayLog.info("Preparing sanitized config mounts...");
+      let sanitizedMounts;
+      try {
+        sanitizedMounts = await prepareSanitizedMounts();
+        gatewayLog.info(`Prepared ${sanitizedMounts.binds.length} bind mounts`);
+      } catch (err) {
+        gatewayLog.error(`Failed to prepare sanitized mounts: ${String(err)}`);
+        proxyServer.close();
+        defaultRuntime.exit(1);
+        return;
+      }
+      
+      // Start gateway container with sanitized mounts
       let containerName: string;
       try {
         containerName = await startGatewayContainer({
           proxyUrl,
           env: process.env,
-          // TODO: Read bind mounts from config
-          // binds: config?.gateway?.secretsProxy?.binds || [],
+          binds: sanitizedMounts.binds,
         });
         gatewayLog.info(`Gateway container started: ${containerName}`);
       } catch (err) {
