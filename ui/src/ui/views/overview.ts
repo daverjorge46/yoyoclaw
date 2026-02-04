@@ -10,7 +10,7 @@ import { formatNextRun } from "../presenter.ts";
  */
 function validateSessionKeyFormat(input: string): { isValid: boolean; error?: string } {
   const trimmed = input.trim();
-  
+
   // Empty is allowed (will use default)
   if (!trimmed) {
     return { isValid: true };
@@ -27,16 +27,16 @@ function validateSessionKeyFormat(input: string): { isValid: boolean; error?: st
     if (parts.length >= 3 && parts[1]?.trim() && parts[2]?.trim()) {
       return { isValid: true };
     }
-    return { 
-      isValid: false, 
-      error: "Invalid format. Use: agent:agentId:sessionName (e.g., agent:main:xiaohua)" 
+    return {
+      isValid: false,
+      error: "Invalid format. Use: agent:agentId:sessionName (e.g., agent:main:xiaohua)",
     };
   }
 
   // If not in agent: format, it's invalid
-  return { 
-    isValid: false, 
-    error: "Session key must be in format: agent:agentId:sessionName (e.g., agent:main:xiaohua)" 
+  return {
+    isValid: false,
+    error: "Session key must be in format: agent:agentId:sessionName (e.g., agent:main:xiaohua)",
   };
 }
 
@@ -61,13 +61,13 @@ export type OverviewProps = {
 export function renderOverview(props: OverviewProps) {
   const snapshot = props.hello?.snapshot as
     | { version?: string; agentId?: string; sessionDefaults?: Record<string, unknown> }
+    | { uptimeMs?: number; policy?: { tickIntervalMs?: number } }
     | undefined;
 
   // Validate session key format
   const sessionKeyValidation = validateSessionKeyFormat(props.settings.sessionKey);
   const canConnect = sessionKeyValidation.isValid;
-    | { uptimeMs?: number; policy?: { tickIntervalMs?: number } }
-    | undefined;
+
   const uptime = snapshot?.uptimeMs ? formatDurationMs(snapshot.uptimeMs) : "n/a";
   const tick = snapshot?.policy?.tickIntervalMs ? `${snapshot.policy.tickIntervalMs}ms` : "n/a";
   const authHint = (() => {
@@ -214,11 +214,15 @@ export function renderOverview(props: OverviewProps) {
               title="Required format: agent:agentId:sessionName (e.g., agent:main:xiaohua)"
               style=${sessionKeyValidation.isValid ? "" : "border-color: #e74c3c; background-color: #fdf2f2;"}
             />
-            ${sessionKeyValidation.error ? html`
+            ${
+              sessionKeyValidation.error
+                ? html`
               <div style="color: #e74c3c; font-size: 12px; margin-top: 4px;">
                 ⚠️ ${sessionKeyValidation.error}
               </div>
-            ` : ""}
+            `
+                : ""
+            }
           </label>
         </div>
         <div class="row" style="margin-top: 14px;">
@@ -237,9 +241,11 @@ export function renderOverview(props: OverviewProps) {
           </button>
           <button class="btn" @click=${() => props.onRefresh()}>Refresh</button>
           <span class="muted">
-            ${canConnect 
-              ? "Click Connect to apply connection changes." 
-              : "⚠️ Fix session key format to enable connection."}
+            ${
+              canConnect
+                ? "Click Connect to apply connection changes."
+                : "⚠️ Fix session key format to enable connection."
+            }
           </span>
         </div>
       </div>
