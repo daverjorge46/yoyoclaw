@@ -55,10 +55,13 @@ export function findJobOrThrow(state: CronServiceState, id: string) {
 /**
  * Compute exponential backoff delay for failed jobs.
  * Returns the next retry time based on consecutive failure count.
+ * First retry (failures=1) waits 30s, second (failures=2) waits 60s, etc.
  */
 function computeRetryBackoffMs(consecutiveFailures: number): number {
   const failures = Math.max(0, consecutiveFailures);
-  const delay = RETRY_BACKOFF_BASE_MS * Math.pow(2, Math.min(failures, 10));
+  // Use (failures - 1) so first failure (failures=1) gives 30s * 2^0 = 30s
+  const exponent = Math.max(0, Math.min(failures - 1, 10));
+  const delay = RETRY_BACKOFF_BASE_MS * Math.pow(2, exponent);
   return Math.min(delay, RETRY_BACKOFF_MAX_MS);
 }
 

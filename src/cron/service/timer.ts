@@ -117,11 +117,16 @@ export async function executeJob(
         job.state.nextRunAtMs = undefined;
       } else if (shouldDisableAfterFailures) {
         // One-shot job hit max retry limit; disable it.
+        // Keep lastError as the actual error, log the disable reason separately.
         job.enabled = false;
         job.state.nextRunAtMs = undefined;
-        job.state.lastError = `disabled after ${MAX_CONSECUTIVE_FAILURES} consecutive failures: ${err ?? "unknown error"}`;
         state.deps.log.warn(
-          { jobId: job.id, name: job.name, failures: job.state.consecutiveFailures },
+          {
+            jobId: job.id,
+            name: job.name,
+            failures: job.state.consecutiveFailures,
+            lastError: err,
+          },
           `cron: one-shot job disabled after ${MAX_CONSECUTIVE_FAILURES} consecutive failures`,
         );
       } else if (job.enabled) {
