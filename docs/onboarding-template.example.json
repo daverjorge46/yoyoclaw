@@ -2,7 +2,7 @@
   "name": "Production Dev Agent",
   "task": "Software development assistant with GitHub PR automation and Slack notifications",
   "github": {
-    "token": "ghp_abc123def456ghi789jkl012mno345pqr678",
+    "token": "ghp_example",
     "memoryRepo": "mycompany/agent-memory",
     "policy": {
       "allowWrites": true,
@@ -53,7 +53,7 @@
     "workspace": "~/.openclaw/workspace",
     "remoteExecution": {
       "enabled": true,
-      "apiKey": "e2b_ptaABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+      "apiKey": "e2b_example"
     }
   },
   "gateway": {
