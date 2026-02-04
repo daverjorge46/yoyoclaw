@@ -167,7 +167,7 @@ describe("checkpoint memory flush", () => {
       expect(settings?.checkpoints?.[1].systemPrompt).toBe("Custom system prompt");
     });
 
-    it("ignores invalid checkpoints", () => {
+    it("ignores non-numeric/NaN checkpoints and clamps out-of-range percents", () => {
       const settings = resolveMemoryFlushSettings({
         agents: {
           defaults: {
@@ -176,17 +176,21 @@ describe("checkpoint memory flush", () => {
                 checkpoints: [
                   { percent: 50 },
                   { percent: "invalid" as unknown as number },
+                  { percent: Number.NaN },
                   null as unknown as { percent: number },
+                  { percent: 0 },
                   { percent: 75 },
+                  { percent: 200 },
                 ],
               },
             },
           },
         },
       });
-      expect(settings?.checkpoints).toHaveLength(2);
-      expect(settings?.checkpoints?.[0].percent).toBe(50);
-      expect(settings?.checkpoints?.[1].percent).toBe(75);
+
+      // 0 -> 1, 200 -> 99; invalid + NaN + null dropped.
+      expect(settings?.checkpoints).toHaveLength(4);
+      expect(settings?.checkpoints?.map((c) => c.percent)).toEqual([1, 50, 75, 99]);
     });
   });
 

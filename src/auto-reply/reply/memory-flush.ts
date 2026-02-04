@@ -84,14 +84,19 @@ export function resolveMemoryFlushSettings(cfg?: OpenClawConfig): MemoryFlushSet
           if (!cp || typeof cp !== "object") {
             return false;
           }
-          return typeof (cp as { percent?: unknown }).percent === "number";
+          const percent = (cp as { percent?: unknown }).percent;
+          return typeof percent === "number" && Number.isFinite(percent);
         },
       )
-      .map((cp) => ({
-        percent: cp.percent,
-        prompt: typeof cp.prompt === "string" ? cp.prompt.trim() : undefined,
-        systemPrompt: typeof cp.systemPrompt === "string" ? cp.systemPrompt.trim() : undefined,
-      }))
+      .map((cp) => {
+        const percent = Math.min(99, Math.max(1, cp.percent));
+        return {
+          percent,
+          prompt: typeof cp.prompt === "string" ? cp.prompt.trim() : undefined,
+          systemPrompt: typeof cp.systemPrompt === "string" ? cp.systemPrompt.trim() : undefined,
+        };
+      })
+      .filter((cp) => Number.isFinite(cp.percent))
       .toSorted((a, b) => a.percent - b.percent);
 
     if (checkpoints.length === 0) {
