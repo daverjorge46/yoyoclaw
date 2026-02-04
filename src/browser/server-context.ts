@@ -314,7 +314,6 @@ function createProfileContext(
         }
       }
       if (current.resolved.attachOnly || remoteCdp) {
-        if (remoteCdp) return; // browserless v2: sessions created on-demand
         throw new Error(
           remoteCdp
             ? `Remote CDP for profile "${profile.name}" is not reachable at ${profile.cdpUrl}.`
@@ -347,7 +346,7 @@ function createProfileContext(
           return;
         }
       }
-      if (remoteCdp) return; // browserless v2: WS endpoint is not persistent
+      if (remoteCdp) { return; } // browserless v2: WS endpoint is not persistent
       throw new Error(
         remoteCdp
           ? `Remote CDP websocket for profile "${profile.name}" is not reachable.`
