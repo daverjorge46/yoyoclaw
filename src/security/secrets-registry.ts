@@ -177,11 +177,17 @@ export async function resolveOAuthToken(
   registry: SecretRegistry,
   profileId: string,
 ): Promise<string | null> {
+  console.log(`[DEBUG] resolveOAuthToken called for profile: ${profileId}`);
+  
   // Get the credential to check provider type
   const cred = registry.oauthProfiles.get(profileId);
   if (!cred) {
+    console.log(`[DEBUG] No credential found for profile: ${profileId}`);
+    console.log(`[DEBUG] Available profiles: ${Array.from(registry.oauthProfiles.keys()).join(", ")}`);
     return null;
   }
+  
+  console.log(`[DEBUG] Found credential for provider: ${cred.provider}`);
   
   // Always call resolveApiKeyForProfile - it handles refresh internally
   const result = await resolveApiKeyForProfile({
@@ -189,6 +195,8 @@ export async function resolveOAuthToken(
     profileId,
     agentDir: registry.agentDir,
   });
+  
+  console.log(`[DEBUG] resolveApiKeyForProfile returned: ${result?.apiKey ? `${result.apiKey.slice(0, 50)}...` : "null"}`);
   
   if (!result?.apiKey) {
     return null;
@@ -198,9 +206,11 @@ export async function resolveOAuthToken(
   if (cred.provider === "google-gemini-cli" || cred.provider === "google-antigravity") {
     try {
       const parsed = JSON.parse(result.apiKey);
+      console.log(`[DEBUG] Extracted token from JSON: ${parsed.token?.slice(0, 20)}...`);
       return parsed.token ?? null;
     } catch {
       // If not JSON, return as-is
+      console.log(`[DEBUG] apiKey is not JSON, returning as-is`);
       return result.apiKey;
     }
   }
