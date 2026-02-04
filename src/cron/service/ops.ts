@@ -10,7 +10,7 @@ import {
   recomputeNextRuns,
 } from "./jobs.js";
 import { locked } from "./locked.js";
-import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
+import { clearStoreCache, ensureLoaded, persist, warnIfDisabled } from "./store.js";
 import { armTimer, emit, executeJob, stopTimer, wake } from "./timer.js";
 
 export async function start(state: CronServiceState) {
@@ -19,6 +19,10 @@ export async function start(state: CronServiceState) {
       state.deps.log.info({ enabled: false }, "cron: disabled");
       return;
     }
+    // Clear the in-memory cache to ensure we load fresh data from disk.
+    // This is necessary because jobs may have been added by other processes
+    // (e.g., CLI commands) while the gateway was stopped.
+    clearStoreCache(state.deps.storePath);
     await ensureLoaded(state);
     recomputeNextRuns(state);
     await persist(state);

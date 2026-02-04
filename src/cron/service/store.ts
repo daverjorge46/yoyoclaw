@@ -6,6 +6,15 @@ import { inferLegacyName, normalizeOptionalText } from "./normalize.js";
 
 const storeCache = new Map<string, { version: 1; jobs: CronJob[] }>();
 
+/**
+ * Clears the in-memory store cache for a given path.
+ * This must be called on service startup to ensure fresh data is loaded from disk,
+ * as jobs may have been added by other processes (e.g., CLI) while the gateway was stopped.
+ */
+export function clearStoreCache(storePath: string) {
+  storeCache.delete(storePath);
+}
+
 export async function ensureLoaded(state: CronServiceState) {
   if (state.store) {
     return;
