@@ -353,11 +353,11 @@ export function createOpenClawCodingTools(options?: {
       requesterAgentIdOverride: agentId,
     }),
   ];
-  const senderAuthorized = options?.senderAuthorized;
-  const toolsByAuthorization =
-    senderAuthorized === false
-      ? tools.filter((tool) => normalizeToolName(tool.name) !== "whatsapp_login")
-      : tools;
+  // Security: treat unknown/undefined as unauthorized (opt-in, not opt-out)
+  const senderAuthorized = options?.senderAuthorized === true;
+  const toolsByAuthorization = senderAuthorized
+    ? tools
+    : tools.filter((tool) => normalizeToolName(tool.name) !== "whatsapp_login");
   const coreToolNames = new Set(
     toolsByAuthorization
       .filter((tool) => !getPluginToolMeta(tool))
