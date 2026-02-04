@@ -23,6 +23,7 @@ import {
 import { readFeishuAllowFromStore, upsertFeishuPairingRequest } from "./pairing-store.js";
 import { sendMessageFeishu } from "./send.js";
 import { FeishuStreamingSession } from "./streaming-card.js";
+import { createTypingIndicatorCallbacks } from "./typing.js";
 import { getFeishuUserDisplayName } from "./user.js";
 
 const logger = getChildLogger({ module: "feishu-message" });
@@ -393,6 +394,9 @@ export async function processFeishuMessage(
   let streamingStarted = false;
   let lastPartialText = "";
 
+  // Typing indicator callbacks (for non-streaming mode)
+  const typingCallbacks = createTypingIndicatorCallbacks(client, message.message_id);
+
   // Use first post image as primary media if no other media
   const primaryMedia = media ?? (postImages.length > 0 ? postImages[0] : null);
   const additionalMediaPaths = postImages.length > 1 ? postImages.slice(1).map((m) => m.path) : [];
@@ -506,8 +510,14 @@ export async function processFeishuMessage(
         if (streamingSession?.isActive()) {
           streamingSession.close().catch(() => {});
         }
+        // Clean up typing indicator on error
+        typingCallbacks.onIdle().catch(() => {});
       },
       onReplyStart: async () => {
+        // Add typing indicator reaction (for non-streaming fallback)
+        if (!streamingSession) {
+          await typingCallbacks.onReplyStart();
+        }
         // Start streaming card when reply generation begins
         if (streamingSession && !streamingStarted) {
           try {
@@ -562,4 +572,7 @@ export async function processFeishuMessage(
   if (streamingSession?.isActive()) {
     await streamingSession.close();
   }
+
+  // Clean up typing indicator
+  await typingCallbacks.onIdle();
 }
