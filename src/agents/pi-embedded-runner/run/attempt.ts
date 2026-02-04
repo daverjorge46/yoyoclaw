@@ -737,6 +737,15 @@ export async function runEmbeddedAttempt(
         }
 
         log.debug(`embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`);
+        // Log user query for debugging and monitoring
+        const promptPreview = effectivePrompt.slice(0, 500);
+        const isTruncated = effectivePrompt.length > 500;
+        log.info(`user query: ${promptPreview}${isTruncated ? "..." : ""}`, {
+          runId: params.runId,
+          sessionId: params.sessionId,
+          promptLength: effectivePrompt.length,
+          fullPrompt: effectivePrompt,
+        });
         cacheTrace?.recordStage("prompt:before", {
           prompt: effectivePrompt,
           messages: activeSession.messages,
@@ -873,6 +882,26 @@ export async function runEmbeddedAttempt(
         .slice()
         .toReversed()
         .find((m) => m.role === "assistant");
+
+      // Log assistant reply for debugging and monitoring
+      if (lastAssistant && !promptError) {
+        const { extractAssistantText } = await import("../../pi-embedded-utils.js");
+        const replyText = extractAssistantText(lastAssistant as never);
+        if (replyText) {
+          const replyPreview = replyText.slice(0, 500);
+          const isTruncated = replyText.length > 500;
+          log.info(`assistant reply: ${replyPreview}${isTruncated ? "..." : ""}`, {
+            runId: params.runId,
+            sessionId: params.sessionId,
+            replyLength: replyText.length,
+            fullReply: replyText,
+            stopReason: (lastAssistant as { stopReason?: string }).stopReason,
+            hasToolCalls:
+              Array.isArray(lastAssistant.content) &&
+              lastAssistant.content.some((block: { type?: string }) => block?.type === "tool_call"),
+          });
+        }
+      }
 
       const toolMetasNormalized = toolMetas
         .filter(
