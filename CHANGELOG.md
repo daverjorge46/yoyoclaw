@@ -2,6 +2,28 @@
 
 Docs: https://docs.openclaw.ai
 
+## 2026.2.2-3
+
+### Fixes
+
+- Update: ship legacy daemon-cli shim for pre-tsdown update imports (fixes daemon restart after npm update).
+
+## 2026.2.2-2
+
+### Changes
+
+- Docs: promote BlueBubbles as the recommended iMessage integration; mark imsg channel as legacy. (#8415) Thanks @tyler6204.
+
+### Fixes
+
+- CLI status: resolve build-info from bundled dist output (fixes "unknown" commit in npm builds).
+
+## 2026.2.2-1
+
+### Fixes
+
+- CLI status: fall back to build-info for version detection (fixes "unknown" in beta builds). Thanks @gumadeira.
+
 ## 2026.2.2
 
 ### Changes
@@ -12,10 +34,12 @@ Docs: https://docs.openclaw.ai
 - Security: add healthcheck skill and bootstrap audit guidance. (#7641) Thanks @Takhoffman.
 - Config: allow setting a default subagent thinking level via `agents.defaults.subagents.thinking` (and per-agent `agents.list[].subagents.thinking`). (#7372) Thanks @tyler6204.
 - Docs: zh-CN translations seed + polish, pipeline guidance, nav/landing updates, and typo fixes. (#8202, #6995, #6619, #7242, #7303, #7415) Thanks @AaronWander, @taiyi747, @Explorer1092, @rendaoyuan, @joshp123, @lailoo.
+- Docs: add zh-CN i18n guardrails to avoid editing generated translations. (#8416) Thanks @joshp123.
 
 ### Fixes
 
 - Security: require operator.approvals for gateway /approve commands. (#1) Thanks @mitsuhiko, @yueyueL.
+- Updates: honor update.channel for update.run (Control UI) and channel-based npm tags for global installs.
 - Security: Matrix allowlists now require full MXIDs; ambiguous name resolution no longer grants access. Thanks @MegaManSec.
 - Security: enforce access-group gating for Slack slash commands when channel type lookup fails.
 - Security: require validated shared-secret auth before skipping device identity on gateway connect.
