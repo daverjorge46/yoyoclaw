@@ -1,4 +1,5 @@
 import { html, nothing } from "lit";
+import type { AuthProviderEntry } from "../controllers/auth.ts";
 import type {
   ModelCostTier,
   ProviderHealthEntry,
@@ -22,6 +23,9 @@ export type ProvidersProps = {
   primaryModel: string | null;
   modelsSaving: boolean;
   modelsCostFilter: "all" | "high" | "medium" | "low";
+  authConfigProvider: string | null;
+  authConfigSaving: boolean;
+  authProvidersList: AuthProviderEntry[] | null;
   onRefresh: () => void;
   onToggleShowAll: () => void;
   onToggleExpand: (id: string) => void;
@@ -29,6 +33,12 @@ export type ProvidersProps = {
   onSetPrimary: (key: string) => void;
   onSaveModels: () => void;
   onCostFilterChange: (filter: "all" | "high" | "medium" | "low") => void;
+  onConfigureProvider: (id: string | null) => void;
+  onSaveCredential: (
+    provider: string,
+    credential: string,
+    credentialType: "api_key" | "token",
+  ) => void;
 };
 
 export function renderProviders(props: ProvidersProps) {
@@ -103,6 +113,17 @@ export function renderProviders(props: ProvidersProps) {
   `;
 }
 
+function resolveAuthInfo(entry: ProviderHealthEntry, props: ProvidersProps) {
+  const authEntry = props.authProvidersList?.find((p) => p.id === entry.id);
+  const authModes = authEntry?.authModes ?? [];
+  const hasApiKey = authModes.includes("api-key");
+  const hasToken = authModes.includes("token");
+  const hasOAuthOnly = !hasApiKey && !hasToken && authModes.includes("oauth");
+  const hasAwsSdk = !hasApiKey && !hasToken && authModes.includes("aws-sdk");
+  const canConfigure = hasApiKey || hasToken;
+  return { authModes, hasApiKey, hasToken, hasOAuthOnly, hasAwsSdk, canConfigure };
+}
+
 function renderProviderCard(
   entry: ProviderHealthEntry,
   expanded: boolean,
@@ -112,6 +133,7 @@ function renderProviderCard(
   const color = getHealthColor(entry.healthStatus);
   const label = getHealthLabel(entry.healthStatus);
   const dotStyle = `width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;`;
+  const isConfiguring = props.authConfigProvider === entry.id;
 
   return html`
     <div
@@ -158,10 +180,131 @@ function renderProviderCard(
               @click=${(e: Event) => e.stopPropagation()}
             >
               ${renderCredentialInfo(entry)}
+              ${renderConfigureSection(entry, props, isConfiguring)}
               ${renderModelsSection(entry, props)}
               ${renderUsageSection(entry)}
             </div>
           `
+          : nothing
+      }
+    </div>
+  `;
+}
+
+function renderConfigureSection(
+  entry: ProviderHealthEntry,
+  props: ProvidersProps,
+  isConfiguring: boolean,
+) {
+  const { hasApiKey, hasToken, hasOAuthOnly, hasAwsSdk, canConfigure } = resolveAuthInfo(
+    entry,
+    props,
+  );
+
+  // OAuth-only providers
+  if (hasOAuthOnly) {
+    return html`
+      <div style="margin-bottom: 12px">
+        <div class="muted" style="font-size: 13px">
+          This provider requires OAuth. Run
+          <code style="font-size: 12px">openclaw models auth login</code>
+          in your terminal.
+        </div>
+      </div>
+    `;
+  }
+
+  // AWS SDK providers
+  if (hasAwsSdk) {
+    return html`
+      <div style="margin-bottom: 12px">
+        <div class="muted" style="font-size: 13px">
+          Configure AWS credentials via CLI or environment variables.
+        </div>
+      </div>
+    `;
+  }
+
+  if (!canConfigure) {
+    return nothing;
+  }
+
+  if (!isConfiguring) {
+    return html`
+      <div style="margin-bottom: 12px;">
+        <button
+          class="btn btn-sm"
+          @click=${(e: Event) => {
+            e.stopPropagation();
+            props.onConfigureProvider(entry.id);
+          }}
+        >
+          ${entry.detected ? "Reconfigure" : "Configure"}
+        </button>
+      </div>
+    `;
+  }
+
+  const credentialType = hasToken && !hasApiKey ? "token" : "api_key";
+  const inputLabel = credentialType === "token" ? "Token" : "API Key";
+  const inputId = `auth-input-${entry.id}`;
+
+  return html`
+    <div
+      style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-elevated);"
+    >
+      <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px;">
+        ${inputLabel} for ${entry.name}
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input
+          id=${inputId}
+          type="password"
+          placeholder=${`Enter ${inputLabel.toLowerCase()}...`}
+          style="flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit;"
+          autocomplete="off"
+          @keydown=${(e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+              const input = document.getElementById(inputId) as HTMLInputElement | null;
+              const value = input?.value?.trim();
+              if (value) {
+                props.onSaveCredential(entry.id, value, credentialType);
+              }
+            }
+          }}
+        />
+        <button
+          class="btn btn-sm"
+          ?disabled=${props.authConfigSaving}
+          @click=${(e: Event) => {
+            e.stopPropagation();
+            const input = document.getElementById(inputId) as HTMLInputElement | null;
+            const value = input?.value?.trim();
+            if (value) {
+              props.onSaveCredential(entry.id, value, credentialType);
+            }
+          }}
+        >
+          ${props.authConfigSaving ? "Saving..." : "Save"}
+        </button>
+        <button
+          class="btn btn-sm"
+          ?disabled=${props.authConfigSaving}
+          @click=${(e: Event) => {
+            e.stopPropagation();
+            props.onConfigureProvider(null);
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+      ${
+        hasApiKey && hasToken
+          ? html`
+              <div class="muted" style="font-size: 11px; margin-top: 4px">
+                This provider also supports OAuth login via CLI.
+              </div>
+            `
           : nothing
       }
     </div>

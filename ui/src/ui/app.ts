@@ -2,6 +2,7 @@ import { LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { EventLogEntry } from "./app-events.ts";
 import type { AppViewState } from "./app-view-state.ts";
+import type { AuthProviderEntry } from "./controllers/auth.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
@@ -258,6 +259,9 @@ export class OpenClawApp extends LitElement {
   @state() providersConfigHash: string | null = null;
   @state() providersModelsSaving = false;
   @state() providersModelsCostFilter: "all" | "high" | "medium" | "low" = "all";
+  @state() authConfigProvider: string | null = null;
+  @state() authConfigSaving = false;
+  @state() authProvidersList: AuthProviderEntry[] | null = null;
   @state() clockDisplay = "";
 
   // Toast notifications

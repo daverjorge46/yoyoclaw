@@ -8,6 +8,7 @@ import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controlle
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
+import { loadProvidersList, setProviderCredential, type AuthHost } from "./controllers/auth.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import {
@@ -405,7 +406,13 @@ export function renderApp(state: AppViewState) {
                 primaryModel: state.providersPrimaryModel,
                 modelsSaving: state.providersModelsSaving,
                 modelsCostFilter: state.providersModelsCostFilter,
-                onRefresh: () => loadProvidersHealth(state),
+                authConfigProvider: state.authConfigProvider,
+                authConfigSaving: state.authConfigSaving,
+                authProvidersList: state.authProvidersList,
+                onRefresh: () => {
+                  void loadProvidersHealth(state);
+                  void loadProvidersList(state as unknown as AuthHost);
+                },
                 onToggleShowAll: () => {
                   state.providersHealthShowAll = !state.providersHealthShowAll;
                   void loadProvidersHealth(state);
@@ -430,6 +437,17 @@ export function renderApp(state: AppViewState) {
                 onSaveModels: () => void saveModelSelection(state),
                 onCostFilterChange: (filter) => {
                   state.providersModelsCostFilter = filter;
+                },
+                onConfigureProvider: (id) => {
+                  state.authConfigProvider = id;
+                },
+                onSaveCredential: (provider, credential, credentialType) => {
+                  void setProviderCredential(
+                    state as unknown as AuthHost,
+                    provider,
+                    credential,
+                    credentialType,
+                  );
                 },
               })
             : nothing

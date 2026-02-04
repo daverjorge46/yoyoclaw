@@ -10,6 +10,7 @@ import { scheduleChatScroll, scheduleLogsScroll } from "./app-scroll.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import { loadAgents } from "./controllers/agents.ts";
+import { loadProvidersList, type AuthHost } from "./controllers/auth.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { loadConfig, loadConfigSchema } from "./controllers/config.ts";
 import { loadCronJobs, loadCronStatus } from "./controllers/cron.ts";
@@ -231,6 +232,7 @@ export async function refreshActiveTab(host: SettingsHost) {
   if (host.tab === "providers") {
     await Promise.all([
       loadProvidersHealth(host as unknown as Parameters<typeof loadProvidersHealth>[0]),
+      loadProvidersList(host as unknown as AuthHost),
       loadPresence(host as unknown as OpenClawApp),
       loadSessions(host as unknown as OpenClawApp),
     ]);

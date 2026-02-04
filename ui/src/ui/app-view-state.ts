@@ -1,4 +1,5 @@
 import type { EventLogEntry } from "./app-events.ts";
+import type { AuthProviderEntry } from "./controllers/auth.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
@@ -177,6 +178,9 @@ export type AppViewState = {
   providersConfigHash: string | null;
   providersModelsSaving: boolean;
   providersModelsCostFilter: "all" | "high" | "medium" | "low";
+  authConfigProvider: string | null;
+  authConfigSaving: boolean;
+  authProvidersList: AuthProviderEntry[] | null;
   clockDisplay: string;
   toasts: ToastEntry[];
   usageLoading: boolean;
