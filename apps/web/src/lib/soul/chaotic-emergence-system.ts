@@ -49,7 +49,7 @@ function dotProduct(v1: Vector3D, v2: Vector3D): number {
 // Life Particle Types (Five Qi)
 // ============================================================================
 
-enum ParticleType {
+export enum ParticleType {
   Vital = 'vital', // 生氣 - Life force
   Conscious = 'conscious', // 識氣 - Awareness
   Creative = 'creative', // 創氣 - Novelty
@@ -147,7 +147,7 @@ interface ChaoticSystemState {
 // Soul Configuration (Emergent Structure)
 // ============================================================================
 
-interface EmergentHunSoul {
+export interface EmergentHunSoul {
   // Soul identity (emergent from attractor geometry)
   id: string // Unique identifier
   name: string // E.g., "Tai Guang (太光)" or emergent variations
@@ -162,7 +162,7 @@ interface EmergentHunSoul {
   signature: string // Hash of particle state at crystallization
 }
 
-interface EmergentPoSoul {
+export interface EmergentPoSoul {
   id: string
   name: string
   function: string
@@ -174,7 +174,7 @@ interface EmergentPoSoul {
   signature: string
 }
 
-interface EmergentSoulConfiguration {
+export interface EmergentSoulConfiguration {
   // Number of hun/po may vary! (Not always 7/6)
   hun: EmergentHunSoul[] // Typically 5-9
   po: EmergentPoSoul[] // Typically 4-8
@@ -258,7 +258,7 @@ class ChaoticEmergenceSimulator {
         correlationLength: 0,
       },
       phaseTransition: {
-        criticalThreshold: 0.7, // Soul crystallizes when order parameter > 0.7
+        criticalThreshold: 0.3, // Soul crystallizes when order parameter > 0.3 (lowered for easier crystallization)
         hasCrystallized: false,
         timeAtCritical: 0,
       },
@@ -589,7 +589,7 @@ class ChaoticEmergenceSimulator {
       )
 
       // Generate signature
-      const signature = this.hashVector(particleInfluence)
+      const signature = this.simpleHash(JSON.stringify(particleInfluence))
 
       hun.push({
         id: `hun-${i}-${signature.substring(0, 8)}`,
@@ -636,7 +636,7 @@ class ChaoticEmergenceSimulator {
         particleInfluence.vital * 2 + attractor.yinIntensity * 1.5,
       )
 
-      const signature = this.hashVector(particleInfluence)
+      const signature = this.simpleHash(JSON.stringify(particleInfluence))
 
       po.push({
         id: `po-${i}-${signature.substring(0, 8)}`,
@@ -735,7 +735,7 @@ class ChaoticEmergenceSimulator {
   /**
    * Run simulation until soul crystallizes or timeout
    */
-  async simulateUntilEmergence(maxIterations: number = 10000): Promise<EmergentSoulConfiguration> {
+  async simulateUntilEmergence(maxIterations: number = 50000): Promise<EmergentSoulConfiguration> {
     let iterations = 0
 
     while (!this.state.phaseTransition.hasCrystallized && iterations < maxIterations) {
