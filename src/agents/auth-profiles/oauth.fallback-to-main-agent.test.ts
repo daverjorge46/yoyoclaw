@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthProfileStore } from "./types.js";
+import { loadSecureJsonFile } from "../../infra/crypto-store.js";
 import { resolveApiKeyForProfile } from "./oauth.js";
 import { ensureAuthProfileStore } from "./store.js";
 
@@ -117,8 +118,8 @@ describe("resolveApiKeyForProfile fallback to main agent", () => {
     expect(result?.provider).toBe("anthropic");
 
     // Verify the credentials were copied to the secondary agent
-    const updatedSecondaryStore = JSON.parse(
-      await fs.readFile(path.join(secondaryAgentDir, "auth-profiles.json"), "utf8"),
+    const updatedSecondaryStore = loadSecureJsonFile(
+      path.join(secondaryAgentDir, "auth-profiles.json"),
     ) as AuthProfileStore;
     expect(updatedSecondaryStore.profiles[profileId]).toMatchObject({
       access: "fresh-access-token",
