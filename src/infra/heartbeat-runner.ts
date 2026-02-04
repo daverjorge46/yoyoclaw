@@ -97,6 +97,15 @@ const EXEC_EVENT_PROMPT =
   "Please relay the command output to the user in a helpful way. If the command succeeded, share the relevant output. " +
   "If it failed, explain what went wrong.";
 
+// Prompt used when there are pending system events (cron triggers, reminders, etc.) that don't
+// include exec completion. Instructs the model to handle these events instead of doing standard
+// heartbeat behavior.
+const SYSTEM_EVENT_PROMPT =
+  "You have pending system events (shown in the system messages above). " +
+  "Please handle them appropriately - this may include relaying reminders to the user, " +
+  "processing scheduled tasks, or responding to notifications. " +
+  "Do not reply HEARTBEAT_OK; respond based on the event content.";
+
 function resolveActiveHoursTimezone(cfg: OpenClawConfig, raw?: string): string {
   const trimmed = raw?.trim();
   if (!trimmed || trimmed === "user") {
@@ -575,13 +584,27 @@ export async function runHeartbeatOnce(opts: {
   // instead of the standard heartbeat prompt with "reply HEARTBEAT_OK".
   const pendingEvents = hasPendingEvents ? peekSystemEvents(sessionKey) : [];
   const hasExecCompletion = pendingEvents.some((evt) => evt.includes("Exec finished"));
+  const hasPendingSystemEvents = pendingEvents.length > 0;
 
-  const prompt = hasExecCompletion ? EXEC_EVENT_PROMPT : resolveHeartbeatPrompt(cfg, heartbeat);
+  // Prompt selection priority:
+  // 1. Exec completion events → EXEC_EVENT_PROMPT (specific to command output relay)
+  // 2. Other system events (cron, reminders) → SYSTEM_EVENT_PROMPT (handle events)
+  // 3. No events → standard heartbeat prompt (check HEARTBEAT.md, reply HEARTBEAT_OK)
+  const prompt = hasExecCompletion
+    ? EXEC_EVENT_PROMPT
+    : hasPendingSystemEvents
+      ? SYSTEM_EVENT_PROMPT
+      : resolveHeartbeatPrompt(cfg, heartbeat);
+  const eventProvider = hasExecCompletion
+    ? "exec-event"
+    : hasPendingSystemEvents
+      ? "system-event"
+      : "heartbeat";
   const ctx = {
     Body: prompt,
     From: sender,
     To: sender,
-    Provider: hasExecCompletion ? "exec-event" : "heartbeat",
+    Provider: eventProvider,
     SessionKey: sessionKey,
   };
   if (!visibility.showAlerts && !visibility.showOk && !visibility.useIndicator) {
@@ -669,7 +692,11 @@ export async function runHeartbeatOnce(opts: {
       normalized.text = execFallbackText;
       normalized.shouldSkip = false;
     }
-    const shouldSkipMain = normalized.shouldSkip && !normalized.hasMedia && !hasExecCompletion;
+    const shouldSkipMain =
+      normalized.shouldSkip &&
+      !normalized.hasMedia &&
+      !hasExecCompletion &&
+      !hasPendingSystemEvents;
     if (shouldSkipMain && reasoningPayloads.length === 0) {
       await restoreHeartbeatUpdatedAt({
         storePath,
