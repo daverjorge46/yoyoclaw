@@ -165,7 +165,8 @@ async function execSystemctl(
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   try {
     const cmd = options?.useSudo ? "sudo" : "systemctl";
-    const cmdArgs = options?.useSudo ? ["systemctl", ...args] : args;
+    // Security: use non-interactive sudo (-n) to avoid hanging on password prompts
+    const cmdArgs = options?.useSudo ? ["-n", "systemctl", ...args] : args;
     const { stdout, stderr } = await execFileAsync(cmd, cmdArgs, {
       encoding: "utf8",
     });
@@ -219,7 +220,8 @@ export async function isSystemdUserServiceAvailable(): Promise<boolean> {
 
 export async function isSystemdSystemServiceAvailable(): Promise<boolean> {
   // Check if we can run systemctl (may require sudo)
-  const res = await execSystemctl(["status"], { useSudo: true });
+  // Note: we don't use useSudo: true here to avoid permission-denied false positives
+  const res = await execSystemctl(["status"]);
   // If it doesn't error with "command not found", systemd is available
   const detail = `${res.stderr} ${res.stdout}`.toLowerCase();
   if (detail.includes("not found")) {
@@ -422,6 +424,7 @@ export async function readSystemdServiceRuntime(
       subState: parsed.subState,
       pid: parsed.mainPid,
       lastExitStatus: parsed.execMainStatus,
+      lastExitReason: parsed.execMainCode,
       lastRunResult: parsed.execMainCode,
     };
   }
@@ -448,6 +451,7 @@ export async function readSystemdServiceRuntime(
       subState: parsed.subState,
       pid: parsed.mainPid,
       lastExitStatus: parsed.execMainStatus,
+      lastExitReason: parsed.execMainCode,
       lastRunResult: parsed.execMainCode,
     };
   }
