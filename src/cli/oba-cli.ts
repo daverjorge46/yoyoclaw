@@ -380,9 +380,13 @@ export function registerObaCli(program: Command): void {
 
         let verification: string | undefined;
         if (opts.verify) {
-          const raw = JSON.parse(fs.readFileSync(resolved, "utf-8")) as Record<string, unknown>;
-          const result = await verifyObaContainer(raw);
-          verification = result.status;
+          try {
+            const raw = JSON.parse(fs.readFileSync(resolved, "utf-8")) as Record<string, unknown>;
+            const result = await verifyObaContainer(raw);
+            verification = result.status;
+          } catch {
+            verification = "invalid";
+          }
         }
 
         if (opts.json) {

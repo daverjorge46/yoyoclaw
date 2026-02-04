@@ -15,7 +15,12 @@ import {
   signPayload,
 } from "./keys.js";
 import { isPrivateHost, validateOwnerUrl } from "./owner-url.js";
-import { parseSkillMetadataObject, signPluginManifest, signSkillMetadata } from "./sign.js";
+import {
+  extractSkillMetadata,
+  parseSkillMetadataObject,
+  signPluginManifest,
+  signSkillMetadata,
+} from "./sign.js";
 import { clearJwksCache, verifyObaContainer } from "./verify.js";
 
 // Helper: generate a test keypair.
@@ -355,6 +360,113 @@ This is a test skill.
     const result = await verifyObaContainer(tampered);
     expect(result.status).toBe("invalid");
     expect(result.reason).toBe("signature mismatch");
+  });
+});
+
+describe("extractSkillMetadata", () => {
+  it("extracts metadata from simple frontmatter", () => {
+    const content = `---
+metadata: { "name": "test" }
+---
+
+# Skill
+`;
+    const { metadataRaw } = extractSkillMetadata(content);
+    expect(metadataRaw).toBe('{ "name": "test" }');
+  });
+
+  it("extracts multi-line metadata", () => {
+    const content = `---
+metadata: {
+  "name": "test",
+  "version": "1.0"
+}
+---
+
+# Skill
+`;
+    const { metadataRaw } = extractSkillMetadata(content);
+    expect(metadataRaw).toContain('"name": "test"');
+    expect(metadataRaw).toContain('"version": "1.0"');
+  });
+
+  it("returns correct byte offsets", () => {
+    const content = `---
+metadata: { "a": 1 }
+---
+`;
+    const { metaStart, metaEnd } = extractSkillMetadata(content);
+    // metaStart should point to the "metadata:" key inside the frontmatter.
+    expect(content.slice(metaStart, metaEnd)).toContain("metadata:");
+    expect(content.slice(metaStart, metaEnd)).toContain('{ "a": 1 }');
+  });
+
+  it("throws when no frontmatter block exists", () => {
+    expect(() => extractSkillMetadata("# No frontmatter")).toThrow("No frontmatter block");
+  });
+
+  it("throws when no metadata field in frontmatter", () => {
+    const content = `---
+title: Test
+---
+`;
+    expect(() => extractSkillMetadata(content)).toThrow("No metadata field");
+  });
+
+  it("stops at the next top-level key", () => {
+    const content = `---
+metadata: { "a": 1 }
+title: Test
+---
+`;
+    const { metadataRaw } = extractSkillMetadata(content);
+    expect(metadataRaw).toBe('{ "a": 1 }');
+    expect(metadataRaw).not.toContain("title");
+  });
+
+  it("does not match substrings like extra_metadata", () => {
+    const content = `---
+extra_metadata: ignored
+metadata: { "real": true }
+---
+`;
+    const { metadataRaw } = extractSkillMetadata(content);
+    expect(metadataRaw).toBe('{ "real": true }');
+  });
+
+  it("handles CRLF line endings", () => {
+    const content = '---\r\nmetadata: { "a": 1 }\r\n---\r\n';
+    const { metadataRaw } = extractSkillMetadata(content);
+    expect(metadataRaw).toBe('{ "a": 1 }');
+  });
+});
+
+describe("parseSkillMetadataObject", () => {
+  it("returns parsed metadata object", () => {
+    const content = `---
+metadata: { "name": "test", "version": "1.0" }
+---
+
+# Skill
+`;
+    const result = parseSkillMetadataObject(content);
+    expect(result).toEqual({ name: "test", version: "1.0" });
+  });
+
+  it("throws on non-object metadata", () => {
+    const content = `---
+metadata: "just a string"
+---
+`;
+    expect(() => parseSkillMetadataObject(content)).toThrow();
+  });
+
+  it("throws on array metadata", () => {
+    const content = `---
+metadata: [1, 2, 3]
+---
+`;
+    expect(() => parseSkillMetadataObject(content)).toThrow();
   });
 });
 

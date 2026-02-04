@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { base64UrlEncode } from "./base64url.js";
 import { canonicalize, CanonicalizeError } from "./canonicalize.js";
 import { classifyObaOffline } from "./extract.js";
-import { clearJwksCache, verifyObaContainer } from "./verify.js";
+import { clearJwksCache, mapLimit, verifyObaContainer } from "./verify.js";
 
 // --- helpers: generate an Ed25519 keypair + JWK in-test ---
 
@@ -121,6 +121,62 @@ describe("classifyObaOffline", () => {
     });
     expect(result.verification.status).toBe("invalid");
     expect(result.verification.reason).toContain("alg");
+  });
+});
+
+describe("mapLimit", () => {
+  it("maps items with concurrency limit", async () => {
+    const items = [1, 2, 3, 4, 5];
+    const results = await mapLimit(items, 2, async (n) => n * 10);
+    expect(results).toEqual([10, 20, 30, 40, 50]);
+  });
+
+  it("preserves result order regardless of completion order", async () => {
+    const items = [3, 1, 2]; // delays in ms
+    const results = await mapLimit(items, 3, async (n) => {
+      await new Promise((r) => setTimeout(r, n * 10));
+      return n;
+    });
+    expect(results).toEqual([3, 1, 2]);
+  });
+
+  it("handles empty array", async () => {
+    const results = await mapLimit([], 4, async (n: number) => n);
+    expect(results).toEqual([]);
+  });
+
+  it("respects concurrency limit", async () => {
+    let running = 0;
+    let maxRunning = 0;
+    const items = [1, 2, 3, 4, 5, 6];
+
+    await mapLimit(items, 2, async (n) => {
+      running++;
+      if (running > maxRunning) {
+        maxRunning = running;
+      }
+      await new Promise((r) => setTimeout(r, 10));
+      running--;
+      return n;
+    });
+
+    expect(maxRunning).toBeLessThanOrEqual(2);
+  });
+
+  it("propagates errors from fn", async () => {
+    await expect(
+      mapLimit([1, 2, 3], 2, async (n) => {
+        if (n === 2) {
+          throw new Error("fail");
+        }
+        return n;
+      }),
+    ).rejects.toThrow("fail");
+  });
+
+  it("works when limit exceeds item count", async () => {
+    const results = await mapLimit([1, 2], 10, async (n) => n * 2);
+    expect(results).toEqual([2, 4]);
   });
 });
 
