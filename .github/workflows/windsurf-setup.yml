@@ -1,0 +1,57 @@
+name: Windsurf Secret Setup and Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "OpenClaw command to run after secrets are installed"
+        required: false
+        default: "node openclaw.mjs models discover --providers windsurf --json"
+
+permissions: read-all
+
+jobs:
+  setup-windsurf:
+    name: Setup Windsurf secret and run OpenClaw
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable pnpm (via Corepack)
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create secure OpenClaw windsuf config from secrets
+        env:
+          WINDSURF_API_KEY: ${{ secrets.WINDSURF_API_KEY }}
+          WINDSURF_ENDPOINT: ${{ secrets.WINDSURF_ENDPOINT }}
+        run: |
+          # Write a runner-only windsuf config so the secret never lands in repo
+          mkdir -p "$HOME/.openclaw"
+          cat > "$HOME/.openclaw/windsurf.json" <<'EOF'
+          {"windsurf": {"apiKey": "${WINDSURF_API_KEY}", "endpoint": "${WINDSURF_ENDPOINT}"}}
+          EOF
+          chmod 600 "$HOME/.openclaw/windsurf.json"
+
+      - name: Run provided OpenClaw command
+        shell: bash
+        run: |
+          echo "Running OpenClaw command: ${{ github.event.inputs.command }}"
+          ${{ github.event.inputs.command }}
+
+      - name: List created secure files (for debugging)
+        if: ${{ always() }}
+        run: ls -l "$HOME/.openclaw" || true
+
+# Note: Add WINDSURF_API_KEY and WINDSURF_ENDPOINT to your repository's
+# Secrets (Settings → Secrets & variables → Actions) before running this workflow.
