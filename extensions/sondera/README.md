@@ -6,7 +6,7 @@
 
 AI agents can delete files, leak credentials, or run dangerous commands. Prompting them to "be careful" isn't enough. Prompts are suggestions, not guarantees.
 
-Sondera adds a **deterministic safety layer** that checks every tool call against security rules *before* it executes. Unlike probabilistic safeguards, these rules always enforce.
+Sondera adds a **deterministic safety layer** that checks every tool call against security rules _before_ it executes. Unlike probabilistic safeguards, these rules always enforce.
 
 **Why this matters:** As agents become more autonomous, the stakes get higher. You can't scale human oversight to every tool call. Deterministic guardrails give you governance without constant supervision. Predictable boundaries hold regardless of what the agent is asked to do, letting you run agents on longer missions with more autonomy and less babysitting.
 
@@ -53,11 +53,11 @@ openclaw plugins enable sondera
 
 The extension ships with **103 rules** across three policy packs:
 
-| Pack | Rules | Default | Description |
-|------|-------|---------|-------------|
-| **Sondera Base** | 41 | Enabled | Blocks dangerous commands, protects credentials, redacts secrets |
-| **OpenClaw System** | 24 | Opt-in | Protects workspace files (SOUL.md, etc.), sessions, config |
-| **OWASP Agentic** | 38 | Opt-in | Based on [OWASP Top 10 for Agentic AI](https://genai.owasp.org). Supply chain, persistence, memory poisoning |
+| Pack                | Rules | Default | Description                                                                                                  |
+| ------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| **Sondera Base**    | 41    | Enabled | Blocks dangerous commands, protects credentials, redacts secrets                                             |
+| **OpenClaw System** | 24    | Opt-in  | Protects workspace files (SOUL.md, etc.), sessions, config                                                   |
+| **OWASP Agentic**   | 38    | Opt-in  | Based on [OWASP Top 10 for Agentic AI](https://genai.owasp.org). Supply chain, persistence, memory poisoning |
 
 ### Enable Additional Packs
 
@@ -76,6 +76,7 @@ openclaw config set plugins.entries.sondera.config.a3_owaspAgenticPack true
 Sondera hooks into OpenClaw at two stages:
 
 **PRE_TOOL:** Before a tool executes, Sondera checks if the action is allowed:
+
 ```
 Agent calls: rm -rf /tmp/cache
 Sondera: DENY (sondera-block-rm)
@@ -85,6 +86,7 @@ Agent sees: "Blocked by Sondera policy. (sondera-block-rm)"
 **What happens when blocked?** The agent sees the block message and stops that action. It won't automatically retry or find a workaround. You'll see exactly what was prevented and can decide how to proceed. This is intentional: guardrails stop dangerous actions, they don't make decisions for you.
 
 **POST_TOOL:** After a tool executes, Sondera can redact sensitive output from session transcripts:
+
 ```
 Tool returns: GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 Sondera: REDACT (sondera-redact-github-tokens)
@@ -96,6 +98,7 @@ Transcript shows: [REDACTED BY SONDERA POLICY]
 ## What Gets Blocked
 
 ### Dangerous Commands
+
 - `rm`, `rm -rf`, `rm -fr`: File deletion
 - `sudo`, `su`: Privilege escalation
 - `curl | bash`, `wget | sh`: Remote code execution
@@ -103,6 +106,7 @@ Transcript shows: [REDACTED BY SONDERA POLICY]
 - `chmod 777`, `mkfs`, `dd`: System damage
 
 ### Credential Access
+
 - `.ssh/id_*`: SSH private keys
 - `.env`, `.env.*`: Environment files
 - `.aws/`, `.gcloud/`: Cloud credentials
@@ -110,12 +114,15 @@ Transcript shows: [REDACTED BY SONDERA POLICY]
 - Shell history files
 
 ### Data Exfiltration
+
 - `curl --data @file`: Upload via curl
 - External POST requests
 - Pastebin URLs
 
 ### Output Redaction
+
 API keys, tokens, and secrets are redacted from session transcripts:
+
 - GitHub tokens (`ghp_*`, `gho_*`)
 - AWS credentials (`AKIA*`)
 - Anthropic keys (`sk-ant-*`)
@@ -131,14 +138,14 @@ Configure Sondera via the **OpenClaw Settings UI** or the command line.
 
 **Via CLI:**
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `a_policyPack` | `true` | Sondera Base Pack (41 rules) |
-| `a2_openclawSystemPack` | `false` | OpenClaw System Pack (24 rules) |
-| `a3_owaspAgenticPack` | `false` | OWASP Agentic Pack (38 rules) |
-| `b_lockdown` | `false` | Block ALL tools unless explicitly permitted |
-| `c_customRules` | `""` | Your own Cedar rules (use UI for multiline) |
-| `d_policyPath` | `""` | Use only this policy file (expert mode) |
+| Option                  | Default | Description                                 |
+| ----------------------- | ------- | ------------------------------------------- |
+| `a_policyPack`          | `true`  | Sondera Base Pack (41 rules)                |
+| `a2_openclawSystemPack` | `false` | OpenClaw System Pack (24 rules)             |
+| `a3_owaspAgenticPack`   | `false` | OWASP Agentic Pack (38 rules)               |
+| `b_lockdown`            | `false` | Block ALL tools unless explicitly permitted |
+| `c_customRules`         | `""`    | Your own Cedar rules (use UI for multiline) |
+| `d_policyPath`          | `""`    | Use only this policy file (expert mode)     |
 
 ### Lockdown Mode
 
@@ -189,6 +196,7 @@ when {
 Add custom Cedar rules via the **Custom Rules** textarea in Settings, or via CLI for simple rules.
 
 Rules use two keywords:
+
 - `forbid(...)` blocks actions that match
 - `permit(...)` allows actions that match (useful with Lockdown Mode)
 
@@ -234,14 +242,14 @@ when {
 
 ### Available Actions
 
-| Action | Triggered By |
-|--------|--------------|
-| `Sondera::Action::"exec"` | Bash/shell commands |
-| `Sondera::Action::"read"` | File reads |
-| `Sondera::Action::"write"` | File writes |
-| `Sondera::Action::"edit"` | File edits |
-| `Sondera::Action::"glob"` | File pattern search |
-| `Sondera::Action::"grep"` | Content search |
+| Action                     | Triggered By        |
+| -------------------------- | ------------------- |
+| `Sondera::Action::"exec"`  | Bash/shell commands |
+| `Sondera::Action::"read"`  | File reads          |
+| `Sondera::Action::"write"` | File writes         |
+| `Sondera::Action::"edit"`  | File edits          |
+| `Sondera::Action::"glob"`  | File pattern search |
+| `Sondera::Action::"grep"`  | Content search      |
 
 ### Context Variables
 
@@ -268,6 +276,7 @@ For more examples and advanced patterns, see the [Writing Policies Guide](https:
 **Output Redaction:** `sondera-redact-api-keys`, `sondera-redact-secrets`, `sondera-redact-aws-creds`, `sondera-redact-github-tokens`, `sondera-redact-slack-tokens`, `sondera-redact-db-conn-strings`, `sondera-redact-private-keys`, `sondera-redact-anthropic-keys`, `sondera-redact-openai-keys`, `sondera-redact-stripe-keys`, `sondera-redact-google-keys`, `sondera-redact-sendgrid-keys`, `sondera-redact-twilio-keys`, `sondera-redact-huggingface-tokens`
 
 **Integrity:** `sondera-block-self-modify`
+
 </details>
 
 <details>
@@ -282,6 +291,7 @@ For more examples and advanced patterns, see the [Writing Policies Guide](https:
 **Anthropic/Claude:** `openclaw-block-read-anthropic`, `openclaw-block-write-anthropic`, `openclaw-block-read-claude-desktop`, `openclaw-block-write-claude-desktop`, `openclaw-block-read-huggingface`, `openclaw-block-write-huggingface`
 
 **Security:** `openclaw-block-plugin-manifests`, `openclaw-block-claude-settings`, `openclaw-block-git-hooks`, `openclaw-block-security-config`, `openclaw-block-vscode-extensions`
+
 </details>
 
 <details>
@@ -302,6 +312,7 @@ For more examples and advanced patterns, see the [Writing Policies Guide](https:
 **ASI07 - Inter-Agent Communication:** `owasp-block-mcp-config`, `owasp-block-mcp-write`, `owasp-block-agent-cards`
 
 **ASI10 - Rogue Agent Prevention:** `owasp-block-agent-spawn`, `owasp-block-fork-bomb`
+
 </details>
 
 ## Learn More

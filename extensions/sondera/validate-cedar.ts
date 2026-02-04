@@ -52,7 +52,7 @@ function validatePolicyFile(filePath: string): ValidationResult {
 
     if (parseResult.type === "failure") {
       result.valid = false;
-      const errorMsgs = parseResult.errors?.map(e => e.message) || ["Unknown parse error"];
+      const errorMsgs = parseResult.errors?.map((e) => e.message) || ["Unknown parse error"];
       result.errors.push(`Failed to parse policy file: ${errorMsgs.join("; ")}`);
       return result;
     }
@@ -70,7 +70,7 @@ function validatePolicyFile(filePath: string): ValidationResult {
 
       if (checkResult.type === "failure") {
         result.valid = false;
-        const errorMsgs = checkResult.errors?.map(e => e.message) || ["Unknown error"];
+        const errorMsgs = checkResult.errors?.map((e) => e.message) || ["Unknown error"];
         result.errors.push(`Policy "${policyId}": ${errorMsgs.join("; ")}`);
       }
     });
@@ -78,7 +78,6 @@ function validatePolicyFile(filePath: string): ValidationResult {
     if (result.policyCount === 0) {
       result.warnings.push("No policies found in file");
     }
-
   } catch (err) {
     result.valid = false;
     result.errors.push(`Failed to read file: ${err instanceof Error ? err.message : String(err)}`);

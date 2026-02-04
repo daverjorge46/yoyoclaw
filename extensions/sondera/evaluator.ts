@@ -59,7 +59,7 @@ function parsePolicies(policyText: string): ParsedPolicies {
   const parseResult = cedar.policySetTextToParts(policyText);
 
   if (parseResult.type === "failure") {
-    const errorMsgs = parseResult.errors?.map(e => e.message).join("; ") || "Unknown parse error";
+    const errorMsgs = parseResult.errors?.map((e) => e.message).join("; ") || "Unknown parse error";
     errors.push(`Failed to parse policy set: ${errorMsgs}`);
     return { policies, internalIdToName, errors };
   }
@@ -129,8 +129,10 @@ export class CedarEvaluator {
    * Translate Cedar's internal policy IDs to our @id names.
    */
   private translatePolicyIds(internalIds: string[] | undefined): string[] {
-    if (!internalIds) return [];
-    return internalIds.map(id => this.internalIdToName.get(id) || id);
+    if (!internalIds) {
+      return [];
+    }
+    return internalIds.map((id) => this.internalIdToName.get(id) || id);
   }
 
   /**
@@ -165,7 +167,8 @@ export class CedarEvaluator {
       // Handle API response format: { type: "success"|"failure", response?: { decision, diagnostics } }
       if (result.type === "failure") {
         // Policy parsing or evaluation error - fail closed (DENY for security)
-        const errorMsgs = result.errors?.map((e: { message: string }) => e.message).join("; ") || "Unknown error";
+        const errorMsgs =
+          result.errors?.map((e: { message: string }) => e.message).join("; ") || "Unknown error";
         console.error(`[Sondera] Cedar evaluation failed for "${toolName}": ${errorMsgs}`);
         return {
           decision: "DENY",
@@ -196,7 +199,9 @@ export class CedarEvaluator {
       }
     } catch (err) {
       // On evaluation error, fail closed (DENY for security)
-      console.error(`[Sondera] Cedar evaluation error for "${toolName}": ${err instanceof Error ? err.message : String(err)}`);
+      console.error(
+        `[Sondera] Cedar evaluation error for "${toolName}": ${err instanceof Error ? err.message : String(err)}`,
+      );
       return {
         decision: "DENY",
         reason: `Policy error (blocked for safety): ${err instanceof Error ? err.message : String(err)}`,
@@ -229,9 +234,7 @@ export class CedarEvaluator {
     // Only redact if a specific redaction policy matched
     // Identify redaction policies by naming convention (more robust than special-casing)
     if (result.decision === "DENY") {
-      const redactionPolicies = (result.policyIds || []).filter(
-        id => this.isRedactionPolicy(id)
-      );
+      const redactionPolicies = (result.policyIds || []).filter((id) => this.isRedactionPolicy(id));
 
       if (redactionPolicies.length === 0) {
         // No redaction policy matched - DENY was from a non-redaction rule

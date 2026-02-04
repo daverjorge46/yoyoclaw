@@ -7,6 +7,8 @@
  * @see https://docs.sondera.ai/integrations/openclaw
  */
 
+import fs from "fs";
+import path from "path";
 import type {
   OpenClawPluginApi,
   PluginHookBeforeToolCallEvent,
@@ -17,8 +19,6 @@ import type {
   PluginHookToolResultPersistContext,
   PluginHookToolResultPersistResult,
 } from "../../src/plugins/types.js";
-import fs from "fs";
-import path from "path";
 import { CedarEvaluator, countPolicyRules } from "./evaluator.js";
 
 type SonderaConfig = {
@@ -36,7 +36,7 @@ type SonderaConfig = {
   d_policyPath?: string;
 };
 
-export default function(api: OpenClawPluginApi) {
+export default function (api: OpenClawPluginApi) {
   api.logger.debug?.("Sondera extension loading...");
 
   // Use import.meta to get the actual source directory where .cedar files live
@@ -54,7 +54,9 @@ export default function(api: OpenClawPluginApi) {
   const customPolicyPath = pluginConfig?.d_policyPath?.trim();
 
   // Log config for debugging
-  api.logger.debug?.(`[Sondera] Config: lockdown=${blockByDefault}, policyPack=${policyPackEnabled}, openclawSystem=${openclawSystemPackEnabled}, owaspAgentic=${owaspAgenticPackEnabled}`);
+  api.logger.debug?.(
+    `[Sondera] Config: lockdown=${blockByDefault}, policyPack=${policyPackEnabled}, openclawSystem=${openclawSystemPackEnabled}, owaspAgentic=${owaspAgenticPackEnabled}`,
+  );
 
   // Lockdown mode: rely on Cedar's implicit deny (no default policy needed)
   // When no policies match, Cedar returns DENY by default
@@ -77,11 +79,15 @@ permit(principal, action, resource);
 
   if (customPolicyPath) {
     // Expert mode: User specified a custom policy file - use ONLY this
-    const resolvedPath = path.isAbsolute(customPolicyPath) ? customPolicyPath : path.resolve(extensionDir, customPolicyPath);
+    const resolvedPath = path.isAbsolute(customPolicyPath)
+      ? customPolicyPath
+      : path.resolve(extensionDir, customPolicyPath);
     try {
       combinedPolicy = fs.readFileSync(resolvedPath, "utf-8");
       api.logger.debug?.(`[Sondera] Expert mode: using custom policy file ONLY: ${resolvedPath}`);
-      api.logger.debug?.(`[Sondera] Note: policyPack, lockdown, and customRules settings are ignored when policyPath is set`);
+      api.logger.debug?.(
+        `[Sondera] Note: policyPack, lockdown, and customRules settings are ignored when policyPath is set`,
+      );
     } catch (err) {
       api.logger.error(`[Sondera] Failed to load custom policy from ${resolvedPath}: ${err}`);
       // Fall through to standard mode
@@ -97,8 +103,10 @@ permit(principal, action, resource);
         basePolicy = fs.readFileSync(bundledPolicyPath, "utf-8");
         const ruleCount = countPolicyRules(basePolicy);
         api.logger.debug?.(`[Sondera] Loaded bundled default policy pack (${ruleCount} rules)`);
-      } catch (err) {
-        api.logger.debug?.(`[Sondera] No bundled policy-sondera-base.cedar found (this is OK if using UI-only)`);
+      } catch {
+        api.logger.debug?.(
+          `[Sondera] No bundled policy-sondera-base.cedar found (this is OK if using UI-only)`,
+        );
       }
     } else {
       api.logger.debug?.(`[Sondera] Sondera Policy Pack disabled by config`);
@@ -111,7 +119,7 @@ permit(principal, action, resource);
         openclawSystemPolicy = fs.readFileSync(openclawSystemPolicyPath, "utf-8");
         const ruleCount = countPolicyRules(openclawSystemPolicy);
         api.logger.debug?.(`[Sondera] Loaded OpenClaw System Protection pack (${ruleCount} rules)`);
-      } catch (err) {
+      } catch {
         api.logger.debug?.(`[Sondera] No policy-openclaw-system.cedar found`);
       }
     } else {
@@ -125,7 +133,7 @@ permit(principal, action, resource);
         owaspAgenticPolicy = fs.readFileSync(owaspAgenticPolicyPath, "utf-8");
         const ruleCount = countPolicyRules(owaspAgenticPolicy);
         api.logger.debug?.(`[Sondera] Loaded OWASP Agentic policy pack (${ruleCount} rules)`);
-      } catch (err) {
+      } catch {
         api.logger.debug?.(`[Sondera] No policy-owasp-agentic.cedar found`);
       }
     } else {
@@ -140,7 +148,9 @@ permit(principal, action, resource);
 
     // Log block-by-default mode
     if (blockByDefault) {
-      api.logger.debug?.(`[Sondera] Block-by-default mode ENABLED (deny all unless explicitly permitted)`);
+      api.logger.debug?.(
+        `[Sondera] Block-by-default mode ENABLED (deny all unless explicitly permitted)`,
+      );
     }
 
     // Select the default policy based on mode
@@ -150,7 +160,15 @@ permit(principal, action, resource);
 
     // Combine: default policy + base guardrails + OpenClaw system pack + OWASP pack + custom rules from UI
     // Order matters: default policy first, then guardrails, then OpenClaw system, then OWASP, then custom rules
-    combinedPolicy = [defaultPolicy, basePolicy, openclawSystemPolicy, owaspAgenticPolicy, customPolicyRules].filter(Boolean).join("\n\n");
+    combinedPolicy = [
+      defaultPolicy,
+      basePolicy,
+      openclawSystemPolicy,
+      owaspAgenticPolicy,
+      customPolicyRules,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
   if (!combinedPolicy.trim()) {
@@ -160,7 +178,9 @@ permit(principal, action, resource);
       api.logger.info("[Sondera] Lockdown mode enabled - all tools blocked by Cedar default-deny.");
       // Keep combinedPolicy empty - this is valid input for Cedar
     } else {
-      api.logger.warn("[Sondera] No policy configured. Set policyPath or add customPolicy via config UI.");
+      api.logger.warn(
+        "[Sondera] No policy configured. Set policyPath or add customPolicy via config UI.",
+      );
       api.logger.debug?.("Sondera extension loaded (inactive - no policy configured).");
       return;
     }
@@ -172,7 +192,9 @@ permit(principal, action, resource);
     evaluator = new CedarEvaluator(combinedPolicy);
     const totalRules = evaluator.ruleCount;
     const hasDefaultPermit = combinedPolicy.includes('@id("default-allow")');
-    api.logger.debug?.(`[Sondera] Cedar evaluator initialized with ${totalRules} rules (default-allow=${hasDefaultPermit})`);
+    api.logger.debug?.(
+      `[Sondera] Cedar evaluator initialized with ${totalRules} rules (default-allow=${hasDefaultPermit})`,
+    );
   } catch (err) {
     api.logger.error(`[Sondera] Failed to initialize Cedar evaluator: ${err}`);
     api.logger.debug?.("Sondera extension loaded (inactive - policy parse error).");
@@ -183,73 +205,96 @@ permit(principal, action, resource);
   // HOOK: before_tool_call (PRE_TOOL stage)
   // Blocks tool calls that violate policy
   // ============================================
-  api.on("before_tool_call", async (event: PluginHookBeforeToolCallEvent, ctx: PluginHookToolContext): Promise<PluginHookBeforeToolCallResult | void> => {
-    const { toolName, params } = event;
+  api.on(
+    "before_tool_call",
+    async (
+      event: PluginHookBeforeToolCallEvent,
+      _ctx: PluginHookToolContext,
+    ): Promise<PluginHookBeforeToolCallResult | void> => {
+      const { toolName, params } = event;
 
-    api.logger.debug?.(`[Sondera] before_tool_call: toolName=${toolName}`);
+      api.logger.debug?.(`[Sondera] before_tool_call: toolName=${toolName}`);
 
-    const result = evaluator.evaluatePreTool(toolName, params);
-    api.logger.debug?.(`[Sondera] PRE_TOOL decision for "${toolName}": ${result.decision} reason=${result.reason}`);
+      const result = evaluator.evaluatePreTool(toolName, params);
+      api.logger.debug?.(
+        `[Sondera] PRE_TOOL decision for "${toolName}": ${result.decision} reason=${result.reason}`,
+      );
 
-    if (result.decision === "DENY") {
-      return {
-        block: true,
-        blockReason: `Blocked by Sondera policy.${result.reason ? ` (${result.reason})` : ""}`
-      };
-    }
+      if (result.decision === "DENY") {
+        return {
+          block: true,
+          blockReason: `Blocked by Sondera policy.${result.reason ? ` (${result.reason})` : ""}`,
+        };
+      }
 
-    return {};
-  });
+      return {};
+    },
+  );
 
   // ============================================
   // HOOK: after_tool_call (observability)
   // Logs tool execution for monitoring
   // ============================================
-  api.on("after_tool_call", async (event: PluginHookAfterToolCallEvent, ctx: PluginHookToolContext): Promise<void> => {
-    const { toolName, error, durationMs } = event;
+  api.on(
+    "after_tool_call",
+    async (event: PluginHookAfterToolCallEvent, _ctx: PluginHookToolContext): Promise<void> => {
+      const { toolName, error, durationMs } = event;
 
-    if (error) {
-      api.logger.debug?.(`[Sondera] after_tool_call: toolName=${toolName} error="${error}" duration=${durationMs}ms`);
-    } else {
-      api.logger.debug?.(`[Sondera] after_tool_call: toolName=${toolName} duration=${durationMs}ms`);
-    }
-  });
+      if (error) {
+        api.logger.debug?.(
+          `[Sondera] after_tool_call: toolName=${toolName} error="${error}" duration=${durationMs}ms`,
+        );
+      } else {
+        api.logger.debug?.(
+          `[Sondera] after_tool_call: toolName=${toolName} duration=${durationMs}ms`,
+        );
+      }
+    },
+  );
 
   // ============================================
   // HOOK: tool_result_persist (POST_TOOL stage)
   // Redacts tool results that violate policy
   // ============================================
-  api.on("tool_result_persist", (event: PluginHookToolResultPersistEvent, ctx: PluginHookToolResultPersistContext): PluginHookToolResultPersistResult | void => {
-    const { toolName, message } = event;
+  api.on(
+    "tool_result_persist",
+    (
+      event: PluginHookToolResultPersistEvent,
+      _ctx: PluginHookToolResultPersistContext,
+    ): PluginHookToolResultPersistResult | void => {
+      const { toolName, message } = event;
 
-    // Extract text content from the message
-    const content = message.content;
-    let textContent = "";
-    if (typeof content === "string") {
-      textContent = content;
-    } else if (Array.isArray(content)) {
-      textContent = content
-        .filter((c): c is { type: "text"; text: string } => c.type === "text")
-        .map((c) => c.text)
-        .join("\n");
-    }
+      // Extract text content from the message
+      const content = message.content;
+      let textContent = "";
+      if (typeof content === "string") {
+        textContent = content;
+      } else if (Array.isArray(content)) {
+        textContent = content
+          .filter((c): c is { type: "text"; text: string } => c.type === "text")
+          .map((c) => c.text)
+          .join("\n");
+      }
 
-    const result = evaluator.evaluatePostTool(toolName ?? "unknown", textContent);
-    api.logger.debug?.(`[Sondera] POST_TOOL decision for "${toolName}": ${result.decision}`);
+      const result = evaluator.evaluatePostTool(toolName ?? "unknown", textContent);
+      api.logger.debug?.(`[Sondera] POST_TOOL decision for "${toolName}": ${result.decision}`);
 
-    if (result.decision === "DENY") {
-      const policyInfo = result.reason ? ` (${result.reason})` : "";
-      api.logger.debug?.(`[Sondera] Tool result redacted by policy for "${toolName}"${policyInfo}`);
-      return {
-        message: {
-          ...message,
-          content: [{ type: "text", text: `[REDACTED BY SONDERA POLICY]${policyInfo}` }],
-        },
-      };
-    }
+      if (result.decision === "DENY") {
+        const policyInfo = result.reason ? ` (${result.reason})` : "";
+        api.logger.debug?.(
+          `[Sondera] Tool result redacted by policy for "${toolName}"${policyInfo}`,
+        );
+        return {
+          message: {
+            ...message,
+            content: [{ type: "text", text: `[REDACTED BY SONDERA POLICY]${policyInfo}` }],
+          },
+        };
+      }
 
-    return undefined;
-  });
+      return undefined;
+    },
+  );
 
   api.logger.debug?.("Sondera extension loaded.");
 }

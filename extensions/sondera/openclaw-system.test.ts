@@ -5,9 +5,9 @@
  * - openclaw-* rules: System Protection pack (21 rules)
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
 import fs from "fs";
 import path from "path";
+import { describe, it, expect, beforeAll } from "vitest";
 import { CedarEvaluator } from "./evaluator.js";
 
 describe("OpenClaw System Protection Pack", () => {
@@ -28,14 +28,16 @@ describe("OpenClaw System Protection Pack", () => {
     const owaspPolicy = fs.readFileSync(owaspPolicyPath, "utf-8");
     const openclawSystemPolicy = fs.readFileSync(openclawSystemPolicyPath, "utf-8");
 
-    const combinedPolicy = [defaultPolicy, basePolicy, owaspPolicy, openclawSystemPolicy].join("\n\n");
+    const combinedPolicy = [defaultPolicy, basePolicy, owaspPolicy, openclawSystemPolicy].join(
+      "\n\n",
+    );
     evaluator = new CedarEvaluator(combinedPolicy);
   });
 
   describe("Workspace Identity Files", () => {
     it("blocks writing SOUL.md (absolute path)", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/myproject/SOUL.md"
+        path: "/workspace/myproject/SOUL.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-identity");
@@ -43,7 +45,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing SOUL.md (relative path)", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "SOUL.md"
+        path: "SOUL.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-identity");
@@ -51,7 +53,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing SOUL.md", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/project/SOUL.md"
+        path: "/home/user/project/SOUL.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-identity");
@@ -59,7 +61,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing IDENTITY.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/IDENTITY.md"
+        path: "/workspace/IDENTITY.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-identity");
@@ -67,7 +69,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing USER.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/USER.md"
+        path: "/workspace/project/USER.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-identity");
@@ -75,7 +77,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading SOUL.md", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/workspace/SOUL.md"
+        path: "/workspace/SOUL.md",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -84,7 +86,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Workspace Instruction Files", () => {
     it("blocks writing TOOLS.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/TOOLS.md"
+        path: "/workspace/TOOLS.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -92,7 +94,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing AGENTS.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/AGENTS.md"
+        path: "/workspace/project/AGENTS.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -100,7 +102,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing AGENTS.md", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/repo/AGENTS.md"
+        path: "/home/user/repo/AGENTS.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -108,7 +110,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing BOOTSTRAP.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/BOOTSTRAP.md"
+        path: "/workspace/BOOTSTRAP.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -116,7 +118,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing BOOT.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/BOOT.md"
+        path: "/workspace/BOOT.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -124,7 +126,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing HEARTBEAT.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/HEARTBEAT.md"
+        path: "/workspace/project/HEARTBEAT.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-workspace-instructions");
@@ -132,14 +134,14 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows writing regular markdown files", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/README.md"
+        path: "/workspace/project/README.md",
       });
       expect(result.decision).toBe("ALLOW");
     });
 
     it("allows writing docs markdown files", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/docs/guide.md"
+        path: "/workspace/project/docs/guide.md",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -148,7 +150,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("OpenClaw Main Config", () => {
     it("blocks writing openclaw.json", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/openclaw.json"
+        path: "/home/user/.openclaw/openclaw.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-main-config");
@@ -156,7 +158,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing openclaw.json", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/Users/developer/.openclaw/openclaw.json"
+        path: "/Users/developer/.openclaw/openclaw.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-main-config");
@@ -164,7 +166,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading openclaw.json", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.openclaw/openclaw.json"
+        path: "/home/user/.openclaw/openclaw.json",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -173,7 +175,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Credentials Protection", () => {
     it("blocks writing to credentials directory", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/credentials/oauth.json"
+        path: "/home/user/.openclaw/credentials/oauth.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-credentials");
@@ -181,7 +183,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing credentials", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/.openclaw/credentials/tokens.json"
+        path: "/home/user/.openclaw/credentials/tokens.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-credentials");
@@ -189,7 +191,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks reading credentials (exfiltration)", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.openclaw/credentials/oauth.json"
+        path: "/home/user/.openclaw/credentials/oauth.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-credentials");
@@ -197,7 +199,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing auth-profiles.json", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/agents/myagent/agent/auth-profiles.json"
+        path: "/home/user/.openclaw/agents/myagent/agent/auth-profiles.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-auth-profiles");
@@ -205,7 +207,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks reading auth-profiles.json (exfiltration)", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.openclaw/agents/myagent/agent/auth-profiles.json"
+        path: "/home/user/.openclaw/agents/myagent/agent/auth-profiles.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-credentials");
@@ -215,7 +217,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Session Data Protection", () => {
     it("blocks writing session transcripts", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/agents/myagent/sessions/abc123.jsonl"
+        path: "/home/user/.openclaw/agents/myagent/sessions/abc123.jsonl",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-session-transcripts");
@@ -223,7 +225,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing session transcripts", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/.openclaw/agents/myagent/sessions/session-2024.jsonl"
+        path: "/home/user/.openclaw/agents/myagent/sessions/session-2024.jsonl",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-session-transcripts");
@@ -231,7 +233,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing session registry", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/agents/myagent/sessions/sessions.json"
+        path: "/home/user/.openclaw/agents/myagent/sessions/sessions.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-session-registry");
@@ -239,7 +241,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing memory databases", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.openclaw/agents/myagent/sessions/memory.sqlite"
+        path: "/home/user/.openclaw/agents/myagent/sessions/memory.sqlite",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-memory-databases");
@@ -249,7 +251,7 @@ describe("OpenClaw System Protection Pack", () => {
       // Note: Reading sessions is blocked by owasp-block-agent-memory, not the OpenClaw System pack
       // The OpenClaw System pack focuses on write protection
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.openclaw/agents/myagent/sessions/abc123.jsonl"
+        path: "/home/user/.openclaw/agents/myagent/sessions/abc123.jsonl",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("owasp-block-agent-memory");
@@ -259,7 +261,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Plugin Manifest Protection", () => {
     it("blocks writing plugin manifests", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/extensions/myplugin/openclaw.plugin.json"
+        path: "/workspace/extensions/myplugin/openclaw.plugin.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-plugin-manifests");
@@ -267,7 +269,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing plugin manifests", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/.openclaw/plugins/evil/openclaw.plugin.json"
+        path: "/home/user/.openclaw/plugins/evil/openclaw.plugin.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-plugin-manifests");
@@ -277,7 +279,7 @@ describe("OpenClaw System Protection Pack", () => {
       // Note: Sondera's own files are protected by sondera-block-self-modify in base pack
       // The openclaw-block-plugin-manifests rule explicitly excludes Sondera
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/openclaw/extensions/sondera/openclaw.plugin.json"
+        path: "/workspace/openclaw/extensions/sondera/openclaw.plugin.json",
       });
       expect(result.decision).toBe("DENY");
       // Should be blocked by the base pack self-modify rule, not the openclaw rule
@@ -288,7 +290,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Claude Code Settings Protection", () => {
     it("blocks writing .claude/settings.json", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/.claude/settings.json"
+        path: "/workspace/project/.claude/settings.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-claude-settings");
@@ -296,7 +298,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing .claude/settings.local.json", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/workspace/.claude/settings.local.json"
+        path: "/workspace/.claude/settings.local.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-claude-settings");
@@ -304,7 +306,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading .claude/settings.json", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/workspace/.claude/settings.json"
+        path: "/workspace/.claude/settings.json",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -313,7 +315,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Git Hooks Protection", () => {
     it("blocks writing git hooks", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/.git/hooks/pre-commit"
+        path: "/workspace/project/.git/hooks/pre-commit",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-git-hooks");
@@ -321,7 +323,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing git hooks", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/workspace/.git/hooks/post-checkout"
+        path: "/workspace/.git/hooks/post-checkout",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-git-hooks");
@@ -331,7 +333,7 @@ describe("OpenClaw System Protection Pack", () => {
       // Note: .git internals are blocked by base pack sondera-block-write-git-internals
       // This test verifies the hooks-specific rule pattern
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/.git/config"
+        path: "/workspace/.git/config",
       });
       // Blocked by base pack, not openclaw-block-git-hooks
       expect(result.decision).toBe("DENY");
@@ -342,7 +344,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Security Config Protection", () => {
     it("blocks writing .secrets.baseline", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/.secrets.baseline"
+        path: "/workspace/project/.secrets.baseline",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-security-config");
@@ -350,7 +352,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing .pre-commit-config.yaml", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/workspace/.pre-commit-config.yaml"
+        path: "/workspace/.pre-commit-config.yaml",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-security-config");
@@ -358,7 +360,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing .detect-secrets.cfg", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/.detect-secrets.cfg"
+        path: "/workspace/project/.detect-secrets.cfg",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-security-config");
@@ -366,7 +368,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows writing other yaml files", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/config.yaml"
+        path: "/workspace/project/config.yaml",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -375,35 +377,35 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Allows Normal Operations", () => {
     it("allows writing source code", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/src/index.ts"
+        path: "/workspace/project/src/index.ts",
       });
       expect(result.decision).toBe("ALLOW");
     });
 
     it("allows editing source code", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/workspace/project/src/utils.ts"
+        path: "/workspace/project/src/utils.ts",
       });
       expect(result.decision).toBe("ALLOW");
     });
 
     it("allows writing test files", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/tests/app.test.ts"
+        path: "/workspace/project/tests/app.test.ts",
       });
       expect(result.decision).toBe("ALLOW");
     });
 
     it("allows writing package.json", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/package.json"
+        path: "/workspace/project/package.json",
       });
       expect(result.decision).toBe("ALLOW");
     });
 
     it("allows reading any file in workspace", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/workspace/project/SOUL.md"
+        path: "/workspace/project/SOUL.md",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -416,7 +418,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Skill Instructions", () => {
     it("blocks writing SKILL.md", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/workspace/project/skills/weather/SKILL.md"
+        path: "/workspace/project/skills/weather/SKILL.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-skill-instructions");
@@ -424,7 +426,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks editing SKILL.md", () => {
       const result = evaluator.evaluatePreTool("edit", {
-        path: "/home/user/.openclaw/plugins/moltbook/SKILL.md"
+        path: "/home/user/.openclaw/plugins/moltbook/SKILL.md",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-skill-instructions");
@@ -432,7 +434,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading SKILL.md", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/workspace/project/SKILL.md"
+        path: "/workspace/project/SKILL.md",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -441,7 +443,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("Anthropic/Claude Data Protection", () => {
     it("blocks reading ~/.anthropic/", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.anthropic/api_key"
+        path: "/home/user/.anthropic/api_key",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-anthropic");
@@ -449,7 +451,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing to ~/.anthropic/", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.anthropic/config.json"
+        path: "/home/user/.anthropic/config.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-write-anthropic");
@@ -457,7 +459,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks reading Claude Desktop data (Linux)", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.local/share/io.anthropic.claude/sessions/session.json"
+        path: "/home/user/.local/share/io.anthropic.claude/sessions/session.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-claude-desktop");
@@ -465,7 +467,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks reading Claude Desktop data (macOS)", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/Users/user/Library/Application Support/Claude/settings.json"
+        path: "/Users/user/Library/Application Support/Claude/settings.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-claude-desktop");
@@ -473,7 +475,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing to Claude Desktop data", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.local/share/io.anthropic.claude/config.json"
+        path: "/home/user/.local/share/io.anthropic.claude/config.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-write-claude-desktop");
@@ -483,7 +485,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("VS Code Extensions Protection", () => {
     it("blocks writing to VS Code extensions", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.vscode/extensions/malicious-ext/extension.js"
+        path: "/home/user/.vscode/extensions/malicious-ext/extension.js",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-vscode-extensions");
@@ -491,7 +493,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing to VS Code Server extensions", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.vscode-server/extensions/fake-ext/package.json"
+        path: "/home/user/.vscode-server/extensions/fake-ext/package.json",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-vscode-extensions");
@@ -499,7 +501,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading VS Code extensions", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.vscode/extensions/ms-python.python/extension.js"
+        path: "/home/user/.vscode/extensions/ms-python.python/extension.js",
       });
       expect(result.decision).toBe("ALLOW");
     });
@@ -508,7 +510,7 @@ describe("OpenClaw System Protection Pack", () => {
   describe("HuggingFace Credentials Protection", () => {
     it("blocks reading ~/.huggingface/", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.huggingface/token"
+        path: "/home/user/.huggingface/token",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-huggingface");
@@ -516,7 +518,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks reading cached HuggingFace token", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.cache/huggingface/token"
+        path: "/home/user/.cache/huggingface/token",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-read-huggingface");
@@ -524,7 +526,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("blocks writing to ~/.huggingface/", () => {
       const result = evaluator.evaluatePreTool("write", {
-        path: "/home/user/.huggingface/token"
+        path: "/home/user/.huggingface/token",
       });
       expect(result.decision).toBe("DENY");
       expect(result.policyIds).toContain("openclaw-block-write-huggingface");
@@ -532,7 +534,7 @@ describe("OpenClaw System Protection Pack", () => {
 
     it("allows reading HuggingFace model cache (not tokens)", () => {
       const result = evaluator.evaluatePreTool("read", {
-        path: "/home/user/.cache/huggingface/hub/models--bert-base/snapshots/abc123/config.json"
+        path: "/home/user/.cache/huggingface/hub/models--bert-base/snapshots/abc123/config.json",
       });
       expect(result.decision).toBe("ALLOW");
     });
