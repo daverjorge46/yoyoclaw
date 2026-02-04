@@ -24,7 +24,9 @@ describe("boot-md handler", () => {
     vi.useRealTimers();
   });
 
-  const createGatewayStartupEvent = (overrides?: Partial<InternalHookEvent>): InternalHookEvent => ({
+  const createGatewayStartupEvent = (
+    overrides?: Partial<InternalHookEvent>,
+  ): InternalHookEvent => ({
     type: "gateway",
     action: "startup",
     sessionKey: "gateway:startup",
