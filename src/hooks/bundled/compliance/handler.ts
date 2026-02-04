@@ -229,6 +229,43 @@ export function logSpawnStart(
 }
 
 /**
+ * Sanitize summary text for logging (security: prevent PII/injection)
+ */
+function sanitizeSummary(text: string, maxChars: number = 200): string {
+  if (!text) return "";
+
+  // 1. Byte limit before processing (DoS prevention)
+  let sanitized = text.slice(0, 2048);
+
+  // 2. Strip control characters (log injection prevention)
+  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, " ");
+
+  // 3. Strip file paths (cross-platform)
+  sanitized = sanitized.replace(/\/Users\/[^\s]+/g, "[PATH]");
+  sanitized = sanitized.replace(/\/home\/[^\s]+/g, "[PATH]");
+  sanitized = sanitized.replace(/C:\\Users\\[^\s]+/gi, "[PATH]");
+
+  // 4. Strip PII patterns
+  sanitized = sanitized.replace(/\b[\w.-]+@[\w.-]+\.\w+\b/g, "[EMAIL]");
+  sanitized = sanitized.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, "[PHONE]");
+  sanitized = sanitized.replace(/\bsk-[A-Za-z0-9]+\b/g, "[API_KEY]");
+  sanitized = sanitized.replace(/\bghp_[A-Za-z0-9]+\b/g, "[API_KEY]");
+  sanitized = sanitized.replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [TOKEN]");
+  sanitized = sanitized.replace(/token=[A-Za-z0-9._-]+/gi, "token=[REDACTED]");
+  sanitized = sanitized.replace(/-----BEGIN[^-]+-----[\s\S]*?-----END[^-]+-----/g, "[PRIVATE_KEY]");
+
+  // 5. Strip URL query strings (tokens often in params)
+  sanitized = sanitized.replace(/(\bhttps?:\/\/[^\s?]+)\?[^\s]*/g, "$1?[PARAMS]");
+
+  // 6. Truncate to max chars (after sanitization)
+  if (sanitized.length > maxChars) {
+    sanitized = sanitized.slice(0, maxChars - 1) + "…";
+  }
+
+  return sanitized.trim();
+}
+
+/**
  * Log a spawn task completion event
  */
 export function logSpawnComplete(
@@ -237,13 +274,19 @@ export function logSpawnComplete(
   task: string,
   sessionKey?: string,
   status?: string,
+  summary?: string,
 ): void {
   const system = getComplianceSystem(cfg);
+  const sanitizedSummary = summary ? sanitizeSummary(summary) : undefined;
   system?.log("spawn_complete", {
     agentId,
     sessionKey,
     trigger: "spawn",
-    metadata: { task, status: status || "ok" },
+    metadata: {
+      task,
+      status: status || "ok",
+      ...(sanitizedSummary ? { summary: sanitizedSummary } : {}),
+    },
   });
 }
 

@@ -131,9 +131,16 @@ export function createComplianceSystem(
         case "spawn_start":
           message = `${agentName} - SPAWN: ${truncate(metaStr("task", "task"), 80)}`;
           break;
-        case "spawn_complete":
-          message = `${agentName} - SPAWN_COMPLETE: ${truncate(metaStr("task", "task"), 60)}`;
+        case "spawn_complete": {
+          const summary = metaStr("summary", "");
+          const status = metaStr("status", "ok");
+          if (summary) {
+            message = `${agentName} - SPAWN_COMPLETE [${status}]: ${truncate(summary, 150)}`;
+          } else {
+            message = `${agentName} - SPAWN_COMPLETE [${status}]: ${truncate(metaStr("task", "task"), 60)}`;
+          }
           break;
+        }
         case "dm_sent":
           message = `${agentName} -> ${formatAgentName(metaStr("to", ""))}: ${truncate(metaStr("preview", ""), 50)}`;
           break;

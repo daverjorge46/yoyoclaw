@@ -434,14 +434,16 @@ export async function runSubagentAnnounceFlow(params: {
             : "finished with unknown status";
 
     // Log SPAWN_COMPLETE to compliance system (if enabled)
-    const requesterAgentId = resolveAgentIdFromSessionKey(params.requesterSessionKey);
+    // Use the spawned agent's ID (from childSessionKey), not the requester
+    const spawnedAgentId = resolveAgentIdFromSessionKey(params.childSessionKey);
     const cfg = loadConfig();
     logSpawnComplete(
       cfg,
-      requesterAgentId || "main",
+      spawnedAgentId || params.agentId || "subagent",
       params.label || params.task,
-      params.requesterSessionKey,
+      params.childSessionKey,
       outcome.status,
+      reply, // Pass the subagent's response for logging
     );
 
     // Build instructional message for main agent
