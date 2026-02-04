@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthProfileStore } from "./types.js";
-import { loadSecureJsonFile } from "../../infra/crypto-store.js";
+import { loadSecureJsonFile, saveSecureJsonFile } from "../../infra/crypto-store.js";
 import { resolveApiKeyForProfile } from "./oauth.js";
 import { ensureAuthProfileStore } from "./store.js";
 
@@ -70,10 +70,7 @@ describe("resolveApiKeyForProfile fallback to main agent", () => {
         },
       },
     };
-    await fs.writeFile(
-      path.join(secondaryAgentDir, "auth-profiles.json"),
-      JSON.stringify(secondaryStore),
-    );
+    await saveSecureJsonFile(path.join(secondaryAgentDir, "auth-profiles.json"), secondaryStore);
 
     // Write fresh credentials for main agent
     const mainStore: AuthProfileStore = {
@@ -88,7 +85,7 @@ describe("resolveApiKeyForProfile fallback to main agent", () => {
         },
       },
     };
-    await fs.writeFile(path.join(mainAgentDir, "auth-profiles.json"), JSON.stringify(mainStore));
+    await saveSecureJsonFile(path.join(mainAgentDir, "auth-profiles.json"), mainStore);
 
     // Mock fetch to simulate OAuth refresh failure
     const fetchSpy = vi.fn(async () => {
@@ -145,11 +142,8 @@ describe("resolveApiKeyForProfile fallback to main agent", () => {
         },
       },
     };
-    await fs.writeFile(
-      path.join(secondaryAgentDir, "auth-profiles.json"),
-      JSON.stringify(expiredStore),
-    );
-    await fs.writeFile(path.join(mainAgentDir, "auth-profiles.json"), JSON.stringify(expiredStore));
+    await saveSecureJsonFile(path.join(secondaryAgentDir, "auth-profiles.json"), expiredStore);
+    await saveSecureJsonFile(path.join(mainAgentDir, "auth-profiles.json"), expiredStore);
 
     // Mock fetch to simulate OAuth refresh failure
     const fetchSpy = vi.fn(async () => {
