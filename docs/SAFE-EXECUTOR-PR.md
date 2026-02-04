@@ -1,4 +1,4 @@
-# Safe Execution Layer for OpenClaw
+# Security: Holistic capability-based sandbox (replaces pattern-matching whack-a-mole)
 
 > **Disclaimer**: This is a proof-of-concept contribution from outside the core team. We are not OpenClaw/Clawbot experts and have not tested this integration against a running Clawbot instance. The code demonstrates that capability-based security _can_ work with OpenClaw architecture, but will likely need adaptation and review from maintainers who understand the codebase deeply. We are showing this works in principle, not shipping production-ready code.
 
