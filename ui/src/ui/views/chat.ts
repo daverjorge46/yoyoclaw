@@ -350,9 +350,28 @@ export function renderChat(props: ChatProps) {
             <button
               class="chat-new-messages"
               type="button"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                border-radius: 20px;
+                background: var(--bg-surface-glass);
+                backdrop-filter: blur(8px);
+                border: 1px solid var(--border-subtle);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                color: var(--fg-default);
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-bottom: 8px;
+              "
+              @mouseover=${(e: MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"}
+              @mouseout=${(e: MouseEvent) => (e.currentTarget as HTMLElement).style.transform = "translateY(0)"}
               @click=${props.onScrollToBottom}
             >
-              ${t().ui.views.chat.newMessages} ${icons.arrowDown}
+              ${t().ui.views.chat.newMessages}
+              <span style="display: flex; width: 14px; height: 14px;">${icons.arrowDown}</span>
             </button>
           `
       : nothing
@@ -370,8 +389,8 @@ export function renderChat(props: ChatProps) {
             >
               <option value="" ?selected=${!props.selectedModel}>Default Model</option>
               ${props.availableModels.map(
-                (m) => html`<option value=${m.value} ?selected=${m.value === props.selectedModel}>${m.label}</option>`
-              )}
+      (m) => html`<option value=${m.value} ?selected=${m.value === props.selectedModel}>${m.label}</option>`
+    )}
             </select>
 <select
               title="Reasoning Level"
