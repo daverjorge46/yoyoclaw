@@ -1,4 +1,4 @@
-# 🦞 OpenCray — 中国区 IM 扩展版
+# 🦞 OpenCray — 中国区 IM 扩展版 VER:20260204
 
 <p align="center">
   <strong>为中国用户打造的 OpenClaw 即时通讯渠道扩展</strong>
