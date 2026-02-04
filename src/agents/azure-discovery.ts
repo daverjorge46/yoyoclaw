@@ -167,16 +167,31 @@ export async function listAzureAIProjects(): Promise<AzureAIProject[]> {
     const { promisify } = await import("node:util");
     const execAsync = promisify(exec);
 
-    const { stdout } = await execAsync(
+    // Get ML workspaces (Projects/Hubs)
+    const { stdout: mlStdout } = await execAsync(
       `az resource list --resource-type "Microsoft.MachineLearningServices/workspaces" --query '[].{name:name,id:id,location:location,resourceGroup:resourceGroup,kind:kind,sku:sku.name}' -o json`,
       { timeout: 30000 },
     );
+    const mlProjects = JSON.parse(mlStdout.trim()) as AzureAIProject[];
 
-    const projects = JSON.parse(stdout.trim()) as AzureAIProject[];
+    // Get AI Services accounts (Foundry-enabled)
+    const { stdout: aiStdout } = await execAsync(
+      `az resource list --resource-type "Microsoft.CognitiveServices/accounts" --query '[?kind==\`AIServices\`].{name:name,id:id,location:location,resourceGroup:resourceGroup,kind:\`AIServices\`}' -o json`,
+      { timeout: 30000 },
+    );
+    const aiServices = JSON.parse(aiStdout.trim()) as AzureAIProject[];
 
-    // Fetch additional details for each project
+    // Combine both types
+    const allProjects = [...mlProjects, ...aiServices];
+
+    // Fetch additional details for ML workspaces
     const detailedProjects = await Promise.all(
-      projects.map(async (project) => {
+      allProjects.map(async (project) => {
+        // Skip detail fetch for AI Services - they don't have discoveryUrl
+        if (project.kind === "AIServices") {
+          return { ...project, sku: project.sku || "Standard" };
+        }
+
         try {
           const { stdout: detailStdout } = await execAsync(
             `az resource show --ids "${project.id}" --query '{discoveryUrl:properties.discoveryUrl,workspaceId:properties.workspaceId,kind:kind}' -o json`,
