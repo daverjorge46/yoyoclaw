@@ -4,29 +4,31 @@ import path from "node:path";
 import { defaultRuntime } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";
 
-const SKILL_TEMPLATE = `---
-name: {{name}}
-description: {{description}}
----
-
-# {{name}}
-
-{{description}}
-
-## Usage
-
-Describe how to use this skill.
-
-## Tools
-
-### {{name}}_tool
-
-Description of the tool.
-
-```javascript
-// Tool implementation
-```
-`;
+const SKILL_TEMPLATE = [
+  "---",
+  "name: {{name}}",
+  "description: {{description}}",
+  "---",
+  "",
+  "# {{name}}",
+  "",
+  "{{description}}",
+  "",
+  "## Usage",
+  "",
+  "Describe how to use this skill.",
+  "",
+  "## Tools",
+  "",
+  "### {{name}}_tool",
+  "",
+  "Description of the tool.",
+  "",
+  "```javascript",
+  "// Tool implementation",
+  "```",
+  "",
+].join("\n");
 
 export function registerSkillsCommands(program: Command) {
   const skills = program.command("skills").description("Manage agent skills");
@@ -49,9 +51,9 @@ export function registerSkillsCommands(program: Command) {
           `A new skill named ${skillName}`,
         );
         await fs.writeFile(skillFile, content, "utf-8");
-        defaultRuntime.log(`${theme.success("Created")} skill at ${theme.path(skillFile)}`);
+        defaultRuntime.log(`${theme.success("Created")} skill at ${theme.command(skillFile)}`);
       } catch (err) {
-        defaultRuntime.error(`Failed to create skill: ${err}`);
+        defaultRuntime.error(`Failed to create skill: ${String(err)}`);
       }
     });
 }
