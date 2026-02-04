@@ -10,6 +10,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Sessions: support direct `channel:account:peer` format in session key extraction for proper message routing in isolated sessions and cron delivery. (#6850) Thanks @toboto.
 - Telegram: honor session model overrides in inline model selection. (#8193) Thanks @gildo.
 
 ## 2026.2.2-3
