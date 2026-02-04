@@ -12,6 +12,7 @@ import {
   resolveFeishuGroupEnabled,
   type ResolvedFeishuConfig,
 } from "./config.js";
+import { resolveFeishuDocsFromMessage } from "./docs.js";
 import {
   downloadPostImages,
   extractPostImageKeys,
@@ -334,10 +335,31 @@ export async function processFeishuMessage(
     }
   }
 
+  // Resolve document content if message contains Feishu doc links
+  let docContent: string | null = null;
+  if (msgType === "text" || msgType === "post") {
+    try {
+      docContent = await resolveFeishuDocsFromMessage(client, message, {
+        maxDocsPerMessage: 3,
+        maxTotalLength: 100000,
+      });
+      if (docContent) {
+        logger.debug(`Resolved ${docContent.length} chars of document content`);
+      }
+    } catch (err) {
+      logger.error(`Failed to resolve document content: ${formatErrorMessage(err)}`);
+    }
+  }
+
   // Build body text
   let bodyText = text;
   if (!bodyText && media) {
     bodyText = media.placeholder;
+  }
+
+  // Append document content if available
+  if (docContent) {
+    bodyText = bodyText ? `${bodyText}\n\n${docContent}` : docContent;
   }
 
   // Skip if no content
