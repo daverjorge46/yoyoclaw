@@ -190,6 +190,13 @@ export async function prepareSanitizedMounts(): Promise<SanitizedMounts> {
   }
   
   // =========================================================================
+  // 5. DEVICES DIRECTORY (read-write) - for device pairing
+  // =========================================================================
+  const devicesDir = path.join(openclawDir, "devices");
+  await fs.promises.mkdir(devicesDir, { recursive: true });
+  binds.push(`${devicesDir}:/home/node/.openclaw/devices:rw`);
+  
+  // =========================================================================
   // 4. DO NOT MOUNT CREDENTIALS (stay on host only)
   // =========================================================================
   // ~/.openclaw/credentials/ contains real OAuth tokens
