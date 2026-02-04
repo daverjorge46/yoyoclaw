@@ -24,7 +24,11 @@ import { resolveHookConfig } from "../../config.js";
  * - Base64 image data patterns
  * - Long sequences of non-printable characters
  */
-export function sanitizeForMemory(text: string): string {
+export function sanitizeForMemory(text: string): string;
+export function sanitizeForMemory(text: null): null;
+export function sanitizeForMemory(text: undefined): undefined;
+export function sanitizeForMemory(text: string | null | undefined): string | null | undefined;
+export function sanitizeForMemory(text: string | null | undefined): string | null | undefined {
   if (!text) {
     return text;
   }
