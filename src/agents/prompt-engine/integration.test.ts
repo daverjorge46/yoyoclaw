@@ -6,7 +6,12 @@ describe('ClawdMatrix Engine Integration', () => {
 
   it('should detect Finance domain and inject Financial skills', async () => {
     const userBuffer = "Analyze the PE ratio of Apple stock.";
-    await buildSystemPrompt(userBuffer);
+    const prompt = await buildSystemPrompt({
+    workspaceDir: './test',
+    tools: [],
+    modelDisplay: 'test-model',
+    userPrompt: userBuffer
+    });
 
     expect(prompt).toContain('**Role**: Acting as a specialist in Finance');
     expect(prompt).toContain('Active Skills Library');
