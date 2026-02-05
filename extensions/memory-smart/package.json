@@ -1,0 +1,18 @@
+{
+  "name": "@openclaw/memory-smart",
+  "version": "2026.2.5",
+  "description": "OpenClaw AI-powered memory plugin with provider-agnostic embeddings, core memory, and entity profiles",
+  "type": "module",
+  "dependencies": {
+    "@lancedb/lancedb": "^0.23.0",
+    "@sinclair/typebox": "0.34.48"
+  },
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

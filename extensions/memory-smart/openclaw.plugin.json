@@ -1,0 +1,139 @@
+{
+  "id": "memory-smart",
+  "kind": "memory",
+  "name": "Memory (Smart)",
+  "description": "AI-powered memory with provider-agnostic embeddings, core memory, and entity profiles",
+  "version": "0.1.0",
+  "uiHints": {
+    "embedding.provider": {
+      "label": "Embedding Provider",
+      "help": "Embedding provider to use (gemini, openai, or auto)"
+    },
+    "embedding.apiKey": {
+      "label": "Embedding API Key",
+      "sensitive": true,
+      "placeholder": "API key or ${ENV_VAR}",
+      "help": "API key for the embedding provider (or use env var syntax)"
+    },
+    "embedding.model": {
+      "label": "Embedding Model",
+      "help": "Model name for embeddings (provider-specific)"
+    },
+    "store.dbPath": {
+      "label": "Database Path",
+      "placeholder": "~/.openclaw/memory/smart-memory",
+      "advanced": true
+    },
+    "coreMemory.enabled": {
+      "label": "Core Memory",
+      "help": "Enable always-in-context core memory block"
+    },
+    "coreMemory.filePath": {
+      "label": "Core Memory File",
+      "placeholder": "memory/core.md",
+      "advanced": true
+    },
+    "autoRecall.enabled": {
+      "label": "Auto-Recall",
+      "help": "Automatically inject relevant memories into context"
+    },
+    "entities.enabled": {
+      "label": "Entity Profiles",
+      "help": "Enable structured entity knowledge profiles"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "embedding": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["gemini", "openai", "auto"],
+            "default": "auto"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        }
+      },
+      "coreMemory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "maxTokens": {
+            "type": "number",
+            "default": 1500
+          },
+          "filePath": {
+            "type": "string",
+            "default": "memory/core.md"
+          }
+        }
+      },
+      "entities": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "autoCreate": {
+            "type": "boolean",
+            "default": true
+          },
+          "minMentionsToCreate": {
+            "type": "number",
+            "default": 3
+          }
+        }
+      },
+      "autoRecall": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "maxResults": {
+            "type": "number",
+            "default": 5
+          },
+          "maxTokens": {
+            "type": "number",
+            "default": 2000
+          },
+          "minScore": {
+            "type": "number",
+            "default": 0.3
+          },
+          "entityBoost": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "store": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dbPath": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
