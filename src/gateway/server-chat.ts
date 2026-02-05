@@ -551,7 +551,7 @@ export function createChannelMessageHandler(deps: {
             outputTokens: 0,
             totalTokens: 0,
             label: `Channel ${msg.from}`,
-            origin: { type: "user" },
+            origin: { },
             lastChannel: channelId,
             lastTo: msg.from,
             // Only force allow if config option is set

@@ -155,6 +155,7 @@ export type ChannelGatewayContext<ResolvedAccount = unknown> = {
   log?: ChannelLogSink;
   getStatus: () => ChannelAccountSnapshot;
   setStatus: (next: ChannelAccountSnapshot) => void;
+  onMessage?: (payload: ReplyPayload) => void;
 };
 
 export type ChannelLogoutResult = {

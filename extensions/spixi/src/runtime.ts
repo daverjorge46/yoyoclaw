@@ -12,7 +12,7 @@ export interface SpixiRuntime extends ExtensionRuntime {
   };
 }
 
-let runtime: SpixiRuntime;
+let runtime: SpixiRuntime | undefined;
 
 // Default QuIXI API URL - can be overridden via config
 let defaultBaseUrl = "http://localhost:8001";
@@ -24,87 +24,94 @@ export function setSpixiBaseUrl(url: string) {
 export const getSpixiRuntime = () => {
   if (!runtime) {
     // Fallback if runtime not yet set (e.g. tests or early init)
-    // Create a dummy runtime and attach spixi methods
-    runtime = {} as unknown;
+    runtime = {
+      channel: {
+        spixi: undefined as unknown as SpixiRuntime["channel"]["spixi"]
+      }
+    } as SpixiRuntime;
   }
 
-  // Ensure channel.spixi exists on the runtime
+  // Ensure channel exists
   if (!runtime.channel) {
-    (runtime as unknown).channel = {};
+    runtime.channel = { spixi: undefined as unknown as SpixiRuntime["channel"]["spixi"] };
   }
 
-  if (!(runtime.channel as unknown).spixi) {
-    const spixiMethods = {
-      sendMessage: async (to: string, text: string, opts?: { baseUrl?: string }) => {
+  // Only attach spixi if not present
+  if (!runtime.channel.spixi) {
+    const spixiMethods: SpixiRuntime["channel"]["spixi"] = {
+      sendMessage: async (to, text, opts) => {
         const baseUrl = opts?.baseUrl || defaultBaseUrl;
         try {
-          // QuIXI uses GET: /sendChatMessage?address=&message=&channel=
           const url = new URL("/sendChatMessage", baseUrl);
           url.searchParams.set("address", to);
           url.searchParams.set("message", text);
           url.searchParams.set("channel", "0");
-
           const res = await axios.get(url.toString());
           return {
             messageId: `spixi-${Date.now()}`,
             ...res.data
           };
-        } catch (e: any) {
-          throw new Error(`Spixi send failed: ${e.message}`);
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            throw new Error(`Spixi send failed: ${e.message}`);
+          }
+          throw new Error("Spixi send failed: Unknown error");
         }
       },
-      addContact: async (address: string, opts?: { baseUrl?: string }) => {
+      addContact: async (address, opts) => {
         const baseUrl = opts?.baseUrl || defaultBaseUrl;
         try {
-          // QuIXI uses GET: /addContact?address=
           const url = new URL("/addContact", baseUrl);
           url.searchParams.set("address", address);
-
           const res = await axios.get(url.toString());
           return {
             success: true,
             address,
             ...res.data
           };
-        } catch (e: any) {
-          throw new Error(`Spixi addContact failed: ${e.message}`);
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            throw new Error(`Spixi addContact failed: ${e.message}`);
+          }
+          throw new Error("Spixi addContact failed: Unknown error");
         }
       },
-      getFriendList: async (opts?: { baseUrl?: string }) => {
+      getFriendList: async (opts) => {
         const baseUrl = opts?.baseUrl || defaultBaseUrl;
         try {
-          // QuIXI uses GET: /contacts
           const url = new URL("/contacts", baseUrl);
           const res = await axios.get(url.toString());
-          // Response is array of contact objects with address field
           const contacts = res.data || [];
           return Array.isArray(contacts)
-            ? contacts.map((c: any) => c.address || c).filter(Boolean)
+            ? contacts.map((c: { address?: string } | string) => typeof c === "object" && c !== null && "address" in c ? (c as { address?: string }).address : c).filter(Boolean) as string[]
             : [];
-        } catch (e: any) {
-          throw new Error(`Spixi getFriendList failed: ${e.message}`);
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            throw new Error(`Spixi getFriendList failed: ${e.message}`);
+          }
+          throw new Error("Spixi getFriendList failed: Unknown error");
         }
       },
-      acceptContact: async (address: string, opts?: { baseUrl?: string }) => {
+      acceptContact: async (address, opts) => {
         const baseUrl = opts?.baseUrl || defaultBaseUrl;
         try {
-          // QuIXI uses GET: /acceptContact?address=
           const url = new URL("/acceptContact", baseUrl);
           url.searchParams.set("address", address);
-
           const res = await axios.get(url.toString());
           return {
             success: true,
             address,
             ...res.data
           };
-        } catch (e: any) {
-          throw new Error(`Spixi acceptContact failed: ${e.message}`);
+        } catch (e: unknown) {
+          if (e instanceof Error) {
+            throw new Error(`Spixi acceptContact failed: ${e.message}`);
+          }
+          throw new Error("Spixi acceptContact failed: Unknown error");
         }
       }
     };
-
-    (runtime.channel as unknown).spixi = spixiMethods;
+    runtime.channel.spixi = spixiMethods;
   }
 
   return runtime;
