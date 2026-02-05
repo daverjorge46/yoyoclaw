@@ -1,7 +1,7 @@
 FROM node:22-bullseye-slim
 
-# ✅ curl en unzip installeren zodat bun werkt
-RUN apt-get update && apt-get install -y curl unzip && \
+# ✅ curl, unzip + build tools (git/make) zodat pnpm deps bouwen
+RUN apt-get update && apt-get install -y curl unzip git build-essential && \
     curl -fsSL https://bun.sh/install | bash && \
     corepack enable && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -46,4 +46,3 @@ USER node
 # --bind lan ensures 0.0.0.0 binding for Railway healthchecks
 # --allow-unconfigured allows starting without initial config
 CMD ["node", "openclaw.mjs", "gateway", "run", "--bind", "lan", "--allow-unconfigured"]
-
