@@ -1,7 +1,7 @@
 FROM node:22-bullseye-slim
 
-# ✅ curl, unzip + build tools (git/make) zodat pnpm deps bouwen
-RUN apt-get update && apt-get install -y curl unzip git build-essential && \
+# ✅ curl, unzip + build tools (git/make/cmake) zodat pnpm deps bouwen
+RUN apt-get update && apt-get install -y curl unzip git build-essential cmake && \
     curl -fsSL https://bun.sh/install | bash && \
     corepack enable && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
