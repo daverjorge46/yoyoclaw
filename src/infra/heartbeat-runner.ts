@@ -528,7 +528,7 @@ export async function runHeartbeatOnce(opts: {
   // - Don't skip for exec events - they have pending system events to process.
   // - Don't skip if there are pending system events (e.g., cron-triggered events).
   const isExecEventReason = opts.reason === "exec-event";
-  const hasPendingEvents = hasSystemEvents(sessionKey);
+  const hasPendingEvents = sessionKey ? hasSystemEvents(sessionKey) : false;
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
