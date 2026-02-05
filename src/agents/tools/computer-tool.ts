@@ -21,10 +21,12 @@ const COMPUTER_TOOL_ACTIONS = [
   "right_click",
   "mouse_down",
   "mouse_up",
+  "mouse_hold",
   "scroll",
   "type",
   "key_down",
   "key_up",
+  "key_hold",
   "hotkey",
   "press",
   "drag",
@@ -494,8 +496,10 @@ function isDangerousAction(action: ComputerToolAction, params: Record<string, un
     action === "press" ||
     action === "key_down" ||
     action === "key_up" ||
+    action === "key_hold" ||
     action === "mouse_down" ||
-    action === "mouse_up"
+    action === "mouse_up" ||
+    action === "mouse_hold"
   ) {
     return true;
   }
@@ -1276,6 +1280,36 @@ switch ('${action}') {
     [MouseInput]::ButtonUp($button)
     Sleep-IfNeeded
   }
+  'mouse_hold' {
+    $button = 'left'
+    if ($args.PSObject.Properties.Name -contains 'button') { $button = [string]$args.button }
+
+    $duration = 250
+    if ($args.PSObject.Properties.Name -contains 'durationMs') { $duration = [int]$args.durationMs }
+    if ($duration -lt 0) { $duration = 0 }
+    if ($duration -gt 10000) { $duration = 10000 }
+
+    if ($args.PSObject.Properties.Name -contains 'x' -and $args.PSObject.Properties.Name -contains 'y') {
+      $x = [int]$args.x
+      $y = [int]$args.y
+
+      $steps = 10
+      if ($args.PSObject.Properties.Name -contains 'steps') { $steps = [int]$args.steps }
+
+      $stepDelay = 6
+      if ($args.PSObject.Properties.Name -contains 'stepDelayMs') { $stepDelay = [int]$args.stepDelayMs }
+
+      $jitter = 1
+      if ($args.PSObject.Properties.Name -contains 'jitterPx') { $jitter = [int]$args.jitterPx }
+
+      Smooth-MoveTo $x $y $steps $stepDelay $jitter
+    }
+
+    [MouseInput]::ButtonDown($button)
+    if ($duration -gt 0) { Start-Sleep -Milliseconds $duration }
+    [MouseInput]::ButtonUp($button)
+    Sleep-IfNeeded
+  }
   'scroll' {
     if ($args.PSObject.Properties.Name -contains 'x' -and $args.PSObject.Properties.Name -contains 'y') {
       $x = [int]$args.x
@@ -1373,6 +1407,21 @@ switch ('${action}') {
     $keyToken = [string]$args.key
     if (-not $keyToken) { throw 'key required' }
     $resolved = Resolve-Key $keyToken
+    [Keyboard]::KeyUp([UInt16]$resolved.vk, [bool]$resolved.extended)
+    Sleep-IfNeeded
+  }
+  'key_hold' {
+    $keyToken = [string]$args.key
+    if (-not $keyToken) { throw 'key required' }
+
+    $duration = 250
+    if ($args.PSObject.Properties.Name -contains 'durationMs') { $duration = [int]$args.durationMs }
+    if ($duration -lt 0) { $duration = 0 }
+    if ($duration -gt 10000) { $duration = 10000 }
+
+    $resolved = Resolve-Key $keyToken
+    [Keyboard]::KeyDown([UInt16]$resolved.vk, [bool]$resolved.extended)
+    if ($duration -gt 0) { Start-Sleep -Milliseconds $duration }
     [Keyboard]::KeyUp([UInt16]$resolved.vk, [bool]$resolved.extended)
     Sleep-IfNeeded
   }
@@ -1754,6 +1803,40 @@ export function createComputerTool(options?: {
         return jsonResult({ ok: true });
       }
 
+      if (action === "mouse_hold") {
+        const buttonRaw = readStringParam(params, "button", { required: false });
+        const button = buttonRaw === "right" || buttonRaw === "middle" ? buttonRaw : "left";
+        const x = typeof params.x === "number" ? params.x : undefined;
+        const y = typeof params.y === "number" ? params.y : undefined;
+        const durationMs = readPositiveInt(params, "durationMs", 250);
+        const steps = readPositiveInt(params, "steps", 10);
+        const stepDelayMs = readPositiveInt(params, "stepDelayMs", 6);
+        const jitterPx = readNonNegativeInt(params, "jitterPx", 1);
+        await runInputAction({
+          action: "mouse_hold",
+          args: {
+            ...(x !== undefined && y !== undefined ? { x, y, steps, stepDelayMs, jitterPx } : {}),
+            button,
+            durationMs,
+            delayMs,
+          },
+        });
+        if (agentDir) {
+          await recordTeachStep({
+            agentDir,
+            sessionKey,
+            action: "mouse_hold",
+            stepParams: {
+              ...(x !== undefined && y !== undefined ? { x, y, steps, stepDelayMs, jitterPx } : {}),
+              button,
+              durationMs,
+              delayMs,
+            },
+          });
+        }
+        return jsonResult({ ok: true });
+      }
+
       if (action === "key_down") {
         const keyRaw = readStringParam(params, "key", { required: true });
         const key = normalizeKeyToken(keyRaw);
@@ -1770,6 +1853,22 @@ export function createComputerTool(options?: {
         await runInputAction({ action: "key_up", args: { key, delayMs } });
         if (agentDir) {
           await recordTeachStep({ agentDir, sessionKey, action: "key_up", stepParams: { key, delayMs } });
+        }
+        return jsonResult({ ok: true });
+      }
+
+      if (action === "key_hold") {
+        const keyRaw = readStringParam(params, "key", { required: true });
+        const key = normalizeKeyToken(keyRaw);
+        const durationMs = readPositiveInt(params, "durationMs", 250);
+        await runInputAction({ action: "key_hold", args: { key, durationMs, delayMs } });
+        if (agentDir) {
+          await recordTeachStep({
+            agentDir,
+            sessionKey,
+            action: "key_hold",
+            stepParams: { key, durationMs, delayMs },
+          });
         }
         return jsonResult({ ok: true });
       }
