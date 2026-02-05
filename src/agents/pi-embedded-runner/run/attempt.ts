@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
+import { trackUsage } from "../../../commands/providers/usage.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
@@ -58,6 +59,7 @@ import {
 import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
+import { normalizeUsage } from "../../usage.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isAbortError } from "../abort.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
@@ -833,6 +835,29 @@ export async function runEmbeddedAttempt(
           note: promptError ? "prompt error" : undefined,
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
+
+        // Record usage to database (fire and forget)
+        const lastAssistantForUsage = messagesSnapshot
+          .slice()
+          .toReversed()
+          .find((m) => m.role === "assistant");
+        const usageRaw = (lastAssistantForUsage as { usage?: unknown })?.usage;
+        const usage = normalizeUsage(usageRaw as Record<string, unknown>);
+        if (usage && (usage.input || usage.output)) {
+          trackUsage({
+            providerId: params.provider,
+            modelId: params.modelId,
+            inputTokens: usage.input ?? 0,
+            outputTokens: usage.output ?? 0,
+            cacheReadTokens: usage.cacheRead,
+            cacheWriteTokens: usage.cacheWrite,
+            durationMs: Date.now() - promptStartedAt,
+            agentId: params.sessionKey?.split(":")[0] ?? "main",
+            sessionId: params.sessionId,
+          }).catch((err) => {
+            log.warn(`Failed to track usage: ${err}`);
+          });
+        }
 
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await
