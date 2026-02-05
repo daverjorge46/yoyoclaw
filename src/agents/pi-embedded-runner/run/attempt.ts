@@ -523,6 +523,7 @@ export async function runEmbeddedAttempt(
         activeSession.sessionId,
         copilotInitiatorTracker,
         streamSimple,
+        params.config?.models?.providers?.["github-copilot"],
       );
       activeSession.agent.streamFn = copilotAwareStream;
 

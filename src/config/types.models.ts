@@ -41,6 +41,7 @@ export type ModelProviderConfig = {
   headers?: Record<string, string>;
   authHeader?: boolean;
   models: ModelDefinitionConfig[];
+  disableInitiatorHeader?: boolean;
 };
 
 export type BedrockDiscoveryConfig = {
