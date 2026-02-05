@@ -1,7 +1,12 @@
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
 import type { CronEvent, CronServiceState } from "./state.js";
-import { computeJobNextRunAtMs, nextWakeAtMs, resolveJobPayloadTextForMain } from "./jobs.js";
+import {
+  computeJobNextRunAtMs,
+  MAX_CONSECUTIVE_FAILURES,
+  nextWakeAtMs,
+  resolveJobPayloadTextForMain,
+} from "./jobs.js";
 import { locked } from "./locked.js";
 import { ensureLoaded, persist } from "./store.js";
 
@@ -88,14 +93,42 @@ export async function executeJob(
     job.state.lastDurationMs = Math.max(0, endedAt - startedAt);
     job.state.lastError = err;
 
+    // Track consecutive failures for retry backoff.
+    if (status === "ok") {
+      job.state.consecutiveFailures = 0;
+    } else if (status === "error") {
+      job.state.consecutiveFailures = (job.state.consecutiveFailures ?? 0) + 1;
+    }
+    // Note: "skipped" doesn't count as a failure for backoff purposes.
+
     const shouldDelete =
       job.schedule.kind === "at" && status === "ok" && job.deleteAfterRun === true;
+
+    // Disable one-shot jobs after too many consecutive failures to prevent infinite retry loops.
+    const shouldDisableAfterFailures =
+      job.schedule.kind === "at" &&
+      status === "error" &&
+      (job.state.consecutiveFailures ?? 0) >= MAX_CONSECUTIVE_FAILURES;
 
     if (!shouldDelete) {
       if (job.schedule.kind === "at" && status === "ok") {
         // One-shot job completed successfully; disable it.
         job.enabled = false;
         job.state.nextRunAtMs = undefined;
+      } else if (shouldDisableAfterFailures) {
+        // One-shot job hit max retry limit; disable it.
+        // Keep lastError as the actual error, log the disable reason separately.
+        job.enabled = false;
+        job.state.nextRunAtMs = undefined;
+        state.deps.log.warn(
+          {
+            jobId: job.id,
+            name: job.name,
+            failures: job.state.consecutiveFailures,
+            lastError: err,
+          },
+          `cron: one-shot job disabled after ${MAX_CONSECUTIVE_FAILURES} consecutive failures`,
+        );
       } else if (job.enabled) {
         job.state.nextRunAtMs = computeJobNextRunAtMs(job, endedAt);
       } else {
