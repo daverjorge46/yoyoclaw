@@ -54,6 +54,90 @@ function isImageMime(mime?: string): boolean {
   return typeof mime === "string" && mime.startsWith("image/");
 }
 
+function isAudioMime(mime?: string): boolean {
+  return typeof mime === "string" && mime.startsWith("audio/");
+}
+
+export type NormalizedAttachment = {
+  type?: string;
+  mimeType?: string;
+  fileName?: string;
+  content: string;
+};
+
+export type FirstAudioResult = {
+  buffer: Buffer;
+  mimeType: string;
+};
+
+/**
+ * Find the first audio attachment in normalized attachments, validate base64 and size,
+ * and return its decoded buffer and mime type. Returns null if no audio attachment found.
+ * Throws on invalid base64 or when size exceeds maxBytes.
+ */
+export async function getFirstAudioAttachment(
+  attachments: NormalizedAttachment[] | undefined,
+  maxBytes: number,
+): Promise<FirstAudioResult | null> {
+  if (!attachments || attachments.length === 0) {
+    return null;
+  }
+  for (const [idx, att] of attachments.entries()) {
+    if (!att || typeof att.content !== "string") {
+      continue;
+    }
+    const mime = att.mimeType ?? "";
+    const providedMime = normalizeMime(mime);
+    if (providedMime && isAudioMime(providedMime)) {
+      const result = await decodeAndValidateAudioAttachment(att, idx, maxBytes);
+      if (result) {
+        return result;
+      }
+    }
+    const sniffedMime = normalizeMime(await sniffMimeFromBase64(att.content));
+    if (sniffedMime && isAudioMime(sniffedMime)) {
+      const result = await decodeAndValidateAudioAttachment(att, idx, maxBytes);
+      if (result) {
+        return result;
+      }
+    }
+  }
+  return null;
+}
+
+async function decodeAndValidateAudioAttachment(
+  att: NormalizedAttachment,
+  idx: number,
+  maxBytes: number,
+): Promise<FirstAudioResult | null> {
+  const label = att.fileName || att.type || `attachment-${idx + 1}`;
+  let b64 = att.content.trim();
+  const dataUrlMatch = /^data:[^;]+;base64,(.*)$/.exec(b64);
+  if (dataUrlMatch) {
+    b64 = dataUrlMatch[1];
+  }
+  if (b64.length % 4 !== 0 || /[^A-Za-z0-9+/=]/.test(b64)) {
+    throw new Error(`attachment ${label}: invalid base64 content`);
+  }
+  let buffer: Buffer;
+  try {
+    buffer = Buffer.from(b64, "base64");
+  } catch {
+    throw new Error(`attachment ${label}: invalid base64 content`);
+  }
+  if (buffer.byteLength <= 0 || buffer.byteLength > maxBytes) {
+    throw new Error(
+      `attachment ${label}: exceeds size limit (${buffer.byteLength} > ${maxBytes} bytes)`,
+    );
+  }
+  const mimeType =
+    normalizeMime(att.mimeType) ?? (await detectMime({ buffer })) ?? "audio/octet-stream";
+  if (!isAudioMime(mimeType)) {
+    return null;
+  }
+  return { buffer, mimeType };
+}
+
 /**
  * Parse attachments and extract images as structured content blocks.
  * Returns the message text and an array of image content blocks

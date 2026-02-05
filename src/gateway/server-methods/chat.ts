@@ -5,6 +5,8 @@ import path from "node:path";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
+import { DEFAULT_MAX_BYTES as MEDIA_DEFAULT_MAX_BYTES } from "../../media-understanding/defaults.js";
+import { saveMediaBuffer } from "../../media/store.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { dispatchInboundMessage } from "../../auto-reply/dispatch.js";
@@ -18,7 +20,11 @@ import {
   isChatStopCommandText,
   resolveChatRunExpiresAtMs,
 } from "../chat-abort.js";
-import { type ChatImageContent, parseMessageWithAttachments } from "../chat-attachments.js";
+import {
+  type ChatImageContent,
+  getFirstAudioAttachment,
+  parseMessageWithAttachments,
+} from "../chat-attachments.js";
 import { stripEnvelopeFromMessages } from "../chat-sanitize.js";
 import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
 import {
@@ -471,6 +477,34 @@ export const chatHandlers: GatewayRequestHandlers = {
         SenderUsername: clientInfo?.displayName,
         GatewayClientScopes: client?.connect?.scopes,
       };
+
+      try {
+        const firstAudio = await getFirstAudioAttachment(
+          normalizedAttachments,
+          MEDIA_DEFAULT_MAX_BYTES.audio,
+        );
+        if (firstAudio) {
+          const saved = await saveMediaBuffer(
+            firstAudio.buffer,
+            firstAudio.mimeType,
+            "gateway",
+            MEDIA_DEFAULT_MAX_BYTES.audio,
+          );
+          ctx.MediaPath = saved.path;
+          ctx.MediaType = saved.contentType ?? firstAudio.mimeType;
+          if (!ctx.Body?.trim()) {
+            ctx.Body = "<media:audio>";
+          }
+        }
+      } catch (err) {
+        context.chatAbortControllers.delete(clientRunId);
+        respond(
+          false,
+          undefined,
+          errorShape(ErrorCodes.INVALID_REQUEST, err instanceof Error ? err.message : String(err)),
+        );
+        return;
+      }
 
       const agentId = resolveSessionAgentId({
         sessionKey: p.sessionKey,
