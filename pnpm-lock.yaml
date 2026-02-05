@@ -14,6 +14,11 @@ overrides:
   tar: 7.5.7
   tough-cookie: 4.1.3
 
+patchedDependencies:
+  '@mariozechner/pi-coding-agent@0.49.3':
+    hash: e84d5d1aa29d6505bc86a510d7f8b1e30501127c7548bf36f1aa26d42c35ba02
+    path: patches/@mariozechner+pi-coding-agent@0.49.3.patch
+
 importers:
 
   .:
@@ -55,8 +60,10 @@ importers:
         specifier: 0.51.3
         version: 0.51.3(ws@8.19.0)(zod@4.3.6)
       '@mariozechner/pi-coding-agent':
-        specifier: 0.51.3
-        version: 0.51.3(ws@8.19.0)(zod@4.3.6)
+
+        specifier: 0.49.3
+        version: 0.49.3(patch_hash=e84d5d1aa29d6505bc86a510d7f8b1e30501127c7548bf36f1aa26d42c35ba02)(ws@8.19.0)(zod@4.3.6)
+ theirs
       '@mariozechner/pi-tui':
         specifier: 0.51.3
         version: 0.51.3
@@ -420,12 +427,14 @@ importers:
         specifier: ^1.2.3
         version: 1.2.3
       '@microsoft/agents-hosting-extensions-teams':
-        specifier: ^1.2.3
-        version: 1.2.3
+
+        specifier: ^1.2.2
+        version: 1.2.2
       express:
         specifier: ^5.2.1
         version: 5.2.1
-      openclaw:
+      moltbot:
+ theirs
         specifier: workspace:*
         version: link:../..
       proper-lockfile:
@@ -3256,6 +3265,11 @@ packages:
   cjs-module-lexer@2.2.0:
     resolution: {integrity: sha512-4bHTS2YuzUvtoLjdy+98ykbNB5jS0+07EvFNXerqZQJ89F7DI6ET7OQo/HJuW6K0aVsKA9hj9/RVb2kQVOrPDQ==}
 
+
+  class-variance-authority@0.7.1:
+    resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
+
+ theirs
   cli-cursor@5.0.0:
     resolution: {integrity: sha512-aCj4O5wKyszjMmDT4tZj93kxyydN/K5zPWSCe6/0AV/AA1pqe5ZBIw0a2ZfPQV7lL5/yb5HsUreJ6UFAF1tEQw==}
     engines: {node: '>=18'}
@@ -6820,7 +6834,9 @@ snapshots:
       - ws
       - zod
 
-  '@mariozechner/pi-coding-agent@0.51.3(ws@8.19.0)(zod@4.3.6)':
+
+  '@mariozechner/pi-coding-agent@0.49.3(patch_hash=e84d5d1aa29d6505bc86a510d7f8b1e30501127c7548bf36f1aa26d42c35ba02)(ws@8.19.0)(zod@4.3.6)':
+ theirs
     dependencies:
       '@mariozechner/jiti': 2.6.5
       '@mariozechner/pi-agent-core': 0.51.3(ws@8.19.0)(zod@4.3.6)
@@ -8794,6 +8810,12 @@ snapshots:
 
   cjs-module-lexer@2.2.0: {}
 
+
+  class-variance-authority@0.7.1:
+    dependencies:
+      clsx: 2.1.1
+
+ theirs
   cli-cursor@5.0.0:
     dependencies:
       restore-cursor: 5.1.0
