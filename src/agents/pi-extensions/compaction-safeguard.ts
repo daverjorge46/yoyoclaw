@@ -11,6 +11,7 @@ import {
   resolveContextWindowTokens,
   summarizeInStages,
 } from "../compaction.js";
+import { repairToolUseResultPairing } from "../session-transcript-repair.js";
 import { getCompactionSafeguardRuntime } from "./compaction-safeguard-runtime.js";
 const FALLBACK_SUMMARY =
   "Summary unavailable due to context limits. Older messages were truncated.";
@@ -198,8 +199,21 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
       const runtime = getCompactionSafeguardRuntime(ctx.sessionManager);
       const modelContextWindow = resolveContextWindowTokens(model);
       const contextWindowTokens = runtime?.contextWindowTokens ?? modelContextWindow;
-      const turnPrefixMessages = preparation.turnPrefixMessages ?? [];
-      let messagesToSummarize = preparation.messagesToSummarize;
+
+      // Repair orphaned tool_result blocks before summarization.
+      // Compaction can receive messages where tool_use was truncated but tool_result remains,
+      // which would cause API errors on subsequent requests. (#9672)
+      const repairedMain = repairToolUseResultPairing(preparation.messagesToSummarize);
+      const repairedPrefix = repairToolUseResultPairing(preparation.turnPrefixMessages ?? []);
+      if (repairedMain.droppedOrphanCount > 0 || repairedPrefix.droppedOrphanCount > 0) {
+        console.warn(
+          `Compaction safeguard: repaired tool pairing before summarization ` +
+            `(dropped ${repairedMain.droppedOrphanCount + repairedPrefix.droppedOrphanCount} orphaned tool_result blocks)`,
+        );
+      }
+
+      const turnPrefixMessages = repairedPrefix.messages;
+      let messagesToSummarize = repairedMain.messages;
 
       const maxHistoryShare = runtime?.maxHistoryShare ?? 0.5;
 
@@ -232,7 +246,14 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
               )}% of context; dropped ${pruned.droppedChunks} older chunk(s) ` +
                 `(${pruned.droppedMessages} messages) to fit history budget.`,
             );
-            messagesToSummarize = pruned.messages;
+            // Re-run repair after pruning since it can create new orphaned tool_result blocks
+            const repairedPruned = repairToolUseResultPairing(pruned.messages);
+            if (repairedPruned.droppedOrphanCount > 0) {
+              console.warn(
+                `Compaction safeguard: repaired ${repairedPruned.droppedOrphanCount} orphaned tool_result blocks after pruning`,
+              );
+            }
+            messagesToSummarize = repairedPruned.messages;
 
             // Summarize dropped messages so context isn't lost
             if (pruned.droppedMessagesList.length > 0) {
