@@ -2,6 +2,8 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { resolvePluginTools } from "../plugins/tools.js";
+import { createSlackInteractiveConfirmationTool } from "../slack/tools/interactive-confirmation-tool.js";
+import { createSlackInteractiveFormTool } from "../slack/tools/interactive-form-tool.js";
 import { createSlackInteractiveQuestionTool } from "../slack/tools/interactive-question-tool.js";
 import { createSlackRichMessageTool } from "../slack/tools/rich-message-tool.js";
 import { bootstrapWorkQueueForAgent } from "../work-queue/store.js";
@@ -14,7 +16,10 @@ import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageGenerateTool } from "./tools/image-generate-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMemoryAuditTool } from "./tools/memory-audit-tool.js";
+import { createMemoryContextPackTool } from "./tools/memory-context-pack-tool.js";
 import { createMemoryIndexStatusTool } from "./tools/memory-index-status-tool.js";
+import { createMemoryIngestTool } from "./tools/memory-ingest-tool.js";
+import { createMemoryQueryTool } from "./tools/memory-query-tool.js";
 import { createMemoryRecallTool } from "./tools/memory-recall-tool.js";
 import { createMemoryStoreTool } from "./tools/memory-store-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
@@ -113,6 +118,18 @@ export function createOpenClawTools(options?: {
         accountId: options?.agentAccountId,
         sessionKey: options?.agentSessionKey,
       });
+  const slackInteractiveFormTool = options?.disableMessageTool
+    ? null
+    : createSlackInteractiveFormTool({
+        accountId: options?.agentAccountId,
+        sessionKey: options?.agentSessionKey,
+      });
+  const slackInteractiveConfirmationTool = options?.disableMessageTool
+    ? null
+    : createSlackInteractiveConfirmationTool({
+        accountId: options?.agentAccountId,
+        sessionKey: options?.agentSessionKey,
+      });
   const messageTool = options?.disableMessageTool
     ? null
     : createMessageTool({
@@ -191,11 +208,16 @@ export function createOpenClawTools(options?: {
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
     }),
+    createMemoryIngestTool(),
+    createMemoryQueryTool(),
+    createMemoryContextPackTool(),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
     ...(slackRichMessageTool ? [slackRichMessageTool] : []),
     ...(slackInteractiveQuestionTool ? [slackInteractiveQuestionTool] : []),
+    ...(slackInteractiveFormTool ? [slackInteractiveFormTool] : []),
+    ...(slackInteractiveConfirmationTool ? [slackInteractiveConfirmationTool] : []),
     createRipgrepTool({
       workspaceDir: options?.workspaceDir,
     }),
