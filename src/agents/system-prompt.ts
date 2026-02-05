@@ -417,7 +417,9 @@ export async function buildAgentSystemPrompt(params: {
   // For "none" mode, return just the basic identity line
   if (promptMode === "none") {
     // If none mode, we might still want the Matrix persona if available, or fallback
-    return matrixLines.length > 0 ? matrixLines.join("\n") : "You are a personal assistant running inside Clawdbot.";
+    return matrixLines.length > 0 
+    ? matrixLines.join("\n") 
+    : "You are a personal assistant.";
   }
 
   const lines = [
