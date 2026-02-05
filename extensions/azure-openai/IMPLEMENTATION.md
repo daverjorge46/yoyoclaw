@@ -38,12 +38,14 @@ The Azure OpenAI provider is implemented as a bundled plugin in `extensions/azur
 ## Integration Points
 
 ### Plugin System
+
 - Located in `extensions/azure-openai/`
 - Plugin manifest: `openclaw.plugin.json`
 - Package definition: `package.json`
 - Auto-discovered by OpenClaw's plugin loader
 
 ### Authentication Flow
+
 1. User runs: `openclaw models auth login --provider azure-openai --method <api-key|keyless>`
 2. Plugin prompts for endpoint and deployment
 3. For keyless: Acquires Azure token via DefaultAzureCredential
@@ -51,14 +53,18 @@ The Azure OpenAI provider is implemented as a bundled plugin in `extensions/azur
 5. Provider configuration written to models.json
 
 ### Model Configuration
+
 Supports all Azure OpenAI models:
+
 - GPT-4o, GPT-4o mini
 - GPT-4, GPT-4 Turbo
 - GPT-3.5 Turbo
 - o1-preview, o1-mini (reasoning models)
 
 ### API Compatibility
+
 Uses OpenAI-compatible API:
+
 - API type: `openai-completions`
 - Custom headers for Azure authentication
 - Deployment-based routing
@@ -66,6 +72,7 @@ Uses OpenAI-compatible API:
 ## Dependencies
 
 **New Dependency:**
+
 - `@azure/identity` (^4.6.0) - For keyless authentication
 
 **Why Added to Root:**
@@ -74,6 +81,7 @@ This is a bundled extension (not workspace-only), so the dependency is in the ro
 ## Testing
 
 Unit tests in `index.test.ts` verify:
+
 - Plugin exports valid definition
 - Register function exists and is callable
 - Provider registration includes both auth methods
@@ -114,6 +122,7 @@ Unit tests in `index.test.ts` verify:
 ## Usage Flow
 
 ### API Key Method
+
 ```bash
 $ openclaw models auth login --provider azure-openai --method api-key
 Azure OpenAI endpoint URL: https://my-resource.openai.azure.com
@@ -123,6 +132,7 @@ Paste Azure OpenAI API key: ****
 ```
 
 ### Keyless Method
+
 ```bash
 $ openclaw models auth login --provider azure-openai --method keyless
 Azure OpenAI endpoint URL: https://my-resource.openai.azure.com
@@ -135,6 +145,7 @@ Deployment name: gpt-4o
 ## Future Enhancements
 
 Potential improvements (not part of current implementation):
+
 1. Multi-deployment support with automatic selection
 2. Region-based endpoint discovery
 3. Cost tracking per deployment

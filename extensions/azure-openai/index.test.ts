@@ -46,4 +46,46 @@ describe("Azure OpenAI Plugin", () => {
     expect(keylessAuth).toBeDefined();
     expect(keylessAuth.kind).toBe("custom");
   });
+
+  describe("API Key Auth", () => {
+    it("should not embed API key directly in config patch", async () => {
+      const plugin = (await import("./index.js")).default;
+      const mockApi = {
+        registerProvider: vi.fn(),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      plugin.register(mockApi as any);
+
+      const providerCall = mockApi.registerProvider.mock.calls[0]?.[0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiKeyAuth = providerCall.auth.find((a: any) => a.id === "api-key");
+
+      // Mock the prompter context
+      const mockCtx = {
+        prompter: {
+          text: vi
+            .fn()
+            .mockResolvedValueOnce("https://test.openai.azure.com") // endpoint
+            .mockResolvedValueOnce("gpt-4o") // deployment name
+            .mockResolvedValueOnce("test-api-key-12345"), // api key
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await apiKeyAuth.run(mockCtx as any);
+
+      // Verify API key is stored in profile, not in config
+      expect(result.profiles).toHaveLength(1);
+      expect(result.profiles[0]?.credential.key).toBe("test-api-key-12345");
+
+      // Verify config patch references the profile, not the raw API key
+      const providerConfig = result.configPatch.models.providers["azure-openai"];
+      expect(providerConfig.apiKey).toMatch(/^profile:/);
+      expect(providerConfig.headers["api-key"]).toMatch(/^profile:/);
+
+      // Ensure raw API key is NOT in the config patch
+      expect(JSON.stringify(result.configPatch)).not.toContain("test-api-key-12345");
+    });
+  });
 });

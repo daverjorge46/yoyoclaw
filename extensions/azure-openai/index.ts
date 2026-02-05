@@ -124,6 +124,9 @@ async function getAzureAccessToken(_params: {
   const scope = "https://cognitiveservices.azure.com/.default";
 
   const tokenResponse = await credential.getToken(scope);
+  if (!tokenResponse) {
+    throw new Error("No Azure access token returned (DefaultAzureCredential unavailable)");
+  }
 
   return {
     token: tokenResponse.token,
@@ -213,9 +216,9 @@ const azureOpenAiPlugin = {
                     [PROVIDER_ID]: {
                       baseUrl,
                       api: "openai-completions" as const,
-                      apiKey: "AZURE_OPENAI_API_KEY",
+                      apiKey: `profile:${profileId}`,
                       headers: {
-                        "api-key": apiKeyStr,
+                        "api-key": `profile:${profileId}`,
                       },
                       models: AZURE_OPENAI_MODELS,
                     },
