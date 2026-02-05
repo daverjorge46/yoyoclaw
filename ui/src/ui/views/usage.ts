@@ -12,18 +12,30 @@ export type UsageProps = {
   onRefresh: () => void;
 };
 
-type UsageStatusData = {
-  totalTokensIn?: number;
-  totalTokensOut?: number;
-  totalCost?: number;
-  activeProviders?: number;
+/** Shape returned by usage.status (rate-limit windows per provider). */
+type UsageStatusResponse = {
+  updatedAt?: number;
   providers?: Array<{
-    name: string;
-    tokensIn: number;
-    tokensOut: number;
-    cost: number;
-    models?: Array<{ name: string; tokensIn: number; tokensOut: number; cost: number }>;
+    provider: string;
+    displayName: string;
+    windows?: Array<{ label: string; usedPercent?: number; resetAt?: number }>;
   }>;
+};
+
+/** Shape returned by usage.cost (token/cost totals). */
+type UsageCostResponse = {
+  updatedAt?: number;
+  days?: number;
+  daily?: unknown[];
+  totals?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    totalTokens?: number;
+    totalCost?: number;
+    missingCostEntries?: number;
+  };
 };
 
 const PERIOD_OPTIONS: Array<{ value: "24h" | "7d" | "30d" | "all"; label: string }> = [
@@ -33,7 +45,10 @@ const PERIOD_OPTIONS: Array<{ value: "24h" | "7d" | "30d" | "all"; label: string
   { value: "all", label: "All" },
 ];
 
-function formatTokenCount(n: number): string {
+function formatTokenCount(n: number | undefined | null): string {
+  if (n == null) {
+    return "0";
+  }
   if (n >= 1_000_000) {
     return `${(n / 1_000_000).toFixed(1)}M`;
   }
@@ -43,8 +58,8 @@ function formatTokenCount(n: number): string {
   return String(n);
 }
 
-function formatCost(n: number): string {
-  if (n === 0) {
+function formatCost(n: number | undefined | null): string {
+  if (n == null || n === 0) {
     return "$0.00";
   }
   if (n < 0.01) {
@@ -53,8 +68,46 @@ function formatCost(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+function formatResetTime(resetAt: number | undefined): string {
+  if (!resetAt) {
+    return "";
+  }
+  const diff = resetAt - Date.now();
+  if (diff <= 0) {
+    return "resetting…";
+  }
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  if (hours > 0) {
+    return `resets in ${hours}h ${minutes}m`;
+  }
+  return `resets in ${minutes}m`;
+}
+
+/** Interpolate from green (#22c55e) → yellow (#eab308) → red (#ef4444) based on usage %. */
+function usedPercentColor(pct: number): string {
+  const clamped = Math.max(0, Math.min(100, pct));
+  let r: number, g: number, b: number;
+  if (clamped <= 50) {
+    // green → yellow
+    const t = clamped / 50;
+    r = Math.round(0x22 + (0xea - 0x22) * t);
+    g = Math.round(0xc5 + (0xb3 - 0xc5) * t);
+    b = Math.round(0x5e + (0x08 - 0x5e) * t);
+  } else {
+    // yellow → red
+    const t = (clamped - 50) / 50;
+    r = Math.round(0xea + (0xef - 0xea) * t);
+    g = Math.round(0xb3 + (0x44 - 0xb3) * t);
+    b = Math.round(0x08 + (0x44 - 0x08) * t);
+  }
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export function renderUsage(props: UsageProps) {
-  const data = props.status as UsageStatusData | null;
+  const status = props.status as UsageStatusResponse | null;
+  const cost = props.cost as UsageCostResponse | null;
+  const hasData = status || cost;
 
   return html`
     <section class="card">
@@ -86,90 +139,100 @@ export function renderUsage(props: UsageProps) {
       ${props.error ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>` : nothing}
 
       ${
-        props.loading && !data
+        props.loading && !hasData
           ? renderSpinner("Loading usage data...")
-          : !data
+          : !hasData
             ? renderEmptyState({
                 icon: icons.barChart,
                 title: "No usage data",
                 subtitle: "Usage data will appear as providers are used.",
               })
-            : renderUsageData(data)
+            : html`${renderCostSummary(cost)} ${renderRateLimitStatus(status)}`
       }
     </section>
   `;
 }
 
-function renderUsageData(data: UsageStatusData) {
-  const totalIn = data.totalTokensIn ?? 0;
-  const totalOut = data.totalTokensOut ?? 0;
-  const totalCost = data.totalCost ?? 0;
-  const activeProviders = data.activeProviders ?? 0;
-  const providers = data.providers ?? [];
-  const grandTotal = totalIn + totalOut;
+function renderCostSummary(cost: UsageCostResponse | null) {
+  const totals = cost?.totals;
+  if (!totals) {
+    return nothing;
+  }
 
   return html`
     <div class="usage-summary" style="margin-top: 16px;">
       <div class="card stat-card">
         <div class="stat-label">Tokens In</div>
-        <div class="stat-value">${formatTokenCount(totalIn)}</div>
+        <div class="stat-value">${formatTokenCount(totals.input)}</div>
       </div>
       <div class="card stat-card">
         <div class="stat-label">Tokens Out</div>
-        <div class="stat-value">${formatTokenCount(totalOut)}</div>
+        <div class="stat-value">${formatTokenCount(totals.output)}</div>
       </div>
       <div class="card stat-card">
         <div class="stat-label">Estimated Cost</div>
-        <div class="stat-value">${formatCost(totalCost)}</div>
+        <div class="stat-value">${formatCost(totals.totalCost)}</div>
       </div>
       <div class="card stat-card">
-        <div class="stat-label">Active Providers</div>
-        <div class="stat-value">${activeProviders}</div>
+        <div class="stat-label">Total Tokens</div>
+        <div class="stat-value">${formatTokenCount(totals.totalTokens)}</div>
       </div>
     </div>
+  `;
+}
 
-    ${
-      providers.length > 0
-        ? html`
-          <div style="margin-top: 16px;">
-            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px;">
-              Per-Provider Breakdown
-            </div>
-            <div class="usage-table">
-              <div class="usage-table__row usage-table__head">
-                <span>Provider</span>
-                <span>Tokens In</span>
-                <span>Tokens Out</span>
-                <span>Cost</span>
-              </div>
-              ${providers.map(
-                (p) => html`
-                <div class="usage-table__row">
-                  <span style="font-weight: 500;">${p.name}</span>
-                  <span class="mono">${formatTokenCount(p.tokensIn)}</span>
-                  <span class="mono">${formatTokenCount(p.tokensOut)}</span>
-                  <span class="mono">${formatCost(p.cost)}</span>
-                </div>
-                ${
-                  grandTotal > 0
-                    ? html`
-                  <div style="padding: 0 12px 8px;">
-                    <div class="usage-bar">
-                      <div
-                        class="usage-bar__fill"
-                        style="width: ${(((p.tokensIn + p.tokensOut) / grandTotal) * 100).toFixed(1)}%; background: var(--accent);"
-                      ></div>
-                    </div>
+function renderRateLimitStatus(status: UsageStatusResponse | null) {
+  const providers = status?.providers;
+  if (!providers || providers.length === 0) {
+    return nothing;
+  }
+
+  return html`
+    <div style="margin-top: 16px;">
+      <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px;">
+        Rate-Limit Usage
+      </div>
+      ${providers.map(
+        (p) => html`
+          <div
+            style="border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;"
+          >
+            <div style="font-weight: 600; margin-bottom: 8px;">${p.displayName}</div>
+            ${
+              p.windows && p.windows.length > 0
+                ? html`
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    ${p.windows.map((w) => {
+                      const pct = w.usedPercent ?? 0;
+                      return html`
+                        <div>
+                          <div
+                            style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 2px;"
+                          >
+                            <span>${w.label}</span>
+                            <span class="muted">
+                              ${pct.toFixed(1)}%
+                              ${w.resetAt ? html` · <span style="opacity: 0.7;">${formatResetTime(w.resetAt)}</span>` : nothing}
+                            </span>
+                          </div>
+                          <div class="usage-bar">
+                            <div
+                              class="usage-bar__fill"
+                              style="width: ${pct.toFixed(1)}%; background: ${usedPercentColor(pct)};"
+                            ></div>
+                          </div>
+                        </div>
+                      `;
+                    })}
                   </div>
                 `
-                    : nothing
-                }
-              `,
-              )}
-            </div>
+                : html`
+                    <div class="muted" style="font-size: 12px">No usage windows.</div>
+                  `
+            }
           </div>
-        `
-        : nothing
-    }
+        `,
+      )}
+    </div>
   `;
 }
