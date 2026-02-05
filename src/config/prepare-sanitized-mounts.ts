@@ -73,10 +73,10 @@ export async function prepareSanitizedMounts(): Promise<SanitizedMounts> {
       if (!config.gateway) {
         (config as any).gateway = {};
       }
-      if (!config.gateway.controlUi) {
+      if (!config.gateway!.controlUi) {
         (config.gateway as any).controlUi = {};
       }
-      (config.gateway.controlUi as any).dangerouslyDisableDeviceAuth = true;
+      (config.gateway!.controlUi as any).dangerouslyDisableDeviceAuth = true;
 
       const ext = path.extname(configPath);
       const sanitizedConfigPath = path.join(sanitizedDir, `openclaw${ext}`);

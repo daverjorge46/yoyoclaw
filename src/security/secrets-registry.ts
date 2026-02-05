@@ -76,9 +76,9 @@ function loadAuthProfiles(agentDir?: string): {
   for (const [profileId, credential] of Object.entries(store.profiles)) {
     if (credential.type === "oauth") {
       oauthProfiles.set(profileId, credential);
-    } else if (credential.type === "api_key") {
+    } else if (credential.type === "api_key" && credential.key) {
       apiKeys.set(profileId, credential.key);
-    } else if (credential.type === "token") {
+    } else if (credential.type === "token" && credential.token) {
       tokens.set(profileId, credential.token);
     }
   }
