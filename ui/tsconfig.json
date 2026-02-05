@@ -12,7 +12,8 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2023",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "useDefineForClassFields": false
   },
   "include": ["src/**/*", "*.config.ts"],
   "exclude": ["node_modules", "dist"]
