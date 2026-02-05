@@ -289,12 +289,15 @@ export async function createModelSelectionState(params: {
   let model = params.model;
 
   const hasAllowlist = agentCfg?.models && Object.keys(agentCfg.models).length > 0;
-  const initialStoredOverride = resolveStoredModelOverride({
-    sessionEntry,
-    sessionStore,
-    sessionKey,
-    parentSessionKey,
-  });
+  // Skip stored override check for heartbeats - they use heartbeat.model instead
+  const initialStoredOverride = params.isHeartbeat
+    ? null
+    : resolveStoredModelOverride({
+        sessionEntry,
+        sessionStore,
+        sessionKey,
+        parentSessionKey,
+      });
   const hasStoredOverride = Boolean(initialStoredOverride);
   const needsModelCatalog = params.hasModelDirective || hasAllowlist || hasStoredOverride;
 
@@ -338,22 +341,13 @@ export async function createModelSelectionState(params: {
     }
   }
 
-  // Skip stored model override for heartbeat runs - heartbeat.model should take precedence
-  // This prevents /model commands from affecting heartbeat behavior
-  if (!params.isHeartbeat) {
-    const storedOverride = resolveStoredModelOverride({
-      sessionEntry,
-      sessionStore,
-      sessionKey,
-      parentSessionKey,
-    });
-    if (storedOverride?.model) {
-      const candidateProvider = storedOverride.provider || defaultProvider;
-      const key = modelKey(candidateProvider, storedOverride.model);
-      if (allowedModelKeys.size === 0 || allowedModelKeys.has(key)) {
-        provider = candidateProvider;
-        model = storedOverride.model;
-      }
+  // Apply stored model override (already skipped for heartbeats via initialStoredOverride)
+  if (initialStoredOverride?.model) {
+    const candidateProvider = initialStoredOverride.provider || defaultProvider;
+    const key = modelKey(candidateProvider, initialStoredOverride.model);
+    if (allowedModelKeys.size === 0 || allowedModelKeys.has(key)) {
+      provider = candidateProvider;
+      model = initialStoredOverride.model;
     }
   }
 
