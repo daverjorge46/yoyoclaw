@@ -34,13 +34,7 @@ services:
         rm -f /home/node/.openclaw/openclaw.json
         rm -rf /home/node/.openclaw/config.yaml
         # Create fresh openclaw.yaml (correct filename!)
-        cat > /home/node/.openclaw/openclaw.yaml <<'EOF'
-gateway:
-  http:
-    endpoints:
-      chatCompletions:
-        enabled: true
-EOF
+        printf 'gateway:\n  http:\n    endpoints:\n      chatCompletions:\n        enabled: true\n' > /home/node/.openclaw/openclaw.yaml
         exec node dist/index.js gateway --allow-unconfigured --bind lan
     environment:
       - NODE_ENV=production
