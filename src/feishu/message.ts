@@ -15,6 +15,7 @@ import {
   type ResolvedFeishuConfig,
 } from "./config.js";
 import { resolveFeishuMedia, type FeishuMediaRef } from "./download.js";
+import { extractTextFromFeishuPost, type FeishuPostContent } from "./format.js";
 import { readFeishuAllowFromStore, upsertFeishuPairingRequest } from "./pairing-store.js";
 import { sendMessageFeishu } from "./send.js";
 import { FeishuStreamingSession } from "./streaming-card.js";
@@ -54,7 +55,7 @@ type FeishuEventPayload = {
 };
 
 // Supported message types for processing
-const SUPPORTED_MSG_TYPES = new Set(["text", "image", "file", "audio", "media", "sticker"]);
+const SUPPORTED_MSG_TYPES = new Set(["text", "post", "image", "file", "audio", "media", "sticker"]);
 
 export type ProcessFeishuMessageOptions = {
   cfg?: OpenClawConfig;
@@ -239,6 +240,15 @@ export async function processFeishuMessage(
     } catch (err) {
       logger.error(`Failed to parse text message content: ${formatErrorMessage(err)}`);
     }
+  } else if (msgType === "post") {
+    try {
+      if (message.content) {
+        const postContent = JSON.parse(message.content) as FeishuPostContent;
+        text = extractTextFromFeishuPost(postContent);
+      }
+    } catch (err) {
+      logger.error(`Failed to parse post message content: ${formatErrorMessage(err)}`);
+    }
   }
 
   // Remove @mention placeholders from text
@@ -250,7 +260,7 @@ export async function processFeishuMessage(
 
   // Resolve media if present
   let media: FeishuMediaRef | null = null;
-  if (msgType !== "text") {
+  if (msgType !== "text" && msgType !== "post") {
     try {
       media = await resolveFeishuMedia(client, message, maxMediaBytes);
     } catch (err) {

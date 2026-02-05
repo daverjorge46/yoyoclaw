@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { containsMarkdown, markdownToFeishuPost } from "./format.js";
+import type { FeishuPostContent } from "./format.js";
+import { containsMarkdown, extractTextFromFeishuPost, markdownToFeishuPost } from "./format.js";
 
 describe("containsMarkdown", () => {
   it("detects bold text", () => {
@@ -32,6 +33,116 @@ describe("containsMarkdown", () => {
 
   it("returns false for empty string", () => {
     expect(containsMarkdown("")).toBe(false);
+  });
+});
+
+describe("extractTextFromFeishuPost", () => {
+  it("extracts plain text from a single line", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [[{ tag: "text", text: "Hello world" }]],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("Hello world");
+  });
+
+  it("extracts text from multiple lines", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [{ tag: "text", text: "Line 1" }],
+          [{ tag: "text", text: "Line 2" }],
+          [{ tag: "text", text: "Line 3" }],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("Line 1\nLine 2\nLine 3");
+  });
+
+  it("extracts text from links", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [
+            { tag: "text", text: "Visit " },
+            { tag: "a", text: "Google", href: "https://google.com" },
+            { tag: "text", text: " for more" },
+          ],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("Visit Google for more");
+  });
+
+  it("skips @mention elements (matches text-message stripping behavior)", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [
+            { tag: "at", user_id: "ou_123" },
+            { tag: "text", text: " Hello" },
+          ],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe(" Hello");
+  });
+
+  it("extracts emoji as bracketed name", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [
+            { tag: "text", text: "Great " },
+            { tag: "emotion", emoji_type: "THUMBSUP" },
+          ],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("Great [THUMBSUP]");
+  });
+
+  it("skips img and media elements", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [
+            { tag: "text", text: "See image: " },
+            { tag: "img", image_key: "img_xxx" },
+          ],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("See image: ");
+  });
+
+  it("falls back to en_us when zh_cn is missing", () => {
+    const post: FeishuPostContent = {
+      en_us: {
+        content: [[{ tag: "text", text: "English text" }]],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("English text");
+  });
+
+  it("returns empty string for empty post", () => {
+    expect(extractTextFromFeishuPost({})).toBe("");
+  });
+
+  it("handles mixed elements on one line", () => {
+    const post: FeishuPostContent = {
+      zh_cn: {
+        content: [
+          [
+            { tag: "text", text: "Check " },
+            { tag: "a", text: "this link", href: "https://example.com" },
+            { tag: "text", text: " and " },
+            { tag: "text", text: "reply" },
+          ],
+        ],
+      },
+    };
+    expect(extractTextFromFeishuPost(post)).toBe("Check this link and reply");
   });
 });
 

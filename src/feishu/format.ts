@@ -245,6 +245,46 @@ export function markdownToFeishuChunks(
 }
 
 /**
+ * Extract plain text from a Feishu Post content structure.
+ * Concatenates text from all supported elements (text, a, at, emotion)
+ * with lines joined by newlines.
+ */
+export function extractTextFromFeishuPost(post: FeishuPostContent): string {
+  // Prefer zh_cn, fall back to en_us
+  const body = post.zh_cn ?? post.en_us;
+  if (!body?.content) {
+    return "";
+  }
+
+  const lines: string[] = [];
+  for (const line of body.content) {
+    const parts: string[] = [];
+    for (const el of line) {
+      switch (el.tag) {
+        case "text":
+          parts.push(el.text);
+          break;
+        case "a":
+          parts.push(el.text);
+          break;
+        case "at":
+          // Skip mentions – the text-message path strips mention.key
+          // placeholders but post at-elements use user_id which won't
+          // match mention.key. Dropping them mirrors text-message behavior.
+          break;
+        case "emotion":
+          parts.push(`[${el.emoji_type}]`);
+          break;
+        // img / media elements are non-textual; skip them
+      }
+    }
+    lines.push(parts.join(""));
+  }
+
+  return lines.join("\n");
+}
+
+/**
  * Check if text contains Markdown formatting
  */
 export function containsMarkdown(text: string): boolean {
