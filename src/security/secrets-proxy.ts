@@ -201,8 +201,18 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
       const method = (req.method || "GET").toUpperCase();
       const hasBody = !BODYLESS_METHODS.has(method);
 
+      // Determine if body is text-based (safe for placeholder replacement)
+      const contentType = (req.headers["content-type"] || "").toLowerCase();
+      const isTextBody =
+        contentType.includes("application/json") ||
+        contentType.includes("text/") ||
+        contentType.includes("application/xml") ||
+        contentType.includes("application/x-www-form-urlencoded") ||
+        contentType.includes("application/javascript") ||
+        contentType === ""; // Assume text if no content-type (common for simple requests)
+
       // P0 Fix: Only read and process body for methods that should have one
-      let modifiedBody: string | undefined;
+      let modifiedBody: Buffer | string | undefined;
       if (hasBody) {
         const chunks: Buffer[] = [];
         let totalSize = 0;
@@ -217,8 +227,15 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
         }
 
         if (chunks.length > 0) {
-          const rawBody = Buffer.concat(chunks).toString("utf8");
-          modifiedBody = await replacePlaceholders(rawBody, registry);
+          const rawBuffer = Buffer.concat(chunks);
+          if (isTextBody) {
+            // Text body: do placeholder replacement
+            const rawBody = rawBuffer.toString("utf8");
+            modifiedBody = await replacePlaceholders(rawBody, registry);
+          } else {
+            // Binary body: pass through unchanged to avoid corruption
+            modifiedBody = rawBuffer;
+          }
         }
       } else {
         // Drain the body for bodyless methods (ignore any sent body)
