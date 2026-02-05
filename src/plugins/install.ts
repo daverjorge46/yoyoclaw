@@ -10,6 +10,7 @@ import {
   resolvePackedRootDir,
 } from "../infra/archive.js";
 import { runCommandWithTimeout } from "../process/exec.js";
+import { scanDirectoryWithSummary } from "../security/skill-scanner.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
 
 type PluginInstallLogger = {
@@ -159,6 +160,22 @@ async function installPluginFromPackageDir(params: {
       ok: false,
       error: `plugin id mismatch: expected ${params.expectedPluginId}, got ${pluginId}`,
     };
+  }
+
+  // Scan plugin source for dangerous code patterns
+  const scanSummary = await scanDirectoryWithSummary(params.packageDir);
+  if (scanSummary.critical > 0) {
+    const criticalDetails = scanSummary.findings
+      .filter((f) => f.severity === "critical")
+      .map((f) => `${f.message} (${f.file}:${f.line})`)
+      .join("; ");
+    logger.warn?.(
+      `WARNING: Plugin "${pluginId}" contains dangerous code patterns: ${criticalDetails}`,
+    );
+  } else if (scanSummary.warn > 0) {
+    logger.warn?.(
+      `Plugin "${pluginId}" has ${scanSummary.warn} suspicious code pattern(s). Run "openclaw security audit --deep" for details.`,
+    );
   }
 
   const extensionsDir = params.extensionsDir
