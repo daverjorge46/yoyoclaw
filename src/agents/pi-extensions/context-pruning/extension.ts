@@ -3,7 +3,7 @@ import { pruneContextMessages } from "./pruner.js";
 import { getContextPruningRuntime } from "./runtime.js";
 
 export default function contextPruningExtension(api: ExtensionAPI): void {
-  api.on("context", (event: ContextEvent, ctx: ExtensionContext) => {
+  api.on("context", async (event: ContextEvent, ctx: ExtensionContext) => {
     const runtime = getContextPruningRuntime(ctx.sessionManager);
     if (!runtime) {
       return undefined;
@@ -20,7 +20,7 @@ export default function contextPruningExtension(api: ExtensionAPI): void {
       }
     }
 
-    const next = pruneContextMessages({
+    const next = await pruneContextMessages({
       messages: event.messages,
       settings: runtime.settings,
       ctx,

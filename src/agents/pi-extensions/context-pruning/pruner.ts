@@ -223,7 +223,7 @@ ${tail}`;
   return { ...msg, content: [asText(trimmed + note)] };
 }
 
-export function pruneContextMessages(params: {
+export async function pruneContextMessages(params: {
   messages: AgentMessage[];
   settings: EffectiveContextPruningSettings;
   ctx: Pick<ExtensionContext, "model">;
@@ -274,7 +274,7 @@ export function pruneContextMessages(params: {
   const prunedToolNames = new Set<string>();
   const hookSessionKey =
     params.sessionKey ?? (params.sessionId ? `session:${params.sessionId}` : undefined);
-  const emitPruneHook = () => {
+  const emitPruneHook = async () => {
     if (!hookSessionKey || (softTrimmedCount === 0 && hardClearedCount === 0)) {
       return;
     }
@@ -287,7 +287,7 @@ export function pruneContextMessages(params: {
         hardClearedCount,
         toolNames: prunedToolNames.size > 0 ? Array.from(prunedToolNames) : undefined,
       });
-      void triggerInternalHook(hookEvent);
+      await triggerInternalHook(hookEvent);
     } catch {
       // Best-effort only; pruning should never fail due to hooks.
     }
@@ -331,11 +331,11 @@ export function pruneContextMessages(params: {
   const outputAfterSoftTrim = next ?? messages;
   ratio = totalChars / charWindow;
   if (ratio < settings.hardClearRatio) {
-    emitPruneHook();
+    await emitPruneHook();
     return outputAfterSoftTrim;
   }
   if (!settings.hardClear.enabled) {
-    emitPruneHook();
+    await emitPruneHook();
     return outputAfterSoftTrim;
   }
 
@@ -378,6 +378,6 @@ export function pruneContextMessages(params: {
     }
   }
 
-  emitPruneHook();
+  await emitPruneHook();
   return next ?? messages;
 }
