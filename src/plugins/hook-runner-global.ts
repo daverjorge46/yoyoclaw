@@ -25,12 +25,22 @@ type GlobalHookRunnerState = {
 const globalHookRunnerState = globalThis as typeof globalThis & GlobalHookRunnerState;
 
 export function initializeGlobalHookRunner(registry: PluginRegistry): void {
-  // Prevent overwriting if already initialized (fixes split singleton issue where second init has empty registry)
+  // Prevent overwriting unless the existing registry is empty and the new one has hooks.
   const existingRunner = globalHookRunnerState[GLOBAL_HOOK_RUNNER_KEY];
   if (existingRunner) {
-    const debugId = (existingRunner as HookRunnerWithDebugId)._debugId;
-    log.warn(`[debug] HookRunner already initialized (ID=${debugId}). Ignoring re-initialization.`);
-    return;
+    const existingRegistry = globalHookRunnerState[GLOBAL_REGISTRY_KEY];
+    const existingHooks = existingRegistry?.hooks.length ?? 0;
+    const nextHooks = registry.hooks.length;
+    if (existingHooks > 0 || nextHooks === 0) {
+      const debugId = (existingRunner as HookRunnerWithDebugId)._debugId;
+      log.warn(
+        `[debug] HookRunner already initialized (ID=${debugId}). Ignoring re-initialization.`,
+      );
+      return;
+    }
+    log.warn(
+      `[debug] HookRunner reinitialized with populated registry (prev hooks=0, next hooks=${nextHooks}).`,
+    );
   }
 
   globalHookRunnerState[GLOBAL_REGISTRY_KEY] = registry;

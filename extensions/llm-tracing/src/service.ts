@@ -56,35 +56,48 @@ function parseToolCalls(value: unknown): AgentToolCall[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  return value.map((toolCall) => {
-    const record = toolCall as Record<string, unknown>;
-    const id = typeof record.id === "string" ? record.id : "unknown";
-    const functionRecord =
-      typeof record.function === "object" && record.function !== null
-        ? (record.function as Record<string, unknown>)
-        : {};
-    const name = typeof functionRecord.name === "string" ? functionRecord.name : "unknown";
-    const argsValue = functionRecord.arguments;
-    let args = "{}";
-    if (typeof argsValue === "string") {
-      args = argsValue;
-    } else {
-      try {
-        args = JSON.stringify(argsValue ?? {});
-      } catch {
-        args = "{}";
+  const parsed = value
+    .map((toolCall) => {
+      if (!toolCall || typeof toolCall !== "object") {
+        return null;
       }
-    }
+      const record = toolCall as Record<string, unknown>;
+      if (record.type && record.type !== "function") {
+        return null;
+      }
+      const functionRecord =
+        typeof record.function === "object" && record.function !== null
+          ? (record.function as Record<string, unknown>)
+          : {};
+      const name = typeof functionRecord.name === "string" ? functionRecord.name.trim() : "";
+      if (!name) {
+        return null;
+      }
+      const id = typeof record.id === "string" ? record.id : "unknown";
+      const argsValue = functionRecord.arguments;
+      let args = "{}";
+      if (typeof argsValue === "string") {
+        args = argsValue;
+      } else {
+        try {
+          args = JSON.stringify(argsValue ?? {});
+        } catch {
+          args = "{}";
+        }
+      }
 
-    return {
-      type: "function",
-      id,
-      function: {
-        name,
-        arguments: args,
-      },
-    };
-  });
+      return {
+        type: "function",
+        id,
+        function: {
+          name,
+          arguments: args,
+        },
+      };
+    })
+    .filter((toolCall): toolCall is AgentToolCall => toolCall !== null);
+
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 function extractTextContent(content: unknown): string {
@@ -153,7 +166,7 @@ function findLastAssistant(messages: AgentMessage[]): AgentMessage | undefined {
 // This maps to the gen_ai.prompt attribute
 function formatLlmInput(messages: AgentMessage[], systemPrompt?: string): string {
   const lastAssistantIndex = messages.findLastIndex((m) => m.role === "assistant");
-  const inputMessages = lastAssistantIndex > 0 ? messages.slice(0, lastAssistantIndex) : messages;
+  const inputMessages = lastAssistantIndex >= 0 ? messages.slice(0, lastAssistantIndex) : messages;
 
   const formattedMessages = inputMessages.map((msg) => {
     const base: Record<string, unknown> = {
@@ -245,7 +258,7 @@ export function createLlmTracingService(api: OpenClawPluginApi): OpenClawPluginS
           : {}),
       });
 
-      sdk.start();
+      await sdk.start();
 
       // Get tracer after SDK is started
       const tracer = trace.getTracer("llm-tracing", "1.0.0");

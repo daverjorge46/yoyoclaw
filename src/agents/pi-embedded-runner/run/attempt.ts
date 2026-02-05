@@ -837,25 +837,8 @@ export async function runEmbeddedAttempt(
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
 
-        // Run agent_end hooks to allow plugins to analyze the conversation
-        // This is fire-and-forget, so we don't await
-        // Note: hookRunner is already declared in outer scope (line 703)
-        if (hookRunner) {
-          try {
-            const { isMainThread, threadId } = await import("node:worker_threads");
-            const debugId = (hookRunner as { _debugId?: string })._debugId;
-            log.debug(
-              `[debug] hookRunner found (ID=${debugId}). has agent_end hooks? ${hookRunner.hasHooks("agent_end")}. Environment: isMainThread=${isMainThread}, threadId=${threadId}`,
-            );
-          } catch {
-            log.debug(
-              `[debug] hookRunner found. has agent_end hooks? ${hookRunner.hasHooks("agent_end")}. (worker_threads info unavailable)`,
-            );
-          }
-        } else {
-          log.debug("[debug] hookRunner is NULL in attempt.ts");
-        }
-
+        // Run agent_end hooks to allow plugins to analyze the conversation.
+        // This is fire-and-forget, so we don't await.
         if (hookRunner?.hasHooks("agent_end")) {
           hookRunner
             .runAgentEnd(
@@ -876,8 +859,6 @@ export async function runEmbeddedAttempt(
             .catch((err) => {
               log.warn(`agent_end hook failed: ${err}`);
             });
-        } else {
-          log.debug("[debug] Skipping agent_end hook because no hooks registered.");
         }
       } finally {
         clearTimeout(abortTimer);
