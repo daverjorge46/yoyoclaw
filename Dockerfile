@@ -22,7 +22,7 @@ RUN pnpm build
 
 # Install Playwright and Chromium browser
 ENV PLAYWRIGHT_BROWSERS_PATH=/data/playwright-browsers
-RUN pnpm add playwright && npx playwright install chromium
+RUN pnpm add -w playwright && pnpm exec playwright install chromium
 
 # Data folder maken
 RUN mkdir -p /data/.clawdbot
