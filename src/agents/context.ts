@@ -32,9 +32,13 @@ const loadPromise = (async () => {
 
     for (const m of models) {
       const id = m?.id?.trim();
-      if (!id) continue;
+      if (!id) {
+        continue;
+      }
       const ctx = m.contextWindow;
-      if (typeof ctx !== "number" || ctx <= 0) continue;
+      if (typeof ctx !== "number" || ctx <= 0) {
+        continue;
+      }
 
       const provider = typeof m.provider === "string" ? m.provider.trim() : "";
       if (provider) {
@@ -60,13 +64,17 @@ const loadPromise = (async () => {
 })();
 
 export function lookupContextTokens(modelIdOrRef?: string, provider?: string): number | undefined {
-  if (!modelIdOrRef) return undefined;
+  if (!modelIdOrRef) {
+    return undefined;
+  }
 
   // Best-effort: kick off loading, but don't block.
   void loadPromise;
 
   const raw = modelIdOrRef.trim();
-  if (!raw) return undefined;
+  if (!raw) {
+    return undefined;
+  }
 
   // Preferred: explicit provider + id.
   if (provider && provider.trim() && !raw.includes("/")) {
