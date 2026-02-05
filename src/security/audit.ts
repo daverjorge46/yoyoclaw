@@ -20,6 +20,7 @@ import {
   collectSmallModelRiskFindings,
   collectPluginsTrustFindings,
   collectSecretsInConfigFindings,
+  collectSkillCodeSafetyFindings,
   collectStateDeepFilesystemFindings,
   collectSyncedFolderFindings,
   readConfigSnapshotForAudit,
@@ -955,6 +956,7 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
       ...(await collectStateDeepFilesystemFindings({ cfg, env, stateDir, platform, execIcacls })),
     );
     findings.push(...(await collectPluginsTrustFindings({ cfg, stateDir })));
+    findings.push(...(await collectSkillCodeSafetyFindings({ stateDir })));
   }
 
   if (opts.includeChannelSecurity !== false) {

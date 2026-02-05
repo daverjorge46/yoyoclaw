@@ -26,6 +26,7 @@ import {
   inspectPathPermissions,
   safeStat,
 } from "./audit-fs.js";
+import { scanDirectoryWithSummary } from "./skill-scanner.js";
 
 export type SecurityAuditFinding = {
   checkId: string;
@@ -1061,4 +1062,53 @@ export async function readConfigSnapshotForAudit(params: {
     env: params.env,
     configPath: params.configPath,
   }).readConfigFileSnapshot();
+}
+
+export async function collectSkillCodeSafetyFindings(params: {
+  stateDir: string;
+}): Promise<SecurityAuditFinding[]> {
+  const findings: SecurityAuditFinding[] = [];
+  const extensionsDir = path.join(params.stateDir, "extensions");
+  const st = await safeStat(extensionsDir);
+  if (!st.ok || !st.isDir) {
+    return findings;
+  }
+
+  const entries = await fs.readdir(extensionsDir, { withFileTypes: true }).catch(() => []);
+  const pluginDirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+
+  for (const pluginName of pluginDirs) {
+    const pluginPath = path.join(extensionsDir, pluginName);
+    const summary = await scanDirectoryWithSummary(pluginPath);
+
+    if (summary.critical > 0) {
+      const criticalFindings = summary.findings.filter((f) => f.severity === "critical");
+      const details = criticalFindings
+        .map((f) => `  - ${f.message} (${path.basename(f.file)}:${f.line})`)
+        .join("\n");
+
+      findings.push({
+        checkId: "plugins.code_safety",
+        severity: "critical",
+        title: `Plugin "${pluginName}" contains dangerous code patterns`,
+        detail: `Found ${summary.critical} critical issue(s) in ${summary.scannedFiles} scanned file(s):\n${details}`,
+        remediation: `Review the plugin source code carefully before use. Remove the plugin with: rm -rf "${pluginPath}"`,
+      });
+    } else if (summary.warn > 0) {
+      const warnFindings = summary.findings.filter((f) => f.severity === "warn");
+      const details = warnFindings
+        .map((f) => `  - ${f.message} (${path.basename(f.file)}:${f.line})`)
+        .join("\n");
+
+      findings.push({
+        checkId: "plugins.code_safety",
+        severity: "warn",
+        title: `Plugin "${pluginName}" contains suspicious code patterns`,
+        detail: `Found ${summary.warn} warning(s) in ${summary.scannedFiles} scanned file(s):\n${details}`,
+        remediation: `Review the flagged code to ensure it is intentional and safe.`,
+      });
+    }
+  }
+
+  return findings;
 }
