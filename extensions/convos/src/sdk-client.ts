@@ -81,11 +81,8 @@ function keyHash8(privateKey: string): string {
 }
 
 /**
- * Build a deterministic dbPath under the OpenClaw state directory.
- * Returns a **file** path (not a directory) because the XMTP Agent SDK
- * passes dbPath directly to SQLite as the database filename.
- *
- *   <stateDir>/convos/xmtp/<env>/<accountId>/<keyHash8>/xmtp.db
+ * Build a deterministic dbPath directory under the OpenClaw state directory:
+ *   <stateDir>/convos/xmtp/<env>/<accountId>/<keyHash8>/
  */
 export function resolveConvosDbPath(params: {
   stateDir: string;
@@ -94,7 +91,25 @@ export function resolveConvosDbPath(params: {
   privateKey: string;
 }): string {
   const hash = keyHash8(params.privateKey);
-  return path.join(params.stateDir, "convos", "xmtp", params.env, params.accountId, hash, "xmtp.db");
+  return path.join(params.stateDir, "convos", "xmtp", params.env, params.accountId, hash);
+}
+
+/**
+ * Ensure a dbPath directory exists and is writable. Throws a clear error
+ * (instead of the opaque libxmtp "Pool error … Unable to open database file")
+ * if the directory cannot be created or written to.
+ */
+export function ensureDbPathWritable(dbPath: string): void {
+  fs.mkdirSync(dbPath, { recursive: true });
+  const probe = path.join(dbPath, `.probe-${process.pid}`);
+  try {
+    fs.writeFileSync(probe, "");
+    fs.unlinkSync(probe);
+  } catch (err) {
+    throw new Error(
+      `XMTP dbPath is not writable: ${dbPath} — ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 }
 
 /**
@@ -145,11 +160,11 @@ export class ConvosSDKClient {
     const signer = createSigner(user);
 
     // Build Agent options with explicit dbPath when provided.
-    // string → persistent (ensure dir exists); null → in-memory; undefined → SDK default.
+    // string → persistent (ensure dir exists + writable); null → in-memory; undefined → SDK default.
     const agentOpts: Record<string, unknown> = { env: resolvedEnv };
     if (options.dbPath !== undefined) {
       if (typeof options.dbPath === "string") {
-        fs.mkdirSync(path.dirname(options.dbPath), { recursive: true });
+        ensureDbPathWritable(options.dbPath);
       }
       agentOpts.dbPath = options.dbPath;
     }

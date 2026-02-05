@@ -285,7 +285,7 @@ export const convosPlugin: ChannelPlugin<ResolvedConvosAccount> = {
         accountId: account.accountId,
         privateKey: account.privateKey,
       });
-      log?.info(`[${account.accountId}] XMTP dbPath: ${dbPath}`);
+      log?.info(`[${account.accountId}] XMTP stateDir: ${stateDir}, cwd: ${process.cwd()}, dbPath: ${dbPath}`);
 
       // Create SDK client with message handling
       const client = await ConvosSDKClient.create({
