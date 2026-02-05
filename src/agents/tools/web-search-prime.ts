@@ -259,12 +259,25 @@ function parseSearchResults(mcpResult: Record<string, unknown>): {
 
   // Try to parse as JSON array of search results.
   try {
-    const parsed = JSON.parse(fullText);
+    // GLM API may return results wrapped in extra quotes: "[{...}]"
+    let textToParse = fullText.trim();
+    if (textToParse.startsWith('"') && textToParse.endsWith('"')) {
+      // Remove outer quotes
+      textToParse = textToParse.slice(1, -1);
+      // Unescape escaped quotes
+      textToParse = textToParse.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+    }
+    const parsed = JSON.parse(textToParse);
     if (Array.isArray(parsed)) {
       return {
         results: parsed.map((item: Record<string, unknown>) => ({
           title: typeof item.title === "string" ? item.title : undefined,
-          url: typeof item.link === "string" ? item.link : typeof item.url === "string" ? item.url : undefined,
+          url:
+            typeof item.link === "string"
+              ? item.link
+              : typeof item.url === "string"
+                ? item.url
+                : undefined,
           content: typeof item.content === "string" ? item.content : undefined,
           icon: typeof item.icon === "string" ? item.icon : undefined,
           media: typeof item.media === "string" ? item.media : undefined,
@@ -334,12 +347,13 @@ export function createWebSearchPrimeTool(options?: {
         const sessionId = await ensureMcpSession({ url: mcpUrl, apiKey, timeoutMs });
 
         // Call the webSearchPrime tool via MCP.
+        // Note: GLM MCP API uses "search_query" instead of "query"
         const mcpResult = await callMcpTool({
           url: mcpUrl,
           apiKey,
           sessionId,
           toolName: "webSearchPrime",
-          args: { query, count },
+          args: { search_query: query },
           timeoutMs,
         });
 
@@ -369,7 +383,7 @@ export function createWebSearchPrimeTool(options?: {
             apiKey,
             sessionId,
             toolName: "webSearchPrime",
-            args: { query, count },
+            args: { search_query: query },
             timeoutMs,
           });
 
@@ -402,3 +416,21 @@ export function createWebSearchPrimeTool(options?: {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Testing exports
+// ---------------------------------------------------------------------------
+
+export const __testing = {
+  resolveConfig,
+  resolveEnabled,
+  resolveApiKey,
+  resolveMcpUrl,
+  parseSearchResults,
+  DEFAULT_MAX_RESULTS,
+  MAX_RESULTS,
+  DEFAULT_MCP_URL,
+  MCP_PROTOCOL_VERSION,
+  MCP_CLIENT_NAME,
+  MCP_CLIENT_VERSION,
+};
