@@ -20,7 +20,21 @@ const LOOP_DETECTION_FAILURE_THRESHOLD = 2;
 const LOOP_DETECTION_TIME_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
 function hashToolArgs(args: unknown): string {
-  const normalized = JSON.stringify(args, Object.keys(args as object).sort());
+  let normalized: string;
+  try {
+    if (args === null || args === undefined) {
+      normalized = String(args);
+    } else if (typeof args === "object" && !Array.isArray(args)) {
+      // Sort object keys for consistent hashing
+      const sorted = Object.keys(args).sort();
+      normalized = JSON.stringify(args, sorted);
+    } else {
+      normalized = JSON.stringify(args);
+    }
+  } catch {
+    // Fallback for circular references or non-serializable objects
+    normalized = String(args);
+  }
   return crypto.createHash("sha256").update(normalized).digest("hex").slice(0, 16);
 }
 
@@ -84,6 +98,13 @@ function recordToolExecution(
     timestamp: Date.now(),
     success,
   });
+  
+  // Trim history to prevent memory leak
+  if (ctx.state.toolExecutionHistory.length > LOOP_DETECTION_HISTORY_SIZE) {
+    ctx.state.toolExecutionHistory = ctx.state.toolExecutionHistory.slice(
+      -LOOP_DETECTION_HISTORY_SIZE,
+    );
+  }
 }
 
 function extendExecMeta(toolName: string, args: unknown, meta?: string): string | undefined {
@@ -165,6 +186,7 @@ Do NOT retry this exact action again.`;
     // Immediately emit a synthetic error result
     const syntheticResult = {
       error: interventionMessage,
+      text: interventionMessage,
       isError: true,
       loopDetected: true,
     };
@@ -176,6 +198,13 @@ Do NOT retry this exact action again.`;
       error: interventionMessage,
     };
 
+    const sanitizedResult = {
+      error: interventionMessage,
+      text: interventionMessage,
+      isError: true,
+      loopDetected: true,
+    };
+
     emitAgentEvent({
       runId: ctx.params.runId,
       stream: "tool",
@@ -185,7 +214,7 @@ Do NOT retry this exact action again.`;
         toolCallId,
         meta: "LOOP BLOCKED",
         isError: true,
-        result: syntheticResult,
+        result: sanitizedResult,
       },
     });
     void ctx.params.onAgentEvent?.({
@@ -199,9 +228,12 @@ Do NOT retry this exact action again.`;
       },
     });
 
-    // Emit tool output if verbose
+    // Emit tool output if verbose (this makes it visible to the LLM)
     if (ctx.params.onToolResult && ctx.shouldEmitToolOutput()) {
       ctx.emitToolOutput(toolName, "LOOP BLOCKED", interventionMessage);
+    } else if (ctx.params.onToolResult && ctx.shouldEmitToolResult()) {
+      // Even in non-verbose mode, emit the intervention as a tool summary
+      ctx.emitToolSummary(toolName, "LOOP BLOCKED");
     }
 
     // CRITICAL: Return early to prevent actual tool execution
