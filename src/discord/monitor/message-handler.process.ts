@@ -434,6 +434,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
       // (paragraph-by-paragraph) instead of waiting for the full response.
       disableBlockStreaming:
         typeof discordConfig?.blockStreaming === "boolean" ? !discordConfig.blockStreaming : false,
+      toolFeedback: discordConfig?.toolFeedback === true,
       onModelSelected,
     },
   });
