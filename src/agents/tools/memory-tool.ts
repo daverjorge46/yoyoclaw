@@ -7,8 +7,8 @@ import { resolveMemoryBackendConfig } from "../../memory/backend-config.js";
 import { getMemorySearchManager } from "../../memory/index.js";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
-import { resolveMemorySearchConfig } from "../memory-search.js";
 import { resolveAgentWorkspaceDir } from "../agent-scope.js";
+import { resolveMemorySearchConfig } from "../memory-search.js";
 import { resolvePathMapRoots, toLogicalPath, toPhysicalPath } from "../path-map.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 
@@ -188,7 +188,7 @@ function mapMemoryResultsToLogical(params: {
     }
     const abs = entry.path.startsWith("/")
       ? entry.path
-      : `${workspaceDir.replace(/\\/$/, "")}/${entry.path}`;
+      : `${workspaceDir.replace(/\/$/, "")}/${entry.path}`;
     const logical = toLogicalPath(abs, roots);
     if (logical === entry.path) {
       return entry;
