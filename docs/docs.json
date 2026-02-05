@@ -1214,9 +1214,10 @@
                 "group": "First run",
                 "pages": [
                   "zh-CN/start/getting-started",
-                  "zh-CN/start/quickstart",
-                  "zh-CN/start/wizard",
-                  "zh-CN/start/onboarding",
+                  {
+                    "group": "Onboarding",
+                    "pages": ["zh-CN/start/wizard", "zh-CN/start/onboarding"]
+                  },
                   "zh-CN/start/pairing"
                 ]
               },
@@ -1643,6 +1644,10 @@
                   "zh-CN/concepts/timezone",
                   "zh-CN/token-use"
                 ]
+              },
+              {
+                "group": "Project",
+                "pages": ["zh-CN/reference/credits"]
               },
               {
                 "group": "Release notes",
