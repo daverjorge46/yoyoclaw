@@ -68,6 +68,7 @@ cat ~/.openclaw/openclaw.json
 - State integrity and permissions checks (sessions, transcripts, state dir).
 - Config file permission checks (chmod 600) when running locally.
 - Model auth health: checks OAuth expiry, can refresh expiring tokens, and reports auth-profile cooldown/disabled states.
+- Azure auth validation: verifies Azure CLI installation and login status when Azure providers are configured.
 - Extra workspace dir detection (`~/openclaw`).
 - Sandbox image repair when sandboxing is enabled.
 - Legacy service migration and extra gateway detection.
@@ -188,6 +189,36 @@ Doctor also reports auth profiles that are temporarily unusable due to:
 
 - short cooldowns (rate limits/timeouts/auth failures)
 - longer disables (billing/credit failures)
+
+### 5.1) Azure auth validation
+
+When Azure providers are configured (Azure OpenAI or Azure AI Foundry), doctor validates:
+
+- **Azure CLI installation**: checks if `az` command is available
+- **Azure CLI authentication**: verifies `az account show` succeeds (user is logged in)
+- **Empty token profiles**: notes profiles configured to use Azure CLI for automatic token refresh
+
+Example output when Azure is configured but Azure CLI is not installed:
+
+```
+┌ Azure auth
+│
+│ Azure CLI not found. Install: brew install azure-cli or visit https://aka.ms/install-az
+│
+└
+```
+
+Example when Azure CLI is not logged in:
+
+```
+┌ Azure auth
+│
+│ Azure CLI not logged in. Run: az login
+│
+└
+```
+
+See [AZURE_CLI_AUTH.md](../../AZURE_CLI_AUTH.md) for complete Azure authentication documentation.
 
 ### 6) Hooks model validation
 

@@ -332,3 +332,108 @@ export async function noteAuthProfileHealth(params: {
     );
   }
 }
+
+export async function noteAzureAuthHealth(params: {
+  cfg: OpenClawConfig;
+  prompter: DoctorPrompter;
+}): Promise<void> {
+  const store = ensureAuthProfileStore(undefined, { allowKeychainPrompt: false });
+  const azureProviders = new Set<string>();
+  const azureProfiles = new Set<string>();
+
+  // Find Azure providers in config
+  const providers = params.cfg.models?.providers;
+  if (providers) {
+    for (const [key, value] of Object.entries(providers)) {
+      if (
+        key.startsWith("azure-") ||
+        key.includes("azure") ||
+        (typeof value === "object" &&
+          value !== null &&
+          "baseUrl" in value &&
+          typeof value.baseUrl === "string" &&
+          (value.baseUrl.includes("azure.com") || value.baseUrl.includes("services.ai.azure.com")))
+      ) {
+        azureProviders.add(key);
+      }
+    }
+  }
+
+  // Find Azure auth profiles
+  if (params.cfg.auth?.profiles) {
+    for (const [profileId, profile] of Object.entries(params.cfg.auth.profiles)) {
+      if (profile && typeof profile === "object" && "provider" in profile) {
+        const provider = String(profile.provider);
+        if (azureProviders.has(provider)) {
+          azureProfiles.add(profileId);
+        }
+      }
+    }
+  }
+
+  if (azureProviders.size === 0) {
+    return;
+  }
+
+  const issues: string[] = [];
+
+  // Check if Azure CLI is available
+  const hasAzureCLI = await (async () => {
+    try {
+      const { exec } = await import("node:child_process");
+      const { promisify } = await import("node:util");
+      const execAsync = promisify(exec);
+      await execAsync("az --version", { timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!hasAzureCLI) {
+    issues.push(
+      `Azure CLI not found. Install: ${formatCliCommand("brew install azure-cli")} or visit https://aka.ms/install-az`,
+    );
+  } else {
+    // Check if Azure CLI is logged in
+    const isLoggedIn = await (async () => {
+      try {
+        const { exec } = await import("node:child_process");
+        const { promisify } = await import("node:util");
+        const execAsync = promisify(exec);
+        const { stdout } = await execAsync("az account show --query id -o tsv", { timeout: 5000 });
+        return Boolean(stdout.trim());
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!isLoggedIn) {
+      issues.push(`Azure CLI not logged in. Run: ${formatCliCommand("az login")}`);
+    }
+  }
+
+  // Check for empty token profiles
+  const emptyTokenProfiles: string[] = [];
+  for (const profileId of azureProfiles) {
+    const profile = store.profiles[profileId];
+    if (
+      profile &&
+      "type" in profile &&
+      profile.type === "token" &&
+      (!("token" in profile) || !profile.token || profile.token.trim() === "")
+    ) {
+      emptyTokenProfiles.push(profileId);
+    }
+  }
+
+  if (emptyTokenProfiles.length > 0 && hasAzureCLI) {
+    issues.push(
+      `Empty token profiles detected (will use Azure CLI): ${emptyTokenProfiles.join(", ")}`,
+    );
+  }
+
+  if (issues.length > 0) {
+    note(issues.join("\n"), "Azure auth");
+  }
+}
