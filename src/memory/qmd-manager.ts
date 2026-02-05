@@ -604,6 +604,10 @@ export class QmdMemoryManager implements MemorySearchManager {
     if (!scope) {
       return true;
     }
+    // Allow CLI invocations (no sessionKey provided)
+    if (!sessionKey?.trim()) {
+      return true;
+    }
     const channel = this.deriveChannelFromKey(sessionKey);
     const chatType = this.deriveChatTypeFromKey(sessionKey);
     const normalizedKey = sessionKey ?? "";
