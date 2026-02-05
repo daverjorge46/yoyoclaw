@@ -972,7 +972,28 @@ export function createExecTool(
         validateHostEnv(params.env);
       }
 
-      const mergedEnv = params.env ? { ...baseEnv, ...params.env } : baseEnv;
+      // For host execution, strip dangerous environment variables from baseEnv
+      // to prevent inheriting NODE_OPTIONS and other risky vars from the gateway process
+      const sanitizedBaseEnv =
+        host !== "sandbox"
+          ? (() => {
+              const sanitized: Record<string, string> = {};
+              for (const [key, value] of Object.entries(baseEnv)) {
+                const upperKey = key.toUpperCase();
+                // Skip dangerous variables
+                if (DANGEROUS_HOST_ENV_VARS.has(upperKey)) {
+                  continue;
+                }
+                if (DANGEROUS_HOST_ENV_PREFIXES.some((prefix) => upperKey.startsWith(prefix))) {
+                  continue;
+                }
+                sanitized[key] = value;
+              }
+              return sanitized;
+            })()
+          : baseEnv;
+
+      const mergedEnv = params.env ? { ...sanitizedBaseEnv, ...params.env } : sanitizedBaseEnv;
 
       const env = sandbox
         ? buildSandboxEnv({
