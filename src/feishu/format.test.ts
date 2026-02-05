@@ -74,18 +74,18 @@ describe("extractTextFromFeishuPost", () => {
     expect(extractTextFromFeishuPost(post)).toBe("Visit Google for more");
   });
 
-  it("extracts @mention as placeholder", () => {
+  it("skips @mention elements (matches text-message stripping behavior)", () => {
     const post: FeishuPostContent = {
       zh_cn: {
         content: [
           [
-            { tag: "text", text: "Hello " },
             { tag: "at", user_id: "ou_123" },
+            { tag: "text", text: " Hello" },
           ],
         ],
       },
     };
-    expect(extractTextFromFeishuPost(post)).toBe("Hello @ou_123");
+    expect(extractTextFromFeishuPost(post)).toBe(" Hello");
   });
 
   it("extracts emoji as bracketed name", () => {

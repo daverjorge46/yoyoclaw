@@ -268,9 +268,9 @@ export function extractTextFromFeishuPost(post: FeishuPostContent): string {
           parts.push(el.text);
           break;
         case "at":
-          // @mention – keep the raw user_id as placeholder; it will be
-          // stripped later by the mention-removal loop if it matches.
-          parts.push(`@${el.user_id}`);
+          // Skip mentions – the text-message path strips mention.key
+          // placeholders but post at-elements use user_id which won't
+          // match mention.key. Dropping them mirrors text-message behavior.
           break;
         case "emotion":
           parts.push(`[${el.emoji_type}]`);
