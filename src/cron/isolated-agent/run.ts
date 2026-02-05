@@ -107,6 +107,7 @@ export async function runCronIsolatedAgentTurn(params: {
   sessionKey: string;
   agentId?: string;
   lane?: string;
+  jobName?: string;
 }): Promise<RunCronAgentTurnResult> {
   const defaultAgentId = resolveDefaultAgentId(params.cfg);
   const requestedAgentId =
@@ -136,7 +137,8 @@ export async function runCronIsolatedAgentTurn(params: {
     agents: Object.assign({}, params.cfg.agents, { defaults: agentCfg }),
   };
 
-  const baseSessionKey = (params.sessionKey?.trim() || `cron:${params.job.id}`).trim();
+  const jobNamePart = params.jobName?.trim() ? `/${params.jobName}` : "";
+  const baseSessionKey = (params.sessionKey?.trim() || `cron:${params.job.id}${jobNamePart}`).trim();
   const agentSessionKey = buildAgentMainSessionKey({
     agentId,
     mainKey: baseSessionKey,

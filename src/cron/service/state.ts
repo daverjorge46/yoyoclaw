@@ -27,7 +27,7 @@ export type CronServiceDeps = {
   enqueueSystemEvent: (text: string, opts?: { agentId?: string }) => void;
   requestHeartbeatNow: (opts?: { reason?: string }) => void;
   runHeartbeatOnce?: (opts?: { reason?: string }) => Promise<HeartbeatRunResult>;
-  runIsolatedAgentJob: (params: { job: CronJob; message: string }) => Promise<{
+  runIsolatedAgentJob: (params: { job: CronJob; message: string; jobName?: string }) => Promise<{
     status: "ok" | "error" | "skipped";
     summary?: string;
     /** Last non-empty agent text output (not truncated). */

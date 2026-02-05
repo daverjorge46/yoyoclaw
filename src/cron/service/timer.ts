@@ -39,10 +39,10 @@ export async function onTimer(state: CronServiceState) {
       await ensureLoaded(state, { forceReload: true });
       await runDueJobs(state);
       await persist(state);
-      armTimer(state);
     });
   } finally {
     state.running = false;
+    armTimer(state);
   }
 }
 
@@ -182,6 +182,7 @@ export async function executeJob(
     const res = await state.deps.runIsolatedAgentJob({
       job,
       message: job.payload.message,
+      jobName: job.name,
     });
 
     // Post a short summary back to the main session so the user sees
