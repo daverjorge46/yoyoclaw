@@ -25,6 +25,7 @@ import {
 } from "./client.js";
 import { reactEyes } from "./reactions.js";
 import { sendMessageZulip } from "./send.js";
+import { extractZulipUploadUrls } from "./uploads.js";
 
 export type MonitorZulipOpts = {
   accountId?: string;
@@ -97,6 +98,23 @@ function resolveClient(account: ResolvedZulipAccount): ZulipClient {
     throw new Error(`Zulip not configured for account "${account.accountId}".`);
   }
   return { baseUrl, email, apiKey };
+}
+
+function createZulipAuthFetch(client: ZulipClient) {
+  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const headers = new Headers(init?.headers);
+    const token = Buffer.from(`${client.email}:${client.apiKey}`).toString("base64");
+    headers.set("Authorization", `Basic ${token}`);
+
+    const cfId = process.env.ZULIP_CF_ACCESS_CLIENT_ID?.trim();
+    const cfSecret = process.env.ZULIP_CF_ACCESS_CLIENT_SECRET?.trim();
+    if (cfId && cfSecret) {
+      headers.set("CF-Access-Client-Id", cfId);
+      headers.set("CF-Access-Client-Secret", cfSecret);
+    }
+
+    return await fetch(input, { ...init, headers });
+  };
 }
 
 export async function monitorZulipProvider(opts: MonitorZulipOpts = {}): Promise<void> {
@@ -345,6 +363,54 @@ export async function monitorZulipProvider(opts: MonitorZulipOpts = {}): Promise
       OriginatingChannel: "zulip" as const,
       OriginatingTo: to,
     });
+
+    // Attempt to fetch Zulip uploads (user_uploads) with Basic Auth so tools can access media
+    // that requires login.
+    try {
+      const uploadUrls = extractZulipUploadUrls({
+        contentHtml: message.content,
+        baseUrl: client.baseUrl,
+        max: 3,
+      });
+      if (uploadUrls.length > 0) {
+        const authFetch = createZulipAuthFetch(client);
+        const mediaPaths: string[] = [];
+        const mediaTypes: string[] = [];
+        for (const url of uploadUrls) {
+          try {
+            const fetched = await core.channel.media.fetchRemoteMedia({
+              url,
+              fetchImpl: authFetch,
+              maxBytes: 5 * 1024 * 1024,
+            });
+            const saved = await core.channel.media.saveMediaBuffer(
+              fetched.buffer,
+              fetched.contentType,
+              "zulip",
+              5 * 1024 * 1024,
+              fetched.fileName,
+            );
+            mediaPaths.push(saved.path);
+            if (saved.contentType) {
+              mediaTypes.push(saved.contentType);
+            }
+          } catch (err) {
+            logVerboseMessage(`zulip: failed fetching upload ${url}: ${String(err)}`);
+          }
+        }
+        if (mediaPaths.length > 0) {
+          ctxPayload.MediaPath = mediaPaths[0];
+          ctxPayload.MediaPaths = mediaPaths;
+          ctxPayload.MediaUrls = uploadUrls;
+          if (mediaTypes.length > 0) {
+            ctxPayload.MediaType = mediaTypes[0];
+            ctxPayload.MediaTypes = mediaTypes;
+          }
+        }
+      }
+    } catch (err) {
+      logVerboseMessage(`zulip: upload extraction failed: ${String(err)}`);
+    }
 
     const prefixContext = createReplyPrefixContext({ cfg, agentId: route.agentId });
 
