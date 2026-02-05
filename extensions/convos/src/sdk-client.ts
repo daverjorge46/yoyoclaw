@@ -56,6 +56,12 @@ function dateFromSentAtNs(sentAtNs: unknown): Date {
   }
 }
 
+function readSentAtNs(obj: unknown): unknown {
+  if (!obj || typeof obj !== "object") return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (obj as any).sentAtNs;
+}
+
 /**
  * Convos SDK Client - wraps convos-node-sdk for OpenClaw use
  */
@@ -100,12 +106,9 @@ export class ConvosSDKClient {
       }
     }
 
-    const signer = createSigner(user);
-    const agent = await Agent.create(signer, {
-      env: options.env ?? "production",
-    });
-
     const resolvedEnv = options.env ?? "production";
+    const signer = createSigner(user);
+    const agent = await Agent.create(signer, { env: resolvedEnv });
     const convos = ConvosMiddleware.create(agent, { privateKey: user.key, env: resolvedEnv });
     agent.use(convos.middleware());
 
@@ -120,15 +123,49 @@ export class ConvosSDKClient {
 
     if (options.onMessage) {
       agent.on("message", (ctx: MessageContext) => {
-        const msg: InboundMessage = {
-          conversationId: ctx.conversation.id,
-          messageId: ctx.message.id,
-          senderId: ctx.message.senderInboxId,
-          senderName: ctx.message.senderInboxId, // SDK doesn't expose display name directly
-          content: typeof ctx.message.content === "string" ? ctx.message.content : "",
-          timestamp: dateFromSentAtNs((ctx.message as unknown as { sentAtNs?: unknown }).sentAtNs),
-        };
-        options.onMessage!(msg);
+        try {
+          const senderId = ctx.message.senderInboxId;
+
+          // Prevent echo-loops / double-processing: ignore our own outbound messages
+          if (senderId === agent.client.inboxId) {
+            return;
+          }
+
+          const content = typeof ctx.message.content === "string" ? ctx.message.content : "";
+          const trimmed = content.trim();
+
+          // Ignore empty or non-text messages for now (reactions/attachments/etc.)
+          if (!trimmed) {
+            if (debug && content === "") {
+              console.log("[convos-sdk] Ignoring non-text/empty message");
+            }
+            return;
+          }
+
+          const msg: InboundMessage = {
+            conversationId: ctx.conversation.id,
+            messageId: ctx.message.id,
+            senderId,
+            senderName: senderId, // SDK doesn't expose display name directly
+            content,
+            timestamp: dateFromSentAtNs(readSentAtNs(ctx.message)),
+          };
+
+          // Avoid synchronous re-entrancy into the OpenClaw reply pipeline.
+          queueMicrotask(() => {
+            try {
+              options.onMessage?.(msg);
+            } catch (err) {
+              if (debug) {
+                console.error("[convos-sdk] onMessage handler threw:", err);
+              }
+            }
+          });
+        } catch (err) {
+          if (debug) {
+            console.error("[convos-sdk] Failed processing inbound message event:", err);
+          }
+        }
       });
     }
 
@@ -280,14 +317,19 @@ export class ConvosSDKClient {
 
     const messages = await conversation.messages({ limit: limit ?? 50 });
 
-    return messages.map((msg) => ({
-      id: msg.id,
-      conversationId,
-      senderId: msg.senderInboxId,
-      senderName: msg.senderInboxId,
-      content: typeof msg.content === "string" ? msg.content : "",
-      timestamp: dateFromSentAtNs((msg as unknown as { sentAtNs?: unknown }).sentAtNs).toISOString(),
-    }));
+    return messages
+      .map((msg) => {
+        const content = typeof msg.content === "string" ? msg.content : "";
+        return {
+          id: msg.id,
+          conversationId,
+          senderId: msg.senderInboxId,
+          senderName: msg.senderInboxId,
+          content,
+          timestamp: dateFromSentAtNs(readSentAtNs(msg)).toISOString(),
+        };
+      })
+      .filter((m) => m.content.trim().length > 0);
   }
 
   /**
