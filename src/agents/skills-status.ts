@@ -98,13 +98,23 @@ function selectPreferredInstallSpec(
   if (nodeSpec) {
     return nodeSpec;
   }
-  if (brewSpec) {
+  // Only offer brew if it's actually available (macOS/Linux with Homebrew installed)
+  if (brewSpec && hasBinary("brew")) {
     return brewSpec;
   }
   if (goSpec) {
     return goSpec;
   }
-  return indexed[0];
+  // Filter out brew specs on Windows if brew is not available
+  const hasBrewInstalled = hasBinary("brew");
+  const fallback = indexed.find((item) => {
+    // Skip brew specs if brew is not available
+    if (item.spec.kind === "brew" && !hasBrewInstalled) {
+      return false;
+    }
+    return true;
+  });
+  return fallback;
 }
 
 function normalizeInstallOptions(
