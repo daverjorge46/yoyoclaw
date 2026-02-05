@@ -28,6 +28,7 @@ import type {
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { CronFilterState } from "./controllers/cron.ts";
 
 export type AppViewState = {
   settings: UiSettings;
@@ -139,6 +140,7 @@ export type AppViewState = {
   cronRunsJobId: string | null;
   cronRuns: CronRunLogEntry[];
   cronBusy: boolean;
+  cronFilter: CronFilterState;
   skillsLoading: boolean;
   skillsReport: SkillStatusReport | null;
   skillsError: string | null;
@@ -202,6 +204,8 @@ export type AppViewState = {
   handleCronAdd: () => Promise<void>;
   handleCronRunsLoad: (jobId: string) => Promise<void>;
   handleCronFormUpdate: (path: string, value: unknown) => void;
+  handleCronFilterChange: (patch: Partial<CronFilterState>) => void;
+  handleCronFilterReset: () => void;
   handleSessionsLoad: () => Promise<void>;
   handleSessionsPatch: (key: string, patch: unknown) => Promise<void>;
   handleLoadNodes: () => Promise<void>;
