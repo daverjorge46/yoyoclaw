@@ -82,7 +82,14 @@ actor VoiceWakeRuntime {
         let localeID: String?
         let triggerChime: VoiceWakeChime
         let sendChime: VoiceWakeChime
+        let backend: AppState.VoiceWakeBackend
+        let whisperModel: WhisperTranscriber.Model
     }
+
+    // Whisper handoff state
+    private var whisperTempFile: URL?
+    private var whisperRecordingProcess: Process?
+    private var whisperStartTime: Date?
 
     private struct RecognitionUpdate {
         let transcript: String?
@@ -100,7 +107,9 @@ actor VoiceWakeRuntime {
                 micID: state.voiceWakeMicID.isEmpty ? nil : state.voiceWakeMicID,
                 localeID: state.voiceWakeLocaleID.isEmpty ? nil : state.voiceWakeLocaleID,
                 triggerChime: state.voiceWakeTriggerChime,
-                sendChime: state.voiceWakeSendChime)
+                sendChime: state.voiceWakeSendChime,
+                backend: state.voiceWakeBackend,
+                whisperModel: state.voiceWakeWhisperModel)
             return (enabled, config)
         }
 
@@ -241,6 +250,12 @@ actor VoiceWakeRuntime {
         self.preDetectTask = nil
         self.triggerOnlyTask?.cancel()
         self.triggerOnlyTask = nil
+        // Clean up Whisper recording if active
+        if let process = self.whisperRecordingProcess, process.isRunning {
+            process.terminate()
+        }
+        self.whisperRecordingProcess = nil
+        self.cleanupWhisperTempFile()
         self.haltRecognitionPipeline()
         self.recognizer = nil
         self.currentConfig = nil
@@ -555,6 +570,11 @@ actor VoiceWakeRuntime {
             await MainActor.run { VoiceWakeChimePlayer.play(config.triggerChime, reason: "voicewake.trigger") }
         }
 
+        // Start Whisper recording if Whisper backend is selected
+        if config.backend == .whisper {
+            await self.startWhisperRecording()
+        }
+
         let snapshot = self.committedTranscript + self.volatileTranscript
         let attributed = Self.makeAttributed(
             committed: self.committedTranscript,
@@ -609,9 +629,17 @@ actor VoiceWakeRuntime {
         self.captureTask?.cancel()
         self.captureTask = nil
 
-        let finalTranscript = self.capturedTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Get transcript - either from Whisper or Apple Speech
+        var finalTranscript = self.capturedTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // If Whisper recording is active, transcribe with Whisper instead
+        if self.whisperRecordingProcess != nil || self.whisperTempFile != nil {
+            finalTranscript = await self.endWhisperRecordingAndTranscribe(model: config.whisperModel)
+        }
+
         DiagnosticsFileLog.shared.log(category: "voicewake.runtime", event: "finalizeCapture", fields: [
             "finalLen": "\(finalTranscript.count)",
+            "backend": config.backend.rawValue,
         ])
         // Stop further recognition events so we don't retrigger immediately with buffered audio.
         self.haltRecognitionPipeline()
@@ -653,6 +681,94 @@ actor VoiceWakeRuntime {
         }
         self.overlayToken = nil
         self.scheduleRestartRecognizer()
+    }
+
+    // MARK: - Whisper Recording
+
+    private func startWhisperRecording() async {
+        // Create temp file for recording
+        let tempFile = FileManager.default.temporaryDirectory
+            .appendingPathComponent("voicewake-\(UUID().uuidString).wav")
+        self.whisperTempFile = tempFile
+        self.whisperStartTime = Date()
+
+        // Start recording using sox/rec (records until terminated)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/rec")
+        process.arguments = [
+            "-q", // quiet
+            "-r", "16000", // 16kHz (whisper expects this)
+            "-c", "1", // mono
+            "-b", "16", // 16-bit
+            tempFile.path,
+        ]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        self.whisperRecordingProcess = process
+
+        do {
+            try process.run()
+            self.logger.info("voicewake whisper recording started: \(tempFile.path, privacy: .public)")
+        } catch {
+            self.whisperTempFile = nil
+            self.whisperRecordingProcess = nil
+            self.logger.error("voicewake whisper recording failed to start: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private func endWhisperRecordingAndTranscribe(model: WhisperTranscriber.Model) async -> String {
+        // Terminate the recording process
+        if let process = self.whisperRecordingProcess, process.isRunning {
+            process.terminate()
+            process.waitUntilExit()
+        }
+        self.whisperRecordingProcess = nil
+
+        guard let tempFile = self.whisperTempFile else {
+            self.logger.warning("voicewake whisper no temp file")
+            return ""
+        }
+
+        // Check recording duration - if too short, skip transcription
+        let duration = Date().timeIntervalSince(self.whisperStartTime ?? Date())
+        if duration < 0.5 {
+            self.logger.info("voicewake whisper recording too short (\(duration, privacy: .public)s), skipping")
+            self.cleanupWhisperTempFile()
+            return ""
+        }
+
+        // Update overlay to show transcribing
+        if let token = self.overlayToken {
+            await MainActor.run {
+                VoiceSessionCoordinator.shared.updatePartial(
+                    token: token,
+                    text: "Transcribing...",
+                    attributed: Self.makeAttributed(committed: "", volatile: "Transcribing...", isFinal: false))
+            }
+        }
+
+        self.logger.info("voicewake whisper transcribing with model=\(model.rawValue, privacy: .public)")
+
+        do {
+            let transcript = try await WhisperTranscriber.shared.transcribe(
+                audioURL: tempFile,
+                model: model)
+            self.cleanupWhisperTempFile()
+            self.logger.info("voicewake whisper transcription complete len=\(transcript.count, privacy: .public)")
+            return transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            self.logger.error("voicewake whisper transcription failed: \(error.localizedDescription, privacy: .public)")
+            self.cleanupWhisperTempFile()
+            return ""
+        }
+    }
+
+    private func cleanupWhisperTempFile() {
+        guard let tempFile = self.whisperTempFile else { return }
+        self.whisperTempFile = nil
+        self.whisperStartTime = nil
+        try? FileManager.default.removeItem(at: tempFile)
     }
 
     // MARK: - Audio level handling
