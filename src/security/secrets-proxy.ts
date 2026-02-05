@@ -171,12 +171,15 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
     });
 
     try {
-      const targetUrl = req.headers["x-target-url"];
-      if (typeof targetUrl !== "string" || !targetUrl) {
+      const rawTargetUrl = req.headers["x-target-url"];
+      if (typeof rawTargetUrl !== "string" || !rawTargetUrl) {
         res.statusCode = 400;
         res.end("Missing X-Target-URL header");
         return;
       }
+
+      // CRITICAL: Resolve placeholders in the URL (e.g., for Telegram bot token in path)
+      const targetUrl = await replacePlaceholders(rawTargetUrl, registry);
 
       // Validate target URL before checking allowlist
       let parsedUrl: URL;
@@ -246,7 +249,7 @@ export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http
         }
       }
 
-      logger.info(`Proxying request: ${method} ${targetUrl}`);
+      logger.info(`Proxying request: ${method} ${rawTargetUrl}`);
 
       // P0 Fix: Only pass body for methods that should have one
       const response = await request(targetUrl, {
