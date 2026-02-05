@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY ui/package.json ./ui/package.json
 COPY scripts ./scripts
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --config.auto-install-peers=false
 
 # Source code kopiëren
 COPY . .
