@@ -24,6 +24,7 @@ type LaneState = {
 };
 
 const lanes = new Map<string, LaneState>();
+const DEFAULT_LANE_TASK_TIMEOUT_MS = 300_000;
 
 function getLaneState(lane: string): LaneState {
   const existing = lanes.get(lane);
@@ -62,11 +63,15 @@ function drainLane(lane: string) {
       state.active += 1;
       void (async () => {
         const startTime = Date.now();
-        const LANE_TASK_TIMEOUT_MS = parseInt(
-          process.env.OPENCLAW_LANE_TASK_TIMEOUT_MS || "300000",
-          10,
-        );
+        const timeoutEnv = process.env.OPENCLAW_LANE_TASK_TIMEOUT_MS;
+        const parsedTimeout = timeoutEnv
+          ? Number.parseInt(timeoutEnv, 10)
+          : DEFAULT_LANE_TASK_TIMEOUT_MS;
+        const LANE_TASK_TIMEOUT_MS = Number.isFinite(parsedTimeout)
+          ? parsedTimeout
+          : DEFAULT_LANE_TASK_TIMEOUT_MS;
         let settled = false;
+        // Timed-out tasks keep running; we release the lane to avoid deadlocking the queue.
         const timeoutId = setTimeout(() => {
           if (!settled) {
             settled = true;
