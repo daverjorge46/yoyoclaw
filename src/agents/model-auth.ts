@@ -127,6 +127,7 @@ export type ResolvedProviderAuth = {
   profileId?: string;
   source: string;
   mode: "api-key" | "oauth" | "token" | "aws-sdk";
+  baseUrl?: string;
 };
 
 export async function resolveApiKeyForProvider(params: {
@@ -187,7 +188,7 @@ export async function resolveApiKeyForProvider(params: {
           mode: mode === "oauth" ? "oauth" : mode === "token" ? "token" : "api-key",
         };
       }
-    } catch {}
+    } catch { }
   }
 
   const envResolved = resolveEnvApiKey(provider);

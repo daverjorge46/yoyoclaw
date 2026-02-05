@@ -1,16 +1,12 @@
 import type { Api, Model } from "@mariozechner/pi-ai";
+import { discoverAuthStorage, discoverModels } from "@mariozechner/pi-coding-agent";
+
 import type { OpenClawConfig } from "../../config/config.js";
 import type { ModelDefinitionConfig } from "../../config/types.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
 import { normalizeModelCompat } from "../model-compat.js";
 import { normalizeProviderId } from "../model-selection.js";
-import {
-  discoverAuthStorage,
-  discoverModels,
-  type AuthStorage,
-  type ModelRegistry,
-} from "../pi-model-discovery.js";
 
 type InlineModelEntry = ModelDefinitionConfig & { provider: string; baseUrl?: string };
 type InlineProviderConfig = {
@@ -24,14 +20,29 @@ export function buildInlineProviderModels(
 ): InlineModelEntry[] {
   return Object.entries(providers).flatMap(([providerId, entry]) => {
     const trimmed = providerId.trim();
-    if (!trimmed) {
-      return [];
-    }
+    if (!trimmed) return [];
+    const resolveDefaultApi = (p: string) => {
+      switch (p) {
+        case "anthropic":
+          return "anthropic-messages";
+        case "google":
+          return "google-generative-ai";
+        case "bedrock":
+          return "bedrock-converse-stream";
+        case "copilot":
+          return "github-copilot";
+        default:
+          return "openai-responses";
+      }
+    };
+
     return (entry?.models ?? []).map((model) => ({
       ...model,
       provider: trimmed,
       baseUrl: entry?.baseUrl,
-      api: model.api ?? entry?.api,
+      // FIX: Default to provider-specific API type or "openai-responses" if API is not specified.
+      // This prevents "Unhandled API" crashes while respecting known provider protocols.
+      api: model.api ?? entry?.api ?? resolveDefaultApi(trimmed),
     }));
   });
 }
@@ -41,17 +52,13 @@ export function buildModelAliasLines(cfg?: OpenClawConfig) {
   const entries: Array<{ alias: string; model: string }> = [];
   for (const [keyRaw, entryRaw] of Object.entries(models)) {
     const model = String(keyRaw ?? "").trim();
-    if (!model) {
-      continue;
-    }
+    if (!model) continue;
     const alias = String((entryRaw as { alias?: string } | undefined)?.alias ?? "").trim();
-    if (!alias) {
-      continue;
-    }
+    if (!alias) continue;
     entries.push({ alias, model });
   }
   return entries
-    .toSorted((a, b) => a.alias.localeCompare(b.alias))
+    .sort((a, b) => a.alias.localeCompare(b.alias))
     .map((entry) => `- ${entry.alias}: ${entry.model}`);
 }
 
@@ -63,49 +70,73 @@ export function resolveModel(
 ): {
   model?: Model<Api>;
   error?: string;
-  authStorage: AuthStorage;
-  modelRegistry: ModelRegistry;
+  authStorage: ReturnType<typeof discoverAuthStorage>;
+  modelRegistry: ReturnType<typeof discoverModels>;
 } {
   const resolvedAgentDir = agentDir ?? resolveOpenClawAgentDir();
   const authStorage = discoverAuthStorage(resolvedAgentDir);
   const modelRegistry = discoverModels(authStorage, resolvedAgentDir);
-  const model = modelRegistry.find(provider, modelId) as Model<Api> | null;
-  if (!model) {
-    const providers = cfg?.models?.providers ?? {};
+
+  // Fix: If modelId incorrectly includes the provider prefix (e.g. "custom-openai/my-model"),
+  // strip it so we look up "my-model" instead. This ensures API calls use the clean ID.
+  // This happens if the caller passes the full key as the model ID.
+  // STRICT CHECK: Only apply this to custom-openai (enforced by config wizard) and ollama.
+  if (provider === "custom-openai" || provider === "ollama") {
+    const prefix = `${provider}/`;
+    if (modelId.startsWith(prefix)) {
+      modelId = modelId.slice(prefix.length);
+    }
+  }
+
+  // 1. Try to find in registry (built-in or dynamic providers)
+  let rawModel: Model<Api> | null = modelRegistry.find(provider, modelId) as Model<Api> | null;
+  const providers = cfg?.models?.providers ?? {};
+
+  if (!rawModel) {
+    // 2. Try to find in custom inline providers
     const inlineModels = buildInlineProviderModels(providers);
     const normalizedProvider = normalizeProviderId(provider);
     const inlineMatch = inlineModels.find(
       (entry) => normalizeProviderId(entry.provider) === normalizedProvider && entry.id === modelId,
     );
+
     if (inlineMatch) {
-      const normalized = normalizeModelCompat(inlineMatch as Model<Api>);
-      return {
-        model: normalized,
-        authStorage,
-        modelRegistry,
-      };
+      rawModel = normalizeModelCompat(inlineMatch as Model<Api>);
+    } else {
+      // 3. Fallback logic for generic providers or mocks
+      const providerCfg = providers[provider];
+      if (providerCfg || modelId.startsWith("mock-")) {
+        rawModel = normalizeModelCompat({
+          id: modelId,
+          name: modelId,
+          api: providerCfg?.api ?? "openai-responses",
+          provider,
+          baseUrl: providerCfg?.baseUrl,
+          reasoning: false,
+          input: ["text"],
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+          contextWindow: providerCfg?.models?.[0]?.contextWindow ?? DEFAULT_CONTEXT_TOKENS,
+          maxTokens: providerCfg?.models?.[0]?.maxTokens ?? DEFAULT_CONTEXT_TOKENS,
+        } as Model<Api>);
+      }
     }
-    const providerCfg = providers[provider];
-    if (providerCfg || modelId.startsWith("mock-")) {
-      const fallbackModel: Model<Api> = normalizeModelCompat({
-        id: modelId,
-        name: modelId,
-        api: providerCfg?.api ?? "openai-responses",
-        provider,
-        baseUrl: providerCfg?.baseUrl,
-        reasoning: false,
-        input: ["text"],
-        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-        contextWindow: providerCfg?.models?.[0]?.contextWindow ?? DEFAULT_CONTEXT_TOKENS,
-        maxTokens: providerCfg?.models?.[0]?.maxTokens ?? DEFAULT_CONTEXT_TOKENS,
-      } as Model<Api>);
-      return { model: fallbackModel, authStorage, modelRegistry };
-    }
-    return {
-      error: `Unknown model: ${provider}/${modelId}`,
-      authStorage,
-      modelRegistry,
-    };
   }
-  return { model: normalizeModelCompat(model), authStorage, modelRegistry };
+
+  if (rawModel) {
+    // Apply effective context window logic: min(model.contextWindow, global.contextTokens)
+    // Clone to avoid mutating shared registry objects if they are cached
+    const finalModel = { ...rawModel };
+
+    const globalContextLimit = cfg?.agents?.defaults?.contextTokens;
+    if (globalContextLimit !== undefined && globalContextLimit < finalModel.contextWindow) {
+      finalModel.contextWindow = globalContextLimit;
+    }
+    return { model: normalizeModelCompat(finalModel), authStorage, modelRegistry };
+  }
+
+  return {
+    error: `Unknown model: ${provider}/${modelId}`,
+    authStorage,
+    modelRegistry,
+  };
 }

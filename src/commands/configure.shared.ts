@@ -12,6 +12,7 @@ export const CONFIGURE_WIZARD_SECTIONS = [
   "model",
   "web",
   "gateway",
+  "router",
   "daemon",
   "channels",
   "skills",
@@ -32,27 +33,32 @@ export const CONFIGURE_SECTION_OPTIONS: Array<{
   label: string;
   hint: string;
 }> = [
-  { value: "workspace", label: "Workspace", hint: "Set workspace + sessions" },
-  { value: "model", label: "Model", hint: "Pick provider + credentials" },
-  { value: "web", label: "Web tools", hint: "Configure Brave search + fetch" },
-  { value: "gateway", label: "Gateway", hint: "Port, bind, auth, tailscale" },
-  {
-    value: "daemon",
-    label: "Daemon",
-    hint: "Install/manage the background service",
-  },
-  {
-    value: "channels",
-    label: "Channels",
-    hint: "Link WhatsApp/Telegram/etc and defaults",
-  },
-  { value: "skills", label: "Skills", hint: "Install/enable workspace skills" },
-  {
-    value: "health",
-    label: "Health check",
-    hint: "Run gateway + channel checks",
-  },
-];
+    { value: "workspace", label: "Workspace", hint: "Set workspace + sessions" },
+    { value: "model", label: "Model", hint: "Pick provider + credentials" },
+    { value: "web", label: "Web tools", hint: "Configure Brave search + fetch" },
+    { value: "gateway", label: "Gateway", hint: "Port, bind, auth, tailscale" },
+    {
+      value: "router",
+      label: "Smart Router",
+      hint: "Configure dynamic model selection",
+    },
+    {
+      value: "daemon",
+      label: "Daemon",
+      hint: "Install/manage the background service",
+    },
+    {
+      value: "channels",
+      label: "Channels",
+      hint: "Link WhatsApp/Telegram/etc and defaults",
+    },
+    { value: "skills", label: "Skills", hint: "Install/enable workspace skills" },
+    {
+      value: "health",
+      label: "Health check",
+      hint: "Run gateway + channel checks",
+    },
+  ];
 
 export const intro = (message: string) => clackIntro(stylePromptTitle(message) ?? message);
 export const outro = (message: string) => clackOutro(stylePromptTitle(message) ?? message);

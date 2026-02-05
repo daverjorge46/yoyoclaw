@@ -1,32 +1,33 @@
 import { confirm as clackConfirm, select as clackSelect, text as clackText } from "@clack/prompts";
-import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
-import type {
-  ProviderAuthMethod,
-  ProviderAuthResult,
-  ProviderPlugin,
-} from "../../plugins/types.js";
-import type { RuntimeEnv } from "../../runtime.js";
+
+import { upsertAuthProfile } from "../../agents/auth-profiles.js";
+import { normalizeProviderId } from "../../agents/model-selection.js";
 import {
   resolveAgentDir,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { upsertAuthProfile } from "../../agents/auth-profiles.js";
-import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
-import { formatCliCommand } from "../../cli/command-format.js";
 import { parseDurationMs } from "../../cli/parse-duration.js";
+import { formatCliCommand } from "../../cli/command-format.js";
 import { readConfigFileSnapshot, type OpenClawConfig } from "../../config/config.js";
 import { logConfigUpdated } from "../../config/logging.js";
-import { resolvePluginProviders } from "../../plugins/providers.js";
+import type { RuntimeEnv } from "../../runtime.js";
 import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
-import { createClackPrompter } from "../../wizard/clack-prompter.js";
-import { validateAnthropicSetupToken } from "../auth-token.js";
-import { isRemoteEnvironment } from "../oauth-env.js";
-import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
 import { applyAuthProfileConfig } from "../onboard-auth.js";
+import { isRemoteEnvironment } from "../oauth-env.js";
 import { openUrl } from "../onboard-helpers.js";
+import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
 import { updateConfig } from "./shared.js";
+import { resolvePluginProviders } from "../../plugins/providers.js";
+import { createClackPrompter } from "../../wizard/clack-prompter.js";
+import type {
+  ProviderAuthMethod,
+  ProviderAuthResult,
+  ProviderPlugin,
+} from "../../plugins/types.js";
+import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
+import { validateAnthropicSetupToken } from "../auth-token.js";
 
 const confirm = (params: Parameters<typeof clackConfirm>[0]) =>
   clackConfirm({
@@ -51,13 +52,9 @@ type TokenProvider = "anthropic";
 
 function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
   const trimmed = raw?.trim();
-  if (!trimmed) {
-    return null;
-  }
+  if (!trimmed) return null;
   const normalized = normalizeProviderId(trimmed);
-  if (normalized === "anthropic") {
-    return "anthropic";
-  }
+  if (normalized === "anthropic") return "anthropic";
   return "custom";
 }
 
@@ -83,9 +80,7 @@ export async function modelsAuthSetupTokenCommand(
       message: "Have you run `claude setup-token` and copied the token?",
       initialValue: true,
     });
-    if (!proceed) {
-      return;
-    }
+    if (!proceed) return;
   }
 
   const tokenInput = await text({
@@ -163,20 +158,13 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
     message: "Token provider",
     options: [
       { value: "anthropic", label: "anthropic" },
-      { value: "custom", label: "custom (type provider id)" },
+      { value: "custom", label: "custom (OpenAI compatible)" },
     ],
   })) as TokenProvider | "custom";
 
   const providerId =
     provider === "custom"
-      ? normalizeProviderId(
-          String(
-            await text({
-              message: "Provider id",
-              validate: (value) => (value?.trim() ? undefined : "Required"),
-            }),
-          ),
-        )
+      ? "custom-openai" // Enforced standard ID
       : provider;
 
   const method = (await select({
@@ -184,12 +172,12 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
     options: [
       ...(providerId === "anthropic"
         ? [
-            {
-              value: "setup-token",
-              label: "setup-token (claude)",
-              hint: "Paste a setup-token from `claude setup-token`",
-            },
-          ]
+          {
+            value: "setup-token",
+            label: "setup-token (claude)",
+            hint: "Paste a setup-token from `claude setup-token`",
+          },
+        ]
         : []),
       { value: "paste", label: "paste token" },
     ],
@@ -215,19 +203,19 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
   });
   const expiresIn = wantsExpiry
     ? String(
-        await text({
-          message: "Expires in (duration)",
-          initialValue: "365d",
-          validate: (value) => {
-            try {
-              parseDurationMs(String(value ?? ""), { defaultUnit: "d" });
-              return undefined;
-            } catch {
-              return "Invalid duration (e.g. 365d, 12h, 30m)";
-            }
-          },
-        }),
-      ).trim()
+      await text({
+        message: "Expires in (duration)",
+        initialValue: "365d",
+        validate: (value) => {
+          try {
+            parseDurationMs(String(value ?? ""), { defaultUnit: "d" });
+            return undefined;
+          } catch {
+            return "Invalid duration (e.g. 365d, 12h, 30m)";
+          }
+        },
+      }),
+    ).trim()
     : undefined;
 
   await modelsAuthPasteTokenCommand({ provider: providerId, profileId, expiresIn }, runtime);
@@ -244,9 +232,7 @@ function resolveProviderMatch(
   rawProvider?: string,
 ): ProviderPlugin | null {
   const raw = rawProvider?.trim();
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
   const normalized = normalizeProviderId(raw);
   return (
     providers.find((provider) => normalizeProviderId(provider.id) === normalized) ??
@@ -260,9 +246,7 @@ function resolveProviderMatch(
 
 function pickAuthMethod(provider: ProviderPlugin, rawMethod?: string): ProviderAuthMethod | null {
   const raw = rawMethod?.trim();
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
   const normalized = raw.toLowerCase();
   return (
     provider.auth.find((method) => method.id.toLowerCase() === normalized) ??
@@ -316,12 +300,8 @@ function applyDefaultModel(cfg: OpenClawConfig, model: string): OpenClawConfig {
 }
 
 function credentialMode(credential: AuthProfileCredential): "api_key" | "oauth" | "token" {
-  if (credential.type === "api_key") {
-    return "api_key";
-  }
-  if (credential.type === "token") {
-    return "token";
-  }
+  if (credential.type === "api_key") return "api_key";
+  if (credential.type === "token") return "token";
   return "oauth";
 }
 
@@ -372,15 +352,15 @@ export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: Runtim
     (selectedProvider.auth.length === 1
       ? selectedProvider.auth[0]
       : await prompter
-          .select({
-            message: `Auth method for ${selectedProvider.label}`,
-            options: selectedProvider.auth.map((method) => ({
-              value: method.id,
-              label: method.label,
-              hint: method.hint,
-            })),
-          })
-          .then((id) => selectedProvider.auth.find((method) => method.id === String(id))));
+        .select({
+          message: `Auth method for ${selectedProvider.label}`,
+          options: selectedProvider.auth.map((method) => ({
+            value: method.id,
+            label: method.label,
+            hint: method.hint,
+          })),
+        })
+        .then((id) => selectedProvider.auth.find((method) => method.id === String(id))));
 
   if (!chosenMethod) {
     throw new Error("Unknown auth method. Use --method <id> to select one.");

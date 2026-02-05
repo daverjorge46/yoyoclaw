@@ -18,6 +18,7 @@ import { removeChannelConfigWizard } from "./configure.channels.js";
 import { maybeInstallDaemon } from "./configure.daemon.js";
 import { promptAuthConfig } from "./configure.gateway-auth.js";
 import { promptGatewayConfig } from "./configure.gateway.js";
+import { configureRouter } from "./configure.router.js";
 import {
   CONFIGURE_SECTION_OPTIONS,
   confirm,
@@ -212,9 +213,9 @@ export async function runConfigureWizard(
     const remoteUrl = baseConfig.gateway?.remote?.url?.trim() ?? "";
     const remoteProbe = remoteUrl
       ? await probeGatewayReachable({
-          url: remoteUrl,
-          token: baseConfig.gateway?.remote?.token,
-        })
+        url: remoteUrl,
+        token: baseConfig.gateway?.remote?.token,
+      })
       : null;
 
     const mode = guardCancel(
@@ -316,6 +317,10 @@ export async function runConfigureWizard(
 
       if (selected.includes("model")) {
         nextConfig = await promptAuthConfig(nextConfig, runtime, prompter);
+      }
+
+      if (selected.includes("router")) {
+        nextConfig = await configureRouter(nextConfig, runtime);
       }
 
       if (selected.includes("web")) {

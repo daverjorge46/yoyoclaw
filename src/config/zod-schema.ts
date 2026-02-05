@@ -5,6 +5,7 @@ import { ApprovalsSchema } from "./zod-schema.approvals.js";
 import { HexColorSchema, ModelsConfigSchema } from "./zod-schema.core.js";
 import { HookMappingSchema, HooksGmailSchema, InternalHooksSchema } from "./zod-schema.hooks.js";
 import { ChannelsSchema } from "./zod-schema.providers.js";
+import { RouterConfigSchema } from "./types.router.js";
 import {
   CommandsSchema,
   MessagesSchema,
@@ -267,6 +268,7 @@ export const OpenClawSchema = z
       .strict()
       .optional(),
     models: ModelsConfigSchema,
+    router: RouterConfigSchema,
     nodeHost: NodeHostSchema,
     agents: AgentsSchema,
     tools: ToolsSchema,
