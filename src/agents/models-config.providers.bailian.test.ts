@@ -37,7 +37,7 @@ describe("Aliyun Bailian provider", () => {
     const providers = await resolveImplicitProviders({ agentDir });
 
     expect(providers?.["aliyun-bailian"]).toBeDefined();
-    expect(providers?.["aliyun-bailian"]?.apiKey).toBe("test-key");
+    expect(providers?.["aliyun-bailian"]?.apiKey).toBe("ALIYUN_BAILIAN_API_KEY");
     expect(providers?.["aliyun-bailian"]?.models).toHaveLength(2);
     expect(providers?.["aliyun-bailian"]?.models[0].id).toBe("qwen-max");
     expect(providers?.["aliyun-bailian"]?.models[1].input).toContain("image");

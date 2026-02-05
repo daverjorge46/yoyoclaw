@@ -200,7 +200,8 @@ function resolveEnvApiKeyVarName(provider: string): string | undefined {
   if (!resolved) {
     return undefined;
   }
-  return resolved.apiKey;
+  const match = /: ([A-Z0-9_]+)$/.exec(resolved.source);
+  return match?.[1] ?? resolved.source;
 }
 
 function resolveAwsSdkApiKeyVarName(): string {
@@ -470,11 +471,15 @@ export async function resolveImplicitProviders(params: {
     allowKeychainPrompt: false,
   });
 
-  const minimaxKey =
-    resolveEnvApiKeyVarName("minimax") ??
-    resolveApiKeyFromProfiles({ provider: "minimax", store: authStore });
-  if (minimaxKey) {
-    providers.minimax = { ...buildMinimaxProvider(), apiKey: minimaxKey };
+  const minimaxResolved = resolveEnvApiKey("minimax");
+  if (minimaxResolved) {
+    const apiKey = resolveEnvApiKeyVarName("minimax") ?? minimaxResolved.apiKey;
+    providers.minimax = { ...buildMinimaxProvider(), apiKey };
+  } else {
+    const minimaxKey = resolveApiKeyFromProfiles({ provider: "minimax", store: authStore });
+    if (minimaxKey) {
+      providers.minimax = { ...buildMinimaxProvider(), apiKey: minimaxKey };
+    }
   }
 
   const minimaxOauthProfile = listProfilesForProvider(authStore, "minimax-portal");
@@ -485,25 +490,37 @@ export async function resolveImplicitProviders(params: {
     };
   }
 
-  const moonshotKey =
-    resolveEnvApiKeyVarName("moonshot") ??
-    resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
-  if (moonshotKey) {
-    providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
+  const moonshotResolved = resolveEnvApiKey("moonshot");
+  if (moonshotResolved) {
+    const apiKey = resolveEnvApiKeyVarName("moonshot") ?? moonshotResolved.apiKey;
+    providers.moonshot = { ...buildMoonshotProvider(), apiKey };
+  } else {
+    const moonshotKey = resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
+    if (moonshotKey) {
+      providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
+    }
   }
 
-  const syntheticKey =
-    resolveEnvApiKeyVarName("synthetic") ??
-    resolveApiKeyFromProfiles({ provider: "synthetic", store: authStore });
-  if (syntheticKey) {
-    providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
+  const syntheticResolved = resolveEnvApiKey("synthetic");
+  if (syntheticResolved) {
+    const apiKey = resolveEnvApiKeyVarName("synthetic") ?? syntheticResolved.apiKey;
+    providers.synthetic = { ...buildSyntheticProvider(), apiKey };
+  } else {
+    const syntheticKey = resolveApiKeyFromProfiles({ provider: "synthetic", store: authStore });
+    if (syntheticKey) {
+      providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
+    }
   }
 
-  const veniceKey =
-    resolveEnvApiKeyVarName("venice") ??
-    resolveApiKeyFromProfiles({ provider: "venice", store: authStore });
-  if (veniceKey) {
-    providers.venice = { ...(await buildVeniceProvider()), apiKey: veniceKey };
+  const veniceResolved = resolveEnvApiKey("venice");
+  if (veniceResolved) {
+    const apiKey = resolveEnvApiKeyVarName("venice") ?? veniceResolved.apiKey;
+    providers.venice = { ...(await buildVeniceProvider()), apiKey };
+  } else {
+    const veniceKey = resolveApiKeyFromProfiles({ provider: "venice", store: authStore });
+    if (veniceKey) {
+      providers.venice = { ...(await buildVeniceProvider()), apiKey: veniceKey };
+    }
   }
 
   const qwenProfiles = listProfilesForProvider(authStore, "qwen-portal");
@@ -514,11 +531,15 @@ export async function resolveImplicitProviders(params: {
     };
   }
 
-  const xiaomiKey =
-    resolveEnvApiKeyVarName("xiaomi") ??
-    resolveApiKeyFromProfiles({ provider: "xiaomi", store: authStore });
-  if (xiaomiKey) {
-    providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
+  const xiaomiResolved = resolveEnvApiKey("xiaomi");
+  if (xiaomiResolved) {
+    const apiKey = resolveEnvApiKeyVarName("xiaomi") ?? xiaomiResolved.apiKey;
+    providers.xiaomi = { ...buildXiaomiProvider(), apiKey };
+  } else {
+    const xiaomiKey = resolveApiKeyFromProfiles({ provider: "xiaomi", store: authStore });
+    if (xiaomiKey) {
+      providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
+    }
   }
 
   const cloudflareProfiles = listProfilesForProvider(authStore, "cloudflare-ai-gateway");
@@ -536,7 +557,8 @@ export async function resolveImplicitProviders(params: {
     if (!baseUrl) {
       continue;
     }
-    const apiKey = resolveEnvApiKeyVarName("cloudflare-ai-gateway") ?? cred.key?.trim() ?? "";
+    const cloudflareResolved = resolveEnvApiKey("cloudflare-ai-gateway");
+    const apiKey = cloudflareResolved?.apiKey ?? cred.key?.trim() ?? "";
     if (!apiKey) {
       continue;
     }
@@ -550,19 +572,28 @@ export async function resolveImplicitProviders(params: {
   }
 
   // Ollama provider - only add if explicitly configured
-  const ollamaKey =
-    resolveEnvApiKeyVarName("ollama") ??
-    resolveApiKeyFromProfiles({ provider: "ollama", store: authStore });
-  if (ollamaKey) {
-    providers.ollama = { ...(await buildOllamaProvider()), apiKey: ollamaKey };
+  const ollamaResolved = resolveEnvApiKey("ollama");
+  if (ollamaResolved) {
+    const apiKey = resolveEnvApiKeyVarName("ollama") ?? ollamaResolved.apiKey;
+    providers.ollama = { ...(await buildOllamaProvider()), apiKey };
+  } else {
+    const ollamaKey = resolveApiKeyFromProfiles({ provider: "ollama", store: authStore });
+    if (ollamaKey) {
+      providers.ollama = { ...(await buildOllamaProvider()), apiKey: ollamaKey };
+    }
   }
 
-  const bailianKey =
-    resolveEnvApiKeyVarName("aliyun-bailian") ??
-    resolveApiKeyFromProfiles({ provider: "aliyun-bailian", store: authStore });
-  if (bailianKey) {
-    providers["aliyun-bailian"] = await buildBailianProvider(bailianKey);
-    providers["aliyun-bailian"].apiKey = bailianKey;
+  const bailianResolved = resolveEnvApiKey("aliyun-bailian");
+  if (bailianResolved) {
+    const apiKey = resolveEnvApiKeyVarName("aliyun-bailian") ?? bailianResolved.apiKey;
+    providers["aliyun-bailian"] = await buildBailianProvider(bailianResolved.apiKey);
+    providers["aliyun-bailian"].apiKey = apiKey;
+  } else {
+    const bailianKey = resolveApiKeyFromProfiles({ provider: "aliyun-bailian", store: authStore });
+    if (bailianKey) {
+      providers["aliyun-bailian"] = await buildBailianProvider(bailianKey);
+      providers["aliyun-bailian"].apiKey = bailianKey;
+    }
   }
 
   return providers;
