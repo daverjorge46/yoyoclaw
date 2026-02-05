@@ -14,6 +14,7 @@ import { registerConfigureCommand } from "./register.configure.js";
 import { registerMaintenanceCommands } from "./register.maintenance.js";
 import { registerMessageCommands } from "./register.message.js";
 import { registerOllamaCommands } from "./register.ollama.js";
+import { registerMoonshotCommands } from "./register.moonshot.js";
 import { registerOnboardCommand } from "./register.onboard.js";
 import { registerSetupCommand } from "./register.setup.js";
 import { registerStatusHealthSessionsCommands } from "./register.status-health-sessions.js";
@@ -156,6 +157,10 @@ export const commandRegistry: CommandRegistration[] = [
   {
     id: "ollama",
     register: ({ program }) => registerOllamaCommands(program),
+  },
+  {
+    id: "moonshot",
+    register: ({ program }) => registerMoonshotCommands(program),
   },
 ];
 
