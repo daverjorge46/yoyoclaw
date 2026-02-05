@@ -75,6 +75,10 @@ struct VoiceWakeSettings: View {
 
                 self.localePicker
                 self.micPicker
+                self.backendPicker
+                if self.state.voiceWakeBackend == .whisper {
+                    self.whisperModelPicker
+                }
                 self.levelMeter
 
                 VoiceWakeTestCard(
@@ -417,6 +421,52 @@ struct VoiceWakeSettings: View {
             }
             if self.loadingMics {
                 ProgressView().controlSize(.small)
+            }
+        }
+    }
+
+    private var backendPicker: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text("Backend")
+                .font(.callout.weight(.semibold))
+                .frame(width: self.fieldLabelWidth, alignment: .leading)
+            Picker("Backend", selection: self.$state.voiceWakeBackend) {
+                ForEach(AppState.VoiceWakeBackend.allCases) { backend in
+                    Text(backend.displayName).tag(backend)
+                }
+            }
+            .labelsHidden()
+            .frame(width: self.controlWidth)
+        }
+    }
+
+    private var whisperModelPicker: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("Whisper model")
+                    .font(.callout.weight(.semibold))
+                    .frame(width: self.fieldLabelWidth, alignment: .leading)
+                Picker("Model", selection: self.$state.voiceWakeWhisperModel) {
+                    ForEach(WhisperTranscriber.Model.allCases) { model in
+                        HStack {
+                            Text(model.displayName)
+                            if !WhisperTranscriber.modelExists(model) {
+                                Text("(not downloaded)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }.tag(model)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: self.controlWidth)
+            }
+            if !WhisperTranscriber.isAvailable() {
+                HStack(spacing: 10) {
+                    Color.clear.frame(width: self.fieldLabelWidth, height: 1)
+                    Text("whisper-cpp not installed. Run: brew install whisper-cpp")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
             }
         }
     }
