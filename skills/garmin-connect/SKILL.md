@@ -1,6 +1,6 @@
 ---
 name: garmin-connect
-description: Access Garmin Connect fitness data (activities, health metrics, training status) for workout advice.
+description: Access Garmin Connect fitness data - activities, health metrics, training status, sleep, stress, and more.
 homepage: https://connect.garmin.com
 metadata:
   {
@@ -14,7 +14,7 @@ metadata:
 
 # Garmin Connect
 
-Access Garmin Connect data for fitness advice, workout analysis, and training recommendations.
+Access all Garmin Connect data - activities, health metrics, training status, sleep, and more.
 
 ## Setup
 
@@ -41,13 +41,14 @@ Get current training status, body battery, and readiness:
 
 ### Recent Activities
 
-List recent activities (default: 7 days):
+List recent activities (all types):
 
 ```bash
 {baseDir}/scripts/garmin.py activities
 {baseDir}/scripts/garmin.py activities --days 14
 {baseDir}/scripts/garmin.py activities --type running
-{baseDir}/scripts/garmin.py activities --type strength_training
+{baseDir}/scripts/garmin.py activities --type cycling
+{baseDir}/scripts/garmin.py activities --type swimming
 ```
 
 ### Activity Details
@@ -58,23 +59,6 @@ Get detailed info about a specific activity:
 {baseDir}/scripts/garmin.py activity <activity_id>
 {baseDir}/scripts/garmin.py activity <activity_id> --splits  # Include lap data
 {baseDir}/scripts/garmin.py activity <activity_id> --hr-zones  # Heart rate zones
-```
-
-### Running Stats
-
-Get running-specific metrics (VO2 max, race predictions, etc.):
-
-```bash
-{baseDir}/scripts/garmin.py running
-```
-
-### Strength Training
-
-Get recent strength workouts with exercises and sets:
-
-```bash
-{baseDir}/scripts/garmin.py strength
-{baseDir}/scripts/garmin.py strength --days 30
 ```
 
 ### Health Metrics
@@ -107,7 +91,7 @@ Get training load balance and readiness score:
 
 ### Personal Records
 
-Get personal records across activities:
+Get personal records across all activities:
 
 ```bash
 {baseDir}/scripts/garmin.py records
@@ -121,6 +105,23 @@ Get active fitness goals:
 {baseDir}/scripts/garmin.py goals
 ```
 
+### Running Metrics (Optional)
+
+Get running-specific metrics (VO2 max, race predictions):
+
+```bash
+{baseDir}/scripts/garmin.py running
+```
+
+### Strength Training (Optional)
+
+Get strength workouts with exercises and sets:
+
+```bash
+{baseDir}/scripts/garmin.py strength
+{baseDir}/scripts/garmin.py strength --days 30
+```
+
 ## Output Formats
 
 All commands support JSON output for programmatic use:
@@ -132,52 +133,44 @@ All commands support JSON output for programmatic use:
 
 ## Credentials
 
-Credentials are stored in `~/.garminconnect/` after first login.
-To re-authenticate:
+Credentials are fetched in this order:
+1. **Saved tokens** in `~/.garminconnect/` (valid ~1 year)
+2. **Bitwarden CLI** - searches for "garmin" entry (must be unlocked)
+3. **Environment variables** - `GARMIN_EMAIL` and `GARMIN_PASSWORD`
+4. **Interactive prompt** (last resort)
+
+### Using Bitwarden
+
+If you have Bitwarden CLI installed and unlocked, credentials are automatic:
+
+```bash
+bw unlock                    # Unlock vault first
+export BW_SESSION="..."      # Set session from unlock output
+{baseDir}/scripts/garmin.py status   # Auto-fetches from Bitwarden
+```
+
+### Re-authenticate
 
 ```bash
 {baseDir}/scripts/garmin.py login
 ```
 
-## Configuration
-
-Optional: Store email in OpenClaw config (`~/.openclaw/openclaw.json`):
-
-```json5
-{
-  skills: {
-    entries: {
-      "garmin-connect": {
-        config: {
-          email: "your.email@example.com"
-        }
-      }
-    }
-  }
-}
-```
-
-Password is always prompted or read from `GARMIN_PASSWORD` env var.
-
-## Tips for Workout Advice
-
-When advising on workouts, consider:
-
-1. **Training Readiness** — Check `training` command before suggesting intensity
-2. **Body Battery** — Low battery = recovery day
-3. **Sleep Quality** — Poor sleep = reduce volume/intensity
-4. **Training Load** — Balance anaerobic vs aerobic load
-5. **HRV Trends** — Declining HRV = accumulated fatigue
-6. **Recent Activities** — Avoid back-to-back high-intensity days
-
 ## Supported Activity Types
 
-Common types for filtering:
+Filter activities with `--type`:
 - `running`
 - `cycling`
+- `swimming`
 - `strength_training`
 - `walking`
 - `hiking`
-- `swimming`
 - `yoga`
 - `indoor_cardio`
+- `open_water_swimming`
+- `trail_running`
+- `treadmill_running`
+- `virtual_ride`
+- `pilates`
+- `breathwork`
+- `cardio`
+- (and many more Garmin activity types)

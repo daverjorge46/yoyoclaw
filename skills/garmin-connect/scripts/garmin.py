@@ -23,22 +23,74 @@ except ImportError:
 TOKEN_DIR = Path.home() / ".garminconnect"
 
 
+def get_bitwarden_creds(search_term: str = "garmin") -> tuple[str, str] | None:
+    """Try to get credentials from Bitwarden CLI."""
+    import subprocess
+    
+    # Check if bw is available and unlocked
+    try:
+        result = subprocess.run(
+            ["bw", "status"],
+            capture_output=True, text=True, timeout=10
+        )
+        if '"status":"locked"' in result.stdout or '"status":"unauthenticated"' in result.stdout:
+            return None  # Vault locked, fall back to other methods
+        
+        # Search for Garmin entry
+        result = subprocess.run(
+            ["bw", "list", "items", "--search", search_term],
+            capture_output=True, text=True, timeout=30
+        )
+        if result.returncode != 0:
+            return None
+        
+        items = json.loads(result.stdout)
+        if not items:
+            return None
+        
+        # Find first item with login credentials
+        for item in items:
+            login = item.get("login", {})
+            username = login.get("username")
+            password = login.get("password")
+            if username and password:
+                return (username, password)
+        
+        return None
+    except Exception:
+        return None
+
+
 def get_client(email: str = None, password: str = None) -> Garmin:
     """Get authenticated Garmin client."""
     # Try to resume from saved tokens
     if TOKEN_DIR.exists():
         try:
             client = Garmin()
-            client.login(TOKEN_DIR)
+            client.login(str(TOKEN_DIR))
             return client
         except Exception:
             pass  # Tokens expired, need fresh login
     
-    # Fresh login required
-    if not email:
-        email = os.environ.get("GARMIN_EMAIL") or input("Garmin Email: ")
-    if not password:
-        password = os.environ.get("GARMIN_PASSWORD") or getpass("Garmin Password: ")
+    # Fresh login required - try sources in order
+    if not email or not password:
+        # 1. Environment variables
+        email = email or os.environ.get("GARMIN_EMAIL")
+        password = password or os.environ.get("GARMIN_PASSWORD")
+        
+        # 2. Bitwarden CLI
+        if not email or not password:
+            bw_creds = get_bitwarden_creds("garmin")
+            if bw_creds:
+                email = email or bw_creds[0]
+                password = password or bw_creds[1]
+                print("✓ Using credentials from Bitwarden", file=sys.stderr)
+        
+        # 3. Interactive prompt (last resort)
+        if not email:
+            email = input("Garmin Email: ")
+        if not password:
+            password = getpass("Garmin Password: ")
     
     client = Garmin(email, password)
     client.login()
@@ -75,8 +127,22 @@ def format_pace(meters_per_second: float) -> str:
 
 def cmd_login(args):
     """Authenticate with Garmin Connect."""
-    email = args.email or os.environ.get("GARMIN_EMAIL") or input("Garmin Email: ")
-    password = os.environ.get("GARMIN_PASSWORD") or getpass("Garmin Password: ")
+    email = args.email or os.environ.get("GARMIN_EMAIL")
+    password = os.environ.get("GARMIN_PASSWORD")
+    
+    # Try Bitwarden if no env vars
+    if not email or not password:
+        bw_creds = get_bitwarden_creds("garmin")
+        if bw_creds:
+            email = email or bw_creds[0]
+            password = password or bw_creds[1]
+            print("✓ Using credentials from Bitwarden")
+    
+    # Fall back to interactive
+    if not email:
+        email = input("Garmin Email: ")
+    if not password:
+        password = getpass("Garmin Password: ")
     
     client = Garmin(email, password)
     client.login()
