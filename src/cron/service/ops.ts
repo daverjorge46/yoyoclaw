@@ -62,7 +62,9 @@ export async function list(state: CronServiceState, opts?: { includeDisabled?: b
 export async function add(state: CronServiceState, input: CronJobCreate) {
   return await locked(state, async () => {
     warnIfDisabled(state, "add");
-    await ensureLoaded(state);
+    // Force reload to ensure we have the latest jobs from disk
+    // This prevents memory desync when multiple jobs are added in rapid succession
+    await ensureLoaded(state, { forceReload: true });
     const job = createJob(state, input);
     state.store?.jobs.push(job);
     await persist(state);
