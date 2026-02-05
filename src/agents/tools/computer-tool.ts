@@ -1123,7 +1123,16 @@ switch ('${action}') {
   }
   'scroll' {
     if ($args.PSObject.Properties.Name -contains 'x' -and $args.PSObject.Properties.Name -contains 'y') {
-      [MouseInput]::MoveTo([int]$args.x, [int]$args.y)
+      $x = [int]$args.x
+      $y = [int]$args.y
+
+      $steps = 8
+      if ($args.PSObject.Properties.Name -contains 'steps') { $steps = [int]$args.steps }
+
+      $stepDelay = 5
+      if ($args.PSObject.Properties.Name -contains 'stepDelayMs') { $stepDelay = [int]$args.stepDelayMs }
+
+      Smooth-MoveTo $x $y $steps $stepDelay
     }
     $delta = [int]$args.deltaY
     [MouseInput]::Wheel($delta)
@@ -1474,16 +1483,18 @@ export function createComputerTool(options?: {
         const deltaY = requireNumber(params, "deltaY");
         const x = typeof params.x === "number" ? params.x : undefined;
         const y = typeof params.y === "number" ? params.y : undefined;
+        const steps = readPositiveInt(params, "steps", 8);
+        const stepDelayMs = readPositiveInt(params, "stepDelayMs", 5);
         await runInputAction({
           action: "scroll",
-          args: { ...(x !== undefined && y !== undefined ? { x, y } : {}), deltaY, delayMs },
+          args: { ...(x !== undefined && y !== undefined ? { x, y, steps, stepDelayMs } : {}), deltaY, delayMs },
         });
         if (agentDir) {
           await recordTeachStep({
             agentDir,
             sessionKey,
             action: "scroll",
-            stepParams: { ...(x !== undefined && y !== undefined ? { x, y } : {}), deltaY, delayMs },
+            stepParams: { ...(x !== undefined && y !== undefined ? { x, y, steps, stepDelayMs } : {}), deltaY, delayMs },
           });
         }
         return jsonResult({ ok: true });
