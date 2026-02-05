@@ -15,6 +15,7 @@ const COMPUTER_TOOL_ACTIONS = [
   "snapshot",
   "wait",
   "release",
+  "reset_focus",
   "hover",
   "move",
   "click",
@@ -66,6 +67,8 @@ const ComputerToolSchema = Type.Object({
 
   // wait / hover
   durationMs: Type.Optional(Type.Number()),
+  // reset_focus
+  escCount: Type.Optional(Type.Number()),
 
   // Common action params
   x: Type.Optional(Type.Number()),
@@ -533,7 +536,7 @@ function shouldApproveAction(params: {
   if (confirm === "off") {
     return false;
   }
-  if (action === "snapshot" || action === "wait" || action === "release") {
+  if (action === "snapshot" || action === "wait" || action === "release" || action === "reset_focus") {
     return false;
   }
   if (action.startsWith("teach_")) {
@@ -1447,6 +1450,36 @@ switch ('${action}') {
 
     Sleep-IfNeeded
   }
+  'reset_focus' {
+    # First, release any potentially stuck input.
+    [MouseInput]::ButtonUp('left')
+    [MouseInput]::ButtonUp('right')
+    [MouseInput]::ButtonUp('middle')
+
+    [Keyboard]::KeyUp(0x10, $false) # SHIFT
+    [Keyboard]::KeyUp(0xA0, $false) # LSHIFT
+    [Keyboard]::KeyUp(0xA1, $false) # RSHIFT
+    [Keyboard]::KeyUp(0x11, $false) # CTRL
+    [Keyboard]::KeyUp(0xA2, $false) # LCTRL
+    [Keyboard]::KeyUp(0xA3, $true)  # RCTRL
+    [Keyboard]::KeyUp(0x12, $false) # ALT
+    [Keyboard]::KeyUp(0xA4, $false) # LALT
+    [Keyboard]::KeyUp(0xA5, $true)  # RALT
+    [Keyboard]::KeyUp(0x5B, $false) # LWIN
+    [Keyboard]::KeyUp(0x5C, $false) # RWIN
+
+    $count = 2
+    if ($args.PSObject.Properties.Name -contains 'escCount') { $count = [int]$args.escCount }
+    if ($count -lt 1) { $count = 1 }
+    if ($count -gt 5) { $count = 5 }
+
+    for ($i = 0; $i -lt $count; $i++) {
+      [Keyboard]::KeyPress(0x1B, $false) # ESC
+      Start-Sleep -Milliseconds 80
+    }
+
+    Sleep-IfNeeded
+  }
   'hotkey' {
     $keyToken = [string]$args.key
     if (-not $keyToken) { throw 'key required' }
@@ -1589,6 +1622,12 @@ export function createComputerTool(options?: {
 
       if (action === "release") {
         await runInputAction({ action: "release", args: {} });
+        return jsonResult({ ok: true });
+      }
+
+      if (action === "reset_focus") {
+        const escCount = Math.min(5, readPositiveInt(params, "escCount", 2));
+        await runInputAction({ action: "reset_focus", args: { escCount } });
         return jsonResult({ ok: true });
       }
 
