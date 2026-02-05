@@ -1,6 +1,4 @@
-import type { OpenClawPluginApi, OpenClawPluginService } from "openclaw/plugin-sdk";
-import { trace, SpanStatusCode } from "@opentelemetry/api";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+      await sdk.start();
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { ParentBasedSampler, TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace-base";
