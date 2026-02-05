@@ -426,7 +426,7 @@ function renderAlertsTab(props: SecurityProps) {
   if (props.alerts.length === 0) {
     return html`
       <div class="callout" style="text-align: center; padding: 40px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">${icons.shieldCheck}</div>
+        <div style="width: 48px; height: 48px; margin: 0 auto 16px; color: var(--ok);">${icons.shieldCheck}</div>
         <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px; color: var(--ok);">No Active Alerts</div>
         <div class="muted">All systems are operating normally.</div>
       </div>
@@ -448,7 +448,7 @@ function renderBlockedTab(props: SecurityProps) {
   if (props.blocked.length === 0) {
     return html`
       <div class="callout" style="text-align: center; padding: 40px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">${icons.shield}</div>
+        <div style="width: 48px; height: 48px; margin: 0 auto 16px; color: var(--ok);">${icons.shield}</div>
         <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No Blocked Events</div>
         <div class="muted">No threats have been blocked recently.</div>
       </div>
@@ -554,7 +554,7 @@ function renderAuditTab(props: SecurityProps) {
                 `
                 : html`
                   <div class="callout" style="text-align: center; padding: 40px; background: var(--ok)10; border: 1px solid var(--ok)30;">
-                    <div style="font-size: 48px; margin-bottom: 16px; color: var(--ok);">${icons.shieldCheck}</div>
+                    <div style="width: 48px; height: 48px; margin: 0 auto 16px; color: var(--ok);">${icons.shieldCheck}</div>
                     <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px; color: var(--ok);">All Clear</div>
                     <div class="muted">No security issues were found during the audit.</div>
                   </div>
@@ -563,7 +563,7 @@ function renderAuditTab(props: SecurityProps) {
           `
           : html`
             <div class="callout" style="text-align: center; padding: 40px;">
-              <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">${icons.shield}</div>
+              <div style="width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.5;">${icons.shield}</div>
               <div style="font-size: 14px; margin-bottom: 8px;">No audit has been run yet</div>
               <div class="muted">Click "Run Quick Audit" or "Run Deep Audit" to analyze your system configuration.</div>
             </div>
