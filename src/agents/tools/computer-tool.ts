@@ -103,6 +103,7 @@ async function runPowerShell(params: {
       [
         "-NoProfile",
         "-NonInteractive",
+        "-STA",
         "-ExecutionPolicy",
         "Bypass",
         "-EncodedCommand",
@@ -333,6 +334,123 @@ async function ensureApproval(params: {
 
 type ComputerConfirmMode = "always" | "dangerous" | "off";
 
+type UiHitTestResult = {
+  name?: string;
+  controlType?: string;
+  automationId?: string;
+  className?: string;
+  frameworkId?: string;
+  helpText?: string;
+};
+
+const DANGEROUS_TOKENS = [
+  "ok",
+  "yes",
+  "confirm",
+  "submit",
+  "send",
+  "buy",
+  "purchase",
+  "pay",
+  "order",
+  "checkout",
+  "delete",
+  "remove",
+  "uninstall",
+  "format",
+  "apply",
+] as const;
+
+function matchesDangerToken(text: string): boolean {
+  const raw = text.trim();
+  if (!raw) {
+    return false;
+  }
+  for (const token of DANGEROUS_TOKENS) {
+    const re = new RegExp(`(^|[^a-z0-9])${token}([^a-z0-9]|$)`, "i");
+    if (re.test(raw)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isDangerousUiHit(hit: UiHitTestResult): boolean {
+  const textFields = [hit.name, hit.helpText, hit.automationId].filter(
+    (v): v is string => typeof v === "string",
+  );
+  if (textFields.some((v) => matchesDangerToken(v))) {
+    return true;
+  }
+  return false;
+}
+
+async function resolveUiHitTest(params: { x: number; y: number }): Promise<UiHitTestResult | null> {
+  const script = `
+$ErrorActionPreference = 'Stop'
+
+Add-Type -AssemblyName UIAutomationClient
+Add-Type -AssemblyName UIAutomationTypes
+Add-Type -AssemblyName WindowsBase
+
+$x = ${"${"}x}
+$y = ${"${"}y}
+$pt = New-Object System.Windows.Point $x, $y
+
+$el = [System.Windows.Automation.AutomationElement]::FromPoint($pt)
+
+function Elem-ToObj($e) {
+  if (-not $e) { return $null }
+  $current = $e.Current
+  $ct = $null
+  try { $ct = $current.ControlType.ProgrammaticName } catch { $ct = $null }
+  return @{ 
+    name = $current.Name
+    automationId = $current.AutomationId
+    className = $current.ClassName
+    frameworkId = $current.FrameworkId
+    helpText = $current.HelpText
+    controlType = $ct
+  }
+}
+
+$obj = Elem-ToObj $el
+$walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+
+for ($i = 0; $i -lt 4; $i++) {
+  if (-not $obj) { break }
+  $name = [string]$obj.name
+  if ($name -and $name.Trim().Length -gt 0) { break }
+  $el = $walker.GetParent($el)
+  $obj = Elem-ToObj $el
+}
+
+if (-not $obj) {
+  @{ ok = $false } | ConvertTo-Json -Compress | Write-Output
+} else {
+  $obj.ok = $true
+  $obj | ConvertTo-Json -Compress | Write-Output
+}
+`;
+
+  const res = await runPowerShellJson<Record<string, unknown>>({
+    script: script.replace("${" + "x}", String(params.x)).replace("${" + "y}", String(params.y)),
+    timeoutMs: 5_000,
+  });
+
+  if (!res || typeof res !== "object" || res.ok !== true) {
+    return null;
+  }
+  return {
+    name: typeof res.name === "string" ? res.name : undefined,
+    controlType: typeof res.controlType === "string" ? res.controlType : undefined,
+    automationId: typeof res.automationId === "string" ? res.automationId : undefined,
+    className: typeof res.className === "string" ? res.className : undefined,
+    frameworkId: typeof res.frameworkId === "string" ? res.frameworkId : undefined,
+    helpText: typeof res.helpText === "string" ? res.helpText : undefined,
+  };
+}
+
 function isDangerousAction(action: ComputerToolAction, params: Record<string, unknown>): boolean {
   if (action === "hotkey" || action === "press") {
     return true;
@@ -359,6 +477,7 @@ function shouldApproveAction(params: {
   action: ComputerToolAction;
   confirm: ComputerConfirmMode;
   rawParams: Record<string, unknown>;
+  uiHit?: UiHitTestResult | null;
 }): boolean {
   const { action, confirm, rawParams } = params;
   if (confirm === "off") {
@@ -371,6 +490,9 @@ function shouldApproveAction(params: {
     return false;
   }
   if (confirm === "always") {
+    return true;
+  }
+  if (action === "click" && params.uiHit && isDangerousUiHit(params.uiHit)) {
     return true;
   }
   return isDangerousAction(action, rawParams);
@@ -1101,14 +1223,33 @@ export function createComputerTool(options?: {
         return jsonResult({ ok: true, status: "teach-renamed", toName: path.basename(renamed.toDir) });
       }
 
+      let uiHit: UiHitTestResult | null = null;
+      if (confirm === "dangerous" && action === "click") {
+        const buttonRaw = readStringParam(params, "button", { required: false });
+        const button = buttonRaw === "right" || buttonRaw === "middle" ? buttonRaw : "left";
+        const clicks = readPositiveInt(params, "clicks", 1);
+        if (button === "left" && clicks === 1) {
+          const x = Math.floor(requireNumber(params, "x"));
+          const y = Math.floor(requireNumber(params, "y"));
+          uiHit = await resolveUiHitTest({ x, y }).catch(() => null);
+        }
+      }
+
       if (
         shouldApproveAction({
           action,
           confirm,
           rawParams: params,
+          uiHit,
         })
       ) {
-        const approvalText = formatApprovalCommand(`computer.${action}`, params);
+        let approvalText = formatApprovalCommand(`computer.${action}`, params);
+        if (action === "click" && uiHit && isDangerousUiHit(uiHit)) {
+          const label = uiHit.name || uiHit.automationId || uiHit.controlType || "";
+          if (label) {
+            approvalText += ` target=${JSON.stringify(label.slice(0, 80))}`;
+          }
+        }
         await ensureApproval({
           gatewayOpts,
           command: approvalText,
