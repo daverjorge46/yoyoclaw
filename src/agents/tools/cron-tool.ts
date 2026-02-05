@@ -230,23 +230,32 @@ Use jobId as the canonical identifier; id is accepted for compatibility. Use con
             }),
           );
         case "add": {
+          // Known job fields (excludes tool-specific params like action, gatewayUrl, etc.)
+          const JOB_FIELDS = [
+            "name",
+            "schedule",
+            "sessionTarget",
+            "payload",
+            "enabled",
+            "delivery",
+            "agentId",
+            "wakeMode",
+            "deleteAfterRun",
+          ] as const;
+
           let jobInput: Record<string, unknown>;
           if (params.job && typeof params.job === "object") {
             // Nested format: { action: "add", job: { name, schedule, ... } }
             jobInput = params.job as Record<string, unknown>;
-          } else if (params.schedule || params.payload || params.sessionTarget) {
+          } else if ("schedule" in params || "payload" in params || "sessionTarget" in params) {
             // Flat format: { action: "add", name, schedule, sessionTarget, payload, ... }
-            // Extract job properties from top-level params (exclude tool-specific params)
-            const {
-              action: _,
-              gatewayUrl: __,
-              gatewayToken: ___,
-              timeoutMs: ____,
-              contextMessages: _____,
-              job: ______,
-              ...rest
-            } = params;
-            jobInput = rest;
+            // Extract only known job fields from top-level params
+            jobInput = {};
+            for (const field of JOB_FIELDS) {
+              if (field in params) {
+                jobInput[field] = params[field];
+              }
+            }
           } else {
             throw new Error(
               "job required (as nested 'job' object or flat properties: schedule, sessionTarget, payload)",
