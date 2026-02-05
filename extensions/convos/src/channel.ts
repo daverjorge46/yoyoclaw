@@ -144,8 +144,8 @@ export const convosPlugin: ChannelPlugin<ResolvedConvosAccount> = {
         if (!trimmed) {
           return false;
         }
-        // Convos conversation IDs are UUIDs or conversation slugs
-        return /^[0-9a-f-]{36}$/i.test(trimmed) || trimmed.includes("/");
+        // Convos conversation IDs are hex strings (32 chars) or UUIDs (36 chars with dashes)
+        return /^[0-9a-f]{32}$/i.test(trimmed) || /^[0-9a-f-]{36}$/i.test(trimmed) || trimmed.includes("/");
       },
       hint: "<conversationId>",
     },
