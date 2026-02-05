@@ -44,6 +44,7 @@ type MessageSendParams = {
 	idempotencyKey?: string;
 	mirror?: {
 		sessionKey: string;
+		sessionId?: string;
 		agentId?: string;
 		text?: string;
 		mediaUrls?: string[];
@@ -165,6 +166,7 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
 			to: resolvedTarget.to,
 			accountId: params.accountId,
 			sessionKey: params.mirror?.sessionKey,
+			sessionId: params.mirror?.sessionId,
 			payloads: normalizedPayloads,
 			gifPlayback: params.gifPlayback,
 			deps: params.deps,

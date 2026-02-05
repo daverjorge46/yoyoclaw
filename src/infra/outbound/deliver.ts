@@ -382,6 +382,7 @@ export async function deliverOutboundPayloads(params: {
 			throwIfAborted(abortSignal);
 			const hookResult = await runMessageSendingHook(payloadSummary.text);
 			if (hookResult.canceled) {
+				await runMessageSentHook(payloadSummary.text, false, "canceled by message_sending hook");
 				continue;
 			}
 			payloadSummary.text = hookResult.content;

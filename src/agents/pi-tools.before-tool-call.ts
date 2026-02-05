@@ -88,12 +88,26 @@ export async function runAfterToolCallHook(args: {
 	toolCallId?: string;
 	ctx?: HookContext;
 }): Promise<void> {
+	const toolName = normalizeToolName(args.toolName || "tool");
+	const params = isPlainObject(args.params) ? args.params : {};
+	const hookSessionKey = args.ctx?.sessionKey ?? `tool:${toolName}`;
+	try {
+		const hookEvent = createInternalHookEvent("agent", "tool:end", hookSessionKey, {
+			toolName,
+			toolCallId: args.toolCallId ?? args.ctx?.toolCallId,
+			params,
+			result: args.result,
+			error: args.error,
+			durationMs: args.durationMs,
+		});
+		await triggerInternalHook(hookEvent);
+	} catch (err) {
+		log.warn(`agent:tool:end hook failed: tool=${toolName} error=${String(err)}`);
+	}
 	const hookRunner = getGlobalHookRunner();
 	if (!hookRunner?.hasHooks("after_tool_call")) {
 		return;
 	}
-	const toolName = normalizeToolName(args.toolName || "tool");
-	const params = isPlainObject(args.params) ? args.params : {};
 	try {
 		await hookRunner.runAfterToolCall(
 			{
@@ -113,20 +127,6 @@ export async function runAfterToolCallHook(args: {
 	} catch (err) {
 		const toolCallId = args.toolCallId ? ` toolCallId=${args.toolCallId}` : "";
 		log.warn(`after_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`);
-	}
-	const hookSessionKey = args.ctx?.sessionKey ?? `tool:${toolName}`;
-	try {
-		const hookEvent = createInternalHookEvent("agent", "tool:end", hookSessionKey, {
-			toolName,
-			toolCallId: args.toolCallId ?? args.ctx?.toolCallId,
-			params,
-			result: args.result,
-			error: args.error,
-			durationMs: args.durationMs,
-		});
-		await triggerInternalHook(hookEvent);
-	} catch (err) {
-		log.warn(`agent:tool:end hook failed: tool=${toolName} error=${String(err)}`);
 	}
 }
 

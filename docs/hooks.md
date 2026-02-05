@@ -300,6 +300,8 @@ These hooks are registered via the plugin API and run inside core workflows:
 - **`session_start`**, **`session_end`**
 - **`gateway_start`**, **`gateway_stop`**
 
+`message_sent` fires for canceled sends with `success: false` and `error: "canceled by message_sending hook"`.
+
 ### Planned Events
 
 Planned event types:
