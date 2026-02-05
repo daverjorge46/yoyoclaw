@@ -388,7 +388,6 @@ export function createTelegramBot(opts: TelegramBotOptions) {
     ackReactionScope,
     logger,
     resolveGroupActivation,
-    resolveGroupActivationMode,
     resolveGroupRequireMention,
     resolveTelegramGroupConfig,
     runtime,
