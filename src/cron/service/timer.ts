@@ -19,7 +19,15 @@ export function armTimer(state: CronServiceState) {
   if (!nextAt) {
     return;
   }
-  const delay = Math.max(nextAt - state.deps.nowMs(), 0);
+  const now = state.deps.nowMs();
+  // If nextAt is in the past, trigger immediately and log for debugging
+  if (nextAt < now) {
+    state.deps.log.info(
+      { nextAt, now, diff: now - nextAt },
+      "cron: next wake time is in the past, triggering immediately",
+    );
+  }
+  const delay = Math.max(nextAt - now, 0);
   // Avoid TimeoutOverflowWarning when a job is far in the future.
   const clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
   state.timer = setTimeout(() => {

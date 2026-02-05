@@ -80,7 +80,24 @@ export function recomputeNextRuns(state: CronServiceState) {
       );
       job.state.runningAtMs = undefined;
     }
+    const prevNextRunAtMs = job.state.nextRunAtMs;
     job.state.nextRunAtMs = computeJobNextRunAtMs(job, now);
+
+    // Defensive check: if nextRunAtMs is still in the past, something is wrong
+    if (typeof job.state.nextRunAtMs === "number" && job.state.nextRunAtMs < now) {
+      state.deps.log.warn(
+        {
+          jobId: job.id,
+          prevNextRunAtMs,
+          computedNextRunAtMs: job.state.nextRunAtMs,
+          now,
+          schedule: job.schedule,
+        },
+        "cron: computed nextRunAtMs is in the past, forcing recalculation",
+      );
+      // Force recalculation from a slightly future time to ensure we get a future slot
+      job.state.nextRunAtMs = computeJobNextRunAtMs(job, now + 1000);
+    }
   }
 }
 
