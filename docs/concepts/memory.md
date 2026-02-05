@@ -164,7 +164,7 @@ out to QMD for retrieval. Key points:
 
 - `command` (default `qmd`): override the executable path.
 - `mode` (default `query`): override the search mode ot use (`query`, `vsearch`, `search`).
-  While `query` is the indended mode as described above, on less powerfull machines, the
+  While `query` is the intended mode as described above, on less powerful machines, the
   other modes can be used if the degradation in search quality is acceptable.
 - `includeDefaultMemory` (default `true`): auto-index `MEMORY.md` + `memory/**/*.md`.
 - `paths[]`: add extra directories/files (`path`, optional `pattern`, optional
