@@ -26,7 +26,11 @@ MVP (current):
 NeuronWaves uses a policy gate for actions.
 
 - Default behavior is **prepare-then-ask** for ASK actions (generate drafts/artifacts first, then ask before external execution).
-- A "Dev Approval Mode" can be enabled via policy (more permissive defaults), while still keeping hard limits (rate/spend caps) + audit logs.
+- A "Dev Approval Mode" can be enabled via policy (more permissive defaults).
+  - `devLevel=1`: internal auto, high-impact external ASK
+  - `devLevel=2`: high-impact external AUTO (with limits/allowlists)
+  - `devLevel=3`: full AUTO (limits may be set to `null` = unlimited; user assumes full responsibility)
+  - Audit logs still apply.
 
 Policy file (per workspace):
 

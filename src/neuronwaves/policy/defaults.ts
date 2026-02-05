@@ -3,6 +3,7 @@ import type { NeuronWavesPolicy } from "./types.js";
 export function defaultNeuronWavesPolicy(): NeuronWavesPolicy {
   return {
     mode: "safe",
+    devLevel: 1,
     rules: {
       "run.command": "auto",
       "edit.files": "auto",

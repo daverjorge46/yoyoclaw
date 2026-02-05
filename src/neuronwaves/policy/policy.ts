@@ -3,6 +3,8 @@ import type { NeuronWavesAction, NeuronWavesDecision, NeuronWavesPolicy } from "
 const DEV_DEFAULT: NeuronWavesDecision = "auto";
 const SAFE_DEFAULT: NeuronWavesDecision = "ask";
 
+const HIGH_IMPACT_KINDS = new Set(["send.email", "post.x", "spend.money"] as const);
+
 export function resolvePolicyDecision(params: {
   policy: NeuronWavesPolicy;
   action: NeuronWavesAction;
@@ -15,6 +17,14 @@ export function resolvePolicyDecision(params: {
 
   // Mode defaults: safe is conservative; dev is permissive.
   if (policy.mode === "dev") {
+    const level = policy.devLevel ?? 1;
+
+    // devLevel=1: still asks for high-impact external actions unless explicitly overridden.
+    if (level === 1 && HIGH_IMPACT_KINDS.has(action.kind as never)) {
+      return "ask";
+    }
+
+    // devLevel>=2: permissive default.
     return DEV_DEFAULT;
   }
 

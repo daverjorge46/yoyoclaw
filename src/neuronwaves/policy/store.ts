@@ -15,11 +15,35 @@ export async function loadNeuronWavesPolicy(workspaceDir: string): Promise<Neuro
     const parsed = JSON.parse(raw) as Partial<NeuronWavesPolicy>;
     if (parsed && typeof parsed === "object") {
       const base = defaultNeuronWavesPolicy();
+      const devLevel =
+        parsed.devLevel === 1 || parsed.devLevel === 2 || parsed.devLevel === 3
+          ? parsed.devLevel
+          : base.devLevel;
+      const limitsRaw = parsed.limits ?? {};
+      const outboundPerHour =
+        limitsRaw.outboundPerHour === null
+          ? null
+          : typeof limitsRaw.outboundPerHour === "number" &&
+              Number.isFinite(limitsRaw.outboundPerHour)
+            ? limitsRaw.outboundPerHour
+            : base.limits.outboundPerHour;
+      const spendUsdPerDay =
+        limitsRaw.spendUsdPerDay === null
+          ? null
+          : typeof limitsRaw.spendUsdPerDay === "number" &&
+              Number.isFinite(limitsRaw.spendUsdPerDay)
+            ? limitsRaw.spendUsdPerDay
+            : base.limits.spendUsdPerDay;
+
       return {
         ...base,
         ...parsed,
+        devLevel,
         rules: { ...base.rules, ...(parsed.rules ?? {}) },
-        limits: { ...base.limits, ...(parsed.limits ?? {}) },
+        limits: {
+          outboundPerHour,
+          spendUsdPerDay,
+        },
       };
     }
   } catch {

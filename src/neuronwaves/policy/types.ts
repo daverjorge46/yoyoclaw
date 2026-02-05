@@ -18,15 +18,26 @@ export type NeuronWavesPolicy = {
   /** Safety profile for this agent. */
   mode: NeuronWavesMode;
 
+  /**
+   * Dev Approval Mode level.
+   * - 1: internal auto, external high-impact ask (default dev behavior)
+   * - 2: external high-impact auto with limits + allowlists (recommended)
+   * - 3: full auto (user assumes full responsibility; limits may be unlimited)
+   */
+  devLevel?: 1 | 2 | 3;
+
   /** Per-action decisions. */
   rules: Partial<Record<NeuronWavesActionKind, NeuronWavesDecision>>;
 
-  /** Hard limits (always enforced even when mode=dev). */
+  /**
+   * Guardrail limits.
+   * In devLevel=3, these may be set to null (unlimited).
+   */
   limits: {
     /** Max external messages/posts per hour (send.email, post.x). */
-    outboundPerHour: number;
+    outboundPerHour: number | null;
     /** Daily spend cap in USD. Default 0. */
-    spendUsdPerDay: number;
+    spendUsdPerDay: number | null;
   };
 };
 
