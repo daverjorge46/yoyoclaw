@@ -174,6 +174,12 @@ export type DiscordAccountConfig = {
   pluralkit?: DiscordPluralKitConfig;
   /** Outbound response prefix override for this channel/account. */
   responsePrefix?: string;
+  /**
+   * Check for unanswered messages on startup and respond to them.
+   * - true: Check DM channels from allowlist for unanswered messages
+   * - number: Check messages from the last N minutes (default: 10)
+   */
+  startupRecovery?: boolean | number;
 };
 
 export type DiscordConfig = {

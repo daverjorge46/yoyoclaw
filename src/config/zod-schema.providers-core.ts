@@ -273,6 +273,7 @@ export const DiscordAccountSchema = z
     toolFeedback: z.boolean().optional(),
     quickAck: z.union([z.boolean(), z.string()]).optional(),
     progressUpdates: z.union([z.boolean(), z.number().int().min(15)]).optional(),
+    startupRecovery: z.union([z.boolean(), z.number().int().min(1)]).optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
     maxLinesPerMessage: z.number().int().positive().optional(),
     mediaMaxMb: z.number().positive().optional(),
