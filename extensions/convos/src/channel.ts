@@ -18,7 +18,7 @@ import { convosMessageActions } from "./actions.js";
 import { convosChannelConfigSchema } from "./config-schema.js";
 import { convosOnboardingAdapter } from "./onboarding.js";
 import { convosOutbound, getClientForAccount, setClientForAccount } from "./outbound.js";
-import { getConvosRuntime, isConvosSetupActive } from "./runtime.js";
+import { getConvosRuntime } from "./runtime.js";
 import { ConvosSDKClient, resolveConvosDbPath, type InboundMessage } from "./sdk-client.js";
 
 type RuntimeLogger = {
@@ -209,15 +209,7 @@ export const convosPlugin: ChannelPlugin<ResolvedConvosAccount> = {
       probe: snapshot.probe,
       lastProbeAt: snapshot.lastProbeAt ?? null,
     }),
-    probeAccount: async ({ account, timeoutMs }) => {
-      // Skip probes while a setup/reset session is active — the old identity
-      // is being replaced and probing it burns XMTP installation slots.
-      if (isConvosSetupActive()) {
-        return { ok: true };
-      }
-
-      // For SDK-based client, we verify by checking if we can create a client
-      // If privateKey is set, the account is considered healthy
+    probeAccount: async ({ account }) => {
       if (!account.privateKey) {
         return {
           ok: false,
@@ -225,30 +217,17 @@ export const convosPlugin: ChannelPlugin<ResolvedConvosAccount> = {
         };
       }
 
-      try {
-        // Create a temporary client to verify connectivity, with a timeout
-        const limit = timeoutMs ?? 10000;
-        const tempClient = await Promise.race([
-          ConvosSDKClient.create({
-            privateKey: account.privateKey,
-            env: account.env,
-            dbPath: null, // in-memory for probe — no persistent state needed
-            debug: account.debug,
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Probe timed out")), limit),
-          ),
-        ]);
-
-        await tempClient.stop();
-
+      // Check the live runtime client instead of creating a temporary one.
+      // Creating throwaway XMTP clients burns installation slots (10 max).
+      const client = getClientForAccount(account.accountId);
+      if (client?.isRunning()) {
         return { ok: true };
-      } catch (err) {
-        return {
-          ok: false,
-          error: err instanceof Error ? err.message : String(err),
-        };
       }
+
+      return {
+        ok: false,
+        error: "Convos client is not running. Restart the gateway to reconnect.",
+      };
     },
     buildAccountSnapshot: ({ account, runtime, probe }) => ({
       accountId: account.accountId,
