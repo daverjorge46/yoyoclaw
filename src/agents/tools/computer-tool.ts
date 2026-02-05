@@ -242,6 +242,10 @@ const KEY_TOKEN_SPECIAL: Record<string, string> = {
   left: "{LEFT}",
   right: "{RIGHT}",
   space: "{SPACE}",
+  shift: "{SHIFT}",
+  ctrl: "{CTRL}",
+  control: "{CTRL}",
+  alt: "{ALT}",
 };
 
 function normalizeKeyToken(raw: string) {
@@ -1083,6 +1087,16 @@ function Resolve-Key([string]$keyToken) {
     'LEFT' { $vk = 0x25; $extended = $true }
     'RIGHT' { $vk = 0x27; $extended = $true }
     'SPACE' { $vk = 0x20 }
+    'SHIFT' { $vk = 0x10 }
+    'LSHIFT' { $vk = 0xA0 }
+    'RSHIFT' { $vk = 0xA1 }
+    'CTRL' { $vk = 0x11 }
+    'CONTROL' { $vk = 0x11 }
+    'LCTRL' { $vk = 0xA2 }
+    'RCTRL' { $vk = 0xA3; $extended = $true }
+    'ALT' { $vk = 0x12 }
+    'LALT' { $vk = 0xA4 }
+    'RALT' { $vk = 0xA5; $extended = $true }
     'WIN' { $vk = 0x5B }
     'LWIN' { $vk = 0x5B }
     'RWIN' { $vk = 0x5C }
