@@ -39,20 +39,25 @@ actor WhisperTranscriber {
             .appendingPathComponent(".local/share/whisper-cpp")
     }
 
+    /// Common paths where Homebrew installs whisper-cli.
+    private static let whisperCliPaths = [
+        "/opt/homebrew/bin/whisper-cli",  // Apple Silicon
+        "/usr/local/bin/whisper-cli",      // Intel Mac
+    ]
+
     /// Check if whisper-cli (from whisper-cpp) is available.
     static func isAvailable() -> Bool {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-        task.arguments = ["whisper-cli"]
-        task.standardOutput = FileHandle.nullDevice
-        task.standardError = FileHandle.nullDevice
-        do {
-            try task.run()
-            task.waitUntilExit()
-            return task.terminationStatus == 0
-        } catch {
-            return false
+        whisperCliPath() != nil
+    }
+
+    /// Find the whisper-cli binary path, checking common Homebrew locations.
+    static func whisperCliPath() -> String? {
+        for path in whisperCliPaths {
+            if FileManager.default.isExecutableFile(atPath: path) {
+                return path
+            }
         }
+        return nil
     }
 
     /// Check if a specific model is downloaded.
@@ -92,8 +97,12 @@ actor WhisperTranscriber {
 
         self.logger.info("whisper transcribe model=\(model.rawValue, privacy: .public)")
 
+        guard let cliPath = Self.whisperCliPath() else {
+            throw TranscriptionError.processLaunchFailed(NSError(domain: "WhisperTranscriber", code: 1, userInfo: [NSLocalizedDescriptionKey: "whisper-cli not found"]))
+        }
+
         let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/whisper-cli")
+        task.executableURL = URL(fileURLWithPath: cliPath)
         task.arguments = [
             "-m", modelPath.path,
             "-f", audioURL.path,
