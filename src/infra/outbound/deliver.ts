@@ -21,6 +21,7 @@ import {
   appendAssistantMessageToSessionTranscript,
   resolveMirroredTranscriptText,
 } from "../../config/sessions.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import { markdownToSignalTextChunks, type SignalTextStyleRange } from "../../signal/format.js";
 import { sendMessageSignal } from "../../signal/send.js";
@@ -176,6 +177,8 @@ function createPluginHandler(params: {
       }),
   };
 }
+
+const log = createSubsystemLogger("infra/outbound");
 
 export async function deliverOutboundPayloads(params: {
   cfg: OpenClawConfig;
