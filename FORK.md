@@ -78,6 +78,34 @@ This document tracks custom modifications made to this OpenClaw fork.
 
 ---
 
+## Parked Ideas
+
+### Subagent Tool Activity Propagation
+
+**Status:** Not implemented - parked for future consideration
+**Why parked:** Current tool activity visibility covers the main use case. Subagent visibility can be added if it becomes an issue.
+
+**Problem:** When the main agent spawns subagents (via Task tool), their tool calls don't bubble up to the parent's `onToolActivity` callback. This means nested agent work is invisible.
+
+**Why it happens:** Each subagent runs in an isolated session with its own `runId` and event stream. The parent only sees its own direct tool calls.
+
+**Solution approach (if needed):**
+
+1. Track parent-child relationships when spawning subagents
+2. In `sessions-spawn-tool.ts`, pass parent's callback reference or `runId`
+3. Forward subagent tool events to parent's `onToolActivity`
+4. Optionally prefix messages like "🤖 [subagent] 📖 Reading..."
+
+**Files that would need changes:**
+
+- `src/agents/sessions-spawn-tool.ts` - Pass parent context when spawning
+- `src/agents/subagent-registry.ts` - Subscribe to child tool events
+- `src/auto-reply/reply/agent-runner-execution.ts` - Accept and forward parent callback
+
+**Reference:** See explore agent findings from 2026-02-05 session for detailed architecture analysis.
+
+---
+
 ## Upgrade Notes
 
 When upgrading from upstream OpenClaw:
