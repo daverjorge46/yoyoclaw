@@ -6,7 +6,6 @@ import type { OpenClawConfig, ConfigFileSnapshot } from "../config/config.js";
 import type { AgentToolsConfig } from "../config/types.tools.js";
 import type { ExecFn } from "./windows-acl.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { isToolAllowedByPolicies } from "../agents/pi-tools.policy.js";
 import {
   resolveSandboxConfigForAgent,
