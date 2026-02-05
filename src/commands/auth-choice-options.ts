@@ -18,6 +18,7 @@ export type AuthChoiceGroupId =
   | "moonshot"
   | "zai"
   | "xiaomi"
+  | "volcengine"
   | "opencode-zen"
   | "minimax"
   | "synthetic"
@@ -110,6 +111,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["xiaomi-api-key"],
   },
   {
+    value: "volcengine",
+    label: "Volcengine",
+    hint: "API key",
+    choices: ["volcengine-api-key"],
+  },
+  {
     value: "synthetic",
     label: "Synthetic",
     hint: "Anthropic-compatible (multi-model)",
@@ -193,6 +200,10 @@ export function buildAuthChoiceOptions(params: {
   options.push({
     value: "xiaomi-api-key",
     label: "Xiaomi API key",
+  });
+  options.push({
+    value: "volcengine-api-key",
+    label: "Volcengine API key",
   });
   options.push({
     value: "minimax-portal",
