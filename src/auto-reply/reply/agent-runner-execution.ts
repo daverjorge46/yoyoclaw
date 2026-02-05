@@ -38,6 +38,55 @@ import { createBlockReplyPayloadKey, type BlockReplyPipeline } from "./block-rep
 import { parseReplyDirectives } from "./reply-directives.js";
 import { applyReplyTagsToPayload, isRenderablePayload } from "./reply-payloads.js";
 
+/** Format a human-readable summary of tool activity for progress display. */
+function formatToolActivitySummary(toolName: string, args?: Record<string, unknown>): string {
+  const name = toolName.toLowerCase();
+  switch (name) {
+    case "read": {
+      const path = typeof args?.path === "string" ? args.path : "";
+      const filename = path.split("/").pop() || path;
+      return `📖 Reading ${filename || "file"}...`;
+    }
+    case "write": {
+      const path = typeof args?.file_path === "string" ? args.file_path : "";
+      const filename = path.split("/").pop() || path;
+      return `✏️ Writing ${filename || "file"}...`;
+    }
+    case "edit": {
+      const path = typeof args?.file_path === "string" ? args.file_path : "";
+      const filename = path.split("/").pop() || path;
+      return `🔧 Editing ${filename || "file"}...`;
+    }
+    case "bash":
+    case "exec": {
+      const cmd = typeof args?.command === "string" ? args.command : "";
+      const preview = cmd.length > 40 ? cmd.slice(0, 37) + "..." : cmd;
+      return `⚡ Running: ${preview || "command"}`;
+    }
+    case "glob": {
+      const pattern = typeof args?.pattern === "string" ? args.pattern : "";
+      return `🔍 Searching: ${pattern || "files"}`;
+    }
+    case "grep": {
+      const pattern = typeof args?.pattern === "string" ? args.pattern : "";
+      return `🔎 Grep: ${pattern || "pattern"}`;
+    }
+    case "web_search":
+    case "websearch": {
+      const query = typeof args?.query === "string" ? args.query : "";
+      return `🌐 Searching: ${query || "web"}`;
+    }
+    case "web_fetch":
+    case "webfetch": {
+      const url = typeof args?.url === "string" ? args.url : "";
+      const host = url ? new URL(url).hostname : "";
+      return `🌐 Fetching: ${host || "page"}`;
+    }
+    default:
+      return `🔧 ${toolName}...`;
+  }
+}
+
 export type AgentRunLoopResult =
   | {
       kind: "success";
@@ -341,6 +390,18 @@ export async function runAgentTurnWithFallback(params: {
                 const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
                 if (phase === "start" || phase === "update") {
                   await params.typingSignals.signalToolStart();
+                }
+                // Emit tool activity for progress visibility
+                if (params.opts?.onToolActivity && (phase === "start" || phase === "result")) {
+                  const toolName = typeof evt.data.name === "string" ? evt.data.name : "unknown";
+                  const args = evt.data.args as Record<string, unknown> | undefined;
+                  const summary = formatToolActivitySummary(toolName, args);
+                  void params.opts.onToolActivity({
+                    toolName,
+                    phase: phase === "start" ? "start" : "end",
+                    args: phase === "start" ? args : undefined,
+                    summary,
+                  });
                 }
               }
               // Track auto-compaction completion

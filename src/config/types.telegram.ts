@@ -131,6 +131,14 @@ export type TelegramAccountConfig = {
   /** Controls whether link previews are shown in outbound messages. Default: true. */
   linkPreview?: boolean;
   /**
+   * Controls tool activity messages (shows what the agent is doing):
+   * - "off": no tool activity messages
+   * - "persist": show messages that stay in chat history
+   * - "transient": show messages that auto-delete after a few seconds
+   * Default: "off"
+   */
+  toolActivity?: "off" | "persist" | "transient";
+  /**
    * Per-channel outbound response prefix override.
    *
    * When set, this takes precedence over the global `messages.responsePrefix`.

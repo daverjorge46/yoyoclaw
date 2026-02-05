@@ -13,6 +13,18 @@ export type ModelSelectedContext = {
   thinkLevel: string | undefined;
 };
 
+/** Context for tool activity events (start/end of tool execution). */
+export type ToolActivityEvent = {
+  /** Tool name (e.g., "read", "write", "bash"). */
+  toolName: string;
+  /** Execution phase. */
+  phase: "start" | "end";
+  /** Tool arguments (available on start). */
+  args?: Record<string, unknown>;
+  /** Brief description of what the tool is doing. */
+  summary?: string;
+};
+
 export type GetReplyOptions = {
   /** Override run id for agent events (defaults to random UUID). */
   runId?: string;
@@ -29,6 +41,8 @@ export type GetReplyOptions = {
   onReasoningStream?: (payload: ReplyPayload) => Promise<void> | void;
   onBlockReply?: (payload: ReplyPayload, context?: BlockReplyContext) => Promise<void> | void;
   onToolResult?: (payload: ReplyPayload) => Promise<void> | void;
+  /** Called when a tool starts or ends execution (for progress visibility). */
+  onToolActivity?: (event: ToolActivityEvent) => Promise<void> | void;
   /** Called when the actual model is selected (including after fallback).
    * Use this to get model/provider/thinkLevel for responsePrefix template interpolation. */
   onModelSelected?: (ctx: ModelSelectedContext) => void;

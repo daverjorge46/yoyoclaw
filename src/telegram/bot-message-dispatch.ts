@@ -305,6 +305,39 @@ export const dispatchTelegramMessage = async ({
       disableBlockStreaming,
       onPartialReply: draftStream ? (payload) => updateDraftFromPartial(payload.text) : undefined,
       onModelSelected,
+      onToolActivity:
+        telegramCfg.toolActivity === "off" || !telegramCfg.toolActivity
+          ? undefined
+          : draftStream
+            ? (event) => {
+                if (event.phase === "start" && event.summary) {
+                  // Show tool activity in draft while working
+                  draftStream.update(event.summary);
+                }
+              }
+            : async (event) => {
+                // Fallback: send actual message for tool activity when draft streaming unavailable
+                if (event.phase === "start" && event.summary) {
+                  try {
+                    const result = await bot.api.sendMessage(chatId, event.summary, {
+                      message_thread_id: threadSpec.id,
+                      disable_notification: true,
+                    });
+                    // Auto-delete transient messages after 3 seconds
+                    if (telegramCfg.toolActivity === "transient" && result.message_id) {
+                      setTimeout(async () => {
+                        try {
+                          await bot.api.deleteMessage(chatId, result.message_id);
+                        } catch {
+                          // Ignore deletion errors
+                        }
+                      }, 3000);
+                    }
+                  } catch {
+                    // Ignore send errors
+                  }
+                }
+              },
     },
   });
   draftStream?.stop();
