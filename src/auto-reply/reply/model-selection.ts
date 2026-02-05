@@ -322,8 +322,9 @@ export async function createModelSelectionState(params: {
       // Allow models from explicitly configured providers even when they are
       // not in the discovered model catalog (e.g. Ollama / local providers).
       const configuredProviders = (cfg?.models?.providers ?? {}) as Record<string, unknown>;
-      const isConfiguredProvider =
-        configuredProviders[normalizeProviderId(overrideProvider)] != null;
+      const isConfiguredProvider = Object.keys(configuredProviders).some(
+        (key) => normalizeProviderId(key) === normalizeProviderId(overrideProvider)
+      );
       if (
         allowedModelKeys.size > 0 &&
         !allowedModelKeys.has(key) &&
@@ -357,8 +358,9 @@ export async function createModelSelectionState(params: {
     const key = modelKey(candidateProvider, storedOverride.model);
     // Also accept overrides for models from explicitly configured providers.
     const configuredProviders = (cfg?.models?.providers ?? {}) as Record<string, unknown>;
-    const isConfiguredProvider =
-      configuredProviders[normalizeProviderId(candidateProvider)] != null;
+    const isConfiguredProvider = Object.keys(configuredProviders).some(
+      (key) => normalizeProviderId(key) === normalizeProviderId(candidateProvider)
+    );
     if (allowedModelKeys.size === 0 || allowedModelKeys.has(key) || isConfiguredProvider) {
       provider = candidateProvider;
       model = storedOverride.model;
