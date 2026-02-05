@@ -26,6 +26,7 @@ import {
   removeExecApproval,
 } from "./controllers/exec-approval.ts";
 import { loadNodes } from "./controllers/nodes.ts";
+import { loadPrimaryModel } from "./controllers/providers-health.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
 
@@ -146,6 +147,7 @@ export function connectGateway(host: GatewayHost) {
       void loadAgentResources(host as unknown as OpenClawApp);
       void loadNodes(host as unknown as OpenClawApp, { quiet: true });
       void loadDevices(host as unknown as OpenClawApp, { quiet: true });
+      void loadPrimaryModel(host as unknown as Parameters<typeof loadPrimaryModel>[0]);
       void refreshActiveTab(host as unknown as Parameters<typeof refreshActiveTab>[0]);
     },
     onClose: ({ code, reason }) => {

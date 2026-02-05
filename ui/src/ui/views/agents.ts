@@ -416,24 +416,6 @@ function resolveModelPrimary(model?: unknown): string | null {
   return null;
 }
 
-function resolveModelFallbacks(model?: unknown): string[] | null {
-  if (!model || typeof model === "string") {
-    return null;
-  }
-  if (typeof model === "object" && model) {
-    const record = model as Record<string, unknown>;
-    const fallbacks = Array.isArray(record.fallbacks)
-      ? record.fallbacks
-      : Array.isArray(record.fallback)
-        ? record.fallback
-        : null;
-    return fallbacks
-      ? fallbacks.filter((entry): entry is string => typeof entry === "string")
-      : null;
-  }
-  return null;
-}
-
 type ConfiguredModelOption = {
   value: string;
   label: string;
@@ -864,7 +846,6 @@ function renderAgentOverview(params: {
     onConfigReload,
     onConfigSave,
     onModelChange,
-    onModelFallbacksChange,
   } = params;
   const config = resolveAgentConfig(configForm, agent.id);
   const workspaceFromFiles =
@@ -881,7 +862,6 @@ function renderAgentOverview(params: {
     resolveModelPrimary(config.defaults?.model) ||
     (defaultModel !== "-" ? normalizeModelValue(defaultModel) : null);
   const effectivePrimary = modelPrimary ?? defaultPrimary ?? null;
-  const modelFallbacks = resolveModelFallbacks(config.entry?.model);
   const identityName =
     agentIdentity?.name?.trim() ||
     agent.identity?.name?.trim() ||
@@ -1006,49 +986,55 @@ function renderAgentOverview(params: {
             </select>
           </label>
         </div>
-        <div class="field" style="margin-top: 12px;">
+        <div class="field" style="margin-top: 16px;">
           <span>Fallback models</span>
-          <div class="fallback-checkboxes" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; max-height: 200px; overflow-y: auto; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-            ${(() => {
-              const currentFallbacks = modelFallbacks ?? [];
-              const fallbackOptions = buildFallbackOptions(configForm, effectivePrimary);
-              const selectedSet = new Set(currentFallbacks);
-              if (fallbackOptions.length === 0) {
-                return html`
-                  <span class="muted">No other models available</span>
-                `;
-              }
-              return fallbackOptions.map(
-                (opt) => html`
-                  <label
-                    class="checkbox-label"
-                    style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bg-secondary); border-radius: 4px; cursor: pointer; white-space: nowrap;"
-                  >
-                    <input
-                      type="checkbox"
-                      .checked=${selectedSet.has(opt.value)}
-                      ?disabled=${!configForm || configLoading || configSaving}
-                      @change=${(e: Event) => {
-                        const checked = (e.target as HTMLInputElement).checked;
-                        const newFallbacks = checked
-                          ? [...currentFallbacks, opt.value]
-                          : currentFallbacks.filter((f) => f !== opt.value);
-                        onModelFallbacksChange(agent.id, newFallbacks);
-                      }}
-                    />
-                    <span style="font-size: 12px;">${opt.label}</span>
-                  </label>
-                `,
-              );
-            })()}
+          <div class="muted" style="font-size: 11px; margin-top: 2px;">
+            All available models (except primary) are used as fallbacks automatically.
           </div>
-          ${
-            (modelFallbacks?.length ?? 0) > 0
-              ? html`<div class="muted" style="margin-top: 4px; font-size: 11px;">
-                Selected: ${modelFallbacks?.length} fallback${modelFallbacks?.length === 1 ? "" : "s"}
-              </div>`
-              : nothing
-          }
+          ${(() => {
+            // Get all available models except the primary as automatic fallbacks
+            const fallbackOptions = buildFallbackOptions(configForm, effectivePrimary);
+            const fallbackCount = fallbackOptions.length;
+
+            if (fallbackCount === 0) {
+              return html`
+                <div
+                  class="muted"
+                  style="
+                    margin-top: 8px;
+                    font-size: 12px;
+                    padding: 12px;
+                    border: 1px dashed var(--border);
+                    border-radius: 6px;
+                  "
+                >
+                  No other models available as fallbacks.
+                </div>
+              `;
+            }
+
+            return html`
+              <div style="margin-top: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-elevated);">
+                <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">
+                  ${fallbackCount} model${fallbackCount > 1 ? "s" : ""} available as fallback${fallbackCount > 1 ? "s" : ""}:
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  ${fallbackOptions.map(
+                    (opt, index) => html`
+                      <span
+                        class="chip"
+                        style="font-size: 11px; padding: 4px 8px;"
+                        title="${opt.value}"
+                      >
+                        <span style="color: var(--accent); font-weight: 600; margin-right: 4px;">${index + 1}</span>
+                        ${opt.label}
+                      </span>
+                    `,
+                  )}
+                </div>
+              </div>
+            `;
+          })()}
         </div>
         <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 12px;">
           <button
