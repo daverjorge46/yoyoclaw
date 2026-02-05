@@ -39,7 +39,8 @@ Minimal config:
 ## Install simplex-chat
 
 Install the `simplex-chat` CLI on the same machine as the gateway. Make sure it is on PATH,
-or set `channels.simplex.connection.cliPath` to the full path.
+or set `channels.simplex.connection.cliPath` to the full path. See
+[SimpleX CLI docs](https://github.com/simplex-chat/simplex-chat/blob/stable/docs/CLI.md).
 
 If the CLI prompts for a profile name or other setup on first run, complete that once before
 starting the gateway.
