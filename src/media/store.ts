@@ -115,14 +115,17 @@ async function downloadToFile(
           if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400) {
             const location = res.headers.location;
             if (!location || maxRedirects <= 0) {
+              req.destroy();
               reject(new Error(`Redirect loop or missing Location header`));
               return;
             }
             const redirectUrl = new URL(location, url).href;
+            req.destroy();
             resolve(downloadToFile(redirectUrl, dest, headers, maxRedirects - 1));
             return;
           }
           if (!res.statusCode || res.statusCode >= 400) {
+            req.destroy();
             reject(new Error(`HTTP ${res.statusCode ?? "?"} downloading media`));
             return;
           }
@@ -153,7 +156,14 @@ async function downloadToFile(
             })
             .catch(reject);
         });
-        req.on("error", reject);
+        req.on("error", (err) => {
+          req.destroy();
+          reject(err);
+        });
+        // Add 30-second timeout to prevent hanging connections
+        req.setTimeout(30000, () => {
+          req.destroy(new Error("Download timeout after 30s"));
+        });
         req.end();
       })
       .catch(reject);
