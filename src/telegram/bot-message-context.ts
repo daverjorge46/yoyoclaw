@@ -54,7 +54,7 @@ import {
   resolveTelegramThreadSpec,
 } from "./bot/helpers.js";
 
-type TelegramMediaRef = {
+export type TelegramMediaRef = {
   path: string;
   contentType?: string;
   stickerMetadata?: {

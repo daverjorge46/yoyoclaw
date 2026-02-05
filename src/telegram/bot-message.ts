@@ -6,6 +6,7 @@ import type { TelegramContext, TelegramStreamMode } from "./bot/types.js";
 import {
   buildTelegramMessageContext,
   type BuildTelegramMessageContextParams,
+  type TelegramMediaRef,
 } from "./bot-message-context.js";
 import { dispatchTelegramMessage } from "./bot-message-dispatch.js";
 
@@ -49,7 +50,7 @@ export const createTelegramMessageProcessor = (deps: TelegramMessageProcessorDep
 
   return async (
     primaryCtx: TelegramContext,
-    allMedia: Array<{ path: string; contentType?: string }>,
+    allMedia: TelegramMediaRef[],
     storeAllowFrom: string[],
     options?: { messageIdOverride?: string; forceWasMentioned?: boolean },
   ) => {
