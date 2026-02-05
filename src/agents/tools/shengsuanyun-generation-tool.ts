@@ -1,9 +1,9 @@
+import { Api, Model } from "@mariozechner/pi-ai/dist/types.js";
 import { Type } from "@sinclair/typebox";
+import type { OpenClawConfig } from "../../config/config.js";
 import type { AnyAgentTool } from "./common.js";
 import { getApiKeyForModel } from "../model-auth.js";
-import type { MoltbotConfig } from "../../config/config.js";
 import { SHENGSUANYUN_BASE_URL } from "../shengsuanyun-models.js";
-import { Api, Model } from "@mariozechner/pi-ai/dist/types.js";
 
 /**
  * ShengSuanYun generation task creation response
@@ -96,7 +96,7 @@ async function getTaskStatus(params: {
  * Create tool for ShengSuanYun generation task creation
  */
 export function createShengSuanYunGenerationTool(options?: {
-  config?: MoltbotConfig;
+  config?: OpenClawConfig;
   agentDir?: string;
 }): AnyAgentTool {
   return {
@@ -213,7 +213,7 @@ export function createShengSuanYunGenerationTool(options?: {
  * Create tool for checking ShengSuanYun generation task status
  */
 export function createShengSuanYunStatusTool(options?: {
-  config?: MoltbotConfig;
+  config?: OpenClawConfig;
   agentDir?: string;
 }): AnyAgentTool {
   return {

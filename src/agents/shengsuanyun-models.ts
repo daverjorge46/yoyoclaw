@@ -1,4 +1,3 @@
-import { it } from "node:test";
 import type { ModelDefinitionConfig } from "../config/types.js";
 export const SHENGSUANYUN_BASE_URL = "https://router.shengsuanyun.com/api/v1";
 export const SHENGSUANYUN_MODALITIES_BASE_URL = "https://api.shengsuanyun.com/modelrouter";
@@ -22,9 +21,11 @@ interface ShengSuanYunModel {
   context_window: number;
   supports_prompt_cache: boolean;
   architecture: {
-    modality: string;
-    tokenizer: string;
-    instruct_type: string | null;
+    input?: string;
+    output?: string;
+    modality?: string;
+    tokenizer?: string;
+    instruct_type?: string | null;
   };
   pricing: {
     prompt: string;
@@ -92,7 +93,7 @@ function isReasoningModel(model: ShengSuanYunModel): boolean {
  * Determine if a model supports vision/image inputs.
  */
 function supportsVision(model: ShengSuanYunModel): boolean {
-  const modality = (model.architecture?.modality ?? "").toLowerCase();
+  const modality = (model.architecture?.input ?? model.architecture?.modality ?? "").toLowerCase();
   return (
     modality.includes("image") || modality.includes("vision") || modality === "text+image->text"
   );
@@ -153,17 +154,12 @@ export async function discoverShengSuanYunModels(): Promise<ModelDefinitionConfi
       if (!Array.isArray(supportApis)) {
         continue;
       }
-      const hasCompatibleApi = supportApis.some(
-        (api) => api === "/v1/chat/completions" || api === "/v1/responses",
-      );
-      if (!hasCompatibleApi) {
+      // ShengSuanYun only reliably supports /v1/chat/completions API
+      // The /v1/responses endpoint returns 400 errors
+      if (!supportApis.includes("/v1/chat/completions")) {
         continue;
       }
-      let api = "openai-completions";
-      if (supportApis.includes("/v1/chat/completions")) {
-        api = "openai-responses";
-      }
-      models.push(buildShengSuanYunModelDefinition({ ...apiModel, api }));
+      models.push(buildShengSuanYunModelDefinition({ ...apiModel, api: "openai-completions" }));
     }
 
     // console.log(`[shengsuanyun-models] Discovered ${models.length} LLM models`);
