@@ -143,11 +143,20 @@ export async function runAgentTurnWithFallback(params: {
       };
       const blockReplyPipeline = params.blockReplyPipeline;
       const onToolResult = params.opts?.onToolResult;
+
+      // Import task classifier for smart routing
+      const { classifyTask, estimateTokenCount } = await import("../../agents/task-classifier.js");
+      const taskHint = classifyTask(params.commandBody);
+      const contextLength = estimateTokenCount(params.commandBody);
+
       const fallbackResult = await runWithModelFallback({
         cfg: params.followupRun.run.config,
         provider: params.followupRun.run.provider,
         model: params.followupRun.run.model,
         agentDir: params.followupRun.run.agentDir,
+        sessionKey: params.sessionKey,
+        taskHint,
+        contextLength,
         fallbacksOverride: resolveAgentModelFallbacksOverride(
           params.followupRun.run.config,
           resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey),
