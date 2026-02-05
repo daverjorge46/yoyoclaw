@@ -13,7 +13,9 @@ export async function initSessionContinuation(
   try {
     const lastSession = await getLastSessionTime(userId);
 
+    // Always record a timestamp for first-time users so future gaps can be computed.
     if (!lastSession) {
+      await updateLastSessionTime(userId);
       return undefined;
     }
 
@@ -118,11 +120,11 @@ async function updateLastSessionTime(userId: string): Promise<void> {
 
 export async function onSessionStart(
   coreMemories: CoreMemories,
-  sendMessage: (msg: string) => void,
+  sendMessage: (msg: string) => void | Promise<void>,
 ): Promise<void> {
   const message = await initSessionContinuation(coreMemories);
 
   if (message) {
-    sendMessage(message);
+    await Promise.resolve(sendMessage(message));
   }
 }
