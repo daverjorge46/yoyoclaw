@@ -519,7 +519,11 @@ export async function runHeartbeatOnce(opts: {
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
     const heartbeatFileContent = await fs.readFile(heartbeatFilePath, "utf-8");
-    if (isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) && !isExecEventReason && !isCronEventReason) {
+    if (
+      isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) &&
+      !isExecEventReason &&
+      !isCronEventReason
+    ) {
       emitHeartbeatEvent({
         status: "skipped",
         reason: "empty-heartbeat-file",
@@ -551,10 +555,12 @@ export async function runHeartbeatOnce(opts: {
   // instead of the standard heartbeat prompt with "reply HEARTBEAT_OK".
   const isExecEvent = opts.reason === "exec-event";
   const isCronEvent = opts.reason?.startsWith("cron:") ?? false;
-  const pendingEvents = (isExecEvent || isCronEvent) ? peekSystemEvents(sessionKey) : [];
+  const pendingEvents = isExecEvent || isCronEvent ? peekSystemEvents(sessionKey) : [];
   const hasExecCompletion = pendingEvents.some((evt) => evt.includes("Exec finished"));
   // Only use CRON_EVENT_PROMPT if there are cron-specific events (not exec completions)
-  const cronEvents = isCronEvent ? pendingEvents.filter((evt) => !evt.includes("Exec finished")) : [];
+  const cronEvents = isCronEvent
+    ? pendingEvents.filter((evt) => !evt.includes("Exec finished"))
+    : [];
   const hasCronReminder = cronEvents.length > 0;
 
   const prompt = hasExecCompletion
