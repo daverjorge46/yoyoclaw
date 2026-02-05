@@ -32,6 +32,7 @@ export const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[] = [
   /(^|[\\/])\.venv([\\/]|$)/,
   /(^|[\\/])__pycache__([\\/]|$)/,
   /(^|[\\/])browser_data([\\/]|$)/,
+  /(^|[\\/])\.openclaw([\\/]|$)/,
 ];
 
 function bumpVersion(current: number): number {
