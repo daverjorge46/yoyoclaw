@@ -1,10 +1,6 @@
 ---
 name: discord
-<<<<<<< HEAD
-description: Use when you need to control Discord from OpenClaw via the discord tool: send messages, react, post or upload stickers, upload emojis, run polls, manage threads/pins/search, create/edit/delete channels and categories, fetch permissions or member/role/channel info, or handle moderation actions in Discord DMs or channels.
-=======
 description: Use when you need to control Discord from OpenClaw via the discord tool: send messages, react, post or upload stickers, upload emojis, run polls, manage threads/pins/search, create/edit/delete channels and categories, fetch permissions or member/role/channel info, set bot presence/activity, or handle moderation actions in Discord DMs or channels.
->>>>>>> upstream/main
 metadata: {"openclaw":{"emoji":"🎮","requires":{"config":["channels.discord"]}}}
 ---
 
@@ -143,10 +139,7 @@ Use `discord.actions.*` to disable action groups:
 - `roles` (role add/remove, default `false`)
 - `channels` (channel/category create/edit/delete/move, default `false`)
 - `moderation` (timeout/kick/ban, default `false`)
-<<<<<<< HEAD
-=======
 - `presence` (bot status/activity, default `false`)
->>>>>>> upstream/main
 
 ### Read recent messages
 
@@ -440,8 +433,6 @@ Create, edit, delete, and move channels and categories. Enable via `discord.acti
 }
 ```
 
-<<<<<<< HEAD
-=======
 ### Bot presence/activity (disabled by default)
 
 Set the bot's online status and activity. Enable via `discord.actions.presence: true`.
@@ -537,7 +528,6 @@ Result in sidebar: "Vibing". Note: `activityName` is ignored for custom type.
 - `activityState`: for `custom` this is the status text; for other types it shows in the profile flyout
 - `status`: `online` (default), `dnd`, `idle`, `invisible`
 
->>>>>>> upstream/main
 ## Discord Writing Style Guide
 
 **Keep it conversational!** Discord is a chat platform, not documentation.

@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import { runClaudeCliAgent } from "./claude-cli-runner.js";
 
 const runCommandWithTimeoutMock = vi.fn();
@@ -26,11 +23,7 @@ async function waitForCalls(mockFn: { mock: { calls: unknown[][] } }, count: num
     if (mockFn.mock.calls.length >= count) {
       return;
     }
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
->>>>>>> upstream/main
   }
   throw new Error(`Expected ${count} calls, got ${mockFn.mock.calls.length}`);
 }

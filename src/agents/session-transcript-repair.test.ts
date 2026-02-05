@@ -1,13 +1,9 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it } from "vitest";
-<<<<<<< HEAD
-import { sanitizeToolUseResultPairing } from "./session-transcript-repair.js";
-=======
 import {
   sanitizeToolCallInputs,
   sanitizeToolUseResultPairing,
 } from "./session-transcript-repair.js";
->>>>>>> upstream/main
 
 describe("sanitizeToolUseResultPairing", () => {
   it("moves tool results directly after tool calls and inserts missing results", () => {
@@ -117,8 +113,6 @@ describe("sanitizeToolUseResultPairing", () => {
     expect(out.map((m) => m.role)).toEqual(["user", "assistant"]);
   });
 });
-<<<<<<< HEAD
-=======
 
 describe("sanitizeToolCallInputs", () => {
   it("drops tool calls missing input or arguments", () => {
@@ -154,4 +148,3 @@ describe("sanitizeToolCallInputs", () => {
     expect(types).toEqual(["text", "toolUse"]);
   });
 });
->>>>>>> upstream/main

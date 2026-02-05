@@ -152,8 +152,6 @@ describe("gateway tool", () => {
         sessionKey: "agent:main:whatsapp:dm:+15555550123",
       }),
     );
-<<<<<<< HEAD
-=======
     const updateCall = vi
       .mocked(callGatewayTool)
       .mock.calls.find((call) => call[0] === "update.run");
@@ -163,6 +161,5 @@ describe("gateway tool", () => {
       expect(opts).toMatchObject({ timeoutMs: 20 * 60_000 });
       expect(params).toMatchObject({ timeoutMs: 20 * 60_000 });
     }
->>>>>>> upstream/main
   });
 });

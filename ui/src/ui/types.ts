@@ -302,20 +302,6 @@ export type ConfigSchemaResponse = {
 };
 
 export type PresenceEntry = {
-<<<<<<< HEAD
-  instanceId?: string | null;
-  host?: string | null;
-  ip?: string | null;
-  version?: string | null;
-  platform?: string | null;
-  deviceFamily?: string | null;
-  modelIdentifier?: string | null;
-  mode?: string | null;
-  lastInputSeconds?: number | null;
-  reason?: string | null;
-  text?: string | null;
-  ts?: number | null;
-=======
   deviceFamily?: string | null;
   host?: string | null;
   instanceId?: string | null;
@@ -330,7 +316,6 @@ export type PresenceEntry = {
   text?: string | null;
   ts?: number | null;
   version?: string | null;
->>>>>>> upstream/main
 };
 
 export type GatewaySessionsDefaults = {
@@ -357,8 +342,6 @@ export type AgentsListResult = {
   agents: GatewayAgentRow[];
 };
 
-<<<<<<< HEAD
-=======
 export type AgentIdentityResult = {
   agentId: string;
   name: string;
@@ -394,7 +377,6 @@ export type AgentsFilesSetResult = {
   file: AgentFileEntry;
 };
 
->>>>>>> upstream/main
 export type GatewaySessionRow = {
   key: string;
   kind: "direct" | "group" | "global" | "unknown";
@@ -443,7 +425,7 @@ export type SessionsPatchResult = {
 };
 
 export type CronSchedule =
-  | { kind: "at"; atMs: number }
+  | { kind: "at"; at: string }
   | { kind: "every"; everyMs: number; anchorMs?: number }
   | { kind: "cron"; expr: string; tz?: string };
 
@@ -457,22 +439,13 @@ export type CronPayload =
       message: string;
       thinking?: string;
       timeoutSeconds?: number;
-      deliver?: boolean;
-      provider?:
-        | "last"
-        | "whatsapp"
-        | "telegram"
-        | "discord"
-        | "slack"
-        | "signal"
-        | "imessage"
-        | "msteams";
-      to?: string;
-      bestEffortDeliver?: boolean;
     };
 
-export type CronIsolation = {
-  postToMainPrefix?: string;
+export type CronDelivery = {
+  mode: "none" | "announce";
+  channel?: string;
+  to?: string;
+  bestEffort?: boolean;
 };
 
 export type CronJobState = {
@@ -497,7 +470,7 @@ export type CronJob = {
   sessionTarget: CronSessionTarget;
   wakeMode: CronWakeMode;
   payload: CronPayload;
-  isolation?: CronIsolation;
+  delivery?: CronDelivery;
   state?: CronJobState;
 };
 
@@ -533,10 +506,7 @@ export type SkillStatusEntry = {
   name: string;
   description: string;
   source: string;
-<<<<<<< HEAD
-=======
   bundled?: boolean;
->>>>>>> upstream/main
   filePath: string;
   baseDir: string;
   skillKey: string;

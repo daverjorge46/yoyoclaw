@@ -5,33 +5,6 @@ import {
   runUpdate,
   updateConfigFormValue,
   type ConfigState,
-<<<<<<< HEAD
-} from "./config";
-
-function createState(): ConfigState {
-  return {
-    client: null,
-    connected: false,
-    applySessionKey: "main",
-    configLoading: false,
-    configRaw: "",
-    configRawOriginal: "",
-    configValid: null,
-    configIssues: [],
-    configSaving: false,
-    configApplying: false,
-    updateRunning: false,
-    configSnapshot: null,
-    configSchema: null,
-    configSchemaVersion: null,
-    configSchemaLoading: false,
-    configUiHints: {},
-    configForm: null,
-    configFormOriginal: null,
-    configFormDirty: false,
-    configFormMode: "form",
-    lastError: null,
-=======
 } from "./config.ts";
 
 function createState(): ConfigState {
@@ -60,7 +33,6 @@ function createState(): ConfigState {
     connected: false,
     lastError: null,
     updateRunning: false,
->>>>>>> upstream/main
   };
 }
 

@@ -32,12 +32,9 @@ function createHarness(overrides?: {
   channelsConfig?: Record<string, { allow?: boolean; requireMention?: boolean }>;
   channelId?: string;
   channelName?: string;
-<<<<<<< HEAD
-=======
   allowFrom?: string[];
   useAccessGroups?: boolean;
   resolveChannelName?: () => Promise<{ name?: string; type?: string }>;
->>>>>>> upstream/main
 }) {
   const commands = new Map<unknown, (args: unknown) => Promise<void>>();
   const postEphemeral = vi.fn().mockResolvedValue({ ok: true });
@@ -57,22 +54,14 @@ function createHarness(overrides?: {
     botToken: "bot-token",
     botUserId: "bot",
     teamId: "T1",
-<<<<<<< HEAD
-    allowFrom: ["*"],
-=======
     allowFrom: overrides?.allowFrom ?? ["*"],
->>>>>>> upstream/main
     dmEnabled: true,
     dmPolicy: "open",
     groupDmEnabled: false,
     groupDmChannels: [],
     defaultRequireMention: true,
     groupPolicy: overrides?.groupPolicy ?? "open",
-<<<<<<< HEAD
-    useAccessGroups: true,
-=======
     useAccessGroups: overrides?.useAccessGroups ?? true,
->>>>>>> upstream/main
     channelsConfig: overrides?.channelsConfig,
     slashCommand: {
       enabled: true,
@@ -83,12 +72,8 @@ function createHarness(overrides?: {
     textLimit: 4000,
     app,
     isChannelAllowed: () => true,
-<<<<<<< HEAD
-    resolveChannelName: async () => ({ name: channelName, type: "channel" }),
-=======
     resolveChannelName:
       overrides?.resolveChannelName ?? (async () => ({ name: channelName, type: "channel" })),
->>>>>>> upstream/main
     resolveUserName: async () => ({ name: "Ada" }),
   } as unknown;
 
@@ -213,8 +198,6 @@ describe("slack slash commands channel policy", () => {
     });
   });
 });
-<<<<<<< HEAD
-=======
 
 describe("slack slash commands access groups", () => {
   it("fails closed when channel type lookup returns empty for channels", async () => {
@@ -321,4 +304,3 @@ describe("slack slash commands access groups", () => {
     });
   });
 });
->>>>>>> upstream/main

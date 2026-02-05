@@ -6,10 +6,7 @@ import type { PluginRegistry } from "../plugins/registry.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import type { ChatAbortControllerEntry } from "./chat-abort.js";
-<<<<<<< HEAD
-=======
 import type { ControlUiRootState } from "./control-ui.js";
->>>>>>> upstream/main
 import type { HooksConfigResolved } from "./hooks.js";
 import type { DedupeEntry } from "./server-shared.js";
 import type { GatewayTlsRuntime } from "./server/tls.js";
@@ -18,7 +15,11 @@ import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
 import { type CanvasHostHandler, createCanvasHostHandler } from "../canvas-host/server.js";
 import { resolveGatewayListenHosts } from "./net.js";
 import { createGatewayBroadcaster } from "./server-broadcast.js";
-import { type ChatRunEntry, createChatRunState } from "./server-chat.js";
+import {
+  type ChatRunEntry,
+  createChatRunState,
+  createToolEventRecipientRegistry,
+} from "./server-chat.js";
 import { MAX_PAYLOAD_BYTES } from "./server-constants.js";
 import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-http.js";
 import { createGatewayHooksRequestHandler } from "./server/hooks.js";
@@ -31,10 +32,7 @@ export async function createGatewayRuntimeState(params: {
   port: number;
   controlUiEnabled: boolean;
   controlUiBasePath: string;
-<<<<<<< HEAD
-=======
   controlUiRoot?: ControlUiRootState;
->>>>>>> upstream/main
   openAiChatCompletionsEnabled: boolean;
   openResponsesEnabled: boolean;
   openResponsesConfig?: import("../config/types.gateway.js").GatewayHttpResponsesConfig;
@@ -65,6 +63,15 @@ export async function createGatewayRuntimeState(params: {
       stateVersion?: { presence?: number; health?: number };
     },
   ) => void;
+  broadcastToConnIds: (
+    event: string,
+    payload: unknown,
+    connIds: ReadonlySet<string>,
+    opts?: {
+      dropIfSlow?: boolean;
+      stateVersion?: { presence?: number; health?: number };
+    },
+  ) => void;
   agentRunSeq: Map<string, number>;
   dedupe: Map<string, DedupeEntry>;
   chatRunState: ReturnType<typeof createChatRunState>;
@@ -77,6 +84,7 @@ export async function createGatewayRuntimeState(params: {
     sessionKey?: string,
   ) => ChatRunEntry | undefined;
   chatAbortControllers: Map<string, ChatAbortControllerEntry>;
+  toolEventRecipients: ReturnType<typeof createToolEventRecipientRegistry>;
 }> {
   let canvasHost: CanvasHostHandler | null = null;
   if (params.canvasHostEnabled) {
@@ -120,10 +128,7 @@ export async function createGatewayRuntimeState(params: {
       canvasHost,
       controlUiEnabled: params.controlUiEnabled,
       controlUiBasePath: params.controlUiBasePath,
-<<<<<<< HEAD
-=======
       controlUiRoot: params.controlUiRoot,
->>>>>>> upstream/main
       openAiChatCompletionsEnabled: params.openAiChatCompletionsEnabled,
       openResponsesEnabled: params.openResponsesEnabled,
       openResponsesConfig: params.openResponsesConfig,
@@ -163,7 +168,7 @@ export async function createGatewayRuntimeState(params: {
   }
 
   const clients = new Set<GatewayWsClient>();
-  const { broadcast } = createGatewayBroadcaster({ clients });
+  const { broadcast, broadcastToConnIds } = createGatewayBroadcaster({ clients });
   const agentRunSeq = new Map<string, number>();
   const dedupe = new Map<string, DedupeEntry>();
   const chatRunState = createChatRunState();
@@ -173,6 +178,7 @@ export async function createGatewayRuntimeState(params: {
   const addChatRun = chatRunRegistry.add;
   const removeChatRun = chatRunRegistry.remove;
   const chatAbortControllers = new Map<string, ChatAbortControllerEntry>();
+  const toolEventRecipients = createToolEventRecipientRegistry();
 
   return {
     canvasHost,
@@ -182,6 +188,7 @@ export async function createGatewayRuntimeState(params: {
     wss,
     clients,
     broadcast,
+    broadcastToConnIds,
     agentRunSeq,
     dedupe,
     chatRunState,
@@ -190,5 +197,6 @@ export async function createGatewayRuntimeState(params: {
     addChatRun,
     removeChatRun,
     chatAbortControllers,
+    toolEventRecipients,
   };
 }

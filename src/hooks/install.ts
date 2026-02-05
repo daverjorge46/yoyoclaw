@@ -49,9 +49,6 @@ function safeDirName(input: string): string {
   if (!trimmed) {
     return trimmed;
   }
-<<<<<<< HEAD
-  return trimmed.replaceAll("/", "__");
-=======
   return trimmed.replaceAll("/", "__").replaceAll("\\", "__");
 }
 
@@ -66,14 +63,10 @@ function validateHookId(hookId: string): string | null {
     return "invalid hook name: path separators not allowed";
   }
   return null;
->>>>>>> upstream/main
 }
 
 export function resolveHookInstallDir(hookId: string, hooksDir?: string): string {
   const hooksBase = hooksDir ? resolveUserPath(hooksDir) : path.join(CONFIG_DIR, "hooks");
-<<<<<<< HEAD
-  return path.join(hooksBase, safeDirName(hookId));
-=======
   const hookIdError = validateHookId(hookId);
   if (hookIdError) {
     throw new Error(hookIdError);
@@ -102,7 +95,6 @@ function resolveSafeInstallDir(
     return { ok: false, error: "invalid hook name: path traversal detected" };
   }
   return { ok: true, path: targetDir };
->>>>>>> upstream/main
 }
 
 async function ensureOpenClawHooks(manifest: HookPackageManifest) {
@@ -178,13 +170,10 @@ async function installHookPackageFromDir(params: {
 
   const pkgName = typeof manifest.name === "string" ? manifest.name : "";
   const hookPackId = pkgName ? unscopedPackageName(pkgName) : path.basename(params.packageDir);
-<<<<<<< HEAD
-=======
   const hookIdError = validateHookId(hookPackId);
   if (hookIdError) {
     return { ok: false, error: hookIdError };
   }
->>>>>>> upstream/main
   if (params.expectedHookPackId && params.expectedHookPackId !== hookPackId) {
     return {
       ok: false,
@@ -197,15 +186,11 @@ async function installHookPackageFromDir(params: {
     : path.join(CONFIG_DIR, "hooks");
   await fs.mkdir(hooksDir, { recursive: true });
 
-<<<<<<< HEAD
-  const targetDir = resolveHookInstallDir(hookPackId, hooksDir);
-=======
   const targetDirResult = resolveSafeInstallDir(hooksDir, hookPackId);
   if (!targetDirResult.ok) {
     return { ok: false, error: targetDirResult.error };
   }
   const targetDir = targetDirResult.path;
->>>>>>> upstream/main
   if (mode === "install" && (await fileExists(targetDir))) {
     return { ok: false, error: `hook pack already exists: ${targetDir} (delete it first)` };
   }
@@ -292,13 +277,10 @@ async function installHookFromDir(params: {
 
   await validateHookDir(params.hookDir);
   const hookName = await resolveHookNameFromDir(params.hookDir);
-<<<<<<< HEAD
-=======
   const hookIdError = validateHookId(hookName);
   if (hookIdError) {
     return { ok: false, error: hookIdError };
   }
->>>>>>> upstream/main
 
   if (params.expectedHookPackId && params.expectedHookPackId !== hookName) {
     return {
@@ -312,15 +294,11 @@ async function installHookFromDir(params: {
     : path.join(CONFIG_DIR, "hooks");
   await fs.mkdir(hooksDir, { recursive: true });
 
-<<<<<<< HEAD
-  const targetDir = resolveHookInstallDir(hookName, hooksDir);
-=======
   const targetDirResult = resolveSafeInstallDir(hooksDir, hookName);
   if (!targetDirResult.ok) {
     return { ok: false, error: targetDirResult.error };
   }
   const targetDir = targetDirResult.path;
->>>>>>> upstream/main
   if (mode === "install" && (await fileExists(targetDir))) {
     return { ok: false, error: `hook already exists: ${targetDir} (delete it first)` };
   }

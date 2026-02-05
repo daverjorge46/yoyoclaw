@@ -52,10 +52,7 @@ describe("tool_result_persist hook", () => {
       isError: false,
       content: [{ type: "text", text: "ok" }],
       details: { big: "x".repeat(10_000) },
-<<<<<<< HEAD
-=======
       // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     } as any);
 
     const messages = sm
@@ -63,10 +60,7 @@ describe("tool_result_persist hook", () => {
       .filter((e) => e.type === "message")
       .map((e) => (e as { message: AgentMessage }).message);
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     const toolResult = messages.find((m) => (m as any).role === "toolResult") as any;
     expect(toolResult).toBeTruthy();
     expect(toolResult.details).toBeTruthy();
@@ -129,10 +123,7 @@ describe("tool_result_persist hook", () => {
       isError: false,
       content: [{ type: "text", text: "ok" }],
       details: { big: "x".repeat(10_000) },
-<<<<<<< HEAD
-=======
       // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     } as any);
 
     const messages = sm
@@ -140,10 +131,7 @@ describe("tool_result_persist hook", () => {
       .filter((e) => e.type === "message")
       .map((e) => (e as { message: AgentMessage }).message);
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     const toolResult = messages.find((m) => (m as any).role === "toolResult") as any;
     expect(toolResult).toBeTruthy();
 

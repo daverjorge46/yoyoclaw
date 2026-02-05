@@ -528,20 +528,6 @@ describe("applyMediaUnderstanding", () => {
     expect(ctx.BodyForCommands).toBe("audio ok");
   });
 
-<<<<<<< HEAD
-  it("treats text-like audio attachments as CSV (comma wins over tabs)", async () => {
-    const { applyMediaUnderstanding } = await loadApply();
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
-    const csvPath = path.join(dir, "data.mp3");
-    const csvText = '"a","b"\t"c"\n"1","2"\t"3"';
-    const csvBuffer = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(csvText, "utf16le")]);
-    await fs.writeFile(csvPath, csvBuffer);
-
-    const ctx: MsgContext = {
-      Body: "<media:audio>",
-      MediaPath: csvPath,
-      MediaType: "audio/mpeg",
-=======
   it("treats text-like attachments as CSV (comma wins over tabs)", async () => {
     const { applyMediaUnderstanding } = await loadApply();
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
@@ -552,7 +538,6 @@ describe("applyMediaUnderstanding", () => {
     const ctx: MsgContext = {
       Body: "<media:file>",
       MediaPath: csvPath,
->>>>>>> upstream/main
     };
     const cfg: OpenClawConfig = {
       tools: {
@@ -567,34 +552,20 @@ describe("applyMediaUnderstanding", () => {
     const result = await applyMediaUnderstanding({ ctx, cfg });
 
     expect(result.appliedFile).toBe(true);
-<<<<<<< HEAD
-    expect(ctx.Body).toContain('<file name="data.mp3" mime="text/csv">');
-=======
     expect(ctx.Body).toContain('<file name="data.bin" mime="text/csv">');
->>>>>>> upstream/main
     expect(ctx.Body).toContain('"a","b"\t"c"');
   });
 
   it("infers TSV when tabs are present without commas", async () => {
     const { applyMediaUnderstanding } = await loadApply();
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
-<<<<<<< HEAD
-    const tsvPath = path.join(dir, "report.mp3");
-=======
     const tsvPath = path.join(dir, "report.bin");
->>>>>>> upstream/main
     const tsvText = "a\tb\tc\n1\t2\t3";
     await fs.writeFile(tsvPath, tsvText);
 
     const ctx: MsgContext = {
-<<<<<<< HEAD
-      Body: "<media:audio>",
-      MediaPath: tsvPath,
-      MediaType: "audio/mpeg",
-=======
       Body: "<media:file>",
       MediaPath: tsvPath,
->>>>>>> upstream/main
     };
     const cfg: OpenClawConfig = {
       tools: {
@@ -609,16 +580,6 @@ describe("applyMediaUnderstanding", () => {
     const result = await applyMediaUnderstanding({ ctx, cfg });
 
     expect(result.appliedFile).toBe(true);
-<<<<<<< HEAD
-    expect(ctx.Body).toContain('<file name="report.mp3" mime="text/tab-separated-values">');
-    expect(ctx.Body).toContain("a\tb\tc");
-  });
-
-  it("treats cp1252-like audio attachments as text", async () => {
-    const { applyMediaUnderstanding } = await loadApply();
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
-    const filePath = path.join(dir, "legacy.mp3");
-=======
     expect(ctx.Body).toContain('<file name="report.bin" mime="text/tab-separated-values">');
     expect(ctx.Body).toContain("a\tb\tc");
   });
@@ -627,19 +588,12 @@ describe("applyMediaUnderstanding", () => {
     const { applyMediaUnderstanding } = await loadApply();
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
     const filePath = path.join(dir, "legacy.bin");
->>>>>>> upstream/main
     const cp1252Bytes = Buffer.from([0x93, 0x48, 0x69, 0x94, 0x20, 0x54, 0x65, 0x73, 0x74]);
     await fs.writeFile(filePath, cp1252Bytes);
 
     const ctx: MsgContext = {
-<<<<<<< HEAD
-      Body: "<media:audio>",
-      MediaPath: filePath,
-      MediaType: "audio/mpeg",
-=======
       Body: "<media:file>",
       MediaPath: filePath,
->>>>>>> upstream/main
     };
     const cfg: OpenClawConfig = {
       tools: {
@@ -687,29 +641,16 @@ describe("applyMediaUnderstanding", () => {
     expect(ctx.Body).not.toContain("<file");
   });
 
-<<<<<<< HEAD
-  it("respects configured allowedMimes for text-like audio attachments", async () => {
-    const { applyMediaUnderstanding } = await loadApply();
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
-    const tsvPath = path.join(dir, "report.mp3");
-=======
   it("respects configured allowedMimes for text-like attachments", async () => {
     const { applyMediaUnderstanding } = await loadApply();
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-"));
     const tsvPath = path.join(dir, "report.bin");
->>>>>>> upstream/main
     const tsvText = "a\tb\tc\n1\t2\t3";
     await fs.writeFile(tsvPath, tsvText);
 
     const ctx: MsgContext = {
-<<<<<<< HEAD
-      Body: "<media:audio>",
-      MediaPath: tsvPath,
-      MediaType: "audio/mpeg",
-=======
       Body: "<media:file>",
       MediaPath: tsvPath,
->>>>>>> upstream/main
     };
     const cfg: OpenClawConfig = {
       gateway: {
@@ -733,11 +674,7 @@ describe("applyMediaUnderstanding", () => {
     const result = await applyMediaUnderstanding({ ctx, cfg });
 
     expect(result.appliedFile).toBe(false);
-<<<<<<< HEAD
-    expect(ctx.Body).toBe("<media:audio>");
-=======
     expect(ctx.Body).toBe("<media:file>");
->>>>>>> upstream/main
     expect(ctx.Body).not.toContain("<file");
   });
 
@@ -798,18 +735,11 @@ describe("applyMediaUnderstanding", () => {
 
     const result = await applyMediaUnderstanding({ ctx, cfg });
 
-<<<<<<< HEAD
-    expect(result.appliedFile).toBe(true);
-    expect(ctx.Body).toContain("&lt;/file&gt;");
-    expect(ctx.Body).toContain("&lt;file");
-    expect((ctx.Body.match(/<\/file>/g) ?? []).length).toBe(1);
-=======
     const body = ctx.Body ?? "";
     expect(result.appliedFile).toBe(true);
     expect(body).toContain("&lt;/file&gt;");
     expect(body).toContain("&lt;file");
     expect((body.match(/<\/file>/g) ?? []).length).toBe(1);
->>>>>>> upstream/main
   });
 
   it("normalizes MIME types to prevent attribute injection", async () => {

@@ -1,10 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-<<<<<<< HEAD
-=======
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
->>>>>>> upstream/main
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { type MediaKind, maxBytesForKind, mediaKindFromMime } from "../media/constants.js";
 import { fetchRemoteMedia } from "../media/fetch.js";
@@ -27,10 +24,7 @@ export type WebMediaResult = {
 type WebMediaOptions = {
   maxBytes?: number;
   optimizeImages?: boolean;
-<<<<<<< HEAD
-=======
   ssrfPolicy?: SsrFPolicy;
->>>>>>> upstream/main
 };
 
 const HEIC_MIME_RE = /^image\/hei[cf]$/i;
@@ -130,11 +124,7 @@ async function loadWebMediaInternal(
   mediaUrl: string,
   options: WebMediaOptions = {},
 ): Promise<WebMediaResult> {
-<<<<<<< HEAD
-  const { maxBytes, optimizeImages = true } = options;
-=======
   const { maxBytes, optimizeImages = true, ssrfPolicy } = options;
->>>>>>> upstream/main
   // Use fileURLToPath for proper handling of file:// URLs (handles file://localhost/path, etc.)
   if (mediaUrl.startsWith("file://")) {
     try {
@@ -212,9 +202,6 @@ async function loadWebMediaInternal(
   };
 
   if (/^https?:\/\//i.test(mediaUrl)) {
-<<<<<<< HEAD
-    const fetched = await fetchRemoteMedia({ url: mediaUrl });
-=======
     // Enforce a download cap during fetch to avoid unbounded memory usage.
     // For optimized images, allow fetching larger payloads before compression.
     const defaultFetchCap = maxBytesForKind("unknown");
@@ -225,7 +212,6 @@ async function loadWebMediaInternal(
           ? Math.max(maxBytes, defaultFetchCap)
           : maxBytes;
     const fetched = await fetchRemoteMedia({ url: mediaUrl, maxBytes: fetchCap, ssrfPolicy });
->>>>>>> upstream/main
     const { buffer, contentType, fileName } = fetched;
     const kind = mediaKindFromMime(contentType);
     return await clampAndFinalize({ buffer, contentType, kind, fileName });
@@ -255,12 +241,6 @@ async function loadWebMediaInternal(
   });
 }
 
-<<<<<<< HEAD
-export async function loadWebMedia(mediaUrl: string, maxBytes?: number): Promise<WebMediaResult> {
-  return await loadWebMediaInternal(mediaUrl, {
-    maxBytes,
-    optimizeImages: true,
-=======
 export async function loadWebMedia(
   mediaUrl: string,
   maxBytes?: number,
@@ -270,25 +250,18 @@ export async function loadWebMedia(
     maxBytes,
     optimizeImages: true,
     ssrfPolicy: options?.ssrfPolicy,
->>>>>>> upstream/main
   });
 }
 
 export async function loadWebMediaRaw(
   mediaUrl: string,
   maxBytes?: number,
-<<<<<<< HEAD
-=======
   options?: { ssrfPolicy?: SsrFPolicy },
->>>>>>> upstream/main
 ): Promise<WebMediaResult> {
   return await loadWebMediaInternal(mediaUrl, {
     maxBytes,
     optimizeImages: false,
-<<<<<<< HEAD
-=======
     ssrfPolicy: options?.ssrfPolicy,
->>>>>>> upstream/main
   });
 }
 

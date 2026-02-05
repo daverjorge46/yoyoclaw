@@ -3,10 +3,6 @@ summary: "How OpenClaw memory works (workspace files + automatic memory flush)"
 read_when:
   - You want the memory file layout and workflow
   - You want to tune the automatic pre-compaction memory flush
-<<<<<<< HEAD
-title: "Memory"
-=======
->>>>>>> upstream/main
 ---
 
 # Memory
@@ -29,11 +25,7 @@ The default workspace layout uses two memory layers:
   - **Only load in the main, private session** (never in group contexts).
 
 These files live under the workspace (`agents.defaults.workspace`, default
-<<<<<<< HEAD
-`~/.openclaw/workspace`). See [Agent workspace](/concepts/agent-workspace) for the full layout.
-=======
 `~/clawd`). See [Agent workspace](/concepts/agent-workspace) for the full layout.
->>>>>>> upstream/main
 
 ## When to write memory
 
@@ -85,14 +77,8 @@ For the full compaction lifecycle, see
 
 ## Vector memory search
 
-<<<<<<< HEAD
-OpenClaw can build a small vector index over `MEMORY.md` and `memory/*.md` (plus
-any extra directories or files you opt in) so semantic queries can find related
-notes even when wording differs.
-=======
 OpenClaw can build a small vector index over `MEMORY.md` and `memory/*.md` so
 semantic queries can find related notes even when wording differs.
->>>>>>> upstream/main
 
 Defaults:
 
@@ -113,8 +99,6 @@ embeddings for memory search. For Gemini, use `GEMINI_API_KEY` or
 `models.providers.google.apiKey`. When using a custom OpenAI-compatible endpoint,
 set `memorySearch.remote.apiKey` (and optional `memorySearch.remote.headers`).
 
-<<<<<<< HEAD
-=======
 ### QMD backend (experimental)
 
 Set `memory.backend = "qmd"` to swap the built-in SQLite indexer for
@@ -232,7 +216,6 @@ memory: {
   parsed, the search manager logs a warning and returns the builtin provider
   (existing Markdown embeddings) until QMD recovers.
 
->>>>>>> upstream/main
 ### Additional memory paths
 
 If you want to index Markdown files outside the default workspace layout, add
@@ -354,24 +337,14 @@ Local mode:
 ### How the memory tools work
 
 - `memory_search` semantically searches Markdown chunks (~400 token target, 80-token overlap) from `MEMORY.md` + `memory/**/*.md`. It returns snippet text (capped ~700 chars), file path, line range, score, provider/model, and whether we fell back from local → remote embeddings. No full file payload is returned.
-<<<<<<< HEAD
-- `memory_get` reads a specific memory Markdown file (workspace-relative), optionally from a starting line and for N lines. Paths outside `MEMORY.md` / `memory/` are allowed only when explicitly listed in `memorySearch.extraPaths`.
-=======
 - `memory_get` reads a specific memory Markdown file (workspace-relative), optionally from a starting line and for N lines. Paths outside `MEMORY.md` / `memory/` are rejected.
->>>>>>> upstream/main
 - Both tools are enabled only when `memorySearch.enabled` resolves true for the agent.
 
 ### What gets indexed (and when)
 
-<<<<<<< HEAD
-- File type: Markdown only (`MEMORY.md`, `memory/**/*.md`, plus any `.md` files under `memorySearch.extraPaths`).
-- Index storage: per-agent SQLite at `~/.openclaw/memory/<agentId>.sqlite` (configurable via `agents.defaults.memorySearch.store.path`, supports `{agentId}` token).
-- Freshness: watcher on `MEMORY.md`, `memory/`, and `memorySearch.extraPaths` marks the index dirty (debounce 1.5s). Sync is scheduled on session start, on search, or on an interval and runs asynchronously. Session transcripts use delta thresholds to trigger background sync.
-=======
 - File type: Markdown only (`MEMORY.md`, `memory/**/*.md`).
 - Index storage: per-agent SQLite at `~/.openclaw/memory/<agentId>.sqlite` (configurable via `agents.defaults.memorySearch.store.path`, supports `{agentId}` token).
 - Freshness: watcher on `MEMORY.md` + `memory/` marks the index dirty (debounce 1.5s). Sync is scheduled on session start, on search, or on an interval and runs asynchronously. Session transcripts use delta thresholds to trigger background sync.
->>>>>>> upstream/main
 - Reindex triggers: the index stores the embedding **provider/model + endpoint fingerprint + chunking params**. If any of those change, OpenClaw automatically resets and reindexes the entire store.
 
 ### Hybrid search (BM25 + vector)

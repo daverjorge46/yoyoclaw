@@ -7,10 +7,7 @@ import { Mock, vi } from "vitest";
 import type { ChannelPlugin, ChannelOutboundAdapter } from "../channels/plugins/types.js";
 import type { AgentBinding } from "../config/types.agents.js";
 import type { HooksConfig } from "../config/types.hooks.js";
-<<<<<<< HEAD
-=======
 import type { TailscaleWhoisIdentity } from "../infra/tailscale.js";
->>>>>>> upstream/main
 import type { PluginRegistry } from "../plugins/registry.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
@@ -171,10 +168,7 @@ const hoisted = vi.hoisted(() => ({
     waitCalls: [] as string[],
     waitResults: new Map<string, boolean>(),
   },
-<<<<<<< HEAD
-=======
   testTailscaleWhois: { value: null as TailscaleWhoisIdentity | null },
->>>>>>> upstream/main
   getReplyFromConfig: vi.fn().mockResolvedValue(undefined),
   sendWhatsAppMock: vi.fn().mockResolvedValue({ messageId: "msg-1", toJid: "jid-1" }),
 }));
@@ -204,10 +198,7 @@ export const setTestConfigRoot = (root: string) => {
 };
 
 export const testTailnetIPv4 = hoisted.testTailnetIPv4;
-<<<<<<< HEAD
-=======
 export const testTailscaleWhois = hoisted.testTailscaleWhois;
->>>>>>> upstream/main
 export const piSdkMock = hoisted.piSdkMock;
 export const cronIsolatedRun = hoisted.cronIsolatedRun;
 export const agentCommand: Mock<() => void> = hoisted.agentCommand;
@@ -270,8 +261,6 @@ vi.mock("../infra/tailnet.js", () => ({
   pickPrimaryTailnetIPv6: () => undefined,
 }));
 
-<<<<<<< HEAD
-=======
 vi.mock("../infra/tailscale.js", async () => {
   const actual =
     await vi.importActual<typeof import("../infra/tailscale.js")>("../infra/tailscale.js");
@@ -281,7 +270,6 @@ vi.mock("../infra/tailscale.js", async () => {
   };
 });
 
->>>>>>> upstream/main
 vi.mock("../config/sessions.js", async () => {
   const actual =
     await vi.importActual<typeof import("../config/sessions.js")>("../config/sessions.js");

@@ -1,25 +1,9 @@
-<<<<<<< HEAD
-import type { ChannelsStatusSnapshot } from "../types";
-import type { ChannelsState } from "./channels.types";
-=======
 import type { ChannelsState } from "./channels.types.ts";
 import { ChannelsStatusSnapshot } from "../types.ts";
->>>>>>> upstream/main
 
 export type { ChannelsState };
 
 export async function loadChannels(state: ChannelsState, probe: boolean) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  if (state.channelsLoading) return;
-  state.channelsLoading = true;
-  state.channelsError = null;
-  try {
-    const res = (await state.client.request("channels.status", {
-      probe,
-      timeoutMs: 8000,
-    })) as ChannelsStatusSnapshot;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -33,7 +17,6 @@ export async function loadChannels(state: ChannelsState, probe: boolean) {
       probe,
       timeoutMs: 8000,
     });
->>>>>>> upstream/main
     state.channelsSnapshot = res;
     state.channelsLastSuccess = Date.now();
   } catch (err) {
@@ -44,15 +27,6 @@ export async function loadChannels(state: ChannelsState, probe: boolean) {
 }
 
 export async function startWhatsAppLogin(state: ChannelsState, force: boolean) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected || state.whatsappBusy) return;
-  state.whatsappBusy = true;
-  try {
-    const res = (await state.client.request("web.login.start", {
-      force,
-      timeoutMs: 30000,
-    })) as { message?: string; qrDataUrl?: string };
-=======
   if (!state.client || !state.connected || state.whatsappBusy) {
     return;
   }
@@ -65,7 +39,6 @@ export async function startWhatsAppLogin(state: ChannelsState, force: boolean) {
         timeoutMs: 30000,
       },
     );
->>>>>>> upstream/main
     state.whatsappLoginMessage = res.message ?? null;
     state.whatsappLoginQrDataUrl = res.qrDataUrl ?? null;
     state.whatsappLoginConnected = null;
@@ -79,17 +52,6 @@ export async function startWhatsAppLogin(state: ChannelsState, force: boolean) {
 }
 
 export async function waitWhatsAppLogin(state: ChannelsState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected || state.whatsappBusy) return;
-  state.whatsappBusy = true;
-  try {
-    const res = (await state.client.request("web.login.wait", {
-      timeoutMs: 120000,
-    })) as { connected?: boolean; message?: string };
-    state.whatsappLoginMessage = res.message ?? null;
-    state.whatsappLoginConnected = res.connected ?? null;
-    if (res.connected) state.whatsappLoginQrDataUrl = null;
-=======
   if (!state.client || !state.connected || state.whatsappBusy) {
     return;
   }
@@ -106,7 +68,6 @@ export async function waitWhatsAppLogin(state: ChannelsState) {
     if (res.connected) {
       state.whatsappLoginQrDataUrl = null;
     }
->>>>>>> upstream/main
   } catch (err) {
     state.whatsappLoginMessage = String(err);
     state.whatsappLoginConnected = null;
@@ -116,13 +77,9 @@ export async function waitWhatsAppLogin(state: ChannelsState) {
 }
 
 export async function logoutWhatsApp(state: ChannelsState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected || state.whatsappBusy) return;
-=======
   if (!state.client || !state.connected || state.whatsappBusy) {
     return;
   }
->>>>>>> upstream/main
   state.whatsappBusy = true;
   try {
     await state.client.request("channels.logout", { channel: "whatsapp" });

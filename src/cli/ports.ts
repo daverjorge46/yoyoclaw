@@ -1,9 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { resolveLsofCommandSync } from "../infra/ports-lsof.js";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 
 export type PortProcess = { pid: number; command?: string };
 
@@ -13,13 +10,6 @@ export type ForceFreePortResult = {
   escalatedToSigkill: boolean;
 };
 
-<<<<<<< HEAD
-function sleep(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
-
-=======
->>>>>>> upstream/main
 export function parseLsofOutput(output: string): PortProcess[] {
   const lines = output.split(/\r?\n/).filter(Boolean);
   const results: PortProcess[] = [];

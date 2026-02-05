@@ -172,11 +172,6 @@ export function createSessionsSpawnTool(opts?: {
         normalizeModelSelection(modelOverride) ??
         normalizeModelSelection(targetAgentConfig?.subagents?.model) ??
         normalizeModelSelection(cfg.agents?.defaults?.subagents?.model);
-<<<<<<< HEAD
-      let thinkingOverride: string | undefined;
-      if (thinkingOverrideRaw) {
-        const normalized = normalizeThinkLevel(thinkingOverrideRaw);
-=======
 
       const resolvedThinkingDefaultRaw =
         readStringParam(targetAgentConfig?.subagents ?? {}, "thinking") ??
@@ -186,17 +181,12 @@ export function createSessionsSpawnTool(opts?: {
       const thinkingCandidateRaw = thinkingOverrideRaw || resolvedThinkingDefaultRaw;
       if (thinkingCandidateRaw) {
         const normalized = normalizeThinkLevel(thinkingCandidateRaw);
->>>>>>> upstream/main
         if (!normalized) {
           const { provider, model } = splitModelRef(resolvedModel);
           const hint = formatThinkingLevels(provider, model);
           return jsonResult({
             status: "error",
-<<<<<<< HEAD
-            error: `Invalid thinking level "${thinkingOverrideRaw}". Use one of: ${hint}.`,
-=======
             error: `Invalid thinking level "${thinkingCandidateRaw}". Use one of: ${hint}.`,
->>>>>>> upstream/main
           });
         }
         thinkingOverride = normalized;

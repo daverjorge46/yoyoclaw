@@ -9,12 +9,9 @@ set -euo pipefail
 # - dist/OpenClaw-<version>.dmg
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-<<<<<<< HEAD
-=======
 BUILD_ROOT="$ROOT_DIR/apps/macos/.build"
 PRODUCT="OpenClaw"
 BUILD_CONFIG="${BUILD_CONFIG:-release}"
->>>>>>> upstream/main
 
 # Default to universal binary for distribution builds (supports both Apple Silicon and Intel Macs)
 export BUILD_ARCHS="${BUILD_ARCHS:-all}"
@@ -31,15 +28,10 @@ VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Co
 ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.zip"
 DMG="$ROOT_DIR/dist/OpenClaw-$VERSION.dmg"
 NOTARY_ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.notary.zip"
-<<<<<<< HEAD
-SKIP_NOTARIZE="${SKIP_NOTARIZE:-0}"
-NOTARIZE=1
-=======
 DSYM_ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.dSYM.zip"
 SKIP_NOTARIZE="${SKIP_NOTARIZE:-0}"
 NOTARIZE=1
 SKIP_DSYM="${SKIP_DSYM:-0}"
->>>>>>> upstream/main
 
 if [[ "$SKIP_NOTARIZE" == "1" ]]; then
   NOTARIZE=0
@@ -67,8 +59,6 @@ if [[ "$NOTARIZE" == "1" ]]; then
   fi
   "$ROOT_DIR/scripts/notarize-mac-artifact.sh" "$DMG"
 fi
-<<<<<<< HEAD
-=======
 
 if [[ "$SKIP_DSYM" != "1" ]]; then
   DSYM_ARM64="$(find "$BUILD_ROOT/arm64" -type d -path "*/$BUILD_CONFIG/$PRODUCT.dSYM" -print -quit)"
@@ -97,4 +87,3 @@ if [[ "$SKIP_DSYM" != "1" ]]; then
     echo "WARN: dSYM not found; skipping zip (set SKIP_DSYM=1 to silence)" >&2
   fi
 fi
->>>>>>> upstream/main

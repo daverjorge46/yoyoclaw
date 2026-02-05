@@ -92,6 +92,7 @@ async function resolveContextReport(
         groupChannel: params.sessionEntry?.groupChannel ?? undefined,
         groupSpace: params.sessionEntry?.space ?? undefined,
         spawnedBy: params.sessionEntry?.spawnedBy ?? undefined,
+        senderIsOwner: params.command.senderIsOwner,
         modelProvider: params.provider,
         modelId: params.model,
       });
@@ -156,10 +157,7 @@ async function resolveContextReport(
     ttsHint,
     runtimeInfo,
     sandboxInfo,
-<<<<<<< HEAD
-=======
     memoryCitationsMode: params.cfg?.memory?.citations,
->>>>>>> upstream/main
   });
 
   return buildSystemPromptReport({

@@ -2,11 +2,7 @@
  * Message normalization utilities for chat rendering.
  */
 
-<<<<<<< HEAD
-import type { NormalizedMessage, MessageContentItem } from "../types/chat-types";
-=======
 import type { NormalizedMessage, MessageContentItem } from "../types/chat-types.ts";
->>>>>>> upstream/main
 
 /**
  * Normalize a raw message object into a consistent structure.
@@ -25,21 +21,11 @@ export function normalizeMessage(message: unknown): NormalizedMessage {
     Array.isArray(contentItems) &&
     contentItems.some((item) => {
       const x = item as Record<string, unknown>;
-<<<<<<< HEAD
-      const t = String(x.type ?? "").toLowerCase();
-      return t === "toolresult" || t === "tool_result";
-    });
-
-  const hasToolName =
-    typeof (m as Record<string, unknown>).toolName === "string" ||
-    typeof (m as Record<string, unknown>).tool_name === "string";
-=======
       const t = (typeof x.type === "string" ? x.type : "").toLowerCase();
       return t === "toolresult" || t === "tool_result";
     });
 
   const hasToolName = typeof m.toolName === "string" || typeof m.tool_name === "string";
->>>>>>> upstream/main
 
   if (hasToolId || hasToolContent || hasToolName) {
     role = "toolResult";
@@ -73,11 +59,6 @@ export function normalizeMessage(message: unknown): NormalizedMessage {
 export function normalizeRoleForGrouping(role: string): string {
   const lower = role.toLowerCase();
   // Preserve original casing when it's already a core role.
-<<<<<<< HEAD
-  if (role === "user" || role === "User") return role;
-  if (role === "assistant") return "assistant";
-  if (role === "system") return "system";
-=======
   if (role === "user" || role === "User") {
     return role;
   }
@@ -87,7 +68,6 @@ export function normalizeRoleForGrouping(role: string): string {
   if (role === "system") {
     return "system";
   }
->>>>>>> upstream/main
   // Keep tool-related roles distinct so the UI can style/toggle them.
   if (
     lower === "toolresult" ||

@@ -28,8 +28,6 @@ function pickBestGroupMatch(
   return matches[0];
 }
 
-<<<<<<< HEAD
-=======
 function pickBestUserMatch(
   matches: ChannelDirectoryEntry[],
   query: string,
@@ -76,7 +74,6 @@ function describeUserMatchFailure(matches: ChannelDirectoryEntry[], query: strin
   return "no exact match; use full Matrix ID";
 }
 
->>>>>>> upstream/main
 export async function resolveMatrixTargets(params: {
   cfg: unknown;
   inputs: string[];
@@ -101,21 +98,13 @@ export async function resolveMatrixTargets(params: {
           query: trimmed,
           limit: 5,
         });
-<<<<<<< HEAD
-        const best = matches[0];
-=======
         const best = pickBestUserMatch(matches, trimmed);
->>>>>>> upstream/main
         results.push({
           input,
           resolved: Boolean(best?.id),
           id: best?.id,
           name: best?.name,
-<<<<<<< HEAD
-          note: matches.length > 1 ? "multiple matches; chose first" : undefined,
-=======
           note: best ? undefined : describeUserMatchFailure(matches, trimmed),
->>>>>>> upstream/main
         });
       } catch (err) {
         params.runtime?.error?.(`matrix resolve failed: ${String(err)}`);

@@ -816,8 +816,6 @@ function resolveTlonSession(
   };
 }
 
-<<<<<<< HEAD
-=======
 /**
  * Feishu ID formats:
  * - oc_xxx: chat_id (group chat)
@@ -873,7 +871,6 @@ function resolveFeishuSession(
   };
 }
 
->>>>>>> upstream/main
 function resolveFallbackSession(
   params: ResolveOutboundSessionRouteParams,
 ): OutboundSessionRoute | null {
@@ -948,11 +945,8 @@ export async function resolveOutboundSessionRoute(
       return resolveNostrSession({ ...params, target });
     case "tlon":
       return resolveTlonSession({ ...params, target });
-<<<<<<< HEAD
-=======
     case "feishu":
       return resolveFeishuSession({ ...params, target });
->>>>>>> upstream/main
     default:
       return resolveFallbackSession({ ...params, target });
   }

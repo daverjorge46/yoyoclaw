@@ -2,16 +2,10 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
-<<<<<<< HEAD
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { optimizeImageToPng } from "../media/image-ops.js";
-import { loadWebMedia, optimizeImageToJpeg } from "./media.js";
-=======
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../infra/net/ssrf.js";
 import { optimizeImageToPng } from "../media/image-ops.js";
 import { loadWebMedia, loadWebMediaRaw, optimizeImageToJpeg } from "./media.js";
->>>>>>> upstream/main
 
 const tmpFiles: string[] = [];
 
@@ -38,11 +32,6 @@ function buildDeterministicBytes(length: number): Buffer {
 afterEach(async () => {
   await Promise.all(tmpFiles.map((file) => fs.rm(file, { force: true })));
   tmpFiles.length = 0;
-<<<<<<< HEAD
-});
-
-describe("web media loading", () => {
-=======
   vi.restoreAllMocks();
 });
 
@@ -59,7 +48,6 @@ describe("web media loading", () => {
     });
   });
 
->>>>>>> upstream/main
   it("compresses large local images under the provided cap", async () => {
     const buffer = await sharp({
       create: {
@@ -132,8 +120,6 @@ describe("web media loading", () => {
     fetchMock.mockRestore();
   });
 
-<<<<<<< HEAD
-=======
   it("respects maxBytes for raw URL fetches", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
       ok: true,
@@ -150,7 +136,6 @@ describe("web media loading", () => {
     fetchMock.mockRestore();
   });
 
->>>>>>> upstream/main
   it("uses content-disposition filename when available", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
       ok: true,

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import fsSync from "node:fs";
->>>>>>> upstream/main
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,8 +15,6 @@ async function readPackageName(dir: string): Promise<string | null> {
   }
 }
 
-<<<<<<< HEAD
-=======
 function readPackageNameSync(dir: string): string | null {
   try {
     const raw = fsSync.readFileSync(path.join(dir, "package.json"), "utf-8");
@@ -30,7 +25,6 @@ function readPackageNameSync(dir: string): string | null {
   }
 }
 
->>>>>>> upstream/main
 async function findPackageRoot(startDir: string, maxDepth = 12): Promise<string | null> {
   let current = path.resolve(startDir);
   for (let i = 0; i < maxDepth; i += 1) {
@@ -47,8 +41,6 @@ async function findPackageRoot(startDir: string, maxDepth = 12): Promise<string 
   return null;
 }
 
-<<<<<<< HEAD
-=======
 function findPackageRootSync(startDir: string, maxDepth = 12): string | null {
   let current = path.resolve(startDir);
   for (let i = 0; i < maxDepth; i += 1) {
@@ -65,7 +57,6 @@ function findPackageRootSync(startDir: string, maxDepth = 12): string | null {
   return null;
 }
 
->>>>>>> upstream/main
 function candidateDirsFromArgv1(argv1: string): string[] {
   const normalized = path.resolve(argv1);
   const candidates = [path.dirname(normalized)];
@@ -105,8 +96,6 @@ export async function resolveOpenClawPackageRoot(opts: {
 
   return null;
 }
-<<<<<<< HEAD
-=======
 
 export function resolveOpenClawPackageRootSync(opts: {
   cwd?: string;
@@ -134,4 +123,3 @@ export function resolveOpenClawPackageRootSync(opts: {
 
   return null;
 }
->>>>>>> upstream/main

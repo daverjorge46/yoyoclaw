@@ -11,8 +11,6 @@ import {
 } from "./agent.js";
 import {
   AgentSummarySchema,
-<<<<<<< HEAD
-=======
   AgentsFileEntrySchema,
   AgentsFilesGetParamsSchema,
   AgentsFilesGetResultSchema,
@@ -20,7 +18,6 @@ import {
   AgentsFilesListResultSchema,
   AgentsFilesSetParamsSchema,
   AgentsFilesSetResultSchema,
->>>>>>> upstream/main
   AgentsListParamsSchema,
   AgentsListResultSchema,
   ModelChoiceSchema,
@@ -192,8 +189,6 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   WebLoginStartParams: WebLoginStartParamsSchema,
   WebLoginWaitParams: WebLoginWaitParamsSchema,
   AgentSummary: AgentSummarySchema,
-<<<<<<< HEAD
-=======
   AgentsFileEntry: AgentsFileEntrySchema,
   AgentsFilesListParams: AgentsFilesListParamsSchema,
   AgentsFilesListResult: AgentsFilesListResultSchema,
@@ -201,7 +196,6 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   AgentsFilesGetResult: AgentsFilesGetResultSchema,
   AgentsFilesSetParams: AgentsFilesSetParamsSchema,
   AgentsFilesSetResult: AgentsFilesSetResultSchema,
->>>>>>> upstream/main
   AgentsListParams: AgentsListParamsSchema,
   AgentsListResult: AgentsListResultSchema,
   ModelChoice: ModelChoiceSchema,

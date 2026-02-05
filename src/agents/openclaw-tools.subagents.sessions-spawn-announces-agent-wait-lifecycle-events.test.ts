@@ -22,10 +22,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
 });
 
 import "./test-helpers/fast-core-tools.js";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import { createOpenClawTools } from "./openclaw-tools.js";
 import { resetSubagentRegistryForTests } from "./subagent-registry.js";
 
@@ -111,15 +108,9 @@ describe("openclaw-tools: subagents", () => {
       runId: "run-1",
     });
 
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
     await sleep(0);
     await sleep(0);
->>>>>>> upstream/main
 
     const childWait = waitCalls.find((call) => call.runId === childRunId);
     expect(childWait?.timeoutMs).toBe(1000);

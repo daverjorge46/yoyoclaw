@@ -11,11 +11,8 @@ import type { NormalizedEvent, WebhookContext } from "./types.js";
 import { MediaStreamHandler } from "./media-stream.js";
 import { OpenAIRealtimeSTTProvider } from "./providers/stt-openai-realtime.js";
 
-<<<<<<< HEAD
-=======
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
 
->>>>>>> upstream/main
 /**
  * HTTP server for receiving voice call webhooks from providers.
  * Supports WebSocket upgrades for media streams when streaming is enabled.
@@ -74,8 +71,6 @@ export class VoiceCallWebhookServer {
 
     const streamConfig: MediaStreamConfig = {
       sttProvider,
-<<<<<<< HEAD
-=======
       shouldAcceptStream: ({ callId, token }) => {
         const call = this.manager.getCallByProviderCallId(callId);
         if (!call) {
@@ -90,7 +85,6 @@ export class VoiceCallWebhookServer {
         }
         return true;
       },
->>>>>>> upstream/main
       onTranscript: (providerCallId, transcript) => {
         console.log(`[voice-call] Transcript for ${providerCallId}: ${transcript}`);
 
@@ -246,9 +240,6 @@ export class VoiceCallWebhookServer {
     }
 
     // Read body
-<<<<<<< HEAD
-    const body = await this.readBody(req);
-=======
     let body = "";
     try {
       body = await this.readBody(req, MAX_WEBHOOK_BODY_BYTES);
@@ -260,7 +251,6 @@ export class VoiceCallWebhookServer {
       }
       throw err;
     }
->>>>>>> upstream/main
 
     // Build webhook context
     const ctx: WebhookContext = {
@@ -308,12 +298,6 @@ export class VoiceCallWebhookServer {
   /**
    * Read request body as string.
    */
-<<<<<<< HEAD
-  private readBody(req: http.IncomingMessage): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      req.on("data", (chunk) => chunks.push(chunk));
-=======
   private readBody(req: http.IncomingMessage, maxBytes: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
@@ -327,7 +311,6 @@ export class VoiceCallWebhookServer {
         }
         chunks.push(chunk);
       });
->>>>>>> upstream/main
       req.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
       req.on("error", reject);
     });

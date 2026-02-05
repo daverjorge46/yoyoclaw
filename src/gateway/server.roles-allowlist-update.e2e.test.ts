@@ -16,12 +16,9 @@ vi.mock("../infra/update-runner.js", () => ({
   })),
 }));
 
-<<<<<<< HEAD
-=======
 import { writeConfigFile } from "../config/config.js";
 import { runGatewayUpdate } from "../infra/update-runner.js";
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import {
   connectOk,
   installGatewayTestHooks,
@@ -49,11 +46,6 @@ afterAll(async () => {
   await server.close();
 });
 
-<<<<<<< HEAD
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-=======
->>>>>>> upstream/main
 const connectNodeClient = async (params: {
   port: number;
   commands: string[];
@@ -203,8 +195,6 @@ describe("gateway update.run", () => {
       process.off("SIGUSR1", sigusr1);
     }
   });
-<<<<<<< HEAD
-=======
 
   test("uses configured update channel", async () => {
     const sigusr1 = vi.fn();
@@ -236,7 +226,6 @@ describe("gateway update.run", () => {
       process.off("SIGUSR1", sigusr1);
     }
   });
->>>>>>> upstream/main
 });
 
 describe("gateway node command allowlist", () => {

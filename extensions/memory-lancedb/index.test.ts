@@ -180,11 +180,6 @@ describeLive("memory plugin live tests", () => {
     const liveApiKey = process.env.OPENAI_API_KEY ?? "";
 
     // Mock plugin API
-<<<<<<< HEAD
-    const registeredTools: any[] = [];
-    const registeredClis: any[] = [];
-    const registeredServices: any[] = [];
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
     const registeredTools: any[] = [];
     // oxlint-disable-next-line typescript/no-explicit-any
@@ -192,7 +187,6 @@ describeLive("memory plugin live tests", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     const registeredServices: any[] = [];
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     const registeredHooks: Record<string, any[]> = {};
     const logs: string[] = [];
 
@@ -217,17 +211,6 @@ describeLive("memory plugin live tests", () => {
         error: (msg: string) => logs.push(`[error] ${msg}`),
         debug: (msg: string) => logs.push(`[debug] ${msg}`),
       },
-<<<<<<< HEAD
-      registerTool: (tool: any, opts: any) => {
-        registeredTools.push({ tool, opts });
-      },
-      registerCli: (registrar: any, opts: any) => {
-        registeredClis.push({ registrar, opts });
-      },
-      registerService: (service: any) => {
-        registeredServices.push(service);
-      },
-=======
       // oxlint-disable-next-line typescript/no-explicit-any
       registerTool: (tool: any, opts: any) => {
         registeredTools.push({ tool, opts });
@@ -241,7 +224,6 @@ describeLive("memory plugin live tests", () => {
         registeredServices.push(service);
       },
       // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
       on: (hookName: string, handler: any) => {
         if (!registeredHooks[hookName]) {
           registeredHooks[hookName] = [];
@@ -252,10 +234,7 @@ describeLive("memory plugin live tests", () => {
     };
 
     // Register plugin
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     memoryPlugin.register(mockApi as any);
 
     // Check registration

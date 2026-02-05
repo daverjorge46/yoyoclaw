@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import type { GatewayBrowserClient } from "../gateway";
-import { clearDeviceAuthToken, storeDeviceAuthToken } from "../device-auth";
-import { loadOrCreateDeviceIdentity } from "../device-identity";
-=======
 import type { GatewayBrowserClient } from "../gateway.ts";
 import { clearDeviceAuthToken, storeDeviceAuthToken } from "../device-auth.ts";
 import { loadOrCreateDeviceIdentity } from "../device-identity.ts";
->>>>>>> upstream/main
 
 export type DeviceTokenSummary = {
   role: string;
@@ -52,20 +46,6 @@ export type DevicesState = {
 };
 
 export async function loadDevices(state: DevicesState, opts?: { quiet?: boolean }) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  if (state.devicesLoading) return;
-  state.devicesLoading = true;
-  if (!opts?.quiet) state.devicesError = null;
-  try {
-    const res = (await state.client.request("device.pair.list", {})) as DevicePairingList | null;
-    state.devicesList = {
-      pending: Array.isArray(res?.pending) ? res!.pending : [],
-      paired: Array.isArray(res?.paired) ? res!.paired : [],
-    };
-  } catch (err) {
-    if (!opts?.quiet) state.devicesError = String(err);
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -89,20 +69,15 @@ export async function loadDevices(state: DevicesState, opts?: { quiet?: boolean 
     if (!opts?.quiet) {
       state.devicesError = String(err);
     }
->>>>>>> upstream/main
   } finally {
     state.devicesLoading = false;
   }
 }
 
 export async function approveDevicePairing(state: DevicesState, requestId: string) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   try {
     await state.client.request("device.pair.approve", { requestId });
     await loadDevices(state);
@@ -112,11 +87,6 @@ export async function approveDevicePairing(state: DevicesState, requestId: strin
 }
 
 export async function rejectDevicePairing(state: DevicesState, requestId: string) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  const confirmed = window.confirm("Reject this device pairing request?");
-  if (!confirmed) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -124,7 +94,6 @@ export async function rejectDevicePairing(state: DevicesState, requestId: string
   if (!confirmed) {
     return;
   }
->>>>>>> upstream/main
   try {
     await state.client.request("device.pair.reject", { requestId });
     await loadDevices(state);
@@ -137,13 +106,6 @@ export async function rotateDeviceToken(
   state: DevicesState,
   params: { deviceId: string; role: string; scopes?: string[] },
 ) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  try {
-    const res = (await state.client.request("device.token.rotate", params)) as
-      | { token?: string; role?: string; deviceId?: string; scopes?: string[] }
-      | undefined;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -154,7 +116,6 @@ export async function rotateDeviceToken(
       deviceId?: string;
       scopes?: Array<string>;
     }>("device.token.rotate", params);
->>>>>>> upstream/main
     if (res?.token) {
       const identity = await loadOrCreateDeviceIdentity();
       const role = res.role ?? params.role;
@@ -178,11 +139,6 @@ export async function revokeDeviceToken(
   state: DevicesState,
   params: { deviceId: string; role: string },
 ) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  const confirmed = window.confirm(`Revoke token for ${params.deviceId} (${params.role})?`);
-  if (!confirmed) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -190,7 +146,6 @@ export async function revokeDeviceToken(
   if (!confirmed) {
     return;
   }
->>>>>>> upstream/main
   try {
     await state.client.request("device.token.revoke", params);
     const identity = await loadOrCreateDeviceIdentity();

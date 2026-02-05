@@ -11,10 +11,7 @@ export type CommandRunner = (
 
 const PRIMARY_PACKAGE_NAME = "openclaw";
 const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME] as const;
-<<<<<<< HEAD
-=======
 const GLOBAL_RENAME_PREFIX = ".";
->>>>>>> upstream/main
 
 async function pathExists(targetPath: string): Promise<boolean> {
   try {
@@ -146,8 +143,6 @@ export function globalInstallArgs(manager: GlobalInstallManager, spec: string): 
   }
   return ["npm", "i", "-g", spec];
 }
-<<<<<<< HEAD
-=======
 
 export async function cleanupGlobalRenameDirs(params: {
   globalRoot: string;
@@ -184,4 +179,3 @@ export async function cleanupGlobalRenameDirs(params: {
   }
   return { removed };
 }
->>>>>>> upstream/main

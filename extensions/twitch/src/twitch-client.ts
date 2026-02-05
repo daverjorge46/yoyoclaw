@@ -119,24 +119,6 @@ export class TwitchClientManager {
           log: (level, message) => {
             switch (level) {
               case LogLevel.CRITICAL:
-<<<<<<< HEAD
-                this.logger.error(`${message}`);
-                break;
-              case LogLevel.ERROR:
-                this.logger.error(`${message}`);
-                break;
-              case LogLevel.WARNING:
-                this.logger.warn(`${message}`);
-                break;
-              case LogLevel.INFO:
-                this.logger.info(`${message}`);
-                break;
-              case LogLevel.DEBUG:
-                this.logger.debug?.(`${message}`);
-                break;
-              case LogLevel.TRACE:
-                this.logger.debug?.(`${message}`);
-=======
                 this.logger.error(message);
                 break;
               case LogLevel.ERROR:
@@ -153,7 +135,6 @@ export class TwitchClientManager {
                 break;
               case LogLevel.TRACE:
                 this.logger.debug?.(message);
->>>>>>> upstream/main
                 break;
             }
           },

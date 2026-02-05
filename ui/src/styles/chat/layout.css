@@ -100,8 +100,6 @@
   stroke-linejoin: round;
 }
 
-<<<<<<< HEAD
-=======
 /* New messages indicator - floating pill above compose */
 .chat-new-messages {
   align-self: center;
@@ -140,7 +138,6 @@
   flex-shrink: 0;
 }
 
->>>>>>> upstream/main
 /* Chat compose - sticky at bottom */
 .chat-compose {
   position: sticky;

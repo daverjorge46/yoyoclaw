@@ -32,12 +32,9 @@ const BASE_METHODS = [
   "talk.mode",
   "models.list",
   "agents.list",
-<<<<<<< HEAD
-=======
   "agents.files.list",
   "agents.files.get",
   "agents.files.set",
->>>>>>> upstream/main
   "skills.status",
   "skills.bins",
   "skills.install",

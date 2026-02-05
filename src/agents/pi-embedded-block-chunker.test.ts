@@ -30,8 +30,6 @@ describe("EmbeddedBlockChunker", () => {
     expect(chunks[0]).not.toContain("After");
     expect(chunker.bufferedText).toMatch(/^After/);
   });
-<<<<<<< HEAD
-=======
 
   it("flushes paragraph boundaries before minChars when flushOnParagraph is set", () => {
     const chunker = new EmbeddedBlockChunker({
@@ -129,5 +127,4 @@ describe("EmbeddedBlockChunker", () => {
     expect(chunks).toEqual(["Intro\n```js\nconst a = 1;\n\nconst b = 2;\n```"]);
     expect(chunker.bufferedText).toBe("After fence");
   });
->>>>>>> upstream/main
 });

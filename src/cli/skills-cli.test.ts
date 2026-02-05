@@ -14,10 +14,7 @@ function createMockSkill(overrides: Partial<SkillStatusEntry> = {}): SkillStatus
     name: "test-skill",
     description: "A test skill",
     source: "bundled",
-<<<<<<< HEAD
-=======
     bundled: false,
->>>>>>> upstream/main
     filePath: "/path/to/SKILL.md",
     baseDir: "/path/to",
     skillKey: "test-skill",

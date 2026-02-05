@@ -1,15 +1,5 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["DOM", "DOM.Iterable", "ES2023", "ScriptHost"],
-    "noEmit": true,
-    "declaration": true,
-=======
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
@@ -20,28 +10,15 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
->>>>>>> upstream/main
     "noEmitOnError": true,
     "outDir": "dist",
     "resolveJsonModule": true,
     "rootDir": "src",
     "skipLibCheck": true,
     "strict": true,
-<<<<<<< HEAD
-    "target": "es2023"
-  },
-  "include": ["src/**/*"],
-=======
     "target": "es2023",
     "useDefineForClassFields": false
   },
   "include": ["src/**/*", "ui/**/*"],
->>>>>>> upstream/main
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx",
-    "src/**/test-helpers.ts"
-  ]
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }

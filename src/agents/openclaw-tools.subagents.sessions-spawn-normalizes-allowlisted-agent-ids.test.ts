@@ -23,10 +23,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
 
 import { emitAgentEvent } from "../infra/agent-events.js";
 import "./test-helpers/fast-core-tools.js";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import { createOpenClawTools } from "./openclaw-tools.js";
 import { resetSubagentRegistryForTests } from "./subagent-registry.js";
 
@@ -169,16 +166,12 @@ describe("openclaw-tools: subagents", () => {
       if (request.method === "agent.wait") {
         const params = request.params as { runId?: string; timeoutMs?: number } | undefined;
         waitCalls.push(params ?? {});
-<<<<<<< HEAD
-        return { runId: params?.runId ?? "run-1", status: "ok", startedAt: 1000, endedAt: 2000 };
-=======
         return {
           runId: params?.runId ?? "run-1",
           status: "ok",
           startedAt: 1000,
           endedAt: 2000,
         };
->>>>>>> upstream/main
       }
       if (request.method === "sessions.delete") {
         const params = request.params as { key?: string } | undefined;
@@ -219,15 +212,9 @@ describe("openclaw-tools: subagents", () => {
       },
     });
 
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
     await sleep(0);
     await sleep(0);
->>>>>>> upstream/main
 
     const childWait = waitCalls.find((call) => call.runId === childRunId);
     expect(childWait?.timeoutMs).toBe(1000);
@@ -291,16 +278,12 @@ describe("openclaw-tools: subagents", () => {
       }
       if (request.method === "agent.wait") {
         const params = request.params as { runId?: string; timeoutMs?: number } | undefined;
-<<<<<<< HEAD
-        return { runId: params?.runId ?? "run-1", status: "ok", startedAt: 1000, endedAt: 2000 };
-=======
         return {
           runId: params?.runId ?? "run-1",
           status: "ok",
           startedAt: 1000,
           endedAt: 2000,
         };
->>>>>>> upstream/main
       }
       if (request.method === "sessions.delete" || request.method === "sessions.patch") {
         return { ok: true };
@@ -340,15 +323,9 @@ describe("openclaw-tools: subagents", () => {
       },
     });
 
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
     await sleep(0);
     await sleep(0);
->>>>>>> upstream/main
 
     const agentCalls = calls.filter((call) => call.method === "agent");
     expect(agentCalls).toHaveLength(2);

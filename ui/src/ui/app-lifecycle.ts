@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import type { Tab } from "./navigation";
-import { connectGateway } from "./app-gateway";
-=======
 import type { Tab } from "./navigation.ts";
 import { connectGateway } from "./app-gateway.ts";
->>>>>>> upstream/main
 import {
   startLogsPolling,
   startNodesPolling,
@@ -12,13 +7,8 @@ import {
   stopNodesPolling,
   startDebugPolling,
   stopDebugPolling,
-<<<<<<< HEAD
-} from "./app-polling";
-import { observeTopbar, scheduleChatScroll, scheduleLogsScroll } from "./app-scroll";
-=======
 } from "./app-polling.ts";
 import { observeTopbar, scheduleChatScroll, scheduleLogsScroll } from "./app-scroll.ts";
->>>>>>> upstream/main
 import {
   applySettingsFromUrl,
   attachThemeListener,
@@ -26,11 +16,7 @@ import {
   inferBasePath,
   syncTabWithLocation,
   syncThemeWithSettings,
-<<<<<<< HEAD
-} from "./app-settings";
-=======
 } from "./app-settings.ts";
->>>>>>> upstream/main
 
 type LifecycleHost = {
   basePath: string;
@@ -89,13 +75,7 @@ export function handleUpdated(host: LifecycleHost, changed: Map<PropertyKey, unk
   ) {
     const forcedByTab = changed.has("tab");
     const forcedByLoad =
-<<<<<<< HEAD
-      changed.has("chatLoading") &&
-      changed.get("chatLoading") === true &&
-      host.chatLoading === false;
-=======
       changed.has("chatLoading") && changed.get("chatLoading") === true && !host.chatLoading;
->>>>>>> upstream/main
     scheduleChatScroll(
       host as unknown as Parameters<typeof scheduleChatScroll>[0],
       forcedByTab || forcedByLoad || !host.chatHasAutoScrolled,

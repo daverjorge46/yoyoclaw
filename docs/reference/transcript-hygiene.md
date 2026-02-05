@@ -11,22 +11,15 @@ title: "Transcript Hygiene"
 
 This document describes **provider-specific fixes** applied to transcripts before a run
 (building model context). These are **in-memory** adjustments used to satisfy strict
-<<<<<<< HEAD
-provider requirements. They do **not** rewrite the stored JSONL transcript on disk.
-=======
 provider requirements. These hygiene steps do **not** rewrite the stored JSONL transcript
 on disk; however, a separate session-file repair pass may rewrite malformed JSONL files
 by dropping invalid lines before the session is loaded. When a repair occurs, the original
 file is backed up alongside the session file.
->>>>>>> upstream/main
 
 Scope includes:
 
 - Tool call id sanitization
-<<<<<<< HEAD
-=======
 - Tool call input validation
->>>>>>> upstream/main
 - Tool result pairing repair
 - Turn validation / ordering
 - Thought signature cleanup
@@ -47,14 +40,11 @@ All transcript hygiene is centralized in the embedded runner:
 
 The policy uses `provider`, `modelApi`, and `modelId` to decide what to apply.
 
-<<<<<<< HEAD
-=======
 Separate from transcript hygiene, session files are repaired (if needed) before load:
 
 - `repairSessionFileIfNeeded` in `src/agents/session-file-repair.ts`
 - Called from `run/attempt.ts` and `compact.ts` (embedded runner)
 
->>>>>>> upstream/main
 ---
 
 ## Global rule: image sanitization
@@ -69,8 +59,6 @@ Implementation:
 
 ---
 
-<<<<<<< HEAD
-=======
 ## Global rule: malformed tool calls
 
 Assistant tool-call blocks that are missing both `input` and `arguments` are dropped
@@ -84,7 +72,6 @@ Implementation:
 
 ---
 
->>>>>>> upstream/main
 ## Provider matrix (current behavior)
 
 **OpenAI / OpenAI Codex**

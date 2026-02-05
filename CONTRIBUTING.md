@@ -35,8 +35,6 @@ Welcome to the lobster tank! 🦞
 - Keep PRs focused (one thing per PR)
 - Describe what & why
 
-<<<<<<< HEAD
-=======
 ## Control UI Decorators
 
 The Control UI uses Lit with **legacy** decorators (current Rollup parsing does not support
@@ -52,7 +50,6 @@ The root `tsconfig.json` is configured for legacy decorators (`experimentalDecor
 with `useDefineForClassFields: false`. Avoid flipping these unless you are also updating the UI
 build tooling to support standard decorators.
 
->>>>>>> upstream/main
 ## AI/Vibe-Coded PRs Welcome! 🤖
 
 Built with Codex, Claude, or other AI tools? **Awesome - just mark it!**

@@ -1,10 +1,6 @@
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
-import { analyzeConfigSchema, renderConfigForm } from "./views/config-form";
-=======
 import { analyzeConfigSchema, renderConfigForm } from "./views/config-form.ts";
->>>>>>> upstream/main
 
 const rootSchema = {
   type: "object",
@@ -55,17 +51,11 @@ describe("config form renderer", () => {
       container,
     );
 
-<<<<<<< HEAD
-    const tokenInput = container.querySelector("input[type='password']") as HTMLInputElement | null;
-    expect(tokenInput).not.toBeNull();
-    if (!tokenInput) return;
-=======
     const tokenInput: HTMLInputElement | null = container.querySelector("input[type='password']");
     expect(tokenInput).not.toBeNull();
     if (!tokenInput) {
       return;
     }
->>>>>>> upstream/main
     tokenInput.value = "abc123";
     tokenInput.dispatchEvent(new Event("input", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["gateway", "auth", "token"], "abc123");
@@ -77,17 +67,11 @@ describe("config form renderer", () => {
     tokenButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["mode"], "token");
 
-<<<<<<< HEAD
-    const checkbox = container.querySelector("input[type='checkbox']") as HTMLInputElement | null;
-    expect(checkbox).not.toBeNull();
-    if (!checkbox) return;
-=======
     const checkbox: HTMLInputElement | null = container.querySelector("input[type='checkbox']");
     expect(checkbox).not.toBeNull();
     if (!checkbox) {
       return;
     }
->>>>>>> upstream/main
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event("change", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["enabled"], true);
@@ -108,22 +92,12 @@ describe("config form renderer", () => {
       container,
     );
 
-<<<<<<< HEAD
-    const addButton = container.querySelector(".cfg-array__add") as HTMLButtonElement | null;
-=======
     const addButton = container.querySelector(".cfg-array__add");
->>>>>>> upstream/main
     expect(addButton).not.toBeUndefined();
     addButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["allowFrom"], ["+1", ""]);
 
-<<<<<<< HEAD
-    const removeButton = container.querySelector(
-      ".cfg-array__item-remove",
-    ) as HTMLButtonElement | null;
-=======
     const removeButton = container.querySelector(".cfg-array__item-remove");
->>>>>>> upstream/main
     expect(removeButton).not.toBeUndefined();
     removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["allowFrom"], []);
@@ -178,13 +152,7 @@ describe("config form renderer", () => {
       container,
     );
 
-<<<<<<< HEAD
-    const removeButton = container.querySelector(
-      ".cfg-map__item-remove",
-    ) as HTMLButtonElement | null;
-=======
     const removeButton = container.querySelector(".cfg-map__item-remove");
->>>>>>> upstream/main
     expect(removeButton).not.toBeUndefined();
     removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["slack"], {});

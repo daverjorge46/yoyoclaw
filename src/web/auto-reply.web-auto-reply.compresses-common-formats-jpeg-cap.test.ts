@@ -5,12 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
-=======
 import * as ssrf from "../infra/net/ssrf.js";
 
 const TEST_NET_IP = "203.0.113.10";
->>>>>>> upstream/main
 
 vi.mock("../agents/pi-embedded.js", () => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
@@ -101,20 +98,12 @@ const _makeSessionStore = async (
 };
 
 describe("web auto-reply", () => {
-<<<<<<< HEAD
-=======
   let resolvePinnedHostnameSpy: ReturnType<typeof vi.spyOn>;
 
->>>>>>> upstream/main
   beforeEach(() => {
     vi.clearAllMocks();
     resetBaileysMocks();
     resetLoadConfigMock();
-<<<<<<< HEAD
-  });
-
-  afterEach(() => {
-=======
     resolvePinnedHostnameSpy = vi
       .spyOn(ssrf, "resolvePinnedHostname")
       .mockImplementation(async (hostname) => {
@@ -132,7 +121,6 @@ describe("web auto-reply", () => {
   afterEach(() => {
     resolvePinnedHostnameSpy?.mockRestore();
     resolvePinnedHostnameSpy = undefined;
->>>>>>> upstream/main
     resetLogger();
     setLoggerOverride(null);
     vi.useRealTimers();

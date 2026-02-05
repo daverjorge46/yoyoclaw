@@ -56,10 +56,7 @@ After it finishes:
 
 - Open `http://127.0.0.1:18789/` in your browser.
 - Paste the token into the Control UI (Settings → token).
-<<<<<<< HEAD
-=======
 - Need the tokenized URL again? Run `docker compose run --rm openclaw-cli dashboard --no-open`.
->>>>>>> upstream/main
 
 It writes config/workspace on the host:
 
@@ -76,8 +73,6 @@ docker compose run --rm openclaw-cli onboard
 docker compose up -d openclaw-gateway
 ```
 
-<<<<<<< HEAD
-=======
 Note: run `docker compose ...` from the repo root. If you enabled
 `OPENCLAW_EXTRA_MOUNTS` or `OPENCLAW_HOME_VOLUME`, the setup script writes
 `docker-compose.extra.yml`; include it when running Compose elsewhere:
@@ -99,7 +94,6 @@ docker compose run --rm openclaw-cli devices approve <requestId>
 
 More detail: [Dashboard](/web/dashboard), [Devices](/cli/devices).
 
->>>>>>> upstream/main
 ### Extra mounts (optional)
 
 If you want to mount additional host directories into the containers, set
@@ -170,8 +164,6 @@ Notes:
 - If you change `OPENCLAW_DOCKER_APT_PACKAGES`, rerun `docker-setup.sh` to rebuild
   the image.
 
-<<<<<<< HEAD
-=======
 ### Power-user / full-featured container (opt-in)
 
 The default Docker image is **security-first** and runs as the non-root `node`
@@ -227,7 +219,6 @@ sudo chown -R 1000:1000 /path/to/openclaw-config /path/to/openclaw-workspace
 
 If you choose to run as root for convenience, you accept the security tradeoff.
 
->>>>>>> upstream/main
 ### Faster rebuilds (recommended)
 
 To speed up rebuilds, order your Dockerfile so dependency layers are cached.
@@ -285,8 +276,6 @@ docker compose run --rm openclaw-cli channels add --channel discord --token "<to
 
 Docs: [WhatsApp](/channels/whatsapp), [Telegram](/channels/telegram), [Discord](/channels/discord)
 
-<<<<<<< HEAD
-=======
 ### OpenAI Codex OAuth (headless Docker)
 
 If you pick OpenAI Codex OAuth in the wizard, it opens a browser URL and tries
@@ -294,7 +283,6 @@ to capture a callback on `http://127.0.0.1:1455/auth/callback`. In Docker or
 headless setups that callback can show a browser error. Copy the full redirect
 URL you land on and paste it back into the wizard to finish auth.
 
->>>>>>> upstream/main
 ### Health check
 
 ```bash
@@ -316,10 +304,7 @@ pnpm test:docker:qr
 ### Notes
 
 - Gateway bind defaults to `lan` for container use.
-<<<<<<< HEAD
-=======
 - Dockerfile CMD uses `--allow-unconfigured`; mounted config with `gateway.mode` not `local` will still start. Override CMD to enforce the guard.
->>>>>>> upstream/main
 - The gateway container is the source of truth for sessions (`~/.openclaw/agents/<agentId>/sessions/`).
 
 ## Agent Sandbox (host gateway + Docker tools)

@@ -1,9 +1,5 @@
 import type { AudioTranscriptionRequest, AudioTranscriptionResult } from "../../types.js";
-<<<<<<< HEAD
-import { fetchWithTimeout, normalizeBaseUrl, readErrorResponse } from "../shared.js";
-=======
 import { fetchWithTimeoutGuarded, normalizeBaseUrl, readErrorResponse } from "../shared.js";
->>>>>>> upstream/main
 
 export const DEFAULT_DEEPGRAM_AUDIO_BASE_URL = "https://api.deepgram.com/v1";
 export const DEFAULT_DEEPGRAM_AUDIO_MODEL = "nova-3";
@@ -28,10 +24,7 @@ export async function transcribeDeepgramAudio(
 ): Promise<AudioTranscriptionResult> {
   const fetchFn = params.fetchFn ?? fetch;
   const baseUrl = normalizeBaseUrl(params.baseUrl, DEFAULT_DEEPGRAM_AUDIO_BASE_URL);
-<<<<<<< HEAD
-=======
   const allowPrivate = Boolean(params.baseUrl?.trim());
->>>>>>> upstream/main
   const model = resolveModel(params.model);
 
   const url = new URL(`${baseUrl}/listen`);
@@ -57,11 +50,7 @@ export async function transcribeDeepgramAudio(
   }
 
   const body = new Uint8Array(params.buffer);
-<<<<<<< HEAD
-  const res = await fetchWithTimeout(
-=======
   const { response: res, release } = await fetchWithTimeoutGuarded(
->>>>>>> upstream/main
     url.toString(),
     {
       method: "POST",
@@ -70,22 +59,6 @@ export async function transcribeDeepgramAudio(
     },
     params.timeoutMs,
     fetchFn,
-<<<<<<< HEAD
-  );
-
-  if (!res.ok) {
-    const detail = await readErrorResponse(res);
-    const suffix = detail ? `: ${detail}` : "";
-    throw new Error(`Audio transcription failed (HTTP ${res.status})${suffix}`);
-  }
-
-  const payload = (await res.json()) as DeepgramTranscriptResponse;
-  const transcript = payload.results?.channels?.[0]?.alternatives?.[0]?.transcript?.trim();
-  if (!transcript) {
-    throw new Error("Audio transcription response missing transcript");
-  }
-  return { text: transcript, model };
-=======
     allowPrivate ? { ssrfPolicy: { allowPrivateNetwork: true } } : undefined,
   );
 
@@ -105,5 +78,4 @@ export async function transcribeDeepgramAudio(
   } finally {
     await release();
   }
->>>>>>> upstream/main
 }

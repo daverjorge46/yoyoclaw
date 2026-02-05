@@ -241,10 +241,7 @@ describe("msteams attachments", () => {
         maxBytes: 1024 * 1024,
         tokenProvider: { getAccessToken: vi.fn(async () => "token") },
         allowHosts: ["x"],
-<<<<<<< HEAD
-=======
         authAllowHosts: ["x"],
->>>>>>> upstream/main
         fetchFn: fetchMock as unknown as typeof fetch,
       });
 
@@ -253,8 +250,6 @@ describe("msteams attachments", () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-<<<<<<< HEAD
-=======
     it("skips auth retries when the host is not in auth allowlist", async () => {
       const { downloadMSTeamsAttachments } = await load();
       const tokenProvider = { getAccessToken: vi.fn(async () => "token") };
@@ -290,7 +285,6 @@ describe("msteams attachments", () => {
       expect(tokenProvider.getAccessToken).not.toHaveBeenCalled();
     });
 
->>>>>>> upstream/main
     it("skips urls outside the allowlist", async () => {
       const { downloadMSTeamsAttachments } = await load();
       const fetchMock = vi.fn();

@@ -3,11 +3,6 @@ import os from "node:os";
 import path from "node:path";
 import { type CommandOptions, runCommandWithTimeout } from "../process/exec.js";
 import { trimLogTail } from "./restart-sentinel.js";
-<<<<<<< HEAD
-import { DEV_BRANCH, isBetaTag, isStableTag, type UpdateChannel } from "./update-channels.js";
-import { compareSemverStrings } from "./update-check.js";
-import { detectGlobalInstallManagerForRoot, globalInstallArgs } from "./update-global.js";
-=======
 import {
   channelToNpmTag,
   DEFAULT_PACKAGE_CHANNEL,
@@ -22,7 +17,6 @@ import {
   detectGlobalInstallManagerForRoot,
   globalInstallArgs,
 } from "./update-global.js";
->>>>>>> upstream/main
 
 export type UpdateStepResult = {
   name: string;
@@ -809,9 +803,6 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
   const globalManager = await detectGlobalInstallManagerForRoot(runCommand, pkgRoot, timeoutMs);
   if (globalManager) {
     const packageName = (await readPackageName(pkgRoot)) ?? DEFAULT_PACKAGE_NAME;
-<<<<<<< HEAD
-    const spec = `${packageName}@${normalizeTag(opts.tag)}`;
-=======
     await cleanupGlobalRenameDirs({
       globalRoot: path.dirname(pkgRoot),
       packageName,
@@ -819,7 +810,6 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     const channel = opts.channel ?? DEFAULT_PACKAGE_CHANNEL;
     const tag = normalizeTag(opts.tag ?? channelToNpmTag(channel));
     const spec = `${packageName}@${tag}`;
->>>>>>> upstream/main
     const updateStep = await runStep({
       runCommand,
       name: "global update",

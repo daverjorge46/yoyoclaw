@@ -268,8 +268,6 @@ describe("installPluginFromArchive", () => {
     expect(manifest.version).toBe("0.0.2");
   });
 
-<<<<<<< HEAD
-=======
   it("rejects traversal-like plugin names", async () => {
     const stateDir = makeTempDir();
     const workDir = makeTempDir();
@@ -342,7 +340,6 @@ describe("installPluginFromArchive", () => {
     expect(result.error).toContain("reserved path segment");
   });
 
->>>>>>> upstream/main
   it("rejects packages without openclaw.extensions", async () => {
     const stateDir = makeTempDir();
     const workDir = makeTempDir();

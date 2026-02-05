@@ -1,13 +1,7 @@
 import { html, nothing } from "lit";
-<<<<<<< HEAD
-import type { ConfigUiHints } from "../types";
-import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form";
-import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared";
-=======
 import type { ConfigUiHints } from "../types.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
->>>>>>> upstream/main
 
 export type ConfigProps = {
   raw: string;
@@ -19,11 +13,7 @@ export type ConfigProps = {
   applying: boolean;
   updating: boolean;
   connected: boolean;
-<<<<<<< HEAD
-  schema: unknown | null;
-=======
   schema: unknown;
->>>>>>> upstream/main
   schemaLoading: boolean;
   uiHints: ConfigUiHints;
   formMode: "form" | "raw";
@@ -309,13 +299,9 @@ function resolveSectionMeta(
   description?: string;
 } {
   const meta = SECTION_META[key];
-<<<<<<< HEAD
-  if (meta) return meta;
-=======
   if (meta) {
     return meta;
   }
->>>>>>> upstream/main
   return {
     label: schema?.title ?? humanize(key),
     description: schema?.description ?? "",
@@ -328,13 +314,9 @@ function resolveSubsections(params: {
   uiHints: ConfigUiHints;
 }): SubsectionEntry[] {
   const { key, schema, uiHints } = params;
-<<<<<<< HEAD
-  if (!schema || schemaType(schema) !== "object" || !schema.properties) return [];
-=======
   if (!schema || schemaType(schema) !== "object" || !schema.properties) {
     return [];
   }
->>>>>>> upstream/main
   const entries = Object.entries(schema.properties).map(([subKey, node]) => {
     const hint = hintForPath([key, subKey], uiHints);
     const label = hint?.label ?? node.title ?? humanize(subKey);
@@ -350,13 +332,6 @@ function computeDiff(
   original: Record<string, unknown> | null,
   current: Record<string, unknown> | null,
 ): Array<{ path: string; from: unknown; to: unknown }> {
-<<<<<<< HEAD
-  if (!original || !current) return [];
-  const changes: Array<{ path: string; from: unknown; to: unknown }> = [];
-
-  function compare(orig: unknown, curr: unknown, path: string) {
-    if (orig === curr) return;
-=======
   if (!original || !current) {
     return [];
   }
@@ -366,7 +341,6 @@ function computeDiff(
     if (orig === curr) {
       return;
     }
->>>>>>> upstream/main
     if (typeof orig !== typeof curr) {
       changes.push({ path, from: orig, to: curr });
       return;
@@ -403,13 +377,9 @@ function truncateValue(value: unknown, maxLen = 40): string {
   } catch {
     str = String(value);
   }
-<<<<<<< HEAD
-  if (str.length <= maxLen) return str;
-=======
   if (str.length <= maxLen) {
     return str;
   }
->>>>>>> upstream/main
   return str.slice(0, maxLen - 3) + "...";
 }
 
@@ -432,11 +402,7 @@ export function renderConfig(props: ConfigProps) {
 
   const activeSectionSchema =
     props.activeSection && analysis.schema && schemaType(analysis.schema) === "object"
-<<<<<<< HEAD
-      ? (analysis.schema.properties?.[props.activeSection] as JsonSchema | undefined)
-=======
       ? analysis.schema.properties?.[props.activeSection]
->>>>>>> upstream/main
       : undefined;
   const activeSectionMeta = props.activeSection
     ? resolveSectionMeta(props.activeSection, activeSectionSchema)
@@ -484,23 +450,16 @@ export function renderConfig(props: ConfigProps) {
       <aside class="config-sidebar">
         <div class="config-sidebar__header">
           <div class="config-sidebar__title">Settings</div>
-<<<<<<< HEAD
-          <span class="pill pill--sm ${validity === "valid" ? "pill--ok" : validity === "invalid" ? "pill--danger" : ""}">${validity}</span>
-=======
           <span
             class="pill pill--sm ${
               validity === "valid" ? "pill--ok" : validity === "invalid" ? "pill--danger" : ""
             }"
             >${validity}</span
           >
->>>>>>> upstream/main
         </div>
 
         <!-- Search -->
         <div class="config-search">
-<<<<<<< HEAD
-          <svg class="config-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-=======
           <svg
             class="config-search__icon"
             viewBox="0 0 24 24"
@@ -508,7 +467,6 @@ export function renderConfig(props: ConfigProps) {
             stroke="currentColor"
             stroke-width="2"
           >
->>>>>>> upstream/main
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35"></path>
           </svg>
@@ -522,13 +480,6 @@ export function renderConfig(props: ConfigProps) {
           ${
             props.searchQuery
               ? html`
-<<<<<<< HEAD
-            <button
-              class="config-search__clear"
-              @click=${() => props.onSearchChange("")}
-            >×</button>
-          `
-=======
                 <button
                   class="config-search__clear"
                   @click=${() => props.onSearchChange("")}
@@ -536,7 +487,6 @@ export function renderConfig(props: ConfigProps) {
                   ×
                 </button>
               `
->>>>>>> upstream/main
               : nothing
           }
         </div>
@@ -552,16 +502,6 @@ export function renderConfig(props: ConfigProps) {
           </button>
           ${allSections.map(
             (section) => html`
-<<<<<<< HEAD
-            <button
-              class="config-nav__item ${props.activeSection === section.key ? "active" : ""}"
-              @click=${() => props.onSectionChange(section.key)}
-            >
-              <span class="config-nav__icon">${getSectionIcon(section.key)}</span>
-              <span class="config-nav__label">${section.label}</span>
-            </button>
-          `,
-=======
               <button
                 class="config-nav__item ${props.activeSection === section.key ? "active" : ""}"
                 @click=${() => props.onSectionChange(section.key)}
@@ -572,7 +512,6 @@ export function renderConfig(props: ConfigProps) {
                 <span class="config-nav__label">${section.label}</span>
               </button>
             `,
->>>>>>> upstream/main
           )}
         </nav>
 
@@ -604,10 +543,6 @@ export function renderConfig(props: ConfigProps) {
             ${
               hasChanges
                 ? html`
-<<<<<<< HEAD
-              <span class="config-changes-badge">${props.formMode === "raw" ? "Unsaved changes" : `${diff.length} unsaved change${diff.length !== 1 ? "s" : ""}`}</span>
-            `
-=======
                   <span class="config-changes-badge"
                     >${
                       props.formMode === "raw"
@@ -616,22 +551,17 @@ export function renderConfig(props: ConfigProps) {
                     }</span
                   >
                 `
->>>>>>> upstream/main
                 : html`
                     <span class="config-status muted">No changes</span>
                   `
             }
           </div>
           <div class="config-actions__right">
-<<<<<<< HEAD
-            <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onReload}>
-=======
             <button
               class="btn btn--sm"
               ?disabled=${props.loading}
               @click=${props.onReload}
             >
->>>>>>> upstream/main
               ${props.loading ? "Loading…" : "Reload"}
             </button>
             <button
@@ -662,34 +592,6 @@ export function renderConfig(props: ConfigProps) {
         ${
           hasChanges && props.formMode === "form"
             ? html`
-<<<<<<< HEAD
-          <details class="config-diff">
-            <summary class="config-diff__summary">
-              <span>View ${diff.length} pending change${diff.length !== 1 ? "s" : ""}</span>
-              <svg class="config-diff__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </summary>
-            <div class="config-diff__content">
-              ${diff.map(
-                (change) => html`
-                <div class="config-diff__item">
-                  <div class="config-diff__path">${change.path}</div>
-                  <div class="config-diff__values">
-                    <span class="config-diff__from">${truncateValue(change.from)}</span>
-                    <span class="config-diff__arrow">→</span>
-                    <span class="config-diff__to">${truncateValue(change.to)}</span>
-                  </div>
-                </div>
-              `,
-              )}
-            </div>
-          </details>
-        `
-            : nothing
-        }
-
-=======
               <details class="config-diff">
                 <summary class="config-diff__summary">
                   <span
@@ -728,19 +630,10 @@ export function renderConfig(props: ConfigProps) {
             `
             : nothing
         }
->>>>>>> upstream/main
         ${
           activeSectionMeta && props.formMode === "form"
             ? html`
               <div class="config-section-hero">
-<<<<<<< HEAD
-                <div class="config-section-hero__icon">${getSectionIcon(props.activeSection ?? "")}</div>
-                <div class="config-section-hero__text">
-                  <div class="config-section-hero__title">${activeSectionMeta.label}</div>
-                  ${
-                    activeSectionMeta.description
-                      ? html`<div class="config-section-hero__desc">${activeSectionMeta.description}</div>`
-=======
                 <div class="config-section-hero__icon">
                   ${getSectionIcon(props.activeSection ?? "")}
                 </div>
@@ -753,7 +646,6 @@ export function renderConfig(props: ConfigProps) {
                       ? html`<div class="config-section-hero__desc">
                         ${activeSectionMeta.description}
                       </div>`
->>>>>>> upstream/main
                       : nothing
                   }
                 </div>
@@ -761,10 +653,6 @@ export function renderConfig(props: ConfigProps) {
             `
             : nothing
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/main
         ${
           allowSubnav
             ? html`
@@ -844,13 +732,9 @@ export function renderConfig(props: ConfigProps) {
         ${
           props.issues.length > 0
             ? html`<div class="callout danger" style="margin-top: 12px;">
-<<<<<<< HEAD
-              <pre class="code-block">${JSON.stringify(props.issues, null, 2)}</pre>
-=======
               <pre class="code-block">
 ${JSON.stringify(props.issues, null, 2)}</pre
               >
->>>>>>> upstream/main
             </div>`
             : nothing
         }

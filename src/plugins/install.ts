@@ -49,19 +49,13 @@ function safeDirName(input: string): string {
   if (!trimmed) {
     return trimmed;
   }
-<<<<<<< HEAD
-  return trimmed.replaceAll("/", "__");
-=======
   return trimmed.replaceAll("/", "__").replaceAll("\\", "__");
->>>>>>> upstream/main
 }
 
 function safeFileName(input: string): string {
   return safeDirName(input);
 }
 
-<<<<<<< HEAD
-=======
 function validatePluginId(pluginId: string): string | null {
   if (!pluginId) {
     return "invalid plugin name: missing";
@@ -75,7 +69,6 @@ function validatePluginId(pluginId: string): string | null {
   return null;
 }
 
->>>>>>> upstream/main
 async function ensureOpenClawExtensions(manifest: PackageManifest) {
   const extensions = manifest[MANIFEST_KEY]?.extensions;
   if (!Array.isArray(extensions)) {
@@ -92,9 +85,6 @@ export function resolvePluginInstallDir(pluginId: string, extensionsDir?: string
   const extensionsBase = extensionsDir
     ? resolveUserPath(extensionsDir)
     : path.join(CONFIG_DIR, "extensions");
-<<<<<<< HEAD
-  return path.join(extensionsBase, safeDirName(pluginId));
-=======
   const pluginIdError = validatePluginId(pluginId);
   if (pluginIdError) {
     throw new Error(pluginIdError);
@@ -123,7 +113,6 @@ function resolveSafeInstallDir(
     return { ok: false, error: "invalid plugin name: path traversal detected" };
   }
   return { ok: true, path: targetDir };
->>>>>>> upstream/main
 }
 
 async function installPluginFromPackageDir(params: {
@@ -161,13 +150,10 @@ async function installPluginFromPackageDir(params: {
 
   const pkgName = typeof manifest.name === "string" ? manifest.name : "";
   const pluginId = pkgName ? unscopedPackageName(pkgName) : "plugin";
-<<<<<<< HEAD
-=======
   const pluginIdError = validatePluginId(pluginId);
   if (pluginIdError) {
     return { ok: false, error: pluginIdError };
   }
->>>>>>> upstream/main
   if (params.expectedPluginId && params.expectedPluginId !== pluginId) {
     return {
       ok: false,
@@ -180,15 +166,11 @@ async function installPluginFromPackageDir(params: {
     : path.join(CONFIG_DIR, "extensions");
   await fs.mkdir(extensionsDir, { recursive: true });
 
-<<<<<<< HEAD
-  const targetDir = path.join(extensionsDir, safeDirName(pluginId));
-=======
   const targetDirResult = resolveSafeInstallDir(extensionsDir, pluginId);
   if (!targetDirResult.ok) {
     return { ok: false, error: targetDirResult.error };
   }
   const targetDir = targetDirResult.path;
->>>>>>> upstream/main
 
   if (mode === "install" && (await fileExists(targetDir))) {
     return {
@@ -373,13 +355,10 @@ export async function installPluginFromFile(params: {
 
   const base = path.basename(filePath, path.extname(filePath));
   const pluginId = base || "plugin";
-<<<<<<< HEAD
-=======
   const pluginIdError = validatePluginId(pluginId);
   if (pluginIdError) {
     return { ok: false, error: pluginIdError };
   }
->>>>>>> upstream/main
   const targetFile = path.join(extensionsDir, `${safeFileName(pluginId)}${path.extname(filePath)}`);
 
   if (mode === "install" && (await fileExists(targetFile))) {

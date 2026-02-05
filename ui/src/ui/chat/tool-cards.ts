@@ -1,13 +1,4 @@
 import { html, nothing } from "lit";
-<<<<<<< HEAD
-import type { ToolCard } from "../types/chat-types";
-import { icons } from "../icons";
-import { formatToolDetail, resolveToolDisplay } from "../tool-display";
-import { TOOL_INLINE_THRESHOLD } from "./constants";
-import { extractTextCached } from "./message-extract";
-import { isToolResultMessage } from "./message-normalizer";
-import { formatToolOutputForSidebar, getTruncatedPreview } from "./tool-helpers";
-=======
 import type { ToolCard } from "../types/chat-types.ts";
 import { icons } from "../icons.ts";
 import { formatToolDetail, resolveToolDisplay } from "../tool-display.ts";
@@ -15,7 +6,6 @@ import { TOOL_INLINE_THRESHOLD } from "./constants.ts";
 import { extractTextCached } from "./message-extract.ts";
 import { isToolResultMessage } from "./message-normalizer.ts";
 import { formatToolOutputForSidebar, getTruncatedPreview } from "./tool-helpers.ts";
->>>>>>> upstream/main
 
 export function extractToolCards(message: unknown): ToolCard[] {
   const m = message as Record<string, unknown>;
@@ -23,11 +13,7 @@ export function extractToolCards(message: unknown): ToolCard[] {
   const cards: ToolCard[] = [];
 
   for (const item of content) {
-<<<<<<< HEAD
-    const kind = String(item.type ?? "").toLowerCase();
-=======
     const kind = (typeof item.type === "string" ? item.type : "").toLowerCase();
->>>>>>> upstream/main
     const isToolCall =
       ["toolcall", "tool_call", "tooluse", "tool_use"].includes(kind) ||
       (typeof item.name === "string" && item.arguments != null);
@@ -41,15 +27,10 @@ export function extractToolCards(message: unknown): ToolCard[] {
   }
 
   for (const item of content) {
-<<<<<<< HEAD
-    const kind = String(item.type ?? "").toLowerCase();
-    if (kind !== "toolresult" && kind !== "tool_result") continue;
-=======
     const kind = (typeof item.type === "string" ? item.type : "").toLowerCase();
     if (kind !== "toolresult" && kind !== "tool_result") {
       continue;
     }
->>>>>>> upstream/main
     const text = extractToolText(item);
     const name = typeof item.name === "string" ? item.name : "tool";
     cards.push({ kind: "result", name, text });
@@ -100,13 +81,9 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
       @keydown=${
         canClick
           ? (e: KeyboardEvent) => {
-<<<<<<< HEAD
-              if (e.key !== "Enter" && e.key !== " ") return;
-=======
               if (e.key !== "Enter" && e.key !== " ") {
                 return;
               }
->>>>>>> upstream/main
               e.preventDefault();
               handleClick?.();
             }
@@ -144,23 +121,13 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
 }
 
 function normalizeContent(content: unknown): Array<Record<string, unknown>> {
-<<<<<<< HEAD
-  if (!Array.isArray(content)) return [];
-=======
   if (!Array.isArray(content)) {
     return [];
   }
->>>>>>> upstream/main
   return content.filter(Boolean) as Array<Record<string, unknown>>;
 }
 
 function coerceArgs(value: unknown): unknown {
-<<<<<<< HEAD
-  if (typeof value !== "string") return value;
-  const trimmed = value.trim();
-  if (!trimmed) return value;
-  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return value;
-=======
   if (typeof value !== "string") {
     return value;
   }
@@ -171,7 +138,6 @@ function coerceArgs(value: unknown): unknown {
   if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
     return value;
   }
->>>>>>> upstream/main
   try {
     return JSON.parse(trimmed);
   } catch {
@@ -180,16 +146,11 @@ function coerceArgs(value: unknown): unknown {
 }
 
 function extractToolText(item: Record<string, unknown>): string | undefined {
-<<<<<<< HEAD
-  if (typeof item.text === "string") return item.text;
-  if (typeof item.content === "string") return item.content;
-=======
   if (typeof item.text === "string") {
     return item.text;
   }
   if (typeof item.content === "string") {
     return item.content;
   }
->>>>>>> upstream/main
   return undefined;
 }

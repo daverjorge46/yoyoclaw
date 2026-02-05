@@ -194,11 +194,7 @@ export function patchToolSchemaForClaudeCompatibility(tool: AnyAgentTool): AnyAg
     parameters: {
       ...schema,
       properties,
-<<<<<<< HEAD
-      ...(required.length > 0 ? { required } : {}),
-=======
       required,
->>>>>>> upstream/main
     },
   };
 }

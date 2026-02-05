@@ -1,18 +1,12 @@
-<<<<<<< HEAD
-=======
 import type { FenceSpan } from "../markdown/fences.js";
->>>>>>> upstream/main
 import { findFenceSpanAt, isSafeFenceBreak, parseFenceSpans } from "../markdown/fences.js";
 
 export type BlockReplyChunking = {
   minChars: number;
   maxChars: number;
   breakPreference?: "paragraph" | "newline" | "sentence";
-<<<<<<< HEAD
-=======
   /** When true, flush eagerly on \n\n paragraph boundaries regardless of minChars. */
   flushOnParagraph?: boolean;
->>>>>>> upstream/main
 };
 
 type FenceSplit = {
@@ -25,14 +19,11 @@ type BreakResult = {
   fenceSplit?: FenceSplit;
 };
 
-<<<<<<< HEAD
-=======
 type ParagraphBreak = {
   index: number;
   length: number;
 };
 
->>>>>>> upstream/main
 export class EmbeddedBlockChunker {
   #buffer = "";
   readonly #chunking: BlockReplyChunking;
@@ -66,8 +57,6 @@ export class EmbeddedBlockChunker {
     const { force, emit } = params;
     const minChars = Math.max(1, Math.floor(this.#chunking.minChars));
     const maxChars = Math.max(minChars, Math.floor(this.#chunking.maxChars));
-<<<<<<< HEAD
-=======
 
     // When flushOnParagraph is set (chunkMode="newline"), eagerly split on \n\n
     // boundaries regardless of minChars so each paragraph is sent immediately.
@@ -76,7 +65,6 @@ export class EmbeddedBlockChunker {
       return;
     }
 
->>>>>>> upstream/main
     if (this.#buffer.length < minChars && !force) {
       return;
     }
@@ -102,46 +90,10 @@ export class EmbeddedBlockChunker {
         return;
       }
 
-<<<<<<< HEAD
-      const breakIdx = breakResult.index;
-      let rawChunk = this.#buffer.slice(0, breakIdx);
-      if (rawChunk.trim().length === 0) {
-        this.#buffer = stripLeadingNewlines(this.#buffer.slice(breakIdx)).trimStart();
-        continue;
-      }
-
-      let nextBuffer = this.#buffer.slice(breakIdx);
-      const fenceSplit = breakResult.fenceSplit;
-      if (fenceSplit) {
-        const closeFence = rawChunk.endsWith("\n")
-          ? `${fenceSplit.closeFenceLine}\n`
-          : `\n${fenceSplit.closeFenceLine}\n`;
-        rawChunk = `${rawChunk}${closeFence}`;
-
-        const reopenFence = fenceSplit.reopenFenceLine.endsWith("\n")
-          ? fenceSplit.reopenFenceLine
-          : `${fenceSplit.reopenFenceLine}\n`;
-        nextBuffer = `${reopenFence}${nextBuffer}`;
-      }
-
-      emit(rawChunk);
-
-      if (fenceSplit) {
-        this.#buffer = nextBuffer;
-      } else {
-        const nextStart =
-          breakIdx < this.#buffer.length && /\s/.test(this.#buffer[breakIdx])
-            ? breakIdx + 1
-            : breakIdx;
-        this.#buffer = stripLeadingNewlines(this.#buffer.slice(nextStart));
-      }
-
-=======
       if (!this.#emitBreakResult(breakResult, emit)) {
         continue;
       }
 
->>>>>>> upstream/main
       if (this.#buffer.length < minChars && !force) {
         return;
       }
@@ -151,8 +103,6 @@ export class EmbeddedBlockChunker {
     }
   }
 
-<<<<<<< HEAD
-=======
   /** Eagerly emit complete paragraphs (text before \n\n) regardless of minChars. */
   #drainParagraphs(emit: (chunk: string) => void, maxChars: number) {
     while (this.#buffer.length > 0) {
@@ -223,7 +173,6 @@ export class EmbeddedBlockChunker {
     return true;
   }
 
->>>>>>> upstream/main
   #pickSoftBreakIndex(buffer: string, minCharsOverride?: number): BreakResult {
     const minChars = Math.max(1, Math.floor(minCharsOverride ?? this.#chunking.minChars));
     if (buffer.length < minChars) {
@@ -377,8 +326,6 @@ function stripLeadingNewlines(value: string): string {
   }
   return i > 0 ? value.slice(i) : value;
 }
-<<<<<<< HEAD
-=======
 
 function findNextParagraphBreak(
   buffer: string,
@@ -403,4 +350,3 @@ function findNextParagraphBreak(
   }
   return null;
 }
->>>>>>> upstream/main

@@ -317,8 +317,6 @@ function resolveTextMimeFromName(name?: string): string | undefined {
   return TEXT_EXT_MIME.get(ext);
 }
 
-<<<<<<< HEAD
-=======
 function isBinaryMediaMime(mime?: string): boolean {
   if (!mime) {
     return false;
@@ -326,7 +324,6 @@ function isBinaryMediaMime(mime?: string): boolean {
   return mime.startsWith("image/") || mime.startsWith("audio/") || mime.startsWith("video/");
 }
 
->>>>>>> upstream/main
 async function extractFileBlocks(params: {
   attachments: ReturnType<typeof normalizeMediaAttachments>;
   cache: ReturnType<typeof createMediaAttachmentCache>;
@@ -347,11 +344,7 @@ async function extractFileBlocks(params: {
     }
     const forcedTextMime = resolveTextMimeFromName(attachment.path ?? attachment.url ?? "");
     const kind = forcedTextMime ? "document" : resolveAttachmentKind(attachment);
-<<<<<<< HEAD
-    if (!forcedTextMime && (kind === "image" || kind === "video")) {
-=======
     if (!forcedTextMime && (kind === "image" || kind === "video" || kind === "audio")) {
->>>>>>> upstream/main
       continue;
     }
     if (!limits.allowUrl && attachment.url && !attachment.path) {
@@ -375,18 +368,6 @@ async function extractFileBlocks(params: {
     }
     const nameHint = bufferResult?.fileName ?? attachment.path ?? attachment.url;
     const forcedTextMimeResolved = forcedTextMime ?? resolveTextMimeFromName(nameHint ?? "");
-<<<<<<< HEAD
-    const utf16Charset = resolveUtf16Charset(bufferResult?.buffer);
-    const textSample = decodeTextSample(bufferResult?.buffer);
-    const textLike = Boolean(utf16Charset) || looksLikeUtf8Text(bufferResult?.buffer);
-    if (!forcedTextMimeResolved && kind === "audio" && !textLike) {
-      continue;
-    }
-    const guessedDelimited = textLike ? guessDelimitedMime(textSample) : undefined;
-    const textHint =
-      forcedTextMimeResolved ?? guessedDelimited ?? (textLike ? "text/plain" : undefined);
-    const rawMime = bufferResult?.mime ?? attachment.mime;
-=======
     const rawMime = bufferResult?.mime ?? attachment.mime;
     const normalizedRawMime = normalizeMimeType(rawMime);
     if (!forcedTextMimeResolved && isBinaryMediaMime(normalizedRawMime)) {
@@ -398,7 +379,6 @@ async function extractFileBlocks(params: {
     const guessedDelimited = textLike ? guessDelimitedMime(textSample) : undefined;
     const textHint =
       forcedTextMimeResolved ?? guessedDelimited ?? (textLike ? "text/plain" : undefined);
->>>>>>> upstream/main
     const mimeType = sanitizeMimeType(textHint ?? normalizeMimeType(rawMime));
     // Log when MIME type is overridden from non-text to text for auditability
     if (textHint && rawMime && !rawMime.startsWith("text/")) {

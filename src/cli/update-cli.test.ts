@@ -42,8 +42,6 @@ vi.mock("../infra/update-check.js", async () => {
   };
 });
 
-<<<<<<< HEAD
-=======
 vi.mock("node:child_process", async () => {
   const actual = await vi.importActual<typeof import("node:child_process")>("node:child_process");
   return {
@@ -59,7 +57,6 @@ vi.mock("node:child_process", async () => {
   };
 });
 
->>>>>>> upstream/main
 vi.mock("../process/exec.js", () => ({
   runCommandWithTimeout: vi.fn(),
 }));

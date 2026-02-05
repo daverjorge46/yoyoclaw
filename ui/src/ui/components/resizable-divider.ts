@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { LitElement, html, css } from "lit";
-=======
 import { LitElement, css, nothing } from "lit";
->>>>>>> upstream/main
 import { customElement, property } from "lit/decorators.js";
 
 /**
@@ -28,10 +24,6 @@ export class ResizableDivider extends LitElement {
       flex-shrink: 0;
       position: relative;
     }
-<<<<<<< HEAD
-    
-=======
->>>>>>> upstream/main
     :host::before {
       content: "";
       position: absolute;
@@ -40,30 +32,16 @@ export class ResizableDivider extends LitElement {
       right: -4px;
       bottom: 0;
     }
-<<<<<<< HEAD
-    
     :host(:hover) {
       background: var(--accent, #007bff);
     }
-    
-=======
-    :host(:hover) {
-      background: var(--accent, #007bff);
-    }
->>>>>>> upstream/main
     :host(.dragging) {
       background: var(--accent, #007bff);
     }
   `;
 
   render() {
-<<<<<<< HEAD
-    return html`
-      
-    `;
-=======
     return nothing;
->>>>>>> upstream/main
   }
 
   connectedCallback() {
@@ -91,12 +69,6 @@ export class ResizableDivider extends LitElement {
   };
 
   private handleMouseMove = (e: MouseEvent) => {
-<<<<<<< HEAD
-    if (!this.isDragging) return;
-
-    const container = this.parentElement;
-    if (!container) return;
-=======
     if (!this.isDragging) {
       return;
     }
@@ -105,7 +77,6 @@ export class ResizableDivider extends LitElement {
     if (!container) {
       return;
     }
->>>>>>> upstream/main
 
     const containerWidth = container.getBoundingClientRect().width;
     const deltaX = e.clientX - this.startX;

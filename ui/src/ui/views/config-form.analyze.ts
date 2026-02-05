@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { pathKey, schemaType, type JsonSchema } from "./config-form.shared";
-=======
 import { pathKey, schemaType, type JsonSchema } from "./config-form.shared.ts";
->>>>>>> upstream/main
 
 export type ConfigSchemaAnalysis = {
   schema: JsonSchema | null;
@@ -45,13 +41,9 @@ function normalizeSchemaNode(
 
   if (schema.anyOf || schema.oneOf || schema.allOf) {
     const union = normalizeUnion(schema, path);
-<<<<<<< HEAD
-    if (union) return union;
-=======
     if (union) {
       return union;
     }
->>>>>>> upstream/main
     return { schema, unsupportedPaths: [pathLabel] };
   }
 
@@ -64,17 +56,12 @@ function normalizeSchemaNode(
   if (normalized.enum) {
     const { enumValues, nullable: enumNullable } = normalizeEnum(normalized.enum);
     normalized.enum = enumValues;
-<<<<<<< HEAD
-    if (enumNullable) normalized.nullable = true;
-    if (enumValues.length === 0) unsupported.add(pathLabel);
-=======
     if (enumNullable) {
       normalized.nullable = true;
     }
     if (enumValues.length === 0) {
       unsupported.add(pathLabel);
     }
->>>>>>> upstream/main
   }
 
   if (type === "object") {
@@ -82,17 +69,12 @@ function normalizeSchemaNode(
     const normalizedProps: Record<string, JsonSchema> = {};
     for (const [key, value] of Object.entries(properties)) {
       const res = normalizeSchemaNode(value, [...path, key]);
-<<<<<<< HEAD
-      if (res.schema) normalizedProps[key] = res.schema;
-      for (const entry of res.unsupportedPaths) unsupported.add(entry);
-=======
       if (res.schema) {
         normalizedProps[key] = res.schema;
       }
       for (const entry of res.unsupportedPaths) {
         unsupported.add(entry);
       }
->>>>>>> upstream/main
     }
     normalized.properties = normalizedProps;
 
@@ -101,19 +83,12 @@ function normalizeSchemaNode(
     } else if (schema.additionalProperties === false) {
       normalized.additionalProperties = false;
     } else if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
-<<<<<<< HEAD
-      if (!isAnySchema(schema.additionalProperties as JsonSchema)) {
-        const res = normalizeSchemaNode(schema.additionalProperties as JsonSchema, [...path, "*"]);
-        normalized.additionalProperties = res.schema ?? (schema.additionalProperties as JsonSchema);
-        if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
-=======
       if (!isAnySchema(schema.additionalProperties)) {
         const res = normalizeSchemaNode(schema.additionalProperties, [...path, "*"]);
         normalized.additionalProperties = res.schema ?? schema.additionalProperties;
         if (res.unsupportedPaths.length > 0) {
           unsupported.add(pathLabel);
         }
->>>>>>> upstream/main
       }
     }
   } else if (type === "array") {
@@ -123,13 +98,9 @@ function normalizeSchemaNode(
     } else {
       const res = normalizeSchemaNode(itemsSchema, [...path, "*"]);
       normalized.items = res.schema ?? itemsSchema;
-<<<<<<< HEAD
-      if (res.unsupportedPaths.length > 0) unsupported.add(pathLabel);
-=======
       if (res.unsupportedPaths.length > 0) {
         unsupported.add(pathLabel);
       }
->>>>>>> upstream/main
     }
   } else if (
     type !== "string" &&
@@ -151,11 +122,6 @@ function normalizeUnion(
   schema: JsonSchema,
   path: Array<string | number>,
 ): ConfigSchemaAnalysis | null {
-<<<<<<< HEAD
-  if (schema.allOf) return null;
-  const union = schema.anyOf ?? schema.oneOf;
-  if (!union) return null;
-=======
   if (schema.allOf) {
     return null;
   }
@@ -163,20 +129,12 @@ function normalizeUnion(
   if (!union) {
     return null;
   }
->>>>>>> upstream/main
 
   const literals: unknown[] = [];
   const remaining: JsonSchema[] = [];
   let nullable = false;
 
   for (const entry of union) {
-<<<<<<< HEAD
-    if (!entry || typeof entry !== "object") return null;
-    if (Array.isArray(entry.enum)) {
-      const { enumValues, nullable: enumNullable } = normalizeEnum(entry.enum);
-      literals.push(...enumValues);
-      if (enumNullable) nullable = true;
-=======
     if (!entry || typeof entry !== "object") {
       return null;
     }
@@ -186,7 +144,6 @@ function normalizeUnion(
       if (enumNullable) {
         nullable = true;
       }
->>>>>>> upstream/main
       continue;
     }
     if ("const" in entry) {
@@ -232,19 +189,11 @@ function normalizeUnion(
     return res;
   }
 
-<<<<<<< HEAD
-  const primitiveTypes = ["string", "number", "integer", "boolean"];
-  if (
-    remaining.length > 0 &&
-    literals.length === 0 &&
-    remaining.every((entry) => entry.type && primitiveTypes.includes(String(entry.type)))
-=======
   const primitiveTypes = new Set(["string", "number", "integer", "boolean"]);
   if (
     remaining.length > 0 &&
     literals.length === 0 &&
     remaining.every((entry) => entry.type && primitiveTypes.has(String(entry.type)))
->>>>>>> upstream/main
   ) {
     return {
       schema: {

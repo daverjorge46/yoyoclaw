@@ -189,9 +189,6 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-<<<<<<< HEAD
-    const installPath = record.installPath ?? resolvePluginInstallDir(pluginId);
-=======
     let installPath: string;
     try {
       installPath = record.installPath ?? resolvePluginInstallDir(pluginId);
@@ -203,7 +200,6 @@ export async function updateNpmInstalledPlugins(params: {
       });
       continue;
     }
->>>>>>> upstream/main
     const currentVersion = await readInstalledPackageVersion(installPath);
 
     if (params.dryRun) {

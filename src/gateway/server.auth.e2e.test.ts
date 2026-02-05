@@ -11,10 +11,7 @@ import {
   onceMessage,
   startGatewayServer,
   startServerWithClient,
-<<<<<<< HEAD
-=======
   testTailscaleWhois,
->>>>>>> upstream/main
   testState,
 } from "./test-helpers.js";
 
@@ -39,8 +36,6 @@ const openWs = async (port: number) => {
   return ws;
 };
 
-<<<<<<< HEAD
-=======
 const openTailscaleWs = async (port: number) => {
   const ws = new WebSocket(`ws://127.0.0.1:${port}`, {
     headers: {
@@ -55,7 +50,6 @@ const openTailscaleWs = async (port: number) => {
   return ws;
 };
 
->>>>>>> upstream/main
 describe("gateway server auth/connect", () => {
   describe("default auth (token)", () => {
     let server: Awaited<ReturnType<typeof startGatewayServer>>;
@@ -300,8 +294,6 @@ describe("gateway server auth/connect", () => {
     });
   });
 
-<<<<<<< HEAD
-=======
   describe("tailscale auth", () => {
     let server: Awaited<ReturnType<typeof startGatewayServer>>;
     let port: number;
@@ -340,7 +332,6 @@ describe("gateway server auth/connect", () => {
     });
   });
 
->>>>>>> upstream/main
   test("allows control ui without device identity when insecure auth is enabled", async () => {
     testState.gatewayControlUi = { allowInsecureAuth: true };
     const { server, ws, prevToken } = await startServerWithClient("secret");
@@ -372,10 +363,7 @@ describe("gateway server auth/connect", () => {
       gateway: {
         trustedProxies: ["127.0.0.1"],
       },
-<<<<<<< HEAD
-=======
       // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     } as any);
     const prevToken = process.env.OPENCLAW_GATEWAY_TOKEN;
     process.env.OPENCLAW_GATEWAY_TOKEN = "secret";

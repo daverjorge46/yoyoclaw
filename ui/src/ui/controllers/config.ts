@@ -1,20 +1,11 @@
-<<<<<<< HEAD
-import type { GatewayBrowserClient } from "../gateway";
-import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types";
-=======
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ConfigSchemaResponse, ConfigSnapshot, ConfigUiHints } from "../types.ts";
->>>>>>> upstream/main
 import {
   cloneConfigObject,
   removePathValue,
   serializeConfigForm,
   setPathValue,
-<<<<<<< HEAD
-} from "./config/form-utils";
-=======
 } from "./config/form-utils.ts";
->>>>>>> upstream/main
 
 export type ConfigState = {
   client: GatewayBrowserClient | null;
@@ -29,11 +20,7 @@ export type ConfigState = {
   configApplying: boolean;
   updateRunning: boolean;
   configSnapshot: ConfigSnapshot | null;
-<<<<<<< HEAD
-  configSchema: unknown | null;
-=======
   configSchema: unknown;
->>>>>>> upstream/main
   configSchemaVersion: string | null;
   configSchemaLoading: boolean;
   configUiHints: ConfigUiHints;
@@ -48,13 +35,6 @@ export type ConfigState = {
 };
 
 export async function loadConfig(state: ConfigState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  state.configLoading = true;
-  state.lastError = null;
-  try {
-    const res = (await state.client.request("config.get", {})) as ConfigSnapshot;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -62,7 +42,6 @@ export async function loadConfig(state: ConfigState) {
   state.lastError = null;
   try {
     const res = await state.client.request<ConfigSnapshot>("config.get", {});
->>>>>>> upstream/main
     applyConfigSnapshot(state, res);
   } catch (err) {
     state.lastError = String(err);
@@ -72,13 +51,6 @@ export async function loadConfig(state: ConfigState) {
 }
 
 export async function loadConfigSchema(state: ConfigState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  if (state.configSchemaLoading) return;
-  state.configSchemaLoading = true;
-  try {
-    const res = (await state.client.request("config.schema", {})) as ConfigSchemaResponse;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -88,7 +60,6 @@ export async function loadConfigSchema(state: ConfigState) {
   state.configSchemaLoading = true;
   try {
     const res = await state.client.request<ConfigSchemaResponse>("config.schema", {});
->>>>>>> upstream/main
     applyConfigSchema(state, res);
   } catch (err) {
     state.lastError = String(err);
@@ -109,11 +80,7 @@ export function applyConfigSnapshot(state: ConfigState, snapshot: ConfigSnapshot
     typeof snapshot.raw === "string"
       ? snapshot.raw
       : snapshot.config && typeof snapshot.config === "object"
-<<<<<<< HEAD
-        ? serializeConfigForm(snapshot.config as Record<string, unknown>)
-=======
         ? serializeConfigForm(snapshot.config)
->>>>>>> upstream/main
         : state.configRaw;
   if (!state.configFormDirty || state.configFormMode === "raw") {
     state.configRaw = rawFromSnapshot;
@@ -133,13 +100,9 @@ export function applyConfigSnapshot(state: ConfigState, snapshot: ConfigSnapshot
 }
 
 export async function saveConfig(state: ConfigState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   state.configSaving = true;
   state.lastError = null;
   try {
@@ -163,13 +126,9 @@ export async function saveConfig(state: ConfigState) {
 }
 
 export async function applyConfig(state: ConfigState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   state.configApplying = true;
   state.lastError = null;
   try {
@@ -197,13 +156,9 @@ export async function applyConfig(state: ConfigState) {
 }
 
 export async function runUpdate(state: ConfigState) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   state.updateRunning = true;
   state.lastError = null;
   try {

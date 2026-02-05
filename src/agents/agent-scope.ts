@@ -19,10 +19,7 @@ type ResolvedAgentConfig = {
   workspace?: string;
   agentDir?: string;
   model?: AgentEntry["model"];
-<<<<<<< HEAD
-=======
   skills?: AgentEntry["skills"];
->>>>>>> upstream/main
   memorySearch?: AgentEntry["memorySearch"];
   humanDelay?: AgentEntry["humanDelay"];
   heartbeat?: AgentEntry["heartbeat"];
@@ -116,10 +113,7 @@ export function resolveAgentConfig(
       typeof entry.model === "string" || (entry.model && typeof entry.model === "object")
         ? entry.model
         : undefined,
-<<<<<<< HEAD
-=======
     skills: Array.isArray(entry.skills) ? entry.skills : undefined,
->>>>>>> upstream/main
     memorySearch: entry.memorySearch,
     humanDelay: entry.humanDelay,
     heartbeat: entry.heartbeat,
@@ -131,8 +125,6 @@ export function resolveAgentConfig(
   };
 }
 
-<<<<<<< HEAD
-=======
 export function resolveAgentSkillsFilter(
   cfg: OpenClawConfig,
   agentId: string,
@@ -145,7 +137,6 @@ export function resolveAgentSkillsFilter(
   return normalized.length > 0 ? normalized : [];
 }
 
->>>>>>> upstream/main
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {
   const raw = resolveAgentConfig(cfg, agentId)?.model;
   if (!raw) {

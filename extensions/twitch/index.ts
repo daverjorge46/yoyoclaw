@@ -12,10 +12,7 @@ const plugin = {
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
     setTwitchRuntime(api.runtime);
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     api.registerChannel({ plugin: twitchPlugin as any });
   },
 };

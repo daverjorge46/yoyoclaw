@@ -5,19 +5,13 @@
   },
   {
     "source": "Gateway",
-<<<<<<< HEAD
-    "target": "Gateway"
-=======
     "target": "Gateway 网关"
->>>>>>> upstream/main
   },
   {
     "source": "Pi",
     "target": "Pi"
   },
   {
-<<<<<<< HEAD
-=======
     "source": "Skills",
     "target": "Skills"
   },
@@ -44,6 +38,26 @@
   {
     "source": "Getting started",
     "target": "入门指南"
+  },
+  {
+    "source": "Quick start",
+    "target": "快速开始"
+  },
+  {
+    "source": "Quick Start",
+    "target": "快速开始"
+  },
+  {
+    "source": "Docs directory",
+    "target": "文档目录"
+  },
+  {
+    "source": "Credits",
+    "target": "致谢"
+  },
+  {
+    "source": "Features",
+    "target": "功能"
   },
   {
     "source": "DMs",
@@ -122,7 +136,6 @@
     "target": "凭证：存储位置（重要）"
   },
   {
->>>>>>> upstream/main
     "source": "agent",
     "target": "智能体"
   },
@@ -156,11 +169,7 @@
   },
   {
     "source": "get unstuck",
-<<<<<<< HEAD
-    "target": "快速排障"
-=======
     "target": "解决问题"
->>>>>>> upstream/main
   },
   {
     "source": "troubleshooting",
@@ -172,15 +181,11 @@
   },
   {
     "source": "onboarding",
-<<<<<<< HEAD
-    "target": "上手引导"
-=======
     "target": "新手引导"
   },
   {
     "source": "Onboarding",
     "target": "新手引导"
->>>>>>> upstream/main
   },
   {
     "source": "wizard",

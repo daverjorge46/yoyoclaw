@@ -21,8 +21,6 @@ function createRunner(responses: Record<string, CommandResult>) {
   return { runner, calls };
 }
 
-<<<<<<< HEAD
-=======
 async function pathExists(targetPath: string): Promise<boolean> {
   try {
     await fs.stat(targetPath);
@@ -32,7 +30,6 @@ async function pathExists(targetPath: string): Promise<boolean> {
   }
 }
 
->>>>>>> upstream/main
 describe("runGatewayUpdate", () => {
   let tempDir: string;
 
@@ -211,8 +208,6 @@ describe("runGatewayUpdate", () => {
     expect(calls.some((call) => call === "npm i -g openclaw@latest")).toBe(true);
   });
 
-<<<<<<< HEAD
-=======
   it("uses update channel for global npm installs when tag is omitted", async () => {
     const nodeModules = path.join(tempDir, "node_modules");
     const pkgRoot = path.join(nodeModules, "openclaw");
@@ -303,7 +298,6 @@ describe("runGatewayUpdate", () => {
     expect(await pathExists(staleDir)).toBe(false);
   });
 
->>>>>>> upstream/main
   it("updates global npm installs with tag override", async () => {
     const nodeModules = path.join(tempDir, "node_modules");
     const pkgRoot = path.join(nodeModules, "openclaw");

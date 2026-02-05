@@ -1,4 +1,5 @@
 import AjvPkg, { type ErrorObject } from "ajv";
+import type { SessionsPatchResult } from "../session-utils.types.js";
 import {
   type AgentEvent,
   AgentEventSchema,
@@ -9,8 +10,6 @@ import {
   AgentParamsSchema,
   type AgentSummary,
   AgentSummarySchema,
-<<<<<<< HEAD
-=======
   type AgentsFileEntry,
   AgentsFileEntrySchema,
   type AgentsFilesGetParams,
@@ -25,7 +24,6 @@ import {
   AgentsFilesSetParamsSchema,
   type AgentsFilesSetResult,
   AgentsFilesSetResultSchema,
->>>>>>> upstream/main
   type AgentsListParams,
   AgentsListParamsSchema,
   type AgentsListResult,
@@ -226,8 +224,6 @@ export const validateAgentIdentityParams =
 export const validateAgentWaitParams = ajv.compile<AgentWaitParams>(AgentWaitParamsSchema);
 export const validateWakeParams = ajv.compile<WakeParams>(WakeParamsSchema);
 export const validateAgentsListParams = ajv.compile<AgentsListParams>(AgentsListParamsSchema);
-<<<<<<< HEAD
-=======
 export const validateAgentsFilesListParams = ajv.compile<AgentsFilesListParams>(
   AgentsFilesListParamsSchema,
 );
@@ -237,7 +233,6 @@ export const validateAgentsFilesGetParams = ajv.compile<AgentsFilesGetParams>(
 export const validateAgentsFilesSetParams = ajv.compile<AgentsFilesSetParams>(
   AgentsFilesSetParamsSchema,
 );
->>>>>>> upstream/main
 export const validateNodePairRequestParams = ajv.compile<NodePairRequestParams>(
   NodePairRequestParamsSchema,
 );
@@ -437,8 +432,6 @@ export {
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
   AgentSummarySchema,
-<<<<<<< HEAD
-=======
   AgentsFileEntrySchema,
   AgentsFilesListParamsSchema,
   AgentsFilesListResultSchema,
@@ -446,7 +439,6 @@ export {
   AgentsFilesGetResultSchema,
   AgentsFilesSetParamsSchema,
   AgentsFilesSetResultSchema,
->>>>>>> upstream/main
   AgentsListParamsSchema,
   AgentsListResultSchema,
   ModelsListParamsSchema,
@@ -521,8 +513,6 @@ export type {
   WebLoginStartParams,
   WebLoginWaitParams,
   AgentSummary,
-<<<<<<< HEAD
-=======
   AgentsFileEntry,
   AgentsFilesListParams,
   AgentsFilesListResult,
@@ -530,7 +520,6 @@ export type {
   AgentsFilesGetResult,
   AgentsFilesSetParams,
   AgentsFilesSetResult,
->>>>>>> upstream/main
   AgentsListParams,
   AgentsListResult,
   SkillsStatusParams,
@@ -548,6 +537,7 @@ export type {
   SessionsPreviewParams,
   SessionsResolveParams,
   SessionsPatchParams,
+  SessionsPatchResult,
   SessionsResetParams,
   SessionsDeleteParams,
   SessionsCompactParams,

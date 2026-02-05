@@ -1,23 +1,16 @@
 import type { OpenClawConfig } from "../../config/config.js";
 import type { GatewayRequestHandlers } from "./types.js";
-<<<<<<< HEAD
-import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
-=======
 import {
   listAgentIds,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
->>>>>>> upstream/main
 import { installSkill } from "../../agents/skills-install.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
 import { loadConfig, writeConfigFile } from "../../config/config.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
-<<<<<<< HEAD
-=======
 import { normalizeAgentId } from "../../routing/session-key.js";
->>>>>>> upstream/main
 import {
   ErrorCodes,
   errorShape,
@@ -87,9 +80,6 @@ export const skillsHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
-<<<<<<< HEAD
-    const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-=======
     const agentIdRaw = typeof params?.agentId === "string" ? params.agentId.trim() : "";
     const agentId = agentIdRaw ? normalizeAgentId(agentIdRaw) : resolveDefaultAgentId(cfg);
     if (agentIdRaw) {
@@ -104,7 +94,6 @@ export const skillsHandlers: GatewayRequestHandlers = {
       }
     }
     const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
->>>>>>> upstream/main
     const report = buildWorkspaceSkillStatus(workspaceDir, {
       config: cfg,
       eligibility: { remote: getRemoteSkillEligibility() },

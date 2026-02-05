@@ -6,19 +6,12 @@ export const TAB_GROUPS = [
     label: "Control",
     tabs: ["overview", "channels", "instances", "sessions", "cron"],
   },
-<<<<<<< HEAD
-  { label: "Agent", tabs: ["skills", "nodes"] },
-=======
   { label: "Agent", tabs: ["agents", "skills", "nodes"] },
->>>>>>> upstream/main
   { label: "Settings", tabs: ["config", "debug", "logs"] },
 ] as const;
 
 export type Tab =
-<<<<<<< HEAD
-=======
   | "agents"
->>>>>>> upstream/main
   | "overview"
   | "channels"
   | "instances"
@@ -32,10 +25,7 @@ export type Tab =
   | "logs";
 
 const TAB_PATHS: Record<Tab, string> = {
-<<<<<<< HEAD
-=======
   agents: "/agents",
->>>>>>> upstream/main
   overview: "/overview",
   channels: "/channels",
   instances: "/instances",
@@ -52,13 +42,6 @@ const TAB_PATHS: Record<Tab, string> = {
 const PATH_TO_TAB = new Map(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab as Tab]));
 
 export function normalizeBasePath(basePath: string): string {
-<<<<<<< HEAD
-  if (!basePath) return "";
-  let base = basePath.trim();
-  if (!base.startsWith("/")) base = `/${base}`;
-  if (base === "/") return "";
-  if (base.endsWith("/")) base = base.slice(0, -1);
-=======
   if (!basePath) {
     return "";
   }
@@ -72,16 +55,10 @@ export function normalizeBasePath(basePath: string): string {
   if (base.endsWith("/")) {
     base = base.slice(0, -1);
   }
->>>>>>> upstream/main
   return base;
 }
 
 export function normalizePath(path: string): string {
-<<<<<<< HEAD
-  if (!path) return "/";
-  let normalized = path.trim();
-  if (!normalized.startsWith("/")) normalized = `/${normalized}`;
-=======
   if (!path) {
     return "/";
   }
@@ -89,7 +66,6 @@ export function normalizePath(path: string): string {
   if (!normalized.startsWith("/")) {
     normalized = `/${normalized}`;
   }
->>>>>>> upstream/main
   if (normalized.length > 1 && normalized.endsWith("/")) {
     normalized = normalized.slice(0, -1);
   }
@@ -113,17 +89,12 @@ export function tabFromPath(pathname: string, basePath = ""): Tab | null {
     }
   }
   let normalized = normalizePath(path).toLowerCase();
-<<<<<<< HEAD
-  if (normalized.endsWith("/index.html")) normalized = "/";
-  if (normalized === "/") return "chat";
-=======
   if (normalized.endsWith("/index.html")) {
     normalized = "/";
   }
   if (normalized === "/") {
     return "chat";
   }
->>>>>>> upstream/main
   return PATH_TO_TAB.get(normalized) ?? null;
 }
 
@@ -132,11 +103,6 @@ export function inferBasePathFromPathname(pathname: string): string {
   if (normalized.endsWith("/index.html")) {
     normalized = normalizePath(normalized.slice(0, -"/index.html".length));
   }
-<<<<<<< HEAD
-  if (normalized === "/") return "";
-  const segments = normalized.split("/").filter(Boolean);
-  if (segments.length === 0) return "";
-=======
   if (normalized === "/") {
     return "";
   }
@@ -144,7 +110,6 @@ export function inferBasePathFromPathname(pathname: string): string {
   if (segments.length === 0) {
     return "";
   }
->>>>>>> upstream/main
   for (let i = 0; i < segments.length; i++) {
     const candidate = `/${segments.slice(i).join("/")}`.toLowerCase();
     if (PATH_TO_TAB.has(candidate)) {
@@ -157,11 +122,8 @@ export function inferBasePathFromPathname(pathname: string): string {
 
 export function iconForTab(tab: Tab): IconName {
   switch (tab) {
-<<<<<<< HEAD
-=======
     case "agents":
       return "folder";
->>>>>>> upstream/main
     case "chat":
       return "messageSquare";
     case "overview":
@@ -191,11 +153,8 @@ export function iconForTab(tab: Tab): IconName {
 
 export function titleForTab(tab: Tab) {
   switch (tab) {
-<<<<<<< HEAD
-=======
     case "agents":
       return "Agents";
->>>>>>> upstream/main
     case "overview":
       return "Overview";
     case "channels":
@@ -225,11 +184,8 @@ export function titleForTab(tab: Tab) {
 
 export function subtitleForTab(tab: Tab) {
   switch (tab) {
-<<<<<<< HEAD
-=======
     case "agents":
       return "Manage agent workspaces, tools, and identities.";
->>>>>>> upstream/main
     case "overview":
       return "Gateway status, entry points, and a fast health read.";
     case "channels":

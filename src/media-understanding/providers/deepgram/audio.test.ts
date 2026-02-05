@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { describe, expect, it } from "vitest";
-import { transcribeDeepgramAudio } from "./audio.js";
-
-=======
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../../../infra/net/ssrf.js";
 import { transcribeDeepgramAudio } from "./audio.js";
@@ -13,7 +8,6 @@ const lookupMock = vi.fn();
 let resolvePinnedHostnameSpy: ReturnType<typeof vi.spyOn> = null;
 let resolvePinnedHostnameWithPolicySpy: ReturnType<typeof vi.spyOn> = null;
 
->>>>>>> upstream/main
 const resolveRequestUrl = (input: RequestInfo | URL) => {
   if (typeof input === "string") {
     return input;
@@ -25,8 +19,6 @@ const resolveRequestUrl = (input: RequestInfo | URL) => {
 };
 
 describe("transcribeDeepgramAudio", () => {
-<<<<<<< HEAD
-=======
   beforeEach(() => {
     lookupMock.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
     resolvePinnedHostnameSpy = vi
@@ -47,7 +39,6 @@ describe("transcribeDeepgramAudio", () => {
     resolvePinnedHostnameWithPolicySpy = null;
   });
 
->>>>>>> upstream/main
   it("respects lowercase authorization header overrides", async () => {
     let seenAuth: string | null = null;
     const fetchFn = async (_input: RequestInfo | URL, init?: RequestInit) => {

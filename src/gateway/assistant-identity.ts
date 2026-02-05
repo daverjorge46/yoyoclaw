@@ -6,10 +6,7 @@ import { normalizeAgentId } from "../routing/session-key.js";
 
 const MAX_ASSISTANT_NAME = 50;
 const MAX_ASSISTANT_AVATAR = 200;
-<<<<<<< HEAD
-=======
 const MAX_ASSISTANT_EMOJI = 16;
->>>>>>> upstream/main
 
 export const DEFAULT_ASSISTANT_IDENTITY: AssistantIdentity = {
   agentId: "main",
@@ -21,10 +18,7 @@ export type AssistantIdentity = {
   agentId: string;
   name: string;
   avatar: string;
-<<<<<<< HEAD
-=======
   emoji?: string;
->>>>>>> upstream/main
 };
 
 function coerceIdentityValue(value: string | undefined, maxLength: number): string | undefined {
@@ -72,8 +66,6 @@ function normalizeAvatarValue(value: string | undefined): string | undefined {
   return undefined;
 }
 
-<<<<<<< HEAD
-=======
 function normalizeEmojiValue(value: string | undefined): string | undefined {
   if (!value) {
     return undefined;
@@ -101,7 +93,6 @@ function normalizeEmojiValue(value: string | undefined): string | undefined {
   return trimmed;
 }
 
->>>>>>> upstream/main
 export function resolveAssistantIdentity(params: {
   cfg: OpenClawConfig;
   agentId?: string | null;
@@ -130,9 +121,6 @@ export function resolveAssistantIdentity(params: {
     avatarCandidates.map((candidate) => normalizeAvatarValue(candidate)).find(Boolean) ??
     DEFAULT_ASSISTANT_IDENTITY.avatar;
 
-<<<<<<< HEAD
-  return { agentId, name, avatar };
-=======
   const emojiCandidates = [
     coerceIdentityValue(agentIdentity?.emoji, MAX_ASSISTANT_EMOJI),
     coerceIdentityValue(fileIdentity?.emoji, MAX_ASSISTANT_EMOJI),
@@ -142,5 +130,4 @@ export function resolveAssistantIdentity(params: {
   const emoji = emojiCandidates.map((candidate) => normalizeEmojiValue(candidate)).find(Boolean);
 
   return { agentId, name, avatar, emoji };
->>>>>>> upstream/main
 }

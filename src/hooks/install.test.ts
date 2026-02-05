@@ -118,8 +118,6 @@ describe("installHooksFromArchive", () => {
     expect(result.hooks).toContain("tar-hook");
     expect(result.targetDir).toBe(path.join(stateDir, "hooks", "tar-hooks"));
   });
-<<<<<<< HEAD
-=======
 
   it("rejects hook packs with traversal-like ids", async () => {
     const stateDir = makeTempDir();
@@ -214,7 +212,6 @@ describe("installHooksFromArchive", () => {
     }
     expect(result.error).toContain("reserved path segment");
   });
->>>>>>> upstream/main
 });
 
 describe("installHooksFromPath", () => {

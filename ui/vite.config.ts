@@ -6,15 +6,6 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 function normalizeBase(input: string): string {
   const trimmed = input.trim();
-<<<<<<< HEAD
-  if (!trimmed) return "/";
-  if (trimmed === "./") return "./";
-  if (trimmed.endsWith("/")) return trimmed;
-  return `${trimmed}/`;
-}
-
-export default defineConfig(({ command }) => {
-=======
   if (!trimmed) {
     return "/";
   }
@@ -28,7 +19,6 @@ export default defineConfig(({ command }) => {
 }
 
 export default defineConfig(() => {
->>>>>>> upstream/main
   const envBase = process.env.OPENCLAW_CONTROL_UI_BASE_PATH?.trim();
   const base = envBase ? normalizeBase(envBase) : "./";
   return {

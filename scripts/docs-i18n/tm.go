@@ -52,11 +52,7 @@ func LoadTranslationMemory(path string) (*TranslationMemory, error) {
 				if err := json.Unmarshal([]byte(trimmed), &entry); err != nil {
 					return nil, fmt.Errorf("translation memory decode failed: %w", err)
 				}
-<<<<<<< HEAD
-				if entry.CacheKey != "" {
-=======
 				if entry.CacheKey != "" && strings.TrimSpace(entry.Translated) != "" {
->>>>>>> upstream/main
 					tm.entries[entry.CacheKey] = entry
 				}
 			}
@@ -73,9 +69,6 @@ func LoadTranslationMemory(path string) (*TranslationMemory, error) {
 
 func (tm *TranslationMemory) Get(cacheKey string) (TMEntry, bool) {
 	entry, ok := tm.entries[cacheKey]
-<<<<<<< HEAD
-	return entry, ok
-=======
 	if !ok {
 		return TMEntry{}, false
 	}
@@ -83,7 +76,6 @@ func (tm *TranslationMemory) Get(cacheKey string) (TMEntry, bool) {
 		return TMEntry{}, false
 	}
 	return entry, true
->>>>>>> upstream/main
 }
 
 func (tm *TranslationMemory) Put(entry TMEntry) {

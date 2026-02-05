@@ -131,8 +131,6 @@ describe("exec approvals shell parsing", () => {
     expect(res.ok).toBe(true);
     expect(res.segments[0]?.argv).toEqual(["/bin/echo", "ok"]);
   });
-<<<<<<< HEAD
-=======
 
   it("rejects command substitution inside double quotes", () => {
     const res = analyzeShellCommand({ command: 'echo "output: $(whoami)"' });
@@ -181,7 +179,6 @@ describe("exec approvals shell parsing", () => {
     expect(res.ok).toBe(true);
     expect(res.segments[0]?.argv).toEqual(["C:\\Program Files\\Tool\\tool.exe", "--version"]);
   });
->>>>>>> upstream/main
 });
 
 describe("exec approvals shell allowlist (chained commands)", () => {
@@ -236,8 +233,6 @@ describe("exec approvals shell allowlist (chained commands)", () => {
     expect(result.analysisOk).toBe(true);
     expect(result.allowlistSatisfied).toBe(true);
   });
-<<<<<<< HEAD
-=======
 
   it("respects escaped quotes when splitting chains", () => {
     const allowlist: ExecAllowlistEntry[] = [{ pattern: "/usr/bin/echo" }];
@@ -263,7 +258,6 @@ describe("exec approvals shell allowlist (chained commands)", () => {
     expect(result.analysisOk).toBe(false);
     expect(result.allowlistSatisfied).toBe(false);
   });
->>>>>>> upstream/main
 });
 
 describe("exec approvals safe bins", () => {

@@ -1,18 +1,10 @@
 import DOMPurify from "dompurify";
 import { marked } from "marked";
-<<<<<<< HEAD
-import { truncateText } from "./format";
-=======
 import { truncateText } from "./format.ts";
->>>>>>> upstream/main
 
 marked.setOptions({
   gfm: true,
   breaks: true,
-<<<<<<< HEAD
-  mangle: false,
-=======
->>>>>>> upstream/main
 });
 
 const allowedTags = [
@@ -54,13 +46,9 @@ const markdownCache = new Map<string, string>();
 
 function getCachedMarkdown(key: string): string | null {
   const cached = markdownCache.get(key);
-<<<<<<< HEAD
-  if (cached === undefined) return null;
-=======
   if (cached === undefined) {
     return null;
   }
->>>>>>> upstream/main
   markdownCache.delete(key);
   markdownCache.set(key, cached);
   return cached;
@@ -68,21 +56,6 @@ function getCachedMarkdown(key: string): string | null {
 
 function setCachedMarkdown(key: string, value: string) {
   markdownCache.set(key, value);
-<<<<<<< HEAD
-  if (markdownCache.size <= MARKDOWN_CACHE_LIMIT) return;
-  const oldest = markdownCache.keys().next().value;
-  if (oldest) markdownCache.delete(oldest);
-}
-
-function installHooks() {
-  if (hooksInstalled) return;
-  hooksInstalled = true;
-
-  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-    if (!(node instanceof HTMLAnchorElement)) return;
-    const href = node.getAttribute("href");
-    if (!href) return;
-=======
   if (markdownCache.size <= MARKDOWN_CACHE_LIMIT) {
     return;
   }
@@ -106,7 +79,6 @@ function installHooks() {
     if (!href) {
       return;
     }
->>>>>>> upstream/main
     node.setAttribute("rel", "noreferrer noopener");
     node.setAttribute("target", "_blank");
   });
@@ -114,13 +86,6 @@ function installHooks() {
 
 export function toSanitizedMarkdownHtml(markdown: string): string {
   const input = markdown.trim();
-<<<<<<< HEAD
-  if (!input) return "";
-  installHooks();
-  if (input.length <= MARKDOWN_CACHE_MAX_CHARS) {
-    const cached = getCachedMarkdown(input);
-    if (cached !== null) return cached;
-=======
   if (!input) {
     return "";
   }
@@ -130,7 +95,6 @@ export function toSanitizedMarkdownHtml(markdown: string): string {
     if (cached !== null) {
       return cached;
     }
->>>>>>> upstream/main
   }
   const truncated = truncateText(input, MARKDOWN_CHAR_LIMIT);
   const suffix = truncated.truncated

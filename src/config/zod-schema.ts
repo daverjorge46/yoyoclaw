@@ -5,16 +5,12 @@ import { ApprovalsSchema } from "./zod-schema.approvals.js";
 import { HexColorSchema, ModelsConfigSchema } from "./zod-schema.core.js";
 import { HookMappingSchema, HooksGmailSchema, InternalHooksSchema } from "./zod-schema.hooks.js";
 import { ChannelsSchema } from "./zod-schema.providers.js";
-<<<<<<< HEAD
-import { CommandsSchema, MessagesSchema, SessionSchema } from "./zod-schema.session.js";
-=======
 import {
   CommandsSchema,
   MessagesSchema,
   SessionSchema,
   SessionSendPolicySchema,
 } from "./zod-schema.session.js";
->>>>>>> upstream/main
 
 const BrowserSnapshotDefaultsSchema = z
   .object({
@@ -36,8 +32,6 @@ const NodeHostSchema = z
   .strict()
   .optional();
 
-<<<<<<< HEAD
-=======
 const MemoryQmdPathSchema = z
   .object({
     path: z.string(),
@@ -93,7 +87,6 @@ const MemorySchema = z
   .strict()
   .optional();
 
->>>>>>> upstream/main
 export const OpenClawSchema = z
   .object({
     meta: z
@@ -221,11 +214,7 @@ export const OpenClawSchema = z
               .object({
                 cdpPort: z.number().int().min(1).max(65535).optional(),
                 cdpUrl: z.string().optional(),
-<<<<<<< HEAD
-                driver: z.union([z.literal("openclaw"), z.literal("extension")]).optional(),
-=======
                 driver: z.union([z.literal("clawd"), z.literal("extension")]).optional(),
->>>>>>> upstream/main
                 color: HexColorSchema,
               })
               .strict()
@@ -339,10 +328,6 @@ export const OpenClawSchema = z
         wideArea: z
           .object({
             enabled: z.boolean().optional(),
-<<<<<<< HEAD
-            domain: z.string().optional(),
-=======
->>>>>>> upstream/main
           })
           .strict()
           .optional(),
@@ -392,11 +377,8 @@ export const OpenClawSchema = z
           .object({
             enabled: z.boolean().optional(),
             basePath: z.string().optional(),
-<<<<<<< HEAD
-=======
             root: z.string().optional(),
             allowedOrigins: z.array(z.string()).optional(),
->>>>>>> upstream/main
             allowInsecureAuth: z.boolean().optional(),
             dangerouslyDisableDeviceAuth: z.boolean().optional(),
           })
@@ -525,10 +507,7 @@ export const OpenClawSchema = z
       })
       .strict()
       .optional(),
-<<<<<<< HEAD
-=======
     memory: MemorySchema,
->>>>>>> upstream/main
     skills: z
       .object({
         allowBundled: z.array(z.string()).optional(),

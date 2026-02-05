@@ -218,8 +218,6 @@ export async function handleDiscordMessageAction(
     );
   }
 
-<<<<<<< HEAD
-=======
   if (action === "set-presence") {
     return await handleDiscordAction(
       {
@@ -235,7 +233,6 @@ export async function handleDiscordMessageAction(
     );
   }
 
->>>>>>> upstream/main
   const adminResult = await tryHandleDiscordMessageActionGuildAdmin({
     ctx,
     resolveChannelId,

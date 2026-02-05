@@ -119,8 +119,6 @@ function resolveExecSecurity(value?: string): ExecSecurity {
   return value === "deny" || value === "allowlist" || value === "full" ? value : "allowlist";
 }
 
-<<<<<<< HEAD
-=======
 function isCmdExeInvocation(argv: string[]): boolean {
   const token = argv[0]?.trim();
   if (!token) {
@@ -130,7 +128,6 @@ function isCmdExeInvocation(argv: string[]): boolean {
   return base === "cmd.exe" || base === "cmd";
 }
 
->>>>>>> upstream/main
 function resolveExecAsk(value?: string): ExecAsk {
   return value === "off" || value === "on-miss" || value === "always" ? value : "on-miss";
 }
@@ -918,10 +915,7 @@ async function handleInvoke(
       env,
       skillBins: bins,
       autoAllowSkills,
-<<<<<<< HEAD
-=======
       platform: process.platform,
->>>>>>> upstream/main
     });
     analysisOk = allowlistEval.analysisOk;
     allowlistMatches = allowlistEval.allowlistMatches;
@@ -944,8 +938,6 @@ async function handleInvoke(
       security === "allowlist" && analysisOk ? allowlistEval.allowlistSatisfied : false;
     segments = analysis.segments;
   }
-<<<<<<< HEAD
-=======
   const isWindows = process.platform === "win32";
   const cmdInvocation = rawCommand
     ? isCmdExeInvocation(segments[0]?.argv ?? [])
@@ -954,7 +946,6 @@ async function handleInvoke(
     analysisOk = false;
     allowlistSatisfied = false;
   }
->>>>>>> upstream/main
 
   const useMacAppExec = process.platform === "darwin";
   if (useMacAppExec) {
@@ -1154,10 +1145,6 @@ async function handleInvoke(
     return;
   }
 
-<<<<<<< HEAD
-  const result = await runCommand(
-    argv,
-=======
   let execArgv = argv;
   if (
     security === "allowlist" &&
@@ -1175,7 +1162,6 @@ async function handleInvoke(
 
   const result = await runCommand(
     execArgv,
->>>>>>> upstream/main
     params.cwd?.trim() || undefined,
     env,
     params.timeoutMs ?? undefined,

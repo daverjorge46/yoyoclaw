@@ -351,8 +351,6 @@ export function formatAssistantErrorText(
     );
   }
 
-<<<<<<< HEAD
-=======
   if (isMissingToolCallInputError(raw)) {
     return (
       "Session history looks corrupted (tool call input missing). " +
@@ -361,7 +359,6 @@ export function formatAssistantErrorText(
     );
   }
 
->>>>>>> upstream/main
   const invalidRequest = raw.match(/"type":"invalid_request_error".*?"message":"([^"]+)"/);
   if (invalidRequest?.[1]) {
     return `LLM request rejected: ${invalidRequest[1]}`;
@@ -476,14 +473,11 @@ const ERROR_PATTERNS = {
   ],
 } as const;
 
-<<<<<<< HEAD
-=======
 const TOOL_CALL_INPUT_MISSING_RE =
   /tool_(?:use|call)\.(?:input|arguments).*?(?:field required|required)/i;
 const TOOL_CALL_INPUT_PATH_RE =
   /messages\.\d+\.content\.\d+\.tool_(?:use|call)\.(?:input|arguments)/i;
 
->>>>>>> upstream/main
 const IMAGE_DIMENSION_ERROR_RE =
   /image dimensions exceed max allowed size for many-image requests:\s*(\d+)\s*pixels/i;
 const IMAGE_DIMENSION_PATH_RE = /messages\.(\d+)\.content\.(\d+)\.image/i;
@@ -524,8 +518,6 @@ export function isBillingErrorMessage(raw: string): boolean {
   );
 }
 
-<<<<<<< HEAD
-=======
 export function isMissingToolCallInputError(raw: string): boolean {
   if (!raw) {
     return false;
@@ -533,7 +525,6 @@ export function isMissingToolCallInputError(raw: string): boolean {
   return TOOL_CALL_INPUT_MISSING_RE.test(raw) || TOOL_CALL_INPUT_PATH_RE.test(raw);
 }
 
->>>>>>> upstream/main
 export function isBillingAssistantError(msg: AssistantMessage | undefined): boolean {
   if (!msg || msg.stopReason !== "error") {
     return false;

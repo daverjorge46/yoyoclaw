@@ -1,9 +1,6 @@
 import type { Guild } from "@buape/carbon";
 import { describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import {
   allowListMatches,
   buildDiscordMediaPayload,
@@ -92,11 +89,7 @@ describe("DiscordMessageListener", () => {
       {} as unknown as import("./monitor/listeners.js").DiscordMessageEvent,
       {} as unknown as import("@buape/carbon").Client,
     );
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
->>>>>>> upstream/main
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("discord handler failed"));
   });

@@ -4,18 +4,6 @@ function normalizeAllowList(list?: Array<string | number>) {
   return (list ?? []).map((entry) => String(entry).trim()).filter(Boolean);
 }
 
-<<<<<<< HEAD
-export function normalizeAllowListLower(list?: Array<string | number>) {
-  return normalizeAllowList(list).map((entry) => entry.toLowerCase());
-}
-
-function normalizeMatrixUser(raw?: string | null): string {
-  return (raw ?? "").trim().toLowerCase();
-}
-
-export type MatrixAllowListMatch = AllowlistMatch<
-  "wildcard" | "id" | "prefixed-id" | "prefixed-user" | "name" | "localpart"
-=======
 function normalizeMatrixUser(raw?: string | null): string {
   const value = (raw ?? "").trim();
   if (!value) {
@@ -76,16 +64,11 @@ export function normalizeMatrixAllowList(list?: Array<string | number>) {
 
 export type MatrixAllowListMatch = AllowlistMatch<
   "wildcard" | "id" | "prefixed-id" | "prefixed-user"
->>>>>>> upstream/main
 >;
 
 export function resolveMatrixAllowListMatch(params: {
   allowList: string[];
   userId?: string;
-<<<<<<< HEAD
-  userName?: string;
-=======
->>>>>>> upstream/main
 }): MatrixAllowListMatch {
   const allowList = params.allowList;
   if (allowList.length === 0) {
@@ -95,20 +78,10 @@ export function resolveMatrixAllowListMatch(params: {
     return { allowed: true, matchKey: "*", matchSource: "wildcard" };
   }
   const userId = normalizeMatrixUser(params.userId);
-<<<<<<< HEAD
-  const userName = normalizeMatrixUser(params.userName);
-  const localPart = userId.startsWith("@") ? (userId.slice(1).split(":")[0] ?? "") : "";
-=======
->>>>>>> upstream/main
   const candidates: Array<{ value?: string; source: MatrixAllowListMatch["matchSource"] }> = [
     { value: userId, source: "id" },
     { value: userId ? `matrix:${userId}` : "", source: "prefixed-id" },
     { value: userId ? `user:${userId}` : "", source: "prefixed-user" },
-<<<<<<< HEAD
-    { value: userName, source: "name" },
-    { value: localPart, source: "localpart" },
-=======
->>>>>>> upstream/main
   ];
   for (const candidate of candidates) {
     if (!candidate.value) {
@@ -125,14 +98,6 @@ export function resolveMatrixAllowListMatch(params: {
   return { allowed: false };
 }
 
-<<<<<<< HEAD
-export function resolveMatrixAllowListMatches(params: {
-  allowList: string[];
-  userId?: string;
-  userName?: string;
-}) {
-=======
 export function resolveMatrixAllowListMatches(params: { allowList: string[]; userId?: string }) {
->>>>>>> upstream/main
   return resolveMatrixAllowListMatch(params).allowed;
 }

@@ -44,8 +44,6 @@ export const AgentsListResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
-<<<<<<< HEAD
-=======
 export const AgentsFileEntrySchema = Type.Object(
   {
     name: NonEmptyString,
@@ -110,7 +108,6 @@ export const AgentsFilesSetResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
->>>>>>> upstream/main
 export const ModelsListParamsSchema = Type.Object({}, { additionalProperties: false });
 
 export const ModelsListResultSchema = Type.Object(
@@ -120,16 +117,12 @@ export const ModelsListResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
-<<<<<<< HEAD
-export const SkillsStatusParamsSchema = Type.Object({}, { additionalProperties: false });
-=======
 export const SkillsStatusParamsSchema = Type.Object(
   {
     agentId: Type.Optional(NonEmptyString),
   },
   { additionalProperties: false },
 );
->>>>>>> upstream/main
 
 export const SkillsBinsParamsSchema = Type.Object({}, { additionalProperties: false });
 

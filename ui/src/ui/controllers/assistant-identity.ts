@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import type { GatewayBrowserClient } from "../gateway";
-import { normalizeAssistantIdentity, type AssistantIdentity } from "../assistant-identity";
-=======
 import type { GatewayBrowserClient } from "../gateway.ts";
 import { normalizeAssistantIdentity } from "../assistant-identity.ts";
->>>>>>> upstream/main
 
 export type AssistantIdentityState = {
   client: GatewayBrowserClient | null;
@@ -19,16 +14,6 @@ export async function loadAssistantIdentity(
   state: AssistantIdentityState,
   opts?: { sessionKey?: string },
 ) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  const sessionKey = opts?.sessionKey?.trim() || state.sessionKey.trim();
-  const params = sessionKey ? { sessionKey } : {};
-  try {
-    const res = (await state.client.request("agent.identity.get", params)) as
-      | Partial<AssistantIdentity>
-      | undefined;
-    if (!res) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -39,7 +24,6 @@ export async function loadAssistantIdentity(
     if (!res) {
       return;
     }
->>>>>>> upstream/main
     const normalized = normalizeAssistantIdentity(res);
     state.assistantName = normalized.name;
     state.assistantAvatar = normalized.avatar;

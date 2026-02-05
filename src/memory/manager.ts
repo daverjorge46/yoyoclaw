@@ -6,8 +6,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { ResolvedMemorySearchConfig } from "../agents/memory-search.js";
 import type { OpenClawConfig } from "../config/config.js";
-<<<<<<< HEAD
-=======
 import type {
   MemoryEmbeddingProbeResult,
   MemoryProviderStatus,
@@ -16,7 +14,6 @@ import type {
   MemorySource,
   MemorySyncProgressUpdate,
 } from "./types.js";
->>>>>>> upstream/main
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
@@ -56,20 +53,6 @@ import { ensureMemoryIndexSchema } from "./memory-schema.js";
 import { loadSqliteVecExtension } from "./sqlite-vec.js";
 import { requireNodeSqlite } from "./sqlite.js";
 
-<<<<<<< HEAD
-type MemorySource = "memory" | "sessions";
-
-export type MemorySearchResult = {
-  path: string;
-  startLine: number;
-  endLine: number;
-  score: number;
-  snippet: string;
-  source: MemorySource;
-};
-
-=======
->>>>>>> upstream/main
 type MemoryIndexMeta = {
   model: string;
   provider: string;
@@ -88,15 +71,6 @@ type SessionFileEntry = {
   content: string;
 };
 
-<<<<<<< HEAD
-type MemorySyncProgressUpdate = {
-  completed: number;
-  total: number;
-  label?: string;
-};
-
-=======
->>>>>>> upstream/main
 type MemorySyncProgressState = {
   completed: number;
   total: number;
@@ -131,11 +105,7 @@ const INDEX_CACHE = new Map<string, MemoryIndexManager>();
 const vectorToBlob = (embedding: number[]): Buffer =>
   Buffer.from(new Float32Array(embedding).buffer);
 
-<<<<<<< HEAD
-export class MemoryIndexManager {
-=======
 export class MemoryIndexManager implements MemorySearchManager {
->>>>>>> upstream/main
   private readonly cacheKey: string;
   private readonly cfg: OpenClawConfig;
   private readonly agentId: string;
@@ -492,44 +462,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     return { text: slice.join("\n"), path: relPath };
   }
 
-<<<<<<< HEAD
-  status(): {
-    files: number;
-    chunks: number;
-    dirty: boolean;
-    workspaceDir: string;
-    dbPath: string;
-    provider: string;
-    model: string;
-    requestedProvider: string;
-    sources: MemorySource[];
-    extraPaths: string[];
-    sourceCounts: Array<{ source: MemorySource; files: number; chunks: number }>;
-    cache?: { enabled: boolean; entries?: number; maxEntries?: number };
-    fts?: { enabled: boolean; available: boolean; error?: string };
-    fallback?: { from: string; reason?: string };
-    vector?: {
-      enabled: boolean;
-      available?: boolean;
-      extensionPath?: string;
-      loadError?: string;
-      dims?: number;
-    };
-    batch?: {
-      enabled: boolean;
-      failures: number;
-      limit: number;
-      wait: boolean;
-      concurrency: number;
-      pollIntervalMs: number;
-      timeoutMs: number;
-      lastError?: string;
-      lastProvider?: string;
-    };
-  } {
-=======
   status(): MemoryProviderStatus {
->>>>>>> upstream/main
     const sourceFilter = this.buildSourceFilter();
     const files = this.db
       .prepare(`SELECT COUNT(*) as c FROM files WHERE 1=1${sourceFilter.sql}`)
@@ -573,16 +506,10 @@ export class MemoryIndexManager implements MemorySearchManager {
       return sources.map((source) => Object.assign({ source }, bySource.get(source)!));
     })();
     return {
-<<<<<<< HEAD
-      files: files?.c ?? 0,
-      chunks: chunks?.c ?? 0,
-      dirty: this.dirty,
-=======
       backend: "builtin",
       files: files?.c ?? 0,
       chunks: chunks?.c ?? 0,
       dirty: this.dirty || this.sessionsDirty,
->>>>>>> upstream/main
       workspaceDir: this.workspaceDir,
       dbPath: this.settings.store.path,
       provider: this.provider.id,
@@ -639,11 +566,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     return this.ensureVectorReady();
   }
 
-<<<<<<< HEAD
-  async probeEmbeddingAvailability(): Promise<{ ok: boolean; error?: string }> {
-=======
   async probeEmbeddingAvailability(): Promise<MemoryEmbeddingProbeResult> {
->>>>>>> upstream/main
     try {
       await this.embedBatchWithRetry(["ping"]);
       return { ok: true };

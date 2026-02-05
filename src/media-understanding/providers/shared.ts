@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-=======
 import type { GuardedFetchResult } from "../../infra/net/fetch-guard.js";
 import type { LookupFn, SsrFPolicy } from "../../infra/net/ssrf.js";
 import { fetchWithSsrFGuard } from "../../infra/net/fetch-guard.js";
 
->>>>>>> upstream/main
 const MAX_ERROR_CHARS = 300;
 
 export function normalizeBaseUrl(baseUrl: string | undefined, fallback: string): string {
@@ -27,8 +24,6 @@ export async function fetchWithTimeout(
   }
 }
 
-<<<<<<< HEAD
-=======
 export async function fetchWithTimeoutGuarded(
   url: string,
   init: RequestInit,
@@ -51,7 +46,6 @@ export async function fetchWithTimeoutGuarded(
   });
 }
 
->>>>>>> upstream/main
 export async function readErrorResponse(res: Response): Promise<string | undefined> {
   try {
     const text = await res.text();

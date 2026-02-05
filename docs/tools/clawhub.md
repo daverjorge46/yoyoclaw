@@ -11,9 +11,6 @@ title: "ClawHub"
 
 ClawHub is the **public skill registry for OpenClaw**. It is a free service: all skills are public, open, and visible to everyone for sharing and reuse. A skill is just a folder with a `SKILL.md` file (plus supporting text files). You can browse skills in the web app or use the CLI to search, install, update, and publish skills.
 
-<<<<<<< HEAD
-Site: [clawhub.com](https://clawhub.com)
-=======
 Site: [clawhub.ai](https://clawhub.ai)
 
 ## What ClawHub is
@@ -36,7 +33,6 @@ Site: [clawhub.ai](https://clawhub.ai)
 - Download skill bundles and inspect their files.
 - Report skills that are abusive or unsafe.
 - If you are a moderator, hide, unhide, delete, or ban.
->>>>>>> upstream/main
 
 ## Who this is for (beginner-friendly)
 
@@ -75,8 +71,6 @@ By default, the CLI installs skills into `./skills` under your current working d
 For more detail on how skills are loaded, shared, and gated, see
 [Skills](/tools/skills).
 
-<<<<<<< HEAD
-=======
 ## Skill system overview
 
 A skill is a versioned bundle of files that teaches OpenClaw how to perform a
@@ -93,7 +87,6 @@ ClawHub uses metadata to power discovery and safely expose skill capabilities.
 The registry also tracks usage signals (such as stars and downloads) to improve
 ranking and visibility.
 
->>>>>>> upstream/main
 ## What the service provides (features)
 
 - **Public browsing** of skills and their `SKILL.md` content.
@@ -104,8 +97,6 @@ ranking and visibility.
 - **Moderation** hooks for approvals and audits.
 - **CLI-friendly API** for automation and scripting.
 
-<<<<<<< HEAD
-=======
 ## Security and moderation
 
 ClawHub is open by default. Anyone can upload skills, but a GitHub account must
@@ -124,7 +115,6 @@ Reporting and moderation:
 Interested in becoming a moderator? Ask in the OpenClaw Discord and contact a
 moderator or maintainer.
 
->>>>>>> upstream/main
 ## CLI commands and parameters
 
 Global options (apply to all commands):

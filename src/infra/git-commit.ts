@@ -60,12 +60,6 @@ const readCommitFromPackageJson = () => {
 const readCommitFromBuildInfo = () => {
   try {
     const require = createRequire(import.meta.url);
-<<<<<<< HEAD
-    const info = require("../build-info.json") as {
-      commit?: string | null;
-    };
-    return formatCommit(info.commit ?? null);
-=======
     const candidates = ["../build-info.json", "./build-info.json"];
     for (const candidate of candidates) {
       try {
@@ -81,7 +75,6 @@ const readCommitFromBuildInfo = () => {
       }
     }
     return null;
->>>>>>> upstream/main
   } catch {
     return null;
   }

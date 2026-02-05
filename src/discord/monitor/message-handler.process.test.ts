@@ -105,10 +105,7 @@ describe("processDiscordMessage ack reactions", () => {
       sender: { label: "user" },
     });
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     await processDiscordMessage(ctx as any);
 
     expect(reactMessageDiscord).not.toHaveBeenCalled();
@@ -121,10 +118,7 @@ describe("processDiscordMessage ack reactions", () => {
       sender: { label: "user" },
     });
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     await processDiscordMessage(ctx as any);
 
     expect(reactMessageDiscord).toHaveBeenCalledWith("c1", "m1", "👀", { rest: {} });

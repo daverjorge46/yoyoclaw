@@ -128,20 +128,14 @@ describe("timestampOptsFromConfig", () => {
           userTimezone: "America/Chicago",
         },
       },
-<<<<<<< HEAD
-=======
       // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     } as any);
 
     expect(opts.timezone).toBe("America/Chicago");
   });
 
   it("falls back gracefully with empty config", () => {
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     const opts = timestampOptsFromConfig({} as any);
 
     expect(opts.timezone).toBeDefined(); // resolveUserTimezone provides a default

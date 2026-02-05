@@ -4,11 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-<<<<<<< HEAD
-	"path/filepath"
-)
-
-=======
 	"log"
 	"os"
 	"path/filepath"
@@ -30,21 +25,17 @@ type docResult struct {
 	err      error
 }
 
->>>>>>> upstream/main
 func main() {
 	var (
 		targetLang = flag.String("lang", "zh-CN", "target language (e.g., zh-CN)")
 		sourceLang = flag.String("src", "en", "source language")
 		docsRoot   = flag.String("docs", "docs", "docs root")
 		tmPath     = flag.String("tm", "", "translation memory path")
-<<<<<<< HEAD
-=======
 		mode       = flag.String("mode", "segment", "translation mode (segment|doc)")
 		thinking   = flag.String("thinking", "high", "thinking level (low|high)")
 		overwrite  = flag.Bool("overwrite", false, "overwrite existing translations")
 		maxFiles   = flag.Int("max", 0, "max files to process (0 = all)")
 		parallel   = flag.Int("parallel", 1, "parallel workers for doc mode")
->>>>>>> upstream/main
 	)
 	flag.Parse()
 	files := flag.Args()
@@ -67,11 +58,7 @@ func main() {
 		fatal(err)
 	}
 
-<<<<<<< HEAD
-	translator, err := NewPiTranslator(*sourceLang, *targetLang, glossary)
-=======
 	translator, err := NewPiTranslator(*sourceLang, *targetLang, glossary, *thinking)
->>>>>>> upstream/main
 	if err != nil {
 		fatal(err)
 	}
@@ -82,12 +69,6 @@ func main() {
 		fatal(err)
 	}
 
-<<<<<<< HEAD
-	for _, file := range files {
-		if err := processFile(context.Background(), translator, tm, resolvedDocsRoot, file, *sourceLang, *targetLang); err != nil {
-			fatal(err)
-		}
-=======
 	ordered, err := orderFiles(resolvedDocsRoot, files)
 	if err != nil {
 		fatal(err)
@@ -144,14 +125,11 @@ func main() {
 		processed += proc
 	default:
 		fatal(fmt.Errorf("unknown mode: %s", *mode))
->>>>>>> upstream/main
 	}
 
 	if err := tm.Save(); err != nil {
 		fatal(err)
 	}
-<<<<<<< HEAD
-=======
 	elapsed := time.Since(start).Round(time.Millisecond)
 	log.Printf("docs-i18n: completed processed=%d skipped=%d elapsed=%s", processed, skipped, elapsed)
 }
@@ -292,5 +270,4 @@ func filterDocQueue(docsRoot, targetLang string, ordered []string) ([]string, in
 		pending = append(pending, file)
 	}
 	return pending, skipped, nil
->>>>>>> upstream/main
 }

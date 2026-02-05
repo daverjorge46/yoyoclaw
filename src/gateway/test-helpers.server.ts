@@ -28,10 +28,7 @@ import {
   sessionStoreSaveDelayMs,
   setTestConfigRoot,
   testIsNixMode,
-<<<<<<< HEAD
-=======
   testTailscaleWhois,
->>>>>>> upstream/main
   testState,
   testTailnetIPv4,
 } from "./test-helpers.mocks.js";
@@ -113,10 +110,7 @@ async function resetGatewayTestState(options: { uniqueConfigRoot: boolean }) {
   setTestConfigRoot(tempConfigRoot);
   sessionStoreSaveDelayMs.value = 0;
   testTailnetIPv4.value = undefined;
-<<<<<<< HEAD
-=======
   testTailscaleWhois.value = null;
->>>>>>> upstream/main
   testState.gatewayBind = undefined;
   testState.gatewayAuth = { mode: "token", token: "test-gateway-token-1234567890" };
   testState.gatewayControlUi = undefined;

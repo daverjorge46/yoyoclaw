@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import type { GatewayRequestHandlers } from "./types.js";
-import { loadConfig } from "../../config/config.js";
-=======
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayRequestHandlers } from "./types.js";
@@ -19,23 +15,17 @@ import {
 } from "../../agents/workspace.js";
 import { loadConfig } from "../../config/config.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
->>>>>>> upstream/main
 import {
   ErrorCodes,
   errorShape,
   formatValidationErrors,
-<<<<<<< HEAD
-=======
   validateAgentsFilesGetParams,
   validateAgentsFilesListParams,
   validateAgentsFilesSetParams,
->>>>>>> upstream/main
   validateAgentsListParams,
 } from "../protocol/index.js";
 import { listAgentsForGateway } from "../session-utils.js";
 
-<<<<<<< HEAD
-=======
 const BOOTSTRAP_FILE_NAMES = [
   DEFAULT_AGENTS_FILENAME,
   DEFAULT_SOUL_FILENAME,
@@ -133,7 +123,6 @@ function resolveAgentIdOrError(agentIdRaw: string, cfg: ReturnType<typeof loadCo
   return agentId;
 }
 
->>>>>>> upstream/main
 export const agentsHandlers: GatewayRequestHandlers = {
   "agents.list": ({ params, respond }) => {
     if (!validateAgentsListParams(params)) {
@@ -152,8 +141,6 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const result = listAgentsForGateway(cfg);
     respond(true, result, undefined);
   },
-<<<<<<< HEAD
-=======
   "agents.files.list": async ({ params, respond }) => {
     if (!validateAgentsFilesListParams(params)) {
       respond(
@@ -293,5 +280,4 @@ export const agentsHandlers: GatewayRequestHandlers = {
       undefined,
     );
   },
->>>>>>> upstream/main
 };

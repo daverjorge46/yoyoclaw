@@ -17,10 +17,7 @@ describe("downgradeOpenAIReasoningBlocks", () => {
       },
     ];
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     expect(downgradeOpenAIReasoningBlocks(input as any)).toEqual(input);
   });
 
@@ -38,10 +35,7 @@ describe("downgradeOpenAIReasoningBlocks", () => {
       { role: "user", content: "next" },
     ];
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     expect(downgradeOpenAIReasoningBlocks(input as any)).toEqual([
       { role: "user", content: "next" },
     ]);
@@ -60,10 +54,7 @@ describe("downgradeOpenAIReasoningBlocks", () => {
       },
     ];
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     expect(downgradeOpenAIReasoningBlocks(input as any)).toEqual([]);
   });
 
@@ -81,10 +72,7 @@ describe("downgradeOpenAIReasoningBlocks", () => {
       },
     ];
 
-<<<<<<< HEAD
-=======
     // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
     expect(downgradeOpenAIReasoningBlocks(input as any)).toEqual(input);
   });
 });

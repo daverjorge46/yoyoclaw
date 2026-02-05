@@ -1,10 +1,6 @@
 import path from "node:path";
 import type { AudioTranscriptionRequest, AudioTranscriptionResult } from "../../types.js";
-<<<<<<< HEAD
-import { fetchWithTimeout, normalizeBaseUrl, readErrorResponse } from "../shared.js";
-=======
 import { fetchWithTimeoutGuarded, normalizeBaseUrl, readErrorResponse } from "../shared.js";
->>>>>>> upstream/main
 
 export const DEFAULT_OPENAI_AUDIO_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_OPENAI_AUDIO_MODEL = "gpt-4o-mini-transcribe";
@@ -19,10 +15,7 @@ export async function transcribeOpenAiCompatibleAudio(
 ): Promise<AudioTranscriptionResult> {
   const fetchFn = params.fetchFn ?? fetch;
   const baseUrl = normalizeBaseUrl(params.baseUrl, DEFAULT_OPENAI_AUDIO_BASE_URL);
-<<<<<<< HEAD
-=======
   const allowPrivate = Boolean(params.baseUrl?.trim());
->>>>>>> upstream/main
   const url = `${baseUrl}/audio/transcriptions`;
 
   const model = resolveModel(params.model);
@@ -46,11 +39,7 @@ export async function transcribeOpenAiCompatibleAudio(
     headers.set("authorization", `Bearer ${params.apiKey}`);
   }
 
-<<<<<<< HEAD
-  const res = await fetchWithTimeout(
-=======
   const { response: res, release } = await fetchWithTimeoutGuarded(
->>>>>>> upstream/main
     url,
     {
       method: "POST",
@@ -59,22 +48,6 @@ export async function transcribeOpenAiCompatibleAudio(
     },
     params.timeoutMs,
     fetchFn,
-<<<<<<< HEAD
-  );
-
-  if (!res.ok) {
-    const detail = await readErrorResponse(res);
-    const suffix = detail ? `: ${detail}` : "";
-    throw new Error(`Audio transcription failed (HTTP ${res.status})${suffix}`);
-  }
-
-  const payload = (await res.json()) as { text?: string };
-  const text = payload.text?.trim();
-  if (!text) {
-    throw new Error("Audio transcription response missing text");
-  }
-  return { text, model };
-=======
     allowPrivate ? { ssrfPolicy: { allowPrivateNetwork: true } } : undefined,
   );
 
@@ -94,5 +67,4 @@ export async function transcribeOpenAiCompatibleAudio(
   } finally {
     await release();
   }
->>>>>>> upstream/main
 }

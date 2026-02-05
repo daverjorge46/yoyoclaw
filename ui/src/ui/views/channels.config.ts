@@ -1,22 +1,12 @@
 import { html } from "lit";
-<<<<<<< HEAD
-import type { ConfigUiHints } from "../types";
-import type { ChannelsProps } from "./channels.types";
-import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form";
-=======
 import type { ConfigUiHints } from "../types.ts";
 import type { ChannelsProps } from "./channels.types.ts";
 import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./config-form.ts";
->>>>>>> upstream/main
 
 type ChannelConfigFormProps = {
   channelId: string;
   configValue: Record<string, unknown> | null;
-<<<<<<< HEAD
-  schema: unknown | null;
-=======
   schema: unknown;
->>>>>>> upstream/main
   uiHints: ConfigUiHints;
   disabled: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
@@ -28,13 +18,9 @@ function resolveSchemaNode(
 ): JsonSchema | null {
   let current = schema;
   for (const key of path) {
-<<<<<<< HEAD
-    if (!current) return null;
-=======
     if (!current) {
       return null;
     }
->>>>>>> upstream/main
     const type = schemaType(current);
     if (type === "object") {
       const properties = current.properties ?? {};
@@ -44,23 +30,15 @@ function resolveSchemaNode(
       }
       const additional = current.additionalProperties;
       if (typeof key === "string" && additional && typeof additional === "object") {
-<<<<<<< HEAD
-        current = additional as JsonSchema;
-=======
         current = additional;
->>>>>>> upstream/main
         continue;
       }
       return null;
     }
     if (type === "array") {
-<<<<<<< HEAD
-      if (typeof key !== "number") return null;
-=======
       if (typeof key !== "number") {
         return null;
       }
->>>>>>> upstream/main
       const items = Array.isArray(current.items) ? current.items[0] : current.items;
       current = items ?? null;
       continue;
@@ -85,8 +63,6 @@ function resolveChannelValue(
   return resolved ?? {};
 }
 
-<<<<<<< HEAD
-=======
 const EXTRA_CHANNEL_FIELDS = ["groupPolicy", "streamMode", "dmPolicy"] as const;
 
 function formatExtraValue(raw: unknown): string {
@@ -127,7 +103,6 @@ function renderExtraChannelFields(value: Record<string, unknown>) {
   `;
 }
 
->>>>>>> upstream/main
 export function renderChannelConfigForm(props: ChannelConfigFormProps) {
   const analysis = analyzeConfigSchema(props.schema);
   const normalized = analysis.schema;
@@ -157,10 +132,7 @@ export function renderChannelConfigForm(props: ChannelConfigFormProps) {
         onPatch: props.onPatch,
       })}
     </div>
-<<<<<<< HEAD
-=======
     ${renderExtraChannelFields(value)}
->>>>>>> upstream/main
   `;
 }
 

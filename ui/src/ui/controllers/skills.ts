@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import type { GatewayBrowserClient } from "../gateway";
-import type { SkillStatusReport } from "../types";
-=======
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { SkillStatusReport } from "../types.ts";
->>>>>>> upstream/main
 
 export type SkillsState = {
   client: GatewayBrowserClient | null;
@@ -29,12 +24,6 @@ type LoadSkillsOptions = {
 };
 
 function setSkillMessage(state: SkillsState, key: string, message?: SkillMessage) {
-<<<<<<< HEAD
-  if (!key.trim()) return;
-  const next = { ...state.skillMessages };
-  if (message) next[key] = message;
-  else delete next[key];
-=======
   if (!key.trim()) {
     return;
   }
@@ -44,18 +33,13 @@ function setSkillMessage(state: SkillsState, key: string, message?: SkillMessage
   } else {
     delete next[key];
   }
->>>>>>> upstream/main
   state.skillMessages = next;
 }
 
 function getErrorMessage(err: unknown) {
-<<<<<<< HEAD
-  if (err instanceof Error) return err.message;
-=======
   if (err instanceof Error) {
     return err.message;
   }
->>>>>>> upstream/main
   return String(err);
 }
 
@@ -63,15 +47,6 @@ export async function loadSkills(state: SkillsState, options?: LoadSkillsOptions
   if (options?.clearMessages && Object.keys(state.skillMessages).length > 0) {
     state.skillMessages = {};
   }
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  if (state.skillsLoading) return;
-  state.skillsLoading = true;
-  state.skillsError = null;
-  try {
-    const res = (await state.client.request("skills.status", {})) as SkillStatusReport | undefined;
-    if (res) state.skillsReport = res;
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -85,7 +60,6 @@ export async function loadSkills(state: SkillsState, options?: LoadSkillsOptions
     if (res) {
       state.skillsReport = res;
     }
->>>>>>> upstream/main
   } catch (err) {
     state.skillsError = getErrorMessage(err);
   } finally {
@@ -98,13 +72,9 @@ export function updateSkillEdit(state: SkillsState, skillKey: string, value: str
 }
 
 export async function updateSkillEnabled(state: SkillsState, skillKey: string, enabled: boolean) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   state.skillsBusyKey = skillKey;
   state.skillsError = null;
   try {
@@ -127,13 +97,9 @@ export async function updateSkillEnabled(state: SkillsState, skillKey: string, e
 }
 
 export async function saveSkillApiKey(state: SkillsState, skillKey: string) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-=======
   if (!state.client || !state.connected) {
     return;
   }
->>>>>>> upstream/main
   state.skillsBusyKey = skillKey;
   state.skillsError = null;
   try {
@@ -162,17 +128,6 @@ export async function installSkill(
   name: string,
   installId: string,
 ) {
-<<<<<<< HEAD
-  if (!state.client || !state.connected) return;
-  state.skillsBusyKey = skillKey;
-  state.skillsError = null;
-  try {
-    const result = (await state.client.request("skills.install", {
-      name,
-      installId,
-      timeoutMs: 120000,
-    })) as { ok?: boolean; message?: string };
-=======
   if (!state.client || !state.connected) {
     return;
   }
@@ -184,7 +139,6 @@ export async function installSkill(
       installId,
       timeoutMs: 120000,
     });
->>>>>>> upstream/main
     await loadSkills(state);
     setSkillMessage(state, skillKey, {
       kind: "success",

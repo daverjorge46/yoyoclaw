@@ -1,14 +1,8 @@
-<<<<<<< HEAD
-import type { CanvasHostServer } from "../canvas-host/server.js";
-import type { PluginServicesHandle } from "../plugins/services.js";
-import type { RuntimeEnv } from "../runtime.js";
-=======
 import path from "node:path";
 import type { CanvasHostServer } from "../canvas-host/server.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { ControlUiRootState } from "./control-ui.js";
->>>>>>> upstream/main
 import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
@@ -26,14 +20,11 @@ import {
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
-<<<<<<< HEAD
-=======
 import {
   ensureControlUiAssetsBuilt,
   resolveControlUiRootOverrideSync,
   resolveControlUiRootSync,
 } from "../infra/control-ui-assets.js";
->>>>>>> upstream/main
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
@@ -103,10 +94,7 @@ const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
 const logWsControl = log.child("ws");
-<<<<<<< HEAD
-=======
 const gatewayRuntime = runtimeForLogger(log);
->>>>>>> upstream/main
 const canvasRuntime = runtimeForLogger(logCanvas);
 
 export type GatewayServer = {
@@ -273,10 +261,7 @@ export async function startGatewayServer(
     openResponsesEnabled,
     openResponsesConfig,
     controlUiBasePath,
-<<<<<<< HEAD
-=======
     controlUiRoot: controlUiRootOverride,
->>>>>>> upstream/main
     resolvedAuth,
     tailscaleConfig,
     tailscaleMode,
@@ -284,8 +269,6 @@ export async function startGatewayServer(
   let hooksConfig = runtimeConfig.hooksConfig;
   const canvasHostEnabled = runtimeConfig.canvasHostEnabled;
 
-<<<<<<< HEAD
-=======
   let controlUiRootState: ControlUiRootState | undefined;
   if (controlUiRootOverride) {
     const resolvedOverride = resolveControlUiRootOverrideSync(controlUiRootOverride);
@@ -318,7 +301,6 @@ export async function startGatewayServer(
       : { kind: "missing" };
   }
 
->>>>>>> upstream/main
   const wizardRunner = opts.wizardRunner ?? runOnboardingWizard;
   const { wizardSessions, findRunningWizard, purgeWizardSession } = createWizardSessionTracker();
 
@@ -336,6 +318,7 @@ export async function startGatewayServer(
     wss,
     clients,
     broadcast,
+    broadcastToConnIds,
     agentRunSeq,
     dedupe,
     chatRunState,
@@ -344,16 +327,14 @@ export async function startGatewayServer(
     addChatRun,
     removeChatRun,
     chatAbortControllers,
+    toolEventRecipients,
   } = await createGatewayRuntimeState({
     cfg: cfgAtStart,
     bindHost,
     port,
     controlUiEnabled,
     controlUiBasePath,
-<<<<<<< HEAD
-=======
     controlUiRoot: controlUiRootState,
->>>>>>> upstream/main
     openAiChatCompletionsEnabled,
     openResponsesEnabled,
     openResponsesConfig,
@@ -462,11 +443,13 @@ export async function startGatewayServer(
   const agentUnsub = onAgentEvent(
     createAgentEventHandler({
       broadcast,
+      broadcastToConnIds,
       nodeSendToSession,
       agentRunSeq,
       chatRunState,
       resolveSessionKeyForRun,
       clearAgentRunContext,
+      toolEventRecipients,
     }),
   );
 
@@ -516,6 +499,7 @@ export async function startGatewayServer(
       incrementPresenceVersion,
       getHealthVersion,
       broadcast,
+      broadcastToConnIds,
       nodeSendToSession,
       nodeSendToAllSubscribed,
       nodeSubscribe,
@@ -530,6 +514,7 @@ export async function startGatewayServer(
       chatDeltaSentAt: chatRunState.deltaSentAt,
       addChatRun,
       removeChatRun,
+      registerToolEventRecipient: toolEventRecipients.add,
       dedupe,
       wizardSessions,
       findRunningWizard,

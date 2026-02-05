@@ -13,15 +13,11 @@ import { resolveAgentAvatar } from "../agents/identity-avatar.js";
 import { handleA2uiHttpRequest } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
-<<<<<<< HEAD
-import { handleControlUiAvatarRequest, handleControlUiHttpRequest } from "./control-ui.js";
-=======
 import {
   handleControlUiAvatarRequest,
   handleControlUiHttpRequest,
   type ControlUiRootState,
 } from "./control-ui.js";
->>>>>>> upstream/main
 import { applyHookMappings } from "./hooks-mapping.js";
 import {
   extractHookToken,
@@ -214,10 +210,7 @@ export function createGatewayHttpServer(opts: {
   canvasHost: CanvasHostHandler | null;
   controlUiEnabled: boolean;
   controlUiBasePath: string;
-<<<<<<< HEAD
-=======
   controlUiRoot?: ControlUiRootState;
->>>>>>> upstream/main
   openAiChatCompletionsEnabled: boolean;
   openResponsesEnabled: boolean;
   openResponsesConfig?: import("../config/types.gateway.js").GatewayHttpResponsesConfig;
@@ -230,10 +223,7 @@ export function createGatewayHttpServer(opts: {
     canvasHost,
     controlUiEnabled,
     controlUiBasePath,
-<<<<<<< HEAD
-=======
     controlUiRoot,
->>>>>>> upstream/main
     openAiChatCompletionsEnabled,
     openResponsesEnabled,
     openResponsesConfig,
@@ -317,10 +307,7 @@ export function createGatewayHttpServer(opts: {
           handleControlUiHttpRequest(req, res, {
             basePath: controlUiBasePath,
             config: configSnapshot,
-<<<<<<< HEAD
-=======
             root: controlUiRoot,
->>>>>>> upstream/main
           })
         ) {
           return;

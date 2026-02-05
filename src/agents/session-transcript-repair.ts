@@ -5,8 +5,6 @@ type ToolCallLike = {
   name?: string;
 };
 
-<<<<<<< HEAD
-=======
 const TOOL_CALL_TYPES = new Set(["toolCall", "toolUse", "functionCall"]);
 
 type ToolCallBlock = {
@@ -17,7 +15,6 @@ type ToolCallBlock = {
   arguments?: unknown;
 };
 
->>>>>>> upstream/main
 function extractToolCallsFromAssistant(
   msg: Extract<AgentMessage, { role: "assistant" }>,
 ): ToolCallLike[] {
@@ -46,8 +43,6 @@ function extractToolCallsFromAssistant(
   return toolCalls;
 }
 
-<<<<<<< HEAD
-=======
 function isToolCallBlock(block: unknown): block is ToolCallBlock {
   if (!block || typeof block !== "object") {
     return false;
@@ -63,7 +58,6 @@ function hasToolCallInput(block: ToolCallBlock): boolean {
   return hasInput || hasArguments;
 }
 
->>>>>>> upstream/main
 function extractToolResultId(msg: Extract<AgentMessage, { role: "toolResult" }>): string | null {
   const toolCallId = (msg as { toolCallId?: unknown }).toolCallId;
   if (typeof toolCallId === "string" && toolCallId) {
@@ -97,8 +91,6 @@ function makeMissingToolResult(params: {
 
 export { makeMissingToolResult };
 
-<<<<<<< HEAD
-=======
 export type ToolCallInputRepairReport = {
   messages: AgentMessage[];
   droppedToolCalls: number;
@@ -159,7 +151,6 @@ export function sanitizeToolCallInputs(messages: AgentMessage[]): AgentMessage[]
   return repairToolCallInputs(messages).messages;
 }
 
->>>>>>> upstream/main
 export function sanitizeToolUseResultPairing(messages: AgentMessage[]): AgentMessage[] {
   return repairToolUseResultPairing(messages).messages;
 }

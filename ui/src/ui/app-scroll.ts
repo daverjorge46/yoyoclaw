@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-=======
 /** Distance (px) from the bottom within which we consider the user "near bottom". */
 const NEAR_BOTTOM_THRESHOLD = 450;
 
->>>>>>> upstream/main
 type ScrollHost = {
   updateComplete: Promise<unknown>;
   querySelector: (selectors: string) => Element | null;
@@ -12,23 +9,16 @@ type ScrollHost = {
   chatScrollTimeout: number | null;
   chatHasAutoScrolled: boolean;
   chatUserNearBottom: boolean;
-<<<<<<< HEAD
-=======
   chatNewMessagesBelow: boolean;
->>>>>>> upstream/main
   logsScrollFrame: number | null;
   logsAtBottom: boolean;
   topbarObserver: ResizeObserver | null;
 };
 
 export function scheduleChatScroll(host: ScrollHost, force = false) {
-<<<<<<< HEAD
-  if (host.chatScrollFrame) cancelAnimationFrame(host.chatScrollFrame);
-=======
   if (host.chatScrollFrame) {
     cancelAnimationFrame(host.chatScrollFrame);
   }
->>>>>>> upstream/main
   if (host.chatScrollTimeout != null) {
     clearTimeout(host.chatScrollTimeout);
     host.chatScrollTimeout = null;
@@ -41,13 +31,9 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
         overflowY === "auto" ||
         overflowY === "scroll" ||
         container.scrollHeight - container.clientHeight > 1;
-<<<<<<< HEAD
-      if (canScroll) return container;
-=======
       if (canScroll) {
         return container;
       }
->>>>>>> upstream/main
     }
     return (document.scrollingElement ?? document.documentElement) as HTMLElement | null;
   };
@@ -56,24 +42,6 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
     host.chatScrollFrame = requestAnimationFrame(() => {
       host.chatScrollFrame = null;
       const target = pickScrollTarget();
-<<<<<<< HEAD
-      if (!target) return;
-      const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
-      const shouldStick = force || host.chatUserNearBottom || distanceFromBottom < 200;
-      if (!shouldStick) return;
-      if (force) host.chatHasAutoScrolled = true;
-      target.scrollTop = target.scrollHeight;
-      host.chatUserNearBottom = true;
-      const retryDelay = force ? 150 : 120;
-      host.chatScrollTimeout = window.setTimeout(() => {
-        host.chatScrollTimeout = null;
-        const latest = pickScrollTarget();
-        if (!latest) return;
-        const latestDistanceFromBottom =
-          latest.scrollHeight - latest.scrollTop - latest.clientHeight;
-        const shouldStickRetry = force || host.chatUserNearBottom || latestDistanceFromBottom < 200;
-        if (!shouldStickRetry) return;
-=======
       if (!target) {
         return;
       }
@@ -112,7 +80,6 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
         if (!shouldStickRetry) {
           return;
         }
->>>>>>> upstream/main
         latest.scrollTop = latest.scrollHeight;
         host.chatUserNearBottom = true;
       }, retryDelay);
@@ -121,24 +88,13 @@ export function scheduleChatScroll(host: ScrollHost, force = false) {
 }
 
 export function scheduleLogsScroll(host: ScrollHost, force = false) {
-<<<<<<< HEAD
-  if (host.logsScrollFrame) cancelAnimationFrame(host.logsScrollFrame);
-=======
   if (host.logsScrollFrame) {
     cancelAnimationFrame(host.logsScrollFrame);
   }
->>>>>>> upstream/main
   void host.updateComplete.then(() => {
     host.logsScrollFrame = requestAnimationFrame(() => {
       host.logsScrollFrame = null;
       const container = host.querySelector(".log-stream") as HTMLElement | null;
-<<<<<<< HEAD
-      if (!container) return;
-      const distanceFromBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight;
-      const shouldStick = force || distanceFromBottom < 80;
-      if (!shouldStick) return;
-=======
       if (!container) {
         return;
       }
@@ -148,7 +104,6 @@ export function scheduleLogsScroll(host: ScrollHost, force = false) {
       if (!shouldStick) {
         return;
       }
->>>>>>> upstream/main
       container.scrollTop = container.scrollHeight;
     });
   });
@@ -156,11 +111,6 @@ export function scheduleLogsScroll(host: ScrollHost, force = false) {
 
 export function handleChatScroll(host: ScrollHost, event: Event) {
   const container = event.currentTarget as HTMLElement | null;
-<<<<<<< HEAD
-  if (!container) return;
-  const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-  host.chatUserNearBottom = distanceFromBottom < 200;
-=======
   if (!container) {
     return;
   }
@@ -170,18 +120,13 @@ export function handleChatScroll(host: ScrollHost, event: Event) {
   if (host.chatUserNearBottom) {
     host.chatNewMessagesBelow = false;
   }
->>>>>>> upstream/main
 }
 
 export function handleLogsScroll(host: ScrollHost, event: Event) {
   const container = event.currentTarget as HTMLElement | null;
-<<<<<<< HEAD
-  if (!container) return;
-=======
   if (!container) {
     return;
   }
->>>>>>> upstream/main
   const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
   host.logsAtBottom = distanceFromBottom < 80;
 }
@@ -189,12 +134,6 @@ export function handleLogsScroll(host: ScrollHost, event: Event) {
 export function resetChatScroll(host: ScrollHost) {
   host.chatHasAutoScrolled = false;
   host.chatUserNearBottom = true;
-<<<<<<< HEAD
-}
-
-export function exportLogs(lines: string[], label: string) {
-  if (lines.length === 0) return;
-=======
   host.chatNewMessagesBelow = false;
 }
 
@@ -202,7 +141,6 @@ export function exportLogs(lines: string[], label: string) {
   if (lines.length === 0) {
     return;
   }
->>>>>>> upstream/main
   const blob = new Blob([`${lines.join("\n")}\n`], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -214,11 +152,6 @@ export function exportLogs(lines: string[], label: string) {
 }
 
 export function observeTopbar(host: ScrollHost) {
-<<<<<<< HEAD
-  if (typeof ResizeObserver === "undefined") return;
-  const topbar = host.querySelector(".topbar");
-  if (!topbar) return;
-=======
   if (typeof ResizeObserver === "undefined") {
     return;
   }
@@ -226,7 +159,6 @@ export function observeTopbar(host: ScrollHost) {
   if (!topbar) {
     return;
   }
->>>>>>> upstream/main
   const update = () => {
     const { height } = topbar.getBoundingClientRect();
     host.style.setProperty("--topbar-height", `${height}px`);

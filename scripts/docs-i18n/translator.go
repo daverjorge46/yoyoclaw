@@ -2,23 +2,15 @@ package main
 
 import (
 	"context"
-<<<<<<< HEAD
-	"errors"
-	"fmt"
-	"strings"
-=======
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
->>>>>>> upstream/main
 
 	pi "github.com/joshp123/pi-golang"
 )
 
-<<<<<<< HEAD
-=======
 const (
 	translateMaxAttempts = 3
 	translateBaseDelay   = 15 * time.Second
@@ -26,30 +18,19 @@ const (
 
 var errEmptyTranslation = errors.New("empty translation")
 
->>>>>>> upstream/main
 type PiTranslator struct {
 	client *pi.OneShotClient
 }
 
-<<<<<<< HEAD
-func NewPiTranslator(srcLang, tgtLang string, glossary []GlossaryEntry) (*PiTranslator, error) {
-	options := pi.DefaultOneShotOptions()
-	options.AppName = "openclaw-docs-i18n"
-=======
 func NewPiTranslator(srcLang, tgtLang string, glossary []GlossaryEntry, thinking string) (*PiTranslator, error) {
 	options := pi.DefaultOneShotOptions()
 	options.AppName = "openclaw-docs-i18n"
 	options.WorkDir = "/tmp"
->>>>>>> upstream/main
 	options.Mode = pi.ModeDragons
 	options.Dragons = pi.DragonsOptions{
 		Provider: "anthropic",
 		Model:    modelVersion,
-<<<<<<< HEAD
-		Thinking: "high",
-=======
 		Thinking: normalizeThinking(thinking),
->>>>>>> upstream/main
 	}
 	options.SystemPrompt = translationPrompt(srcLang, tgtLang, glossary)
 	client, err := pi.StartOneShot(options)
@@ -60,8 +41,6 @@ func NewPiTranslator(srcLang, tgtLang string, glossary []GlossaryEntry, thinking
 }
 
 func (t *PiTranslator) Translate(ctx context.Context, text, srcLang, tgtLang string) (string, error) {
-<<<<<<< HEAD
-=======
 	return t.translate(ctx, text, t.translateMasked)
 }
 
@@ -70,7 +49,6 @@ func (t *PiTranslator) TranslateRaw(ctx context.Context, text, srcLang, tgtLang 
 }
 
 func (t *PiTranslator) translate(ctx context.Context, text string, run func(context.Context, string) (string, error)) (string, error) {
->>>>>>> upstream/main
 	if t.client == nil {
 		return "", errors.New("pi client unavailable")
 	}
@@ -78,8 +56,6 @@ func (t *PiTranslator) translate(ctx context.Context, text string, run func(cont
 	if core == "" {
 		return text, nil
 	}
-<<<<<<< HEAD
-=======
 	translated, err := t.translateWithRetry(ctx, func(ctx context.Context) (string, error) {
 		return run(ctx, core)
 	})
@@ -111,23 +87,10 @@ func (t *PiTranslator) translateWithRetry(ctx context.Context, run func(context.
 }
 
 func (t *PiTranslator) translateMasked(ctx context.Context, core string) (string, error) {
->>>>>>> upstream/main
 	state := NewPlaceholderState(core)
 	placeholders := make([]string, 0, 8)
 	mapping := map[string]string{}
 	masked := maskMarkdown(core, state.Next, &placeholders, mapping)
-<<<<<<< HEAD
-	res, err := t.client.Run(ctx, masked)
-	if err != nil {
-		return "", err
-	}
-	translated := strings.TrimSpace(res.Text)
-	if err := validatePlaceholders(translated, placeholders); err != nil {
-		return "", err
-	}
-	translated = unmaskMarkdown(translated, placeholders, mapping)
-	return prefix + translated + suffix, nil
-=======
 	resText, err := runPrompt(ctx, t.client, masked)
 	if err != nil {
 		return "", err
@@ -174,7 +137,6 @@ func sleepWithContext(ctx context.Context, delay time.Duration) error {
 	case <-timer.C:
 		return nil
 	}
->>>>>>> upstream/main
 }
 
 func (t *PiTranslator) Close() {
@@ -183,8 +145,6 @@ func (t *PiTranslator) Close() {
 	}
 }
 
-<<<<<<< HEAD
-=======
 type agentEndPayload struct {
 	Messages []agentMessage `json:"messages"`
 }
@@ -277,7 +237,6 @@ func extractContentText(content json.RawMessage) (string, error) {
 	return strings.Join(parts, ""), nil
 }
 
->>>>>>> upstream/main
 func translationPrompt(srcLang, tgtLang string, glossary []GlossaryEntry) string {
 	srcLabel := srcLang
 	tgtLabel := tgtLang
@@ -293,14 +252,6 @@ Translate from %s to %s.
 
 Rules:
 - Output ONLY the translated text. No preamble, no questions, no commentary.
-<<<<<<< HEAD
-- Preserve Markdown syntax exactly (headings, lists, tables, emphasis).
-- Do not translate code spans/blocks, config keys, CLI flags, or env vars.
-- Do not alter URLs or anchors.
-- Preserve placeholders exactly: __OC_I18N_####__.
-- Use neutral technical Chinese; avoid slang or jokes.
-- Keep product names in English: OpenClaw, Gateway, Pi, WhatsApp, Telegram, Discord, iMessage, Slack, Microsoft Teams, Google Chat, Signal.
-=======
 - Translate all English prose; do not leave English unless it is code, a URL, or a product name.
 - All prose must be Chinese. If any English sentence remains outside code/URLs/product names, it is wrong.
 - If the input contains <frontmatter> and <body> tags, keep them exactly and output exactly one of each.
@@ -322,7 +273,6 @@ Rules:
 - For the OpenClaw Gateway, use “Gateway 网关”.
 - Keep these terms in English: Skills, local loopback, Tailscale.
 - Never output an empty response; if unsure, return the source text unchanged.
->>>>>>> upstream/main
 
 %s
 
@@ -344,8 +294,6 @@ func buildGlossaryPrompt(glossary []GlossaryEntry) string {
 	}
 	return strings.Join(lines, "\n")
 }
-<<<<<<< HEAD
-=======
 
 func normalizeThinking(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
@@ -355,4 +303,3 @@ func normalizeThinking(value string) string {
 		return "high"
 	}
 }
->>>>>>> upstream/main

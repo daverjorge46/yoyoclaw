@@ -42,8 +42,6 @@ Status: bundled plugin that talks to the BlueBubbles macOS server over HTTP. **R
 4. Point BlueBubbles webhooks to your gateway (example: `https://your-gateway-host:3000/bluebubbles-webhook?password=<password>`).
 5. Start the gateway; it will register the webhook handler and start pairing.
 
-<<<<<<< HEAD
-=======
 ## Keeping Messages.app alive (VM / headless setups)
 
 Some macOS VM / always-on setups can end up with Messages.app going “idle” (incoming events stop until the app is opened/foregrounded). A simple workaround is to **poke Messages every 5 minutes** using an AppleScript + LaunchAgent.
@@ -118,7 +116,6 @@ launchctl unload ~/Library/LaunchAgents/com.user.poke-messages.plist 2>/dev/null
 launchctl load ~/Library/LaunchAgents/com.user.poke-messages.plist
 ```
 
->>>>>>> upstream/main
 ## Onboarding
 
 BlueBubbles is available in the interactive setup wizard:
@@ -269,11 +266,7 @@ Control whether responses are sent as a single message or streamed in blocks:
 {
   channels: {
     bluebubbles: {
-<<<<<<< HEAD
-      blockStreaming: true, // enable block streaming (default behavior)
-=======
       blockStreaming: true, // enable block streaming (off by default)
->>>>>>> upstream/main
     },
   },
 }
@@ -301,11 +294,7 @@ Provider options:
 - `channels.bluebubbles.groupAllowFrom`: Group sender allowlist.
 - `channels.bluebubbles.groups`: Per-group config (`requireMention`, etc.).
 - `channels.bluebubbles.sendReadReceipts`: Send read receipts (default: `true`).
-<<<<<<< HEAD
-- `channels.bluebubbles.blockStreaming`: Enable block streaming (default: `true`).
-=======
 - `channels.bluebubbles.blockStreaming`: Enable block streaming (default: `false`; required for streaming replies).
->>>>>>> upstream/main
 - `channels.bluebubbles.textChunkLimit`: Outbound chunk size in chars (default: 4000).
 - `channels.bluebubbles.chunkMode`: `length` (default) splits only when exceeding `textChunkLimit`; `newline` splits on blank lines (paragraph boundaries) before length chunking.
 - `channels.bluebubbles.mediaMaxMb`: Inbound media cap in MB (default: 8).

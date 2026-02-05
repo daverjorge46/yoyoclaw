@@ -1,10 +1,6 @@
 const KEY = "openclaw.control.settings.v1";
 
-<<<<<<< HEAD
-import type { ThemeMode } from "./theme";
-=======
 import type { ThemeMode } from "./theme.ts";
->>>>>>> upstream/main
 
 export type UiSettings = {
   gatewayUrl: string;
@@ -40,13 +36,9 @@ export function loadSettings(): UiSettings {
 
   try {
     const raw = localStorage.getItem(KEY);
-<<<<<<< HEAD
-    if (!raw) return defaults;
-=======
     if (!raw) {
       return defaults;
     }
->>>>>>> upstream/main
     const parsed = JSON.parse(raw) as Partial<UiSettings>;
     return {
       gatewayUrl:

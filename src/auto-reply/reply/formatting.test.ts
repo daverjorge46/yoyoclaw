@@ -71,8 +71,6 @@ describe("block reply coalescer", () => {
     coalescer.stop();
   });
 
-<<<<<<< HEAD
-=======
   it("flushes each enqueued payload separately when flushOnEnqueue is set", async () => {
     const flushes: string[] = [];
     const coalescer = createBlockReplyCoalescer({
@@ -148,7 +146,6 @@ describe("block reply coalescer", () => {
     coalescer.stop();
   });
 
->>>>>>> upstream/main
   it("flushes buffered text before media payloads", () => {
     const flushes: Array<{ text?: string; mediaUrls?: string[] }> = [];
     const coalescer = createBlockReplyCoalescer({

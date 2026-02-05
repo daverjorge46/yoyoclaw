@@ -15,21 +15,10 @@ import { ensureAuthStoreFile, resolveAuthStorePath } from "./paths.js";
 import { suggestOAuthProfileIdForLegacyDefault } from "./repair.js";
 import { ensureAuthProfileStore, saveAuthProfileStore } from "./store.js";
 
-<<<<<<< HEAD
-const OAUTH_PROVIDER_IDS = new Set<OAuthProvider>(
-  getOAuthProviders().map((provider) => provider.id),
-);
-
-function isOAuthProvider(provider: string): provider is OAuthProvider {
-  // biome-ignore lint/suspicious/noExplicitAny: type guard needs runtime check
-  return OAUTH_PROVIDER_IDS.has(provider as any);
-}
-=======
 const OAUTH_PROVIDER_IDS = new Set<string>(getOAuthProviders().map((provider) => provider.id));
 
 const isOAuthProvider = (provider: string): provider is OAuthProvider =>
   OAUTH_PROVIDER_IDS.has(provider);
->>>>>>> upstream/main
 
 const resolveOAuthProvider = (provider: string): OAuthProvider | null =>
   isOAuthProvider(provider) ? provider : null;
@@ -180,7 +169,11 @@ export async function resolveApiKeyForProfile(params: {
   }
 
   if (cred.type === "api_key") {
-    return { apiKey: cred.key, provider: cred.provider, email: cred.email };
+    const key = cred.key?.trim();
+    if (!key) {
+      return null;
+    }
+    return { apiKey: key, provider: cred.provider, email: cred.email };
   }
   if (cred.type === "token") {
     const token = cred.token?.trim();

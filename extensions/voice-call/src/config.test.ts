@@ -17,6 +17,11 @@ function createBaseConfig(provider: "telnyx" | "twilio" | "plivo" | "mock"): Voi
     serve: { port: 3334, bind: "127.0.0.1", path: "/voice/webhook" },
     tailscale: { mode: "off", path: "/voice/webhook" },
     tunnel: { provider: "none", allowNgrokFreeTierLoopbackBypass: false },
+    webhookSecurity: {
+      allowedHosts: [],
+      trustForwardingHeaders: false,
+      trustedProxyIPs: [],
+    },
     streaming: {
       enabled: false,
       sttProvider: "openai-realtime",
@@ -148,8 +153,6 @@ describe("validateProviderConfig", () => {
         "plugins.entries.voice-call.config.telnyx.apiKey is required (or set TELNYX_API_KEY env)",
       );
     });
-<<<<<<< HEAD
-=======
 
     it("fails validation when allowlist inbound policy lacks public key", () => {
       const config = createBaseConfig("telnyx");
@@ -178,7 +181,6 @@ describe("validateProviderConfig", () => {
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
->>>>>>> upstream/main
   });
 
   describe("plivo provider", () => {

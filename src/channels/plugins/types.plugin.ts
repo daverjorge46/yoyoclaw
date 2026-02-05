@@ -30,10 +30,6 @@ import type {
 } from "./types.core.js";
 
 // Channel docking: implement this contract in src/channels/plugins/<id>.ts.
-<<<<<<< HEAD
-// biome-ignore lint/suspicious/noExplicitAny: registry aggregates heterogeneous account types.
-=======
->>>>>>> upstream/main
 export type ChannelConfigUiHint = {
   label?: string;
   help?: string;
@@ -48,11 +44,8 @@ export type ChannelConfigSchema = {
   uiHints?: Record<string, ChannelConfigUiHint>;
 };
 
-<<<<<<< HEAD
-=======
 // oxlint-disable-next-line typescript/no-explicit-any
->>>>>>> upstream/main
-export type ChannelPlugin<ResolvedAccount = any> = {
+export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknown> = {
   id: ChannelId;
   meta: ChannelMeta;
   capabilities: ChannelCapabilities;
@@ -72,7 +65,7 @@ export type ChannelPlugin<ResolvedAccount = any> = {
   groups?: ChannelGroupAdapter;
   mentions?: ChannelMentionAdapter;
   outbound?: ChannelOutboundAdapter;
-  status?: ChannelStatusAdapter<ResolvedAccount>;
+  status?: ChannelStatusAdapter<ResolvedAccount, Probe, Audit>;
   gatewayMethods?: string[];
   gateway?: ChannelGatewayAdapter<ResolvedAccount>;
   auth?: ChannelAuthAdapter;

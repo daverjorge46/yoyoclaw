@@ -4,22 +4,13 @@ import type {
   DeviceTokenSummary,
   PairedDevice,
   PendingDevice,
-<<<<<<< HEAD
-} from "../controllers/devices";
-=======
 } from "../controllers/devices.ts";
->>>>>>> upstream/main
 import type {
   ExecApprovalsAllowlistEntry,
   ExecApprovalsFile,
   ExecApprovalsSnapshot,
-<<<<<<< HEAD
-} from "../controllers/exec-approvals";
-import { clampText, formatAgo, formatList } from "../format";
-=======
 } from "../controllers/exec-approvals.ts";
 import { clampText, formatAgo, formatList } from "../format.ts";
->>>>>>> upstream/main
 
 export type NodesProps = {
   loading: boolean;
@@ -337,24 +328,16 @@ function resolveBindingsState(props: NodesProps): BindingState {
 }
 
 function normalizeSecurity(value?: string): ExecSecurity {
-<<<<<<< HEAD
-  if (value === "allowlist" || value === "full" || value === "deny") return value;
-=======
   if (value === "allowlist" || value === "full" || value === "deny") {
     return value;
   }
->>>>>>> upstream/main
   return "deny";
 }
 
 function normalizeAsk(value?: string): ExecAsk {
-<<<<<<< HEAD
-  if (value === "always" || value === "off" || value === "on-miss") return value;
-=======
   if (value === "always" || value === "off" || value === "on-miss") {
     return value;
   }
->>>>>>> upstream/main
   return "on-miss";
 }
 
@@ -375,12 +358,6 @@ function resolveConfigAgents(config: Record<string, unknown> | null): ExecApprov
   const list = Array.isArray(agentsNode.list) ? agentsNode.list : [];
   const agents: ExecApprovalsAgentOption[] = [];
   list.forEach((entry) => {
-<<<<<<< HEAD
-    if (!entry || typeof entry !== "object") return;
-    const record = entry as Record<string, unknown>;
-    const id = typeof record.id === "string" ? record.id.trim() : "";
-    if (!id) return;
-=======
     if (!entry || typeof entry !== "object") {
       return;
     }
@@ -389,7 +366,6 @@ function resolveConfigAgents(config: Record<string, unknown> | null): ExecApprov
     if (!id) {
       return;
     }
->>>>>>> upstream/main
     const name = typeof record.name === "string" ? record.name.trim() : undefined;
     const isDefault = record.default === true;
     agents.push({ id, name: name || undefined, isDefault });
@@ -406,13 +382,9 @@ function resolveExecApprovalsAgents(
   const merged = new Map<string, ExecApprovalsAgentOption>();
   configAgents.forEach((agent) => merged.set(agent.id, agent));
   approvalsAgents.forEach((id) => {
-<<<<<<< HEAD
-    if (merged.has(id)) return;
-=======
     if (merged.has(id)) {
       return;
     }
->>>>>>> upstream/main
     merged.set(id, { id });
   });
   const agents = Array.from(merged.values());
@@ -420,17 +392,12 @@ function resolveExecApprovalsAgents(
     agents.push({ id: "main", isDefault: true });
   }
   agents.sort((a, b) => {
-<<<<<<< HEAD
-    if (a.isDefault && !b.isDefault) return -1;
-    if (!a.isDefault && b.isDefault) return 1;
-=======
     if (a.isDefault && !b.isDefault) {
       return -1;
     }
     if (!a.isDefault && b.isDefault) {
       return 1;
     }
->>>>>>> upstream/main
     const aLabel = a.name?.trim() ? a.name : a.id;
     const bLabel = b.name?.trim() ? b.name : b.id;
     return aLabel.localeCompare(bLabel);
@@ -442,17 +409,12 @@ function resolveExecApprovalsScope(
   selected: string | null,
   agents: ExecApprovalsAgentOption[],
 ): string {
-<<<<<<< HEAD
-  if (selected === EXEC_APPROVALS_DEFAULT_SCOPE) return EXEC_APPROVALS_DEFAULT_SCOPE;
-  if (selected && agents.some((agent) => agent.id === selected)) return selected;
-=======
   if (selected === EXEC_APPROVALS_DEFAULT_SCOPE) {
     return EXEC_APPROVALS_DEFAULT_SCOPE;
   }
   if (selected && agents.some((agent) => agent.id === selected)) {
     return selected;
   }
->>>>>>> upstream/main
   return EXEC_APPROVALS_DEFAULT_SCOPE;
 }
 
@@ -1066,11 +1028,6 @@ function resolveExecNodes(nodes: Array<Record<string, unknown>>): BindingNode[] 
   for (const node of nodes) {
     const commands = Array.isArray(node.commands) ? node.commands : [];
     const supports = commands.some((cmd) => String(cmd) === "system.run");
-<<<<<<< HEAD
-    if (!supports) continue;
-    const nodeId = typeof node.nodeId === "string" ? node.nodeId.trim() : "";
-    if (!nodeId) continue;
-=======
     if (!supports) {
       continue;
     }
@@ -1078,7 +1035,6 @@ function resolveExecNodes(nodes: Array<Record<string, unknown>>): BindingNode[] 
     if (!nodeId) {
       continue;
     }
->>>>>>> upstream/main
     const displayName =
       typeof node.displayName === "string" && node.displayName.trim()
         ? node.displayName.trim()
@@ -1102,11 +1058,6 @@ function resolveExecApprovalsNodes(
       (cmd) =>
         String(cmd) === "system.execApprovals.get" || String(cmd) === "system.execApprovals.set",
     );
-<<<<<<< HEAD
-    if (!supports) continue;
-    const nodeId = typeof node.nodeId === "string" ? node.nodeId.trim() : "";
-    if (!nodeId) continue;
-=======
     if (!supports) {
       continue;
     }
@@ -1114,7 +1065,6 @@ function resolveExecApprovalsNodes(
     if (!nodeId) {
       continue;
     }
->>>>>>> upstream/main
     const displayName =
       typeof node.displayName === "string" && node.displayName.trim()
         ? node.displayName.trim()
@@ -1155,12 +1105,6 @@ function resolveAgentBindings(config: Record<string, unknown> | null): {
 
   const agents: BindingAgent[] = [];
   list.forEach((entry, index) => {
-<<<<<<< HEAD
-    if (!entry || typeof entry !== "object") return;
-    const record = entry as Record<string, unknown>;
-    const id = typeof record.id === "string" ? record.id.trim() : "";
-    if (!id) return;
-=======
     if (!entry || typeof entry !== "object") {
       return;
     }
@@ -1169,7 +1113,6 @@ function resolveAgentBindings(config: Record<string, unknown> | null): {
     if (!id) {
       return;
     }
->>>>>>> upstream/main
     const name = typeof record.name === "string" ? record.name.trim() : undefined;
     const isDefault = record.default === true;
     const toolsEntry = (record.tools ?? {}) as Record<string, unknown>;

@@ -1,10 +1,6 @@
 {
   "name": "@openclaw/zalo",
-<<<<<<< HEAD
-  "version": "2026.1.30",
-=======
-  "version": "2026.2.2",
->>>>>>> upstream/main
+  "version": "2026.2.4",
   "description": "OpenClaw Zalo channel plugin",
   "type": "module",
   "dependencies": {

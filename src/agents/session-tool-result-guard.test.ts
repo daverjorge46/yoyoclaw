@@ -3,12 +3,6 @@ import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { describe, expect, it } from "vitest";
 import { installSessionToolResultGuard } from "./session-tool-result-guard.js";
 
-<<<<<<< HEAD
-const toolCallMessage = {
-  role: "assistant",
-  content: [{ type: "toolCall", id: "call_1", name: "read", arguments: {} }],
-} satisfies AgentMessage;
-=======
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0];
 
 const asAppendMessage = (message: unknown) => message as AppendMessage;
@@ -17,7 +11,6 @@ const toolCallMessage = asAppendMessage({
   role: "assistant",
   content: [{ type: "toolCall", id: "call_1", name: "read", arguments: {} }],
 });
->>>>>>> upstream/main
 
 describe("installSessionToolResultGuard", () => {
   it("inserts synthetic toolResult before non-tool message when pending", () => {
@@ -25,13 +18,6 @@ describe("installSessionToolResultGuard", () => {
     installSessionToolResultGuard(sm);
 
     sm.appendMessage(toolCallMessage);
-<<<<<<< HEAD
-    sm.appendMessage({
-      role: "assistant",
-      content: [{ type: "text", text: "error" }],
-      stopReason: "error",
-    } as AgentMessage);
-=======
     sm.appendMessage(
       asAppendMessage({
         role: "assistant",
@@ -39,7 +25,6 @@ describe("installSessionToolResultGuard", () => {
         stopReason: "error",
       }),
     );
->>>>>>> upstream/main
 
     const entries = sm
       .getEntries()
@@ -77,14 +62,6 @@ describe("installSessionToolResultGuard", () => {
     installSessionToolResultGuard(sm);
 
     sm.appendMessage(toolCallMessage);
-<<<<<<< HEAD
-    sm.appendMessage({
-      role: "toolResult",
-      toolCallId: "call_1",
-      content: [{ type: "text", text: "ok" }],
-      isError: false,
-    } as AgentMessage);
-=======
     sm.appendMessage(
       asAppendMessage({
         role: "toolResult",
@@ -93,7 +70,6 @@ describe("installSessionToolResultGuard", () => {
         isError: false,
       }),
     );
->>>>>>> upstream/main
 
     const messages = sm
       .getEntries()
@@ -107,25 +83,6 @@ describe("installSessionToolResultGuard", () => {
     const sm = SessionManager.inMemory();
     const guard = installSessionToolResultGuard(sm);
 
-<<<<<<< HEAD
-    sm.appendMessage({
-      role: "assistant",
-      content: [
-        { type: "toolCall", id: "call_a", name: "one", arguments: {} },
-        { type: "toolUse", id: "call_b", name: "two", arguments: {} },
-      ],
-    } as AgentMessage);
-    sm.appendMessage({
-      role: "toolResult",
-      toolUseId: "call_a",
-      content: [{ type: "text", text: "a" }],
-      isError: false,
-    } as AgentMessage);
-    sm.appendMessage({
-      role: "assistant",
-      content: [{ type: "text", text: "after tools" }],
-    } as AgentMessage);
-=======
     sm.appendMessage(
       asAppendMessage({
         role: "assistant",
@@ -149,7 +106,6 @@ describe("installSessionToolResultGuard", () => {
         content: [{ type: "text", text: "after tools" }],
       }),
     );
->>>>>>> upstream/main
 
     const messages = sm
       .getEntries()
@@ -171,13 +127,6 @@ describe("installSessionToolResultGuard", () => {
     const guard = installSessionToolResultGuard(sm);
 
     sm.appendMessage(toolCallMessage);
-<<<<<<< HEAD
-    sm.appendMessage({
-      role: "assistant",
-      content: [{ type: "text", text: "hard error" }],
-      stopReason: "error",
-    } as AgentMessage);
-=======
     sm.appendMessage(
       asAppendMessage({
         role: "assistant",
@@ -185,7 +134,6 @@ describe("installSessionToolResultGuard", () => {
         stopReason: "error",
       }),
     );
->>>>>>> upstream/main
     expect(guard.getPendingIds()).toEqual([]);
   });
 
@@ -193,17 +141,6 @@ describe("installSessionToolResultGuard", () => {
     const sm = SessionManager.inMemory();
     installSessionToolResultGuard(sm);
 
-<<<<<<< HEAD
-    sm.appendMessage({
-      role: "assistant",
-      content: [{ type: "toolUse", id: "use_1", name: "f", arguments: {} }],
-    } as AgentMessage);
-    sm.appendMessage({
-      role: "toolResult",
-      toolUseId: "use_1",
-      content: [{ type: "text", text: "ok" }],
-    } as AgentMessage);
-=======
     sm.appendMessage(
       asAppendMessage({
         role: "assistant",
@@ -217,7 +154,6 @@ describe("installSessionToolResultGuard", () => {
         content: [{ type: "text", text: "ok" }],
       }),
     );
->>>>>>> upstream/main
 
     const messages = sm
       .getEntries()
@@ -225,8 +161,6 @@ describe("installSessionToolResultGuard", () => {
       .map((e) => (e as { message: AgentMessage }).message);
     expect(messages.map((m) => m.role)).toEqual(["assistant", "toolResult"]);
   });
-<<<<<<< HEAD
-=======
 
   it("drops malformed tool calls missing input before persistence", () => {
     const sm = SessionManager.inMemory();
@@ -272,5 +206,4 @@ describe("installSessionToolResultGuard", () => {
 
     expect(messages.map((m) => m.role)).toEqual(["assistant", "toolResult"]);
   });
->>>>>>> upstream/main
 });

@@ -21,10 +21,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
 });
 
 import "./test-helpers/fast-core-tools.js";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import { createOpenClawTools } from "./openclaw-tools.js";
 
 const waitForCalls = async (getCount: () => number, count: number, timeoutMs = 2000) => {
@@ -33,11 +30,7 @@ const waitForCalls = async (getCount: () => number, count: number, timeoutMs = 2
     if (Date.now() - start > timeoutMs) {
       throw new Error(`timed out waiting for ${count} calls`);
     }
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
->>>>>>> upstream/main
   }
 };
 
@@ -193,14 +186,10 @@ describe("sessions tools", () => {
     const sessionId = "sess-group";
     const targetKey = "agent:main:discord:channel:1457165743010611293";
     callGatewayMock.mockImplementation(async (opts: unknown) => {
-<<<<<<< HEAD
-      const request = opts as { method?: string; params?: Record<string, unknown> };
-=======
       const request = opts as {
         method?: string;
         params?: Record<string, unknown>;
       };
->>>>>>> upstream/main
       if (request.method === "sessions.resolve") {
         return {
           key: targetKey,
@@ -403,14 +392,10 @@ describe("sessions tools", () => {
     const sessionId = "sess-send";
     const targetKey = "agent:main:discord:channel:123";
     callGatewayMock.mockImplementation(async (opts: unknown) => {
-<<<<<<< HEAD
-      const request = opts as { method?: string; params?: Record<string, unknown> };
-=======
       const request = opts as {
         method?: string;
         params?: Record<string, unknown>;
       };
->>>>>>> upstream/main
       if (request.method === "sessions.resolve") {
         return { key: targetKey };
       }
@@ -536,13 +521,8 @@ describe("sessions tools", () => {
       status: "ok",
       reply: "initial",
     });
-<<<<<<< HEAD
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-=======
     await sleep(0);
     await sleep(0);
->>>>>>> upstream/main
 
     const agentCalls = calls.filter((call) => call.method === "agent");
     expect(agentCalls).toHaveLength(4);

@@ -215,10 +215,7 @@ export async function downloadMSTeamsGraphMedia(params: {
   tokenProvider?: MSTeamsAccessTokenProvider;
   maxBytes: number;
   allowHosts?: string[];
-<<<<<<< HEAD
-=======
   authAllowHosts?: string[];
->>>>>>> upstream/main
   fetchFn?: typeof fetch;
   /** When true, embeds original filename in stored path for later extraction. */
   preserveFilenames?: boolean;
@@ -340,10 +337,7 @@ export async function downloadMSTeamsGraphMedia(params: {
     maxBytes: params.maxBytes,
     tokenProvider: params.tokenProvider,
     allowHosts,
-<<<<<<< HEAD
-=======
     authAllowHosts: params.authAllowHosts,
->>>>>>> upstream/main
     fetchFn: params.fetchFn,
     preserveFilenames: params.preserveFilenames,
   });

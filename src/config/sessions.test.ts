@@ -2,10 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-<<<<<<< HEAD
-=======
 import { sleep } from "../utils.js";
->>>>>>> upstream/main
 import {
   buildGroupDisplayName,
   deriveSessionKey,
@@ -432,10 +429,6 @@ describe("sessions", () => {
       "utf-8",
     );
 
-<<<<<<< HEAD
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-=======
->>>>>>> upstream/main
     await Promise.all([
       updateSessionStoreEntry({
         storePath,
