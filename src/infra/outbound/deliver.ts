@@ -276,15 +276,21 @@ export async function deliverOutboundPayloads(params: {
     if (!hookRunner || !canMessageSentHook) {
       return;
     }
-    await hookRunner.runMessageSent(
-      {
-        to,
-        content,
-        success,
-        error,
-      },
-      messageHookContext,
-    );
+    try {
+      await hookRunner.runMessageSent(
+        {
+          to,
+          content,
+          success,
+          error,
+        },
+        messageHookContext,
+      );
+    } catch (err) {
+      log.warn(
+        `message_sent hook failed: channel=${channel} to=${to} error=${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   };
 
   const sendTextChunks = async (text: string) => {

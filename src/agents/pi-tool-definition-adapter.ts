@@ -152,6 +152,17 @@ export function toClientToolDefinitions(
           },
         });
         if (outcome.blocked) {
+          await runAfterToolCallHook({
+            toolName: func.name,
+            params,
+            error: outcome.reason,
+            durationMs: Date.now() - startedAt,
+            toolCallId: hookToolCallId,
+            ctx: {
+              ...hookContext,
+              toolCallId: hookToolCallId,
+            },
+          });
           throw new Error(outcome.reason);
         }
         const adjustedParams = outcome.params;
