@@ -106,3 +106,4 @@ config.local.*
 ~/.openclaw/
 **/sessions/
 **/.sessions/
+package-lock.json
