@@ -31,7 +31,7 @@ set -euo pipefail
 echo "[pre-commit] Scanning for secrets..."
 
 # Run TruffleHog on staged changes
-if ! trufflehog git file://. --since-commit HEAD --only-verified --fail 2>/dev/null; then
+if ! trufflehog git file://. --since-commit HEAD~1 --branch HEAD --only-verified --fail 2>/dev/null; then
   echo ""
   echo "🚨 SECRETS DETECTED! Commit blocked."
   echo "Remove secrets before committing."

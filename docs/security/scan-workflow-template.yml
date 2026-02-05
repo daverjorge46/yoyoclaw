@@ -1,5 +1,5 @@
 # Security Scan Workflow Template
-# 
+#
 # This workflow runs security scans on your OpenClaw workspace:
 # - Trivy: Vulnerability scanning for dependencies and filesystem
 # - KICS: Infrastructure as Code security scanning
@@ -17,8 +17,8 @@ on:
   pull_request:
     branches: [main, master]
   schedule:
-    - cron: '0 3 * * 0'  # Weekly Sunday 3 AM UTC
-  workflow_dispatch:  # Manual trigger
+    - cron: "0 3 * * 0" # Weekly Sunday 3 AM UTC
+  workflow_dispatch: # Manual trigger
 
 jobs:
   trivy-scan:
@@ -31,13 +31,13 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.29.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          severity: 'CRITICAL,HIGH'
-          format: 'table'
-          exit-code: '0'  # Set to '1' to fail on findings
+          scan-type: "fs"
+          scan-ref: "."
+          severity: "CRITICAL,HIGH"
+          format: "table"
+          exit-code: "0" # Set to '1' to fail on findings
           ignore-unfixed: true
 
   kics-scan:
@@ -52,11 +52,11 @@ jobs:
       - name: Run KICS scan
         uses: Checkmarx/kics-github-action@v2.1.0
         with:
-          path: '.'
-          fail_on: 'critical'  # Only fail on critical issues
-          output_path: 'kics-results'
-          output_formats: 'json'
-          exclude_paths: 'node_modules,dist,.git,tmp'
+          path: "."
+          fail_on: "critical" # Only fail on critical issues
+          output_path: "kics-results"
+          output_formats: "json"
+          exclude_paths: "node_modules,dist,.git,tmp"
 
   secret-scan:
     name: TruffleHog Secret Scan
@@ -65,9 +65,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for secret scanning
+          fetch-depth: 0 # Full history for secret scanning
 
       - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.88.0
         with:
           extra_args: --only-verified
