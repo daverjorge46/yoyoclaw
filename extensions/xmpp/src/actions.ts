@@ -47,7 +47,7 @@ export const xmppMessageActions: ChannelMessageActionAdapter = {
     return Array.from(actions);
   },
 
-  supportsAction: ({ action }) => action === "react",
+  supportsAction: ({ action }) => action === "send" || action === "react",
 
   handleAction: async ({ action, params, cfg, accountId }) => {
     if (action === "send") {
@@ -92,8 +92,17 @@ export const xmppMessageActions: ChannelMessageActionAdapter = {
         label: "messageId",
       });
 
-      // Get emoji
-      const emoji = readStringParam(params, "emoji", { required: true });
+      // Get emoji(s) - support both single string and array
+      const emojiParam = params.emoji;
+      if (!emojiParam) {
+        throw new Error("emoji parameter required");
+      }
+      const emojis = Array.isArray(emojiParam) ? emojiParam : [emojiParam];
+
+      // Validate each emoji is a non-empty string
+      if (!emojis.every((e) => typeof e === "string" && e.trim().length > 0)) {
+        throw new Error("emoji must be a non-empty string or array of non-empty strings");
+      }
 
       // Check if remove
       const remove = typeof params.remove === "boolean" ? params.remove : false;
@@ -105,11 +114,10 @@ export const xmppMessageActions: ChannelMessageActionAdapter = {
       if (remove) {
         // Send empty reactions array to remove
         await client.sendReaction(bareJid, messageId, [], messageType);
-        return jsonResult({ ok: true, removed: emoji });
+        return jsonResult({ ok: true, removed: emojis.join(" ") });
       }
 
       // Send reaction
-      const emojis = Array.isArray(emoji) ? emoji : [emoji];
       await client.sendReaction(bareJid, messageId, emojis, messageType);
       return jsonResult({ ok: true, added: emojis.join(" ") });
     }

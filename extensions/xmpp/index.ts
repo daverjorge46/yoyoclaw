@@ -6,7 +6,7 @@ import { setXmppRuntime } from "./src/runtime.js";
 const plugin = {
   id: "xmpp",
   name: "XMPP",
-  description: "XMPP channel plugin (stanza.js)",
+  description: "XMPP channel plugin (xmpp.js)",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
     setXmppRuntime(api.runtime);
