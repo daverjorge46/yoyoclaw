@@ -631,33 +631,6 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
         },
       });
       outbox.close();
-
-      // Lightweight watchdog (deterministic): reconcile periodically.
-      const watchdog = setInterval(() => {
-        const outbox = new DiscordStatusOutbox();
-        reconcileDiscordStatusOutbox({
-          cfg,
-          outbox,
-          rest: client.rest,
-          token,
-          accountId: account.accountId,
-          errorEmoji,
-          allStateEmojis,
-          setErrorReaction: async ({ channelId, messageId }) => {
-            const { setDiscordStatusReaction } = await import("./message-handler.process.js");
-            await setDiscordStatusReaction({
-              channelId,
-              messageId,
-              emoji: errorEmoji,
-              allStateEmojis,
-              rest: client.rest,
-            });
-          },
-        })
-          .catch(() => {})
-          .finally(() => outbox.close());
-      }, outboxCfg.watchdogMs);
-      watchdog.unref?.();
     }
   } catch (err) {
     runtime.log?.(warn(`discord outbox reconcile failed: ${String(err)}`));
