@@ -87,6 +87,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--synthetic-api-key <key>", "Synthetic API key")
     .option("--venice-api-key <key>", "Venice API key")
     .option("--opencode-zen-api-key <key>", "OpenCode Zen API key")
+    .option("--xai-api-key <key>", "xAI API key")
     .option("--gateway-port <port>", "Gateway port")
     .option("--gateway-bind <mode>", "Gateway bind: loopback|tailnet|lan|auto|custom")
     .option("--gateway-auth <mode>", "Gateway auth: token|password")
