@@ -1,13 +1,12 @@
-import dgram from "node:dgram";
-import crypto from "node:crypto";
-import WebSocket from "ws";
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import crypto from "node:crypto";
+import { randomUUID } from "node:crypto";
+import dgram from "node:dgram";
+import { readFile, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join as joinPath } from "node:path";
-import { randomUUID } from "node:crypto";
-import { readFile, unlink } from "node:fs/promises";
-
+import { promisify } from "node:util";
+import WebSocket from "ws";
 import type { VoiceCallConfig } from "../config.js";
 import type { CallManager } from "../manager.js";
 import type {
@@ -23,9 +22,9 @@ import type {
   NormalizedEvent,
 } from "../types.js";
 import type { VoiceCallProvider } from "./base.js";
+import { convertPcmToMulaw8k, chunkAudio } from "../telephony-audio.js";
 import { OpenAIRealtimeSTTProvider } from "./stt-openai-realtime.js";
 import { OpenAITTSProvider } from "./tts-openai.js";
-import { convertPcmToMulaw8k, chunkAudio } from "../telephony-audio.js";
 
 type AriConfig = NonNullable<VoiceCallConfig["asteriskAri"]>;
 
@@ -33,7 +32,13 @@ type AriEvent = {
   type: string;
   application?: string;
   timestamp?: string;
-  channel?: { id: string; name?: string; state?: string; caller?: { number?: string }; connected?: { number?: string } };
+  channel?: {
+    id: string;
+    name?: string;
+    state?: string;
+    caller?: { number?: string };
+    connected?: { number?: string };
+  };
   args?: string[];
 };
 
@@ -123,7 +128,6 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     { resolve: () => void; reject: (err: Error) => void; timeout: NodeJS.Timeout }
   >();
 
-
   constructor(params: { config: VoiceCallConfig; manager: CallManager }) {
     const a = params.config.asteriskAri;
     if (!a) {
@@ -146,8 +150,6 @@ export class AsteriskAriProvider implements VoiceCallProvider {
   parseWebhookEvent(_ctx: WebhookContext): ProviderWebhookParseResult {
     return { events: [], statusCode: 200, providerResponseBody: "OK" };
   }
-
-
 
   private async safeHangupChannel(channelId: string | undefined) {
     const id = (channelId || "").trim();
@@ -218,7 +220,10 @@ export class AsteriskAriProvider implements VoiceCallProvider {
   private connectWs() {
     const base = this.cfg.baseUrl.replace(/\/$/, "");
     const wsBase = base.replace(/^http/, "ws");
-    const qp = new URLSearchParams({ app: this.cfg.app, api_key: this.cfg.username + ":" + this.cfg.password });
+    const qp = new URLSearchParams({
+      app: this.cfg.app,
+      api_key: this.cfg.username + ":" + this.cfg.password,
+    });
     const url = wsBase + "/ari/events?" + qp.toString();
 
     this.ws = new WebSocket(url);
@@ -361,7 +366,11 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     }
   }
 
-  private async setupConversation(params: { providerCallId: string; sipChannelId: string; isOutbound: boolean }) {
+  private async setupConversation(params: {
+    providerCallId: string;
+    sipChannelId: string;
+    isOutbound: boolean;
+  }) {
     const providerCallId = params.providerCallId;
     const st = this.callMap.get(providerCallId);
     if (!st) return;
@@ -520,9 +529,9 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     // - Else, dial the endpoint directly: PJSIP/<to>
     const endpoint = input.to.includes("/")
       ? input.to
-      : (this.cfg.trunk?.trim()
-          ? `PJSIP/${this.cfg.trunk}/${input.to}`
-          : `PJSIP/${input.to}`);
+      : this.cfg.trunk?.trim()
+        ? `PJSIP/${this.cfg.trunk}/${input.to}`
+        : `PJSIP/${input.to}`;
     const ch = await ariFetchJson({
       baseUrl: this.cfg.baseUrl,
       username: this.cfg.username,
@@ -612,7 +621,9 @@ export class AsteriskAriProvider implements VoiceCallProvider {
         );
         mulaw = Buffer.isBuffer(stdout) ? stdout : Buffer.from(stdout);
       } finally {
-        try { await unlink(wavPath); } catch {}
+        try {
+          await unlink(wavPath);
+        } catch {}
       }
     }
 
