@@ -47,8 +47,8 @@ const AUTH_CHOICE_GROUP_DEFS: {
   {
     value: "openai",
     label: "OpenAI",
-    hint: "Codex OAuth + API key",
-    choices: ["openai-codex", "openai-api-key"],
+    hint: "Codex OAuth + device code + API key",
+    choices: ["openai-codex", "openai-device-code", "openai-api-key"],
   },
   {
     value: "anthropic",
@@ -152,6 +152,11 @@ export function buildAuthChoiceOptions(params: {
   options.push({
     value: "openai-codex",
     label: "OpenAI Codex (ChatGPT OAuth)",
+  });
+  options.push({
+    value: "openai-device-code",
+    label: "OpenAI device code (Codex CLI)",
+    hint: "Runs `codex login --device-auth`",
   });
   options.push({ value: "chutes", label: "Chutes (OAuth)" });
   options.push({ value: "openai-api-key", label: "OpenAI API key" });

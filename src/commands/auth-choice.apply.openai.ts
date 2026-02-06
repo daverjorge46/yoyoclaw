@@ -1,7 +1,9 @@
 import { loginOpenAICodex } from "@mariozechner/pi-ai";
 import type { ApplyAuthChoiceParams, ApplyAuthChoiceResult } from "./auth-choice.apply.js";
+import { readCodexCliCredentials } from "../agents/cli-credentials.js";
 import { resolveEnvApiKey } from "../agents/model-auth.js";
 import { upsertSharedEnvVar } from "../infra/env-file.js";
+import { runCommandWithTimeout } from "../process/exec.js";
 import {
   formatApiKeyPreview,
   normalizeApiKeyInput,
@@ -11,7 +13,7 @@ import { applyDefaultModelChoice } from "./auth-choice.default-model.js";
 import { isRemoteEnvironment } from "./oauth-env.js";
 import { createVpsAwareOAuthHandlers } from "./oauth-flow.js";
 import { applyAuthProfileConfig, writeOAuthCredentials } from "./onboard-auth.js";
-import { openUrl } from "./onboard-helpers.js";
+import { detectBinary, openUrl } from "./onboard-helpers.js";
 import {
   applyOpenAICodexModelDefault,
   OPENAI_CODEX_DEFAULT_MODEL,
@@ -109,6 +111,95 @@ export async function applyAuthChoiceOpenAI(
     });
     nextConfig = applied.config;
     agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
+    return { config: nextConfig, agentModelOverride };
+  }
+
+  if (params.authChoice === "openai-device-code") {
+    const hasCodex = await detectBinary("codex");
+    if (!hasCodex) {
+      await params.prompter.note(
+        [
+          "Codex CLI not found.",
+          "Install with: npm install -g @openai/codex",
+          'Then re-run and select "OpenAI device code (Codex CLI)".',
+        ].join("\n"),
+        "OpenAI device code",
+      );
+      return { config: params.config };
+    }
+
+    await params.prompter.note(
+      [
+        "Starting Codex CLI device login.",
+        "Follow the device code instructions in the terminal.",
+      ].join("\n"),
+      "OpenAI device code",
+    );
+    const result = await runCommandWithTimeout(["codex", "login", "--device-auth"], {
+      timeoutMs: 10 * 60 * 1000,
+      env: { NODE_OPTIONS: "" },
+      mirrorStdout: true,
+      mirrorStderr: true,
+    });
+    if (result.code !== 0) {
+      const stderr = result.stderr.trim();
+      const stdout = result.stdout.trim();
+      const details = [stdout, stderr].filter(Boolean).join("\n");
+      params.runtime.error(
+        [
+          `Codex CLI login failed (exit ${String(result.code)}).`,
+          details ? `Output:\n${details}` : "No output captured.",
+          "Tip: ensure device code login is enabled in ChatGPT settings.",
+        ].join("\n"),
+      );
+      return { config: params.config };
+    }
+
+    const creds = readCodexCliCredentials();
+    if (!creds) {
+      await params.prompter.note(
+        [
+          "Codex CLI login completed, but credentials were not found.",
+          "Try re-running the device login or use OpenAI Codex OAuth instead.",
+        ].join("\n"),
+        "OpenAI device code",
+      );
+      return { config: params.config };
+    }
+
+    // TODO: de-duplicate this with the openai-codex OAuth flow once behavior is stable.
+    let nextConfig = params.config;
+    let agentModelOverride: string | undefined;
+    const noteAgentModel = async (model: string) => {
+      if (!params.agentId) {
+        return;
+      }
+      await params.prompter.note(
+        `Default model set to ${model} for agent "${params.agentId}".`,
+        "Model configured",
+      );
+    };
+
+    await writeOAuthCredentials("openai-codex", creds, params.agentDir);
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "openai-codex:default",
+      provider: "openai-codex",
+      mode: "oauth",
+    });
+    if (params.setDefaultModel) {
+      const applied = applyOpenAICodexModelDefault(nextConfig);
+      nextConfig = applied.next;
+      if (applied.changed) {
+        await params.prompter.note(
+          `Default model set to ${OPENAI_CODEX_DEFAULT_MODEL}`,
+          "Model configured",
+        );
+      }
+    } else {
+      agentModelOverride = OPENAI_CODEX_DEFAULT_MODEL;
+      await noteAgentModel(OPENAI_CODEX_DEFAULT_MODEL);
+    }
+
     return { config: nextConfig, agentModelOverride };
   }
 
