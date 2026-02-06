@@ -16,7 +16,10 @@ describe("cron schedule", () => {
   it("computes next run for every schedule", () => {
     const anchor = Date.parse("2025-12-13T00:00:00.000Z");
     const now = anchor + 10_000;
-    const next = computeNextRunAtMs({ kind: "every", everyMs: 30_000, anchorMs: anchor }, now);
+    const next = computeNextRunAtMs(
+      { kind: "every", everyMs: 30_000, anchorMs: anchor },
+      now,
+    );
     expect(next).toBe(anchor + 30_000);
   });
 
@@ -30,7 +33,10 @@ describe("cron schedule", () => {
 
   it("advances when now matches anchor for every schedule", () => {
     const anchor = Date.parse("2025-12-13T00:00:00.000Z");
-    const next = computeNextRunAtMs({ kind: "every", everyMs: 30_000, anchorMs: anchor }, anchor);
+    const next = computeNextRunAtMs(
+      { kind: "every", everyMs: 30_000, anchorMs: anchor },
+      anchor,
+    );
     expect(next).toBe(anchor + 30_000);
   });
 
@@ -38,20 +44,20 @@ describe("cron schedule", () => {
     // Current time: 2026-02-06 08:20 (Asia/Shanghai = UTC+8)
     // = 2026-02-06 00:20 UTC
     const nowMs = Date.parse("2026-02-06T00:20:00.000Z");
-    
+
     // Cron: 30 7 * * * (07:30 Asia/Shanghai = 23:30 UTC previous day)
     const next = computeNextRunAtMs(
       { kind: "cron", expr: "30 7 * * *", tz: "Asia/Shanghai" },
       nowMs,
     );
-    
+
     // Expected: tomorrow 2026-02-07 07:30 Asia/Shanghai
     // = 2026-02-06 23:30:00 UTC
     const expected = Date.parse("2026-02-06T23:30:00.000Z");
-    
+
     // Should NOT be last year (2025-02-06)
     const wrongYear = Date.parse("2025-02-06T23:30:00.000Z");
-    
+
     expect(next).not.toBe(wrongYear);
     expect(next).toBe(expected);
   });
