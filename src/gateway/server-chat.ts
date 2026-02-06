@@ -700,7 +700,7 @@ export function createChannelMessageHandler(deps: {
         }
       }
     } catch (err) {
-      deps.log.error(`[${channelId}] dispatch error: ${err}`);
+      deps.log.error(`[${channelId}] dispatch error: ${formatForLog(err)}`);
     }
   };
 }

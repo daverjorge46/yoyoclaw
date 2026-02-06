@@ -151,7 +151,8 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
       });
 
       client.on("message", async (topic: string, message: mqtt.Packet) => {
-        const msgStr = message.toString();
+        // Treat message as Buffer, then parse JSON
+        const msgStr = Buffer.isBuffer(message) ? message.toString() : String(message);
         let data: unknown;
         try {
           data = JSON.parse(msgStr);
@@ -162,25 +163,26 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
 
         if (topic === "Chat") {
           try {
-            const d = data as unknown;
+            const d = data as {
+              sender?: string;
+              data?: { data?: string };
+              message?: string;
+              id?: string;
+              timestamp?: number;
+            };
             if (
               typeof d === "object" &&
               d !== null &&
-              "sender" in d &&
-              ("data" in d || "message" in d)
+              d.sender &&
+              (d.data?.data || d.message)
             ) {
-              const sender = (d as { sender: string }).sender;
+              const sender = d.sender;
               // Prefer d.data?.data, fallback to d.message
               let text: string | undefined;
-              if (
-                "data" in d &&
-                typeof (d as any).data === "object" &&
-                (d as any).data !== null &&
-                "data" in (d as any).data
-              ) {
-                text = (d as any).data.data;
-              } else if ("message" in d) {
-                text = (d as any).message;
+              if (d.data && typeof d.data === "object" && d.data.data) {
+                text = d.data.data;
+              } else if (d.message) {
+                text = d.message;
               }
 
               if (!text || (config.myWalletAddress && sender === config.myWalletAddress)) {
@@ -192,10 +194,10 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
               // Inbound relay logic to OpenClaw core
               if (ctx.onMessage) {
                 ctx.onMessage({
-                  id: (d as any).id || `spixi-${Date.now()}`,
+                  id: d.id || `spixi-${Date.now()}`,
                   from: sender,
                   text,
-                  timestamp: (d as any).timestamp || Date.now(),
+                  timestamp: d.timestamp || Date.now(),
                   raw: data,
                 });
               } else {
@@ -210,10 +212,10 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
           }
         } else if (topic === "RequestAdd2") {
           // Incoming friend request
-          const d = data as unknown;
+          const d = data as { sender?: string; address?: string };
           let sender: string | undefined;
-          if (typeof d === "object" && d !== null && ("sender" in d || "address" in d)) {
-            sender = (d as any).sender || (d as any).address;
+          if (typeof d === "object" && d !== null && (d.sender || d.address)) {
+            sender = d.sender || d.address;
           }
           log?.info(`[${account.accountId}] Received Friend Request from: ${sender}`);
 
@@ -239,10 +241,10 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
           }
         } else if (topic === "AcceptAdd2") {
           // Friend request accepted by other party
-          const d = data as unknown;
+          const d = data as { sender?: string; address?: string };
           let sender: string | undefined;
-          if (typeof d === "object" && d !== null && ("sender" in d || "address" in d)) {
-            sender = (d as any).sender || (d as any).address;
+          if (typeof d === "object" && d !== null && (d.sender || d.address)) {
+            sender = d.sender || d.address;
           }
           log?.info(`[${account.accountId}] Friend request ACCEPTED by: ${sender}`);
         }

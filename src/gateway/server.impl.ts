@@ -404,9 +404,7 @@ export async function startGatewayServer(
 
       const runtime = channelRuntimeEnvs[channelId];
       // Type guard for Spixi channel capability
-      function hasSpixiChannel(
-        obj: unknown,
-      ): obj is {
+      function hasSpixiChannel(obj: unknown): obj is {
         channel: { spixi: { sendMessage: (to: string, text: string) => Promise<void> } };
       } {
         return (

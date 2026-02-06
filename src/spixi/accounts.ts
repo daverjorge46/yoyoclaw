@@ -31,7 +31,7 @@ export function resolveSpixiAccount(params: {
   const accountId = normalizeAccountId(params.accountId);
   const spixi = params.cfg.channels?.spixi;
   const accounts = spixi?.accounts || {};
-  const accountConfig = (accounts[accountId] || {}) as SpixiAccountConfig;
+  const accountConfig = accounts[accountId] || {};
 
   const baseConfig = (spixi || {}) as SpixiAccountConfig;
   const merged = { ...baseConfig, ...accountConfig };
