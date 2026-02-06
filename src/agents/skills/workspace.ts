@@ -153,28 +153,30 @@ function loadSkillEntries(
     source: "openclaw-managed",
   });
   let workspaceSkills: Skill[] = [];
+  const tempDir = path.join(os.tmpdir(), `openclaw-skills-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  fs.mkdirSync(tempDir, { recursive: true });
   try {
-    const tempDir = path.join(os.tmpdir(), `openclaw-skills-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    fs.mkdirSync(tempDir, { recursive: true });
-    try {
-      createFilteredSkillDir(workspaceSkillsDir, tempDir);
-      workspaceSkills = loadSkills({
-        dir: tempDir,
-        source: "openclaw-workspace",
-      });
-    } finally {
-      try {
-        fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {
-        // ignore cleanup failures
-      }
-    }
-  } catch {
-    // Fallback to unfiltered scan if filtering fails
+    createFilteredSkillDir(workspaceSkillsDir, tempDir);
     workspaceSkills = loadSkills({
-      dir: workspaceSkillsDir,
+      dir: tempDir,
       source: "openclaw-workspace",
     });
+    // Remap paths from temp dir back to the original workspace skills dir
+    // so that filePath/baseDir survive temp-dir cleanup
+    for (const skill of workspaceSkills) {
+      if (skill.filePath.startsWith(tempDir)) {
+        skill.filePath = path.join(workspaceSkillsDir, path.relative(tempDir, skill.filePath));
+      }
+      if (skill.baseDir.startsWith(tempDir)) {
+        skill.baseDir = path.join(workspaceSkillsDir, path.relative(tempDir, skill.baseDir));
+      }
+    }
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // ignore cleanup failures
+    }
   }
 
   const merged = new Map<string, Skill>();

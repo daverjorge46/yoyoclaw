@@ -19,7 +19,7 @@ import os from "node:os";
  * These typically contain thousands of generated files that have no
  * relevance to skill metadata.
  */
-const IGNORED_DIR_PATTERNS = new Set([
+export const IGNORED_DIR_PATTERNS = new Set([
   // Python
   "venv",
   ".venv",
@@ -91,7 +91,7 @@ export function createFilteredSkillDir(sourceDir: string, tempDir: string): void
       continue;
     }
 
-    // Skip ignored development directories
+    // Skip ignored development directories at every level
     if (entry.isDirectory() && IGNORED_DIR_PATTERNS.has(entryName)) {
       continue;
     }
@@ -100,12 +100,16 @@ export function createFilteredSkillDir(sourceDir: string, tempDir: string): void
     const targetPath = path.join(tempDir, entryName);
 
     try {
-      // Create a symlink to preserve the original structure
-      // but allow loadSkillsFromDir to scan only what we want
-      fs.symlinkSync(sourcePath, targetPath, entry.isDirectory() ? "dir" : "file");
-    } catch (error) {
-      // Log but don't fail - some symlinks might fail, we can still process others
-      // In production, you might want conditional logging here
+      if (entry.isDirectory()) {
+        // Recurse into subdirectories so ignored dirs are filtered at every level
+        fs.mkdirSync(targetPath, { recursive: true });
+        createFilteredSkillDir(sourcePath, targetPath);
+      } else {
+        // Symlink individual files back to the original
+        fs.symlinkSync(sourcePath, targetPath, "file");
+      }
+    } catch {
+      // Log but don't fail - some entries might fail, we can still process others
     }
   }
 }
@@ -171,10 +175,9 @@ export function removeTempDir(tempDir: string): boolean {
  * Load skills from a directory, automatically filtering development folders.
  *
  * This is the high-level API that:
- * 1. Creates a temp directory with filtered symlinks
+ * 1. Creates a temp directory with recursively filtered symlinks
  * 2. Calls loadSkillsFromDirFn with the filtered directory
  * 3. Cleans up temporary files
- * 4. Falls back to unfiltered scan if filtering fails
  *
  * @param skillsDir - Source skills directory
  * @param loadSkillsFromDirFn - The actual skill loading function
@@ -206,20 +209,8 @@ export function loadSkillsWithDirFiltering(
       dir: tempDir,
       source: loadOpts.source,
     });
-  } catch (error) {
-    // Fallback: load from source directory unfiltered
-    // This ensures the system still works even if filtering fails
-    try {
-      return loadSkillsFromDirFn({
-        dir: skillsDir,
-        source: loadOpts.source,
-      });
-    } catch {
-      // If both filtered and unfiltered fail, return empty array
-      return [];
-    }
   } finally {
-    // Always clean up temp directory
+    // Always clean up temp directory, even if loader throws
     if (tempDir) {
       removeTempDir(tempDir);
     }

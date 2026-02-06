@@ -37,7 +37,7 @@ describe("filter-skill-dirs", () => {
   });
 
   describe("createFilteredSkillDir", () => {
-    it("should create symlinks for skill files", () => {
+    it("should create directory structure with file symlinks", () => {
       // Create a skill directory with a metadata file
       const skillDir = path.join(skillsDir, "my-skill");
       fs.mkdirSync(skillDir);
@@ -49,19 +49,33 @@ describe("filter-skill-dirs", () => {
       try {
         createFilteredSkillDir(skillsDir, tempDir);
 
-        // Check that the skill directory was symlinked
+        // Check that the skill directory exists
         const entries = fs.readdirSync(tempDir);
         expect(entries).toContain("my-skill");
 
-        // Verify it's a symlink
-        const stats = fs.lstatSync(path.join(tempDir, "my-skill"));
-        expect(stats.isSymbolicLink()).toBe(true);
+        // Verify it's a real directory (recursive), not a symlink
+        const dirStats = fs.lstatSync(path.join(tempDir, "my-skill"));
+        expect(dirStats.isDirectory()).toBe(true);
+        expect(dirStats.isSymbolicLink()).toBe(false);
+
+        // Verify the file inside is a symlink
+        const fileStats = fs.lstatSync(
+          path.join(tempDir, "my-skill", "SKILL.md"),
+        );
+        expect(fileStats.isSymbolicLink()).toBe(true);
+
+        // Verify the symlink target is readable
+        const content = fs.readFileSync(
+          path.join(tempDir, "my-skill", "SKILL.md"),
+          "utf-8",
+        );
+        expect(content).toBe("# My Skill");
       } finally {
         removeTempDir(tempDir);
       }
     });
 
-    it("should exclude venv directories", () => {
+    it("should exclude venv directories inside skills", () => {
       const skillDir = path.join(skillsDir, "skill-with-venv");
       fs.mkdirSync(skillDir);
       fs.mkdirSync(path.join(skillDir, "venv"));
@@ -73,22 +87,26 @@ describe("filter-skill-dirs", () => {
       try {
         createFilteredSkillDir(skillsDir, tempDir);
 
-        // Skill should be symlinked
+        // Skill directory should exist
         expect(fs.existsSync(path.join(tempDir, "skill-with-venv"))).toBe(true);
 
-        // But venv inside should NOT be in the symlink
-        // (it's excluded from the parent symlink target)
+        // venv should NOT appear in the filtered skill directory
         const skillDirContents = fs.readdirSync(
-          path.join(tempDir, "skill-with-venv")
+          path.join(tempDir, "skill-with-venv"),
         );
         expect(skillDirContents).toContain("SKILL.md");
         expect(skillDirContents).not.toContain("venv");
+
+        // Verify the venv path does not exist in the temp tree at all
+        expect(
+          fs.existsSync(path.join(tempDir, "skill-with-venv", "venv")),
+        ).toBe(false);
       } finally {
         removeTempDir(tempDir);
       }
     });
 
-    it("should exclude node_modules directories", () => {
+    it("should exclude node_modules directories inside skills", () => {
       const skillDir = path.join(skillsDir, "skill-with-npm");
       fs.mkdirSync(skillDir);
       fs.mkdirSync(path.join(skillDir, "node_modules"));
@@ -100,15 +118,19 @@ describe("filter-skill-dirs", () => {
         createFilteredSkillDir(skillsDir, tempDir);
 
         const skillDirContents = fs.readdirSync(
-          path.join(tempDir, "skill-with-npm")
+          path.join(tempDir, "skill-with-npm"),
         );
+        expect(skillDirContents).toContain("SKILL.md");
         expect(skillDirContents).not.toContain("node_modules");
+        expect(
+          fs.existsSync(path.join(tempDir, "skill-with-npm", "node_modules")),
+        ).toBe(false);
       } finally {
         removeTempDir(tempDir);
       }
     });
 
-    it("should exclude .git directories", () => {
+    it("should exclude .git directories inside skills", () => {
       const skillDir = path.join(skillsDir, "skill-with-git");
       fs.mkdirSync(skillDir);
       fs.mkdirSync(path.join(skillDir, ".git"));
@@ -119,16 +141,24 @@ describe("filter-skill-dirs", () => {
       try {
         createFilteredSkillDir(skillsDir, tempDir);
 
+        // .git is both hidden (starts with ".") and in IGNORED_DIR_PATTERNS,
+        // so it should be excluded
         const skillDirContents = fs.readdirSync(
-          path.join(tempDir, "skill-with-git")
+          path.join(tempDir, "skill-with-git"),
         );
+        expect(skillDirContents).toContain("SKILL.md");
         expect(skillDirContents).not.toContain(".git");
       } finally {
         removeTempDir(tempDir);
       }
     });
 
-    it("should skip hidden files and directories", () => {
+    it("should skip hidden files and directories at every level", () => {
+      // Hidden entries at top level
+      fs.writeFileSync(path.join(skillsDir, ".hidden-top"), "ignore");
+      fs.mkdirSync(path.join(skillsDir, ".hidden-top-dir"));
+
+      // Skill with hidden entries inside
       const skillDir = path.join(skillsDir, "skill-with-hidden");
       fs.mkdirSync(skillDir);
       fs.writeFileSync(path.join(skillDir, "SKILL.md"), "# Skill");
@@ -140,10 +170,19 @@ describe("filter-skill-dirs", () => {
       try {
         createFilteredSkillDir(skillsDir, tempDir);
 
-        const entries = fs.readdirSync(tempDir);
-        expect(entries).toContain("skill-with-hidden");
-        expect(entries).not.toContain(".hidden");
-        expect(entries).not.toContain(".hidden-dir");
+        // Top-level hidden entries excluded
+        const topEntries = fs.readdirSync(tempDir);
+        expect(topEntries).toContain("skill-with-hidden");
+        expect(topEntries).not.toContain(".hidden-top");
+        expect(topEntries).not.toContain(".hidden-top-dir");
+
+        // Hidden entries inside skill also excluded
+        const skillEntries = fs.readdirSync(
+          path.join(tempDir, "skill-with-hidden"),
+        );
+        expect(skillEntries).toContain("SKILL.md");
+        expect(skillEntries).not.toContain(".hidden");
+        expect(skillEntries).not.toContain(".hidden-dir");
       } finally {
         removeTempDir(tempDir);
       }
@@ -266,26 +305,19 @@ describe("filter-skill-dirs", () => {
       expect(result).toEqual([]);
     });
 
-    it("should fall back to unfiltered scan if filtering fails", () => {
+    it("should propagate loader errors without fallback", () => {
       const skillDir = path.join(skillsDir, "test-skill");
       fs.mkdirSync(skillDir);
 
-      let attempts = 0;
       const mockLoader = (opts: { dir: string; source: string }) => {
-        attempts++;
-        // First call (filtered) fails, second call (unfiltered) succeeds
-        if (opts.dir.includes("openclaw-skills")) {
-          throw new Error("Filter scan failed");
-        }
-        return ["success"];
+        throw new Error("Loader failed");
       };
 
-      const result = loadSkillsWithDirFiltering(skillsDir, mockLoader, {
-        source: "test",
-      });
-
-      expect(result).toEqual(["success"]);
-      expect(attempts).toBe(2); // One failed, one succeeded
+      expect(() =>
+        loadSkillsWithDirFiltering(skillsDir, mockLoader, {
+          source: "test",
+        }),
+      ).toThrow("Loader failed");
     });
 
     it("should clean up temporary directory even if loader throws", () => {
@@ -298,14 +330,19 @@ describe("filter-skill-dirs", () => {
 
       const createdDirs = fs.readdirSync(os.tmpdir());
       const beforeCount = createdDirs.filter((d) =>
-        d.startsWith("openclaw-skills")
+        d.startsWith("openclaw-skills"),
       ).length;
 
-      loadSkillsWithDirFiltering(skillsDir, mockLoader, { source: "test" });
+      // Error propagates, but temp dir should still be cleaned up
+      try {
+        loadSkillsWithDirFiltering(skillsDir, mockLoader, { source: "test" });
+      } catch {
+        // expected
+      }
 
       const afterDirs = fs.readdirSync(os.tmpdir());
       const afterCount = afterDirs.filter((d) =>
-        d.startsWith("openclaw-skills")
+        d.startsWith("openclaw-skills"),
       ).length;
 
       // No new temp dirs should remain
@@ -314,21 +351,26 @@ describe("filter-skill-dirs", () => {
   });
 
   describe("integration: realistic venv scenario", () => {
-    it("should reduce file handles when scanning skill with large venv", function () {
-      // This test is marked as integration because it creates many files
-      this.timeout(10000);
-
-      // Skip if we can't create this test environment
+    it("should filter venv from skill with large dependency tree", { timeout: 10_000 }, () => {
       const skillDir = path.join(skillsDir, "heavy-skill");
       fs.mkdirSync(skillDir);
       fs.writeFileSync(path.join(skillDir, "SKILL.md"), "# Heavy Skill");
+      // Also add a normal subdirectory that should survive filtering
+      const libDir = path.join(skillDir, "lib");
+      fs.mkdirSync(libDir);
+      fs.writeFileSync(path.join(libDir, "utils.py"), "# utils");
 
       // Create a mock venv structure (reduced for testing)
       const venvDir = path.join(skillDir, "venv");
-      const sitePackages = path.join(venvDir, "lib", "python3.11", "site-packages");
+      const sitePackages = path.join(
+        venvDir,
+        "lib",
+        "python3.11",
+        "site-packages",
+      );
       fs.mkdirSync(sitePackages, { recursive: true });
 
-      // Create some mock package files (reduced from 10k to 100 for test speed)
+      // Create some mock package files
       for (let i = 0; i < 100; i++) {
         fs.writeFileSync(path.join(sitePackages, `package${i}.pyc`), "");
       }
@@ -338,17 +380,53 @@ describe("filter-skill-dirs", () => {
       try {
         createFilteredSkillDir(skillsDir, tempDir);
 
-        // Verify venv was excluded
+        // Verify venv was excluded at skill level
         const skillContents = fs.readdirSync(
-          path.join(tempDir, "heavy-skill")
+          path.join(tempDir, "heavy-skill"),
         );
         expect(skillContents).toContain("SKILL.md");
+        expect(skillContents).toContain("lib");
         expect(skillContents).not.toContain("venv");
 
-        // Verify the original venv still exists
-        expect(
-          fs.existsSync(path.join(skillDir, "venv", "lib"))
-        ).toBe(true);
+        // Verify the normal subdir was preserved (recursed into)
+        const libContents = fs.readdirSync(
+          path.join(tempDir, "heavy-skill", "lib"),
+        );
+        expect(libContents).toContain("utils.py");
+
+        // Verify the original venv still exists (source untouched)
+        expect(fs.existsSync(path.join(skillDir, "venv", "lib"))).toBe(true);
+      } finally {
+        removeTempDir(tempDir);
+      }
+    });
+
+    it("should filter ignored dirs at deeply nested levels", () => {
+      // skills/my-skill/subdir/node_modules should be filtered
+      const skillDir = path.join(skillsDir, "deep-skill");
+      fs.mkdirSync(skillDir);
+      fs.writeFileSync(path.join(skillDir, "SKILL.md"), "# Deep Skill");
+
+      const subDir = path.join(skillDir, "tools");
+      fs.mkdirSync(subDir);
+      fs.writeFileSync(path.join(subDir, "helper.ts"), "export {}");
+      fs.mkdirSync(path.join(subDir, "node_modules"));
+      fs.writeFileSync(
+        path.join(subDir, "node_modules", "pkg.js"),
+        "module.exports = {}",
+      );
+
+      const tempDir = createTempDir();
+
+      try {
+        createFilteredSkillDir(skillsDir, tempDir);
+
+        // tools/ dir should exist
+        const toolsContents = fs.readdirSync(
+          path.join(tempDir, "deep-skill", "tools"),
+        );
+        expect(toolsContents).toContain("helper.ts");
+        expect(toolsContents).not.toContain("node_modules");
       } finally {
         removeTempDir(tempDir);
       }
