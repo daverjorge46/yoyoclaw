@@ -403,9 +403,15 @@ export class WecomWebhook {
       }
 
       const parts = [];
-      if (title) parts.push(`[链接] ${title}`);
-      if (description) parts.push(description);
-      if (url) parts.push(url);
+      if (title) {
+        parts.push(`[链接] ${title}`);
+      }
+      if (description) {
+        parts.push(description);
+      }
+      if (url) {
+        parts.push(url);
+      }
       const content = parts.join("\n") || "[链接]";
 
       logger.info("Received link message", { fromUser, title, url: url.substring(0, 80) });

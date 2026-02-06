@@ -221,7 +221,9 @@ const messageBuffers = new Map();
  * Handle stream error: replace placeholder with error message, finish stream, unregister.
  */
 async function handleStreamError(streamId, streamKey, errorMessage) {
-  if (!streamId) return;
+  if (!streamId) {
+    return;
+  }
   const stream = streamManager.getStream(streamId);
   if (stream && !stream.finished) {
     if (stream.content.trim() === THINKING_PLACEHOLDER.trim()) {
@@ -1146,7 +1148,7 @@ function flushMessageBuffer(streamKey, target) {
         "消息已合并到第一条回复中。",
         THINKING_PLACEHOLDER,
       );
-      streamManager.finishStream(extraStreamId).then(() => {
+      void streamManager.finishStream(extraStreamId).then(() => {
         unregisterActiveStream(streamKey, extraStreamId);
       });
     }
@@ -1187,7 +1189,6 @@ async function processInboundMessage({
   const core = runtime.channel;
 
   const senderId = message.fromUser;
-  const msgType = message.msgType || "text";
   const imageUrl = message.imageUrl || "";
   const imageUrls = message.imageUrls || [];
   const fileUrl = message.fileUrl || "";
