@@ -819,6 +819,7 @@ export const xmppPlugin: ChannelPlugin<ResolvedXmppAccount> = {
       configured: account.configured,
       baseUrl: account.server,
       running: runtime?.running ?? false,
+      connected: probe?.ok ?? null,
       lastStartAt: runtime?.lastStartAt ?? null,
       lastStopAt: runtime?.lastStopAt ?? null,
       lastError: runtime?.lastError ?? null,
