@@ -504,6 +504,10 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
         emojis: statusEmojis,
         rest: client.rest,
       });
+      // Critical: if we decided to not send a final reply (e.g. NO_REPLY),
+      // we must still close out the outbox entry so the watchdog doesn't
+      // misclassify it as an interrupted run.
+      outbox?.markTerminal({ messageId: message.id, state: "done" });
     }
     if (isGuildMessage) {
       clearHistoryEntriesIfEnabled({
