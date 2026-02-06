@@ -1118,13 +1118,17 @@ export function renderApp(state: AppViewState) {
                 showNewMessages: state.chatNewMessagesBelow,
                 onScrollToBottom: () => state.scrollToBottom(),
                 // Sidebar props for tool output viewing
-                sidebarOpen: state.sidebarOpen,
-                sidebarContent: state.sidebarContent,
-                sidebarError: state.sidebarError,
-                splitRatio: state.splitRatio,
-                onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
-                onCloseSidebar: () => state.handleCloseSidebar(),
-                onSplitRatioChange: (ratio: number) => state.handleSplitRatioChange(ratio),
+                sidebarOpen: (state as unknown as OpenClawApp).sidebarOpen,
+                sidebarContent: (state as unknown as OpenClawApp).sidebarContent,
+                sidebarError: (state as unknown as OpenClawApp).sidebarError,
+                splitRatio: (state as unknown as OpenClawApp).splitRatio,
+                onOpenSidebar: (content: string) =>
+                  (state as unknown as OpenClawApp).handleOpenSidebar(content),
+                onCloseSidebar: () => (state as unknown as OpenClawApp).handleCloseSidebar(),
+                onSplitRatioChange: (ratio: number) =>
+                  (state as unknown as OpenClawApp).handleSplitRatioChange(ratio),
+                onButtonClick: (text: string, payload: string) =>
+                  (state as unknown as OpenClawApp).handleSendChat(payload),
                 assistantName: state.assistantName,
                 assistantAvatar: state.assistantAvatar,
               })
