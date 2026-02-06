@@ -194,6 +194,194 @@ Messaging Channels (WhatsApp, Telegram, Slack, Discord, etc.)
 - Add changelog entries with PR # and contributor thanks
 - Full gate before merge: `pnpm lint && pnpm build && pnpm test`
 
+## Contributing to OpenClaw
+
+This section documents the complete workflow for contributing changes to the OpenClaw repository, including authentication setup, fork workflow, and pull request creation.
+
+### Git Authentication Setup
+
+**1. Configure Git Credential Storage**
+
+Enable credential storage to avoid re-entering credentials:
+```bash
+git config --global credential.helper store
+```
+
+**2. Store GitHub Personal Access Token**
+
+Create `~/.git-credentials` with your GitHub username and token:
+```
+https://your-username:ghp_your_token_here@github.com
+```
+
+Set proper permissions:
+```bash
+chmod 600 ~/.git-credentials
+```
+
+**3. Create Personal Access Token**
+
+Generate a token at https://github.com/settings/tokens with these scopes:
+- `repo` (full control of private repositories)
+- `workflow` (update GitHub Action workflows)
+
+### Fork and Pull Request Workflow
+
+External contributors without write access to `openclaw/openclaw` should use the fork workflow:
+
+**1. Fork the Repository**
+
+Fork https://github.com/openclaw/openclaw to your account via GitHub's web interface.
+
+**2. Add Fork as Remote**
+
+```bash
+cd /path/to/openclaw
+git remote add fork https://github.com/your-username/openclaw.git
+```
+
+**3. Push Changes to Fork**
+
+```bash
+# Push to your fork (not origin)
+git push fork main
+
+# If fork contains conflicting work, force push
+git push fork main --force
+```
+
+**4. Verify Remotes**
+
+```bash
+git remote -v
+# Should show:
+# origin  https://github.com/openclaw/openclaw.git (fetch)
+# origin  https://github.com/openclaw/openclaw.git (push)
+# fork    https://github.com/your-username/openclaw.git (fetch)
+# fork    https://github.com/your-username/openclaw.git (push)
+```
+
+### Installing GitHub CLI Without Sudo
+
+For environments without sudo access, install pre-built `gh` binary:
+
+```bash
+# Download latest release
+cd /tmp
+curl -L -o gh.tar.gz https://github.com/cli/cli/releases/download/v2.42.1/gh_2.42.1_linux_amd64.tar.gz
+
+# Extract and install
+tar -xzf gh.tar.gz
+mkdir -p ~/.local/bin
+mv gh_2.42.1_linux_amd64/bin/gh ~/.local/bin/gh
+chmod +x ~/.local/bin/gh
+
+# Verify installation
+~/.local/bin/gh version
+```
+
+Ensure `~/.local/bin` is in your PATH:
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
+
+### Creating Pull Requests with GitHub CLI
+
+**1. Authenticate with GitHub**
+
+```bash
+gh auth login --with-token < ~/.git-credentials
+# Or use interactive mode:
+gh auth login
+```
+
+**2. Create Pull Request from Fork**
+
+```bash
+gh pr create \
+  --repo openclaw/openclaw \
+  --head your-username:main \
+  --title "feat: your feature title" \
+  --body "## Summary
+
+- Change 1
+- Change 2
+
+## Testing
+
+Tested with...
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+```
+
+**3. View Pull Request**
+
+The command returns the PR URL (e.g., https://github.com/openclaw/openclaw/pull/10674)
+
+### Common Issues and Solutions
+
+#### Permission Denied on Git Push
+
+**Symptom:**
+```
+remote: Permission to openclaw/openclaw.git denied to your-username.
+fatal: unable to access 'https://github.com/openclaw/openclaw.git/': The requested URL returned error: 403
+```
+
+**Root Cause:** You don't have write access to the main repository
+
+**Solution:** Use fork workflow (see above)
+
+#### Repository Not Found When Pushing to Fork
+
+**Symptom:**
+```
+remote: Repository not found.
+fatal: repository 'https://github.com/your-username/openclaw.git/' not found
+```
+
+**Root Cause:** Fork doesn't exist yet
+
+**Solution:** Fork the repository on GitHub first, then add remote
+
+#### Updates Rejected - Remote Contains Work
+
+**Symptom:**
+```
+! [rejected]            main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/your-username/openclaw.git'
+hint: Updates were rejected because the remote contains work that you do not have locally
+```
+
+**Root Cause:** Fork was created with original repository content different from local commits
+
+**Solution:** Force push to overwrite fork (safe for personal forks):
+```bash
+git push fork main --force
+```
+
+**Warning:** Only force push to your personal fork, never to shared/upstream repositories.
+
+### Pull Request Best Practices
+
+1. **Descriptive Titles**: Use conventional commits format:
+   - `feat:` - New features
+   - `fix:` - Bug fixes
+   - `docs:` - Documentation changes
+   - `refactor:` - Code restructuring
+   - `test:` - Test additions/changes
+
+2. **Detailed Body**: Include:
+   - Summary of changes (bullet points)
+   - Testing performed
+   - Related issues/PRs
+   - Breaking changes (if any)
+
+3. **Small, Focused PRs**: Keep PRs focused on single feature/fix
+
+4. **Pass Full Gate**: Ensure `pnpm lint && pnpm build && pnpm test` passes before creating PR
+
 ## Platform Notes
 
 ### macOS
