@@ -4,6 +4,8 @@ export type CronDeliveryPlan = {
   mode: CronDeliveryMode;
   channel: CronMessageChannel;
   to?: string;
+  /** Optional thread id for threading delivery (e.g. Slack thread_ts). */
+  threadId?: string;
   source: "delivery" | "payload";
   requested: boolean;
 };
@@ -51,12 +53,14 @@ export function resolveCronDeliveryPlan(job: CronJob): CronDeliveryPlan {
 
   const channel = deliveryChannel ?? payloadChannel ?? "last";
   const to = deliveryTo ?? payloadTo;
+  const deliveryThreadId = normalizeTo((delivery as { threadId?: unknown } | undefined)?.threadId);
   if (hasDelivery) {
     const resolvedMode = mode ?? "announce";
     return {
       mode: resolvedMode,
       channel,
       to,
+      threadId: deliveryThreadId,
       source: "delivery",
       requested: resolvedMode === "announce",
     };

@@ -16,6 +16,8 @@ export type CronDelivery = {
   mode: CronDeliveryMode;
   channel?: CronMessageChannel;
   to?: string;
+  /** Optional thread id for threading delivery (e.g. Slack thread_ts, Discord thread id). */
+  threadId?: string;
   bestEffort?: boolean;
 };
 

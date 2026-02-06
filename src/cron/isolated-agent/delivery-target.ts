@@ -19,6 +19,7 @@ export async function resolveDeliveryTarget(
   jobPayload: {
     channel?: "last" | ChannelId;
     to?: string;
+    threadId?: string;
   },
 ): Promise<{
   channel: Exclude<OutboundChannel, "none">;
@@ -30,6 +31,10 @@ export async function resolveDeliveryTarget(
 }> {
   const requestedChannel = typeof jobPayload.channel === "string" ? jobPayload.channel : "last";
   const explicitTo = typeof jobPayload.to === "string" ? jobPayload.to : undefined;
+  const explicitThreadId =
+    typeof jobPayload.threadId === "string" && jobPayload.threadId.trim()
+      ? jobPayload.threadId.trim()
+      : undefined;
   const allowMismatchedLastTo = requestedChannel === "last";
 
   const sessionCfg = cfg.session;
@@ -42,6 +47,7 @@ export async function resolveDeliveryTarget(
     entry: main,
     requestedChannel,
     explicitTo,
+    explicitThreadId,
     allowMismatchedLastTo,
   });
 
@@ -60,6 +66,7 @@ export async function resolveDeliveryTarget(
         entry: main,
         requestedChannel,
         explicitTo,
+        explicitThreadId,
         fallbackChannel,
         allowMismatchedLastTo,
         mode: preliminary.mode,

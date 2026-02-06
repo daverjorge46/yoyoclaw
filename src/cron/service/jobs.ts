@@ -358,6 +358,7 @@ function mergeCronDelivery(
     mode: existing?.mode ?? "none",
     channel: existing?.channel,
     to: existing?.to,
+    threadId: existing?.threadId,
     bestEffort: existing?.bestEffort,
   };
 
@@ -371,6 +372,10 @@ function mergeCronDelivery(
   if ("to" in patch) {
     const to = typeof patch.to === "string" ? patch.to.trim() : "";
     next.to = to ? to : undefined;
+  }
+  if ("threadId" in patch) {
+    const threadId = typeof patch.threadId === "string" ? patch.threadId.trim() : "";
+    next.threadId = threadId ? threadId : undefined;
   }
   if (typeof patch.bestEffort === "boolean") {
     next.bestEffort = patch.bestEffort;
