@@ -107,7 +107,7 @@ export const registerTelegramHandlers = ({
       }
       // Sort entries by message_id to ensure stable ordering of text and media
       // (debouncer may flush in non-deterministic order)
-      const sortedEntries = entries.slice().sort((a, b) => {
+      const sortedEntries = entries.toSorted((a, b) => {
         const aId = a.msg.message_id ?? 0;
         const bId = b.msg.message_id ?? 0;
         return aId - bId;
