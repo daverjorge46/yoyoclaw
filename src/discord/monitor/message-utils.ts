@@ -167,18 +167,41 @@ function buildDiscordAttachmentPlaceholder(attachments?: APIAttachment[]): strin
 }
 
 /**
+ * Validates that a raw attachment object has the minimum required fields
+ * to be used as an APIAttachment (url, filename are required; content_type optional).
+ */
+function isValidAttachment(obj: unknown): obj is APIAttachment {
+  if (typeof obj !== "object" || obj === null) {
+    return false;
+  }
+  const record = obj as Record<string, unknown>;
+  return (
+    typeof record.id === "string" &&
+    typeof record.url === "string" &&
+    typeof record.filename === "string"
+  );
+}
+
+/**
  * Resolves attachments from a Message, falling back to rawData if the Message
  * is partial and the attachments getter returns undefined.
+ * Validates rawData attachments to ensure they have the required shape.
  */
 function resolveMessageAttachments(message: Message): APIAttachment[] | undefined {
-  // First try the normal getter
+  // First try the normal getter (already typed correctly)
   const attachments = message.attachments;
   if (attachments !== undefined) {
     return attachments;
   }
   // Fallback to rawData for partial messages where the getter returns undefined
-  const rawData = (message as { rawData?: { attachments?: APIAttachment[] } }).rawData;
-  return rawData?.attachments;
+  const rawData = (message as { rawData?: { attachments?: unknown[] } }).rawData;
+  const rawAttachments = rawData?.attachments;
+  if (!Array.isArray(rawAttachments)) {
+    return undefined;
+  }
+  // Validate each attachment has required fields before returning
+  const validAttachments = rawAttachments.filter(isValidAttachment);
+  return validAttachments.length > 0 ? validAttachments : undefined;
 }
 
 export function resolveDiscordMessageText(
