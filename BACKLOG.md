@@ -43,7 +43,7 @@ UX audit: `docs/audits/agentic-workflow-ux-audit.md`
 - [x] Mark work done / block work nodes from Web UI — PR #14
 - [x] Wire the "Retry" button — PR #14 (overseer.goal.resume + work.update endpoints)
 - [ ] Inline goal editing (title, constraints, success criteria)
-- [ ] Goal templates (common workflow presets)
+- [x] Goal templates (common workflow presets) — PR #184
 
 ### Agent Status Dashboard (Real-time)
 
