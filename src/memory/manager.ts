@@ -832,7 +832,7 @@ export class MemoryIndexManager implements MemorySearchManager {
 
     const startWatcher = (mode: "native" | "polling") => {
       const usePolling = mode === "polling";
-      const watcher = chokidar.watch(paths, {
+      const watcher = new chokidar.FSWatcher({
         ignoreInitial: true,
         awaitWriteFinish: {
           stabilityThreshold: this.settings.sync.watchDebounceMs,
@@ -867,6 +867,7 @@ export class MemoryIndexManager implements MemorySearchManager {
           }
           if (!this.closed) {
             this.watcher = startWatcher("polling");
+            this.watcher.add(paths);
           }
           return;
         }
@@ -889,6 +890,7 @@ export class MemoryIndexManager implements MemorySearchManager {
     };
 
     this.watcher = startWatcher("native");
+    this.watcher.add(paths);
   }
 
   private ensureSessionListener() {

@@ -4,14 +4,15 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getMemorySearchManager, type MemoryIndexManager } from "./index.js";
 
-vi.mock("chokidar", () => ({
-  default: {
-    watch: vi.fn(() => ({
-      on: vi.fn(),
-      close: vi.fn(async () => undefined),
-    })),
-  },
-}));
+vi.mock("chokidar", () => {
+  class FSWatcherMock {
+    on = vi.fn(() => this);
+    add = vi.fn(() => this);
+    close = vi.fn(async () => undefined);
+  }
+
+  return { default: { FSWatcher: FSWatcherMock } };
+});
 
 vi.mock("./embeddings.js", () => {
   return {
