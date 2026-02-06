@@ -129,6 +129,17 @@ export function resolveModel(
         modelRegistry,
       };
     }
+    // Codex gpt-5.3 forward-compat fallback must be checked BEFORE the generic providerCfg fallback.
+    // Otherwise, if cfg.models.providers["openai-codex"] is configured, the generic fallback fires
+    // with api: "openai-responses" instead of the correct "openai-codex-responses".
+    const codexForwardCompat = resolveOpenAICodexGpt53FallbackModel(
+      provider,
+      modelId,
+      modelRegistry,
+    );
+    if (codexForwardCompat) {
+      return { model: codexForwardCompat, authStorage, modelRegistry };
+    }
     const providerCfg = providers[provider];
     if (providerCfg || modelId.startsWith("mock-")) {
       const fallbackModel: Model<Api> = normalizeModelCompat({
@@ -144,14 +155,6 @@ export function resolveModel(
         maxTokens: providerCfg?.models?.[0]?.maxTokens ?? DEFAULT_CONTEXT_TOKENS,
       } as Model<Api>);
       return { model: fallbackModel, authStorage, modelRegistry };
-    }
-    const codexForwardCompat = resolveOpenAICodexGpt53FallbackModel(
-      provider,
-      modelId,
-      modelRegistry,
-    );
-    if (codexForwardCompat) {
-      return { model: codexForwardCompat, authStorage, modelRegistry };
     }
     return {
       error: `Unknown model: ${provider}/${modelId}`,

@@ -177,4 +177,31 @@ describe("resolveModel", () => {
     expect(result.model).toBeUndefined();
     expect(result.error).toBe("Unknown model: openai-codex/gpt-4.1-mini");
   });
+
+  it("uses codex fallback even when openai-codex provider is configured", () => {
+    // This test verifies the ordering: codex fallback must fire BEFORE the generic providerCfg fallback.
+    // If ordering is wrong, the generic fallback would use api: "openai-responses" (the default)
+    // instead of "openai-codex-responses".
+    const cfg: OpenClawConfig = {
+      models: {
+        providers: {
+          "openai-codex": {
+            baseUrl: "https://custom.example.com",
+            // No models array, or models without gpt-5.3-codex
+          },
+        },
+      },
+    } as OpenClawConfig;
+
+    vi.mocked(discoverModels).mockReturnValue({
+      find: vi.fn(() => null),
+    } as unknown as ReturnType<typeof discoverModels>);
+
+    const result = resolveModel("openai-codex", "gpt-5.3-codex", "/tmp/agent", cfg);
+
+    expect(result.error).toBeUndefined();
+    expect(result.model?.api).toBe("openai-codex-responses");
+    expect(result.model?.id).toBe("gpt-5.3-codex");
+    expect(result.model?.provider).toBe("openai-codex");
+  });
 });
