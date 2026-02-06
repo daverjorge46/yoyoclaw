@@ -1,0 +1,40 @@
+{
+  "id": "zhipu-web-search",
+  "name": "Zhipu Web Search",
+  "description": "Web search provider using Zhipu AI (BigModel) Web Search API",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "Zhipu API key (fallback: ZHIPU_API_KEY env var)"
+      },
+      "engine": {
+        "type": "string",
+        "enum": ["search_std", "search_pro", "search_pro_sogou", "search_pro_quark"],
+        "description": "Search engine to use (default: search_std)"
+      },
+      "contentSize": {
+        "type": "string",
+        "enum": ["concise", "standard", "full"],
+        "description": "Content size in results (default: concise)"
+      }
+    }
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "Zhipu API Key",
+      "placeholder": "xxxxxxxx.yyyyyyyy",
+      "sensitive": true
+    },
+    "engine": {
+      "label": "Search Engine",
+      "placeholder": "search_std"
+    },
+    "contentSize": {
+      "label": "Content Size",
+      "placeholder": "concise"
+    }
+  }
+}
