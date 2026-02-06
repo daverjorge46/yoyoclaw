@@ -19,7 +19,6 @@ import {
 } from "./client.js";
 import { XmppConfigSchema } from "./config-schema.js";
 import { xmppOnboardingAdapter } from "./onboarding.js";
-import { probeXmpp } from "./probe.js";
 import { getXmppRuntime } from "./runtime.js";
 import { uploadToSlot } from "./xep0363.js";
 
@@ -774,7 +773,7 @@ export const xmppPlugin: ChannelPlugin<ResolvedXmppAccount> = {
       probe: snapshot.probe,
       lastProbeAt: snapshot.lastProbeAt ?? null,
     }),
-    probeAccount: async ({ timeoutMs, account }) => {
+    probeAccount: async ({ timeoutMs: _timeoutMs, account }) => {
       if (!account.configured || !account.jid || !account.password || !account.server) {
         return {
           ok: false,
