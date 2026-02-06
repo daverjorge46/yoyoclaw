@@ -77,35 +77,40 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
   const streamingEnabled = account.config?.streaming !== false && renderMode !== "raw";
 
   let streaming: FeishuStreamingSession | null = null;
-  let streamingStartPromise: Promise<void> | null = null;
   let streamText = "";
   let lastPartial = "";
   let partialUpdateQueue: Promise<void> = Promise.resolve();
+  let streamingStartPromise: Promise<void> | null = null;
 
-  const startStreaming = async () => {
-    if (streaming || !streamingEnabled) {
+  const startStreaming = () => {
+    if (!streamingEnabled || streamingStartPromise || streaming) {
       return;
     }
-    const creds =
-      account.appId && account.appSecret
-        ? { appId: account.appId, appSecret: account.appSecret, domain: account.domain }
-        : null;
-    if (!creds) {
-      return;
-    }
+    streamingStartPromise = (async () => {
+      const creds =
+        account.appId && account.appSecret
+          ? { appId: account.appId, appSecret: account.appSecret, domain: account.domain }
+          : null;
+      if (!creds) {
+        return;
+      }
 
-    streaming = new FeishuStreamingSession(createFeishuClient(account), creds, (message) =>
-      params.runtime.log?.(`feishu[${account.accountId}] ${message}`),
-    );
-    try {
-      await streaming.start(chatId, resolveReceiveIdType(chatId));
-    } catch (error) {
-      params.runtime.error?.(`feishu: streaming start failed: ${String(error)}`);
-      streaming = null;
-    }
+      streaming = new FeishuStreamingSession(createFeishuClient(account), creds, (message) =>
+        params.runtime.log?.(`feishu[${account.accountId}] ${message}`),
+      );
+      try {
+        await streaming.start(chatId, resolveReceiveIdType(chatId));
+      } catch (error) {
+        params.runtime.error?.(`feishu: streaming start failed: ${String(error)}`);
+        streaming = null;
+      }
+    })();
   };
 
   const closeStreaming = async () => {
+    if (streamingStartPromise) {
+      await streamingStartPromise;
+    }
     await partialUpdateQueue;
     if (streaming?.isActive()) {
       let text = streamText;
@@ -125,7 +130,12 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
       responsePrefix: prefixContext.responsePrefix,
       responsePrefixContextProvider: prefixContext.responsePrefixContextProvider,
       humanDelay: core.channel.reply.resolveHumanDelayConfig(cfg, agentId),
-      onReplyStart: typingCallbacks.onReplyStart,
+      onReplyStart: () => {
+        if (streamingEnabled && renderMode === "card") {
+          startStreaming();
+        }
+        void typingCallbacks.onReplyStart?.();
+      },
       deliver: async (payload: ReplyPayload, info) => {
         const text = payload.text ?? "";
         if (!text.trim()) {
@@ -134,11 +144,8 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
 
         const useCard = renderMode === "card" || (renderMode === "auto" && shouldUseCard(text));
 
-        // Start streaming only when this payload should render as card.
         if ((info?.kind === "block" || info?.kind === "final") && streamingEnabled && useCard) {
-          if (!streamingStartPromise && !streaming) {
-            streamingStartPromise = startStreaming();
-          }
+          startStreaming();
           if (streamingStartPromise) {
             await streamingStartPromise;
           }
@@ -185,7 +192,9 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
         }
       },
       onError: async (error, info) => {
-        params.runtime.error?.(`feishu[${account.accountId}] ${info.kind} reply failed: ${String(error)}`);
+        params.runtime.error?.(
+          `feishu[${account.accountId}] ${info.kind} reply failed: ${String(error)}`,
+        );
         await closeStreaming();
         typingCallbacks.onIdle?.();
       },
@@ -200,25 +209,20 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
     replyOptions: {
       ...replyOptions,
       onModelSelected: prefixContext.onModelSelected,
-      onReplyStart: async () => {
-        await replyOptions.onReplyStart?.();
-        if (streamingEnabled && renderMode === "card" && !streaming && !streamingStartPromise) {
-          streamingStartPromise = startStreaming();
-          await streamingStartPromise;
-        }
-      },
       onPartialReply: streamingEnabled
         ? (payload: ReplyPayload) => {
-            if (!streaming?.isActive() || !payload.text || payload.text === lastPartial) {
+            if (!payload.text || payload.text === lastPartial) {
               return;
             }
             lastPartial = payload.text;
             streamText = payload.text;
             partialUpdateQueue = partialUpdateQueue.then(async () => {
-              if (!streaming?.isActive()) {
-                return;
+              if (streamingStartPromise) {
+                await streamingStartPromise;
               }
-              await streaming.update(streamText);
+              if (streaming?.isActive()) {
+                await streaming.update(streamText);
+              }
             });
           }
         : undefined,
