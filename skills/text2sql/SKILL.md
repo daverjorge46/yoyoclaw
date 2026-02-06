@@ -13,7 +13,33 @@ Answer natural-language questions about data in a PostgreSQL database by turning
 ## When to use
 
 - User asks for data from "the database", "Postgres", "our DB", "pipeline data", "table data", "run a query", "export to CSV", or similar.
-- Requires `DATABASE_URL` in the environment (recommend a read-only PostgreSQL user).
+- User asks for table names (e.g. "what tables are there", "nama tabel ada apa aja", "list tables").
+- Requires `DATABASE_URL` (PostgreSQL connection string). Use a read-only user when possible.
+
+## Critical: use the script, do not search the workspace
+
+When the user asks for **table names** or **data from the database**, you **must** run the script below. Do **not** search the workspace with grep/rg or list files; the database is not in the workspace. Run from the current workspace (it must contain `skills/text2sql/`; typically the OpenClaw repo). `DATABASE_URL` is already in the environment from config.
+
+## Credentials
+
+Set `DATABASE_URL` in the environment, or store it in `~/.openclaw/openclaw.json` (same as other skills):
+
+```json5
+{
+  skills: {
+    entries: {
+      text2sql: {
+        enabled: true,
+        env: {
+          DATABASE_URL: "postgresql://user:password@host:5432/dbname",
+        },
+      },
+    },
+  },
+}
+```
+
+Replace with your host, port, database, username, and password. Do not commit this file; it lives in your home directory.
 
 ## Read-only rule
 
@@ -28,20 +54,20 @@ Answer natural-language questions about data in a PostgreSQL database by turning
 
 ## How to run the script
 
-From the repository root, with `DATABASE_URL` set:
+Run from the workspace root (current directory). `DATABASE_URL` is injected from config; do not prefix it unless testing in CLI.
 
 ```bash
-# List tables
-DATABASE_URL="postgresql://..." node --import tsx skills/text2sql/scripts/query.ts list_tables
+# List tables (use this when user asks "what tables" / "nama tabel ada apa")
+node --import tsx skills/text2sql/scripts/query.ts list_tables
 
 # Schema for a table
-DATABASE_URL="postgresql://..." node --import tsx skills/text2sql/scripts/query.ts schema --table <name>
+node --import tsx skills/text2sql/scripts/query.ts schema --table <name>
 
 # One sample row (default limit 1)
-DATABASE_URL="postgresql://..." node --import tsx skills/text2sql/scripts/query.ts sample --table <name> [--limit 1]
+node --import tsx skills/text2sql/scripts/query.ts sample --table <name> [--limit 1]
 
 # Run a SELECT (limit default 500, max 1000)
-DATABASE_URL="postgresql://..." node --import tsx skills/text2sql/scripts/query.ts query --sql "SELECT ..." [--limit 500]
+node --import tsx skills/text2sql/scripts/query.ts query --sql "SELECT ..." [--limit 500]
 ```
 
-If Bun is available you can use `bun` instead of `node --import tsx`. Script path: `skills/text2sql/scripts/query.ts` from repo root.
+If Bun is available you can use `bun` instead of `node --import tsx`. The workspace must contain `skills/text2sql/` (e.g. the OpenClaw repo).
