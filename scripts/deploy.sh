@@ -14,10 +14,12 @@
 #   --skip-build     Deploy existing dist without rebuilding
 #   --backup         Backup previous deployment first
 #   --dry-run        Show what would be synced without doing it
+#   --restart        Restart the gateway after deploying (bootout + sleep + bootstrap)
 #
-# After deploying, restart the appropriate gateway manually:
-#   PROD: launchctl kickstart -k gui/$(id -u)/ai.openclaw.gateway
-#   DEV:  launchctl kickstart -k gui/$(id -u)/ai.openclaw.dev
+# Without --restart, restart the gateway manually after deploying:
+#   launchctl bootout gui/$(id -u)/<service-label>
+#   sleep 3
+#   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/<plist-file>
 
 set -euo pipefail
 
@@ -28,10 +30,14 @@ resolve_env() {
     prod)
       DEPLOY_DIR="$HOME/Deployments/openclaw-prod"
       ENV_LABEL="Production"
+      LAUNCHD_LABEL="ai.openclaw.gateway"
+      PLIST_FILE="$HOME/Library/LaunchAgents/ai.openclaw.gateway.plist"
       ;;
     dev)
       DEPLOY_DIR="$HOME/Deployments/openclaw-dev"
       ENV_LABEL="Development"
+      LAUNCHD_LABEL="ai.openclaw.dev"
+      PLIST_FILE="$HOME/Library/LaunchAgents/ai.openclaw.dev.plist"
       ;;
     *)
       die "Unknown environment: $1 (known: prod, dev)"
@@ -60,6 +66,7 @@ ENV_NAME="${DEPLOY_ENV:-}"
 SKIP_BUILD=false
 BACKUP=false
 DRY_RUN=false
+RESTART=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -67,6 +74,7 @@ for arg in "$@"; do
     --skip-build) SKIP_BUILD=true ;;
     --backup)     BACKUP=true ;;
     --dry-run)    DRY_RUN=true ;;
+    --restart)    RESTART=true ;;
     --help|-h)
       head -20 "$0" | tail -18
       exit 0
@@ -196,9 +204,59 @@ if [ "$DRY_RUN" = false ]; then
   info "Deployment verified ✓ ($DEPLOY_SIZE)"
 fi
 
+# ── Restart gateway ───────────────────────────────────────────────────
+if [ "$RESTART" = true ] && [ "$DRY_RUN" = false ]; then
+  echo ""
+  info "Restarting gateway ($LAUNCHD_LABEL)..."
+
+  # Check if service is loaded
+  if launchctl print "gui/$(id -u)/$LAUNCHD_LABEL" &>/dev/null; then
+    info "Stopping service (bootout)..."
+    launchctl bootout "gui/$(id -u)/$LAUNCHD_LABEL" 2>/dev/null || true
+
+    # Critical: sleep to let launchd finish cleanup.
+    # Without this, bootstrap can hit a race condition ("Input/output error").
+    info "Waiting for launchd cleanup..."
+    sleep 3
+  fi
+
+  if [ ! -f "$PLIST_FILE" ]; then
+    die "Plist not found: $PLIST_FILE — cannot restart"
+  fi
+
+  info "Starting service (bootstrap)..."
+  if ! launchctl bootstrap "gui/$(id -u)" "$PLIST_FILE" 2>&1; then
+    warn "Bootstrap failed! Retrying in 5 seconds..."
+    sleep 5
+    if ! launchctl bootstrap "gui/$(id -u)" "$PLIST_FILE" 2>&1; then
+      die "Bootstrap failed twice. Manual recovery needed:
+  launchctl bootstrap gui/\$(id -u) $PLIST_FILE
+  OR: node $DEPLOY_DIR/dist/index.js gateway --port 18789"
+    fi
+  fi
+
+  # Verify the service started with the correct path
+  sleep 2
+  LOADED_PATH=$(launchctl print "gui/$(id -u)/$LAUNCHD_LABEL" 2>/dev/null | grep -A1 "arguments" | tail -1 | xargs)
+  if echo "$LOADED_PATH" | grep -q "$DEPLOY_DIR"; then
+    info "Gateway running from correct path ✓"
+  else
+    warn "Gateway path mismatch! Expected: $DEPLOY_DIR, Got: $LOADED_PATH"
+  fi
+
+  info "Gateway restarted ✓"
+fi
+
 echo ""
-echo "╔══════════════════════════════════════╗"
-echo "║   Deploy complete ($ENV_LABEL)"
-echo "║                                      ║"
-echo "║   Restart the gateway to activate.   ║"
-echo "╚══════════════════════════════════════╝"
+if [ "$RESTART" = true ] && [ "$DRY_RUN" = false ]; then
+  echo "╔══════════════════════════════════════╗"
+  echo "║   Deploy + restart complete          ║"
+  echo "║   ($ENV_LABEL)                       ║"
+  echo "╚══════════════════════════════════════╝"
+else
+  echo "╔══════════════════════════════════════╗"
+  echo "║   Deploy complete ($ENV_LABEL)"
+  echo "║                                      ║"
+  echo "║   Restart the gateway to activate.   ║"
+  echo "╚══════════════════════════════════════╝"
+fi
