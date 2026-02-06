@@ -137,7 +137,7 @@ export function resolveConfigEnvVars(obj: unknown, env: NodeJS.ProcessEnv = proc
 // Env var reference preservation for config writes
 // ---------------------------------------------------------------------------
 
-const ENV_REF_PATTERN = /\$\{([A-Z_][A-Z0-9_]*)}/g;
+const ENV_REF_PATTERN = /\$\{([A-Z_][A-Z0-9_]*)}/;
 
 function containsEnvRef(value: string): boolean {
   return ENV_REF_PATTERN.test(value);
@@ -153,8 +153,6 @@ function containsEnvRef(value: string): boolean {
  */
 function collectEnvRefs(value: unknown, path: string, refs: Map<string, string>): void {
   if (typeof value === "string") {
-    // Reset lastIndex since the regex has the `g` flag
-    ENV_REF_PATTERN.lastIndex = 0;
     if (containsEnvRef(value)) {
       refs.set(path, value);
     }

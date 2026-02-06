@@ -512,15 +512,26 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         });
         const envRefs = collectConfigEnvRefs(resolvedIncludes);
         if (envRefs.size > 0) {
+          // Merge config.env vars into the env lookup so vars defined via
+          // config.env are restored correctly (mirrors the read path).
+          const mergedEnv: NodeJS.ProcessEnv = { ...deps.env };
+          const cfgEnvVars = collectConfigEnvVars(resolvedIncludes as OpenClawConfig);
+          for (const [k, v] of Object.entries(cfgEnvVars)) {
+            if (!mergedEnv[k]?.trim()) {
+              mergedEnv[k] = v;
+            }
+          }
           configToWrite = restoreConfigEnvVarRefs(
             configToWrite,
             envRefs,
-            deps.env,
+            mergedEnv,
           ) as OpenClawConfig;
         }
       }
-    } catch {
-      // Best-effort: if reading the original fails, write the expanded config.
+    } catch (err) {
+      // If the original config has env refs but restoration failed, log a
+      // warning rather than silently persisting expanded secrets.
+      deps.logger.warn(`Failed to restore env var references in config: ${String(err)}`);
     }
 
     const json = JSON.stringify(configToWrite, null, 2).trimEnd().concat("\n");
