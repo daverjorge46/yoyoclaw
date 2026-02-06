@@ -13,11 +13,13 @@ import {
   X,
 } from "lucide-react";
 import type { Task, TaskStatus, TaskPriority } from "@/hooks/queries/useWorkstreams";
+import type { WorkQueueItem } from "@/hooks/queries/useWorkQueue";
 import type { Agent } from "@/stores/useAgentStore";
 
 interface TaskNodeData extends Record<string, unknown> {
   task: Task;
   agent?: Agent | null;
+  queueItem?: WorkQueueItem;
   layoutDirection?: "horizontal" | "vertical";
 }
 
@@ -148,9 +150,18 @@ export const TaskNode = memo(function TaskNode({
   data,
   selected,
 }: NodeProps<TaskFlowNode>) {
-  const { task, agent, layoutDirection = "vertical" } = data;
+  const { task, agent, queueItem, layoutDirection = "vertical" } = data;
   const theme = statusTheme[task.status];
   const priority = priorityConfig[task.priority];
+  const queueStatus = queueItem?.status;
+  const isClaimed = queueStatus === "in_progress" && !!queueItem?.assignedTo;
+  const queueBadgeLabel = isClaimed
+    ? "Claimed"
+    : queueStatus === "pending"
+      ? "Queued"
+      : queueStatus === "blocked"
+        ? "Blocked"
+        : null;
 
   // Handle positions based on layout direction
   const targetPosition = layoutDirection === "horizontal" ? Position.Left : Position.Top;
@@ -171,7 +182,8 @@ export const TaskNode = memo(function TaskNode({
           "relative w-[260px] overflow-hidden rounded-xl border p-4 shadow-sm transition-shadow",
           "bg-card", // Solid base background - hides grid dots completely
           theme.border,
-          selected && "ring-2 ring-ring ring-offset-2 ring-offset-background"
+          selected && "ring-2 ring-ring ring-offset-2 ring-offset-background",
+          isClaimed && "ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-background"
         )}
       >
         {/* Status color overlay - positioned behind content */}
@@ -204,6 +216,17 @@ export const TaskNode = memo(function TaskNode({
             </Badge>
           )}
         </div>
+
+        {queueBadgeLabel && (
+          <div className="relative mt-2">
+            <Badge
+              variant={queueStatus === "blocked" ? "destructive" : "secondary"}
+              className="text-[10px] uppercase tracking-wide"
+            >
+              {queueBadgeLabel}
+            </Badge>
+          </div>
+        )}
 
         {/* Description if available */}
         {task.description && (

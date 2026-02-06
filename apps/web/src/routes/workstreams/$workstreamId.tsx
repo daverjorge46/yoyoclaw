@@ -41,6 +41,7 @@ import {
   Flag,
 } from "lucide-react";
 import { useWorkstream, type Task, type TaskPriority } from "@/hooks/queries/useWorkstreams";
+import { useWorkQueueItems } from "@/hooks/queries/useWorkQueue";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useCreateTask, useUpdateWorkstreamStatus } from "@/hooks/mutations/useWorkstreamMutations";
 import { WorkstreamDAG } from "@/components/domain/workstreams/WorkstreamDAG";
@@ -327,6 +328,7 @@ function WorkstreamDetailPage() {
 
   const { data: workstream, isLoading, error } = useWorkstream(workstreamId);
   const { data: agents = [] } = useAgents();
+  const { data: queueItems = [] } = useWorkQueueItems();
   const updateStatus = useUpdateWorkstreamStatus();
 
   const owner = useMemo(() => {
@@ -348,6 +350,10 @@ function WorkstreamDetailPage() {
       (task) => task.status === "in_progress" || task.status === "review"
     ) ?? [];
   }, [workstream?.tasks]);
+
+  const workstreamQueueItems = useMemo(() => {
+    return queueItems.filter((item) => item.workstreamId === workstreamId);
+  }, [queueItems, workstreamId]);
 
   const handleStatusChange = (newStatus: WorkstreamStatus) => {
     if (!workstream) {return;}
@@ -535,6 +541,7 @@ function WorkstreamDetailPage() {
         <WorkstreamDAG
           tasks={workstream.tasks}
           agents={agents}
+          queueItems={workstreamQueueItems}
           onTaskClick={handleTaskClick}
           onAddTask={() => setIsAddTaskModalOpen(true)}
         />

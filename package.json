@@ -113,6 +113,7 @@
     "ui:install": "node scripts/ui.js install",
     "web:build": "pnpm --filter @clawdbrain/web build",
     "web:dev": "pnpm --filter @clawdbrain/web dev",
+    "web:dev:full": "pnpm --filter @clawdbrain/vercel-ai-agent build && pnpm --filter @clawdbrain/web dev --host 0.0.0.0 --port 5173",
     "web:gateway-dev": "concurrently --kill-others-on-fail --prefix '[{name}]' --names 'gateway,web' --prefix-colors 'cyan.bold,green.bold' 'pnpm gateway:watch:skip-channels' 'pnpm web:dev'"
   },
   "dependencies": {

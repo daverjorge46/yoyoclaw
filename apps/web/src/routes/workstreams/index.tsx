@@ -17,6 +17,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useWorkstreams, type WorkstreamStatus } from "@/hooks/queries/useWorkstreams";
+import { useWorkQueueItems } from "@/hooks/queries/useWorkQueue";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { WorkstreamCard } from "@/components/domain/workstreams/WorkstreamCard";
 import { CreateWorkstreamModal } from "@/components/domain/workstreams/CreateWorkstreamModal";
@@ -50,6 +51,7 @@ function WorkstreamsPage() {
   const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<string | null>(null);
 
   const { data: workstreams = [], isLoading, error } = useWorkstreams();
+  const { data: queueItems } = useWorkQueueItems();
   const { data: agents = [] } = useAgents();
 
   // Filter workstreams
@@ -273,6 +275,7 @@ function WorkstreamsPage() {
             <WorkstreamDAG
               tasks={allTasks}
               agents={agents}
+              queueItems={queueItems}
               onTaskClick={handleTaskClick}
               onAddTask={() => setIsCreateModalOpen(true)}
             />

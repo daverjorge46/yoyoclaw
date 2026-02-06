@@ -30,6 +30,7 @@ export type AgentConfigEntry = {
       subagent?: string;
     };
   };
+  skills?: string[];
   identity?: AgentIdentityConfig;
   [key: string]: unknown;
 };

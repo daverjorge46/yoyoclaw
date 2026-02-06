@@ -89,6 +89,24 @@ export type {
   TaskPriority,
 } from "./useWorkstreams";
 
+// Work Queue
+export {
+  useWorkQueues,
+  useWorkQueue,
+  useWorkQueueItems,
+  useWorkQueueStatusByAgent,
+  useInvalidateWorkQueue,
+  workQueueKeys,
+} from "./useWorkQueue";
+export type {
+  WorkQueue,
+  WorkQueueItem,
+  WorkQueueItemStatus,
+  WorkQueueItemPriority,
+  WorkQueueStats,
+  WorkQueueStatusSnapshot,
+} from "./useWorkQueue";
+
 // Config
 export { useConfig, useConfigSchema, configKeys } from "./useConfig";
 export type { ConfigSnapshot } from "./useConfig";
@@ -155,6 +173,14 @@ export type {
   AgentStatusSnapshot,
 } from "./useAgentStatus";
 
+// Agent Dashboard
+export { useAgentDashboardData } from "./useAgentDashboard";
+export type {
+  AgentDashboardEntry,
+  AgentDashboardSummary,
+  AgentDashboardData,
+} from "./useAgentDashboard";
+
 // Sessions
 export {
   useSessions,
@@ -192,4 +218,4 @@ export {
   useCustomSkills,
   skillKeys,
 } from "./useSkills";
-export type { Skill, SkillsStatusReport } from "./useSkills";
+export type { SkillStatusEntry, SkillsStatusReport } from "./useSkills";

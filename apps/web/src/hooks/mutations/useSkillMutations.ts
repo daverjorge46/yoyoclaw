@@ -25,9 +25,9 @@ export function useUpdateSkill() {
   return useMutation({
     mutationFn: (params: SkillUpdateParams) => updateSkill(params),
     onSuccess: (_, params) => {
-      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(params.name) });
+      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(params.skillKey) });
       void queryClient.invalidateQueries({ queryKey: skillKeys.status() });
-      toast.success(`Skill "${params.name}" updated`);
+      toast.success(`Skill "${params.skillKey}" updated`);
     },
     onError: (error) => {
       console.error("[useUpdateSkill] Failed:", error);
@@ -43,11 +43,11 @@ export function useEnableSkill() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (name: string) => enableSkill(name),
-    onSuccess: (_, name) => {
-      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(name) });
+    mutationFn: (skillKey: string) => enableSkill(skillKey),
+    onSuccess: (_, skillKey) => {
+      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(skillKey) });
       void queryClient.invalidateQueries({ queryKey: skillKeys.status() });
-      toast.success(`Skill "${name}" enabled`);
+      toast.success(`Skill "${skillKey}" enabled`);
     },
     onError: (error) => {
       console.error("[useEnableSkill] Failed:", error);
@@ -63,11 +63,11 @@ export function useDisableSkill() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (name: string) => disableSkill(name),
-    onSuccess: (_, name) => {
-      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(name) });
+    mutationFn: (skillKey: string) => disableSkill(skillKey),
+    onSuccess: (_, skillKey) => {
+      void queryClient.invalidateQueries({ queryKey: skillKeys.detail(skillKey) });
       void queryClient.invalidateQueries({ queryKey: skillKeys.status() });
-      toast.success(`Skill "${name}" disabled`);
+      toast.success(`Skill "${skillKey}" disabled`);
     },
     onError: (error) => {
       console.error("[useDisableSkill] Failed:", error);
@@ -87,8 +87,8 @@ export function useInstallSkill() {
     mutationFn: (params: SkillInstallParams) => installSkill(params),
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: skillKeys.status() });
-      if (result.installed) {
-        toast.success(`Skill "${result.skill.name}" installed`);
+      if (result.ok) {
+        toast.success("Skill installation completed");
       } else {
         toast.info(result.message ?? "Skill installation completed");
       }

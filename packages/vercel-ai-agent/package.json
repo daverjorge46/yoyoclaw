@@ -33,6 +33,7 @@
     "build:vite": "vite build",
     "dev": "tsc --watch",
     "lint": "oxlint --type-aware",
+    "prepare": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

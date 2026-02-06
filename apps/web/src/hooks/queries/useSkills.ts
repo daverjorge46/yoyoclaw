@@ -6,36 +6,38 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getSkillsStatus,
   getSkill,
-  type Skill,
+  type SkillStatusEntry,
   type SkillsStatusReport,
 } from "@/lib/api/skills";
 
 // Query keys factory
 export const skillKeys = {
   all: ["skills"] as const,
-  status: () => [...skillKeys.all, "status"] as const,
+  status: (agentId?: string) => [...skillKeys.all, "status", agentId ?? "default"] as const,
   details: () => [...skillKeys.all, "detail"] as const,
-  detail: (name: string) => [...skillKeys.details(), name] as const,
+  detail: (name: string, agentId?: string) =>
+    [...skillKeys.details(), name, agentId ?? "default"] as const,
 };
 
 /**
  * Hook to get the status of all skills
  */
-export function useSkillsStatus() {
+export function useSkillsStatus(options?: { agentId?: string; enabled?: boolean }) {
   return useQuery({
-    queryKey: skillKeys.status(),
-    queryFn: getSkillsStatus,
+    queryKey: skillKeys.status(options?.agentId),
+    queryFn: () => getSkillsStatus(options?.agentId ? { agentId: options.agentId } : undefined),
     staleTime: 1000 * 60, // 1 minute
+    enabled: options?.enabled ?? true,
   });
 }
 
 /**
  * Hook to get a specific skill by name
  */
-export function useSkill(name: string) {
+export function useSkill(name: string, agentId?: string) {
   return useQuery({
-    queryKey: skillKeys.detail(name),
-    queryFn: () => getSkill(name),
+    queryKey: skillKeys.detail(name, agentId),
+    queryFn: () => getSkill(name, agentId),
     enabled: !!name,
   });
 }
@@ -46,7 +48,7 @@ export function useSkill(name: string) {
 export function useEnabledSkills() {
   const query = useSkillsStatus();
 
-  const enabledSkills = query.data?.skills.filter((s) => s.enabled) ?? [];
+  const enabledSkills = query.data?.skills.filter((s) => !s.disabled) ?? [];
 
   return {
     ...query,
@@ -61,7 +63,7 @@ export function useEnabledSkills() {
 export function useBuiltInSkills() {
   const query = useSkillsStatus();
 
-  const builtInSkills = query.data?.skills.filter((s) => s.builtIn) ?? [];
+  const builtInSkills = query.data?.skills.filter((s) => s.bundled) ?? [];
 
   return {
     ...query,
@@ -76,7 +78,7 @@ export function useBuiltInSkills() {
 export function useCustomSkills() {
   const query = useSkillsStatus();
 
-  const customSkills = query.data?.skills.filter((s) => !s.builtIn) ?? [];
+  const customSkills = query.data?.skills.filter((s) => !s.bundled) ?? [];
 
   return {
     ...query,
@@ -86,4 +88,4 @@ export function useCustomSkills() {
 }
 
 // Re-export types
-export type { Skill, SkillsStatusReport };
+export type { SkillStatusEntry, SkillsStatusReport };

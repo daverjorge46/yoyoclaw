@@ -53,6 +53,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import type { Task, TaskStatus, TaskPriority } from "@/hooks/queries/useWorkstreams";
+import type { WorkQueueItem } from "@/hooks/queries/useWorkQueue";
 import type { Agent } from "@/stores/useAgentStore";
 import { TaskNode } from "./TaskNode";
 import { AvoidingEdge } from "./AvoidingEdge";
@@ -80,6 +81,7 @@ interface NewTaskData {
 interface WorkstreamDAGProps {
   tasks: Task[];
   agents?: Agent[];
+  queueItems?: WorkQueueItem[];
   onTaskClick?: (task: Task) => void;
   onAddTask?: () => void;
   /** Called when a new task is created via context menu */
@@ -312,13 +314,20 @@ function getEdgeRoutingInfo(
 function tasksToFlow(
   tasks: Task[],
   agents: Agent[],
+  queueItems: WorkQueueItem[] = [],
   layoutDirection: "horizontal" | "vertical" = "vertical"
 ): { nodes: Node[]; edges: Edge[] } {
   const positions = layoutNodes(tasks);
+  const queueItemMap = new Map(
+    queueItems
+      .filter((item) => item.taskId)
+      .map((item) => [item.taskId as string, item])
+  );
 
   const nodes: Node[] = tasks.map((task) => {
     const position = positions.get(task.id) || { x: 0, y: 0 };
     const agent = agents.find((a) => a.id === task.assigneeId);
+    const queueItem = queueItemMap.get(task.id);
 
     return {
       id: task.id,
@@ -326,6 +335,7 @@ function tasksToFlow(
       data: {
         task,
         agent,
+        queueItem,
         layoutDirection, // Pass to node for handle positioning
       },
       type: "taskNode",
@@ -397,6 +407,7 @@ function tasksToFlow(
 function WorkstreamDAGInner({
   tasks,
   agents = [],
+  queueItems = [],
   onTaskClick,
   onAddTask,
   onCreateRelatedTask,
@@ -446,8 +457,8 @@ function WorkstreamDAGInner({
   }, [contextMenuTask, newTaskTitle, newTaskDescription, newTaskPriority, relationType, onCreateRelatedTask]);
 
   const initialFlow = useMemo(
-    () => tasksToFlow(tasks, agents),
-    [tasks, agents]
+    () => tasksToFlow(tasks, agents, queueItems),
+    [tasks, agents, queueItems]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
@@ -505,10 +516,10 @@ function WorkstreamDAGInner({
 
   // Update nodes when tasks change
   useEffect(() => {
-    const flow = tasksToFlow(tasks, agents);
+    const flow = tasksToFlow(tasks, agents, queueItems);
     setNodes(applySelection(flow.nodes, selectedTaskId));
     setEdges(flow.edges);
-  }, [tasks, agents, setNodes, setEdges, selectedTaskId, applySelection]);
+  }, [tasks, agents, queueItems, setNodes, setEdges, selectedTaskId, applySelection]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)),

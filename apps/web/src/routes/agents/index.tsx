@@ -24,6 +24,7 @@ import {
   Users,
   Bot,
   Sparkles,
+  Activity,
 } from "lucide-react";
 
 type SortOption = "recent" | "name" | "status";
@@ -181,10 +182,20 @@ function AgentsPage() {
                 Discover and manage your AI agents
               </p>
             </div>
-            <Button onClick={() => setWizardOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Agent
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: "/agents/dashboard" })}
+                className="gap-2"
+              >
+                <Activity className="h-4 w-4" />
+                Dashboard
+              </Button>
+              <Button onClick={() => setWizardOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Agent
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}

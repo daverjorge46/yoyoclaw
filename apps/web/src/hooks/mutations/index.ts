@@ -62,6 +62,12 @@ export {
   useUpdateTaskPriority,
 } from "./useWorkstreamMutations";
 
+// Work Queue
+export {
+  useClaimWorkItem,
+  useReleaseWorkItem,
+} from "./useWorkQueueMutations";
+
 // Config
 export {
   usePatchConfig,

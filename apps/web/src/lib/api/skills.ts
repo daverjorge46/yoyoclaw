@@ -6,84 +6,108 @@
 
 import { getGatewayClient } from "./gateway-client";
 
-export interface Skill {
+export interface SkillStatusEntry {
   name: string;
-  displayName: string;
-  description?: string;
-  version: string;
-  enabled: boolean;
-  installed: boolean;
-  builtIn: boolean;
-  source?: string;
-  config?: Record<string, unknown>;
-  updatedAt?: string;
+  description: string;
+  source: string;
+  bundled: boolean;
+  filePath: string;
+  baseDir: string;
+  skillKey: string;
+  primaryEnv?: string;
+  emoji?: string;
+  homepage?: string;
+  always: boolean;
+  disabled: boolean;
+  blockedByAllowlist: boolean;
+  eligible: boolean;
+  requirements: {
+    bins: string[];
+    anyBins: string[];
+    env: string[];
+    config: string[];
+    os: string[];
+  };
+  missing: {
+    bins: string[];
+    anyBins: string[];
+    env: string[];
+    config: string[];
+    os: string[];
+  };
+  configChecks: Array<{ path: string; value: unknown; satisfied: boolean }>;
+  install: Array<{ id: string; kind: string; label: string; bins: string[] }>;
 }
 
 export interface SkillsStatusReport {
-  skills: Skill[];
-  total: number;
-  enabled: number;
-  disabled: number;
-  builtIn: number;
-  custom: number;
+  workspaceDir: string;
+  managedSkillsDir: string;
+  skills: SkillStatusEntry[];
 }
 
 export interface SkillUpdateParams {
-  name: string;
+  skillKey: string;
   enabled?: boolean;
-  config?: Record<string, unknown>;
+  apiKey?: string;
+  env?: Record<string, string>;
 }
 
 export interface SkillInstallParams {
-  source: string; // URL or path to skill package
-  name?: string; // Optional name override
-  config?: Record<string, unknown>;
+  name: string;
+  installId: string;
+  timeoutMs?: number;
 }
 
 export interface SkillInstallResult {
-  skill: Skill;
-  installed: boolean;
+  ok: boolean;
+  installId: string;
   message?: string;
 }
 
 /**
  * Get the status of all skills
  */
-export async function getSkillsStatus(): Promise<SkillsStatusReport> {
+export async function getSkillsStatus(params?: { agentId?: string }): Promise<SkillsStatusReport> {
   const client = getGatewayClient();
-  return client.request<SkillsStatusReport>("skills.status");
+  return client.request<SkillsStatusReport>("skills.status", params ?? {});
 }
 
 /**
- * Get a specific skill by name
+ * Get a specific skill by name from the status report
  */
-export async function getSkill(name: string): Promise<Skill> {
-  const client = getGatewayClient();
-  return client.request<Skill>("skills.get", { name });
+export async function getSkill(name: string, agentId?: string): Promise<SkillStatusEntry> {
+  const report = await getSkillsStatus(agentId ? { agentId } : undefined);
+  const entry = report.skills.find((skill) => skill.name === name || skill.skillKey === name);
+  if (!entry) {
+    throw new Error(`Skill "${name}" not found`);
+  }
+  return entry;
 }
 
 /**
  * Update a skill's configuration or enabled state
  */
-export async function updateSkill(params: SkillUpdateParams): Promise<{ ok: boolean }> {
+export async function updateSkill(
+  params: SkillUpdateParams
+): Promise<{ ok: boolean; skillKey: string; config: Record<string, unknown> }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("skills.update", params);
+  return client.request("skills.update", params);
 }
 
 /**
  * Enable a skill
  */
-export async function enableSkill(name: string): Promise<{ ok: boolean }> {
+export async function enableSkill(skillKey: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("skills.enable", { name });
+  return client.request("skills.update", { skillKey, enabled: true });
 }
 
 /**
  * Disable a skill
  */
-export async function disableSkill(name: string): Promise<{ ok: boolean }> {
+export async function disableSkill(skillKey: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("skills.disable", { name });
+  return client.request("skills.update", { skillKey, enabled: false });
 }
 
 /**
@@ -92,7 +116,9 @@ export async function disableSkill(name: string): Promise<{ ok: boolean }> {
  */
 export async function installSkill(params: SkillInstallParams): Promise<SkillInstallResult> {
   const client = getGatewayClient();
-  return client.request<SkillInstallResult>("skills.install", params, { timeout: 120000 });
+  return client.request<SkillInstallResult>("skills.install", params, {
+    timeout: params.timeoutMs ?? 120000,
+  });
 }
 
 /**
@@ -100,7 +126,7 @@ export async function installSkill(params: SkillInstallParams): Promise<SkillIns
  */
 export async function uninstallSkill(name: string): Promise<{ ok: boolean }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean }>("skills.uninstall", { name });
+  return client.request("skills.uninstall", { name });
 }
 
 /**
@@ -108,5 +134,5 @@ export async function uninstallSkill(name: string): Promise<{ ok: boolean }> {
  */
 export async function reloadSkills(): Promise<{ ok: boolean; count: number }> {
   const client = getGatewayClient();
-  return client.request<{ ok: boolean; count: number }>("skills.reload");
+  return client.request("skills.reload");
 }

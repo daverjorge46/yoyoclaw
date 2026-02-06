@@ -190,6 +190,17 @@ export {
   type AgentStatusEvent,
 } from "./agent-status";
 
+// Agent files API functions
+export {
+  listAgentFiles,
+  getAgentFile,
+  setAgentFile,
+  type AgentFileEntry,
+  type AgentsFilesListResult,
+  type AgentsFilesGetResult,
+  type AgentsFilesSetResult,
+} from "./agent-files";
+
 // Skills API functions
 export {
   getSkillsStatus,
@@ -200,7 +211,7 @@ export {
   installSkill,
   uninstallSkill,
   reloadSkills,
-  type Skill,
+  type SkillStatusEntry,
   type SkillsStatusReport,
   type SkillUpdateParams,
   type SkillInstallParams,
