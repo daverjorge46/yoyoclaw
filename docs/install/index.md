@@ -123,6 +123,8 @@ openclaw onboard --install-daemon
 
 <Steps>
   <Step title="Clone and build">
+    Clone the [openclaw repo](https://github.com/openclaw/openclaw) and build:
+
     ```bash
     git clone https://github.com/openclaw/openclaw.git
     cd openclaw
@@ -130,6 +132,7 @@ openclaw onboard --install-daemon
     pnpm ui:build # auto-installs UI deps on first run
     pnpm build
     ```
+
   </Step>
   <Step title="Run onboarding">
     ```bash
