@@ -298,7 +298,9 @@ export async function runEmbeddedPiAgent(
       }
 
       // Same-provider retry for rate limit (after failover exhausted)
+      // Max 3 total attempts (original + 2 retries), min 60s between retries
       const MAX_RATE_LIMIT_RETRIES = 2;
+      const MIN_RATE_LIMIT_DELAY_S = 60;
       const DEFAULT_RATE_LIMIT_DELAY_S = 60;
       const MAX_RATE_LIMIT_DELAY_S = 120;
       let rateLimitRetryCount = 0;
@@ -505,9 +507,9 @@ export async function runEmbeddedPiAgent(
               rateLimitRetryCount++;
               const parsedDelay =
                 parseRetryAfter(promptError) ?? parseRetryAfterFromMessage(errorText);
-              const delaySeconds = Math.min(
-                parsedDelay ?? DEFAULT_RATE_LIMIT_DELAY_S,
-                MAX_RATE_LIMIT_DELAY_S,
+              const delaySeconds = Math.max(
+                MIN_RATE_LIMIT_DELAY_S,
+                Math.min(parsedDelay ?? DEFAULT_RATE_LIMIT_DELAY_S, MAX_RATE_LIMIT_DELAY_S),
               );
               log.warn(
                 `rate limit hit for ${provider}/${modelId}; retrying same provider in ${delaySeconds}s (attempt ${rateLimitRetryCount}/${MAX_RATE_LIMIT_RETRIES})`,
@@ -616,9 +618,9 @@ export async function runEmbeddedPiAgent(
             ) {
               rateLimitRetryCount++;
               const parsedDelay = parseRetryAfterFromMessage(lastAssistant?.errorMessage ?? "");
-              const delaySeconds = Math.min(
-                parsedDelay ?? DEFAULT_RATE_LIMIT_DELAY_S,
-                MAX_RATE_LIMIT_DELAY_S,
+              const delaySeconds = Math.max(
+                MIN_RATE_LIMIT_DELAY_S,
+                Math.min(parsedDelay ?? DEFAULT_RATE_LIMIT_DELAY_S, MAX_RATE_LIMIT_DELAY_S),
               );
               log.warn(
                 `rate limit hit for ${provider}/${modelId}; retrying same provider in ${delaySeconds}s (attempt ${rateLimitRetryCount}/${MAX_RATE_LIMIT_RETRIES})`,
