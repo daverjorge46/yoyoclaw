@@ -437,7 +437,8 @@ export async function compactEmbeddedPiSessionDirect(
         if (limited.length > 0) {
           session.agent.replaceMessages(limited);
         }
-        const hookSessionKey = params.sessionKey ?? `session:${params.sessionId}`;
+        const missingSessionKey = !params.sessionKey || !params.sessionKey.trim();
+        const hookSessionKey = params.sessionKey?.trim() || `compact:${params.sessionId}`;
         const hookRunner = getGlobalHookRunner();
         const messageCountOriginal = originalMessages.length;
         const messageCountBefore = session.messages.length;
@@ -464,6 +465,7 @@ export async function compactEmbeddedPiSessionDirect(
         try {
           const hookEvent = createInternalHookEvent("session", "compact:before", hookSessionKey, {
             sessionId: params.sessionId,
+            missingSessionKey,
             messageCount: messageCountBefore,
             tokenCount: tokenCountBefore,
             messageCountOriginal,
@@ -516,6 +518,7 @@ export async function compactEmbeddedPiSessionDirect(
         try {
           const hookEvent = createInternalHookEvent("session", "compact:after", hookSessionKey, {
             sessionId: params.sessionId,
+            missingSessionKey,
             messageCount: messageCountAfter,
             tokenCount: tokensAfter,
             compactedCount,
