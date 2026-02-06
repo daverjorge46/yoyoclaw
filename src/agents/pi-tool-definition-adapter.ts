@@ -179,6 +179,7 @@ export function toClientToolDefinitions(
         const result = jsonResult({
           status: "pending",
           tool: func.name,
+          toolCallId: hookToolCallId,
           message: "Tool execution delegated to client",
         });
         await runAfterToolCallHook({

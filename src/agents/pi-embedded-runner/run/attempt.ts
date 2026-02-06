@@ -143,8 +143,9 @@ export async function runEmbeddedAttempt(
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
   const prevCwd = process.cwd();
   const runAbortController = new AbortController();
-  // createInternalHookEvent(type, action, sessionKey, context): third arg is session key.
-  const hookSessionKey = params.sessionKey ?? `session:${params.sessionId}`;
+  // Internal hook events require a non-empty key; keep real sessionKey when present and
+  // otherwise use a run-scoped fallback that cannot be mistaken for a persisted session key.
+  const hookSessionKey = params.sessionKey?.trim() || `run:${params.runId}`;
   const emitInternalAgentHook = async (action: string, context: Record<string, unknown>) => {
     try {
       const hookEvent = createInternalHookEvent("agent", action, hookSessionKey, context);
@@ -635,18 +636,22 @@ export async function runEmbeddedAttempt(
       };
 
       let responseStartedAt: number | null = null;
-      const handleAssistantMessageStart = () => {
-        if (responseStartedAt === null) {
-          responseStartedAt = Date.now();
-          void emitInternalAgentHook("response:start", {
-            sessionId: params.sessionId,
-            runId: params.runId,
-            provider: params.provider,
-            model: params.modelId,
-            messageProvider: params.messageProvider,
-            messageChannel: params.messageChannel,
-          });
+      const emitResponseStart = async (startedAt: number) => {
+        if (responseStartedAt !== null) {
+          return;
         }
+        responseStartedAt = startedAt;
+        await emitInternalAgentHook("response:start", {
+          sessionId: params.sessionId,
+          runId: params.runId,
+          provider: params.provider,
+          model: params.modelId,
+          messageProvider: params.messageProvider,
+          messageChannel: params.messageChannel,
+        });
+      };
+      const handleAssistantMessageStart = () => {
+        void emitResponseStart(Date.now());
         void params.onAssistantMessageStart?.();
       };
 
@@ -890,19 +895,11 @@ export async function runEmbeddedAttempt(
           assistantTexts.length > 0 ||
           didSendViaMessagingTool() ||
           getMessagingToolSentTexts().length > 0;
-        if (responseStartedAt === null && hasResponseOutput) {
-          responseStartedAt = promptStartedAt;
-          void emitInternalAgentHook("response:start", {
-            sessionId: params.sessionId,
-            runId: params.runId,
-            provider: params.provider,
-            model: params.modelId,
-            messageProvider: params.messageProvider,
-            messageChannel: params.messageChannel,
-          });
+        if (hasResponseOutput) {
+          await emitResponseStart(promptStartedAt);
         }
         if (responseStartedAt !== null) {
-          void emitInternalAgentHook("response:end", {
+          await emitInternalAgentHook("response:end", {
             sessionId: params.sessionId,
             runId: params.runId,
             provider: params.provider,
