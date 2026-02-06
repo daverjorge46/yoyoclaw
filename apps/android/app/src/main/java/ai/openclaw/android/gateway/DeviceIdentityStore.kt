@@ -7,9 +7,12 @@ import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.Signature
+import java.security.Security
 import java.security.spec.PKCS8EncodedKeySpec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.i2p.crypto.eddsa.EdDSASecurityProvider
+import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable
 
 @Serializable
 data class DeviceIdentity(
@@ -51,7 +54,18 @@ class DeviceIdentityStore(context: Context) {
       signature.update(payload.toByteArray(Charsets.UTF_8))
       base64UrlEncode(signature.sign())
     } catch (_: Throwable) {
-      null
+      runCatching {
+          ensureEdDsaProvider()
+          val privateKeyBytes = Base64.decode(identity.privateKeyPkcs8Base64, Base64.DEFAULT)
+          val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
+          val keyFactory = KeyFactory.getInstance("EdDSA", EdDSASecurityProvider.PROVIDER_NAME)
+          val privateKey = keyFactory.generatePrivate(keySpec)
+          val signature = Signature.getInstance("NONEwithEdDSA", EdDSASecurityProvider.PROVIDER_NAME)
+          signature.initSign(privateKey)
+          signature.update(payload.toByteArray(Charsets.UTF_8))
+          base64UrlEncode(signature.sign())
+        }
+        .getOrNull()
     }
   }
 
@@ -97,7 +111,15 @@ class DeviceIdentityStore(context: Context) {
   }
 
   private fun generate(): DeviceIdentity {
-    val keyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
+    val keyPair =
+      runCatching { KeyPairGenerator.getInstance("Ed25519").generateKeyPair() }
+        .getOrElse {
+          ensureEdDsaProvider()
+          val spec = EdDSANamedCurveTable.getByName("Ed25519")
+          val generator = KeyPairGenerator.getInstance("EdDSA", EdDSASecurityProvider.PROVIDER_NAME)
+          generator.initialize(spec)
+          generator.generateKeyPair()
+        }
     val spki = keyPair.public.encoded
     val rawPublic = stripSpkiPrefix(spki)
     val deviceId = sha256Hex(rawPublic)
@@ -139,6 +161,11 @@ class DeviceIdentityStore(context: Context) {
 
   private fun base64UrlEncode(data: ByteArray): String {
     return Base64.encodeToString(data, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+  }
+
+  private fun ensureEdDsaProvider() {
+    if (Security.getProvider(EdDSASecurityProvider.PROVIDER_NAME) != null) return
+    Security.addProvider(EdDSASecurityProvider())
   }
 
   companion object {
