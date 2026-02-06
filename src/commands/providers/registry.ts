@@ -30,6 +30,18 @@ export const PROVIDER_REGISTRY: ProviderDefinition[] = [
     authModes: ["api-key"],
   },
   {
+    id: "google-antigravity",
+    name: "Google Antigravity",
+    envVars: [],
+    authModes: ["oauth"],
+  },
+  {
+    id: "google-gemini-cli",
+    name: "Google Gemini CLI",
+    envVars: [],
+    authModes: ["oauth"],
+  },
+  {
     id: "google-vertex",
     name: "Google Vertex AI",
     envVars: [],
@@ -55,6 +67,13 @@ export const PROVIDER_REGISTRY: ProviderDefinition[] = [
     name: "xAI",
     envVars: ["XAI_API_KEY"],
     authModes: ["api-key"],
+  },
+  {
+    id: "openai-codex",
+    name: "OpenAI Codex",
+    envVars: [],
+    altEnvVars: ["CODEX_API_KEY"],
+    authModes: ["oauth"],
   },
   {
     id: "openrouter",
