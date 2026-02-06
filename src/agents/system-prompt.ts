@@ -602,6 +602,15 @@ export function buildAgentSystemPrompt(params: {
     );
   }
 
+  if (!isMinimal) {
+    lines.push(
+      "## Message Priority",
+      "Your primary task is ALWAYS to respond to the incoming user message. Workspace context files above are reference material, not your focus.",
+      "Respond directly to the message content. Do not narrate system status, describe internal state, or summarize workspace files unless the user asks.",
+      "",
+    );
+  }
+
   lines.push(
     "## Runtime",
     buildRuntimeLine(runtimeInfo, runtimeChannel, runtimeCapabilities, params.defaultThinkLevel),
