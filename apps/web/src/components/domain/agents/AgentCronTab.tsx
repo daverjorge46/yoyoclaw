@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/composed";
 import { useCronJobsByAgent, useCronStatus } from "@/hooks/queries/useCron";
+import { formatCronSchedule, getCronPayloadMessage } from "@/lib/api/cron";
 
 interface AgentCronTabProps {
   agentId: string;
@@ -80,7 +81,7 @@ export function AgentCronTab({ agentId }: AgentCronTabProps) {
           ) : (
             <div className="space-y-3">
               {jobs.map((job) => {
-                const lastResult = job.lastResult?.success;
+                const lastResult = job.state.lastStatus;
                 return (
                   <div
                     key={job.id}
@@ -97,20 +98,37 @@ export function AgentCronTab({ agentId }: AgentCronTabProps) {
                         <Badge variant={job.enabled ? "success" : "warning"}>
                           {job.enabled ? "enabled" : "disabled"}
                         </Badge>
-                        <Badge variant="secondary">{job.schedule}</Badge>
+                        <Badge variant="secondary">{formatCronSchedule(job.schedule)}</Badge>
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Message: <span className="text-foreground">{job.message}</span>
+                      Message:{" "}
+                      <span className="text-foreground">
+                        {getCronPayloadMessage(job.payload)}
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                      <span>Last run: {formatTimestamp(job.lastRunAt)}</span>
-                      <span>Next run: {formatTimestamp(job.nextRunAt)}</span>
+                      <span>
+                        Last run:{" "}
+                        {formatTimestamp(
+                          job.state.lastRunAtMs
+                            ? new Date(job.state.lastRunAtMs).toISOString()
+                            : undefined
+                        )}
+                      </span>
+                      <span>
+                        Next run:{" "}
+                        {formatTimestamp(
+                          job.state.nextRunAtMs
+                            ? new Date(job.state.nextRunAtMs).toISOString()
+                            : undefined
+                        )}
+                      </span>
                       <span>
                         Status:{" "}
                         {lastResult === undefined ? (
                           "n/a"
-                        ) : lastResult ? (
+                        ) : lastResult === "ok" ? (
                           <span className="text-success">success</span>
                         ) : (
                           <span className="text-error">failed</span>

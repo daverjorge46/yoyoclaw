@@ -12,6 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  formatCronSchedule,
+  getCronPayloadMessage,
+  type CronJob,
+  type CronJobPatch,
+} from "@/lib/api/cron";
+import { useCronEventSubscription, useCronJobs } from "@/hooks/queries/useCron";
+import {
+  useCreateCronJob,
+  useDeleteCronJob,
+  useUpdateCronJob,
+} from "@/hooks/mutations/useCronMutations";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -27,13 +39,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Clock,
   Plus,
   Edit2,
@@ -48,77 +53,6 @@ export const Route = createFileRoute("/jobs/")({
   component: JobsPage,
 });
 
-interface CronJob {
-  id: string;
-  name: string;
-  schedule: string;
-  command: string;
-  enabled: boolean;
-  status: "idle" | "running" | "success" | "failed";
-  lastRun?: Date;
-  nextRun?: Date;
-  createdAt: Date;
-}
-
-// Mock cron jobs data
-const initialJobs: CronJob[] = [
-  {
-    id: "1",
-    name: "Daily Backup",
-    schedule: "0 2 * * *",
-    command: "backup.run",
-    enabled: true,
-    status: "success",
-    lastRun: new Date(Date.now() - 36000000),
-    nextRun: new Date(Date.now() + 50400000),
-    createdAt: new Date(Date.now() - 2592000000),
-  },
-  {
-    id: "2",
-    name: "Sync Memories",
-    schedule: "*/30 * * * *",
-    command: "memory.sync",
-    enabled: true,
-    status: "idle",
-    lastRun: new Date(Date.now() - 1800000),
-    nextRun: new Date(Date.now() + 1800000),
-    createdAt: new Date(Date.now() - 604800000),
-  },
-  {
-    id: "3",
-    name: "Weekly Report",
-    schedule: "0 9 * * 1",
-    command: "report.generate",
-    enabled: false,
-    status: "idle",
-    lastRun: new Date(Date.now() - 604800000),
-    nextRun: undefined,
-    createdAt: new Date(Date.now() - 1209600000),
-  },
-  {
-    id: "4",
-    name: "Agent Health Check",
-    schedule: "*/5 * * * *",
-    command: "agent.healthCheck",
-    enabled: true,
-    status: "running",
-    lastRun: new Date(Date.now() - 300000),
-    nextRun: new Date(Date.now() + 300000),
-    createdAt: new Date(Date.now() - 86400000),
-  },
-  {
-    id: "5",
-    name: "Cache Cleanup",
-    schedule: "0 4 * * *",
-    command: "cache.cleanup",
-    enabled: true,
-    status: "failed",
-    lastRun: new Date(Date.now() - 72000000),
-    nextRun: new Date(Date.now() + 14400000),
-    createdAt: new Date(Date.now() - 432000000),
-  },
-];
-
 // Cron presets
 const cronPresets = [
   { label: "Every minute", value: "* * * * *" },
@@ -132,21 +66,14 @@ const cronPresets = [
   { label: "Monthly (1st at midnight)", value: "0 0 1 * *" },
 ];
 
-// Available commands
-const availableCommands = [
-  "backup.run",
-  "memory.sync",
-  "report.generate",
-  "agent.healthCheck",
-  "cache.cleanup",
-  "ritual.execute",
-  "goal.check",
-  "notification.send",
-];
-
 function JobsPage() {
   const powerUserMode = useUIStore((s) => s.powerUserMode);
-  const [jobs, setJobs] = React.useState<CronJob[]>(initialJobs);
+  const { data: jobsResult, isLoading, error } = useCronJobs();
+  const createCronJob = useCreateCronJob();
+  const updateCronJob = useUpdateCronJob();
+  const deleteCronJob = useDeleteCronJob();
+  useCronEventSubscription();
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingJob, setEditingJob] = React.useState<CronJob | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -155,7 +82,9 @@ function JobsPage() {
   // Form state
   const [formName, setFormName] = React.useState("");
   const [formSchedule, setFormSchedule] = React.useState("* * * * *");
-  const [formCommand, setFormCommand] = React.useState(availableCommands[0]);
+  const [formMessage, setFormMessage] = React.useState("");
+  const [formAgentId, setFormAgentId] = React.useState("");
+  const [formDescription, setFormDescription] = React.useState("");
   const [baseNow] = React.useState(() => Date.now());
 
   if (!powerUserMode) {
@@ -165,7 +94,9 @@ function JobsPage() {
   const resetForm = () => {
     setFormName("");
     setFormSchedule("* * * * *");
-    setFormCommand(availableCommands[0]);
+    setFormMessage("");
+    setFormAgentId("");
+    setFormDescription("");
     setEditingJob(null);
   };
 
@@ -177,56 +108,69 @@ function JobsPage() {
   const openEditModal = (job: CronJob) => {
     setEditingJob(job);
     setFormName(job.name);
-    setFormSchedule(job.schedule);
-    setFormCommand(job.command);
+    setFormSchedule(formatCronSchedule(job.schedule));
+    setFormMessage(getCronPayloadMessage(job.payload));
+    setFormAgentId(job.agentId ?? "");
+    setFormDescription(job.description ?? "");
     setIsModalOpen(true);
   };
 
   const handleSave = () => {
     if (editingJob) {
-      // Update existing job
-      setJobs((prev) =>
-        prev.map((j) =>
-          j.id === editingJob.id
-            ? {
-                ...j,
-                name: formName,
-                schedule: formSchedule,
-                command: formCommand,
-              }
-            : j
-        )
-      );
-    } else {
-      // Create new job
-      const newJob: CronJob = {
-        id: `job-${Date.now()}`,
-        name: formName,
-        schedule: formSchedule,
-        command: formCommand,
-        enabled: true,
-        status: "idle",
-        nextRun: getNextRun(formSchedule),
-        createdAt: new Date(),
+      const scheduleLabel = formatCronSchedule(editingJob.schedule);
+      const updatePayload = getCronPayloadMessage(editingJob.payload);
+      const patch = {
+        name: formName !== editingJob.name ? formName : undefined,
+        description:
+          formDescription !== (editingJob.description ?? "")
+            ? formDescription || undefined
+            : undefined,
+        agentId:
+          formAgentId !== (editingJob.agentId ?? "")
+            ? formAgentId || null
+            : undefined,
+        schedule:
+          formSchedule !== scheduleLabel
+            ? { kind: "cron" as const, expr: formSchedule }
+            : undefined,
+        payload:
+          formMessage !== updatePayload
+            ? editingJob.payload.kind === "systemEvent"
+              ? { kind: "systemEvent", text: formMessage }
+              : { kind: "agentTurn", message: formMessage }
+            : undefined,
       };
-      setJobs((prev) => [...prev, newJob]);
+      const cleanedPatch = Object.fromEntries(
+        Object.entries(patch).filter(([, value]) => value !== undefined)
+      ) as CronJobPatch;
+      if (Object.keys(cleanedPatch).length > 0) {
+        updateCronJob.mutate({ id: editingJob.id, patch: cleanedPatch });
+      }
+    } else {
+      createCronJob.mutate({
+        name: formName,
+        description: formDescription || undefined,
+        agentId: formAgentId || undefined,
+        enabled: true,
+        schedule: { kind: "cron", expr: formSchedule },
+        sessionTarget: "main",
+        wakeMode: "next-heartbeat",
+        payload: { kind: "agentTurn", message: formMessage },
+      });
     }
     setIsModalOpen(false);
     resetForm();
   };
 
   const toggleJob = (id: string) => {
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === id
-          ? {
-              ...j,
-              enabled: !j.enabled,
-              nextRun: !j.enabled ? getNextRun(j.schedule) : undefined,
-            }
-          : j
-      )
-    );
+    const target = jobsResult?.jobs.find((job) => job.id === id);
+    if (!target) {
+      return;
+    }
+    updateCronJob.mutate({
+      id,
+      patch: { enabled: !target.enabled },
+    });
   };
 
   const confirmDelete = (job: CronJob) => {
@@ -236,13 +180,26 @@ function JobsPage() {
 
   const handleDelete = () => {
     if (jobToDelete) {
-      setJobs((prev) => prev.filter((j) => j.id !== jobToDelete.id));
+      deleteCronJob.mutate(jobToDelete.id);
       setDeleteDialogOpen(false);
       setJobToDelete(null);
     }
   };
 
-  const getStatusIcon = (status: CronJob["status"]) => {
+  const getJobStatus = (job: CronJob) => {
+    if (job.state.runningAtMs) {
+      return "running";
+    }
+    if (job.state.lastStatus === "ok") {
+      return "success";
+    }
+    if (job.state.lastStatus === "error") {
+      return "failed";
+    }
+    return "idle";
+  };
+
+  const getStatusIcon = (status: ReturnType<typeof getJobStatus>) => {
     switch (status) {
       case "running":
         return <RefreshCw className="h-4 w-4 text-primary animate-spin" />;
@@ -255,7 +212,7 @@ function JobsPage() {
     }
   };
 
-  const getStatusBadge = (status: CronJob["status"]) => {
+  const getStatusBadge = (status: ReturnType<typeof getJobStatus>) => {
     switch (status) {
       case "running":
         return <Badge>Running</Badge>;
@@ -268,9 +225,9 @@ function JobsPage() {
     }
   };
 
-  const formatRelativeTime = (date?: Date) => {
-    if (!date) {return "Never";}
-    const diff = date.getTime() - baseNow;
+  const formatRelativeTime = (timestampMs?: number) => {
+    if (!timestampMs) {return "Never";}
+    const diff = timestampMs - baseNow;
     const absDiff = Math.abs(diff);
     const isPast = diff < 0;
 
@@ -321,17 +278,34 @@ function JobsPage() {
         {/* Jobs Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Cron Jobs</CardTitle>
-            <CardDescription>
-              {jobs.filter((j) => j.enabled).length} of {jobs.length} jobs
-              active
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[500px]">
-              <div className="space-y-3">
-                <AnimatePresence>
-                  {jobs.map((job) => (
+          <CardTitle>Cron Jobs</CardTitle>
+          <CardDescription>
+            {jobsResult?.jobs.filter((job) => job.enabled).length ?? 0} of{" "}
+            {jobsResult?.jobs.length ?? 0} jobs active
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[500px]">
+            <div className="space-y-3">
+              {isLoading && (
+                <div className="text-sm text-muted-foreground">Loading cron jobs…</div>
+              )}
+              {error && (
+                <div className="text-sm text-destructive">
+                  Failed to load cron jobs.
+                </div>
+              )}
+              {!isLoading && !error && jobsResult?.jobs.length === 0 && (
+                <div className="text-sm text-muted-foreground">
+                  No cron jobs configured yet.
+                </div>
+              )}
+              <AnimatePresence>
+                {(jobsResult?.jobs ?? []).map((job) => {
+                  const status = getJobStatus(job);
+                  const scheduleLabel = formatCronSchedule(job.schedule);
+                  const message = getCronPayloadMessage(job.payload);
+                  return (
                     <motion.div
                       key={job.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -346,7 +320,7 @@ function JobsPage() {
                     >
                       {/* Status Icon */}
                       <div className="flex items-center justify-center w-8">
-                        {getStatusIcon(job.status)}
+                        {getStatusIcon(status)}
                       </div>
 
                       {/* Job Info */}
@@ -355,24 +329,24 @@ function JobsPage() {
                           <span className="font-medium truncate">
                             {job.name}
                           </span>
-                          {getStatusBadge(job.status)}
+                          {getStatusBadge(status)}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="font-mono bg-muted px-2 py-0.5 rounded">
-                            {job.schedule}
+                            {scheduleLabel}
                           </span>
-                          <span>{job.command}</span>
+                          <span className="truncate">{message}</span>
                         </div>
                       </div>
 
                       {/* Timing */}
                       <div className="text-right text-sm">
                         <div className="text-muted-foreground">
-                          Last: {formatRelativeTime(job.lastRun)}
+                          Last: {formatRelativeTime(job.state.lastRunAtMs)}
                         </div>
-                        {job.enabled && job.nextRun && (
+                        {job.enabled && job.state.nextRunAtMs && (
                           <div className="text-primary">
-                            Next: {formatRelativeTime(job.nextRun)}
+                            Next: {formatRelativeTime(job.state.nextRunAtMs)}
                           </div>
                         )}
                       </div>
@@ -400,11 +374,12 @@ function JobsPage() {
                         </Button>
                       </div>
                     </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
-          </CardContent>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </ScrollArea>
+        </CardContent>
         </Card>
 
         {/* Create/Edit Job Modal */}
@@ -431,21 +406,37 @@ function JobsPage() {
                 />
               </div>
 
-              {/* Command */}
+              {/* Agent */}
               <div className="space-y-2">
-                <Label>Command</Label>
-                <Select value={formCommand} onValueChange={setFormCommand}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select command" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCommands.map((cmd) => (
-                      <SelectItem key={cmd} value={cmd}>
-                        {cmd}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="agent-id">Agent ID (optional)</Label>
+                <Input
+                  id="agent-id"
+                  value={formAgentId}
+                  onChange={(e) => setFormAgentId(e.target.value)}
+                  placeholder="agent-id"
+                />
+              </div>
+
+              {/* Message */}
+              <div className="space-y-2">
+                <Label htmlFor="job-message">Message</Label>
+                <Input
+                  id="job-message"
+                  value={formMessage}
+                  onChange={(e) => setFormMessage(e.target.value)}
+                  placeholder="What should the agent do?"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="job-description">Description (optional)</Label>
+                <Input
+                  id="job-description"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Add context for this job"
+                />
               </div>
 
               {/* Cron Helper */}
@@ -462,7 +453,10 @@ function JobsPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={!formName.trim()}>
+              <Button
+                onClick={handleSave}
+                disabled={!formName.trim() || !formMessage.trim()}
+              >
                 {editingJob ? "Save Changes" : "Create Job"}
               </Button>
             </DialogFooter>
@@ -507,7 +501,9 @@ interface CronHelperProps {
 }
 
 function CronHelper({ value, onChange }: CronHelperProps) {
-  const parts = value.split(" ");
+  const rawParts = value.split(" ");
+  const parts =
+    rawParts.length === 5 ? rawParts : ["*", "*", "*", "*", "*"];
   const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
 
   const updatePart = (index: number, newValue: string) => {
@@ -635,22 +631,4 @@ function CronHelper({ value, onChange }: CronHelperProps) {
       </div>
     </div>
   );
-}
-
-// Helper function to calculate next run time
-function getNextRun(schedule: string): Date {
-  // Simplified calculation - in reality would use a cron parser
-  const now = new Date();
-  const parts = schedule.split(" ");
-  const minute = parts[0];
-
-  if (minute === "*") {
-    return new Date(now.getTime() + 60000);
-  }
-  if (minute.startsWith("*/")) {
-    const interval = parseInt(minute.slice(2), 10);
-    return new Date(now.getTime() + interval * 60000);
-  }
-  // Default to 1 hour from now
-  return new Date(now.getTime() + 3600000);
 }

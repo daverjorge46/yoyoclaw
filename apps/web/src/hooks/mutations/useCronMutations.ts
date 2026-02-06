@@ -8,10 +8,9 @@ import {
   addCronJob,
   updateCronJob,
   removeCronJob,
-  enableCronJob,
-  disableCronJob,
   runCronJob,
   type CronJobCreateParams,
+  type CronJobPatch,
   type CronJobUpdateParams,
 } from "@/lib/api/cron";
 import { cronKeys } from "@/hooks/queries/useCron";
@@ -81,7 +80,11 @@ export function useEnableCronJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => enableCronJob(id),
+    mutationFn: (id: string) =>
+      updateCronJob({
+        id,
+        patch: { enabled: true } satisfies CronJobPatch,
+      }),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: cronKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: cronKeys.lists() });
@@ -101,7 +104,11 @@ export function useDisableCronJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => disableCronJob(id),
+    mutationFn: (id: string) =>
+      updateCronJob({
+        id,
+        patch: { enabled: false } satisfies CronJobPatch,
+      }),
     onSuccess: (_, id) => {
       void queryClient.invalidateQueries({ queryKey: cronKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: cronKeys.lists() });
@@ -121,13 +128,15 @@ export function useRunCronJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, mode = "async" }: { id: string; mode?: "sync" | "async" }) =>
+    mutationFn: ({ id, mode = "due" }: { id: string; mode?: "due" | "force" }) =>
       runCronJob(id, mode),
     onSuccess: (result, { id }) => {
       void queryClient.invalidateQueries({ queryKey: cronKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: cronKeys.lists() });
-      if (result.started) {
-        toast.success(`Cron job started (run ID: ${result.runId})`);
+      if (result.ran) {
+        toast.success("Cron job started");
+      } else if (result.reason) {
+        toast.info(`Cron job not run: ${result.reason}`);
       }
     },
     onError: (error) => {

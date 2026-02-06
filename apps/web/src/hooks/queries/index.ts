@@ -199,6 +199,7 @@ export {
   useEnabledCronJobs,
   useCronRunHistory,
   useCronRunLog,
+  useCronEventSubscription,
   useInvalidateCron,
   cronKeys,
 } from "./useCron";
@@ -207,7 +208,6 @@ export type {
   CronJobListResult,
   CronStatusResult,
   CronRunsResult,
-  CronRunLogEntry,
   CronRunLogResult,
 } from "./useCron";
 

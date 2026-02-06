@@ -3,14 +3,18 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 import {
   listCronJobs,
   getCronJob,
   type CronJob,
   type CronJobListResult,
+  getCronRuns,
+  type CronRunEntry,
   getCronRunLog,
   type CronRunTimelineEntry,
 } from "@/lib/api/cron";
+import { useOptionalGateway } from "@/providers/GatewayProvider";
 
 // Additional types for status and run history
 export interface CronStatusResult {
@@ -22,23 +26,12 @@ export interface CronStatusResult {
   nextRunAt?: string;
 }
 
-export interface CronRunLogEntry {
-  runId: string;
-  jobId: string;
-  jobName: string;
-  startedAt: string;
-  completedAt?: string;
-  success: boolean;
-  error?: string;
-  duration?: number;
-}
-
 export interface CronRunLogResult {
   entries: CronRunTimelineEntry[];
 }
 
 export interface CronRunsResult {
-  runs: CronRunLogEntry[];
+  runs: CronRunEntry[];
   total: number;
 }
 
@@ -100,17 +93,15 @@ export function useCronStatus() {
     queryFn: async (): Promise<CronStatusResult> => {
       const result = await listCronJobs();
       const enabledJobs = result.jobs.filter((job) => job.enabled);
-      const runningJobs = result.jobs.filter(
-        (job) => job.lastResult && !job.lastResult.success
-      );
+      const runningJobs = result.jobs.filter((job) => job.state.runningAtMs);
 
       // Find the most recent last run and earliest next run
       const lastRunTimes = result.jobs
-        .filter((job) => job.lastRunAt)
-        .map((job) => new Date(job.lastRunAt!).getTime());
+        .filter((job) => job.state.lastRunAtMs)
+        .map((job) => job.state.lastRunAtMs!);
       const nextRunTimes = result.jobs
-        .filter((job) => job.nextRunAt && job.enabled)
-        .map((job) => new Date(job.nextRunAt!).getTime());
+        .filter((job) => job.state.nextRunAtMs && job.enabled)
+        .map((job) => job.state.nextRunAtMs!);
 
       return {
         enabled: enabledJobs.length > 0,
@@ -139,13 +130,16 @@ export function useCronRunHistory(jobId?: string) {
   return useQuery({
     queryKey: cronKeys.runHistory(jobId),
     queryFn: async (): Promise<CronRunsResult> => {
-      // This would need a proper API endpoint
-      // For now, return mock data
+      if (!jobId) {
+        return { runs: [], total: 0 };
+      }
+      const result = await getCronRuns({ id: jobId });
       return {
-        runs: [],
-        total: 0,
+        runs: result.entries,
+        total: result.entries.length,
       };
     },
+    enabled: !!jobId,
     staleTime: 1000 * 60, // 1 minute
   });
 }
@@ -162,6 +156,28 @@ export function useCronRunLog(params: { sessionKey?: string; limit?: number }) {
     enabled: !!params.sessionKey,
     staleTime: 1000 * 30,
   });
+}
+
+export function useCronEventSubscription() {
+  const queryClient = useQueryClient();
+  const gatewayCtx = useOptionalGateway();
+
+  const handleEvent = useCallback(
+    (event: { event: string }) => {
+      if (event.event !== "cron") {
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: cronKeys.all });
+    },
+    [queryClient]
+  );
+
+  useEffect(() => {
+    if (!gatewayCtx) {
+      return;
+    }
+    return gatewayCtx.addEventListener(handleEvent);
+  }, [gatewayCtx, handleEvent]);
 }
 
 /**

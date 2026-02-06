@@ -170,14 +170,20 @@ export {
   addCronJob,
   updateCronJob,
   removeCronJob,
-  enableCronJob,
-  disableCronJob,
   runCronJob,
+  getCronRuns,
+  formatCronSchedule,
+  getCronPayloadMessage,
   type CronJob,
   type CronJobCreateParams,
+  type CronJobPatch,
   type CronJobUpdateParams,
   type CronJobListResult,
   type CronJobRunResult,
+  type CronRunEntry,
+  type CronRunsResult,
+  type CronSchedule,
+  type CronPayload,
 } from "./cron";
 
 // Agent Status API functions
