@@ -259,6 +259,14 @@ export function buildCommit(repoRoot, commitHash, { onProgress } = {}) {
     fs.cpSync(srcExtensions, destExtensions, { recursive: true });
   }
 
+  // Copy docs/reference/templates/ directory (workspace templates like AGENTS.md)
+  const srcTemplates = path.join(repoRoot, "docs", "reference", "templates");
+  const destTemplates = path.join(buildDir, "docs", "reference", "templates");
+  if (fs.existsSync(srcTemplates)) {
+    fs.mkdirSync(path.dirname(destTemplates), { recursive: true });
+    fs.cpSync(srcTemplates, destTemplates, { recursive: true });
+  }
+
   const durationMs = Date.now() - startTime;
   const branch = getCurrentBranch(repoRoot);
   const commitMessage = getCommitMessage(repoRoot, commitHash);
