@@ -106,9 +106,9 @@ export async function applyAuthChoiceApiProviders(
     } else if (params.opts.tokenProvider === "venice") {
       authChoice = "venice-api-key";
     } else if (params.opts.tokenProvider === "opencode") {
-          authChoice = "opencode-zen";
+      authChoice = "opencode-zen";
     } else if (params.opts.tokenProvider === "huawei") {
-          authChoice = "huawei-maas-api-key";
+      authChoice = "huawei-maas-api-key";
     }
   }
 

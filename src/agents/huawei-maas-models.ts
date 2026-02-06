@@ -130,7 +130,7 @@ export const HUAWEI_MAAS_DEFAULT_MODELS: ModelDefinitionConfig[] = [
     cost: HUAWEI_MAAS_DEFAULT_COST,
     contextWindow: HUAWEI_MAAS_DEFAULT_CONTEXT_WINDOW,
     maxTokens: HUAWEI_MAAS_DEFAULT_MAX_TOKENS,
-  }
+  },
 ];
 
 // Huawei MAAS model interface
@@ -151,13 +151,13 @@ export interface HuaweiMaasResponse {
 export function generateFriendlyModelName(modelId: string): string {
   // Convert model ID to more friendly name
   return modelId
-    .split(/[-\.]/)
-    .map(part => {
+    .split(/[-.]/)
+    .map((part) => {
       // Handle first letter capitalization
       if (part.length > 0) {
         return part.charAt(0).toUpperCase() + part.slice(1);
       }
       return part;
     })
-    .join(' ');
+    .join(" ");
 }

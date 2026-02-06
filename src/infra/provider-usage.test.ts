@@ -3,13 +3,13 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { withTempHome } from "../../test/helpers/temp-home.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "../agents/auth-profiles.js";
+import { resolveHuaweiMaasApiKey } from "./provider-usage.auth.js";
 import {
   formatUsageReportLines,
   formatUsageSummaryLine,
   loadProviderUsageSummary,
   type UsageSummary,
 } from "./provider-usage.js";
-import { resolveHuaweiMaasApiKey } from "./provider-usage.auth.js";
 
 describe("provider usage formatting", () => {
   it("returns null when no usage is available", () => {
@@ -78,45 +78,47 @@ describe("provider usage loading", () => {
       return new Response(payload, { status, headers });
     };
 
-    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-      const url =
-        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (url.includes("api.anthropic.com")) {
-        return makeResponse(200, {
-          five_hour: { utilization: 20, resets_at: "2026-01-07T01:00:00Z" },
-        });
-      }
-      if (url.includes("api.z.ai")) {
-        return makeResponse(200, {
-          success: true,
-          code: 200,
-          data: {
-            planName: "Pro",
-            limits: [
-              {
-                type: "TOKENS_LIMIT",
-                percentage: 25,
-                unit: 3,
-                number: 6,
-                nextResetTime: "2026-01-07T06:00:00Z",
-              },
-            ],
-          },
-        });
-      }
-      if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
-        return makeResponse(200, {
-          base_resp: { status_code: 0, status_msg: "ok" },
-          data: {
-            total: 200,
-            remain: 50,
-            reset_at: "2026-01-07T05:00:00Z",
-            plan_name: "Coding Plan",
-          },
-        });
-      }
-      return makeResponse(404, "not found");
-    });
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (input) => {
+        const url =
+          typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.includes("api.anthropic.com")) {
+          return makeResponse(200, {
+            five_hour: { utilization: 20, resets_at: "2026-01-07T01:00:00Z" },
+          });
+        }
+        if (url.includes("api.z.ai")) {
+          return makeResponse(200, {
+            success: true,
+            code: 200,
+            data: {
+              planName: "Pro",
+              limits: [
+                {
+                  type: "TOKENS_LIMIT",
+                  percentage: 25,
+                  unit: 3,
+                  number: 6,
+                  nextResetTime: "2026-01-07T06:00:00Z",
+                },
+              ],
+            },
+          });
+        }
+        if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
+          return makeResponse(200, {
+            base_resp: { status_code: 0, status_msg: "ok" },
+            data: {
+              total: 200,
+              remain: 50,
+              reset_at: "2026-01-07T05:00:00Z",
+              plan_name: "Coding Plan",
+            },
+          });
+        }
+        return makeResponse(404, "not found");
+      },
+    );
 
     const summary = await loadProviderUsageSummary({
       now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -125,7 +127,7 @@ describe("provider usage loading", () => {
         { provider: "minimax", token: "token-1b" },
         { provider: "zai", token: "token-2" },
       ],
-      fetch: mockFetch as any,
+      fetch: mockFetch as unknown as typeof fetch,
     });
 
     expect(summary.providers).toHaveLength(3);
@@ -145,24 +147,26 @@ describe("provider usage loading", () => {
       return new Response(payload, { status, headers });
     };
 
-    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-      const url =
-        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
-        return makeResponse(200, {
-          base_resp: { status_code: 0, status_msg: "ok" },
-          data: {
-            plan_name: "Coding Plan",
-            usage: {
-              prompt_limit: 200,
-              prompt_remain: 50,
-              next_reset_time: "2026-01-07T05:00:00Z",
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (input) => {
+        const url =
+          typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
+          return makeResponse(200, {
+            base_resp: { status_code: 0, status_msg: "ok" },
+            data: {
+              plan_name: "Coding Plan",
+              usage: {
+                prompt_limit: 200,
+                prompt_remain: 50,
+                next_reset_time: "2026-01-07T05:00:00Z",
+              },
             },
-          },
-        });
-      }
-      return makeResponse(404, "not found");
-    });
+          });
+        }
+        return makeResponse(404, "not found");
+      },
+    );
 
     const summary = await loadProviderUsageSummary({
       now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -183,22 +187,24 @@ describe("provider usage loading", () => {
       return new Response(payload, { status, headers });
     };
 
-    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-      const url =
-        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
-        return makeResponse(200, {
-          base_resp: { status_code: 0, status_msg: "ok" },
-          data: {
-            prompt_limit: 200,
-            prompt_remain: 150,
-            usage_percent: 75,
-            next_reset_time: "2026-01-07T05:00:00Z",
-          },
-        });
-      }
-      return makeResponse(404, "not found");
-    });
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (input) => {
+        const url =
+          typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
+          return makeResponse(200, {
+            base_resp: { status_code: 0, status_msg: "ok" },
+            data: {
+              prompt_limit: 200,
+              prompt_remain: 150,
+              usage_percent: 75,
+              next_reset_time: "2026-01-07T05:00:00Z",
+            },
+          });
+        }
+        return makeResponse(404, "not found");
+      },
+    );
 
     const summary = await loadProviderUsageSummary({
       now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -218,26 +224,28 @@ describe("provider usage loading", () => {
       return new Response(payload, { status, headers });
     };
 
-    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-      const url =
-        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-      if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
-        return makeResponse(200, {
-          base_resp: { status_code: 0, status_msg: "ok" },
-          model_remains: [
-            {
-              start_time: 1736217600,
-              end_time: 1736235600,
-              remains_time: 600,
-              current_interval_total_count: 120,
-              current_interval_usage_count: 30,
-              model_name: "MiniMax-M2.1",
-            },
-          ],
-        });
-      }
-      return makeResponse(404, "not found");
-    });
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (input) => {
+        const url =
+          typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.includes("api.minimaxi.com/v1/api/openplatform/coding_plan/remains")) {
+          return makeResponse(200, {
+            base_resp: { status_code: 0, status_msg: "ok" },
+            model_remains: [
+              {
+                start_time: 1736217600,
+                end_time: 1736235600,
+                remains_time: 600,
+                current_interval_total_count: 120,
+                current_interval_usage_count: 30,
+                model_name: "MiniMax-M2.1",
+              },
+            ],
+          });
+        }
+        return makeResponse(404, "not found");
+      },
+    );
 
     const summary = await loadProviderUsageSummary({
       now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -292,27 +300,23 @@ describe("provider usage loading", () => {
           return new Response(payload, { status, headers });
         };
 
-        const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
-          async (input, init) => {
-            const url =
-              typeof input === "string"
-                ? input
-                : input instanceof URL
-                  ? input.toString()
-                  : input.url;
-            if (url.includes("api.anthropic.com/api/oauth/usage")) {
-              const headers = (init?.headers ?? {}) as Record<string, string>;
-              expect(headers.Authorization).toBe("Bearer token-1");
-              return makeResponse(200, {
-                five_hour: {
-                  utilization: 20,
-                  resets_at: "2026-01-07T01:00:00Z",
-                },
-              });
-            }
-            return makeResponse(404, "not found");
-          },
-        );
+        const mockFetch = vi.fn<
+          (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+        >(async (input, init) => {
+          const url =
+            typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+          if (url.includes("api.anthropic.com/api/oauth/usage")) {
+            const headers = (init?.headers ?? {}) as Record<string, string>;
+            expect(headers.Authorization).toBe("Bearer token-1");
+            return makeResponse(200, {
+              five_hour: {
+                utilization: 20,
+                resets_at: "2026-01-07T01:00:00Z",
+              },
+            });
+          }
+          return makeResponse(404, "not found");
+        });
 
         const summary = await loadProviderUsageSummary({
           now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -347,30 +351,32 @@ describe("provider usage loading", () => {
         return new Response(payload, { status, headers });
       };
 
-      const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-        const url =
-          typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-        if (url.includes("api.anthropic.com/api/oauth/usage")) {
-          return makeResponse(403, {
-            type: "error",
-            error: {
-              type: "permission_error",
-              message: "OAuth token does not meet scope requirement user:profile",
-            },
-          });
-        }
-        if (url.includes("claude.ai/api/organizations/org-1/usage")) {
-          return makeResponse(200, {
-            five_hour: { utilization: 20, resets_at: "2026-01-07T01:00:00Z" },
-            seven_day: { utilization: 40, resets_at: "2026-01-08T01:00:00Z" },
-            seven_day_opus: { utilization: 5 },
-          });
-        }
-        if (url.includes("claude.ai/api/organizations")) {
-          return makeResponse(200, [{ uuid: "org-1", name: "Test" }]);
-        }
-        return makeResponse(404, "not found");
-      });
+      const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+        async (input) => {
+          const url =
+            typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+          if (url.includes("api.anthropic.com/api/oauth/usage")) {
+            return makeResponse(403, {
+              type: "error",
+              error: {
+                type: "permission_error",
+                message: "OAuth token does not meet scope requirement user:profile",
+              },
+            });
+          }
+          if (url.includes("claude.ai/api/organizations/org-1/usage")) {
+            return makeResponse(200, {
+              five_hour: { utilization: 20, resets_at: "2026-01-07T01:00:00Z" },
+              seven_day: { utilization: 40, resets_at: "2026-01-08T01:00:00Z" },
+              seven_day_opus: { utilization: 5 },
+            });
+          }
+          if (url.includes("claude.ai/api/organizations")) {
+            return makeResponse(200, [{ uuid: "org-1", name: "Test" }]);
+          }
+          return makeResponse(404, "not found");
+        },
+      );
 
       const summary = await loadProviderUsageSummary({
         now: Date.UTC(2026, 0, 7, 0, 0, 0),
@@ -473,15 +479,15 @@ describe("provider usage loading", () => {
       return new Response(payload, { status, headers });
     };
 
-    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(async (input) => {
-      return makeResponse(404, "not found");
-    });
+    const mockFetch = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>(
+      async (_input) => {
+        return makeResponse(404, "not found");
+      },
+    );
 
     const summary = await loadProviderUsageSummary({
       now: Date.UTC(2026, 0, 7, 0, 0, 0),
-      auth: [
-        { provider: "huawei-maas", token: "sk-huawei-test" },
-      ],
+      auth: [{ provider: "huawei-maas", token: "sk-huawei-test" }],
       fetch: mockFetch as any,
     });
 
@@ -491,5 +497,4 @@ describe("provider usage loading", () => {
     expect(huawei?.displayName).toBe("Huawei Cloud MAAS");
     expect(huawei?.windows).toEqual([]);
   });
-
 });

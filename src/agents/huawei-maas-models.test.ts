@@ -99,8 +99,8 @@ describe("Huawei MAAS models", () => {
         Promise.resolve({
           ok: false,
           status: 401,
-        })
-      ) as any;
+        }),
+      ) as unknown as typeof global.fetch;
 
       const models = await discoverHuaweiMaasModels("test-api-key");
       expect(models).toEqual([]);
@@ -113,11 +113,11 @@ describe("Huawei MAAS models", () => {
       // Save original environment variables
       const originalVitest = process.env.VITEST;
       const originalNodeEnv = process.env.NODE_ENV;
-      
+
       // Temporarily disable test environment detection
       delete process.env.VITEST;
       process.env.NODE_ENV = "development";
-      
+
       // Mock fetch to simulate API success
       const originalFetch = global.fetch;
       global.fetch = vi.fn(() =>
@@ -135,8 +135,8 @@ describe("Huawei MAAS models", () => {
                 },
               ],
             }),
-        })
-      ) as any;
+        }),
+      ) as unknown as typeof global.fetch;
 
       const models = await discoverHuaweiMaasModels("test-api-key");
       expect(models).toBeDefined();
@@ -147,7 +147,7 @@ describe("Huawei MAAS models", () => {
 
       // Restore original fetch
       global.fetch = originalFetch;
-      
+
       // Restore original environment variables
       process.env.VITEST = originalVitest;
       process.env.NODE_ENV = originalNodeEnv;

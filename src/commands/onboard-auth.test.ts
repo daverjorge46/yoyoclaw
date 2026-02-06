@@ -452,8 +452,6 @@ describe("applyOpenrouterProviderConfig", () => {
   });
 });
 
-
-
 describe("applyHuaweiMaasProviderConfig", () => {
   it("adds allowlist entry for the default model", () => {
     const cfg = applyHuaweiMaasProviderConfig({});

@@ -3,6 +3,7 @@ import {
   buildCloudflareAiGatewayModelDefinition,
   resolveCloudflareAiGatewayBaseUrl,
 } from "../agents/cloudflare-ai-gateway.js";
+import { HUAWEI_MAAS_DEFAULT_MODELS } from "../agents/huawei-maas-models.js";
 import { buildXiaomiProvider, XIAOMI_DEFAULT_MODEL_ID } from "../agents/models-config.providers.js";
 import {
   buildSyntheticModelDefinition,
@@ -24,7 +25,6 @@ import {
   XIAOMI_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.credentials.js";
-
 import {
   buildMoonshotModelDefinition,
   KIMI_CODING_MODEL_REF,
@@ -33,8 +33,6 @@ import {
   MOONSHOT_DEFAULT_MODEL_ID,
   MOONSHOT_DEFAULT_MODEL_REF,
 } from "./onboard-auth.models.js";
-import { HUAWEI_MAAS_DEFAULT_MODELS } from "../agents/huawei-maas-models.js";
-
 
 function buildHuaweiMaasModelDefinitions(): any[] {
   return HUAWEI_MAAS_DEFAULT_MODELS;
@@ -603,9 +601,8 @@ export function applyHuaweiMaasProviderConfig(cfg: OpenClawConfig): OpenClawConf
     alias: models[HUAWEI_MAAS_DEFAULT_MODEL_REF]?.alias ?? "Huawei Cloud MAAS",
   };
 
-
   const defaultModels = buildHuaweiMaasModelDefinitions();
-  defaultModels.forEach(defaultModel => {
+  defaultModels.forEach((defaultModel) => {
     const modelRef = `huawei-maas/${defaultModel.id}`;
     if (!models[modelRef]) {
       models[modelRef] = {};
@@ -615,15 +612,14 @@ export function applyHuaweiMaasProviderConfig(cfg: OpenClawConfig): OpenClawConf
   const providers = { ...cfg.models?.providers };
   const existingProvider = providers["huawei-maas"];
   const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
-  
 
   const mergedModels = [...existingModels];
-  defaultModels.forEach(defaultModel => {
-    if (!mergedModels.some(model => model.id === defaultModel.id)) {
+  defaultModels.forEach((defaultModel) => {
+    if (!mergedModels.some((model) => model.id === defaultModel.id)) {
       mergedModels.push(defaultModel);
     }
   });
-  
+
   const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
     string,
     unknown

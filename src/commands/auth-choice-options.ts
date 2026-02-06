@@ -42,7 +42,7 @@ const AUTH_CHOICE_GROUP_DEFS: {
     value: "huawei",
     label: "Huawei Cloud MAAS",
     hint: "ModelArts MAAS API key",
-    choices: ["huawei-maas-api-key"]
+    choices: ["huawei-maas-api-key"],
   },
   {
     value: "openai",

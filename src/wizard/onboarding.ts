@@ -392,7 +392,6 @@ export async function runOnboardingWizard(
   });
   nextConfig = authResult.config;
 
-
   await ensureOpenClawModelsJson(nextConfig);
 
   if (authChoiceFromPrompt) {
