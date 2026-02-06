@@ -5,11 +5,19 @@
 
 ## Project Structure & Module Organization
 
-- Source code: `src/` (CLI wiring in `src/cli`, commands in `src/commands`, web provider in `src/provider-web.ts`, infra in `src/infra`, media pipeline in `src/media`).
-- Tests: colocated `*.test.ts`.
+- Source code: `src/` (CLI wiring in `src/cli`, commands in `src/commands`, web provider in `src/provider-web.ts`, infra in `src/infra`, media pipeline in `src/media`, agents in `src/agents`, gateway in `src/gateway`, terminal UI in `src/tui`).
+- Tests: colocated `*.test.ts`; shared fixtures/helpers/mocks in `test/`.
 - Docs: `docs/` (images, queue, Pi config). Built output lives in `dist/`.
-- Plugins/extensions: live under `extensions/*` (workspace packages). Keep plugin-only deps in the extension `package.json`; do not add them to the root `package.json` unless core uses them.
+- Plugins/extensions: live under `extensions/*` (~31 workspace packages). Keep plugin-only deps in the extension `package.json`; do not add them to the root `package.json` unless core uses them.
 - Plugins: install runs `npm install --omit=dev` in plugin dir; runtime deps must live in `dependencies`. Avoid `workspace:*` in `dependencies` (npm install breaks); put `openclaw` in `devDependencies` or `peerDependencies` instead (runtime resolves `openclaw/plugin-sdk` via jiti alias).
+- Skills: `skills/` (~53 skill plugins, e.g. `clawhub`, `discord`, `github`, `notion`, `camsnap`, `coding-agent`, `1password`). Skills are user-facing tool extensions distinct from channel extensions.
+- Workspace packages: `packages/` (`clawdbot`, `moltbot`) — bot implementations.
+- Native apps: `apps/` (`apps/android`, `apps/ios`, `apps/macos`, `apps/shared` with shared `OpenClawKit`).
+- Web UI: `ui/` (web interface; build with `pnpm ui:build`, dev with `pnpm ui:dev`).
+- Swift component library: `Swabble/` (shared iOS/macOS Swift components).
+- Vendored deps: `vendor/` (e.g. `vendor/a2ui/` for canvas-host).
+- Assets: `assets/` (includes `chrome-extension/`).
+- Pi system config: `.pi/` (extensions, git, prompts).
 - Installers served from `https://openclaw.ai/*`: live in the sibling repo `../openclaw.ai` (`public/install.sh`, `public/install-cli.sh`, `public/install.ps1`).
 - Messaging channels: always consider **all** built-in + extension channels when refactoring shared logic (routing, allowlists, pairing, command gating, onboarding, docs).
   - Core channel docs: `docs/channels/`
@@ -49,17 +57,26 @@
 
 ## Build, Test, and Development Commands
 
-- Runtime baseline: Node **22+** (keep Node + Bun paths working).
+- Runtime baseline: Node **22+** (keep Node + Bun paths working). Package manager: pnpm 10.x.
 - Install deps: `pnpm install`
-- Pre-commit hooks: `prek install` (runs same checks as CI)
+- Pre-commit hooks: `prek install` (runs same checks as CI). Git hooks in `git-hooks/`.
 - Also supported: `bun install` (keep `pnpm-lock.yaml` + Bun patching in sync when touching deps/patches).
 - Prefer Bun for TypeScript execution (scripts, dev, tests): `bun <file.ts>` / `bunx <tool>`.
 - Run CLI in dev: `pnpm openclaw ...` (bun) or `pnpm dev`.
 - Node remains supported for running built output (`dist/*`) and production installs.
 - Mac packaging (dev): `scripts/package-mac-app.sh` defaults to current arch. Release checklist: `docs/platforms/mac/release.md`.
-- Type-check/build: `pnpm build`
-- Lint/format: `pnpm check`
+- Type-check/build: `pnpm build` (includes `pnpm tsgo` for native TS type-checking)
+- Lint/format: `pnpm check` (runs `tsgo && lint && format`). Fix: `pnpm lint:fix`.
 - Tests: `pnpm test` (vitest); coverage: `pnpm test:coverage`
+- E2E tests: `pnpm test:e2e` (vitest with `vitest.e2e.config.ts`)
+- Extension tests: separate config at `vitest.extensions.config.ts`
+- Gateway tests: separate config at `vitest.gateway.config.ts`
+- Web UI: `pnpm ui:dev` (dev server), `pnpm ui:build` (production build), `pnpm ui:install` (install UI deps)
+- TUI: `pnpm tui` (run terminal UI), `pnpm tui:dev` (dev mode)
+- iOS: `pnpm ios:gen` (xcodegen), `pnpm ios:build`, `pnpm ios:run`, `pnpm ios:open`
+- Android: `pnpm android:assemble`, `pnpm android:install`, `pnpm android:run`, `pnpm android:test`
+- Protocol gen: `pnpm protocol:gen` (JSON schema), `pnpm protocol:gen:swift` (Swift models), `pnpm protocol:check` (verify no drift)
+- LOC check: `pnpm check:loc` (enforces ~500 LOC max per TS file)
 
 ## Coding Style & Naming Conventions
 
@@ -79,11 +96,13 @@
 ## Testing Guidelines
 
 - Framework: Vitest with V8 coverage thresholds (70% lines/branches/functions/statements).
+- Vitest configs: `vitest.config.ts` (base), `vitest.unit.config.ts`, `vitest.e2e.config.ts`, `vitest.extensions.config.ts`, `vitest.gateway.config.ts`, `vitest.live.config.ts`.
 - Naming: match source names with `*.test.ts`; e2e in `*.e2e.test.ts`.
 - Run `pnpm test` (or `pnpm test:coverage`) before pushing when you touch logic.
 - Do not set test workers above 16; tried already.
 - Live tests (real keys): `CLAWDBOT_LIVE_TEST=1 pnpm test:live` (OpenClaw-only) or `LIVE=1 pnpm test:live` (includes provider live tests). Docker: `pnpm test:docker:live-models`, `pnpm test:docker:live-gateway`. Onboarding Docker E2E: `pnpm test:docker:onboard`.
-- Full kit + what’s covered: `docs/testing.md`.
+- Docker test cleanup: `pnpm test:docker:cleanup`. Full Docker suite: `pnpm test:docker:all`.
+- Full kit + what's covered: `docs/testing.md`.
 - Pure test additions/fixes generally do **not** need a changelog entry unless they alter user-facing behavior or the user asks for one.
 - Mobile: before using a simulator, check for connected real devices (iOS + Android) and prefer them when available.
 
