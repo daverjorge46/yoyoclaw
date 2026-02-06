@@ -14,6 +14,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
+// Singleton instance to avoid provider registration issues on Android
+private val bouncyCastleProvider = BouncyCastleProvider()
+
 @Serializable
 data class DeviceIdentity(
   val deviceId: String,
@@ -47,10 +50,9 @@ class DeviceIdentityStore(context: Context) {
     return try {
       signPayloadWithProvider(payload, identity, null)
     } catch (_: Throwable) {
-      // Fallback: register BouncyCastle (if not already) and retry with explicit provider
+      // Fallback: use BouncyCastle provider instance directly (avoids Security.getProvider lookup issues)
       try {
-        ensureBouncyCastleRegistered()
-        signPayloadWithProvider(payload, identity, BouncyCastleProvider.PROVIDER_NAME)
+        signPayloadWithProviderInstance(payload, identity, bouncyCastleProvider)
       } catch (_: Throwable) {
         null
       }
@@ -63,6 +65,17 @@ class DeviceIdentityStore(context: Context) {
     val keyFactory = if (provider != null) KeyFactory.getInstance("Ed25519", provider) else KeyFactory.getInstance("Ed25519")
     val privateKey = keyFactory.generatePrivate(keySpec)
     val signature = if (provider != null) Signature.getInstance("Ed25519", provider) else Signature.getInstance("Ed25519")
+    signature.initSign(privateKey)
+    signature.update(payload.toByteArray(Charsets.UTF_8))
+    return base64UrlEncode(signature.sign())
+  }
+
+  private fun signPayloadWithProviderInstance(payload: String, identity: DeviceIdentity, provider: java.security.Provider): String {
+    val privateKeyBytes = Base64.decode(identity.privateKeyPkcs8Base64, Base64.DEFAULT)
+    val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
+    val keyFactory = KeyFactory.getInstance("Ed25519", provider)
+    val privateKey = keyFactory.generatePrivate(keySpec)
+    val signature = Signature.getInstance("Ed25519", provider)
     signature.initSign(privateKey)
     signature.update(payload.toByteArray(Charsets.UTF_8))
     return base64UrlEncode(signature.sign())
@@ -128,12 +141,12 @@ class DeviceIdentityStore(context: Context) {
       // Try native Ed25519 first
       KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
     } catch (_: Throwable) {
-      // Fallback: register BouncyCastle (if not already) and use explicit provider
-      ensureBouncyCastleRegistered()
-      KeyPairGenerator.getInstance("Ed25519", BouncyCastleProvider.PROVIDER_NAME).generateKeyPair()
+      // Fallback: use BouncyCastle provider instance directly (avoids Security.getProvider lookup issues)
+      KeyPairGenerator.getInstance("Ed25519", bouncyCastleProvider).generateKeyPair()
     }
   }
 
+  // Kept for potential future use but not currently needed
   @Synchronized
   private fun ensureBouncyCastleRegistered() {
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
