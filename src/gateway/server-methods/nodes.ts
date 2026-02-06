@@ -32,6 +32,8 @@ import {
   uniqueSortedStrings,
 } from "./nodes.helpers.js";
 
+const ADMIN_NODE_COMMAND_PREFIXES = ["system.execApprovals."];
+
 function isNodeEntry(entry: { role?: string; roles?: string[] }) {
   if (entry.role === "node") {
     return true;
@@ -361,7 +363,7 @@ export const nodeHandlers: GatewayRequestHandlers = {
       );
     });
   },
-  "node.invoke": async ({ params, respond, context }) => {
+  "node.invoke": async ({ params, respond, context, client }) => {
     if (!validateNodeInvokeParams(params)) {
       respondInvalidParams({
         respond,
@@ -386,6 +388,19 @@ export const nodeHandlers: GatewayRequestHandlers = {
         errorShape(ErrorCodes.INVALID_REQUEST, "nodeId and command required"),
       );
       return;
+    }
+
+    // Block admin-only node commands for non-admin callers
+    if (ADMIN_NODE_COMMAND_PREFIXES.some((prefix) => command.startsWith(prefix))) {
+      const scopes = client?.connect?.scopes ?? [];
+      if (!scopes.includes("operator.admin")) {
+        respond(
+          false,
+          undefined,
+          errorShape(ErrorCodes.INVALID_REQUEST, "missing scope: operator.admin"),
+        );
+        return;
+      }
     }
 
     await respondUnavailableOnThrow(respond, async () => {
