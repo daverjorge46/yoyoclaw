@@ -508,7 +508,7 @@ export class AsteriskAriProvider implements VoiceCallProvider {
       query: {
         app: this.cfg.app,
         external_host: this.cfg.rtpHost + ":" + rtpPort,
-        format: this.cfg.codec || this.cfg.format || "ulaw",
+        format: this.cfg.codec,
       },
     });
     const extChannelId = ext.id as string;
