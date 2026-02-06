@@ -7,6 +7,7 @@ import type {
   McpToolHandlerExtra,
   McpToolHandlerFn,
 } from "./tool-bridge.types.js";
+import * as logger from "../../logger.js";
 import { createCronTool } from "../tools/cron-tool.js";
 import { createWorkItemTool } from "../tools/work-item-tool.js";
 import { createWorkQueueTool } from "../tools/work-queue-tool.js";
@@ -608,6 +609,38 @@ describe("wrapToolHandler", () => {
       type: "text",
       text: expect.stringContaining("aborted"),
     });
+  });
+
+  it("includes web_fetch URL in error log for non-200/301 status", async () => {
+    const executeFn = vi.fn().mockRejectedValue(new Error("Web fetch failed (404)"));
+    const tool = createStubTool("web_fetch", { execute: executeFn });
+    const logErrorSpy = vi.spyOn(logger, "logError").mockImplementation(() => {});
+
+    try {
+      const handler = wrapToolHandler(tool);
+      await handler({ url: "https://example.com/missing?page=1" }, createMockExtra());
+      const logText = logErrorSpy.mock.calls.at(-1)?.[0] ?? "";
+      expect(logText).toContain('url="https://example.com/missing?page=1"');
+    } finally {
+      logErrorSpy.mockRestore();
+    }
+  });
+
+  it("includes web_search query text in error log", async () => {
+    const executeFn = vi
+      .fn()
+      .mockRejectedValue(new Error("Brave Search API error (429): rate limit exceeded"));
+    const tool = createStubTool("web_search", { execute: executeFn });
+    const logErrorSpy = vi.spyOn(logger, "logError").mockImplementation(() => {});
+
+    try {
+      const handler = wrapToolHandler(tool);
+      await handler({ query: "latest openclaw release notes" }, createMockExtra());
+      const logText = logErrorSpy.mock.calls.at(-1)?.[0] ?? "";
+      expect(logText).toContain('query="latest openclaw release notes"');
+    } finally {
+      logErrorSpy.mockRestore();
+    }
   });
 });
 

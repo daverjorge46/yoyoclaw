@@ -81,6 +81,18 @@ function extractFirstLine(text: string, maxLength: number = 240): string {
   return firstLine.length > maxLength ? `${firstLine.slice(0, maxLength)}…` : firstLine;
 }
 
+function extractHttpStatusCode(text: string): number | undefined {
+  const parenMatch = text.match(/\((\d{3})\)/);
+  if (parenMatch) {
+    return Number(parenMatch[1]);
+  }
+  const statusMatch = text.match(/\bstatus(?:=|:|\s)(\d{3})\b/i);
+  if (statusMatch) {
+    return Number(statusMatch[1]);
+  }
+  return undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Schema conversion: TypeBox → JSON Schema → Zod
 // ---------------------------------------------------------------------------
@@ -509,19 +521,47 @@ export function wrapToolHandler(tool: AnyAgentTool, abortSignal?: AbortSignal): 
       const sessionId = typeof extra?.sessionId === "string" ? extra.sessionId : undefined;
       const execCommand = normalizedName === "exec" ? rawArgs.command : undefined;
       const execWorkdir = normalizedName === "exec" ? rawArgs.workdir : undefined;
+      const webFetchUrl = normalizedName === "web_fetch" ? rawArgs.url : undefined;
+      const webSearchQuery = normalizedName === "web_search" ? rawArgs.query : undefined;
       const execCommandText = typeof execCommand === "string" ? execCommand : undefined;
       const execWorkdirText = typeof execWorkdir === "string" ? execWorkdir : undefined;
+      const webFetchUrlText = typeof webFetchUrl === "string" ? webFetchUrl : undefined;
+      const webSearchQueryText = typeof webSearchQuery === "string" ? webSearchQuery : undefined;
       const execCommandRedacted = execCommandText
         ? redactSensitiveText(execCommandText).trim()
+        : undefined;
+      const webFetchUrlRedacted = webFetchUrlText
+        ? redactSensitiveText(webFetchUrlText).trim()
+        : undefined;
+      const webSearchQueryRedacted = webSearchQueryText
+        ? redactSensitiveText(webSearchQueryText).trim()
         : undefined;
       const execCommandPreview =
         execCommandRedacted && execCommandRedacted.length > 240
           ? `${execCommandRedacted.slice(0, 240)}…`
           : execCommandRedacted;
+      const webSearchQueryPreview =
+        webSearchQueryRedacted && webSearchQueryRedacted.length > 240
+          ? `${webSearchQueryRedacted.slice(0, 240)}…`
+          : webSearchQueryRedacted;
+      const httpStatusCode =
+        normalizedName === "web_fetch" ? extractHttpStatusCode(message) : undefined;
+      const includeWebFetchUrl =
+        normalizedName === "web_fetch" &&
+        Boolean(webFetchUrlRedacted) &&
+        httpStatusCode !== undefined &&
+        httpStatusCode !== 200 &&
+        httpStatusCode !== 301;
 
       const contextParts: string[] = [`toolCallId=${toolCallId}`];
       if (sessionId) {
         contextParts.push(`sessionId=${sessionId}`);
+      }
+      if (includeWebFetchUrl && webFetchUrlRedacted) {
+        contextParts.push(`url=${JSON.stringify(webFetchUrlRedacted)}`);
+      }
+      if (normalizedName === "web_search" && webSearchQueryPreview) {
+        contextParts.push(`query=${JSON.stringify(webSearchQueryPreview)}`);
       }
       if (execCommandPreview) {
         contextParts.push(`cmd=${JSON.stringify(execCommandPreview)}`);
