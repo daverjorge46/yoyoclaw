@@ -60,7 +60,7 @@ import {
   sanitizeToolsForGoogle,
 } from "./google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "./history.js";
-import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
+import { resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { buildModelAliasLines, resolveModel } from "./model.js";
 import { buildEmbeddedSandboxInfo } from "./sandbox-info.js";
@@ -105,17 +105,17 @@ export type CompactEmbeddedPiSessionParams = {
   enqueue?: typeof enqueueCommand;
   extraSystemPrompt?: string;
   ownerNumbers?: string[];
+  skipSkillEnvOverrides?: boolean;
 };
 
 /**
  * Core compaction logic without lane queueing.
- * Use this when already inside a session/global lane to avoid deadlocks.
+ * Use this when already inside a lane to avoid deadlocks.
  */
 export async function compactEmbeddedPiSessionDirect(
   params: CompactEmbeddedPiSessionParams,
 ): Promise<EmbeddedPiCompactResult> {
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
-  const prevCwd = process.cwd();
 
   const provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
   const modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
@@ -184,22 +184,24 @@ export async function compactEmbeddedPiSessionDirect(
     cwd: effectiveWorkspace,
   });
 
+  const shouldApplySkillEnvOverrides = !params.skipSkillEnvOverrides;
   let restoreSkillEnv: (() => void) | undefined;
-  process.chdir(effectiveWorkspace);
   try {
     const shouldLoadSkillEntries = !params.skillsSnapshot || !params.skillsSnapshot.resolvedSkills;
     const skillEntries = shouldLoadSkillEntries
       ? loadWorkspaceSkillEntries(effectiveWorkspace)
       : [];
-    restoreSkillEnv = params.skillsSnapshot
-      ? applySkillEnvOverridesFromSnapshot({
-          snapshot: params.skillsSnapshot,
-          config: params.config,
-        })
-      : applySkillEnvOverrides({
-          skills: skillEntries ?? [],
-          config: params.config,
-        });
+    if (shouldApplySkillEnvOverrides) {
+      restoreSkillEnv = params.skillsSnapshot
+        ? applySkillEnvOverridesFromSnapshot({
+            snapshot: params.skillsSnapshot,
+            config: params.config,
+          })
+        : applySkillEnvOverrides({
+            skills: skillEntries ?? [],
+            config: params.config,
+          });
+    }
     const skillsPrompt = resolveSkillsPromptForRun({
       skillsSnapshot: params.skillsSnapshot,
       entries: shouldLoadSkillEntries ? skillEntries : undefined,
@@ -326,7 +328,7 @@ export async function compactEmbeddedPiSessionDirect(
     const docsPath = await resolveOpenClawDocsPath({
       workspaceDir: effectiveWorkspace,
       argv1: process.argv[1],
-      cwd: process.cwd(),
+      cwd: effectiveWorkspace,
       moduleUrl: import.meta.url,
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
@@ -476,12 +478,11 @@ export async function compactEmbeddedPiSessionDirect(
     };
   } finally {
     restoreSkillEnv?.();
-    process.chdir(prevCwd);
   }
 }
 
 /**
- * Compacts a session with lane queueing (session lane + global lane).
+ * Compacts a session with lane queueing (session lane only).
  * Use this from outside a lane context. If already inside a lane, use
  * `compactEmbeddedPiSessionDirect` to avoid deadlocks.
  */
@@ -489,10 +490,7 @@ export async function compactEmbeddedPiSession(
   params: CompactEmbeddedPiSessionParams,
 ): Promise<EmbeddedPiCompactResult> {
   const sessionLane = resolveSessionLane(params.sessionKey?.trim() || params.sessionId);
-  const globalLane = resolveGlobalLane(params.lane);
-  const enqueueGlobal =
-    params.enqueue ?? ((task, opts) => enqueueCommandInLane(globalLane, task, opts));
-  return enqueueCommandInLane(sessionLane, () =>
-    enqueueGlobal(async () => compactEmbeddedPiSessionDirect(params)),
-  );
+  const enqueueSession =
+    params.enqueue ?? ((task, opts) => enqueueCommandInLane(sessionLane, task, opts));
+  return enqueueSession(() => compactEmbeddedPiSessionDirect(params));
 }
