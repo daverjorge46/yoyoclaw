@@ -37,6 +37,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeReasoningEffort(value: unknown): ThinkingEffort | undefined {
+  if (value === true) {
+    return "low";
+  }
   if (!value) {
     return undefined;
   }
@@ -47,6 +50,9 @@ function normalizeReasoningEffort(value: unknown): ThinkingEffort | undefined {
     }
     if (["off", "none", "false", "0"].includes(raw)) {
       return undefined;
+    }
+    if (["on", "enable", "enabled", "true", "1"].includes(raw)) {
+      return "low";
     }
     const collapsed = raw.replace(/[\s_-]+/g, "");
     if (collapsed === "xhigh" || collapsed === "extrahigh" || collapsed === "xtrahigh") {

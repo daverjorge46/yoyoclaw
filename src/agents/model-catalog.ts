@@ -96,15 +96,21 @@ export async function loadModelCatalog(params?: {
       }
 
       const injectCodex53 = (targetId: string, templateIds: string[], fallbackName: string) => {
+        const normalizeKey = (value: string) => value.trim().toLowerCase();
+        const targetKey = normalizeKey(targetId);
         const hasTarget = models.some(
-          (entry) => entry.provider === "openai-codex" && entry.id === targetId,
+          (entry) =>
+            normalizeKey(entry.provider) === "openai-codex" && normalizeKey(entry.id) === targetKey,
         );
         if (hasTarget) {
           return;
         }
         for (const templateId of templateIds) {
+          const templateKey = normalizeKey(templateId);
           const template = models.find(
-            (entry) => entry.provider === "openai-codex" && entry.id === templateId,
+            (entry) =>
+              normalizeKey(entry.provider) === "openai-codex" &&
+              normalizeKey(entry.id) === templateKey,
           );
           if (!template) {
             continue;
