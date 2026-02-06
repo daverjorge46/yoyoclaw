@@ -476,7 +476,7 @@ function buildAppMenu(win) {
           },
         },
         {
-          label: "Uninstall…",
+          label: "Remove gateway data…",
           click: () => {
             if (!win) return;
             void runGatewayUninstall(win, {});
@@ -533,7 +533,7 @@ function createTray(win) {
       },
     },
     {
-      label: "Uninstall gateway…",
+      label: "Remove gateway data…",
       click: () => {
         win.show();
         win.focus();

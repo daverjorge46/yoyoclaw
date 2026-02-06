@@ -173,8 +173,8 @@ function resolveActions(state: AppViewState): CommandAction[] {
     },
     {
       id: "gateway.uninstall",
-      title: "Uninstall gateway…",
-      description: "Desktop only: uninstall gateway service + state (openclaw uninstall).",
+      title: "Remove gateway data…",
+      description: "Desktop only: stop embedded gateway and remove its local state/config.",
       icon: "trash2",
       shortcut: "X X",
       enabled: canDesktopUninstall,
@@ -247,6 +247,36 @@ function resolveActions(state: AppViewState): CommandAction[] {
         const ok = await copyTextToClipboard(
           "openclaw uninstall --service --state --yes --non-interactive",
         );
+        state.commandCenterNotice = ok ? "Copied" : "Copy failed";
+        window.setTimeout(() => {
+          state.commandCenterNotice = null;
+        }, 1500);
+      },
+    },
+    {
+      id: "copy.gateway.stop",
+      title: "Copy: openclaw gateway stop",
+      description: "Copy the command to stop a system-installed gateway service.",
+      icon: "copy",
+      closeOnRun: false,
+      keywords: ["gateway", "stop", "service", "旧版", "老版本"],
+      run: async () => {
+        const ok = await copyTextToClipboard("openclaw gateway stop");
+        state.commandCenterNotice = ok ? "Copied" : "Copy failed";
+        window.setTimeout(() => {
+          state.commandCenterNotice = null;
+        }, 1500);
+      },
+    },
+    {
+      id: "copy.gateway.uninstall",
+      title: "Copy: openclaw gateway uninstall",
+      description: "Copy the command to uninstall a system-installed gateway service.",
+      icon: "copy",
+      closeOnRun: false,
+      keywords: ["gateway", "uninstall", "service", "旧版", "老版本", "卸载"],
+      run: async () => {
+        const ok = await copyTextToClipboard("openclaw gateway uninstall");
         state.commandCenterNotice = ok ? "Copied" : "Copy failed";
         window.setTimeout(() => {
           state.commandCenterNotice = null;
