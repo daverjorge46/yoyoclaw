@@ -29,6 +29,7 @@ const DEFAULT_GATEWAY_HEALTH_SUPPRESS_METHODS = new Set<string>([
   "cron.remove",
   "cron.run",
   "cron.runs",
+  "cron.runLog",
   "cron.status",
   "cron.update",
   "logs.tail",

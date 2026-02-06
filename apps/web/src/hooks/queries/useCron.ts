@@ -8,6 +8,8 @@ import {
   getCronJob,
   type CronJob,
   type CronJobListResult,
+  getCronRunLog,
+  type CronRunTimelineEntry,
 } from "@/lib/api/cron";
 
 // Additional types for status and run history
@@ -31,6 +33,10 @@ export interface CronRunLogEntry {
   duration?: number;
 }
 
+export interface CronRunLogResult {
+  entries: CronRunTimelineEntry[];
+}
+
 export interface CronRunsResult {
   runs: CronRunLogEntry[];
   total: number;
@@ -46,6 +52,7 @@ export const cronKeys = {
   detail: (id: string) => [...cronKeys.details(), id] as const,
   runs: () => [...cronKeys.all, "runs"] as const,
   runHistory: (jobId?: string) => [...cronKeys.runs(), jobId ?? "all"] as const,
+  runLog: (sessionKey?: string) => [...cronKeys.runs(), "log", sessionKey ?? "none"] as const,
 };
 
 /**
@@ -140,6 +147,20 @@ export function useCronRunHistory(jobId?: string) {
       };
     },
     staleTime: 1000 * 60, // 1 minute
+  });
+}
+
+export function useCronRunLog(params: { sessionKey?: string; limit?: number }) {
+  return useQuery({
+    queryKey: cronKeys.runLog(params.sessionKey),
+    queryFn: async (): Promise<CronRunLogResult> => {
+      if (!params.sessionKey) {
+        return { entries: [] };
+      }
+      return getCronRunLog({ sessionKey: params.sessionKey, limit: params.limit });
+    },
+    enabled: !!params.sessionKey,
+    staleTime: 1000 * 30,
   });
 }
 

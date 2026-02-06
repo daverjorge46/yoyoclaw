@@ -55,6 +55,20 @@ export interface CronJobRunResult {
   started: boolean;
 }
 
+export type CronRunLogStatus = "ok" | "error" | "skipped";
+
+export interface CronRunTimelineEntry {
+  jobId: string;
+  startAtMs: number;
+  finishAtMs?: number;
+  status?: CronRunLogStatus;
+  summary?: string;
+}
+
+export interface CronRunLogResult {
+  entries: CronRunTimelineEntry[];
+}
+
 /**
  * List all cron jobs
  */
@@ -125,4 +139,12 @@ export async function runCronJob(
 ): Promise<CronJobRunResult> {
   const client = getGatewayClient();
   return client.request<CronJobRunResult>("cron.run", { id, mode });
+}
+
+export async function getCronRunLog(params: {
+  sessionKey: string;
+  limit?: number;
+}): Promise<CronRunLogResult> {
+  const client = getGatewayClient();
+  return client.request<CronRunLogResult>("cron.runLog", params);
 }

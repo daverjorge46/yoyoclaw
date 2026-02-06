@@ -78,6 +78,7 @@ const BASE_METHODS = [
   "cron.remove",
   "cron.run",
   "cron.runs",
+  "cron.runLog",
   "overseer.status",
   "overseer.goal.create",
   "overseer.goal.status",

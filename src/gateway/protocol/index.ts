@@ -76,6 +76,8 @@ import {
   CronListParamsSchema,
   type CronRemoveParams,
   CronRemoveParamsSchema,
+  type CronRunLogParams,
+  CronRunLogParamsSchema,
   type CronRunLogEntry,
   type CronRunParams,
   CronRunParamsSchema,
@@ -85,6 +87,7 @@ import {
   CronStatusParamsSchema,
   type CronUpdateParams,
   CronUpdateParamsSchema,
+  type CronRunTimelineEntry,
   type DevicePairApproveParams,
   DevicePairApproveParamsSchema,
   type DevicePairListParams,
@@ -397,6 +400,7 @@ export const validateCronUpdateParams = ajv.compile<CronUpdateParams>(CronUpdate
 export const validateCronRemoveParams = ajv.compile<CronRemoveParams>(CronRemoveParamsSchema);
 export const validateCronRunParams = ajv.compile<CronRunParams>(CronRunParamsSchema);
 export const validateCronRunsParams = ajv.compile<CronRunsParams>(CronRunsParamsSchema);
+export const validateCronRunLogParams = ajv.compile<CronRunLogParams>(CronRunLogParamsSchema);
 export const validateOverseerStatusParams = ajv.compile<OverseerStatusParams>(
   OverseerStatusParamsSchema,
 );

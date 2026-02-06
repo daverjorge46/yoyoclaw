@@ -1,6 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { cn } from "@/lib/utils";
 import { CardSkeleton } from "@/components/composed";
 import {
@@ -22,8 +23,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TerminalSquare, Timer } from "lucide-react";
+import { ArrowLeft, ChevronDown, TerminalSquare, Timer } from "lucide-react";
 import { formatRelativeTime, getSessionLabel } from "@/components/domain/session/session-helpers";
+import { useCronRunLog } from "@/hooks/queries/useCron";
 
 export const Route = createFileRoute("/agents/$agentId/session/$sessionKey")({
   component: AgentSessionPage,
@@ -82,6 +84,34 @@ function getLatestMessageTimestamp(messages: ReadonlyArray<ChatMessage>): number
     if (!latest || parsed > latest) {return parsed;}
     return latest;
   }, undefined);
+}
+
+function formatDurationMs(durationMs?: number): string | null {
+  if (typeof durationMs !== "number" || !Number.isFinite(durationMs)) {
+    return null;
+  }
+  if (durationMs < 1000) {
+    return `${Math.round(durationMs)}ms`;
+  }
+  if (durationMs < 60_000) {
+    return `${(durationMs / 1000).toFixed(1)}s`;
+  }
+  const minutes = Math.floor(durationMs / 60_000);
+  const seconds = Math.round((durationMs % 60_000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
+
+function getCronStatusClass(status?: string) {
+  switch (status) {
+    case "ok":
+      return "bg-emerald-500";
+    case "error":
+      return "bg-rose-500";
+    case "skipped":
+      return "bg-amber-500";
+    default:
+      return "bg-muted-foreground/40";
+  }
 }
 
 interface SessionSummaryStripProps {
@@ -152,6 +182,18 @@ function AgentSessionPage() {
 
   // Load chat history for the active session (gateway only)
   const { data: chatHistory, isLoading: chatLoading } = useChatHistory(sessionKey);
+
+  const isCronSession = React.useMemo(
+    () =>
+      sessionKey.startsWith(`agent:${agentId}:cron:`) ||
+      sessionKey.startsWith("cron:"),
+    [sessionKey, agentId]
+  );
+  const { data: cronRunLog } = useCronRunLog({
+    sessionKey: isCronSession ? sessionKey : undefined,
+    limit: 20,
+  });
+  const [cronLogOpen, setCronLogOpen] = React.useState(true);
 
   // Use unified chat backend hook
   const { streamingMessage, handleSend, handleStop, isStreaming } = useChatBackend(sessionKey, agent ?? undefined);
@@ -282,6 +324,79 @@ function AgentSessionPage() {
             workspacePaneMaximized && "hidden"
           )}
         >
+          {isCronSession && (
+            <div className="px-4 pt-4">
+              <Collapsible.Root open={cronLogOpen} onOpenChange={setCronLogOpen}>
+                <div className="rounded-xl border border-border/50 bg-card/40">
+                  <Collapsible.Trigger asChild>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm font-medium"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Timer className="h-4 w-4 text-muted-foreground" />
+                        Cron Run Log
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground transition-transform",
+                          cronLogOpen && "rotate-180"
+                        )}
+                      />
+                    </button>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content className="px-4 pb-4">
+                    {cronRunLog?.entries.length ? (
+                      <ul className="space-y-3 text-xs">
+                        {cronRunLog.entries.map((entry, index) => {
+                          const finishAtMs = entry.finishAtMs;
+                          const durationMs = finishAtMs
+                            ? Math.max(0, finishAtMs - entry.startAtMs)
+                            : undefined;
+                          const durationLabel = formatDurationMs(durationMs);
+                          const startLabel = formatRelativeTime(entry.startAtMs);
+                          const finishLabel = finishAtMs ? formatRelativeTime(finishAtMs) : null;
+                          return (
+                            <li key={`${entry.jobId}-${entry.startAtMs}-${index}`} className="flex gap-3">
+                              <span
+                                className={cn(
+                                  "mt-1.5 h-2 w-2 flex-shrink-0 rounded-full",
+                                  getCronStatusClass(entry.status)
+                                )}
+                              />
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-medium">Job {entry.jobId}</span>
+                                  {entry.status && (
+                                    <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                                      {entry.status}
+                                    </Badge>
+                                  )}
+                                  {durationLabel && (
+                                    <span className="text-[10px] text-muted-foreground">{durationLabel}</span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground">
+                                  {finishLabel ? `${startLabel} → ${finishLabel}` : startLabel}
+                                </div>
+                                {entry.summary && (
+                                  <div className="text-xs text-muted-foreground line-clamp-2">
+                                    {entry.summary}
+                                  </div>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No cron run entries yet.</p>
+                    )}
+                  </Collapsible.Content>
+                </div>
+              </Collapsible.Root>
+            </div>
+          )}
           <SessionChat
             messages={messages}
             streamingMessage={streamingMessage as StreamingMessage | null}

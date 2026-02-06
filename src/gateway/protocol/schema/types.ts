@@ -74,9 +74,11 @@ import type {
   CronJobSchema,
   CronListParamsSchema,
   CronRemoveParamsSchema,
+  CronRunLogParamsSchema,
   CronRunLogEntrySchema,
   CronRunParamsSchema,
   CronRunsParamsSchema,
+  CronRunTimelineEntrySchema,
   CronStatusParamsSchema,
   CronUpdateParamsSchema,
 } from "./cron.js";
@@ -257,7 +259,9 @@ export type CronUpdateParams = Static<typeof CronUpdateParamsSchema>;
 export type CronRemoveParams = Static<typeof CronRemoveParamsSchema>;
 export type CronRunParams = Static<typeof CronRunParamsSchema>;
 export type CronRunsParams = Static<typeof CronRunsParamsSchema>;
+export type CronRunLogParams = Static<typeof CronRunLogParamsSchema>;
 export type CronRunLogEntry = Static<typeof CronRunLogEntrySchema>;
+export type CronRunTimelineEntry = Static<typeof CronRunTimelineEntrySchema>;
 export type LogsTailParams = Static<typeof LogsTailParamsSchema>;
 export type LogsTailResult = Static<typeof LogsTailResultSchema>;
 export type ExecApprovalsGetParams = Static<typeof ExecApprovalsGetParamsSchema>;

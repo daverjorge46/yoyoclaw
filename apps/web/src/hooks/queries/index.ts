@@ -198,6 +198,7 @@ export {
   useCronJobsByAgent,
   useEnabledCronJobs,
   useCronRunHistory,
+  useCronRunLog,
   useInvalidateCron,
   cronKeys,
 } from "./useCron";
@@ -207,6 +208,7 @@ export type {
   CronStatusResult,
   CronRunsResult,
   CronRunLogEntry,
+  CronRunLogResult,
 } from "./useCron";
 
 // Skills
