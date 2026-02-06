@@ -77,10 +77,16 @@ function getGitPaths(args, repoRoot) {
 }
 
 function formatFiles(repoRoot, oxfmt, files) {
-  const result = spawnSync(oxfmt.command, ["--write", ...oxfmt.args, ...files], {
-    cwd: repoRoot,
-    stdio: "inherit",
-  });
+  const isWindowsCmd = process.platform === "win32" && /\.cmd$/i.test(oxfmt.command);
+  const result = isWindowsCmd
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", oxfmt.command, "--write", ...oxfmt.args, ...files], {
+        cwd: repoRoot,
+        stdio: "inherit",
+      })
+    : spawnSync(oxfmt.command, ["--write", ...oxfmt.args, ...files], {
+        cwd: repoRoot,
+        stdio: "inherit",
+      });
   return result.status === 0;
 }
 
