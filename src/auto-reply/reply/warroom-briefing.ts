@@ -15,7 +15,7 @@ const TIME_TUNNEL_QUERY_PATH = "/app/workspace/hooks/time-tunnel/query.js";
 let cachedBriefing: { text: string; expiresAt: number; chatId: string } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-interface ChatMessage {
+export interface ChatMessage {
   id: number;
   timestamp: string;
   direction: string;
@@ -28,7 +28,7 @@ interface ChatMessage {
   media_type: string;
 }
 
-interface WarroomConfig {
+export interface WarroomConfig {
   version: string;
   monitored_chats: Array<{
     id: string;
@@ -79,7 +79,7 @@ function loadWarroomConfig(workspaceDir: string): WarroomConfig | null {
   }
 }
 
-function analyzeChatQuick(
+export function analyzeChatQuick(
   messages: ChatMessage[],
   agents: Array<{ id: string; name: string }>,
   threshold: number,
@@ -113,7 +113,7 @@ function analyzeChatQuick(
   };
 }
 
-interface ChatResult {
+export interface ChatResult {
   chatId: string;
   name: string;
   channel: string;
@@ -126,7 +126,7 @@ interface ChatResult {
  * Generate behavioral directives based on agent exposure analysis.
  * These are injected as instructions the agent should follow.
  */
-function generateDirectives(
+export function generateDirectives(
   chatResults: ChatResult[],
   currentChatId: string | undefined,
   threshold: number,
@@ -187,7 +187,7 @@ function generateDirectives(
   return directives;
 }
 
-function formatBriefing(
+export function formatBriefing(
   config: WarroomConfig,
   chatResults: ChatResult[],
   currentChatId?: string,

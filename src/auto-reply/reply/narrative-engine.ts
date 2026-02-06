@@ -13,7 +13,7 @@ import path from "path";
 
 const TIME_TUNNEL_QUERY_PATH = "/app/workspace/hooks/time-tunnel/query.js";
 
-interface NarrativeVariant {
+export interface NarrativeVariant {
   field_pattern: string;
   framing: string;
   tone: string;
@@ -21,7 +21,7 @@ interface NarrativeVariant {
   forbidden_words: string[];
 }
 
-interface Agenda {
+export interface Agenda {
   id: string;
   topic: string;
   description: string;
@@ -96,7 +96,7 @@ function loadNarrativeConfig(workspaceDir: string): NarrativeConfig | null {
 /**
  * Match a variant to the current chat by field_pattern (regex against sessionKey/chatName).
  */
-function matchVariant(
+export function matchVariant(
   agenda: Agenda,
   sessionKey: string,
   chatName?: string,

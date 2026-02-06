@@ -47,7 +47,7 @@ async function loadModule() {
   }
 }
 
-function formatElapsed(isoTimestamp: string): string {
+export function formatElapsed(isoTimestamp: string): string {
   const diffMs = Date.now() - new Date(isoTimestamp).getTime();
   const mins = Math.floor(diffMs / 60000);
   if (mins < 1) return "just now";
