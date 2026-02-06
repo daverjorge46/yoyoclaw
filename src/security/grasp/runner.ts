@@ -3,18 +3,18 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "../../config/config.js";
-import { resolveConfigPath, resolveStateDir } from "../../config/paths.js";
-import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
-import { resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
-import { resolveConfiguredModelRef } from "../../agents/model-selection.js";
-import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import type {
   DimensionPrompt,
   GraspDimensionRawResponse,
   GraspDimensionResult,
   GraspFinding,
 } from "./types.js";
+import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { resolveConfiguredModelRef } from "../../agents/model-selection.js";
+import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
+import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
+import { resolveConfigPath, resolveStateDir } from "../../config/paths.js";
 import { levelFromScore } from "./scoring.js";
 
 const GRASP_TIMEOUT_MS = 120_000; // 2 minutes per dimension
@@ -27,7 +27,9 @@ export type RunDimensionParams = {
   provider?: string;
 };
 
-export async function runDimensionAnalysis(params: RunDimensionParams): Promise<GraspDimensionResult> {
+export async function runDimensionAnalysis(
+  params: RunDimensionParams,
+): Promise<GraspDimensionResult> {
   const { config, prompt, agentId } = params;
 
   const configPath = resolveConfigPath();
@@ -69,7 +71,7 @@ export async function runDimensionAnalysis(params: RunDimensionParams): Promise<
       timeoutMs: Math.min(timeoutMs, GRASP_TIMEOUT_MS),
       runId: crypto.randomUUID(),
       extraSystemPrompt: prompt.systemPrompt,
-      // Don't disable tools - we want the AI to explore
+      // TODO: Add tool allowlist when pi-embedded supports it; for now rely on prompt guidance
       disableTools: false,
     });
 
@@ -146,8 +148,8 @@ function validateAndNormalize(
 
   // Validate level
   const validLevels = ["low", "medium", "high", "critical"] as const;
-  const level = validLevels.includes(raw.level as typeof validLevels[number])
-    ? (raw.level as typeof validLevels[number])
+  const level = validLevels.includes(raw.level as (typeof validLevels)[number])
+    ? (raw.level as (typeof validLevels)[number])
     : levelFromScore(score);
 
   // Normalize findings

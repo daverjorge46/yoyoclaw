@@ -3,8 +3,8 @@ import { loadConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
 import { runSecurityAudit } from "../security/audit.js";
 import { fixSecurityFootguns } from "../security/fix.js";
-import { runGraspAssessment } from "../security/grasp/index.js";
 import { formatGraspReport } from "../security/grasp/format.js";
+import { runGraspAssessment, type GraspProgressEvent } from "../security/grasp/index.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
 import { shortenHomeInString, shortenHomePath } from "../utils.js";
@@ -19,7 +19,6 @@ type SecurityAuditOptions = {
 type SecurityGraspOptions = {
   agent?: string;
   model?: string;
-  verbose?: boolean;
   noCache?: boolean;
   json?: boolean;
 };
@@ -171,18 +170,43 @@ export function registerSecurityCli(program: Command) {
     .description("AI-driven self-assessment of agent risk profile (GRASP)")
     .option("--agent <id>", "Analyze specific agent only (default: all)")
     .option("--model <model>", "Model to use for analysis")
-    .option("--verbose", "Show AI reasoning for each dimension", false)
     .option("--no-cache", "Force fresh analysis (ignore cache)")
     .option("--json", "Output as JSON", false)
     .action(async (opts: SecurityGraspOptions) => {
       const cfg = loadConfig();
 
+      // Progress callback writes directly to stderr to avoid being silenced
+      const writeProgress = (msg: string) => {
+        process.stderr.write(`\r\x1b[K${msg}`);
+      };
+
+      const onProgress = (event: GraspProgressEvent) => {
+        switch (event.type) {
+          case "start":
+            writeProgress(
+              `Analyzing ${event.agents.length} agent(s) across ${event.totalDimensions} dimensions...\n`,
+            );
+            break;
+          case "dimension_start":
+            writeProgress(`  → ${event.label}...`);
+            break;
+          case "dimension_done": {
+            const pct = Math.round((event.completed / event.total) * 100);
+            writeProgress(`  → ${event.dimension} ✓ (${pct}%)\n`);
+            break;
+          }
+          case "done":
+            writeProgress("\n");
+            break;
+        }
+      };
+
       const report = await runGraspAssessment({
         config: cfg,
         agentId: opts.agent,
         model: opts.model,
-        verbose: opts.verbose,
         noCache: opts.noCache,
+        onProgress,
       });
 
       if (opts.json) {
@@ -190,7 +214,7 @@ export function registerSecurityCli(program: Command) {
         return;
       }
 
-      defaultRuntime.log(formatGraspReport(report, { verbose: opts.verbose }));
+      defaultRuntime.log(formatGraspReport(report));
 
       // Exit code based on overall risk level
       const exitCode =

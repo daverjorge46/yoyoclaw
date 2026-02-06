@@ -33,17 +33,43 @@ src/security/grasp/
   types.ts              # TypeScript types for GRASP assessment
   index.ts              # Main orchestration, exports runGraspAssessment()
   prompts/
-    governance.ts       # Governance dimension prompt + analysis
-    reach.ts            # Reach dimension prompt + analysis
-    agency.ts           # Agency dimension prompt + analysis
-    safeguards.ts       # Safeguards dimension prompt + analysis
-    potential-damage.ts # Potential damage dimension prompt + analysis
+    index.ts            # Re-exports all dimension prompts
+    governance.md       # Governance prompt content (markdown)
+    governance.ts       # Loads governance.md, exports DimensionPrompt
+    reach.md            # Reach prompt content (markdown)
+    reach.ts            # Loads reach.md, exports DimensionPrompt
+    agency.md           # Agency prompt content (markdown)
+    agency.ts           # Loads agency.md, exports DimensionPrompt
+    safeguards.md       # Safeguards prompt content (markdown)
+    safeguards.ts       # Loads safeguards.md, exports DimensionPrompt
+    potential-damage.md # Potential damage prompt content (markdown)
+    potential-damage.ts # Loads potential-damage.md, exports DimensionPrompt
   runner.ts             # Runs AI analysis for a single dimension
   scoring.ts            # Score aggregation utilities
   format.ts             # Terminal output formatting (bar chart, tables)
   grasp.test.ts         # Unit tests
 
 src/cli/security-cli.ts # Modify: Add 'grasp' subcommand
+```
+
+### Prompt File Pattern
+
+Prompts are stored as `.md` files alongside thin `.ts` loaders. This keeps prompt content editable without touching code:
+
+```typescript
+// governance.ts - thin loader
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import type { DimensionPrompt } from "../types.js";
+
+const promptPath = new URL("./governance.md", import.meta.url);
+const systemPrompt = readFileSync(fileURLToPath(promptPath), "utf-8");
+
+export const GOVERNANCE_PROMPT: DimensionPrompt = {
+  dimension: "governance",
+  label: "Governance",
+  systemPrompt,
+};
 ```
 
 ## Data Model (`src/security/grasp/types.ts`)
@@ -54,12 +80,12 @@ export type GraspRiskLevel = "low" | "medium" | "high" | "critical";
 export type GraspSeverity = "info" | "warn" | "critical";
 
 export type GraspFinding = {
-  id: string;                    // e.g., "governance.logging_disabled"
+  id: string; // e.g., "governance.logging_disabled"
   dimension: GraspDimension;
   severity: GraspSeverity;
-  signal: string;                // What the AI looked at
-  observation: string;           // What the AI observed
-  riskContribution: number;      // 0-100
+  signal: string; // What the AI looked at
+  observation: string; // What the AI observed
+  riskContribution: number; // 0-100
   title: string;
   detail: string;
   remediation?: string;
@@ -67,12 +93,12 @@ export type GraspFinding = {
 
 export type GraspDimensionResult = {
   dimension: GraspDimension;
-  label: string;                 // "Governance", "Reach", etc.
-  score: number;                 // 0-100 (higher = more risk)
+  label: string; // "Governance", "Reach", etc.
+  score: number; // 0-100 (higher = more risk)
   level: GraspRiskLevel;
   findings: GraspFinding[];
-  reasoning: string;             // AI's reasoning/commentary
-  exploredPaths: string[];       // Files/configs the AI examined
+  reasoning: string; // AI's reasoning/commentary
+  exploredPaths: string[]; // Files/configs the AI examined
 };
 
 export type GraspAgentProfile = {
@@ -81,12 +107,12 @@ export type GraspAgentProfile = {
   dimensions: GraspDimensionResult[];
   overallScore: number;
   overallLevel: GraspRiskLevel;
-  summary: string;               // AI-generated summary
+  summary: string; // AI-generated summary
 };
 
 export type GraspReport = {
   ts: number;
-  modelUsed: string;             // Which model performed the analysis
+  modelUsed: string; // Which model performed the analysis
   agents: GraspAgentProfile[];
   globalFindings: GraspFinding[]; // Gateway/channel findings
   overallScore: number;
@@ -96,216 +122,228 @@ export type GraspReport = {
 
 export type GraspOptions = {
   config: OpenClawConfig;
-  agentId?: string;              // Specific agent (default: all)
-  model?: string;                // Model to use for analysis
-  verbose?: boolean;             // Show AI reasoning
+  agentId?: string; // Specific agent (default: all)
+  model?: string; // Model to use for analysis
 };
 ```
 
 ## Dimension Prompts
 
-Each dimension has a dedicated prompt that instructs the AI what to analyze. The AI has access to tools for reading files.
+Each dimension has a dedicated prompt stored as a `.md` file. The AI has access to tools for reading files.
 
-### Governance Prompt (`src/security/grasp/prompts/governance.ts`)
+### Governance Prompt (`src/security/grasp/prompts/governance.md`)
 
-```typescript
-export const GOVERNANCE_SYSTEM_PROMPT = `
+```markdown
 You are performing a security self-assessment of an OpenClaw agent instance.
 
 DIMENSION: Governance
 QUESTION: Can operators observe and intervene on this agent's behavior?
 
-Your task is to explore the configuration and assess governance controls:
+Your task is to explore the configuration and assess governance controls.
 
-1. EXPLORE these areas (use file reading tools):
-   - ~/.openclaw/config.yaml (main config)
-   - Logging settings (logging.level, logging.file, logging.redactSensitive)
-   - Diagnostic settings (diagnostics.enabled)
-   - Approval settings (approvals.*, tools.exec.ask)
-   - Gateway control UI settings (gateway.controlUi.*)
-   - Any agent-specific overrides in agents.* config
+## What to Explore
 
-2. ASSESS risk signals:
-   - Can operators see what the agent is doing? (logging, diagnostics)
-   - Can operators stop or redirect the agent? (control UI, approvals)
-   - Are there blind spots? (redacted logs, disabled diagnostics)
-   - Is there an audit trail? (session logs, transcript paths)
+Use the file reading tools to examine:
 
-3. RETURN structured JSON:
+- The main config file (path provided in user message)
+- Logging settings: logging.level, logging.file, logging.redactSensitive
+- Diagnostic settings: diagnostics.enabled
+- Approval settings: approvals.\*, tools.exec.ask
+- Gateway control UI: gateway.controlUi.\*
+- Agent-specific overrides in agents.\* config
+- Session/transcript paths for audit trails
+
+## Risk Signals to Assess
+
+- Can operators see what the agent is doing? (logging verbosity, diagnostics)
+- Can operators stop or redirect the agent? (control UI, approval requirements)
+- Are there blind spots? (redacted logs, disabled diagnostics, silent mode)
+- Is there an audit trail? (session logs, transcripts)
+- Are there alerting mechanisms for anomalies?
+
+## Required Output Format
+
+Return ONLY valid JSON matching this structure:
 {
-  "score": <0-100, higher = more risk>,
-  "level": "<low|medium|high|critical>",
-  "findings": [
-    {
-      "id": "governance.<finding_id>",
-      "severity": "<info|warn|critical>",
-      "signal": "<what you examined>",
-      "observation": "<what you found>",
-      "riskContribution": <0-100>,
-      "title": "<short title>",
-      "detail": "<explanation>",
-      "remediation": "<optional fix>"
-    }
-  ],
-  "reasoning": "<your analysis and reasoning>",
-  "exploredPaths": ["<files you examined>"]
+"score": <number 0-100, higher = more risk>,
+"level": "<low|medium|high|critical>",
+"findings": [
+{
+"id": "governance.<finding_id>",
+"severity": "<info|warn|critical>",
+"signal": "<config path or area examined>",
+"observation": "<what you found>",
+"riskContribution": <number 0-100>,
+"title": "<short descriptive title>",
+"detail": "<detailed explanation>",
+"remediation": "<optional suggested fix>"
+}
+],
+"reasoning": "<your analysis explaining the score>",
+"exploredPaths": ["<list of files/paths you examined>"]
 }
 
-Scoring guide:
-- 0-25 (low): Full observability, approvals required, audit trail
-- 26-50 (medium): Partial observability, some approvals
-- 51-75 (high): Limited observability, few controls
-- 76-100 (critical): Blind operation, no intervention possible
-`;
+## Scoring Guide
+
+- 0-25 (low): Full observability, approvals required for risky actions, complete audit trail
+- 26-50 (medium): Partial observability, some approval mechanisms in place
+- 51-75 (high): Limited observability, few intervention controls
+- 76-100 (critical): Blind operation, no ability to observe or intervene
+
+Be thorough but concise. Focus on actionable findings.
 ```
 
-### Reach Prompt (`src/security/grasp/prompts/reach.ts`)
+### Reach Prompt (`src/security/grasp/prompts/reach.md`)
 
-```typescript
-export const REACH_SYSTEM_PROMPT = `
+```markdown
 You are performing a security self-assessment of an OpenClaw agent instance.
 
 DIMENSION: Reach
 QUESTION: What systems and data can this agent access?
 
-Your task is to explore the configuration and assess the agent's reach:
+## What to Explore
 
-1. EXPLORE these areas:
-   - Gateway binding (gateway.bind, gateway.tailscale.mode)
-   - Workspace access (agents.*.sandbox.workspaceAccess)
-   - Tool profiles (tools.profile, tools.allow, tools.deny)
-   - Browser control (browser.enabled, browser.*)
-   - Subagent spawning (agents.*.subagents.allowAgents)
-   - Channel connections (channels.*)
-   - MCP servers (mcp.servers.*)
-   - File system access patterns
+- Gateway binding (gateway.bind, gateway.tailscale.mode)
+- Workspace access (agents.\*.sandbox.workspaceAccess)
+- Tool profiles (tools.profile, tools.allow, tools.deny)
+- Browser control (browser.enabled, browser.\*)
+- Subagent spawning (agents.\*.subagents.allowAgents)
+- Channel connections (channels.\*)
+- MCP servers (mcp.servers.\*)
+- File system access patterns
 
-2. ASSESS risk signals:
-   - Network exposure (loopback vs LAN vs internet)
-   - Filesystem scope (none, read-only, read-write)
-   - Tool breadth (minimal vs full tool access)
-   - External integrations (browsers, APIs, channels)
-   - Agent spawning capabilities
+## Risk Signals to Assess
 
-3. RETURN structured JSON (same format as governance)
+- Network exposure (loopback vs LAN vs internet)
+- Filesystem scope (none, read-only, read-write)
+- Tool breadth (minimal vs full tool access)
+- External integrations (browsers, APIs, channels)
+- Agent spawning capabilities
 
-Scoring guide:
+## Required Output Format
+
+Return ONLY valid JSON (same structure as governance).
+
+## Scoring Guide
+
 - 0-25 (low): Loopback only, minimal tools, no FS write
 - 26-50 (medium): Local network, moderate tools, limited FS
 - 51-75 (high): Wide network, many tools, broad FS access
 - 76-100 (critical): Internet exposed, full tools, unrestricted FS
-`;
 ```
 
-### Agency Prompt (`src/security/grasp/prompts/agency.ts`)
+### Agency Prompt (`src/security/grasp/prompts/agency.md`)
 
-```typescript
-export const AGENCY_SYSTEM_PROMPT = `
+```markdown
 You are performing a security self-assessment of an OpenClaw agent instance.
 
 DIMENSION: Agency
 QUESTION: How autonomous is this agent?
 
-Your task is to explore the configuration and assess autonomy level:
+## What to Explore
 
-1. EXPLORE these areas:
-   - Sandbox mode (agents.*.sandbox.mode)
-   - Exec security (tools.exec.security, tools.exec.ask)
-   - Elevated mode (tools.elevated.enabled, tools.elevated.allowFrom)
-   - Cron/scheduled tasks (cron.enabled, cron.jobs)
-   - Hooks (hooks.enabled, hooks.*)
-   - Auto-reply settings (autoReply.*)
-   - Approval requirements
+- Sandbox mode (agents.\*.sandbox.mode)
+- Exec security (tools.exec.security, tools.exec.ask)
+- Elevated mode (tools.elevated.enabled, tools.elevated.allowFrom)
+- Cron/scheduled tasks (cron.enabled, cron.jobs)
+- Hooks (hooks.enabled, hooks.\*)
+- Auto-reply settings (autoReply.\*)
+- Approval requirements
 
-2. ASSESS risk signals:
-   - Can it execute code without approval?
-   - Can it run scheduled tasks autonomously?
-   - Can it respond to triggers without human review?
-   - Does it have elevated/sudo capabilities?
-   - Are there guardrails on autonomous actions?
+## Risk Signals to Assess
 
-3. RETURN structured JSON (same format as governance)
+- Can it execute code without approval?
+- Can it run scheduled tasks autonomously?
+- Can it respond to triggers without human review?
+- Does it have elevated/sudo capabilities?
+- Are there guardrails on autonomous actions?
 
-Scoring guide:
+## Required Output Format
+
+Return ONLY valid JSON (same structure as governance).
+
+## Scoring Guide
+
 - 0-25 (low): All actions require approval, no cron, no hooks
 - 26-50 (medium): Some approved actions, limited automation
 - 51-75 (high): Significant autonomy, automated responses
 - 76-100 (critical): Full autonomy, elevated access, no approvals
-`;
 ```
 
-### Safeguards Prompt (`src/security/grasp/prompts/safeguards.ts`)
+### Safeguards Prompt (`src/security/grasp/prompts/safeguards.md`)
 
-```typescript
-export const SAFEGUARDS_SYSTEM_PROMPT = `
+```markdown
 You are performing a security self-assessment of an OpenClaw agent instance.
 
 DIMENSION: Safeguards
 QUESTION: What mechanisms limit potential damage?
 
-Your task is to explore the configuration and assess protective controls:
+## What to Explore
 
-1. EXPLORE these areas:
-   - Docker/sandbox isolation (sandbox.docker.*)
-   - Network restrictions (sandbox.docker.network, sandbox.docker.capDrop)
-   - Resource limits (sandbox.docker.memory, sandbox.docker.cpu)
-   - Safe binary lists (tools.exec.safeBins)
-   - DM policies (channels.*.dmPolicy)
-   - Rate limiting (rateLimit.*)
-   - Content filtering/redaction
+- Docker/sandbox isolation (sandbox.docker.\*)
+- Network restrictions (sandbox.docker.network, sandbox.docker.capDrop)
+- Resource limits (sandbox.docker.memory, sandbox.docker.cpu)
+- Safe binary lists (tools.exec.safeBins)
+- DM policies (channels.\*.dmPolicy)
+- Rate limiting (rateLimit.\*)
+- Content filtering/redaction
 
-2. ASSESS risk signals:
-   - Is code execution sandboxed?
-   - Are network capabilities restricted?
-   - Are resources capped?
-   - Are there allowlists for dangerous operations?
-   - Is sensitive content filtered?
+## Risk Signals to Assess
 
-3. RETURN structured JSON (same format as governance)
+- Is code execution sandboxed?
+- Are network capabilities restricted?
+- Are resources capped?
+- Are there allowlists for dangerous operations?
+- Is sensitive content filtered?
 
-Scoring guide:
+## Required Output Format
+
+Return ONLY valid JSON (same structure as governance).
+
+## Scoring Guide
+
 - 0-25 (low): Full sandbox, network isolated, resource limited
 - 26-50 (medium): Partial sandbox, some network access
 - 51-75 (high): Minimal isolation, broad access
 - 76-100 (critical): No sandbox, unrestricted access
-`;
 ```
 
-### Potential Damage Prompt (`src/security/grasp/prompts/potential-damage.ts`)
+### Potential Damage Prompt (`src/security/grasp/prompts/potential-damage.md`)
 
-```typescript
-export const POTENTIAL_DAMAGE_SYSTEM_PROMPT = `
+```markdown
 You are performing a security self-assessment of an OpenClaw agent instance.
 
 DIMENSION: Potential Damage
 QUESTION: What is the worst-case impact if this agent is compromised?
 
-Your task is to explore the configuration and assess damage potential:
+## What to Explore
 
-1. EXPLORE these areas:
-   - Exec host (tools.exec.host - sandbox vs gateway vs node)
-   - Workspace access level (sandbox.workspaceAccess)
-   - Browser host control (sandbox.browser.allowHostControl)
-   - Elevated access scope (tools.elevated.allowFrom.*)
-   - Credential access (stored tokens, API keys)
-   - Channel access (what can it message/control)
-   - Data access (what files/DBs can it read/write)
+- Exec host (tools.exec.host - sandbox vs gateway vs node)
+- Workspace access level (sandbox.workspaceAccess)
+- Browser host control (sandbox.browser.allowHostControl)
+- Elevated access scope (tools.elevated.allowFrom.\*)
+- Credential access (stored tokens, API keys)
+- Channel access (what can it message/control)
+- Data access (what files/DBs can it read/write)
 
-2. ASSESS worst-case scenarios:
-   - Could it exfiltrate sensitive data?
-   - Could it modify/delete critical files?
-   - Could it send messages as the user?
-   - Could it access credentials or secrets?
-   - Could it pivot to other systems?
+## Worst-Case Scenarios to Assess
 
-3. RETURN structured JSON (same format as governance)
+- Could it exfiltrate sensitive data?
+- Could it modify/delete critical files?
+- Could it send messages as the user?
+- Could it access credentials or secrets?
+- Could it pivot to other systems?
 
-Scoring guide:
+## Required Output Format
+
+Return ONLY valid JSON (same structure as governance).
+
+## Scoring Guide
+
 - 0-25 (low): Sandboxed, no credentials, limited data access
 - 26-50 (medium): Some data access, no credentials
 - 51-75 (high): Broad data access, some credentials
 - 76-100 (critical): Full system access, credentials, messaging
-`;
 ```
 
 ## AI Runner (`src/security/grasp/runner.ts`)
@@ -355,7 +393,7 @@ Return your analysis as JSON.
     message: userMessage,
     model: params.model,
     tools: ["read", "glob", "grep"], // Limited tool set for exploration
-    maxTurns: 5, // Limit exploration depth
+    maxTurns: 10, // Limit exploration depth
     outputFormat: "json",
   });
 
@@ -403,9 +441,7 @@ export async function runGraspAssessment(opts: GraspOptions): Promise<GraspRepor
   const agents: GraspAgentProfile[] = [];
 
   // For each agent (or just the specified one)
-  const agentIds = opts.agentId
-    ? [opts.agentId]
-    : resolveAllAgentIds(opts.config);
+  const agentIds = opts.agentId ? [opts.agentId] : resolveAllAgentIds(opts.config);
 
   for (const agentId of agentIds) {
     const dimensions = [];
@@ -424,7 +460,7 @@ export async function runGraspAssessment(opts: GraspOptions): Promise<GraspRepor
       dimensions.push(result);
     }
 
-    const overallScore = aggregateScores(dimensions.map(d => d.score));
+    const overallScore = aggregateScores(dimensions.map((d) => d.score));
 
     agents.push({
       agentId,
@@ -436,7 +472,7 @@ export async function runGraspAssessment(opts: GraspOptions): Promise<GraspRepor
     });
   }
 
-  const overallScore = Math.max(...agents.map(a => a.overallScore));
+  const overallScore = Math.max(...agents.map((a) => a.overallScore));
 
   return {
     ts: Date.now(),
@@ -445,7 +481,7 @@ export async function runGraspAssessment(opts: GraspOptions): Promise<GraspRepor
     globalFindings: [], // Extracted from governance/reach for gateway-level
     overallScore,
     overallLevel: levelFromScore(overallScore),
-    summary: countBySeverity(agents.flatMap(a => a.dimensions.flatMap(d => d.findings))),
+    summary: countBySeverity(agents.flatMap((a) => a.dimensions.flatMap((d) => d.findings))),
   };
 }
 ```
@@ -460,15 +496,14 @@ security
   .description("AI-driven self-assessment of agent risk profile (GRASP)")
   .option("--agent <id>", "Analyze specific agent only")
   .option("--model <model>", "Model to use for analysis (default: configured model)")
-  .option("--verbose", "Show AI reasoning for each dimension")
   .option("--json", "Output as JSON")
+  .option("--no-cache", "Force fresh analysis (skip cache)")
   .action(async (opts: GraspOptions) => {
     const cfg = loadConfig();
     const report = await runGraspAssessment({
       config: cfg,
       agentId: opts.agent,
       model: opts.model,
-      verbose: opts.verbose,
     });
 
     if (opts.json) {
@@ -476,13 +511,20 @@ security
       return;
     }
 
-    console.log(formatGraspReport(report, { verbose: opts.verbose }));
+    console.log(formatGraspReport(report));
   });
 ```
 
 ## Output Format
 
+The default output includes:
+
+1. Visual risk profile (bar chart) for each agent
+2. AI commentary for each dimension
+3. Evidence bullets for risk areas only (low-risk dimensions show commentary but no evidence)
+
 ### Default View
+
 ```
 OpenClaw GRASP Self-Assessment
 
@@ -500,30 +542,39 @@ Model: claude-3-5-sonnet (analyzed at 2024-01-15 10:30:00)
 │  Risk: HIGH (62)                                                │
 └─────────────────────────────────────────────────────────────────┘
 
+R  Reach                                                    58  MEDIUM
+   The agent has moderate access to external systems. Network binding
+   is restricted to loopback, but filesystem access is broad and
+   browser automation is enabled.
+
+   Evidence:
+   • gateway.bind = "loopback" limits network exposure
+   • sandbox.workspaceAccess = "read-write" grants full filesystem
+   • browser.enabled = true with no domain restrictions
+
+A  Agency                                                   72  HIGH
+   Significant autonomous capability. The agent can execute code
+   and respond to triggers without human approval in most cases.
+
+   Evidence:
+   • tools.exec.ask = false allows unsupervised code execution
+   • cron.enabled = true with 2 scheduled jobs
+   • hooks.onMessage configured for auto-responses
+
+P  Potential Damage                                         85  CRITICAL
+   High worst-case impact. The agent has access to credentials and
+   can send messages on behalf of the user.
+
+   Evidence:
+   • tools.exec.host = "gateway" runs on host machine
+   • Channel tokens stored in ~/.openclaw/credentials/
+   • Can send to all connected channels (Slack, Discord, Telegram)
+
 Overall Risk: HIGH (62)
-Summary: 3 critical · 5 warn · 8 info
-
-Run: openclaw security grasp --verbose  for AI reasoning
+Summary: 1 critical · 2 warn · 5 info
 ```
 
-### Verbose View (`--verbose`)
-Shows AI reasoning for each dimension:
-
-```
-...
-G  Governance Analysis:
-   AI examined: ~/.openclaw/config.yaml, session logs
-
-   Reasoning: "The agent has logging.level set to 'info' which provides
-   moderate visibility. However, diagnostics.enabled is false, creating
-   a blind spot for tool execution. The control UI is enabled but has
-   no auth token configured when binding to LAN..."
-
-   Findings:
-   - [WARN] diagnostics.disabled: Diagnostics disabled reduces observability
-   - [INFO] logging.level.info: Logging at info level (consider debug for audit)
-...
-```
+Note: Low-risk dimensions (Governance, Safeguards in this example) show only commentary, not evidence bullets.
 
 ## CLI Options
 
@@ -533,8 +584,8 @@ openclaw security grasp [options]
 Options:
   --agent <id>    Analyze specific agent only (default: all configured agents)
   --model <model> Model to use for analysis (default: configured model)
-  --verbose       Show AI reasoning for each dimension
   --json          Output as JSON
+  --no-cache      Force fresh analysis (skip cache)
 ```
 
 Exit codes: 0=low, 1=medium, 2=high, 3=critical
@@ -555,29 +606,99 @@ Exit codes: 0=low, 1=medium, 2=high, 3=critical
 ### AI Runner Integration
 
 The runner needs to:
+
 1. Create a temporary/ephemeral session (no persistence needed)
 2. Give the AI limited tools: `read`, `glob`, `grep` (no exec, no write)
 3. Enforce structured JSON output
 4. Parse and validate the response
 5. Handle timeouts/failures gracefully
 
-### Tool Access
+### Security Constraints
 
-The AI should have access to:
-- **Read** - Read config files, logs, etc.
-- **Glob** - Find files matching patterns
-- **Grep** - Search file contents
+**CRITICAL: The GRASP assessment agent must be strictly read-only and sandboxed.**
 
-The AI should NOT have:
-- Exec/bash (security risk during self-assessment)
-- Write (no changes during assessment)
-- Network tools (assessment is local)
+#### Allowed Tools (Read-Only)
+
+| Tool   | Purpose                      | Constraints                                |
+| ------ | ---------------------------- | ------------------------------------------ |
+| `read` | Read config files, logs      | Path restrictions apply (see below)        |
+| `glob` | Find files matching patterns | No symlink following outside allowed paths |
+| `grep` | Search file contents         | Read-only search                           |
+
+#### Explicitly Denied Tools
+
+The assessment agent must NOT have access to:
+
+- **`exec` / `bash`** — No command execution whatsoever
+- **`write` / `edit`** — No file modifications
+- **`browser`** — No web access or automation
+- **`mcp`** — No MCP server connections
+- **`subagent`** — Cannot spawn other agents
+- **`message` / `channel`** — Cannot send messages
+- **`network`** — No outbound network requests
+- **`elevated`** — No elevated/sudo operations
+
+#### Path Restrictions
+
+The assessment agent can only read from:
+
+- `~/.openclaw/` — Config, credentials metadata (NOT credential values), state
+- `~/.config/openclaw/` — Alternate config location
+- Current workspace (if configured) — Read-only access
+- `/etc/openclaw/` — System-wide config (if exists)
+
+The assessment agent must NOT read:
+
+- Credential file contents (tokens, API keys) — Only check existence/permissions
+- Private keys (`~/.ssh/`, `*.pem`, etc.)
+- Environment variable values containing secrets
+- Files outside the allowed paths
+
+#### Session Isolation
+
+- **Ephemeral session** — No session persistence, no history saved
+- **No context carryover** — Each dimension assessment starts fresh
+- **Timeout enforcement** — Hard timeout per dimension (default: 60s)
+- **Turn limit** — Maximum 10 tool calls per dimension
+- **No hooks** — Assessment runs with hooks disabled
+- **No auto-reply** — Cannot trigger message responses
+
+#### Resource Limits
+
+- **Max turns per dimension**: 10
+- **Timeout per dimension**: 60 seconds
+- **Total assessment timeout**: 10 minutes
+- **No parallel tool execution** — Sequential only for auditability
+
+#### Implementation Checklist
+
+```typescript
+// Runner must enforce these constraints:
+const GRASP_AGENT_CONFIG = {
+  tools: ["read", "glob", "grep"], // Allowlist only
+  sandbox: {
+    mode: "strict",
+    workspaceAccess: "read-only",
+  },
+  exec: { enabled: false },
+  browser: { enabled: false },
+  mcp: { enabled: false },
+  subagents: { enabled: false },
+  hooks: { enabled: false },
+  autoReply: { enabled: false },
+  elevated: { enabled: false },
+  maxTurns: 10,
+  timeout: 60_000,
+  session: { ephemeral: true },
+};
+```
 
 ### Error Handling
 
 - If AI fails to return valid JSON, retry once with clarifying prompt
 - If dimension analysis times out, mark as "unable to assess"
 - If no model available, fail with clear error message
+- If AI attempts to use a denied tool, log warning and continue
 
 ## Testing Strategy
 
@@ -598,12 +719,13 @@ The AI should NOT have:
 
 4. **Format Tests**
    - Test bar chart rendering
-   - Test verbose output formatting
+   - Test commentary and evidence output formatting
    - Test JSON output structure
 
 ### Integration Tests
 
 Due to AI non-determinism, integration tests should:
+
 - Verify the command runs without error
 - Verify output structure is valid
 - NOT assert on specific scores/findings
@@ -623,7 +745,7 @@ Due to AI non-determinism, integration tests should:
 3. Run `pnpm check` - Lint/format passes
 4. Run `pnpm test src/security/grasp` - Unit tests pass
 5. Manual test:
-   - `openclaw security grasp` - Shows assessment with bar charts
-   - `openclaw security grasp --verbose` - Shows AI reasoning
+   - `openclaw security grasp` - Shows assessment with bar charts, commentary, and evidence
    - `openclaw security grasp --json` - Valid JSON output
    - `openclaw security grasp --agent main` - Single agent only
+   - `openclaw security grasp --no-cache` - Force fresh analysis

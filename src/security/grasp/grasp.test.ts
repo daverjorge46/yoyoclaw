@@ -1,19 +1,19 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import {
-  aggregateScores,
-  countBySeverity,
-  generateAgentSummary,
-  levelFromScore,
-} from "./scoring.js";
-import { formatGraspReport } from "./format.js";
-import { computeCacheKey, getCachedReport, setCachedReport, clearCache } from "./cache.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import type {
   GraspDimensionResult,
   GraspFinding,
   GraspReport,
   GraspAgentProfile,
 } from "./types.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import { computeCacheKey, getCachedReport, setCachedReport, clearCache } from "./cache.js";
+import { formatGraspReport } from "./format.js";
+import {
+  aggregateScores,
+  countBySeverity,
+  generateAgentSummary,
+  levelFromScore,
+} from "./scoring.js";
 
 // ============================================================================
 // Scoring Tests
@@ -347,8 +347,12 @@ describe("cache", () => {
     });
 
     it("generates different key for different config", () => {
-      const config1 = { agents: { defaults: { model: { primary: "model1" } } } } as unknown as OpenClawConfig;
-      const config2 = { agents: { defaults: { model: { primary: "model2" } } } } as unknown as OpenClawConfig;
+      const config1 = {
+        agents: { defaults: { model: { primary: "model1" } } },
+      } as unknown as OpenClawConfig;
+      const config2 = {
+        agents: { defaults: { model: { primary: "model2" } } },
+      } as unknown as OpenClawConfig;
 
       const key1 = computeCacheKey(config1);
       const key2 = computeCacheKey(config2);
@@ -499,51 +503,35 @@ describe("format", () => {
       expect(output).toContain("]");
     });
 
-    describe("verbose mode", () => {
-      it("shows AI reasoning when verbose", () => {
-        const report = createMockReport();
-        report.agents[0].dimensions[0].reasoning = "This is detailed reasoning about governance.";
+    it("shows reasoning in dimension commentary", () => {
+      const report = createMockReport();
+      report.agents[0].dimensions[0].reasoning = "This is detailed reasoning about governance.";
 
-        const output = formatGraspReport(report, { verbose: true });
+      const output = formatGraspReport(report);
 
-        expect(output).toContain("Reasoning");
-        expect(output).toContain("detailed reasoning about governance");
-      });
+      expect(output).toContain("detailed reasoning about governance");
+    });
 
-      it("shows explored paths when verbose", () => {
-        const report = createMockReport();
-        report.agents[0].dimensions[0].exploredPaths = [
-          "~/.openclaw/config.yaml",
-          "~/.openclaw/sessions/",
-        ];
+    it("shows findings as evidence", () => {
+      const report = createMockReport();
+      report.agents[0].dimensions[0].findings = [
+        {
+          id: "governance.logging",
+          dimension: "governance",
+          severity: "warn",
+          signal: "logging.level",
+          observation: "Set to silent",
+          riskContribution: 25,
+          title: "Logging is minimal",
+          detail: "Consider enabling more verbose logging for observability.",
+          remediation: "Set logging.level to info or debug",
+        },
+      ];
 
-        const output = formatGraspReport(report, { verbose: true });
+      const output = formatGraspReport(report);
 
-        expect(output).toContain("Explored");
-        expect(output).toContain("config.yaml");
-      });
-
-      it("shows findings detail when verbose", () => {
-        const report = createMockReport();
-        report.agents[0].dimensions[0].findings = [
-          {
-            id: "governance.logging",
-            dimension: "governance",
-            severity: "warn",
-            signal: "logging.level",
-            observation: "Set to silent",
-            riskContribution: 25,
-            title: "Logging is minimal",
-            detail: "Consider enabling more verbose logging for observability.",
-            remediation: "Set logging.level to info or debug",
-          },
-        ];
-
-        const output = formatGraspReport(report, { verbose: true });
-
-        expect(output).toContain("Logging is minimal");
-        expect(output).toContain("WARN");
-      });
+      expect(output).toContain("Evidence:");
+      expect(output).toContain("Set to silent");
     });
   });
 });
@@ -575,7 +563,6 @@ describe("CLI integration", () => {
 
     expect(optionNames).toContain("--agent");
     expect(optionNames).toContain("--model");
-    expect(optionNames).toContain("--verbose");
     expect(optionNames).toContain("--json");
     // --no-cache creates a --cache option with negation
     expect(options.some((o) => o.long === "--no-cache" || o.long === "--cache")).toBe(true);

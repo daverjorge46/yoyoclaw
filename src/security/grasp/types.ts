@@ -55,12 +55,19 @@ export type GraspSummary = {
   info: number;
 };
 
+export type GraspProgressEvent =
+  | { type: "start"; totalDimensions: number; agents: string[] }
+  | { type: "dimension_start"; dimension: string; label: string; agentId: string }
+  | { type: "dimension_done"; dimension: string; agentId: string; completed: number; total: number }
+  | { type: "agent_done"; agentId: string }
+  | { type: "done" };
+
 export type GraspOptions = {
   config: OpenClawConfig;
   agentId?: string;
   model?: string;
-  verbose?: boolean;
   noCache?: boolean;
+  onProgress?: (event: GraspProgressEvent) => void;
 };
 
 export type DimensionPrompt = {

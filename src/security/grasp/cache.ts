@@ -2,8 +2,8 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { OpenClawConfig } from "../../config/config.js";
-import { resolveStateDir } from "../../config/paths.js";
 import type { GraspReport } from "./types.js";
+import { resolveStateDir } from "../../config/paths.js";
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 

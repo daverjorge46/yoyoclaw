@@ -1,4 +1,3 @@
-import { isRich, theme } from "../../terminal/theme.js";
 import type {
   GraspAgentProfile,
   GraspDimensionResult,
@@ -7,6 +6,7 @@ import type {
   GraspRiskLevel,
   GraspSummary,
 } from "./types.js";
+import { isRich, theme } from "../../terminal/theme.js";
 
 const BAR_WIDTH = 20;
 
@@ -35,7 +35,9 @@ export function formatGraspReport(report: GraspReport, opts: FormatOptions = {})
   const rich = isRich();
 
   // Header
-  lines.push(rich ? theme.heading("OpenClaw GRASP Self-Assessment") : "OpenClaw GRASP Self-Assessment");
+  lines.push(
+    rich ? theme.heading("OpenClaw GRASP Self-Assessment") : "OpenClaw GRASP Self-Assessment",
+  );
   lines.push("");
   lines.push(formatMuted(`Model: ${report.modelUsed}`));
   lines.push(formatMuted(`Analyzed: ${new Date(report.ts).toLocaleString()}`));
@@ -65,17 +67,15 @@ export function formatGraspReport(report: GraspReport, opts: FormatOptions = {})
   }
 
   // Overall summary
-  lines.push(formatHeading(`Overall Risk: ${formatRiskLevel(report.overallLevel)} (${report.overallScore})`));
+  lines.push(
+    formatHeading(`Overall Risk: ${formatRiskLevel(report.overallLevel)} (${report.overallScore})`),
+  );
   lines.push(formatSummary(report.summary));
-  lines.push("");
-  if (!opts.verbose) {
-    lines.push(formatMuted("Run: openclaw security grasp --verbose  for AI reasoning"));
-  }
 
   return lines.join("\n");
 }
 
-function formatAgentProfile(agent: GraspAgentProfile, opts: FormatOptions): string {
+function formatAgentProfile(agent: GraspAgentProfile, _opts: FormatOptions): string {
   const lines: string[] = [];
   const label = agent.isDefault ? `${agent.agentId} (default)` : agent.agentId;
 
@@ -91,21 +91,48 @@ function formatAgentProfile(agent: GraspAgentProfile, opts: FormatOptions): stri
   lines.push(formatBoxLine(`Risk: ${formatRiskLevel(agent.overallLevel)} (${agent.overallScore})`));
   lines.push(formatBoxBottom());
 
-  // Verbose: show reasoning and findings
-  if (opts.verbose) {
-    for (const dim of agent.dimensions) {
-      lines.push("");
-      lines.push(formatHeading(`${DIMENSION_LETTERS[dim.dimension]}  ${dim.label} Analysis:`));
-      lines.push(formatMuted(`   Explored: ${dim.exploredPaths.slice(0, 3).join(", ") || "none"}`));
-      lines.push("");
-      lines.push(`   Reasoning: ${wrapText(dim.reasoning, 70, "   ")}`);
-      lines.push("");
-      if (dim.findings.length > 0) {
-        lines.push("   Findings:");
-        for (const finding of dim.findings) {
-          lines.push(formatFindingDetail(finding));
-        }
-      }
+  // Always show dimension commentary
+  for (const dim of agent.dimensions) {
+    lines.push("");
+    lines.push(formatDimensionCommentary(dim));
+  }
+
+  return lines.join("\n");
+}
+
+function formatDimensionCommentary(dim: GraspDimensionResult): string {
+  const lines: string[] = [];
+  const letter = DIMENSION_LETTERS[dim.dimension] || "?";
+  const label = DIMENSION_LABELS[dim.dimension] || dim.label;
+  const score = String(dim.score).padStart(3);
+  const level = formatRiskLevel(dim.level);
+
+  // Header line: "R  Reach                                                    58  MEDIUM"
+  const headerLabel = `${letter}  ${label}`;
+  const headerRight = `${score}  ${level}`;
+  const headerPadding = 65 - headerLabel.length - headerRight.length;
+  lines.push(
+    formatHeading(`${headerLabel}${" ".repeat(Math.max(1, headerPadding))}${headerRight}`),
+  );
+
+  // Commentary (reasoning) - wrapped and indented
+  if (dim.reasoning && dim.reasoning !== "No reasoning provided") {
+    const wrapped = wrapText(dim.reasoning, 62, "   ");
+    lines.push(`   ${wrapped}`);
+  }
+
+  // Evidence from findings (only for dimensions with findings)
+  const significantFindings = dim.findings.filter(
+    (f) => f.severity !== "info" || dim.level !== "low",
+  );
+  if (significantFindings.length > 0) {
+    lines.push("");
+    lines.push("   Evidence:");
+    for (const finding of significantFindings.slice(0, 4)) {
+      lines.push(`   • ${finding.observation || finding.detail}`);
+    }
+    if (significantFindings.length > 4) {
+      lines.push(formatMuted(`   ... and ${significantFindings.length - 4} more`));
     }
   }
 
@@ -176,18 +203,6 @@ function formatSummary(summary: GraspSummary): string {
 function formatFindingLine(finding: GraspFinding): string {
   const sev = formatSeverityBadge(finding.severity);
   return `  ${sev} ${finding.title}`;
-}
-
-function formatFindingDetail(finding: GraspFinding): string {
-  const sev = formatSeverityBadge(finding.severity);
-  const lines = [
-    `   - ${sev} ${finding.title}`,
-    `     ${formatMuted(finding.detail)}`,
-  ];
-  if (finding.remediation) {
-    lines.push(`     ${formatMuted(`Fix: ${finding.remediation}`)}`);
-  }
-  return lines.join("\n");
 }
 
 function formatSeverityBadge(sev: "info" | "warn" | "critical"): string {
