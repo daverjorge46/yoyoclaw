@@ -1,0 +1,48 @@
+{
+  "id": "data-service",
+  "name": "Data-Service Connectors",
+  "description": "Access 70+ external service integrations through the Wexa Data-Service API",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "description": "Enable/disable the Data-Service connector tools"
+      },
+      "url": {
+        "type": "string",
+        "description": "Base URL for the Data-Service API"
+      },
+      "orgId": {
+        "type": "string",
+        "description": "Default organization ID"
+      },
+      "projectId": {
+        "type": "string",
+        "description": "Default project ID"
+      },
+      "userId": {
+        "type": "string",
+        "description": "Default user ID"
+      },
+      "serverKey": {
+        "type": "string",
+        "description": "Server key for system calls"
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "API key for user calls"
+      },
+      "connectorIds": {
+        "type": "object",
+        "description": "Pre-configured connector IDs by connector type",
+        "additionalProperties": { "type": "string" }
+      },
+      "timeoutMs": {
+        "type": "number",
+        "description": "Request timeout in milliseconds"
+      }
+    }
+  }
+}
