@@ -1109,7 +1109,7 @@
               },
               {
                 "group": "Security",
-                "pages": ["security/formal-verification"]
+                "pages": ["security/grasp", "security/formal-verification"]
               },
               {
                 "group": "Web interfaces",

@@ -6,6 +6,7 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- Security: add `openclaw security grasp` command for AI-driven agent risk assessment using the GRASP framework (Governance, Reach, Agency, Safeguards, Potential Damage).
 - Agents: bump pi-mono packages to 0.52.5. (#9949) Thanks @gumadeiras.
 - Antigravity: update the default Antigravity OAuth model to `google-antigravity/claude-opus-4-6-thinking`. (#10720) Thanks @calvin-hpnet.
 - Memory: add native Voyage embeddings provider (including batching) for vector memory search. (#7078) Thanks @mcinteerj.

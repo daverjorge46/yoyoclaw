@@ -3,6 +3,8 @@ import { loadConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
 import { runSecurityAudit } from "../security/audit.js";
 import { fixSecurityFootguns } from "../security/fix.js";
+import { formatGraspReport } from "../security/grasp/format.js";
+import { runGraspAssessment, type GraspProgressEvent } from "../security/grasp/index.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { isRich, theme } from "../terminal/theme.js";
 import { shortenHomeInString, shortenHomePath } from "../utils.js";
@@ -12,6 +14,13 @@ type SecurityAuditOptions = {
   json?: boolean;
   deep?: boolean;
   fix?: boolean;
+};
+
+type SecurityGraspOptions = {
+  agent?: string;
+  model?: string;
+  noCache?: boolean;
+  json?: boolean;
 };
 
 function formatSummary(summary: { critical: number; warn: number; info: number }): string {
@@ -29,7 +38,7 @@ function formatSummary(summary: { critical: number; warn: number; info: number }
 export function registerSecurityCli(program: Command) {
   const security = program
     .command("security")
-    .description("Security tools (audit)")
+    .description("Security tools (audit, grasp)")
     .addHelpText(
       "after",
       () =>
@@ -154,5 +163,74 @@ export function registerSecurityCli(program: Command) {
       render("info");
 
       defaultRuntime.log(lines.join("\n"));
+    });
+
+  security
+    .command("grasp")
+    .description("AI-driven self-assessment of agent risk profile (GRASP)")
+    .option("--agent <id>", "Analyze specific agent only (default: all)")
+    .option("--model <model>", "Model to use for analysis")
+    .option("--no-cache", "Force fresh analysis (ignore cache)")
+    .option("--json", "Output as JSON", false)
+    .action(async (opts: SecurityGraspOptions) => {
+      const cfg = loadConfig();
+
+      // Progress callback writes directly to stderr to avoid being silenced
+      const writeProgress = (msg: string) => {
+        process.stderr.write(`\r\x1b[K${msg}`);
+      };
+
+      const onProgress = (event: GraspProgressEvent) => {
+        switch (event.type) {
+          case "start":
+            writeProgress(
+              `Analyzing ${event.agents.length} agent(s) across ${event.totalDimensions} dimensions...\n`,
+            );
+            break;
+          case "dimension_start":
+            writeProgress(`  → ${event.label}...`);
+            break;
+          case "dimension_done": {
+            const pct = Math.round((event.completed / event.total) * 100);
+            writeProgress(`  → ${event.dimension} ✓ (${pct}%)\n`);
+            break;
+          }
+          case "agent_done":
+            writeProgress(`  Agent ${event.agentId} done\n`);
+            break;
+          case "done":
+            writeProgress("\n");
+            break;
+        }
+      };
+
+      const report = await runGraspAssessment({
+        config: cfg,
+        agentId: opts.agent,
+        model: opts.model,
+        noCache: opts.noCache,
+        onProgress,
+      });
+
+      if (opts.json) {
+        defaultRuntime.log(JSON.stringify(report, null, 2));
+        return;
+      }
+
+      defaultRuntime.log(formatGraspReport(report));
+
+      // Exit code based on overall risk level
+      const exitCode =
+        report.overallLevel === "critical"
+          ? 3
+          : report.overallLevel === "high"
+            ? 2
+            : report.overallLevel === "medium"
+              ? 1
+              : 0;
+
+      if (exitCode > 0) {
+        process.exitCode = exitCode;
+      }
     });
 }
