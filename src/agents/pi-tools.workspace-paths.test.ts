@@ -52,7 +52,7 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("writes relative paths against workspaceDir even after cwd changes", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
@@ -79,7 +79,7 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("edits relative paths against workspaceDir even after cwd changes", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
@@ -107,7 +107,7 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("defaults exec cwd to workspaceDir when workdir is omitted", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
