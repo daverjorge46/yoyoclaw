@@ -2,14 +2,7 @@
 name: garmin-connect
 description: Access Garmin Connect fitness data - activities, health metrics, training status, sleep, stress, and more.
 homepage: https://connect.garmin.com
-metadata:
-  {
-    "openclaw":
-      {
-        "emoji": "⌚",
-        "requires": { "bins": ["python3"], "env": [] }
-      }
-  }
+metadata: { "openclaw": { "emoji": "⌚", "requires": { "bins": ["python3"], "env": [] } } }
 ---
 
 # Garmin Connect
@@ -25,6 +18,7 @@ First-time setup (installs dependencies and authenticates):
 ```
 
 This will:
+
 1. Install `garminconnect` Python package
 2. Prompt for Garmin credentials (stored securely in `~/.garminconnect`)
 3. Tokens are valid for ~1 year
@@ -134,6 +128,7 @@ All commands support JSON output for programmatic use:
 ## Credentials
 
 Credentials are fetched in this order:
+
 1. **Saved tokens** in `~/.garminconnect/` (valid ~1 year)
 2. **Password manager** - Bitwarden or 1Password CLI (if available and unlocked)
 3. **Interactive prompt** (last resort)
@@ -162,6 +157,7 @@ op signin                    # Sign in (or use desktop app integration)
 ## Supported Activity Types
 
 Filter activities with `--type`:
+
 - `running`
 - `cycling`
 - `swimming`
