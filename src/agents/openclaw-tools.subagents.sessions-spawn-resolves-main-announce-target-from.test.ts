@@ -164,6 +164,15 @@ describe("openclaw-tools: subagents", () => {
   it("sessions_spawn only allows same-agent by default", async () => {
     resetSubagentRegistryForTests();
     callGatewayMock.mockReset();
+    configOverride = {
+      session: {
+        mainKey: "main",
+        scope: "per-sender",
+      },
+      agents: {
+        list: [{ id: "main" }, { id: "beta" }],
+      },
+    };
 
     const tool = createOpenClawTools({
       agentSessionKey: "main",

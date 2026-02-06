@@ -51,6 +51,7 @@ describe("openclaw-tools: subagents", () => {
               allowAgents: ["beta"],
             },
           },
+          { id: "beta" },
         ],
       },
     };
@@ -104,6 +105,7 @@ describe("openclaw-tools: subagents", () => {
               allowAgents: ["*"],
             },
           },
+          { id: "beta" },
         ],
       },
     };

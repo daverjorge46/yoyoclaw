@@ -7,6 +7,7 @@ vi.mock("../config/config.js", async () => {
     ...actual,
     loadConfig: () => ({
       agents: {
+        list: [{ id: "test" }],
         defaults: {
           subagents: {
             thinking: "high",
