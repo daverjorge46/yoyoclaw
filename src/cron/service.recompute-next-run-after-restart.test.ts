@@ -12,7 +12,9 @@ describe("cron: recompute nextRunAtMs on start", () => {
   let tmpDir: string | undefined;
 
   afterEach(async () => {
-    if (!tmpDir) return;
+    if (!tmpDir) {
+      return;
+    }
     await fs.rm(tmpDir, { recursive: true, force: true });
     tmpDir = undefined;
   });
