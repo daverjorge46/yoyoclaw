@@ -301,8 +301,8 @@ export const AsteriskAriConfigSchema = z
     password: z.string().min(1),
     /** Stasis app name */
     app: z.string().min(1),
-    /** Trunk name for GSM, e.g. gsmtrunk */
-    trunk: z.string().min(1),
+    /** Trunk name for outbound dialing, e.g. gsmtrunk (optional; omit to dial PJSIP/<to> directly) */
+    trunk: z.string().min(1).optional(),
     /** Where Asterisk should send RTP for ExternalMedia */
     rtpHost: z.string().min(1),
     /** Local UDP port to receive RTP from Asterisk */

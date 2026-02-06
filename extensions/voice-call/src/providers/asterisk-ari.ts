@@ -383,10 +383,8 @@ export class AsteriskAriProvider implements VoiceCallProvider {
         continue;
       }
 
-      if (st.speaking) {
-        return;
-      }
-
+      // Always feed inbound RTP into STT, even while we're speaking.
+      // Otherwise onSpeechStart never fires and barge-in can't interrupt TTS.
       if (st.stt) {
         st.stt.sendAudio(payload);
       }
