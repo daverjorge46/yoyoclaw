@@ -38,7 +38,7 @@ import {
   resolveHookChannel,
   resolveHookDeliver,
 } from "./hooks.js";
-import { sendUnauthorized } from "./http-common.js";
+import { sendUnauthorized, setDefaultSecurityHeaders } from "./http-common.js";
 import { getBearerToken, getHeader } from "./http-utils.js";
 import { resolveGatewayClientIp } from "./net.js";
 import { handleOpenAiHttpRequest } from "./openai-http.js";
@@ -313,6 +313,8 @@ export function createGatewayHttpServer(opts: {
     if (String(req.headers.upgrade ?? "").toLowerCase() === "websocket") {
       return;
     }
+
+    setDefaultSecurityHeaders(res);
 
     try {
       const configSnapshot = loadConfig();
