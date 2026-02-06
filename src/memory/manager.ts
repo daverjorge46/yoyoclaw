@@ -824,20 +824,71 @@ export class MemoryIndexManager implements MemorySearchManager {
       path.join(this.workspaceDir, "memory"),
       ...additionalPaths,
     ]);
-    this.watcher = chokidar.watch(Array.from(watchPaths), {
-      ignoreInitial: true,
-      awaitWriteFinish: {
-        stabilityThreshold: this.settings.sync.watchDebounceMs,
-        pollInterval: 100,
-      },
-    });
+    const paths = Array.from(watchPaths);
     const markDirty = () => {
       this.dirty = true;
       this.scheduleWatchSync();
     };
-    this.watcher.on("add", markDirty);
-    this.watcher.on("change", markDirty);
-    this.watcher.on("unlink", markDirty);
+
+    const startWatcher = (mode: "native" | "polling") => {
+      const usePolling = mode === "polling";
+      const watcher = chokidar.watch(paths, {
+        ignoreInitial: true,
+        awaitWriteFinish: {
+          stabilityThreshold: this.settings.sync.watchDebounceMs,
+          pollInterval: 100,
+        },
+        usePolling,
+        // Polling avoids inotify watcher limits (ENOSPC), but can be more CPU heavy.
+        interval: usePolling
+          ? Math.max(250, Math.min(2000, this.settings.sync.watchDebounceMs))
+          : undefined,
+      });
+
+      watcher.on("add", markDirty);
+      watcher.on("change", markDirty);
+      watcher.on("unlink", markDirty);
+
+      let watcherClosed = false;
+      watcher.on("error", (err) => {
+        if (watcherClosed || this.closed) {
+          return;
+        }
+        const code = (err as NodeJS.ErrnoException)?.code;
+        if (mode === "native" && code === "ENOSPC") {
+          watcherClosed = true;
+          log.warn(
+            `memory file watcher hit system limit (${code}); falling back to polling. ` +
+              "Consider increasing inotify limits (Linux) for better performance.",
+          );
+          void watcher.close().catch(() => {});
+          if (this.watcher === watcher) {
+            this.watcher = null;
+          }
+          if (!this.closed) {
+            this.watcher = startWatcher("polling");
+          }
+          return;
+        }
+        if (code === "ENOSPC" || code === "EMFILE" || code === "ENFILE") {
+          watcherClosed = true;
+          log.warn(
+            `memory file watcher disabled (${code}). ` +
+              "Consider increasing system limits or set agents.defaults.memorySearch.sync.watch=false.",
+          );
+          void watcher.close().catch(() => {});
+          if (this.watcher === watcher) {
+            this.watcher = null;
+          }
+          return;
+        }
+        log.warn(`memory file watcher error: ${String(err)}`);
+      });
+
+      return watcher;
+    };
+
+    this.watcher = startWatcher("native");
   }
 
   private ensureSessionListener() {
