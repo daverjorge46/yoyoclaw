@@ -33,19 +33,20 @@ export function armTimer(state: CronServiceState) {
   const delay = Math.max(nextAt - now, 0);
   // Avoid TimeoutOverflowWarning when a job is far in the future.
   const clampedDelay = Math.min(delay, MAX_TIMEOUT_MS);
-  
+
   state.deps.log.debug(
     { nextWakeAtMs: nextAt, delayMs: clampedDelay, clamped: delay > MAX_TIMEOUT_MS },
     "cron: timer armed"
   );
-  
+
   state.timer = setTimeout(() => {
     void onTimer(state).catch((err) => {
       state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
       // Defensive re-arm: if onTimer throws before finally block, re-arm anyway
-      // to prevent scheduler death.
+      // to prevent scheduler death. Do NOT clear state.running here as the
+      // original execution may still be in progress (the finally block will
+      // clear it when truly done).
       try {
-        state.running = false;
         armTimer(state);
       } catch (rearmErr) {
         state.deps.log.error({ err: String(rearmErr) }, "cron: defensive re-arm failed");
@@ -57,7 +58,7 @@ export function armTimer(state: CronServiceState) {
 export async function onTimer(state: CronServiceState) {
   const now = state.deps.nowMs();
   state.deps.log.debug({ now, running: state.running }, "cron: timer fired");
-  
+
   if (state.running) {
     // Check if running state is stale (job hung)
     const runningFor = state.runningStartedAtMs ? now - state.runningStartedAtMs : 0;
@@ -78,10 +79,10 @@ export async function onTimer(state: CronServiceState) {
       return;
     }
   }
-  
+
   state.running = true;
   state.runningStartedAtMs = now;
-  
+
   try {
     await locked(state, async () => {
       // Reload persisted due-times without recomputing so runDueJobs sees
@@ -115,9 +116,9 @@ export async function runDueJobs(state: CronServiceState) {
     const next = j.state.nextRunAtMs;
     return typeof next === "number" && now >= next;
   });
-  
+
   state.deps.log.debug({ dueCount: due.length }, "cron: runDueJobs");
-  
+
   for (const job of due) {
     await executeJob(state, job, now, { forced: false });
   }
