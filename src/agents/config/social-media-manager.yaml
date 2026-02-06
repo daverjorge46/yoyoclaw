@@ -1,0 +1,367 @@
+# 🐦 Social Media Manager Agent — X (Twitter) Configuration
+# Agent ID: social-media-manager
+# Specialization: X/Twitter account management
+# Status: Active
+
+agent:
+  id: social-media-manager
+  name: "Social Media Manager"
+  role: "Content & Community Manager for X (Twitter)"
+  emoji: "📱"
+
+  # Platform: X/Twitter
+  platform: "x"
+
+  # Capabilities
+  capabilities:
+    - "tweet-posting" # Create & schedule tweets
+    - "engagement" # Like, retweet, reply
+    - "search" # Find relevant conversations
+    - "analytics" # Monitor performance
+    - "trending" # Track trends & news
+    - "thread-management" # Manage tweet threads
+    - "user-timeline" # Monitor user interactions
+    - "media-handling" # Attach images/videos
+
+# X/Twitter Account Configuration
+twitter:
+  # Account credentials (use environment variables or secure storage)
+  account: "${TWITTER_HANDLE}" # e.g., @yourbrand
+  account_id: "${TWITTER_ID}"
+
+  # Authentication (cookie-based via bird CLI)
+  auth_method: "cookies"
+  auth_source: "browser" # chrome, brave, safari, arc
+
+  # Credentials
+  # These should be stored in secure vault, not in code
+  auth_token: "${TWITTER_AUTH_TOKEN}"
+  ct0: "${TWITTER_CT0}"
+
+  # Alternative: Chrome profile path (for browser-based auth)
+  chrome_profile_dir: "~/Library/Application Support/Google/Chrome/Default"
+
+# Permissions & Limits
+permissions:
+  # Writing permissions
+  post_tweets: true
+  schedule_tweets: true
+  reply_to_mentions: true
+  quote_tweets: true
+  retweet: true
+  like_tweets: true
+
+  # Reading permissions
+  read_timeline: true
+  read_mentions: true
+  search_tweets: true
+  read_trends: true
+  read_user_profile: true
+
+  # Moderation
+  block_users: false
+  mute_users: false
+  delete_own_tweets: false # Require human approval
+
+# Rate Limiting
+rate_limits:
+  tweets_per_day: 10
+  replies_per_day: 20
+  searches_per_hour: 30
+  api_calls_per_minute: 15
+
+# Content Guidelines
+content:
+  # Tone & style
+  tone: "professional" # professional, casual, friendly, formal
+  language: "en"
+
+  # Topics
+  topics_managed:
+    - "product-announcements"
+    - "company-updates"
+    - "community-engagement"
+    - "thought-leadership"
+    - "customer-support"
+
+  # Content restrictions
+  avoid_topics:
+    - "politics"
+    - "controversial-issues"
+    - "personal-opinions" # Unless explicitly approved
+
+  # Hashtags
+  hashtags:
+    brand: "#YourBrand"
+    campaign: "#YourCampaign"
+    automatic: true # Auto-add hashtags to tweets
+
+  # Media
+  max_media_per_tweet: 4
+  allowed_media_types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+    - "video/mp4"
+
+  # Links
+  track_link_clicks: true
+  shorten_urls: true
+  url_shortener: "twitter-native"
+
+# Automation & Scheduling
+automation:
+  # Posting schedule
+  active_hours:
+    - "09:00-17:00" # Main hours
+
+  posting_schedule:
+    monday: ["09:00", "12:00", "17:00"]
+    tuesday: ["09:00", "12:00", "17:00"]
+    wednesday: ["09:00", "12:00", "17:00"]
+    thursday: ["09:00", "12:00", "17:00"]
+    friday: ["09:00", "12:00", "17:00"]
+    saturday: ["10:00", "14:00"]
+    sunday: ["10:00", "14:00"]
+
+  # Auto-reply to mentions
+  auto_reply:
+    enabled: false # Require human approval first
+    delay_seconds: 300 # 5 minute delay before replying
+
+  # Daily digest
+  daily_digest:
+    enabled: true
+    send_at: "09:00"
+    include:
+      - "mentions"
+      - "likes"
+      - "retweets"
+      - "trending-topics"
+      - "engagement-stats"
+
+  # Engagement targets
+  engagement:
+    like_relevant_tweets: true
+    like_count_per_hour: 5
+
+    retweet_relevant: true
+    retweet_count_per_day: 3
+
+    reply_to_engagement: true
+    reply_count_per_day: 5
+
+# Monitoring & Analytics
+monitoring:
+  # Track metrics
+  track_metrics: true
+
+  metrics:
+    - "tweet_impressions"
+    - "engagement_rate"
+    - "follower_growth"
+    - "mention_volume"
+    - "trending_topics"
+
+  # Reporting
+  reporting:
+    daily: true
+    weekly: true
+    monthly: true
+
+    daily_time: "08:00"
+    weekly_day: "monday"
+    weekly_time: "09:00"
+    monthly_day: 1
+    monthly_time: "09:00"
+
+  # Alerts
+  alerts:
+    high_engagement: true
+    threshold_engagement_rate: 5.0 # %
+
+    mentions_spike: true
+    threshold_mentions_multiplier: 3.0
+
+    trending_brand_mention: true
+
+    negative_sentiment: true
+
+# Integration with OpenClaw
+openclaw:
+  # Use skills
+  skills:
+    - bird # X/Twitter CLI
+    - message # Send updates
+
+  # Use tools
+  tools:
+    - x-post-tool
+    - x-search-tool
+    - x-engagement-tool
+    - x-analytics-tool
+
+  # Use services
+  services:
+    - humanization-service # For tone/energy awareness
+    - content-analysis # For sentiment analysis
+    - schedule-manager # For scheduling
+
+  # Middleware
+  middleware:
+    - content-moderation # Review before posting
+    - tone-analyzer # Ensure consistent voice
+    - trend-detector # Alert on relevant trends
+
+# Tools Registration
+tools:
+  - name: "x-post"
+    description: "Post tweet to X"
+    command: "bird post"
+    parameters:
+      - name: "text"
+        type: "string"
+        required: true
+        max_length: 280
+      - name: "media"
+        type: "array"
+        required: false
+        max_items: 4
+      - name: "schedule"
+        type: "timestamp"
+        required: false
+
+  - name: "x-search"
+    description: "Search tweets on X"
+    command: "bird search"
+    parameters:
+      - name: "query"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: false
+        default: 10
+      - name: "filters"
+        type: "object"
+        required: false
+
+  - name: "x-engage"
+    description: "Engage with tweets (like, retweet, reply)"
+    command: "bird"
+    actions:
+      - "like"
+      - "retweet"
+      - "reply"
+      - "quote"
+
+  - name: "x-timeline"
+    description: "Read timeline and mentions"
+    command: "bird home"
+    parameters:
+      - name: "timeline_type"
+        type: "enum"
+        values: ["home", "following", "mentions"]
+      - name: "limit"
+        type: "integer"
+        default: 20
+
+  - name: "x-analytics"
+    description: "Get tweet and account analytics"
+    command: "bird analytics"
+    parameters:
+      - name: "metric"
+        type: "enum"
+        values: ["impressions", "engagement", "followers", "trends"]
+
+# Conversation Context
+context:
+  # Remember conversations
+  remember_threads: true
+  conversation_history_length: 10
+
+  # User interactions
+  track_user_interactions: true
+  user_interaction_limit: 100
+
+  # Keywords to monitor
+  keywords_to_track:
+    - "your-brand"
+    - "your-product"
+    - "competitors"
+    - "industry-terms"
+
+# Approval Workflow
+approvals:
+  # Content that needs approval
+  require_approval:
+    - "announcing-new-products"
+    - "responding-to-negative-feedback"
+    - "external-partnerships"
+    - "controversial-topics"
+
+  # Approval flow
+  approval_process:
+    required: true
+    timeout_hours: 4
+    fallback: "hold" # 'hold' or 'draft'
+
+  # Approvers
+  approvers:
+    - "admin"
+    - "content-lead"
+    - "cmo"
+
+# Integration Points
+integrations:
+  # Slack
+  slack:
+    enabled: true
+    channel: "#social-media-updates"
+    post_updates: true
+    post_mentions: true
+    post_analytics: true
+
+  # Internal tools
+  google_analytics:
+    enabled: true
+    track_url_clicks: true
+
+  # CRM
+  crm:
+    enabled: false
+    sync_user_interactions: false
+
+# Security & Privacy
+security:
+  # Token management
+  token_rotation: true
+  token_rotation_days: 90
+
+  # Data handling
+  store_sensitive_data: false
+  encrypt_credentials: true
+
+  # Audit logging
+  audit_logging: true
+  log_all_posts: true
+  log_all_deletes: true
+
+  # IP restrictions
+  ip_whitelist_enabled: false
+  allowed_ips: []
+
+# Metadata
+metadata:
+  version: "1.0.0"
+  created_at: "2026-02-06T01:45:00Z"
+  updated_at: "2026-02-06T01:45:00Z"
+  created_by: "openclaw-system"
+  status: "active"
+
+  tags:
+    - "social-media"
+    - "x-twitter"
+    - "content-management"
+    - "engagement"
+    - "automation"
