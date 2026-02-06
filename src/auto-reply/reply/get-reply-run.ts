@@ -37,13 +37,14 @@ import {
 } from "../thinking.js";
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { runReplyAgent } from "./agent-runner.js";
-import { applySessionHints } from "./body.js";
+import { extractSessionHintParts } from "./body.js";
+import { type ContextSegment, findSegment, renderSegments } from "./context-segments.js";
 import { buildGroupIntro } from "./groups.js";
 import { resolveQueueSettings } from "./queue.js";
 import { routeReply } from "./route-reply.js";
-import { ensureSkillSnapshot, prependSystemEvents } from "./session-updates.js";
+import { buildSystemEventsBlock, ensureSkillSnapshot } from "./session-updates.js";
 import { resolveTypingMode } from "./typing-mode.js";
-import { appendUntrustedContext } from "./untrusted-context.js";
+import { buildUntrustedContextBlock } from "./untrusted-context.js";
 
 type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
@@ -209,8 +210,8 @@ export async function runPreparedReply(
       text: "I didn't receive any text in your message. Please resend or add a caption.",
     };
   }
-  let prefixedBodyBase = await applySessionHints({
-    baseBody: baseBodyFinal,
+  // --- Structured context segment assembly ---
+  const hintParts = await extractSessionHintParts({
     abortedLastRun,
     sessionEntry,
     sessionStore,
@@ -221,14 +222,13 @@ export async function runPreparedReply(
   });
   const isGroupSession = sessionEntry?.chatType === "group" || sessionEntry?.chatType === "channel";
   const isMainSession = !isGroupSession && sessionKey === normalizeMainKey(sessionCfg?.mainKey);
-  prefixedBodyBase = await prependSystemEvents({
+  const systemEventsBlock = await buildSystemEventsBlock({
     cfg,
     sessionKey,
     isMainSession,
     isNewSession,
-    prefixedBodyBase,
   });
-  prefixedBodyBase = appendUntrustedContext(prefixedBodyBase, sessionCtx.UntrustedContext);
+  const untrustedBlock = buildUntrustedContextBlock(sessionCtx.UntrustedContext);
   const threadStarterBody = ctx.ThreadStarterBody?.trim();
   const threadStarterNote =
     isNewSession && threadStarterBody
@@ -248,22 +248,37 @@ export async function runPreparedReply(
   sessionEntry = skillResult.sessionEntry ?? sessionEntry;
   currentSystemSent = skillResult.systemSent;
   const skillsSnapshot = skillResult.skillsSnapshot;
-  const prefixedBody = [threadStarterNote, prefixedBodyBase].filter(Boolean).join("\n\n");
   const mediaNote = buildInboundMediaNote(ctx);
   const mediaReplyHint = mediaNote
     ? "To send an image back, prefer the message tool (media/path/filePath). If you must inline, use MEDIA:https://example.com/image.jpg (spaces ok, quote if needed) or a safe relative path like MEDIA:./image.jpg. Avoid absolute paths (MEDIA:/...) and ~ paths — they are blocked for security. Keep caption in the text body."
     : undefined;
-  let prefixedCommandBody = mediaNote
-    ? [mediaNote, mediaReplyHint, prefixedBody ?? ""].filter(Boolean).join("\n").trim()
-    : prefixedBody;
-  if (!resolvedThinkLevel && prefixedCommandBody) {
-    const parts = prefixedCommandBody.split(/\s+/);
+
+  // Build segments in canonical order
+  const contextSegments: ContextSegment[] = [
+    ...(mediaNote ? [{ kind: "media-note" as const, content: mediaNote }] : []),
+    ...(mediaReplyHint ? [{ kind: "media-hint" as const, content: mediaReplyHint }] : []),
+    ...(threadStarterNote ? [{ kind: "thread-starter" as const, content: threadStarterNote }] : []),
+    ...(systemEventsBlock ? [{ kind: "system-event" as const, content: systemEventsBlock }] : []),
+    ...(hintParts.abortHint ? [{ kind: "abort-hint" as const, content: hintParts.abortHint }] : []),
+    { kind: "message-body" as const, content: baseBodyFinal },
+    ...(hintParts.messageIdHint
+      ? [{ kind: "message-id-hint" as const, content: hintParts.messageIdHint }]
+      : []),
+    ...(untrustedBlock ? [{ kind: "untrusted-context" as const, content: untrustedBlock }] : []),
+  ];
+
+  // Think-level extraction: target the message-body segment specifically
+  const bodySegment = findSegment(contextSegments, "message-body");
+  if (!resolvedThinkLevel && bodySegment?.content) {
+    const parts = bodySegment.content.split(/\s+/);
     const maybeLevel = normalizeThinkLevel(parts[0]);
     if (maybeLevel && (maybeLevel !== "xhigh" || supportsXHighThinking(provider, model))) {
       resolvedThinkLevel = maybeLevel;
-      prefixedCommandBody = parts.slice(1).join(" ").trim();
+      bodySegment.content = parts.slice(1).join(" ").trim();
     }
   }
+
+  let prefixedCommandBody = renderSegments(contextSegments);
   if (!resolvedThinkLevel) {
     resolvedThinkLevel = await modelState.resolveDefaultThinkingLevel();
   }
