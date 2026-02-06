@@ -151,6 +151,7 @@ async function withSimplexClient<T>(
 ): Promise<T> {
   const existing = activeClients.get(account.accountId);
   if (existing) {
+    await existing.connect();
     return await fn(existing);
   }
   const client = new SimplexWsClient({
