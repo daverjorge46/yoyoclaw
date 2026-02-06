@@ -1,0 +1,30 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装基础工具和编程环境
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends bash ca-certificates curl git jq python3 ripgrep chromium fonts-liberation fonts-noto-color-emoji novnc socat websockify x11vnc xvfb coreutils grep unzip pkg-config libasound2-dev build-essential file wget nodejs npm golang-go rustc cargo python3-pip python3-venv ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+# 安装 pnpm
+RUN npm install -g pnpm
+
+# 安装 Bun
+ENV BUN_INSTALL=/opt/bun
+RUN curl -fsSL https://bun.sh/install | bash \\
+  && ln -sf /opt/bun/bin/bun /usr/local/bin/bun
+ENV PATH="/opt/bun/bin:${PATH}"
+
+# 复制浏览器入口脚本
+COPY scripts/sandbox-browser-entrypoint.sh /usr/local/bin/openclaw-sandbox-browser
+RUN chmod +x /usr/local/bin/openclaw-sandbox-browser
+
+# 暴露端口
+EXPOSE 9222 5900 6080
+
+# 工作目录
+WORKDIR /workspace
+
+# 默认命令
+CMD ["openclaw-sandbox-browser"]

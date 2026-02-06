@@ -1,0 +1,342 @@
+/**
+ * OpenClaw Ultimate Sandbox 配置示例
+ *
+ * 使用方法：
+ * 1. 复制此文件到 ~/.openclaw/config
+ * 2. 根据你的需求调整配置
+ * 3. 重启 OpenClaw Gateway
+ *
+ * 文档: https://docs.openclaw.ai/install/sandbox-ultimate
+ */
+
+{
+  // ============================================================================
+  // 全局配置
+  // ============================================================================
+  gateway: {
+    mode: "local",
+    bind: "loopback",
+    port: 18789,
+    auth: "token",
+    token: "your-gateway-token-here",
+  },
+
+  // ============================================================================
+  // Agent 沙盒配置
+  // ============================================================================
+  agents: {
+    defaults: {
+      // 沙盒模式
+      sandbox: {
+        // 沙盒模式: "off" | "non-main" | "all"
+        // - "off": 完全关闭沙盒，工具在主机运行
+        // - "non-main": 仅非主会话使用沙盒（默认推荐）
+        // - "all": 所有会话都使用沙盒（最高安全级别）
+        mode: "non-main",
+
+        // 容器范围: "session" | "agent" | "shared"
+        // - "session": 每个会话一个容器（隔离最好，性能较低）
+        // - "agent": 每个 agent 一个容器（平衡）
+        // - "shared": 所有会话共享容器（性能最好，隔离最弱）
+        scope: "agent",
+
+        // 工作区访问: "none" | "ro" | "rw"
+        // - "none": 沙盒自有工作区（最安全）
+        // - "ro": 只读挂载 agent 工作区
+        // - "rw": 读写挂载 agent 工作区
+        workspaceAccess: "rw",
+
+        // 工作区根目录
+        workspaceRoot: "~/.openclaw/sandboxes",
+
+        // Docker 配置
+        docker: {
+          // 镜像名称（由 sandbox-ultimate-setup.sh 构建）
+          image: "openclaw-sandbox-ultimate:bookworm-slim",
+
+          // 工作目录
+          workdir: "/workspace",
+
+          // 只读根文件系统（提高安全性）
+          readOnlyRoot: true,
+
+          // tmpfs 挂载（提高性能）
+          tmpfs: [
+            "/tmp",
+            "/var/tmp",
+            "/run",
+            "/workspace/node_modules",  // 缓存 node_modules
+          ],
+
+          // 网络配置
+          // - "none": 无网络访问（默认，最安全）
+          // - "bridge": 允许网络访问（需要 npm install, git clone 时）
+          // - "host": 主机网络（不推荐）
+          network: "bridge",  // 改为 "bridge" 以支持 npm/pnpm/bun 安装包
+
+          // 用户（UID:GID）
+          // 默认 1000:1000，确保挂载目录权限匹配
+          user: "1000:1000",
+
+          // 丢弃所有 capabilities（提高安全性）
+          capDrop: ["ALL"],
+
+          // 环境变量
+          env: {
+            LANG: "C.UTF-8",
+            // 确保 Bun 在 PATH 中
+            PATH: "/opt/bun/bin:/usr/local/bin:/usr/bin:/bin",
+            // Node.js 配置
+            NODE_ENV: "production",
+            // Go 配置
+            GOPATH: "/workspace/go",
+            PATH: "/workspace/go/bin:/opt/bun/bin:/usr/local/bin:/usr/bin:/bin",
+          },
+
+          // 资源限制
+          pidsLimit: 512,      // 进程数限制（默认 256）
+          memory: "2g",        // 内存限制（默认 1g）
+          memorySwap: "4g",    // 交换空间限制
+          cpus: 2,             // CPU 核心数限制（默认 1）
+
+          // Ulimit 限制
+          ulimits: {
+            nofile: { soft: 4096, hard: 8192 },
+            nproc: 512,
+          },
+
+          // seccomp 配置文件（可选，用于系统调用过滤）
+          // seccompProfile: "/path/to/seccomp.json",
+
+          // AppArmor 配置文件（可选，用于强制访问控制）
+          // apparmorProfile: "openclaw-sandbox-ultimate",
+
+          // DNS 服务器（当 network: "bridge" 时有效）
+          // dns: ["1.1.1.1", "8.8.8.8"],
+
+          // 额外的 hosts 映射
+          // extraHosts: ["internal.service:10.0.0.5"],
+        },
+
+        // 浏览器配置
+        browser: {
+          // 启用浏览器工具
+          enabled: true,
+
+          // 浏览器镜像（默认与 docker.image 相同）
+          // image: "openclaw-sandbox-browser:bookworm-slim",
+
+          // 无头模式
+          // - false: 使用 Xvfb + noVNC（可以远程桌面）
+          // - true: 完全无头（性能更好）
+          headless: false,
+        },
+
+        // 容器清理策略
+        prune: {
+          // 空闲时间（小时）：容器未使用超过此时间将被删除
+          idleHours: 24,  // 0 = 禁用空闲清理
+
+          // 最大天数：容器创建超过此天数将被删除
+          maxAgeDays: 7,  // 0 = 禁用最大年龄清理
+        },
+      },
+    },
+
+    // ============================================================================
+    // 多 Agent 配置（可选）
+    // ============================================================================
+    list: [
+      // ============================================================================
+      // Agent 1: 个人助手（完整权限）
+      // ============================================================================
+      {
+        agentId: "personal-assistant",
+        name: "Personal Assistant",
+        description: "我的个人 AI 助手，有完整的工具访问权限",
+        routing: { default: true },
+        // 继承 defaults.sandbox 配置，无需覆盖
+      },
+
+      // ============================================================================
+      // Agent 2: 工作助手（只读工作区 + 无浏览器）
+      // ============================================================================
+      {
+        agentId: "work-assistant",
+        name: "Work Assistant",
+        description: "工作相关的 AI 助手，只能读取代码，不能修改",
+        sandbox: {
+          // 只读工作区访问
+          workspaceAccess: "ro",
+          // 禁用浏览器
+          browser: { enabled: false },
+        },
+        tools: {
+          sandbox: {
+            tools: {
+              // 禁止写入和编辑工具
+              deny: ["write", "edit", "apply_patch"],
+            },
+          },
+        },
+      },
+
+      // ============================================================================
+      // Agent 3: 公共机器人（严格限制）
+      // ============================================================================
+      {
+        agentId: "public-bot",
+        name: "Public Bot",
+        description: "公共机器人，严格限制工具访问",
+        sandbox: {
+          // 强制所有会话使用沙盒
+          mode: "all",
+          // 无工作区访问
+          workspaceAccess: "none",
+          // 禁用浏览器
+          browser: { enabled: false },
+          // 更严格的资源限制
+          docker: {
+            memory: "1g",
+            cpus: 1,
+            pidsLimit: 256,
+          },
+        },
+        tools: {
+          sandbox: {
+            tools: {
+              // 仅允许基础工具
+              allow: ["exec", "read", "process"],
+              // 禁止所有危险工具
+              deny: [
+                "write",
+                "edit",
+                "apply_patch",
+                "browser",
+                "canvas",
+                "nodes",
+                "cron",
+                "discord",
+                "gateway",
+              ],
+            },
+          },
+        },
+      },
+
+      // ============================================================================
+      // Agent 4: 浏览器自动化专家（专注于浏览器工具）
+      // ============================================================================
+      {
+        agentId: "browser-automation-expert",
+        name: "Browser Automation Expert",
+        description: "专注于浏览器自动化和网页测试",
+        sandbox: {
+          // 浏览器必须启用
+          browser: { enabled: true, headless: false },
+          docker: {
+            // 浏览器需要网络访问
+            network: "bridge",
+            // 浏览器需要更多内存
+            memory: "3g",
+            cpus: 2,
+          },
+        },
+        tools: {
+          sandbox: {
+            tools: {
+              // 允许浏览器工具
+              allow: [
+                "exec",
+                "read",
+                "write",
+                "edit",
+                "browser",
+                "process",
+              ],
+              deny: ["canvas", "nodes", "cron", "discord", "gateway"],
+            },
+          },
+        },
+      },
+    ],
+  },
+
+  // ============================================================================
+  // 工具策略配置
+  // ============================================================================
+  tools: {
+    sandbox: {
+      tools: {
+        // 允许的工具列表（如果为空，则允许所有工具，除了 deny 列表）
+        allow: [
+          "exec",                  // 执行 shell 命令
+          "process",               // 查看进程
+          "read",                  // 读取文件
+          "write",                 // 写入文件
+          "edit",                  // 编辑文件
+          "apply_patch",           // 应用补丁
+          "browser",               // 浏览器工具
+          "sessions_list",         // 列出会话
+          "sessions_history",      // 会话历史
+          "sessions_send",         // 发送消息
+          "sessions_spawn",        // 创建新会话
+          "session_status",        // 会话状态
+        ],
+
+        // 禁止的工具列表（优先级高于 allow）
+        deny: [
+          "canvas",                // Canvas 工具（主机专用）
+          "nodes",                 // 节点管理（主机专用）
+          "cron",                  // 定时任务（主机专用）
+          "discord",               // Discord 工具（主机专用）
+          "gateway",               // Gateway 管理（主机专用）
+        ],
+      },
+    },
+  },
+
+  // ============================================================================
+  // 提供商配置（可选）
+  // ============================================================================
+  providers: {
+    // Anthropic Claude API
+    anthropic: {
+      apiKey: "your-anthropic-api-key-here",
+      model: "claude-sonnet-4-5-20250929",
+    },
+
+    // OpenAI API（可选）
+    openai: {
+      apiKey: "your-openai-api-key-here",
+      model: "gpt-4o",
+    },
+
+    // 本地模型（可选）
+    // localai: {
+    //   baseURL: "http://localhost:11434/v1",
+    //   apiKey: "not-needed",
+    //   model: "llama3.1:8b",
+    // },
+  },
+
+  // ============================================================================
+  // 渠道配置（可选）
+  // ============================================================================
+  channels: {
+    // 示例：Telegram
+    // telegram: {
+    //   token: "your-telegram-bot-token-here",
+    // },
+
+    // 示例：Discord
+    // discord: {
+    //   token: "your-discord-bot-token-here",
+    // },
+
+    // 示例：WhatsApp（需要先登录）
+    // whatsapp: {
+    //   // 使用 `openclaw channels login` 配置
+    // },
+  },
+}
