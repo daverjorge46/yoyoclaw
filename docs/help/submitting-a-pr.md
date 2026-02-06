@@ -13,7 +13,7 @@ Good PRs make it easy for reviewers to understand intent, verify behavior, and l
 - [ ] Tight scope: keep changes focused and avoid drive-by refactors.
 - [ ] Behavior summary: call out user-visible changes, config changes, and defaults.
 - [ ] Tests: list what ran, what was skipped, and why.
-- [ ] Evidence: include logs, screenshots, or short recordings for UI or workflows.
+- [ ] Evidence (recommended, especially UI/UX): include logs, screenshots, or short recordings.
 - [ ] Code word: include “lobster-biscuit” somewhere in the PR description to confirm you read this guide.
 - [ ] Baseline checks: run the relevant `pnpm` commands for this repo and fix failures before opening the PR.
 - [ ] Due diligence: search the codebase for existing functionality and check GitHub for related issues or prior fixes.
@@ -21,6 +21,7 @@ Good PRs make it easy for reviewers to understand intent, verify behavior, and l
 - [ ] Title guidance: use a verb + scope + outcome (for example `Docs: add PR and issue templates`).
 
 Guideline: concision > grammar. Be terse if it makes review faster.
+Guideline: omit any section that is N/A. Keep the PR description lean.
 
 Baseline validation commands (run as appropriate for the change, and fix failures before submitting):
 
@@ -61,7 +62,7 @@ This keeps review fast while preserving deep context for anyone who needs it.
 - [ ] Scope is focused
 - [ ] Behavior changes are listed
 - [ ] Tests are listed with results
-- [ ] Evidence is attached when needed
+- [ ] Manual testing steps are provided when applicable
 - [ ] No secrets or private data
 - [ ] Grounded in reality: no guesswork or invented context.
 
@@ -76,13 +77,24 @@ This keeps review fast while preserving deep context for anyone who needs it.
 
 ## Tests
 
-## Evidence
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
 
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ## Templates by PR type
@@ -100,13 +112,24 @@ This keeps review fast while preserving deep context for anyone who needs it.
 
 ## Tests
 
-## Evidence
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
 
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Feature
@@ -122,20 +145,31 @@ This keeps review fast while preserving deep context for anyone who needs it.
 
 - [ ] I searched the codebase for existing functionality before implementing this.
 
-Searches performed (1-3 bullets, one sentence each):
+Searches performed (self-reported; 1-3 bullets, one sentence each; cite evidence):
 
 -
 -
 
 ## Tests
 
-## Evidence
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
 
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Refactor
@@ -149,11 +183,24 @@ Searches performed (1-3 bullets, one sentence each):
 
 ## Tests
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Chore/Maintenance
@@ -165,11 +212,24 @@ Searches performed (1-3 bullets, one sentence each):
 
 ## Tests
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Docs
@@ -179,17 +239,19 @@ Searches performed (1-3 bullets, one sentence each):
 
 ## Pages Updated
 
-## Screenshots or Before/After
+## Before/After (recommended)
 
 ## Formatting
 
 pnpm format
 
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Test
@@ -201,11 +263,24 @@ pnpm format
 
 ## Tests
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Perf
@@ -221,11 +296,24 @@ pnpm format
 
 ## Tests
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### UX/UI
@@ -233,17 +321,28 @@ pnpm format
 ```md
 ## Summary
 
-## Screenshots or Video
+## Screenshots or Video (recommended)
 
 ## Accessibility Impact
 
 ## Tests
 
+## Manual Testing (when applicable)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Infra/Build
@@ -255,11 +354,24 @@ pnpm format
 
 ## Validation Steps
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
 
 ### Security
@@ -277,9 +389,22 @@ pnpm format
 
 ## Tests
 
+## Manual Testing (when applicable; omit if N/A)
+
+### Prerequisites
+
+-
+
+### Steps
+
+1.
+2.
+
+## Evidence (when applicable; omit if N/A)
+
 ## Sign-Off
 
 - Models used:
 - Submitter effort summary (self-reported, subjective):
-- Agent notes (optional; brief; cite evidence):
+- Agent notes (optional; brief; cite evidence; omit if N/A):
 ```
