@@ -11,6 +11,7 @@ import {
   Bot,
   ListTodo,
   RefreshCw,
+  Zap,
   Settings,
   Plug,
   ChevronLeft,
@@ -199,6 +200,12 @@ export function Sidebar({ className }: SidebarProps) {
               href="/rituals"
               icon={RefreshCw}
               label="Rituals"
+              collapsed={sidebarCollapsed}
+            />
+            <NavItem
+              href="/automations"
+              icon={Zap}
+              label="Automations"
               collapsed={sidebarCollapsed}
             />
           </NavSection>

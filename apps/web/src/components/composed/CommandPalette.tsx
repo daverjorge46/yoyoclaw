@@ -121,6 +121,7 @@ export function CommandPalette({
     { label: "Goals", to: "/goals" as const, icon: Target },
     { label: "Memories", to: "/memories" as const, icon: Brain },
     { label: "Rituals", to: "/rituals" as const, icon: RefreshCw },
+    { label: "Automations", to: "/automations" as const, icon: Zap },
     { label: "Workstreams", to: "/workstreams" as const, icon: ListTodo },
     { label: "Settings", to: "/you" as const, icon: Settings },
   ];

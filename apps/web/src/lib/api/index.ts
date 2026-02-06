@@ -190,6 +190,29 @@ export {
   type CronPayload,
 } from "./cron";
 
+// Automations API functions
+export {
+  listAutomations,
+  createAutomation,
+  updateAutomation,
+  deleteAutomation,
+  runAutomation,
+  cancelAutomation,
+  getAutomationHistory,
+  downloadAutomationArtifact,
+  type Automation,
+  type AutomationStatus,
+  type AutomationType,
+  type AutomationSchedule,
+  type AutomationRunRecord,
+  type AutomationCreateParams,
+  type AutomationUpdateParams,
+  type AutomationRunResult,
+  type AutomationCancelResult,
+  type AutomationHistoryResult,
+  type AutomationArtifactDownloadResult,
+} from "./automations";
+
 // Agent Status API functions
 export {
   getAgentStatus,
