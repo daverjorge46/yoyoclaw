@@ -619,14 +619,30 @@ class GatewaySession(
     val port = parsed?.port ?: -1
     val scheme = parsed?.scheme?.trim().orEmpty().ifBlank { "http" }
 
+    // If the advertised URL has a non-loopback .ts.net host, use HTTPS on default port (443).
+    if (host.endsWith(".ts.net", ignoreCase = true)) {
+      return "https://$host"
+    }
+
     if (trimmed.isNotBlank() && !isLoopbackHost(host)) {
       return trimmed
     }
 
+    // Prefer tailnet DNS → uses HTTPS on port 443 via Tailscale serve.
+    val tailnetHost = endpoint.tailnetDns?.trim().takeIf { !it.isNullOrEmpty() }
+    if (tailnetHost != null) {
+      return "https://$tailnetHost"
+    }
+
+    // Check if the endpoint host itself is a .ts.net name.
+    val endpointHost = endpoint.host.trim()
+    if (endpointHost.endsWith(".ts.net", ignoreCase = true)) {
+      return "https://$endpointHost"
+    }
+
     val fallbackHost =
-      endpoint.tailnetDns?.trim().takeIf { !it.isNullOrEmpty() }
-        ?: endpoint.lanHost?.trim().takeIf { !it.isNullOrEmpty() }
-        ?: endpoint.host.trim()
+      endpoint.lanHost?.trim().takeIf { !it.isNullOrEmpty() }
+        ?: endpointHost
     if (fallbackHost.isEmpty()) return trimmed.ifBlank { null }
 
     val fallbackPort = endpoint.canvasPort ?: if (port > 0) port else 18793
