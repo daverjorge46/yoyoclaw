@@ -162,6 +162,11 @@ export async function ensureLoaded(state: CronServiceState, opts?: { forceReload
       mutated = true;
     }
 
+    if (!raw.state || typeof raw.state !== "object" || Array.isArray(raw.state)) {
+      raw.state = {};
+      mutated = true;
+    }
+
     const payload = raw.payload;
     if (payload && typeof payload === "object" && !Array.isArray(payload)) {
       if (migrateLegacyCronPayload(payload as Record<string, unknown>)) {

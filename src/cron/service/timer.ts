@@ -56,10 +56,10 @@ export async function runDueJobs(state: CronServiceState) {
     if (!j.enabled) {
       return false;
     }
-    if (typeof j.state.runningAtMs === "number") {
+    if (typeof j.state?.runningAtMs === "number") {
       return false;
     }
-    const next = j.state.nextRunAtMs;
+    const next = j.state?.nextRunAtMs;
     return typeof next === "number" && now >= next;
   });
   for (const job of due) {
