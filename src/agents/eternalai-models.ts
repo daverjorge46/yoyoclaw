@@ -1,6 +1,6 @@
 import type { ModelDefinitionConfig } from "../config/types.js";
 
-export const ETERNALAI_BASE_URL = "https://proxy-relay-8182.doggi-dev.net/v1";
+export const ETERNALAI_BASE_URL = "https://mvp-b.eternalai.org/v1";
 export const ETERNALAI_DEFAULT_MODEL_ID = "openrouter/z-ai/glm-4.7-flash";
 export const ETERNALAI_DEFAULT_MODEL_REF = `eternalai/${ETERNALAI_DEFAULT_MODEL_ID}`;
 
