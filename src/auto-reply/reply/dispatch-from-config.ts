@@ -1,8 +1,10 @@
+import path from "node:path";
+
 import type { OpenClawConfig } from "../../config/config.js";
 import type { FinalizedMsgContext } from "../templating.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import type { ReplyDispatcher, ReplyDispatchKind } from "./reply-dispatcher.js";
-import { resolveSessionAgentId } from "../../agents/agent-scope.js";
+import { resolveAgentWorkspaceDir, resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { loadSessionStore, resolveStorePath } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
@@ -22,6 +24,7 @@ async function maybeRecordCoreMemoriesEntry(params: {
   text: string;
   speaker: string;
   type: string;
+  memoryDir?: string;
 }): Promise<void> {
   try {
     const trimmed = params.text.trim();
@@ -30,12 +33,12 @@ async function maybeRecordCoreMemoriesEntry(params: {
     }
 
     const mod = (await import("@openclaw/core-memories")) as {
-      getCoreMemories: () => Promise<{
+      getCoreMemories: (opts?: { memoryDir?: string }) => Promise<{
         addFlashEntry: (text: string, speaker?: string, type?: string) => unknown;
       }>;
     };
 
-    const cm = await mod.getCoreMemories();
+    const cm = await mod.getCoreMemories({ memoryDir: params.memoryDir });
     cm.addFlashEntry(trimmed, params.speaker, params.type);
   } catch {
     // Best-effort: CoreMemories may not be built/available in some installs.
@@ -116,6 +119,18 @@ export async function dispatchReplyFromConfig(params: {
   const chatId = ctx.To ?? ctx.From;
   const messageId = ctx.MessageSid ?? ctx.MessageSidFirst ?? ctx.MessageSidLast;
   const sessionKey = ctx.SessionKey;
+
+  // CoreMemories should not rely on process cwd; store in the agent workspace by default.
+  const coreMemoriesDir = (() => {
+    const key = typeof sessionKey === "string" && sessionKey.trim() ? sessionKey.trim() : undefined;
+    if (!key) {
+      return undefined;
+    }
+    const agentId = resolveSessionAgentId({ sessionKey: key, config: cfg });
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+    return path.join(workspaceDir, ".openclaw", "memory");
+  })();
+
   const startTime = diagnosticsEnabled ? Date.now() : 0;
   const canTrackSession = diagnosticsEnabled && Boolean(sessionKey);
 
@@ -185,6 +200,7 @@ export async function dispatchReplyFromConfig(params: {
       text: inboundText,
       speaker: inboundSpeaker,
       type: "conversation",
+      memoryDir: coreMemoriesDir,
     });
   }
 
@@ -306,6 +322,7 @@ export async function dispatchReplyFromConfig(params: {
           text: payload.text,
           speaker: "assistant",
           type: "assistant_reply",
+          memoryDir: coreMemoriesDir,
         });
       }
 
@@ -368,6 +385,7 @@ export async function dispatchReplyFromConfig(params: {
                       text: ttsPayload.text,
                       speaker: "assistant",
                       type: "assistant_reply",
+                      memoryDir: coreMemoriesDir,
                     });
                   }
 
@@ -405,6 +423,7 @@ export async function dispatchReplyFromConfig(params: {
                 text: ttsPayload.text,
                 speaker: "assistant",
                 type: "assistant_reply",
+                memoryDir: coreMemoriesDir,
               });
             }
 
@@ -440,6 +459,7 @@ export async function dispatchReplyFromConfig(params: {
           text: ttsReply.text,
           speaker: "assistant",
           type: "assistant_reply",
+          memoryDir: coreMemoriesDir,
         });
       }
       if (shouldRouteToOriginating && originatingChannel && originatingTo) {
