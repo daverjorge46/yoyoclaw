@@ -154,13 +154,13 @@ function setValueAtPath(root: unknown, path: JsonPathPart[], value: string): boo
   }
   const leaf = path[path.length - 1];
   if (typeof leaf === "number") {
-    if (!Array.isArray(current) || leaf < 0 || leaf >= current.length) {
+    if (!Array.isArray(current) || leaf < 0) {
       return false;
     }
     current[leaf] = value;
     return true;
   }
-  if (!isRecord(current) || !(leaf in current)) {
+  if (!isRecord(current)) {
     return false;
   }
   current[leaf] = value;
@@ -171,15 +171,21 @@ export function restoreConfigEnvTemplates(params: {
   rawConfig: unknown;
   config: OpenClawConfig;
   env?: NodeJS.ProcessEnv;
+  blockedPaths?: string[];
 }): OpenClawConfig {
   const templateEntries = collectEnvTemplateEntries(params.rawConfig, params.env ?? process.env);
   if (templateEntries.length === 0) {
     return params.config;
   }
+  const blocked = new Set(params.blockedPaths ?? []);
 
   const next = structuredClone(params.config);
   for (const entry of templateEntries) {
-    if (getValueAtPath(next, entry.path) !== entry.resolved) {
+    if (blocked.has(formatPath(entry.path))) {
+      continue;
+    }
+    const currentValue = getValueAtPath(next, entry.path);
+    if (currentValue !== entry.resolved && currentValue !== undefined) {
       continue;
     }
     setValueAtPath(next, entry.path, entry.template);
@@ -331,6 +337,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
   let candidate = structuredClone(baseCfg);
   let pendingChanges = false;
   let shouldWriteConfig = false;
+  let removedUnknownPaths: string[] = [];
   const fixHints: string[] = [];
   if (snapshot.exists && !snapshot.valid && snapshot.legacyIssues.length === 0) {
     note("Config invalid; doctor will run with best-effort config.", "Config");
@@ -392,6 +399,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
 
   const unknown = stripUnknownConfigKeys(candidate);
   if (unknown.removed.length > 0) {
+    removedUnknownPaths = unknown.removed;
     const lines = unknown.removed.map((path) => `- ${path}`).join("\n");
     candidate = unknown.config;
     pendingChanges = true;
@@ -434,5 +442,6 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     path: snapshot.path ?? CONFIG_PATH,
     shouldWriteConfig,
     sourceTemplateConfig,
+    removedUnknownPaths,
   };
 }

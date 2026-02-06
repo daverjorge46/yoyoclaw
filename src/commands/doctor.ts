@@ -289,6 +289,7 @@ export async function doctorCommand(
       rawConfig: configResult.sourceTemplateConfig,
       config: cfg,
       env: process.env,
+      blockedPaths: configResult.removedUnknownPaths,
     });
     await writeConfigFile(configToWrite);
     logConfigUpdated(runtime);
