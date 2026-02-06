@@ -94,7 +94,7 @@ function createRun(
     sessionCtx,
     sessionKey,
     storePath: opts.storePath,
-    defaultModel: "anthropic/claude-opus-4-5",
+    defaultModel: "anthropic/claude-opus-4-6",
     resolvedVerboseLevel: "off",
     isNewSession: false,
     blockStreamingEnabled: false,
@@ -167,7 +167,7 @@ describe("runReplyAgent messaging tool suppression", () => {
       meta: {
         agentMeta: {
           usage: { input: 10, output: 5 },
-          model: "claude-opus-4-5",
+          model: "claude-opus-4-6",
           provider: "anthropic",
         },
       },
@@ -178,6 +178,6 @@ describe("runReplyAgent messaging tool suppression", () => {
     expect(result).toBeUndefined();
     const store = loadSessionStore(storePath, { skipCache: true });
     expect(store[sessionKey]?.totalTokens ?? 0).toBeGreaterThan(0);
-    expect(store[sessionKey]?.model).toBe("claude-opus-4-5");
+    expect(store[sessionKey]?.model).toBe("claude-opus-4-6");
   });
 });

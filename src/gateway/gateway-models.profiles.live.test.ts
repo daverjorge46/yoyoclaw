@@ -1127,7 +1127,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
     const agentDir = resolveOpenClawAgentDir();
     const authStorage = discoverAuthStorage(agentDir);
     const modelRegistry = discoverModels(authStorage, agentDir);
-    const anthropic = modelRegistry.find("anthropic", "claude-opus-4-5") as Model<Api> | null;
+    const anthropic = modelRegistry.find("anthropic", "claude-opus-4-6") as Model<Api> | null;
     const zai = modelRegistry.find("zai", "glm-4.7") as Model<Api> | null;
 
     if (!anthropic || !zai) {
@@ -1165,7 +1165,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
 
       await client.request("sessions.patch", {
         key: sessionKey,
-        model: "anthropic/claude-opus-4-5",
+        model: "anthropic/claude-opus-4-6",
       });
       await client.request("sessions.reset", {
         key: sessionKey,
@@ -1191,7 +1191,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
       const toolText = extractPayloadText(toolProbe?.result);
       assertNoReasoningTags({
         text: toolText,
-        model: "anthropic/claude-opus-4-5",
+        model: "anthropic/claude-opus-4-6",
         phase: "zai-fallback-tool",
         label: "zai-fallback",
       });

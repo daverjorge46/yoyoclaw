@@ -28,13 +28,13 @@ const modelCatalogMocks = vi.hoisted(() => ({
   loadModelCatalog: vi.fn().mockResolvedValue([
     {
       provider: "anthropic",
-      id: "claude-opus-4-5",
+      id: "claude-opus-4-6",
       name: "Claude Opus 4.5",
       contextWindow: 200000,
     },
     {
       provider: "openrouter",
-      id: "anthropic/claude-opus-4-5",
+      id: "anthropic/claude-opus-4-6",
       name: "Claude Opus 4.5 (OpenRouter)",
       contextWindow: 200000,
     },
@@ -78,7 +78,7 @@ function makeCfg(home: string) {
   return {
     agents: {
       defaults: {
-        model: "anthropic/claude-opus-4-5",
+        model: "anthropic/claude-opus-4-6",
         workspace: join(home, "openclaw"),
       },
     },
@@ -128,7 +128,7 @@ describe("trigger handling", () => {
           workspaceDir: join(home, "workspace"),
           config: cfg,
           provider: "anthropic",
-          model: "claude-opus-4-5",
+          model: "claude-opus-4-6",
           timeoutMs: 1000,
           blockReplyBreak: "text_end",
         },
@@ -248,7 +248,7 @@ describe("trigger handling", () => {
       const cfg = {
         agents: {
           defaults: {
-            model: "anthropic/claude-opus-4-5",
+            model: "anthropic/claude-opus-4-6",
             workspace: join(home, "openclaw"),
           },
           list: [{ id: "coding", model: "minimax/MiniMax-M2.1" }],

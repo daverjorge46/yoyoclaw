@@ -95,7 +95,7 @@ describe("createFollowupRunner compaction", () => {
       sessionStore,
       sessionKey: "main",
       storePath,
-      defaultModel: "anthropic/claude-opus-4-5",
+      defaultModel: "anthropic/claude-opus-4-6",
     });
 
     const queued = {
@@ -146,7 +146,7 @@ describe("createFollowupRunner messaging tool dedupe", () => {
       opts: { onBlockReply },
       typing: createMockTypingController(),
       typingMode: "instant",
-      defaultModel: "anthropic/claude-opus-4-5",
+      defaultModel: "anthropic/claude-opus-4-6",
     });
 
     await runner(baseQueuedRun());
@@ -166,7 +166,7 @@ describe("createFollowupRunner messaging tool dedupe", () => {
       opts: { onBlockReply },
       typing: createMockTypingController(),
       typingMode: "instant",
-      defaultModel: "anthropic/claude-opus-4-5",
+      defaultModel: "anthropic/claude-opus-4-6",
     });
 
     await runner(baseQueuedRun());
@@ -187,7 +187,7 @@ describe("createFollowupRunner messaging tool dedupe", () => {
       opts: { onBlockReply },
       typing: createMockTypingController(),
       typingMode: "instant",
-      defaultModel: "anthropic/claude-opus-4-5",
+      defaultModel: "anthropic/claude-opus-4-6",
     });
 
     await runner(baseQueuedRun("slack"));
@@ -213,7 +213,7 @@ describe("createFollowupRunner messaging tool dedupe", () => {
       meta: {
         agentMeta: {
           usage: { input: 10, output: 5 },
-          model: "claude-opus-4-5",
+          model: "claude-opus-4-6",
           provider: "anthropic",
         },
       },
@@ -227,7 +227,7 @@ describe("createFollowupRunner messaging tool dedupe", () => {
       sessionStore,
       sessionKey,
       storePath,
-      defaultModel: "anthropic/claude-opus-4-5",
+      defaultModel: "anthropic/claude-opus-4-6",
     });
 
     await runner(baseQueuedRun("slack"));
@@ -235,6 +235,6 @@ describe("createFollowupRunner messaging tool dedupe", () => {
     expect(onBlockReply).not.toHaveBeenCalled();
     const store = loadSessionStore(storePath, { skipCache: true });
     expect(store[sessionKey]?.totalTokens ?? 0).toBeGreaterThan(0);
-    expect(store[sessionKey]?.model).toBe("claude-opus-4-5");
+    expect(store[sessionKey]?.model).toBe("claude-opus-4-6");
   });
 });

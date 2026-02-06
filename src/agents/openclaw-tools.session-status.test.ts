@@ -30,7 +30,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
       session: { mainKey: "main", scope: "per-sender" },
       agents: {
         defaults: {
-          model: { primary: "anthropic/claude-opus-4-5" },
+          model: { primary: "anthropic/claude-opus-4-6" },
           models: {},
         },
       },
@@ -42,7 +42,7 @@ vi.mock("../agents/model-catalog.js", () => ({
   loadModelCatalog: async () => [
     {
       provider: "anthropic",
-      id: "claude-opus-4-5",
+      id: "claude-opus-4-6",
       name: "Opus",
       contextWindow: 200000,
     },

@@ -6,7 +6,7 @@ vi.mock("../../agents/model-catalog.js", () => ({
   loadModelCatalog: vi.fn(async () => [
     { provider: "openai", id: "gpt-4o-mini", name: "GPT-4o mini" },
     { provider: "openai", id: "gpt-4o", name: "GPT-4o" },
-    { provider: "anthropic", id: "claude-opus-4-5", name: "Claude Opus 4.5" },
+    { provider: "anthropic", id: "claude-opus-4-6", name: "Claude Opus 4.5" },
   ]),
 }));
 
@@ -103,7 +103,7 @@ describe("createModelSelectionState parent inheritance", () => {
     });
     const sessionEntry = makeEntry({
       providerOverride: "anthropic",
-      modelOverride: "claude-opus-4-5",
+      modelOverride: "claude-opus-4-6",
     });
     const sessionStore = {
       [parentKey]: parentEntry,
@@ -118,7 +118,7 @@ describe("createModelSelectionState parent inheritance", () => {
     });
 
     expect(state.provider).toBe("anthropic");
-    expect(state.model).toBe("claude-opus-4-5");
+    expect(state.model).toBe("claude-opus-4-6");
   });
 
   it("ignores parent override when disallowed", async () => {
@@ -135,7 +135,7 @@ describe("createModelSelectionState parent inheritance", () => {
     const sessionKey = "agent:main:slack:channel:c1:thread:123";
     const parentEntry = makeEntry({
       providerOverride: "anthropic",
-      modelOverride: "claude-opus-4-5",
+      modelOverride: "claude-opus-4-6",
     });
     const sessionEntry = makeEntry();
     const sessionStore = {

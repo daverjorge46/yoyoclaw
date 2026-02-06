@@ -317,7 +317,7 @@ function isClaudeModel(id: string): boolean {
 function isClaude45OrHigher(id: string): boolean {
   // Match claude-*-4-5+, claude-*-45+, claude-*4.5+, or future 5.x+ majors.
   // Examples that should match:
-  //   claude-opus-4-5, claude-opus-4-6, claude-opus-45, claude-4.6, claude-sonnet-5
+  //   claude-opus-4-6, claude-opus-4-6, claude-opus-45, claude-4.6, claude-sonnet-5
   return /\bclaude-[^\s/]*?(?:-4-?(?:[5-9]|[1-9]\d)\b|4\.(?:[5-9]|[1-9]\d)\b|-[5-9](?:\b|[.-]))/i.test(
     id,
   );

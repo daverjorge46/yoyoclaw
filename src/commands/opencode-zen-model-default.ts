@@ -3,8 +3,8 @@ import type { AgentModelListConfig } from "../config/types.js";
 
 export const OPENCODE_ZEN_DEFAULT_MODEL = "opencode/claude-opus-4-6";
 const LEGACY_OPENCODE_ZEN_DEFAULT_MODELS = new Set([
-  "opencode/claude-opus-4-5",
-  "opencode-zen/claude-opus-4-5",
+  "opencode/claude-opus-4-6",
+  "opencode-zen/claude-opus-4-6",
 ]);
 
 function resolvePrimaryModel(model?: AgentModelListConfig | string): string | undefined {

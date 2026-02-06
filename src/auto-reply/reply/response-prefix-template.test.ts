@@ -65,10 +65,10 @@ describe("resolveResponsePrefixTemplate", () => {
 
   it("resolves multiple variables", () => {
     const result = resolveResponsePrefixTemplate("[{model} | think:{thinkingLevel}]", {
-      model: "claude-opus-4-5",
+      model: "claude-opus-4-6",
       thinkingLevel: "high",
     });
-    expect(result).toBe("[claude-opus-4-5 | think:high]");
+    expect(result).toBe("[claude-opus-4-6 | think:high]");
   });
 
   it("leaves unresolved variables as-is", () => {
@@ -105,23 +105,23 @@ describe("resolveResponsePrefixTemplate", () => {
       {
         identityName: "OpenClaw",
         provider: "anthropic",
-        model: "claude-opus-4-5",
+        model: "claude-opus-4-6",
         thinkingLevel: "high",
       },
     );
-    expect(result).toBe("[OpenClaw] anthropic/claude-opus-4-5 (think:high)");
+    expect(result).toBe("[OpenClaw] anthropic/claude-opus-4-6 (think:high)");
   });
 });
 
 describe("extractShortModelName", () => {
   it("strips provider prefix", () => {
     expect(extractShortModelName("openai/gpt-5.2")).toBe("gpt-5.2");
-    expect(extractShortModelName("anthropic/claude-opus-4-5")).toBe("claude-opus-4-5");
+    expect(extractShortModelName("anthropic/claude-opus-4-6")).toBe("claude-opus-4-6");
     expect(extractShortModelName("openai-codex/gpt-5.2-codex")).toBe("gpt-5.2-codex");
   });
 
   it("strips date suffix", () => {
-    expect(extractShortModelName("claude-opus-4-5-20251101")).toBe("claude-opus-4-5");
+    expect(extractShortModelName("claude-opus-4-6-20251101")).toBe("claude-opus-4-6");
     expect(extractShortModelName("gpt-5.2-20250115")).toBe("gpt-5.2");
   });
 
@@ -132,11 +132,11 @@ describe("extractShortModelName", () => {
 
   it("handles model without provider", () => {
     expect(extractShortModelName("gpt-5.2")).toBe("gpt-5.2");
-    expect(extractShortModelName("claude-opus-4-5")).toBe("claude-opus-4-5");
+    expect(extractShortModelName("claude-opus-4-6")).toBe("claude-opus-4-6");
   });
 
   it("handles full path with provider and date suffix", () => {
-    expect(extractShortModelName("anthropic/claude-opus-4-5-20251101")).toBe("claude-opus-4-5");
+    expect(extractShortModelName("anthropic/claude-opus-4-6-20251101")).toBe("claude-opus-4-6");
   });
 
   it("preserves version numbers that look like dates but are not", () => {
