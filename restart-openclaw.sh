@@ -13,9 +13,28 @@ pnpm build
 echo "→ Building UI..."
 pnpm ui:build
 
+GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
+
 echo "→ Stopping openclaw gateway processes..."
-if pkill -9 -f "openclaw"; then
-    echo "  ✓ Killed existing openclaw processes"
+if pkill -f "openclaw"; then
+    echo "  ✓ Sent SIGTERM to openclaw processes"
+    echo "  → Polling gateway on port $GATEWAY_PORT until it stops responding..."
+    MAX_WAIT=30
+    ELAPSED=0
+    while [ "$ELAPSED" -lt "$MAX_WAIT" ]; do
+        HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$GATEWAY_PORT/health" 2>/dev/null || echo "000")
+        if [ "$HTTP_CODE" != "200" ]; then
+            echo "  ✓ Gateway stopped responding (HTTP $HTTP_CODE) after ${ELAPSED}s"
+            break
+        fi
+        sleep 1
+        ELAPSED=$((ELAPSED + 1))
+    done
+    if [ "$ELAPSED" -ge "$MAX_WAIT" ]; then
+        echo "  ⚠ Gateway still responding after ${MAX_WAIT}s"
+    fi
+    # Force kill any remaining processes just in case
+    pkill -9 -f "openclaw" 2>/dev/null && echo "  ✓ Force-killed remaining openclaw processes" || true
     sleep 1
 else
     echo "  ℹ No openclaw processes were running"
