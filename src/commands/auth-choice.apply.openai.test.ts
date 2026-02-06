@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import { applyAuthChoiceOpenAI } from "./auth-choice.apply.openai.js";
@@ -12,7 +12,11 @@ vi.mock("@mariozechner/pi-ai", () => ({
 const noopAsync = async () => {};
 
 describe("applyAuthChoiceOpenAI", () => {
-  const previousSshTty = process.env.SSH_TTY;
+  let previousSshTty: string | undefined;
+
+  beforeEach(() => {
+    previousSshTty = process.env.SSH_TTY;
+  });
 
   afterEach(() => {
     loginOpenAICodex.mockReset();

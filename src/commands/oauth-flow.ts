@@ -20,6 +20,12 @@ export function createVpsAwareOAuthHandlers(params: {
   const manualPromptMessage =
     params.manualPromptMessage ?? "Paste the redirect URL (or authorization code)";
   let manualCodePromise: Promise<string> | undefined;
+  let spinnerStopped = false;
+  const stopSpinnerOnce = (message: string) => {
+    if (spinnerStopped) return;
+    spinnerStopped = true;
+    params.spin.stop(message);
+  };
 
   return {
     onAuth: async ({ url }) => {
@@ -28,7 +34,7 @@ export function createVpsAwareOAuthHandlers(params: {
           params.runtime.log(`\nOpen this URL in your LOCAL browser:\n\n${url}\n`);
           return;
         }
-        params.spin.stop("OAuth URL ready");
+        stopSpinnerOnce("OAuth URL ready");
         params.runtime.log(`\nOpen this URL in your LOCAL browser:\n\n${url}\n`);
         manualCodePromise = params.prompter
           .text({
