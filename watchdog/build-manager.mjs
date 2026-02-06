@@ -196,7 +196,7 @@ export function buildCommit(repoRoot, commitHash, { onProgress } = {}) {
     });
   }
 
-  // Step 2: Build
+  // Step 2: Build (TypeScript + Control UI)
   onProgress?.(`[${shortHash}] Compiling TypeScript...`);
   execSync("pnpm run build", {
     cwd: repoRoot,
@@ -204,6 +204,17 @@ export function buildCommit(repoRoot, commitHash, { onProgress } = {}) {
     stdio: "pipe",
     timeout: 300_000,
   });
+  onProgress?.(`[${shortHash}] Building Control UI...`);
+  try {
+    execSync("pnpm run ui:build", {
+      cwd: repoRoot,
+      encoding: "utf-8",
+      stdio: "pipe",
+      timeout: 120_000,
+    });
+  } catch (err) {
+    onProgress?.(`[${shortHash}] Control UI build failed (non-fatal): ${err.message}`);
+  }
 
   // Step 3: Copy build artifacts to versioned directory
   onProgress?.(`[${shortHash}] Copying build artifacts...`);
@@ -246,14 +257,6 @@ export function buildCommit(repoRoot, commitHash, { onProgress } = {}) {
   const destExtensions = path.join(buildDir, "extensions");
   if (fs.existsSync(srcExtensions)) {
     fs.cpSync(srcExtensions, destExtensions, { recursive: true });
-  }
-
-  // Copy ui/ build assets if they exist
-  const srcUiDist = path.join(repoRoot, "ui", "dist");
-  const destUiDir = path.join(buildDir, "ui");
-  if (fs.existsSync(srcUiDist)) {
-    fs.mkdirSync(destUiDir, { recursive: true });
-    fs.cpSync(srcUiDist, path.join(destUiDir, "dist"), { recursive: true });
   }
 
   const durationMs = Date.now() - startTime;
