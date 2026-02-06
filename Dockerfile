@@ -35,7 +35,7 @@ ENV NODE_ENV=production
 RUN chown -R node:node /app
 
 # Install Gemini CLI globally
-RUN npm install -g @google/gemini-cli
+RUN npm install -g @google/gemini-cli@0.1.15
 
 # Security hardening: Run as non-root user
 # The node:22-bookworm image includes a 'node' user (uid 1000)
