@@ -452,15 +452,46 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     const bridgeId = bridge.id as string;
 
     // Allocate a per-call UDP socket/port for RTP (prevents cross-call leakage when maxConcurrentCalls > 1).
+    // Collision-safe: retry on EADDRINUSE; fall back to ephemeral port if needed.
     const udp = dgram.createSocket("udp4");
-    const rtpPort = this.nextRtpPort++;
-    await new Promise<void>((resolve, reject) => {
-      udp.once("error", reject);
-      udp.bind(rtpPort, "0.0.0.0", () => {
-        udp.off("error", reject);
-        resolve();
+
+    const bindUdp = async (port: number): Promise<number> => {
+      await new Promise<void>((resolve, reject) => {
+        const onError = (err: unknown) => {
+          udp.off("listening", onListening);
+          reject(err);
+        };
+        const onListening = () => {
+          udp.off("error", onError);
+          resolve();
+        };
+        udp.once("error", onError);
+        udp.once("listening", onListening);
+        udp.bind(port, "0.0.0.0");
       });
-    });
+      const addr = udp.address();
+      return typeof addr === "object" ? addr.port : port;
+    };
+
+    let rtpPort: number | undefined;
+    for (let i = 0; i < 20; i++) {
+      const candidate = this.nextRtpPort++;
+      try {
+        rtpPort = await bindUdp(candidate);
+        break;
+      } catch (err) {
+        const code = (err as { code?: string } | null)?.code;
+        if (code === "EADDRINUSE") {
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!rtpPort) {
+      // Let the OS pick an ephemeral port.
+      rtpPort = await bindUdp(0);
+    }
 
     udp.on("message", (msg, rinfo) => this.handleRtp(providerCallId, msg, rinfo));
 
@@ -477,7 +508,7 @@ export class AsteriskAriProvider implements VoiceCallProvider {
       query: {
         app: this.cfg.app,
         external_host: this.cfg.rtpHost + ":" + rtpPort,
-        format: this.cfg.format,
+        format: this.cfg.codec || this.cfg.format || "ulaw",
       },
     });
     const extChannelId = ext.id as string;

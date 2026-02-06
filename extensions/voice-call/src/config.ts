@@ -307,8 +307,11 @@ export const AsteriskAriConfigSchema = z
     rtpHost: z.string().min(1),
     /** Local UDP port to receive RTP from Asterisk */
     rtpPort: z.number().int().min(1024).max(65535).default(12000),
-    /** RTP payload format; use ulaw for PCMU */
-    format: z.enum(["ulaw", "alaw"]).default("ulaw"),
+    /** RTP payload codec; use ulaw for PCMU */
+    codec: z.enum(["ulaw", "alaw"]).default("ulaw"),
+
+    /** @deprecated Use `codec` instead. Kept for backward compatibility. */
+    format: z.enum(["ulaw", "alaw"]).optional(),
   })
   .strict();
 export type AsteriskAriConfig = z.infer<typeof AsteriskAriConfigSchema>;
@@ -456,7 +459,10 @@ export function resolveVoiceCallConfig(config: VoiceCallConfig): VoiceCallConfig
       rtpPort: process.env.ASTERISK_ARI_RTP_PORT
         ? Number(process.env.ASTERISK_ARI_RTP_PORT)
         : 12000,
-      format: (process.env.ASTERISK_ARI_FORMAT as "ulaw" | "alaw" | undefined) || "ulaw",
+      codec:
+        (process.env.ASTERISK_ARI_CODEC as "ulaw" | "alaw" | undefined) ||
+        (process.env.ASTERISK_ARI_FORMAT as "ulaw" | "alaw" | undefined) ||
+        "ulaw",
     };
   }
 

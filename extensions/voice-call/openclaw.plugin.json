@@ -220,7 +220,7 @@
           "trunk": { "type": "string" },
           "rtpHost": { "type": "string" },
           "rtpPort": { "type": "integer", "minimum": 1024, "maximum": 65535 },
-          "format": { "type": "string", "enum": ["ulaw", "alaw"] }
+          "codec": { "type": "string", "enum": ["ulaw", "alaw"] }
         }
       },
       "fromNumber": {
