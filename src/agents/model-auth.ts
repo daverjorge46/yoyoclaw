@@ -280,7 +280,7 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
     return pick("MINIMAX_OAUTH_TOKEN") ?? pick("MINIMAX_API_KEY");
   }
 
-  if (normalized === "kimi-coding") {
+  if (normalized === "kimi-code") {
     return pick("KIMI_API_KEY") ?? pick("KIMICODE_API_KEY");
   }
 
