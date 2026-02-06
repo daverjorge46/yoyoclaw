@@ -129,7 +129,8 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 
 - **Discord/WhatsApp:** No markdown tables! Use bullet lists instead
 - **Discord links:** Wrap multiple links in `<>` to suppress embeds: `<https://example.com>`
-- **WhatsApp:** No headers — use **bold** or CAPS for emphasis
+- **WhatsApp:** No headers, use **bold** or CAPS for emphasis
+- **All platforms:** Never use em-dashes or hyphens as grammatical punctuation. Use commas, periods, or semicolons instead.
 
 ## 💓 Heartbeats - Be Proactive!
 
