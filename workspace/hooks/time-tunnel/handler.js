@@ -104,6 +104,8 @@ const CHATS = {
 // Database
 // =============================================================================
 
+const BACKUP_ROOT = process.env.BACKUP_ROOT || "/app/persistent/backups";
+
 function ensureDirectories() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -113,12 +115,113 @@ function ensureDirectories() {
   }
 }
 
+// === 免疫層強化: 自動恢復機制 ===
+// 在資料庫損壞或遺失時，自動從備份恢復
+function attemptAutoRecovery() {
+  console.log(`[time-tunnel] 🛡️ Checking database integrity...`);
+
+  // 1. 檢查資料庫是否存在
+  if (!fs.existsSync(DB_PATH)) {
+    console.log(`[time-tunnel] ⚠️ Database not found, attempting recovery...`);
+    return recoverFromBackup();
+  }
+
+  // 2. 檢查資料庫完整性
+  try {
+    const testDb = new DatabaseSync(DB_PATH);
+    const result = testDb.prepare("PRAGMA integrity_check;").get();
+    testDb.close();
+
+    if (result && result.integrity_check === "ok") {
+      console.log(`[time-tunnel] ✓ Database integrity OK`);
+      return true;
+    } else {
+      console.log(`[time-tunnel] ⚠️ Database corrupted: ${JSON.stringify(result)}`);
+      // 備份損壞的檔案
+      const corruptPath = `${DB_PATH}.corrupted.${Date.now()}`;
+      fs.renameSync(DB_PATH, corruptPath);
+      console.log(`[time-tunnel] 📦 Corrupted DB moved to: ${corruptPath}`);
+      return recoverFromBackup();
+    }
+  } catch (err) {
+    console.log(`[time-tunnel] ⚠️ Cannot open database: ${err.message}`);
+    try {
+      const corruptPath = `${DB_PATH}.corrupted.${Date.now()}`;
+      fs.renameSync(DB_PATH, corruptPath);
+    } catch {}
+    return recoverFromBackup();
+  }
+}
+
+function recoverFromBackup() {
+  // 尋找最新的備份
+  const backupDirs = ["manual", "hourly", "daily"];
+  let latestBackup = null;
+  let latestTime = 0;
+
+  for (const dir of backupDirs) {
+    const backupDir = path.join(BACKUP_ROOT, dir);
+    if (!fs.existsSync(backupDir)) continue;
+
+    const files = fs.readdirSync(backupDir).filter((f) => f.endsWith(".db"));
+    for (const file of files) {
+      const fullPath = path.join(backupDir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.mtimeMs > latestTime) {
+        latestTime = stat.mtimeMs;
+        latestBackup = fullPath;
+      }
+    }
+  }
+
+  if (!latestBackup) {
+    console.log(`[time-tunnel] ❌ No backup found for recovery`);
+    return false;
+  }
+
+  console.log(`[time-tunnel] 🔄 Recovering from: ${latestBackup}`);
+
+  try {
+    // 驗證備份完整性
+    const testDb = new DatabaseSync(latestBackup);
+    const result = testDb.prepare("PRAGMA integrity_check;").get();
+    testDb.close();
+
+    if (!result || result.integrity_check !== "ok") {
+      console.log(`[time-tunnel] ⚠️ Backup is also corrupted, skipping`);
+      return false;
+    }
+
+    // 複製備份到主資料庫
+    ensureDirectories();
+    fs.copyFileSync(latestBackup, DB_PATH);
+    console.log(`[time-tunnel] ✅ Recovery successful!`);
+    return true;
+  } catch (err) {
+    console.log(`[time-tunnel] ❌ Recovery failed: ${err.message}`);
+    return false;
+  }
+}
+
 function getDb() {
   if (db) return db;
 
   ensureDirectories();
 
+  // 自動恢復檢查
+  attemptAutoRecovery();
+
   db = new DatabaseSync(DB_PATH);
+
+  // === 記憶層強化: WAL 模式 + 即時同步 ===
+  // WAL (Write-Ahead Logging) 提供更好的並發性和崩潰恢復
+  // synchronous=NORMAL 在 WAL 模式下提供良好的安全性同時保持效能
+  db.exec(`
+    PRAGMA journal_mode=WAL;
+    PRAGMA synchronous=NORMAL;
+    PRAGMA busy_timeout=5000;
+  `);
+  console.log(`[time-tunnel] 🔒 WAL mode enabled for crash recovery`);
 
   // 消息表
   db.exec(`
@@ -203,6 +306,7 @@ function getDb() {
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_reply_to ON messages(reply_to_id);
     CREATE INDEX IF NOT EXISTS idx_message_id ON messages(message_id);
+    CREATE INDEX IF NOT EXISTS idx_agent_id ON messages(agent_id);
   `);
 
   // 初始化身份和聊天室數據

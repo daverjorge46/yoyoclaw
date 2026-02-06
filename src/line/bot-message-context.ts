@@ -3,6 +3,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { ResolvedLineAccount } from "./types.js";
 import { formatInboundEnvelope, resolveEnvelopeFormatOptions } from "../auto-reply/envelope.js";
 import { finalizeInboundContext } from "../auto-reply/reply/inbound-context.js";
+import { buildCrossChannelContext } from "../channels/cross-channel-context.js";
 import { formatLocationText, toLocationContext } from "../channels/location.js";
 import {
   readSessionUpdatedAt,
@@ -234,8 +235,18 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
   const toAddress = isGroup ? fromAddress : `line:${userId ?? peerId}`;
   const originatingTo = isGroup ? fromAddress : `line:${userId ?? peerId}`;
 
+  // Level 105: inject cross-channel context (other channels handled by the same agent)
+  let combinedBody = body;
+  const crossChannelCtx = await buildCrossChannelContext({
+    currentChannel: "line",
+    agentId: route.agentId,
+  });
+  if (crossChannelCtx) {
+    combinedBody = `${crossChannelCtx}\n\n${combinedBody}`;
+  }
+
   const ctxPayload = finalizeInboundContext({
-    Body: body,
+    Body: combinedBody,
     RawBody: rawBody,
     CommandBody: rawBody,
     From: fromAddress,
