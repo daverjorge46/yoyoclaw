@@ -131,18 +131,20 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
             baseUrl = endpoint.replace(/\/api\/public\/otel\/?$/, "");
           }
 
-          // Set env vars for Langfuse SDK if we have credentials
-          if (publicKey && secretKey) {
-            process.env.LANGFUSE_PUBLIC_KEY = publicKey;
-            process.env.LANGFUSE_SECRET_KEY = secretKey;
-          }
-          if (baseUrl) {
-            process.env.LANGFUSE_BASE_URL = baseUrl;
-          }
+          // Create Langfuse span processor with explicit credentials
+          ctx.logger.info(
+            `diagnostics-otel: Langfuse credentials - pk=${publicKey?.slice(0, 10)}..., baseUrl=${baseUrl}`,
+          );
+          const langfuseProcessor = new LangfuseSpanProcessor({
+            ...(publicKey ? { publicKey } : {}),
+            ...(secretKey ? { secretKey } : {}),
+            ...(baseUrl ? { baseUrl } : {}),
+            debug: true,
+          });
 
           sdk = new NodeSDK({
             resource,
-            spanProcessors: [new LangfuseSpanProcessor()],
+            spanProcessors: [langfuseProcessor],
             ...(metricReader ? { metricReader } : {}),
             ...(sampleRate !== undefined
               ? {
@@ -157,6 +159,17 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
           ctx.logger.info(
             `diagnostics-otel: Langfuse SDK started (baseUrl=${baseUrl || "default"})`,
           );
+
+          // Create a test span to verify Langfuse connectivity
+          const testTracer = trace.getTracer("openclaw-test");
+          const testSpan = testTracer.startSpan("openclaw.startup.test", {
+            attributes: {
+              "test.timestamp": Date.now(),
+              "test.service": serviceName,
+            },
+          });
+          testSpan.end();
+          ctx.logger.info("diagnostics-otel: sent test span to Langfuse");
         } else {
           // Use standard OTEL exporters for non-Langfuse endpoints
           sdk = new NodeSDK({
