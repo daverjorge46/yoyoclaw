@@ -434,7 +434,7 @@ function readCachedWhois(ip: string, now: number): TailscaleWhoisIdentity | null
 const WHOIS_CACHE_MAX_SIZE = 1000;
 
 function writeCachedWhois(ip: string, value: TailscaleWhoisIdentity | null, ttlMs: number) {
-  // Prune expired entries and enforce max size (LRU eviction)
+  // Evict oldest entries by insertion order (FIFO)
   if (whoisCache.size >= WHOIS_CACHE_MAX_SIZE) {
     const now = Date.now();
     // First pass: remove expired entries
