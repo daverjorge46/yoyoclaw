@@ -18,7 +18,6 @@ export type ResolveRunWorkspaceResult = {
   fallbackReason?: WorkspaceFallbackReason;
   agentId: string;
   agentIdSource: AgentIdSource;
-  malformedSessionKey: boolean;
 };
 
 function resolveRunAgentId(params: {
@@ -28,24 +27,26 @@ function resolveRunAgentId(params: {
 }): {
   agentId: string;
   agentIdSource: AgentIdSource;
-  malformedSessionKey: boolean;
 } {
+  const rawSessionKey = params.sessionKey?.trim() ?? "";
+  const shape = classifySessionKeyShape(rawSessionKey);
+  if (shape === "malformed_agent") {
+    throw new Error("Malformed agent session key; refusing workspace resolution.");
+  }
+
   const explicit =
     typeof params.agentId === "string" && params.agentId.trim()
       ? normalizeAgentId(params.agentId)
       : undefined;
   if (explicit) {
-    return { agentId: explicit, agentIdSource: "explicit", malformedSessionKey: false };
+    return { agentId: explicit, agentIdSource: "explicit" };
   }
 
   const defaultAgentId = resolveDefaultAgentId(params.config ?? {});
-  const rawSessionKey = params.sessionKey?.trim() ?? "";
-  const shape = classifySessionKeyShape(rawSessionKey);
-  if (shape === "missing") {
+  if (shape === "missing" || shape === "legacy_or_alias") {
     return {
       agentId: defaultAgentId || DEFAULT_AGENT_ID,
       agentIdSource: "default",
-      malformedSessionKey: false,
     };
   }
 
@@ -54,14 +55,13 @@ function resolveRunAgentId(params: {
     return {
       agentId: normalizeAgentId(parsed.agentId),
       agentIdSource: "session_key",
-      malformedSessionKey: false,
     };
   }
 
+  // Defensive fallback, should be unreachable for non-malformed shapes.
   return {
     agentId: defaultAgentId || DEFAULT_AGENT_ID,
     agentIdSource: "default",
-    malformedSessionKey: shape === "malformed_agent",
   };
 }
 
@@ -76,7 +76,7 @@ export function resolveRunWorkspaceDir(params: {
   config?: OpenClawConfig;
 }): ResolveRunWorkspaceResult {
   const requested = params.workspaceDir;
-  const { agentId, agentIdSource, malformedSessionKey } = resolveRunAgentId({
+  const { agentId, agentIdSource } = resolveRunAgentId({
     sessionKey: params.sessionKey,
     agentId: params.agentId,
     config: params.config,
@@ -89,7 +89,6 @@ export function resolveRunWorkspaceDir(params: {
         usedFallback: false,
         agentId,
         agentIdSource,
-        malformedSessionKey,
       };
     }
   }
@@ -103,6 +102,5 @@ export function resolveRunWorkspaceDir(params: {
     fallbackReason,
     agentId,
     agentIdSource,
-    malformedSessionKey,
   };
 }

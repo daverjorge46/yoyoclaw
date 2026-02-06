@@ -62,11 +62,6 @@ export async function runCliAgent(params: {
   const redactedSessionId = redactRunIdentifier(params.sessionId);
   const redactedSessionKey = redactRunIdentifier(params.sessionKey);
   const redactedWorkspace = redactRunIdentifier(resolvedWorkspace);
-  if (workspaceResolution.malformedSessionKey && workspaceResolution.agentIdSource === "default") {
-    log.warn(
-      `[workspace-agent-default] caller=runCliAgent reason=malformed_session_key run=${params.runId} session=${redactedSessionId} sessionKey=${redactedSessionKey} agent=${workspaceResolution.agentId}`,
-    );
-  }
   if (workspaceResolution.usedFallback) {
     log.warn(
       `[workspace-fallback] caller=runCliAgent reason=${workspaceResolution.fallbackReason} run=${params.runId} session=${redactedSessionId} sessionKey=${redactedSessionKey} agent=${workspaceResolution.agentId} workspace=${redactedWorkspace}`,

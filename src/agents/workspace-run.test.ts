@@ -73,17 +73,14 @@ describe("resolveRunWorkspaceDir", () => {
     expect(result.workspaceDir).toBe(path.resolve(DEFAULT_AGENT_WORKSPACE_DIR));
   });
 
-  it("warns by metadata and defaults agent id for malformed session keys", () => {
-    const result = resolveRunWorkspaceDir({
-      workspaceDir: undefined,
-      sessionKey: "agent::broken",
-      config: undefined,
-    });
-
-    expect(result.agentId).toBe("main");
-    expect(result.agentIdSource).toBe("default");
-    expect(result.malformedSessionKey).toBe(true);
-    expect(result.workspaceDir).toBe(path.resolve(DEFAULT_AGENT_WORKSPACE_DIR));
+  it("throws for malformed agent session keys", () => {
+    expect(() =>
+      resolveRunWorkspaceDir({
+        workspaceDir: undefined,
+        sessionKey: "agent::broken",
+        config: undefined,
+      }),
+    ).toThrow("Malformed agent session key");
   });
 
   it("uses explicit agent id for per-agent fallback when config is unavailable", () => {
@@ -96,11 +93,10 @@ describe("resolveRunWorkspaceDir", () => {
 
     expect(result.agentId).toBe("research");
     expect(result.agentIdSource).toBe("explicit");
-    expect(result.malformedSessionKey).toBe(false);
     expect(result.workspaceDir).toBe(path.resolve(os.homedir(), ".openclaw", "workspace-research"));
   });
 
-  it("defaults to configured default agent when session key is malformed", () => {
+  it("throws for malformed agent session keys even when config has a default agent", () => {
     const mainWorkspace = path.join(process.cwd(), "tmp", "workspace-main-default");
     const researchWorkspace = path.join(process.cwd(), "tmp", "workspace-research-default");
     const cfg = {
@@ -113,16 +109,13 @@ describe("resolveRunWorkspaceDir", () => {
       },
     } satisfies OpenClawConfig;
 
-    const result = resolveRunWorkspaceDir({
-      workspaceDir: undefined,
-      sessionKey: "agent::broken",
-      config: cfg,
-    });
-
-    expect(result.agentId).toBe("research");
-    expect(result.agentIdSource).toBe("default");
-    expect(result.malformedSessionKey).toBe(true);
-    expect(result.workspaceDir).toBe(path.resolve(researchWorkspace));
+    expect(() =>
+      resolveRunWorkspaceDir({
+        workspaceDir: undefined,
+        sessionKey: "agent::broken",
+        config: cfg,
+      }),
+    ).toThrow("Malformed agent session key");
   });
 
   it("treats non-agent legacy keys as default, not malformed", () => {
@@ -141,7 +134,6 @@ describe("resolveRunWorkspaceDir", () => {
 
     expect(result.agentId).toBe("main");
     expect(result.agentIdSource).toBe("default");
-    expect(result.malformedSessionKey).toBe(false);
     expect(result.workspaceDir).toBe(path.resolve(fallbackWorkspace));
   });
 });
