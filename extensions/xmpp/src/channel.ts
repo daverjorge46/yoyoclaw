@@ -756,35 +756,34 @@ export const xmppPlugin: ChannelPlugin<ResolvedXmppAccount> = {
         };
       }
 
-      // If a client exists for this account (running or starting), use its state
-      // instead of creating a new probe connection (avoids stream-management conflicts)
+      // Check existing client state instead of creating a new probe connection
+      // (creating a second connection causes stream-management conflicts in xmpp.js)
       const accountId = normalizeAccountId(account.accountId) || DEFAULT_ACCOUNT_ID;
       const existingClient = clients.get(accountId);
-      if (existingClient) {
-        // Client exists - check if connected
-        if (existingClient.isConnected()) {
-          return {
-            ok: true,
-            connectedJid: existingClient.getJid(),
-            elapsedMs: 0,
-          };
-        }
-        // Client exists but not connected yet (starting up) - report as starting
+
+      if (existingClient?.isConnected()) {
         return {
           ok: true,
-          connectedJid: null,
+          connectedJid: existingClient.getJid(),
           elapsedMs: 0,
         };
       }
 
-      return await probeXmpp({
-        jid: account.jid,
-        password: account.password,
-        server: account.server,
-        // Don't pass resource - let probe use its default "openclaw-probe"
-        // to avoid conflicting with the running client's resource
-        timeoutMs,
-      });
+      if (existingClient) {
+        // Client exists but not connected (starting up or disconnected)
+        return {
+          ok: false,
+          error: "Client exists but not connected",
+          elapsedMs: 0,
+        };
+      }
+
+      // No client running - report not started (don't create probe connection)
+      return {
+        ok: false,
+        error: "Channel not started",
+        elapsedMs: 0,
+      };
     },
     buildAccountSnapshot: ({ account, runtime, probe }) => ({
       accountId: account.accountId,
