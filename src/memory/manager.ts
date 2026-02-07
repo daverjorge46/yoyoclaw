@@ -1031,6 +1031,7 @@ export class MemoryIndexManager implements MemorySearchManager {
         log.warn(`memory sync failed (interval): ${String(err)}`);
       });
     }, ms);
+    this.intervalTimer.unref?.();
   }
 
   private scheduleWatchSync() {
