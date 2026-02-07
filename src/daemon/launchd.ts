@@ -472,13 +472,21 @@ export async function restartLaunchAgent({
   }
 
   if (plistExists) {
-    await execLaunchctl(["bootout", `${domain}/${label}`]);
+    const bout = await execLaunchctl(["bootout", `${domain}/${label}`]);
+    // bootout may fail if the service is not loaded — treat "not loaded" as non-fatal,
+    // matching the pattern used by stopLaunchAgent().
+    if (bout.code !== 0 && !isLaunchctlNotLoaded(bout)) {
+      throw new Error(`launchctl bootout failed: ${bout.stderr || bout.stdout}`.trim());
+    }
     await execLaunchctl(["enable", `${domain}/${label}`]);
     const boot = await execLaunchctl(["bootstrap", domain, plistPath]);
     if (boot.code !== 0) {
       throw new Error(`launchctl bootstrap failed: ${boot.stderr || boot.stdout}`.trim());
     }
-    await execLaunchctl(["kickstart", "-k", `${domain}/${label}`]);
+    const kick = await execLaunchctl(["kickstart", "-k", `${domain}/${label}`]);
+    if (kick.code !== 0) {
+      throw new Error(`launchctl kickstart failed: ${kick.stderr || kick.stdout}`.trim());
+    }
   } else {
     const res = await execLaunchctl(["kickstart", "-k", `${domain}/${label}`]);
     if (res.code !== 0) {
