@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildAllowedModelSet, modelKey } from "./model-selection.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { buildAllowedModelSet, modelKey } from "./model-selection.js";
 
 describe("buildAllowedModelSet", () => {
   it("includes models from explicitly configured providers in allowAny mode", () => {
@@ -28,9 +28,7 @@ describe("buildAllowedModelSet", () => {
     };
 
     // No agents.defaults.models → allowAny = true
-    const catalog = [
-      { id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" },
-    ];
+    const catalog = [{ id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" }];
 
     const result = buildAllowedModelSet({
       cfg,
@@ -70,9 +68,7 @@ describe("buildAllowedModelSet", () => {
       },
     };
 
-    const catalog = [
-      { id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" },
-    ];
+    const catalog = [{ id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" }];
 
     const result = buildAllowedModelSet({
       cfg,
@@ -99,9 +95,7 @@ describe("buildAllowedModelSet", () => {
       },
     };
 
-    const catalog = [
-      { id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" },
-    ];
+    const catalog = [{ id: "claude-opus-4-5", name: "Claude Opus 4.5", provider: "anthropic" }];
 
     const result = buildAllowedModelSet({
       cfg,

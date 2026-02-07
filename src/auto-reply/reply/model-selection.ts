@@ -323,13 +323,9 @@ export async function createModelSelectionState(params: {
       // not in the discovered model catalog (e.g. Ollama / local providers).
       const configuredProviders = (cfg?.models?.providers ?? {}) as Record<string, unknown>;
       const isConfiguredProvider = Object.keys(configuredProviders).some(
-        (key) => normalizeProviderId(key) === normalizeProviderId(overrideProvider)
+        (key) => normalizeProviderId(key) === normalizeProviderId(overrideProvider),
       );
-      if (
-        allowedModelKeys.size > 0 &&
-        !allowedModelKeys.has(key) &&
-        !isConfiguredProvider
-      ) {
+      if (allowedModelKeys.size > 0 && !allowedModelKeys.has(key) && !isConfiguredProvider) {
         const { updated } = applyModelOverrideToSessionEntry({
           entry: sessionEntry,
           selection: { provider: defaultProvider, model: defaultModel, isDefault: true },
@@ -359,7 +355,7 @@ export async function createModelSelectionState(params: {
     // Also accept overrides for models from explicitly configured providers.
     const configuredProviders = (cfg?.models?.providers ?? {}) as Record<string, unknown>;
     const isConfiguredProvider = Object.keys(configuredProviders).some(
-      (key) => normalizeProviderId(key) === normalizeProviderId(candidateProvider)
+      (key) => normalizeProviderId(key) === normalizeProviderId(candidateProvider),
     );
     if (allowedModelKeys.size === 0 || allowedModelKeys.has(key) || isConfiguredProvider) {
       provider = candidateProvider;
