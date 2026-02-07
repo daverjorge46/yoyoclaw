@@ -20,6 +20,7 @@ export type AgentsHierarchyProps = {
   loading: boolean;
   error: string | null;
   data: AgentHierarchyResult | null;
+  focusAgentId?: string;
   onRefresh: () => void;
   onNodeClick?: (sessionKey: string) => void;
 };
@@ -257,6 +258,56 @@ function extractAgentName(sessionKey: string): string {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Focus filter — extract subtree for a specific agent
+   ═══════════════════════════════════════════════════════════════ */
+
+/**
+ * Collect all agentIds present in a hierarchy subtree (node + descendants).
+ */
+function collectAgentIds(node: AgentHierarchyNode, out: Set<string>) {
+  if (node.agentId) {
+    out.add(node.agentId);
+  }
+  for (const child of node.children) {
+    collectAgentIds(child, out);
+  }
+}
+
+/**
+ * Find and extract the subtree rooted at `focusAgentId`.
+ * Returns the matching node(s) as new roots, or the original roots if not found.
+ */
+function filterRootsForAgent(
+  roots: AgentHierarchyNode[],
+  focusAgentId: string,
+): AgentHierarchyNode[] {
+  const found: AgentHierarchyNode[] = [];
+
+  function search(nodes: AgentHierarchyNode[]) {
+    for (const node of nodes) {
+      if (node.agentId === focusAgentId) {
+        found.push(node);
+      } else {
+        search(node.children);
+      }
+    }
+  }
+  search(roots);
+
+  return found;
+}
+
+/**
+ * Filter collaboration edges to only those involving visible agentIds.
+ */
+function filterEdgesForAgents(
+  edges: CollaborationEdge[],
+  visibleAgentIds: Set<string>,
+): CollaborationEdge[] {
+  return edges.filter((e) => visibleAgentIds.has(e.source) || visibleAgentIds.has(e.target));
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Data transformation — tree → flat graph {nodes, links, categories}
 
    KEY FIX: The collaboration edges from the backend use agentId
@@ -456,9 +507,20 @@ function tooltipFormatter(params: { data?: GraphNodeData; dataType?: string }): 
    ═══════════════════════════════════════════════════════════════ */
 
 export function renderAgentsHierarchy(props: AgentsHierarchyProps) {
-  const { loading, error, data, onRefresh, onNodeClick } = props;
-  const roots = data?.roots ?? [];
-  const collabEdges = data?.collaborationEdges ?? [];
+  const { loading, error, data, focusAgentId, onRefresh, onNodeClick } = props;
+
+  // Apply focus filter: show only the selected agent's subtree + relevant edges
+  let roots = data?.roots ?? [];
+  let collabEdges = data?.collaborationEdges ?? [];
+  if (focusAgentId && roots.length > 0) {
+    roots = filterRootsForAgent(roots, focusAgentId);
+    const visibleIds = new Set<string>();
+    for (const r of roots) {
+      collectAgentIds(r, visibleIds);
+    }
+    collabEdges = filterEdgesForAgents(collabEdges, visibleIds);
+  }
+
   const totalNodes = countTotalNodes(roots);
   const statusCounts = countByStatus(roots);
   const updatedAt = data?.updatedAt ?? null;
@@ -469,8 +531,8 @@ export function renderAgentsHierarchy(props: AgentsHierarchyProps) {
         <div>
           <div class="card-title">Agent Hierarchy</div>
           <div class="card-sub">
-            Visualize agent-subagent spawn relationships.
-            ${totalNodes > 0 ? html`<span class="mono">${totalNodes}</span> nodes` : nothing}
+            ${focusAgentId ? html`Interactions for <span class="mono">${focusAgentId}</span>.` : "Visualize agent-subagent spawn relationships."}
+            ${totalNodes > 0 ? html` <span class="mono">${totalNodes}</span> nodes` : nothing}
           </div>
         </div>
         <button class="btn btn--sm" ?disabled=${loading} @click=${onRefresh}>

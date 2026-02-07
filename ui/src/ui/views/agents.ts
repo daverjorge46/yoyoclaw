@@ -772,6 +772,7 @@ export function renderAgents(props: AgentsProps) {
                       loading: props.agentHierarchyLoading,
                       error: props.agentHierarchyError,
                       data: props.agentHierarchyData,
+                      focusAgentId: selectedAgent?.id,
                       onRefresh: props.onHierarchyRefresh,
                       onNodeClick: props.onHierarchyNodeClick,
                     })
