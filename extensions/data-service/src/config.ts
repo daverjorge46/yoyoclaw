@@ -1,10 +1,10 @@
 /**
  * Data-Service configuration types and resolution.
  *
- * Reads from:
- * 1. Request context (per-request orgId/userId via AsyncLocalStorage) — highest priority
- * 2. Plugin config
- * 3. Environment variables
+ * For Wexa Coworker Web integration:
+ * - orgId/userId MUST be set via data-service.setContext gateway method
+ * - No fallback to environment variables for user context
+ * - Server-level config (url, serverKey) still comes from env vars
  */
 
 import { getRequestContext } from "./request-context.js";
@@ -15,16 +15,8 @@ export type DataServiceConfig = {
   enabled?: boolean;
   /** Base URL for the Data-Service API */
   url?: string;
-  /** Default organization ID */
-  orgId?: string;
-  /** Default project ID */
-  projectId?: string;
-  /** Default user ID */
-  userId?: string;
-  /** Server key for system calls (optional) */
+  /** Server key for system calls (required) */
   serverKey?: string;
-  /** API key for user calls (optional) */
-  apiKey?: string;
   /** Pre-configured connector IDs by connector type (optional overrides) */
   connectorIds?: Record<string, string>;
   /** Request timeout in milliseconds */
@@ -36,7 +28,8 @@ const DEFAULT_DATA_SERVICE_URL = "https://dev.api.wexa.ai";
 /**
  * Resolve Data-Service configuration from plugin config and env vars.
  *
- * Priority: request context > pluginConfig values > environment variables > defaults
+ * Note: orgId/userId are NOT resolved here — they MUST come from
+ * the request context set via data-service.setContext.
  */
 export function resolveDataServiceConfig(
   pluginConfig?: Record<string, unknown>,
@@ -46,41 +39,53 @@ export function resolveDataServiceConfig(
   return {
     enabled: pc?.enabled ?? !!process.env.DATA_SERVICE_URL,
     url: pc?.url ?? process.env.DATA_SERVICE_URL ?? DEFAULT_DATA_SERVICE_URL,
-    orgId: pc?.orgId ?? process.env.DATA_SERVICE_ORG_ID,
-    projectId: pc?.projectId ?? process.env.DATA_SERVICE_PROJECT_ID,
-    userId: pc?.userId ?? process.env.DATA_SERVICE_USER_ID,
     serverKey: pc?.serverKey ?? process.env.DATA_SERVICE_SERVER_KEY,
-    apiKey: pc?.apiKey ?? process.env.DATA_SERVICE_API_KEY,
     connectorIds: pc?.connectorIds,
     timeoutMs: pc?.timeoutMs ?? 30000,
   };
 }
 
 /**
- * Get effective orgId/userId for the current request.
+ * Get user context for the current request.
  *
- * Priority: request context (AsyncLocalStorage or session store) > base config
- *
- * This is called at tool execution time to get the per-request values.
- *
- * @param baseConfig - The base configuration from plugin config/env vars
- * @param sessionKey - Optional session key to look up context from session store
+ * orgId/userId MUST be set via data-service.setContext before calling agent.
+ * Returns undefined values if context is not set — tools should return an error.
  */
-export function getEffectiveUserContext(
-  baseConfig: DataServiceConfig,
-  sessionKey?: string,
-): {
+export function getEffectiveUserContext(): {
   orgId?: string;
   userId?: string;
   projectId?: string;
   apiKey?: string;
 } {
-  const reqCtx = getRequestContext(sessionKey);
+  const reqCtx = getRequestContext();
+
+  if (!reqCtx) {
+    return {
+      orgId: undefined,
+      userId: undefined,
+      projectId: undefined,
+      apiKey: undefined,
+    };
+  }
 
   return {
-    orgId: reqCtx?.orgId ?? baseConfig.orgId,
-    userId: reqCtx?.userId ?? baseConfig.userId,
-    projectId: reqCtx?.projectId ?? baseConfig.projectId,
-    apiKey: reqCtx?.apiKey ?? baseConfig.apiKey,
+    orgId: reqCtx.orgId,
+    userId: reqCtx.userId,
+    projectId: reqCtx.projectId,
+    apiKey: reqCtx.apiKey,
   };
 }
+
+/**
+ * Check if user context is set for the current request.
+ */
+export function hasUserContext(): boolean {
+  const ctx = getRequestContext();
+  return !!(ctx?.orgId && ctx?.userId);
+}
+
+/**
+ * Error message when user context is not set.
+ */
+export const MISSING_CONTEXT_ERROR =
+  "User context not set. Call data-service.setContext with orgId and userId before calling the agent.";

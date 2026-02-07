@@ -1,9 +1,13 @@
 /**
  * Shared HTTP helpers for Data-Service API calls.
+ *
+ * For Wexa Coworker Web integration:
+ * - User context (orgId/userId) MUST be set via data-service.setContext
+ * - All API calls require valid user context
  */
 
 import type { DataServiceConfig } from "./config.js";
-import { getEffectiveUserContext } from "./config.js";
+import { getEffectiveUserContext, hasUserContext, MISSING_CONTEXT_ERROR } from "./config.js";
 
 /** Standard API response wrapper */
 export type ApiResult = {
@@ -24,8 +28,8 @@ export async function makeDataServiceRequest(
 ): Promise<ApiResult> {
   const { method = "GET", body, config } = options;
 
-  // Get effective user context (request context takes priority over base config)
-  const userCtx = getEffectiveUserContext(config);
+  // Get user context from request context (set via data-service.setContext)
+  const userCtx = getEffectiveUserContext();
 
   const url = `${config.url}${endpoint}`;
 
@@ -36,10 +40,8 @@ export async function makeDataServiceRequest(
   if (config.serverKey) {
     headers["x-server-key"] = config.serverKey;
   }
-  // Use effective apiKey (request context > base config)
-  const effectiveApiKey = userCtx.apiKey ?? config.apiKey;
-  if (effectiveApiKey) {
-    headers["Authorization"] = `Bearer ${effectiveApiKey}`;
+  if (userCtx.apiKey) {
+    headers["Authorization"] = `Bearer ${userCtx.apiKey}`;
   }
 
   try {
@@ -88,28 +90,36 @@ export async function makeDataServiceRequest(
  * Look up a user's connector_id from Data-Service.
  * Returns the connector_id if found, or null if not configured.
  *
- * Uses effective orgId/userId from request context if available.
+ * Requires user context to be set via data-service.setContext.
  */
 export async function lookupUserConnector(
   connector: string,
   config: DataServiceConfig,
 ): Promise<{ connectorId: string | null; error?: string; notConfigured?: boolean }> {
-  // Get effective user context (request context takes priority)
-  const userCtx = getEffectiveUserContext(config);
-  const orgId = userCtx.orgId;
-  const userId = userCtx.userId;
-
-  if (!orgId || !userId) {
+  // Check if user context is set
+  if (!hasUserContext()) {
     return {
       connectorId: null,
-      error:
-        "Missing org_id or user_id. Please configure DATA_SERVICE_ORG_ID and DATA_SERVICE_USER_ID, or pass them via the data-service.agent gateway method.",
+      error: MISSING_CONTEXT_ERROR,
     };
   }
 
-  const endpoint = `/retrieve/connectors/${orgId}/user/${userId}/category/${connector}`;
+  const userCtx = getEffectiveUserContext();
+  const { orgId, userId, projectId } = userCtx;
+
+  // Build query with user_id, category, and optionally projectID
+  const query: Record<string, string> = { user_id: userId, category: connector };
+  if (projectId) {
+    query.projectID = projectId;
+  }
+
+  const endpoint = `/retrieve/connectors/${orgId}/on/query`;
   const result = await makeDataServiceRequest(endpoint, {
     method: "POST",
+    body: {
+      query,
+      projection: { _id: 1, category: 1, name: 1, logo: 1, status: 1 },
+    },
     config,
   });
 
@@ -120,11 +130,13 @@ export async function lookupUserConnector(
     return { connectorId: null, error: result.error };
   }
 
-  const data = result.data as { _id?: string; connectorID?: string } | null;
-  if (!data) {
+  // The /on/query endpoint returns an array
+  const dataArray = result.data as Array<{ _id?: string; connectorID?: string }> | null;
+  if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) {
     return { connectorId: null, notConfigured: true };
   }
 
+  const data = dataArray[0];
   const connectorId = data._id ?? data.connectorID;
   if (!connectorId) {
     return { connectorId: null, notConfigured: true };

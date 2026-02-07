@@ -1,11 +1,46 @@
 /**
  * Data-Service Connector Plugin for OpenClaw
  *
- * Registers 7 connector tools and injects confirmation-workflow guidance
- * into the agent system prompt via the before_agent_start hook.
+ * Provides 7 connector tools for accessing 70+ external service integrations.
  *
- * For multi-tenant support, use the `data-service.setContext` gateway method
- * to set orgId/userId before calling the standard `agent` method.
+ * ## Wexa Coworker Web Integration
+ *
+ * This plugin is designed for multi-tenant, multi-session use. User context
+ * (orgId/userId) MUST be set via the `data-service.setContext` gateway method
+ * before calling the agent.
+ *
+ * ### Integration Flow:
+ *
+ * ```typescript
+ * // 1. Set user context for the session
+ * await gateway.call("data-service.setContext", {
+ *   sessionKey: "user-123-session-abc",
+ *   orgId: "org_wexa",
+ *   userId: "user_123",
+ * });
+ *
+ * // 2. Call the agent with the same sessionKey
+ * await gateway.call("agent", {
+ *   sessionKey: "user-123-session-abc",
+ *   message: "Search for AI companies and send an email to...",
+ * });
+ *
+ * // 3. Clear context when session ends (optional but recommended)
+ * await gateway.call("data-service.clearContext", {
+ *   sessionKey: "user-123-session-abc",
+ * });
+ * ```
+ *
+ * ### Gateway Methods:
+ *
+ * - `data-service.setContext` — Set orgId/userId for a session (REQUIRED before agent calls)
+ * - `data-service.clearContext` — Clear context when session ends
+ * - `data-service.status` — Get plugin status
+ *
+ * ### Environment Variables:
+ *
+ * - `DATA_SERVICE_URL` — Base URL for the Data-Service API (required to enable plugin)
+ * - `DATA_SERVICE_SERVER_KEY` — Server key for system-level API calls
  */
 
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
@@ -16,6 +51,7 @@ import {
   clearSessionContext,
   setCurrentSessionKey,
   clearCurrentSessionKey,
+  getSessionContextCount,
 } from "./src/request-context.js";
 
 /** Tool names registered by this plugin */
@@ -113,7 +149,10 @@ const dataServicePlugin = {
     // Set current session key before each tool call so tools can look up context
     api.on("before_tool_call", (_event, ctx) => {
       if (ctx.sessionKey) {
+        console.log("[data-service] before_tool_call setting sessionKey:", ctx.sessionKey);
         setCurrentSessionKey(ctx.sessionKey);
+      } else {
+        console.log("[data-service] before_tool_call: NO sessionKey in context");
       }
     });
 
@@ -123,29 +162,29 @@ const dataServicePlugin = {
     });
 
     // -------------------------------------------------------------------------
-    // Multi-tenant gateway methods
-    //
-    // For Wexa Coworker Web integration, use these methods to set per-user
-    // context before calling the standard "agent" method.
+    // Gateway Methods for Wexa Coworker Web Integration
     // -------------------------------------------------------------------------
 
     /**
      * data-service.setContext
      *
-     * Set orgId/userId context for a session. Call this BEFORE calling the
-     * standard "agent" method. The context will be used by all connector tools.
+     * Set orgId/userId context for a session. This MUST be called BEFORE
+     * calling the "agent" method. All connector tools require this context.
      *
-     * Request params:
-     *   - sessionKey: string (required) — Session key to associate context with
-     *   - orgId: string (required) — Organization ID
-     *   - userId: string (required) — User ID
-     *   - projectId?: string — Optional project ID
-     *   - apiKey?: string — Optional API key override
+     * @param sessionKey - Unique session identifier (required)
+     * @param orgId - Organization ID (required)
+     * @param userId - User ID (required)
+     * @param projectId - Optional project ID
+     * @param apiKey - Optional API key override for user-level auth
      *
-     * Example flow:
-     *   1. Call data-service.setContext with sessionKey, orgId, userId
-     *   2. Call agent with the same sessionKey
-     *   3. Tools automatically use the orgId/userId from step 1
+     * @example
+     * ```typescript
+     * await gateway.call("data-service.setContext", {
+     *   sessionKey: "user-123-session-abc",
+     *   orgId: "org_wexa",
+     *   userId: "user_123",
+     * });
+     * ```
      */
     api.registerGatewayMethod("data-service.setContext", ({ params, respond }) => {
       const sessionKey = typeof params?.sessionKey === "string" ? params.sessionKey.trim() : "";
@@ -170,11 +209,20 @@ const dataServicePlugin = {
       // Store context for this session
       setSessionContext(sessionKey, { orgId, userId, projectId, apiKey });
 
+      // Debug logging
+      console.log("[data-service] setContext called:", {
+        sessionKey,
+        orgId,
+        userId,
+        projectId,
+      });
+
       respond(true, {
         status: "ok",
         sessionKey,
         orgId,
         userId,
+        projectId,
         message: "Context set. Now call the 'agent' method with the same sessionKey.",
       });
     });
@@ -185,8 +233,14 @@ const dataServicePlugin = {
      * Clear the context for a session. Call this when a session ends or
      * when you want to reset the user context.
      *
-     * Request params:
-     *   - sessionKey: string (required) — Session key to clear context for
+     * @param sessionKey - Session key to clear context for (required)
+     *
+     * @example
+     * ```typescript
+     * await gateway.call("data-service.clearContext", {
+     *   sessionKey: "user-123-session-abc",
+     * });
+     * ```
      */
     api.registerGatewayMethod("data-service.clearContext", ({ params, respond }) => {
       const sessionKey = typeof params?.sessionKey === "string" ? params.sessionKey.trim() : "";
@@ -209,16 +263,26 @@ const dataServicePlugin = {
      * data-service.status
      *
      * Get the current status of the data-service plugin.
+     *
+     * @example
+     * ```typescript
+     * const status = await gateway.call("data-service.status", {});
+     * // { enabled: true, url: "https://...", activeSessions: 5, ... }
+     * ```
      */
     api.registerGatewayMethod("data-service.status", ({ respond }) => {
       respond(true, {
         status: "ok",
         enabled: dsConfig.enabled,
         url: dsConfig.url,
-        hasOrgId: !!dsConfig.orgId,
-        hasUserId: !!dsConfig.userId,
         hasServerKey: !!dsConfig.serverKey,
+        activeSessions: getSessionContextCount(),
         tools: [...TOOL_NAMES],
+        integration: {
+          required:
+            "Call data-service.setContext with sessionKey, orgId, userId before agent calls",
+          documentation: "See plugin header comments for full integration guide",
+        },
       });
     });
   },

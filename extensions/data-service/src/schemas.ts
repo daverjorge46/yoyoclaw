@@ -1,5 +1,8 @@
 /**
  * TypeBox schemas for all Data-Service connector tool parameters.
+ *
+ * Note: org_id and user_id are NOT exposed as tool parameters.
+ * They MUST be set via data-service.setContext gateway method.
  */
 
 import { Type } from "@sinclair/typebox";
@@ -53,18 +56,9 @@ export const ConnectorLookupSchema = Type.Object({
   connector: Type.String({
     description: "The connector type to look up.",
   }),
-  org_id: Type.Optional(
-    Type.String({ description: "Organization ID. Uses default if not provided." }),
-  ),
-  user_id: Type.Optional(Type.String({ description: "User ID. Uses default if not provided." })),
 });
 
-export const UserConnectorsSchema = Type.Object({
-  org_id: Type.Optional(
-    Type.String({ description: "Organization ID. Uses default if not provided." }),
-  ),
-  user_id: Type.Optional(Type.String({ description: "User ID. Uses default if not provided." })),
-});
+export const UserConnectorsSchema = Type.Object({});
 
 export const ConnectorSearchSchema = Type.Object({
   query: Type.String({

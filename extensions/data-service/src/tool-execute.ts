@@ -2,10 +2,14 @@
  * connector_execute tool -- executes actions on Data-Service connectors.
  *
  * This is STEP 2 of the workflow: search → confirm → execute.
+ *
+ * For Wexa Coworker Web integration:
+ * - User context (orgId/userId) MUST be set via data-service.setContext
  */
 
 import { jsonResult, readStringParam } from "openclaw/plugin-sdk";
 import type { DataServiceConfig } from "./config.js";
+import { hasUserContext, MISSING_CONTEXT_ERROR } from "./config.js";
 import { lookupUserConnector, makeDataServiceRequest } from "./http.js";
 import { ConnectorExecuteSchema } from "./schemas.js";
 
@@ -44,6 +48,11 @@ export function createConnectorExecuteTool(dsConfig: DataServiceConfig) {
 - input: JSON string with EXACT field names from the schema`,
     parameters: ConnectorExecuteSchema,
     execute: async (_toolCallId: string, args: unknown) => {
+      // Check if user context is set
+      if (!hasUserContext()) {
+        return jsonResult({ success: false, error: MISSING_CONTEXT_ERROR });
+      }
+
       const params = args as Record<string, unknown>;
       const connector = readStringParam(params, "connector", { required: true });
       const action = readStringParam(params, "action", { required: true });
