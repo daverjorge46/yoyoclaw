@@ -52,14 +52,11 @@ import {
   getHookType,
   isExternalHookSession,
 } from "../../security/external-content.js";
-import {
-  isDeliverableMessageChannel,
-  isInternalMessageChannel,
-} from "../../utils/message-channel.js";
 import { resolveCronDeliveryPlan } from "../delivery.js";
 import { resolveDeliveryTarget } from "./delivery-target.js";
 import {
   isHeartbeatOnlyResponse,
+  pickLastDeliverablePayload,
   pickLastNonEmptyTextFromPayloads,
   pickSummaryFromOutput,
   pickSummaryFromPayloads,
@@ -101,12 +98,8 @@ export type RunCronAgentTurnResult = {
   /** Last non-empty agent text output (not truncated). */
   outputText?: string;
   error?: string;
-  deliveryResult?: {
-    status: "ok" | "error";
-    error?: string;
-    channel?: string;
-    to?: string;
-  };
+  sessionId?: string;
+  sessionKey?: string;
 };
 
 export async function runCronIsolatedAgentTurn(params: {
@@ -197,14 +190,12 @@ export async function runCronIsolatedAgentTurn(params: {
   }
   const modelOverrideRaw =
     params.job.payload.kind === "agentTurn" ? params.job.payload.model : undefined;
-  if (modelOverrideRaw !== undefined) {
-    if (typeof modelOverrideRaw !== "string") {
-      return { status: "error", error: "invalid model: expected string" };
-    }
+  const modelOverride = typeof modelOverrideRaw === "string" ? modelOverrideRaw.trim() : undefined;
+  if (modelOverride !== undefined && modelOverride.length > 0) {
     const resolvedOverride = resolveAllowedModelRef({
       cfg: cfgWithAgentDefaults,
       catalog: await loadCatalog(),
-      raw: modelOverrideRaw,
+      raw: modelOverride,
       defaultProvider: resolvedDefault.provider,
       defaultModel: resolvedDefault.model,
     });
@@ -221,6 +212,36 @@ export async function runCronIsolatedAgentTurn(params: {
     agentId,
     nowMs: now,
   });
+  const runSessionId = cronSession.sessionEntry.sessionId;
+  const runSessionKey = baseSessionKey.startsWith("cron:")
+    ? `${agentSessionKey}:run:${runSessionId}`
+    : agentSessionKey;
+  const persistSessionEntry = async () => {
+    cronSession.store[agentSessionKey] = cronSession.sessionEntry;
+    if (runSessionKey !== agentSessionKey) {
+      cronSession.store[runSessionKey] = cronSession.sessionEntry;
+    }
+    await updateSessionStore(cronSession.storePath, (store) => {
+      store[agentSessionKey] = cronSession.sessionEntry;
+      if (runSessionKey !== agentSessionKey) {
+        store[runSessionKey] = cronSession.sessionEntry;
+      }
+    });
+  };
+  const withRunSession = (
+    result: Omit<RunCronAgentTurnResult, "sessionId" | "sessionKey">,
+  ): RunCronAgentTurnResult => ({
+    ...result,
+    sessionId: runSessionId,
+    sessionKey: runSessionKey,
+  });
+  if (!cronSession.sessionEntry.label?.trim() && baseSessionKey.startsWith("cron:")) {
+    const labelSuffix =
+      typeof params.job.name === "string" && params.job.name.trim()
+        ? params.job.name.trim()
+        : params.job.id;
+    cronSession.sessionEntry.label = `Cron: ${labelSuffix}`;
+  }
 
   // Resolve thinking level - job thinking > hooks.gmail.thinking > agent default
   const hooksGmailThinking = isGmailHook
@@ -256,15 +277,10 @@ export async function runCronIsolatedAgentTurn(params: {
   const agentPayload = params.job.payload.kind === "agentTurn" ? params.job.payload : null;
   const deliveryPlan = resolveCronDeliveryPlan(params.job);
   const deliveryRequested = deliveryPlan.requested;
-  const explicitChannelRequested =
-    typeof params.job.delivery?.channel === "string" &&
-    params.job.delivery.channel.trim() &&
-    params.job.delivery.channel.trim().toLowerCase() !== "last";
 
   const resolvedDelivery = await resolveDeliveryTarget(cfgWithAgentDefaults, agentId, {
     channel: deliveryPlan.channel ?? "last",
     to: deliveryPlan.to,
-    explicitChannel: Boolean(explicitChannelRequested),
   });
 
   const userTimezone = resolveUserTimezone(params.cfg.agents?.defaults?.userTimezone);
@@ -332,18 +348,12 @@ export async function runCronIsolatedAgentTurn(params: {
       updatedAt: Date.now(),
       skillsSnapshot,
     };
-    cronSession.store[agentSessionKey] = cronSession.sessionEntry;
-    await updateSessionStore(cronSession.storePath, (store) => {
-      store[agentSessionKey] = cronSession.sessionEntry;
-    });
+    await persistSessionEntry();
   }
 
   // Persist systemSent before the run, mirroring the inbound auto-reply behavior.
   cronSession.sessionEntry.systemSent = true;
-  cronSession.store[agentSessionKey] = cronSession.sessionEntry;
-  await updateSessionStore(cronSession.storePath, (store) => {
-    store[agentSessionKey] = cronSession.sessionEntry;
-  });
+  await persistSessionEntry();
 
   let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
   let fallbackProvider = provider;
@@ -371,6 +381,7 @@ export async function runCronIsolatedAgentTurn(params: {
           return runCliAgent({
             sessionId: cronSession.sessionEntry.sessionId,
             sessionKey: agentSessionKey,
+            agentId,
             sessionFile,
             workspaceDir,
             config: cfgWithAgentDefaults,
@@ -386,6 +397,7 @@ export async function runCronIsolatedAgentTurn(params: {
         return runEmbeddedPiAgent({
           sessionId: cronSession.sessionEntry.sessionId,
           sessionKey: agentSessionKey,
+          agentId,
           messageChannel,
           agentAccountId: resolvedDelivery.accountId,
           sessionFile,
@@ -409,7 +421,7 @@ export async function runCronIsolatedAgentTurn(params: {
     fallbackProvider = fallbackResult.provider;
     fallbackModel = fallbackResult.model;
   } catch (err) {
-    return { status: "error", error: String(err) };
+    return withRunSession({ status: "error", error: String(err) });
   }
 
   const payloads = runResult.payloads ?? [];
@@ -440,14 +452,19 @@ export async function runCronIsolatedAgentTurn(params: {
       cronSession.sessionEntry.totalTokens =
         promptTokens > 0 ? promptTokens : (usage.total ?? input);
     }
-    cronSession.store[agentSessionKey] = cronSession.sessionEntry;
-    await updateSessionStore(cronSession.storePath, (store) => {
-      store[agentSessionKey] = cronSession.sessionEntry;
-    });
+    await persistSessionEntry();
   }
   const firstText = payloads[0]?.text ?? "";
   const summary = pickSummaryFromPayloads(payloads) ?? pickSummaryFromOutput(firstText);
   const outputText = pickLastNonEmptyTextFromPayloads(payloads);
+  const synthesizedText = outputText?.trim() || summary?.trim() || undefined;
+  const deliveryPayload = pickLastDeliverablePayload(payloads);
+  const deliveryPayloads =
+    deliveryPayload !== undefined
+      ? [deliveryPayload]
+      : synthesizedText
+        ? [{ text: synthesizedText }]
+        : [];
   const deliveryBestEffort = resolveCronDeliveryBestEffort(params.job);
 
   // Skip delivery for heartbeat-only responses (HEARTBEAT_OK with no real content).
@@ -464,72 +481,31 @@ export async function runCronIsolatedAgentTurn(params: {
       }),
     );
 
-  const isUnsupportedDeliveryChannelError = (err: unknown) => {
-    const message = String(err);
-    return (
-      message.includes("Unsupported channel:") ||
-      message.includes("Outbound not configured for channel:") ||
-      message.includes("Delivering to WebChat is not supported")
-    );
-  };
-
   if (deliveryRequested && !skipHeartbeatDelivery && !skipMessagingToolDelivery) {
-    if (!isDeliverableMessageChannel(resolvedDelivery.channel)) {
-      const message = isInternalMessageChannel(resolvedDelivery.channel)
-        ? "Delivering to WebChat is not supported via `openclaw agent`; use WhatsApp/Telegram or run with --deliver=false."
-        : `Unsupported channel: ${String(resolvedDelivery.channel)}`;
-      logWarn(`[cron:${params.job.id}] ${message}`);
-      return {
-        status: "ok",
-        summary,
-        outputText,
-        deliveryResult: {
-          status: "error",
-          error: message,
-          channel: resolvedDelivery.channel,
-          to: resolvedDelivery.to,
-        },
-      };
-    }
     if (resolvedDelivery.error) {
-      if (isUnsupportedDeliveryChannelError(resolvedDelivery.error)) {
-        const message = resolvedDelivery.error.message;
-        logWarn(`[cron:${params.job.id}] ${message}`);
-        return {
-          status: "ok",
-          summary,
-          outputText,
-          deliveryResult: {
-            status: "error",
-            error: message,
-            channel: resolvedDelivery.channel,
-            to: resolvedDelivery.to,
-          },
-        };
-      }
       if (!deliveryBestEffort) {
-        return {
+        return withRunSession({
           status: "error",
           error: resolvedDelivery.error.message,
           summary,
           outputText,
-        };
+        });
       }
       logWarn(`[cron:${params.job.id}] ${resolvedDelivery.error.message}`);
-      return { status: "ok", summary, outputText };
+      return withRunSession({ status: "ok", summary, outputText });
     }
     if (!resolvedDelivery.to) {
       const message = "cron delivery target is missing";
       if (!deliveryBestEffort) {
-        return {
+        return withRunSession({
           status: "error",
           error: message,
           summary,
           outputText,
-        };
+        });
       }
       logWarn(`[cron:${params.job.id}] ${message}`);
-      return { status: "ok", summary, outputText };
+      return withRunSession({ status: "ok", summary, outputText });
     }
     try {
       await deliverOutboundPayloads({
@@ -538,31 +514,16 @@ export async function runCronIsolatedAgentTurn(params: {
         to: resolvedDelivery.to,
         accountId: resolvedDelivery.accountId,
         threadId: resolvedDelivery.threadId,
-        payloads,
+        payloads: deliveryPayloads,
         bestEffort: deliveryBestEffort,
         deps: createOutboundSendDeps(params.deps),
       });
     } catch (err) {
-      if (isUnsupportedDeliveryChannelError(err)) {
-        const message = String(err);
-        logWarn(`[cron:${params.job.id}] ${message}`);
-        return {
-          status: "ok",
-          summary,
-          outputText,
-          deliveryResult: {
-            status: "error",
-            error: message,
-            channel: resolvedDelivery.channel,
-            to: resolvedDelivery.to,
-          },
-        };
-      }
       if (!deliveryBestEffort) {
-        return { status: "error", summary, outputText, error: String(err) };
+        return withRunSession({ status: "error", summary, outputText, error: String(err) });
       }
     }
   }
 
-  return { status: "ok", summary, outputText };
+  return withRunSession({ status: "ok", summary, outputText });
 }
