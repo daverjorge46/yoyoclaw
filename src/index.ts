@@ -33,6 +33,13 @@ import { enableConsoleCapture } from "./logging.js";
 import { runCommandWithTimeout, runExec } from "./process/exec.js";
 import { assertWebChannel, normalizeE164, toWhatsappJid } from "./utils.js";
 
+import { tryUnlockVault } from "./cli/vault-unlock.js";
+
+// Attempt unlock early
+if (isMainModule({ currentFile: fileURLToPath(import.meta.url) })) {
+  await tryUnlockVault();
+}
+
 loadDotEnv({ quiet: true });
 normalizeEnv();
 ensureOpenClawCliOnPath();
