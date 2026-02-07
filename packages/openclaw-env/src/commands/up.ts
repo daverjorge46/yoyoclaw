@@ -4,6 +4,7 @@ import { loadOpenClawEnvConfig } from "../config/load.js";
 import { generateCompose } from "../generator/compose.js";
 import { evaluateSafety } from "../security/warnings.js";
 import { runDockerCompose } from "../utils/docker.js";
+import { promptConfirm } from "../utils/prompt.js";
 import { formatPermissionSummary } from "./summary.js";
 
 export type UpCommandOptions = {
@@ -37,11 +38,7 @@ function formatFindings(findings: ReturnType<typeof evaluateSafety>): string {
 }
 
 async function confirmProceed(message: string): Promise<boolean> {
-  const { default: inquirer } = await import("inquirer");
-  const ans = await inquirer.prompt([
-    { type: "confirm", name: "ok", message, default: false },
-  ]);
-  return Boolean((ans as { ok?: unknown }).ok);
+  return promptConfirm({ message, defaultValue: false });
 }
 
 async function writeGeneratedFiles(
@@ -129,4 +126,3 @@ export async function upCommand(opts: UpCommandOptions): Promise<void> {
   ];
   await runDockerCompose(upArgs, { cwd: cfg.configDir });
 }
-

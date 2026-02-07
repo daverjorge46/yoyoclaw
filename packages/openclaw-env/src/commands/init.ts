@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
+import { promptConfirm, promptSelect, promptText } from "../utils/prompt.js";
 
 type ProfileId = "safe" | "dev" | "integrations";
 
@@ -104,16 +105,10 @@ function parseNumberLike(input: string, fallback: number): number {
 }
 
 async function confirmOverwrite(configPath: string): Promise<boolean> {
-  const { default: inquirer } = await import("inquirer");
-  const answer = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "overwrite",
-      message: `File exists: ${configPath}\nOverwrite?`,
-      default: false,
-    },
-  ]);
-  return Boolean((answer as { overwrite?: unknown }).overwrite);
+  return promptConfirm({
+    message: `File exists: ${configPath}. Overwrite?`,
+    defaultValue: false,
+  });
 }
 
 export async function initCommand(opts: InitCommandOptions): Promise<void> {
@@ -133,159 +128,119 @@ export async function initCommand(opts: InitCommandOptions): Promise<void> {
   }
 
   const chosenProfile = parseProfile(opts.profile);
-  const { default: inquirer } = await import("inquirer");
 
   const baseProfile: ProfileId =
     chosenProfile ??
-    ((
-      await inquirer.prompt([
+    (await promptSelect({
+      message: "Choose a preset profile",
+      options: [
+        { label: "safe (workspace ro, network off, secrets none)", value: "safe" },
+        { label: "dev (workspace rw, network restricted, secrets none)", value: "dev" },
         {
-          type: "list",
-          name: "profile",
-          message: "Choose a preset profile",
-          choices: [
-            { name: "safe (workspace ro, network off, secrets none)", value: "safe" },
-            { name: "dev (workspace rw, network restricted, secrets none)", value: "dev" },
-            {
-              name: "integrations (workspace rw, restricted, secrets env_file)",
-              value: "integrations",
-            },
-          ],
-          default: "safe",
+          label: "integrations (workspace rw, restricted, secrets env_file)",
+          value: "integrations",
         },
-      ])
-    ) as { profile: ProfileId }).profile;
+      ],
+      defaultValue: "safe",
+    }));
 
   const draft = defaultDraft(baseProfile);
 
-  const answers = (await inquirer.prompt([
-    {
-      type: "input",
-      name: "image",
-      message: "OpenClaw image",
-      default: draft.openclaw.image,
-    },
-    {
-      type: "list",
-      name: "workspaceMode",
-      message: "Workspace access",
-      choices: [
-        { name: "read-only (ro)", value: "ro" },
-        { name: "read-write (rw)", value: "rw" },
-      ],
-      default: draft.workspace.mode,
-    },
-    {
-      type: "list",
-      name: "networkMode",
-      message: "Network mode",
-      choices: [
-        { name: "off (no network)", value: "off" },
-        { name: "restricted (egress proxy allowlist)", value: "restricted" },
-        { name: "full (unrestricted)", value: "full" },
-      ],
-      default: draft.network.mode,
-    },
-    {
-      type: "input",
-      name: "allowlist",
-      message: "Restricted allowlist domains (comma-separated)",
-      when: (a: { networkMode?: string }) => a.networkMode === "restricted",
-      default: draft.network.restricted.allowlist.join(", "),
-    },
-    {
-      type: "list",
-      name: "secretsMode",
-      message: "Secrets mode",
-      choices: [
-        { name: "none", value: "none" },
-        { name: "env_file (path only)", value: "env_file" },
-        { name: "docker_secrets (names + files)", value: "docker_secrets" },
-      ],
-      default: draft.secrets.mode,
-    },
-    {
-      type: "input",
-      name: "envFile",
-      message: "Env file path (relative to repo)",
-      when: (a: { secretsMode?: string }) => a.secretsMode === "env_file",
-      default: draft.secrets.env_file,
-    },
-    {
-      type: "input",
-      name: "cpus",
-      message: "CPU limit (e.g. 2)",
-      default: String(draft.limits.cpus),
-    },
-    {
-      type: "input",
-      name: "memory",
-      message: "Memory limit (e.g. 4g)",
-      default: draft.limits.memory,
-    },
-    {
-      type: "input",
-      name: "pids",
-      message: "PIDs limit (e.g. 256)",
-      default: String(draft.limits.pids),
-    },
-    {
-      type: "input",
-      name: "user",
-      message: "Container user (uid:gid)",
-      default: draft.runtime.user,
-    },
-  ])) as {
-    image: string;
-    workspaceMode: "ro" | "rw";
-    networkMode: "off" | "full" | "restricted";
-    allowlist?: string;
-    secretsMode: "none" | "env_file" | "docker_secrets";
-    envFile?: string;
-    cpus: string;
-    memory: string;
-    pids: string;
-    user: string;
-  };
+  const image = await promptText({
+    message: "OpenClaw image",
+    defaultValue: draft.openclaw.image,
+  });
+  const workspaceMode = await promptSelect<"ro" | "rw">({
+    message: "Workspace access",
+    options: [
+      { label: "read-only (ro)", value: "ro" },
+      { label: "read-write (rw)", value: "rw" },
+    ],
+    defaultValue: draft.workspace.mode,
+  });
+  const networkMode = await promptSelect<"off" | "full" | "restricted">({
+    message: "Network mode",
+    options: [
+      { label: "off (no network)", value: "off" },
+      { label: "restricted (egress proxy allowlist)", value: "restricted" },
+      { label: "full (unrestricted)", value: "full" },
+    ],
+    defaultValue: draft.network.mode,
+  });
+  const allowlist =
+    networkMode === "restricted"
+      ? await promptText({
+          message: "Restricted allowlist domains (comma-separated)",
+          defaultValue: draft.network.restricted.allowlist.join(", "),
+        })
+      : "";
+  const secretsMode = await promptSelect<"none" | "env_file" | "docker_secrets">({
+    message: "Secrets mode",
+    options: [
+      { label: "none", value: "none" },
+      { label: "env_file (path only)", value: "env_file" },
+      { label: "docker_secrets (names + files)", value: "docker_secrets" },
+    ],
+    defaultValue: draft.secrets.mode,
+  });
+  const envFile =
+    secretsMode === "env_file"
+      ? await promptText({
+          message: "Env file path (relative to repo)",
+          defaultValue: draft.secrets.env_file,
+        })
+      : "";
+  const cpus = await promptText({
+    message: "CPU limit (e.g. 2)",
+    defaultValue: String(draft.limits.cpus),
+  });
+  const memory = await promptText({
+    message: "Memory limit (e.g. 4g)",
+    defaultValue: draft.limits.memory,
+  });
+  const pids = await promptText({
+    message: "PIDs limit (e.g. 256)",
+    defaultValue: String(draft.limits.pids),
+  });
+  const user = await promptText({
+    message: "Container user (uid:gid)",
+    defaultValue: draft.runtime.user,
+  });
 
   const mounts: DraftConfig["mounts"] = [];
   while (true) {
-    const { addMount } = (await inquirer.prompt([
-      { type: "confirm", name: "addMount", message: "Add an extra mount?", default: false },
-    ])) as { addMount: boolean };
+    const addMount = await promptConfirm({
+      message: "Add an extra mount?",
+      defaultValue: false,
+    });
     if (!addMount) break;
-    const m = (await inquirer.prompt([
-      { type: "input", name: "host", message: "Host path (relative to repo ok)" },
-      { type: "input", name: "container", message: "Container path (e.g. /data)" },
-      {
-        type: "list",
-        name: "mode",
-        message: "Mount mode",
-        choices: [
-          { name: "read-only (ro)", value: "ro" },
-          { name: "read-write (rw)", value: "rw" },
-        ],
-        default: "ro",
-      },
-    ])) as { host: string; container: string; mode: "ro" | "rw" };
-    if (m.host.trim() && m.container.trim()) {
-      mounts.push({ host: m.host.trim(), container: m.container.trim(), mode: m.mode });
+    const host = await promptText({ message: "Host path (relative to repo ok)" });
+    const container = await promptText({ message: "Container path (e.g. /data)" });
+    const mode = await promptSelect<"ro" | "rw">({
+      message: "Mount mode",
+      options: [
+        { label: "read-only (ro)", value: "ro" },
+        { label: "read-write (rw)", value: "rw" },
+      ],
+      defaultValue: "ro",
+    });
+    if (host.trim() && container.trim()) {
+      mounts.push({ host: host.trim(), container: container.trim(), mode });
     }
   }
 
   const dockerSecrets: DraftConfig["secrets"]["docker_secrets"] = [];
-  if (answers.secretsMode === "docker_secrets") {
+  if (secretsMode === "docker_secrets") {
     while (true) {
-      const { addSecret } = (await inquirer.prompt([
-        { type: "confirm", name: "addSecret", message: "Add a docker secret?", default: false },
-      ])) as { addSecret: boolean };
+      const addSecret = await promptConfirm({
+        message: "Add a docker secret?",
+        defaultValue: false,
+      });
       if (!addSecret) break;
-      const s = (await inquirer.prompt([
-        { type: "input", name: "name", message: "Secret name (used as /run/secrets/<name>)" },
-        { type: "input", name: "file", message: "Secret file path (relative to repo ok)" },
-      ])) as { name: string; file: string };
-      if (s.name.trim() && s.file.trim()) {
-        dockerSecrets.push({ name: s.name.trim(), file: s.file.trim() });
+      const name = await promptText({ message: "Secret name (used as /run/secrets/<name>)" });
+      const file = await promptText({ message: "Secret file path (relative to repo ok)" });
+      if (name.trim() && file.trim()) {
+        dockerSecrets.push({ name: name.trim(), file: file.trim() });
       }
     }
   }
@@ -294,34 +249,34 @@ export async function initCommand(opts: InitCommandOptions): Promise<void> {
     ...draft,
     openclaw: {
       ...draft.openclaw,
-      image: answers.image.trim() || draft.openclaw.image,
+      image: image.trim() || draft.openclaw.image,
     },
     workspace: {
       ...draft.workspace,
-      mode: answers.workspaceMode,
+      mode: workspaceMode,
     },
     mounts,
     network: {
-      mode: answers.networkMode,
+      mode: networkMode,
       restricted: {
         allowlist:
-          answers.networkMode === "restricted"
-            ? parseCsvList(answers.allowlist ?? "")
+          networkMode === "restricted"
+            ? parseCsvList(allowlist)
             : [],
       },
     },
     secrets: {
-      mode: answers.secretsMode,
-      env_file: answers.envFile?.trim() || draft.secrets.env_file,
+      mode: secretsMode,
+      env_file: envFile.trim() || draft.secrets.env_file,
       docker_secrets: dockerSecrets,
     },
     limits: {
-      cpus: parseNumberLike(answers.cpus, draft.limits.cpus),
-      memory: answers.memory.trim() || draft.limits.memory,
-      pids: Math.trunc(parseNumberLike(answers.pids, draft.limits.pids)),
+      cpus: parseNumberLike(cpus, draft.limits.cpus),
+      memory: memory.trim() || draft.limits.memory,
+      pids: Math.trunc(parseNumberLike(pids, draft.limits.pids)),
     },
     runtime: {
-      user: answers.user.trim() || draft.runtime.user,
+      user: user.trim() || draft.runtime.user,
     },
   };
 
@@ -335,4 +290,3 @@ export async function initCommand(opts: InitCommandOptions): Promise<void> {
   process.stdout.write("  openclaw-env print\n");
   process.stdout.write("  openclaw-env up\n");
 }
-
