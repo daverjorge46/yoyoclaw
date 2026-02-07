@@ -14,6 +14,7 @@ export type AuthChoiceGroupId =
   | "copilot"
   | "openrouter"
   | "ai-gateway"
+  | "cloudflare-ai-gateway"
   | "moonshot"
   | "zai"
   | "xiaomi"
@@ -21,7 +22,9 @@ export type AuthChoiceGroupId =
   | "minimax"
   | "synthetic"
   | "venice"
-  | "qwen";
+  | "qwen"
+  | "qianfan"
+  | "xai";
 
 export type AuthChoiceGroup = {
   value: AuthChoiceGroupId;
@@ -36,6 +39,18 @@ const AUTH_CHOICE_GROUP_DEFS: {
   hint?: string;
   choices: AuthChoice[];
 }[] = [
+  {
+    value: "xai",
+    label: "xAI (Grok)",
+    hint: "API key",
+    choices: ["xai-api-key"],
+  },
+  {
+    value: "qianfan",
+    label: "Qianfan",
+    hint: "API key",
+    choices: ["qianfan-api-key"],
+  },
   {
     value: "openai",
     label: "OpenAI",
@@ -65,6 +80,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     label: "Google",
     hint: "Gemini API key + OAuth",
     choices: ["gemini-api-key", "google-antigravity", "google-gemini-cli"],
+  },
+  {
+    value: "xai",
+    label: "xAI (Grok)",
+    hint: "API key",
+    choices: ["xai-api-key"],
   },
   {
     value: "openrouter",
@@ -120,6 +141,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     hint: "Privacy-focused (uncensored models)",
     choices: ["venice-api-key"],
   },
+  {
+    value: "cloudflare-ai-gateway",
+    label: "Cloudflare AI Gateway",
+    hint: "Account ID + Gateway ID + API key",
+    choices: ["cloudflare-ai-gateway-api-key"],
+  },
 ];
 
 export function buildAuthChoiceOptions(params: {
@@ -141,10 +168,20 @@ export function buildAuthChoiceOptions(params: {
   });
   options.push({ value: "chutes", label: "Chutes (OAuth)" });
   options.push({ value: "openai-api-key", label: "OpenAI API key" });
+  options.push({ value: "xai-api-key", label: "xAI (Grok) API key" });
+  options.push({
+    value: "qianfan-api-key",
+    label: "Qianfan API key",
+  });
   options.push({ value: "openrouter-api-key", label: "OpenRouter API key" });
   options.push({
     value: "ai-gateway-api-key",
     label: "Vercel AI Gateway API key",
+  });
+  options.push({
+    value: "cloudflare-ai-gateway-api-key",
+    label: "Cloudflare AI Gateway",
+    hint: "Account ID + Gateway ID + API key",
   });
   options.push({
     value: "moonshot-api-key",
