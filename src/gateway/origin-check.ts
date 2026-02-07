@@ -58,10 +58,10 @@ function normalizeIPAddress(ip?: string): string | null {
   if (!ip) {
     return null;
   }
-  
+
   // Strip brackets (e.g., "[::1]" -> "::1")
   let normalized = ip.replace(/^\[|\]$/g, "");
-  
+
   // Strip port if present (e.g., "192.168.1.1:8080" -> "192.168.1.1")
   const portIndex = normalized.lastIndexOf(":");
   if (portIndex !== -1) {
@@ -72,7 +72,7 @@ function normalizeIPAddress(ip?: string): string | null {
       normalized = normalized.substring(0, portIndex);
     }
   }
-  
+
   // Handle IPv6-mapped IPv4 addresses (e.g., "::ffff:192.168.1.10" -> "192.168.1.10")
   if (normalized.startsWith("::ffff:")) {
     const mapped = normalized.substring(7);
@@ -81,7 +81,7 @@ function normalizeIPAddress(ip?: string): string | null {
       normalized = mapped;
     }
   }
-  
+
   return normalized;
 }
 
@@ -90,17 +90,17 @@ function isPrivateIP(ip?: string): boolean {
   if (!normalized) {
     return false;
   }
-  
+
   // IPv6 loopback
   if (normalized === "::1") {
     return true;
   }
-  
+
   // IPv4 loopback
   if (normalized.startsWith("127.")) {
     return true;
   }
-  
+
   // RFC1918 private ranges
   if (normalized.startsWith("10.")) {
     return true;
@@ -108,7 +108,7 @@ function isPrivateIP(ip?: string): boolean {
   if (normalized.startsWith("192.168.")) {
     return true;
   }
-  
+
   // 172.16.0.0/12 range
   const match = normalized.match(/^172\.(\d+)\./);
   if (match) {
@@ -117,12 +117,12 @@ function isPrivateIP(ip?: string): boolean {
       return true;
     }
   }
-  
+
   // Link-local (169.254.0.0/16)
   if (normalized.startsWith("169.254.")) {
     return true;
   }
-  
+
   // Tailscale CGNAT range (100.64.0.0/10)
   const tailscaleMatch = normalized.match(/^100\.(\d+)\./);
   if (tailscaleMatch) {
@@ -131,7 +131,7 @@ function isPrivateIP(ip?: string): boolean {
       return true;
     }
   }
-  
+
   return false;
 }
 
