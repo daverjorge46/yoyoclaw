@@ -94,6 +94,7 @@
 - Follow concise, action-oriented commit messages (e.g., `CLI: add verbose flag to send`).
 - Group related changes; avoid bundling unrelated refactors.
 - Changelog workflow: keep latest released version at top (no `Unreleased`); after publishing, bump version and start a new top section.
+- Before creating a PR or starting work on an issue: check `gh pr list --search "<topic>"` and `gh issue list --search "<topic>"` for existing PRs/issues on the same topic to avoid duplicates and wasted effort.
 - PRs should summarize scope, note testing performed, and mention any user-facing changes or new flags.
 - Read this when submitting a PR: `docs/help/submitting-a-pr.md` ([Submitting a PR](https://docs.openclaw.ai/help/submitting-a-pr))
 - Read this when submitting an issue: `docs/help/submitting-an-issue.md` ([Submitting an Issue](https://docs.openclaw.ai/help/submitting-an-issue))
