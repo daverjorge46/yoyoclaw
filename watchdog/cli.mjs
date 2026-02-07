@@ -38,14 +38,16 @@ const repoRoot = resolveRepoRoot();
 const args = process.argv.slice(2);
 const command = args[0];
 
+function localTime() {
+  return new Date().toLocaleTimeString("en-GB", { hour12: false });
+}
+
 function log(msg) {
-  const ts = new Date().toISOString().slice(11, 19);
-  console.log(`[${ts}] ${msg}`);
+  console.log(`[${localTime()}] ${msg}`);
 }
 
 function logError(msg) {
-  const ts = new Date().toISOString().slice(11, 19);
-  console.error(`[${ts}] ERROR: ${msg}`);
+  console.error(`[${localTime()}] ERROR: ${msg}`);
 }
 
 async function cmdBuild() {
