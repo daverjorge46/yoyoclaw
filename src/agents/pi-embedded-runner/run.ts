@@ -128,7 +128,11 @@ export async function runEmbeddedPiAgent(
       });
 
       // Override model if routing suggests it
-      if (routingDecision.wasRouted && routingDecision.routedProvider && routingDecision.routedModel) {
+      if (
+        routingDecision.wasRouted &&
+        routingDecision.routedProvider &&
+        routingDecision.routedModel
+      ) {
         provider = routingDecision.routedProvider;
         modelId = routingDecision.routedModel;
         logRoutingDecision(routingDecision, params.sessionId, params.runId);

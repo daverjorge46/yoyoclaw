@@ -28,13 +28,13 @@ Add to your `openclaw.json5`:
 
 ```json5
 {
-  "agents": {
-    "defaults": {
-      "modelRouting": {
-        "enabled": true
-      }
-    }
-  }
+  agents: {
+    defaults: {
+      modelRouting: {
+        enabled: true,
+      },
+    },
+  },
 }
 ```
 
@@ -76,57 +76,81 @@ You: "complex analysis [use local]"
 
 ```json5
 {
-  "agents": {
-    "defaults": {
-      "modelRouting": {
-        "enabled": true,
-        "rules": {
-          "status_check": "ollama/llama3.1:8b",
-          "file_operation": "ollama/llama3.1:8b",
-          "draft_message": "anthropic/claude-3-5-haiku-20241022",
-          "general": "anthropic/claude-3-5-haiku-20241022",
-          "proposal_creation": "anthropic/claude-sonnet-4-5",
-          "technical_discussion": "anthropic/claude-sonnet-4-5",
-          "analysis": "anthropic/claude-sonnet-4-5"
+  agents: {
+    defaults: {
+      modelRouting: {
+        enabled: true,
+        rules: {
+          status_check: "ollama/llama3.1:8b",
+          file_operation: "ollama/llama3.1:8b",
+          draft_message: "anthropic/claude-3-5-haiku-20241022",
+          general: "anthropic/claude-3-5-haiku-20241022",
+          proposal_creation: "anthropic/claude-sonnet-4-5",
+          technical_discussion: "anthropic/claude-sonnet-4-5",
+          analysis: "anthropic/claude-sonnet-4-5",
         },
-        "keywords": {
-          "local_triggers": [
-            "check", "status", "list", "show", "find",
-            "read", "get", "view", "file", "search"
+        keywords: {
+          local_triggers: [
+            "check",
+            "status",
+            "list",
+            "show",
+            "find",
+            "read",
+            "get",
+            "view",
+            "file",
+            "search",
           ],
-          "haiku_triggers": [
-            "draft", "follow up", "reply", "message",
-            "send", "write", "summarize", "brief", "quick"
+          haiku_triggers: [
+            "draft",
+            "follow up",
+            "reply",
+            "message",
+            "send",
+            "write",
+            "summarize",
+            "brief",
+            "quick",
           ],
-          "sonnet_triggers": [
-            "proposal", "create detailed", "analyze",
-            "complex", "technical", "strategic", "review",
-            "explain", "architecture", "recommend"
-          ]
+          sonnet_triggers: [
+            "proposal",
+            "create detailed",
+            "analyze",
+            "complex",
+            "technical",
+            "strategic",
+            "review",
+            "explain",
+            "architecture",
+            "recommend",
+          ],
         },
-        "override": {
-          "minConfidence": 0.7,
-          "fallback": "anthropic/claude-3-5-haiku-20241022"
+        override: {
+          minConfidence: 0.7,
+          fallback: "anthropic/claude-3-5-haiku-20241022",
         },
-        "learning": {
-          "enabled": true,
-          "trackPerformance": true,
-          "optimizeAfterTasks": 100
-        }
-      }
-    }
-  }
+        learning: {
+          enabled: true,
+          trackPerformance: true,
+          optimizeAfterTasks: 100,
+        },
+      },
+    },
+  },
 }
 ```
 
 ### Configuration Options
 
 #### `enabled` (boolean)
+
 - **Default:** `false`
 - **Description:** Enable/disable model routing
 - **Example:** `"enabled": true`
 
 #### `rules` (object)
+
 - **Description:** Map task types to specific models
 - **Task Types:**
   - `status_check` - Status queries, simple checks
@@ -138,16 +162,19 @@ You: "complex analysis [use local]"
   - `analysis` - Complex analysis tasks
 
 #### `keywords` (object)
+
 - **Description:** Keywords that trigger each model tier
 - **local_triggers:** Keywords for free local model
 - **haiku_triggers:** Keywords for fast Haiku model
 - **sonnet_triggers:** Keywords for powerful Sonnet model
 
 #### `override` (object)
+
 - **minConfidence:** Minimum confidence (0-1) to override model selection
 - **fallback:** Model to use when confidence is too low
 
 #### `learning` (object)
+
 - **enabled:** Enable learning from routing decisions
 - **trackPerformance:** Track routing accuracy
 - **optimizeAfterTasks:** Optimize rules after N tasks
@@ -183,15 +210,15 @@ You: "complex analysis [use local]"
 
 The classifier detects these task types automatically:
 
-| Task Type | Example Messages | Routed To |
-|-----------|------------------|-----------|
-| `status_check` | "check WhatsApp", "show status" | Local (FREE) |
-| `file_operation` | "read README", "find file" | Local (FREE) |
-| `draft_message` | "draft follow-up", "write email" | Haiku (₹0.75) |
-| `general` | "what's the weather", "help me" | Haiku (₹0.75) |
-| `proposal_creation` | "create proposal", "detailed plan" | Sonnet (₹4) |
-| `technical_discussion` | "explain architecture", "review code" | Sonnet (₹4) |
-| `analysis` | "analyze data", "compare options" | Sonnet (₹4) |
+| Task Type              | Example Messages                      | Routed To     |
+| ---------------------- | ------------------------------------- | ------------- |
+| `status_check`         | "check WhatsApp", "show status"       | Local (FREE)  |
+| `file_operation`       | "read README", "find file"            | Local (FREE)  |
+| `draft_message`        | "draft follow-up", "write email"      | Haiku (₹0.75) |
+| `general`              | "what's the weather", "help me"       | Haiku (₹0.75) |
+| `proposal_creation`    | "create proposal", "detailed plan"    | Sonnet (₹4)   |
+| `technical_discussion` | "explain architecture", "review code" | Sonnet (₹4)   |
+| `analysis`             | "analyze data", "compare options"     | Sonnet (₹4)   |
 
 ---
 
@@ -223,16 +250,19 @@ Force a specific model by adding `[use MODEL]` to your message:
 ### When to Override
 
 **Use `[use sonnet]` when:**
+
 - You need highest quality output
 - Complex reasoning required
 - Previous attempt with cheaper model failed
 
 **Use `[use haiku]` when:**
+
 - Speed matters more than perfection
 - Draft quality is acceptable
 - Cost constraints apply
 
 **Use `[use local]` when:**
+
 - Completely offline work needed
 - Zero cost required
 - Simple data retrieval only
@@ -244,11 +274,13 @@ Force a specific model by adding `[use MODEL]` to your message:
 ### Example Monthly Usage (Based on Real Data)
 
 **Without Routing:**
+
 - 1,000 messages/month
 - All using Sonnet (₹4 each)
 - **Total: ₹4,000/month**
 
 **With Routing:**
+
 - 400 simple tasks → Local (₹0)
 - 400 medium tasks → Haiku (₹0.75 each = ₹300)
 - 200 complex tasks → Sonnet (₹4 each = ₹800)
@@ -257,11 +289,11 @@ Force a specific model by adding `[use MODEL]` to your message:
 
 ### Per-Task Savings
 
-| Task | Without Routing | With Routing | Savings |
-|------|----------------|--------------|---------|
-| "check status" | ₹4 (Sonnet) | ₹0 (Local) | **₹4** |
-| "draft email" | ₹4 (Sonnet) | ₹0.75 (Haiku) | **₹3.25** |
-| "create proposal" | ₹4 (Sonnet) | ₹4 (Sonnet) | ₹0 |
+| Task              | Without Routing | With Routing  | Savings   |
+| ----------------- | --------------- | ------------- | --------- |
+| "check status"    | ₹4 (Sonnet)     | ₹0 (Local)    | **₹4**    |
+| "draft email"     | ₹4 (Sonnet)     | ₹0.75 (Haiku) | **₹3.25** |
+| "create proposal" | ₹4 (Sonnet)     | ₹4 (Sonnet)   | ₹0        |
 
 ---
 
@@ -285,16 +317,19 @@ from=anthropic/claude-sonnet-4-5 to=anthropic/claude-3-5-haiku-20241022
 ### Common Issues
 
 **Issue:** Routing not working
+
 - **Check:** `enabled: true` in config
 - **Check:** OpenClaw version supports routing
 - **Solution:** Restart OpenClaw after config change
 
 **Issue:** Wrong model selected
+
 - **Solution:** Use inline override: `[use MODEL]`
 - **Solution:** Adjust `minConfidence` in config
 - **Solution:** Add keywords to appropriate trigger list
 
 **Issue:** Too many Sonnet routes (expensive)
+
 - **Solution:** Lower `minConfidence` (e.g., 0.6)
 - **Solution:** Add more `haiku_triggers` keywords
 - **Solution:** Review `sonnet_triggers` for false positives
@@ -307,11 +342,11 @@ from=anthropic/claude-sonnet-4-5 to=anthropic/claude-3-5-haiku-20241022
 
 ```json5
 {
-  "modelRouting": {
-    "override": {
-      "minConfidence": 0.8  // Higher = more conservative (fewer overrides)
-    }
-  }
+  modelRouting: {
+    override: {
+      minConfidence: 0.8, // Higher = more conservative (fewer overrides)
+    },
+  },
 }
 ```
 
@@ -324,14 +359,16 @@ from=anthropic/claude-sonnet-4-5 to=anthropic/claude-3-5-haiku-20241022
 
 ```json5
 {
-  "modelRouting": {
-    "keywords": {
-      "local_triggers": [
-        "check", "status", "list",
-        "my-custom-keyword"  // Add your own
-      ]
-    }
-  }
+  modelRouting: {
+    keywords: {
+      local_triggers: [
+        "check",
+        "status",
+        "list",
+        "my-custom-keyword", // Add your own
+      ],
+    },
+  },
 }
 ```
 
@@ -339,11 +376,11 @@ from=anthropic/claude-sonnet-4-5 to=anthropic/claude-3-5-haiku-20241022
 
 ```json5
 {
-  "modelRouting": {
-    "rules": {
-      "draft_message": "ollama/llama3.1:8b"  // Use local for drafts
-    }
-  }
+  modelRouting: {
+    rules: {
+      draft_message: "ollama/llama3.1:8b", // Use local for drafts
+    },
+  },
 }
 ```
 
@@ -357,20 +394,20 @@ Configure different routing per agent:
 
 ```json5
 {
-  "agents": {
-    "main": {
-      "modelRouting": {
-        "enabled": true,
-        "override": { "minConfidence": 0.7 }
-      }
+  agents: {
+    main: {
+      modelRouting: {
+        enabled: true,
+        override: { minConfidence: 0.7 },
+      },
     },
-    "research": {
-      "modelRouting": {
-        "enabled": true,
-        "override": { "minConfidence": 0.6 }  // More aggressive
-      }
-    }
-  }
+    research: {
+      modelRouting: {
+        enabled: true,
+        override: { minConfidence: 0.6 }, // More aggressive
+      },
+    },
+  },
 }
 ```
 
@@ -378,13 +415,13 @@ Configure different routing per agent:
 
 ```json5
 {
-  "agents": {
+  agents: {
     "critical-work": {
-      "modelRouting": {
-        "enabled": false  // Always use default model
-      }
-    }
-  }
+      modelRouting: {
+        enabled: false, // Always use default model
+      },
+    },
+  },
 }
 ```
 
@@ -420,6 +457,7 @@ A: ~80-90% accuracy on typical messages. Improves with custom keywords.
 ### From Manual Model Switching
 
 **Before:**
+
 ```bash
 /model local
 check status
@@ -428,6 +466,7 @@ create proposal
 ```
 
 **After:**
+
 ```
 check status              # Auto-routes to local
 create proposal           # Auto-routes to sonnet

@@ -30,7 +30,7 @@ export function extractRoutingConfig(cfg?: OpenClawConfig): RoutingConfig | null
   if (!routing) {
     return null;
   }
-  
+
   // Merge with defaults
   return {
     ...DEFAULT_ROUTING_CONFIG,
@@ -63,10 +63,10 @@ export function applyModelRouting(params: {
   defaultProvider: string;
 }): RoutingDecision {
   const { message, provider, modelId, sessionKey, config, defaultProvider } = params;
-  
+
   // Extract routing config
   const routingConfig = extractRoutingConfig(config);
-  
+
   // If no routing config or disabled, return original
   if (!routingConfig || !routingConfig.enabled) {
     return {
@@ -93,13 +93,13 @@ export function applyModelRouting(params: {
       message,
       sessionType,
     },
-    routingConfig
+    routingConfig,
   );
 
   // If routing doesn't suggest override, return original
   if (!result.shouldOverride || !result.suggestedModel) {
     log.info(
-      `[model-routing] no_override taskType=${result.classification.taskType} confidence=${(result.classification.confidence * 100).toFixed(0)}% model=${provider}/${modelId}`
+      `[model-routing] no_override taskType=${result.classification.taskType} confidence=${(result.classification.confidence * 100).toFixed(0)}% model=${provider}/${modelId}`,
     );
     return {
       originalProvider: provider,
@@ -116,7 +116,7 @@ export function applyModelRouting(params: {
   const parsed = parseModelRef(result.suggestedModel, defaultProvider);
   if (!parsed) {
     log.warn(
-      `[model-routing] failed_to_parse suggested=${result.suggestedModel} using=${provider}/${modelId}`
+      `[model-routing] failed_to_parse suggested=${result.suggestedModel} using=${provider}/${modelId}`,
     );
     return {
       originalProvider: provider,
@@ -132,7 +132,7 @@ export function applyModelRouting(params: {
   // Check if routing would actually change the model
   if (parsed.provider === provider && parsed.model === modelId) {
     log.info(
-      `[model-routing] same_model taskType=${result.classification.taskType} model=${provider}/${modelId}`
+      `[model-routing] same_model taskType=${result.classification.taskType} model=${provider}/${modelId}`,
     );
     return {
       originalProvider: provider,
@@ -147,7 +147,7 @@ export function applyModelRouting(params: {
 
   // Log routing decision
   log.info(
-    `[model-routing] routed taskType=${result.classification.taskType} confidence=${(result.classification.confidence * 100).toFixed(0)}% from=${provider}/${modelId} to=${parsed.provider}/${parsed.model}`
+    `[model-routing] routed taskType=${result.classification.taskType} confidence=${(result.classification.confidence * 100).toFixed(0)}% from=${provider}/${modelId} to=${parsed.provider}/${parsed.model}`,
   );
 
   return {
@@ -168,7 +168,7 @@ export function applyModelRouting(params: {
 export function logRoutingDecision(
   decision: RoutingDecision,
   sessionId: string,
-  runId: string
+  runId: string,
 ): void {
   if (!decision.wasRouted) {
     return;

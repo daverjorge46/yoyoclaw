@@ -125,7 +125,7 @@ export const DEFAULT_ROUTING_CONFIG: RoutingConfig = {
  */
 export function classifyTask(
   message: string,
-  config: RoutingConfig = DEFAULT_ROUTING_CONFIG
+  config: RoutingConfig = DEFAULT_ROUTING_CONFIG,
 ): TaskClassification {
   const lowerMsg = message.toLowerCase();
   const wordCount = message.split(/\s+/).length;
@@ -209,10 +209,8 @@ export function classifyTask(
   }
 
   // Get recommended model from rules or determine from scores
-  let recommendedModel = 
-    config.rules[taskType] || 
-    config.override.fallback || 
-    DEFAULT_ROUTING_CONFIG.override.fallback;
+  let recommendedModel =
+    config.rules[taskType] || config.override.fallback || DEFAULT_ROUTING_CONFIG.override.fallback;
 
   // Calculate confidence
   const maxScore = Math.max(scores.local, scores.haiku, scores.sonnet);
@@ -249,7 +247,7 @@ export function classifyTask(
  */
 export function routeMessage(
   context: ModelRoutingContext,
-  config: RoutingConfig = DEFAULT_ROUTING_CONFIG
+  config: RoutingConfig = DEFAULT_ROUTING_CONFIG,
 ): {
   classification: TaskClassification;
   shouldOverride: boolean;
@@ -299,7 +297,7 @@ export function routeMessage(
 export function formatRoutingDecision(
   classification: TaskClassification,
   actualModel: string,
-  shouldOverride: boolean
+  shouldOverride: boolean,
 ): string {
   const match = classification.recommendedModel === actualModel;
   const savings = match ? "✓" : "→";

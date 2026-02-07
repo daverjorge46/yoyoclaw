@@ -23,9 +23,7 @@ describe("model-routing", () => {
     });
 
     it("should classify proposal creation correctly", () => {
-      const result = classifyTask(
-        "Create a detailed proposal with timeline and pricing"
-      );
+      const result = classifyTask("Create a detailed proposal with timeline and pricing");
       expect(result.taskType).toBe("proposal_creation");
       expect(result.complexity).toBe("complex");
     });
@@ -133,11 +131,7 @@ describe("model-routing", () => {
         recommendedModel: "ollama/llama3.1:8b",
         reasoning: "test",
       };
-      const result = formatRoutingDecision(
-        classification,
-        "ollama/llama3.1:8b",
-        true
-      );
+      const result = formatRoutingDecision(classification, "ollama/llama3.1:8b", true);
       expect(result).toContain("✓");
       expect(result).toContain("==");
     });
@@ -150,11 +144,7 @@ describe("model-routing", () => {
         recommendedModel: "ollama/llama3.1:8b",
         reasoning: "test",
       };
-      const result = formatRoutingDecision(
-        classification,
-        "anthropic/claude-sonnet-4-5",
-        false
-      );
+      const result = formatRoutingDecision(classification, "anthropic/claude-sonnet-4-5", false);
       expect(result).toContain("→");
       expect(result).toContain("!=");
     });
@@ -167,11 +157,7 @@ describe("model-routing", () => {
         recommendedModel: "anthropic/claude-3-5-haiku",
         reasoning: "test",
       };
-      const result = formatRoutingDecision(
-        classification,
-        "anthropic/claude-3-5-haiku",
-        true
-      );
+      const result = formatRoutingDecision(classification, "anthropic/claude-3-5-haiku", true);
       expect(result).toContain("draft_message");
       expect(result).toContain("87%");
     });
