@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/user-identity.txt",
+  "hash": "sha256:36302838d7d273be6279e1f8e5ccc09b8f0fbe18b575b99f52771f0582829df8",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.474Z",
+  "contentLength": 31,
+  "templateEngine": "jinja"
+}

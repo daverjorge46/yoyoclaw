@@ -6,10 +6,12 @@ import { createAgentSession, SessionManager, SettingsManager } from "@mariozechn
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
+import { join } from "node:path";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
+import { createSubsystemLogger } from "../../../logging/subsystem.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import { isSubagentSessionKey } from "../../../routing/session-key.js";
@@ -53,6 +55,7 @@ import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
 import { resetVerification } from "../../session-security-state.js";
 import { guardSessionManager } from "../../session-tool-result-guard-wrapper.js";
 import { acquireSessionWriteLock } from "../../session-write-lock.js";
+import { checkTemplateDrift } from "../../sig-template-check.js";
 import { initWorkspaceSignatures } from "../../sig-workspace-init.js";
 import {
   applySkillEnvOverrides,
@@ -92,6 +95,8 @@ import {
 import { splitSdkTools } from "../tool-split.js";
 import { describeUnknownError, mapThinkingLevel } from "../utils.js";
 import { detectAndLoadPromptImages } from "./images.js";
+
+const sigTemplateLog = createSubsystemLogger("agents/sig-template-check");
 
 export function injectHistoryImagesIntoMessages(
   messages: AgentMessage[],
@@ -204,7 +209,7 @@ export async function runEmbeddedAttempt(
       (file) => file.name === DEFAULT_BOOTSTRAP_FILENAME && !file.missing,
     )
       ? ["Reminder: commit your changes in this workspace after edits."]
-      : undefined;
+      : [];
 
     const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
 
@@ -213,13 +218,14 @@ export async function runEmbeddedAttempt(
     const turnId = crypto.randomUUID();
     resetVerification(sessionKey, turnId);
     const messageSigning = createMessageSigningContext(sessionKey);
-    if (params.senderIsOwner && params.senderId) {
+    const signedSenderId = params.senderId ?? params.senderE164;
+    if (params.senderIsOwner && signedSenderId) {
       const channel = params.messageChannel ?? params.messageProvider ?? "unknown";
       signMessage(messageSigning, {
         messageId: params.runId,
         content: params.prompt,
         channel,
-        senderId: params.senderId,
+        senderId: signedSenderId,
         senderName: params.senderName ?? undefined,
         senderE164: params.senderE164 ?? undefined,
         isOwner: true,
@@ -236,6 +242,28 @@ export async function runEmbeddedAttempt(
         sigConfig = await loadSigConfig(sigProjectRoot);
         // Sign workspace files that have policies but no signatures (idempotent)
         await initWorkspaceSignatures(sigProjectRoot, sigConfig);
+        try {
+          const drift = await checkTemplateDrift(
+            sigProjectRoot,
+            join(sigProjectRoot, "llm/prompts"),
+          );
+          if (drift.unsigned.length > 0 || drift.modified.length > 0) {
+            const summaryParts: string[] = [];
+            if (drift.unsigned.length > 0) {
+              summaryParts.push(`${drift.unsigned.length} templates unsigned`);
+              sigTemplateLog.warn(`Unsigned templates: ${drift.unsigned.join(", ")}`);
+            }
+            if (drift.modified.length > 0) {
+              summaryParts.push(`${drift.modified.length} templates modified`);
+              sigTemplateLog.warn(`Modified templates: ${drift.modified.join(", ")}`);
+            }
+            workspaceNotes.unshift(
+              `sig warning: ${summaryParts.join(", ")} — tell the user to run \`sig sign llm/prompts/*.txt\`.`,
+            );
+          }
+        } catch (err) {
+          sigTemplateLog.warn(`Template drift check failed: ${String(err)}`);
+        }
       }
     } catch {
       // sig not available — continue without mutation gate
@@ -243,7 +271,9 @@ export async function runEmbeddedAttempt(
 
     // sig: build sender identity for update_and_sign tool
     const senderIdentity =
-      params.senderIsOwner && params.senderId ? buildSenderIdentityString(params) : undefined;
+      params.senderIsOwner && (params.senderId || params.senderE164)
+        ? buildSenderIdentityString(params)
+        : undefined;
 
     // Check if the model supports native image input
     const modelHasVision = params.model.input?.includes("image") ?? false;
@@ -406,7 +436,7 @@ export async function runEmbeddedAttempt(
       skillsPrompt,
       docsPath: docsPath ?? undefined,
       ttsHint,
-      workspaceNotes,
+      workspaceNotes: workspaceNotes.length > 0 ? workspaceNotes : undefined,
       reactionGuidance,
       promptMode,
       runtimeInfo,

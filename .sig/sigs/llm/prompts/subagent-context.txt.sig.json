@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/subagent-context.txt",
+  "hash": "sha256:8311d9cb9ff41bf221cdcd604f7b5dc7bc6706ad17c3391b5a912d85ba2ea616",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.472Z",
+  "contentLength": 19,
+  "templateEngine": "jinja"
+}

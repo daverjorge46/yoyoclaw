@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/tooling.txt",
+  "hash": "sha256:250e8437e3c8880fe8a19ef616c9da33e49dbd64a575e101589f3044deec89d7",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.474Z",
+  "contentLength": 371,
+  "templateEngine": "jinja"
+}

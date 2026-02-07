@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/soul-guidance.txt",
+  "hash": "sha256:834550dfa57c9855e7cbcb9f39ce03e828c358e01ed92ca8d45a5cf2d285b993",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.472Z",
+  "contentLength": 150,
+  "templateEngine": "jinja"
+}

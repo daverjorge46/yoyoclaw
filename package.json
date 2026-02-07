@@ -9,6 +9,8 @@
     "openclaw": "openclaw.mjs"
   },
   "files": [
+    ".sig/config.json",
+    ".sig/sigs/",
     "assets/",
     "CHANGELOG.md",
     "dist/",

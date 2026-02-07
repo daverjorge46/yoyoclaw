@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/voice.txt",
+  "hash": "sha256:809219a3655b86903ac7d255ef0ea44d9f987dbd503da131e9f302fd6ba5ec12",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.475Z",
+  "contentLength": 27,
+  "templateEngine": "jinja"
+}

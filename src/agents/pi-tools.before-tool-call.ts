@@ -4,12 +4,18 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { logGateEvent } from "./sig-gate-audit.js";
 import { checkMutationGate } from "./sig-mutation-gate.js";
-import { checkVerificationGate, SIG_GATED_TOOLS } from "./sig-verification-gate.js";
+import {
+  checkVerificationGate,
+  isVerificationEnforced,
+  resolveGatedTools,
+} from "./sig-verification-gate.js";
 import { normalizeToolName } from "./tool-policy.js";
 
 type HookContext = {
   agentId?: string;
   sessionKey?: string;
+  /** Whether the current sender is an authenticated owner. */
+  senderIsOwner?: boolean;
   /** Current turn ID for sig verification gate. */
   turnId?: string;
   /** Config reference for sig verification gate. */
@@ -28,14 +34,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** Check if sig enforcement is enabled in config (same logic as checkVerificationGate). */
-function isEnforcementEnabled(config: unknown): boolean {
-  const agents = (config as Record<string, unknown>)?.agents as Record<string, unknown> | undefined;
-  const defaults = agents?.defaults as Record<string, unknown> | undefined;
-  const sig = defaults?.sig as { enforceVerification?: boolean } | undefined;
-  return !!sig?.enforceVerification;
-}
-
 export async function runBeforeToolCallHook(args: {
   toolName: string;
   params: unknown;
@@ -49,6 +47,7 @@ export async function runBeforeToolCallHook(args: {
     args.ctx?.sessionKey,
     args.ctx?.turnId,
     args.ctx?.config,
+    args.ctx?.senderIsOwner,
   );
   if (gateResult.blocked) {
     if (args.ctx?.projectRoot) {
@@ -90,8 +89,8 @@ export async function runBeforeToolCallHook(args: {
   // Only log when enforcement is active — otherwise the gate wasn't involved.
   if (
     args.ctx?.projectRoot &&
-    isEnforcementEnabled(args.ctx.config) &&
-    SIG_GATED_TOOLS.has(args.toolName.trim().toLowerCase())
+    isVerificationEnforced(args.ctx?.config) &&
+    resolveGatedTools(args.ctx?.config).has(args.toolName.trim().toLowerCase())
   ) {
     logGateEvent(args.ctx.projectRoot, {
       event: "gate_allowed",

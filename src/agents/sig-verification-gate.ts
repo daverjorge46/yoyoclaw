@@ -26,6 +26,26 @@ export const SIG_GATED_TOOLS = new Set<string>([
 
 export type GateResult = { blocked: false } | { blocked: true; reason: string };
 
+export function isVerificationEnforced(config: OpenClawConfig | undefined): boolean {
+  const sigConfig = (config as Record<string, unknown>)?.agents as
+    | Record<string, unknown>
+    | undefined;
+  const defaults = sigConfig?.defaults as Record<string, unknown> | undefined;
+  const sig = defaults?.sig as { enforceVerification?: boolean } | undefined;
+  return !!sig?.enforceVerification;
+}
+
+export function resolveGatedTools(config: OpenClawConfig | undefined): Set<string> {
+  const sigConfig = (config as Record<string, unknown>)?.agents as
+    | Record<string, unknown>
+    | undefined;
+  const defaults = sigConfig?.defaults as Record<string, unknown> | undefined;
+  const sig = defaults?.sig as { gatedTools?: string[] } | undefined;
+  return sig?.gatedTools
+    ? new Set(sig.gatedTools.map((t) => t.trim().toLowerCase()))
+    : SIG_GATED_TOOLS;
+}
+
 /**
  * Check whether a tool call should be blocked by the verification gate.
  *
@@ -37,26 +57,24 @@ export function checkVerificationGate(
   sessionKey: string | undefined,
   turnId: string | undefined,
   config: OpenClawConfig | undefined,
+  senderIsOwner?: boolean,
 ): GateResult {
-  // Check if enforcement is enabled in config
-  const sigConfig = (config as Record<string, unknown>)?.agents as
-    | Record<string, unknown>
-    | undefined;
-  const defaults = sigConfig?.defaults as Record<string, unknown> | undefined;
-  const sig = defaults?.sig as { enforceVerification?: boolean; gatedTools?: string[] } | undefined;
-
-  if (!sig?.enforceVerification) {
+  if (!isVerificationEnforced(config)) {
     return { blocked: false };
   }
 
-  // Resolve gated tool set (config override or default)
-  const gatedTools = sig.gatedTools
-    ? new Set(sig.gatedTools.map((t) => t.trim().toLowerCase()))
-    : SIG_GATED_TOOLS;
+  const gatedTools = resolveGatedTools(config);
 
   const normalized = toolName.trim().toLowerCase();
   if (!gatedTools.has(normalized)) {
     return { blocked: false };
+  }
+
+  if (senderIsOwner === false) {
+    return {
+      blocked: true,
+      reason: "Sensitive tools require an owner-authenticated session.",
+    };
   }
 
   // Gate requires session context

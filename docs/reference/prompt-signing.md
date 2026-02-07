@@ -34,8 +34,12 @@ Runtime (per turn):
 ### Template files
 
 System prompt sections are stored as text files in `llm/prompts/`. Each file
-corresponds to a section of the system prompt (identity, safety, tooling,
-etc.) and may contain `{{placeholder}}` tokens for dynamic interpolation.
+is the **source of truth** for that section of the system prompt --
+`system-prompt.ts` loads templates via `loadTemplate()` / `loadAndInterpolate()`
+rather than using hardcoded strings. This means `verify` checks the exact files
+that produce the model's instructions.
+
+Templates may contain `{{placeholder}}` tokens for dynamic interpolation.
 
 Templates are signed with [sig](https://github.com/disreguard/sig) and the
 signatures are stored in `.sig/sigs/llm/prompts/`. The `.sig/config.json`
@@ -69,21 +73,27 @@ tool that provides two verification modes:
 
 **Template verification** (default):
 
-- Call `verify` with no arguments to verify all signed templates
+- Call `verify` with no arguments to verify all templates in `llm/prompts/`
+- The tool enumerates all `*.txt` files via `readdir` and calls
+  `checkFile()` + `verifyFile()` for each -- this catches unsigned
+  templates that would be missed by iterating existing signatures alone
 - Call `verify` with `file: "identity.txt"` to verify a specific template
+  (does not unlock gated tools -- single-file checks are for inspection)
 - Returns `allVerified`, per-template results with the original signed
   content (placeholders visible), signer identity, and timestamp
-- On successful verification, marks the session as verified for the
-  current turn
+- On successful all-template verification, marks the session as verified
+  for the current turn
 
 **Message verification:**
 
 - Call `verify` with `message: "<signatureId>"` to verify a signed message
 - Returns the original content and provenance metadata if valid
+- On successful verification, marks the session as verified for the
+  current turn
 - Signature IDs follow the format `<sessionId>:<channel>:<messageId>`
 
-The tool resolves the project root lazily (on first call) since
-`findProjectRoot` is async.
+The project root is injected via tool options (threaded from the runner),
+with a fallback to `findProjectRoot(process.cwd())` if not provided.
 
 ### Message signing
 
@@ -91,9 +101,10 @@ The tool resolves the project root lazily (on first call) since
 the sig `ContentStore`. Each session gets its own in-memory store that
 persists across turns within the session.
 
-When `senderIsOwner` is true and a `senderId` is available, the runner signs
-the inbound message with an identity string built from the sender info
-(e.g., `owner:+1234567890:whatsapp`).
+When `senderIsOwner` is true and a `senderId` or `senderE164` is available,
+the runner signs the inbound message with an identity string built from the
+sender info (e.g., `owner:+1234567890:whatsapp`). If neither identifier is
+available, signing is skipped (fail closed).
 
 Message signature IDs are namespaced as `<sessionId>:<channel>:<messageId>`
 to avoid collisions across channels.
@@ -106,7 +117,7 @@ verification status.
 - `resetVerification(sessionId, turnId)` — called at the start of each turn;
   sets status to `unverified`
 - `setVerified(sessionId, turnId)` — called by the verify tool after
-  successful template verification
+  successful template verification or message verification
 - `isVerified(sessionId, turnId)` — checked by the verification gate
 
 State is in-memory and turn-scoped. A new user message generates a new
@@ -126,12 +137,15 @@ runs in the `before_tool_call` hook pipeline.
 The verification gate checks:
 
 1. Is enforcement enabled? (`agents.defaults.sig.enforceVerification`)
-2. Is this a gated tool?
-3. Is the session verified for this turn?
+2. Is this a gated tool? (respects `gatedTools` config overrides)
+3. Is the sender a non-owner? If so, block with "Sensitive tools require
+   an owner-authenticated session."
+4. Is the session verified for this turn?
 
 If the tool is gated and the session is not verified, the gate returns a
 block with an actionable message instructing the agent to call `verify`
-first.
+first. Non-owner senders are blocked outright (they cannot call `verify`
+since it is owner-only, so blocking prevents a deadlock).
 
 **Default gated tools:**
 
@@ -140,13 +154,17 @@ first.
 
 ### The mutation gate
 
-`src/agents/sig-mutation-gate.ts` intercepts `write` and `edit` tool calls
-that target files with sig file policies (`mutable: true`). It blocks the
-call and directs the agent to use `update_and_sign` instead.
+`src/agents/sig-mutation-gate.ts` intercepts `write`, `edit`, and
+`apply_patch` tool calls that target files with sig file policies
+(`mutable: true`). It blocks the call and directs the agent to use
+`update_and_sign` instead.
 
-The gate resolves the tool's target path (from `params.path` or
-`params.file_path`) relative to the project root, then checks it against
-the file policies in `.sig/config.json` using `resolveFilePolicy()`.
+For `write` and `edit`, the gate resolves the tool's target path (from
+`params.path`, `params.file`, or `params.file_path`) relative to the
+project root. For `apply_patch`, file paths are parsed from the patch
+content markers (`*** Add File:`, `*** Update File:`, `*** Delete File:`)
+and each is checked. The gate uses `resolveFilePolicy()` against the file
+policies in `.sig/config.json`.
 
 `apply_patch` is also checked by the mutation gate. File paths are parsed
 from the patch content markers (`*** Add File:`, `*** Update File:`,
@@ -241,9 +259,13 @@ The init uses identity `workspace:init`. This is a bootstrap identity
 ## Integration with tool policy
 
 The `verify` and `update_and_sign` tools are registered in
-`OWNER_ONLY_TOOL_NAMES`. Non-owner senders do not see either tool and are
-not subject to the verification or mutation gates (they already have
-restricted tool access via `applyOwnerOnlyToolPolicy`).
+`OWNER_ONLY_TOOL_NAMES`. Non-owner senders do not see either tool.
+
+When enforcement is enabled, gated tools (exec, write, edit, etc.) are
+blocked for non-owner senders with "Sensitive tools require an
+owner-authenticated session." This prevents a deadlock where non-owners
+cannot call `verify` (owner-only) but need it to unblock gated tools.
+When enforcement is off (default), non-owner tool access is unchanged.
 
 Both tools are added to the tools array in `createOpenClawCodingTools`
 before the owner-only policy is applied, so they are available to owner
@@ -257,13 +279,16 @@ embedded run:
 1. A `turnId` is generated (`crypto.randomUUID()`)
 2. Verification is reset for the session
 3. A `MessageSigningContext` is created or retrieved for the session
-4. If the sender is the owner, the inbound message is signed
-5. The sig project root and config are resolved (cached after first call)
+4. If the sender is the owner and has a `senderId` or `senderE164`, the
+   inbound message is signed
+5. The sig project root and config are resolved
 6. Workspace files with `mutable: true` policies are signed if unsigned
-7. A `senderIdentity` string is built for the `update_and_sign` tool
-8. All context (`messageSigning`, `turnId`, `senderIdentity`, `projectRoot`,
-   `sigConfig`) is passed to `createOpenClawCodingTools`, which threads
-   them to the verify/update tools and the hook context
+7. Template drift detection runs (`checkTemplateDrift`) -- warns on
+   unsigned or modified templates via operator logs and workspace notes
+8. A `senderIdentity` string is built for the `update_and_sign` tool
+9. All context (`messageSigning`, `turnId`, `senderIdentity`, `projectRoot`,
+   `sigConfig`, `senderIsOwner`) is passed to `createOpenClawCodingTools`,
+   which threads them to the verify/update tools and the hook context
 
 ## File map
 
@@ -280,6 +305,7 @@ embedded run:
 | `src/agents/sig-verification-gate.ts`          | The verification gate                       |
 | `src/agents/sig-mutation-gate.ts`              | The mutation gate                           |
 | `src/agents/sig-workspace-init.ts`             | Workspace file initialization               |
+| `src/agents/sig-template-check.ts`             | Template drift detection at startup         |
 | `src/agents/pi-tools.before-tool-call.ts`      | Gate insertion point                        |
 | `src/agents/pi-tools.ts`                       | Tool registration and context threading     |
 | `src/agents/tool-policy.ts`                    | Owner-only tool set                         |

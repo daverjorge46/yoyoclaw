@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/message-tool-buttons-on.txt",
+  "hash": "sha256:d397bcb83e0dfd526c9a479738ce2f1496a67d567eca4dde46974dc2dc438a1f",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.465Z",
+  "contentLength": 132,
+  "templateEngine": "jinja"
+}

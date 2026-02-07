@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/model-aliases.txt",
+  "hash": "sha256:8fcb21b54fa6f09c1ecd8e429113ba3ecd4a3850deb4671c9b11cd552016df38",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.466Z",
+  "contentLength": 124,
+  "templateEngine": "jinja"
+}

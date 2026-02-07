@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/project-context.txt",
+  "hash": "sha256:cbad197b33709e250723cc5edbd025dd45d24a07eef53108d615c368922742a9",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.467Z",
+  "contentLength": 72,
+  "templateEngine": "jinja"
+}

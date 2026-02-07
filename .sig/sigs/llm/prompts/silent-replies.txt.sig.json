@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/silent-replies.txt",
+  "hash": "sha256:f1e1ab80c47dd27c6001bfb26cbca84b63afb90cdd190ea57ed54847b7606c31",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.471Z",
+  "contentLength": 397,
+  "templateEngine": "jinja"
+}

@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/reactions-minimal.txt",
+  "hash": "sha256:19d7a7836ed5cb0f404d98af1bd91dbfd80133c982d27713ca326d35d5f8acc0",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.468Z",
+  "contentLength": 321,
+  "templateEngine": "jinja"
+}

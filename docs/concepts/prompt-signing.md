@@ -94,9 +94,9 @@ targets for prompt injection: if an attacker tricks the agent into modifying
 `soul.md`, the change persists across turns and sessions.
 
 OpenClaw protects these files with a **mutation gate**. When the agent tries
-to `write` or `edit` a file that has a sig file policy with `mutable: true`,
-the gate blocks the call and directs the agent to use `update_and_sign`
-instead.
+to `write`, `edit`, or `apply_patch` a file that has a sig file policy with
+`mutable: true`, the gate blocks the call and directs the agent to use
+`update_and_sign` instead.
 
 The `update_and_sign` tool requires **provenance**: the agent must cite the
 signature ID of a signed owner message that authorized the change. sig
@@ -134,6 +134,23 @@ Signing is most effective as one layer in a defense-in-depth strategy:
 Each layer is deterministic and orchestrator-controlled. Together they
 significantly raise the bar for prompt injection attacks, even against an
 attacker who has read the source code.
+
+## Non-owner behavior
+
+When enforcement is enabled, gated tools require a verified owner session.
+Non-owner senders cannot call `verify` (it is owner-only), so gated tools
+are blocked with "Sensitive tools require an owner-authenticated session."
+When enforcement is off (the default), non-owner tool access is unchanged.
+
+## Template drift detection
+
+At startup, OpenClaw checks whether all templates in `llm/prompts/` have
+valid signatures. If any are unsigned or modified since signing, a warning
+is logged and injected into the agent's context. The agent relays this to
+the user with instructions to re-sign.
+
+When enforcement is enabled, unsigned or modified templates cause `verify`
+to fail, which keeps gated tools blocked until the templates are re-signed.
 
 ## Configuration
 

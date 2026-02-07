@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/verification-preamble.txt",
+  "hash": "sha256:34be0e6a05ae84279ca54ec90e838ff0f06219133dea2e8c0ca5ae13af372723",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.475Z",
+  "contentLength": 369,
+  "templateEngine": "jinja"
+}

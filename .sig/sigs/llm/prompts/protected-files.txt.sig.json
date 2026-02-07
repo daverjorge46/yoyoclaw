@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/protected-files.txt",
+  "hash": "sha256:903e613eea1c04b985cfab5373766a29cfd7d826ea3f19790a171d3352d960b3",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.467Z",
+  "contentLength": 391,
+  "templateEngine": "jinja"
+}

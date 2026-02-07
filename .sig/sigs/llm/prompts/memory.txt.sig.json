@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/memory.txt",
+  "hash": "sha256:f3efb19d000abb049b9bcaf8b24040aeff17551d112e7db9036e1d5cbef82fae",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.463Z",
+  "contentLength": 255,
+  "templateEngine": "jinja"
+}

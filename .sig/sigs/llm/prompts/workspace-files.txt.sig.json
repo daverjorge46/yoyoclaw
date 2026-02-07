@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/workspace-files.txt",
+  "hash": "sha256:3c9dde5834f7fb634200a80f1250cbc92e9e84202cc03eb271dd2319d2b8d2ad",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.476Z",
+  "contentLength": 117,
+  "templateEngine": "jinja"
+}

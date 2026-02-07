@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/message-tool.txt",
+  "hash": "sha256:6b8aac66a852890216ca8fb6527eba25af0eea69820d6249b786cf51969be657",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.465Z",
+  "contentLength": 366,
+  "templateEngine": "jinja"
+}

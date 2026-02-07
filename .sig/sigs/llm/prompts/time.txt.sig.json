@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/time.txt",
+  "hash": "sha256:37a940a826ee015e82455fcff0a7af666206ed826171996e831222a0c55f1123",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.473Z",
+  "contentLength": 51,
+  "templateEngine": "jinja"
+}

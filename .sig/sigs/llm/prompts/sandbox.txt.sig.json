@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/sandbox.txt",
+  "hash": "sha256:3ffe35a11460f75dc1e922d7273962e2c598a5db95dce753f37a6e36fb60bdae",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.470Z",
+  "contentLength": 239,
+  "templateEngine": "jinja"
+}

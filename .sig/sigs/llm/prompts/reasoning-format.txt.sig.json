@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/reasoning-format.txt",
+  "hash": "sha256:58d04d07e9ad9f854ac7f5809be6a2c819d87ab358a50375dca54c02d366cf9f",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.469Z",
+  "contentLength": 38,
+  "templateEngine": "jinja"
+}

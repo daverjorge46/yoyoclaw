@@ -7,8 +7,10 @@
  * come from a code path the attacker cannot influence.
  */
 
-import { findProjectRoot, verifyFile, checkAllSigned } from "@disreguard/sig";
+import { checkFile, findProjectRoot, verifyFile } from "@disreguard/sig";
 import { Type } from "@sinclair/typebox";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 import type { MessageSigningContext } from "../message-signing.js";
 import type { AnyAgentTool } from "./common.js";
 import { setVerified } from "../session-security-state.js";
@@ -21,6 +23,8 @@ export interface SigVerifyToolOptions {
   sessionKey?: string;
   /** Current turn ID for scoped verification. */
   turnId?: string;
+  /** sig project root; when omitted, falls back to findProjectRoot(process.cwd()). */
+  projectRoot?: string;
 }
 
 const SigVerifySchema = Type.Object({
@@ -38,19 +42,15 @@ const SigVerifySchema = Type.Object({
   ),
 });
 
-// Lazily resolved project root (cached after first resolution)
-let resolvedProjectRoot: string | null | undefined;
-
-async function getProjectRoot(): Promise<string | null> {
-  if (resolvedProjectRoot !== undefined) {
-    return resolvedProjectRoot;
+async function getProjectRoot(projectRoot?: string): Promise<string | null> {
+  if (projectRoot?.trim()) {
+    return projectRoot;
   }
   try {
-    resolvedProjectRoot = await findProjectRoot(process.cwd());
+    return await findProjectRoot(process.cwd());
   } catch {
-    resolvedProjectRoot = null;
+    return null;
   }
-  return resolvedProjectRoot;
 }
 
 /**
@@ -77,7 +77,7 @@ export function createSigVerifyTool(options?: SigVerifyToolOptions): AnyAgentToo
       }
 
       // Template verification
-      const projectRoot = await getProjectRoot();
+      const projectRoot = await getProjectRoot(options?.projectRoot);
       if (!projectRoot) {
         return jsonResult({
           allVerified: false,
@@ -86,7 +86,7 @@ export function createSigVerifyTool(options?: SigVerifyToolOptions): AnyAgentToo
       }
 
       if (file) {
-        return verifySingleTemplate(projectRoot, file, options);
+        return verifySingleTemplate(projectRoot, file);
       }
 
       return verifyAllTemplates(projectRoot, options);
@@ -98,19 +98,11 @@ export function createSigVerifyTool(options?: SigVerifyToolOptions): AnyAgentToo
 // Template verification
 // ---------------------------------------------------------------------------
 
-async function verifySingleTemplate(
-  projectRoot: string,
-  file: string,
-  options?: SigVerifyToolOptions,
-) {
+async function verifySingleTemplate(projectRoot: string, file: string) {
   const templatePath = `llm/prompts/${file}`;
   try {
     const result = await verifyFile(projectRoot, templatePath);
     const allVerified = result.verified;
-
-    if (allVerified && options?.sessionKey && options.turnId) {
-      setVerified(options.sessionKey, options.turnId);
-    }
 
     return jsonResult({
       allVerified,
@@ -142,32 +134,37 @@ async function verifySingleTemplate(
 
 async function verifyAllTemplates(projectRoot: string, options?: SigVerifyToolOptions) {
   try {
-    const checkResults = await checkAllSigned(projectRoot);
-    if (checkResults.length === 0) {
+    const templatesDir = join(projectRoot, "llm/prompts");
+    const entries = await readdir(templatesDir, { withFileTypes: true });
+    const templatePaths = entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".txt"))
+      .map((entry) => `llm/prompts/${entry.name}`)
+      .toSorted();
+    if (templatePaths.length === 0) {
       return jsonResult({
         allVerified: false,
-        error: "No signed templates found.",
+        error: "No templates found in llm/prompts.",
         templates: [],
       });
     }
 
-    // Verify each signed template
     const results = await Promise.all(
-      checkResults.map(async (check) => {
-        if (check.status !== "signed") {
-          return {
-            file: check.file,
-            verified: false,
-            error:
-              check.status === "modified"
-                ? "Content has been modified since signing"
-                : check.status === "unsigned"
-                  ? "No signature found"
-                  : "Signature is corrupted",
-          };
-        }
+      templatePaths.map(async (templatePath) => {
         try {
-          const result = await verifyFile(projectRoot, check.file);
+          const check = await checkFile(projectRoot, templatePath);
+          if (check.status !== "signed") {
+            return {
+              file: templatePath,
+              verified: false,
+              error:
+                check.status === "modified"
+                  ? "Content has been modified since signing"
+                  : check.status === "unsigned"
+                    ? "No signature found"
+                    : "Signature is corrupted",
+            };
+          }
+          const result = await verifyFile(projectRoot, templatePath);
           return {
             file: result.file,
             verified: result.verified,
@@ -179,7 +176,7 @@ async function verifyAllTemplates(projectRoot: string, options?: SigVerifyToolOp
           };
         } catch (err) {
           return {
-            file: check.file,
+            file: templatePath,
             verified: false,
             error: err instanceof Error ? err.message : String(err),
           };
@@ -223,6 +220,10 @@ function verifyMessage(messageId: string, options?: SigVerifyToolOptions) {
       messageId,
       error: result.error ?? "Message verification failed",
     });
+  }
+
+  if (options?.sessionKey && options.turnId) {
+    setVerified(options.sessionKey, options.turnId);
   }
 
   return jsonResult({

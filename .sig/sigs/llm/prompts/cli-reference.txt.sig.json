@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/cli-reference.txt",
+  "hash": "sha256:b21628838647d8a653b48068903d6e6dd56be2d34e2e0825757a4a018098a459",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.457Z",
+  "contentLength": 356,
+  "templateEngine": "jinja"
+}

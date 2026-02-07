@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/self-update.txt",
+  "hash": "sha256:c7d6a50b854a934088067cf250d55d935f3e0be7e8966ab84033fb7759eb43f9",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.470Z",
+  "contentLength": 449,
+  "templateEngine": "jinja"
+}

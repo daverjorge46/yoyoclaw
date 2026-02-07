@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/safety.txt",
+  "hash": "sha256:3cb88ca2b58b6da3bd76aac58b4551b3fa1ccc6c69d940c13541c7ed613ab946",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.470Z",
+  "contentLength": 562,
+  "templateEngine": "jinja"
+}

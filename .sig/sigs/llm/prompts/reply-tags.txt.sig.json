@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/reply-tags.txt",
+  "hash": "sha256:427f093ac1f82e976678375e0fc5a4d0ef02371152367860728119b6d8852280",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.469Z",
+  "contentLength": 399,
+  "templateEngine": "jinja"
+}

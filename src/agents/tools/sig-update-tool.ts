@@ -24,6 +24,8 @@ export interface SigUpdateToolOptions {
   turnId?: string;
   /** Pre-built sender identity string (e.g. "owner:+1234567890:whatsapp"). */
   senderIdentity?: string;
+  /** sig project root; when omitted, falls back to findProjectRoot(process.cwd()). */
+  projectRoot?: string;
 }
 
 const SOURCE_TYPES = ["signed_message", "signed_template"] as const;
@@ -52,19 +54,15 @@ const SigUpdateSchema = Type.Object({
   ),
 });
 
-// Lazily resolved project root (shared with verify tool pattern)
-let resolvedProjectRoot: string | null | undefined;
-
-async function getProjectRoot(): Promise<string | null> {
-  if (resolvedProjectRoot !== undefined) {
-    return resolvedProjectRoot;
+async function getProjectRoot(projectRoot?: string): Promise<string | null> {
+  if (projectRoot?.trim()) {
+    return projectRoot;
   }
   try {
-    resolvedProjectRoot = await findProjectRoot(process.cwd());
+    return await findProjectRoot(process.cwd());
   } catch {
-    resolvedProjectRoot = null;
+    return null;
   }
-  return resolvedProjectRoot;
 }
 
 /**
@@ -97,7 +95,7 @@ export function createSigUpdateTool(options?: SigUpdateToolOptions): AnyAgentToo
         });
       }
 
-      const projectRoot = await getProjectRoot();
+      const projectRoot = await getProjectRoot(options?.projectRoot);
       if (!projectRoot) {
         return jsonResult({
           approved: false,

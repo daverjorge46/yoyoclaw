@@ -30,7 +30,9 @@ export function extractPatchPaths(input: string): string[] {
   const paths: string[] = [];
   for (const match of input.matchAll(PATCH_FILE_PATH_RE)) {
     const p = match[1].trim();
-    if (p) paths.push(p);
+    if (p) {
+      paths.push(p);
+    }
   }
   return paths;
 }
@@ -75,11 +77,13 @@ export function checkMutationGate(
   const targetPath =
     typeof args.path === "string"
       ? args.path
-      : typeof args.file_path === "string"
-        ? args.file_path
-        : typeof args.filePath === "string"
-          ? args.filePath
-          : undefined;
+      : typeof args.file === "string"
+        ? args.file
+        : typeof args.file_path === "string"
+          ? args.file_path
+          : typeof args.filePath === "string"
+            ? args.filePath
+            : undefined;
 
   if (!targetPath) {
     return { blocked: false };
@@ -127,7 +131,9 @@ function checkPathsAgainstPolicies(
 ): MutationGateResult {
   for (const p of paths) {
     const result = checkPathAgainstPolicy(p, projectRoot, sigConfig);
-    if (result.blocked) return result;
+    if (result.blocked) {
+      return result;
+    }
   }
   return { blocked: false };
 }

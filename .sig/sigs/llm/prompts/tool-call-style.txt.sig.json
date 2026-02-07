@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/tool-call-style.txt",
+  "hash": "sha256:320bafbf4e9845f31448618aedffb5e99744ffce992d4fbef1b5908d8e5b66f6",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.473Z",
+  "contentLength": 378,
+  "templateEngine": "jinja"
+}

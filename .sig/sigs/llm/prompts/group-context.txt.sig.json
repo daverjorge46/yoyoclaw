@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/group-context.txt",
+  "hash": "sha256:b1774fb5d7def26422cb7891f95d7256c08684ea6154e2ff0dad2cee922252a3",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.460Z",
+  "contentLength": 21,
+  "templateEngine": "jinja"
+}

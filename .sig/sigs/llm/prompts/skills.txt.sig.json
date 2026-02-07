@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/skills.txt",
+  "hash": "sha256:5892fa215a9565bd39b9e33c8bc10d97075995e0ce7ed7af3ed765f2ae0f543b",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.471Z",
+  "contentLength": 423,
+  "templateEngine": "jinja"
+}

@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/tooling-fallback.txt",
+  "hash": "sha256:f9ebea6b58ed6dde419fc1bcf209712f79fac1c865f59fdb6f3e6dd9ef6d82ca",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.473Z",
+  "contentLength": 1004,
+  "templateEngine": "jinja"
+}

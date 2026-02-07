@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/memory-citations-on.txt",
+  "hash": "sha256:cf6824834928bb56807cac8c29dcb892d8b25bda40647030a5280dadb284e545",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.463Z",
+  "contentLength": 85,
+  "templateEngine": "jinja"
+}

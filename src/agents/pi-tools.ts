@@ -380,6 +380,7 @@ export function createOpenClawCodingTools(options?: {
       messageSigning: options?.messageSigning,
       sessionKey: options?.sessionKey,
       turnId: options?.turnId,
+      projectRoot: options?.projectRoot,
     }),
   );
   // sig: add update_and_sign tool for protected file updates
@@ -389,6 +390,7 @@ export function createOpenClawCodingTools(options?: {
       sessionKey: options?.sessionKey,
       turnId: options?.turnId,
       senderIdentity: options?.senderIdentity,
+      projectRoot: options?.projectRoot,
     }),
   );
   // Security: treat unknown/undefined as unauthorized (opt-in, not opt-out)
@@ -475,6 +477,7 @@ export function createOpenClawCodingTools(options?: {
       config: options?.config,
       projectRoot: options?.projectRoot,
       sigConfig: options?.sigConfig,
+      senderIsOwner: options?.senderIsOwner,
     }),
   );
   const withAbort = options?.abortSignal

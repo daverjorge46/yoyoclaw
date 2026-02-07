@@ -1,0 +1,9 @@
+{
+  "file": "llm/prompts/heartbeats.txt",
+  "hash": "sha256:fbf022a4529326c9eb175b9b8ebd6482335f6c9b518d095cc8cc6f1613264f83",
+  "algorithm": "sha256",
+  "signedBy": "openclaw",
+  "signedAt": "2026-02-07T20:10:46.461Z",
+  "contentLength": 383,
+  "templateEngine": "jinja"
+}
