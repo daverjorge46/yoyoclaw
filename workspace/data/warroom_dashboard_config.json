@@ -11,9 +11,59 @@
     "monitored_chats": [
       {
         "id": "-5135725975",
-        "name": "思考者咖啡群",
+        "name": "與神對話",
         "channel": "telegram",
+        "session": "main",
         "agents": [{ "id": "8090790323", "name": "杜甫" }]
+      },
+      {
+        "id": "-5262004625",
+        "name": "66 主群",
+        "channel": "telegram",
+        "session": "bg666",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-5210426893",
+        "name": "BG666-杜甫工作後台",
+        "channel": "telegram",
+        "session": "bg666",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-5173465395",
+        "name": "666数据日报群",
+        "channel": "telegram",
+        "session": "bg666",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-5299944691",
+        "name": "24Bet",
+        "channel": "telegram",
+        "session": "24bet",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-1003849990504",
+        "name": "幣塔管理群",
+        "channel": "telegram",
+        "session": "bita",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-5297227033",
+        "name": "幣塔-營銷客服",
+        "channel": "telegram",
+        "session": "bita",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
+      },
+      {
+        "id": "-4938903123",
+        "name": "Clawd workstation",
+        "channel": "telegram",
+        "session": "main",
+        "agents": [{ "id": "8327498414", "name": "clawdbot" }]
       }
     ],
     "agent_visibility_threshold": 30
