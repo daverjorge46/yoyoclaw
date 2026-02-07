@@ -91,21 +91,27 @@ function detectContentType(buffer: Buffer): string {
   ) {
     return "image/webp";
   }
-  // M4A/AAC (indices 0–2 and 4–7, needs ≥8 bytes)
-  // Must come before the generic MP4 check since M4A is a more specific ftyp match.
+  // ISO Base Media: ftyp box at offset 4 (indices 4–7, brand at 8–11, needs ≥12 bytes).
+  // Distinguish M4A audio from generic MP4 video by checking the major brand.
   if (
-    buffer.length >= 8 &&
-    buffer[0] === 0x00 &&
-    buffer[1] === 0x00 &&
-    buffer[2] === 0x00 &&
+    buffer.length >= 12 &&
     buffer[4] === 0x66 &&
     buffer[5] === 0x74 &&
     buffer[6] === 0x79 &&
     buffer[7] === 0x70
   ) {
-    return "audio/mp4";
+    // Audio brands: "M4A " (iTunes AAC-LC), "M4B " (audiobook), "M4P " (protected AAC)
+    if (
+      buffer[8] === 0x4d &&
+      buffer[9] === 0x34 &&
+      (buffer[10] === 0x41 || buffer[10] === 0x42 || buffer[10] === 0x50) &&
+      buffer[11] === 0x20
+    ) {
+      return "audio/mp4";
+    }
+    return "video/mp4";
   }
-  // MP4 (indices 4–7, needs ≥8 bytes)
+  // Fallback: ftyp at offset 4 but buffer too short for brand (8–11 bytes)
   if (
     buffer.length >= 8 &&
     buffer[4] === 0x66 &&
@@ -140,6 +146,8 @@ function getExtensionForContentType(contentType: string): string {
   }
 }
 
+// Expose internals for unit tests — this is an established project convention
+// (see web-search.ts, pi-tools.ts). Not part of the public API.
 export const __testing = {
   detectContentType,
   getExtensionForContentType,

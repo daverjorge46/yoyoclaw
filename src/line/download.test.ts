@@ -33,31 +33,48 @@ describe("detectContentType", () => {
     expect(detectContentType(buf)).toBe("image/webp");
   });
 
-  it("detects MP4 from magic bytes", () => {
-    // ....ftyp
-    const buf = Buffer.alloc(12);
-    buf[4] = 0x66; // f
-    buf[5] = 0x74; // t
-    buf[6] = 0x79; // y
-    buf[7] = 0x70; // p
-    // Avoid M4A match: ensure first 3 bytes are not all 0x00
-    buf[0] = 0x00;
-    buf[1] = 0x00;
-    buf[2] = 0x01; // non-zero third byte → won't match M4A
+  it("detects MP4 from ftyp + isom brand", () => {
+    // box-size + "ftyp" + "isom" (common video brand)
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
+    ]);
     expect(detectContentType(buf)).toBe("video/mp4");
   });
 
-  it("detects M4A/AAC from magic bytes", () => {
-    // 0x00 0x00 0x00 XX ftyp
-    const buf = Buffer.alloc(12);
-    buf[0] = 0x00;
-    buf[1] = 0x00;
-    buf[2] = 0x00;
-    buf[3] = 0x20; // typical M4A box size byte
-    buf[4] = 0x66; // f
-    buf[5] = 0x74; // t
-    buf[6] = 0x79; // y
-    buf[7] = 0x70; // p
+  it("detects MP4 from ftyp + mp41 brand", () => {
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x31,
+    ]);
+    expect(detectContentType(buf)).toBe("video/mp4");
+  });
+
+  it("detects MP4 even when first 3 bytes are 0x00 (not M4A brand)", () => {
+    // Regression: box size 0x00000018 + ftyp + "mp42" must be video, not audio
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32,
+    ]);
+    expect(detectContentType(buf)).toBe("video/mp4");
+  });
+
+  it("detects M4A from ftyp + 'M4A ' brand", () => {
+    // "M4A " = 0x4D 0x34 0x41 0x20
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20,
+    ]);
+    expect(detectContentType(buf)).toBe("audio/mp4");
+  });
+
+  it("detects M4B audiobook from ftyp + 'M4B ' brand", () => {
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x42, 0x20,
+    ]);
+    expect(detectContentType(buf)).toBe("audio/mp4");
+  });
+
+  it("detects M4P protected audio from ftyp + 'M4P ' brand", () => {
+    const buf = Buffer.from([
+      0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x50, 0x20,
+    ]);
     expect(detectContentType(buf)).toBe("audio/mp4");
   });
 
@@ -90,6 +107,16 @@ describe("detectContentType", () => {
     buf[5] = 0x74;
     buf[6] = 0x79;
     expect(detectContentType(buf)).toBe("application/octet-stream");
+  });
+
+  it("falls back to video/mp4 for 8–11 byte ftyp buffer (brand unknown)", () => {
+    // Has ftyp but too short for brand check — falls back to video/mp4
+    const buf = Buffer.alloc(8);
+    buf[4] = 0x66;
+    buf[5] = 0x74;
+    buf[6] = 0x79;
+    buf[7] = 0x70;
+    expect(detectContentType(buf)).toBe("video/mp4");
   });
 
   it("returns octet-stream for 11-byte WebP-prefix (too short)", () => {
