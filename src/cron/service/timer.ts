@@ -136,7 +136,7 @@ export function armTimer(state: CronServiceState) {
         try {
           await onTimer(state);
         } catch (err) {
-          state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+          state.deps.log.error({ err }, "cron: timer tick failed");
           armTimer(state);
         }
       }, MAX_TIMER_DELAY_MS);
@@ -162,7 +162,7 @@ export function armTimer(state: CronServiceState) {
     try {
       await onTimer(state);
     } catch (err) {
-      state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+      state.deps.log.error({ err }, "cron: timer tick failed");
       // Belt-and-suspenders: re-arm even if onTimer throws past its finally block.
       armTimer(state);
     }

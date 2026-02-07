@@ -38,7 +38,7 @@ export async function start(state: CronServiceState) {
   } catch (err) {
     // Log but don't propagate — armTimer below will still schedule the next tick
     // which will retry ensureLoaded/persist, preventing permanent startup failure.
-    state.deps.log.error({ err: String(err) }, "cron: start failed, will retry on next tick");
+    state.deps.log.error({ err }, "cron: start failed, will retry on next tick");
   }
   // Always arm the timer so the scheduler recovers from transient startup errors.
   armTimer(state);
