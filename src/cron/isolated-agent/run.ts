@@ -344,13 +344,12 @@ export async function runCronIsolatedAgentTurn(params: {
       verboseLevel: resolvedVerboseLevel,
     });
     const messageChannel = resolvedDelivery.channel;
-    const agentFallbacksOverride = resolveAgentModelFallbacksOverride(params.cfg, agentId);
     const fallbackResult = await runWithModelFallback({
       cfg: cfgWithAgentDefaults,
       provider,
       model,
       agentDir,
-      fallbacksOverride: agentFallbacksOverride,
+      fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
       run: (providerOverride, modelOverride) => {
         if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {
           const cliSessionId = getCliSessionId(cronSession.sessionEntry, providerOverride);
@@ -372,7 +371,6 @@ export async function runCronIsolatedAgentTurn(params: {
         return runEmbeddedPiAgent({
           sessionId: cronSession.sessionEntry.sessionId,
           sessionKey: agentSessionKey,
-          fallbacksOverride: agentFallbacksOverride,
           messageChannel,
           agentAccountId: resolvedDelivery.accountId,
           sessionFile,

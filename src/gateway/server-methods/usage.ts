@@ -85,10 +85,4 @@ export const usageHandlers: GatewayRequestHandlers = {
     const summary = await loadCostUsageSummaryCached({ days, config });
     respond(true, summary, undefined);
   },
-  "sessions.usage": async ({ respond, params }) => {
-    const config = loadConfig();
-    const days = parseDays(params?.days);
-    const summary = await loadCostUsageSummaryCached({ days, config });
-    respond(true, summary, undefined);
-  },
 };
