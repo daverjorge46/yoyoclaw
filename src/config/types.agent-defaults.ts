@@ -140,7 +140,7 @@ export type AgentDefaultsConfig = {
   verboseDefault?: "off" | "on" | "full";
   /** Default elevated level when no /elevated directive is present. */
   elevatedDefault?: "off" | "on" | "ask" | "full";
-  /** Default block streaming level when no override is present. */
+  /** Default block streaming level when no override is present. Defaults to "on". */
   blockStreamingDefault?: "off" | "on";
   /**
    * Block streaming boundary:
