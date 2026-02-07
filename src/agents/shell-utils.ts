@@ -72,7 +72,10 @@ function normalizeShellName(value: string): string {
   if (!trimmed) {
     return "";
   }
-  return path.basename(trimmed).replace(/\.(exe|cmd|bat)$/i, "");
+  return path
+    .basename(trimmed)
+    .replace(/\.(exe|cmd|bat)$/i, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "");
 }
 
 export function detectRuntimeShell(): string | undefined {
