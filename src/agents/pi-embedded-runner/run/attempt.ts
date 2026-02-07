@@ -740,6 +740,7 @@ export async function runEmbeddedAttempt(
               {
                 agentId: hookAgentId,
                 sessionKey: params.sessionKey,
+                sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
               },
@@ -870,6 +871,7 @@ export async function runEmbeddedAttempt(
               {
                 agentId: hookAgentId,
                 sessionKey: params.sessionKey,
+                sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
               },
