@@ -47,6 +47,7 @@ See [Venice AI](/providers/venice).
 - [MiniMax](/providers/minimax)
 - [Venice (Venice AI)](/providers/venice)
 - [Amazon Bedrock](/bedrock)
+- [Qianfan](/providers/qianfan)
 
 For the full provider catalog (xAI, Groq, Mistral, etc.) and advanced configuration,
 see [Model providers](/concepts/model-providers).
