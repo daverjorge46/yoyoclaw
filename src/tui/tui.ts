@@ -96,7 +96,6 @@ export async function runTui(opts: TuiOptions) {
   let toolsExpanded = false;
   let showThinking = false;
   const localRunIds = new Set<string>();
-  const customWaitingPhrases = config.ui?.waitingPhrases;
 
   const deliverDefault = opts.deliver ?? false;
   const autoMessage = opts.message?.trim();
@@ -422,9 +421,9 @@ export async function runTui(opts: TuiOptions) {
       return;
     }
 
-    // Pick a phrase once per waiting session.
+    // Pick a phrase once per waiting session (read from config each time to support hot-reload).
     if (!waitingPhrase) {
-      const phrases = customWaitingPhrases ?? defaultWaitingPhrases;
+      const phrases = config.ui?.waitingPhrases ?? defaultWaitingPhrases;
       const idx = Math.floor(Math.random() * phrases.length);
       waitingPhrase = phrases[idx] ?? phrases[0] ?? "waiting";
     }
