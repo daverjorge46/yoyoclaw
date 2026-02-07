@@ -936,7 +936,7 @@ export async function runEmbeddedAttempt(
           .runSessionEnd(
             {
               sessionId: params.sessionId,
-              messageCount: messagesSnapshot.length,
+              messageCount: activeSession.messages.length,
             },
             {
               agentId: sessionAgentId,

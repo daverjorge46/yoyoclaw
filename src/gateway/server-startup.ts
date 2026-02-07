@@ -162,11 +162,9 @@ export async function startGatewaySidecars(params: {
   const hookRunner = getGlobalHookRunner();
   if (hookRunner?.hasHooks("gateway_start")) {
     const gatewayPort = params.port ?? 18789;
-    void hookRunner
-      .runGatewayStart({ port: gatewayPort }, { port: gatewayPort })
-      .catch((err) => {
-        params.log.warn(`gateway_start hook failed: ${String(err)}`);
-      });
+    void hookRunner.runGatewayStart({ port: gatewayPort }, { port: gatewayPort }).catch((err) => {
+      params.log.warn(`gateway_start hook failed: ${String(err)}`);
+    });
   }
 
   return { browserControl, pluginServices };
