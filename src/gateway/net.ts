@@ -161,7 +161,11 @@ export async function resolveGatewayBindHost(
       return "0.0.0.0";
     } // invalid config → fall back to all
 
-    if (isValidIp(host) && (await canBindToHost(host))) {
+    if (isValidIp(host)) {
+      if (await canBindToHost(host)) {
+        return host;
+      }
+    } else if (await canBindToHost(host)) {
       return host;
     }
     // Custom IP failed → fall back to LAN
@@ -187,14 +191,21 @@ export async function resolveGatewayBindHost(
  */
 export async function canBindToHost(host: string): Promise<boolean> {
   return new Promise((resolve) => {
+    let settled = false;
     const testServer = net.createServer();
-    testServer.once("error", () => {
-      resolve(false);
-    });
-    testServer.once("listening", () => {
-      testServer.close();
-      resolve(true);
-    });
+    const finalize = (result: boolean) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      testServer.removeAllListeners();
+      try {
+        testServer.close();
+      } catch {}
+      resolve(result);
+    };
+    testServer.once("error", () => finalize(false));
+    testServer.once("listening", () => finalize(true));
     // Use port 0 to let OS pick an available port for testing
     testServer.listen(0, host);
   });
