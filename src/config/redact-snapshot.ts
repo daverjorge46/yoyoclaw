@@ -14,15 +14,28 @@ export const REDACTED_SENTINEL = "__OPENCLAW_REDACTED__";
  */
 const SENSITIVE_KEY_PATTERNS = [/token$/i, /password/i, /secret/i, /api.?key/i];
 
+/**
+ * Full dot-separated key paths that are exempt from redaction even though
+ * their leaf key matches a sensitive pattern.  iOS/macOS clients read
+ * `talk.apiKey` from `config.get` and pass it directly to ElevenLabs,
+ * so it must not be replaced with the sentinel.
+ */
+const REDACTION_EXEMPT_PATHS = new Set(["talk.apiKey"]);
+
 function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
+}
+
+function isExemptPath(parentPath: string, key: string): boolean {
+  const fullPath = parentPath ? `${parentPath}.${key}` : key;
+  return REDACTION_EXEMPT_PATHS.has(fullPath);
 }
 
 /**
  * Deep-walk an object and replace values whose key matches a sensitive pattern
  * with the redaction sentinel.
  */
-function redactObject(obj: unknown): unknown {
+function redactObject(obj: unknown, parentPath = ""): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -30,14 +43,20 @@ function redactObject(obj: unknown): unknown {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return obj.map(redactObject);
+    return obj.map((item) => redactObject(item, parentPath));
   }
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-    if (isSensitiveKey(key) && value !== null && value !== undefined) {
+    const fullPath = parentPath ? `${parentPath}.${key}` : key;
+    if (
+      isSensitiveKey(key) &&
+      value !== null &&
+      value !== undefined &&
+      !isExemptPath(parentPath, key)
+    ) {
       result[key] = REDACTED_SENTINEL;
     } else if (typeof value === "object" && value !== null) {
-      result[key] = redactObject(value);
+      result[key] = redactObject(value, fullPath);
     } else {
       result[key] = value;
     }
@@ -53,22 +72,51 @@ export function redactConfigObject<T>(value: T): T {
  * Collect all sensitive string values from a config object.
  * Used for text-based redaction of the raw JSON5 source.
  */
-function collectSensitiveValues(obj: unknown): string[] {
+function collectSensitiveValues(obj: unknown, parentPath = ""): string[] {
   const values: string[] = [];
   if (obj === null || obj === undefined || typeof obj !== "object") {
     return values;
   }
   if (Array.isArray(obj)) {
     for (const item of obj) {
-      values.push(...collectSensitiveValues(item));
+      values.push(...collectSensitiveValues(item, parentPath));
     }
     return values;
   }
   for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-    if (isSensitiveKey(key) && typeof value === "string" && value.length > 0) {
+    const fullPath = parentPath ? `${parentPath}.${key}` : key;
+    if (
+      isSensitiveKey(key) &&
+      typeof value === "string" &&
+      value.length > 0 &&
+      !isExemptPath(parentPath, key)
+    ) {
       values.push(value);
     } else if (typeof value === "object" && value !== null) {
-      values.push(...collectSensitiveValues(value));
+      values.push(...collectSensitiveValues(value, fullPath));
+    }
+  }
+  return values;
+}
+
+/**
+ * Collect values at exempt paths so the raw-text regex pass can skip them.
+ */
+function collectExemptValues(config: unknown): Set<string> {
+  const values = new Set<string>();
+  for (const path of REDACTION_EXEMPT_PATHS) {
+    const parts = path.split(".");
+    let current: unknown = config;
+    for (const part of parts) {
+      if (current && typeof current === "object" && !Array.isArray(current)) {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        current = undefined;
+        break;
+      }
+    }
+    if (typeof current === "string" && current.length > 0) {
+      values.add(current);
     }
   }
   return values;
@@ -87,6 +135,7 @@ function redactRawText(raw: string, config: unknown): string {
     result = result.replace(new RegExp(escaped, "g"), REDACTED_SENTINEL);
   }
 
+  const exemptValues = collectExemptValues(config);
   const keyValuePattern =
     /(^|[{\s,])((["'])([^"']+)\3|([A-Za-z0-9_$.-]+))(\s*:\s*)(["'])([^"']*)\7/g;
   result = result.replace(
@@ -97,6 +146,9 @@ function redactRawText(raw: string, config: unknown): string {
         return match;
       }
       if (val === REDACTED_SENTINEL) {
+        return match;
+      }
+      if (exemptValues.has(val as string)) {
         return match;
       }
       return `${prefix}${keyExpr}${sep}${valQuote}${REDACTED_SENTINEL}${valQuote}`;

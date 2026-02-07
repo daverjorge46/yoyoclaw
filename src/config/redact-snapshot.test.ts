@@ -249,6 +249,31 @@ describe("redactConfigSnapshot", () => {
     expect(result.raw).toContain(REDACTED_SENTINEL);
   });
 
+  it("does not redact talk.apiKey (needed by iOS/macOS clients)", () => {
+    const snapshot = makeSnapshot({
+      talk: { apiKey: "sk_elevenlabs_key_value", voiceId: "some-voice-id" },
+      models: { providers: { openai: { apiKey: "sk-openai-key-value" } } },
+    });
+    const result = redactConfigSnapshot(snapshot);
+    const talk = result.config.talk as Record<string, string>;
+    expect(talk.apiKey).toBe("sk_elevenlabs_key_value");
+    expect(talk.voiceId).toBe("some-voice-id");
+    const models = result.config.models as Record<string, Record<string, Record<string, string>>>;
+    expect(models.providers.openai.apiKey).toBe(REDACTED_SENTINEL);
+  });
+
+  it("does not collect talk.apiKey for raw-text redaction", () => {
+    const config = {
+      talk: { apiKey: "sk_elevenlabs_key_value" },
+      gateway: { auth: { token: "secret-token-value-here" } },
+    };
+    const raw = JSON.stringify(config);
+    const snapshot = makeSnapshot(config, raw);
+    const result = redactConfigSnapshot(snapshot);
+    expect(result.raw).toContain("sk_elevenlabs_key_value");
+    expect(result.raw).not.toContain("secret-token-value-here");
+  });
+
   it("redacts sensitive fields even when the value is not a string", () => {
     const snapshot = makeSnapshot({
       gateway: { auth: { token: 1234 } },
@@ -364,6 +389,17 @@ describe("restoreRedactedValues", () => {
     // Restore (simulates config.set before write)
     const restored = restoreRedactedValues(redacted.config, snapshot.config);
 
+    expect(restored).toEqual(originalConfig);
+  });
+
+  it("round-trips talk.apiKey through redact → restore", () => {
+    const originalConfig = {
+      talk: { apiKey: "sk_elevenlabs_key_value", voiceId: "some-voice-id" },
+      gateway: { auth: { token: "secret-gateway-token" } },
+    };
+    const snapshot = makeSnapshot(originalConfig);
+    const redacted = redactConfigSnapshot(snapshot);
+    const restored = restoreRedactedValues(redacted.config, snapshot.config);
     expect(restored).toEqual(originalConfig);
   });
 });
