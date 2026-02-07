@@ -222,18 +222,24 @@ export async function noteStateIntegrity(
 
   if (configPath && existsFile(configPath) && process.platform !== "win32") {
     try {
-      const stat = fs.statSync(configPath);
-      if ((stat.mode & 0o077) !== 0) {
-        warnings.push(
-          `- Config file is group/world readable (${displayConfigPath ?? configPath}). Recommend chmod 600.`,
-        );
-        const tighten = await prompter.confirmSkipInNonInteractive({
-          message: `Tighten permissions on ${displayConfigPath ?? configPath} to 600?`,
-          initialValue: true,
-        });
-        if (tighten) {
-          fs.chmodSync(configPath, 0o600);
-          changes.push(`- Tightened permissions on ${displayConfigPath ?? configPath} to 600`);
+      const lstat = fs.lstatSync(configPath);
+      // Symlinks always report mode 777; checking them triggers false positives
+      // (e.g. Nix store symlinks). Skip the permission check for symlinks —
+      // the containing directory's permissions protect access.  See #11307.
+      if (!lstat.isSymbolicLink()) {
+        const stat = fs.statSync(configPath);
+        if ((stat.mode & 0o077) !== 0) {
+          warnings.push(
+            `- Config file is group/world readable (${displayConfigPath ?? configPath}). Recommend chmod 600.`,
+          );
+          const tighten = await prompter.confirmSkipInNonInteractive({
+            message: `Tighten permissions on ${displayConfigPath ?? configPath} to 600?`,
+            initialValue: true,
+          });
+          if (tighten) {
+            fs.chmodSync(configPath, 0o600);
+            changes.push(`- Tightened permissions on ${displayConfigPath ?? configPath} to 600`);
+          }
         }
       }
     } catch (err) {
