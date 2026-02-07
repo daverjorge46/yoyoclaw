@@ -1,6 +1,7 @@
 import type { AgentEvent } from "@mariozechner/pi-agent-core";
 import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handlers.types.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { normalizeTextForComparison } from "./pi-embedded-helpers.js";
 import { isMessagingTool, isMessagingToolSendAction } from "./pi-embedded-messaging.js";
 import {
@@ -12,7 +13,6 @@ import {
 } from "./pi-embedded-subscribe.tools.js";
 import { inferToolMetaFromArgs } from "./pi-embedded-utils.js";
 import { normalizeToolName } from "./tool-policy.js";
-import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 
 function extendExecMeta(toolName: string, args: unknown, meta?: string): string | undefined {
   const normalized = toolName.trim().toLowerCase();
@@ -228,10 +228,7 @@ export function handleToolExecutionEnd(
       .runAfterToolCall(
         {
           toolName,
-          params:
-            evt.args && typeof evt.args === "object"
-              ? (evt.args as Record<string, unknown>)
-              : {},
+          params: {},
           result: sanitizedResult,
           error: isToolError ? extractToolErrorMessage(sanitizedResult) : undefined,
           durationMs: undefined,
