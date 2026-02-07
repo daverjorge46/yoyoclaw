@@ -1,8 +1,20 @@
 import chalk from "chalk";
+import path from "node:path";
 import type { loadConfig } from "../config/config.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import { getResolvedLoggerSettings } from "../logging.js";
+import { VERSION } from "../version.js";
+
+function resolveGatewayBuildInfo(): { runPath: string; buildType: "local" | "global" } {
+  // __dirname equivalent for ESM: use the gateway module's own location
+  const runPath = process.cwd();
+  const isGlobal =
+    process.execPath.includes("/opt/homebrew/") ||
+    process.execPath.includes("/usr/local/") ||
+    runPath.includes("/lib/node_modules/openclaw");
+  return { runPath, buildType: isGlobal ? "global" : "local" };
+}
 
 export function logGatewayStartup(params: {
   cfg: ReturnType<typeof loadConfig>;
@@ -10,9 +22,24 @@ export function logGatewayStartup(params: {
   bindHosts?: string[];
   port: number;
   tlsEnabled?: boolean;
-  log: { info: (msg: string, meta?: Record<string, unknown>) => void };
+  log: {
+    info: (msg: string, meta?: Record<string, unknown>) => void;
+    warn: (msg: string) => void;
+  };
   isNixMode: boolean;
 }) {
+  // Version / path / build type
+  const { runPath, buildType } = resolveGatewayBuildInfo();
+  const buildLabel = buildType === "local" ? "LOCAL BUILD" : "GLOBAL";
+  params.log.info(`[gateway] version=${VERSION} path=${runPath} build=${buildLabel}`, {
+    consoleMessage: `[gateway] version=${chalk.whiteBright(VERSION)} path=${runPath} build=${buildLabel}`,
+  });
+  if (buildType === "global") {
+    params.log.warn(
+      `[gateway] WARNING: running from global install (${runPath}). Use 'pnpm openclaw gateway run' from a worktree for local builds.`,
+    );
+  }
+
   const { provider: agentProvider, model: agentModel } = resolveConfiguredModelRef({
     cfg: params.cfg,
     defaultProvider: DEFAULT_PROVIDER,

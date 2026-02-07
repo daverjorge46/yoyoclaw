@@ -117,37 +117,6 @@ export function buildAgentToAgentReplyContext(params: {
   return lines.join("\n");
 }
 
-export function buildAgentToAgentAnnounceContext(params: {
-  requesterSessionKey?: string;
-  requesterChannel?: string;
-  targetSessionKey: string;
-  targetChannel?: string;
-  originalMessage: string;
-  roundOneReply?: string;
-  latestReply?: string;
-}) {
-  const lines = [
-    "Agent-to-agent announce step:",
-    params.requesterSessionKey
-      ? `Agent 1 (requester) session: ${params.requesterSessionKey}.`
-      : undefined,
-    params.requesterChannel
-      ? `Agent 1 (requester) channel: ${params.requesterChannel}.`
-      : undefined,
-    `Agent 2 (target) session: ${params.targetSessionKey}.`,
-    params.targetChannel ? `Agent 2 (target) channel: ${params.targetChannel}.` : undefined,
-    `Original request: ${params.originalMessage}`,
-    params.roundOneReply
-      ? `Round 1 reply: ${params.roundOneReply}`
-      : "Round 1 reply: (not available).",
-    params.latestReply ? `Latest reply: ${params.latestReply}` : "Latest reply: (not available).",
-    `If you want to remain silent, reply exactly "${ANNOUNCE_SKIP_TOKEN}".`,
-    "Any other reply will be posted to the target channel.",
-    "After this reply, the agent-to-agent conversation is over.",
-  ].filter(Boolean);
-  return lines.join("\n");
-}
-
 export function isAnnounceSkip(text?: string) {
   return (text ?? "").trim() === ANNOUNCE_SKIP_TOKEN;
 }
@@ -155,15 +124,6 @@ export function isAnnounceSkip(text?: string) {
 export function isReplySkip(text?: string) {
   const t = (text ?? "").trim();
   return t === REPLY_SKIP_TOKEN || t === ANNOUNCE_SKIP_TOKEN;
-}
-
-export function resolveAgentIdFromSessionKey(sessionKey?: string): string {
-  if (!sessionKey) return "unknown";
-  const parts = sessionKey.split(":");
-  if (parts[0] === "agent" && parts[1]) {
-    return parts[1];
-  }
-  return "unknown";
 }
 
 export function resolvePingPongTurns(cfg?: OpenClawConfig) {
