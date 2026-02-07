@@ -8,7 +8,11 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchLogRecordProcessor, LoggerProvider } from "@opentelemetry/sdk-logs";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { ParentBasedSampler, TraceIdRatioBasedSampler } from "@opentelemetry/sdk-trace-base";
+import {
+  BatchSpanProcessor,
+  ParentBasedSampler,
+  TraceIdRatioBasedSampler,
+} from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { onDiagnosticEvent, registerLogTransport } from "openclaw/plugin-sdk";
 
@@ -104,9 +108,18 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         : undefined;
 
       if (tracesEnabled || metricsEnabled) {
+        // Use custom BatchSpanProcessor with faster export for better observability
+        const spanProcessor = traceExporter
+          ? new BatchSpanProcessor(traceExporter, {
+              maxExportBatchSize: 5,
+              scheduledDelayMillis: 2000, // Export every 2 seconds
+              maxQueueSize: 100,
+            })
+          : undefined;
+
         sdk = new NodeSDK({
           resource,
-          ...(traceExporter ? { traceExporter } : {}),
+          ...(spanProcessor ? { spanProcessors: [spanProcessor] } : {}),
           ...(metricReader ? { metricReader } : {}),
           ...(sampleRate !== undefined
             ? {
@@ -118,6 +131,22 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         });
 
         sdk.start();
+        ctx.logger.info(
+          `diagnostics-otel: SDK started (traces=${tracesEnabled}, metrics=${metricsEnabled}, endpoint=${endpoint})`,
+        );
+
+        // Send a test span to verify connectivity
+        if (tracesEnabled) {
+          const testTracer = trace.getTracer("openclaw-diagnostics");
+          const testSpan = testTracer.startSpan("openclaw.startup.test", {
+            attributes: {
+              "test.timestamp": Date.now(),
+              "service.name": serviceName,
+            },
+          });
+          testSpan.end();
+          ctx.logger.info("diagnostics-otel: sent startup test span");
+        }
       }
 
       const logSeverityMap: Record<string, SeverityNumber> = {
@@ -558,6 +587,7 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         const span = tracer.startSpan("openclaw.session.stuck", { attributes: spanAttrs });
         span.setStatus({ code: SpanStatusCode.ERROR, message: "session stuck" });
         span.end();
+        ctx.logger.info(`diagnostics-otel: created session.stuck span (age=${evt.ageMs}ms)`);
       };
 
       const recordRunAttempt = (evt: Extract<DiagnosticEventPayload, { type: "run.attempt" }>) => {
@@ -571,6 +601,7 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
       };
 
       unsubscribe = onDiagnosticEvent((evt: DiagnosticEventPayload) => {
+        ctx.logger.debug(`diagnostics-otel: received event type=${evt.type}`);
         switch (evt.type) {
           case "model.usage":
             recordModelUsage(evt);
