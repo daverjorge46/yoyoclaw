@@ -2,9 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { ensureOpenClawCliOnPath } from "./path-env.js";
+import { ensureFreeClawCliOnPath } from "./path-env.js";
 
-describe("ensureOpenClawCliOnPath", () => {
+describe("ensureFreeClawCliOnPath", () => {
   it("prepends the bundled app bin dir when a sibling openclaw exists", async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-path-"));
     try {
@@ -19,7 +19,7 @@ describe("ensureOpenClawCliOnPath", () => {
       process.env.PATH = "/usr/bin";
       delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
       try {
-        ensureOpenClawCliOnPath({
+        ensureFreeClawCliOnPath({
           execPath: cliPath,
           cwd: tmp,
           homeDir: tmp,
@@ -46,7 +46,7 @@ describe("ensureOpenClawCliOnPath", () => {
     process.env.PATH = "/bin";
     process.env.OPENCLAW_PATH_BOOTSTRAPPED = "1";
     try {
-      ensureOpenClawCliOnPath({
+      ensureFreeClawCliOnPath({
         execPath: "/tmp/does-not-matter",
         cwd: "/tmp",
         homeDir: "/tmp",
@@ -88,7 +88,7 @@ describe("ensureOpenClawCliOnPath", () => {
       process.env.PATH = "/usr/bin";
       delete process.env.OPENCLAW_PATH_BOOTSTRAPPED;
 
-      ensureOpenClawCliOnPath({
+      ensureFreeClawCliOnPath({
         execPath: appCli,
         cwd: tmp,
         homeDir: tmp,
@@ -141,7 +141,7 @@ describe("ensureOpenClawCliOnPath", () => {
       delete process.env.HOMEBREW_BREW_FILE;
       delete process.env.XDG_BIN_HOME;
 
-      ensureOpenClawCliOnPath({
+      ensureFreeClawCliOnPath({
         execPath: path.join(execDir, "node"),
         cwd: tmp,
         homeDir: tmp,

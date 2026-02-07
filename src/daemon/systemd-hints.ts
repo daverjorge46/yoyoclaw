@@ -1,29 +1,21 @@
 import { formatCliCommand } from "../cli/command-format.js";
 
-export function isSystemdUnavailableDetail(detail?: string): boolean {
+export function isRcdUnavailableDetail(detail?: string): boolean {
   if (!detail) {
     return false;
   }
   const normalized = detail.toLowerCase();
   return (
-    normalized.includes("systemctl --user unavailable") ||
-    normalized.includes("systemctl not available") ||
-    normalized.includes("not been booted with systemd") ||
-    normalized.includes("failed to connect to bus") ||
-    normalized.includes("systemd user services are required")
+    normalized.includes("rc.d directory not") ||
+    normalized.includes("service not found") ||
+    normalized.includes("rc.d service not found")
   );
 }
 
-export function renderSystemdUnavailableHints(options: { wsl?: boolean } = {}): string[] {
-  if (options.wsl) {
-    return [
-      "WSL2 needs systemd enabled: edit /etc/wsl.conf with [boot]\\nsystemd=true",
-      "Then run: wsl --shutdown (from PowerShell) and reopen your distro.",
-      "Verify: systemctl --user status",
-    ];
-  }
+export function renderRcdUnavailableHints(): string[] {
   return [
-    "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
-    `If you're in a container, run the gateway in the foreground instead of \`${formatCliCommand("openclaw gateway")}\`.`,
+    "rc.d services are unavailable; ensure /usr/local/etc/rc.d/ exists.",
+    `In a jail, run the gateway in the foreground instead: \`${formatCliCommand("freeclaw gateway run")}\`.`,
+    "Install as rc.d service: freeclaw gateway install",
   ];
 }

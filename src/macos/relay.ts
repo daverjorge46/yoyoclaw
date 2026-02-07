@@ -49,8 +49,8 @@ async function main() {
   const { loadDotEnv } = await import("../infra/dotenv.js");
   loadDotEnv({ quiet: true });
 
-  const { ensureOpenClawCliOnPath } = await import("../infra/path-env.js");
-  ensureOpenClawCliOnPath();
+  const { ensureFreeClawCliOnPath } = await import("../infra/path-env.js");
+  ensureFreeClawCliOnPath();
 
   const { enableConsoleCapture } = await import("../logging.js");
   enableConsoleCapture();

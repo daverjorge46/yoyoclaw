@@ -40,7 +40,7 @@ import {
   type ExecHostRunResult,
 } from "../infra/exec-host.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
-import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { ensureFreeClawCliOnPath } from "../infra/path-env.js";
 import { detectMime } from "../media/mime.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import { VERSION } from "../version.js";
@@ -491,7 +491,7 @@ function resolveEnvPath(env?: Record<string, string>): string[] {
 }
 
 function ensureNodePathEnv(): string {
-  ensureOpenClawCliOnPath({ pathEnv: process.env.PATH ?? "" });
+  ensureFreeClawCliOnPath({ pathEnv: process.env.PATH ?? "" });
   const current = process.env.PATH ?? "";
   if (current.trim()) {
     return current;

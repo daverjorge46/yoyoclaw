@@ -8,7 +8,7 @@ import {
 import { spawn, type ChildProcess } from "node:child_process";
 import * as readline from "node:readline";
 import { Readable, Writable } from "node:stream";
-import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
+import { ensureFreeClawCliOnPath } from "../infra/path-env.js";
 
 export type AcpClientOptions = {
   cwd?: string;
@@ -79,7 +79,7 @@ export async function createAcpClient(opts: AcpClientOptions = {}): Promise<AcpC
   const verbose = Boolean(opts.verbose);
   const log = verbose ? (msg: string) => console.error(`[acp-client] ${msg}`) : () => {};
 
-  ensureOpenClawCliOnPath({ cwd });
+  ensureFreeClawCliOnPath({ cwd });
   const serverCommand = opts.serverCommand ?? "openclaw";
   const serverArgs = buildServerArgs(opts);
 

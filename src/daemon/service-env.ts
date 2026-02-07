@@ -3,14 +3,10 @@ import { VERSION } from "../version.js";
 import {
   GATEWAY_SERVICE_KIND,
   GATEWAY_SERVICE_MARKER,
-  resolveGatewayLaunchAgentLabel,
-  resolveGatewaySystemdServiceName,
+  resolveGatewayRcdServiceName,
   NODE_SERVICE_KIND,
   NODE_SERVICE_MARKER,
-  NODE_WINDOWS_TASK_SCRIPT_NAME,
-  resolveNodeLaunchAgentLabel,
-  resolveNodeSystemdServiceName,
-  resolveNodeWindowsTaskName,
+  resolveNodeRcdServiceName,
 } from "./constants.js";
 
 export type MinimalServicePathOptions = {
@@ -145,26 +141,21 @@ export function buildServiceEnvironment(params: {
   env: Record<string, string | undefined>;
   port: number;
   token?: string;
-  launchdLabel?: string;
 }): Record<string, string | undefined> {
-  const { env, port, token, launchdLabel } = params;
-  const profile = env.OPENCLAW_PROFILE;
-  const resolvedLaunchdLabel =
-    launchdLabel ||
-    (process.platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
-  const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
+  const { env, port, token } = params;
+  const profile = env.FREECLAW_PROFILE;
+  const rcdServiceName = resolveGatewayRcdServiceName(profile);
   const stateDir = env.OPENCLAW_STATE_DIR;
   const configPath = env.OPENCLAW_CONFIG_PATH;
   return {
     HOME: env.HOME,
     PATH: buildMinimalServicePath({ env }),
-    OPENCLAW_PROFILE: profile,
+    FREECLAW_PROFILE: profile,
     OPENCLAW_STATE_DIR: stateDir,
     OPENCLAW_CONFIG_PATH: configPath,
     OPENCLAW_GATEWAY_PORT: String(port),
     OPENCLAW_GATEWAY_TOKEN: token,
-    OPENCLAW_LAUNCHD_LABEL: resolvedLaunchdLabel,
-    OPENCLAW_SYSTEMD_UNIT: systemdUnit,
+    FREECLAW_RCD_SERVICE: rcdServiceName,
     OPENCLAW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
     OPENCLAW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
     OPENCLAW_SERVICE_VERSION: VERSION,
@@ -175,6 +166,7 @@ export function buildNodeServiceEnvironment(params: {
   env: Record<string, string | undefined>;
 }): Record<string, string | undefined> {
   const { env } = params;
+  const rcdServiceName = resolveNodeRcdServiceName();
   const stateDir = env.OPENCLAW_STATE_DIR;
   const configPath = env.OPENCLAW_CONFIG_PATH;
   return {
@@ -182,10 +174,7 @@ export function buildNodeServiceEnvironment(params: {
     PATH: buildMinimalServicePath({ env }),
     OPENCLAW_STATE_DIR: stateDir,
     OPENCLAW_CONFIG_PATH: configPath,
-    OPENCLAW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
-    OPENCLAW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
-    OPENCLAW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
-    OPENCLAW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
+    FREECLAW_RCD_SERVICE: rcdServiceName,
     OPENCLAW_LOG_PREFIX: "node",
     OPENCLAW_SERVICE_MARKER: NODE_SERVICE_MARKER,
     OPENCLAW_SERVICE_KIND: NODE_SERVICE_KIND,
