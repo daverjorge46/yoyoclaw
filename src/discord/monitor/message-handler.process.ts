@@ -544,6 +544,10 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
 
   let smartAckResult: SmartAckResult | null = null;
   if (smartAckEnabled) {
+    // Show typing while Haiku classifies the message (can take a few seconds).
+    sendTyping({ client, channelId: typingChannelId }).catch((err) => {
+      logVerbose(`discord: typing before smart ack failed: ${String(err)}`);
+    });
     smartAckResult = await generateSmartAck({
       message: text,
       senderName: sender.name,
@@ -553,11 +557,9 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
   }
 
   // Simple messages: send the Haiku response directly and skip the main model entirely.
+  // Typing was already sent before generateSmartAck(), and Discord auto-clears it on
+  // message delivery, so no additional typing call is needed here.
   if (smartAckResult?.isFull) {
-    // Show typing indicator so the user sees feedback before the response arrives
-    sendTyping({ client, channelId: typingChannelId }).catch((err) => {
-      logVerbose(`discord: typing for full response failed: ${String(err)}`);
-    });
     if (earlyTypingInterval) {
       clearInterval(earlyTypingInterval);
       earlyTypingInterval = undefined;
