@@ -28,6 +28,8 @@ console.log(`[time-tunnel/query] 📂 Data directory: ${DATA_DIR}`);
 
 let db = null;
 let vecInitialized = false;
+let consolidationTablesReady = false;
+let consciousnessTablesReady = false;
 
 function getDb() {
   if (db) return db;
@@ -3028,7 +3030,9 @@ export function runLearningCycle() {
  * 初始化記憶整合表
  */
 function initConsolidationTables() {
+  if (consolidationTablesReady) return;
   const database = getDb();
+  consolidationTablesReady = true;
   database.exec(`
     -- 記憶摘要表（壓縮後的記憶）
     CREATE TABLE IF NOT EXISTS memory_summaries (
@@ -3785,7 +3789,9 @@ export async function runIntelligenceCycle(options = {}) {
  * 初始化自主意識表
  */
 function initConsciousnessTables() {
+  if (consciousnessTablesReady) return;
   const database = getDb();
+  consciousnessTablesReady = true;
   database.exec(`
     -- 系統狀態表（追蹤上次執行時間）
     CREATE TABLE IF NOT EXISTS consciousness_state (
@@ -4068,6 +4074,7 @@ export async function autoTriggerConsolidation() {
 export function learnFromMessage(message) {
   const database = getDb();
   initConsciousnessTables();
+  initConsolidationTables();
 
   const { content, sender, project, chat, direction } = message;
   const learnings = [];
