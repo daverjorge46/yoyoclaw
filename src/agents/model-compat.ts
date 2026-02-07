@@ -15,15 +15,14 @@ export function normalizeModelCompat(model: Model<Api>): Model<Api> {
 
   const openaiModel = model;
   const compat = openaiModel.compat ?? undefined;
-  if (compat?.supportsDeveloperRole === false) {
-    return model;
-  }
 
   if (isZai) {
+    // Z.ai only needs supportsDeveloperRole: false
     openaiModel.compat = compat
       ? { ...compat, supportsDeveloperRole: false }
       : { supportsDeveloperRole: false };
   } else if (isBailian) {
+    // Bailian/DashScope needs both supportsDeveloperRole: false and thinkingFormat: "qwen"
     openaiModel.compat = compat
       ? { ...compat, supportsDeveloperRole: false, thinkingFormat: "qwen" }
       : { supportsDeveloperRole: false, thinkingFormat: "qwen" };
