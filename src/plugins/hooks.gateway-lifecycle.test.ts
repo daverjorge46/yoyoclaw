@@ -10,7 +10,7 @@ function makeRegistry(typedHooks: PluginHookRegistration[] = []): PluginRegistry
   return {
     plugins: [],
     tools: [],
-    hooks: typedHooks,
+    hooks: [],
     typedHooks,
     channels: [],
     providers: [],
