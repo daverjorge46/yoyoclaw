@@ -40,6 +40,6 @@ describe("LINE collectStatusIssues", () => {
       { accountId: "secondary", configured: false, tokenSource: "none" },
     ]);
     expect(issues).toHaveLength(1);
-    expect(issues[0]!.accountId).toBe("secondary");
+    expect(issues[0].accountId).toBe("secondary");
   });
 });
