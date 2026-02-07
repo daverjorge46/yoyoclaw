@@ -4,7 +4,7 @@
 
 When using Anthropic via auth-based (session/cookie) access rather than API keys, rate limit errors can be misclassified as "Context overflow" errors. This prevents the model fallback chain from triggering, showing users a false error message instead of gracefully degrading to a fallback model.
 
-The name comes from the observation that the error "looks like a whole meal but it's actually just gas."
+We nicknamed it the "Fried Chicken Error" because the false "Context overflow" message looks like a real, substantial error (a whole meal) — but it's actually just a rate limit with nothing behind it (just gas). The name stuck because it perfectly captures the frustration: you think something serious is wrong with your context window, but the real problem is just temporary throttling.
 
 ## Who's Affected?
 
