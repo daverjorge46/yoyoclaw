@@ -25,6 +25,8 @@ UPGRADE v2.1.0
 - Users with `manualUpgrade: false` (default): Auto-upgrade to v2.1.0 and restart
 - Users with `manualUpgrade: true`: See notification message only
 
+**Important:** Downgrades are automatically prevented. If a user already has v2.1.0 or newer locally, the upgrade will be skipped with the message: `Upgrade skipped: tag v2.1.0 already exists locally (forward upgrades only)`.
+
 ### Send an Announcement
 
 Edit `FUSE.txt` on main branch:
@@ -79,19 +81,39 @@ update:
 
 ### Check Upgrade Status
 
-Look in gateway logs for:
+**Successful auto-upgrade:**
 
 ```
 Starting upgrade to v2.0.0...
-[progress messages]
+[1/5] git fetch...
+[2/5] git checkout...
+[3/5] pnpm install...
+[4/5] build...
+[5/5] verify...
 Upgrade to v2.0.0 completed successfully
 Restarting gateway in 2 seconds...
 ```
 
-Or:
+**Manual upgrade mode:**
 
 ```
-Upgrade v2.0.0 available. Type /openclaw upgrade v2.0.0 to upgrade.
+Upgrade v2.0.0 available. Type openclaw upgrade v2.0.0 into terminal.
+```
+
+**Downgrade prevented:**
+
+```
+Upgrade skipped: tag v2.0.0 already exists locally (forward upgrades only)
+```
+
+**Failed upgrade:**
+
+```
+Starting upgrade to v2.0.0...
+[1/5] git fetch...
+[2/5] git checkout...
+[3/5] pnpm install failed
+Upgrade failed: pnpm install: dependency resolution error
 ```
 
 ## FUSE URL
@@ -114,6 +136,7 @@ This allows you to:
 - Host your own FUSE file for private deployments
 - Use a different branch or fork of OpenClaw
 - Implement custom remote control mechanisms
+- Test FUSE locally using `file://` URLs
 
 ## Timing
 
@@ -133,13 +156,78 @@ This "fail-open" behavior ensures network issues don't prevent cron execution.
 
 ## Testing FUSE Locally
 
-You cannot test FUSE locally as it always fetches from the official repository.
+You can test FUSE behavior using a local file with `file://` URLs:
 
-To test FUSE-like behavior:
+**Create a test FUSE file:**
 
-1. Modify `/src/gateway/fuse.ts` to use a local file or test URL
-2. Run tests: `npm test src/gateway/fuse.test.ts`
-3. Restore original code before committing
+```bash
+echo "HOLD Testing FUSE locally" > /tmp/test-fuse.txt
+```
+
+**Configure it in your `config.yaml`:**
+
+```yaml
+update:
+  fuseUrl: file:///tmp/test-fuse.txt
+```
+
+**Run the test suite:**
+
+```bash
+npm test src/cron/service/fuse.test.ts
+```
+
+This is useful for:
+
+- Testing FUSE commands before deploying to production
+- Running integration tests
+- Developing custom FUSE implementations
+
+## Advanced Features
+
+### Downgrade Protection
+
+UPGRADE commands automatically prevent downgrades for safety:
+
+**How it works:**
+
+- Before upgrading, the system checks if the specified git tag already exists locally
+- If the tag exists, the upgrade is skipped (prevents accidental rollback)
+- You'll see: `Upgrade skipped: tag v2.0.0 already exists locally (forward upgrades only)`
+
+**To intentionally downgrade:**
+
+1. Manually checkout the desired version: `git checkout v1.9.0`
+2. Rebuild: `pnpm install && pnpm build`
+3. Restart the gateway manually
+
+**Why this matters:**
+
+- Prevents accidentally rolling back security fixes
+- Protects against malicious or compromised FUSE.txt pushing old versions
+- Ensures data migrations and schema changes only move forward
+
+**HTTP Headers:**
+
+- FUSE requests include `User-Agent: openclaw-gateway` header
+- This helps identify OpenClaw traffic in server logs
+- Can be used for analytics or rate limiting by FUSE server operators
+
+**First-Line Processing:**
+
+- Only the first line of FUSE.txt is processed
+- All subsequent lines are completely ignored
+- This allows you to add comments, documentation, or version history after the first line
+
+**Cron Integration:**
+
+FUSE is checked at three points:
+
+1. Before finding due jobs in the regular timer tick
+2. Before running missed jobs after gateway restart
+3. Before immediate job execution via API
+
+If FUSE returns HOLD, all three skip processing until the hold is lifted.
 
 ## Command Syntax Rules
 
@@ -163,6 +251,7 @@ UPGRADE[space]version
 - Can be: v2.0.0, v2.0.0-beta.1, latest, beta, stable
 - Space after UPGRADE is required
 - Invalid formats (e.g., "UPGRADE" or "UPGRADE ") will be rejected with error message
+- Downgrades are automatically prevented (tag existence check)
 
 ### ANNOUNCE
 
@@ -220,6 +309,7 @@ UPGRADE v2.0.0
 ```
 
 **Result:** Only the first line (HOLD) is processed. The UPGRADE line is ignored.
+
 **Important:** FUSE.txt processes ONLY the first line. All subsequent lines are completely ignored.
 
 ### Comments and Documentation
@@ -231,4 +321,15 @@ HOLD for maintenance
 ```
 
 **Result:** Only "HOLD for maintenance" is processed. Comments on lines 2-3 are safely ignored.
+
 **Benefit:** You can add documentation, notes, or version history on subsequent lines without affecting FUSE behavior.
+
+### Testing Before Production
+
+```
+ANNOUNCE [TEST] This is a test announcement - please ignore
+# Testing FUSE before deploying actual HOLD
+# Will remove this line and add real HOLD at 2pm EST
+```
+
+**Result:** The test announcement is displayed, allowing you to verify FUSE is working before deploying an actual HOLD or UPGRADE command.
