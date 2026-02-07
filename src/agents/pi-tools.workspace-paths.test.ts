@@ -4,11 +4,23 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createOpenClawCodingTools } from "./pi-tools.js";
 
+const INITIAL_CWD = process.cwd();
+
 async function withTempDir<T>(prefix: string, fn: (dir: string) => Promise<T>) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
   try {
     return await fn(dir);
   } finally {
+    // On Windows, deleting the current working directory (or a parent) can hang or fail.
+    // Tests can also leak cwd changes across failures/timeouts, so be defensive.
+    const cwd = process.cwd();
+    if (cwd === dir || cwd.startsWith(`${dir}${path.sep}`)) {
+      try {
+        process.chdir(INITIAL_CWD);
+      } catch {
+        // ignore
+      }
+    }
     await fs.rm(dir, { recursive: true, force: true });
   }
 }
@@ -22,7 +34,7 @@ describe("workspace path resolution", () => {
   it("reads relative paths against workspaceDir even after cwd changes", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
       await withTempDir("openclaw-cwd-", async (otherDir) => {
-        const prevCwd = process.cwd();
+        const prevCwd = INITIAL_CWD;
         const testFile = "read.txt";
         const contents = "workspace read ok";
         await fs.writeFile(path.join(workspaceDir, testFile), contents, "utf8");
@@ -40,12 +52,12 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("writes relative paths against workspaceDir even after cwd changes", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
       await withTempDir("openclaw-cwd-", async (otherDir) => {
-        const prevCwd = process.cwd();
+        const prevCwd = INITIAL_CWD;
         const testFile = "write.txt";
         const contents = "workspace write ok";
 
@@ -67,12 +79,12 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("edits relative paths against workspaceDir even after cwd changes", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
       await withTempDir("openclaw-cwd-", async (otherDir) => {
-        const prevCwd = process.cwd();
+        const prevCwd = INITIAL_CWD;
         const testFile = "edit.txt";
         await fs.writeFile(path.join(workspaceDir, testFile), "hello world", "utf8");
 
@@ -95,7 +107,7 @@ describe("workspace path resolution", () => {
         }
       });
     });
-  });
+  }, 180_000);
 
   it("defaults exec cwd to workspaceDir when workdir is omitted", async () => {
     await withTempDir("openclaw-ws-", async (workspaceDir) => {
