@@ -20,7 +20,7 @@ if [ "$1" == "new" ]; then
   echo "INSTRUCTION FOR AGENT:"
   echo "1. Compress the content above using SKILL.md rules."
   echo "2. Write the summary to 'MEMORY.md' (append with date)."
-  echo "3. Reply with a clear message: 'Memory archived. You may now reset the session.'"
+  echo "3. Reply with a clear message: 'Memory archived. You may now reset the session.' (or '/reset')"
   exit 0
 fi
 
