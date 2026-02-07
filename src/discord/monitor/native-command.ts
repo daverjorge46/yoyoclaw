@@ -409,7 +409,9 @@ function parseDiscordSelectMenuCustomId(
   customId: string,
 ): { command: string; arg: string; userId: string } | null {
   const colonIdx = customId.indexOf(":");
-  if (colonIdx === -1) return null;
+  if (colonIdx === -1) {
+    return null;
+  }
   const rawData = customId.slice(colonIdx + 1);
   const entries = Object.fromEntries(
     rawData
@@ -420,7 +422,9 @@ function parseDiscordSelectMenuCustomId(
         return [k, decodeDiscordCommandArgValue(rest.join("="))];
       }),
   );
-  if (!entries.command || !entries.arg || !entries.user) return null;
+  if (!entries.command || !entries.arg || !entries.user) {
+    return null;
+  }
   return { command: entries.command, arg: entries.arg, userId: entries.user };
 }
 
@@ -470,7 +474,9 @@ async function handleDiscordSelectMenuArgInteraction(
       components: [],
     }),
   );
-  if (!updated) return;
+  if (!updated) {
+    return;
+  }
 
   const commandArgs = createCommandArgsWithValue({
     argName: parsed.arg,

@@ -537,7 +537,9 @@ function buildChatCommands(): ChatCommandDefinition[] {
             for (const key of Object.keys(cfg?.agents?.defaults?.models ?? {})) {
               const raw = String(key);
               const slash = raw.indexOf("/");
-              if (slash > 0) providers.add(raw.slice(0, slash));
+              if (slash > 0) {
+                providers.add(raw.slice(0, slash));
+              }
             }
             return [...providers].toSorted();
           },
