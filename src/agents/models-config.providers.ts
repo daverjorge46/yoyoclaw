@@ -520,9 +520,7 @@ export async function resolveImplicitProviders(params: {
   const huaweiMaasKey =
     huaweiMaasEnv?.apiKey ??
     resolveApiKeyFromProfiles({ provider: "huawei-maas", store: authStore });
-  if (huaweiMaasKey) {
-    providers["huawei-maas"] = await buildHuaweiMaasProvider(huaweiMaasKey);
-  }
+  providers["huawei-maas"] = await buildHuaweiMaasProvider(huaweiMaasKey || "");
 
   const qwenProfiles = listProfilesForProvider(authStore, "qwen-portal");
   if (qwenProfiles.length > 0) {
