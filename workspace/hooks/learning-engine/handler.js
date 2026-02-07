@@ -8,11 +8,13 @@ import {
   runIntelligenceCycle,
   runLearningLoop,
   embedMessage,
+  batchEmbedHistorical,
 } from "../time-tunnel/query.js";
 
 // 計數器與防抖
 let messageCount = 0;
 let lastCycleTime = 0;
+let historicalEmbedDone = false;
 const CYCLE_INTERVAL_MS = 30 * 60 * 1000; // 30 分鐘
 const CYCLE_MESSAGE_THRESHOLD = 50; // 每 50 條訊息
 
@@ -84,6 +86,13 @@ async function runCycleInBackground() {
       knowledge: cycleResult.knowledge ? "done" : "skipped",
       reminders: cycleResult.reminders ? "done" : "skipped",
     });
+
+    // 首次啟動：批量嵌入歷史訊息（最多 500 條，fire-and-forget）
+    if (!historicalEmbedDone) {
+      historicalEmbedDone = true;
+      const embedResult = await batchEmbedHistorical({ maxMessages: 500 });
+      console.log("[learning-engine] Historical embed:", embedResult);
+    }
   } catch (err) {
     console.error("[learning-engine] Intelligence cycle error:", err.message);
   }

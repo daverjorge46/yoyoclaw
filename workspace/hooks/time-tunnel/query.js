@@ -7960,6 +7960,7 @@ export default {
   getContextAtomStats,
   // Convenience wrappers (auto-inject db)
   embedMessage,
+  batchEmbedHistorical,
   searchSemantic,
   searchKnowledgeVec,
   recordFeedbackJudgment,
@@ -8004,6 +8005,20 @@ export async function embedMessage(messageId, content) {
   } catch (err) {
     console.warn("[time-tunnel] embedMessage error:", err.message);
     return false;
+  }
+}
+
+/**
+ * 便利函式：批量嵌入歷史訊息（自動注入 db）
+ * @param {{ maxMessages?: number, force?: boolean }} options
+ * @returns {Promise<{ success: boolean, total?: number, migrated?: number, failed?: number }>}
+ */
+export async function batchEmbedHistorical(options = {}) {
+  try {
+    return await vecModule.migrateExistingMessagesAsync(getDb(), options);
+  } catch (err) {
+    console.warn("[time-tunnel] batchEmbedHistorical error:", err.message);
+    return { success: false, error: err.message };
   }
 }
 
