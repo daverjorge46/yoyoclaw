@@ -234,7 +234,7 @@ export class QmdMemoryManager implements MemorySearchManager {
       this.qmd.limits.maxResults,
       opts?.maxResults ?? this.qmd.limits.maxResults,
     );
-    const args = ["query", trimmed, "--json", "-n", String(limit)];
+    const args = ["search", trimmed, "--json", "-n", String(limit)];
     let stdout: string;
     try {
       const result = await this.runQmd(args, { timeoutMs: this.qmd.limits.timeoutMs });
@@ -243,6 +243,11 @@ export class QmdMemoryManager implements MemorySearchManager {
       log.warn(`qmd query failed: ${String(err)}`);
       throw err instanceof Error ? err : new Error(String(err));
     }
+    const outTrim = stdout.trim();
+    if (outTrim.toLowerCase().startsWith("no results found")) {
+      return [];
+    }
+
     let parsed: QmdQueryResult[] = [];
     try {
       parsed = JSON.parse(stdout);
