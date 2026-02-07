@@ -11,7 +11,11 @@ import {
   type ComponentData,
   type StringSelectMenuInteraction,
 } from "@buape/carbon";
-import { ApplicationCommandOptionType, ButtonStyle, type APISelectMenuOption } from "discord-api-types/v10";
+import {
+  ApplicationCommandOptionType,
+  ButtonStyle,
+  type APISelectMenuOption,
+} from "discord-api-types/v10";
 import type {
   ChatCommandDefinition,
   CommandArgDefinition,
@@ -34,6 +38,7 @@ import {
 } from "../../auto-reply/commands-registry.js";
 import { finalizeInboundContext } from "../../auto-reply/reply/inbound-context.js";
 import { dispatchReplyWithDispatcher } from "../../auto-reply/reply/provider-dispatcher.js";
+import { listThinkingLevels } from "../../auto-reply/thinking.js";
 import { resolveCommandAuthorizedFromAuthorizers } from "../../channels/command-gating.js";
 import { createReplyPrefixOptions } from "../../channels/reply-prefix.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
@@ -43,7 +48,6 @@ import {
 } from "../../pairing/pairing-store.js";
 import { resolveAgentRoute } from "../../routing/resolve-route.js";
 import { buildUntrustedChannelMetadata } from "../../security/channel-metadata.js";
-import { listThinkingLevels } from "../../auto-reply/thinking.js";
 import { loadWebMedia } from "../../web/media.js";
 import { chunkDiscordTextWithMode } from "../chunk.js";
 import {
@@ -425,7 +429,10 @@ async function handleDiscordSelectMenuArgInteraction(
   data: ComponentData,
   ctx: DiscordCommandArgContext,
 ) {
-  const raw = interaction.customId ?? (data as { custom_id?: string }).custom_id ?? "";
+  // The custom_id lives on the raw interaction data; Carbon does not expose it
+  // as a top-level property on StringSelectMenuInteraction.
+  const rawInteraction = interaction.rawData as { data?: { custom_id?: string } };
+  const raw = rawInteraction.data?.custom_id ?? "";
   const parsed = parseDiscordSelectMenuCustomId(raw);
   if (!parsed) {
     await safeDiscordInteractionCall("select menu update", () =>
