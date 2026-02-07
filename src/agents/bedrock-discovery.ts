@@ -1,7 +1,9 @@
 import {
   BedrockClient,
   ListFoundationModelsCommand,
+  ListInferenceProfilesCommand,
   type ListFoundationModelsCommandOutput,
+  type ListInferenceProfilesCommandOutput,
 } from "@aws-sdk/client-bedrock";
 import type { BedrockDiscoveryConfig, ModelDefinitionConfig } from "../config/types.js";
 
@@ -16,6 +18,9 @@ const DEFAULT_COST = {
 };
 
 type BedrockModelSummary = NonNullable<ListFoundationModelsCommandOutput["modelSummaries"]>[number];
+type BedrockInferenceProfileSummary = NonNullable<
+  ListInferenceProfilesCommandOutput["inferenceProfileSummaries"]
+>[number];
 
 type BedrockDiscoveryCacheEntry = {
   expiresAt: number;
@@ -42,6 +47,7 @@ function buildCacheKey(params: {
   refreshIntervalSeconds: number;
   defaultContextWindow: number;
   defaultMaxTokens: number;
+  includeInferenceProfiles: boolean;
 }): string {
   return JSON.stringify(params);
 }
@@ -137,6 +143,33 @@ function toModelDefinition(
   };
 }
 
+function inferenceProfileToModelDefinition(
+  profile: BedrockInferenceProfileSummary,
+  defaults: { contextWindow: number; maxTokens: number },
+): ModelDefinitionConfig | null {
+  const id = profile.inferenceProfileId?.trim();
+  if (!id) {
+    return null;
+  }
+
+  const name = profile.inferenceProfileName?.trim() || id;
+  const modelId = profile.models?.[0]?.modelArn?.split("/").pop() ?? id;
+
+  // Check if the profile ID or name suggests reasoning support
+  const haystack = `${id} ${name}`.toLowerCase();
+  const reasoning = haystack.includes("reasoning") || haystack.includes("thinking");
+
+  return {
+    id,
+    name,
+    reasoning,
+    input: ["text", "image"],
+    cost: DEFAULT_COST,
+    contextWindow: defaults.contextWindow,
+    maxTokens: defaults.maxTokens,
+  };
+}
+
 export function resetBedrockDiscoveryCacheForTest(): void {
   discoveryCache.clear();
   hasLoggedBedrockError = false;
@@ -155,12 +188,14 @@ export async function discoverBedrockModels(params: {
   const providerFilter = normalizeProviderFilter(params.config?.providerFilter);
   const defaultContextWindow = resolveDefaultContextWindow(params.config);
   const defaultMaxTokens = resolveDefaultMaxTokens(params.config);
+  const includeInferenceProfiles = params.config?.includeInferenceProfiles ?? true;
   const cacheKey = buildCacheKey({
     region: params.region,
     providerFilter,
     refreshIntervalSeconds,
     defaultContextWindow,
     defaultMaxTokens,
+    includeInferenceProfiles,
   });
   const now = params.now?.() ?? Date.now();
 
@@ -178,9 +213,11 @@ export async function discoverBedrockModels(params: {
   const client = clientFactory(params.region);
 
   const discoveryPromise = (async () => {
-    const response = await client.send(new ListFoundationModelsCommand({}));
     const discovered: ModelDefinitionConfig[] = [];
-    for (const summary of response.modelSummaries ?? []) {
+
+    // Discover foundation models
+    const modelsResponse = await client.send(new ListFoundationModelsCommand({}));
+    for (const summary of modelsResponse.modelSummaries ?? []) {
       if (!shouldIncludeSummary(summary, providerFilter)) {
         continue;
       }
@@ -191,6 +228,38 @@ export async function discoverBedrockModels(params: {
         }),
       );
     }
+
+    // Discover inference profiles (cross-region)
+    if (includeInferenceProfiles) {
+      try {
+        const profilesResponse = await client.send(new ListInferenceProfilesCommand({}));
+        for (const profile of profilesResponse.inferenceProfileSummaries ?? []) {
+          if (profile.status !== "ACTIVE") {
+            continue;
+          }
+          const modelDef = inferenceProfileToModelDefinition(profile, {
+            contextWindow: defaultContextWindow,
+            maxTokens: defaultMaxTokens,
+          });
+          if (modelDef) {
+            if (providerFilter.length === 0) {
+              discovered.push(modelDef);
+            } else {
+              const profileId = modelDef.id.toLowerCase();
+              if (providerFilter.some((filter) => profileId.includes(filter))) {
+                discovered.push(modelDef);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        if (!hasLoggedBedrockError) {
+          hasLoggedBedrockError = true;
+          console.warn(`[bedrock-discovery] Failed to list inference profiles: ${String(error)}`);
+        }
+      }
+    }
+
     return discovered.toSorted((a, b) => a.name.localeCompare(b.name));
   })();
 
