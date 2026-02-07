@@ -37,15 +37,15 @@ export function extractRoutingConfig(cfg?: OpenClawConfig): RoutingConfig | null
     ...routing,
     keywords: {
       ...DEFAULT_ROUTING_CONFIG.keywords,
-      ...(routing.keywords || {}),
+      ...routing.keywords,
     },
     learning: {
       ...DEFAULT_ROUTING_CONFIG.learning,
-      ...(routing.learning || {}),
+      ...routing.learning,
     },
     override: {
       ...DEFAULT_ROUTING_CONFIG.override,
-      ...(routing.override || {}),
+      ...routing.override,
     },
   };
 }

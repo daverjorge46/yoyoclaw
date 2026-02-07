@@ -297,7 +297,7 @@ export function routeMessage(
 export function formatRoutingDecision(
   classification: TaskClassification,
   actualModel: string,
-  shouldOverride: boolean,
+  _shouldOverride: boolean,
 ): string {
   const match = classification.recommendedModel === actualModel;
   const savings = match ? "✓" : "→";
