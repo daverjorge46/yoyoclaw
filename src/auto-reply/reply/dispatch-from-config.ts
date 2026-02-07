@@ -392,8 +392,8 @@ export async function dispatchReplyFromConfig(params: {
     const replies = replyResult ? (Array.isArray(replyResult) ? replyResult : [replyResult]) : [];
 
     // Check if we should route group error messages to owner DM.
-    // Only applies when: (1) in a group chat, (2) groupErrorDelivery is "owner-dm", (3) owner is configured.
-    const isGroupChat = ctx.ChatType === "group";
+    // Only applies when: (1) in a group/channel chat, (2) groupErrorDelivery is "owner-dm", (3) owner is configured.
+    const isGroupChat = ctx.ChatType === "group" || ctx.ChatType === "channel";
     const groupErrorDelivery = cfg.agents?.defaults?.groupErrorDelivery ?? "source";
     const shouldRouteErrorsToOwner = isGroupChat && groupErrorDelivery === "owner-dm";
     const ownerDmTarget = shouldRouteErrorsToOwner
@@ -405,7 +405,9 @@ export async function dispatchReplyFromConfig(params: {
     for (const reply of replies) {
       // Route error messages to owner DM when configured.
       // This keeps group chats clean by sending agent errors privately to the owner.
-      if (reply.isError && ownerDmTarget) {
+      // Use isError flag if set, otherwise fallback to detecting ⚠️ prefix in text.
+      const isErrorReply = reply.isError ?? (typeof reply.text === "string" && reply.text.startsWith("⚠️"));
+      if (isErrorReply && ownerDmTarget) {
         const errorResult = await routeReply({
           payload: reply,
           channel: ownerDmTarget.channel,
