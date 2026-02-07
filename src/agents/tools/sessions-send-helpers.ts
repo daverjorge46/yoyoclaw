@@ -158,7 +158,9 @@ export function isReplySkip(text?: string) {
 }
 
 export function resolveAgentIdFromSessionKey(sessionKey?: string): string {
-  if (!sessionKey) return "unknown";
+  if (!sessionKey) {
+    return "unknown";
+  }
   const parts = sessionKey.split(":");
   if (parts[0] === "agent" && parts[1]) {
     return parts[1];
