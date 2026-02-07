@@ -375,11 +375,20 @@ export const registerTelegramNativeCommands = ({
   }
 
   if (allCommands.length > 0) {
+    // Clear stale commands from previous registrations before setting new ones
     withTelegramApiErrorLogging({
-      operation: "setMyCommands",
+      operation: "deleteMyCommands",
       runtime,
-      fn: () => bot.api.setMyCommands(allCommands),
-    }).catch(() => {});
+      fn: () => bot.api.deleteMyCommands(),
+    })
+      .then(() =>
+        withTelegramApiErrorLogging({
+          operation: "setMyCommands",
+          runtime,
+          fn: () => bot.api.setMyCommands(allCommands),
+        }),
+      )
+      .catch(() => {});
 
     if (typeof (bot as unknown as { command?: unknown }).command !== "function") {
       logVerbose("telegram: bot.command unavailable; skipping native handlers");
