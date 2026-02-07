@@ -845,12 +845,102 @@ describe("exec denylist evaluation", () => {
     expect(result.matched).toBe(true);
   });
 
-  it("returns no match with empty denylist", () => {
+  it("still applies defaults even when user denylist is empty", () => {
+    // Constitutional: DEFAULT_DENYLIST always applies, user entries are additive only
     const result = evaluateDenylist({
       command: "git push origin main",
       denylist: [],
     });
+    expect(result.matched).toBe(true);
+  });
+
+  it("returns no match for safe command even with user denylist", () => {
+    const result = evaluateDenylist({
+      command: "git status",
+      denylist: [{ pattern: "npm audit", mode: "subcommand", reason: "external-system" }],
+    });
     expect(result.matched).toBe(false);
+  });
+
+  it("matches docker push", () => {
+    const result = evaluateDenylist({ command: "docker push myimage:latest" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches ssh", () => {
+    const result = evaluateDenylist({ command: "ssh user@host" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches scp", () => {
+    const result = evaluateDenylist({ command: "scp file.txt user@host:/tmp/" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches kubectl delete", () => {
+    const result = evaluateDenylist({ command: "kubectl delete pod my-pod" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches terraform destroy", () => {
+    const result = evaluateDenylist({ command: "terraform destroy -auto-approve" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches gh pr merge", () => {
+    const result = evaluateDenylist({ command: "gh pr merge 42 --squash" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches vercel deploy", () => {
+    const result = evaluateDenylist({ command: "vercel deploy --prod" });
+    expect(result.matched).toBe(true);
+  });
+
+  it("matches psql -c", () => {
+    const result = evaluateDenylist({ command: 'psql -c "DROP TABLE users"' });
+    expect(result.matched).toBe(true);
+  });
+
+  it("does not match docker build (safe)", () => {
+    const result = evaluateDenylist({ command: "docker build -t myimage ." });
+    expect(result.matched).toBe(false);
+  });
+
+  it("does not match kubectl get (safe)", () => {
+    const result = evaluateDenylist({ command: "kubectl get pods" });
+    expect(result.matched).toBe(false);
+  });
+
+  it("merges user denylist entries with defaults", () => {
+    const userEntry: ExecDenylistEntry = {
+      pattern: "my-custom-tool deploy",
+      mode: "subcommand",
+      reason: "external-system",
+    };
+    const result = evaluateDenylist({
+      command: "my-custom-tool deploy production",
+      denylist: [userEntry],
+    });
+    expect(result.matched).toBe(true);
+    expect(result.matchedEntries).toHaveLength(1);
+    expect(result.matchedEntries[0].pattern).toBe("my-custom-tool deploy");
+  });
+
+  it("deduplicates user entries that overlap with defaults", () => {
+    const duplicateEntry: ExecDenylistEntry = {
+      pattern: "git push",
+      mode: "subcommand",
+      reason: "external-system",
+      description: "user duplicate of built-in",
+    };
+    const result = evaluateDenylist({
+      command: "git push origin main",
+      denylist: [duplicateEntry],
+    });
+    expect(result.matched).toBe(true);
+    // Should only appear once despite being in both defaults and user list
+    expect(result.matchedEntries).toHaveLength(1);
   });
 
   it("matches denylisted command inside a pipe chain", () => {

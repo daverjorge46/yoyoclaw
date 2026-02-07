@@ -47,6 +47,8 @@ export type ExecApprovalsFile = {
   };
   defaults?: ExecApprovalsDefaults;
   agents?: Record<string, ExecApprovalsAgent>;
+  /** User-configured denylist entries merged with DEFAULT_DENYLIST (additive only). */
+  denylist?: ExecDenylistEntry[];
 };
 
 export type ExecApprovalsSnapshot = {
@@ -149,6 +151,117 @@ export const DEFAULT_DENYLIST: ExecDenylistEntry[] = [
     mode: "subcommand",
     reason: "destructive",
     description: "Recursively removes root filesystem",
+  },
+  // Container registry pushes
+  {
+    pattern: "docker push",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Pushes a container image to a registry",
+  },
+  {
+    pattern: "docker login",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Authenticates to a container registry",
+  },
+  // Remote access / file transfer
+  {
+    pattern: "scp",
+    mode: "binary",
+    reason: "external-system",
+    description: "Copies files to/from a remote host",
+  },
+  {
+    pattern: "ssh",
+    mode: "binary",
+    reason: "external-system",
+    description: "Opens a remote shell session",
+  },
+  // Network — wget with POST data
+  {
+    pattern: "wget --post-data",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Sends data via HTTP POST",
+  },
+  // GitHub CLI — mutations
+  {
+    pattern: "gh pr merge",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Merges a pull request on GitHub",
+  },
+  {
+    pattern: "gh issue close",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Closes an issue on GitHub",
+  },
+  // Kubernetes
+  {
+    pattern: "kubectl apply",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Applies configuration to a Kubernetes cluster",
+  },
+  {
+    pattern: "kubectl delete",
+    mode: "subcommand",
+    reason: "destructive",
+    description: "Deletes resources from a Kubernetes cluster",
+  },
+  // Infrastructure as Code
+  {
+    pattern: "terraform apply",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Applies infrastructure changes",
+  },
+  {
+    pattern: "terraform destroy",
+    mode: "subcommand",
+    reason: "destructive",
+    description: "Destroys managed infrastructure",
+  },
+  // Cloud CLIs
+  {
+    pattern: "aws s3 rm",
+    mode: "subcommand",
+    reason: "destructive",
+    description: "Deletes objects from S3",
+  },
+  {
+    pattern: "gcloud",
+    mode: "binary",
+    reason: "external-system",
+    description: "Google Cloud CLI (may mutate cloud resources)",
+  },
+  {
+    pattern: "heroku",
+    mode: "binary",
+    reason: "external-system",
+    description: "Heroku CLI (may mutate cloud resources)",
+  },
+  // Deployment platforms
+  {
+    pattern: "vercel deploy",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Deploys to Vercel",
+  },
+  {
+    pattern: "flyctl deploy",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Deploys to Fly.io",
+  },
+  // Database — writes via CLI
+  {
+    pattern: "psql -c",
+    mode: "subcommand",
+    reason: "external-system",
+    description: "Executes SQL via psql command line",
   },
 ];
 
@@ -1629,10 +1742,21 @@ export function evaluateDenylist(params: {
   denylist?: ExecDenylistEntry[];
   platform?: string | null;
 }): ExecDenylistEvaluation {
-  const entries = params.denylist ?? DEFAULT_DENYLIST;
-  if (entries.length === 0) {
+  // Merge defaults with user-provided entries (additive only, deduped by mode:pattern).
+  const userEntries = params.denylist ?? [];
+  const seen = new Set(DEFAULT_DENYLIST.map((e) => `${e.mode}:${e.pattern}`));
+  const merged = [...DEFAULT_DENYLIST];
+  for (const entry of userEntries) {
+    const key = `${entry.mode}:${entry.pattern}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(entry);
+    }
+  }
+  if (merged.length === 0) {
     return { matched: false, matchedEntries: [] };
   }
+  const entries = merged;
 
   // Split chained commands (&&, ||, ;)
   const parts = isWindowsPlatform(params.platform)
@@ -1640,7 +1764,7 @@ export function evaluateDenylist(params: {
     : (splitCommandChain(params.command) ?? [params.command]);
 
   const matchedEntries: ExecDenylistEntry[] = [];
-  const seen = new Set<string>();
+  const matchedKeys = new Set<string>();
 
   for (const part of parts) {
     // Further split by pipe to check each pipeline segment
@@ -1655,12 +1779,12 @@ export function evaluateDenylist(params: {
 
       for (const entry of entries) {
         const key = `${entry.mode}:${entry.pattern}`;
-        if (seen.has(key)) {
+        if (matchedKeys.has(key)) {
           continue;
         }
         if (matchesDenylistEntry(segment, argv, entry)) {
           matchedEntries.push(entry);
-          seen.add(key);
+          matchedKeys.add(key);
         }
       }
     }
