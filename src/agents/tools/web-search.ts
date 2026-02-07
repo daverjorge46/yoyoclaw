@@ -4,7 +4,11 @@ import type { SearchProviderPlugin } from "../../plugins/types.js";
 import type { AnyAgentTool } from "./common.js";
 import { wrapWebContent } from "../../security/external-content.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
-import { registerSearchProvider, getSearchProvider } from "./search-providers.js";
+import {
+  registerSearchProvider,
+  getSearchProvider,
+  hasSearchProvider,
+} from "./search-providers.js";
 import {
   CacheEntry,
   DEFAULT_CACHE_TTL_MINUTES,
@@ -478,9 +482,13 @@ const perplexitySearchProvider: SearchProviderPlugin = {
   },
 };
 
-// Register built-in providers
-registerSearchProvider(braveSearchProvider);
-registerSearchProvider(perplexitySearchProvider);
+// Register built-in providers (idempotent for hot-reload/test scenarios)
+if (!hasSearchProvider(braveSearchProvider.id)) {
+  registerSearchProvider(braveSearchProvider);
+}
+if (!hasSearchProvider(perplexitySearchProvider.id)) {
+  registerSearchProvider(perplexitySearchProvider);
+}
 
 // =============================================================================
 // Web Search Tool
