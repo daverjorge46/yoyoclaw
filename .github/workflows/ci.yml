@@ -23,32 +23,9 @@ jobs:
           fetch-depth: 0
           submodules: false
 
-      - name: Check if docs-only
+      - name: Detect docs-only changes
         id: check
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            BASE="${{ github.event.before }}"
-          else
-            # Use the exact base SHA from the event payload — stable regardless
-            # of base branch movement (avoids origin/<ref> drift).
-            BASE="${{ github.event.pull_request.base.sha }}"
-          fi
-
-          # Fail-safe: if we can't diff, assume non-docs (run everything)
-          CHANGED=$(git diff --name-only "$BASE" HEAD 2>/dev/null || echo "UNKNOWN")
-          if [ "$CHANGED" = "UNKNOWN" ] || [ -z "$CHANGED" ]; then
-            echo "docs_only=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Check if all changed files are docs or markdown
-          NON_DOCS=$(echo "$CHANGED" | grep -vE '^docs/|\.md$|\.mdx$' || true)
-          if [ -z "$NON_DOCS" ]; then
-            echo "docs_only=true" >> "$GITHUB_OUTPUT"
-            echo "Docs-only change detected — skipping heavy jobs"
-          else
-            echo "docs_only=false" >> "$GITHUB_OUTPUT"
-          fi
+        uses: ./.github/actions/detect-docs-only
 
   install-check:
     needs: [docs-scope]
