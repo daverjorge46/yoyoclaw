@@ -7976,7 +7976,40 @@ export default {
   indexContextAtoms,
   retrieveContextAtoms,
   getContextAtomStats,
+  // Convenience wrappers (auto-inject db)
+  embedMessage,
+  searchSemantic,
 };
+
+/**
+ * 便利函式：嵌入一條訊息的向量（自動注入 db）
+ * @param {number} messageId
+ * @param {string} content
+ * @returns {Promise<boolean>}
+ */
+/**
+ * 便利函式：語義搜索訊息（自動注入 db，同步 hash-based）
+ * @param {string} query
+ * @param {{ limit?: number, minScore?: number }} options
+ * @returns {Array}
+ */
+export function searchSemantic(query, options = {}) {
+  try {
+    return vecModule.semanticSearch(getDb(), query, options);
+  } catch (err) {
+    console.warn("[time-tunnel] searchSemantic error:", err.message);
+    return [];
+  }
+}
+
+export async function embedMessage(messageId, content) {
+  try {
+    return await vecModule.storeMessageVectorAsync(getDb(), messageId, content);
+  } catch (err) {
+    console.warn("[time-tunnel] embedMessage error:", err.message);
+    return false;
+  }
+}
 
 // =============================================================================
 // Level 105: Context Atoms — 原子化語境

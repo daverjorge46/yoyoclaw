@@ -3,7 +3,12 @@
 // 監聽事件：message:received
 // 動作：逐訊息學習 + 週期性智慧循環
 
-import { learnFromMessage, runIntelligenceCycle, runLearningLoop } from "../time-tunnel/query.js";
+import {
+  learnFromMessage,
+  runIntelligenceCycle,
+  runLearningLoop,
+  embedMessage,
+} from "../time-tunnel/query.js";
 
 // 計數器與防抖
 let messageCount = 0;
@@ -36,6 +41,14 @@ async function handler(event) {
     });
   } catch (err) {
     console.warn("[learning-engine] learnFromMessage error:", err.message);
+  }
+
+  // 2. 向量嵌入（fire-and-forget，讓語義搜索有資料）
+  const msgId = ctx.messageId;
+  if (msgId && content.length >= 10) {
+    embedMessage(Number(msgId), content).catch((err) =>
+      console.warn("[learning-engine] embedMessage error:", err.message),
+    );
   }
 
   // 2. 週期性智慧循環

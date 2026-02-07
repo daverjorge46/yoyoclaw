@@ -47,9 +47,22 @@ interface ReminderResult {
   priority: number;
 }
 
+interface VecSearchResult {
+  message_id: number;
+  timestamp: string;
+  chat: string;
+  sender: string;
+  content: string;
+  similarity: number;
+}
+
 interface TimeTunnelModule {
   search: (query: string, opts?: { person?: string; limit?: number }) => SearchResult[];
   checkReminders: (ctx: { message?: string; sender?: string; chat?: string }) => ReminderResult[];
+  searchSemantic: (
+    query: string,
+    opts?: { limit?: number; minScore?: number },
+  ) => VecSearchResult[];
 }
 
 let timeTunnelModule: TimeTunnelModule | null = null;
@@ -66,6 +79,7 @@ async function loadTimeTunnel(): Promise<TimeTunnelModule | null> {
     timeTunnelModule = {
       search: mod.search,
       checkReminders: typeof mod.checkReminders === "function" ? mod.checkReminders : () => [],
+      searchSemantic: typeof mod.searchSemantic === "function" ? mod.searchSemantic : () => [],
     };
     return timeTunnelModule;
   } catch {
@@ -312,11 +326,53 @@ export async function buildProactiveRecall(
     const searchQuery = extractSearchKeywords(messageBody);
     if (!searchQuery) return "";
 
-    // FTS5 search — fast, no side effects
-    const searchResults = mod.search(searchQuery, {
+    // FTS5 search — fast keyword match
+    const ftsResults = mod.search(searchQuery, {
       person: senderName,
       limit: MAX_SEARCH_RESULTS,
     });
+
+    // Vector semantic search — deeper understanding (hash-based, sync, fast)
+    let vecResults: VecSearchResult[] = [];
+    try {
+      vecResults = mod.searchSemantic(messageBody, {
+        limit: MAX_SEARCH_RESULTS,
+        minScore: 0.2,
+      });
+    } catch {
+      // vector search may not be available
+    }
+
+    // Merge and deduplicate (prefer vector results for relevance)
+    const seenIds = new Set<number>();
+    const mergedResults: SearchResult[] = [];
+
+    // Vector results first (higher semantic relevance)
+    for (const v of vecResults) {
+      if (v.message_id && !seenIds.has(v.message_id)) {
+        seenIds.add(v.message_id);
+        mergedResults.push({
+          id: v.message_id,
+          timestamp: v.timestamp || "",
+          direction: "",
+          channel: "",
+          chat: v.chat || "",
+          sender: v.sender || "",
+          content: v.content || "",
+          highlight: "",
+        });
+      }
+      if (mergedResults.length >= MAX_SEARCH_RESULTS) break;
+    }
+
+    // Then FTS5 results (keyword match)
+    for (const f of ftsResults) {
+      if (!seenIds.has(f.id)) {
+        seenIds.add(f.id);
+        mergedResults.push(f);
+      }
+      if (mergedResults.length >= MAX_SEARCH_RESULTS) break;
+    }
 
     // Reminder rules check
     let reminders: ReminderResult[] = [];
@@ -330,7 +386,7 @@ export async function buildProactiveRecall(
       // checkReminders may fail if reminder_rules table doesn't exist — that's fine
     }
 
-    const hasSearch = searchResults.length > 0;
+    const hasSearch = mergedResults.length > 0;
     const hasReminders = reminders.length > 0;
 
     if (!hasSearch && !hasReminders) return "";
@@ -340,7 +396,7 @@ export async function buildProactiveRecall(
 
     if (hasSearch) {
       lines.push("Past conversations:");
-      lines.push(...formatSearchResults(searchResults));
+      lines.push(...formatSearchResults(mergedResults));
     }
 
     if (hasReminders) {
