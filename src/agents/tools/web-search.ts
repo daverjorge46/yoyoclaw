@@ -462,11 +462,7 @@ const perplexitySearchProvider: SearchProviderPlugin = {
       );
     }
 
-    const baseUrl = resolvePerplexityBaseUrl(
-      perplexityConfig,
-      perplexityAuth.source,
-      apiKey,
-    );
+    const baseUrl = resolvePerplexityBaseUrl(perplexityConfig, perplexityAuth.source, apiKey);
     const model = resolvePerplexityModel(perplexityConfig);
 
     const cacheKey = normalizeCacheKey(
@@ -525,8 +521,7 @@ export function createWebSearchTool(options?: {
   }
 
   const description =
-    searchProvider.description ||
-    `Search the web using ${searchProvider.label || providerName}.`;
+    searchProvider.description || `Search the web using ${searchProvider.label || providerName}.`;
 
   return {
     label: "Web Search",

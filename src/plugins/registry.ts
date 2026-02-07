@@ -1,5 +1,4 @@
 import path from "node:path";
-import { registerSearchProvider as registerGlobalSearchProvider } from "../agents/tools/search-providers.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelDock } from "../channels/dock.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
@@ -30,6 +29,7 @@ import type {
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
 } from "./types.js";
+import { registerSearchProvider as registerGlobalSearchProvider } from "../agents/tools/search-providers.js";
 import { registerInternalHook } from "../hooks/internal-hooks.js";
 import { resolveUserPath } from "../utils.js";
 import { registerPluginCommand } from "./commands.js";

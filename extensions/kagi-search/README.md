@@ -43,14 +43,14 @@ api.registerSearchProvider({
   id: "my-provider",
   label: "My Search Provider",
   description: "Optional description",
-  
+
   async search(params, ctx) {
     // params: { query, count, country?, search_lang?, ui_lang?, freshness?, providerConfig? }
     // ctx: { config, timeoutSeconds, cacheTtlMs }
-    
+
     // Implement your search logic here
     const results = await fetchFromYourAPI(params.query);
-    
+
     return {
       query: params.query,
       provider: "my-provider",
@@ -59,15 +59,15 @@ api.registerSearchProvider({
           title: "Result title",
           url: "https://example.com",
           description: "Result description",
-          published: "2024-01-15" // optional
-        }
+          published: "2024-01-15", // optional
+        },
       ],
       // OR for AI-synthesized answers (like Perplexity):
       // content: "AI-generated answer text",
       // citations: ["https://source1.com", "https://source2.com"],
-      tookMs: 123 // optional
+      tookMs: 123, // optional
     };
-  }
+  },
 });
 ```
 
@@ -81,9 +81,7 @@ Two result formats are supported:
 return {
   query: params.query,
   provider: "my-provider",
-  results: [
-    { title: "...", url: "...", description: "..." }
-  ]
+  results: [{ title: "...", url: "...", description: "..." }],
 };
 ```
 
@@ -94,7 +92,7 @@ return {
   query: params.query,
   provider: "my-provider",
   content: "AI-generated answer",
-  citations: ["https://source1.com"]
+  citations: ["https://source1.com"],
 };
 ```
 
@@ -103,11 +101,13 @@ return {
 Best practices for API keys:
 
 1. **Environment variable** (simplest):
+
    ```bash
    export MY_PROVIDER_API_KEY="..."
    ```
 
 2. **Plugin config** (more flexible):
+
    ```yaml
    plugins:
      entries:
@@ -118,8 +118,9 @@ Best practices for API keys:
 
 3. **Access in plugin**:
    ```typescript
-   const apiKey = ctx.config.plugins?.entries?.["my-provider"]?.config?.apiKey
-     || process.env.MY_PROVIDER_API_KEY;
+   const apiKey =
+     ctx.config.plugins?.entries?.["my-provider"]?.config?.apiKey ||
+     process.env.MY_PROVIDER_API_KEY;
    ```
 
 ## Testing

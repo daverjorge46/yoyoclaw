@@ -20,8 +20,8 @@ const plugin: OpenClawPluginModule = {
       async search(params, ctx) {
         // Get API key from config or environment
         const apiKey =
-          (ctx.config.plugins?.entries?.["kagi-search"]?.config as { apiKey?: string })
-            ?.apiKey || process.env.KAGI_API_KEY;
+          (ctx.config.plugins?.entries?.["kagi-search"]?.config as { apiKey?: string })?.apiKey ||
+          process.env.KAGI_API_KEY;
 
         if (!apiKey) {
           throw new Error(
@@ -46,9 +46,7 @@ const plugin: OpenClawPluginModule = {
 
         if (!response.ok) {
           const text = await response.text();
-          throw new Error(
-            `Kagi API error (${response.status}): ${text || response.statusText}`,
-          );
+          throw new Error(`Kagi API error (${response.status}): ${text || response.statusText}`);
         }
 
         const data = (await response.json()) as {
