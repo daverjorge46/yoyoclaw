@@ -14,6 +14,7 @@ const TIME_TUNNEL_QUERY_PATH = "/app/workspace/hooks/time-tunnel/query.js";
 // Cache the briefing for 5 minutes to avoid re-querying on every message
 let cachedBriefing: { text: string; expiresAt: number; chatId: string } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_OUTPUT_CHARS = 1500;
 
 export interface ChatMessage {
   id: number;
@@ -269,7 +270,10 @@ export async function buildWarroomBriefing(
 
     if (chatResults.length === 0) return "";
 
-    const text = formatBriefing(config, chatResults, currentChatId);
+    let text = formatBriefing(config, chatResults, currentChatId);
+    if (text.length > MAX_OUTPUT_CHARS) {
+      text = text.slice(0, MAX_OUTPUT_CHARS - 20) + "\n[/Warroom Briefing]";
+    }
 
     // Cache
     cachedBriefing = { text, expiresAt: Date.now() + CACHE_TTL_MS, chatId: currentChatId || "" };

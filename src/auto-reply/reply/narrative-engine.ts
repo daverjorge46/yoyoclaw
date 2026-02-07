@@ -241,7 +241,11 @@ export async function buildNarrativeGuide(
     );
     lines.push("[/Narrative Guide]");
 
-    return lines.join("\n");
+    let result = lines.join("\n");
+    if (result.length > 1200) {
+      result = result.slice(0, 1180) + "\n[/Narrative Guide]";
+    }
+    return result;
   } catch {
     return "";
   }

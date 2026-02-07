@@ -7972,4 +7972,235 @@ export default {
   vecMigrateAsync: vecModule.migrateExistingMessagesAsync,
   vecWarmup: vecModule.warmupTransformer,
   vecGenerateEmbedding: vecModule.generateEmbedding,
+  // Level 105 - Context Atoms（原子化語境檢索）
+  indexContextAtoms,
+  retrieveContextAtoms,
+  getContextAtomStats,
 };
+
+// =============================================================================
+// Level 105: Context Atoms — 原子化語境
+// 把 workspace .md 檔拆成語義原子，用 vector 取相關段落
+// =============================================================================
+
+let contextAtomTablesReady = false;
+
+function initContextAtomTables() {
+  if (contextAtomTablesReady) return;
+  const database = getDb();
+  contextAtomTablesReady = true;
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS context_atoms (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      source_file TEXT NOT NULL,
+      heading TEXT,
+      content TEXT NOT NULL,
+      char_count INTEGER,
+      hash TEXT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE VIRTUAL TABLE IF NOT EXISTS context_atom_vectors USING vec0(
+      embedding float[384]
+    );
+    CREATE INDEX IF NOT EXISTS idx_atoms_source ON context_atoms(source_file);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_atoms_hash ON context_atoms(hash);
+  `);
+}
+
+/**
+ * 把 markdown 檔案拆成原子 chunks
+ * 策略：按 ## heading 分段，過長的段落再按段落切
+ */
+function chunkMarkdownToAtoms(fileName, content, maxChars = 400) {
+  const atoms = [];
+  // 按 heading 切割
+  const parts = content.split(/^(#{1,3}\s+.+)$/m);
+
+  let heading = fileName;
+  let buffer = "";
+
+  for (const part of parts) {
+    if (/^#{1,3}\s+/.test(part)) {
+      // 儲存上一段
+      if (buffer.trim()) {
+        for (const chunk of splitBuffer(buffer.trim(), maxChars)) {
+          atoms.push({ heading, content: chunk });
+        }
+      }
+      heading = part.replace(/^#+\s+/, "").trim();
+      buffer = "";
+    } else {
+      buffer += part;
+    }
+  }
+  // 最後一段
+  if (buffer.trim()) {
+    for (const chunk of splitBuffer(buffer.trim(), maxChars)) {
+      atoms.push({ heading, content: chunk });
+    }
+  }
+
+  return atoms;
+}
+
+function splitBuffer(text, maxChars) {
+  if (text.length <= maxChars) return [text];
+  const chunks = [];
+  const paragraphs = text.split(/\n\n+/);
+  let current = "";
+  for (const p of paragraphs) {
+    if (current.length + p.length + 2 > maxChars && current) {
+      chunks.push(current.trim());
+      current = p;
+    } else {
+      current += (current ? "\n\n" : "") + p;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  // 如果某段落本身超長，硬切
+  const result = [];
+  for (const c of chunks) {
+    if (c.length <= maxChars) {
+      result.push(c);
+    } else {
+      for (let i = 0; i < c.length; i += maxChars) {
+        result.push(c.slice(i, i + maxChars));
+      }
+    }
+  }
+  return result;
+}
+
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
+/**
+ * 索引一個 workspace 檔案的所有原子
+ * @param {string} filePath - 檔案路徑
+ * @param {string} content - 檔案內容
+ * @returns {{ indexed: number, skipped: number }}
+ */
+export function indexContextAtoms(filePath, content) {
+  const database = getDb();
+  initContextAtomTables();
+
+  const fileName = filePath.split("/").pop() || filePath;
+  const atoms = chunkMarkdownToAtoms(fileName, content);
+
+  // 清除此檔案的舊 atoms
+  const oldIds = database
+    .prepare("SELECT id FROM context_atoms WHERE source_file = ?")
+    .all(fileName)
+    .map((r) => r.id);
+
+  if (oldIds.length > 0) {
+    for (const id of oldIds) {
+      try {
+        database.prepare("DELETE FROM context_atom_vectors WHERE rowid = ?").run(BigInt(id));
+      } catch {}
+    }
+    database.prepare("DELETE FROM context_atoms WHERE source_file = ?").run(fileName);
+  }
+
+  let indexed = 0;
+  let skipped = 0;
+
+  for (const atom of atoms) {
+    const hash = simpleHash(fileName + atom.heading + atom.content);
+    try {
+      const insertAtom = database.prepare(`
+        INSERT INTO context_atoms (source_file, heading, content, char_count, hash)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      insertAtom.run(fileName, atom.heading, atom.content, atom.content.length, hash);
+
+      const atomId = database.prepare("SELECT last_insert_rowid() as id").get().id;
+
+      // Hash-based embedding（同步，快速）
+      const embedding = vecModule.generateLocalEmbedding(atom.content);
+      try {
+        database
+          .prepare("INSERT INTO context_atom_vectors(rowid, embedding) VALUES (?, ?)")
+          .run(BigInt(atomId), embedding);
+      } catch {}
+
+      indexed++;
+    } catch (err) {
+      skipped++;
+    }
+  }
+
+  console.log(`[context-atoms] Indexed ${fileName}: ${indexed} atoms, ${skipped} skipped`);
+  return { indexed, skipped, total: atoms.length };
+}
+
+/**
+ * 用向量搜索取得最相關的 context atoms
+ * @param {string} query - 搜索查詢（通常是用戶訊息）
+ * @param {{ limit?: number, minScore?: number }} options
+ * @returns {Array<{ source_file: string, heading: string, content: string, similarity: number }>}
+ */
+export function retrieveContextAtoms(query, options = {}) {
+  const { limit = 8, minScore = 0.15 } = options;
+  const database = getDb();
+  initContextAtomTables();
+
+  try {
+    const queryVector = vecModule.generateLocalEmbedding(query);
+
+    const results = database
+      .prepare(
+        `
+      SELECT
+        v.rowid as atom_id,
+        v.distance,
+        a.source_file,
+        a.heading,
+        a.content
+      FROM context_atom_vectors v
+      JOIN context_atoms a ON v.rowid = a.id
+      WHERE v.embedding MATCH ?
+        AND k = ?
+      ORDER BY v.distance ASC
+    `,
+      )
+      .all(queryVector, limit * 2);
+
+    return results
+      .map((r) => ({
+        source_file: r.source_file,
+        heading: r.heading,
+        content: r.content,
+        similarity: 1 / (1 + r.distance),
+      }))
+      .filter((r) => r.similarity >= minScore)
+      .slice(0, limit);
+  } catch (err) {
+    console.error("[context-atoms] Retrieve error:", err.message);
+    return [];
+  }
+}
+
+/**
+ * 取得 context atoms 統計
+ */
+export function getContextAtomStats() {
+  const database = getDb();
+  initContextAtomTables();
+  try {
+    const atomCount = database.prepare("SELECT COUNT(*) as c FROM context_atoms").get().c;
+    const vecCount = database.prepare("SELECT COUNT(*) as c FROM context_atom_vectors").get().c;
+    const files = database
+      .prepare("SELECT DISTINCT source_file FROM context_atoms")
+      .all()
+      .map((r) => r.source_file);
+    return { atomCount, vecCount, files };
+  } catch (err) {
+    return { error: err.message };
+  }
+}

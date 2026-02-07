@@ -11,6 +11,7 @@ export type SegmentKind =
   | "warroom-briefing"
   | "narrative-guide"
   | "recall"
+  | "context-atoms"
   | "thread-starter"
   | "system-event"
   | "abort-hint"

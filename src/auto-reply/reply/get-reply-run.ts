@@ -38,6 +38,7 @@ import {
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { runReplyAgent } from "./agent-runner.js";
 import { extractSessionHintParts } from "./body.js";
+import { buildContextAtoms } from "./context-atoms.js";
 import { type ContextSegment, findSegment, renderSegments } from "./context-segments.js";
 import { buildGroupIntro } from "./groups.js";
 import { buildNarrativeGuide } from "./narrative-engine.js";
@@ -271,6 +272,12 @@ export async function runPreparedReply(
     sessionCtx.SenderName,
     sessionEntry?.chatName ?? ctx.GroupSubject,
   );
+  // Context atoms (cached, ~3 min TTL; vector-retrieved workspace knowledge)
+  const contextAtomsText = await buildContextAtoms(
+    workspaceDir,
+    baseBodyFinal,
+    sessionCtx.SenderName,
+  );
 
   // Build segments in canonical order
   const contextSegments: ContextSegment[] = [
@@ -279,6 +286,7 @@ export async function runPreparedReply(
     ...(warroomBriefing ? [{ kind: "warroom-briefing" as const, content: warroomBriefing }] : []),
     ...(narrativeGuide ? [{ kind: "narrative-guide" as const, content: narrativeGuide }] : []),
     ...(recallContext ? [{ kind: "recall" as const, content: recallContext }] : []),
+    ...(contextAtomsText ? [{ kind: "context-atoms" as const, content: contextAtomsText }] : []),
     ...(threadStarterNote ? [{ kind: "thread-starter" as const, content: threadStarterNote }] : []),
     ...(systemEventsBlock ? [{ kind: "system-event" as const, content: systemEventsBlock }] : []),
     ...(hintParts.abortHint ? [{ kind: "abort-hint" as const, content: hintParts.abortHint }] : []),
