@@ -106,3 +106,20 @@ describe("extractBotIdFromToken", () => {
     expect(extractBotIdFromToken(":secret")).toBeUndefined();
   });
 });
+
+describe("malformed token edge case", () => {
+  it("invalidates offset when new token is malformed but stored botId exists", async () => {
+    await withTempStateDir(async () => {
+      await writeTelegramUpdateOffset({
+        accountId: "default",
+        updateId: 999999,
+        botToken: "111111111:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      });
+
+      // Malformed token can't extract a botId — should discard stale offset
+      expect(
+        await readTelegramUpdateOffset({ accountId: "default", botToken: "malformed-token" }),
+      ).toBeNull();
+    });
+  });
+});

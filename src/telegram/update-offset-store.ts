@@ -70,7 +70,7 @@ export async function readTelegramUpdateOffset(params: {
     // If they don't match, the offset is stale from a different bot — discard it.
     if (parsed.botId && params.botToken) {
       const currentBotId = extractBotIdFromToken(params.botToken);
-      if (currentBotId && parsed.botId !== currentBotId) {
+      if (!currentBotId || parsed.botId !== currentBotId) {
         return null;
       }
     }
