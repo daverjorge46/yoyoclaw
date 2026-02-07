@@ -144,6 +144,28 @@ function collectAgentIds(node: HierarchyNode, out: Set<string>) {
   }
 }
 
+function resolveKnownAgentId(cfg: ReturnType<typeof loadConfig>, raw: string): string | undefined {
+  const value = raw.trim();
+  if (!value) {
+    return undefined;
+  }
+
+  // Direct id match
+  if (resolveAgentConfig(cfg, value)) {
+    return value;
+  }
+
+  // Match by human identity name (case-insensitive), e.g. "Rafael" -> "software-architect"
+  const byName = cfg.agents.list.find(
+    (agent) => (agent.identity?.name?.trim().toLowerCase() ?? "") === value.toLowerCase(),
+  );
+  if (byName?.id) {
+    return byName.id;
+  }
+
+  return undefined;
+}
+
 function buildHierarchySnapshot(): HierarchySnapshot {
   const runs = listAllSubagentRuns();
   const cfg = loadConfig();
@@ -154,7 +176,14 @@ function buildHierarchySnapshot(): HierarchySnapshot {
   // First pass: create nodes for all runs
   for (const run of runs) {
     const status = resolveStatus(run);
-    const agentId = extractAgentIdFromSessionKey(run.childSessionKey);
+    const rawAgentId = extractAgentIdFromSessionKey(run.childSessionKey);
+    const agentId = rawAgentId ? resolveKnownAgentId(cfg, rawAgentId) : undefined;
+
+    // Ignore stale/invalid run records that reference unknown agent ids.
+    if (rawAgentId && !agentId) {
+      continue;
+    }
+
     const agentRole = agentId ? resolveAgentRole(cfg, agentId) : undefined;
     const agentName = agentId ? resolveAgentConfig(cfg, agentId)?.name : undefined;
     // Compute delegation metrics and interaction count for this agent
@@ -212,7 +241,8 @@ function buildHierarchySnapshot(): HierarchySnapshot {
     if (!childSessionKeys.has(parentKey)) {
       const children = childrenByParent.get(parentKey) ?? [];
       if (children.length > 0) {
-        const rootAgentId = extractAgentIdFromSessionKey(parentKey);
+        const rawRootAgentId = extractAgentIdFromSessionKey(parentKey);
+        const rootAgentId = rawRootAgentId ? resolveKnownAgentId(cfg, rawRootAgentId) : undefined;
         const rootRole = rootAgentId ? resolveAgentRole(cfg, rootAgentId) : undefined;
         const rootName = rootAgentId ? resolveAgentConfig(cfg, rootAgentId)?.name : undefined;
         const rootNode: HierarchyNode = {
@@ -253,13 +283,20 @@ function buildHierarchySnapshot(): HierarchySnapshot {
   try {
     const sessions = getAllCollaborativeSessions();
     for (const session of sessions) {
-      const members = session.members;
+      const members = session.members
+        .map((member) => resolveKnownAgentId(cfg, member))
+        .filter((member): member is string => Boolean(member));
+
       // Build edges from messages: each message implies interaction with all other members
       for (const msg of session.messages) {
+        const source = resolveKnownAgentId(cfg, msg.from);
+        if (!source) {
+          continue;
+        }
         for (const member of members) {
-          if (member !== msg.from) {
+          if (member !== source) {
             collaborationEdges.push({
-              source: msg.from,
+              source,
               target: member,
               type: msg.type,
               topic: session.topic,
@@ -267,9 +304,13 @@ function buildHierarchySnapshot(): HierarchySnapshot {
           }
         }
       }
+
       // Build edges from decision proposals: proposer interacts with all who challenged/agreed
       for (const decision of session.decisions) {
-        const proposers = decision.proposals.map((p) => p.from);
+        const proposers = decision.proposals
+          .map((p) => resolveKnownAgentId(cfg, p.from))
+          .filter((p): p is string => Boolean(p));
+
         // Each proposer connects to other proposers (they debated)
         for (let i = 0; i < proposers.length; i++) {
           for (let j = i + 1; j < proposers.length; j++) {
@@ -308,21 +349,29 @@ function buildHierarchySnapshot(): HierarchySnapshot {
         edgeType = deleg.direction === "downward" ? "delegation" : "request";
       }
 
-      collaborationEdges.push({
-        source: deleg.fromAgentId,
-        target: deleg.toAgentId,
-        type: edgeType,
-        topic: deleg.task.slice(0, 80),
-      });
+      const source = resolveKnownAgentId(cfg, deleg.fromAgentId);
+      const target = resolveKnownAgentId(cfg, deleg.toAgentId);
+
+      if (source && target) {
+        collaborationEdges.push({
+          source,
+          target,
+          type: edgeType,
+          topic: deleg.task.slice(0, 80),
+        });
+      }
 
       // If redirected, add edge to the redirect target
       if (deleg.redirectedTo) {
-        collaborationEdges.push({
-          source: deleg.toAgentId,
-          target: deleg.redirectedTo.agentId,
-          type: "delegation",
-          topic: deleg.redirectedTo.reason.slice(0, 80),
-        });
+        const redirectTarget = resolveKnownAgentId(cfg, deleg.redirectedTo.agentId);
+        if (target && redirectTarget) {
+          collaborationEdges.push({
+            source: target,
+            target: redirectTarget,
+            type: "delegation",
+            topic: deleg.redirectedTo.reason.slice(0, 80),
+          });
+        }
       }
     }
   } catch {
@@ -340,7 +389,11 @@ function buildHierarchySnapshot(): HierarchySnapshot {
     referencedAgentIds.add(edge.source);
     referencedAgentIds.add(edge.target);
   }
-  for (const agentId of referencedAgentIds) {
+  for (const referencedAgentId of referencedAgentIds) {
+    const agentId = resolveKnownAgentId(cfg, referencedAgentId);
+    if (!agentId) {
+      continue;
+    }
     if (allNodeAgentIds.has(agentId)) {
       continue;
     }

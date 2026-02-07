@@ -192,6 +192,27 @@ function computeNodeValue(node: AgentHierarchyNode): number {
   return total;
 }
 
+/**
+ * Dynamic chart height based on node count.
+ * Scales up to use available viewport space for large graphs.
+ */
+function computeChartHeight(nodeCount: number): number {
+  if (nodeCount <= 5) {
+    return 500;
+  }
+  if (nodeCount <= 10) {
+    return 600;
+  }
+  // For larger graphs, scale with nodes but also consider viewport
+  const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
+  // Use up to 85% of viewport, with a floor of 700px
+  const viewportBased = Math.floor(viewportHeight * 0.85);
+  // Node-based scaling: 40px per node, min 700
+  const nodeBased = Math.max(700, nodeCount * 40);
+  // Take the larger of the two, capped at 2000px to avoid excessive scrolling
+  return Math.min(2000, Math.max(viewportBased, nodeBased));
+}
+
 function computeRepulsion(nodeCount: number): number {
   if (nodeCount <= 5) {
     return 150;
@@ -609,7 +630,7 @@ export function renderAgentsHierarchy(props: AgentsHierarchyProps) {
             <div
               class="hierarchy-chart-container"
               id="hierarchy-echarts-container"
-              style="margin-top: 16px; min-height: 500px; height: ${Math.max(500, Math.min(900, totalNodes * 80))}px; transition: height 0.3s ease;"
+              style="margin-top: 16px; min-height: 500px; height: ${computeChartHeight(totalNodes)}px; transition: height 0.3s ease;"
             >
               ${renderHierarchyTree(roots, onNodeClick)}
             </div>
