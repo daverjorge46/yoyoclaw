@@ -644,8 +644,6 @@ function scheduleEChartsInit(
     // If chart exists but data changed, just update the data
     if (existingChart && chartInstance === existingChart) {
       lastDataHash = newHash;
-      // Clear locked positions so force can re-run for new data
-      lockedPositions = null;
       if (settleTimer) {
         clearTimeout(settleTimer);
       }
@@ -653,11 +651,14 @@ function scheduleEChartsInit(
         clearInterval(pulseTimer);
         pulseTimer = null;
       }
-      const nodeCount = graphData.nodes.length;
+      // Pin existing nodes at their current positions so only new nodes
+      // are placed by the force simulation (smooth incremental update).
+      const updatedNodes = applyLockedPositions(graphData.nodes);
+      const nodeCount = updatedNodes.length;
       existingChart.setOption({
         series: [
           {
-            data: graphData.nodes,
+            data: updatedNodes,
             edges: graphData.edges,
             force: {
               repulsion: computeRepulsion(nodeCount),
@@ -666,7 +667,7 @@ function scheduleEChartsInit(
           },
         ],
       });
-      // Re-lock positions after force settles, then restart pulse
+      // Re-lock all positions (including new nodes) after force settles
       schedulePositionLock(graphData);
       return;
     }
@@ -797,6 +798,23 @@ function initECharts(
 
   // Lock positions after force layout settles, then start pulse animation
   schedulePositionLock(graphData);
+}
+
+/**
+ * Pin existing nodes at their locked positions so only new nodes
+ * are free for the force simulation to place.
+ */
+function applyLockedPositions(nodes: GraphNodeData[]): GraphNodeData[] {
+  if (!lockedPositions || lockedPositions.size === 0) {
+    return nodes;
+  }
+  return nodes.map((n) => {
+    const pos = lockedPositions?.get(n.id);
+    if (pos) {
+      return { ...n, fixed: true, x: pos.x, y: pos.y };
+    }
+    return n;
+  });
 }
 
 /**
