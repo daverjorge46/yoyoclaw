@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as authProfilesModule from "../auth-profiles.js";
 import * as modelAuthModule from "../model-auth.js";
@@ -102,7 +103,6 @@ describe("runEmbeddedPiAgent - Failover Logic", () => {
         profile1: { provider: "provider1", apiKey: "k1" },
         profile2: { provider: "provider1", apiKey: "k2" },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     vi.mocked(modelAuthModule.getApiKeyForModel).mockResolvedValue({
       apiKey: "key",
@@ -131,7 +131,6 @@ describe("runEmbeddedPiAgent - Failover Logic", () => {
         model: "model1",
       },
       messagingToolSentTexts: [],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     // Second attempt: Succeeds
@@ -146,7 +145,6 @@ describe("runEmbeddedPiAgent - Failover Logic", () => {
         model: "model1",
       },
       messagingToolSentTexts: [],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     const params = {
@@ -157,7 +155,6 @@ describe("runEmbeddedPiAgent - Failover Logic", () => {
       enqueue: vi.fn((fn: () => unknown) => fn()),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await runEmbeddedPiAgent(params as any);
 
     expect(attemptMock).toHaveBeenCalledTimes(2);

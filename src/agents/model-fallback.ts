@@ -378,6 +378,7 @@ export async function runWithModelFallback<T>(params: {
 export async function runWithImageModelFallback<T>(params: {
   cfg: OpenClawConfig | undefined;
   modelOverride?: string;
+  agentDir?: string;
   run: (provider: string, model: string) => Promise<T>;
   onError?: (attempt: {
     provider: string;

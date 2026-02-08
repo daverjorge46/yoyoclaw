@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -28,7 +27,9 @@ export class HealthManager {
 
   private constructor() {
     this.healthFile = resolveHealthFile();
-    this.load();
+    this.load().catch((err) => {
+      console.error("[HealthManager] Unexpected error during load:", err);
+    });
   }
 
   static getInstance(): HealthManager {
@@ -38,13 +39,19 @@ export class HealthManager {
     return HealthManager.instance;
   }
 
-  private load() {
+  private async load() {
     try {
-      if (fs.existsSync(this.healthFile)) {
-        this.stats = JSON.parse(fs.readFileSync(this.healthFile, "utf-8"));
+      // Check existence first to avoid throw on missing file (optional, but cleaner)
+      try {
+        await fsPromises.access(this.healthFile);
+      } catch {
+        return; // File doesn't exist, start fresh
       }
-    } catch {
-      // ignore
+
+      const data = await fsPromises.readFile(this.healthFile, "utf-8");
+      this.stats = JSON.parse(data);
+    } catch (err) {
+      console.error("[HealthManager] Failed to load health stats:", err);
     }
   }
 
@@ -56,8 +63,8 @@ export class HealthManager {
       try {
         await fsPromises.mkdir(path.dirname(this.healthFile), { recursive: true });
         await fsPromises.writeFile(this.healthFile, JSON.stringify(this.stats, null, 2));
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error("[HealthManager] Failed to save health stats:", err);
       } finally {
         this.saveTimer = null;
       }
@@ -107,27 +114,21 @@ export class HealthManager {
       return 100; // Default score
     }
 
-    // Check for recovery based on time
-    if (s.lastFailure && s.consecutiveFailures > 0) {
-      const minutesSinceFailure = (Date.now() - s.lastFailure) / 60000;
-      if (minutesSinceFailure > 60) {
-        // Full reset after 1 hour
-        s.consecutiveFailures = 0;
-      } else if (minutesSinceFailure > 10) {
-        // Partial recovery: reduce consecutive failure count effectively for scoring
-        // We don't mutate state here to avoid flapping, just adjust calculation
-      }
-    }
-
-    // Penalize consecutive failures heavily
+    // Penalize consecutive failures
     let score = 100;
-    // Effective failures decay over time for scoring purposes
     let effectiveFailures = s.consecutiveFailures;
+
+    // Check for recovery based on time (without mutating state)
     if (s.lastFailure) {
       const minutesSinceFailure = (Date.now() - s.lastFailure) / 60000;
-      // Reduce effective failures by 1 for every 5 minutes passed
-      const recovery = Math.floor(minutesSinceFailure / 5);
-      effectiveFailures = Math.max(0, effectiveFailures - recovery);
+      if (minutesSinceFailure > 60) {
+        // Full recovery after 1 hour of silence
+        effectiveFailures = 0;
+      } else {
+        // Decay effective failures: 1 recovered every 5 minutes
+        const recovery = Math.floor(minutesSinceFailure / 5);
+        effectiveFailures = Math.max(0, effectiveFailures - recovery);
+      }
     }
 
     score -= effectiveFailures * 20;

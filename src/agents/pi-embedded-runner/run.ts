@@ -72,12 +72,22 @@ async function checkAutoMemory(
   if (!cfg?.agents?.defaults?.autoMemory) {
     return;
   }
+
+  // Ensure workspace path is resolved and safe
+  const resolvedWorkspace = path.resolve(workspaceDir);
+  const memoryFile = path.join(resolvedWorkspace, "MEMORY.md");
+
+  // Prevent path traversal if workspaceDir was somehow tainted (though unlikely here)
+  if (!memoryFile.startsWith(resolvedWorkspace)) {
+    log.warn(`[auto-memory] Security block: Path traversal detected for ${memoryFile}`);
+    return;
+  }
+
   // Simple capture for "Remember:" or "Memo:" at start of prompt
   const match = prompt.match(/^(?:Remember|Memo):\s*(.+)$/im);
   if (match) {
     const content = match[1].trim();
     if (content) {
-      const memoryFile = path.join(workspaceDir, "MEMORY.md");
       const entry = `- [${new Date().toISOString()}] ${content}\n`;
       try {
         await fs.appendFile(memoryFile, entry, "utf-8");

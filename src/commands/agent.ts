@@ -61,6 +61,8 @@ import { resolveAgentRunContext } from "./agent/run-context.js";
 import { updateSessionStoreAfterAgentRun } from "./agent/session-store.js";
 import { resolveSession } from "./agent/session.js";
 
+const FALLBACK_HISTORY_LIMIT = 5;
+
 export async function agentCommand(
   opts: AgentCommandOpts,
   runtime: RuntimeEnv = defaultRuntime,
@@ -420,7 +422,7 @@ export async function agentCommand(
 
           // Lazy Sync: Truncate history when switching models to save tokens.
           const isFallbackModel = providerOverride !== provider || modelOverride !== model;
-          const historyLimit = isFallbackModel ? 5 : undefined;
+          const historyLimit = isFallbackModel ? FALLBACK_HISTORY_LIMIT : undefined;
 
           return runEmbeddedPiAgent({
             historyLimit,
