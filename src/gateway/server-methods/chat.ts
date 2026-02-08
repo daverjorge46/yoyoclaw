@@ -37,6 +37,8 @@ import {
   readSessionMessages,
   resolveSessionModelRef,
 } from "../session-utils.js";
+import { resolveHeartbeatVisibility } from "../../infra/heartbeat-visibility.js";
+import { HEARTBEAT_TOKEN } from "../../auto-reply/tokens.js";
 import { formatForLog } from "../ws-log.js";
 import { injectTimestamp, timestampOptsFromConfig } from "./agent-timestamp.js";
 
@@ -210,7 +212,16 @@ export const chatHandlers: GatewayRequestHandlers = {
     const max = Math.min(hardMax, requested);
     const sliced = rawMessages.length > max ? rawMessages.slice(-max) : rawMessages;
     const sanitized = stripEnvelopeFromMessages(sliced);
-    const capped = capArrayByJsonBytes(sanitized, getMaxChatHistoryMessagesBytes()).items;
+    // Filter HEARTBEAT_OK messages when showOk is false (matches live broadcast behavior)
+    const visibility = resolveHeartbeatVisibility({ cfg, channel: "webchat" });
+    const filtered = visibility.showOk
+      ? sanitized
+      : sanitized.filter((msg: any) => {
+          if (msg.role !== "assistant") return true;
+          const text = typeof msg.content === "string" ? msg.content : "";
+          return !text.trim().startsWith(HEARTBEAT_TOKEN);
+        });
+    const capped = capArrayByJsonBytes(filtered, getMaxChatHistoryMessagesBytes()).items;
     let thinkingLevel = entry?.thinkingLevel;
     if (!thinkingLevel) {
       const configured = cfg.agents?.defaults?.thinkingDefault;
