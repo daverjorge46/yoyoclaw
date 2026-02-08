@@ -7,7 +7,7 @@ Managed by cc10x-router skill. Format changes require skill coordination.
 
 ## Current Focus
 
-Finding a way to build the Android app on ARM64 system.
+Building Android app on ARM64 system via GitHub Actions CI.
 
 ## Recent Changes
 
@@ -15,10 +15,12 @@ Finding a way to build the Android app on ARM64 system.
 - [DEBUG-2]: Investigated Docker alternative → Ubuntu images run as ARM64, but Android SDK binaries would still be x86-64
 - [DEBUG-3]: Checked for ARM64 Android SDK → Not found in /usr/lib/android-sdk
 - [SOLUTION]: Created GitHub Actions workflow (.github/workflows/android-build.yml) for remote CI builds
+- [AUTOMATED]: Added scripts/push-android-build.sh for easy pushing via gh CLI
+- [AUTOMATED]: Added ANDROID_BUILD_GUIDE.md with detailed instructions
 
 ## Next Steps
 
-Test GitHub Actions workflow by pushing to repository.
+User needs to authenticate with GitHub and push changes to trigger build.
 
 ## Decisions
 
