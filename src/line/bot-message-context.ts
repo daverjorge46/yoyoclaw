@@ -14,6 +14,8 @@ import {
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { recordChannelActivity } from "../infra/channel-activity.js";
 import { resolveAgentRoute } from "../routing/resolve-route.js";
+import { resolveLineSenderName, resolveLineSenderNameAsync } from "./sender-name-cache.js";
+import { getUserProfile } from "./send.js";
 
 interface MediaRef {
   path: string;
@@ -177,8 +179,12 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
     return null;
   }
 
-  // Build sender info
+  // Build sender info — 快取優先，miss 時打 LINE API 自動學習
   const senderId = userId ?? "unknown";
+  const senderName = resolveLineSenderName(senderId, groupId ?? roomId)
+    ?? await resolveLineSenderNameAsync(senderId, groupId ?? roomId, {
+      getUserProfile: (uid) => getUserProfile(uid, { accountId: account.accountId }),
+    });
   const senderLabel = userId ? `user:${userId}` : "unknown";
 
   // Build conversation label
@@ -207,6 +213,7 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
     body: rawBody,
     chatType: isGroup ? "group" : "direct",
     sender: {
+      name: senderName,
       id: senderId,
     },
     previousTimestamp,
@@ -256,6 +263,7 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
     ChatType: isGroup ? "group" : "direct",
     ConversationLabel: conversationLabel,
     GroupSubject: isGroup ? (groupId ?? roomId) : undefined,
+    SenderName: senderName,
     SenderId: senderId,
     Provider: "line",
     Surface: "line",
@@ -358,6 +366,10 @@ export async function buildLinePostbackContext(params: {
   }
 
   const senderId = userId ?? "unknown";
+  const senderName = resolveLineSenderName(senderId, groupId ?? roomId)
+    ?? await resolveLineSenderNameAsync(senderId, groupId ?? roomId, {
+      getUserProfile: (uid) => getUserProfile(uid, { accountId: account.accountId }),
+    });
   const senderLabel = userId ? `user:${userId}` : "unknown";
 
   const conversationLabel = isGroup
@@ -385,6 +397,7 @@ export async function buildLinePostbackContext(params: {
     body: rawBody,
     chatType: isGroup ? "group" : "direct",
     sender: {
+      name: senderName,
       id: senderId,
     },
     previousTimestamp,
@@ -412,6 +425,7 @@ export async function buildLinePostbackContext(params: {
     ChatType: isGroup ? "group" : "direct",
     ConversationLabel: conversationLabel,
     GroupSubject: isGroup ? (groupId ?? roomId) : undefined,
+    SenderName: senderName,
     SenderId: senderId,
     Provider: "line",
     Surface: "line",
