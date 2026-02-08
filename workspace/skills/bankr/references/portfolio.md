@@ -9,6 +9,7 @@ All chains: Base, Polygon, Ethereum, Unichain, Solana
 ## Prompt Examples
 
 **Full portfolio:**
+
 - "Show my portfolio"
 - "What's my total balance?"
 - "How much crypto do I have?"
@@ -16,12 +17,14 @@ All chains: Base, Polygon, Ethereum, Unichain, Solana
 - "What's my net worth?"
 
 **Chain-specific:**
+
 - "Show my Base balance"
 - "What tokens do I have on Polygon?"
 - "Ethereum portfolio"
 - "Solana holdings"
 
 **Token-specific:**
+
 - "How much ETH do I have?"
 - "What's my USDC balance?"
 - "Show my ETH across all chains"
@@ -45,15 +48,18 @@ All chains: Base, Polygon, Ethereum, Unichain, Solana
 ## Use Cases
 
 **Before trading:**
+
 - "Do I have enough ETH to swap for 100 USDC?"
 - "Check if I have MATIC for gas on Polygon"
 
 **Portfolio review:**
+
 - "What's my largest holding?"
 - "Show portfolio breakdown by chain"
 - "What percentage of my portfolio is stablecoins?"
 
 **After transactions:**
+
 - "Did my ETH arrive?"
 - "Show my new BNKR balance"
 - "Verify the swap completed"
@@ -61,6 +67,7 @@ All chains: Base, Polygon, Ethereum, Unichain, Solana
 ## Output Format
 
 Portfolio responses typically include:
+
 - Token name and symbol
 - Amount held
 - Current USD value

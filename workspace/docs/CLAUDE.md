@@ -58,6 +58,7 @@ curl -s http://127.0.0.1:18789/health
 如果任何一個失敗，告訴杜甫：「我的 [能力名稱] 經絡不通，需要檢查。」
 
 **如果 exec 工具 EBADF，改用 exec-bridge：**
+
 ```bash
 curl -s -X POST http://127.0.0.1:18793/exec -d '{"command": "你的命令"}'
 ```
@@ -125,38 +126,41 @@ curl http://127.0.0.1:18793/health
 ```
 
 **Response 格式：**
+
 ```json
-{"ok": true, "code": 0, "stdout": "輸出...", "stderr": "", "command": "原命令"}
+{ "ok": true, "code": 0, "stdout": "輸出...", "stderr": "", "command": "原命令" }
 ```
 
 **參數：**
+
 - `command` (必填): 要執行的命令
 - `timeout` (選填): 超時秒數，預設 60，最大 300
 - `cwd` (選填): 工作目錄，預設 $HOME
 
 ### Common Group IDs
 
-| Group | ID |
-|-------|-----|
-| bg666运营-策划试用组 | -5000326699 |
-| 666数据需求群 | -1003337225655 |
-| 666数据日报群 | -5173465395 |
+| Group                | ID             |
+| -------------------- | -------------- |
+| bg666运营-策划试用组 | -5000326699    |
+| 666数据需求群        | -1003337225655 |
+| 666数据日报群        | -5173465395    |
 
 ## Project Contexts
 
 Different projects have separate context files:
 
-| Project | Path | Identity |
-|---------|------|----------|
-| BG666 | `~/Documents/two/` | 杜甫 |
-| 24Bet | `~/Documents/24Bet/` | Andrew |
-| 幣塔 | `~/Documents/幣塔/` | Andrew |
+| Project | Path                 | Identity |
+| ------- | -------------------- | -------- |
+| BG666   | `~/Documents/two/`   | 杜甫     |
+| 24Bet   | `~/Documents/24Bet/` | Andrew   |
+| 幣塔    | `~/Documents/幣塔/`  | Andrew   |
 
 When working on a project, read its `CONTEXT.md` first.
 
 ## Heartbeat Behavior
 
 When receiving a heartbeat:
+
 1. Read `PROJECT_REGISTRY.md`
 2. Pick 1-2 projects to advance (prioritize high-priority + longest since last check)
 3. Do one small step
@@ -168,6 +172,7 @@ Don't just reply `HEARTBEAT_OK` — always try to advance something.
 ## Breadcrumb Lookup
 
 When a message mentions a **person** or **task**:
+
 1. Check `CONTACTS.md` for Telegram ID + current needs
 2. If there's a pending need → read recent conversation via telegram-userbot
 3. If there's media → download and parse it

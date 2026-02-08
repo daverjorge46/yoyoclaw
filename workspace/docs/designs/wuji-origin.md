@@ -9,6 +9,7 @@
 ## 📐 核心架構：AI 員工中樞 v0.1
 
 ### 設計理念
+
 **目標**：多個 AI 員工能自動運轉，不需要人工觸發
 **KPI**：自動運轉天數 > 0
 
@@ -33,14 +34,14 @@
 
 ### 無極職責（已實現於 Moltbot）
 
-| 功能 | 說明 | 現狀 |
-|------|------|------|
-| Telegram 路由 | 接收消息，分派給對應 CC | ✅ 已實現（gateway） |
-| 跨 workspace 整合 | 彙總各 CC 產出 | ✅ 子 agent spawn |
-| 排程/提醒 | cron 任務 | ✅ 已實現 |
-| 記憶管理 | MEMORY.md + memory_search | ✅ 已實現 |
-| 監控 | 定期檢查各 CC 狀態 | 🔄 透過 heartbeat |
-| Browser | Chrome (clawd profile) | ✅ 已實現 |
+| 功能              | 說明                      | 現狀                 |
+| ----------------- | ------------------------- | -------------------- |
+| Telegram 路由     | 接收消息，分派給對應 CC   | ✅ 已實現（gateway） |
+| 跨 workspace 整合 | 彙總各 CC 產出            | ✅ 子 agent spawn    |
+| 排程/提醒         | cron 任務                 | ✅ 已實現            |
+| 記憶管理          | MEMORY.md + memory_search | ✅ 已實現            |
+| 監控              | 定期檢查各 CC 狀態        | 🔄 透過 heartbeat    |
+| Browser           | Chrome (clawd profile)    | ✅ 已實現            |
 
 ---
 
@@ -78,12 +79,12 @@
 
 ### 關鍵概念：五行人格系統
 
-| 人格 | 角色 | 職責 |
-|------|------|------|
-| 🌱 木 | 產品經理 | 定義意圖、設計對話流程 |
-| 🔥 火 | 場景開發者 | 實作業務邏輯、API 整合 |
-| 🏔️ 土 | 架構師 | 設計核心架構、確保穩定性 |
-| ⚔️ 金 | 工具優化師 | 優化解析效率、抽象化工具 |
+| 人格  | 角色       | 職責                       |
+| ----- | ---------- | -------------------------- |
+| 🌱 木 | 產品經理   | 定義意圖、設計對話流程     |
+| 🔥 火 | 場景開發者 | 實作業務邏輯、API 整合     |
+| 🏔️ 土 | 架構師     | 設計核心架構、確保穩定性   |
+| ⚔️ 金 | 工具優化師 | 優化解析效率、抽象化工具   |
 | 💧 水 | 體驗測試員 | 測試邊界情況、記錄失敗案例 |
 
 ### 關鍵概念：語場
@@ -95,6 +96,7 @@
 ### 技術架構模式
 
 **三層架構**：
+
 ```
 Parser (理解) → Executor (調度) → Scene (執行)
 ```
@@ -103,29 +105,32 @@ Parser (理解) → Executor (調度) → Scene (執行)
 
 ## 🔗 與現有 Moltbot 架構的對應
 
-| wuji 概念 | Moltbot 實現 |
-|-----------|--------------|
-| 無極中樞 | gateway 主進程 |
-| 6 CC 分工 | 子 agent spawn（Two、Andrew 等） |
-| Telegram 路由 | gateway config + sessions |
-| 記憶管理 | MEMORY.md + memory/*.md |
-| tmux-control | exec + process 工具 |
+| wuji 概念     | Moltbot 實現                     |
+| ------------- | -------------------------------- |
+| 無極中樞      | gateway 主進程                   |
+| 6 CC 分工     | 子 agent spawn（Two、Andrew 等） |
+| Telegram 路由 | gateway config + sessions        |
+| 記憶管理      | MEMORY.md + memory/\*.md         |
+| tmux-control  | exec + process 工具              |
 
 ---
 
 ## 📦 可重用資產
 
 ### ✅ 已整合
+
 - tmux-control skill → 現有 exec/process 已涵蓋
 
 ### 📝 設計理念已吸收
+
 - 五行人格系統 → 可用於未來多 agent 分工
 - 三層架構（Parser→Executor→Scene）→ gateway 已類似實現
 - 記憶索引地圖 → MEMORY.md 蒸餾機制
 
 ### 🗄️ 可歸檔
+
 - `~/Documents/wuji/` 可安全歸檔（已萃取核心理念）
-- 截圖文件（threads_screenshot*.png）無需保留
+- 截圖文件（threads_screenshot\*.png）無需保留
 
 ---
 
@@ -137,10 +142,11 @@ mv ~/Documents/wuji ~/Documents/archive/wuji-$(date +%Y%m%d)
 ```
 
 **理由**：
+
 1. 核心設計理念已萃取到本文檔
 2. 無可重用代碼（純設計文檔）
 3. Moltbot 已實現大部分功能
 
 ---
 
-*此文檔保留 wuji 的設計精華，原始目錄可安全歸檔。*
+_此文檔保留 wuji 的設計精華，原始目錄可安全歸檔。_

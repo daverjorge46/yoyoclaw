@@ -3,21 +3,21 @@
 // 監聽事件：model:complete
 // 動作：記錄使用量並估算成本
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 // 容器內 workspace 路徑
-const CONTAINER_WORKSPACE = '/app/workspace';
+const CONTAINER_WORKSPACE = "/app/workspace";
 
 // 從配置文件讀取
 function loadConfig() {
-  const configPath = path.join(CONTAINER_WORKSPACE, 'hooks', 'config.json');
+  const configPath = path.join(CONTAINER_WORKSPACE, "hooks", "config.json");
   try {
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      return JSON.parse(fs.readFileSync(configPath, "utf8"));
     }
   } catch (err) {
-    console.warn('[cost-tracker] Failed to load config:', err.message);
+    console.warn("[cost-tracker] Failed to load config:", err.message);
   }
   return {};
 }
@@ -26,11 +26,11 @@ const CONFIG = loadConfig();
 
 // 預設定價 ($/1M tokens)
 const DEFAULT_COSTS = {
-  'anthropic/claude-opus-4-5': { input: 15, output: 75 },
-  'anthropic/claude-sonnet-4': { input: 3, output: 15 },
-  'deepseek/deepseek-chat': { input: 0.14, output: 0.28 },
-  'deepseek/deepseek-reasoner': { input: 0.55, output: 2.19 },
-  'zai/glm-4.7': { input: 0.1, output: 0.1 }
+  "anthropic/claude-opus-4-5": { input: 15, output: 75 },
+  "anthropic/claude-sonnet-4": { input: 3, output: 15 },
+  "deepseek/deepseek-chat": { input: 0.14, output: 0.28 },
+  "deepseek/deepseek-reasoner": { input: 0.55, output: 2.19 },
+  "zai/glm-4.7": { input: 0.1, output: 0.1 },
 };
 
 function getModelCost(provider, model) {
@@ -39,7 +39,7 @@ function getModelCost(provider, model) {
 }
 
 function logToFile(entry) {
-  const logPath = path.join(CONTAINER_WORKSPACE, 'logs', 'cost.log');
+  const logPath = path.join(CONTAINER_WORKSPACE, "logs", "cost.log");
 
   try {
     const dir = path.dirname(logPath);
@@ -50,7 +50,7 @@ function logToFile(entry) {
     const line = `${new Date().toISOString()} | ${JSON.stringify(entry)}\n`;
     fs.appendFileSync(logPath, line);
   } catch (err) {
-    console.error('[cost-tracker] Failed to write log:', err.message);
+    console.error("[cost-tracker] Failed to write log:", err.message);
   }
 }
 
@@ -82,7 +82,7 @@ function estimateCost(context) {
  */
 async function handler(event) {
   // 只處理 model:complete 事件
-  if (event.type !== 'model' || event.action !== 'complete') {
+  if (event.type !== "model" || event.action !== "complete") {
     return;
   }
 
@@ -97,7 +97,7 @@ async function handler(event) {
     success,
     errorMessage,
     sessionKey,
-    agentId
+    agentId,
   } = event.context;
 
   const estimatedCost = estimateCost(event.context);
@@ -116,7 +116,7 @@ async function handler(event) {
     errorMessage: errorMessage || null,
     estimatedCost: Math.round(estimatedCost * 1000000) / 1000000, // 6 decimal places
     sessionKey,
-    agentId
+    agentId,
   });
 }
 

@@ -3,9 +3,9 @@
 # 複製此檔案並修改以創建新角色
 
 # === 基本資訊 ===
-name: "角色名稱"           # 必填
-symbol: "🤖"              # emoji 識別符號
-user_id: "unique_id"      # 唯一識別碼（可選）
+name: "角色名稱" # 必填
+symbol: "🤖" # emoji 識別符號
+user_id: "unique_id" # 唯一識別碼（可選）
 
 # === 角色描述 ===
 description: |

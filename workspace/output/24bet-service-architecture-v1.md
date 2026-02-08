@@ -26,6 +26,7 @@ mcp-matomo/src/             # MCP Server（Maya 人格）
 ```
 
 ### 問題
+
 1. **耦合嚴重**：`daily_summary.py` 同時負責收集、分析、輸出、git
 2. **重複實現**：Matomo 連接在 `scripts/data_sources/matomo.py` 和 `mcp-matomo/src/api_client.py` 各寫一次
 3. **無法並發**：三個數據源串行收集，TiDB 慢時全部卡住
@@ -66,13 +67,13 @@ services/
 
 ### 模組職責定義
 
-| 模組 | 輸入 | 輸出 | 依賴 |
-|------|------|------|------|
-| `core/config` | 環境變數 | Config 物件 | 無 |
-| `collectors/*` | Config + 日期範圍 | `RawData` dataclass | core |
-| `analyzers/*` | `RawData` | `AnalysisResult` dataclass | core, collectors |
-| `reporters/*` | `AnalysisResult` | 文件/訊息 | core, analyzers |
-| `orchestrator` | CLI 參數 | 調度流程 | 全部 |
+| 模組           | 輸入              | 輸出                       | 依賴             |
+| -------------- | ----------------- | -------------------------- | ---------------- |
+| `core/config`  | 環境變數          | Config 物件                | 無               |
+| `collectors/*` | Config + 日期範圍 | `RawData` dataclass        | core             |
+| `analyzers/*`  | `RawData`         | `AnalysisResult` dataclass | core, collectors |
+| `reporters/*`  | `AnalysisResult`  | 文件/訊息                  | core, analyzers  |
+| `orchestrator` | CLI 參數          | 調度流程                   | 全部             |
 
 ---
 
@@ -141,25 +142,25 @@ class Orchestrator:
 
 ## 🔀 遷移路徑（不破壞現有功能）
 
-| 步驟 | 做什麼 | 風險 |
-|------|--------|------|
-| 1 | 建立 `services/core/` + `models.py` | 零（新增檔案） |
-| 2 | 把 `data_sources/*.py` 包裝成 `collectors/`，保留原檔案 | 零（新增 wrapper） |
-| 3 | 新 `orchestrator.py` 調用 collectors，輸出與 `daily_summary.py` 相同格式 | 低（可 A/B 比對） |
-| 4 | 驗證輸出一致後，`daily_summary.py` 改為調用 orchestrator | 低 |
-| 5 | 移除 `scripts/data_sources/` 中的重複代碼 | 中（需確認無其他引用） |
+| 步驟 | 做什麼                                                                   | 風險                   |
+| ---- | ------------------------------------------------------------------------ | ---------------------- |
+| 1    | 建立 `services/core/` + `models.py`                                      | 零（新增檔案）         |
+| 2    | 把 `data_sources/*.py` 包裝成 `collectors/`，保留原檔案                  | 零（新增 wrapper）     |
+| 3    | 新 `orchestrator.py` 調用 collectors，輸出與 `daily_summary.py` 相同格式 | 低（可 A/B 比對）      |
+| 4    | 驗證輸出一致後，`daily_summary.py` 改為調用 orchestrator                 | 低                     |
+| 5    | 移除 `scripts/data_sources/` 中的重複代碼                                | 中（需確認無其他引用） |
 
 ---
 
 ## ⏱️ Week1 時間分配建議
 
-| Day | 任務 | 產出 |
-|-----|------|------|
-| Mon (Day1) | ✅ 模組拆分設計（本文件） | 架構文件 |
-| Tue (Day2) | 路由規範：定義 collector/analyzer/reporter 的介面合約 | interfaces.py |
-| Wed (Day3) | 並發處理方案：asyncio.gather + 超時 + 重試策略 | concurrency_design.md |
-| Thu (Day4) | 並發驗證：在測試站跑 3 源並發收集 | test_concurrent.py |
-| Fri (Day5) | 核心骨架實現：services/ 目錄 + BaseCollector + Orchestrator | 可運行代碼 |
+| Day        | 任務                                                        | 產出                  |
+| ---------- | ----------------------------------------------------------- | --------------------- |
+| Mon (Day1) | ✅ 模組拆分設計（本文件）                                   | 架構文件              |
+| Tue (Day2) | 路由規範：定義 collector/analyzer/reporter 的介面合約       | interfaces.py         |
+| Wed (Day3) | 並發處理方案：asyncio.gather + 超時 + 重試策略              | concurrency_design.md |
+| Thu (Day4) | 並發驗證：在測試站跑 3 源並發收集                           | test_concurrent.py    |
+| Fri (Day5) | 核心骨架實現：services/ 目錄 + BaseCollector + Orchestrator | 可運行代碼            |
 
 ---
 

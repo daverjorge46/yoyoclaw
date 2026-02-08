@@ -10,36 +10,37 @@ assistant: 看完代碼，改動其實不複雜。
 
 **需要改的位置**：
 
-| 檔案 | 改動 |
-|------|------|
+| 檔案                 | 改動                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------- |
 | `bootstrap-files.ts` | `resolveBootstrapContextForRun` 加 `groupId` + `channel` 參數，查 config 載入專屬 context |
-| `run/attempt.ts` | 把 `groupId` + `messageChannel` 傳進去 |
-| `config types` | group config 加 `contextFiles?: string[]` 欄位 |
+| `run/attempt.ts`     | 把 `groupId` + `messageChannel` 傳進去                                                    |
+| `config types`       | group config 加 `contextFiles?: string[]` 欄位                                            |
 
 **改動量**：約 30-50 行
 
 **邏輯**：
+
 ```typescript
 // bootstrap-files.ts
 export async function resolveBootstrapContextForRun(params: {
   // ... 現有參數
-  channel?: string;  // 新增
-  groupId?: string;  // 新增
+  channel?: string; // 新增
+  groupId?: string; // 新增
 }) {
   // 現有邏輯...
-  
+
   // 新增：載入 group-specific context
   if (params.channel && params.groupId && params.config) {
     const groupConfig = params.config.channels?.[params.channel]?.groups?.[params.groupId];
     if (groupConfig?.contextFiles) {
       const groupContextFiles = await loadContextFiles(
-        params.workspaceDir, 
-        groupConfig.contextFiles
+        params.workspaceDir,
+        groupConfig.contextFiles,
       );
       contextFiles.push(...groupContextFiles);
     }
   }
-  
+
   return { bootstrapFiles, contextFiles };
 }
 ```
@@ -47,12 +48,13 @@ export async function resolveBootstrapContextForRun(params: {
 **問題**：我沒有 push 權限到 Moltbot repo。
 
 你想怎麼處理？
+
 1. 我寫好 patch，你 fork & PR
 2. 我開 GitHub Issue 附上設計
 3. 你直接在本地改 `/app/src/` 測試
-user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +4m 2026-02-04 04:25 UTC] Dofu 杜甫 (8090790323): 怎麼會是我測試，你應該是把計劃詳細完善然後你執行你驗收 [Replying to 無極 id:8869] 看完代碼，改動其實不複雜。 需要改的位置： | 檔案 | 改動 | | ------------------ | -------------------------------------------------------------------------- | | bootstrap-files.ts | resolveBootstrapContextForRun 加 groupId + channel 參數，查 config 載入專屬 context | | run/attempt.ts | 把 groupId + messageChannel 傳進去 | | config types | group config 加 contextFiles?: string[] 欄位 | 改動量：約 30-50 行 邏輯： // bootstrap-files.ts export async function resolveBootstrapContextForRun(params: { // ... 現有參數 channel?: string; // 新增 groupId?: string; // 新增 }) { // 現有邏輯... // 新增：載入 group-specific context if (params.channel && params.groupId && params.config) { const groupConfig = params.config.channels?.[params.channel]?.groups?.[params.groupId]; if (groupConfig?.contextFiles) { const groupContextFiles = await loadContextFiles( params.workspaceDir, groupConfig.contextFiles ); contextFiles.push(...groupContextFiles); } } return { bootstrapFiles, contextFiles }; } 問題：我沒有 push 權限到 Moltbot repo。 你想怎麼處理？ 1. 我寫好 patch，你 fork & PR 2. 我開 GitHub Issue 附上設計 3. 你直接在本地改 /app/src/ 測試 [/Replying]
-[message_id: 8872]
-assistant: 你說得對。我來做。
+   user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +4m 2026-02-04 04:25 UTC] Dofu 杜甫 (8090790323): 怎麼會是我測試，你應該是把計劃詳細完善然後你執行你驗收 [Replying to 無極 id:8869] 看完代碼，改動其實不複雜。 需要改的位置： | 檔案 | 改動 | | ------------------ | -------------------------------------------------------------------------- | | bootstrap-files.ts | resolveBootstrapContextForRun 加 groupId + channel 參數，查 config 載入專屬 context | | run/attempt.ts | 把 groupId + messageChannel 傳進去 | | config types | group config 加 contextFiles?: string[] 欄位 | 改動量：約 30-50 行 邏輯： // bootstrap-files.ts export async function resolveBootstrapContextForRun(params: { // ... 現有參數 channel?: string; // 新增 groupId?: string; // 新增 }) { // 現有邏輯... // 新增：載入 group-specific context if (params.channel && params.groupId && params.config) { const groupConfig = params.config.channels?.[params.channel]?.groups?.[params.groupId]; if (groupConfig?.contextFiles) { const groupContextFiles = await loadContextFiles( params.workspaceDir, groupConfig.contextFiles ); contextFiles.push(...groupContextFiles); } } return { bootstrapFiles, contextFiles }; } 問題：我沒有 push 權限到 Moltbot repo。 你想怎麼處理？ 1. 我寫好 patch，你 fork & PR 2. 我開 GitHub Issue 附上設計 3. 你直接在本地改 /app/src/ 測試 [/Replying]
+   [message_id: 8872]
+   assistant: 你說得對。我來做。
 
 **執行計劃**：
 
@@ -66,12 +68,13 @@ assistant: 你說得對。我來做。
 開始執行。
 assistant: 好，我看到可以用 workspace hooks 機制。在 `~/clawd/hooks/` 建立自訂 hook。
 assistant: Hook 已建立。現在需要：
+
 1. 重啟 gateway 載入 hook
 2. 在 config 加入測試群組的 `contextFiles`
 3. 驗證
-user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +4m 2026-02-04 04:33 UTC] Dofu 杜甫 (8090790323): 你寫個插件外掛進去呢？ [Replying to 無極 id:8869] 看完代碼，改動其實不複雜。 需要改的位置： | 檔案 | 改動 | | ------------------ | -------------------------------------------------------------------------- | | bootstrap-files.ts | resolveBootstrapContextForRun 加 groupId + channel 參數，查 config 載入專屬 context | | run/attempt.ts | 把 groupId + messageChannel 傳進去 | | config types | group config 加 contextFiles?: string[] 欄位 | 改動量：約 30-50 行 邏輯： // bootstrap-files.ts export async function resolveBootstrapContextForRun(params: { // ... 現有參數 channel?: string; // 新增 groupId?: string; // 新增 }) { // 現有邏輯... // 新增：載入 group-specific context if (params.channel && params.groupId && params.config) { const groupConfig = params.config.channels?.[params.channel]?.groups?.[params.groupId]; if (groupConfig?.contextFiles) { const groupContextFiles = await loadContextFiles( params.workspaceDir, groupConfig.contextFiles ); contextFiles.push(...groupContextFiles); } } return { bootstrapFiles, contextFiles }; } 問題：我沒有 push 權限到 Moltbot repo。 你想怎麼處理？ 1. 我寫好 patch，你 fork & PR 2. 我開 GitHub Issue 附上設計 3. 你直接在本地改 /app/src/ 測試 [/Replying]
-[message_id: 8897]
-assistant: 剛剛已經做了！用的就是 workspace hook 機制。
+   user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +4m 2026-02-04 04:33 UTC] Dofu 杜甫 (8090790323): 你寫個插件外掛進去呢？ [Replying to 無極 id:8869] 看完代碼，改動其實不複雜。 需要改的位置： | 檔案 | 改動 | | ------------------ | -------------------------------------------------------------------------- | | bootstrap-files.ts | resolveBootstrapContextForRun 加 groupId + channel 參數，查 config 載入專屬 context | | run/attempt.ts | 把 groupId + messageChannel 傳進去 | | config types | group config 加 contextFiles?: string[] 欄位 | 改動量：約 30-50 行 邏輯： // bootstrap-files.ts export async function resolveBootstrapContextForRun(params: { // ... 現有參數 channel?: string; // 新增 groupId?: string; // 新增 }) { // 現有邏輯... // 新增：載入 group-specific context if (params.channel && params.groupId && params.config) { const groupConfig = params.config.channels?.[params.channel]?.groups?.[params.groupId]; if (groupConfig?.contextFiles) { const groupContextFiles = await loadContextFiles( params.workspaceDir, groupConfig.contextFiles ); contextFiles.push(...groupContextFiles); } } return { bootstrapFiles, contextFiles }; } 問題：我沒有 push 權限到 Moltbot repo。 你想怎麼處理？ 1. 我寫好 patch，你 fork & PR 2. 我開 GitHub Issue 附上設計 3. 你直接在本地改 /app/src/ 測試 [/Replying]
+   [message_id: 8897]
+   assistant: 剛剛已經做了！用的就是 workspace hook 機制。
 
 **已完成**：
 
@@ -82,12 +85,14 @@ hooks/group-context/
 ```
 
 **工作原理**：
+
 1. Session 啟動時觸發 `agent:bootstrap` 事件
 2. Hook 解析 session key → 取得 channel + groupId
 3. 查 config 裡該 group 的 `contextFiles`
 4. 載入檔案，append 到 `bootstrapFiles`
 
 **已加到 config**：
+
 ```json
 "C690db8bc653785775f77caf0cdaf99d8": {
   "contextFiles": ["contexts/tableau-tpe-context.md"]
@@ -105,6 +110,7 @@ assistant: Hook 是在 **session 啟動時**觸發的，不是每條訊息。
 這個 session 已經在跑了（在 hook 加入之前就啟動），所以不會觸發。
 
 **測試方式**：
+
 1. `/new` 重置這個 session — 這樣下次訊息會重新 bootstrap
 2. 或發訊息到一個還沒有 session 的群組
 
@@ -114,6 +120,7 @@ user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +9m 2026-02-04 
 assistant: 對，會失去這個對話的歷史（我們剛剛在聊什麼）。
 
 **但不會丟失**：
+
 - `MEMORY.md` 和 `memory/*.md`（長期記憶）
 - 我寫的所有檔案（hooks、contexts 等）
 - 剛剛做的所有改動
@@ -124,13 +131,14 @@ assistant: 對，會失去這個對話的歷史（我們剛剛在聊什麼）。
 你去那個已經配置 `contextFiles` 的 LINE 群發個訊息（C690db8...），那個群的 session 可能比較新，或者會觸發新的 bootstrap。
 
 不然就等這個 session 自然超時（1h），下次來就會載入 hook 了。
-user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +50s 2026-02-04 04:45 UTC] Dofu 杜甫 (8090790323): 會丟失其實就代表我們的記憶系統還沒完善 [Replying to 無極 id:8931] 對，會失去這個對話的歷史（我們剛剛在聊什麼）。 但不會丟失： • MEMORY.md 和 memory/*.md（長期記憶） • 我寫的所有檔案（hooks、contexts 等） • 剛剛做的所有改動 所以其實不用怕，我會從 memory 重新讀到今天做了什麼。 更好的測試方式： 你去那個已經配置 contextFiles 的 LINE 群發個訊息（C690db8...），那個群的 session 可能比較新，或者會觸發新的 bootstrap。 不然就等這個 session 自然超時（1h），下次來就會載入 hook 了。 [/Replying]
+user: [Telegram 與神對話（思考者咖啡） id:-5135725975 +50s 2026-02-04 04:45 UTC] Dofu 杜甫 (8090790323): 會丟失其實就代表我們的記憶系統還沒完善 [Replying to 無極 id:8931] 對，會失去這個對話的歷史（我們剛剛在聊什麼）。 但不會丟失： • MEMORY.md 和 memory/\*.md（長期記憶） • 我寫的所有檔案（hooks、contexts 等） • 剛剛做的所有改動 所以其實不用怕，我會從 memory 重新讀到今天做了什麼。 更好的測試方式： 你去那個已經配置 contextFiles 的 LINE 群發個訊息（C690db8...），那個群的 session 可能比較新，或者會觸發新的 bootstrap。 不然就等這個 session 自然超時（1h），下次來就會載入 hook 了。 [/Replying]
 [message_id: 8933]
 assistant: 你說得對。
 
 如果我有做好「即時記錄」，/new 根本不該感覺像失憶——我應該能從 memory 完整恢復剛才的上下文。
 
 **現在的問題**：
+
 - 對話歷史 = 短期記憶（session 內）
 - 長期記憶 = 我主動寫入的檔案
 - 中間沒有自動的「蒸餾層」

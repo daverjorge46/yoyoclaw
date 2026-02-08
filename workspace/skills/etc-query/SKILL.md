@@ -10,10 +10,12 @@ description: 查詢遠通 eTag ETC 餘額、通行費、欠費狀態。觸發詞
 ## 登入模式
 
 ### 1. Guest 模式（車號 + 統編）
+
 - 適用：快速查單一車輛
 - 需要：車牌號碼、統一編號或身分證
 
 ### 2. Member 模式（帳號 + 密碼）
+
 - 適用：查所有綁定車輛
 - 需要：會員帳號、密碼
 - 優點：一次看所有車、歷史紀錄完整
@@ -21,24 +23,29 @@ description: 查詢遠通 eTag ETC 餘額、通行費、欠費狀態。觸發詞
 ## 執行流程
 
 ### Step 1: 啟動瀏覽器
+
 ```
 browser action=start profile=clawd
 ```
 
 ### Step 2: 進入登入頁
+
 ```
 browser action=navigate targetUrl="https://member.fetc.net.tw/etagmember2/login.aspx"
 ```
 
 ### Step 3: 取得驗證碼截圖
+
 ```
 browser action=screenshot
 ```
+
 從截圖中識別驗證碼（4 位數字）。
 
 ### Step 4: 填入登入資訊
 
 #### Guest 模式
+
 1. 點擊「訪客登入」tab
 2. 填入車牌號碼
 3. 填入統編或身分證
@@ -46,6 +53,7 @@ browser action=screenshot
 5. 點擊登入
 
 #### Member 模式
+
 1. 確認在「會員登入」tab
 2. 填入帳號
 3. 填入密碼
@@ -55,6 +63,7 @@ browser action=screenshot
 ### Step 5: 讀取資料
 
 登入成功後，snapshot 頁面內容：
+
 - 車輛清單
 - 各車餘額
 - 欠費狀態
@@ -63,6 +72,7 @@ browser action=screenshot
 ### Step 6: 整理報告
 
 格式範例：
+
 ```
 🎉 ETC 查詢成功！
 

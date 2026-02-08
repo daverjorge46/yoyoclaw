@@ -163,7 +163,81 @@ App ID: cli_a9e51894d0f89e1a
 App Secret: JoRw4k3LKW4Waey7bdkyfgehf3zUh334
 位置: ~/clawd/skills/lark/config.json
 用途: 文檔管理、多維表格、員工能力追蹤
+Tenant: xjpr2wuiezaq.jp.larksuite.com
 ```
+
+---
+
+## 📱 Lark/飛書 使用方法（重要！）
+
+### ⚠️ Container vs 本機差異
+
+| 環境 | 方法 | 工具 |
+|------|------|------|
+| **本機 Claude Code** | MCP 工具（推薦） | `mcp__lark__*` |
+| **Container (無極)** | exec-bridge 呼叫本機 | `curl http://host.docker.internal:18793/exec` |
+
+### 方法 A：本機 Claude Code（直接用 MCP）
+
+```bash
+# 列出群組
+mcp__lark__im_v1_chat_list
+
+# 讀取消息
+mcp__lark__im_v1_message_list params='{"container_id_type":"chat","container_id":"oc_xxx","page_size":20}'
+```
+
+### 方法 B：Container（通過 exec-bridge）
+
+```bash
+# 列出群組
+curl -s -X POST http://host.docker.internal:18793/exec -H "Content-Type: application/json" \
+  -d '{"command": "cd ~/clawd/skills/lark && python3 scripts/lark.py chats"}'
+
+# 讀取消息
+curl -s -X POST http://host.docker.internal:18793/exec -H "Content-Type: application/json" \
+  -d '{"command": "cd ~/clawd/skills/lark && python3 scripts/lark.py messages --chat oc_xxx --limit 20"}'
+```
+
+### 方法 C：直接 API 呼叫（備用）
+
+```bash
+# 1. 取得 Token
+TOKEN=$(curl -s -X POST 'https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal' \
+  -H 'Content-Type: application/json' \
+  -d '{"app_id": "cli_a9e51894d0f89e1a", "app_secret": "JoRw4k3LKW4Waey7bdkyfgehf3zUh334"}' | jq -r '.tenant_access_token')
+
+# 2. 列出群組
+curl -s 'https://open.larksuite.com/open-apis/im/v1/chats?page_size=20' \
+  -H "Authorization: Bearer $TOKEN" | jq '.data.items[] | {chat_id, name}'
+
+# 3. 讀取消息
+curl -s "https://open.larksuite.com/open-apis/im/v1/messages?container_id_type=chat&container_id=oc_xxx&page_size=20" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 常用 MCP 工具（本機可用）
+
+| 工具 | 功能 |
+|------|------|
+| `mcp__lark__im_v1_chat_list` | 列出所有群組 |
+| `mcp__lark__im_v1_message_list` | 讀取消息 |
+| `mcp__lark__im_v1_message_create` | 發送消息 |
+| `mcp__lark__bitable_v1_appTable_list` | 列出多維表格 |
+| `mcp__lark__bitable_v1_appTableRecord_search` | 搜索記錄 |
+| `mcp__lark__docx_v1_document_rawContent` | 讀取文檔 |
+
+### 已知群組 ID
+
+| 群組 | Chat ID |
+|------|---------|
+| （待補充） | oc_xxx |
+
+### ⚠️ Container 常見錯誤
+
+1. **不要**嘗試直接呼叫 `mcp__lark__*`（Container 沒有 MCP）
+2. **不要**嘗試用 browser 自動化
+3. **用 exec-bridge** 在本機執行 lark 腳本
 
 ### Notion MCP
 

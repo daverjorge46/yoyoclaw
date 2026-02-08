@@ -6,20 +6,20 @@
  * Supports IMAP ID extension (RFC 2971) for 163.com and other servers
  */
 
-const Imap = require('imap');
-const { simpleParser } = require('mailparser');
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const Imap = require("imap");
+const { simpleParser } = require("mailparser");
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 // IMAP ID information for 163.com compatibility
 const IMAP_ID = {
-  name: 'moltbot',
-  version: '0.0.1',
-  vendor: 'netease',
-  'support-email': 'kefu@188.com'
+  name: "moltbot",
+  version: "0.0.1",
+  vendor: "netease",
+  "support-email": "kefu@188.com",
 };
 
-const DEFAULT_MAILBOX = process.env.IMAP_MAILBOX || 'INBOX';
+const DEFAULT_MAILBOX = process.env.IMAP_MAILBOX || "INBOX";
 
 // Parse command-line arguments
 function parseArgs() {
@@ -30,11 +30,11 @@ function parseArgs() {
 
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
-    if (arg.startsWith('--')) {
+    if (arg.startsWith("--")) {
       const key = arg.slice(2);
       const value = args[i + 1];
       options[key] = value || true;
-      if (value && !value.startsWith('--')) i++;
+      if (value && !value.startsWith("--")) i++;
     } else {
       positional.push(arg);
     }
@@ -48,11 +48,11 @@ function createImapConfig() {
   return {
     user: process.env.IMAP_USER,
     password: process.env.IMAP_PASS,
-    host: process.env.IMAP_HOST || '127.0.0.1',
+    host: process.env.IMAP_HOST || "127.0.0.1",
     port: parseInt(process.env.IMAP_PORT) || 1143,
-    tls: process.env.IMAP_TLS === 'true',
+    tls: process.env.IMAP_TLS === "true",
     tlsOptions: {
-      rejectUnauthorized: process.env.IMAP_REJECT_UNAUTHORIZED !== 'false',
+      rejectUnauthorized: process.env.IMAP_REJECT_UNAUTHORIZED !== "false",
     },
     connTimeout: 10000,
     authTimeout: 10000,
@@ -64,18 +64,18 @@ async function connect() {
   const config = createImapConfig();
 
   if (!config.user || !config.password) {
-    throw new Error('Missing IMAP_USER or IMAP_PASS environment variables');
+    throw new Error("Missing IMAP_USER or IMAP_PASS environment variables");
   }
 
   return new Promise((resolve, reject) => {
     const imap = new Imap(config);
 
-    imap.once('ready', () => {
+    imap.once("ready", () => {
       // Send IMAP ID command for 163.com compatibility
-      if (typeof imap.id === 'function') {
+      if (typeof imap.id === "function") {
         imap.id(IMAP_ID, (err) => {
           if (err) {
-            console.warn('Warning: IMAP ID command failed:', err.message);
+            console.warn("Warning: IMAP ID command failed:", err.message);
           }
           resolve(imap);
         });
@@ -85,7 +85,7 @@ async function connect() {
       }
     });
 
-    imap.once('error', (err) => {
+    imap.once("error", (err) => {
       reject(new Error(`IMAP connection failed: ${err.message}`));
     });
 
@@ -120,39 +120,39 @@ function searchMessages(imap, criteria, fetchOptions) {
       const fetch = imap.fetch(results, fetchOptions);
       const messages = [];
 
-      fetch.on('message', (msg) => {
+      fetch.on("message", (msg) => {
         const parts = [];
 
-        msg.on('body', (stream, info) => {
-          let buffer = '';
+        msg.on("body", (stream, info) => {
+          let buffer = "";
 
-          stream.on('data', (chunk) => {
-            buffer += chunk.toString('utf8');
+          stream.on("data", (chunk) => {
+            buffer += chunk.toString("utf8");
           });
 
-          stream.once('end', () => {
+          stream.once("end", () => {
             parts.push({ which: info.which, body: buffer });
           });
         });
 
-        msg.once('attributes', (attrs) => {
+        msg.once("attributes", (attrs) => {
           parts.forEach((part) => {
             part.attributes = attrs;
           });
         });
 
-        msg.once('end', () => {
+        msg.once("end", () => {
           if (parts.length > 0) {
             messages.push(parts[0]);
           }
         });
       });
 
-      fetch.once('error', (err) => {
+      fetch.once("error", (err) => {
         reject(err);
       });
 
-      fetch.once('end', () => {
+      fetch.once("end", () => {
         resolve(messages);
       });
     });
@@ -164,15 +164,17 @@ async function parseEmail(bodyStr) {
   const parsed = await simpleParser(bodyStr);
 
   return {
-    from: parsed.from?.text || 'Unknown',
+    from: parsed.from?.text || "Unknown",
     to: parsed.to?.text,
-    subject: parsed.subject || '(no subject)',
+    subject: parsed.subject || "(no subject)",
     date: parsed.date,
     text: parsed.text,
     html: parsed.html,
     snippet: parsed.text
       ? parsed.text.slice(0, 200)
-      : (parsed.html ? parsed.html.slice(0, 200).replace(/<[^>]*>/g, '') : ''),
+      : parsed.html
+        ? parsed.html.slice(0, 200).replace(/<[^>]*>/g, "")
+        : "",
     attachments: parsed.attachments?.map((a) => ({
       filename: a.filename,
       contentType: a.contentType,
@@ -182,34 +184,41 @@ async function parseEmail(bodyStr) {
 }
 
 // Check for new/unread emails
-async function checkEmails(mailbox = DEFAULT_MAILBOX, limit = 10, recentTime = null, unreadOnly = false) {
+async function checkEmails(
+  mailbox = DEFAULT_MAILBOX,
+  limit = 10,
+  recentTime = null,
+  unreadOnly = false,
+) {
   const imap = await connect();
 
   try {
     await openBox(imap, mailbox);
 
     // Build search criteria
-    const searchCriteria = unreadOnly ? ['UNSEEN'] : ['ALL'];
+    const searchCriteria = unreadOnly ? ["UNSEEN"] : ["ALL"];
 
     if (recentTime) {
       const sinceDate = parseRelativeTime(recentTime);
-      searchCriteria.push(['SINCE', sinceDate]);
+      searchCriteria.push(["SINCE", sinceDate]);
     }
 
     // Fetch messages sorted by date (newest first)
     const fetchOptions = {
-      bodies: [''],
+      bodies: [""],
       markSeen: false,
     };
 
     const messages = await searchMessages(imap, searchCriteria, fetchOptions);
 
     // Sort by date (newest first) - parse from message attributes
-    const sortedMessages = messages.sort((a, b) => {
-      const dateA = a.attributes.date ? new Date(a.attributes.date) : new Date(0);
-      const dateB = b.attributes.date ? new Date(b.attributes.date) : new Date(0);
-      return dateB - dateA;
-    }).slice(0, limit);
+    const sortedMessages = messages
+      .sort((a, b) => {
+        const dateA = a.attributes.date ? new Date(a.attributes.date) : new Date(0);
+        const dateB = b.attributes.date ? new Date(b.attributes.date) : new Date(0);
+        return dateB - dateA;
+      })
+      .slice(0, limit);
 
     const results = [];
 
@@ -237,9 +246,9 @@ async function fetchEmail(uid, mailbox = DEFAULT_MAILBOX) {
   try {
     await openBox(imap, mailbox);
 
-    const searchCriteria = [['UID', uid]];
+    const searchCriteria = [["UID", uid]];
     const fetchOptions = {
-      bodies: [''],
+      bodies: [""],
       markSeen: false,
     };
 
@@ -266,7 +275,7 @@ async function fetchEmail(uid, mailbox = DEFAULT_MAILBOX) {
 function parseRelativeTime(timeStr) {
   const match = timeStr.match(/^(\d+)(m|h|d)$/);
   if (!match) {
-    throw new Error('Invalid time format. Use: 30m, 2h, 7d');
+    throw new Error("Invalid time format. Use: 30m, 2h, 7d");
   }
 
   const value = parseInt(match[1]);
@@ -274,14 +283,14 @@ function parseRelativeTime(timeStr) {
   const now = new Date();
 
   switch (unit) {
-    case 'm': // minutes
+    case "m": // minutes
       return new Date(now.getTime() - value * 60 * 1000);
-    case 'h': // hours
+    case "h": // hours
       return new Date(now.getTime() - value * 60 * 60 * 1000);
-    case 'd': // days
+    case "d": // days
       return new Date(now.getTime() - value * 24 * 60 * 60 * 1000);
     default:
-      throw new Error('Unknown time unit');
+      throw new Error("Unknown time unit");
   }
 }
 
@@ -295,26 +304,26 @@ async function searchEmails(options) {
 
     const criteria = [];
 
-    if (options.unseen) criteria.push('UNSEEN');
-    if (options.seen) criteria.push('SEEN');
-    if (options.from) criteria.push(['FROM', options.from]);
-    if (options.subject) criteria.push(['SUBJECT', options.subject]);
+    if (options.unseen) criteria.push("UNSEEN");
+    if (options.seen) criteria.push("SEEN");
+    if (options.from) criteria.push(["FROM", options.from]);
+    if (options.subject) criteria.push(["SUBJECT", options.subject]);
 
     // Handle relative time (--recent 2h)
     if (options.recent) {
       const sinceDate = parseRelativeTime(options.recent);
-      criteria.push(['SINCE', sinceDate]);
+      criteria.push(["SINCE", sinceDate]);
     } else {
       // Handle absolute dates
-      if (options.since) criteria.push(['SINCE', options.since]);
-      if (options.before) criteria.push(['BEFORE', options.before]);
+      if (options.since) criteria.push(["SINCE", options.since]);
+      if (options.before) criteria.push(["BEFORE", options.before]);
     }
 
     // Default to all if no criteria
-    if (criteria.length === 0) criteria.push('ALL');
+    if (criteria.length === 0) criteria.push("ALL");
 
     const fetchOptions = {
-      bodies: [''],
+      bodies: [""],
       markSeen: false,
     };
 
@@ -323,11 +332,13 @@ async function searchEmails(options) {
     const results = [];
 
     // Sort by date (newest first)
-    const sortedMessages = messages.sort((a, b) => {
-      const dateA = a.attributes.date ? new Date(a.attributes.date) : new Date(0);
-      const dateB = b.attributes.date ? new Date(b.attributes.date) : new Date(0);
-      return dateB - dateA;
-    }).slice(0, limit);
+    const sortedMessages = messages
+      .sort((a, b) => {
+        const dateA = a.attributes.date ? new Date(a.attributes.date) : new Date(0);
+        const dateB = b.attributes.date ? new Date(b.attributes.date) : new Date(0);
+        return dateB - dateA;
+      })
+      .slice(0, limit);
 
     for (const item of sortedMessages) {
       const parsed = await parseEmail(item.body);
@@ -352,9 +363,9 @@ async function markAsRead(uids, mailbox = DEFAULT_MAILBOX) {
     await openBox(imap, mailbox);
 
     return new Promise((resolve, reject) => {
-      imap.addFlags(uids, '\\Seen', (err) => {
+      imap.addFlags(uids, "\\Seen", (err) => {
         if (err) reject(err);
-        else resolve({ success: true, uids, action: 'marked as read' });
+        else resolve({ success: true, uids, action: "marked as read" });
       });
     });
   } finally {
@@ -370,9 +381,9 @@ async function markAsUnread(uids, mailbox = DEFAULT_MAILBOX) {
     await openBox(imap, mailbox);
 
     return new Promise((resolve, reject) => {
-      imap.delFlags(uids, '\\Seen', (err) => {
+      imap.delFlags(uids, "\\Seen", (err) => {
         if (err) reject(err);
-        else resolve({ success: true, uids, action: 'marked as unread' });
+        else resolve({ success: true, uids, action: "marked as unread" });
       });
     });
   } finally {
@@ -397,7 +408,7 @@ async function listMailboxes() {
 }
 
 // Format mailbox tree recursively
-function formatMailboxTree(boxes, prefix = '') {
+function formatMailboxTree(boxes, prefix = "") {
   const result = [];
   for (const [name, info] of Object.entries(boxes)) {
     const fullName = prefix ? `${prefix}${info.delimiter}${name}` : name;
@@ -422,53 +433,55 @@ async function main() {
     let result;
 
     switch (command) {
-      case 'check':
+      case "check":
         result = await checkEmails(
           options.mailbox || DEFAULT_MAILBOX,
           parseInt(options.limit) || 10,
           options.recent || null,
-          options.unseen === 'true' // if --unseen is set, only get unread messages
+          options.unseen === "true", // if --unseen is set, only get unread messages
         );
         break;
 
-      case 'fetch':
+      case "fetch":
         if (!positional[0]) {
-          throw new Error('UID required: node imap.js fetch <uid>');
+          throw new Error("UID required: node imap.js fetch <uid>");
         }
         result = await fetchEmail(positional[0], options.mailbox);
         break;
 
-      case 'search':
+      case "search":
         result = await searchEmails(options);
         break;
 
-      case 'mark-read':
+      case "mark-read":
         if (positional.length === 0) {
-          throw new Error('UID(s) required: node imap.js mark-read <uid> [uid2...]');
+          throw new Error("UID(s) required: node imap.js mark-read <uid> [uid2...]");
         }
         result = await markAsRead(positional, options.mailbox);
         break;
 
-      case 'mark-unread':
+      case "mark-unread":
         if (positional.length === 0) {
-          throw new Error('UID(s) required: node imap.js mark-unread <uid> [uid2...]');
+          throw new Error("UID(s) required: node imap.js mark-unread <uid> [uid2...]");
         }
         result = await markAsUnread(positional, options.mailbox);
         break;
 
-      case 'list-mailboxes':
+      case "list-mailboxes":
         result = await listMailboxes();
         break;
 
       default:
-        console.error('Unknown command:', command);
-        console.error('Available commands: check, fetch, search, mark-read, mark-unread, list-mailboxes');
+        console.error("Unknown command:", command);
+        console.error(
+          "Available commands: check, fetch, search, mark-read, mark-unread, list-mailboxes",
+        );
         process.exit(1);
     }
 
     console.log(JSON.stringify(result, null, 2));
   } catch (err) {
-    console.error('Error:', err.message);
+    console.error("Error:", err.message);
     process.exit(1);
   }
 }

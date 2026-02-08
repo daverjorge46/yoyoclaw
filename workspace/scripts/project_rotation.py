@@ -39,7 +39,7 @@ def _load_table(lines):
     rows = []
     in_table = False
     for line in lines:
-        if line.strip().startswith("| # |"):
+        if line.strip().startswith("| #"):
             in_table = True
             continue
         if in_table:
@@ -65,7 +65,7 @@ def _load_table_with_indices(lines):
     rows = []
     in_table = False
     for i, line in enumerate(lines):
-        if line.strip().startswith("| # |"):
+        if line.strip().startswith("| #"):
             in_table = True
             continue
         if in_table:
@@ -182,7 +182,7 @@ def _update_registry(lines, picks, registry_path: Path):
 def main():
     parser = argparse.ArgumentParser(description="Suggest projects to rotate")
     parser.add_argument("--count", type=int, default=2, help="Number of projects to suggest")
-    parser.add_argument("--registry", default="~/clawd/PROJECT_REGISTRY.md")
+    parser.add_argument("--registry", default="/app/workspace/PROJECT_REGISTRY.md")
     parser.add_argument("--update", action="store_true", help="Update PROJECT_REGISTRY.md")
     args = parser.parse_args()
 

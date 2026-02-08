@@ -16,35 +16,41 @@ Browse, purchase, and manage NFTs across chains via OpenSea integration.
 ## Prompt Examples
 
 **Browse NFTs:**
+
 - "Find NFTs from the Bored Ape collection"
 - "Show me trending NFT collections"
 - "Search for Pudgy Penguins NFTs"
 - "What are the top NFT collections on Base?"
 
 **View listings:**
+
 - "What's the floor price for Pudgy Penguins?"
 - "Show cheapest NFTs in Azuki collection"
 - "List all available Bored Apes under 50 ETH"
 - "Show me the rarest items in [collection]"
 
 **Buy NFTs:**
+
 - "Buy the cheapest Bored Ape"
 - "Purchase this NFT: [OpenSea URL]"
 - "Buy Pudgy Penguin #1234"
 - "Get the floor Azuki"
 
 **View holdings:**
+
 - "Show my NFTs"
 - "What NFTs do I own on Ethereum?"
 - "My NFT collection on Base"
 - "Show all my Pudgy Penguins"
 
 **Transfer NFTs:**
+
 - "Send my Bored Ape #123 to 0x..."
 - "Transfer Pudgy Penguin to vitalik.eth"
 - "Send NFT to @friend"
 
 **Minting:**
+
 - "Mint from [Manifold link]"
 - "Mint 5 NFTs from this collection"
 
@@ -52,30 +58,33 @@ Browse, purchase, and manage NFTs across chains via OpenSea integration.
 
 Bankr resolves common names and abbreviations:
 
-| Input | Resolved |
-|-------|----------|
-| "Bored Apes" / "BAYC" | boredapeyachtclub |
-| "Pudgy Penguins" | pudgypenguins |
-| "CryptoPunks" / "Punks" | cryptopunks |
-| "Azuki" | azuki |
-| "Doodles" | doodles-official |
-| "Cool Cats" | cool-cats-nft |
+| Input                   | Resolved          |
+| ----------------------- | ----------------- |
+| "Bored Apes" / "BAYC"   | boredapeyachtclub |
+| "Pudgy Penguins"        | pudgypenguins     |
+| "CryptoPunks" / "Punks" | cryptopunks       |
+| "Azuki"                 | azuki             |
+| "Doodles"               | doodles-official  |
+| "Cool Cats"             | cool-cats-nft     |
 
 ## Chain Considerations
 
 ### Ethereum
+
 - Most valuable blue-chip collections
 - Highest liquidity
 - Expensive gas fees
 - Established marketplace
 
 ### Base
+
 - Growing NFT ecosystem
 - Very low gas fees
 - Newer collections
 - Good for emerging artists
 
 ### Polygon
+
 - Gaming and metaverse NFTs
 - Low gas fees
 - Good for frequent trading
@@ -84,6 +93,7 @@ Bankr resolves common names and abbreviations:
 ## OpenSea Integration
 
 Bankr uses OpenSea's marketplace:
+
 - Real-time floor prices
 - Verified collections
 - Direct purchase links
@@ -92,13 +102,13 @@ Bankr uses OpenSea's marketplace:
 
 ## Common Issues
 
-| Issue | Resolution |
-|-------|------------|
-| Collection not found | Try alternative names or contract address |
-| NFT already sold | Try another listing or wait for new listings |
-| Insufficient funds | Check balance including gas costs |
-| High gas | Wait for lower gas or try L2 (Base/Polygon) |
-| Unverified collection | Verify legitimacy before purchasing |
+| Issue                 | Resolution                                   |
+| --------------------- | -------------------------------------------- |
+| Collection not found  | Try alternative names or contract address    |
+| NFT already sold      | Try another listing or wait for new listings |
+| Insufficient funds    | Check balance including gas costs            |
+| High gas              | Wait for lower gas or try L2 (Base/Polygon)  |
+| Unverified collection | Verify legitimacy before purchasing          |
 
 ## Safety Tips
 
@@ -113,6 +123,7 @@ Bankr uses OpenSea's marketplace:
 ## NFT Portfolio
 
 View your holdings:
+
 - Total NFT count by chain
 - Estimated floor value
 - Collection breakdown
@@ -122,6 +133,7 @@ View your holdings:
 ## Minting
 
 For supported mint platforms:
+
 - Manifold mints
 - SeaDrop protocol
 - Direct contract mints (if supported)

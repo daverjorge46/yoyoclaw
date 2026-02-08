@@ -4,35 +4,38 @@ Execute token trades and swaps across multiple blockchains.
 
 ## Supported Chains
 
-| Chain | Native Token | Characteristics |
-|-------|--------------|-----------------|
-| Base | ETH | Low fees, ideal for memecoins |
-| Polygon | MATIC | Fast, cheap transactions |
-| Ethereum | ETH | Highest liquidity, expensive gas |
-| Unichain | ETH | Newer L2 option |
-| Solana | SOL | High speed, minimal fees |
+| Chain    | Native Token | Characteristics                  |
+| -------- | ------------ | -------------------------------- |
+| Base     | ETH          | Low fees, ideal for memecoins    |
+| Polygon  | MATIC        | Fast, cheap transactions         |
+| Ethereum | ETH          | Highest liquidity, expensive gas |
+| Unichain | ETH          | Newer L2 option                  |
+| Solana   | SOL          | High speed, minimal fees         |
 
 ## Amount Formats
 
-| Format | Example | Description |
-|--------|---------|-------------|
-| USD | `$50` | Dollar amount to spend |
-| Percentage | `50%` | Percentage of your balance |
-| Exact | `0.1 ETH` | Specific token amount |
+| Format     | Example   | Description                |
+| ---------- | --------- | -------------------------- |
+| USD        | `$50`     | Dollar amount to spend     |
+| Percentage | `50%`     | Percentage of your balance |
+| Exact      | `0.1 ETH` | Specific token amount      |
 
 ## Prompt Examples
 
 **Same-chain swaps:**
+
 - "Swap 0.1 ETH for USDC on Base"
 - "Buy $50 of BNKR on Base"
 - "Sell 50% of my ETH holdings"
 - "Purchase 100 USDC worth of PEPE"
 
 **Cross-chain swaps:**
+
 - "Bridge 0.5 ETH from Ethereum to Base"
 - "Move 100 USDC from Polygon to Solana"
 
 **ETH/WETH conversion:**
+
 - "Convert 0.1 ETH to WETH"
 - "Unwrap 0.5 WETH to ETH"
 
@@ -52,13 +55,13 @@ Execute token trades and swaps across multiple blockchains.
 
 ## Common Issues
 
-| Issue | Resolution |
-|-------|------------|
-| Insufficient balance | Reduce amount or add funds |
-| Token not found | Check token symbol/address, specify chain |
-| High slippage | Try smaller amounts or use limit orders |
-| Network congestion | Wait and retry, or try L2 |
-| Gas too high | Use Base/Polygon, or wait for lower gas |
+| Issue                | Resolution                                |
+| -------------------- | ----------------------------------------- |
+| Insufficient balance | Reduce amount or add funds                |
+| Token not found      | Check token symbol/address, specify chain |
+| High slippage        | Try smaller amounts or use limit orders   |
+| Network congestion   | Wait and retry, or try L2                 |
+| Gas too high         | Use Base/Polygon, or wait for lower gas   |
 
 ## Best Practices
 

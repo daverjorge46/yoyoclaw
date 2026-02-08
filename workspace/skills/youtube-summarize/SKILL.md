@@ -6,6 +6,7 @@ description: Extract and absorb YouTube video transcripts. Use when Cruz shares 
 # YouTube Video Absorber
 
 ## Purpose
+
 When Cruz watches a video, extract the transcript so I **know what he knows**. Not just summarize — internalize the concepts, connect them to his projects and thinking.
 
 ## How to Extract Transcript

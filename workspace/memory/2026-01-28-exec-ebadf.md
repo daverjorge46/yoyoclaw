@@ -43,6 +43,7 @@ Session 資訊:
 ```
 
 **建議檢查**:
+
 ```bash
 # 看 gateway 日誌有沒有相關錯誤
 tail -100 ~/.clawdbot/logs/gateway.log | grep -i "ebadf\|spawn\|exec"
@@ -50,6 +51,7 @@ tail -100 ~/.clawdbot/logs/gateway.log | grep -i "ebadf\|spawn\|exec"
 # 確認 fd 狀態
 lsof -p $(pgrep -f "clawdbot") | head -50
 ```
+
 user: [Telegram Dofu 杜甫 (@DufuTheSage) id:8090790323 +8m 2026-01-28 18:03 GMT+8] ⏺️ Bash(launchctl kickstart -k gui/501/com.clawdbot.gateway) ⎿ (No content) ⏺️ Bash(sleep 2 && clawdbot gateway status | grep -E "Runtime|pid") ⎿ Runtime: running (pid 90761) ⏺️ Done. Gateway 重啟了 (新 pid: 90761)。
 [message_id: 2679]
 assistant: 還是壞 😤
@@ -75,11 +77,13 @@ assistant: 還是壞...
 這太奇怪了。Gateway 已經完全重生（pid 91024），但我的 exec 還是 EBADF。
 
 **這說明問題可能在更深層**：
+
 1. 不是 gateway 進程的問題
 2. 可能是 Clawdbot 內部 exec 工具的 bug
 3. 或者是 Claude API session 和 tool execution 之間的狀態問題
 
 **可以試的**：
+
 ```bash
 # 看 gateway log 有沒有 exec 相關錯誤
 tail -50 ~/.clawdbot/logs/gateway.log 2>/dev/null || cat /tmp/clawdbot*.log 2>/dev/null | tail -50

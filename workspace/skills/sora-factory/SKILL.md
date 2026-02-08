@@ -14,6 +14,7 @@ requires:
 ## 核心問題
 
 Sora 每次生成獨立片段，沒有「前一幕記憶」：
+
 - 角色長相每次重抽
 - 場景細節不連貫
 - 單獨片段無法組成故事
@@ -44,9 +45,9 @@ Sora 每次生成獨立片段，沒有「前一幕記憶」：
 # 專案配置 (project.yaml)
 project:
   name: "職場復仇"
-  duration: 30  # 秒
+  duration: 30 # 秒
   style: "cinematic, dramatic lighting, 4K"
-  
+
 characters:
   protagonist:
     name: "小明"
@@ -61,7 +62,7 @@ scenes:
   office:
     description: "現代開放式辦公室，落地窗，城市天際線背景"
     lighting: "日光從右側灑入"
-    
+
 shots:
   - id: 1
     scene: office
@@ -70,7 +71,7 @@ shots:
     duration: 8
     camera: "中景，緩慢推進"
     emotion: "壓抑、屈辱"
-    
+
   - id: 2
     scene: office
     characters: [protagonist]
@@ -78,7 +79,7 @@ shots:
     duration: 5
     camera: "特寫臉部，然後切到手指"
     emotion: "轉折、決心"
-    
+
   - id: 3
     scene: office
     characters: [protagonist, antagonist]
@@ -93,6 +94,7 @@ shots:
 執行 `scripts/story_to_prompts.py project.yaml`
 
 輸出：
+
 ```
 shots/shot_001.txt - Sora prompt for shot 1
 shots/shot_002.txt - Sora prompt for shot 2
@@ -125,6 +127,7 @@ python3 scripts/sora_batch_submit.py shots/ --api
 ```
 
 前置：
+
 - 設定 `OPENAI_API_KEY`
 - 安裝 `openai`：`pip install openai`
 
@@ -154,15 +157,16 @@ python3 scripts/sora_batch_submit.py shots/ --api
 
 ```
 ❌ 錯誤：A man sits at desk
-✅ 正確：A 30-year-old East Asian man with short black hair, 
-         wearing black-framed glasses and a dark navy blue shirt, 
-         sits at a desk. He has sharp, observant eyes. 
+✅ 正確：A 30-year-old East Asian man with short black hair,
+         wearing black-framed glasses and a dark navy blue shirt,
+         sits at a desk. He has sharp, observant eyes.
          Consistent character design throughout.
 ```
 
 ### 連貫性關鍵詞
 
 在每個 prompt 加入：
+
 - `consistent character design`
 - `same person as previous shot`
 - `maintaining visual continuity`
@@ -170,8 +174,8 @@ python3 scripts/sora_batch_submit.py shots/ --api
 
 ## 大師級模板（已內建）
 
-- `assets/prompt_template.md`：模板化 prompt 結構  
-- `assets/success_library.yaml`：成功錨點詞/色盤庫  
+- `assets/prompt_template.md`：模板化 prompt 結構
+- `assets/success_library.yaml`：成功錨點詞/色盤庫
 
 `story_to_prompts.py` 會優先使用模板渲染；若模板不存在才回退原始輸出。
 
@@ -192,6 +196,7 @@ python3 scripts/record_success.py --manifest shots/manifest.yaml --all
 ### 場景錨點
 
 固定場景描述詞，避免變化：
+
 ```yaml
 office_anchor: |
   Modern open-plan office with floor-to-ceiling windows,
@@ -203,9 +208,11 @@ office_anchor: |
 ## 批次管理
 
 ### 並行限制
+
 Sora 同時最多 3 個生成任務
 
 ### 輪詢策略
+
 ```
 submit 3 → wait 60s → check status
   ├─ all done → download → submit next 3
@@ -214,6 +221,7 @@ submit 3 → wait 60s → check status
 ```
 
 ### 失敗處理
+
 - 生成失敗 → 自動重試 1 次
 - 連續失敗 → 標記跳過，記錄日誌
 
@@ -221,12 +229,12 @@ submit 3 → wait 60s → check status
 
 ### 連貫性檢查項目
 
-| 項目 | 檢查方式 | 通過標準 |
-|------|----------|----------|
-| 角色外觀 | Vision API 比對 | 相似度 > 70% |
-| 場景一致 | 關鍵元素存在 | 核心元素 ≥ 3/5 |
-| 動作銜接 | 前後幀比對 | 無跳躍感 |
-| 情緒連貫 | 表情分析 | 符合劇本設定 |
+| 項目     | 檢查方式        | 通過標準       |
+| -------- | --------------- | -------------- |
+| 角色外觀 | Vision API 比對 | 相似度 > 70%   |
+| 場景一致 | 關鍵元素存在    | 核心元素 ≥ 3/5 |
+| 動作銜接 | 前後幀比對      | 無跳躍感       |
+| 情緒連貫 | 表情分析        | 符合劇本設定   |
 
 ### 重生成觸發
 
@@ -256,13 +264,13 @@ project-name/
 
 ## 腳本清單
 
-| 腳本 | 功能 |
-|------|------|
-| `story_to_prompts.py` | 劇本 → Sora prompts |
+| 腳本                   | 功能                   |
+| ---------------------- | ---------------------- |
+| `story_to_prompts.py`  | 劇本 → Sora prompts    |
 | `sora_batch_submit.py` | 批次提交 + 輪詢 + 下載 |
-| `qc_check.py` | 連貫性品控 |
-| `assemble.py` | ffmpeg 拼接 |
-| `full_pipeline.py` | 一鍵全流程 |
+| `qc_check.py`          | 連貫性品控             |
+| `assemble.py`          | ffmpeg 拼接            |
+| `full_pipeline.py`     | 一鍵全流程             |
 
 ## 快速開始
 
@@ -310,7 +318,8 @@ python3 scripts/full_pipeline.py project.yaml \
 
 ### 🤖 B1：自動點 Download（不再手點 3 次）
 
-1) 準備 `urls.json`（Sora drafts URLs）：
+1. 準備 `urls.json`（Sora drafts URLs）：
+
 ```json
 {
   "urls": [
@@ -321,13 +330,15 @@ python3 scripts/full_pipeline.py project.yaml \
 }
 ```
 
-2) 在 `assets/sora_browser_config.yaml` 填好 `downloads.download_dir`（建議）：
+2. 在 `assets/sora_browser_config.yaml` 填好 `downloads.download_dir`（建議）：
+
 ```yaml
 downloads:
   download_dir: "/Users/sulaxd/clawd/output/sora_run/raw_downloads"
 ```
 
-3) 執行自動下載：
+3. 執行自動下載：
+
 ```bash
 python3 scripts/sora_download_from_urls.py \
   --config assets/sora_browser_config.yaml \
@@ -345,7 +356,6 @@ python3 scripts/full_pipeline.py project.yaml --resume-from-downloads-manifest
 # 或指定 path
 python3 scripts/full_pipeline.py project.yaml --resume-from-downloads-manifest /path/to/downloads_manifest.json
 ```
-
 
 如果你是用 Sora UI 手動點「Download」，請用 `download_watcher.py` 把下載檔案搬運/改名到專案 raw 目錄：
 

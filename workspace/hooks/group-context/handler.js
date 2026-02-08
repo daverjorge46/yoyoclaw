@@ -13,15 +13,15 @@ import path from "node:path";
  */
 function parseSessionKey(sessionKey) {
   if (!sessionKey) return { channel: null, groupId: null };
-  
+
   const parts = sessionKey.split(":");
   // Looking for patterns like:
   // agent:main:line:group:group:Cxxxxx
   // agent:main:telegram:group:-12345
-  
+
   let channel = null;
   let groupId = null;
-  
+
   for (let i = 0; i < parts.length; i++) {
     // Common channels
     if (["line", "telegram", "discord", "signal", "whatsapp"].includes(parts[i])) {
@@ -39,7 +39,7 @@ function parseSessionKey(sessionKey) {
       break;
     }
   }
-  
+
   return { channel, groupId };
 }
 
@@ -48,10 +48,10 @@ function parseSessionKey(sessionKey) {
  */
 async function loadGroupContextFiles(workspaceDir, contextFilePaths) {
   const files = [];
-  
+
   for (const relativePath of contextFilePaths) {
     if (typeof relativePath !== "string") continue;
-    
+
     const fullPath = path.resolve(workspaceDir, relativePath);
     try {
       const content = await fs.readFile(fullPath, "utf-8");
@@ -72,7 +72,7 @@ async function loadGroupContextFiles(workspaceDir, contextFilePaths) {
       });
     }
   }
-  
+
   return files;
 }
 
@@ -84,49 +84,51 @@ const injectGroupContext = async (event) => {
   if (event.type !== "agent" || event.action !== "bootstrap") {
     return;
   }
-  
+
   const context = event.context || {};
   const { cfg, workspaceDir, bootstrapFiles, sessionKey } = context;
-  
+
   if (!cfg || !workspaceDir || !bootstrapFiles || !sessionKey) {
     return;
   }
-  
+
   // Parse session key to get channel and group ID
   const { channel, groupId } = parseSessionKey(sessionKey);
-  
+
   if (!channel || !groupId) {
     return;
   }
-  
+
   console.log(`[group-context] Session: channel=${channel}, groupId=${groupId}`);
-  
+
   // Look up group config
   const channelConfig = cfg.channels?.[channel];
   if (!channelConfig || typeof channelConfig !== "object") {
     return;
   }
-  
+
   const groups = channelConfig.groups;
   if (!groups || typeof groups !== "object") {
     return;
   }
-  
+
   const groupConfig = groups[groupId];
   if (!groupConfig || typeof groupConfig !== "object") {
     return;
   }
-  
+
   const contextFilePaths = groupConfig.contextFiles;
   if (!Array.isArray(contextFilePaths) || contextFilePaths.length === 0) {
     return;
   }
-  
-  console.log(`[group-context] Found ${contextFilePaths.length} context files for group ${groupId}`);
-  
+
+  console.log(
+    `[group-context] Found ${contextFilePaths.length} context files for group ${groupId}`,
+  );
+
   // Load the context files
   const groupFiles = await loadGroupContextFiles(workspaceDir, contextFilePaths);
-  
+
   // Append to bootstrap files
   if (groupFiles.length > 0 && Array.isArray(context.bootstrapFiles)) {
     context.bootstrapFiles.push(...groupFiles);

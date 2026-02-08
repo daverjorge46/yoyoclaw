@@ -73,6 +73,7 @@ python scripts/migrate_sqlite_to_postgres.py
 ## 公平性
 
 所有遊戲使用 provably fair 算法：
+
 - Server seed (hash 公開)
 - Client seed (用戶可提供)
 - Nonce (遞增)

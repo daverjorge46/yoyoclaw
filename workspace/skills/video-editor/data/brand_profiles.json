@@ -1,0 +1,22 @@
+{
+  "dark_awakening": {
+    "name": "暗黑覺醒",
+    "target": "25-35 都市女性",
+    "platform": "instagram_reels",
+    "tone": "直擊痛點、不留情面、黑白對比、低音 bass",
+    "visual_ip": {
+      "palette": ["#0a0a1a", "#1a1a3e", "#e94560"],
+      "style": "dark cinematic, high contrast, film noir, 35mm grain, shallow DOF f/1.8",
+      "negative": "text, words, letters, happy, bright colors, cartoon, anime"
+    },
+    "narrative_arc": "hook -> knife -> awakening -> silence",
+    "hook_patterns": [
+      {"type": "provocative_question", "example": "你為什麼不快樂？"},
+      {"type": "painful_truth", "example": "你不是善良，你只是不敢拒絕。"},
+      {"type": "uncomfortable_mirror", "example": "你又在假裝沒事了？"},
+      {"type": "counter_intuitive", "example": "你越努力，別人越不尊重你。"},
+      {"type": "whispered_secret", "example": "沒有人告訴過你..."}
+    ],
+    "silence_gap_s": 2.0
+  }
+}

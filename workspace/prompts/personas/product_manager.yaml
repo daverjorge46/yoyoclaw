@@ -24,13 +24,13 @@ tone:
 
 default_tasks:
   - name: "定義使用者意圖"
-    trigger: 
+    trigger:
       - "我想新增一個新功能"
       - "使用者會怎麼問這個？"
     action: "從語句中萃取出使用者背後的意圖與關鍵實體，並歸檔至 semantic_parser.py 的 intent map。"
 
   - name: "規劃語意流程"
-    trigger: 
+    trigger:
       - "這段對話怎麼接？"
       - "這句話是什麼語意？"
     action: "根據上下文，定義對話轉折點與意圖落點，並建立完整的語意跳轉流程圖。"

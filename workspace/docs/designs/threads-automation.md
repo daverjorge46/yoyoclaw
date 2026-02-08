@@ -6,23 +6,23 @@
 
 ### 來源專案
 
-| 專案 | 路徑 | 說明 |
-|------|------|------|
-| threads-playwright-publisher | `~/Documents/threads-playwright-publisher/` | 核心發布工具 |
-| threads-post | `~/Documents/threads-post/` | 完整內容管理系統 |
+| 專案                         | 路徑                                        | 說明             |
+| ---------------------------- | ------------------------------------------- | ---------------- |
+| threads-playwright-publisher | `~/Documents/threads-playwright-publisher/` | 核心發布工具     |
+| threads-post                 | `~/Documents/threads-post/`                 | 完整內容管理系統 |
 
 ### 功能對比
 
-| 功能 | threads-playwright-publisher | threads-post |
-|------|------------------------------|--------------|
-| Playwright 自動發文 | ✅ | ✅ |
-| Facebook 自動發文 | ✅ | ✅ |
-| Session 持久化 | ✅ | ✅ |
-| 反偵測（Stealth） | ✅ | ✅ |
-| Dashboard 管理 | ❌ | ✅ |
-| AI 生成貼文 | ❌ | ✅ |
-| 成效追蹤 | ❌ | ✅ |
-| MCP Server | ❌ | ✅ |
+| 功能                | threads-playwright-publisher | threads-post |
+| ------------------- | ---------------------------- | ------------ |
+| Playwright 自動發文 | ✅                           | ✅           |
+| Facebook 自動發文   | ✅                           | ✅           |
+| Session 持久化      | ✅                           | ✅           |
+| 反偵測（Stealth）   | ✅                           | ✅           |
+| Dashboard 管理      | ❌                           | ✅           |
+| AI 生成貼文         | ❌                           | ✅           |
+| 成效追蹤            | ❌                           | ✅           |
+| MCP Server          | ❌                           | ✅           |
 
 ### 核心檔案對比
 
@@ -84,6 +84,7 @@
 **位置**：`src/playwright_publisher.py`
 
 **功能**：
+
 - 初始化 Playwright 瀏覽器（支援 Firefox/WebKit/Chromium）
 - Session 持久化（`storage_state.json`）
 - 反偵測策略（playwright-stealth for Chromium）
@@ -91,6 +92,7 @@
 - 創建排程貼文（10 步驟流程）
 
 **使用方式**：
+
 ```python
 from src.playwright_publisher import PlaywrightThreadsPublisher
 from datetime import datetime, timedelta
@@ -117,23 +119,23 @@ publisher.close()
 
 **端點**：
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/health` | GET | 健康檢查 |
-| `/publish` | POST | 發布排程貼文到 Threads |
-| `/generate` | POST | 從 posts.json 生成貼文 |
-| `/sync-scheduled` | POST | 同步 Threads 排程貼文 |
-| `/scrape-home` | POST | 抓取 Threads 首頁貼文 |
+| 端點              | 方法 | 說明                   |
+| ----------------- | ---- | ---------------------- |
+| `/health`         | GET  | 健康檢查               |
+| `/publish`        | POST | 發布排程貼文到 Threads |
+| `/generate`       | POST | 從 posts.json 生成貼文 |
+| `/sync-scheduled` | POST | 同步 Threads 排程貼文  |
+| `/scrape-home`    | POST | 抓取 Threads 首頁貼文  |
 
 ### 3.3 Dashboard API (dashboard_api.py)
 
 **端點**（Port 5001）：
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/posts` | GET | 獲取所有貼文 |
-| `/api/posts/:id/feedback` | POST | 更新貼文反饋 |
-| `/api/posts/:id/schedule` | POST | 設定貼文排程 |
+| 端點                         | 方法 | 說明         |
+| ---------------------------- | ---- | ------------ |
+| `/api/posts`                 | GET  | 獲取所有貼文 |
+| `/api/posts/:id/feedback`    | POST | 更新貼文反饋 |
+| `/api/posts/:id/schedule`    | POST | 設定貼文排程 |
 | `/api/posts/:id/performance` | POST | 更新成效數據 |
 
 ---
@@ -142,15 +144,16 @@ publisher.close()
 
 ### 4.1 瀏覽器選擇
 
-| 瀏覽器 | 推薦度 | 說明 |
-|--------|--------|------|
-| Firefox | ⭐⭐⭐ | 最佳，原生較難偵測 |
-| WebKit | ⭐⭐ | Safari 引擎，備選 |
-| Chromium | ⭐ | 容易被封鎖 |
+| 瀏覽器   | 推薦度 | 說明               |
+| -------- | ------ | ------------------ |
+| Firefox  | ⭐⭐⭐ | 最佳，原生較難偵測 |
+| WebKit   | ⭐⭐   | Safari 引擎，備選  |
+| Chromium | ⭐     | 容易被封鎖         |
 
 ### 4.2 反偵測措施
 
 1. **Firefox 專用設定**
+
 ```python
 firefox_user_prefs={
     "dom.webdriver.enabled": False,
@@ -160,6 +163,7 @@ firefox_user_prefs={
 ```
 
 2. **Human-like 行為**
+
 ```python
 def human_like_delay(self, min_ms=500, max_ms=1500):
     delay = random.randint(min_ms, max_ms)
@@ -167,6 +171,7 @@ def human_like_delay(self, min_ms=500, max_ms=1500):
 ```
 
 3. **Chromium Stealth Plugin**
+
 ```python
 from playwright_stealth import stealth_sync
 stealth_sync(self.page)
@@ -214,11 +219,13 @@ stealth_sync(self.page)
 ### ✅ 可歸檔：threads-playwright-publisher
 
 **原因**：
+
 1. 所有核心功能已被 `threads-post` 包含
 2. `playwright_publisher.py` 完全相同
 3. 維護兩個重複專案會造成同步問題
 
 **歸檔步驟**：
+
 ```bash
 # 1. 確認 threads-post 可正常運作
 cd ~/Documents/threads-post
@@ -245,6 +252,7 @@ mv ~/Documents/threads-playwright-publisher ~/Documents/_archived/threads-playwr
 **路徑**：`~/clawd/skills/threads-publisher/`
 
 **結構**：
+
 ```
 threads-publisher/
 ├── SKILL.md
@@ -255,6 +263,7 @@ threads-publisher/
 ```
 
 **優點**：
+
 - 其他專案可直接引用
 - 與 threads-post 分離維護
 - 版本控制更清晰

@@ -1,0 +1,2 @@
+{"project":"bita","type":"沉默異常","severity":"medium","description":"幣塔項目所有欄位（digest、knowledge、topics）均為 null，顯示完全沒有對話或活動記錄，與 XO 項目的活躍狀態形成強烈對比。","recommendation":"檢查幣塔項目是否被意外忽略或系統記錄出現問題，確認是否有實際對話發生但未被記錄，或是否需要重新啟動該項目的監控功能。","timestamp":"2026-02-06T05:07:49.438Z"}
+{"project":"xo","type":"模式異常","severity":"low","description":"無極多次將 XO 群組錯誤關聯到幣塔項目（如 topics 中出現『可能是幣塔的代號』、『幣塔管理群』），顯示模式識別問題重複出現，儘管杜甫已明確澄清兩者無關。","recommendation":"強化無極的群組上下文辨識能力，建立群組標籤系統或屬性標記，避免跨項目混淆。可考慮在知識庫中建立更明確的群組分類規則。","timestamp":"2026-02-06T05:07:49.438Z"}

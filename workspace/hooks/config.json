@@ -1,4 +1,7 @@
 {
+  "deepseek": {
+    "apiKey": "sk-08f5d6785f59405bbae05b3b874021a1"
+  },
   "telegram": {
     "logBot": {
       "token": "8415477831:AAFeyWZS8iAPqrQxYG_e3CxDWR2IrgIxw68",

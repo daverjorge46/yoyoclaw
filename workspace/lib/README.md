@@ -5,9 +5,11 @@
 ## 模組列表
 
 ### memory_manager.py
+
 **來源**: `thinker-monorepo/thinker-cli/core/memory.py`
 
 Markdown 格式的記憶管理器，支援：
+
 - 短期記憶 / 長期記憶的雙層結構
 - 自動載入和解析 markdown 記憶檔
 - 記憶條目的新增和儲存
@@ -22,9 +24,11 @@ stats = manager.get_memory_stats()
 ```
 
 ### persona_loader.py
+
 **來源**: `thinker-monorepo/thinker-cli/core/persona.py`
 
 YAML 格式的 AI 角色載入器，支援：
+
 - 載入和驗證 persona 配置
 - 自動生成 System Prompt
 - 根據角色偏好過濾記憶
@@ -39,9 +43,11 @@ tips = loader.get_interaction_tips()
 ```
 
 ### scene_router.py
+
 **來源**: `thinker-monorepo/thinker-cli/scene_router.py`
 
 模組化的場景路由系統，支援：
+
 - YAML 註冊表管理
 - 動態模組載入
 - 場景搜尋和資訊查詢
@@ -70,11 +76,11 @@ result = router.route_to_scene("vigor_space", context={})
 
 ## 萃取來源
 
-| 模組 | 原始專案 | 原始路徑 |
-|------|----------|----------|
-| memory_manager.py | thinker-monorepo | thinker-cli/core/memory.py |
+| 模組              | 原始專案         | 原始路徑                    |
+| ----------------- | ---------------- | --------------------------- |
+| memory_manager.py | thinker-monorepo | thinker-cli/core/memory.py  |
 | persona_loader.py | thinker-monorepo | thinker-cli/core/persona.py |
-| scene_router.py | thinker-monorepo | thinker-cli/scene_router.py |
+| scene_router.py   | thinker-monorepo | thinker-cli/scene_router.py |
 
 ## 待萃取
 

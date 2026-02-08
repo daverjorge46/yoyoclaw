@@ -15,18 +15,21 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 ## Prompt Examples
 
 **Price queries:**
+
 - "What's the price of ETH?"
 - "How much is Bitcoin worth?"
 - "Current price of BNKR"
 - "Price of SOL in USD"
 
 **Market data:**
+
 - "Show me ETH market data"
 - "What's the market cap of BNKR?"
 - "Trading volume for Bitcoin"
 - "SOL fully diluted valuation"
 
 **Technical analysis:**
+
 - "Do technical analysis on ETH"
 - "Show RSI for Bitcoin"
 - "Is ETH overbought?"
@@ -34,23 +37,27 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 - "Moving averages for SOL"
 
 **Sentiment analysis:**
+
 - "What's the sentiment on ETH?"
 - "Is the community bullish on SOL?"
 - "Twitter sentiment for PEPE"
 - "Social metrics for DOGE"
 
 **Charts:**
+
 - "Show me ETH price chart"
 - "Generate BTC chart for last week"
 - "30-day price chart for BNKR"
 
 **Discovery:**
+
 - "What tokens are trending?"
 - "Show top gainers today"
 - "Top losers in the last 24 hours"
 - "New tokens on Base"
 
 **Comparisons:**
+
 - "Compare ETH vs SOL"
 - "Which is better: MATIC or ARB?"
 - "Show differences between UNI and AAVE"
@@ -58,12 +65,14 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 ## Data Available
 
 ### Price Data
+
 - Current USD price
 - 24h / 7d / 30d change
 - All-time high/low
 - Historical prices
 
 ### Market Metrics
+
 - Market cap
 - Fully diluted valuation (FDV)
 - 24h trading volume
@@ -73,6 +82,7 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 - Number of holders
 
 ### Technical Indicators
+
 - RSI (Relative Strength Index)
 - MACD (Moving Average Convergence Divergence)
 - Moving averages (50-day, 200-day)
@@ -81,6 +91,7 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 - Volume analysis
 
 ### Social Metrics
+
 - Twitter mentions
 - Community sentiment
 - Social volume
@@ -89,6 +100,7 @@ Research tokens and analyze market data using Bankr's AI-powered analysis.
 ## Supported Chains
 
 Token research works across:
+
 - Base
 - Polygon
 - Ethereum
@@ -98,6 +110,7 @@ Token research works across:
 ## Token Search
 
 Find tokens by name, symbol, or address:
+
 - "Search for BNKR token"
 - "Find tokens called Bankr"
 - "What is the contract for PEPE on Base?"
@@ -106,16 +119,19 @@ Find tokens by name, symbol, or address:
 ## Use Cases
 
 **Before trading:**
+
 - Check current price and trends
 - Analyze technical indicators
 - Review sentiment
 
 **Investment research:**
+
 - Compare similar tokens
 - Check market cap and volume
 - Review holder distribution
 
 **Market monitoring:**
+
 - Track trending tokens
 - Find top gainers/losers
 - Monitor sentiment shifts

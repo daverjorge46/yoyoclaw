@@ -12,13 +12,13 @@
 
 Mimi 在使用 flipflop-travel 管理旅行團時，提出以下需求：
 
-| # | 需求 | 優先級 | 痛點 |
-|---|------|--------|------|
-| 1 | **批次套用費用** | 🔴 最高 | 「最麻煩就是一個一個填」 |
-| 2 | 新增「簽證」欄位 | 🟡 高 | 常用費用項目 |
-| 3 | 新增「票券」欄位 | 🟡 高 | 門票/樂園票/JR Pass 等 |
-| 4 | 旅行團按日期排序 | 🟢 中 | 快到的排前面 |
-| 5 | 行程表分享優化 | 🟢 中 | 目前要手動丟連結進 LINE |
+| #   | 需求             | 優先級  | 痛點                     |
+| --- | ---------------- | ------- | ------------------------ |
+| 1   | **批次套用費用** | 🔴 最高 | 「最麻煩就是一個一個填」 |
+| 2   | 新增「簽證」欄位 | 🟡 高   | 常用費用項目             |
+| 3   | 新增「票券」欄位 | 🟡 高   | 門票/樂園票/JR Pass 等   |
+| 4   | 旅行團按日期排序 | 🟢 中   | 快到的排前面             |
+| 5   | 行程表分享優化   | 🟢 中   | 目前要手動丟連結進 LINE  |
 
 **團規模**：5-15 人/團
 
@@ -28,18 +28,19 @@ Mimi 在使用 flipflop-travel 管理旅行團時，提出以下需求：
 
 ### ① 費用明細新增兩項
 
-| 現有項目 | 新增項目 |
-|----------|----------|
-| ✈️ 機票 | 🛂 **簽證** |
-| 🏨 住宿 | 🎫 **票券** |
-| 🚐 包車 | |
-| 📱 網卡 | |
+| 現有項目 | 新增項目    |
+| -------- | ----------- |
+| ✈️ 機票  | 🛂 **簽證** |
+| 🏨 住宿  | 🎫 **票券** |
+| 🚐 包車  |             |
+| 📱 網卡  |             |
 
 ### ② 新功能：一鍵套用預設金額
 
 **入口**：團務管理頁面新增「📝 設定預設費用」按鈕
 
 **使用流程**：
+
 1. 點「設定預設費用」
 2. 填入這團的標準金額（機票/住宿/包車/網卡/簽證/票券）
 3. 按「套用到全部團員」
@@ -53,6 +54,7 @@ Mimi 在使用 flipflop-travel 管理旅行團時，提出以下需求：
 ## 技術規格（給 Cruz）
 
 ### 專案資訊
+
 - **Repo 路徑**：`/home/node/Documents/flipflop-travel`
 - **部署位置**：`flipflop-travel-rosy.vercel.app`
 - **技術棧**：React 19 + Vite + Vercel Serverless + PostgreSQL (Neon)
@@ -61,29 +63,33 @@ Mimi 在使用 flipflop-travel 管理旅行團時，提出以下需求：
 
 ```sql
 -- 新增簽證和票券欄位
-ALTER TABLE members 
+ALTER TABLE members
   ADD COLUMN visa_amount INTEGER DEFAULT 0,
   ADD COLUMN voucher_amount INTEGER DEFAULT 0;
 ```
 
 **執行方式**：
+
 - 路線 A（建議）：`psql "$POSTGRES_URL" -c "ALTER TABLE ..."`
 - 路線 B：Neon Console 手動執行
 
 ### 後端 API 修改
 
 #### 1. `api/members/update.js`（PUT）
+
 - request body 新增：`visaAmount`, `voucherAmount`
 - 總額計算：加入 visa + voucher
 - SQL UPDATE：加入 `visa_amount`, `voucher_amount`
 - response：回傳新欄位
 
 #### 2. `api/members/list.js`（GET）
+
 - SELECT 多撈：`m.visa_amount`, `m.voucher_amount`
 - 回傳 members 加入：`visaAmount`, `voucherAmount`
 - `calculatedTotal` 計算納入新欄位
 
 #### 3. `api/members/my_status.js`（GET）
+
 - SELECT 多撈新欄位
 - categories 陣列新增：
   - `{ name: '簽證', emoji: '🛂', amount, status }`
@@ -95,6 +101,7 @@ ALTER TABLE members
 #### `api/members/batch_update.js`（POST）
 
 **Request Body**：
+
 ```json
 {
   "tripId": "uuid",
@@ -108,15 +115,17 @@ ALTER TABLE members
 ```
 
 **行為**：
+
 - 驗證 admin 權限
 - UPDATE 該 tripId 下所有 members 的費用欄位
 - 不動 `paid_amount` / `status`（避免覆蓋已繳費狀態）
 - 回傳更新筆數
 
 **SQL 範例**：
+
 ```sql
-UPDATE members 
-SET 
+UPDATE members
+SET
   flight_amount = $1,
   hotel_amount = $2,
   transport_amount = $3,
@@ -131,18 +140,22 @@ WHERE trip_id = $7
 ### 前端修改
 
 #### 1. `src/components/members/EditMemberForm.jsx`
+
 - state 新增：`visaAmount`, `voucherAmount`
 - UI 新增兩個輸入框（🛂 簽證、🎫 票券）
 - 總額計算加入新欄位
 
 #### 2. `src/components/members/MemberCard.jsx`
+
 - 顯示新欄位（如有顯示費用明細）
 
 #### 3. `src/pages/TripManagePage.jsx`
+
 - 新增「📝 設定預設費用」按鈕
 - 引入 BatchFeeForm Modal
 
 #### 4. 新增 `src/components/members/BatchFeeForm.jsx`
+
 - 預設費用表單元件
 - 6 個費用輸入框
 - 「套用到全部團員」按鈕
@@ -176,9 +189,11 @@ WHERE trip_id = $7
 **需求來源**：Mimi（2026-02-05 追加）
 
 ### 產品說明
+
 旅行團列表改為按「出發日期」排序，**最近要出發的排最上面**。
 
 改完後看到的順序：
+
 ```
 🔜 2/15 日本團 ← 最近的
 📅 3/01 韓國團
@@ -188,13 +203,15 @@ WHERE trip_id = $7
 ### 技術規格
 
 **影響檔案**：
+
 - `api/trips/list.js`（Admin）
 - `api/trips/my_list.js`（團員）
 
 **SQL 改動**：
+
 ```sql
 -- 建議：未出發的按日期升冪，已結束的排最後
-ORDER BY 
+ORDER BY
   CASE WHEN start_date < CURRENT_DATE THEN 1 ELSE 0 END,
   start_date ASC
 ```
@@ -206,11 +223,14 @@ ORDER BY
 **需求來源**：Mimi（2026-02-05 追加）
 
 ### 產品說明
+
 目前 Mimi 要分享行程表給團員，需要：
+
 1. 手動複製連結
 2. 貼到 LINE 群組
 
 **優化方案**：
+
 - 在「團務管理」頁面加一個「📤 分享行程」按鈕
 - 點擊後產生該團專屬短連結 + 複製到剪貼簿
 - 或直接觸發 LINE 分享（如果 LIFF 支援）
@@ -218,11 +238,13 @@ ORDER BY
 ### 技術規格
 
 **方案 A（簡單版）**：
+
 - 前端加「複製連結」按鈕
 - 連結格式：`https://flipflop-travel-rosy.vercel.app/?tripId=xxx&view=itinerary`
 - 使用 `navigator.clipboard.writeText()` 複製
 
 **方案 B（進階版）**：
+
 - 使用 LIFF `liff.shareTargetPicker()` 直接分享到 LINE 聊天
 - 需要在 LINE Developers Console 開啟相關權限
 
@@ -243,10 +265,12 @@ ORDER BY
 ## 完整改動清單
 
 ### 資料庫
+
 - [ ] `members` 表新增 `visa_amount` 欄位
 - [ ] `members` 表新增 `voucher_amount` 欄位
 
 ### 後端 API
+
 - [ ] `api/members/update.js` - 支援新欄位
 - [ ] `api/members/list.js` - 回傳新欄位
 - [ ] `api/members/my_status.js` - categories 加新項目
@@ -255,6 +279,7 @@ ORDER BY
 - [ ] `api/trips/my_list.js` - 按 start_date 排序
 
 ### 前端
+
 - [ ] `EditMemberForm.jsx` - 加簽證/票券輸入框
 - [ ] `MemberCard.jsx` - 顯示新欄位
 - [ ] `TripManagePage.jsx` - 加「設定預設費用」按鈕
@@ -263,4 +288,4 @@ ORDER BY
 
 ---
 
-*此規格由無極整理，等待 Cruz 在另一個 session 批准後執行。*
+_此規格由無極整理，等待 Cruz 在另一個 session 批准後執行。_

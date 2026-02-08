@@ -9,47 +9,47 @@
 
 ## ⏳ 時間線
 
-| 時期 | 專案 | Origin | 說明 |
-|------|------|--------|------|
-| **2020** | Pomodoro-Countdown | hellomayuko | 🔗 第三方 clone（番茄鐘） |
-| **2020** | openai-python | openai | 🔗 官方 SDK clone |
-| **2024 Q3** | Tesla | tangcruz | 🚗 Tesla Telegram 機器人 |
-| **2024 Q4** | LINEBOT | tangcruz/ai-assistant | 💬 思考者咖啡 LINE BOT |
-| **2025 Q1** | OpenManus | mannaandpoem | 🔗 第三方 AI Agent 框架 |
-| **2025 Q2** | weaviate_service | tangcruz | 🧠 向量資料庫服務 |
-| **2025 Q2** | ziwei-astrology-system | ThinkerCafe-tw | ⭐ 紫微斗數系統**始祖** |
-| **2025 Q2** | minli_demo_only | tangcruz | 📋 紫微 demo 分支 |
-| **2025 Q2** | minli_demo2_cruz | ThinkerCafe-tw | 📋 紫微 demo 分支 2 |
-| **2025 Q2** | minli_demo2_cruz-1 | ThinkerCafe-tw | 📋 紫微 demo 分支 2 副本 |
-| **2025 Q2** | mingli-backend | ThinkerCafe-tw | 🖥️ 紫微後端服務 |
-| **2025 Q2** | builder-governance | ThinkerCafe-tw | 📘 加薪制度治理系統 |
-| **2025 Q2** | field-rhythm-kit | ThinkerCafe-tw | 🧠 語場節奏治理系統 |
-| **2025 Q2** | zen-mcp-server | BeehiveInnovations | 🔗 第三方 MCP Server |
-| **2025 Q2** | workplace-data-lake | ThinkerCafe-tw | 🏢 職場數據湖 |
-| **2025 Q2** | conversation | ThinkerCafe-tw | 💬 對話記錄系統 |
-| **2025 Q2** | kiro_sentry | conversation fork | 🌊 頻率共振廣播 |
-| **2025 Q2** | prompt_library | 無 remote | 📚 提示詞庫 |
-| **2025 Q2** | persona_cruz_ai | ThinkerCafe-tw | 🎭 Cruz AI 人格 |
-| **2025 Q3** | thinker_official_website | ThinkerCafe-tw | 🌐 官網 Next.js |
-| **2025 Q3** | fetc | ThinkerCafe-tw | 🚗 遠通電收爬蟲 |
-| **2025 Q3** | fetc_webapp | tangcruz/fetc | 📱 FETC Web App |
-| **2025 Q3** | thinker-news | ThinkerCafe-tw | 📰 每日新聞生成 |
-| **2025 Q4** | paomateng | ThinkerCafe-tw | 🚂 台鐵消息監控 |
-| **2025 Q4** | maryos | ThinkerCafe-tw | 👩 Mary OS（另一個 Agent） |
-| **2025 Q4** | threads-playwright-publisher | ThinkerCafe-tw | 🧵 Threads 自動發布 |
-| **2025 Q4** | threads-post | ThinkerCafe-tw | 🧵 Threads 內容管理 |
-| **2025 Q4** | thai-speed-tour-liff | ThinkerCafe-tw | 🇹🇭 泰國旅遊 LIFF |
-| **2025 Q4** | flipflop-travel | ThinkerCafe-tw | 🩴 FlipFlop 旅遊 LIFF |
-| **2025 Q4** | 24bet | ThinkerCafe-tw | 🎰 24Bet 知識圖譜 |
-| **2025 Q4** | ai-social-6weeks | ThinkerCafe-tw | 📱 AI 社群 6 週課程 |
-| **2025 Q4** | burp | ThinkerCafe-tw | 🔐 Burp 相關 |
-| **2025 Q4** | HumanOS | ThinkerCafe-tw | 🧬 人類作業系統 |
-| **2025 Q4** | memory | ThinkerCafe-tw | 🧠 Cognee 記憶 API |
-| **2025 Q4** | company_scrawler | ThinkerCafe-tw | 🏢 公司爬蟲 |
-| **2025 Q4** | report_aut_tg | gitlab.facaitools | 📊 **工作** 日報 Bot |
-| **2026 Q1** | two | ThinkerCafe-tw/BG | 🎲 BG666 工作專區 |
-| **2026 Q1** | 幣塔 | 無 remote | 🏦 幣塔客服知識庫 |
-| **2026 Q1** | iPAS | ThinkerCafe-tw | 📝 iPAS 題庫生成 |
+| 時期        | 專案                         | Origin                | 說明                       |
+| ----------- | ---------------------------- | --------------------- | -------------------------- |
+| **2020**    | Pomodoro-Countdown           | hellomayuko           | 🔗 第三方 clone（番茄鐘）  |
+| **2020**    | openai-python                | openai                | 🔗 官方 SDK clone          |
+| **2024 Q3** | Tesla                        | tangcruz              | 🚗 Tesla Telegram 機器人   |
+| **2024 Q4** | LINEBOT                      | tangcruz/ai-assistant | 💬 思考者咖啡 LINE BOT     |
+| **2025 Q1** | OpenManus                    | mannaandpoem          | 🔗 第三方 AI Agent 框架    |
+| **2025 Q2** | weaviate_service             | tangcruz              | 🧠 向量資料庫服務          |
+| **2025 Q2** | ziwei-astrology-system       | ThinkerCafe-tw        | ⭐ 紫微斗數系統**始祖**    |
+| **2025 Q2** | minli_demo_only              | tangcruz              | 📋 紫微 demo 分支          |
+| **2025 Q2** | minli_demo2_cruz             | ThinkerCafe-tw        | 📋 紫微 demo 分支 2        |
+| **2025 Q2** | minli_demo2_cruz-1           | ThinkerCafe-tw        | 📋 紫微 demo 分支 2 副本   |
+| **2025 Q2** | mingli-backend               | ThinkerCafe-tw        | 🖥️ 紫微後端服務            |
+| **2025 Q2** | builder-governance           | ThinkerCafe-tw        | 📘 加薪制度治理系統        |
+| **2025 Q2** | field-rhythm-kit             | ThinkerCafe-tw        | 🧠 語場節奏治理系統        |
+| **2025 Q2** | zen-mcp-server               | BeehiveInnovations    | 🔗 第三方 MCP Server       |
+| **2025 Q2** | workplace-data-lake          | ThinkerCafe-tw        | 🏢 職場數據湖              |
+| **2025 Q2** | conversation                 | ThinkerCafe-tw        | 💬 對話記錄系統            |
+| **2025 Q2** | kiro_sentry                  | conversation fork     | 🌊 頻率共振廣播            |
+| **2025 Q2** | prompt_library               | 無 remote             | 📚 提示詞庫                |
+| **2025 Q2** | persona_cruz_ai              | ThinkerCafe-tw        | 🎭 Cruz AI 人格            |
+| **2025 Q3** | thinker_official_website     | ThinkerCafe-tw        | 🌐 官網 Next.js            |
+| **2025 Q3** | fetc                         | ThinkerCafe-tw        | 🚗 遠通電收爬蟲            |
+| **2025 Q3** | fetc_webapp                  | tangcruz/fetc         | 📱 FETC Web App            |
+| **2025 Q3** | thinker-news                 | ThinkerCafe-tw        | 📰 每日新聞生成            |
+| **2025 Q4** | paomateng                    | ThinkerCafe-tw        | 🚂 台鐵消息監控            |
+| **2025 Q4** | maryos                       | ThinkerCafe-tw        | 👩 Mary OS（另一個 Agent） |
+| **2025 Q4** | threads-playwright-publisher | ThinkerCafe-tw        | 🧵 Threads 自動發布        |
+| **2025 Q4** | threads-post                 | ThinkerCafe-tw        | 🧵 Threads 內容管理        |
+| **2025 Q4** | thai-speed-tour-liff         | ThinkerCafe-tw        | 🇹🇭 泰國旅遊 LIFF           |
+| **2025 Q4** | flipflop-travel              | ThinkerCafe-tw        | 🩴 FlipFlop 旅遊 LIFF      |
+| **2025 Q4** | 24bet                        | ThinkerCafe-tw        | 🎰 24Bet 知識圖譜          |
+| **2025 Q4** | ai-social-6weeks             | ThinkerCafe-tw        | 📱 AI 社群 6 週課程        |
+| **2025 Q4** | burp                         | ThinkerCafe-tw        | 🔐 Burp 相關               |
+| **2025 Q4** | HumanOS                      | ThinkerCafe-tw        | 🧬 人類作業系統            |
+| **2025 Q4** | memory                       | ThinkerCafe-tw        | 🧠 Cognee 記憶 API         |
+| **2025 Q4** | company_scrawler             | ThinkerCafe-tw        | 🏢 公司爬蟲                |
+| **2025 Q4** | report_aut_tg                | gitlab.facaitools     | 📊 **工作** 日報 Bot       |
+| **2026 Q1** | two                          | ThinkerCafe-tw/BG     | 🎲 BG666 工作專區          |
+| **2026 Q1** | 幣塔                         | 無 remote             | 🏦 幣塔客服知識庫          |
+| **2026 Q1** | iPAS                         | ThinkerCafe-tw        | 📝 iPAS 題庫生成           |
 
 ---
 
@@ -206,6 +206,7 @@ LINE LIFF 旅遊應用
 ## 🔗 代碼依賴圖
 
 ### Python 專案共同依賴
+
 ```
 常用 imports (出現次數)：
 ├── os (68)
@@ -222,6 +223,7 @@ LINE LIFF 旅遊應用
 ```
 
 ### 專案間依賴
+
 ```
 telegram_client_controller (內部模組)
     └── 被 4 個專案引用
@@ -242,59 +244,60 @@ ziwei-astrology-system (算法核心)
 
 以下專案沒有明顯的家族關係：
 
-| 專案 | 說明 | 狀態 |
-|------|------|------|
-| 9527 | 不明 | 🔍 需調查 |
-| Cline | 不明 | 🔍 需調查 |
-| DJ | DJ 相關 | 空 |
-| Diafaan | SMS 軟體 | 工具 |
-| GoogleAuth | 認證相關 | 工具 |
-| ITRI_AI_Course | 工研院課程 | 學習 |
-| Interview | 面試相關 | 人資 |
-| KidsEdu | 兒童教育 | 側專案 |
-| Kilo-Code | 不明 | 🔍 需調查 |
-| OBS_profile | OBS 設定 | 配置 |
-| Obsidian Vault | Obsidian 筆記 | 個人 |
-| Pionex | 派網量化 | 投資 |
-| PlayWrightDocker | Playwright 容器 | 工具 |
-| Podcast | Podcast 相關 | 內容 |
-| Skills-Vault | 技能庫 | 個人 |
-| SlackAI | Slack AI | 側專案 |
-| Topvan | 拓凡 | 工作？ |
-| WorkWiseBot | 工作機器人 | 側專案 |
-| agentsSDK | Agent SDK | 學習 |
-| burp | Burp Suite | 安全 |
-| desktop | AI 桌面守衛 | 實驗 |
-| hr-tmp | HR 暫存 | 暫存 |
-| n8n_API | n8n API | 工具 |
-| obs_mcp_servcer | OBS MCP | 工具 |
-| openai-tts-tool | TTS 工具 | 工具 |
-| parking | 停車相關 | 側專案 |
-| pyauto | PyAutoGUI | 工具 |
-| qa-bot | QA Bot | 側專案 |
-| wuji | 無極？ | 🔍 需調查 |
-| 上下班紀錄 | 打卡 | 工作 |
-| 匹配發放名單 | 名單 | 工作 |
-| 命題文件-湯明軒 | 命題 | 工作 |
-| 報價單 | 報價 | 工作 |
-| 工廠進存銷 | 進銷存 | 工作 |
-| 應聘者履歷 | 履歷 | 人資 |
-| 我獨自升級 | 小說？漫畫？ | 個人 |
-| 量子隨機數 | 量子 RNG | 實驗 |
+| 專案             | 說明            | 狀態      |
+| ---------------- | --------------- | --------- |
+| 9527             | 不明            | 🔍 需調查 |
+| Cline            | 不明            | 🔍 需調查 |
+| DJ               | DJ 相關         | 空        |
+| Diafaan          | SMS 軟體        | 工具      |
+| GoogleAuth       | 認證相關        | 工具      |
+| ITRI_AI_Course   | 工研院課程      | 學習      |
+| Interview        | 面試相關        | 人資      |
+| KidsEdu          | 兒童教育        | 側專案    |
+| Kilo-Code        | 不明            | 🔍 需調查 |
+| OBS_profile      | OBS 設定        | 配置      |
+| Obsidian Vault   | Obsidian 筆記   | 個人      |
+| Pionex           | 派網量化        | 投資      |
+| PlayWrightDocker | Playwright 容器 | 工具      |
+| Podcast          | Podcast 相關    | 內容      |
+| Skills-Vault     | 技能庫          | 個人      |
+| SlackAI          | Slack AI        | 側專案    |
+| Topvan           | 拓凡            | 工作？    |
+| WorkWiseBot      | 工作機器人      | 側專案    |
+| agentsSDK        | Agent SDK       | 學習      |
+| burp             | Burp Suite      | 安全      |
+| desktop          | AI 桌面守衛     | 實驗      |
+| hr-tmp           | HR 暫存         | 暫存      |
+| n8n_API          | n8n API         | 工具      |
+| obs_mcp_servcer  | OBS MCP         | 工具      |
+| openai-tts-tool  | TTS 工具        | 工具      |
+| parking          | 停車相關        | 側專案    |
+| pyauto           | PyAutoGUI       | 工具      |
+| qa-bot           | QA Bot          | 側專案    |
+| wuji             | 無極？          | 🔍 需調查 |
+| 上下班紀錄       | 打卡            | 工作      |
+| 匹配發放名單     | 名單            | 工作      |
+| 命題文件-湯明軒  | 命題            | 工作      |
+| 報價單           | 報價            | 工作      |
+| 工廠進存銷       | 進銷存          | 工作      |
+| 應聘者履歷       | 履歷            | 人資      |
+| 我獨自升級       | 小說？漫畫？    | 個人      |
+| 量子隨機數       | 量子 RNG        | 實驗      |
 
 ---
 
 ## 📊 統計摘要
 
-| 分類 | 數量 |
-|------|------|
-| **ThinkerCafe-tw 專案** | 28 |
-| **tangcruz 專案** | 6 |
-| **第三方 clone** | 4 |
-| **工作專案** | 5 |
-| **無 Git 專案** | 約 100+ |
+| 分類                    | 數量    |
+| ----------------------- | ------- |
+| **ThinkerCafe-tw 專案** | 28      |
+| **tangcruz 專案**       | 6       |
+| **第三方 clone**        | 4       |
+| **工作專案**            | 5       |
+| **無 Git 專案**         | 約 100+ |
 
 ### 組織分布
+
 ```
 ThinkerCafe-tw ████████████████████████████ 70%
 tangcruz       ██████ 15%
@@ -303,6 +306,7 @@ tangcruz       ██████ 15%
 ```
 
 ### 活躍度（按最近 commit）
+
 ```
 2026 Q1: two, 幣塔, iPAS (最活躍)
 2025 Q4: 大量專案
@@ -321,6 +325,7 @@ tangcruz       ██████ 15%
 6. **孤兒眾多**：約 30+ 專案沒有明顯歸屬
 
 ### 建議行動
+
 - [ ] 合併紫微家族重複專案
 - [ ] 填充 HumanOS 內容
 - [ ] 清理孤兒專案（刪除或歸類）
@@ -329,4 +334,4 @@ tangcruz       ██████ 15%
 
 ---
 
-*此族譜由帝國考古學家於 2026-02-04 編撰*
+_此族譜由帝國考古學家於 2026-02-04 編撰_

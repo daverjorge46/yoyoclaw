@@ -3,6 +3,7 @@
 > 語音錄音 → 多平台內容產線
 
 ## 🎯 目標
+
 把杜甫的隨口錄音變成多種內容形式，最大化每段素材的價值。
 
 ---
@@ -31,23 +32,24 @@
 
 ## 🔧 技術能力盤點
 
-| 步驟 | 工具 | 狀態 |
-|------|------|------|
-| 語音轉文字 | OpenAI Whisper API | ✅ 可用 |
-| 文字整理/摘要 | Claude | ✅ 可用 |
-| 金句提取 | Claude | ✅ 可用 |
-| 音頻切割 | ffmpeg | ✅ 可用 |
-| 降噪 | ffmpeg (highpass/lowpass) | ⚠️ 基礎可用 |
-| 音量正規化 | ffmpeg (loudnorm) | ✅ 可用 |
-| 加配樂/開場 | ffmpeg (amerge/overlay) | ✅ 可用 |
-| Podcast 上架 | Spotify/Apple API 或手動 | 📋 待研究 |
-| Threads 發文 | 手動（無 API）| ⚠️ 需瀏覽器自動化 |
+| 步驟          | 工具                      | 狀態              |
+| ------------- | ------------------------- | ----------------- |
+| 語音轉文字    | OpenAI Whisper API        | ✅ 可用           |
+| 文字整理/摘要 | Claude                    | ✅ 可用           |
+| 金句提取      | Claude                    | ✅ 可用           |
+| 音頻切割      | ffmpeg                    | ✅ 可用           |
+| 降噪          | ffmpeg (highpass/lowpass) | ⚠️ 基礎可用       |
+| 音量正規化    | ffmpeg (loudnorm)         | ✅ 可用           |
+| 加配樂/開場   | ffmpeg (amerge/overlay)   | ✅ 可用           |
+| Podcast 上架  | Spotify/Apple API 或手動  | 📋 待研究         |
+| Threads 發文  | 手動（無 API）            | ⚠️ 需瀏覽器自動化 |
 
 ---
 
 ## 📦 素材管理
 
 ### 目錄結構
+
 ```
 ~/clawd/podcast/
 ├── raw/              # 原始錄音
@@ -60,6 +62,7 @@
 ```
 
 ### metadata.json 格式
+
 ```json
 {
   "recordings": [
@@ -83,11 +86,14 @@
 ## 🔄 跟進機制
 
 ### 1. 自動觸發
+
 - **語音進來** → 自動轉文字 → 存入 `podcast/raw/` + `podcast/transcripts/`
 - **每週一心跳** → 檢查未處理的素材，提醒杜甫
 
 ### 2. HEARTBEAT 整合
+
 在 HEARTBEAT.md 加入：
+
 ```
 ### Podcast 素材檢查（每週一次）
 - 檢查 podcast/raw/ 有無新素材未處理
@@ -96,13 +102,15 @@
 ```
 
 ### 3. 指令觸發
-| 指令 | 功能 |
-|------|------|
-| `/podcast status` | 素材統計：幾段、總時長、待處理 |
-| `/podcast process <id>` | 處理指定錄音（轉文字+整理+切段）|
-| `/podcast compile` | 把選定片段合成一集 |
+
+| 指令                    | 功能                             |
+| ----------------------- | -------------------------------- |
+| `/podcast status`       | 素材統計：幾段、總時長、待處理   |
+| `/podcast process <id>` | 處理指定錄音（轉文字+整理+切段） |
+| `/podcast compile`      | 把選定片段合成一集               |
 
 ### 4. 專案追蹤
+
 加入 PROJECT_REGISTRY.md，每次心跳輪值時可推進。
 
 ---
@@ -110,6 +118,7 @@
 ## 📅 階段規劃
 
 ### Phase 1：素材收集 + 自動轉文字（本週）
+
 - [x] Whisper API 轉文字驗證
 - [ ] 建立 `podcast/` 目錄結構
 - [ ] 第一段素材歸檔（剛才的語音）
@@ -117,16 +126,19 @@
 - [ ] HEARTBEAT.md 加入 podcast 檢查
 
 ### Phase 2：文字產線（下週）
+
 - [ ] 逐字稿 → 文章整理模板
 - [ ] 金句提取 → Threads 發文格式
 - [ ] 測試一輪完整流程
 
 ### Phase 3：音頻產線（第三週）
+
 - [ ] 設計開場/結尾模板音效
 - [ ] ffmpeg 音頻處理 pipeline
 - [ ] 合成第一集測試版
 
 ### Phase 4：上架 + 自動化（第四週）
+
 - [ ] 選定 Podcast 平台（Spotify for Podcasters / Apple）
 - [ ] 上架流程自動化
 - [ ] 端到端測試
@@ -143,4 +155,4 @@
 
 ---
 
-*Last updated: 2026-02-01*
+_Last updated: 2026-02-01_

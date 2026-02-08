@@ -10,16 +10,19 @@ description: 老領班風控偵測系統 - 數據抓取 → AI 推理 → 老領
 ## 🎯 核心功能
 
 ### 1. 風控偵測 SQL
+
 - **極速重複注單**：同一秒內下注多筆（腳本特徵）
 - **整數大額下注**：打水團隊特徵（5000, 10000 等整數）
 - **充提轉化分析**：Matomo 點擊 vs 實際入帳對比
 
 ### 2. Matomo 漏斗追蹤
+
 - 充值按鈕點擊數
 - 實際成功充值數
 - 轉化率分析
 
 ### 3. AI 老領班點評
+
 - 江湖口吻分析
 - 直接點名異常 ID
 - 盤口貓膩偵測
@@ -66,6 +69,7 @@ python /home/node/clawd/skills/boss-eye/boss_eye.py
 ## 🔧 技術架構
 
 ### 數據層
+
 ```python
 # BG666 數據庫
 - Host: bg666-market-readonly.czsks2mguhd5.ap-south-1.rds.amazonaws.com
@@ -79,6 +83,7 @@ python /home/node/clawd/skills/boss-eye/boss_eye.py
 ```
 
 ### AI 推理層
+
 ```python
 # 老領班提示詞模板
 """
@@ -98,6 +103,7 @@ python /home/node/clawd/skills/boss-eye/boss_eye.py
 ```
 
 ### 輸出層
+
 - Telegram 私密頻道推送
 - 本地日誌記錄
 - JSON 格式數據存儲
@@ -121,6 +127,7 @@ boss-eye/
 ## 🔗 與現有系統整合
 
 ### 1. 使用現有 bg666-db 連線
+
 ```python
 # 重用現有的查詢工具
 from skills.bg666-db.scripts.query import BG666Query
@@ -128,18 +135,21 @@ from skills.bg666-db.scripts.matomo import MatomoQuery
 ```
 
 ### 2. 整合 Telegram 推送
+
 ```python
 # 使用現有的 tg.py
 from skills.bg666-db.scripts.tg import send_to_channel
 ```
 
 ### 3. 與 daily_report 系統結合
+
 - 風控數據納入每日報告
 - 異常警報即時推送
 
 ## ⚙️ 配置說明
 
 ### 數據庫配置 (config/database.yaml)
+
 ```yaml
 bg666:
   host: "bg666-market-readonly.czsks2mguhd5.ap-south-1.rds.amazonaws.com"
@@ -159,11 +169,12 @@ matomo:
 ```
 
 ### Telegram 配置 (config/telegram.yaml)
+
 ```yaml
 channels:
-  boss_report: "-1001234567890"  # 老領班私密頻道
-  data_team: "-1003337225655"    # 數據需求群
-  daily_report: "-5173465395"    # 數據日報群
+  boss_report: "-1001234567890" # 老領班私密頻道
+  data_team: "-1003337225655" # 數據需求群
+  daily_report: "-5173465395" # 數據日報群
 
 bot_token: "{{ENV:TELEGRAM_BOT_TOKEN}}"
 ```
@@ -171,16 +182,19 @@ bot_token: "{{ENV:TELEGRAM_BOT_TOKEN}}"
 ## 🚨 異常處理
 
 ### 1. 數據庫連線失敗
+
 - 自動重試機制
 - ZeroTier 網絡檢查
 - SSH tunnel 健康檢查
 
 ### 2. AI 推理失敗
+
 - 備用模板輸出
 - 原始數據回退
 - 錯誤日誌記錄
 
 ### 3. Telegram 推送失敗
+
 - 本地日誌備份
 - 郵件通知備援
 - 重試隊列機制
@@ -188,16 +202,19 @@ bot_token: "{{ENV:TELEGRAM_BOT_TOKEN}}"
 ## 📈 進階功能
 
 ### 1. 自學習風控規則
+
 - 異常模式自動標記
 - 規則庫動態更新
 - 誤報率優化
 
 ### 2. 實時警報系統
+
 - Webhook 觸發
 - 頻率控制
 - 警報升級機制
 
 ### 3. 數據可視化
+
 - 風險熱力圖
 - 時間序列分析
 - 玩家畫像構建
@@ -205,22 +222,27 @@ bot_token: "{{ENV:TELEGRAM_BOT_TOKEN}}"
 ## 👥 使用場景
 
 ### 運營團隊
+
 - 實時監控盤口異常
 - 快速鎖定風險玩家
 - 優化充值通道
 
 ### 風控團隊
+
 - 自動化風險偵測
 - 數據驅動決策
 - 規則驗證與優化
 
 ### 管理層
+
 - 每日風控簡報
 - 關鍵指標追蹤
 - 戰略決策支持
+
 ```
 
 ---
 
-**最後更新**：2026-01-31  
+**最後更新**：2026-01-31
 **狀態**：🟢 設計完成，待實作
+```

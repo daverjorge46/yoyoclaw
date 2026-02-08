@@ -11,18 +11,20 @@
 **Skill**：`skills/bg666-db/`
 
 ### 資料庫
-| 資源 | Host | 說明 |
-|------|------|------|
-| RDS | `bg666-market-readonly...rds.amazonaws.com` | 需 ZeroTier |
-| DB | `ry-cloud` | 主資料庫 |
+
+| 資源 | Host                                        | 說明        |
+| ---- | ------------------------------------------- | ----------- |
+| RDS  | `bg666-market-readonly...rds.amazonaws.com` | 需 ZeroTier |
+| DB   | `ry-cloud`                                  | 主資料庫    |
 
 ### Matomo
-| 項目 | 值 |
-|------|-----|
-| Server | 13.205.188.209 |
-| DB | matomo |
-| User | matomo |
-| Site ID | 2 |
+
+| 項目    | 值             |
+| ------- | -------------- |
+| Server  | 13.205.188.209 |
+| DB      | matomo         |
+| User    | matomo         |
+| Site ID | 2              |
 
 ---
 
@@ -33,20 +35,23 @@
 **Skill**：待建立
 
 ### 資料庫
-| 資源 | Host | 說明 |
-|------|------|------|
-| TiDB (測試) | 13.200.214.38:4000 | goplay_stat |
-| TiDB (生產) | Jump Server 13.201.225.105 | 需登入 |
+
+| 資源        | Host                       | 說明        |
+| ----------- | -------------------------- | ----------- |
+| TiDB (測試) | 13.200.214.38:4000         | goplay_stat |
+| TiDB (生產) | Jump Server 13.201.225.105 | 需登入      |
 
 ### Jump Server
+
 - URL: http://13.201.225.105/ui/#/workbench/assets/
 - 用途：生產環境入口
 
 ### Matomo
-| 項目 | 值 |
-|------|-----|
-| Server | （獨立，非 BG666） |
-| Site ID | 待確認 |
+
+| 項目    | 值                 |
+| ------- | ------------------ |
+| Server  | （獨立，非 BG666） |
+| Site ID | 待確認             |
 
 ---
 

@@ -10,6 +10,7 @@
 ## 執行步驟
 
 1. 讀取新聞檔案：
+
 ```bash
 cat ~/Documents/thinker-news/latest.json
 ```
@@ -27,6 +28,7 @@ cat ~/Documents/thinker-news/latest.json
 輸入：`/news`
 
 輸出：（直接貼 line_content 內容）
+
 ```
 🚀 Claude不再只是聊天機器人！
 

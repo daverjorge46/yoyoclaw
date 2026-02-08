@@ -43,6 +43,7 @@ Response: `{"userId":"...","displayName":"...","pictureUrl":"..."}`
 ## Cache Update
 
 After resolving a new user, update `references/line-profile-cache.json`:
+
 - Key: groupId → userId → displayName
 - Keep it flat and simple
 

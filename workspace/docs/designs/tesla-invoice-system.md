@@ -38,7 +38,7 @@ class TeslaAuthManager:
     - 自動 token 刷新（到期前 5 分鐘）
     - 支援環境變數或參數注入 credentials
     """
-    
+
     _DEFAULT_TOKEN_EXPIRY_BUFFER_SECONDS = 300
     _DEFAULT_SCOPE = "openid email offline_access vehicle_device_data vehicle_cmds vehicle_charging_cmds"
     _DEFAULT_API_BASE_URL = "https://owner-api.teslamotors.com"
@@ -46,6 +46,7 @@ class TeslaAuthManager:
 ```
 
 **環境變數**：
+
 - `TESLA_CLIENT_ID`
 - `TESLA_CLIENT_SECRET`
 - `TESLA_SCOPE`
@@ -57,12 +58,14 @@ class TeslaAuthManager:
 **職責**：從 Tesla API 抓取充電記錄並存入 MongoDB
 
 **流程**：
+
 1. 透過車牌查詢 MongoDB 取得 client credentials
 2. 使用 TeslaAuthManager 取得 access token
 3. 呼叫 Tesla Charging History API
 4. 格式化資料並存入 MongoDB（使用 upsert 防重複）
 
 **資料格式化**：
+
 ```python
 def _format_session_to_schema(session, carplate, vin):
     """
@@ -83,11 +86,13 @@ def _format_session_to_schema(session, carplate, vin):
 **職責**：從充電記錄生成發票圖片
 
 **圖片規格**：
+
 - 尺寸：500 x 710 px
 - 格式：PNG
 - 包含：VIN、車牌、日期時間、費用明細、充電地點
 
 **命名規則**：
+
 ```
 {車牌}_特斯拉_充電費_{YYYYMMDD}_{HHMMSS}_{總費用}.png
 ```
@@ -97,11 +102,13 @@ def _format_session_to_schema(session, carplate, vin):
 **職責**：PIL-based 圖片生成
 
 **支援類型**：
+
 - ETC（電子收費）
 - TeslaCharge（Tesla 充電）
 - Parking（停車費）
 
 **跨平台字型支援**：
+
 - macOS: PingFang.ttc, Hiragino Sans GB
 - Linux: SourceHanSansTC, wqy-zenhei
 - Windows: msyh.ttc, simhei.ttf
@@ -109,6 +116,7 @@ def _format_session_to_schema(session, carplate, vin):
 ## 資料庫設計
 
 ### accounts Collection
+
 ```javascript
 {
   "carplate": "ABC-1234",
@@ -122,6 +130,7 @@ def _format_session_to_schema(session, carplate, vin):
 ```
 
 ### tesla_charging_records Collection
+
 ```javascript
 {
   "record_hash": "md5_hash",

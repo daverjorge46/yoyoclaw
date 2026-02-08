@@ -1,0 +1,20 @@
+#!/bin/bash
+# Time Tunnel 查詢工具
+# 用法: ./tunnel search "關鍵字" --project=BG666
+
+CONTAINER="moltbot-core.router.wuji.01-stg"
+SCRIPT_PATH="/app/workspace/hooks/time-tunnel/query.js"
+
+# 檢查容器是否運行
+if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER}$"; then
+  echo "Error: Container '${CONTAINER}' is not running"
+  exit 1
+fi
+
+# 執行查詢
+# 檢查是否有 TTY
+if [ -t 0 ]; then
+  docker exec -it "$CONTAINER" node "$SCRIPT_PATH" "$@"
+else
+  docker exec "$CONTAINER" node "$SCRIPT_PATH" "$@"
+fi

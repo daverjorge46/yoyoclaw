@@ -1,83 +1,86 @@
 # 記憶瞬間 (Last Moment Snapshot)
 
-**更新時間**：2026-02-06 17:50
+**更新時間**：2026-02-06 18:20
 **Session 類型**：開發態 (Claude Code)
-**主要工作**：八層架構 Phase 1 完成
+**主要工作**：記憶層強化完成（P0/P1）
 
 ---
 
 ## 剛剛發生了什麼
 
-### 1. 八層架構藍圖建立
+### 1. 記憶層災難與修復
 
-創建 `workspace/docs/EIGHT_LAYER_ARCHITECTURE.md`：
+**事件**：`docker rm` 導致所有對話歷史丟失
+- timeline.db 原本在容器可寫層（未 mount）
+- 刪除容器 = 刪除所有記憶
 
-- 骨架層、循環層、免疫層、感知層
-- 記憶層、認知層、表達層、意識層
-- 用人體器官比喻 AI 系統組件
+**教訓**：永遠不要假設資料在容器內是安全的
 
-### 2. Phase 1: 穩固地基 ✅
+### 2. 記憶層強化（P0/P1 完成）
 
-**骨架層 35% → 60%**：
+| Task | 狀態 | 說明 |
+|------|------|------|
+| #26 P0 持久化 | ✅ | 資料移至 host mount |
+| #27 P0 多點備份 | ✅ | hourly/daily/manual cron |
+| #28 P0 變更前備份 | ✅ | deploy-check + safe-docker |
+| #29 P1 完整性檢查 | ✅ | check-memory-integrity.sh |
+| #30 P1 WAL 模式 | ✅ | crash recovery |
+| #31 P1 自動恢復 | ✅ | time-tunnel 啟動時檢查 |
+| #32 P1 文檔化 | ✅ | CRITICAL_PATHS.md |
 
-- docker-compose.soul.yml 更新：媒體 Volume 掛載
-- `/app/media/telegram` - Telegram 下載（1148 檔案）
-- `/app/media/line` - LINE 媒體
-- 統一環境變數：MEDIA_ROOT, WORKSPACE_ROOT, TMP_ROOT
+### 3. 新增腳本
 
-**感知層 55% → 65%**：
-
-- 新增 `media-ingestion` hook
-- 統一處理各 channel 媒體
-- 圖片自動 OCR + 描述（Claude Haiku）
-
-### 3. LINE 雙軌回覆系統
-
-- smart-router 強制 LINE 用 Sonnet 4.5（快速回覆）
-- deep-thinker.js 背景處理器
-- 彈夾機制（下次對話發送深度回覆）
+| 腳本 | 功能 |
+|------|------|
+| `backup-memory.sh` | 手動/hourly/daily 備份 |
+| `check-memory-integrity.sh` | 完整性 + WAL + 備份檢查 |
+| `safe-docker.sh` | 危險操作前自動備份 |
 
 ---
 
 ## 當前系統狀態
 
+### 記憶層保護
+
+```
+~/.openclaw/
+├── persistent/data/timeline.db  ← 主資料庫（WAL mode）
+└── backups/
+    ├── hourly/    # 24 份
+    ├── daily/     # 30 份
+    └── manual/    # 10 份
+```
+
 ### Container (moltbot-core.router.wuji.01-stg)
 
-| 項目     | 狀態               |
-| -------- | ------------------ |
-| 容器     | ✅ 運行中          |
-| Telegram | ✅ 正常            |
-| LINE     | ✅ provider 已啟動 |
-| Discord  | ✅ 已登入          |
+| 項目 | 狀態 |
+|------|------|
+| 容器 | ✅ 運行中 |
+| Telegram | ✅ 正常 |
+| 記憶層 | ✅ 持久化 + 備份 |
 
 ### 已註冊 Hooks
 
-| Hook              | 事件                           |
-| ----------------- | ------------------------------ |
-| cost-tracker      | model:complete                 |
-| failover-monitor  | model:failover                 |
-| graceful-shutdown | message:received, message:sent |
-| media-ingestion   | message:received               |
-| smart-router      | model:select                   |
-| time-tunnel       | message:received, message:sent |
+| Hook | 事件 | 新增功能 |
+|------|------|---------|
+| time-tunnel | message:received, message:sent | 自動恢復、WAL |
+| smart-router | model:select | - |
+| cost-tracker | model:complete | - |
+| failover-monitor | model:failover | - |
 
 ---
 
-## 重要 Commits
+## 待處理（P2）
 
-```
-6ee03bf84 Phase 1: 骨架層 35%→60% + 感知層 55%→65%
-0a99e33e4 infra: add 8-layer architecture blueprint and LINE dual-track system
-```
+- [ ] #33 記憶同步到 Git
+- [ ] #34 意識層記憶保護本能
 
 ---
 
-## 下一步
+## 關鍵文檔
 
-### Phase 2: 強化循環
-
-- 循環層 50% → 75%：集中式健康儀表板、自動心跳
-- 免疫層 45% → 70%：熔斷器、全局錯誤邊界
+- `workspace/docs/CRITICAL_PATHS.md` — 關鍵路徑（必讀！）
+- `workspace/docs/EIGHT_LAYER_ARCHITECTURE.md` — 八層架構藍圖
 
 ---
 

@@ -151,7 +151,7 @@ mkdir -p skills/new-skill/{scripts,logs}
 async function handler(event, context) {
   // 處理 event
 }
-handler.events = ['message.inbound']; // 訂閱的事件
+handler.events = ["message.inbound"]; // 訂閱的事件
 module.exports = handler;
 module.exports.default = handler; // 重要！Clawdbot 需要這個
 ```
@@ -160,6 +160,7 @@ module.exports.default = handler; // 重要！Clawdbot 需要這個
 
 ```markdown
 <!-- PROJECT_REGISTRY.md -->
+
 | # | 專案 | 優先級 | 狀態 | 上次檢查 | 下次動作 |
 | 新 | 專案名 | 🟡 | 啟動中 | - | 定義 MVP |
 ```
@@ -249,6 +250,7 @@ except requests.RequestException as e:
 做了什麼、學到什麼、決定了什麼
 
 ### 如果有重要洞察
+
 用子標題記錄，方便之後搜尋
 ```
 
@@ -306,5 +308,5 @@ except requests.RequestException as e:
 
 ---
 
-*累積者：架構師 sessions*
-*最後更新：2026-01-28*
+_累積者：架構師 sessions_
+_最後更新：2026-01-28_

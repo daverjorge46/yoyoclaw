@@ -7,13 +7,13 @@
 
 ## 📊 專案概覽
 
-| 專案 | GitHub Repo | 大小 | 最後 Commit | 用途 |
-|------|-------------|------|-------------|------|
-| ziwei-astrology-system | ThinkerCafe-tw/ziwei-astrology-system | 1.3M | 初始提交 | 始祖版本 |
-| minli_demo_only | tangcruz/minli_demo_only | 29M | initialize project | Cruz 個人開發版 |
-| minli_demo2_cruz | ThinkerCafe-tw/minli_demo2_cruz | 12M | 修改 flex summary | 微服務版 |
-| minli_demo2_cruz-1 | ThinkerCafe-tw/minli_demo2_cruz | 12M | flexmsg remove footer | ⚠️ 重複 clone |
-| mingli-backend | ThinkerCafe-tw/mingli-backend | 91M | PR #5 merge | 正式後端服務 |
+| 專案                   | GitHub Repo                           | 大小 | 最後 Commit           | 用途            |
+| ---------------------- | ------------------------------------- | ---- | --------------------- | --------------- |
+| ziwei-astrology-system | ThinkerCafe-tw/ziwei-astrology-system | 1.3M | 初始提交              | 始祖版本        |
+| minli_demo_only        | tangcruz/minli_demo_only              | 29M  | initialize project    | Cruz 個人開發版 |
+| minli_demo2_cruz       | ThinkerCafe-tw/minli_demo2_cruz       | 12M  | 修改 flex summary     | 微服務版        |
+| minli_demo2_cruz-1     | ThinkerCafe-tw/minli_demo2_cruz       | 12M  | flexmsg remove footer | ⚠️ 重複 clone   |
+| mingli-backend         | ThinkerCafe-tw/mingli-backend         | 91M  | PR #5 merge           | 正式後端服務    |
 
 ---
 
@@ -24,6 +24,7 @@
 **結論：100% 重複，只是同一 repo 的兩個 clone**
 
 差異：
+
 - 只有 `ziwei_astrology_service/app.py` 有一些 footer UI 代碼被註釋掉
 - 都指向同一個 GitHub repo
 - cruz-1 比 cruz 多一個 commit
@@ -35,10 +36,12 @@
 ### 2. ziwei-astrology-system（始祖）
 
 **獨特內容**：
+
 - `.env` 環境變數檔案
 - 最原始的純 Python 實現
 
 **缺少**（其他專案有）：
+
 - Dockerfile
 - API 文檔（API_ENDPOINTS.md 等）
 - 進階星曜計算（hour_stars.py, month_stars.py）
@@ -47,9 +50,10 @@
 - chart_calculator.py
 
 **核心 Python 文件**：
+
 ```
 app.py                 347 行
-birthdata.py           
+birthdata.py
 body_cause_palace.py
 five_element_chart.py
 main_stars.py
@@ -65,6 +69,7 @@ ziwei_report_generator.py
 ### 3. minli_demo_only（Cruz 個人版）
 
 **獨特內容**：
+
 - `Dockerfile`（Docker 部署）
 - `chart_calculator.py`（圖表計算器）
 - `flex_formatter.py`（LINE Flex Message）
@@ -73,11 +78,12 @@ ziwei_report_generator.py
 - `lunar_calendar.py`（農曆轉換）
 - `month_stars.py`（月份星曜）
 - `transformation_stars.py`（化星）
-- 完整測試套件（test_*.py 多個）
+- 完整測試套件（test\_\*.py 多個）
 - `API_ENDPOINTS.md`, `API_OPTIMIZATION_SUMMARY.md`
 - `YEAR_STARS_VALIDATION_REPORT.md`
 
 **相對於始祖的進化**：
+
 - app.py：347 → 257 行（重構精簡）
 - 新增模組化計算
 
@@ -88,6 +94,7 @@ ziwei_report_generator.py
 ### 4. minli_demo2_cruz（微服務版）
 
 **架構**：雙服務 Docker Compose
+
 ```
 ├── ziwei_astrology_service/    # 紫微計算服務
 ├── semantic_api_service/        # 語義 API 服務
@@ -97,6 +104,7 @@ ziwei_report_generator.py
 ```
 
 **獨特內容 - ziwei_astrology_service/**：
+
 - 完整紫微計算邏輯
 - `create_schema.py`（資料庫 schema）
 - `delete_old.py`
@@ -105,6 +113,7 @@ ziwei_report_generator.py
 - `analysis/`（分析模組）
 
 **獨特內容 - semantic_api_service/**：
+
 - `vector_hub.py`（向量操作）
 - `semantic_expand.py`（語義擴展）
 - `context_hub.py`、`prompt_hub.py`
@@ -121,6 +130,7 @@ ziwei_report_generator.py
 ### 5. mingli-backend（正式後端）
 
 **獨特內容**：
+
 - `.github/workflows/deploy.yaml`（GCP App Engine CI/CD）
 - `.gcloudignore`
 - `config/intent_recognition_config.json`
@@ -142,6 +152,7 @@ ziwei_report_generator.py
 - `cloud-sql-proxy`（34M，GCP 連接器）
 
 **部署架構**：
+
 - GCP App Engine
 - Cloud SQL (PostgreSQL)
 - pgvector（向量資料庫）
@@ -155,20 +166,20 @@ ziwei_report_generator.py
 
 以下文件在多個專案中**完全相同或高度相似**：
 
-| 文件 | ziwei | demo_only | demo2_cruz | backend |
-|------|-------|-----------|------------|---------|
-| birthdata.py | ✅ | ✅ | ✅ | ✅ |
-| body_cause_palace.py | ✅ | ✅ | ✅ | ✅ |
-| stems_branches.py | ✅ | ✅ | ✅ | ✅ |
-| palace_stems.py | ✅ | ✅ | ✅ | ✅ |
-| comprehensive_test.py | ✅ | ✅ | ✅ | ✅ |
-| downloaded_report.md | ✅ | ✅ | ✅ | ✅ |
-| main_stars.py | ✅ | ✅ | ✅ | ✅ |
-| five_element_chart.py | ✅ | ≈ | ≈ | ≈ |
-| hour_stars.py | - | ✅ | ✅ | ✅ |
-| lunar_calendar.py | - | ✅ | ✅ | ✅ |
-| month_stars.py | - | ✅ | ✅ | ✅ |
-| year_stars.py | ✅ | ✅ | ✅ | ✅ |
+| 文件                  | ziwei | demo_only | demo2_cruz | backend |
+| --------------------- | ----- | --------- | ---------- | ------- |
+| birthdata.py          | ✅    | ✅        | ✅         | ✅      |
+| body_cause_palace.py  | ✅    | ✅        | ✅         | ✅      |
+| stems_branches.py     | ✅    | ✅        | ✅         | ✅      |
+| palace_stems.py       | ✅    | ✅        | ✅         | ✅      |
+| comprehensive_test.py | ✅    | ✅        | ✅         | ✅      |
+| downloaded_report.md  | ✅    | ✅        | ✅         | ✅      |
+| main_stars.py         | ✅    | ✅        | ✅         | ✅      |
+| five_element_chart.py | ✅    | ≈         | ≈          | ≈       |
+| hour_stars.py         | -     | ✅        | ✅         | ✅      |
+| lunar_calendar.py     | -     | ✅        | ✅         | ✅      |
+| month_stars.py        | -     | ✅        | ✅         | ✅      |
+| year_stars.py         | ✅    | ✅        | ✅         | ✅      |
 
 ---
 
@@ -213,6 +224,7 @@ ziwei_report_generator.py
 ## 🔧 執行步驟（方案 A）
 
 ### Step 1: 刪除重複
+
 ```bash
 # 確認是重複 clone
 diff -rq ~/Documents/minli_demo2_cruz ~/Documents/minli_demo2_cruz-1 --exclude=".git"
@@ -222,18 +234,22 @@ rm -rf ~/Documents/minli_demo2_cruz-1
 ```
 
 ### Step 2: 歸檔始祖
+
 ```bash
 mkdir -p ~/Documents/_archive
 mv ~/Documents/ziwei-astrology-system ~/Documents/_archive/ziwei-astrology-system-original
 ```
 
 ### Step 3: 萃取 minli_demo_only 獨特內容到 minli_demo2_cruz
+
 需要手動比對並合併：
+
 - Dockerfile
-- 測試文件（test_*.py）
-- 文檔（*.md）
+- 測試文件（test\_\*.py）
+- 文檔（\*.md）
 
 ### Step 4: 確認 mingli-backend 不需要從其他專案同步
+
 - 檢查 mingli-backend 是否缺少必要的計算模組
 - 如有需要，從 minli_demo_only 複製
 
@@ -261,11 +277,11 @@ mv ~/Documents/ziwei-astrology-system ~/Documents/_archive/ziwei-astrology-syste
 
 ## 📈 預計節省空間
 
-| 操作 | 節省 |
-|------|------|
-| 刪除 minli_demo2_cruz-1 | 12M |
-| 歸檔 ziwei-astrology-system | 0（移動不刪除）|
-| **總計** | **~12M** |
+| 操作                        | 節省            |
+| --------------------------- | --------------- |
+| 刪除 minli_demo2_cruz-1     | 12M             |
+| 歸檔 ziwei-astrology-system | 0（移動不刪除） |
+| **總計**                    | **~12M**        |
 
 如果採用方案 B（刪除 demo_only）：額外節省 29M
 

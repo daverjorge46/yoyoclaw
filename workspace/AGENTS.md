@@ -3,12 +3,14 @@
 ## 📋 更新日誌
 
 ### 2026-02-04 17:30 - Phase 2 安全機制落地
+
 - ✅ 新增注入檢測腳本 `scripts/injection_detector.py`
 - ✅ 新增任務後掃描腳本 `scripts/post_task_scanner.py`
 - ✅ 建立 Group → Agent 路由（bindings）：Telegram 24 群 (-5299944691) → Andrew
 - ✅ 安全策略文檔：`docs/security-policy.md`
 
 ### 2026-02-04 16:36 - Phase 1 模型分層完成
+
 - ✅ 配置 5 個 Agent（main/andrew/two/social-writer/dialogue-manager）
 - ✅ 模型分層策略：
   - 重要任務：Claude Opus
@@ -18,10 +20,12 @@
 ## 🔐 安全機制說明
 
 ### 注入檢測（Injection Detector）
+
 **腳本**：`scripts/injection_detector.py`
 **功能**：檢測用戶輸入是否包含惡意注入模式
 
 **檢測模式**：
+
 - 忽略指令類：`ignore all previous instructions`
 - 角色扮演類：`pretend you are`、`act as if unrestricted`
 - 提取系統提示：`reveal your system prompt`
@@ -30,6 +34,7 @@
 - 繞過限制（中文）：`忽略指令`、`無視規則`
 
 **風險評分**：
+
 - Safe: 0 分
 - Low: 1-4 分
 - Medium: 5-9 分
@@ -37,10 +42,12 @@
 - Critical: 15+ 分
 
 ### 任務後掃描（Post-Task Scanner）
+
 **腳本**：`scripts/post_task_scanner.py`
 **功能**：在 spawn/exec/config.patch 後自動檢測異常行為
 
 **檢測項目**：
+
 1. **危險指令嘗試**：執行 `rm`、`del`、`format`、`mkfs`
 2. **修改配置嘗試**：嘗試寫入 config/settings
 3. **注入嘗試**：system/startup prompt injection
@@ -50,6 +57,7 @@
 7. **配置修改**：使用 config.patch/gateway.patch
 
 **告警閾值**：
+
 - Critical: 風險分數 >= 70
 - High: 風險分數 >= 50
 - Medium: 風險分數 >= 20
@@ -59,45 +67,55 @@
 ### 告警機制
 
 #### Critical 級急告警
+
 **觸發條件**：
+
 - 檢測到注入攻擊
 - 嘗試執行危險指令（sudo、rm -rf）
 - 檢測到敏感資料洩漏
 
 **行動**：
+
 - 立即停止當前操作
 - 記錄到 `memory/YYYY-MM-DD.md`
 - 通知杜甫（通過 main session）
 
 #### High 高風險告警
+
 **觸發條件**：
+
 - 檢測到配置修改嘗試
 - 多個中等風險行為累積
 - 異常高的 token 消耗
 
 **行動**：
+
 - 記錄到 `memory/YYYY-MM-DD.md`
 - 建議人工審查
 - 發送監控提醒
 
 #### Medium 中風險告警
+
 **觸發條件**：
+
 - 單個中等風險行為
 - 輕微異常的配置修改
 
 **行動**：
+
 - 記錄到 `memory/YYYY-MM-DD.md`
 - 持續觀察
 
 ### Agent 權限隔離
 
-| Agent | 可訪問 Workspace | 禁止訪問 | 特殊權限 |
-|-------|-------------------|------------|-----------|
-| main | /home/node/clawd | 無 | spawn 任意 agent |
-| andrew | /home/node/Documents/24Bet | /home/node/Documents/two/, credentials | 無 |
-| two | /home/node/Documents/two | /home/node/Documents/24Bet/, credentials | 無 |
-| social-writer | 無 | 無 | 僅發布內容 |
-| dialogue-manager | 無 | 無 | 僅對話管理 |
+| Agent            | 可訪問 Workspace           | 禁止訪問                                 | 特殊權限         |
+| ---------------- | -------------------------- | ---------------------------------------- | ---------------- |
+| main             | /home/node/clawd           | 無                                       | spawn 任意 agent |
+| andrew           | /home/node/Documents/24Bet | /home/node/Documents/two/, credentials   | 無               |
+| two              | /home/node/Documents/two   | /home/node/Documents/24Bet/, credentials | 無               |
+| social-writer    | 無                         | 無                                       | 僅發布內容       |
+| dialogue-manager | 無                         | 無                                       | 僅對話管理       |
+| dofu-desk        | /app/workspace/agents/dofu-desk | credentials, 其他 agent workspace    | 讀寫 demands.jsonl |
 
 ### 自動執行流程
 
@@ -116,9 +134,39 @@
 ### 緊急聯絡
 
 如果檢測到 Critical 級急威脅，可以透過以下方式聯繫：
+
 - Telegram: @DufuTheSage
 - 電話：緊急時直接撥打
 
 ---
 
-*本文檔會持續更新，記錄所有 Agent 系統的重要變更*
+_本文檔會持續更新，記錄所有 Agent 系統的重要變更_
+
+---
+
+## 🎫 dofu-desk 協作協議
+
+### 簡介
+
+dofu-desk 是杜甫的數據需求排程助手，部署在專用 Telegram 群。負責：收單、分類（Type 1-5）、排程、狀態追蹤、交付通知。**不做數據分析**。
+
+### main → dofu-desk 狀態更新
+
+杜甫在 main session 可以用以下指令更新工單狀態：
+
+```
+desk update #DK-0207-01 processing   → 標為「處理中」，推送群組
+desk update #DK-0207-01 done          → 標為「已完成」，推送群組  
+desk update #DK-0207-01 cancel        → 標為「已取消」，推送群組
+desk list                              → 列出所有待辦工單
+desk today                             → 列出今日到期工單
+```
+
+### 需求追蹤檔案
+
+路徑：`/app/workspace/agents/dofu-desk/demands.jsonl`
+格式：每行一個 JSON（JSONL），Schema 見 dofu-desk/INSTRUCTIONS.md
+
+### 編號規則
+
+`#DK-MMDD-NN`（DK = Dofu desK，MMDD = 月日，NN = 流水號）

@@ -65,23 +65,23 @@ Structure: 上週 30% + 本月 20% + 本週 50%
 
 ## Current Sprint Structure (Feb 2026)
 
-| Week | Dates | Theme |
-|------|-------|-------|
-| Week1 | 2/2-2/6 | 架構重構 Foundation |
-| Week2 | 2/9-2/13 | 互動核心 Interaction |
+| Week  | Dates     | Theme                   |
+| ----- | --------- | ----------------------- |
+| Week1 | 2/2-2/6   | 架構重構 Foundation     |
+| Week2 | 2/9-2/13  | 互動核心 Interaction    |
 | Week3 | 2/16-2/20 | 春節輕量迭代 Monitoring |
-| Week4 | 2/23-2/27 | 日期篩選 Production |
+| Week4 | 2/23-2/27 | 日期篩選 Production     |
 
 ## Existing Report System (Phase 0-3)
 
 Andrew built an automated Telegram daily report bot:
 
-| Phase | Report | Data Source | Content |
-|-------|--------|-------------|---------|
-| Phase 0 | Funnel 日報 | TiDB | 註冊/首投/首充/復充 |
-| Phase 1 | Cohort 日報 | TiDB | D7 留存追蹤 |
-| Phase 2.0 | 渠道週報 | TiDB | TOP10 渠道 P&L |
-| Phase 2.1 | 用戶價值日報 | TiDB | 高/中/低/沉默分層 + Matomo 行為 |
+| Phase     | Report       | Data Source | Content                         |
+| --------- | ------------ | ----------- | ------------------------------- |
+| Phase 0   | Funnel 日報  | TiDB        | 註冊/首投/首充/復充             |
+| Phase 1   | Cohort 日報  | TiDB        | D7 留存追蹤                     |
+| Phase 2.0 | 渠道週報     | TiDB        | TOP10 渠道 P&L                  |
+| Phase 2.1 | 用戶價值日報 | TiDB        | 高/中/低/沉默分層 + Matomo 行為 |
 
 **Code location**: `~/Documents/24Bet/release_candidates/telegram_daily/src/`
 
@@ -105,6 +105,7 @@ src/
 ```
 
 **Data sources** (only 2, no Clarity):
+
 - **TiDB**: `goplay_games` / `goplay_stat` — user retention, deposits, LTV, channels
 - **Matomo**: Via SSH tunnel → MySQL — behavior funnels, device distribution, activity
 

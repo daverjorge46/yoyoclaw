@@ -5,24 +5,24 @@
 //
 // 讀取 logs/failover.log 和 logs/cost.log，生成統計摘要
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
 
 // 配置
-const WORKSPACE_DIR = process.env.CLAWDBOT_WORKSPACE_DIR || '/Users/sulaxd/clawd';
-const FAILOVER_LOG = path.join(WORKSPACE_DIR, 'logs', 'failover.log');
-const COST_LOG = path.join(WORKSPACE_DIR, 'logs', 'cost.log');
+const WORKSPACE_DIR = process.env.CLAWDBOT_WORKSPACE_DIR || "/Users/sulaxd/clawd";
+const FAILOVER_LOG = path.join(WORKSPACE_DIR, "logs", "failover.log");
+const COST_LOG = path.join(WORKSPACE_DIR, "logs", "cost.log");
 
 // 從 hooks/config.json 讀取 Telegram 配置
 function loadConfig() {
-  const configPath = path.join(WORKSPACE_DIR, 'hooks', 'config.json');
+  const configPath = path.join(WORKSPACE_DIR, "hooks", "config.json");
   try {
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      return JSON.parse(fs.readFileSync(configPath, "utf8"));
     }
   } catch (err) {
-    console.warn('Failed to load config:', err.message);
+    console.warn("Failed to load config:", err.message);
   }
   return {};
 }
@@ -37,16 +37,16 @@ function parseArgs() {
   const opts = { date: null, telegram: false };
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--date' && args[i + 1]) {
+    if (args[i] === "--date" && args[i + 1]) {
       opts.date = args[++i];
-    } else if (args[i] === '--telegram') {
+    } else if (args[i] === "--telegram") {
       opts.telegram = true;
     }
   }
 
   // 默認為今天
   if (!opts.date) {
-    opts.date = new Date().toISOString().split('T')[0];
+    opts.date = new Date().toISOString().split("T")[0];
   }
 
   return opts;
@@ -58,17 +58,17 @@ function readLogEntries(logPath, targetDate) {
     return [];
   }
 
-  const lines = fs.readFileSync(logPath, 'utf8').split('\n').filter(Boolean);
+  const lines = fs.readFileSync(logPath, "utf8").split("\n").filter(Boolean);
   const entries = [];
 
   for (const line of lines) {
     try {
       // 格式：2026-02-05T12:00:00.000Z | {...}
-      const pipeIndex = line.indexOf(' | ');
+      const pipeIndex = line.indexOf(" | ");
       if (pipeIndex === -1) continue;
 
       const timestamp = line.substring(0, pipeIndex);
-      const datePrefix = timestamp.split('T')[0];
+      const datePrefix = timestamp.split("T")[0];
 
       if (datePrefix === targetDate) {
         const json = line.substring(pipeIndex + 3);
@@ -88,12 +88,12 @@ function aggregateFailovers(entries) {
     total: entries.length,
     byReason: {},
     byModel: {},
-    circuitBreakerTriggered: 0
+    circuitBreakerTriggered: 0,
   };
 
   for (const entry of entries) {
     // 按原因統計
-    const reason = entry.reason || 'unknown';
+    const reason = entry.reason || "unknown";
     stats.byReason[reason] = (stats.byReason[reason] || 0) + 1;
 
     // 按模型統計
@@ -118,7 +118,7 @@ function aggregateCosts(entries) {
     totalCost: 0,
     byModel: {},
     byAgent: {},
-    totalDurationMs: 0
+    totalDurationMs: 0,
   };
 
   for (const entry of entries) {
@@ -141,7 +141,7 @@ function aggregateCosts(entries) {
     stats.byModel[model].durationMs += entry.durationMs || 0;
 
     // 按 agent 統計
-    const agent = entry.agentId || 'unknown';
+    const agent = entry.agentId || "unknown";
     if (!stats.byAgent[agent]) {
       stats.byAgent[agent] = { calls: 0, cost: 0 };
     }
@@ -163,7 +163,7 @@ function formatReport(date, failoverStats, costStats) {
     `├ Success: ${costStats.successCalls} (${((costStats.successCalls / costStats.totalCalls) * 100 || 0).toFixed(1)}%)`,
     `├ Failed: ${costStats.failedCalls}`,
     `└ Total duration: ${(costStats.totalDurationMs / 1000 / 60).toFixed(1)} min`,
-    ``
+    ``,
   ];
 
   // 成本統計
@@ -176,8 +176,7 @@ function formatReport(date, failoverStats, costStats) {
   // 按模型統計
   if (Object.keys(costStats.byModel).length > 0) {
     lines.push(`*By Model*`);
-    const models = Object.entries(costStats.byModel)
-      .sort((a, b) => b[1].calls - a[1].calls);
+    const models = Object.entries(costStats.byModel).sort((a, b) => b[1].calls - a[1].calls);
     for (const [model, data] of models) {
       lines.push(`├ \`${model}\`: ${data.calls} calls, $${data.cost.toFixed(4)}`);
     }
@@ -201,20 +200,19 @@ function formatReport(date, failoverStats, costStats) {
   // 按 agent 統計
   if (Object.keys(costStats.byAgent).length > 1) {
     lines.push(`*By Agent*`);
-    const agents = Object.entries(costStats.byAgent)
-      .sort((a, b) => b[1].calls - a[1].calls);
+    const agents = Object.entries(costStats.byAgent).sort((a, b) => b[1].calls - a[1].calls);
     for (const [agent, data] of agents) {
       lines.push(`├ ${agent}: ${data.calls} calls, $${data.cost.toFixed(4)}`);
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 // 發送 Telegram 通知
 function sendTelegram(text) {
   if (!DASHBOARD_BOT_TOKEN || !DASHBOARD_GROUP_ID) {
-    console.log('Telegram not configured, skipping notification');
+    console.log("Telegram not configured, skipping notification");
     return Promise.resolve();
   }
 
@@ -222,19 +220,22 @@ function sendTelegram(text) {
     const data = JSON.stringify({
       chat_id: DASHBOARD_GROUP_ID,
       text,
-      parse_mode: 'Markdown'
+      parse_mode: "Markdown",
     });
 
-    const req = https.request({
-      hostname: 'api.telegram.org',
-      path: `/bot${DASHBOARD_BOT_TOKEN}/sendMessage`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }, res => {
-      res.statusCode === 200 ? resolve() : reject(new Error(`HTTP ${res.statusCode}`));
-    });
+    const req = https.request(
+      {
+        hostname: "api.telegram.org",
+        path: `/bot${DASHBOARD_BOT_TOKEN}/sendMessage`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      },
+      (res) => {
+        res.statusCode === 200 ? resolve() : reject(new Error(`HTTP ${res.statusCode}`));
+      },
+    );
 
-    req.on('error', reject);
+    req.on("error", reject);
     req.write(data);
     req.end();
   });
@@ -251,7 +252,9 @@ async function main() {
   const failoverEntries = readLogEntries(FAILOVER_LOG, targetDate);
   const costEntries = readLogEntries(COST_LOG, targetDate);
 
-  console.log(`Found ${failoverEntries.length} failover entries, ${costEntries.length} cost entries`);
+  console.log(
+    `Found ${failoverEntries.length} failover entries, ${costEntries.length} cost entries`,
+  );
 
   // 聚合統計
   const failoverStats = aggregateFailovers(failoverEntries);
@@ -261,15 +264,15 @@ async function main() {
   const report = formatReport(targetDate, failoverStats, costStats);
 
   // 輸出到控制台
-  console.log('\n' + report.replace(/\*/g, '').replace(/`/g, ''));
+  console.log("\n" + report.replace(/\*/g, "").replace(/`/g, ""));
 
   // 發送到 Telegram
   if (opts.telegram) {
     try {
       await sendTelegram(report);
-      console.log('\nReport sent to Telegram');
+      console.log("\nReport sent to Telegram");
     } catch (err) {
-      console.error('Failed to send Telegram notification:', err.message);
+      console.error("Failed to send Telegram notification:", err.message);
     }
   }
 }

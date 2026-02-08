@@ -2,16 +2,8 @@
   "platform_characteristics": {
     "emoji_usage": "精簡、有節奏、視覺引導",
     "paragraph_structure": "短段落、空行分隔",
-    "content_preferences": [
-      "工具推薦",
-      "趨勢分析",
-      "經驗分享"
-    ],
-    "interaction_patterns": [
-      "提問結尾",
-      "邀請討論",
-      "價值分享"
-    ],
+    "content_preferences": ["工具推薦", "趨勢分析", "經驗分享"],
+    "interaction_patterns": ["提問結尾", "邀請討論", "價值分享"],
     "no_multi_tags": true
   },
   "successful_patterns": [
@@ -25,9 +17,7 @@
         "has_question": false,
         "has_call_to_action": false,
         "engagement_ratio": 148787,
-        "pattern_match": [
-          "tool_recommendation"
-        ]
+        "pattern_match": ["tool_recommendation"]
       },
       "engagement": 148787
     },
@@ -41,9 +31,7 @@
         "has_question": false,
         "has_call_to_action": false,
         "engagement_ratio": 110555,
-        "pattern_match": [
-          "unknown"
-        ]
+        "pattern_match": ["unknown"]
       },
       "engagement": 110555
     }

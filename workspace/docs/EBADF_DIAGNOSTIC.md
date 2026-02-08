@@ -35,14 +35,14 @@ exec tool 在 spawn 子進程時，使用了已失效的 file descriptor。
 
 ## 已嘗試的修復（無效）
 
-| 方法 | 命令 | 結果 |
-|------|------|------|
-| Gateway kickstart | `launchctl kickstart -k gui/501/com.clawdbot.gateway` | ❌ |
-| Kill all clawdbot | `pkill -9 -f clawdbot` | ❌ |
-| Bootout + Bootstrap | `launchctl bootout` + `bootstrap` | ❌ |
-| Kill MCP servers | `pkill -9 -f mcp` | ❌ |
-| 新 session | `/new` | ❌ |
-| Session restart | `/restart` | ❌ |
+| 方法                | 命令                                                  | 結果 |
+| ------------------- | ----------------------------------------------------- | ---- |
+| Gateway kickstart   | `launchctl kickstart -k gui/501/com.clawdbot.gateway` | ❌   |
+| Kill all clawdbot   | `pkill -9 -f clawdbot`                                | ❌   |
+| Bootout + Bootstrap | `launchctl bootout` + `bootstrap`                     | ❌   |
+| Kill MCP servers    | `pkill -9 -f mcp`                                     | ❌   |
+| 新 session          | `/new`                                                | ❌   |
+| Session restart     | `/restart`                                            | ❌   |
 
 ---
 
@@ -112,5 +112,5 @@ check_ebadf_errors() {
 
 ---
 
-*記錄日期：2026-01-28*
-*經歷者：無極 + x01clawbot*
+_記錄日期：2026-01-28_
+_經歷者：無極 + x01clawbot_

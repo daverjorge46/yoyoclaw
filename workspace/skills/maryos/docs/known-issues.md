@@ -3,6 +3,7 @@
 ## 🔴 活躍問題
 
 ### KI-001: 影片 >5MB 導致故障
+
 - **嚴重度**：高
 - **描述**：Mary 發影片超過 5MB 時，Telegram Bot API 無法下載，Moltbot 處理流程 crash
 - **影響**：session 可能中斷
@@ -10,6 +11,7 @@
 - **狀態**：待實作
 
 ### KI-002: Google Sheet 重複記錄
+
 - **嚴重度**：高
 - **描述**：DailyRecords 同一天有多筆記錄，導致 repliedDays 膨脹（如 69/30）
 - **影響**：獎金計算錯誤（如 NT$2519 而非 ~NT$1000）
@@ -23,6 +25,7 @@
 ## 🟡 注意事項
 
 ### KI-003: 時區混亂
+
 - **描述**：系統涉及三個時區（UTC / Asia/Taipei / Asia/Manila）
 - **對策**：統一用 Asia/Taipei，Telegram timestamp +8 轉換
 - **狀態**：需在遷移時統一處理

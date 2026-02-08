@@ -1,11 +1,13 @@
 # OpenClaw Cloud Architecture (Draft v0.1)
 
 ## Goals
+
 - Node is stateless: any machine can join and run without local state.
 - State is centralized: sessions/configs/cron/auth/memory live in cloud.
 - Paths are portable: no hardcoded absolute paths in stored memory.
 
 ## Components
+
 1. control-api (Cloud Run)
    - Auth, config management, agent/session registry
    - Path Map policies
@@ -29,15 +31,17 @@
    - Large artifacts/media/logs
 
 ## Data Flow
+
 User/Channel -> node-host -> runtime-api -> Cloud SQL (persist)
-                                     -> control-api (config)
-                                     -> GCS (media/logs)
+-> control-api (config)
+-> GCS (media/logs)
 
 ## Security
+
 - Service account for control/runtime
 - Row-level scoping by ownerId/orgId
 - Sensitive fields encrypted at rest (tokens, API keys)
 
 ## Environments
-- stg and prod separated by project or database schema
 
+- stg and prod separated by project or database schema

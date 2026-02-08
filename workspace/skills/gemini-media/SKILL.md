@@ -4,12 +4,12 @@
 
 ## 能力
 
-| 功能 | 模型 | 說明 |
-|------|------|------|
-| 圖片生成 | `gemini-2.5-flash-image` (Nano Banana) | 快速生成高品質圖片 |
-| 圖片生成 Pro | `gemini-3-pro-image-preview` (Nano Banana Pro) | 更高品質，支持多圖參考 |
-| 影片生成 | `veo-3.0-generate-001` (Veo 3) | 8 秒影片，支持對話和音效 |
-| 影片生成 | `veo-3.1-generate-preview` (Veo 3.1) | 最新版，更高品質 |
+| 功能         | 模型                                           | 說明                     |
+| ------------ | ---------------------------------------------- | ------------------------ |
+| 圖片生成     | `gemini-2.5-flash-image` (Nano Banana)         | 快速生成高品質圖片       |
+| 圖片生成 Pro | `gemini-3-pro-image-preview` (Nano Banana Pro) | 更高品質，支持多圖參考   |
+| 影片生成     | `veo-3.0-generate-001` (Veo 3)                 | 8 秒影片，支持對話和音效 |
+| 影片生成     | `veo-3.1-generate-preview` (Veo 3.1)           | 最新版，更高品質         |
 
 ## 使用方式
 

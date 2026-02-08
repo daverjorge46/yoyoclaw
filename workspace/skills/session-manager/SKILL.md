@@ -66,6 +66,7 @@ Unified interface for inspecting and directing Moltbot sessions.
 ## Matching Logic
 
 When `<identifier>` is provided:
+
 - Try exact match on `sessionKey` first
 - Then fuzzy match on `label` (case-insensitive, partial match OK)
 - If ambiguous, show candidates and ask user to clarify

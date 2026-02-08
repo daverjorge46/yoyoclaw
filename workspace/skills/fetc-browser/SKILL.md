@@ -15,6 +15,7 @@
 ```
 
 格式（TSV）：
+
 ```
 license_plate	account_type	username_or_taxid	password
 REC-0733	guest	54533616	NA
@@ -38,6 +39,7 @@ Table: fees
 ```
 
 執行步驟：
+
 1. `browser navigate` → https://www.fetc.net.tw/
 2. 關閉彈窗（如有）
 3. 填寫車號、統編、驗證碼
@@ -52,6 +54,7 @@ Table: fees
 ```
 
 執行步驟：
+
 1. 點擊「會員登入」tab
 2. 填寫帳號、密碼、驗證碼
 3. 登入後選擇車輛
@@ -74,6 +77,7 @@ Table: fees
 ## 驗證碼處理
 
 遠通網站有驗證碼，需要：
+
 1. 截圖驗證碼圖片
 2. 用 vision 識別（或人工輸入）
 3. 填入驗證碼欄位
@@ -83,6 +87,7 @@ Table: fees
 ## 頁面結構筆記
 
 ### Guest 登入區（#section-3）
+
 - 車號輸入：`textbox "請輸入欲查詢的車號"`
 - 統編輸入：`textbox "車主身分證或統一編號"`
 - 驗證碼輸入：`textbox "請輸入驗證碼"`
@@ -90,24 +95,26 @@ Table: fees
 - 查詢按鈕：`link "查詢"`
 
 ### Member 登入區（#section-4）
+
 - 帳號輸入：`#smart-account-login-account`
 - 密碼輸入：對應欄位
 - 驗證碼：同上
 - 登入按鈕：`onclick="ajaxSubmit('sForm4')"`
 
 ### 登入後頁面
+
 - 「通行費紀錄」tab：顯示過路費明細
 - 「停車費紀錄」tab：顯示停車費明細
 - 「餘額紀錄」tab：顯示儲值/扣款記錄
 
 ## 資料欄位對照
 
-| FETC 欄位 | Supabase 欄位 | 說明 |
-|-----------|--------------|------|
-| 日期 | occurred_at | ISO 格式 |
-| 扣款/通行費金額 | fee_amount | 數字 |
-| 類型 | fee_type | toll/street_parking/short_term_parking |
-| 車牌 | license_plate_number | 大寫 |
+| FETC 欄位       | Supabase 欄位        | 說明                                   |
+| --------------- | -------------------- | -------------------------------------- |
+| 日期            | occurred_at          | ISO 格式                               |
+| 扣款/通行費金額 | fee_amount           | 數字                                   |
+| 類型            | fee_type             | toll/street_parking/short_term_parking |
+| 車牌            | license_plate_number | 大寫                                   |
 
 ## 限制
 

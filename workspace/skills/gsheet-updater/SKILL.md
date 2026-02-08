@@ -42,6 +42,7 @@ browser action=act → press Tab (to confirm and move right) or Enter (to confir
 ```
 
 **Important patterns:**
+
 - `Tab` confirms the value and moves to the next cell RIGHT
 - `Enter` confirms the value and moves to the next cell DOWN
 - After Tab/Enter, you can immediately type the next value (no need to re-navigate if filling adjacent cells)
@@ -68,12 +69,12 @@ Always take a screenshot after completing edits to confirm values were saved. Lo
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| "您需要访问权限" | Wrong Google account or no access. Switch account or ask user to share. |
-| Value not appearing in cell | Ensure you pressed Tab or Enter to confirm. Type into formula bar, not Name Box. |
-| Cell shows formula instead of value | Prefix with a single quote `'` to force text mode. |
-| Name Box navigation not working | Click Name Box first, clear existing text, then type new cell ref + Enter. |
+| Problem                             | Solution                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| "您需要访问权限"                    | Wrong Google account or no access. Switch account or ask user to share.          |
+| Value not appearing in cell         | Ensure you pressed Tab or Enter to confirm. Type into formula bar, not Name Box. |
+| Cell shows formula instead of value | Prefix with a single quote `'` to force text mode.                               |
+| Name Box navigation not working     | Click Name Box first, clear existing text, then type new cell ref + Enter.       |
 
 ## Known Sheet: 24Bet G9 Project Management
 
@@ -82,17 +83,17 @@ Always take a screenshot after completing edits to confirm values were saved. Lo
 - **Account**: 2077doss@gmail.com
 - **Structure** (Row 140 = header for current sprint):
 
-| Column | Field | Example |
-|--------|-------|---------|
-| A | 任务名称 | 【架构】服务化框架设计（模块拆分） |
-| B | Jira | — |
-| C | 负责人 | Andrew |
-| D | 当前进度 | 100% |
-| E | 预计工时D | 1 |
-| F | 开始时间 | 02/02/2026 |
-| G | 结束时间 | 02/02/2026 |
-| H | 实际用时D | 1 |
-| I | 状态 | 正常 / 取消 |
-| J | 备注 | Free text |
+| Column | Field     | Example                            |
+| ------ | --------- | ---------------------------------- |
+| A      | 任务名称  | 【架构】服务化框架设计（模块拆分） |
+| B      | Jira      | —                                  |
+| C      | 负责人    | Andrew                             |
+| D      | 当前进度  | 100%                               |
+| E      | 预计工时D | 1                                  |
+| F      | 开始时间  | 02/02/2026                         |
+| G      | 结束时间  | 02/02/2026                         |
+| H      | 实际用时D | 1                                  |
+| I      | 状态      | 正常 / 取消                        |
+| J      | 备注      | Free text                          |
 
 Sprint sections are separated by blue header rows with week labels (e.g. "第31周 (2/2/2026-2/6/2026)").

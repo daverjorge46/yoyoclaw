@@ -90,8 +90,8 @@ Hook 可以返回以下結果來控制 failover：
 
 ```javascript
 return {
-  allow: false,           // 阻止 failover
-  vetoReason: "原因",     // 阻止原因
-  overrideTarget: "provider/model"  // 覆蓋目標模型
+  allow: false, // 阻止 failover
+  vetoReason: "原因", // 阻止原因
+  overrideTarget: "provider/model", // 覆蓋目標模型
 };
 ```

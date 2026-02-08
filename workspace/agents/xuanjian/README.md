@@ -17,6 +17,7 @@ agents/xuanjian/
 ## 部署方式
 
 ### 方式 1：Moltbot Spawned Agent
+
 ```bash
 # 從無極 session 中 spawn
 sessions_spawn(
@@ -26,9 +27,11 @@ sessions_spawn(
 ```
 
 ### 方式 2：獨立 Moltbot Session
+
 在 gateway config 中增加一個 session，指向玄鑑的 AGENT.md。
 
 ### 方式 3：外部 Agent（Claude Code / Codex）
+
 使用 AGENT.md + PROMPTS.md 作為 system prompt，配合 telegram-userbot API 讀取消息。
 
 ## 依賴

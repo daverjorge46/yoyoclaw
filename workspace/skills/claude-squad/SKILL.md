@@ -18,6 +18,7 @@ bash stop.sh     # 停止
 ```
 
 開機自動啟動（macOS）：
+
 ```bash
 cp com.claude-squad.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.claude-squad.plist
@@ -26,11 +27,13 @@ launchctl load ~/Library/LaunchAgents/com.claude-squad.plist
 ## API
 
 ### 健康檢查
+
 ```bash
 curl http://127.0.0.1:18794/health
 ```
 
 ### 建立任務
+
 ```bash
 curl -X POST http://127.0.0.1:18794/task \
   -H "Content-Type: application/json" \
@@ -44,6 +47,7 @@ curl -X POST http://127.0.0.1:18794/task \
 ```
 
 參數：
+
 - `prompt`（必填）：任務描述
 - `repo`（選填，預設 ~/clawd）：git repo 路徑
 - `branch`（選填）：分支名，不填自動產生
@@ -53,28 +57,33 @@ curl -X POST http://127.0.0.1:18794/task \
 - `system_prompt`（選填）：額外 system prompt
 
 ### 列出任務
+
 ```bash
 curl http://127.0.0.1:18794/tasks
 curl "http://127.0.0.1:18794/tasks?status=running"
 ```
 
 ### 查看任務
+
 ```bash
 curl http://127.0.0.1:18794/task/sq-20260129-143022
 curl "http://127.0.0.1:18794/task/sq-20260129-143022?lines=50"
 ```
 
 ### 查看 diff
+
 ```bash
 curl http://127.0.0.1:18794/task/sq-20260129-143022/diff
 ```
 
 ### 取消任務
+
 ```bash
 curl -X POST http://127.0.0.1:18794/task/sq-20260129-143022/cancel
 ```
 
 ### 清理任務（刪除 worktree）
+
 ```bash
 curl -X DELETE http://127.0.0.1:18794/task/sq-20260129-143022
 ```

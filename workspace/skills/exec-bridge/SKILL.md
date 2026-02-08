@@ -26,6 +26,7 @@ python3 scripts/exec_bridge.py --host 0.0.0.0 --port 18793
 ### API
 
 **執行命令**
+
 ```bash
 curl -X POST http://127.0.0.1:18793/exec \
   -H "Content-Type: application/json" \
@@ -33,6 +34,7 @@ curl -X POST http://127.0.0.1:18793/exec \
 ```
 
 Response:
+
 ```json
 {
   "ok": true,
@@ -46,11 +48,13 @@ Response:
 ```
 
 **健康檢查**
+
 ```bash
 curl http://127.0.0.1:18793/health
 ```
 
 **排隊執行（長任務）**
+
 ```bash
 curl -X POST http://127.0.0.1:18793/queue/submit \
   -H "Content-Type: application/json" \
@@ -58,22 +62,23 @@ curl -X POST http://127.0.0.1:18793/queue/submit \
 ```
 
 **查詢結果**
+
 ```bash
 curl "http://127.0.0.1:18793/queue/result?id=<jobId>"
 ```
 
 ### 參數
 
-| 參數 | 類型 | 預設 | 說明 |
-|------|------|------|------|
-| command | string | 必填 | 要執行的命令 |
-| timeout | int | 60 | 超時秒數（最大 300） |
-| cwd | string | $HOME | 工作目錄 |
-| shell | bool | true | 是否用 shell 執行 |
-| env | object | null | 額外環境變數 |
-| queue | bool | false | true = 排隊執行 |
-| mode | string | - | "queue" = 排隊執行 |
-| wait | int | 0 | 排隊模式下等待秒數，等不到就回 jobId |
+| 參數    | 類型   | 預設  | 說明                                 |
+| ------- | ------ | ----- | ------------------------------------ |
+| command | string | 必填  | 要執行的命令                         |
+| timeout | int    | 60    | 超時秒數（最大 300）                 |
+| cwd     | string | $HOME | 工作目錄                             |
+| shell   | bool   | true  | 是否用 shell 執行                    |
+| env     | object | null  | 額外環境變數                         |
+| queue   | bool   | false | true = 排隊執行                      |
+| mode    | string | -     | "queue" = 排隊執行                   |
+| wait    | int    | 0     | 排隊模式下等待秒數，等不到就回 jobId |
 
 ### 在 Clawdbot 中使用
 
@@ -114,6 +119,7 @@ launchctl unload ~/Library/LaunchAgents/com.exec-bridge.plist
 ## 故障排除
 
 **服務沒啟動**
+
 ```bash
 # 檢查是否在運行
 curl http://127.0.0.1:18793/health
@@ -123,6 +129,7 @@ python3 ~/clawd/skills/exec-bridge/scripts/exec_bridge.py --host 0.0.0.0 --port 
 ```
 
 **命令執行失敗**
+
 ```bash
 # 檢查 response 中的 stderr 和 error 欄位
 curl -X POST http://127.0.0.1:18793/exec \

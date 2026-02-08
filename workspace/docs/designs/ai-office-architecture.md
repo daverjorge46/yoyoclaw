@@ -79,16 +79,16 @@ routing:
 
 ### 關鍵配置
 
-| 欄位 | 說明 |
-|------|------|
-| `module_path` | Python 模組路徑，用於動態載入 |
-| `scene_class` | 場景類別或函數名稱 |
-| `memory_file` | 專屬記憶檔案位置 |
-| `context_config` | 場景上下文配置 |
-| `keywords` | 搜尋關鍵字 |
-| `personas` | 可用的角色列表 |
-| `active` | 是否啟用 |
-| `priority` | 優先級（數字越小越高） |
+| 欄位             | 說明                          |
+| ---------------- | ----------------------------- |
+| `module_path`    | Python 模組路徑，用於動態載入 |
+| `scene_class`    | 場景類別或函數名稱            |
+| `memory_file`    | 專屬記憶檔案位置              |
+| `context_config` | 場景上下文配置                |
+| `keywords`       | 搜尋關鍵字                    |
+| `personas`       | 可用的角色列表                |
+| `active`         | 是否啟用                      |
+| `priority`       | 優先級（數字越小越高）        |
 
 ## 記憶系統 (Memory System)
 
@@ -104,16 +104,21 @@ routing:
 # User Memory Log
 
 ## 短期記憶 (Short-term Memory)
+
 ### 2025-07-03
+
 - **14:10** - 完成功能開發
 - **14:15** - 執行測試
 
 ## 長期記憶 (Long-term Memory)
+
 ### 技術偏好
+
 - Python 開發
 - TDD 實踐
 
 ### 專案資訊
+
 - 負責 Vigor 專案
 ```
 
@@ -184,6 +189,7 @@ system_prompt = loader.generate_system_prompt()
 ```
 
 輸出範例：
+
 ```
 你是 木 - 產品經理
 
@@ -227,16 +233,16 @@ class VigorScene(BaseScene):
     def execute(self):
         # 1. 載入場景專屬記憶
         memory = self.context.get('memory')
-        
+
         # 2. 應用 Persona
         persona = self.context.get('persona')
-        
+
         # 3. 執行場景邏輯
         result = self.run_automation_tasks()
-        
+
         # 4. 更新記憶
         memory.add_memory_entry(f"- 執行了 {self.__class__.__name__}")
-        
+
         return result
 ```
 

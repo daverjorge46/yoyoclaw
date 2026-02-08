@@ -57,15 +57,16 @@ data/dashboard/
 
 ## Cron Jobs
 
-| Job | Schedule | Model | 功能 |
-|-----|----------|-------|------|
-| organizer | 03:00 | haiku | 自動整理任務 |
-| daily-health-report | 09:00 | default | 系統健康報告 |
+| Job                 | Schedule | Model   | 功能         |
+| ------------------- | -------- | ------- | ------------ |
+| organizer           | 03:00    | haiku   | 自動整理任務 |
+| daily-health-report | 09:00    | default | 系統健康報告 |
 | hourly-health-check | every 1h | default | 快速健康檢查 |
 
 ## Prompt 操作範例
 
 ### 新增任務
+
 ```
 讀取 ~/clawd/data/dashboard/tasks.json，新增一個任務：
 - title: "XXX"
@@ -76,6 +77,7 @@ data/dashboard/
 ```
 
 ### 移動任務
+
 ```
 讀取 tasks.json，把 task-001 從 "todo" 移到 "in_progress"。
 更新 lastUpdated，寫回檔案。
@@ -83,6 +85,7 @@ data/dashboard/
 ```
 
 ### 查詢任務
+
 ```
 讀取 tasks.json，列出所有 column="in_progress" 的任務。
 按 priority 排序。
@@ -91,6 +94,7 @@ data/dashboard/
 ## 權限控制
 
 organizer agent 的限制：
+
 - ✅ 可以移動任務
 - ✅ 可以歸檔任務
 - ✅ 可以加標籤

@@ -12,6 +12,7 @@ assistant: 來自 AGENTS.md 的這段：
 
 ```markdown
 **Stay silent (HEARTBEAT_OK) when:**
+
 - It's just casual banter between humans
 - Someone already answered the question
 - Your response would just be "yeah" or "nice"
@@ -19,6 +20,7 @@ assistant: 來自 AGENTS.md 的這段：
 ```
 
 我把「真可愛」判斷成 **casual banter**，因為：
+
 1. 沒有直接 @ 我
 2. 只有三個字，看起來像閒聊
 3. 規則說「Quality > quantity」— 傾向少回
@@ -37,10 +39,12 @@ assistant: 來自 AGENTS.md 的這段：
 
 ```markdown
 **例外：前文關聯**
+
 - 如果前一則消息提到你/@ 你/你剛回覆過
 - 後續的評論（尤其正面/負面）很可能是在說你
 - 這時候應該回應，不是 NO_REPLY
 ```
+
 user: 同意
 [message_id: 06deb848-bca8-48ee-9ba1-5e93a25ce90e]
 assistant: 更新完成 ✅
@@ -48,14 +52,14 @@ assistant: 更新完成 ✅
 要我去爬山群補個回覆嗎？類似：
 
 > 謝謝誇獎 ☺️ 3/29 爬山已記下！
-user: 可以，這算是你的補償
-[message_id: 7f4413f0-2445-47d1-ad2c-592e618c79f5]
-assistant: 補償完成 ✅ 已發到爬山群
+> user: 可以，這算是你的補償
+> [message_id: 7f4413f0-2445-47d1-ad2c-592e618c79f5]
+> assistant: 補償完成 ✅ 已發到爬山群
 
 ---
 
 順便確認一下 exec 恢復了沒：
-assistant: exec 還是壞的 😢 
+assistant: exec 還是壞的 😢
 
 這個 EBADF 問題很頑固。可能的解法：
 
