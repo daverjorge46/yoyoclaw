@@ -186,6 +186,7 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     const skipReason = shouldSkipStart(accountId);
     if (skipReason) {
       logInfo(`[telegram:${accountId}] skipping start: ${skipReason}`);
+      unregisterHandler();
       return;
     }
 

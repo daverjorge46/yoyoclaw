@@ -73,7 +73,8 @@ export function logCorruptedToolResult(
     fs.mkdirSync(CORRUPTED_DEBUG_DIR, { recursive: true });
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `corrupted-${meta.sessionKey ?? "unknown"}-${timestamp}.json`;
+    const suffix = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+    const filename = `corrupted-${meta.sessionKey ?? "unknown"}-${timestamp}-${suffix}.json`;
     const filepath = path.join(CORRUPTED_DEBUG_DIR, filename);
 
     // Attempt to serialize safely, fallback to string representation

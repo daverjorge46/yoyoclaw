@@ -158,16 +158,18 @@ describe("logCorruptedToolResult", () => {
   });
 
   it("returns null on write failure without throwing", () => {
-    const originalHome = process.env.HOME;
-    // Use a path with null character which is invalid on all Unix systems
-    process.env.HOME = "/dev/null/\x00invalid";
+    // Temporarily make mkdirSync throw to simulate write failure
+    const originalMkdirSync = fs.mkdirSync;
+    fs.mkdirSync = () => {
+      throw new Error("simulated write failure");
+    };
 
     try {
       const filepath = logCorruptedToolResult({} as AgentMessage, new Error("test"), {});
       // Should return null on any write failure
       expect(filepath).toBeNull();
     } finally {
-      process.env.HOME = originalHome;
+      fs.mkdirSync = originalMkdirSync;
     }
   });
 });
