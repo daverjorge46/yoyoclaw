@@ -37,6 +37,7 @@ export type AuthChoice =
   | "qwen-portal"
   | "xai-api-key"
   | "huawei-maas-api-key"
+  | "qianfan-api-key"
   | "skip";
 export type GatewayAuthChoice = "token" | "password";
 export type ResetScope = "config" | "config+creds+sessions" | "full";
@@ -83,6 +84,7 @@ export type OnboardOptions = {
   opencodeZenApiKey?: string;
   xaiApiKey?: string;
   huaweiMaasApiKey?: string;
+  qianfanApiKey?: string;
   gatewayPort?: number;
   gatewayBind?: GatewayBind;
   gatewayAuth?: GatewayAuthChoice;
