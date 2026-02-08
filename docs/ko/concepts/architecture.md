@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 게이트웨이 프로토콜, 클라이언트 또는 전송 작업
+  - 게이트웨이 프로토콜, 클라이언트 또는 전송 작업
 summary: WebSocket 게이트웨이 아키텍처, 구성 요소 및 클라이언트 흐름
 title: 게이트웨이 아키텍처
 x-i18n:
-    generated_at: "2026-02-08T15:53:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 14079136faa267d7f1b05ea6c5b91faf8587f117b1c147766ad949d6a6c881ec
-    source_path: concepts/architecture.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 14079136faa267d7f1b05ea6c5b91faf8587f117b1c147766ad949d6a6c881ec
+  source_path: concepts/architecture.md
+  workflow: 15
 ---
 
 # 게이트웨이 아키텍처

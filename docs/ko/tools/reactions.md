@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 모든 채널에서 반응 작업
+  - 모든 채널에서 반응 작업
 summary: 채널 전반에 걸쳐 공유되는 반응 의미
 title: 반응
 x-i18n:
-    generated_at: "2026-02-08T16:13:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0f11bff9adb4bd02604f96ebe2573a623702796732b6e17dfeda399cb7be0fa6
-    source_path: tools/reactions.md
-    workflow: 15
+  generated_at: "2026-02-08T16:13:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0f11bff9adb4bd02604f96ebe2573a623702796732b6e17dfeda399cb7be0fa6
+  source_path: tools/reactions.md
+  workflow: 15
 ---
 
 # 반응 도구

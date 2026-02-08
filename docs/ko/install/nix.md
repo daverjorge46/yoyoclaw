@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 재현 가능하고 롤백 가능한 설치를 원합니다.
-    - 이미 Nix/NixOS/Home Manager를 사용하고 있습니다.
-    - 모든 것이 선언적으로 고정되고 관리되기를 원합니다.
+  - 재현 가능하고 롤백 가능한 설치를 원합니다.
+  - 이미 Nix/NixOS/Home Manager를 사용하고 있습니다.
+  - 모든 것이 선언적으로 고정되고 관리되기를 원합니다.
 summary: Nix를 사용하여 선언적으로 OpenClaw 설치
 title: 아니야
 x-i18n:
-    generated_at: "2026-02-08T15:59:49Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f1452194cfdd74613b5b3ab90b0d506eaea2d16b147497987710d6ad658312ba
-    source_path: install/nix.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:49Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f1452194cfdd74613b5b3ab90b0d506eaea2d16b147497987710d6ad658312ba
+  source_path: install/nix.md
+  workflow: 15
 ---
 
 # 닉스 설치

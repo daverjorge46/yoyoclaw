@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 플러그인/확장 추가 또는 수정
-    - 플러그인 설치 또는 로드 규칙 문서화
-summary: 'OpenClaw 플러그인/확장: 검색, 구성 및 안전'
+  - 플러그인/확장 추가 또는 수정
+  - 플러그인 설치 또는 로드 규칙 문서화
+summary: "OpenClaw 플러그인/확장: 검색, 구성 및 안전"
 title: 플러그인
 x-i18n:
-    generated_at: "2026-02-08T16:05:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b36ca6b90ca03eaae25c00f9b12f2717fcd17ac540ba616ee03b398b234c2308
-    source_path: tools/plugin.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b36ca6b90ca03eaae25c00f9b12f2717fcd17ac540ba616ee03b398b234c2308
+  source_path: tools/plugin.md
+  workflow: 15
 ---
 
 # 플러그인(확장)

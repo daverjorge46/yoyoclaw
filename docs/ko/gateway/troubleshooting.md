@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 문제 해결 허브에서 더 자세한 진단을 위해 여기를 알려 주었습니다.
-    - 정확한 명령이 포함된 안정적인 증상 기반 Runbook 섹션이 필요합니다.
+  - 문제 해결 허브에서 더 자세한 진단을 위해 여기를 알려 주었습니다.
+  - 정확한 명령이 포함된 안정적인 증상 기반 Runbook 섹션이 필요합니다.
 summary: 게이트웨이, 채널, 자동화, 노드 및 브라우저에 대한 심층적인 문제 해결 런북
 title: 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T15:57:05Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 163c4af6be740e23aedb37808327b3ecc078c2906d98ba9cb3751e95a8530a17
-    source_path: gateway/troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:05Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 163c4af6be740e23aedb37808327b3ecc078c2906d98ba9cb3751e95a8530a17
+  source_path: gateway/troubleshooting.md
+  workflow: 15
 ---
 
 # 게이트웨이 문제 해결

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw와 함께 Vercel AI Gateway를 사용하고 싶습니다.
-    - API 키 env var 또는 CLI 인증 선택이 필요합니다.
+  - OpenClaw와 함께 Vercel AI Gateway를 사용하고 싶습니다.
+  - API 키 env var 또는 CLI 인증 선택이 필요합니다.
 summary: Vercel AI Gateway 설정(인증 + 모델 선택)
 title: Vercel AI 게이트웨이
 x-i18n:
-    generated_at: "2026-02-08T16:02:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2bf1687c1152c6e1afe1092631e0fc184837d35b219044002241395158e4b8f6
-    source_path: providers/vercel-ai-gateway.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2bf1687c1152c6e1afe1092631e0fc184837d35b219044002241395158e4b8f6
+  source_path: providers/vercel-ai-gateway.md
+  workflow: 15
 ---
 
 # Vercel AI 게이트웨이

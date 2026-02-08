@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 메뉴 표시줄 아이콘 동작 변경
+  - 메뉴 표시줄 아이콘 동작 변경
 summary: macOS의 OpenClaw에 대한 메뉴 표시줄 아이콘 상태 및 애니메이션
 title: 메뉴바 아이콘
 x-i18n:
-    generated_at: "2026-02-08T16:04:36Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a67a6e6bbdc2b611ba365d3be3dd83f9e24025d02366bc35ffcce9f0b121872b
-    source_path: platforms/mac/icon.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:36Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a67a6e6bbdc2b611ba365d3be3dd83f9e24025d02366bc35ffcce9f0b121872b
+  source_path: platforms/mac/icon.md
+  workflow: 15
 ---
 
 # 메뉴 표시줄 아이콘 상태

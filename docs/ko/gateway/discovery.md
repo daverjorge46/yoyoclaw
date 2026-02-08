@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Bonjour 검색/광고 구현 또는 변경
-    - 원격 연결 모드 조정(직접 및 SSH)
-    - 노드 검색 설계 + 원격 노드 페어링
+  - Bonjour 검색/광고 구현 또는 변경
+  - 원격 연결 모드 조정(직접 및 SSH)
+  - 노드 검색 설계 + 원격 노드 페어링
 summary: 게이트웨이를 찾기 위한 노드 검색 및 전송(Bonjour, Tailscale, SSH)
 title: 발견과 수송
 x-i18n:
-    generated_at: "2026-02-08T15:58:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e12172c181515bfa6aab8625ed3fbc335b80ba92e2b516c02c6066aeeb9f884c
-    source_path: gateway/discovery.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e12172c181515bfa6aab8625ed3fbc335b80ba92e2b516c02c6066aeeb9f884c
+  source_path: gateway/discovery.md
+  workflow: 15
 ---
 
 # 발견 및 운송

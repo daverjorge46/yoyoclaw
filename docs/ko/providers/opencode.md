@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 모델 액세스를 위해 OpenCode Zen을 원합니다
-    - 코딩 친화적인 모델의 선별된 목록을 원합니다.
+  - 모델 액세스를 위해 OpenCode Zen을 원합니다
+  - 코딩 친화적인 모델의 선별된 목록을 원합니다.
 summary: OpenClaw와 함께 OpenCode Zen(선별된 모델) 사용
 title: 오픈코드 젠
 x-i18n:
-    generated_at: "2026-02-08T16:09:24Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b3b5c640ac32f3177f6f4ffce766f3f57ff75c6ca918822c817d9a18f680be8f
-    source_path: providers/opencode.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:24Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b3b5c640ac32f3177f6f4ffce766f3f57ff75c6ca918822c817d9a18f680be8f
+  source_path: providers/opencode.md
+  workflow: 15
 ---
 
 # 오픈코드 젠

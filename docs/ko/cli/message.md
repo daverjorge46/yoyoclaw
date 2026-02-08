@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 메시지 CLI 작업 추가 또는 수정
-    - 아웃바운드 채널 동작 변경
-summary: '`openclaw message`에 대한 CLI 참조(전송 + 채널 작업)'
+  - 메시지 CLI 작업 추가 또는 수정
+  - 아웃바운드 채널 동작 변경
+summary: "`openclaw message`에 대한 CLI 참조(전송 + 채널 작업)"
 title: 메시지
 x-i18n:
-    generated_at: "2026-02-08T15:53:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 7781b44b3998d27108f7996802ca2cedb4869749fffea5b09452f348827482dd
-    source_path: cli/message.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 7781b44b3998d27108f7996802ca2cedb4869749fffea5b09452f348827482dd
+  source_path: cli/message.md
+  workflow: 15
 ---
 
 # `openclaw message`

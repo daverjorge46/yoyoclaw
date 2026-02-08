@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 전체 상담원 차례를 실행하지 않고 도구 호출
-    - 도구 정책 시행이 필요한 자동화 구축
+  - 전체 상담원 차례를 실행하지 않고 도구 호출
+  - 도구 정책 시행이 필요한 자동화 구축
 summary: 게이트웨이 HTTP 엔드포인트를 통해 직접 단일 도구 호출
 title: 도구 호출 API
 x-i18n:
-    generated_at: "2026-02-08T15:59:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 17ccfbe0b0d9bb61cc46fb21f5c09b106ba6e8e4c2c14135a11ca8d5b77b8a88
-    source_path: gateway/tools-invoke-http-api.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 17ccfbe0b0d9bb61cc46fb21f5c09b106ba6e8e4c2c14135a11ca8d5b77b8a88
+  source_path: gateway/tools-invoke-http-api.md
+  workflow: 15
 ---
 
 # 도구 호출(HTTP)

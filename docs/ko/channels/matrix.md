@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Matrix 채널 기능 작업
+  - Matrix 채널 기능 작업
 summary: 매트릭스 지원 상태, 기능 및 구성
 title: 행렬
 x-i18n:
-    generated_at: "2026-02-08T15:48:38Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 199b954b901cbb178f608c1f41eaee2292aa48ca304d94c6231be0c405998344
-    source_path: channels/matrix.md
-    workflow: 15
+  generated_at: "2026-02-08T15:48:38Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 199b954b901cbb178f608c1f41eaee2292aa48ca304d94c6231be0c405998344
+  source_path: channels/matrix.md
+  workflow: 15
 ---
 
 # 매트릭스(플러그인)

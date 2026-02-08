@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 미디어 이해 설계 또는 리팩토링
-    - 인바운드 오디오/비디오/이미지 전처리 조정
+  - 미디어 이해 설계 또는 리팩토링
+  - 인바운드 오디오/비디오/이미지 전처리 조정
 summary: 공급자 + CLI 폴백을 통한 인바운드 이미지/오디오/비디오 이해(선택 사항)
 title: 미디어 이해
 x-i18n:
-    generated_at: "2026-02-08T15:58:56Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4b275b152060eae30b61cd9f818fe1cc13a2ef7d82ec6c9992b96e11f8759387
-    source_path: nodes/media-understanding.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:56Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4b275b152060eae30b61cd9f818fe1cc13a2ef7d82ec6c9992b96e11f8759387
+  source_path: nodes/media-understanding.md
+  workflow: 15
 ---
 
 # 미디어 이해 (인바운드) — 2026-01-17

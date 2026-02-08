@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 Xiaomi MiMo 모델을 원합니다
-    - XIAOMI_API_KEY 설정이 필요합니다
+  - OpenClaw에서 Xiaomi MiMo 모델을 원합니다
+  - XIAOMI_API_KEY 설정이 필요합니다
 summary: OpenClaw와 함께 Xiaomi MiMo(mimo-v2-flash) 사용
 title: 샤오미 미모
 x-i18n:
-    generated_at: "2026-02-08T16:01:03Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 366fd2297b2caf8c5ad944d7f1b6d233b248fe43aedd22a28352ae7f370d2435
-    source_path: providers/xiaomi.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:03Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 366fd2297b2caf8c5ad944d7f1b6d233b248fe43aedd22a28352ae7f370d2435
+  source_path: providers/xiaomi.md
+  workflow: 15
 ---
 
 # 샤오미 미모

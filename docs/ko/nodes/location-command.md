@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 위치 노드 지원 또는 권한 UI 추가
-    - 배경 위치 + 푸시 흐름 디자인
+  - 위치 노드 지원 또는 권한 UI 추가
+  - 배경 위치 + 푸시 흐름 디자인
 summary: 노드(location.get)에 대한 위치 명령, 권한 모드 및 백그라운드 동작
 title: 위치 명령
 x-i18n:
-    generated_at: "2026-02-08T16:02:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 23124096256384d2b28157352b072309c61c970a20e009aac5ce4a8250dc3764
-    source_path: nodes/location-command.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 23124096256384d2b28157352b072309c61c970a20e009aac5ce4a8250dc3764
+  source_path: nodes/location-command.md
+  workflow: 15
 ---
 
 # 위치 명령(노드)

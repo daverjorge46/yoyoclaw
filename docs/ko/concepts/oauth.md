@@ -1,18 +1,18 @@
 ---
 read_when:
-    - OpenClaw OAuth 엔드투엔드를 이해하고 싶습니다.
-    - 토큰 무효화/로그아웃 문제가 발생했습니다.
-    - 설정 토큰 또는 OAuth 인증 흐름을 원합니다.
-    - 여러 계정 또는 프로필 라우팅을 원합니다.
-summary: 'OpenClaw의 OAuth: 토큰 교환, 저장 및 다중 계정 패턴'
+  - OpenClaw OAuth 엔드투엔드를 이해하고 싶습니다.
+  - 토큰 무효화/로그아웃 문제가 발생했습니다.
+  - 설정 토큰 또는 OAuth 인증 흐름을 원합니다.
+  - 여러 계정 또는 프로필 라우팅을 원합니다.
+summary: "OpenClaw의 OAuth: 토큰 교환, 저장 및 다중 계정 패턴"
 title: OAuth
 x-i18n:
-    generated_at: "2026-02-08T15:54:40Z"
-    model: gtx
-    provider: google-translate
-    source_hash: af714bdadc4a89295a18da1eba5f5b857c8d533ebabe9b0758b722fe60c36124
-    source_path: concepts/oauth.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:40Z"
+  model: gtx
+  provider: google-translate
+  source_hash: af714bdadc4a89295a18da1eba5f5b857c8d533ebabe9b0758b722fe60c36124
+  source_path: concepts/oauth.md
+  workflow: 15
 ---
 
 # OAuth

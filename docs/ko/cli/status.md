@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채널 상태 + 최근 세션 수신자에 대한 빠른 진단을 원합니다.
-    - 디버깅을 위해 붙여넣을 수 있는 "모두" 상태를 원합니다.
-summary: '`openclaw status`에 대한 CLI 참조(진단, 프로브, 사용량 스냅샷)'
+  - 채널 상태 + 최근 세션 수신자에 대한 빠른 진단을 원합니다.
+  - 디버깅을 위해 붙여넣을 수 있는 "모두" 상태를 원합니다.
+summary: "`openclaw status`에 대한 CLI 참조(진단, 프로브, 사용량 스냅샷)"
 title: 상태
 x-i18n:
-    generated_at: "2026-02-08T15:49:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2bbf5579c48034fc15c2cbd5506c50456230b17e4a74c06318968c590d8f1501
-    source_path: cli/status.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2bbf5579c48034fc15c2cbd5506c50456230b17e4a74c06318968c590d8f1501
+  source_path: cli/status.md
+  workflow: 15
 ---
 
 # `openclaw status`

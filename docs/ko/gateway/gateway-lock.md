@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 게이트웨이 프로세스 실행 또는 디버깅
-    - 단일 인스턴스 시행 조사
+  - 게이트웨이 프로세스 실행 또는 디버깅
+  - 단일 인스턴스 시행 조사
 summary: WebSocket 수신기 바인드를 사용하는 게이트웨이 싱글톤 가드
 title: 게이트웨이 잠금
 x-i18n:
-    generated_at: "2026-02-08T15:56:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 15fdfa066d1925da8b4632073a876709f77ca8d40e6828c174a30d953ba4f8e9
-    source_path: gateway/gateway-lock.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 15fdfa066d1925da8b4632073a876709f77ca8d40e6828c174a30d953ba4f8e9
+  source_path: gateway/gateway-lock.md
+  workflow: 15
 ---
 
 # 게이트웨이 잠금

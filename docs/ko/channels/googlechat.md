@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Google Chat 채널 기능 작업 중
+  - Google Chat 채널 기능 작업 중
 summary: Google Chat 앱 지원 상태, 기능, 구성
 title: 구글 채팅
 x-i18n:
-    generated_at: "2026-02-08T15:47:35Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3d557dd25946ad11b0f9613f8bc6df5cfeb9b4705fdaede983a8d3e9f12c0aac
-    source_path: channels/googlechat.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:35Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3d557dd25946ad11b0f9613f8bc6df5cfeb9b4705fdaede983a8d3e9f12c0aac
+  source_path: channels/googlechat.md
+  workflow: 15
 ---
 
 <a id="config-highlights"></a>

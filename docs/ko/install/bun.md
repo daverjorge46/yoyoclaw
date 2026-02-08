@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 가장 빠른 로컬 개발 루프를 원합니다(bun + watch)
-    - Bun 설치/패치/라이프사이클 스크립트 문제가 발생했습니다.
-summary: 'Bun 워크플로(실험): 설치 및 문제와 pnpm 비교'
+  - 가장 빠른 로컬 개발 루프를 원합니다(bun + watch)
+  - Bun 설치/패치/라이프사이클 스크립트 문제가 발생했습니다.
+summary: "Bun 워크플로(실험): 설치 및 문제와 pnpm 비교"
 title: 롤빵(실험적)
 x-i18n:
-    generated_at: "2026-02-08T16:01:31Z"
-    model: gtx
-    provider: google-translate
-    source_hash: eb3f4c222b6bae49938d8bf53a0818fe5f5e0c0c3c1adb3e0a832ce8f785e1e3
-    source_path: install/bun.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:31Z"
+  model: gtx
+  provider: google-translate
+  source_hash: eb3f4c222b6bae49938d8bf53a0818fe5f5e0c0c3c1adb3e0a832ce8f785e1e3
+  source_path: install/bun.md
+  workflow: 15
 ---
 
 # 롤빵 (실험적)

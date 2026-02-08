@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 문서의 전체 지도를 원합니다.
+  - 문서의 전체 지도를 원합니다.
 summary: 모든 OpenClaw 문서에 연결되는 허브
 title: 문서 허브
 x-i18n:
-    generated_at: "2026-02-08T16:08:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 027cb7937ba6386637f46042dff6c978f8bf91c0f110e7a80385b69d62b4bc6e
-    source_path: start/hubs.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 027cb7937ba6386637f46042dff6c978f8bf91c0f110e7a80385b69d62b4bc6e
+  source_path: start/hubs.md
+  workflow: 15
 ---
 
 # 문서 허브

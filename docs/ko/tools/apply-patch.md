@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 여러 파일에 걸쳐 구조화된 파일을 수정해야 하는 경우
-    - 패치 기반 편집 내용을 문서화하거나 디버깅하려는 경우
+  - 여러 파일에 걸쳐 구조화된 파일을 수정해야 하는 경우
+  - 패치 기반 편집 내용을 문서화하거나 디버깅하려는 경우
 summary: apply_patch 도구를 사용하여 다중 파일 패치 적용
 title: apply_patch 도구
 x-i18n:
-    generated_at: "2026-02-08T16:12:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8cec2b4ee3afa9105fc3dd1bc28a338917df129afc634ac83620a3347c46bcec
-    source_path: tools/apply-patch.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8cec2b4ee3afa9105fc3dd1bc28a338917df129afc634ac83620a3347c46bcec
+  source_path: tools/apply-patch.md
+  workflow: 15
 ---
 
 # apply_patch 도구

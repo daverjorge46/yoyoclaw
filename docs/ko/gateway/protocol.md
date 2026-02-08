@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 게이트웨이 WS 클라이언트 구현 또는 업데이트
-    - 프로토콜 불일치 또는 연결 실패 디버깅
-    - 프로토콜 스키마/모델 재생성
-summary: '게이트웨이 WebSocket 프로토콜: 핸드셰이크, 프레임, 버전 관리'
+  - 게이트웨이 WS 클라이언트 구현 또는 업데이트
+  - 프로토콜 불일치 또는 연결 실패 디버깅
+  - 프로토콜 스키마/모델 재생성
+summary: "게이트웨이 WebSocket 프로토콜: 핸드셰이크, 프레임, 버전 관리"
 title: 게이트웨이 프로토콜
 x-i18n:
-    generated_at: "2026-02-08T15:56:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bdafac40d53565901b2df450617287664d77fe4ff52681fa00cab9046b2fd850
-    source_path: gateway/protocol.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bdafac40d53565901b2df450617287664d77fe4ff52681fa00cab9046b2fd850
+  source_path: gateway/protocol.md
+  workflow: 15
 ---
 
 # 게이트웨이 프로토콜(WebSocket)

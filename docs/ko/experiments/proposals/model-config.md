@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 향후 모델 선택 + 인증 프로필 아이디어 탐색
-summary: '탐색: 모델 구성, 인증 프로필 및 대체 동작'
+  - 향후 모델 선택 + 인증 프로필 아이디어 탐색
+summary: "탐색: 모델 구성, 인증 프로필 및 대체 동작"
 title: 모델 구성 탐색
 x-i18n:
-    generated_at: "2026-02-08T15:54:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 48623233d80f874c0ae853b51f888599cf8b50ae6fbfe47f6d7b0216bae9500b
-    source_path: experiments/proposals/model-config.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 48623233d80f874c0ae853b51f888599cf8b50ae6fbfe47f6d7b0216bae9500b
+  source_path: experiments/proposals/model-config.md
+  workflow: 15
 ---
 
 # 모델 구성(탐색)

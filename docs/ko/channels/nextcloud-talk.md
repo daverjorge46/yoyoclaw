@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Nextcloud Talk 채널 기능 작업 중
+  - Nextcloud Talk 채널 기능 작업 중
 summary: Nextcloud Talk 지원 상태, 기능 및 구성
 title: 넥스트클라우드톡
 x-i18n:
-    generated_at: "2026-02-08T15:50:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2769144221e41391fc903a8a9289165fb9ffcc795dd54615e5009f1d6f48df3f
-    source_path: channels/nextcloud-talk.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2769144221e41391fc903a8a9289165fb9ffcc795dd54615e5009f1d6f48df3f
+  source_path: channels/nextcloud-talk.md
+  workflow: 15
 ---
 
 # Nextcloud Talk(플러그인)

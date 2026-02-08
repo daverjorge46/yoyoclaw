@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 채널 라우팅 또는 받은 편지함 동작 변경
+  - 채널 라우팅 또는 받은 편지함 동작 변경
 summary: 채널(WhatsApp, Telegram, Discord, Slack) 및 공유 컨텍스트별 라우팅 규칙
 title: 채널 라우팅
 x-i18n:
-    generated_at: "2026-02-08T15:47:11Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cfc2cade2984225dd4c78aadc6ccdc36d209e19dd6ef2fc6e2aedac67ea758ef
-    source_path: channels/channel-routing.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:11Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cfc2cade2984225dd4c78aadc6ccdc36d209e19dd6ef2fc6e2aedac67ea758ef
+  source_path: channels/channel-routing.md
+  workflow: 15
 ---
 
 # 채널 및 라우팅

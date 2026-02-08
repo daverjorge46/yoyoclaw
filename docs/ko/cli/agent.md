@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 스크립트에서 하나의 에이전트 차례를 실행하려고 합니다(선택적으로 응답 전달).
-summary: '`openclaw agent`에 대한 CLI 참조(게이트웨이를 통해 하나의 에이전트 차례 보내기)'
+  - 스크립트에서 하나의 에이전트 차례를 실행하려고 합니다(선택적으로 응답 전달).
+summary: "`openclaw agent`에 대한 CLI 참조(게이트웨이를 통해 하나의 에이전트 차례 보내기)"
 title: 대리인
 x-i18n:
-    generated_at: "2026-02-08T15:52:02Z"
-    model: gtx
-    provider: google-translate
-    source_hash: dcf12fb94e207c68645f58235792596d65afecf8216b8f9ab3acb01e03b50a33
-    source_path: cli/agent.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:02Z"
+  model: gtx
+  provider: google-translate
+  source_hash: dcf12fb94e207c68645f58235792596d65afecf8216b8f9ab3acb01e03b50a33
+  source_path: cli/agent.md
+  workflow: 15
 ---
 
 # `openclaw agent`

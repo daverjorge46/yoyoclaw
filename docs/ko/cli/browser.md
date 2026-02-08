@@ -1,17 +1,17 @@
 ---
 read_when:
-    - '`openclaw browser`을 사용하고 일반적인 작업에 대한 예제를 원합니다.'
-    - 노드 호스트를 통해 다른 시스템에서 실행 중인 브라우저를 제어하려고 합니다.
-    - Chrome 확장 릴레이를 사용하고 싶습니다(툴바 버튼을 통해 연결/분리)
-summary: '`openclaw browser`에 대한 CLI 참조(프로필, 탭, 작업, 확장 릴레이)'
+  - "`openclaw browser`을 사용하고 일반적인 작업에 대한 예제를 원합니다."
+  - 노드 호스트를 통해 다른 시스템에서 실행 중인 브라우저를 제어하려고 합니다.
+  - Chrome 확장 릴레이를 사용하고 싶습니다(툴바 버튼을 통해 연결/분리)
+summary: "`openclaw browser`에 대한 CLI 참조(프로필, 탭, 작업, 확장 릴레이)"
 title: 브라우저
 x-i18n:
-    generated_at: "2026-02-08T15:52:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: af35adfd68726fd519c704d046451effd330458c2b8305e713137fb07b2571fd
-    source_path: cli/browser.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: af35adfd68726fd519c704d046451effd330458c2b8305e713137fb07b2571fd
+  source_path: cli/browser.md
+  workflow: 15
 ---
 
 # `openclaw browser`

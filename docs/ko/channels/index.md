@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw의 채팅 채널을 선택하고 싶습니다.
-    - 지원되는 메시징 플랫폼에 대한 간략한 개요가 필요합니다.
+  - OpenClaw의 채팅 채널을 선택하고 싶습니다.
+  - 지원되는 메시징 플랫폼에 대한 간략한 개요가 필요합니다.
 summary: OpenClaw가 연결할 수 있는 메시징 플랫폼
 title: 채팅 채널
 x-i18n:
-    generated_at: "2026-02-08T15:47:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6a0e2c70133776d3cbb9e2e09f03ad40cdf457195bde8020fda89f0d94bc5536
-    source_path: channels/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6a0e2c70133776d3cbb9e2e09f03ad40cdf457195bde8020fda89f0d94bc5536
+  source_path: channels/index.md
+  workflow: 15
 ---
 
 # 채팅 채널

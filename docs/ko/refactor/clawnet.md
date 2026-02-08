@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 노드 + 운영자 클라이언트를 위한 통합 네트워크 프로토콜 계획
-    - 승인, 페어링, TLS 및 기기 간 존재 재작업
-summary: 'Clawnet 리팩터링: 네트워크 프로토콜, 역할, 인증, 승인, ID 통합'
+  - 노드 + 운영자 클라이언트를 위한 통합 네트워크 프로토콜 계획
+  - 승인, 페어링, TLS 및 기기 간 존재 재작업
+summary: "Clawnet 리팩터링: 네트워크 프로토콜, 역할, 인증, 승인, ID 통합"
 title: 클로넷 리팩터링
 x-i18n:
-    generated_at: "2026-02-08T16:10:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 719b219c3b326479658fe6101c80d5273fc56eb3baf50be8535e0d1d2bb7987f
-    source_path: refactor/clawnet.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 719b219c3b326479658fe6101c80d5273fc56eb3baf50be8535e0d1d2bb7987f
+  source_path: refactor/clawnet.md
+  workflow: 15
 ---
 
 # Clawnet 리팩터링(프로토콜 + 인증 통합)

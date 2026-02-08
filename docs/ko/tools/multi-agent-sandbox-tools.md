@@ -4,12 +4,12 @@ status: active
 summary: 에이전트별 샌드박스 + 도구 제한 사항, 우선 순위 및 예
 title: 다중 에이전트 샌드박스 및 도구
 x-i18n:
-    generated_at: "2026-02-08T16:07:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 78364bcf0612a5e7572ffbc5352147cc352bd58acf9515c25cd7daa5f7b26d4f
-    source_path: tools/multi-agent-sandbox-tools.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 78364bcf0612a5e7572ffbc5352147cc352bd58acf9515c25cd7daa5f7b26d4f
+  source_path: tools/multi-agent-sandbox-tools.md
+  workflow: 15
 ---
 
 # 다중 에이전트 샌드박스 및 도구 구성

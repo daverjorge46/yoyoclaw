@@ -1,11 +1,11 @@
 ---
 x-i18n:
-    generated_at: "2026-02-08T16:02:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 171c353010dd7a11d2ac94505142d8d56bc2b42678da89f3e27fad5273f0f6a1
-    source_path: security/README.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 171c353010dd7a11d2ac94505142d8d56bc2b42678da89f3e27fad5273f0f6a1
+  source_path: security/README.md
+  workflow: 15
 ---
 
 # OpenClaw 보안 및 신뢰

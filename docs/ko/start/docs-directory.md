@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 주요 문서 페이지에 빠르게 액세스하고 싶습니다.
+  - 주요 문서 페이지에 빠르게 액세스하고 싶습니다.
 summary: 가장 많이 사용되는 OpenClaw 문서에 대한 선별된 링크입니다.
 title: 문서 디렉토리
 x-i18n:
-    generated_at: "2026-02-08T16:09:02Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 44d94b7a654801e9caf5131a5b2bca1fbc66bcd80f06337e5edded4146f21f9d
-    source_path: start/docs-directory.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:02Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 44d94b7a654801e9caf5131a5b2bca1fbc66bcd80f06337e5edded4146f21f9d
+  source_path: start/docs-directory.md
+  workflow: 15
 ---
 
 <Note>

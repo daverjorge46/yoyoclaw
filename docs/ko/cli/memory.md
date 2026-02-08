@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 의미 기억을 색인화하거나 검색하고 싶습니다.
-    - 메모리 가용성 또는 인덱싱을 디버깅하고 있습니다.
-summary: '`openclaw memory`에 대한 CLI 참조(상태/색인/검색)'
+  - 의미 기억을 색인화하거나 검색하고 싶습니다.
+  - 메모리 가용성 또는 인덱싱을 디버깅하고 있습니다.
+summary: "`openclaw memory`에 대한 CLI 참조(상태/색인/검색)"
 title: 메모리
 x-i18n:
-    generated_at: "2026-02-08T15:52:11Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cb8ee2c9b2db2d574f3247f0c27e4b2de4656a48910b8d820edc4d6ba1ccd053
-    source_path: cli/memory.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:11Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cb8ee2c9b2db2d574f3247f0c27e4b2de4656a48910b8d820edc4d6ba1ccd053
+  source_path: cli/memory.md
+  workflow: 15
 ---
 
 # `openclaw memory`

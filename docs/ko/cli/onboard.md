@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 게이트웨이, 작업 영역, 인증, 채널 및 기술에 대한 안내 설정이 필요합니다.
-summary: '`openclaw onboard`에 대한 CLI 참조(대화형 온보딩 마법사)'
+  - 게이트웨이, 작업 영역, 인증, 채널 및 기술에 대한 안내 설정이 필요합니다.
+summary: "`openclaw onboard`에 대한 CLI 참조(대화형 온보딩 마법사)"
 title: 온보드
 x-i18n:
-    generated_at: "2026-02-08T15:52:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 69a96accb2d571ff53ca48cfd2c74700536d06208ee25c626741ce7925db94ff
-    source_path: cli/onboard.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 69a96accb2d571ff53ca48cfd2c74700536d06208ee25c626741ce7925db94ff
+  source_path: cli/onboard.md
+  workflow: 15
 ---
 
 # `openclaw onboard`

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 Zalo Personal(비공식) 지원을 원합니다.
-    - zaluser 플러그인을 구성 또는 개발 중입니다.
-summary: 'Zalo 개인 플러그인: QR 로그인 + zca-cli를 통한 메시징(플러그인 설치 + 채널 구성 + CLI + 도구)'
+  - OpenClaw에서 Zalo Personal(비공식) 지원을 원합니다.
+  - zaluser 플러그인을 구성 또는 개발 중입니다.
+summary: "Zalo 개인 플러그인: QR 로그인 + zca-cli를 통한 메시징(플러그인 설치 + 채널 구성 + CLI + 도구)"
 title: Zalo 개인 플러그인
 x-i18n:
-    generated_at: "2026-02-08T16:07:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b29b788b023cd50720e24fe6719f02e9f86c8bca9c73b3638fb53c2316718672
-    source_path: plugins/zalouser.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b29b788b023cd50720e24fe6719f02e9f86c8bca9c73b3638fb53c2316718672
+  source_path: plugins/zalouser.md
+  workflow: 15
 ---
 
 # Zalo Personal(플러그인)

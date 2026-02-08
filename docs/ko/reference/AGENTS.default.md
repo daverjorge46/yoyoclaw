@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 새로운 OpenClaw 에이전트 세션 시작
-    - 기본 기술 활성화 또는 감사
+  - 새로운 OpenClaw 에이전트 세션 시작
+  - 기본 기술 활성화 또는 감사
 summary: 개인 비서 설정을 위한 기본 OpenClaw 에이전트 지침 및 기술 목록
 x-i18n:
-    generated_at: "2026-02-08T16:03:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6cbde95d29e80cbbba1a66082d31ee6e5a0f3c3e425a9a10c428dfffb67bb8b1
-    source_path: reference/AGENTS.default.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6cbde95d29e80cbbba1a66082d31ee6e5a0f3c3e425a9a10c428dfffb67bb8b1
+  source_path: reference/AGENTS.default.md
+  workflow: 15
 ---
 
 # AGENTS.md — OpenClaw 개인 비서(기본값)

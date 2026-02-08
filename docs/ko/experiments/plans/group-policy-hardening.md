@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 과거 텔레그램 허용 목록 변경 사항 검토
-summary: '텔레그램 허용 목록 강화: 접두사 + 공백 정규화'
+  - 과거 텔레그램 허용 목록 변경 사항 검토
+summary: "텔레그램 허용 목록 강화: 접두사 + 공백 정규화"
 title: 텔레그램 허용 목록 강화
 x-i18n:
-    generated_at: "2026-02-08T15:52:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 70569968857d408456c5207270eebe8628671b9ef4ea8b3b6e2eb13dada1b6b5
-    source_path: experiments/plans/group-policy-hardening.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 70569968857d408456c5207270eebe8628671b9ef4ea8b3b6e2eb13dada1b6b5
+  source_path: experiments/plans/group-policy-hardening.md
+  workflow: 15
 ---
 
 # 텔레그램 허용 목록 강화

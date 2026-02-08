@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 새로운 npm 릴리스 자르기
-    - 새로운 macOS 앱 출시 중단
-    - 게시하기 전에 메타데이터 확인
+  - 새로운 npm 릴리스 자르기
+  - 새로운 macOS 앱 출시 중단
+  - 게시하기 전에 메타데이터 확인
 summary: npm + macOS 앱의 단계별 릴리스 체크리스트
 x-i18n:
-    generated_at: "2026-02-08T16:02:09Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 54cb2b822bfa3c0bf5910d22273fa70380c02b9a30122c9ea225ec61ece68ea1
-    source_path: reference/RELEASING.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:09Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 54cb2b822bfa3c0bf5910d22273fa70380c02b9a30122c9ea225ec61ece68ea1
+  source_path: reference/RELEASING.md
+  workflow: 15
 ---
 
 # 릴리스 체크리스트(npm + macOS)

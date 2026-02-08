@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 아웃바운드 음성 통화를 걸고 싶습니다.
-    - 음성 통화 플러그인을 구성 또는 개발 중입니다.
-summary: '음성 통화 플러그인: Twilio/Telnyx/Plivo를 통한 아웃바운드 + 인바운드 통화(플러그인 설치 + 구성 + CLI)'
+  - OpenClaw에서 아웃바운드 음성 통화를 걸고 싶습니다.
+  - 음성 통화 플러그인을 구성 또는 개발 중입니다.
+summary: "음성 통화 플러그인: Twilio/Telnyx/Plivo를 통한 아웃바운드 + 인바운드 통화(플러그인 설치 + 구성 + CLI)"
 title: 음성 통화 플러그인
 x-i18n:
-    generated_at: "2026-02-08T16:09:06Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 46d05a5912b785d79125a8753481bf6a16798350de32f5833dbf86d4488768f0
-    source_path: plugins/voice-call.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:06Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 46d05a5912b785d79125a8753481bf6a16798350de32f5833dbf86d4488768f0
+  source_path: plugins/voice-call.md
+  workflow: 15
 ---
 
 # 음성 통화(플러그인)

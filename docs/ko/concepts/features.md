@@ -1,15 +1,15 @@
 ---
 read_when:
-    - OpenClaw가 지원하는 전체 목록을 원합니다.
+  - OpenClaw가 지원하는 전체 목록을 원합니다.
 summary: 채널, 라우팅, 미디어 및 UX 전반에 걸친 OpenClaw 기능.
 title: 특징
 x-i18n:
-    generated_at: "2026-02-08T15:53:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1b6aee0bfda751824cb6b3a99080b4c80c00ffb355a96f9cff1b596d55d15ed4
-    source_path: concepts/features.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1b6aee0bfda751824cb6b3a99080b4c80c00ffb355a96f9cff1b596d55d15ed4
+  source_path: concepts/features.md
+  workflow: 15
 ---
 
 ## 하이라이트

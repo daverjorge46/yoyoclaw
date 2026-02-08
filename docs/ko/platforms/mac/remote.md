@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 원격 Mac 제어 설정 또는 디버깅
+  - 원격 Mac 제어 설정 또는 디버깅
 summary: SSH를 통해 원격 OpenClaw 게이트웨이를 제어하기 위한 macOS 앱 흐름
 title: 원격 제어
 x-i18n:
-    generated_at: "2026-02-08T16:04:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 61b43707250d5515fd0f85f092bdde24598f14904398ff3fca3736bcc48d72f8
-    source_path: platforms/mac/remote.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 61b43707250d5515fd0f85f092bdde24598f14904398ff3fca3736bcc48d72f8
+  source_path: platforms/mac/remote.md
+  workflow: 15
 ---
 
 # 원격 OpenClaw(macOS ⇄ 원격 호스트)

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 인증 프로필 교체, 휴지 또는 모델 대체 동작 진단
-    - 인증 프로필 또는 모델에 대한 장애 조치 규칙 업데이트
+  - 인증 프로필 교체, 휴지 또는 모델 대체 동작 진단
+  - 인증 프로필 또는 모델에 대한 장애 조치 규칙 업데이트
 summary: OpenClaw가 인증 프로필을 회전하고 모델 전체에 걸쳐 폴백하는 방법
 title: 모델 장애 조치
 x-i18n:
-    generated_at: "2026-02-08T15:52:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: eab7c0633824d941cf0d6ce4294f0bc8747fbba2ce93650e9643eca327cd04a9
-    source_path: concepts/model-failover.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: eab7c0633824d941cf0d6ce4294f0bc8747fbba2ce93650e9643eca327cd04a9
+  source_path: concepts/model-failover.md
+  workflow: 15
 ---
 
 # 모델 장애 조치

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - CLI(개발자 또는 서버)에서 게이트웨이 실행
-    - 게이트웨이 인증, 바인딩 모드 및 연결 디버깅
-    - Bonjour(LAN + tailnet)를 통해 게이트웨이 검색
+  - CLI(개발자 또는 서버)에서 게이트웨이 실행
+  - 게이트웨이 인증, 바인딩 모드 및 연결 디버깅
+  - Bonjour(LAN + tailnet)를 통해 게이트웨이 검색
 summary: OpenClaw 게이트웨이 CLI(`openclaw gateway`) — 게이트웨이 실행, 쿼리 및 검색
 title: 게이트웨이
 x-i18n:
-    generated_at: "2026-02-08T15:53:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cbc1690e6be84073512f38551b84484c25caf13034668524360d6426fb3b0c74
-    source_path: cli/gateway.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cbc1690e6be84073512f38551b84484c25caf13034668524360d6426fb3b0c74
+  source_path: cli/gateway.md
+  workflow: 15
 ---
 
 # 게이트웨이 CLI

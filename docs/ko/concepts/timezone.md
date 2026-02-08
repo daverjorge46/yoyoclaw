@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 모델에 대해 타임스탬프가 정규화되는 방식을 이해해야 합니다.
-    - 시스템 프롬프트에 대한 사용자 시간대 구성
+  - 모델에 대해 타임스탬프가 정규화되는 방식을 이해해야 합니다.
+  - 시스템 프롬프트에 대한 사용자 시간대 구성
 summary: 상담원, 봉투 및 프롬프트에 대한 시간대 처리
 title: 시간대
 x-i18n:
-    generated_at: "2026-02-08T15:56:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9ee809c96897db1126c7efcaa5bf48a63cdcb2092abd4b3205af224ebd882766
-    source_path: concepts/timezone.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9ee809c96897db1126c7efcaa5bf48a63cdcb2092abd4b3205af224ebd882766
+  source_path: concepts/timezone.md
+  workflow: 15
 ---
 
 # 시간대

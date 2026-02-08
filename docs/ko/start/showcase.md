@@ -3,12 +3,12 @@ description: Real-world OpenClaw projects from the community
 summary: OpenClaw를 기반으로 하는 커뮤니티 구축 프로젝트 및 통합
 title: 유리 진열장
 x-i18n:
-    generated_at: "2026-02-08T16:09:49Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b3460f6a7b9948799a6082fee90fa8e5ac1d43e34872aea51ba431813dcead7a
-    source_path: start/showcase.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:49Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b3460f6a7b9948799a6082fee90fa8e5ac1d43e34872aea51ba431813dcead7a
+  source_path: start/showcase.md
+  workflow: 15
 ---
 
 # 유리 진열장

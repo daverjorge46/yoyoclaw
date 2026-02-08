@@ -1,15 +1,15 @@
 ---
 read_when:
-    - IPC 계약 또는 메뉴 표시줄 앱 IPC 편집
+  - IPC 계약 또는 메뉴 표시줄 앱 IPC 편집
 summary: OpenClaw 앱, 게이트웨이 노드 전송 및 PeekabooBridge를 위한 macOS IPC 아키텍처
 title: 맥OS IPC
 x-i18n:
-    generated_at: "2026-02-08T16:07:42Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d0211c334a4a59b71afb29dd7b024778172e529fa618985632d3d11d795ced92
-    source_path: platforms/mac/xpc.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:42Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d0211c334a4a59b71afb29dd7b024778172e529fa618985632d3d11d795ced92
+  source_path: platforms/mac/xpc.md
+  workflow: 15
 ---
 
 # OpenClaw macOS IPC 아키텍처

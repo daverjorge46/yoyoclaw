@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 어떤 환경 변수가 어떤 순서로 로드되는지 알아야 합니다.
-    - 게이트웨이에서 누락된 API 키를 디버깅하고 있습니다.
-    - 공급자 인증 또는 배포 환경을 문서화하고 있습니다.
+  - 어떤 환경 변수가 어떤 순서로 로드되는지 알아야 합니다.
+  - 게이트웨이에서 누락된 API 키를 디버깅하고 있습니다.
+  - 공급자 인증 또는 배포 환경을 문서화하고 있습니다.
 summary: OpenClaw가 환경 변수와 우선 순위를 로드하는 위치
 title: 환경 변수
 x-i18n:
-    generated_at: "2026-02-08T16:05:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b49ae50e5d306612f89f93a86236188a4f2ec23f667e2388b043832be3ac1546
-    source_path: help/environment.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b49ae50e5d306612f89f93a86236188a4f2ec23f667e2388b043832be3ac1546
+  source_path: help/environment.md
+  workflow: 15
 ---
 
 # 환경변수

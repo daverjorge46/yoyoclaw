@@ -1,15 +1,15 @@
 ---
 read_when:
-    - OpenAI 채팅 완료를 기대하는 도구 통합
+  - OpenAI 채팅 완료를 기대하는 도구 통합
 summary: 게이트웨이에서 OpenAI 호환 /v1/chat/completions HTTP 엔드포인트 노출
 title: OpenAI 채팅 완료
 x-i18n:
-    generated_at: "2026-02-08T15:56:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6f935777f489bff925a3bf18b1e4b7493f83ae7b1e581890092e5779af59b732
-    source_path: gateway/openai-http-api.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6f935777f489bff925a3bf18b1e4b7493f83ae7b1e581890092e5779af59b732
+  source_path: gateway/openai-http-api.md
+  workflow: 15
 ---
 
 # OpenAI 채팅 완료(HTTP)

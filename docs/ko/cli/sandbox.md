@@ -4,12 +4,12 @@ status: active
 summary: 샌드박스 컨테이너 관리 및 효과적인 샌드박스 정책 검사
 title: 샌드박스 CLI
 x-i18n:
-    generated_at: "2026-02-08T15:53:32Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6e1186f26c77e188206ce5e198ab624d6b38bc7bb7c06e4d2281b6935c39e347
-    source_path: cli/sandbox.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:32Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6e1186f26c77e188206ce5e198ab624d6b38bc7bb7c06e4d2281b6935c39e347
+  source_path: cli/sandbox.md
+  workflow: 15
 ---
 
 # 샌드박스 CLI

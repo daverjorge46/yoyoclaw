@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채널 위치 구문 분석 추가 또는 수정
-    - 상담원 프롬프트 또는 도구에서 위치 컨텍스트 필드 사용
+  - 채널 위치 구문 분석 추가 또는 수정
+  - 상담원 프롬프트 또는 도구에서 위치 컨텍스트 필드 사용
 summary: 인바운드 채널 위치 분석(Telegram + WhatsApp) 및 컨텍스트 필드
 title: 채널 위치 분석
 x-i18n:
-    generated_at: "2026-02-08T15:47:46Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5602ef105c3da7e47497bfed8fc343dd8d7f3c019ff7e423a08b25092c5a1837
-    source_path: channels/location.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:46Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5602ef105c3da7e47497bfed8fc343dd8d7f3c019ff7e423a08b25092c5a1837
+  source_path: channels/location.md
+  workflow: 15
 ---
 
 # 채널 위치 분석

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 로깅 출력 또는 형식 변경
-    - CLI 또는 게이트웨이 출력 디버깅
+  - 로깅 출력 또는 형식 변경
+  - CLI 또는 게이트웨이 출력 디버깅
 summary: 로깅 표면, 파일 로그, WS 로그 스타일 및 콘솔 형식
 title: 벌채 반출
 x-i18n:
-    generated_at: "2026-02-08T16:04:41Z"
-    model: gtx
-    provider: google-translate
-    source_hash: efb8eda5e77e3809369a8ff569fac110323a86b3945797093f20e9bc98f39b2e
-    source_path: gateway/logging.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:41Z"
+  model: gtx
+  provider: google-translate
+  source_hash: efb8eda5e77e3809369a8ff569fac110323a86b3945797093f20e9bc98f39b2e
+  source_path: gateway/logging.md
+  workflow: 15
 ---
 
 # 벌채 반출

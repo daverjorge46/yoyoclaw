@@ -1,15 +1,15 @@
 ---
 read_when: You want a dedicated explanation of sandboxing or need to tune agents.defaults.sandbox.
 status: active
-summary: 'OpenClaw 샌드박스 작동 방식: 모드, 범위, 작업 공간 액세스 및 이미지'
+summary: "OpenClaw 샌드박스 작동 방식: 모드, 범위, 작업 공간 액세스 및 이미지"
 title: 샌드박싱
 x-i18n:
-    generated_at: "2026-02-08T15:54:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c1bb7fd4ac37ef7316ba08bf6f2489dfdaff2e5eb557c787e6092a06ece858bc
-    source_path: gateway/sandboxing.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c1bb7fd4ac37ef7316ba08bf6f2489dfdaff2e5eb557c787e6092a06ece858bc
+  source_path: gateway/sandboxing.md
+  workflow: 15
 ---
 
 # 샌드박싱

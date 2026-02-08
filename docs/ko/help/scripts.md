@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 저장소에서 스크립트 실행
-    - ./scripts 아래에 스크립트 추가 또는 변경
-summary: '저장소 스크립트: 목적, 범위 및 안전 참고 사항'
+  - 저장소에서 스크립트 실행
+  - ./scripts 아래에 스크립트 추가 또는 변경
+summary: "저장소 스크립트: 목적, 범위 및 안전 참고 사항"
 title: 스크립트
 x-i18n:
-    generated_at: "2026-02-08T16:01:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: efd220df28f20b338fbc4f5e6152c8abeade4b56f76496476e7e99928a8dedbe
-    source_path: help/scripts.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: efd220df28f20b338fbc4f5e6152c8abeade4b56f76496476e7e99928a8dedbe
+  source_path: help/scripts.md
+  workflow: 15
 ---
 
 # 스크립트

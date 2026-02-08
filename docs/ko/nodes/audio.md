@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 오디오 전사 또는 미디어 처리 변경
+  - 오디오 전사 또는 미디어 처리 변경
 summary: 인바운드 오디오/음성 메모를 다운로드하고, 기록하고, 회신에 삽입하는 방법
 title: 오디오 및 음성 메모
 x-i18n:
-    generated_at: "2026-02-08T15:58:27Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b926c47989ab0d1ee1fb8ae6372c51d27515b53d6fefe211a85856d372f14569
-    source_path: nodes/audio.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:27Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b926c47989ab0d1ee1fb8ae6372c51d27515b53d6fefe211a85856d372f14569
+  source_path: nodes/audio.md
+  workflow: 15
 ---
 
 # 오디오/음성 메모 — 2026-01-17

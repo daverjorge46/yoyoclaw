@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 백그라운드 실행 동작 추가 또는 수정
-    - 장기 실행 실행 작업 디버깅
+  - 백그라운드 실행 동작 추가 또는 수정
+  - 장기 실행 실행 작업 디버깅
 summary: 백그라운드 실행 실행 및 프로세스 관리
 title: 백그라운드 실행 및 프로세스 도구
 x-i18n:
-    generated_at: "2026-02-08T15:56:34Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e11a7d74a75000d6882f703693c2c49a2ecd3e730b6ec2b475ac402abde9e465
-    source_path: gateway/background-process.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:34Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e11a7d74a75000d6882f703693c2c49a2ecd3e730b6ec2b475ac402abde9e465
+  source_path: gateway/background-process.md
+  workflow: 15
 ---
 
 # 백그라운드 실행 + 프로세스 도구

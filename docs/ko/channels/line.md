@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw를 LINE에 연결하고 싶습니다.
-    - LINE webhook + 자격증명 설정이 필요합니다.
-    - LINE 전용 메시지 옵션을 원합니다
+  - OpenClaw를 LINE에 연결하고 싶습니다.
+  - LINE webhook + 자격증명 설정이 필요합니다.
+  - LINE 전용 메시지 옵션을 원합니다
 summary: LINE Messaging API 플러그인 설정, 구성, 사용법
 title: 선
 x-i18n:
-    generated_at: "2026-02-08T15:50:58Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 52eb66d06d616173e6f7b89a538014b631d4d3098ddc8beef581cf16731ec862
-    source_path: channels/line.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:58Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 52eb66d06d616173e6f7b89a538014b631d4d3098ddc8beef581cf16731ec862
+  source_path: channels/line.md
+  workflow: 15
 ---
 
 # 라인(플러그인)

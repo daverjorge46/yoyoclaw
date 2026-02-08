@@ -1,15 +1,15 @@
 ---
 read_when:
-    - macOS 개발 환경 설정
+  - macOS 개발 환경 설정
 summary: OpenClaw macOS 앱 작업을 수행하는 개발자를 위한 설정 가이드
 title: macOS 개발 설정
 x-i18n:
-    generated_at: "2026-02-08T16:04:13Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 52d3cadae980ae622898724cabc9bf2c383de7f6c01f59d1b42ebe93264a336e
-    source_path: platforms/mac/dev-setup.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:13Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 52d3cadae980ae622898724cabc9bf2c383de7f6c01f59d1b42ebe93264a336e
+  source_path: platforms/mac/dev-setup.md
+  workflow: 15
 ---
 
 <a id="troubleshooting"></a>

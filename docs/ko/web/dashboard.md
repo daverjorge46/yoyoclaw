@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 대시보드 인증 또는 노출 모드 변경
+  - 대시보드 인증 또는 노출 모드 변경
 summary: 게이트웨이 대시보드(Control UI) 액세스 및 인증
 title: 계기반
 x-i18n:
-    generated_at: "2026-02-08T16:07:18Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e4fc372b72f030f95d6b8b9ec34d3d9dfef30044d3fb18cec43fa62b5834c037
-    source_path: web/dashboard.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:18Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e4fc372b72f030f95d6b8b9ec34d3d9dfef30044d3fb18cec43fa62b5834c037
+  source_path: web/dashboard.md
+  workflow: 15
 ---
 
 # 대시보드(컨트롤 UI)

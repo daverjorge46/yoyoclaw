@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 노드가 연결되었지만 카메라/캔버스/화면/실행 도구가 실패함
-    - 노드 페어링 대 승인 정신 모델이 필요합니다.
+  - 노드가 연결되었지만 카메라/캔버스/화면/실행 도구가 실패함
+  - 노드 페어링 대 승인 정신 모델이 필요합니다.
 summary: 노드 페어링, 포그라운드 요구 사항, 권한 및 도구 오류 문제 해결
 title: 노드 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T16:00:24Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5c40d298c9feaf8eb02cc7c6c929d9c9d5d5f93519d3c2ea8c10775db10c76dd
-    source_path: nodes/troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:24Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5c40d298c9feaf8eb02cc7c6c929d9c9d5d5f93519d3c2ea8c10775db10c76dd
+  source_path: nodes/troubleshooting.md
+  workflow: 15
 ---
 
 # 노드 문제 해결

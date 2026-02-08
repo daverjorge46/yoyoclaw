@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 공급자 사용량/할당량 표면을 연결하고 있습니다.
-    - 사용 추적 동작 또는 인증 요구 사항을 설명해야 합니다.
+  - 공급자 사용량/할당량 표면을 연결하고 있습니다.
+  - 사용 추적 동작 또는 인증 요구 사항을 설명해야 합니다.
 summary: 사용 추적 표면 및 자격 증명 요구 사항
 title: 사용량 추적
 x-i18n:
-    generated_at: "2026-02-08T15:54:40Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6f6ed2a70329b2a6206c327aa749a84fbfe979762caca5f0e7fb556f91631cbb
-    source_path: concepts/usage-tracking.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:40Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6f6ed2a70329b2a6206c327aa749a84fbfe979762caca5f0e7fb556f91631cbb
+  source_path: concepts/usage-tracking.md
+  workflow: 15
 ---
 
 # 사용량 추적

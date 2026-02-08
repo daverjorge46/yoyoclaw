@@ -1,17 +1,17 @@
 ---
 read_when:
-    - BlueBubbles 채널 설정
-    - 웹훅 페어링 문제 해결
-    - macOS에서 iMessage 구성
+  - BlueBubbles 채널 설정
+  - 웹훅 페어링 문제 해결
+  - macOS에서 iMessage 구성
 summary: BlueBubbles macOS 서버를 통한 iMessage(REST 보내기/받기, 입력, 반응, 페어링, 고급 동작).
 title: 블루버블스
 x-i18n:
-    generated_at: "2026-02-08T15:49:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a5208867c934460ad97e9273953935839c0754a61f84a5c68ef8aa4805b6b61c
-    source_path: channels/bluebubbles.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a5208867c934460ad97e9273953935839c0754a61f84a5c68ef8aa4805b6b61c
+  source_path: channels/bluebubbles.md
+  workflow: 15
 ---
 
 # BlueBubbles(macOS REST)

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 GLM 모델을 원합니다.
-    - 모델 명명 규칙 및 설정이 필요합니다.
+  - OpenClaw에서 GLM 모델을 원합니다.
+  - 모델 명명 규칙 및 설정이 필요합니다.
 summary: GLM 모델 제품군 개요 + OpenClaw에서 사용하는 방법
 title: GLM 모델
 x-i18n:
-    generated_at: "2026-02-08T16:08:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2d7b457f033f26f28c230a9cd2310151f825fc52c3ee4fb814d08fd2d022d041
-    source_path: providers/glm.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2d7b457f033f26f28c230a9cd2310151f825fc52c3ee4fb814d08fd2d022d041
+  source_path: providers/glm.md
+  workflow: 15
 ---
 
 # GLM 모델

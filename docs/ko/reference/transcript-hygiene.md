@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 성적표 형태와 관련된 공급자 요청 거부를 디버깅하고 있습니다.
-    - 성적표 삭제 또는 도구 호출 복구 논리를 변경하고 있습니다.
-    - 제공업체 간 도구 호출 ID 불일치를 조사 중입니다.
-summary: '참고: 제공업체별 성적표 삭제 및 복구 규칙'
+  - 성적표 형태와 관련된 공급자 요청 거부를 디버깅하고 있습니다.
+  - 성적표 삭제 또는 도구 호출 복구 논리를 변경하고 있습니다.
+  - 제공업체 간 도구 호출 ID 불일치를 조사 중입니다.
+summary: "참고: 제공업체별 성적표 삭제 및 복구 규칙"
 title: 성적표 위생
 x-i18n:
-    generated_at: "2026-02-08T16:04:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 43ed460827d514a8d23172c298985f37457d54e795dc6a47935c03a2591ca73b
-    source_path: reference/transcript-hygiene.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 43ed460827d514a8d23172c298985f37457d54e795dc6a47935c03a2591ca73b
+  source_path: reference/transcript-hygiene.md
+  workflow: 15
 ---
 
 # 성적 증명서 위생(제공자 수정)

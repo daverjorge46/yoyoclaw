@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 에이전트 도구 추가 또는 수정
-    - '`openclaw-*` 기술 폐기 또는 변경'
+  - 에이전트 도구 추가 또는 수정
+  - "`openclaw-*` 기술 폐기 또는 변경"
 summary: 레거시 `openclaw-*` 기술을 대체하는 OpenClaw(브라우저, 캔버스, 노드, 메시지, cron)용 에이전트 도구 표면
 title: 도구
 x-i18n:
-    generated_at: "2026-02-08T16:14:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 84d3788b0f5df3d5e9bfcfb4695985292c9adc7aaec9b57ebb3ea1c353d26b6d
-    source_path: tools/index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:14:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 84d3788b0f5df3d5e9bfcfb4695985292c9adc7aaec9b57ebb3ea1c353d26b6d
+  source_path: tools/index.md
+  workflow: 15
 ---
 
 # 도구(OpenClaw)

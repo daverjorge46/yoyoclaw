@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw와 함께 Amazon Bedrock 모델을 사용하고 싶습니다.
-    - 모델 호출을 위해서는 AWS 자격 증명/리전 설정이 필요합니다.
+  - OpenClaw와 함께 Amazon Bedrock 모델을 사용하고 싶습니다.
+  - 모델 호출을 위해서는 AWS 자격 증명/리전 설정이 필요합니다.
 summary: OpenClaw와 함께 Amazon Bedrock(Converse API) 모델 사용
 title: 아마존 기반암
 x-i18n:
-    generated_at: "2026-02-08T16:01:24Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d2e02a8c515862194cdcf968a3f97ad68eed2545b383f211e800b49e1faf21d1
-    source_path: providers/bedrock.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:24Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d2e02a8c515862194cdcf968a3f97ad68eed2545b383f211e800b49e1faf21d1
+  source_path: providers/bedrock.md
+  workflow: 15
 ---
 
 # 아마존 기반암

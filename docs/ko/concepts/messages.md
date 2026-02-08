@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 수신 메시지가 어떻게 회신이 되는지 설명
-    - 세션, 대기열 모드 또는 스트리밍 동작 명확화
-    - 추론 가시성 및 사용 영향 문서화
+  - 수신 메시지가 어떻게 회신이 되는지 설명
+  - 세션, 대기열 모드 또는 스트리밍 동작 명확화
+  - 추론 가시성 및 사용 영향 문서화
 summary: 메시지 흐름, 세션, 대기열 및 추론 가시성
 title: 메시지
 x-i18n:
-    generated_at: "2026-02-08T15:51:27Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 773301d5c0c1e3b87d1b7ba6d670400cb8ab65d35943f6d54647490e377c369a
-    source_path: concepts/messages.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:27Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 773301d5c0c1e3b87d1b7ba6d670400cb8ab65d35943f6d54647490e377c369a
+  source_path: concepts/messages.md
+  workflow: 15
 ---
 
 # 메시지

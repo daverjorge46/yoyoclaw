@@ -1,22 +1,22 @@
 ---
 read_when:
-    - 입력 표시 동작 또는 기본값 변경
+  - 입력 표시 동작 또는 기본값 변경
 summary: OpenClaw가 입력 표시기를 표시하는 경우와 이를 조정하는 방법
 title: 입력 표시기
 x-i18n:
-    generated_at: "2026-02-08T15:53:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8ee82d02829c4ff58462be8bf5bb52f23f519aeda816c2fd8a583e7a317a2e98
-    source_path: concepts/typing-indicators.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8ee82d02829c4ff58462be8bf5bb52f23f519aeda816c2fd8a583e7a317a2e98
+  source_path: concepts/typing-indicators.md
+  workflow: 15
 ---
 
 # 입력 표시기
 
 실행이 활성화된 동안 입력 표시기가 채팅 채널로 전송됩니다. 사용
 `agents.defaults.typingMode` 통제하다 **언제** 타이핑이 시작되고 `typingIntervalSeconds`
- 통제하다 **얼마나 자주** 새로 고침됩니다.
+통제하다 **얼마나 자주** 새로 고침됩니다.
 
 ## 기본값
 

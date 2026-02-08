@@ -1,18 +1,18 @@
 ---
 read_when:
-    - 특정 마법사 단계 또는 플래그 조회
-    - 비대화형 모드로 온보딩 자동화
-    - 디버깅 마법사 동작
+  - 특정 마법사 단계 또는 플래그 조회
+  - 비대화형 모드로 온보딩 자동화
+  - 디버깅 마법사 동작
 sidebarTitle: Wizard Reference
-summary: 'CLI 온보딩 마법사에 대한 전체 참조: 모든 단계, 플래그 및 구성 필드'
+summary: "CLI 온보딩 마법사에 대한 전체 참조: 모든 단계, 플래그 및 구성 필드"
 title: 온보딩 마법사 참조
 x-i18n:
-    generated_at: "2026-02-08T16:08:02Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 05fac3786016d9065547127bcf1047f73fa92dd061b032ac887ddfd6893b1802
-    source_path: reference/wizard.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:02Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 05fac3786016d9065547127bcf1047f73fa92dd061b032ac887ddfd6893b1802
+  source_path: reference/wizard.md
+  workflow: 15
 ---
 
 # 온보딩 마법사 참조

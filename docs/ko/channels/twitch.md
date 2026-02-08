@@ -1,15 +1,15 @@
 ---
 read_when:
-    - OpenClaw용 Twitch 채팅 통합 설정
+  - OpenClaw용 Twitch 채팅 통합 설정
 summary: Twitch 채팅 봇 구성 및 설정
 title: 경련
 x-i18n:
-    generated_at: "2026-02-08T15:51:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4fa7daa11d1e5ed43c9a8f9f7092809bf2c643838fc5b0c8df27449e430796dc
-    source_path: channels/twitch.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4fa7daa11d1e5ed43c9a8f9f7092809bf2c643838fc5b0c8df27449e430796dc
+  source_path: channels/twitch.md
+  workflow: 15
 ---
 
 # 트위치(플러그인)

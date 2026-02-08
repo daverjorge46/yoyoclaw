@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 노드 클라이언트 빌드 또는 디버깅(iOS/Android/macOS 노드 모드)
-    - 페어링 또는 브리지 인증 실패 조사
-    - 게이트웨이에 의해 노출된 노드 표면 감사
-summary: '브리지 프로토콜(레거시 노드): TCP JSONL, 페어링, 범위가 지정된 RPC'
+  - 노드 클라이언트 빌드 또는 디버깅(iOS/Android/macOS 노드 모드)
+  - 페어링 또는 브리지 인증 실패 조사
+  - 게이트웨이에 의해 노출된 노드 표면 감사
+summary: "브리지 프로토콜(레거시 노드): TCP JSONL, 페어링, 범위가 지정된 RPC"
 title: 브리지 프로토콜
 x-i18n:
-    generated_at: "2026-02-08T15:57:49Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 789bcf3cbc6841fc293e054b919e63d661b3cc4cd205b2094289f00800127fe2
-    source_path: gateway/bridge-protocol.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:49Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 789bcf3cbc6841fc293e054b919e63d661b3cc4cd205b2094289f00800127fe2
+  source_path: gateway/bridge-protocol.md
+  workflow: 15
 ---
 
 # 브리지 프로토콜(레거시 노드 전송)

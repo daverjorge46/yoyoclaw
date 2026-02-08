@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 네트워크 아키텍처 + 보안 개요가 필요합니다.
-    - 로컬 대 tailnet 액세스 또는 페어링을 디버깅 중입니다.
-    - 네트워킹 문서의 정식 목록을 원합니다.
-summary: '네트워크 허브: 게이트웨이 표면, 페어링, 검색 및 보안'
+  - 네트워크 아키텍처 + 보안 개요가 필요합니다.
+  - 로컬 대 tailnet 액세스 또는 페어링을 디버깅 중입니다.
+  - 네트워킹 문서의 정식 목록을 원합니다.
+summary: "네트워크 허브: 게이트웨이 표면, 페어링, 검색 및 보안"
 title: 회로망
 x-i18n:
-    generated_at: "2026-02-08T16:00:03Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6a0d5080db73de4c21d9bf376059f6c4a26ab129c8280ce6b1f54fa9ace48beb
-    source_path: network.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:03Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6a0d5080db73de4c21d9bf376059f6c4a26ab129c8280ce6b1f54fa9ace48beb
+  source_path: network.md
+  workflow: 15
 ---
 
 # 네트워크 허브

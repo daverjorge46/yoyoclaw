@@ -1,16 +1,16 @@
 ---
 read_when:
-    - stable/beta/dev 사이를 전환하고 싶습니다.
-    - 시험판에 태그를 지정하거나 게시하는 중입니다.
-summary: '안정, 베타 및 개발 채널: 의미 체계, 전환 및 태그 지정'
+  - stable/beta/dev 사이를 전환하고 싶습니다.
+  - 시험판에 태그를 지정하거나 게시하는 중입니다.
+summary: "안정, 베타 및 개발 채널: 의미 체계, 전환 및 태그 지정"
 title: 개발 채널
 x-i18n:
-    generated_at: "2026-02-08T15:56:13Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2b01219b7e705044ce39838a0da7c7fa65c719809ab2f8a51e14529064af81bf
-    source_path: install/development-channels.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:13Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2b01219b7e705044ce39838a0da7c7fa65c719809ab2f8a51e14529064af81bf
+  source_path: install/development-channels.md
+  workflow: 15
 ---
 
 # 개발 채널

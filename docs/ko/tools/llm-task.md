@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 워크플로 내부에 JSON 전용 LLM 단계가 필요합니다.
-    - 자동화를 위해서는 스키마 검증된 LLM 출력이 필요합니다.
+  - 워크플로 내부에 JSON 전용 LLM 단계가 필요합니다.
+  - 자동화를 위해서는 스키마 검증된 LLM 출력이 필요합니다.
 summary: 워크플로를 위한 JSON 전용 LLM 작업(선택적 플러그인 도구)
 title: LLM 작업
 x-i18n:
-    generated_at: "2026-02-08T16:06:23Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b7aa78f179cb0f6361084bf6d0b895856f116d7077669c5ef995b92959211001
-    source_path: tools/llm-task.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:23Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b7aa78f179cb0f6361084bf6d0b895856f116d7077669c5ef995b92959211001
+  source_path: tools/llm-task.md
+  workflow: 15
 ---
 
 # LLM 작업

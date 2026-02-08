@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 개발 게이트웨이 템플릿 사용
-    - 기본 개발자 에이전트 ID 업데이트
+  - 개발 게이트웨이 템플릿 사용
+  - 기본 개발자 에이전트 ID 업데이트
 summary: 데브에이전트 소울(C-3PO)
 x-i18n:
-    generated_at: "2026-02-08T16:04:12Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8ba3131f4396c4f3ec2c22f3d1147f218453b0c51e73305e681d419dea97c410
-    source_path: reference/templates/SOUL.dev.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:12Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8ba3131f4396c4f3ec2c22f3d1147f218453b0c51e73305e681d419dea97c410
+  source_path: reference/templates/SOUL.dev.md
+  workflow: 15
 ---
 
 # SOUL.md - C-3PO의 영혼

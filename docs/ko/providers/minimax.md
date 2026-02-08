@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 MiniMax 모델을 원합니다.
-    - MiniMax 설정 지침이 필요합니다.
+  - OpenClaw에서 MiniMax 모델을 원합니다.
+  - MiniMax 설정 지침이 필요합니다.
 summary: OpenClaw에서 MiniMax M2.1 사용
 title: 미니맥스
 x-i18n:
-    generated_at: "2026-02-08T16:07:08Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 291cdecbe68e1cb10d87510a1e6ca26f5af07d46309ca7203c62a4acef8a0501
-    source_path: providers/minimax.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:08Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 291cdecbe68e1cb10d87510a1e6ca26f5af07d46309ca7203c62a4acef8a0501
+  source_path: providers/minimax.md
+  workflow: 15
 ---
 
 # 미니맥스

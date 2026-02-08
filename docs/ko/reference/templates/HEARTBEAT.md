@@ -1,14 +1,14 @@
 ---
 read_when:
-    - 작업공간을 수동으로 부트스트래핑
+  - 작업공간을 수동으로 부트스트래핑
 summary: HEARTBEAT.md용 작업 공간 템플릿
 x-i18n:
-    generated_at: "2026-02-08T16:10:43Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 873e6dc451fac35d22604120fa76d0c5b3bb2289626b87b02a0a7ce7dddc02db
-    source_path: reference/templates/HEARTBEAT.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:43Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 873e6dc451fac35d22604120fa76d0c5b3bb2289626b87b02a0a7ce7dddc02db
+  source_path: reference/templates/HEARTBEAT.md
+  workflow: 15
 ---
 
 # HEARTBEAT.md

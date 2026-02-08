@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Gmail 받은편지함 트리거를 OpenClaw에 연결
-    - 에이전트 깨우기를 위한 Pub/Sub 푸시 설정
+  - Gmail 받은편지함 트리거를 OpenClaw에 연결
+  - 에이전트 깨우기를 위한 Pub/Sub 푸시 설정
 summary: gogcli를 통해 OpenClaw 웹후크에 연결된 Gmail Pub/Sub 푸시
 title: Gmail PubSub
 x-i18n:
-    generated_at: "2026-02-08T15:46:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: dfb92133b69177e4e984b7d072f5dc28aa53a9e0cf984a018145ed811aa96195
-    source_path: automation/gmail-pubsub.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: dfb92133b69177e4e984b7d072f5dc28aa53a9e0cf984a018145ed811aa96195
+  source_path: automation/gmail-pubsub.md
+  workflow: 15
 ---
 
 # Gmail 게시/구독 -> OpenClaw

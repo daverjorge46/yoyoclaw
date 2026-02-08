@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 도구 출력으로 인한 LLM 컨텍스트 증가를 줄이고 싶습니다.
-    - Agent.defaults.contextPruning을 조정하고 있습니다.
-summary: '세션 가지치기: 도구 결과를 다듬어 컨텍스트 부풀림을 줄입니다.'
+  - 도구 출력으로 인한 LLM 컨텍스트 증가를 줄이고 싶습니다.
+  - Agent.defaults.contextPruning을 조정하고 있습니다.
+summary: "세션 가지치기: 도구 결과를 다듬어 컨텍스트 부풀림을 줄입니다."
 x-i18n:
-    generated_at: "2026-02-08T15:53:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9b0aa2d1abea7050ba848a2db038ccc3e6e2d83c6eb4e3843a2ead0ab847574a
-    source_path: concepts/session-pruning.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9b0aa2d1abea7050ba848a2db038ccc3e6e2d83c6eb4e3843a2ead0ab847574a
+  source_path: concepts/session-pruning.md
+  workflow: 15
 ---
 
 # 세션 가지치기

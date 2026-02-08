@@ -1,18 +1,18 @@
 ---
 read_when:
-    - 첫 번째 에이전트 실행 시 어떤 일이 발생하는지 이해
-    - 부트스트래핑 파일이 어디에 있는지 설명
-    - 온보딩 ID 설정 디버깅
+  - 첫 번째 에이전트 실행 시 어떤 일이 발생하는지 이해
+  - 부트스트래핑 파일이 어디에 있는지 설명
+  - 온보딩 ID 설정 디버깅
 sidebarTitle: Bootstrapping
 summary: 작업 공간 및 ID 파일을 시드하는 에이전트 부트스트래핑 의식
 title: 에이전트 부트스트래핑
 x-i18n:
-    generated_at: "2026-02-08T16:04:06Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4a08b5102f25c6c4bcdbbdd44384252a9e537b245a7b070c4961a72b4c6c6601
-    source_path: start/bootstrapping.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:06Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4a08b5102f25c6c4bcdbbdd44384252a9e537b245a7b070c4961a72b4c6c6601
+  source_path: start/bootstrapping.md
+  workflow: 15
 ---
 
 # 에이전트 부트스트래핑

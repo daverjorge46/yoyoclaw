@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 채널에서 스트리밍 또는 청킹이 작동하는 방식 설명
-    - 블록 스트리밍 또는 채널 청크 동작 변경
-    - 중복/조기 차단 응답 또는 초안 스트리밍 디버깅
+  - 채널에서 스트리밍 또는 청킹이 작동하는 방식 설명
+  - 블록 스트리밍 또는 채널 청크 동작 변경
+  - 중복/조기 차단 응답 또는 초안 스트리밍 디버깅
 summary: 스트리밍 + 청킹 동작(응답 차단, 초안 스트리밍, 제한)
 title: 스트리밍과 청킹
 x-i18n:
-    generated_at: "2026-02-08T15:55:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f014eb1898c4351b1d6b812223226d91324701e3e809cd0f3faf6679841bc353
-    source_path: concepts/streaming.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f014eb1898c4351b1d6b812223226d91324701e3e809cd0f3faf6679841bc353
+  source_path: concepts/streaming.md
+  workflow: 15
 ---
 
 # 스트리밍 + 청킹
@@ -83,7 +83,7 @@ Model output
 - `minChars` 충분한 텍스트가 축적될 때까지 작은 조각이 전송되는 것을 방지합니다.
   (최종 플러시는 항상 남은 텍스트를 보냅니다).
 - 조이너는 다음에서 파생됩니다. `blockStreamingChunk.breakPreference`
-   (`paragraph` → `\n\n`, `newline` → `\n`, `sentence` → 공간).
+  (`paragraph` → `\n\n`, `newline` → `\n`, `sentence` → 공간).
 - 채널 재정의는 다음을 통해 가능합니다. `*.blockStreamingCoalesce` (계정별 구성 포함)
 - 기본 병합 `minChars` 재정의되지 않는 한 Signal/Slack/Discord의 경우 1500으로 증가합니다.
 

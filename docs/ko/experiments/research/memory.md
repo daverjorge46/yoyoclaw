@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 일일 Markdown 로그를 넘어서 작업 공간 메모리(~/.openclaw/workspace) 설계
-    - Deciding: standalone CLI vs deep OpenClaw integration
-    - 오프라인 회상 + 반성 추가 (보유/회상/반영)
-summary: '연구 노트: Clawd 작업 공간을 위한 오프라인 메모리 시스템(Markdown 진실 소스 + 파생 인덱스)'
+  - 일일 Markdown 로그를 넘어서 작업 공간 메모리(~/.openclaw/workspace) 설계
+  - Deciding: standalone CLI vs deep OpenClaw integration
+  - 오프라인 회상 + 반성 추가 (보유/회상/반영)
+summary: "연구 노트: Clawd 작업 공간을 위한 오프라인 메모리 시스템(Markdown 진실 소스 + 파생 인덱스)"
 title: 작업 공간 메모리 연구
 x-i18n:
-    generated_at: "2026-02-08T15:58:08Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1753c8ee6284999fab4a94ff5fae7421c85233699c9d3088453d0c2133ac0feb
-    source_path: experiments/research/memory.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:08Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1753c8ee6284999fab4a94ff5fae7421c85233699c9d3088453d0c2133ac0feb
+  source_path: experiments/research/memory.md
+  workflow: 15
 ---
 
 # Workspace Memory v2(오프라인): 연구 노트
@@ -167,7 +167,7 @@ Reflection은 예약된 작업입니다(매일 또는 하트비트). `ultrathink
 - 각 의견에는 다음이 포함됩니다.
   - 성명
   - 신뢰 `c ∈ [0,1]`
-  - 마지막_업데이트
+  - 마지막\_업데이트
   - 증거 링크(지원 + 모순되는 사실 ID)
 - 새로운 사실이 도착하면:
   - 엔터티 중복 + 유사성으로 후보 의견 찾기(FTS 우선, 임베딩 나중에)

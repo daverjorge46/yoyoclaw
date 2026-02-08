@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 소스 체크아웃을 안전하게 업데이트하고 싶습니다.
-    - '`--update` 속기 동작을 이해해야 합니다.'
-summary: '`openclaw update`에 대한 CLI 참조(안전한 소스 업데이트 + 게이트웨이 자동 다시 시작)'
+  - 소스 체크아웃을 안전하게 업데이트하고 싶습니다.
+  - "`--update` 속기 동작을 이해해야 합니다."
+summary: "`openclaw update`에 대한 CLI 참조(안전한 소스 업데이트 + 게이트웨이 자동 다시 시작)"
 title: 업데이트
 x-i18n:
-    generated_at: "2026-02-08T15:49:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3a08e8ac797612c498eef54ecb83e61c9a1ee5de09162a01dbb4b3bd72897206
-    source_path: cli/update.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3a08e8ac797612c498eef54ecb83e61c9a1ee5de09162a01dbb4b3bd72897206
+  source_path: cli/update.md
+  workflow: 15
 ---
 
 # `openclaw update`

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 여러 개의 격리된 에이전트(작업 공간 + 라우팅 + 인증)가 필요합니다.
-summary: '`openclaw agents`에 대한 CLI 참조(ID 나열/추가/삭제/설정)'
+  - 여러 개의 격리된 에이전트(작업 공간 + 라우팅 + 인증)가 필요합니다.
+summary: "`openclaw agents`에 대한 CLI 참조(ID 나열/추가/삭제/설정)"
 title: 자치령 대표
 x-i18n:
-    generated_at: "2026-02-08T15:47:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 30556d81636a9ad8972573cc6b498e620fd266e1dfb16eef3f61096ea62f9896
-    source_path: cli/agents.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 30556d81636a9ad8972573cc6b498e620fd266e1dfb16eef3f61096ea62f9896
+  source_path: cli/agents.md
+  workflow: 15
 ---
 
 # `openclaw agents`

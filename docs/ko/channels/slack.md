@@ -3,12 +3,12 @@ read_when: Setting up Slack or debugging Slack socket/HTTP mode
 summary: 소켓 또는 HTTP 웹훅 모드에 대한 Slack 설정
 title: 느슨하게
 x-i18n:
-    generated_at: "2026-02-08T15:49:36Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8ab00a8a93ec31b7d70d1fa37d9f99ed49043ba244ac10031dda88aacd97244e
-    source_path: channels/slack.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:36Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8ab00a8a93ec31b7d70d1fa37d9f99ed49043ba244ac10031dda88aacd97244e
+  source_path: channels/slack.md
+  workflow: 15
 ---
 
 # 느슨하게

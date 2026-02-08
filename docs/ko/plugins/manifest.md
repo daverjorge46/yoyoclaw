@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw 플러그인을 구축 중입니다.
-    - 플러그인 구성 스키마를 제공하거나 플러그인 유효성 검사 오류를 디버그해야 합니다.
+  - OpenClaw 플러그인을 구축 중입니다.
+  - 플러그인 구성 스키마를 제공하거나 플러그인 유효성 검사 오류를 디버그해야 합니다.
 summary: 플러그인 매니페스트 + JSON 스키마 요구 사항(엄격한 구성 검증)
 title: 플러그인 매니페스트
 x-i18n:
-    generated_at: "2026-02-08T16:00:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 234c7c0e77f22f5cd3c7fa0c06d442ce2c543b45cdeb35229d19f2f805dafcd2
-    source_path: plugins/manifest.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 234c7c0e77f22f5cd3c7fa0c06d442ce2c543b45cdeb35229d19f2f805dafcd2
+  source_path: plugins/manifest.md
+  workflow: 15
 ---
 
 # 플러그인 매니페스트(openclaw.plugin.json)

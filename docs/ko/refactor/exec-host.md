@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Exec 호스트 라우팅 또는 Exec 승인 설계
-    - 노드 러너 + UI IPC 구현
-    - exec 호스트 보안 모드 및 슬래시 명령 추가
-summary: '리팩터링 계획: 실행 호스트 라우팅, 노드 승인 및 헤드리스 실행기'
+  - Exec 호스트 라우팅 또는 Exec 승인 설계
+  - 노드 러너 + UI IPC 구현
+  - exec 호스트 보안 모드 및 슬래시 명령 추가
+summary: "리팩터링 계획: 실행 호스트 라우팅, 노드 승인 및 헤드리스 실행기"
 title: Exec 호스트 리팩터링
 x-i18n:
-    generated_at: "2026-02-08T16:03:14Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 53a9059cbeb1f3f1dbb48c2b5345f88ca92372654fef26f8481e651609e45e3a
-    source_path: refactor/exec-host.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:14Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 53a9059cbeb1f3f1dbb48c2b5345f88ca92372654fef26f8481e651609e45e3a
+  source_path: refactor/exec-host.md
+  workflow: 15
 ---
 
 # Exec 호스트 리팩터링 계획

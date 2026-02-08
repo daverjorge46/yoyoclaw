@@ -2,12 +2,12 @@
 description: Deploy OpenClaw on Fly.io
 title: Fly.io
 x-i18n:
-    generated_at: "2026-02-08T15:57:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 148f8e3579f185f1b4062af50e5a829cc900eefce3a7d3365b7479223817fe5c
-    source_path: install/fly.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 148f8e3579f185f1b4062af50e5a829cc900eefce3a7d3365b7479223817fe5c
+  source_path: install/fly.md
+  workflow: 15
 ---
 
 <a id="private-deployment-hardened"></a>

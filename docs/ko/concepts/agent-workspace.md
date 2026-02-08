@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 상담원 작업공간이나 해당 파일 레이아웃을 설명해야 합니다.
-    - 에이전트 작업 영역을 백업하거나 마이그레이션하고 싶습니다.
-summary: '에이전트 작업 공간: 위치, 레이아웃 및 백업 전략'
+  - 상담원 작업공간이나 해당 파일 레이아웃을 설명해야 합니다.
+  - 에이전트 작업 영역을 백업하거나 마이그레이션하고 싶습니다.
+summary: "에이전트 작업 공간: 위치, 레이아웃 및 백업 전략"
 title: 상담원 작업 공간
 x-i18n:
-    generated_at: "2026-02-08T15:50:42Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d3cc655c58f00965546ea92080c52a9affd45da4c613fe258271db46f279548e
-    source_path: concepts/agent-workspace.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:42Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d3cc655c58f00965546ea92080c52a9affd45da4c613fe258271db46f279548e
+  source_path: concepts/agent-workspace.md
+  workflow: 15
 ---
 
 # 상담원 작업공간

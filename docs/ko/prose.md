@@ -1,17 +1,17 @@
 ---
 read_when:
-    - .prose 워크플로를 실행하거나 작성하려는 경우
-    - OpenProse 플러그인을 활성화하고 싶습니다
-    - 상태 저장을 이해해야 합니다.
-summary: 'OpenProse: OpenClaw의 .prose 워크플로우, 슬래시 명령 및 상태'
+  - .prose 워크플로를 실행하거나 작성하려는 경우
+  - OpenProse 플러그인을 활성화하고 싶습니다
+  - 상태 저장을 이해해야 합니다.
+summary: "OpenProse: OpenClaw의 .prose 워크플로우, 슬래시 명령 및 상태"
 title: 오픈프로즈
 x-i18n:
-    generated_at: "2026-02-08T16:01:17Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 53c161466d278e5f34759313eec600a26da7018bcd52ce68c5a15e5c769bcbe5
-    source_path: prose.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:17Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 53c161466d278e5f34759313eec600a26da7018bcd52ce68c5a15e5c769bcbe5
+  source_path: prose.md
+  workflow: 15
 ---
 
 # 오픈프로즈

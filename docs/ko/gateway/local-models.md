@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 자체 GPU 상자에서 모델을 제공하고 싶습니다.
-    - LM Studio 또는 OpenAI 호환 프록시를 연결하고 있습니다.
-    - 가장 안전한 현지 모델 안내가 필요합니다
+  - 자체 GPU 상자에서 모델을 제공하고 싶습니다.
+  - LM Studio 또는 OpenAI 호환 프록시를 연결하고 있습니다.
+  - 가장 안전한 현지 모델 안내가 필요합니다
 summary: 로컬 LLM(LM Studio, vLLM, LiteLLM, 사용자 정의 OpenAI 엔드포인트)에서 OpenClaw 실행
 title: 지역 모델
 x-i18n:
-    generated_at: "2026-02-08T15:55:12Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 82164e8c4f0c74797a6d3da784e5cc494b5bc419169a27fc21a588aa8c9e569a
-    source_path: gateway/local-models.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:12Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 82164e8c4f0c74797a6d3da784e5cc494b5bc419169a27fc21a588aa8c9e569a
+  source_path: gateway/local-models.md
+  workflow: 15
 ---
 
 # 현지 모델

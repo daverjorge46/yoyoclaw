@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw를 설치하기 전에 Node.js를 설치해야 합니다.
-    - OpenClaw를 설치했지만 `openclaw` 명령을 찾을 수 없습니다.
-    - npm install -g가 권한 또는 PATH 문제로 인해 실패합니다.
+  - OpenClaw를 설치하기 전에 Node.js를 설치해야 합니다.
+  - OpenClaw를 설치했지만 `openclaw` 명령을 찾을 수 없습니다.
+  - npm install -g가 권한 또는 PATH 문제로 인해 실패합니다.
 summary: OpenClaw용 Node.js 설치 및 구성 — 버전 요구 사항, 설치 옵션 및 PATH 문제 해결
 title: Node.js
 x-i18n:
-    generated_at: "2026-02-08T15:57:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f848d6473a1830904f7e75bb211161cfb22ac7a4de6623835cad1444a18f0579
-    source_path: install/node.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f848d6473a1830904f7e75bb211161cfb22ac7a4de6623835cad1444a18f0579
+  source_path: install/node.md
+  workflow: 15
 ---
 
 # Node.js

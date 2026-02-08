@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 에이전트를 통해 백그라운드/병렬 작업을 원합니다.
-    - session_spawn 또는 하위 에이전트 도구 정책을 변경 중입니다.
-summary: '하위 에이전트: 요청자 채팅에 결과를 다시 알리는 격리된 에이전트 실행 생성'
+  - 에이전트를 통해 백그라운드/병렬 작업을 원합니다.
+  - session_spawn 또는 하위 에이전트 도구 정책을 변경 중입니다.
+summary: "하위 에이전트: 요청자 채팅에 결과를 다시 알리는 격리된 에이전트 실행 생성"
 title: 하위 에이전트
 x-i18n:
-    generated_at: "2026-02-08T16:07:08Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3c83eeed69a65dbbb6b21a386f3ac363d3ef8f077f0e03b834c3f0a9911dca7c
-    source_path: tools/subagents.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:08Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3c83eeed69a65dbbb6b21a386f3ac363d3ef8f077f0e03b834c3f0a9911dca7c
+  source_path: tools/subagents.md
+  workflow: 15
 ---
 
 # 하위 에이전트

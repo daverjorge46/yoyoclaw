@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 답장을 위해 텍스트 음성 변환 활성화
-    - TTS 공급자 또는 제한 구성
-    - /tts 명령 사용
+  - 답장을 위해 텍스트 음성 변환 활성화
+  - TTS 공급자 또는 제한 구성
+  - /tts 명령 사용
 summary: 아웃바운드 응답을 위한 TTS(텍스트 음성 변환)
 title: 텍스트 음성 변환
 x-i18n:
-    generated_at: "2026-02-08T16:07:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 070ff0cc8592f64c6c9e4ddaddc7e8fba82f0692ceded6fe833ec9ba5b61e6fb
-    source_path: tts.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 070ff0cc8592f64c6c9e4ddaddc7e8fba82f0692ceded6fe833ec9ba5b61e6fb
+  source_path: tts.md
+  workflow: 15
 ---
 
 # 텍스트 음성 변환(TTS)

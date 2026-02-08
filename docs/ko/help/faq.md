@@ -2,12 +2,12 @@
 summary: OpenClaw 설정, 구성 및 사용법에 대해 자주 묻는 질문
 title: FAQ
 x-i18n:
-    generated_at: "2026-02-08T16:04:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b7c0c9766461f6e73b55df952cc9cc8b40f38961d9b71da9cac9f515f13a4c8c
-    source_path: help/faq.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b7c0c9766461f6e73b55df952cc9cc8b40f38961d9b71da9cac9f515f13a4c8c
+  source_path: help/faq.md
+  workflow: 15
 ---
 
 <a id="im-stuck-whats-the-fastest-way-to-get-unstuck"></a>
@@ -1418,7 +1418,7 @@ OpenAI 키가 확인되면 OpenAI를 선호하고, 그렇지 않으면 Gemini �
 
 현지에 머무르고 싶다면 다음을 설정하세요. `memorySearch.provider = "local"` (그리고 선택적으로
 `memorySearch.fallback = "none"`). Gemini 임베딩을 원하면 다음을 설정하세요.
-`memorySearch.provider = "gemini"` 그리고 제공하다 `GEMINI_API_KEY`  (또는
+`memorySearch.provider = "gemini"` 그리고 제공하다 `GEMINI_API_KEY` (또는
 `memorySearch.remote.apiKey`). 우리는 지원합니다 **OpenAI, Gemini 또는 로컬** 삽입
 모델 - 참조 [메모리](/concepts/memory) 설정 세부정보를 확인하세요.
 
@@ -2007,7 +2007,7 @@ openclaw onboard --install-daemon
   /compact
   ```
 
-   또는 `/compact <instructions>` 요약을 안내합니다.
+  또는 `/compact <instructions>` 요약을 안내합니다.
 
 - **다시 놓기** (동일한 채팅 키에 대한 새로운 세션 ID):
 

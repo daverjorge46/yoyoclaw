@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 프로젝트 배경 이야기나 기여자 크레딧을 원합니다.
+  - 프로젝트 배경 이야기나 기여자 크레딧을 원합니다.
 summary: 프로젝트 출처, 기여자, 라이선스.
 title: 크레딧
 x-i18n:
-    generated_at: "2026-02-08T16:10:41Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bddc33d4f789099c5036663dafc2764a0e99575479a3dae83be2b7531383a4f0
-    source_path: reference/credits.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:41Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bddc33d4f789099c5036663dafc2764a0e99575479a3dae83be2b7531383a4f0
+  source_path: reference/credits.md
+  workflow: 15
 ---
 
 ## 이름

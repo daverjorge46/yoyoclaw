@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw가 Nostr을 통해 DM을 받기를 원합니다.
-    - 분산 메시징을 설정 중입니다.
+  - OpenClaw가 Nostr을 통해 DM을 받기를 원합니다.
+  - 분산 메시징을 설정 중입니다.
 summary: NIP-04 암호화된 메시지를 통한 Nostr DM 채널
 title: 노스트르
 x-i18n:
-    generated_at: "2026-02-08T15:49:58Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6b9fe4c74bf5e7c0f59bbaa129ec5270fd29a248551a8a9a7dde6cff8fb46111
-    source_path: channels/nostr.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:58Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6b9fe4c74bf5e7c0f59bbaa129ec5270fd29a248551a8a9a7dde6cff8fb46111
+  source_path: channels/nostr.md
+  workflow: 15
 ---
 
 # 노스트르

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw.app에서 PeekabooBridge 호스팅
-    - Swift Package Manager를 통해 Peekaboo 통합
-    - PeekabooBridge 프로토콜/경로 변경
+  - OpenClaw.app에서 PeekabooBridge 호스팅
+  - Swift Package Manager를 통해 Peekaboo 통합
+  - PeekabooBridge 프로토콜/경로 변경
 summary: macOS UI 자동화를 위한 PeekabooBridge 통합
 title: 까꿍 다리
 x-i18n:
-    generated_at: "2026-02-08T16:08:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b5b9ddb9a7c59e153a1d5d23c33616bb1542b5c7dadedc3af340aeee9ba03487
-    source_path: platforms/mac/peekaboo.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b5b9ddb9a7c59e153a1d5d23c33616bb1542b5c7dadedc3af340aeee9ba03487
+  source_path: platforms/mac/peekaboo.md
+  workflow: 15
 ---
 
 # Peekaboo Bridge(macOS UI 자동화)

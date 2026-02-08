@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 연결/인증 문제가 있으며 안내에 따른 수정이 필요합니다.
-    - 업데이트했고 상태 확인을 원합니다.
-summary: '`openclaw doctor`에 대한 CLI 참조(상태 확인 + 안내식 수리)'
+  - 연결/인증 문제가 있으며 안내에 따른 수정이 필요합니다.
+  - 업데이트했고 상태 확인을 원합니다.
+summary: "`openclaw doctor`에 대한 CLI 참조(상태 확인 + 안내식 수리)"
 title: 의사
 x-i18n:
-    generated_at: "2026-02-08T15:49:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 92310aa3f3d111e91a74ce1150359d5d8a8d70a856666d9419e16c60d78209f2
-    source_path: cli/doctor.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 92310aa3f3d111e91a74ce1150359d5d8a8d70a856666d9419e16c60d78209f2
+  source_path: cli/doctor.md
+  workflow: 15
 ---
 
 # `openclaw doctor`

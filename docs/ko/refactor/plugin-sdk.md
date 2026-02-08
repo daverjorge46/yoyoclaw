@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 플러그인 아키텍처 정의 또는 리팩토링
-    - 채널 커넥터를 플러그인 SDK/런타임으로 마이그레이션
-summary: '계획: 하나의 클린 플러그인 SDK + 모든 메시징 커넥터에 대한 런타임'
+  - 플러그인 아키텍처 정의 또는 리팩토링
+  - 채널 커넥터를 플러그인 SDK/런타임으로 마이그레이션
+summary: "계획: 하나의 클린 플러그인 SDK + 모든 메시징 커넥터에 대한 런타임"
 title: 플러그인 SDK 리팩터링
 x-i18n:
-    generated_at: "2026-02-08T16:02:16Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1f3519f43632fcac9f59ba5ef4c0d59707f18ab5a1e2f451616db89bc7bf43ff
-    source_path: refactor/plugin-sdk.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:16Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1f3519f43632fcac9f59ba5ef4c0d59707f18ab5a1e2f451616db89bc7bf43ff
+  source_path: refactor/plugin-sdk.md
+  workflow: 15
 ---
 
 # 플러그인 SDK + 런타임 리팩터링 계획

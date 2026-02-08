@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 프로토콜 스키마 또는 codegen 업데이트
+  - 프로토콜 스키마 또는 codegen 업데이트
 summary: 게이트웨이 프로토콜의 단일 정보 소스인 TypeBox 스키마
 title: 타입박스
 x-i18n:
-    generated_at: "2026-02-08T15:52:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 72fb8a1244edd84bbf50359722c73c00aef79b744c7b17e2a68122cebb055dc0
-    source_path: concepts/typebox.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 72fb8a1244edd84bbf50359722c73c00aef79b744c7b17e2a68122cebb055dc0
+  source_path: concepts/typebox.md
+  workflow: 15
 ---
 
 # 프로토콜 진실 소스로서의 TypeBox

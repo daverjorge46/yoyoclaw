@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Tailscale + CoreDNS를 통한 광역 검색(DNS-SD)을 원합니다.
-    - You’re setting up split DNS for a custom discovery domain (example: openclaw.internal)
-summary: '`openclaw dns`에 대한 CLI 참조(광역 검색 도우미)'
+  - Tailscale + CoreDNS를 통한 광역 검색(DNS-SD)을 원합니다.
+  - You’re setting up split DNS for a custom discovery domain (example: openclaw.internal)
+summary: "`openclaw dns`에 대한 CLI 참조(광역 검색 도우미)"
 title: DNS
 x-i18n:
-    generated_at: "2026-02-08T15:52:04Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d2011e41982ffb4b71ab98211574529bc1c8b7769ab1838abddd593f42b12380
-    source_path: cli/dns.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:04Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d2011e41982ffb4b71ab98211574529bc1c8b7769ab1838abddd593f42b12380
+  source_path: cli/dns.md
+  workflow: 15
 ---
 
 # `openclaw dns`

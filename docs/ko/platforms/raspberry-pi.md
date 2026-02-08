@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Raspberry Pi에서 OpenClaw 설정
-    - ARM 장치에서 OpenClaw 실행
-    - 저렴한 상시 접속형 개인 AI 구축
+  - Raspberry Pi에서 OpenClaw 설정
+  - ARM 장치에서 OpenClaw 실행
+  - 저렴한 상시 접속형 개인 AI 구축
 summary: Raspberry Pi의 OpenClaw(예산 자체 호스팅 설정)
 title: 라즈베리 파이
 x-i18n:
-    generated_at: "2026-02-08T16:00:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 90b143a2877a4cea162e04902b89d3b5e0c365331c1c3d62e4ec1c0dded0cf6d
-    source_path: platforms/raspberry-pi.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 90b143a2877a4cea162e04902b89d3b5e0c365331c1c3d62e4ec1c0dded0cf6d
+  source_path: platforms/raspberry-pi.md
+  workflow: 15
 ---
 
 # 라즈베리 파이의 OpenClaw

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - macOS 앱 기능 구현
-    - macOS에서 게이트웨이 수명 주기 또는 노드 브리징 변경
+  - macOS 앱 기능 구현
+  - macOS에서 게이트웨이 수명 주기 또는 노드 브리징 변경
 summary: OpenClaw macOS 동반 앱(메뉴 표시줄 + 게이트웨이 브로커)
 title: macOS 앱
 x-i18n:
-    generated_at: "2026-02-08T16:00:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a5b1c02e5905e4cbc6c0688149cdb50a5bf7653e641947143e169ad948d1f057
-    source_path: platforms/macos.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a5b1c02e5905e4cbc6c0688149cdb50a5bf7653e641947143e169ad948d1f057
+  source_path: platforms/macos.md
+  workflow: 15
 ---
 
 # OpenClaw macOS Companion(메뉴 표시줄 + 게이트웨이 브로커)

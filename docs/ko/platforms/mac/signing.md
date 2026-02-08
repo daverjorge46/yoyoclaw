@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Mac 디버그 빌드 빌드 또는 서명
+  - Mac 디버그 빌드 빌드 또는 서명
 summary: 패키징 스크립트로 생성된 macOS 디버그 빌드에 대한 서명 단계
 title: macOS 서명
 x-i18n:
-    generated_at: "2026-02-08T16:00:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 403b92f9a0ecdb7cb42ec097c684b7a696be3696d6eece747314a4dc90d8797e
-    source_path: platforms/mac/signing.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 403b92f9a0ecdb7cb42ec097c684b7a696be3696d6eece747314a4dc90d8797e
+  source_path: platforms/mac/signing.md
+  workflow: 15
 ---
 
 # Mac 서명(디버그 빌드)

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw가 GCP에서 연중무휴로 실행되기를 원합니다.
-    - 자체 VM에 프로덕션 등급의 상시 게이트웨이가 필요합니다.
-    - 지속성, 바이너리 및 재시작 동작을 완전히 제어하고 싶습니다.
+  - OpenClaw가 GCP에서 연중무휴로 실행되기를 원합니다.
+  - 자체 VM에 프로덕션 등급의 상시 게이트웨이가 필요합니다.
+  - 지속성, 바이너리 및 재시작 동작을 완전히 제어하고 싶습니다.
 summary: 내구성 상태로 GCP Compute Engine VM(Docker)에서 연중무휴 OpenClaw Gateway 실행
 title: GCP
 x-i18n:
-    generated_at: "2026-02-08T16:06:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 173d89358506c73cdd5f4ecdc8eee80e17d543f3ccf6fd4d611fd96dfad1b8ab
-    source_path: install/gcp.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 173d89358506c73cdd5f4ecdc8eee80e17d543f3ccf6fd4d611fd96dfad1b8ab
+  source_path: install/gcp.md
+  workflow: 15
 ---
 
 # GCP Compute Engine의 OpenClaw(Docker, 프로덕션 VPS 가이드)

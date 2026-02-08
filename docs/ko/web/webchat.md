@@ -1,15 +1,15 @@
 ---
 read_when:
-    - WebChat 액세스 디버깅 또는 구성
+  - WebChat 액세스 디버깅 또는 구성
 summary: 채팅 UI에 대한 루프백 WebChat 정적 호스트 및 게이트웨이 WS 사용
 title: 웹채팅
 x-i18n:
-    generated_at: "2026-02-08T16:12:32Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b5ee2b462c8c979ac27f80dea0cf12cf62b3c799cf8fd0a7721901e26efeb1a0
-    source_path: web/webchat.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:32Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b5ee2b462c8c979ac27f80dea0cf12cf62b3c799cf8fd0a7721901e26efeb1a0
+  source_path: web/webchat.md
+  workflow: 15
 ---
 
 # WebChat(게이트웨이 WebSocket UI)

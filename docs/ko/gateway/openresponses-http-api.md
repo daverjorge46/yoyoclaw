@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenResponses API를 사용하는 클라이언트 통합
-    - 항목 기반 입력, 클라이언트 도구 호출 또는 SSE 이벤트를 원합니다.
+  - OpenResponses API를 사용하는 클라이언트 통합
+  - 항목 기반 입력, 클라이언트 도구 호출 또는 SSE 이벤트를 원합니다.
 summary: 게이트웨이에서 OpenResponses 호환 /v1/responses HTTP 엔드포인트 노출
 title: 오픈응답 API
 x-i18n:
-    generated_at: "2026-02-08T15:54:43Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0597714837f8b210c38eeef53561894220c1473e54c56a5c69984847685d518c
-    source_path: gateway/openresponses-http-api.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:43Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0597714837f8b210c38eeef53561894220c1473e54c56a5c69984847685d518c
+  source_path: gateway/openresponses-http-api.md
+  workflow: 15
 ---
 
 # OpenResponse API(HTTP)

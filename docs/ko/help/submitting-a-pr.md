@@ -2,12 +2,12 @@
 summary: 높은 신호 PR을 제출하는 방법
 title: PR 제출
 x-i18n:
-    generated_at: "2026-02-08T15:55:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 277b0f51b948d1a9285cc9b5a89f909a5827dbb5fc7e09c7eca78d3b5bb9ad95
-    source_path: help/submitting-a-pr.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 277b0f51b948d1a9285cc9b5a89f909a5827dbb5fc7e09c7eca78d3b5bb9ad95
+  source_path: help/submitting-a-pr.md
+  workflow: 15
 ---
 
 좋은 PR은 검토하기 쉽습니다. 검토자는 의도를 빠르게 파악하고 행동을 확인하며 토지 변경을 안전하게 수행해야 합니다. 이 가이드는 인간 및 LLM 검토를 위한 간결하고 중요한 제출물을 다룹니다.

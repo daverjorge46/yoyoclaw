@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 게이트웨이용으로 저렴한 상시 Linux 호스트를 원합니다.
-    - 자체 VPS를 실행하지 않고 원격 제어 UI 액세스를 원합니다.
+  - 게이트웨이용으로 저렴한 상시 Linux 호스트를 원합니다.
+  - 자체 VPS를 실행하지 않고 원격 제어 UI 액세스를 원합니다.
 summary: 원격 액세스를 위해 exe.dev(VM + HTTPS 프록시)에서 OpenClaw Gateway 실행
 title: exe.dev
 x-i18n:
-    generated_at: "2026-02-08T15:59:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 72ab798afd058a76b597817412ecb622a7d7824dd23c35e8ce9f9d6e6619da25
-    source_path: install/exe-dev.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 72ab798afd058a76b597817412ecb622a7d7824dd23c35e8ce9f9d6e6619da25
+  source_path: install/exe-dev.md
+  workflow: 15
 ---
 
 # exe.dev

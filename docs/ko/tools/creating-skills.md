@@ -1,12 +1,12 @@
 ---
 title: 기술 만들기
 x-i18n:
-    generated_at: "2026-02-08T16:07:04Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ad801da34fe361ffa584ded47f775d1c104a471a3f7b7f930652255e98945c3a
-    source_path: tools/creating-skills.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:04Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ad801da34fe361ffa584ded47f775d1c104a471a3f7b7f930652255e98945c3a
+  source_path: tools/creating-skills.md
+  workflow: 15
 ---
 
 # 맞춤형 기술 만들기 🛠

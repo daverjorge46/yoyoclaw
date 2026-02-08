@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 헤드리스 노드 호스트 실행
-    - system.run을 위해 비 macOS 노드 페어링
-summary: '`openclaw node`(헤드리스 노드 호스트)에 대한 CLI 참조'
+  - 헤드리스 노드 호스트 실행
+  - system.run을 위해 비 macOS 노드 페어링
+summary: "`openclaw node`(헤드리스 노드 호스트)에 대한 CLI 참조"
 title: 마디
 x-i18n:
-    generated_at: "2026-02-08T15:53:38Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a8b1a57712663e2285c9ecd306fe57d067eb3e6820d7d8aec650b41b022d995a
-    source_path: cli/node.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:38Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a8b1a57712663e2285c9ecd306fe57d067eb3e6820d7d8aec650b41b022d995a
+  source_path: cli/node.md
+  workflow: 15
 ---
 
 # `openclaw node`

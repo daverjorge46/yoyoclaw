@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 반복되는 작업을 예약하는 방법 결정
-    - 백그라운드 모니터링 또는 알림 설정
-    - 정기 점검을 위한 토큰 사용 최적화
+  - 반복되는 작업을 예약하는 방법 결정
+  - 백그라운드 모니터링 또는 알림 설정
+  - 정기 점검을 위한 토큰 사용 최적화
 summary: 자동화를 위한 하트비트 작업과 크론 작업 중에서 선택하기 위한 지침
 title: 크론 대 하트비트
 x-i18n:
-    generated_at: "2026-02-08T15:46:56Z"
-    model: gtx
-    provider: google-translate
-    source_hash: fca1006df9d2e842e70d06998fd4a8528e4eef70492e4d9ba0f55dfcf08e6b84
-    source_path: automation/cron-vs-heartbeat.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:56Z"
+  model: gtx
+  provider: google-translate
+  source_hash: fca1006df9d2e842e70d06998fd4a8528e4eef70492e4d9ba0f55dfcf08e6b84
+  source_path: automation/cron-vs-heartbeat.md
+  workflow: 15
 ---
 
 # Cron 대 하트비트: 각각을 언제 사용해야 할까요?

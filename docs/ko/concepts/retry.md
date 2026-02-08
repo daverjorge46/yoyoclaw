@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 공급자 재시도 동작 또는 기본값 업데이트
-    - 디버깅 공급자가 오류 또는 속도 제한을 보냅니다.
+  - 공급자 재시도 동작 또는 기본값 업데이트
+  - 디버깅 공급자가 오류 또는 속도 제한을 보냅니다.
 summary: 아웃바운드 공급자 호출에 대한 재시도 정책
 title: 재시도 정책
 x-i18n:
-    generated_at: "2026-02-08T15:51:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 55bb261ff567f46ce447be9c0ee0c5b5e6d2776287d7662762656c14108dd607
-    source_path: concepts/retry.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 55bb261ff567f46ce447be9c0ee0c5b5e6d2776287d7662762656c14108dd607
+  source_path: concepts/retry.md
+  workflow: 15
 ---
 
 # 재시도 정책

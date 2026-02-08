@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 모델 제공자를 선택하고 싶습니다.
-    - LLM 인증 + 모델 선택에 대한 빠른 설정 예를 원합니다.
+  - 모델 제공자를 선택하고 싶습니다.
+  - LLM 인증 + 모델 선택에 대한 빠른 설정 예를 원합니다.
 summary: OpenClaw에서 지원하는 모델 공급자(LLM)
 title: 모델 제공자 빠른 시작
 x-i18n:
-    generated_at: "2026-02-08T16:01:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 691d2c97ef6b01cceedf59cc5dd238284b24e61048a19c77dce93e07e1bf7690
-    source_path: providers/models.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 691d2c97ef6b01cceedf59cc5dd238284b24e61048a19c77dce93e07e1bf7690
+  source_path: providers/models.md
+  workflow: 15
 ---
 
 # 모델 제공자

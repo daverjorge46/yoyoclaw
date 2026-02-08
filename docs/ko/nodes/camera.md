@@ -1,16 +1,16 @@
 ---
 read_when:
-    - iOS 노드 또는 macOS에서 카메라 캡처 추가 또는 수정
-    - 에이전트가 액세스할 수 있는 MEDIA 임시 파일 워크플로 확장
-summary: '에이전트 사용을 위한 카메라 캡처(iOS 노드 + macOS 앱): 사진(jpg) 및 짧은 비디오 클립(mp4)'
+  - iOS 노드 또는 macOS에서 카메라 캡처 추가 또는 수정
+  - 에이전트가 액세스할 수 있는 MEDIA 임시 파일 워크플로 확장
+summary: "에이전트 사용을 위한 카메라 캡처(iOS 노드 + macOS 앱): 사진(jpg) 및 짧은 비디오 클립(mp4)"
 title: 카메라 캡처
 x-i18n:
-    generated_at: "2026-02-08T16:07:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cd6e2edd05a6575d76475dc91fc742ca6128c88e36ff24c3a12e727f5efd9939
-    source_path: nodes/camera.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cd6e2edd05a6575d76475dc91fc742ca6128c88e36ff24c3a12e727f5efd9939
+  source_path: nodes/camera.md
+  workflow: 15
 ---
 
 # 카메라 캡처(에이전트)

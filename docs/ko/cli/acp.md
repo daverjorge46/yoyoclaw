@@ -1,16 +1,16 @@
 ---
 read_when:
-    - ACP 기반 IDE 통합 설정
-    - 게이트웨이로의 ACP 세션 라우팅 디버깅
+  - ACP 기반 IDE 통합 설정
+  - 게이트웨이로의 ACP 세션 라우팅 디버깅
 summary: IDE 통합을 위해 ACP 브리지 실행
 title: acp
 x-i18n:
-    generated_at: "2026-02-08T15:49:58Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0c09844297da250bc1a558423e7e534d6b6be9045de12d797c07ecd64a0c63ed
-    source_path: cli/acp.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:58Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0c09844297da250bc1a558423e7e534d6b6be9045de12d797c07ecd64a0c63ed
+  source_path: cli/acp.md
+  workflow: 15
 ---
 
 # acp

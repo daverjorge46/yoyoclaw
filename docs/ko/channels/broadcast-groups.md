@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 브로드캐스트 그룹 구성
-    - WhatsApp에서 다중 에이전트 응답 디버깅
+  - 브로드캐스트 그룹 구성
+  - WhatsApp에서 다중 에이전트 응답 디버깅
 status: experimental
 summary: 여러 상담원에게 WhatsApp 메시지 브로드캐스트
 title: 방송 그룹
 x-i18n:
-    generated_at: "2026-02-08T15:48:09Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 25866bc0d519552d601ae27e5c3c97816f220f05de210e609f8b9f3712fababf
-    source_path: channels/broadcast-groups.md
-    workflow: 15
+  generated_at: "2026-02-08T15:48:09Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 25866bc0d519552d601ae27e5c3c97816f220f05de210e609f8b9f3712fababf
+  source_path: channels/broadcast-groups.md
+  workflow: 15
 ---
 
 # 방송 그룹

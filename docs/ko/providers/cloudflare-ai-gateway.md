@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw와 함께 Cloudflare AI Gateway를 사용하고 싶습니다.
-    - 계정 ID, 게이트웨이 ID 또는 API 키 env var가 필요합니다.
+  - OpenClaw와 함께 Cloudflare AI Gateway를 사용하고 싶습니다.
+  - 계정 ID, 게이트웨이 ID 또는 API 키 env var가 필요합니다.
 summary: Cloudflare AI Gateway 설정(인증 + 모델 선택)
 title: Cloudflare AI 게이트웨이
 x-i18n:
-    generated_at: "2026-02-08T16:01:46Z"
-    model: gtx
-    provider: google-translate
-    source_hash: db77652c37652ca20f7c50f32382dbaeaeb50ea5bdeaf1d4fd17dc394e58950c
-    source_path: providers/cloudflare-ai-gateway.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:46Z"
+  model: gtx
+  provider: google-translate
+  source_hash: db77652c37652ca20f7c50f32382dbaeaeb50ea5bdeaf1d4fd17dc394e58950c
+  source_path: providers/cloudflare-ai-gateway.md
+  workflow: 15
 ---
 
 # Cloudflare AI 게이트웨이

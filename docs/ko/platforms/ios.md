@@ -1,17 +1,17 @@
 ---
 read_when:
-    - iOS 노드 페어링 또는 다시 연결
-    - 소스에서 iOS 앱 실행
-    - 게이트웨이 검색 또는 캔버스 명령 디버깅
-summary: 'iOS 노드 앱: 게이트웨이에 연결, 페어링, 캔버스 및 문제 해결'
+  - iOS 노드 페어링 또는 다시 연결
+  - 소스에서 iOS 앱 실행
+  - 게이트웨이 검색 또는 캔버스 명령 디버깅
+summary: "iOS 노드 앱: 게이트웨이에 연결, 페어링, 캔버스 및 문제 해결"
 title: iOS 앱
 x-i18n:
-    generated_at: "2026-02-08T16:00:38Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 692eebdc82e4bb8dc221bcbabf6a344a861a839fc377f1aeeb6eecaa4917a232
-    source_path: platforms/ios.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:38Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 692eebdc82e4bb8dc221bcbabf6a344a861a839fc377f1aeeb6eecaa4917a232
+  source_path: platforms/ios.md
+  workflow: 15
 ---
 
 # iOS 앱(노드)

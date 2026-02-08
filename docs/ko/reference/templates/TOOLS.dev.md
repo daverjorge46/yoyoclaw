@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 개발 게이트웨이 템플릿 사용
-    - 기본 개발자 에이전트 ID 업데이트
+  - 개발 게이트웨이 템플릿 사용
+  - 기본 개발자 에이전트 ID 업데이트
 summary: 개발 에이전트 도구 참고 사항(C-3PO)
 x-i18n:
-    generated_at: "2026-02-08T16:04:49Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3d41097967c9811637855664f978c02107a28b6d811ba49941a8f96f0720cd45
-    source_path: reference/templates/TOOLS.dev.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:49Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3d41097967c9811637855664f978c02107a28b6d811ba49941a8f96f0720cd45
+  source_path: reference/templates/TOOLS.dev.md
+  workflow: 15
 ---
 
 # TOOLS.md - 사용자 도구 참고 사항(편집 가능)

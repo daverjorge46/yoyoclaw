@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 액세스 또는 자동화를 확대하는 기능 추가
+  - 액세스 또는 자동화를 확대하는 기능 추가
 summary: 셸 액세스로 AI 게이트웨이를 실행하기 위한 보안 고려 사항 및 위협 모델
 title: 보안
 x-i18n:
-    generated_at: "2026-02-08T16:01:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5566bbbbbf7364ecb8b603aee2c4ddde1b4b92bb9033d92f16833151b4f63e0e
-    source_path: gateway/security/index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5566bbbbbf7364ecb8b603aee2c4ddde1b4b92bb9033d92f16833151b4f63e0e
+  source_path: gateway/security/index.md
+  workflow: 15
 ---
 
 # 보안 🔒

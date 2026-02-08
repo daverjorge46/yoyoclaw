@@ -1,11 +1,11 @@
 ---
 x-i18n:
-    generated_at: "2026-02-08T16:11:32Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 97dce2d990a412691b52f0e640cf1bc5bcf577c9bf20bbf732bf9c70394ef102
-    source_path: security/THREAT-MODEL-ATLAS.md
-    workflow: 15
+  generated_at: "2026-02-08T16:11:32Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 97dce2d990a412691b52f0e640cf1bc5bcf577c9bf20bbf732bf9c70394ef102
+  source_path: security/THREAT-MODEL-ATLAS.md
+  workflow: 15
 ---
 
 # OpenClaw 위협 모델 v1.0

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 인스턴스 탭 디버깅
-    - 중복되거나 오래된 인스턴스 행 조사
-    - 게이트웨이 WS 연결 또는 시스템 이벤트 비콘 변경
+  - 인스턴스 탭 디버깅
+  - 중복되거나 오래된 인스턴스 행 조사
+  - 게이트웨이 WS 연결 또는 시스템 이벤트 비콘 변경
 summary: OpenClaw 존재 항목이 생성, 병합 및 표시되는 방법
 title: 있음
 x-i18n:
-    generated_at: "2026-02-08T15:51:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c752c76a880878fed673d656db88beb5dbdeefff2491985127ad791521f97d00
-    source_path: concepts/presence.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c752c76a880878fed673d656db88beb5dbdeefff2491985127ad791521f97d00
+  source_path: concepts/presence.md
+  workflow: 15
 ---
 
 # 있음

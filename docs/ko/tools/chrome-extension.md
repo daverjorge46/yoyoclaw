@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 상담사가 기존 Chrome 탭(툴바 버튼)을 구동하기를 원합니다.
-    - Tailscale을 통한 원격 게이트웨이 + 로컬 브라우저 자동화가 필요합니다.
-    - 브라우저 탈취가 보안에 미치는 영향을 이해하고 싶습니다.
-summary: 'Chrome 확장 프로그램: OpenClaw가 기존 Chrome 탭을 구동하도록 하세요.'
+  - 상담사가 기존 Chrome 탭(툴바 버튼)을 구동하기를 원합니다.
+  - Tailscale을 통한 원격 게이트웨이 + 로컬 브라우저 자동화가 필요합니다.
+  - 브라우저 탈취가 보안에 미치는 영향을 이해하고 싶습니다.
+summary: "Chrome 확장 프로그램: OpenClaw가 기존 Chrome 탭을 구동하도록 하세요."
 title: 크롬 확장 프로그램
 x-i18n:
-    generated_at: "2026-02-08T16:06:09Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3b77bdad7d3dab6adb76ff25b144412d6b54b915993b1c1f057f36dea149938b
-    source_path: tools/chrome-extension.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:09Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3b77bdad7d3dab6adb76ff25b144412d6b54b915993b1c1f057f36dea149938b
+  source_path: tools/chrome-extension.md
+  workflow: 15
 ---
 
 # Chrome 확장 프로그램(브라우저 릴레이)

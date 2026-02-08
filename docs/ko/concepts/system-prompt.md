@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 시스템 프롬프트 텍스트, 도구 목록 또는 시간/하트비트 섹션 편집
-    - 작업 공간 부트스트랩 또는 기술 주입 동작 변경
+  - 시스템 프롬프트 텍스트, 도구 목록 또는 시간/하트비트 섹션 편집
+  - 작업 공간 부트스트랩 또는 기술 주입 동작 변경
 summary: OpenClaw 시스템 프롬프트에 포함된 내용과 구성 방법
 title: 시스템 프롬프트
 x-i18n:
-    generated_at: "2026-02-08T15:52:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1de1b529402a5f1b62be3b0c6d013c9bf5e107486be23671bdd1c869f2c09feb
-    source_path: concepts/system-prompt.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1de1b529402a5f1b62be3b0c6d013c9bf5e107486be23671bdd1c869f2c09feb
+  source_path: concepts/system-prompt.md
+  workflow: 15
 ---
 
 # 시스템 프롬프트
@@ -94,7 +94,7 @@ OpenClaw는 하위 에이전트에 대해 더 작은 시스템 프롬프트를 �
 ## 기술
 
 적격 기술이 존재하는 경우 OpenClaw는 컴팩트를 주입합니다. **사용 가능한 스킬 목록**
- (`formatSkillsForPrompt`)에는 **파일 경로** 스킬마다. 는
+(`formatSkillsForPrompt`)에는 **파일 경로** 스킬마다. 는
 프롬프트는 모델에게 다음을 사용하도록 지시합니다. `read` 나열된 위치에 SKILL.md를 로드하려면
 위치(작업공간, 관리형 또는 번들형). 자격을 갖춘 기술이 없는 경우,
 스킬 부분은 생략합니다.

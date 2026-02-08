@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw 구성 방법 알아보기
-    - 구성 예를 찾고 있습니다.
-    - OpenClaw를 처음으로 설정하기
+  - OpenClaw 구성 방법 알아보기
+  - 구성 예를 찾고 있습니다.
+  - OpenClaw를 처음으로 설정하기
 summary: 일반적인 OpenClaw 설정을 위한 정확한 스키마 구성 예
 title: 구성 예
 x-i18n:
-    generated_at: "2026-02-08T15:54:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2c9cee53d56a4232cfe70e9d5da217d959fa157a5178c3b6bb13d8d248d71d84
-    source_path: gateway/configuration-examples.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2c9cee53d56a4232cfe70e9d5da217d959fa157a5178c3b6bb13d8d248d71d84
+  source_path: gateway/configuration-examples.md
+  workflow: 15
 ---
 
 # 구성 예

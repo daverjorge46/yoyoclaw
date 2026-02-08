@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Telegram 기능 또는 웹훅 작업
+  - Telegram 기능 또는 웹훅 작업
 summary: 텔레그램 봇 지원 상태, 기능 및 구성
 title: 전보
 x-i18n:
-    generated_at: "2026-02-08T15:51:58Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 604e2dc12d2b776da5a02be6780583f1bf5299b12c6dd34549f116ae87dc9936
-    source_path: channels/telegram.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:58Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 604e2dc12d2b776da5a02be6780583f1bf5299b12c6dd34549f116ae87dc9936
+  source_path: channels/telegram.md
+  workflow: 15
 ---
 
 # 텔레그램(봇 API)

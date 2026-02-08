@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 그룹 채팅 동작 변경 또는 게이팅 언급
+  - 그룹 채팅 동작 변경 또는 게이팅 언급
 summary: 다양한 플랫폼(WhatsApp/Telegram/Discord/Slack/Signal/iMessage/Microsoft Teams)에서 그룹 채팅 동작
 title: 여러 떼
 x-i18n:
-    generated_at: "2026-02-08T15:50:20Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5380e07ea01f4a8fa8803d020feb5beba50da4f48817509ba848fdd71c12d250
-    source_path: channels/groups.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:20Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5380e07ea01f4a8fa8803d020feb5beba50da4f48817509ba848fdd71c12d250
+  source_path: channels/groups.md
+  workflow: 15
 ---
 
 # 여러 떼

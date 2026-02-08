@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 인류 모델을 사용하고 싶습니다.
-    - API 키 대신 설정 토큰을 원합니다
+  - OpenClaw에서 인류 모델을 사용하고 싶습니다.
+  - API 키 대신 설정 토큰을 원합니다
 summary: OpenClaw에서 API 키 또는 설정 토큰을 통해 Anthropic Claude를 사용하세요.
 title: 인류학
 x-i18n:
-    generated_at: "2026-02-08T16:06:25Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a0e91ae9fc5b67ba458d995a7697013714be67d6a5115770355e8d43e95115e0
-    source_path: providers/anthropic.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:25Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a0e91ae9fc5b67ba458d995a7697013714be67d6a5115770355e8d43e95115e0
+  source_path: providers/anthropic.md
+  workflow: 15
 ---
 
 # 인류학(클로드)

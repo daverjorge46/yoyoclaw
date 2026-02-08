@@ -1,16 +1,16 @@
 ---
 read_when:
-    - CLI에서 exec 승인을 편집하고 싶습니다.
-    - 게이트웨이 또는 노드 호스트에서 허용 목록을 관리해야 합니다.
-summary: '`openclaw approvals`에 대한 CLI 참조(게이트웨이 또는 노드 호스트에 대한 승인 실행)'
+  - CLI에서 exec 승인을 편집하고 싶습니다.
+  - 게이트웨이 또는 노드 호스트에서 허용 목록을 관리해야 합니다.
+summary: "`openclaw approvals`에 대한 CLI 참조(게이트웨이 또는 노드 호스트에 대한 승인 실행)"
 title: 승인
 x-i18n:
-    generated_at: "2026-02-08T15:50:36Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4329cdaaec2c5f5d619415b6431196512d4834dc1ccd7363576f03dd9b845130
-    source_path: cli/approvals.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:36Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4329cdaaec2c5f5d619415b6431196512d4834dc1ccd7363576f03dd9b845130
+  source_path: cli/approvals.md
+  workflow: 15
 ---
 
 # `openclaw approvals`

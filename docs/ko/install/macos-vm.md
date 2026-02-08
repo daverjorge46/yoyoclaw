@@ -1,18 +1,18 @@
 ---
 read_when:
-    - OpenClaw를 기본 macOS 환경에서 격리하고 싶습니다.
-    - 샌드박스에 iMessage 통합(BlueBubbles)을 원합니다.
-    - 복제할 수 있는 재설정 가능한 macOS 환경을 원합니다.
-    - 로컬 및 호스팅된 macOS VM 옵션을 비교하고 싶습니다.
+  - OpenClaw를 기본 macOS 환경에서 격리하고 싶습니다.
+  - 샌드박스에 iMessage 통합(BlueBubbles)을 원합니다.
+  - 복제할 수 있는 재설정 가능한 macOS 환경을 원합니다.
+  - 로컬 및 호스팅된 macOS VM 옵션을 비교하고 싶습니다.
 summary: 격리 또는 iMessage가 필요한 경우 샌드박스 macOS VM(로컬 또는 호스트)에서 OpenClaw를 실행하세요.
 title: macOS VM
 x-i18n:
-    generated_at: "2026-02-08T15:56:51Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4d1c85a5e4945f9f0796038cd5960edecb71ec4dffb6f9686be50adb75180716
-    source_path: install/macos-vm.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:51Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4d1c85a5e4945f9f0796038cd5960edecb71ec4dffb6f9686be50adb75180716
+  source_path: install/macos-vm.md
+  workflow: 15
 ---
 
 # macOS VM의 OpenClaw(샌드박싱)

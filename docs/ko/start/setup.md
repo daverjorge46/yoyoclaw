@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 새 기계 설정
-    - 개인 설정을 손상시키지 않고 "최신 + 최고"를 원합니다.
+  - 새 기계 설정
+  - 개인 설정을 손상시키지 않고 "최신 + 최고"를 원합니다.
 summary: OpenClaw를 위한 고급 설정 및 개발 워크플로
 title: 설정
 x-i18n:
-    generated_at: "2026-02-08T16:04:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6620daddff099dc00a8af069ae578e90e67309d48c12fe671f4935bee3a8f901
-    source_path: start/setup.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6620daddff099dc00a8af069ae578e90e67309d48c12fe671f4935bee3a8f901
+  source_path: start/setup.md
+  workflow: 15
 ---
 
 # 설정

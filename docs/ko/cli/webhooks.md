@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Gmail Pub/Sub 이벤트를 OpenClaw에 연결하려고 합니다.
-    - 웹훅 도우미 명령이 필요합니다.
-summary: '`openclaw webhooks`에 대한 CLI 참조(웹훅 도우미 + Gmail Pub/Sub)'
+  - Gmail Pub/Sub 이벤트를 OpenClaw에 연결하려고 합니다.
+  - 웹훅 도우미 명령이 필요합니다.
+summary: "`openclaw webhooks`에 대한 CLI 참조(웹훅 도우미 + Gmail Pub/Sub)"
 title: 웹훅
 x-i18n:
-    generated_at: "2026-02-08T15:50:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 785ec62afe6631b340ce4a4541ceb34cd6b97704cf7a9889762cb4c1f29a5ca0
-    source_path: cli/webhooks.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 785ec62afe6631b340ce4a4541ceb34cd6b97704cf7a9889762cb4c1f29a5ca0
+  source_path: cli/webhooks.md
+  workflow: 15
 ---
 
 # `openclaw webhooks`

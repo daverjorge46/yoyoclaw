@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Signal 지원 설정
-    - 디버깅 신호 보내기/받기
+  - Signal 지원 설정
+  - 디버깅 신호 보내기/받기
 summary: signal-cli(JSON-RPC + SSE), 설정 및 숫자 모델을 통한 신호 지원
 title: 신호
 x-i18n:
-    generated_at: "2026-02-08T15:51:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b336b603edeb17a38a66f0d9ccdfb13365a728e77a9c3522e0573b759d94055d
-    source_path: channels/signal.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b336b603edeb17a38a66f0d9ccdfb13365a728e77a9c3522e0573b759d94055d
+  source_path: channels/signal.md
+  workflow: 15
 ---
 
 # 신호(signal-cli)

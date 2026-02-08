@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 음성 깨우기 또는 PTT 경로 작업
+  - 음성 깨우기 또는 PTT 경로 작업
 summary: 음성 깨우기 및 눌러서 말하기 모드와 Mac 앱의 라우팅 세부 정보
 title: 음성 웨이크
 x-i18n:
-    generated_at: "2026-02-08T16:00:05Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f6440bb89f349ba5c1c9aacffe95e568681beb9899ca736dedfe2f4a366cb5e4
-    source_path: platforms/mac/voicewake.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:05Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f6440bb89f349ba5c1c9aacffe95e568681beb9899ca736dedfe2f4a366cb5e4
+  source_path: platforms/mac/voicewake.md
+  workflow: 15
 ---
 
 # 음성 깨우기 및 눌러서 말하기

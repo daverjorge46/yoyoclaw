@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 웹훅 엔드포인트 추가 또는 변경
-    - OpenClaw에 외부 시스템 연결
+  - 웹훅 엔드포인트 추가 또는 변경
+  - OpenClaw에 외부 시스템 연결
 summary: 절전 모드 해제 및 격리된 에이전트 실행을 위한 웹훅 인그레스
 title: 웹훅
 x-i18n:
-    generated_at: "2026-02-08T15:46:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f26b88864567be82366b1f66a4772ef2813c7846110c62fce6caf7313568265e
-    source_path: automation/webhook.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f26b88864567be82366b1f66a4772ef2813c7846110c62fce6caf7313568265e
+  source_path: automation/webhook.md
+  workflow: 15
 ---
 
 # 웹훅

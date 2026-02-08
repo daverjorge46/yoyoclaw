@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 개인정보 보호에 초점을 맞춘 추론을 원합니다.
-    - Venice AI 설정 안내를 원합니다
+  - OpenClaw에서 개인정보 보호에 초점을 맞춘 추론을 원합니다.
+  - Venice AI 설정 안내를 원합니다
 summary: OpenClaw에서 Venice AI 개인 정보 보호 중심 모델 사용
 title: 베니스 AI
 x-i18n:
-    generated_at: "2026-02-08T16:06:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2453a6ec3a715c24c460f902dec1755edcad40328de2ef895e35a614a25624cf
-    source_path: providers/venice.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2453a6ec3a715c24c460f902dec1755edcad40328de2ef895e35a614a25624cf
+  source_path: providers/venice.md
+  workflow: 15
 ---
 
 # 베니스 AI (베니스 하이라이트)

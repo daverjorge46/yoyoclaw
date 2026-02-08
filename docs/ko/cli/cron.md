@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 예약된 작업과 깨우기를 원합니다.
-    - 크론 실행 및 로그를 디버깅하고 있습니다.
-summary: '`openclaw cron`에 대한 CLI 참조(백그라운드 작업 예약 및 실행)'
+  - 예약된 작업과 깨우기를 원합니다.
+  - 크론 실행 및 로그를 디버깅하고 있습니다.
+summary: "`openclaw cron`에 대한 CLI 참조(백그라운드 작업 예약 및 실행)"
 title: 크론
 x-i18n:
-    generated_at: "2026-02-08T15:50:09Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 09982d6dd1036a560886daaf8be568ac9dbe4fc296a5ca34e2737e16107659b1
-    source_path: cli/cron.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:09Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 09982d6dd1036a560886daaf8be568ac9dbe4fc296a5ca34e2737e16107659b1
+  source_path: cli/cron.md
+  workflow: 15
 ---
 
 # `openclaw cron`

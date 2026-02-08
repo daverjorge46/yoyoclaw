@@ -1,16 +1,16 @@
 ---
 read_when:
-    - macOS/iOS/Android에서 Talk 모드 구현
-    - 음성/TTS/인터럽트 동작 변경
-summary: 'Talk 모드: ElevenLabs TTS를 통한 지속적인 음성 대화'
+  - macOS/iOS/Android에서 Talk 모드 구현
+  - 음성/TTS/인터럽트 동작 변경
+summary: "Talk 모드: ElevenLabs TTS를 통한 지속적인 음성 대화"
 title: 토크 모드
 x-i18n:
-    generated_at: "2026-02-08T16:04:02Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ecbc3701c9e9502970cf13227fedbc9714d13668d8f4f3988fef2a4d68116a42
-    source_path: nodes/talk.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:02Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ecbc3701c9e9502970cf13227fedbc9714d13668d8f4f3988fef2a4d68116a42
+  source_path: nodes/talk.md
+  workflow: 15
 ---
 
 # 토크 모드

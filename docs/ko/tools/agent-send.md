@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 에이전트 CLI 진입점 추가 또는 수정
+  - 에이전트 CLI 진입점 추가 또는 수정
 summary: 직접 `openclaw agent` CLI 실행(선택적 전달 포함)
 title: 에이전트 보내기
 x-i18n:
-    generated_at: "2026-02-08T16:02:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a84d6a304333eebe155da2bf24cf5fc0482022a0a48ab34aa1465cd6e667022d
-    source_path: tools/agent-send.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a84d6a304333eebe155da2bf24cf5fc0482022a0a48ab34aa1465cd6e667022d
+  source_path: tools/agent-send.md
+  workflow: 15
 ---
 
 # `openclaw agent` (직접 에이전트가 실행됨)

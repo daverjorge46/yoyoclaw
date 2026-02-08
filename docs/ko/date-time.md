@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 타임스탬프가 모델이나 사용자에게 표시되는 방식을 변경하고 있습니다.
-    - 메시지 또는 시스템 프롬프트 출력의 시간 형식을 디버깅하고 있습니다.
+  - 타임스탬프가 모델이나 사용자에게 표시되는 방식을 변경하고 있습니다.
+  - 메시지 또는 시스템 프롬프트 출력의 시간 형식을 디버깅하고 있습니다.
 summary: 봉투, 프롬프트, 도구 및 커넥터 전반에 걸친 날짜 및 시간 처리
 title: 날짜 및 시간
 x-i18n:
-    generated_at: "2026-02-08T15:56:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 753af5946a006215d6af2467fa478f3abb42b1dff027cf85d5dc4c7ba4b58d39
-    source_path: date-time.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 753af5946a006215d6af2467fa478f3abb42b1dff027cf85d5dc4c7ba4b58d39
+  source_path: date-time.md
+  workflow: 15
 ---
 
 # 날짜 및 시간

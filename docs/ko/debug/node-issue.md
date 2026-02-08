@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 노드 전용 개발 스크립트 또는 감시 모드 오류 디버깅
-    - OpenClaw에서 tsx/esbuild 로더 충돌 조사
+  - 노드 전용 개발 스크립트 또는 감시 모드 오류 디버깅
+  - OpenClaw에서 tsx/esbuild 로더 충돌 조사
 summary: Node + tsx "__name은 함수가 아닙니다." 충돌 메모 및 해결 방법
 title: 노드 + tsx 충돌
 x-i18n:
-    generated_at: "2026-02-08T15:52:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f5beab7cdfe7679680f65176234a617293ce495886cfffb151518adfa61dc8dc
-    source_path: debug/node-issue.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f5beab7cdfe7679680f65176234a617293ce495886cfffb151518adfa61dc8dc
+  source_path: debug/node-issue.md
+  workflow: 15
 ---
 
 # Node + tsx "\_\_name은 함수가 아닙니다" 충돌

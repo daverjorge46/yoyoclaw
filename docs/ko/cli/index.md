@@ -1,16 +1,16 @@
 ---
 read_when:
-    - CLI 명령 또는 옵션 추가 또는 수정
-    - 새로운 명령 표면 문서화
-summary: '`openclaw` 명령, 하위 명령 및 옵션에 대한 OpenClaw CLI 참조'
+  - CLI 명령 또는 옵션 추가 또는 수정
+  - 새로운 명령 표면 문서화
+summary: "`openclaw` 명령, 하위 명령 및 옵션에 대한 OpenClaw CLI 참조"
 title: CLI 참조
 x-i18n:
-    generated_at: "2026-02-08T15:49:46Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0013f522ac602176330b8a63589905c93be8fd250c83b23c5ffd1f9a1113cd72
-    source_path: cli/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:46Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0013f522ac602176330b8a63589905c93be8fd250c83b23c5ffd1f9a1113cd72
+  source_path: cli/index.md
+  workflow: 15
 ---
 
 # CLI 참조

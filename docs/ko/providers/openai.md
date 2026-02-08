@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 OpenAI 모델을 사용하고 싶습니다.
-    - API 키 대신 Codex 구독 인증을 원합니다.
+  - OpenClaw에서 OpenAI 모델을 사용하고 싶습니다.
+  - API 키 대신 Codex 구독 인증을 원합니다.
 summary: OpenClaw에서 API 키 또는 Codex 구독을 통해 OpenAI 사용
 title: 오픈AI
 x-i18n:
-    generated_at: "2026-02-08T16:00:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6d78698351c3d2f5735d2d9d931834b2e7e22976be89484e23cf08dec6b3f86c
-    source_path: providers/openai.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6d78698351c3d2f5735d2d9d931834b2e7e22976be89484e23cf08dec6b3f86c
+  source_path: providers/openai.md
+  workflow: 15
 ---
 
 # 오픈AI

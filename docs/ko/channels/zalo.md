@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Zalo 기능 또는 웹훅 작업
+  - Zalo 기능 또는 웹훅 작업
 summary: Zalo 봇 지원 상태, 기능 및 구성
 title: 잘로
 x-i18n:
-    generated_at: "2026-02-08T15:48:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bd14c0d008a2355230d1751e40bfaa5a15e2cd2f0dcd44fede8f02a1ad43e1c8
-    source_path: channels/zalo.md
-    workflow: 15
+  generated_at: "2026-02-08T15:48:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bd14c0d008a2355230d1751e40bfaa5a15e2cd2f0dcd44fede8f02a1ad43e1c8
+  source_path: channels/zalo.md
+  workflow: 15
 ---
 
 # Zalo(봇 API)

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 에이전트 런타임, 작업공간 부트스트랩 또는 세션 동작 변경
+  - 에이전트 런타임, 작업공간 부트스트랩 또는 세션 동작 변경
 summary: 에이전트 런타임(임베디드 파이 모노), 작업 공간 계약 및 세션 부트스트랩
 title: 에이전트 런타임
 x-i18n:
-    generated_at: "2026-02-08T15:51:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 121103fda29a5481cb43234a39494f038e5dba89d0257fd3f7150c896b142bca
-    source_path: concepts/agent.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 121103fda29a5481cb43234a39494f038e5dba89d0257fd3f7150c896b142bca
+  source_path: concepts/agent.md
+  workflow: 15
 ---
 
 # 에이전트 런타임 🤖

@@ -1,15 +1,15 @@
 ---
 read_when: You want multiple isolated agents (workspaces + auth) in one gateway process.
 status: active
-summary: '다중 에이전트 라우팅: 격리된 에이전트, 채널 계정 및 바인딩'
+summary: "다중 에이전트 라우팅: 격리된 에이전트, 채널 계정 및 바인딩"
 title: 다중 에이전트 라우팅
 x-i18n:
-    generated_at: "2026-02-08T15:51:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: aa2b77f4707628ca6d45af471d9e45a38f779b5bc99e1cc50bc368826acc96a5
-    source_path: concepts/multi-agent.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: aa2b77f4707628ca6d45af471d9e45a38f779b5bc99e1cc50bc368826acc96a5
+  source_path: concepts/multi-agent.md
+  workflow: 15
 ---
 
 # 다중 에이전트 라우팅

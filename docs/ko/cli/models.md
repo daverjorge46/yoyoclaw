@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 기본 모델을 변경하거나 공급자 인증 상태를 보고 싶습니다.
-    - 사용 가능한 모델/공급자를 검색하고 인증 프로필을 디버그하고 싶습니다.
-summary: '`openclaw models`에 대한 CLI 참조(상태/목록/설정/스캔, 별칭, 대체, 인증)'
+  - 기본 모델을 변경하거나 공급자 인증 상태를 보고 싶습니다.
+  - 사용 가능한 모델/공급자를 검색하고 인증 프로필을 디버그하고 싶습니다.
+summary: "`openclaw models`에 대한 CLI 참조(상태/목록/설정/스캔, 별칭, 대체, 인증)"
 title: 모델
 x-i18n:
-    generated_at: "2026-02-08T15:49:17Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 923b6ffc7de382ba25bc6e699f0515607e74877b39f2136ccdba2d99e1b1e9c3
-    source_path: cli/models.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:17Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 923b6ffc7de382ba25bc6e699f0515607e74877b39f2136ccdba2d99e1b1e9c3
+  source_path: cli/models.md
+  workflow: 15
 ---
 
 # `openclaw models`

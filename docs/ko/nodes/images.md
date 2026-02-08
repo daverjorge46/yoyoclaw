@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 미디어 파이프라인 또는 첨부 파일 수정
+  - 미디어 파이프라인 또는 첨부 파일 수정
 summary: 전송, 게이트웨이 및 상담원 응답에 대한 이미지 및 미디어 처리 규칙
 title: 이미지 및 미디어 지원
 x-i18n:
-    generated_at: "2026-02-08T16:06:25Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 971aed398ea01078efbad7a8a4bca17f2a975222a2c4db557565e4334c9450e0
-    source_path: nodes/images.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:25Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 971aed398ea01078efbad7a8a4bca17f2a975222a2c4db557565e4334c9450e0
+  source_path: nodes/images.md
+  workflow: 15
 ---
 
 # 이미지 및 미디어 지원 — 2025-12-05

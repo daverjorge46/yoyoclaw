@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 누출을 추론하려면 원시 모델 출력을 검사해야 합니다.
-    - 반복하는 동안 감시 모드에서 게이트웨이를 실행하려고 합니다.
-    - 반복 가능한 디버깅 작업 흐름이 필요합니다.
-summary: '디버깅 도구: 감시 모드, 원시 모델 스트림 및 추론 누출 추적'
+  - 누출을 추론하려면 원시 모델 출력을 검사해야 합니다.
+  - 반복하는 동안 감시 모드에서 게이트웨이를 실행하려고 합니다.
+  - 반복 가능한 디버깅 작업 흐름이 필요합니다.
+summary: "디버깅 도구: 감시 모드, 원시 모델 스트림 및 추론 누출 추적"
 title: 디버깅
 x-i18n:
-    generated_at: "2026-02-08T15:56:07Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 504c824bff4790006c8b73600daca66b919e049178e9711e6e65b6254731911a
-    source_path: help/debugging.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:07Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 504c824bff4790006c8b73600daca66b919e049178e9711e6e65b6254731911a
+  source_path: help/debugging.md
+  workflow: 15
 ---
 
 # 디버깅

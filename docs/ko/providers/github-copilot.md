@@ -1,16 +1,16 @@
 ---
 read_when:
-    - GitHub Copilot을 모델 공급자로 사용하고 싶습니다.
-    - '`openclaw models auth login-github-copilot` 흐름이 필요합니다.'
+  - GitHub Copilot을 모델 공급자로 사용하고 싶습니다.
+  - "`openclaw models auth login-github-copilot` 흐름이 필요합니다."
 summary: 장치 흐름을 사용하여 OpenClaw에서 GitHub Copilot에 로그인합니다.
 title: GitHub 코파일럿
 x-i18n:
-    generated_at: "2026-02-08T16:09:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 503e0496d92c921e2f7111b1b4ba16374f5b781643bfbc6cb69cea97d9395c25
-    source_path: providers/github-copilot.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 503e0496d92c921e2f7111b1b4ba16374f5b781643bfbc6cb69cea97d9395c25
+  source_path: providers/github-copilot.md
+  workflow: 15
 ---
 
 # GitHub 코파일럿

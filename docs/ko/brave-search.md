@@ -1,16 +1,16 @@
 ---
 read_when:
-    - web_search에 Brave Search를 사용하고 싶습니다.
-    - BRAVE_API_KEY 또는 계획 세부정보가 필요합니다.
+  - web_search에 Brave Search를 사용하고 싶습니다.
+  - BRAVE_API_KEY 또는 계획 세부정보가 필요합니다.
 summary: web_search를 위한 Brave Search API 설정
 title: 용감한 검색
 x-i18n:
-    generated_at: "2026-02-08T15:46:06Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 81cd0a13239c13f4cf41d3f7b72ea0810c9e3f9f5a19ffc8955aa1822f726261
-    source_path: brave-search.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:06Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 81cd0a13239c13f4cf41d3f7b72ea0810c9e3f9f5a19ffc8955aa1822f726261
+  source_path: brave-search.md
+  workflow: 15
 ---
 
 # 용감한 검색 API

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 비대화형으로 구성을 읽거나 편집하고 싶습니다.
-summary: '`openclaw config`에 대한 CLI 참조(구성 값 가져오기/설정/설정 해제)'
+  - 비대화형으로 구성을 읽거나 편집하고 싶습니다.
+summary: "`openclaw config`에 대한 CLI 참조(구성 값 가져오기/설정/설정 해제)"
 title: 구성
 x-i18n:
-    generated_at: "2026-02-08T15:48:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d60a35f5330f22bc99a0df090590586109d329ddd2ca294aeed191a22560c1c2
-    source_path: cli/config.md
-    workflow: 15
+  generated_at: "2026-02-08T15:48:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d60a35f5330f22bc99a0df090590586109d329ddd2ca294aeed191a22560c1c2
+  source_path: cli/config.md
+  workflow: 15
 ---
 
 # `openclaw config`

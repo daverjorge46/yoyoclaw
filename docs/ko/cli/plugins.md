@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 진행 중인 게이트웨이 플러그인을 설치하거나 관리하려는 경우
-    - 플러그인 로드 실패를 디버깅하고 싶습니다.
-summary: '`openclaw plugins`에 대한 CLI 참조(목록, 설치, 활성화/비활성화, 의사)'
+  - 진행 중인 게이트웨이 플러그인을 설치하거나 관리하려는 경우
+  - 플러그인 로드 실패를 디버깅하고 싶습니다.
+summary: "`openclaw plugins`에 대한 CLI 참조(목록, 설치, 활성화/비활성화, 의사)"
 title: 플러그인
 x-i18n:
-    generated_at: "2026-02-08T15:51:06Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 60476e0a9b7247bda6484262a829142a52124485940a20e5cda9ac663e1bee16
-    source_path: cli/plugins.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:06Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 60476e0a9b7247bda6484262a829142a52124485940a20e5cda9ac663e1bee16
+  source_path: cli/plugins.md
+  workflow: 15
 ---
 
 # `openclaw plugins`

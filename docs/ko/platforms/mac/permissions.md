@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 누락되거나 중단된 macOS 권한 프롬프트 디버깅
-    - macOS 앱 패키징 또는 서명
-    - 번들 ID 또는 앱 설치 경로 변경
+  - 누락되거나 중단된 macOS 권한 프롬프트 디버깅
+  - macOS 앱 패키징 또는 서명
+  - 번들 ID 또는 앱 설치 경로 변경
 summary: macOS 권한 지속성(TCC) 및 서명 요구 사항
 title: macOS 권한
 x-i18n:
-    generated_at: "2026-02-08T16:07:20Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 52bee5c896e31e9966bc9eb7e8e43eb18a674117e7e1bf6d83c4acaf9a83613f
-    source_path: platforms/mac/permissions.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:20Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 52bee5c896e31e9966bc9eb7e8e43eb18a674117e7e1bf6d83c4acaf9a83613f
+  source_path: platforms/mac/permissions.md
+  workflow: 15
 ---
 
 # macOS 권한(TCC)

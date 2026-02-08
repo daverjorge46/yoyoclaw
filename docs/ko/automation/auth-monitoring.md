@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 인증 만료 모니터링 또는 알림 설정
-    - Claude Code / Codex OAuth 새로 고침 확인 자동화
+  - 인증 만료 모니터링 또는 알림 설정
+  - Claude Code / Codex OAuth 새로 고침 확인 자동화
 summary: 모델 공급자의 OAuth 만료 모니터링
 title: 인증 모니터링
 x-i18n:
-    generated_at: "2026-02-08T15:45:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: eef179af9545ed7ab881f3ccbef998869437fb50cdb4088de8da7223b614fa2b
-    source_path: automation/auth-monitoring.md
-    workflow: 15
+  generated_at: "2026-02-08T15:45:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: eef179af9545ed7ab881f3ccbef998869437fb50cdb4088de8da7223b614fa2b
+  source_path: automation/auth-monitoring.md
+  workflow: 15
 ---
 
 # 인증 모니터링

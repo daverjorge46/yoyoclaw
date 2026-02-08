@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 로컬 설치 대신 컨테이너화된 게이트웨이를 원합니다.
-    - Docker 흐름을 검증하고 있습니다.
+  - 로컬 설치 대신 컨테이너화된 게이트웨이를 원합니다.
+  - Docker 흐름을 검증하고 있습니다.
 summary: OpenClaw에 대한 선택적 Docker 기반 설정 및 온보딩
 title: 도커
 x-i18n:
-    generated_at: "2026-02-08T16:01:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: fb8c7004b18753a293d2595eebeae31ca737ae3a86903b50d79c4c43bdb9ace7
-    source_path: install/docker.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: fb8c7004b18753a293d2595eebeae31ca737ae3a86903b50d79c4c43bdb9ace7
+  source_path: install/docker.md
+  workflow: 15
 ---
 
 # 도커(선택사항)

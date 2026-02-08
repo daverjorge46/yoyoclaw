@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw가 작동하지 않으며 문제를 해결하려면 가장 빠른 경로가 필요합니다.
-    - 심층적인 Runbook을 살펴보기 전에 분류 흐름을 원합니다.
+  - OpenClaw가 작동하지 않으며 문제를 해결하려면 가장 빠른 경로가 필요합니다.
+  - 심층적인 Runbook을 살펴보기 전에 분류 흐름을 원합니다.
 summary: OpenClaw의 첫 번째 증상 문제 해결 허브
 title: 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T15:56:20Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4a53e9f9d23dcf6b2b8929a902e34f6374b070ab372b1834d392a456da43995c
-    source_path: help/troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:20Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4a53e9f9d23dcf6b2b8929a902e34f6374b070ab372b1834d392a456da43995c
+  source_path: help/troubleshooting.md
+  workflow: 15
 ---
 
 # 문제 해결

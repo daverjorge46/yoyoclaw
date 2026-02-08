@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw macOS 릴리스 잘라내기 또는 검증
-    - Sparkle 앱캐스트 또는 피드 자산 업데이트
+  - OpenClaw macOS 릴리스 잘라내기 또는 검증
+  - Sparkle 앱캐스트 또는 피드 자산 업데이트
 summary: OpenClaw macOS 릴리스 체크리스트(Sparkle 피드, 패키징, 서명)
 title: macOS 릴리스
 x-i18n:
-    generated_at: "2026-02-08T16:00:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 98d6640ae4ea9cc132a8f30f4e6e188603064a036ed3bf3429e350520852def0
-    source_path: platforms/mac/release.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 98d6640ae4ea9cc132a8f30f4e6e188603064a036ed3bf3429e350520852def0
+  source_path: platforms/mac/release.md
+  workflow: 15
 ---
 
 # OpenClaw macOS 릴리스(Sparkle)

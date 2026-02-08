@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Discord 채널 기능 작업 중
+  - Discord 채널 기능 작업 중
 summary: Discord 봇 지원 상태, 기능 및 구성
 title: 불화
 x-i18n:
-    generated_at: "2026-02-08T15:50:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9bebfe8027ff197266b112c425e463771d92027ef8322c24df8c6e5a41666ec4
-    source_path: channels/discord.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9bebfe8027ff197266b112c425e463771d92027ef8322c24df8c6e5a41666ec4
+  source_path: channels/discord.md
+  workflow: 15
 ---
 
 # 디스코드(봇 API)

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 세션 ID, 스크립트 JSONL 또는 session.json 필드를 디버그해야 합니다.
-    - 자동 압축 동작을 변경하거나 "사전 압축" 관리를 추가하는 중입니다.
-    - 메모리 플러시 또는 자동 시스템 전환을 구현하려는 경우
-summary: '심층 분석: 세션 저장소 + 기록, 수명 주기 및 (자동)압축 내부'
+  - 세션 ID, 스크립트 JSONL 또는 session.json 필드를 디버그해야 합니다.
+  - 자동 압축 동작을 변경하거나 "사전 압축" 관리를 추가하는 중입니다.
+  - 메모리 플러시 또는 자동 시스템 전환을 구현하려는 경우
+summary: "심층 분석: 세션 저장소 + 기록, 수명 주기 및 (자동)압축 내부"
 title: 세션 관리 심층 분석
 x-i18n:
-    generated_at: "2026-02-08T16:03:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6344a9eaf8797eb4e6250b0b7933f553b01e09044e19fb438453e9716e6c698a
-    source_path: reference/session-management-compaction.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6344a9eaf8797eb4e6250b0b7933f553b01e09044e19fb438453e9716e6c698a
+  source_path: reference/session-management-compaction.md
+  workflow: 15
 ---
 
 # 세션 관리 및 압축(심층 분석)

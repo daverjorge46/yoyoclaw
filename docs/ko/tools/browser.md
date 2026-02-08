@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 에이전트 제어 브라우저 자동화 추가
-    - openclaw가 자신의 Chrome을 방해하는 이유 디버깅
-    - macOS 앱에서 브라우저 설정 + 수명 주기 구현
+  - 에이전트 제어 브라우저 자동화 추가
+  - openclaw가 자신의 Chrome을 방해하는 이유 디버깅
+  - macOS 앱에서 브라우저 설정 + 수명 주기 구현
 summary: 통합 브라우저 제어 서비스 + 액션 명령
 title: 브라우저(OpenClaw 관리)
 x-i18n:
-    generated_at: "2026-02-08T16:12:26Z"
-    model: gtx
-    provider: google-translate
-    source_hash: a868d040183436a1fb355130995e79782cb817b5ea298beaf1e1d2cb82e21c4c
-    source_path: tools/browser.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:26Z"
+  model: gtx
+  provider: google-translate
+  source_hash: a868d040183436a1fb355130995e79782cb817b5ea298beaf1e1d2cb82e21c4c
+  source_path: tools/browser.md
+  workflow: 15
 ---
 
 # 브라우저(openclaw 관리)

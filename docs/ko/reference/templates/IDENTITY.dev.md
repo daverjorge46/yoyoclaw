@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 개발 게이트웨이 템플릿 사용
-    - 기본 개발자 에이전트 ID 업데이트
+  - 개발 게이트웨이 템플릿 사용
+  - 기본 개발자 에이전트 ID 업데이트
 summary: 개발 에이전트 ID(C-3PO)
 x-i18n:
-    generated_at: "2026-02-08T16:03:40Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f26b6d1e03a91775bb0291a78b23e870b2df57db0ceb006f07b218e015fd37eb
-    source_path: reference/templates/IDENTITY.dev.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:40Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f26b6d1e03a91775bb0291a78b23e870b2df57db0ceb006f07b218e015fd37eb
+  source_path: reference/templates/IDENTITY.dev.md
+  workflow: 15
 ---
 
 # IDENTITY.md - 에이전트 신원

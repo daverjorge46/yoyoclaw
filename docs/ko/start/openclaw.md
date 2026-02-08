@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 새로운 어시스턴트 인스턴스 온보딩
-    - 안전/권한 영향 검토
+  - 새로운 어시스턴트 인스턴스 온보딩
+  - 안전/권한 영향 검토
 summary: 안전 주의사항과 함께 OpenClaw를 개인 비서로 실행하기 위한 엔드투엔드 가이드
 title: 개인 비서 설정
 x-i18n:
-    generated_at: "2026-02-08T16:12:05Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8ebb0f602c074f77b9bb04adb855aaab5007132272000048b68ca83e5c1276d9
-    source_path: start/openclaw.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:05Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8ebb0f602c074f77b9bb04adb855aaab5007132272000048b68ca83e5c1276d9
+  source_path: start/openclaw.md
+  workflow: 15
 ---
 
 # OpenClaw로 개인 비서 구축

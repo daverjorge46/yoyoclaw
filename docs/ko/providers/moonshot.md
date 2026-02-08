@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Moonshot K2(Moonshot Open Platform)와 Kimi Coding 설정을 원합니다.
-    - 별도의 엔드포인트, 키, 모델 참조를 이해해야 합니다.
-    - 두 공급자 중 하나에 대해 구성을 복사/붙여넣기를 원합니다.
+  - Moonshot K2(Moonshot Open Platform)와 Kimi Coding 설정을 원합니다.
+  - 별도의 엔드포인트, 키, 모델 참조를 이해해야 합니다.
+  - 두 공급자 중 하나에 대해 구성을 복사/붙여넣기를 원합니다.
 summary: Moonshot K2와 Kimi 코딩 구성(별도의 공급자 + 키)
 title: 문샷 AI
 x-i18n:
-    generated_at: "2026-02-08T16:05:38Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9e4a6192faa21b881820d145e2415843b89e39a3be43451174b0ba9241aa873f
-    source_path: providers/moonshot.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:38Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9e4a6192faa21b881820d145e2415843b89e39a3be43451174b0ba9241aa873f
+  source_path: providers/moonshot.md
+  workflow: 15
 ---
 
 # 문샷 AI(키미)

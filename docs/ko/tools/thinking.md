@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 사고 또는 장황한 지시어 구문 분석 또는 기본값 조정
+  - 사고 또는 장황한 지시어 구문 분석 또는 기본값 조정
 summary: /think + /verbose에 대한 지시문 구문 및 모델 추론에 미치는 영향
 title: 사고 수준
 x-i18n:
-    generated_at: "2026-02-08T16:12:18Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0ae614147675be3278482a115926fc5f5977cfa5027617ea91500e86a3bdf9db
-    source_path: tools/thinking.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:18Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0ae614147675be3278482a115926fc5f5977cfa5027617ea91500e86a3bdf9db
+  source_path: tools/thinking.md
+  workflow: 15
 ---
 
 # 사고 수준(/think 지시어)

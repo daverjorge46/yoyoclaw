@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 당신은 처음이고 "무엇을 클릭/실행합니까?" 가이드를 원합니다.
-    - 문제가 발생했으며 문제를 해결하기 위한 가장 빠른 경로를 원합니다.
-summary: '도움말 허브: 일반적인 수정 사항, 온전한 설치 및 문제가 발생한 경우 확인할 수 있는 위치'
+  - 당신은 처음이고 "무엇을 클릭/실행합니까?" 가이드를 원합니다.
+  - 문제가 발생했으며 문제를 해결하기 위한 가장 빠른 경로를 원합니다.
+summary: "도움말 허브: 일반적인 수정 사항, 온전한 설치 및 문제가 발생한 경우 확인할 수 있는 위치"
 title: 돕다
 x-i18n:
-    generated_at: "2026-02-08T15:54:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9356d1929df3e81a25c23ec55a51213090f7f761761b1cb055649c8d23df79a4
-    source_path: help/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9356d1929df3e81a25c23ec55a51213090f7f761761b1cb055649c8d23df79a4
+  source_path: help/index.md
+  workflow: 15
 ---
 
 # 돕다

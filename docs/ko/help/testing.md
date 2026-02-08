@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 로컬 또는 CI에서 테스트 실행
-    - 모델/공급자 버그에 대한 회귀 추가
-    - 게이트웨이 + 에이전트 동작 디버깅
-summary: '테스트 키트: 유닛/e2e/live 제품군, Docker 실행기 및 각 테스트에서 다루는 내용'
+  - 로컬 또는 CI에서 테스트 실행
+  - 모델/공급자 버그에 대한 회귀 추가
+  - 게이트웨이 + 에이전트 동작 디버깅
+summary: "테스트 키트: 유닛/e2e/live 제품군, Docker 실행기 및 각 테스트에서 다루는 내용"
 title: 테스트
 x-i18n:
-    generated_at: "2026-02-08T15:59:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9bb77454e18e1d0bc3e8ab40c3ebe521141e14e6aa0f11be3dc5f37d9637fd24
-    source_path: help/testing.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9bb77454e18e1d0bc3e8ab40c3ebe521141e14e6aa0f11be3dc5f37d9637fd24
+  source_path: help/testing.md
+  workflow: 15
 ---
 
 # 테스트

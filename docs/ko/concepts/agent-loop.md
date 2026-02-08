@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 에이전트 루프 또는 수명 주기 이벤트에 대한 정확한 안내가 필요합니다.
+  - 에이전트 루프 또는 수명 주기 이벤트에 대한 정확한 안내가 필요합니다.
 summary: 에이전트 루프 수명 주기, 스트림 및 대기 의미 체계
 title: 에이전트 루프
 x-i18n:
-    generated_at: "2026-02-08T15:53:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e2c14fb74bd42caacb708f625267142f017f891842d6f3a36689d3c524fbfd45
-    source_path: concepts/agent-loop.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e2c14fb74bd42caacb708f625267142f017f891842d6f3a36689d3c524fbfd45
+  source_path: concepts/agent-loop.md
+  workflow: 15
 ---
 
 # 에이전트 루프(OpenClaw)

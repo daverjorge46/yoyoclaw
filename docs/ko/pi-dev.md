@@ -1,12 +1,12 @@
 ---
 title: Pi 개발 워크플로
 x-i18n:
-    generated_at: "2026-02-08T16:06:43Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b6c44672306d8867a3b09332c393981223b21a28d3b432bd281fdb8032bc9fd0
-    source_path: pi-dev.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:43Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b6c44672306d8867a3b09332c393981223b21a28d3b432bd281fdb8032bc9fd0
+  source_path: pi-dev.md
+  workflow: 15
 ---
 
 # Pi 개발 워크플로

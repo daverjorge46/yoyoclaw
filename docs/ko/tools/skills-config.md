@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 스킬 구성 추가 또는 수정
-    - 번들 허용 목록 또는 설치 동작 조정
+  - 스킬 구성 추가 또는 수정
+  - 번들 허용 목록 또는 설치 동작 조정
 summary: 기술 구성 스키마 및 예시
 title: 기술 구성
 x-i18n:
-    generated_at: "2026-02-08T16:12:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e265c93da7856887c11abd92b379349181549e1a02164184d61a8d1f6b2feed5
-    source_path: tools/skills-config.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e265c93da7856887c11abd92b379349181549e1a02164184d61a8d1f6b2feed5
+  source_path: tools/skills-config.md
+  workflow: 15
 ---
 
 # 기술 구성

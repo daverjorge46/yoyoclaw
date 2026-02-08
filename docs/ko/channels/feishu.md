@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Feishu/Lark 봇을 연결하고 싶습니다.
-    - Feishu 채널을 구성 중입니다.
+  - Feishu/Lark 봇을 연결하고 싶습니다.
+  - Feishu 채널을 구성 중입니다.
 summary: Feishu 봇 개요, 기능 및 구성
 title: 페이슈
 x-i18n:
-    generated_at: "2026-02-08T15:47:31Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c9349983562d1a98b7693ffb30fea0a6490e9791ccf814614ed4e0f3954cf2d7
-    source_path: channels/feishu.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:31Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c9349983562d1a98b7693ffb30fea0a6490e9791ccf814614ed4e0f3954cf2d7
+  source_path: channels/feishu.md
+  workflow: 15
 ---
 
 <a id="get-groupuser-ids"></a>

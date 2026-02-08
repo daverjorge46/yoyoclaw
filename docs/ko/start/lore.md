@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 지식을 참조하는 문서 또는 UX 카피 작성
+  - 지식을 참조하는 문서 또는 UX 카피 작성
 summary: 맥락과 어조에 대한 OpenClaw의 뒷이야기와 지식
 title: 오픈클로 지식
 x-i18n:
-    generated_at: "2026-02-08T16:06:32Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f2d7914fbc8ea052a74c1045860331987f5d0727ea6763612604beeceb29adbf
-    source_path: start/lore.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:32Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f2d7914fbc8ea052a74c1045860331987f5d0727ea6763612604beeceb29adbf
+  source_path: start/lore.md
+  workflow: 15
 ---
 
 # OpenClaw의 전설 🦞📖

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw 업데이트 중
-    - 업데이트 후 문제가 발생함
+  - OpenClaw 업데이트 중
+  - 업데이트 후 문제가 발생함
 summary: OpenClaw를 안전하게 업데이트(전역 설치 또는 소스) 및 롤백 전략
 title: 업데이트 중
 x-i18n:
-    generated_at: "2026-02-08T15:57:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c95c31766fb7de8c14722b33db21c4d18bb4f27f7370655a83c0ef0feb943818
-    source_path: install/updating.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c95c31766fb7de8c14722b33db21c4d18bb4f27f7370655a83c0ef0feb943818
+  source_path: install/updating.md
+  workflow: 15
 ---
 
 # 업데이트 중

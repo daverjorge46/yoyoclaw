@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Tlon/Urbit 채널 기능 작업
+  - Tlon/Urbit 채널 기능 작업
 summary: Tlon/Urbit 지원 상태, 기능 및 구성
 title: 트론
 x-i18n:
-    generated_at: "2026-02-08T15:47:23Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 85fd29cda05b45637564acb0aafab44eb46ca8155a4b719a9d1a4f776cef6b2d
-    source_path: channels/tlon.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:23Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 85fd29cda05b45637564acb0aafab44eb46ca8155a4b719a9d1a4f776cef6b2d
+  source_path: channels/tlon.md
+  workflow: 15
 ---
 
 # Tlon(플러그인)

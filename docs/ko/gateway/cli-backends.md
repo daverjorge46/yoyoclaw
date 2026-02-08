@@ -1,17 +1,17 @@
 ---
 read_when:
-    - API 공급자가 실패할 경우 안정적인 대체를 원합니다.
-    - Claude Code CLI 또는 기타 로컬 AI CLI를 실행 중이며 이를 재사용하고 싶습니다.
-    - 세션과 이미지를 계속 지원하는 도구가 필요 없는 텍스트 전용 경로가 필요합니다.
-summary: 'CLI 백엔드: 로컬 AI CLI를 통한 텍스트 전용 대체'
+  - API 공급자가 실패할 경우 안정적인 대체를 원합니다.
+  - Claude Code CLI 또는 기타 로컬 AI CLI를 실행 중이며 이를 재사용하고 싶습니다.
+  - 세션과 이미지를 계속 지원하는 도구가 필요 없는 텍스트 전용 경로가 필요합니다.
+summary: "CLI 백엔드: 로컬 AI CLI를 통한 텍스트 전용 대체"
 title: CLI 백엔드
 x-i18n:
-    generated_at: "2026-02-08T15:53:32Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8285f4829900bc810b1567264375fa92f3e25aebaee1bddaea4625a51a4e53d7
-    source_path: gateway/cli-backends.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:32Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8285f4829900bc810b1567264375fa92f3e25aebaee1bddaea4625a51a4e53d7
+  source_path: gateway/cli-backends.md
+  workflow: 15
 ---
 
 # CLI 백엔드(대체 런타임)

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 스크립트 또는 CI에서 온보딩을 자동화하고 있습니다.
-    - 특정 공급자에 대한 비대화형 예제가 필요합니다.
+  - 스크립트 또는 CI에서 온보딩을 자동화하고 있습니다.
+  - 특정 공급자에 대한 비대화형 예제가 필요합니다.
 sidebarTitle: CLI automation
 summary: OpenClaw CLI를 위한 스크립트 온보딩 및 에이전트 설정
 title: CLI 자동화
 x-i18n:
-    generated_at: "2026-02-08T16:05:11Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5b5463359a87cfe680e254b4259f67b9ff1817241ebc929fde697056edb663e0
-    source_path: start/wizard-cli-automation.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:11Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5b5463359a87cfe680e254b4259f67b9ff1817241ebc929fde697056edb663e0
+  source_path: start/wizard-cli-automation.md
+  workflow: 15
 ---
 
 # CLI 자동화

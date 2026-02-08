@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채널 계정(WhatsApp/Telegram/Discord/Google Chat/Slack/Mattermost(플러그인)/Signal/iMessage)을 추가/제거하고 싶습니다.
-    - 채널 상태 또는 테일 채널 로그를 확인하고 싶습니다.
-summary: '`openclaw channels`에 대한 CLI 참조(계정, 상태, 로그인/로그아웃, 로그)'
+  - 채널 계정(WhatsApp/Telegram/Discord/Google Chat/Slack/Mattermost(플러그인)/Signal/iMessage)을 추가/제거하고 싶습니다.
+  - 채널 상태 또는 테일 채널 로그를 확인하고 싶습니다.
+summary: "`openclaw channels`에 대한 CLI 참조(계정, 상태, 로그인/로그아웃, 로그)"
 title: 채널
 x-i18n:
-    generated_at: "2026-02-08T15:52:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 16ab1642f247bfa96e8e08dfeb1eedfccb148f40d91099f5423f971df2b54e20
-    source_path: cli/channels.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 16ab1642f247bfa96e8e08dfeb1eedfccb148f40d91099f5423f971df2b54e20
+  source_path: cli/channels.md
+  workflow: 15
 ---
 
 # `openclaw channels`

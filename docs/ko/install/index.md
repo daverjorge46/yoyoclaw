@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 시작하기 빠른 시작 이외의 설치 방법이 필요합니다.
-    - 클라우드 플랫폼에 배포하고 싶습니다.
-    - 업데이트, 마이그레이션 또는 제거가 필요합니다.
+  - 시작하기 빠른 시작 이외의 설치 방법이 필요합니다.
+  - 클라우드 플랫폼에 배포하고 싶습니다.
+  - 업데이트, 마이그레이션 또는 제거가 필요합니다.
 summary: OpenClaw 설치 — 소스, Docker 등의 설치 프로그램 스크립트 npm/pnpm
 title: 설치하다
 x-i18n:
-    generated_at: "2026-02-08T15:56:03Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 67c029634ba381960d4109097b5963a1225d8c84399fee40ee75464f4374d214
-    source_path: install/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:03Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 67c029634ba381960d4109097b5963a1225d8c84399fee40ee75464f4374d214
+  source_path: install/index.md
+  workflow: 15
 ---
 
 <a id="install-methods"></a>

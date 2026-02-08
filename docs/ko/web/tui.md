@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 초보자에게 친숙한 TUI 연습을 원합니다.
-    - TUI 기능, 명령 및 바로가기의 전체 목록이 필요합니다.
-summary: '터미널 UI(TUI): 모든 머신에서 게이트웨이에 연결'
+  - 초보자에게 친숙한 TUI 연습을 원합니다.
+  - TUI 기능, 명령 및 바로가기의 전체 목록이 필요합니다.
+summary: "터미널 UI(TUI): 모든 머신에서 게이트웨이에 연결"
 title: TUI
 x-i18n:
-    generated_at: "2026-02-08T16:07:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6ab8174870e4722d76af61915b9bb020dc6df1ddacc406e2f5a80416b6e7f904
-    source_path: web/tui.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6ab8174870e4722d76af61915b9bb020dc6df1ddacc406e2f5a80416b6e7f904
+  source_path: web/tui.md
+  workflow: 15
 ---
 
 # TUI(터미널 UI)

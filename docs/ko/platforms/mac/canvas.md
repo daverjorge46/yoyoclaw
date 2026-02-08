@@ -1,17 +1,17 @@
 ---
 read_when:
-    - macOS 캔버스 패널 구현
-    - 시각적 작업 공간에 대한 에이전트 제어 추가
-    - WKWebView 캔버스 로드 디버깅
+  - macOS 캔버스 패널 구현
+  - 시각적 작업 공간에 대한 에이전트 제어 추가
+  - WKWebView 캔버스 로드 디버깅
 summary: WKWebView + 사용자 정의 URL 구성표를 통해 포함된 에이전트 제어 캔버스 패널
 title: 캔버스
 x-i18n:
-    generated_at: "2026-02-08T16:07:08Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e39caa21542e839d9f59ad0bf7ecefb379225ed7e8f00cd59131d188f193bec6
-    source_path: platforms/mac/canvas.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:08Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e39caa21542e839d9f59ad0bf7ecefb379225ed7e8f00cd59131d188f193bec6
+  source_path: platforms/mac/canvas.md
+  workflow: 15
 ---
 
 # 캔버스(macOS 앱)

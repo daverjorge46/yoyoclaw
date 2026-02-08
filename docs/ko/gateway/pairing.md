@@ -1,17 +1,17 @@
 ---
 read_when:
-    - macOS UI 없이 노드 페어링 승인 구현
-    - 원격 노드 승인을 위한 CLI 흐름 추가
-    - 노드 관리로 게이트웨이 프로토콜 확장
+  - macOS UI 없이 노드 페어링 승인 구현
+  - 원격 노드 승인을 위한 CLI 흐름 추가
+  - 노드 관리로 게이트웨이 프로토콜 확장
 summary: iOS 및 기타 원격 노드에 대한 게이트웨이 소유 노드 페어링(옵션 B)
 title: 게이트웨이 소유 페어링
 x-i18n:
-    generated_at: "2026-02-08T15:59:40Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1f5154292a75ea2c1470324babc99c6c46a5e4e16afb394ed323d28f6168f459
-    source_path: gateway/pairing.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:40Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1f5154292a75ea2c1470324babc99c6c46a5e4e16afb394ed323d28f6168f459
+  source_path: gateway/pairing.md
+  workflow: 15
 ---
 
 # 게이트웨이 소유 페어링(옵션 B)

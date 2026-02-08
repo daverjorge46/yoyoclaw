@@ -1,16 +1,16 @@
 ---
 read_when:
-    - SOUL Evil 후크를 활성화하거나 조정하고 싶습니다.
-    - 퍼지 창이나 무작위 기회의 페르소나 교환을 원합니다.
+  - SOUL Evil 후크를 활성화하거나 조정하고 싶습니다.
+  - 퍼지 창이나 무작위 기회의 페르소나 교환을 원합니다.
 summary: SOUL Evil Hook(SOUL.md를 SOUL_EVIL.md로 교체)
 title: 소울 이블 훅
 x-i18n:
-    generated_at: "2026-02-08T16:05:58Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 32aba100712317d1a668d482a45694c31346229f540cfefea742dc22ce578221
-    source_path: hooks/soul-evil.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:58Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 32aba100712317d1a668d482a45694c31346229f540cfefea742dc22ce578221
+  source_path: hooks/soul-evil.md
+  workflow: 15
 ---
 
 # 소울 이블 훅

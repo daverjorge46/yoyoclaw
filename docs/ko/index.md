@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 신규 사용자에게 OpenClaw 소개
+  - 신규 사용자에게 OpenClaw 소개
 summary: OpenClaw는 모든 OS에서 실행되는 AI 에이전트용 멀티채널 게이트웨이입니다.
 title: OpenClaw
 x-i18n:
-    generated_at: "2026-02-08T16:04:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 22725fdce9eafb337e9eb36958644009aa4a9f630e3a251c800cf921a987cb1c
-    source_path: index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 22725fdce9eafb337e9eb36958644009aa4a9f630e3a251c800cf921a987cb1c
+  source_path: index.md
+  workflow: 15
 ---
 
 # OpenClaw 🦞

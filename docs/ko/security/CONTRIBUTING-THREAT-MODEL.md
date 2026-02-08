@@ -1,11 +1,11 @@
 ---
 x-i18n:
-    generated_at: "2026-02-08T16:05:17Z"
-    model: gtx
-    provider: google-translate
-    source_hash: fd7c528984d1ca5a6ece83d683210d775eca9cd3cc1dc7eadba5516b4adfa854
-    source_path: security/CONTRIBUTING-THREAT-MODEL.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:17Z"
+  model: gtx
+  provider: google-translate
+  source_hash: fd7c528984d1ca5a6ece83d683210d775eca9cd3cc1dc7eadba5516b4adfa854
+  source_path: security/CONTRIBUTING-THREAT-MODEL.md
+  workflow: 15
 ---
 
 # OpenClaw 위협 모델에 기여

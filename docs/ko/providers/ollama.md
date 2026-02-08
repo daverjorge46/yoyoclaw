@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Ollama를 통해 로컬 모델로 OpenClaw를 실행하고 싶습니다.
-    - Ollama 설정 및 구성 지침이 필요합니다.
+  - Ollama를 통해 로컬 모델로 OpenClaw를 실행하고 싶습니다.
+  - Ollama 설정 및 구성 지침이 필요합니다.
 summary: Ollama(로컬 LLM 런타임)로 OpenClaw 실행
 title: 올라마
 x-i18n:
-    generated_at: "2026-02-08T16:02:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 61f88017027beb205d9d6de8191e980a58e6c7d79a1f32a8dd38bc48668e0eb7
-    source_path: providers/ollama.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 61f88017027beb205d9d6de8191e980a58e6c7d79a1f32a8dd38bc48668e0eb7
+  source_path: providers/ollama.md
+  workflow: 15
 ---
 
 <a id="streaming-configuration"></a>

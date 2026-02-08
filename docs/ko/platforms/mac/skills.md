@@ -1,16 +1,16 @@
 ---
 read_when:
-    - macOS 기술 설정 UI 업데이트
-    - 스킬 게이팅 또는 설치 동작 변경
+  - macOS 기술 설정 UI 업데이트
+  - 스킬 게이팅 또는 설치 동작 변경
 summary: macOS Skills 설정 UI 및 게이트웨이 지원 상태
 title: 기술
 x-i18n:
-    generated_at: "2026-02-08T16:04:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ecd5286bbe49eed89319686c4f7d6da55ef7b0d3952656ba98ef5e769f3fbf79
-    source_path: platforms/mac/skills.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ecd5286bbe49eed89319686c4f7d6da55ef7b0d3952656ba98ef5e769f3fbf79
+  source_path: platforms/mac/skills.md
+  workflow: 15
 ---
 
 # 스킬(macOS)

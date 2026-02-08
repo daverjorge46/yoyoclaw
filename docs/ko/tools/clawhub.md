@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 신규 사용자에게 ClawHub 소개
-    - 설치, 검색 또는 게시 기술
-    - ClawHub CLI 플래그 및 동기화 동작 설명
-summary: 'ClawHub 가이드: 공개 기술 레지스트리 + CLI 워크플로'
+  - 신규 사용자에게 ClawHub 소개
+  - 설치, 검색 또는 게시 기술
+  - ClawHub CLI 플래그 및 동기화 동작 설명
+summary: "ClawHub 가이드: 공개 기술 레지스트리 + CLI 워크플로"
 title: 클로허브
 x-i18n:
-    generated_at: "2026-02-08T16:10:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b572473a1124635744cfe537143249cd57659b511d060bb631ffddba7c8c8315
-    source_path: tools/clawhub.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b572473a1124635744cfe537143249cd57659b511d060bb631ffddba7c8c8315
+  source_path: tools/clawhub.md
+  workflow: 15
 ---
 
 # 클로허브

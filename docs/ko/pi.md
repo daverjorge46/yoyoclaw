@@ -1,12 +1,12 @@
 ---
 title: Pi 통합 아키텍처
 x-i18n:
-    generated_at: "2026-02-08T15:59:24Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 98b12f1211f70b1a25f58e68c7a4d0fe3827412ca53ba0ea2cd41ac9c0448458
-    source_path: pi.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:24Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 98b12f1211f70b1a25f58e68c7a4d0fe3827412ca53ba0ea2cd41ac9c0448458
+  source_path: pi.md
+  workflow: 15
 ---
 
 # Pi 통합 아키텍처

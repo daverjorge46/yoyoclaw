@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 처음부터 설정을 시작할 때
-    - 가장 빠르게 채팅을 시작하고 싶을 때
+  - 처음부터 설정을 시작할 때
+  - 가장 빠르게 채팅을 시작하고 싶을 때
 summary: OpenClaw를 설치하고 몇 분 안에 첫 채팅을 시작하세요.
 title: 시작하기
 x-i18n:
-    generated_at: "2026-02-08T16:05:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6eeb4d38a70f2ad9f20977ff24191a3e2417b73c989fb6074aceddcff0e633d4
-    source_path: start/getting-started.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6eeb4d38a70f2ad9f20977ff24191a3e2417b73c989fb6074aceddcff0e633d4
+  source_path: start/getting-started.md
+  workflow: 15
 ---
 
 # 시작하기

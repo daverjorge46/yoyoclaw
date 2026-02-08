@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Telegram 또는 grammY 경로 작업
+  - Telegram 또는 grammY 경로 작업
 summary: 설정 노트와 함께 grammY를 통한 Telegram Bot API 통합
 title: 그램Y
 x-i18n:
-    generated_at: "2026-02-08T15:46:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ea7ef23e6d77801f4ef5fc56685ef4470f79f5aecab448d644a72cbab53521b7
-    source_path: channels/grammy.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ea7ef23e6d77801f4ef5fc56685ef4470f79f5aecab448d644a72cbab53521b7
+  source_path: channels/grammy.md
+  workflow: 15
 ---
 
 # grammY 통합(텔레그램 봇 API)

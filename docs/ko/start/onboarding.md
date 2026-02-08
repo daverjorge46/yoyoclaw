@@ -1,17 +1,17 @@
 ---
 read_when:
-    - macOS 온보딩 도우미 디자인
-    - 인증 또는 ID 설정 구현
-sidebarTitle: 'Onboarding: macOS App'
+  - macOS 온보딩 도우미 디자인
+  - 인증 또는 ID 설정 구현
+sidebarTitle: "Onboarding: macOS App"
 summary: OpenClaw(macOS 앱)의 첫 실행 온보딩 흐름
 title: 온보딩(macOS 앱)
 x-i18n:
-    generated_at: "2026-02-08T16:02:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 45f912067527158fdf562b971223a801f29b6f16c7da7aa2d12caffc0cd43c7a
-    source_path: start/onboarding.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 45f912067527158fdf562b971223a801f29b6f16c7da7aa2d12caffc0cd43c7a
+  source_path: start/onboarding.md
+  workflow: 15
 ---
 
 # 온보딩(macOS 앱)

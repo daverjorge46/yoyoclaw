@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OS 지원 또는 설치 경로 찾기
-    - 게이트웨이를 실행할 위치 결정
+  - OS 지원 또는 설치 경로 찾기
+  - 게이트웨이를 실행할 위치 결정
 summary: 플랫폼 지원 개요(게이트웨이 + 컴패니언 앱)
 title: 플랫폼
 x-i18n:
-    generated_at: "2026-02-08T16:04:18Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 959479995f9ecca37c91902439dd92311dc2c112c1dec76abfff7741fee67518
-    source_path: platforms/index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:18Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 959479995f9ecca37c91902439dd92311dc2c112c1dec76abfff7741fee67518
+  source_path: platforms/index.md
+  workflow: 15
 ---
 
 # 플랫폼

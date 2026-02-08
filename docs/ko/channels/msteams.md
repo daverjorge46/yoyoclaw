@@ -1,15 +1,15 @@
 ---
 read_when:
-    - MS Teams 채널 기능 작업
+  - MS Teams 채널 기능 작업
 summary: Microsoft Teams 봇 지원 상태, 기능 및 구성
 title: 마이크로소프트 팀즈
 x-i18n:
-    generated_at: "2026-02-08T15:50:12Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cec0b5a6eb3ff1ac9823fc1e663b6087885ea8fc62fed3ab43b57fcdc4c6b152
-    source_path: channels/msteams.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:12Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cec0b5a6eb3ff1ac9823fc1e663b6087885ea8fc62fed3ab43b57fcdc4c6b152
+  source_path: channels/msteams.md
+  workflow: 15
 ---
 
 <a id="sending-files-in-group-chats"></a>
@@ -167,14 +167,14 @@ OpenClaw를 구성하기 전에 Azure Bot 리소스를 만들어야 합니다.
 1. 이동 [Azure 봇 만들기](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. **Basics** 탭에 다음 값을 입력합니다.
 
-   |필드|값|
-   |---|---|
-   |**봇 핸들**|봇 이름 (예: `openclaw-msteams`, 고유해야 함)|
-   |**구독**|Azure 구독 선택|
-   |**리소스 그룹**|새로 만들거나 기존 그룹 사용|
-   |**가격 책정 계층**|개발/테스트는 **무료** 권장|
-   |**앱 유형**|**단일 테넌트** (권장, 아래 참고)|
-   |**생성 유형**|**새 Microsoft 앱 ID 만들기**|
+   | 필드               | 값                                            |
+   | ------------------ | --------------------------------------------- |
+   | **봇 핸들**        | 봇 이름 (예: `openclaw-msteams`, 고유해야 함) |
+   | **구독**           | Azure 구독 선택                               |
+   | **리소스 그룹**    | 새로 만들거나 기존 그룹 사용                  |
+   | **가격 책정 계층** | 개발/테스트는 **무료** 권장                   |
+   | **앱 유형**        | **단일 테넌트** (권장, 아래 참고)             |
+   | **생성 유형**      | **새 Microsoft 앱 ID 만들기**                 |
 
 > **지원 중단 알림:** 새로운 다중 테넌트 봇 생성은 2025년 7월 31일 이후 더 이상 사용되지 않습니다. 사용 **단일 테넌트** 새로운 봇을 위해.
 

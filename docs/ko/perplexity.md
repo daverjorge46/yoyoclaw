@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 웹 검색에 Perplexity Sonar를 사용하고 싶습니다.
-    - PERPLEXITY_API_KEY 또는 OpenRouter 설정이 필요합니다.
+  - 웹 검색에 Perplexity Sonar를 사용하고 싶습니다.
+  - PERPLEXITY_API_KEY 또는 OpenRouter 설정이 필요합니다.
 summary: web_search에 대한 Perplexity Sonar 설정
 title: 당혹감 소나
 x-i18n:
-    generated_at: "2026-02-08T16:07:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f6c9824ad9bebe389f029d74c2a9ae53ab69572bbe5cc6fbbc9c43741eb8e421
-    source_path: perplexity.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f6c9824ad9bebe389f029d74c2a9ae53ab69572bbe5cc6fbbc9c43741eb8e421
+  source_path: perplexity.md
+  workflow: 15
 ---
 
 # 당혹감 소나

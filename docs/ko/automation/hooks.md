@@ -1,16 +1,16 @@
 ---
 read_when:
-    - /new, /reset, /stop 및 에이전트 수명 주기 이벤트에 대한 이벤트 기반 자동화를 원합니다.
-    - 후크를 빌드, 설치 또는 디버그하려는 경우
-summary: '후크: 명령 및 수명 주기 이벤트에 대한 이벤트 기반 자동화'
+  - /new, /reset, /stop 및 에이전트 수명 주기 이벤트에 대한 이벤트 기반 자동화를 원합니다.
+  - 후크를 빌드, 설치 또는 디버그하려는 경우
+summary: "후크: 명령 및 수명 주기 이벤트에 대한 이벤트 기반 자동화"
 title: 후크
 x-i18n:
-    generated_at: "2026-02-08T15:47:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9fbcf9e04fd9e62caf2d75bdc021b5404bca4b12012c0c7b7f85f42db0dc462a
-    source_path: automation/hooks.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9fbcf9e04fd9e62caf2d75bdc021b5404bca4b12012c0c7b7f85f42db0dc462a
+  source_path: automation/hooks.md
+  workflow: 15
 ---
 
 # 후크

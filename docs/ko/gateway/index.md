@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 게이트웨이 프로세스 실행 또는 디버깅
+  - 게이트웨이 프로세스 실행 또는 디버깅
 summary: 게이트웨이 서비스, 수명 주기 및 운영에 대한 런북
 title: 게이트웨이 런북
 x-i18n:
-    generated_at: "2026-02-08T15:55:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e59d842824f892f68dc9260cceeb33321367bc50ac8ca578b9a3854c51cebae3
-    source_path: gateway/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e59d842824f892f68dc9260cceeb33321367bc50ac8ca578b9a3854c51cebae3
+  source_path: gateway/index.md
+  workflow: 15
 ---
 
 # 게이트웨이 서비스 런북
@@ -214,7 +214,7 @@ OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b opencla
 - 실패하면 launchd가 다시 시작됩니다. 치명적인 잘못된 구성은 운영자가 알 수 있도록 계속 종료되어야 합니다.
 - LaunchAgent는 사용자별로 이루어지며 로그인된 세션이 필요합니다. 헤드리스 설정의 경우 사용자 정의 LaunchDaemon(제공되지 않음)을 사용하십시오.
   - `openclaw gateway install` 쓴다 `~/Library/LaunchAgents/bot.molt.gateway.plist`
-     (또는 `bot.molt.<profile>.plist`; 유산 `com.openclaw.*` 정리됩니다).
+    (또는 `bot.molt.<profile>.plist`; 유산 `com.openclaw.*` 정리됩니다).
   - `openclaw doctor` LaunchAgent 구성을 감사하고 이를 현재 기본값으로 업데이트할 수 있습니다.
 
 ## 게이트웨이 서비스 관리(CLI)

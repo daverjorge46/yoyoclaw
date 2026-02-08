@@ -3,12 +3,12 @@ read_when: Browser control fails on Linux, especially with snap Chromium
 summary: Linux에서 OpenClaw 브라우저 제어에 대한 Chrome/Brave/Edge/Chromium CDP 시작 문제 해결
 title: 브라우저 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T16:11:41Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bac2301022511a0bf8ebe1309606cc03e8a979ff74866c894f89d280ca3e514e
-    source_path: tools/browser-linux-troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T16:11:41Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bac2301022511a0bf8ebe1309606cc03e8a979ff74866c894f89d280ca3e514e
+  source_path: tools/browser-linux-troubleshooting.md
+  workflow: 15
 ---
 
 # 브라우저 문제 해결(Linux)

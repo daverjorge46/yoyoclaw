@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 자동 압축 및 /compact를 이해하고 싶습니다.
-    - 컨텍스트 제한에 도달하는 긴 세션을 디버깅하고 있습니다.
-summary: '컨텍스트 창 + 압축: OpenClaw가 세션을 모델 제한 아래로 유지하는 방법'
+  - 자동 압축 및 /compact를 이해하고 싶습니다.
+  - 컨텍스트 제한에 도달하는 긴 세션을 디버깅하고 있습니다.
+summary: "컨텍스트 창 + 압축: OpenClaw가 세션을 모델 제한 아래로 유지하는 방법"
 title: 압축
 x-i18n:
-    generated_at: "2026-02-08T15:53:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e1d6791f2902044b5798ebf9320a7d055d37211eff4be03caa35d7e328ae803c
-    source_path: concepts/compaction.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e1d6791f2902044b5798ebf9320a7d055d37211eff4be03caa35d7e328ae803c
+  source_path: concepts/compaction.md
+  workflow: 15
 ---
 
 # 컨텍스트 창 및 압축

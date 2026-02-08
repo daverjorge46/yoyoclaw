@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 당신은 `openclaw.ai/install.sh`을 이해하고 싶습니다
-    - 설치를 자동화하려는 경우(CI/헤드리스)
-    - GitHub 결제에서 설치하고 싶습니다.
+  - 당신은 `openclaw.ai/install.sh`을 이해하고 싶습니다
+  - 설치를 자동화하려는 경우(CI/헤드리스)
+  - GitHub 결제에서 설치하고 싶습니다.
 summary: 설치 프로그램 스크립트 작동 방식(install.sh, install-cli.sh, install.ps1), 플래그 및 자동화
 title: 설치 프로그램 내부
 x-i18n:
-    generated_at: "2026-02-08T16:01:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8517f9cf8e237b62f382c6e405d7ff2396d725894121e42410646775be1b0269
-    source_path: install/installer.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8517f9cf8e237b62f382c6e405d7ff2396d725894121e42410646775be1b0269
+  source_path: install/installer.md
+  workflow: 15
 ---
 
 <a id="installsh"></a>

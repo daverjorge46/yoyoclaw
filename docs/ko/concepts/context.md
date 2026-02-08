@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw에서 "컨텍스트"가 무엇을 의미하는지 이해하고 싶습니다.
-    - 모델이 무언가를 "알고 있는"(또는 잊어버린) 이유를 디버깅하고 있습니다.
-    - 컨텍스트 오버헤드를 줄이고 싶습니다(/context, /status, /compact).
-summary: '컨텍스트: 모델이 보는 것, 구축 방법, 검사 방법'
+  - OpenClaw에서 "컨텍스트"가 무엇을 의미하는지 이해하고 싶습니다.
+  - 모델이 무언가를 "알고 있는"(또는 잊어버린) 이유를 디버깅하고 있습니다.
+  - 컨텍스트 오버헤드를 줄이고 싶습니다(/context, /status, /compact).
+summary: "컨텍스트: 모델이 보는 것, 구축 방법, 검사 방법"
 title: 문맥
 x-i18n:
-    generated_at: "2026-02-08T15:50:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e6f42f515380ce125f474c969eb00a881f85885a4b1d1a7174423f6ef44046c1
-    source_path: concepts/context.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e6f42f515380ce125f474c969eb00a881f85885a4b1d1a7174423f6ef44046c1
+  source_path: concepts/context.md
+  workflow: 15
 ---
 
 # 문맥

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - localhost 외부에 게이트웨이 제어 UI 노출
-    - tailnet 또는 공개 대시보드 액세스 자동화
+  - localhost 외부에 게이트웨이 제어 UI 노출
+  - tailnet 또는 공개 대시보드 액세스 자동화
 summary: 게이트웨이 대시보드를 위한 통합 Tailscale Serve/Funnel
 title: 테일스케일
 x-i18n:
-    generated_at: "2026-02-08T15:55:22Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c4842b10848d4fdd0f2538d8c786185ed029c2c6149b92eefbc6f1f572e8d440
-    source_path: gateway/tailscale.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:22Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c4842b10848d4fdd0f2538d8c786185ed029c2c6149b92eefbc6f1f572e8d440
+  source_path: gateway/tailscale.md
+  workflow: 15
 ---
 
 # Tailscale(게이트웨이 대시보드)

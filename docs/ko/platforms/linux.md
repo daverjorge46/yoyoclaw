@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Linux 컴패니언 앱 상태를 찾고 있습니다.
-    - 플랫폼 적용 범위 또는 기여 계획
+  - Linux 컴패니언 앱 상태를 찾고 있습니다.
+  - 플랫폼 적용 범위 또는 기여 계획
 summary: Linux 지원 + 동반 앱 상태
 title: 리눅스 앱
 x-i18n:
-    generated_at: "2026-02-08T15:59:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 93b8250cd1267004a3342c8119462d0442af96704f9b3be250d8ee1eeeb7d4cd
-    source_path: platforms/linux.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 93b8250cd1267004a3342c8119462d0442af96704f9b3be250d8ee1eeeb7d4cd
+  source_path: platforms/linux.md
+  workflow: 15
 ---
 
 # 리눅스 앱

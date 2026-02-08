@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 장치 모델 식별자 매핑 또는 NOTICE/라이선스 파일 업데이트
-    - 인스턴스 UI가 기기 이름을 표시하는 방식 변경
+  - 장치 모델 식별자 매핑 또는 NOTICE/라이선스 파일 업데이트
+  - 인스턴스 UI가 기기 이름을 표시하는 방식 변경
 summary: OpenClaw 공급업체가 macOS 앱에서 친숙한 이름에 대한 Apple 장치 모델 식별자를 제공하는 방법.
 title: 장치 모델 데이터베이스
 x-i18n:
-    generated_at: "2026-02-08T16:03:24Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1d99c2538a0d8fdd80fa468fa402f63479ef2522e83745a0a46527a86238aeb2
-    source_path: reference/device-models.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:24Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1d99c2538a0d8fdd80fa468fa402f63479ef2522e83745a0a46527a86238aeb2
+  source_path: reference/device-models.md
+  workflow: 15
 ---
 
 # 장치 모델 데이터베이스(친숙한 이름)

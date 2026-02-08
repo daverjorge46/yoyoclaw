@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 테스트 실행 또는 수정
+  - 테스트 실행 또는 수정
 summary: 로컬에서 테스트를 실행하는 방법(vitest) 및 강제/커버리지 모드를 사용하는 경우
 title: 테스트
 x-i18n:
-    generated_at: "2026-02-08T16:03:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 814cc52aae0788eba035479750f9415e89f12f43da70ee6bd9d960075e35e801
-    source_path: reference/test.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 814cc52aae0788eba035479750f9415e89f12f43da70ee6bd9d960075e35e801
+  source_path: reference/test.md
+  workflow: 15
 ---
 
 # 테스트

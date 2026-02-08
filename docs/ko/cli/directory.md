@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채널의 연락처/그룹/본인 ID를 조회하고 싶습니다.
-    - 채널 디렉터리 어댑터를 개발 중입니다.
-summary: '`openclaw directory`에 대한 CLI 참조(자체, 동료, 그룹)'
+  - 채널의 연락처/그룹/본인 ID를 조회하고 싶습니다.
+  - 채널 디렉터리 어댑터를 개발 중입니다.
+summary: "`openclaw directory`에 대한 CLI 참조(자체, 동료, 그룹)"
 title: 예배 규칙서
 x-i18n:
-    generated_at: "2026-02-08T15:50:51Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 7c878d9013aeaa22c8a21563fac30b465a86be85d8c917c5d4591b5c3d4b2025
-    source_path: cli/directory.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:51Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 7c878d9013aeaa22c8a21563fac30b465a86be85d8c917c5d4591b5c3d4b2025
+  source_path: cli/directory.md
+  workflow: 15
 ---
 
 # `openclaw directory`

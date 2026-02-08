@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채팅 명령 사용 또는 구성
-    - 명령 라우팅 또는 권한 디버깅
-summary: '슬래시 명령: 텍스트 대 기본, 구성 및 지원되는 명령'
+  - 채팅 명령 사용 또는 구성
+  - 명령 라우팅 또는 권한 디버깅
+summary: "슬래시 명령: 텍스트 대 기본, 구성 및 지원되는 명령"
 title: 슬래시 명령
 x-i18n:
-    generated_at: "2026-02-08T16:15:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ca0deebf89518e8c62828fbb9bf4621c5fff8ab86ccb22e37da61a28f9a7886a
-    source_path: tools/slash-commands.md
-    workflow: 15
+  generated_at: "2026-02-08T16:15:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ca0deebf89518e8c62828fbb9bf4621c5fff8ab86ccb22e37da61a28f9a7886a
+  source_path: tools/slash-commands.md
+  workflow: 15
 ---
 
 # 슬래시 명령

@@ -1,14 +1,14 @@
 ---
 read_when:
-    - 작업공간을 수동으로 부트스트래핑
+  - 작업공간을 수동으로 부트스트래핑
 summary: SOUL.md용 작업 공간 템플릿
 x-i18n:
-    generated_at: "2026-02-08T16:07:35Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b62a054ecddb454527a6819aa8d4f51d7616bc6154fbf4c6f5f6b20d8aa52bcd
-    source_path: reference/templates/SOUL.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:35Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b62a054ecddb454527a6819aa8d4f51d7616bc6154fbf4c6f5f6b20d8aa52bcd
+  source_path: reference/templates/SOUL.md
+  workflow: 15
 ---
 
 # SOUL.md - 당신은 누구인가

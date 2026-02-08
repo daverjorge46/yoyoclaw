@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 모델 인증 또는 OAuth 만료 디버깅
-    - 인증 또는 자격증명 저장 문서화
-summary: '모델 인증: OAuth, API 키 및 설정 토큰'
+  - 모델 인증 또는 OAuth 만료 디버깅
+  - 인증 또는 자격증명 저장 문서화
+summary: "모델 인증: OAuth, API 키 및 설정 토큰"
 title: 입증
 x-i18n:
-    generated_at: "2026-02-08T15:52:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 66fa2c64ff374c9cfcdb4e7a951b0d164d512295e65513eb682f12191b75e557
-    source_path: gateway/authentication.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 66fa2c64ff374c9cfcdb4e7a951b0d164d512295e65513eb682f12191b75e557
+  source_path: gateway/authentication.md
+  workflow: 15
 ---
 
 # 입증

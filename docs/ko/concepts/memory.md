@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 메모리 파일 레이아웃과 작업 흐름을 원합니다.
-    - 자동 사전 압축 메모리 플러시를 조정하고 싶습니다.
+  - 메모리 파일 레이아웃과 작업 흐름을 원합니다.
+  - 자동 사전 압축 메모리 플러시를 조정하고 싶습니다.
 summary: OpenClaw 메모리 작동 방식(작업 공간 파일 + 자동 메모리 플러시)
 x-i18n:
-    generated_at: "2026-02-08T15:56:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e160dc678bb8fda2d30b9b2f1ba4d7e4e220997b7a9adc97a084bc43a2bf1dfe
-    source_path: concepts/memory.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e160dc678bb8fda2d30b9b2f1ba4d7e4e220997b7a9adc97a084bc43a2bf1dfe
+  source_path: concepts/memory.md
+  workflow: 15
 ---
 
 # 메모리

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Mac 앱 상태 표시기 디버깅
+  - Mac 앱 상태 표시기 디버깅
 summary: macOS 앱이 게이트웨이/Baileys 상태를 보고하는 방법
 title: 상태 점검
 x-i18n:
-    generated_at: "2026-02-08T15:59:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0560e96501ddf53a499f8960cfcf11c2622fcb9056bfd1bcc57876e955cab03d
-    source_path: platforms/mac/health.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0560e96501ddf53a499f8960cfcf11c2622fcb9056bfd1bcc57876e955cab03d
+  source_path: platforms/mac/health.md
+  workflow: 15
 ---
 
 # macOS의 상태 확인

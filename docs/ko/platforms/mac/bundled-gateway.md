@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenClaw.app 패키징
-    - macOS 게이트웨이 실행 서비스 디버깅
-    - macOS용 게이트웨이 CLI 설치
+  - OpenClaw.app 패키징
+  - macOS 게이트웨이 실행 서비스 디버깅
+  - macOS용 게이트웨이 CLI 설치
 summary: macOS의 게이트웨이 런타임(외부 실행 서비스)
 title: macOS의 게이트웨이
 x-i18n:
-    generated_at: "2026-02-08T16:08:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4a3e963d13060b123538005439213e786e76127b370a6c834d85a369e4626fe5
-    source_path: platforms/mac/bundled-gateway.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4a3e963d13060b123538005439213e786e76127b370a6c834d85a369e4626fe5
+  source_path: platforms/mac/bundled-gateway.md
+  workflow: 15
 ---
 
 # macOS의 게이트웨이(외부 실행)
@@ -40,7 +40,7 @@ macOS 앱의 **CLI 설치** 버튼은 npm/pnpm을 통해 동일한 흐름을 실
 Plist 위치(사용자별):
 
 - `~/Library/LaunchAgents/bot.molt.gateway.plist`
-   (또는 `~/Library/LaunchAgents/bot.molt.<profile>.plist`)
+  (또는 `~/Library/LaunchAgents/bot.molt.<profile>.plist`)
 
 관리자:
 

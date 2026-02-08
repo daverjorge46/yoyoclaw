@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 백그라운드 작업 또는 웨이크업 예약
-    - 하트비트와 함께 또는 심장박동과 함께 실행되어야 하는 배선 자동화
-    - 예약된 작업에 대해 하트비트와 크론 중에서 결정
+  - 백그라운드 작업 또는 웨이크업 예약
+  - 하트비트와 함께 또는 심장박동과 함께 실행되어야 하는 배선 자동화
+  - 예약된 작업에 대해 하트비트와 크론 중에서 결정
 summary: 크론 작업 + 게이트웨이 스케줄러의 웨이크업
 title: 크론 작업
 x-i18n:
-    generated_at: "2026-02-08T15:47:41Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d2f7bd6c542034b19e237d55994eefdfa1e80cc0e0b1a3c3b5cce65d4e69801f
-    source_path: automation/cron-jobs.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:41Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d2f7bd6c542034b19e237d55994eefdfa1e80cc0e0b1a3c3b5cce65d4e69801f
+  source_path: automation/cron-jobs.md
+  workflow: 15
 ---
 
 # 크론 작업(게이트웨이 스케줄러)

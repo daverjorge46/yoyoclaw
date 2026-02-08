@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Mac 메뉴 UI 또는 상태 로직 조정
+  - Mac 메뉴 UI 또는 상태 로직 조정
 summary: 메뉴 표시줄 상태 논리 및 사용자에게 표시되는 내용
 title: 메뉴바
 x-i18n:
-    generated_at: "2026-02-08T15:59:35Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8eb73c0e671a76aae4ebb653c65147610bf3e6d3c9c0943d150e292e7761d16d
-    source_path: platforms/mac/menu-bar.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:35Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8eb73c0e671a76aae4ebb653c65147610bf3e6d3c9c0943d150e292e7761d16d
+  source_path: platforms/mac/menu-bar.md
+  workflow: 15
 ---
 
 # 메뉴 표시줄 상태 논리

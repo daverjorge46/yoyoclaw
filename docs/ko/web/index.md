@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Tailscale을 통해 게이트웨이에 액세스하려고 합니다.
-    - 브라우저 제어 UI 및 구성 편집을 원합니다.
-summary: '게이트웨이 웹 표면: 제어 UI, 바인딩 모드 및 보안'
+  - Tailscale을 통해 게이트웨이에 액세스하려고 합니다.
+  - 브라우저 제어 UI 및 구성 편집을 원합니다.
+summary: "게이트웨이 웹 표면: 제어 UI, 바인딩 모드 및 보안"
 title: 편물
 x-i18n:
-    generated_at: "2026-02-08T16:16:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1315450b71a799c8525ec147286b933eb0b5fd1268ee1a60ac78e63476475564
-    source_path: web/index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:16:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1315450b71a799c8525ec147286b933eb0b5fd1268ee1a60ac78e63476475564
+  source_path: web/index.md
+  workflow: 15
 ---
 
 # 웹(게이트웨이)

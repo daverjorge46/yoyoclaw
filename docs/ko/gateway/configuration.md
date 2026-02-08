@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 구성 필드 추가 또는 수정
+  - 구성 필드 추가 또는 수정
 summary: 예제가 포함된 ~/.openclaw/openclaw.json의 모든 구성 옵션
 title: 구성
 x-i18n:
-    generated_at: "2026-02-08T16:04:01Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e226e24422c05e7ec22da070d7191c0ab6fdda4165be63a6d7479745ace046b7
-    source_path: gateway/configuration.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:01Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e226e24422c05e7ec22da070d7191c0ab6fdda4165be63a6d7479745ace046b7
+  source_path: gateway/configuration.md
+  workflow: 15
 ---
 
 # 구성 🔧
@@ -2178,11 +2178,11 @@ Z.AI 모델은 다음과 같이 제공됩니다. `zai/<model>` (예: `zai/glm-4.
 ```
 
 `tools.byProvider` 당신을 할 수 있습니다 **더욱 제한하다** 특정 공급자(또는 단일 공급자)를 위한 도구 `provider/model`).
-  에이전트별 재정의: `agents.list[].tools.byProvider`.
+에이전트별 재정의: `agents.list[].tools.byProvider`.
 
 순서: 기본 프로필 → 공급자 프로필 → 정책 허용/거부.
 공급자 키는 다음 중 하나를 허용합니다. `provider` (예: `google-antigravity`) 또는 `provider/model`
- (예: `openai/gpt-5.2`).
+(예: `openai/gpt-5.2`).
 
 예(전역 코딩 프로필을 유지하지만 Google Antigravity를 위한 최소한의 도구):
 
@@ -2409,7 +2409,7 @@ scripts/sandbox-setup.sh
 ```
 
 참고: 샌드박스 컨테이너의 기본값은 `network: "none"`; 세트 `agents.defaults.sandbox.docker.network`
- 에게 `"bridge"` (또는 사용자 지정 네트워크) 에이전트에 아웃바운드 액세스가 필요한 경우.
+에게 `"bridge"` (또는 사용자 지정 네트워크) 에이전트에 아웃바운드 액세스가 필요한 경우.
 
 참고: 인바운드 첨부 파일은 활성 작업 공간에 준비됩니다. `media/inbound/*`. 와 함께 `workspaceAccess: "rw"`, 이는 파일이 에이전트 작업 영역에 기록된다는 의미입니다.
 
@@ -2492,7 +2492,7 @@ OpenClaw 구성 `models.providers`.
 ### OpenCode Zen(다중 모델 프록시)
 
 OpenCode Zen은 모델별 엔드포인트가 있는 다중 모델 게이트웨이입니다. OpenClaw는 다음을 사용합니다.
-내장 `opencode` pi-ai의 공급자; 세트 `OPENCODE_API_KEY`  (또는
+내장 `opencode` pi-ai의 공급자; 세트 `OPENCODE_API_KEY` (또는
 `OPENCODE_ZEN_API_KEY`) 에서 [https://opencode.ai/auth](https://opencode.ai/auth).
 
 참고:

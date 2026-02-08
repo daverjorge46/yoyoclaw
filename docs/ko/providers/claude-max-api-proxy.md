@@ -1,17 +1,17 @@
 ---
 read_when:
-    - OpenAI 호환 도구와 함께 Claude Max 구독을 사용하고 싶습니다.
-    - Claude Code CLI를 래핑하는 로컬 API 서버가 필요합니다.
-    - API 키 대신 구독을 사용하여 비용을 절약하고 싶습니다.
+  - OpenAI 호환 도구와 함께 Claude Max 구독을 사용하고 싶습니다.
+  - Claude Code CLI를 래핑하는 로컬 API 서버가 필요합니다.
+  - API 키 대신 구독을 사용하여 비용을 절약하고 싶습니다.
 summary: Claude Max/Pro 구독을 OpenAI 호환 API 엔드포인트로 사용
 title: 클로드 맥스 API 프록시
 x-i18n:
-    generated_at: "2026-02-08T16:05:26Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 43d0ab1461dd6f1da7974b54bd9c8fe033ad3abbad892953baad4a93c8b16b5b
-    source_path: providers/claude-max-api-proxy.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:26Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 43d0ab1461dd6f1da7974b54bd9c8fe033ad3abbad892953baad4a93c8b16b5b
+  source_path: providers/claude-max-api-proxy.md
+  workflow: 15
 ---
 
 # 클로드 맥스 API 프록시

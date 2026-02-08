@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 많은 LLM에 대해 단일 API 키가 필요합니다.
-    - OpenClaw에서 OpenRouter를 통해 모델을 실행하고 싶습니다.
+  - 많은 LLM에 대해 단일 API 키가 필요합니다.
+  - OpenClaw에서 OpenRouter를 통해 모델을 실행하고 싶습니다.
 summary: OpenRouter의 통합 API를 사용하여 OpenClaw의 다양한 모델에 액세스
 title: 오픈라우터
 x-i18n:
-    generated_at: "2026-02-08T16:08:03Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b7e29fc9c456c64d567dd909a85166e6dea8388ebd22155a31e69c970e081586
-    source_path: providers/openrouter.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:03Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b7e29fc9c456c64d567dd909a85166e6dea8388ebd22155a31e69c970e081586
+  source_path: providers/openrouter.md
+  workflow: 15
 ---
 
 # 오픈라우터

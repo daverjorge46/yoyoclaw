@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 클라우드에서 게이트웨이를 실행하고 싶습니다.
-    - VPS/호스팅 가이드에 대한 빠른 지도가 필요합니다.
+  - 클라우드에서 게이트웨이를 실행하고 싶습니다.
+  - VPS/호스팅 가이드에 대한 빠른 지도가 필요합니다.
 summary: OpenClaw용 VPS 호스팅 허브(Oracle/Fly/Hetzner/GCP/exe.dev)
 title: VPS 호스팅
 x-i18n:
-    generated_at: "2026-02-08T16:13:54Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 96593a1550b560402b57983a866dde41643efc78eb3fd5eb2f34e174f81bb8b3
-    source_path: vps.md
-    workflow: 15
+  generated_at: "2026-02-08T16:13:54Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 96593a1550b560402b57983a866dde41643efc78eb3fd5eb2f34e174f81bb8b3
+  source_path: vps.md
+  workflow: 15
 ---
 
 # VPS 호스팅

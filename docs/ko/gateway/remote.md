@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 원격 게이트웨이 설정 실행 또는 문제 해결
+  - 원격 게이트웨이 설정 실행 또는 문제 해결
 summary: SSH 터널(Gateway WS) 및 테일넷을 사용한 원격 액세스
 title: 원격 액세스
 x-i18n:
-    generated_at: "2026-02-08T16:05:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 449d406f88c53dcc73b8f467854e57737a594a69d9cd94fe88e5578fcb25ad32
-    source_path: gateway/remote.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 449d406f88c53dcc73b8f467854e57737a594a69d9cd94fe88e5578fcb25ad32
+  source_path: gateway/remote.md
+  workflow: 15
 ---
 
 # 원격 액세스(SSH, 터널 및 tailnet)

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 세션 처리 또는 저장 수정
+  - 세션 처리 또는 저장 수정
 summary: 채팅에 대한 세션 관리 규칙, 키 및 지속성
 title: 세션 관리
 x-i18n:
-    generated_at: "2026-02-08T15:56:13Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e2040cea1e0738a8685377be04ed25db8a5e7ecd401b76735c1589e10ab2724c
-    source_path: concepts/session.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:13Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e2040cea1e0738a8685377be04ed25db8a5e7ecd401b76735c1589e10ab2724c
+  source_path: concepts/session.md
+  workflow: 15
 ---
 
 # 세션 관리

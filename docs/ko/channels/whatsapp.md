@@ -1,15 +1,15 @@
 ---
 read_when:
-    - WhatsApp/웹 채널 동작 또는 받은 편지함 라우팅 작업 중
-summary: 'WhatsApp(웹 채널) 통합: 로그인, 받은 편지함, 답장, 미디어 및 운영'
+  - WhatsApp/웹 채널 동작 또는 받은 편지함 라우팅 작업 중
+summary: "WhatsApp(웹 채널) 통합: 로그인, 받은 편지함, 답장, 미디어 및 운영"
 title: 왓츠앱
 x-i18n:
-    generated_at: "2026-02-08T15:52:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9f7acdf2c71819aef426ce63c76d1d43cf9d87eb3c23ddfc8a7ed29aed601d58
-    source_path: channels/whatsapp.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9f7acdf2c71819aef426ce63c76d1d43cf9d87eb3c23ddfc8a7ed29aed601d58
+  source_path: channels/whatsapp.md
+  workflow: 15
 ---
 
 # WhatsApp(웹 채널)

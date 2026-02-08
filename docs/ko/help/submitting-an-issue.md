@@ -2,12 +2,12 @@
 summary: 신호가 높은 문제 및 버그 보고서 제출
 title: 이슈 제출
 x-i18n:
-    generated_at: "2026-02-08T16:00:07Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bcb33f05647e9f0d655a98878ce8b5f2abfeb043282dc5ed2667f4aae2305103
-    source_path: help/submitting-an-issue.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:07Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bcb33f05647e9f0d655a98878ce8b5f2abfeb043282dc5ed2667f4aae2305103
+  source_path: help/submitting-an-issue.md
+  workflow: 15
 ---
 
 ## 이슈 제출

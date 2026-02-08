@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 스킬 추가 또는 수정
-    - 스킬 게이팅 또는 로드 규칙 변경
-summary: '기술: 관리형 대 작업 공간, 게이팅 규칙 및 구성/환경 배선'
+  - 스킬 추가 또는 수정
+  - 스킬 게이팅 또는 로드 규칙 변경
+summary: "기술: 관리형 대 작업 공간, 게이팅 규칙 및 구성/환경 배선"
 title: 기술
 x-i18n:
-    generated_at: "2026-02-08T16:06:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 70d7eb9e422c17a4f1443688585bdfbcb086b4890bd13eb652bcf5eb10fdd447
-    source_path: tools/skills.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 70d7eb9e422c17a4f1443688585bdfbcb086b4890bd13eb652bcf5eb10fdd447
+  source_path: tools/skills.md
+  workflow: 15
 ---
 
 # 스킬(오픈클로)

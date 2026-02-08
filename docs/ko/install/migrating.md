@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw를 새로운 노트북/서버로 옮기고 있습니다.
-    - 세션, 인증 및 채널 로그인(WhatsApp 등)을 보존하려는 경우
+  - OpenClaw를 새로운 노트북/서버로 옮기고 있습니다.
+  - 세션, 인증 및 채널 로그인(WhatsApp 등)을 보존하려는 경우
 summary: OpenClaw 설치를 한 시스템에서 다른 시스템으로 이동(마이그레이션)
 title: 마이그레이션 가이드
 x-i18n:
-    generated_at: "2026-02-08T16:02:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 604d862c4bf86e7924d09028db8cc2514ca6f1d64ebe8bb7d1e2dde57ef70caa
-    source_path: install/migrating.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 604d862c4bf86e7924d09028db8cc2514ca6f1d64ebe8bb7d1e2dde57ef70caa
+  source_path: install/migrating.md
+  workflow: 15
 ---
 
 # OpenClaw를 새 시스템으로 마이그레이션

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 음성 통화 플러그인을 사용하고 CLI 진입점을 원합니다.
-    - '`voicecall call|continue|status|tail|expose`에 대한 빠른 예를 원합니다.'
-summary: '`openclaw voicecall`에 대한 CLI 참조(음성 통화 플러그인 명령 표면)'
+  - 음성 통화 플러그인을 사용하고 CLI 진입점을 원합니다.
+  - "`voicecall call|continue|status|tail|expose`에 대한 빠른 예를 원합니다."
+summary: "`openclaw voicecall`에 대한 CLI 참조(음성 통화 플러그인 명령 표면)"
 title: 음성통화
 x-i18n:
-    generated_at: "2026-02-08T15:53:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d93aaee6f6f5c9ac468d8d2905cb23f0f2db75809408cb305c055505be9936f2
-    source_path: cli/voicecall.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d93aaee6f6f5c9ac468d8d2905cb23f0f2db75809408cb305c055505be9936f2
+  source_path: cli/voicecall.md
+  workflow: 15
 ---
 
 # `openclaw voicecall`

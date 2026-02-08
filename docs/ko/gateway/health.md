@@ -1,15 +1,15 @@
 ---
 read_when:
-    - WhatsApp 채널 상태 진단
+  - WhatsApp 채널 상태 진단
 summary: 채널 연결을 위한 상태 확인 단계
 title: 상태 점검
 x-i18n:
-    generated_at: "2026-02-08T15:53:52Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 74f242e98244c135e1322682ed6b67d70f3b404aca783b1bb5de96a27c2c1b01
-    source_path: gateway/health.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:52Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 74f242e98244c135e1322682ed6b67d70f3b404aca783b1bb5de96a27c2c1b01
+  source_path: gateway/health.md
+  workflow: 15
 ---
 
 # 상태 점검(CLI)

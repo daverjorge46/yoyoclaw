@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 플러그인에 새 에이전트 도구를 추가하고 싶습니다.
-    - 허용 목록을 통해 도구를 선택해야 합니다.
+  - 플러그인에 새 에이전트 도구를 추가하고 싶습니다.
+  - 허용 목록을 통해 도구를 선택해야 합니다.
 summary: 플러그인에 에이전트 도구 작성(스키마, 선택적 도구, 허용 목록)
 title: 플러그인 에이전트 도구
 x-i18n:
-    generated_at: "2026-02-08T16:01:36Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 4479462e9d8b17b664bf6b5f424f2efc8e7bedeaabfdb6a93126e051e635c659
-    source_path: plugins/agent-tools.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:36Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 4479462e9d8b17b664bf6b5f424f2efc8e7bedeaabfdb6a93126e051e635c659
+  source_path: plugins/agent-tools.md
+  workflow: 15
 ---
 
 # 플러그인 에이전트 도구

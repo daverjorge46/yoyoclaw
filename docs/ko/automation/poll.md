@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 설문 조사 지원 추가 또는 수정
-    - CLI 또는 게이트웨이에서 폴링 전송 디버깅
+  - 설문 조사 지원 추가 또는 수정
+  - CLI 또는 게이트웨이에서 폴링 전송 디버깅
 summary: 게이트웨이 + CLI를 통한 폴링 전송
 title: 투표소
 x-i18n:
-    generated_at: "2026-02-08T15:45:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 760339865d27ec40def7996cac1d294d58ab580748ad6b32cc34d285d0314eaf
-    source_path: automation/poll.md
-    workflow: 15
+  generated_at: "2026-02-08T15:45:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 760339865d27ec40def7996cac1d294d58ab580748ad6b32cc34d285d0314eaf
+  source_path: automation/poll.md
+  workflow: 15
 ---
 
 # 투표소

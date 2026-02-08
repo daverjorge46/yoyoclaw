@@ -1,16 +1,16 @@
 ---
 read_when:
-    - iMessage 지원 설정
-    - iMessage 보내기/받기 디버깅
+  - iMessage 지원 설정
+  - iMessage 보내기/받기 디버깅
 summary: imsg를 통한 기존 iMessage 지원(stdio를 통한 JSON-RPC) 새로운 설정에서는 BlueBubbles를 사용해야 합니다.
 title: 아이메시지
 x-i18n:
-    generated_at: "2026-02-08T15:49:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b418a589547d1ef096b917d5d668ec2fff152c48bc9cf3a137abb46bce1b71ad
-    source_path: channels/imessage.md
-    workflow: 15
+  generated_at: "2026-02-08T15:49:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b418a589547d1ef096b917d5d668ec2fff152c48bc9cf3a137abb46bce1b71ad
+  source_path: channels/imessage.md
+  workflow: 15
 ---
 
 <a id="troubleshooting-macos-privacy-and-security-tcc"></a>

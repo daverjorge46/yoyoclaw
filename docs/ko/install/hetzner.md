@@ -1,18 +1,18 @@
 ---
 read_when:
-    - 클라우드 VPS(노트북 아님)에서 연중무휴 24시간 OpenClaw를 실행하고 싶습니다.
-    - 자체 VPS에 프로덕션 등급의 상시 접속 게이트웨이가 필요합니다.
-    - 지속성, 바이너리 및 재시작 동작을 완전히 제어하고 싶습니다.
-    - Hetzner 또는 유사한 공급자의 Docker에서 OpenClaw를 실행 중입니다.
+  - 클라우드 VPS(노트북 아님)에서 연중무휴 24시간 OpenClaw를 실행하고 싶습니다.
+  - 자체 VPS에 프로덕션 등급의 상시 접속 게이트웨이가 필요합니다.
+  - 지속성, 바이너리 및 재시작 동작을 완전히 제어하고 싶습니다.
+  - Hetzner 또는 유사한 공급자의 Docker에서 OpenClaw를 실행 중입니다.
 summary: 내구성이 뛰어난 상태와 내장 바이너리를 갖춘 저렴한 Hetzner VPS(Docker)에서 연중무휴 OpenClaw Gateway를 실행하세요.
 title: 헤츠너
 x-i18n:
-    generated_at: "2026-02-08T16:05:22Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 84d9f24f1a803aa15faa52a05f25fe557ec3e2c2f48a00c701d49764bd3bc21a
-    source_path: install/hetzner.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:22Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 84d9f24f1a803aa15faa52a05f25fe557ec3e2c2f48a00c701d49764bd3bc21a
+  source_path: install/hetzner.md
+  workflow: 15
 ---
 
 # Hetzner의 OpenClaw(Docker, 프로덕션 VPS 가이드)

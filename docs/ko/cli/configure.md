@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 자격 증명, 장치 또는 에이전트 기본값을 대화형으로 조정하려는 경우
-summary: '`openclaw configure`에 대한 CLI 참조(대화형 구성 프롬프트)'
+  - 자격 증명, 장치 또는 에이전트 기본값을 대화형으로 조정하려는 경우
+summary: "`openclaw configure`에 대한 CLI 참조(대화형 구성 프롬프트)"
 title: 구성
 x-i18n:
-    generated_at: "2026-02-08T15:52:23Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9cb2bb5237b02b3a2dca71b5e43b11bd6b9939b9e4aa9ce1882457464b51efd2
-    source_path: cli/configure.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:23Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9cb2bb5237b02b3a2dca71b5e43b11bd6b9939b9e4aa9ce1882457464b51efd2
+  source_path: cli/configure.md
+  workflow: 15
 ---
 
 # `openclaw configure`

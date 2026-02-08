@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 그룹 메시지 규칙 또는 멘션 변경
+  - 그룹 메시지 규칙 또는 멘션 변경
 summary: WhatsApp 그룹 메시지 처리를 위한 동작 및 구성(멘션 패턴은 여러 표면에서 공유됨)
 title: 그룹 메시지
 x-i18n:
-    generated_at: "2026-02-08T15:46:45Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 181a72f12f5021af77c2e4c913120f711e0c0bc271d218d75cb6fe80dab675bb
-    source_path: channels/group-messages.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:45Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 181a72f12f5021af77c2e4c913120f711e0c0bc271d218d75cb6fe80dab675bb
+  source_path: channels/group-messages.md
+  workflow: 15
 ---
 
 # 그룹 메시지(WhatsApp 웹 채널)

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 외부 CLI 통합 추가 또는 변경
-    - RPC 어댑터 디버깅(signal-cli, imsg)
+  - 외부 CLI 통합 추가 또는 변경
+  - RPC 어댑터 디버깅(signal-cli, imsg)
 summary: 외부 CLI(signal-cli, 레거시 imsg) 및 게이트웨이 패턴용 RPC 어댑터
 title: RPC 어댑터
 x-i18n:
-    generated_at: "2026-02-08T16:08:03Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 06dc6b97184cc704ba4ec4a9af90502f4316bcf717c3f4925676806d8b184c57
-    source_path: reference/rpc.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:03Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 06dc6b97184cc704ba4ec4a9af90502f4316bcf717c3f4925676806d8b184c57
+  source_path: reference/rpc.md
+  workflow: 15
 ---
 
 # RPC 어댑터

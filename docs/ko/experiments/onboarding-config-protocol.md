@@ -3,12 +3,12 @@ read_when: Changing onboarding wizard steps or config schema endpoints
 summary: 온보딩 마법사 및 구성 스키마에 대한 RPC 프로토콜 참고 사항
 title: 온보딩 및 구성 프로토콜
 x-i18n:
-    generated_at: "2026-02-08T15:52:43Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 55163b3ee029c02476800cb616a054e5adfe97dae5bb72f2763dce0079851e06
-    source_path: experiments/onboarding-config-protocol.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:43Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 55163b3ee029c02476800cb616a054e5adfe97dae5bb72f2763dce0079851e06
+  source_path: experiments/onboarding-config-protocol.md
+  workflow: 15
 ---
 
 # 온보딩 + 구성 프로토콜

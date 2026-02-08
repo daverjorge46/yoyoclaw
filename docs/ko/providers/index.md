@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 모델 제공자를 선택하고 싶습니다.
-    - 지원되는 LLM 백엔드에 대한 빠른 개요가 필요합니다.
+  - 모델 제공자를 선택하고 싶습니다.
+  - 지원되는 LLM 백엔드에 대한 빠른 개요가 필요합니다.
 summary: OpenClaw에서 지원하는 모델 공급자(LLM)
 title: 모델 제공자
 x-i18n:
-    generated_at: "2026-02-08T16:01:28Z"
-    model: gtx
-    provider: google-translate
-    source_hash: af168e89983fab193b94cb1bf3e30bbfb1ec484781693a05335c8966d1141a05
-    source_path: providers/index.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:28Z"
+  model: gtx
+  provider: google-translate
+  source_hash: af168e89983fab193b94cb1bf3e30bbfb1ec484781693a05335c8966d1141a05
+  source_path: providers/index.md
+  workflow: 15
 ---
 
 # 모델 제공자

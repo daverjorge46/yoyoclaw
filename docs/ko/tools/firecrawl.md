@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Firecrawl 지원 웹 추출을 원합니다.
-    - Firecrawl API 키가 필요합니다.
-    - web_fetch에 대한 안티봇 추출을 원합니다.
+  - Firecrawl 지원 웹 추출을 원합니다.
+  - Firecrawl API 키가 필요합니다.
+  - web_fetch에 대한 안티봇 추출을 원합니다.
 summary: web_fetch에 대한 Firecrawl 대체(안티봇 + 캐시 추출)
 title: 파이어 크롤링
 x-i18n:
-    generated_at: "2026-02-08T16:05:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 08a7ad45b41af41204e44d2b0be0f980b7184d80d2fa3977339e42a47beb2851
-    source_path: tools/firecrawl.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 08a7ad45b41af41204e44d2b0be0f980b7184d80d2fa3977339e42a47beb2851
+  source_path: tools/firecrawl.md
+  workflow: 15
 ---
 
 # 파이어 크롤링

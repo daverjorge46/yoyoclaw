@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 개발 게이트웨이 템플릿 사용
-    - 기본 개발자 에이전트 ID 업데이트
+  - 개발 게이트웨이 템플릿 사용
+  - 기본 개발자 에이전트 ID 업데이트
 summary: 개발 에이전트 AGENTS.md(C-3PO)
 x-i18n:
-    generated_at: "2026-02-08T16:07:22Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3bb17ab484f02c6d08546ad4f8356d5c5b0c0e86cc4d03022734109e85dd26dc
-    source_path: reference/templates/AGENTS.dev.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:22Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3bb17ab484f02c6d08546ad4f8356d5c5b0c0e86cc4d03022734109e85dd26dc
+  source_path: reference/templates/AGENTS.dev.md
+  workflow: 15
 ---
 
 # AGENTS.md - OpenClaw 작업 공간

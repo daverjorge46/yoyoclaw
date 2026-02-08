@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Exec 도구 사용 또는 수정
-    - stdin 또는 TTY 동작 디버깅
+  - Exec 도구 사용 또는 수정
+  - stdin 또는 TTY 동작 디버깅
 summary: Exec 도구 사용, stdin 모드 및 TTY 지원
 title: 실행 도구
 x-i18n:
-    generated_at: "2026-02-08T16:12:41Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3b32238dd8dce93d4f24100eaa521ce9f8485eff6d8498e2680ce9ed6045d25f
-    source_path: tools/exec.md
-    workflow: 15
+  generated_at: "2026-02-08T16:12:41Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3b32238dd8dce93d4f24100eaa521ce9f8485eff6d8498e2680ce9ed6045d25f
+  source_path: tools/exec.md
+  workflow: 15
 ---
 
 # 실행 도구

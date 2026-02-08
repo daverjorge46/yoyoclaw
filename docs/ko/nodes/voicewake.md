@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 음성 깨우기 동작 또는 기본값 변경
-    - 깨우기 언어 동기화가 필요한 새로운 노드 플랫폼 추가
+  - 음성 깨우기 동작 또는 기본값 변경
+  - 깨우기 언어 동기화가 필요한 새로운 노드 플랫폼 추가
 summary: 전역 음성 깨우기 단어(게이트웨이 소유) 및 노드 간 동기화 방법
 title: 음성 웨이크
 x-i18n:
-    generated_at: "2026-02-08T15:58:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: eb34f52dfcdc3fc1ae088ae1f621f245546d3cf388299fbeea62face61788c37
-    source_path: nodes/voicewake.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: eb34f52dfcdc3fc1ae088ae1f621f245546d3cf388299fbeea62face61788c37
+  source_path: nodes/voicewake.md
+  workflow: 15
 ---
 
 # 음성 깨우기(글로벌 깨우기 단어)

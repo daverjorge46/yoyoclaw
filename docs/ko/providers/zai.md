@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw에서 Z.AI / GLM 모델을 원합니다.
-    - 간단한 ZAI_API_KEY 설정이 필요합니다
+  - OpenClaw에서 Z.AI / GLM 모델을 원합니다.
+  - 간단한 ZAI_API_KEY 설정이 필요합니다
 summary: OpenClaw와 함께 Z.AI(GLM 모델) 사용
 title: Z.AI
 x-i18n:
-    generated_at: "2026-02-08T16:09:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2c24bbad86cf86c38675a58e22f9e1b494f78a18fdc3051c1be80d2d9a800711
-    source_path: providers/zai.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2c24bbad86cf86c38675a58e22f9e1b494f78a18fdc3051c1be80d2d9a800711
+  source_path: providers/zai.md
+  workflow: 15
 ---
 
 # Z.AI

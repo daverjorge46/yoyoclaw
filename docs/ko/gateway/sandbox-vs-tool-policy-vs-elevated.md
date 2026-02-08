@@ -1,15 +1,15 @@
 ---
 read_when: You hit 'sandbox jail' or see a tool/elevated refusal and want the exact config key to change.
 status: active
-summary: '도구가 차단되는 이유: 샌드박스 런타임, 도구 허용/거부 정책 및 상승된 실행 게이트'
+summary: "도구가 차단되는 이유: 샌드박스 런타임, 도구 허용/거부 정책 및 상승된 실행 게이트"
 title: 샌드박스 vs 도구 정책 vs 상승
 x-i18n:
-    generated_at: "2026-02-08T15:59:53Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 863ea5e6d137dfb61f12bd686b9557d6df1fd0c13ba5f15861bf72248bc975f1
-    source_path: gateway/sandbox-vs-tool-policy-vs-elevated.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:53Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 863ea5e6d137dfb61f12bd686b9557d6df1fd0c13ba5f15861bf72248bc975f1
+  source_path: gateway/sandbox-vs-tool-policy-vs-elevated.md
+  workflow: 15
 ---
 
 # 샌드박스 vs 도구 정책 vs 상승

@@ -1,17 +1,17 @@
 ---
 description: Typed workflow runtime for OpenClaw — composable pipelines with approval gates.
 read_when:
-    - 명시적인 승인이 포함된 결정적 다단계 워크플로가 필요합니다.
-    - 이전 단계를 다시 실행하지 않고 워크플로를 재개해야 합니다.
+  - 명시적인 승인이 포함된 결정적 다단계 워크플로가 필요합니다.
+  - 이전 단계를 다시 실행하지 않고 워크플로를 재개해야 합니다.
 summary: 재개 가능한 승인 게이트가 있는 OpenClaw용 형식화된 워크플로 런타임입니다.
 title: 새우
 x-i18n:
-    generated_at: "2026-02-08T16:11:47Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e787b65558569e8a1a7237a2cd74da71c89d0c46af710e9b3229eb7d00fb055f
-    source_path: tools/lobster.md
-    workflow: 15
+  generated_at: "2026-02-08T16:11:47Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e787b65558569e8a1a7237a2cd74da71c89d0c46af710e9b3229eb7d00fb055f
+  source_path: tools/lobster.md
+  workflow: 15
 ---
 
 # 새우

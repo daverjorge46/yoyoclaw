@@ -1,17 +1,17 @@
 ---
 read_when:
-    - iOS/Android 노드를 게이트웨이에 페어링
-    - 에이전트 컨텍스트에 노드 캔버스/카메라 사용
-    - 새 노드 명령 또는 CLI 도우미 추가
-summary: '노드: 캔버스/카메라/화면/시스템에 대한 페어링, 기능, 권한 및 CLI 도우미'
+  - iOS/Android 노드를 게이트웨이에 페어링
+  - 에이전트 컨텍스트에 노드 캔버스/카메라 사용
+  - 새 노드 명령 또는 CLI 도우미 추가
+summary: "노드: 캔버스/카메라/화면/시스템에 대한 페어링, 기능, 권한 및 CLI 도우미"
 title: 노드
 x-i18n:
-    generated_at: "2026-02-08T15:58:16Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ba259b5c384b93298638872672653f6b9fcba16d224ac77919a624b118f81ded
-    source_path: nodes/index.md
-    workflow: 15
+  generated_at: "2026-02-08T15:58:16Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ba259b5c384b93298638872672653f6b9fcba16d224ac77919a624b118f81ded
+  source_path: nodes/index.md
+  workflow: 15
 ---
 
 # 노드

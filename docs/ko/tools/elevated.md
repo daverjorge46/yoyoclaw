@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 관리자 모드 기본값, 허용 목록 또는 슬래시 명령 동작 조정
+  - 관리자 모드 기본값, 허용 목록 또는 슬래시 명령 동작 조정
 summary: 상승된 exec 모드 및 /elevated 지시문
 title: 승격 모드
 x-i18n:
-    generated_at: "2026-02-08T16:03:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 83767a01609304026d145feb0aa0b0533e8cf8b16cd200f724d9e3e8cf2920c3
-    source_path: tools/elevated.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 83767a01609304026d145feb0aa0b0533e8cf8b16cd200f724d9e3e8cf2920c3
+  source_path: tools/elevated.md
+  workflow: 15
 ---
 
 # 상승 모드(/상승된 지시문)

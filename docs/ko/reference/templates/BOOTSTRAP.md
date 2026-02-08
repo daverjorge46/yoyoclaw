@@ -1,14 +1,14 @@
 ---
 read_when:
-    - 작업공간을 수동으로 부트스트래핑
+  - 작업공간을 수동으로 부트스트래핑
 summary: 신규 요원을 위한 첫 실행 의식
 x-i18n:
-    generated_at: "2026-02-08T16:10:40Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1fb8bc07eba3967f6faa5221dc1607ddba7238f5fa4d969639d0ab5adba0085d
-    source_path: reference/templates/BOOTSTRAP.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:40Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1fb8bc07eba3967f6faa5221dc1607ddba7238f5fa4d969639d0ab5adba0085d
+  source_path: reference/templates/BOOTSTRAP.md
+  workflow: 15
 ---
 
 # BOOTSTRAP.md - 안녕하세요, 세계

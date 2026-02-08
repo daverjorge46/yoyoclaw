@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Mattermost 설정
-    - Mattermost 라우팅 디버깅
+  - Mattermost 설정
+  - Mattermost 라우팅 디버깅
 summary: Mattermost 봇 설정 및 OpenClaw 구성
 title: 가장 중요한
 x-i18n:
-    generated_at: "2026-02-08T15:47:07Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 1599abf7539c51f74ecb95afeba6f969ba3c519d36f944bd1d0b94e74bc80520
-    source_path: channels/mattermost.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:07Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 1599abf7539c51f74ecb95afeba6f969ba3c519d36f944bd1d0b94e74bc80520
+  source_path: channels/mattermost.md
+  workflow: 15
 ---
 
 # Mattermost(플러그인)

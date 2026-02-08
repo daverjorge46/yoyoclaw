@@ -2,12 +2,12 @@
 description: Track outbound session mirroring refactor notes, decisions, tests, and open items.
 title: 아웃바운드 세션 미러링 리팩터링(문제
 x-i18n:
-    generated_at: "2026-02-08T16:07:50Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b88a72f36f7b6d8a71fde9d014c0a87e9a8b8b0d449b67119cf3b6f414fa2b81
-    source_path: refactor/outbound-session-mirroring.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:50Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b88a72f36f7b6d8a71fde9d014c0a87e9a8b8b0d449b67119cf3b6f414fa2b81
+  source_path: refactor/outbound-session-mirroring.md
+  workflow: 15
 ---
 
 # 아웃바운드 세션 미러링 리팩터링(문제 #1520)

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - web_search 또는 web_fetch를 활성화하고 싶습니다.
-    - Brave Search API 키 설정이 필요합니다.
-    - 웹 검색에 Perplexity Sonar를 사용하고 싶습니다.
+  - web_search 또는 web_fetch를 활성화하고 싶습니다.
+  - Brave Search API 키 설정이 필요합니다.
+  - 웹 검색에 Perplexity Sonar를 사용하고 싶습니다.
 summary: 웹 검색 + 가져오기 도구(Brave Search API, Perplexity direct/OpenRouter)
 title: 웹 도구
 x-i18n:
-    generated_at: "2026-02-08T16:08:27Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c2f5e15bc78f09f79dda8d41907b94e104952b3876f43e6000aaba1d8dcecb09
-    source_path: tools/web.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:27Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c2f5e15bc78f09f79dda8d41907b94e104952b3876f43e6000aaba1d8dcecb09
+  source_path: tools/web.md
+  workflow: 15
 ---
 
 # 웹 도구
@@ -146,7 +146,7 @@ Perplexity Sonar 모델에는 웹 검색 기능이 내장되어 있으며 AI 합
 | `perplexity/sonar-pro` (default) | Multi-step reasoning with web search | Complex questions |
 | `perplexity/sonar-reasoning-pro` | Chain-of-thought analysis            | Deep research     |
 
-## 웹_검색
+## 웹\_검색
 
 구성된 공급자를 사용하여 웹을 검색합니다.
 

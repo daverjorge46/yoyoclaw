@@ -3,12 +3,12 @@ permalink: /security/formal-verification/
 summary: OpenClaw의 가장 위험한 경로에 대한 기계 검사 보안 모델입니다.
 title: 공식 검증(보안 모델)
 x-i18n:
-    generated_at: "2026-02-08T16:11:20Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8dff6ea41a37fb6b870424e4e788015c3f8a6099075eece5dbf909883c045106
-    source_path: security/formal-verification.md
-    workflow: 15
+  generated_at: "2026-02-08T16:11:20Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8dff6ea41a37fb6b870424e4e788015c3f8a6099075eece5dbf909883c045106
+  source_path: security/formal-verification.md
+  workflow: 15
 ---
 
 # 공식 검증(보안 모델)

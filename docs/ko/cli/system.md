@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 크론 작업을 생성하지 않고 시스템 이벤트를 대기열에 추가하고 싶습니다.
-    - 하트비트를 활성화하거나 비활성화해야 합니다.
-    - 시스템 존재 항목을 검사하고 싶습니다.
-summary: '`openclaw system`에 대한 CLI 참조(시스템 이벤트, 하트비트, 존재)'
+  - 크론 작업을 생성하지 않고 시스템 이벤트를 대기열에 추가하고 싶습니다.
+  - 하트비트를 활성화하거나 비활성화해야 합니다.
+  - 시스템 존재 항목을 검사하고 싶습니다.
+summary: "`openclaw system`에 대한 CLI 참조(시스템 이벤트, 하트비트, 존재)"
 title: 체계
 x-i18n:
-    generated_at: "2026-02-08T15:51:16Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 36ae5dbdec327f5a32f7ef44bdc1f161bad69868de62f5071bb4d25a71bfdfe9
-    source_path: cli/system.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:16Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 36ae5dbdec327f5a32f7ef44bdc1f161bad69868de62f5071bb4d25a71bfdfe9
+  source_path: cli/system.md
+  workflow: 15
 ---
 
 # `openclaw system`

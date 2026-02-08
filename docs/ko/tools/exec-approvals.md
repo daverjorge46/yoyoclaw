@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 임원 승인 또는 허용 목록 구성
-    - macOS 앱에서 실행 승인 UX 구현
-    - 샌드박스 이스케이프 프롬프트 및 의미 검토
+  - 임원 승인 또는 허용 목록 구성
+  - macOS 앱에서 실행 승인 UX 구현
+  - 샌드박스 이스케이프 프롬프트 및 의미 검토
 summary: Exec 승인, 허용 목록 및 샌드박스 이스케이프 프롬프트
 title: 임원 승인
 x-i18n:
-    generated_at: "2026-02-08T16:13:26Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 66630b5d79671dd4b320cab9d018fa30c497480b955a17cb0b1c7fd609947983
-    source_path: tools/exec-approvals.md
-    workflow: 15
+  generated_at: "2026-02-08T16:13:26Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 66630b5d79671dd4b320cab9d018fa30c497480b955a17cb0b1c7fd609947983
+  source_path: tools/exec-approvals.md
+  workflow: 15
 ---
 
 # 임원 승인

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 페어링된 노드(카메라, 화면, 캔버스)를 관리하고 있습니다.
-    - 요청을 승인하거나 노드 명령을 호출해야 합니다.
-summary: '`openclaw nodes`에 대한 CLI 참조(목록/상태/승인/호출, 카메라/캔버스/화면)'
+  - 페어링된 노드(카메라, 화면, 캔버스)를 관리하고 있습니다.
+  - 요청을 승인하거나 노드 명령을 호출해야 합니다.
+summary: "`openclaw nodes`에 대한 CLI 참조(목록/상태/승인/호출, 카메라/캔버스/화면)"
 title: 노드
 x-i18n:
-    generated_at: "2026-02-08T15:50:29Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 23da6efdd659a82dbbc4afd18eb4ab1020a2892f69c28d610f912c8a799f734c
-    source_path: cli/nodes.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:29Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 23da6efdd659a82dbbc4afd18eb4ab1020a2892f69c28d610f912c8a799f734c
+  source_path: cli/nodes.md
+  workflow: 15
 ---
 
 # `openclaw nodes`

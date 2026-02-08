@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 아웃바운드 채널에 대한 마크다운 형식 또는 청크를 변경하고 있습니다.
-    - 새로운 채널 포맷터 또는 스타일 매핑을 추가하고 있습니다.
-    - 채널 전반에 걸쳐 서식 회귀를 디버깅하고 있습니다.
+  - 아웃바운드 채널에 대한 마크다운 형식 또는 청크를 변경하고 있습니다.
+  - 새로운 채널 포맷터 또는 스타일 매핑을 추가하고 있습니다.
+  - 채널 전반에 걸쳐 서식 회귀를 디버깅하고 있습니다.
 summary: 아웃바운드 채널을 위한 마크다운 형식 지정 파이프라인
 title: 마크다운 형식
 x-i18n:
-    generated_at: "2026-02-08T15:51:17Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f9cbf9b744f9a218860730f29435bcad02d3db80b1847fed5f17c063c97d4820
-    source_path: concepts/markdown-formatting.md
-    workflow: 15
+  generated_at: "2026-02-08T15:51:17Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f9cbf9b744f9a218860730f29435bcad02d3db80b1847fed5f17c063c97d4820
+  source_path: concepts/markdown-formatting.md
+  workflow: 15
 ---
 
 # 마크다운 형식

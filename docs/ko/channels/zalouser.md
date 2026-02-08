@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw용 Zalo Personal 설정
-    - Zalo 개인 로그인 또는 메시지 흐름 디버깅
+  - OpenClaw용 Zalo Personal 설정
+  - Zalo 개인 로그인 또는 메시지 흐름 디버깅
 summary: zca-cli(QR 로그인), 기능 및 구성을 통한 Zalo 개인 계정 지원
 title: Zalo 개인
 x-i18n:
-    generated_at: "2026-02-08T15:52:16Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ede847ebe62722568f8d24d0257986abaad539ecef96183ab0e83bbe6e6dc078
-    source_path: channels/zalouser.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:16Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ede847ebe62722568f8d24d0257986abaad539ecef96183ab0e83bbe6e6dc078
+  source_path: channels/zalouser.md
+  workflow: 15
 ---
 
 # Zalo 개인 (비공식)

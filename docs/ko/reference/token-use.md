@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 토큰 사용량, 비용 또는 컨텍스트 창 설명
-    - 컨텍스트 증가 또는 압축 동작 디버깅
+  - 토큰 사용량, 비용 또는 컨텍스트 창 설명
+  - 컨텍스트 증가 또는 압축 동작 디버깅
 summary: OpenClaw가 프롬프트 컨텍스트를 구축하고 토큰 사용량 + 비용을 보고하는 방법
 title: 토큰 사용 및 비용
 x-i18n:
-    generated_at: "2026-02-08T16:08:51Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f8bfadb36b51830c414e2d94810e5c3f9751fdfb8f7da1c43aa44dfb0db7672c
-    source_path: reference/token-use.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:51Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f8bfadb36b51830c414e2d94810e5c3f9751fdfb8f7da1c43aa44dfb0db7672c
+  source_path: reference/token-use.md
+  workflow: 15
 ---
 
 # 토큰 사용 및 비용

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 전역 로깅 수준을 높이지 않고 대상 디버그 로그가 필요합니다.
-    - 지원을 위해 하위 시스템별 로그를 캡처해야 합니다.
+  - 전역 로깅 수준을 높이지 않고 대상 디버그 로그가 필요합니다.
+  - 지원을 위해 하위 시스템별 로그를 캡처해야 합니다.
 summary: 대상 디버그 로그에 대한 진단 플래그
 title: 진단 플래그
 x-i18n:
-    generated_at: "2026-02-08T15:56:04Z"
-    model: gtx
-    provider: google-translate
-    source_hash: daf0eca0e6bd1cbc2c400b2e94e1698709a96b9cdba1a8cf00bd580a61829124
-    source_path: diagnostics/flags.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:04Z"
+  model: gtx
+  provider: google-translate
+  source_hash: daf0eca0e6bd1cbc2c400b2e94e1698709a96b9cdba1a8cf00bd580a61829124
+  source_path: diagnostics/flags.md
+  workflow: 15
 ---
 
 # 진단 플래그

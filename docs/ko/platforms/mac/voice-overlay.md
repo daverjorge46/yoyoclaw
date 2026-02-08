@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 음성 오버레이 동작 조정
+  - 음성 오버레이 동작 조정
 summary: 깨우기 단어와 눌러서 말하기가 겹치는 경우 음성 오버레이 수명 주기
 title: 음성 오버레이
 x-i18n:
-    generated_at: "2026-02-08T16:01:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5d32704c412295c24ae8310975a056b1df370344b8c607ffae91b91403a71b7a
-    source_path: platforms/mac/voice-overlay.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5d32704c412295c24ae8310975a056b1df370344b8c607ffae91b91403a71b7a
+  source_path: platforms/mac/voice-overlay.md
+  workflow: 15
 ---
 
 # 음성 오버레이 수명 주기(macOS)

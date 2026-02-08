@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 동일한 머신에서 둘 이상의 게이트웨이 실행
-    - 게이트웨이당 격리된 구성/상태/포트가 필요합니다.
+  - 동일한 머신에서 둘 이상의 게이트웨이 실행
+  - 게이트웨이당 격리된 구성/상태/포트가 필요합니다.
 summary: 하나의 호스트(격리, 포트 및 프로필)에서 여러 OpenClaw 게이트웨이 실행
 title: 다중 게이트웨이
 x-i18n:
-    generated_at: "2026-02-08T15:59:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 09b5035d4e5fb97c8d4596f7e23dea67224dad3b6d9e2c37ecb99840f28bd77d
-    source_path: gateway/multiple-gateways.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 09b5035d4e5fb97c8d4596f7e23dea67224dad3b6d9e2c37ecb99840f28bd77d
+  source_path: gateway/multiple-gateways.md
+  workflow: 15
 ---
 
 # 다중 게이트웨이(동일한 호스트)

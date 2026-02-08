@@ -1,16 +1,16 @@
 ---
 read_when:
-    - OpenClaw와 함께 Qwen을 사용하고 싶습니다.
-    - Qwen Coder에 대한 무료 OAuth 액세스를 원합니다.
+  - OpenClaw와 함께 Qwen을 사용하고 싶습니다.
+  - Qwen Coder에 대한 무료 OAuth 액세스를 원합니다.
 summary: OpenClaw에서 Qwen OAuth(무료 등급) 사용
 title: 퀀
 x-i18n:
-    generated_at: "2026-02-08T16:07:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 88b88e224e2fecbb1ca26e24fbccdbe25609be40b38335d0451343a5da53fdd4
-    source_path: providers/qwen.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 88b88e224e2fecbb1ca26e24fbccdbe25609be40b38335d0451343a5da53fdd4
+  source_path: providers/qwen.md
+  workflow: 15
 ---
 
 # 퀀

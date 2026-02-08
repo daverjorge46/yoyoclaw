@@ -1,14 +1,14 @@
 ---
 read_when:
-    - 작업공간을 수동으로 부트스트래핑
+  - 작업공간을 수동으로 부트스트래핑
 summary: AGENTS.md용 작업 공간 템플릿
 x-i18n:
-    generated_at: "2026-02-08T16:04:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 137c1346c44158b0688968b3b33cbc5cedcc978822e7737d21b54f67ccd7933a
-    source_path: reference/templates/AGENTS.md
-    workflow: 15
+  generated_at: "2026-02-08T16:04:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 137c1346c44158b0688968b3b33cbc5cedcc978822e7737d21b54f67ccd7933a
+  source_path: reference/templates/AGENTS.md
+  workflow: 15
 ---
 
 # AGENTS.md - 귀하의 작업 공간

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 제공자별 모델 설정 참조가 필요합니다.
-    - 모델 공급자에 대한 예제 구성 또는 CLI 온보딩 명령이 필요합니다.
+  - 제공자별 모델 설정 참조가 필요합니다.
+  - 모델 공급자에 대한 예제 구성 또는 CLI 온보딩 명령이 필요합니다.
 summary: 구성 예시 + CLI 흐름이 포함된 모델 공급자 개요
 title: 모델 제공자
 x-i18n:
-    generated_at: "2026-02-08T15:53:19Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b086e62236225de63fcc2a910c49b127641407c59e47ce35cf88b0cb60e30181
-    source_path: concepts/model-providers.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:19Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b086e62236225de63fcc2a910c49b127641407c59e47ce35cf88b0cb60e30181
+  source_path: concepts/model-providers.md
+  workflow: 15
 ---
 
 # 모델 제공자

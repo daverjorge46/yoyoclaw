@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 세션 도구 추가 또는 수정
+  - 세션 도구 추가 또는 수정
 summary: 세션 나열, 기록 가져오기, 세션 간 메시지 전송을 위한 에이전트 세션 도구
 title: 세션 도구
 x-i18n:
-    generated_at: "2026-02-08T15:54:25Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cb6e0982ebf507bcf9de4bb17719759c2b6d3e519731c845580a55279084e4c8
-    source_path: concepts/session-tool.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:25Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cb6e0982ebf507bcf9de4bb17719759c2b6d3e519731c845580a55279084e4c8
+  source_path: concepts/session-tool.md
+  workflow: 15
 ---
 
 # 세션 도구
@@ -33,7 +33,7 @@ x-i18n:
 
 `global` 그리고 `unknown` 예약된 값이며 나열되지 않습니다. 만약에 `session.scope = "global"`, 우리는 그것을 다음과 같이 별칭으로 지정합니다. `main` 발신자가 볼 수 없도록 모든 도구에 대해 `global`.
 
-## 세션_목록
+## 세션\_목록
 
 세션을 행 배열로 나열합니다.
 
@@ -66,7 +66,7 @@ x-i18n:
 - `transcriptPath` (스토어 디렉토리 + sessionId에서 파생된 최선의 경로)
 - `messages?` (때만 `messageLimit > 0`)
 
-## 세션_기록
+## 세션\_기록
 
 한 세션의 기록을 가져옵니다.
 
@@ -82,7 +82,7 @@ x-i18n:
 - 원시 기록 형식으로 메시지 배열을 반환합니다.
 - 주어진 때 `sessionId`, OpenClaw는 이를 해당 세션 키로 확인합니다(ID 누락 오류).
 
-## 세션_전송
+## 세션\_전송
 
 다른 세션에 메시지를 보냅니다.
 

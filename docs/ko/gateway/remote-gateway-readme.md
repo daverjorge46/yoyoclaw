@@ -3,12 +3,12 @@ read_when: Connecting the macOS app to a remote gateway over SSH
 summary: 원격 게이트웨이에 연결하는 OpenClaw.app용 SSH 터널 설정
 title: 원격 게이트웨이 설정
 x-i18n:
-    generated_at: "2026-02-08T15:55:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b1ae266a7cb4911b82ae3ec6cb98b1b57aca592aeb1dc8b74bbce9b0ea9dd1d1
-    source_path: gateway/remote-gateway-readme.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b1ae266a7cb4911b82ae3ec6cb98b1b57aca592aeb1dc8b74bbce9b0ea9dd1d1
+  source_path: gateway/remote-gateway-readme.md
+  workflow: 15
 ---
 
 # 원격 게이트웨이로 OpenClaw.app 실행

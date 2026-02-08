@@ -1,15 +1,15 @@
 ---
 read_when:
-    - Mac WebChat 보기 또는 루프백 포트 디버깅
+  - Mac WebChat 보기 또는 루프백 포트 디버깅
 summary: Mac 앱에 게이트웨이 WebChat을 포함하는 방법 및 이를 디버깅하는 방법
 title: 웹채팅
 x-i18n:
-    generated_at: "2026-02-08T16:08:34Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 7c425374673b817ada8961a564e254d8d1b6eb522f843d855483fe430c27dfac
-    source_path: platforms/mac/webchat.md
-    workflow: 15
+  generated_at: "2026-02-08T16:08:34Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 7c425374673b817ada8961a564e254d8d1b6eb522f843d855483fe430c27dfac
+  source_path: platforms/mac/webchat.md
+  workflow: 15
 ---
 
 # 웹챗(macOS 앱)

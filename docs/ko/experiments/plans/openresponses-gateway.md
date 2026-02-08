@@ -2,15 +2,15 @@
 last_updated: "2026-01-19"
 owner: openclaw
 status: draft
-summary: '계획: OpenResponses /v1/responses 엔드포인트를 추가하고 채팅 완료를 완전히 중단합니다.'
+summary: "계획: OpenResponses /v1/responses 엔드포인트를 추가하고 채팅 완료를 완전히 중단합니다."
 title: OpenResponses 게이트웨이 계획
 x-i18n:
-    generated_at: "2026-02-08T15:54:33Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 71a22c48397507d1648b40766a3153e420c54f2a2d5186d07e51eb3d12e4636a
-    source_path: experiments/plans/openresponses-gateway.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:33Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 71a22c48397507d1648b40766a3153e420c54f2a2d5186d07e51eb3d12e4636a
+  source_path: experiments/plans/openresponses-gateway.md
+  workflow: 15
 ---
 
 # OpenResponses 게이트웨이 통합 계획

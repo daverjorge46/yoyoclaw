@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 의사 마이그레이션 추가 또는 수정
-    - 주요 구성 변경 사항 소개
-summary: 'Doctor 명령: 상태 확인, 구성 마이그레이션 및 복구 단계'
+  - 의사 마이그레이션 추가 또는 수정
+  - 주요 구성 변경 사항 소개
+summary: "Doctor 명령: 상태 확인, 구성 마이그레이션 및 복구 단계"
 title: 의사
 x-i18n:
-    generated_at: "2026-02-08T15:54:02Z"
-    model: gtx
-    provider: google-translate
-    source_hash: df7b25f60fd08d508f4c6abfc8e7e06f29bd4bbb34c3320397f47eb72c8de83f
-    source_path: gateway/doctor.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:02Z"
+  model: gtx
+  provider: google-translate
+  source_hash: df7b25f60fd08d508f4c6abfc8e7e06f29bd4bbb34c3320397f47eb72c8de83f
+  source_path: gateway/doctor.md
+  workflow: 15
 ---
 
 # 의사
@@ -131,7 +131,7 @@ doctor를 실행하기 전에 업데이트(가져오기/리베이스/빌드)를 
 - `identity` → `agents.list[].identity`
 - `agent.*` → `agents.defaults` + `tools.*` (도구/상승된/exec/샌드박스/하위 에이전트)
 - `agent.model`/`allowedModels`/`modelAliases`/`modelFallbacks`/`imageModelFallbacks`
-   → `agents.defaults.models` + `agents.defaults.model.primary/fallbacks` + `agents.defaults.imageModel.primary/fallbacks`
+  → `agents.defaults.models` + `agents.defaults.model.primary/fallbacks` + `agents.defaults.imageModel.primary/fallbacks`
 
 ### 2b) OpenCode Zen 공급자 재정의
 

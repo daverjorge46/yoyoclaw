@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 초보자에게 친숙한 로깅 개요가 필요합니다.
-    - 로그 수준이나 형식을 구성하고 싶습니다.
-    - 문제를 해결 중이며 로그를 빠르게 찾아야 하는 경우
-summary: '로깅 개요: 파일 로그, 콘솔 출력, CLI 테일링 및 Control UI'
+  - 초보자에게 친숙한 로깅 개요가 필요합니다.
+  - 로그 수준이나 형식을 구성하고 싶습니다.
+  - 문제를 해결 중이며 로그를 빠르게 찾아야 하는 경우
+summary: "로깅 개요: 파일 로그, 콘솔 출력, CLI 테일링 및 Control UI"
 title: 벌채 반출
 x-i18n:
-    generated_at: "2026-02-08T16:03:27Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 884fcf4a906adff34d546908e22abd283cb89fe0845076cf925c72384ec3556b
-    source_path: logging.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:27Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 884fcf4a906adff34d546908e22abd283cb89fe0845076cf925c72384ec3556b
+  source_path: logging.md
+  workflow: 15
 ---
 
 # 벌채 반출

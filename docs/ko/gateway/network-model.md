@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 게이트웨이 네트워킹 모델에 대한 간략한 보기를 원합니다.
+  - 게이트웨이 네트워킹 모델에 대한 간략한 보기를 원합니다.
 summary: 게이트웨이, 노드 및 캔버스 호스트가 연결되는 방법.
 title: 네트워크 모델
 x-i18n:
-    generated_at: "2026-02-08T15:54:11Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e3508b884757ef19f425c82e891e2b07e7fd7d985413d569e55ae9b175c91f0f
-    source_path: gateway/network-model.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:11Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e3508b884757ef19f425c82e891e2b07e7fd7d985413d569e55ae9b175c91f0f
+  source_path: gateway/network-model.md
+  workflow: 15
 ---
 
 대부분의 작업은 게이트웨이(`openclaw gateway`), 단일 장기 실행

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 온보딩 마법사 실행 또는 구성
-    - 새 기계 설정
-sidebarTitle: 'Onboarding: CLI'
-summary: 'CLI 온보딩 마법사: 게이트웨이, 작업 영역, 채널 및 기술에 대한 설정 안내'
+  - 온보딩 마법사 실행 또는 구성
+  - 새 기계 설정
+sidebarTitle: "Onboarding: CLI"
+summary: "CLI 온보딩 마법사: 게이트웨이, 작업 영역, 채널 및 기술에 대한 설정 안내"
 title: 온보딩 마법사(CLI)
 x-i18n:
-    generated_at: "2026-02-08T16:06:51Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5495d951a2d78ffb74f52276cf637155c386523e04d7edb7c68998939bfa106a
-    source_path: start/wizard.md
-    workflow: 15
+  generated_at: "2026-02-08T16:06:51Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5495d951a2d78ffb74f52276cf637155c386523e04d7edb7c68998939bfa106a
+  source_path: start/wizard.md
+  workflow: 15
 ---
 
 # 온보딩 마법사(CLI)

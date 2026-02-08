@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 브라우저에서 게이트웨이를 작동하고 싶습니다.
-    - SSH 터널 없이 Tailnet 액세스를 원합니다.
+  - 브라우저에서 게이트웨이를 작동하고 싶습니다.
+  - SSH 터널 없이 Tailnet 액세스를 원합니다.
 summary: 게이트웨이(채팅, 노드, 구성)에 대한 브라우저 기반 제어 UI
 title: 컨트롤 UI
 x-i18n:
-    generated_at: "2026-02-08T16:13:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: baaaf73820f0e703826d99fbd34f87a7b486376c80d581f664a1648dbc9bca4d
-    source_path: web/control-ui.md
-    workflow: 15
+  generated_at: "2026-02-08T16:13:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: baaaf73820f0e703826d99fbd34f87a7b486376c80d581f664a1648dbc9bca4d
+  source_path: web/control-ui.md
+  workflow: 15
 ---
 
 # 컨트롤 UI(브라우저)

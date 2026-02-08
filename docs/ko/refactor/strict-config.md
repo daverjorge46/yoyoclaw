@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 구성 유효성 검사 동작 설계 또는 구현
-    - 구성 마이그레이션 또는 의사 워크플로 작업
-    - 플러그인 구성 스키마 또는 플러그인 로드 게이팅 처리
+  - 구성 유효성 검사 동작 설계 또는 구현
+  - 구성 마이그레이션 또는 의사 워크플로 작업
+  - 플러그인 구성 스키마 또는 플러그인 로드 게이팅 처리
 summary: 엄격한 구성 검증 + 의사 전용 마이그레이션
 title: 엄격한 구성 검증
 x-i18n:
-    generated_at: "2026-02-08T16:07:00Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 5bc7174a67d2234e763f21330d8fe3afebc23b2e5c728a04abcc648b453a91cc
-    source_path: refactor/strict-config.md
-    workflow: 15
+  generated_at: "2026-02-08T16:07:00Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 5bc7174a67d2234e763f21330d8fe3afebc23b2e5c728a04abcc648b453a91cc
+  source_path: refactor/strict-config.md
+  workflow: 15
 ---
 
 # 엄격한 구성 검증(의사 전용 마이그레이션)

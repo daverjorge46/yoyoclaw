@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Synthetic을 모델 공급자로 사용하고 싶습니다.
-    - 합성 API 키 또는 기본 URL 설정이 필요합니다.
+  - Synthetic을 모델 공급자로 사용하고 싶습니다.
+  - 합성 API 키 또는 기본 URL 설정이 필요합니다.
 summary: OpenClaw에서 Synthetic의 Anthropic 호환 API 사용
 title: 인조
 x-i18n:
-    generated_at: "2026-02-08T16:01:38Z"
-    model: gtx
-    provider: google-translate
-    source_hash: f3f6e3eb864661754cbe2276783c5bc96ae01cb85ee4a19c92bed7863a35a4f7
-    source_path: providers/synthetic.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:38Z"
+  model: gtx
+  provider: google-translate
+  source_hash: f3f6e3eb864661754cbe2276783c5bc96ae01cb85ee4a19c92bed7863a35a4f7
+  source_path: providers/synthetic.md
+  workflow: 15
 ---
 
 # 인조

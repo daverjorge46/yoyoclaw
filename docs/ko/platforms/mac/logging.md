@@ -1,16 +1,16 @@
 ---
 read_when:
-    - macOS 로그 캡처 또는 개인 데이터 로깅 조사
-    - 음성 깨우기/세션 수명 주기 문제 디버깅
-summary: 'OpenClaw 로깅: 롤링 진단 파일 로그 + 통합 로그 개인 정보 보호 플래그'
+  - macOS 로그 캡처 또는 개인 데이터 로깅 조사
+  - 음성 깨우기/세션 수명 주기 문제 디버깅
+summary: "OpenClaw 로깅: 롤링 진단 파일 로그 + 통합 로그 개인 정보 보호 플래그"
 title: macOS 로깅
 x-i18n:
-    generated_at: "2026-02-08T16:00:55Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c4c201d154915e0eb08bf5e32bac98fa93766f50f2a24bf56ab4424eb7781526
-    source_path: platforms/mac/logging.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:55Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c4c201d154915e0eb08bf5e32bac98fa93766f50f2a24bf56ab4424eb7781526
+  source_path: platforms/mac/logging.md
+  workflow: 15
 ---
 
 # 로깅(macOS)

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - Windows에 OpenClaw 설치
-    - Windows 도우미 앱 상태를 찾고 있습니다.
+  - Windows에 OpenClaw 설치
+  - Windows 도우미 앱 상태를 찾고 있습니다.
 summary: Windows(WSL2) 지원 + 도우미 앱 상태
 title: 윈도우(WSL2)
 x-i18n:
-    generated_at: "2026-02-08T16:05:10Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d17df1bd5636502e45697526758648520ab1d7aa04356748695bfbe572005ebd
-    source_path: platforms/windows.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:10Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d17df1bd5636502e45697526758648520ab1d7aa04356748695bfbe572005ebd
+  source_path: platforms/windows.md
+  workflow: 15
 ---
 
 # 윈도우(WSL2)

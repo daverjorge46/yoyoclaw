@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 장치 페어링 요청을 승인하고 있습니다.
-    - 기기 토큰을 순환하거나 취소해야 합니다.
-summary: '`openclaw devices`에 대한 CLI 참조(장치 페어링 + 토큰 순환/해지)'
+  - 장치 페어링 요청을 승인하고 있습니다.
+  - 기기 토큰을 순환하거나 취소해야 합니다.
+summary: "`openclaw devices`에 대한 CLI 참조(장치 페어링 + 토큰 순환/해지)"
 title: 장치
 x-i18n:
-    generated_at: "2026-02-08T15:47:44Z"
-    model: gtx
-    provider: google-translate
-    source_hash: ac7d130ecdc5d4296019529dca33145b9f359a36bc9498262f6eb04ba43ec845
-    source_path: cli/devices.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:44Z"
+  model: gtx
+  provider: google-translate
+  source_hash: ac7d130ecdc5d4296019529dca33145b9f359a36bc9498262f6eb04ba43ec845
+  source_path: cli/devices.md
+  workflow: 15
 ---
 
 # `openclaw devices`

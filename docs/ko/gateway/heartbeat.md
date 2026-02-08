@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 하트비트 주기 또는 메시지 조정
-    - 예약된 작업에 대해 하트비트와 크론 중에서 결정
+  - 하트비트 주기 또는 메시지 조정
+  - 예약된 작업에 대해 하트비트와 크론 중에서 결정
 summary: 하트비트 폴링 메시지 및 알림 규칙
 title: 하트비트
 x-i18n:
-    generated_at: "2026-02-08T15:59:08Z"
-    model: gtx
-    provider: google-translate
-    source_hash: e763caf86ef74488e925eb9555bab389ffa9e1c0b5f48da23441297f69ca5312
-    source_path: gateway/heartbeat.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:08Z"
+  model: gtx
+  provider: google-translate
+  source_hash: e763caf86ef74488e925eb9555bab389ffa9e1c0b5f48da23441297f69ca5312
+  source_path: gateway/heartbeat.md
+  workflow: 15
 ---
 
 # 하트비트(게이트웨이)
@@ -68,7 +68,7 @@ x-i18n:
   구성된 현지 시간대를 사용하여(참조 [/개념/시간대](/concepts/timezone)).
 
 매우 구체적인 작업을 수행하기 위해 하트비트를 원하는 경우(예: 'Gmail PubSub를 확인하세요.
-통계' 또는 '게이트웨이 상태 확인'), 설정 `agents.defaults.heartbeat.prompt`  (또는
+통계' 또는 '게이트웨이 상태 확인'), 설정 `agents.defaults.heartbeat.prompt` (또는
 `agents.list[].heartbeat.prompt`)을 사용자 정의 본문으로 전송합니다(문자 그대로 전송됨).
 
 ## 대응 계약

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 채널 전송이 연결되었다고 표시되지만 응답이 실패합니다.
-    - 심층 공급자 문서를 작성하기 전에 채널별 확인이 필요합니다.
+  - 채널 전송이 연결되었다고 표시되지만 응답이 실패합니다.
+  - 심층 공급자 문서를 작성하기 전에 채널별 확인이 필요합니다.
 summary: 채널별 오류 서명 및 수정을 통해 빠른 채널 수준 문제 해결
 title: 채널 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T15:50:25Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 30443f9aa52c4e0c732b12b18f69665349aaee45175c5d203fa4633cb216f5e0
-    source_path: channels/troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T15:50:25Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 30443f9aa52c4e0c732b12b18f69665349aaee45175c5d203fa4633cb216f5e0
+  source_path: channels/troubleshooting.md
+  workflow: 15
 ---
 
 # 채널 문제 해결

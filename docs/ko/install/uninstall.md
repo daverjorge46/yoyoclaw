@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 기계에서 OpenClaw를 제거하고 싶습니다.
-    - 제거 후에도 게이트웨이 서비스가 계속 실행 중입니다.
+  - 기계에서 OpenClaw를 제거하고 싶습니다.
+  - 제거 후에도 게이트웨이 서비스가 계속 실행 중입니다.
 summary: OpenClaw를 완전히 제거합니다(CLI, 서비스, 상태, 작업 공간).
 title: 제거
 x-i18n:
-    generated_at: "2026-02-08T16:02:27Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6673a755c5e1f90a807dd8ac92a774cff6d1bc97d125c75e8bf72a40e952a777
-    source_path: install/uninstall.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:27Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6673a755c5e1f90a807dd8ac92a774cff6d1bc97d125c75e8bf72a40e952a777
+  source_path: install/uninstall.md
+  workflow: 15
 ---
 
 # 제거

@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 게이트웨이 수명주기와 Mac 앱 통합
+  - 게이트웨이 수명주기와 Mac 앱 통합
 summary: macOS의 게이트웨이 수명 주기(launchd)
 title: 게이트웨이 수명주기
 x-i18n:
-    generated_at: "2026-02-08T15:59:43Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 9b910f574b723bc194ac663a5168e48d95f55cb468ce34c595d8ca60d3463c6a
-    source_path: platforms/mac/child-process.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:43Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 9b910f574b723bc194ac663a5168e48d95f55cb468ce34c595d8ca60d3463c6a
+  source_path: platforms/mac/child-process.md
+  workflow: 15
 ---
 
 # macOS의 게이트웨이 수명 주기

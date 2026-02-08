@@ -5,12 +5,12 @@ status: complete
 summary: cron.add 입력 처리 강화, 스키마 정렬, cron UI/에이전트 도구 개선
 title: 크론 강화 강화
 x-i18n:
-    generated_at: "2026-02-08T15:57:15Z"
-    model: gtx
-    provider: google-translate
-    source_hash: d7e469674bd9435b846757ea0d5dc8f174eaa8533917fc013b1ef4f82859496d
-    source_path: experiments/plans/cron-add-hardening.md
-    workflow: 15
+  generated_at: "2026-02-08T15:57:15Z"
+  model: gtx
+  provider: google-translate
+  source_hash: d7e469674bd9435b846757ea0d5dc8f174eaa8533917fc013b1ef4f82859496d
+  source_path: experiments/plans/cron-add-hardening.md
+  workflow: 15
 ---
 
 # Cron 강화 및 스키마 정렬 추가

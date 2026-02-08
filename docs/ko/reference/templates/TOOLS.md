@@ -1,14 +1,14 @@
 ---
 read_when:
-    - 작업공간을 수동으로 부트스트래핑
+  - 작업공간을 수동으로 부트스트래핑
 summary: TOOLS.md용 작업 공간 템플릿
 x-i18n:
-    generated_at: "2026-02-08T16:02:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 3ed08cd537620749c40ab363f5db40a058d8ddab4d0192a1f071edbfcf37a739
-    source_path: reference/templates/TOOLS.md
-    workflow: 15
+  generated_at: "2026-02-08T16:02:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 3ed08cd537620749c40ab363f5db40a058d8ddab4d0192a1f071edbfcf37a739
+  source_path: reference/templates/TOOLS.md
+  workflow: 15
 ---
 
 # TOOLS.md - 로컬 메모

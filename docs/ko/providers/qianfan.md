@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 많은 LLM에 대해 단일 API 키가 필요합니다.
-    - Baidu Qianfan 설정 안내가 필요합니다.
+  - 많은 LLM에 대해 단일 API 키가 필요합니다.
+  - Baidu Qianfan 설정 안내가 필요합니다.
 summary: Qianfan의 통합 API를 사용하여 OpenClaw의 다양한 모델에 액세스
 title: 첸판
 x-i18n:
-    generated_at: "2026-02-08T16:01:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2ca710b422f190b65d23db51a3219f0abd67074fb385251efeca6eae095d02e0
-    source_path: providers/qianfan.md
-    workflow: 15
+  generated_at: "2026-02-08T16:01:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2ca710b422f190b65d23db51a3219f0abd67074fb385251efeca6eae095d02e0
+  source_path: providers/qianfan.md
+  workflow: 15
 ---
 
 # Qianfan 제공업체 가이드

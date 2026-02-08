@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 오디오 첨부를 위해 Deepgram 음성-텍스트 변환을 원합니다.
-    - 빠른 Deepgram 구성 예제가 필요합니다
+  - 오디오 첨부를 위해 Deepgram 음성-텍스트 변환을 원합니다.
+  - 빠른 Deepgram 구성 예제가 필요합니다
 summary: 인바운드 음성 메모에 대한 Deepgram 전사
 title: 딥그램
 x-i18n:
-    generated_at: "2026-02-08T16:00:42Z"
-    model: gtx
-    provider: google-translate
-    source_hash: dabd1f6942c339fbd744fbf38040b6a663b06ddf4d9c9ee31e3ac034de9e79d9
-    source_path: providers/deepgram.md
-    workflow: 15
+  generated_at: "2026-02-08T16:00:42Z"
+  model: gtx
+  provider: google-translate
+  source_hash: dabd1f6942c339fbd744fbf38040b6a663b06ddf4d9c9ee31e3ac034de9e79d9
+  source_path: providers/deepgram.md
+  workflow: 15
 ---
 
 # Deepgram(오디오 전사)

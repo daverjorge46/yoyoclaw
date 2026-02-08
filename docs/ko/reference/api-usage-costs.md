@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 유료 API를 호출할 수 있는 기능을 이해하고 싶습니다.
-    - 키, 비용, 사용량 가시성을 감사해야 합니다.
-    - /status 또는 /usage 비용 보고를 설명하고 있습니다.
+  - 유료 API를 호출할 수 있는 기능을 이해하고 싶습니다.
+  - 키, 비용, 사용량 가시성을 감사해야 합니다.
+  - /status 또는 /usage 비용 보고를 설명하고 있습니다.
 summary: 무엇이 돈을 쓸 수 있는지, 어떤 키가 사용되는지, 사용량을 보는 방법을 감사합니다.
 title: API 사용량 및 비용
 x-i18n:
-    generated_at: "2026-02-08T16:10:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 908bfc17811b8f4b009db1a29ec2a4d76d86e8142f041434a8a784f01702f4c3
-    source_path: reference/api-usage-costs.md
-    workflow: 15
+  generated_at: "2026-02-08T16:10:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 908bfc17811b8f4b009db1a29ec2a4d76d86e8142f041434a8a784f01702f4c3
+  source_path: reference/api-usage-costs.md
+  workflow: 15
 ---
 
 # API 사용량 및 비용

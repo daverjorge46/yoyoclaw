@@ -1,15 +1,15 @@
 ---
 read_when:
-    - 자동 응답 실행 또는 동시성 변경
+  - 자동 응답 실행 또는 동시성 변경
 summary: 인바운드 자동 응답 실행을 직렬화하는 명령 대기열 설계
 title: 명령 대기열
 x-i18n:
-    generated_at: "2026-02-08T15:56:30Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 2104c24d200fb4f9620e52a19255cd614ababe19d78f3ee42936dc6d0499b73b
-    source_path: concepts/queue.md
-    workflow: 15
+  generated_at: "2026-02-08T15:56:30Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 2104c24d200fb4f9620e52a19255cd614ababe19d78f3ee42936dc6d0499b73b
+  source_path: concepts/queue.md
+  workflow: 15
 ---
 
 # 명령 대기열(2026-01-16)

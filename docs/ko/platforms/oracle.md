@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Oracle Cloud에서 OpenClaw 설정
-    - OpenClaw를 위한 저렴한 VPS 호스팅을 찾고 있습니다.
-    - 소규모 서버에서 연중무휴 OpenClaw를 원함
+  - Oracle Cloud에서 OpenClaw 설정
+  - OpenClaw를 위한 저렴한 VPS 호스팅을 찾고 있습니다.
+  - 소규모 서버에서 연중무휴 OpenClaw를 원함
 summary: Oracle Cloud의 OpenClaw(항상 무료 ARM)
 title: 오라클 클라우드
 x-i18n:
-    generated_at: "2026-02-08T16:05:56Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 8ec927ab5055c915fda464458f85bfb96151967c3b7cd1b1fd2b2f156110fc6d
-    source_path: platforms/oracle.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:56Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 8ec927ab5055c915fda464458f85bfb96151967c3b7cd1b1fd2b2f156110fc6d
+  source_path: platforms/oracle.md
+  workflow: 15
 ---
 
 # Oracle Cloud(OCI)의 OpenClaw

@@ -1,16 +1,16 @@
 ---
 read_when:
-    - DigitalOcean에서 OpenClaw 설정
-    - OpenClaw용 저렴한 VPS 호스팅을 찾고 있습니다.
+  - DigitalOcean에서 OpenClaw 설정
+  - OpenClaw용 저렴한 VPS 호스팅을 찾고 있습니다.
 summary: DigitalOcean의 OpenClaw(간단한 유료 VPS 옵션)
 title: 디지털오션
 x-i18n:
-    generated_at: "2026-02-08T15:59:39Z"
-    model: gtx
-    provider: google-translate
-    source_hash: bacdea3a44bc663d467b2ca4f8c3062407bf25c1600a9f9000436207e858f2f0
-    source_path: platforms/digitalocean.md
-    workflow: 15
+  generated_at: "2026-02-08T15:59:39Z"
+  model: gtx
+  provider: google-translate
+  source_hash: bacdea3a44bc663d467b2ca4f8c3062407bf25c1600a9f9000436207e858f2f0
+  source_path: platforms/digitalocean.md
+  workflow: 15
 ---
 
 # DigitalOcean의 OpenClaw

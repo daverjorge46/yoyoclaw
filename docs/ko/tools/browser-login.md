@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 브라우저 자동화를 위해서는 사이트에 로그인해야 합니다
-    - X/Twitter에 업데이트를 게시하고 싶습니다.
+  - 브라우저 자동화를 위해서는 사이트에 로그인해야 합니다
+  - X/Twitter에 업데이트를 게시하고 싶습니다.
 summary: 브라우저 자동화를 위한 수동 로그인 + X/Twitter 게시
 title: 브라우저 로그인
 x-i18n:
-    generated_at: "2026-02-08T16:05:05Z"
-    model: gtx
-    provider: google-translate
-    source_hash: c30faa9da6c6ef70ab8ee7dd9835572d8b16efd3ac3b99c2f55d25f798564ee9
-    source_path: tools/browser-login.md
-    workflow: 15
+  generated_at: "2026-02-08T16:05:05Z"
+  model: gtx
+  provider: google-translate
+  source_hash: c30faa9da6c6ef70ab8ee7dd9835572d8b16efd3ac3b99c2f55d25f798564ee9
+  source_path: tools/browser-login.md
+  workflow: 15
 ---
 
 # 브라우저 로그인 + X/Twitter 포스팅

@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 모델 CLI 추가 또는 수정(모델 목록/설정/스캔/별칭/폴백)
-    - 모델 대체 동작 또는 선택 UX 변경
-    - 모델 스캔 프로브 업데이트(도구/이미지)
-summary: '모델 CLI: 목록, 설정, 별칭, 대체, 스캔, 상태'
+  - 모델 CLI 추가 또는 수정(모델 목록/설정/스캔/별칭/폴백)
+  - 모델 대체 동작 또는 선택 UX 변경
+  - 모델 스캔 프로브 업데이트(도구/이미지)
+summary: "모델 CLI: 목록, 설정, 별칭, 대체, 스캔, 상태"
 title: 모델 CLI
 x-i18n:
-    generated_at: "2026-02-08T15:54:59Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 13e17a306245e0cc24914b24c6d20437e35c16944f379bf92af8e7f0d5b0287f
-    source_path: concepts/models.md
-    workflow: 15
+  generated_at: "2026-02-08T15:54:59Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 13e17a306245e0cc24914b24c6d20437e35c16944f379bf92af8e7f0d5b0287f
+  source_path: concepts/models.md
+  workflow: 15
 ---
 
 # 모델 CLI

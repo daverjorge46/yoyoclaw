@@ -1,17 +1,17 @@
 ---
 read_when:
-    - DM 접근 제어 설정
-    - 새로운 iOS/Android 노드 페어링
-    - OpenClaw 보안 상태 검토
-summary: '페어링 개요: 나에게 DM을 보낼 수 있는 사람 + 참여할 수 있는 노드 승인'
+  - DM 접근 제어 설정
+  - 새로운 iOS/Android 노드 페어링
+  - OpenClaw 보안 상태 검토
+summary: "페어링 개요: 나에게 DM을 보낼 수 있는 사람 + 참여할 수 있는 노드 승인"
 title: 편성
 x-i18n:
-    generated_at: "2026-02-08T15:47:57Z"
-    model: gtx
-    provider: google-translate
-    source_hash: cc6ce9c71db6d96db778d29501c5a9887f460c5a52511dd0e3925867da398d8f
-    source_path: channels/pairing.md
-    workflow: 15
+  generated_at: "2026-02-08T15:47:57Z"
+  model: gtx
+  provider: google-translate
+  source_hash: cc6ce9c71db6d96db778d29501c5a9887f460c5a52511dd0e3925867da398d8f
+  source_path: channels/pairing.md
+  workflow: 15
 ---
 
 # 편성

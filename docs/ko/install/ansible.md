@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 보안 강화를 통해 자동화된 서버 배포를 원합니다.
-    - VPN 액세스가 포함된 방화벽 격리 설정이 필요합니다.
-    - 원격 Debian/Ubuntu 서버에 배포 중입니다.
+  - 보안 강화를 통해 자동화된 서버 배포를 원합니다.
+  - VPN 액세스가 포함된 방화벽 격리 설정이 필요합니다.
+  - 원격 Debian/Ubuntu 서버에 배포 중입니다.
 summary: Ansible, Tailscale VPN 및 방화벽 격리를 통해 자동화되고 강화된 OpenClaw 설치
 title: 앤서블
 x-i18n:
-    generated_at: "2026-02-08T15:55:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b1e1e1ea13bff37b22bc58dad4b15a2233c6492771403dff364c738504aa7159
-    source_path: install/ansible.md
-    workflow: 15
+  generated_at: "2026-02-08T15:55:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b1e1e1ea13bff37b22bc58dad4b15a2233c6492771403dff364c738504aa7159
+  source_path: install/ansible.md
+  workflow: 15
 ---
 
 # 앤서블 설치

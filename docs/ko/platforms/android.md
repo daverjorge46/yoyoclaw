@@ -1,17 +1,17 @@
 ---
 read_when:
-    - Android 노드 페어링 또는 다시 연결
-    - Android 게이트웨이 검색 또는 인증 디버깅
-    - 클라이언트 간 채팅 기록 패리티 확인
-summary: 'Android 앱(노드): 연결 Runbook + 캔버스/채팅/카메라'
+  - Android 노드 페어링 또는 다시 연결
+  - Android 게이트웨이 검색 또는 인증 디버깅
+  - 클라이언트 간 채팅 기록 패리티 확인
+summary: "Android 앱(노드): 연결 Runbook + 캔버스/채팅/카메라"
 title: 안드로이드 앱
 x-i18n:
-    generated_at: "2026-02-08T16:03:48Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 0f6aacdb2bc50354748372a6c647355221f04f3e3dc4d374aa19978d42c39b4e
-    source_path: platforms/android.md
-    workflow: 15
+  generated_at: "2026-02-08T16:03:48Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 0f6aacdb2bc50354748372a6c647355221f04f3e3dc4d374aa19978d42c39b4e
+  source_path: platforms/android.md
+  workflow: 15
 ---
 
 # Android 앱(노드)

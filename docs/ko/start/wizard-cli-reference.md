@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 온보드 오픈클로에 대한 자세한 동작이 필요합니다.
-    - 온보딩 결과를 디버깅하거나 온보딩 클라이언트를 통합하는 중입니다.
+  - 온보드 오픈클로에 대한 자세한 동작이 필요합니다.
+  - 온보딩 결과를 디버깅하거나 온보딩 클라이언트를 통합하는 중입니다.
 sidebarTitle: CLI reference
 summary: CLI 온보딩 흐름, 인증/모델 설정, 출력 및 내부에 대한 전체 참조 자료
 title: CLI 온보딩 참조
 x-i18n:
-    generated_at: "2026-02-08T16:09:21Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 20bb32d6fd95234539f93c5724e737e9eaba3981a8cf5071613c0a98f6d549d2
-    source_path: start/wizard-cli-reference.md
-    workflow: 15
+  generated_at: "2026-02-08T16:09:21Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 20bb32d6fd95234539f93c5724e737e9eaba3981a8cf5071613c0a98f6d549d2
+  source_path: start/wizard-cli-reference.md
+  workflow: 15
 ---
 
 # CLI 온보딩 참조

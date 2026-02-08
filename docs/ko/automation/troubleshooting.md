@@ -1,17 +1,17 @@
 ---
 read_when:
-    - 크론이 실행되지 않았습니다
-    - Cron이 실행되었지만 메시지가 전달되지 않았습니다.
-    - 심장 박동이 조용하거나 건너뛰는 것 같습니다.
+  - 크론이 실행되지 않았습니다
+  - Cron이 실행되었지만 메시지가 전달되지 않았습니다.
+  - 심장 박동이 조용하거나 건너뛰는 것 같습니다.
 summary: cron 및 하트비트 예약 및 전달 문제 해결
 title: 자동화 문제 해결
 x-i18n:
-    generated_at: "2026-02-08T15:46:14Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 10eca4a59119910f73ea831bfe86de8a97908bce36fcdaecd19fdd539d68e30d
-    source_path: automation/troubleshooting.md
-    workflow: 15
+  generated_at: "2026-02-08T15:46:14Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 10eca4a59119910f73ea831bfe86de8a97908bce36fcdaecd19fdd539d68e30d
+  source_path: automation/troubleshooting.md
+  workflow: 15
 ---
 
 # 자동화 문제 해결

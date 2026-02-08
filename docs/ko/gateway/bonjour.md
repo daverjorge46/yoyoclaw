@@ -1,16 +1,16 @@
 ---
 read_when:
-    - macOS/iOS에서 Bonjour 검색 문제 디버깅
-    - mDNS 서비스 유형, TXT 레코드 또는 검색 UX 변경
+  - macOS/iOS에서 Bonjour 검색 문제 디버깅
+  - mDNS 서비스 유형, TXT 레코드 또는 검색 UX 변경
 summary: Bonjour/mDNS 검색 + 디버깅(게이트웨이 비콘, 클라이언트 및 일반적인 오류 모드)
 title: 봉쥬르 디스커버리
 x-i18n:
-    generated_at: "2026-02-08T15:53:34Z"
-    model: gtx
-    provider: google-translate
-    source_hash: 6f1d676ded5a500ca012feebf06c6ae0fcf458b3a9ac570aff1076d69e7117b8
-    source_path: gateway/bonjour.md
-    workflow: 15
+  generated_at: "2026-02-08T15:53:34Z"
+  model: gtx
+  provider: google-translate
+  source_hash: 6f1d676ded5a500ca012feebf06c6ae0fcf458b3a9ac570aff1076d69e7117b8
+  source_path: gateway/bonjour.md
+  workflow: 15
 ---
 
 # 봉쥬르/mDNS 검색

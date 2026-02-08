@@ -1,16 +1,16 @@
 ---
 read_when:
-    - 에이전트 후크를 관리하고 싶습니다.
-    - 후크를 설치하거나 업데이트하고 싶습니다.
-summary: '`openclaw hooks`에 대한 CLI 참조(에이전트 후크)'
+  - 에이전트 후크를 관리하고 싶습니다.
+  - 후크를 설치하거나 업데이트하고 싶습니다.
+summary: "`openclaw hooks`에 대한 CLI 참조(에이전트 후크)"
 title: 후크
 x-i18n:
-    generated_at: "2026-02-08T15:52:37Z"
-    model: gtx
-    provider: google-translate
-    source_hash: b3cb5c4ce63c5ad3457cd771b56c30712c9b835edcd54acbac199c947ebea88b
-    source_path: cli/hooks.md
-    workflow: 15
+  generated_at: "2026-02-08T15:52:37Z"
+  model: gtx
+  provider: google-translate
+  source_hash: b3cb5c4ce63c5ad3457cd771b56c30712c9b835edcd54acbac199c947ebea88b
+  source_path: cli/hooks.md
+  workflow: 15
 ---
 
 # `openclaw hooks`
