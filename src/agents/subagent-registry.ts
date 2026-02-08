@@ -516,7 +516,6 @@ export function resetSubagentRegistryForTests(opts?: { persist?: boolean }) {
 
 export function addSubagentRunForTests(entry: SubagentRunRecord) {
   subagentRuns.set(entry.runId, entry);
-  persistSubagentRuns();
 }
 
 export function releaseSubagentRun(runId: string) {

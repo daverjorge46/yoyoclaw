@@ -30,7 +30,7 @@ type LegacySubagentRunRecord = PersistedSubagentRunRecord & {
 };
 
 export function resolveSubagentRegistryPath(): string {
-  return path.join(resolveStateDir(), "subagents", "runs.json");
+  return path.join(resolveStateDir(process.env), "subagents", "runs.json");
 }
 
 export function loadSubagentRegistryFromDisk(): Map<string, SubagentRunRecord> {
