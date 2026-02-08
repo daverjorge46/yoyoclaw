@@ -26,7 +26,10 @@ export async function dispatchInboundMessage(params: {
 
   // Trigger message:received hook before processing
   const messageBody = finalized.Body ?? finalized.RawBody ?? "";
-  if (messageBody && !messageBody.startsWith("/")) {
+  // Use same command detection field as command pipeline (BodyForCommands preferred)
+  const commandBody =
+    finalized.BodyForCommands ?? finalized.CommandBody ?? finalized.RawBody ?? finalized.Body ?? "";
+  if (messageBody && !commandBody.startsWith("/")) {
     // Don't trigger for commands (they have their own hooks)
     const hookEvent = createInternalHookEvent("message", "received", finalized.SessionKey ?? "", {
       body: messageBody,

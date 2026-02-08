@@ -3,6 +3,17 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { ReplyDispatcher } from "./reply/reply-dispatcher.js";
 import type { MsgContext } from "./templating.js";
 import * as internalHooks from "../hooks/internal-hooks.js";
+
+// Use vi.hoisted to create mock before vi.mock hoisting
+const { mockDispatchReplyFromConfig } = vi.hoisted(() => ({
+  mockDispatchReplyFromConfig: vi.fn(),
+}));
+
+vi.mock("./reply/dispatch-from-config.js", () => ({
+  dispatchReplyFromConfig: mockDispatchReplyFromConfig,
+}));
+
+// Import AFTER mock declaration
 import { dispatchInboundMessage } from "./dispatch.js";
 
 describe("dispatchInboundMessage hooks", () => {
@@ -10,6 +21,8 @@ describe("dispatchInboundMessage hooks", () => {
 
   beforeEach(() => {
     triggerSpy = vi.spyOn(internalHooks, "triggerInternalHook").mockResolvedValue();
+    mockDispatchReplyFromConfig.mockReset();
+    mockDispatchReplyFromConfig.mockResolvedValue({ kind: "ok" });
   });
 
   afterEach(() => {
@@ -31,12 +44,6 @@ describe("dispatchInboundMessage hooks", () => {
       dispatch: vi.fn(),
       waitForIdle: vi.fn().mockResolvedValue(undefined),
     };
-
-    // We're testing the hook trigger, not the full dispatch
-    // So we mock dispatchReplyFromConfig
-    vi.mock("./reply/dispatch-from-config.js", () => ({
-      dispatchReplyFromConfig: vi.fn().mockResolvedValue({ kind: "ok" }),
-    }));
 
     await dispatchInboundMessage({
       ctx,
@@ -71,9 +78,29 @@ describe("dispatchInboundMessage hooks", () => {
       waitForIdle: vi.fn().mockResolvedValue(undefined),
     };
 
-    vi.mock("./reply/dispatch-from-config.js", () => ({
-      dispatchReplyFromConfig: vi.fn().mockResolvedValue({ kind: "ok" }),
-    }));
+    await dispatchInboundMessage({
+      ctx,
+      cfg,
+      dispatcher: dispatcher as unknown as ReplyDispatcher,
+    });
+
+    expect(triggerSpy).not.toHaveBeenCalled();
+  });
+
+  it("does not trigger message:received hook for commands via BodyForCommands", async () => {
+    // Body looks normal, but BodyForCommands has a command
+    const ctx: MsgContext = {
+      Body: "some context text",
+      BodyForCommands: "/status",
+      From: "user123",
+      SessionKey: "test-session",
+    };
+
+    const cfg = {} as OpenClawConfig;
+    const dispatcher = {
+      dispatch: vi.fn(),
+      waitForIdle: vi.fn().mockResolvedValue(undefined),
+    };
 
     await dispatchInboundMessage({
       ctx,
@@ -96,10 +123,6 @@ describe("dispatchInboundMessage hooks", () => {
       dispatch: vi.fn(),
       waitForIdle: vi.fn().mockResolvedValue(undefined),
     };
-
-    vi.mock("./reply/dispatch-from-config.js", () => ({
-      dispatchReplyFromConfig: vi.fn().mockResolvedValue({ kind: "ok" }),
-    }));
 
     await dispatchInboundMessage({
       ctx,
