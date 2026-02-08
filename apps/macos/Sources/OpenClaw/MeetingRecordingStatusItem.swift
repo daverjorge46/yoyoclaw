@@ -2,7 +2,7 @@ import AppKit
 import Observation
 
 @MainActor
-final class MeetingRecordingStatusItem {
+final class MeetingRecordingStatusItem: NSObject {
     static let shared = MeetingRecordingStatusItem()
 
     private var statusItem: NSStatusItem?
@@ -31,8 +31,19 @@ final class MeetingRecordingStatusItem {
     private func show() {
         guard self.statusItem == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.action = #selector(self.clicked(_:))
-        item.button?.target = self
+
+        let menu = NSMenu()
+        let stopItem = NSMenuItem(title: "Stop Meeting Notes", action: #selector(self.stopClicked(_:)), keyEquivalent: "")
+        stopItem.target = self
+        stopItem.image = NSImage(systemSymbolName: "stop.circle.fill", accessibilityDescription: "Stop")
+        menu.addItem(stopItem)
+
+        let openItem = NSMenuItem(title: "Open Meeting Notes", action: #selector(self.openClicked(_:)), keyEquivalent: "")
+        openItem.target = self
+        openItem.image = NSImage(systemSymbolName: "list.bullet.rectangle", accessibilityDescription: "Open")
+        menu.addItem(openItem)
+
+        item.menu = menu
         self.statusItem = item
         self.updateTitle()
         self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -78,8 +89,11 @@ final class MeetingRecordingStatusItem {
         button.attributedTitle = attributed
     }
 
-    @objc private func clicked(_ sender: Any?) {
-        // Stop the meeting when clicking the timer
+    @objc private func stopClicked(_ sender: Any?) {
         Task { await MeetingDetector.shared.stopMeeting() }
+    }
+
+    @objc private func openClicked(_ sender: Any?) {
+        MeetingNotesWindowController.shared.show()
     }
 }
