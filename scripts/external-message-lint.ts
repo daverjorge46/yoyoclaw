@@ -224,6 +224,26 @@ if (jargonHits.length > 0) {
   );
 }
 
+// Commands: keep to <= 3 short lines when possible (per external messaging guardrails).
+const commandLines = lines
+  .map((line, idx) => ({ line, lineNo: idx + 1 }))
+  .filter((x) => x.line.trimStart().startsWith("$ "));
+
+if (commandLines.length > 3) {
+  const sample = commandLines
+    .slice(0, 5)
+    .map((x) => String(x.lineNo))
+    .join(", ");
+
+  add(
+    args.strict ? "error" : "warn",
+    "too-many-commands",
+    `Found ${commandLines.length} command line(s) starting with '$ ' (target is <= 3). ` +
+      `Examples on line(s): ${sample}${commandLines.length > 5 ? " ..." : ""}. ` +
+      "Consider shortening or moving extra details to follow-up text.",
+  );
+}
+
 const result = {
   ok: !issues.some((i) => i.level === "error"),
   issues,
