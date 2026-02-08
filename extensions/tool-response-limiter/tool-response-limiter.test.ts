@@ -101,7 +101,7 @@ export default {
   id: "tool-response-limiter",
   register(api) {
     const config = api.getConfig?.() || {};
-    const maxResponseSizeKb = config.maxResponseSizeKb || 50;
+    const maxResponseSizeKb = config.maxResponseSizeKb || 30;
     const exemptTools = new Set(config.exemptTools || []);
     const maxBytes = maxResponseSizeKb * 1024;
     
@@ -179,7 +179,7 @@ export default {
           allow: ["tool-response-limiter"],
           "tool-response-limiter": {
             enabled: true,
-            maxResponseSizeKb: 50,
+            maxResponseSizeKb: 30,
             exemptTools: [],
           },
         },
@@ -221,7 +221,7 @@ export default {
 
     // FIX VERIFIED: Response is now truncated
     const persistedSize = JSON.stringify(toolResult).length;
-    const expectedMaxSize = 50 * 1024; // 50KB
+    const expectedMaxSize = 30 * 1024; // 30KB
 
     console.log(
       `\n✅ FIX: Tool response truncated to ${(persistedSize / 1024).toFixed(1)} KB (from 200+ KB)`,
@@ -260,7 +260,7 @@ export default {
   register(api) {
     // Hardcode config for test
     const exemptTools = new Set(["screenshot", "image"]);
-    const maxBytes = 50 * 1024;
+    const maxBytes = 30 * 1024;
     
     function getMessageSize(message) {
       return new TextEncoder().encode(JSON.stringify(message)).length;
@@ -296,7 +296,7 @@ export default {
           allow: ["tool-response-limiter"],
           "tool-response-limiter": {
             enabled: true,
-            maxResponseSizeKb: 50,
+            maxResponseSizeKb: 30,
             exemptTools: ["screenshot", "image"],
           },
         },

@@ -8,7 +8,7 @@ import type { OpenClawPlugin } from "../../src/plugins/types.js";
  *
  * Configuration:
  * - enabled: Enable/disable the plugin (default: true)
- * - maxResponseSizeKb: Maximum size in KB (default: 50)
+ * - maxResponseSizeKb: Maximum size in KB (default: 30)
  * - exemptTools: Array of tool names to exempt from limits (default: [])
  */
 
@@ -96,7 +96,7 @@ const plugin: OpenClawPlugin = {
 
     // Default configuration
     const enabled = config.enabled !== false;
-    const maxResponseSizeKb = config.maxResponseSizeKb || 50;
+    const maxResponseSizeKb = config.maxResponseSizeKb || 30;
     const exemptTools = new Set(config.exemptTools || []);
     const maxBytes = maxResponseSizeKb * 1024;
 

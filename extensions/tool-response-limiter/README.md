@@ -14,7 +14,7 @@ This plugin automatically truncates tool responses that exceed a configurable si
 
 ## Features
 
-- **Configurable size limit**: Set maximum response size in KB (default: 50KB)
+- **Configurable size limit**: Set maximum response size in KB (default: 30KB)
 - **Tool exemptions**: Specify tools that should bypass size limits
 - **Clear truncation messages**: Responses include "[Response truncated from X to Y bytes]"
 - **Structure preservation**: Attempts to preserve message structure while truncating content
@@ -29,7 +29,7 @@ Add to your `openclaw.json`:
   "plugins": {
     "tool-response-limiter": {
       "enabled": true,
-      "maxResponseSizeKb": 50,
+      "maxResponseSizeKb": 30,
       "exemptTools": ["image", "screenshot"]
     }
   }
@@ -39,7 +39,7 @@ Add to your `openclaw.json`:
 ### Options
 
 - `enabled` (boolean, default: true): Enable or disable the plugin
-- `maxResponseSizeKb` (number, default: 50): Maximum size for tool responses in kilobytes
+- `maxResponseSizeKb` (number, default: 30): Maximum size for tool responses in kilobytes
 - `exemptTools` (array, default: []): List of tool names to exempt from size limits
 
 ## How It Works
@@ -67,9 +67,9 @@ Runs at priority 100 (high priority) to ensure it processes responses before oth
 ### After Truncation
 
 ```
-[Response with first 50KB of data...]
+[Response with first 30KB of data...]
 
-[Response truncated from 150.0 KB to ~50.0 KB]
+[Response truncated from 150.0 KB to ~30.0 KB]
 ```
 
 ## Development
