@@ -179,6 +179,8 @@ const SEMANTIC_STATS_PATH = `${SEMANTIC_DATA_DIR}/semantic_stats.json`;
 const SEMANTIC_LEARNED_PATH = `${SEMANTIC_DATA_DIR}/semantic_learned.json`;
 const RELIABILITY_STATS_PATH = `${SEMANTIC_DATA_DIR}/reliability_stats.json`;
 const RISK_APPROVALS_PATH = `${SEMANTIC_DATA_DIR}/risk_approvals.json`;
+const RISK_POLICY_PATH = `${SEMANTIC_DATA_DIR}/risk_policy.json`;
+const RISK_POLICY_STATE_PATH = `${SEMANTIC_DATA_DIR}/risk_policy_state.json`;
 const DEFAULT_LEARNED_SUCCESS_THRESHOLD = 3;
 const SENSITIVE_KEYS = ["token", "authorization", "secret", "password", "apikey", "bearer", "key"];
 const DEFAULT_HELPER_DOMAINS = [
@@ -3754,6 +3756,52 @@ type RiskApprovalEntry = {
   note?: string;
 };
 
+type RiskPolicyDecision = "auto_approve" | "confirm" | "readonly_only" | "deny";
+
+type RiskPolicyBounds = {
+  min?: number;
+  max?: number;
+  max_delta?: number;
+  allowed_modes?: string[];
+};
+
+type RiskPolicyConditions = {
+  time_window?: { start: string; end: string };
+  cooldown_seconds?: number;
+};
+
+type RiskPolicyRule = {
+  rule_id: string;
+  scope: "global" | "area" | "device" | "entity";
+  id: string;
+  domain: string;
+  action: string;
+  decision: RiskPolicyDecision;
+  bounds?: RiskPolicyBounds;
+  conditions?: RiskPolicyConditions;
+  note?: string;
+  force?: boolean;
+};
+
+type RiskPolicyDefaults = Record<string, Record<string, { decision: RiskPolicyDecision; bounds?: RiskPolicyBounds }>>;
+
+type RiskPolicy = {
+  version: number;
+  rules: RiskPolicyRule[];
+  defaults: RiskPolicyDefaults;
+};
+
+type RiskPolicyState = {
+  last_action_ts: Record<string, string>;
+};
+
+type RiskPolicyEvaluation = {
+  decision: RiskPolicyDecision;
+  reasons: string[];
+  matched_rule?: RiskPolicyRule;
+  action_key: string;
+};
+
 const loadSemanticStats = async () => {
   try {
     await ensureSemanticDataDir();
@@ -4032,6 +4080,318 @@ const recordRiskApproval = async (input: {
   };
   await saveRiskApprovals(approvals);
   return approvals[key];
+};
+
+const DEFAULT_RISK_POLICY: RiskPolicy = {
+  version: 1,
+  rules: [],
+  defaults: {
+    vacuum: {
+      start: { decision: "auto_approve" },
+      stop: { decision: "auto_approve" },
+      return_to_base: { decision: "auto_approve" },
+      pause: { decision: "auto_approve" },
+      locate: { decision: "auto_approve" },
+    },
+    climate: {
+      set_temperature: { decision: "auto_approve", bounds: { min: 18, max: 24, max_delta: 2 } },
+      set_hvac_mode: { decision: "confirm" },
+      set_preset_mode: { decision: "confirm" },
+    },
+    lock: {
+      lock: { decision: "auto_approve" },
+      unlock: { decision: "confirm" },
+    },
+    alarm_control_panel: {
+      arm_home: { decision: "confirm" },
+      arm_away: { decision: "confirm" },
+      disarm: { decision: "confirm" },
+    },
+    "*": {
+      "*": { decision: "confirm" },
+    },
+  },
+};
+
+const loadRiskPolicy = async (): Promise<RiskPolicy> => {
+  try {
+    await ensureSemanticDataDir();
+    const raw = await readFile(RISK_POLICY_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed as RiskPolicy;
+    }
+  } catch {
+    // ignore
+  }
+  await ensureSemanticDataDir();
+  await writeFile(RISK_POLICY_PATH, JSON.stringify(DEFAULT_RISK_POLICY, null, 2));
+  return DEFAULT_RISK_POLICY;
+};
+
+const saveRiskPolicy = async (policy: RiskPolicy) => {
+  await ensureSemanticDataDir();
+  await writeFile(RISK_POLICY_PATH, JSON.stringify(policy, null, 2));
+};
+
+const loadRiskPolicyState = async (): Promise<RiskPolicyState> => {
+  try {
+    await ensureSemanticDataDir();
+    const raw = await readFile(RISK_POLICY_STATE_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed as RiskPolicyState;
+    }
+  } catch {
+    // ignore
+  }
+  return { last_action_ts: {} };
+};
+
+const saveRiskPolicyState = async (state: RiskPolicyState) => {
+  await ensureSemanticDataDir();
+  await writeFile(RISK_POLICY_STATE_PATH, JSON.stringify(state, null, 2));
+};
+
+const recordRiskPolicyAction = async (entityId: string, actionKey: string) => {
+  const state = await loadRiskPolicyState();
+  state.last_action_ts[`${entityId}:${actionKey}`] = new Date().toISOString();
+  await saveRiskPolicyState(state);
+};
+
+const normalizeActionKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[-\s]+/g, "_")
+    .replace(/__+/g, "_")
+    .trim();
+
+const resolveCanonicalActionKey = (input: {
+  domain: string;
+  service: string;
+  intent?: { action?: string; property?: string };
+}) => {
+  const domain = normalizeName(input.domain);
+  const service = normalizeActionKey(input.service);
+  if (domain === "vacuum") {
+    if (service === "start") return "start";
+    if (service === "stop") return "stop";
+    if (service === "return_to_base") return "return_to_base";
+    if (service === "pause") return "pause";
+    if (service === "locate") return "locate";
+  }
+  if (domain === "climate") {
+    if (service === "set_temperature") return "set_temperature";
+    if (service === "set_hvac_mode") return "set_hvac_mode";
+    if (service === "set_preset_mode") return "set_preset_mode";
+  }
+  if (domain === "lock") {
+    if (service === "lock") return "lock";
+    if (service === "unlock") return "unlock";
+  }
+  if (domain === "alarm_control_panel") {
+    if (service === "alarm_arm_home") return "arm_home";
+    if (service === "alarm_arm_away") return "arm_away";
+    if (service === "alarm_disarm") return "disarm";
+  }
+  if (domain === "cover") {
+    if (service === "open_cover") return "open";
+    if (service === "close_cover") return "close";
+    if (service === "stop_cover") return "stop";
+    if (service === "set_cover_position") return "set_position";
+  }
+  if (service) return service;
+  return normalizeActionKey(input.intent?.action ?? "") || "unknown";
+};
+
+const normalizeRiskPolicyRule = (rule: RiskPolicyRule) => ({
+  ...rule,
+  scope: rule.scope,
+  id: rule.id,
+  domain: normalizeName(rule.domain || "*") || "*",
+  action: normalizeActionKey(rule.action || "*") || "*",
+});
+
+const resolvePolicyDefault = (policy: RiskPolicy, domain: string, actionKey: string) => {
+  const byDomain = policy.defaults[domain] ?? {};
+  return (
+    byDomain[actionKey] ??
+    byDomain["*"] ??
+    policy.defaults["*"]?.[actionKey] ??
+    policy.defaults["*"]?.["*"] ??
+    { decision: "confirm" as RiskPolicyDecision }
+  );
+};
+
+const parseTimeWindow = (value?: { start: string; end: string }) => {
+  if (!value?.start || !value?.end) return null;
+  return { start: value.start, end: value.end };
+};
+
+const withinTimeWindow = (window: { start: string; end: string }, now: Date) => {
+  const [startH, startM] = window.start.split(":").map((v) => Number(v));
+  const [endH, endM] = window.end.split(":").map((v) => Number(v));
+  if (!Number.isFinite(startH) || !Number.isFinite(startM) || !Number.isFinite(endH) || !Number.isFinite(endM)) {
+    return true;
+  }
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+  if (startMinutes <= endMinutes) {
+    return minutes >= startMinutes && minutes <= endMinutes;
+  }
+  return minutes >= startMinutes || minutes <= endMinutes;
+};
+
+const extractRequestedTemperature = (payload: Record<string, unknown>) => {
+  const temp = toNumberLoose(payload.temperature);
+  if (temp !== undefined) return temp;
+  const tempLow = toNumberLoose(payload.target_temp_low);
+  const tempHigh = toNumberLoose(payload.target_temp_high);
+  if (tempLow !== undefined && tempHigh !== undefined) return (tempLow + tempHigh) / 2;
+  return undefined;
+};
+
+const isReliabilityWeak = (entry?: ReliabilityStatsEntry) => {
+  if (!entry) return false;
+  if (entry.attempts >= 3 && entry.ok / Math.max(1, entry.attempts) < 0.6) return true;
+  if (entry.typical_verification_level === "ha_event") return true;
+  if (entry.last_result === "fail") return true;
+  return false;
+};
+
+const evaluateRiskPolicy = async (input: {
+  policy: RiskPolicy;
+  state: RiskPolicyState;
+  target: InventoryEntity;
+  actionPlan: { domain: string; service: string; payload: Record<string, unknown> };
+  intent: { action?: string; property?: string };
+  currentState: HaState | null;
+  reliabilityStats?: ReliabilityStatsEntry;
+  isReadOnly?: boolean;
+}) => {
+  const reasons: string[] = [];
+  const now = new Date();
+  const domain = normalizeName(input.actionPlan.domain);
+  const actionKey = resolveCanonicalActionKey({
+    domain: input.actionPlan.domain,
+    service: input.actionPlan.service,
+    intent: input.intent,
+  });
+
+  if (input.isReadOnly) {
+    return { decision: "auto_approve", reasons: ["read_only"], action_key: actionKey } satisfies RiskPolicyEvaluation;
+  }
+
+  const normalizedArea = normalizeName(input.target.area_name ?? "");
+  const matchesScope = (rule: RiskPolicyRule) => {
+    if (rule.scope === "global") return rule.id === "*" || rule.id === "";
+    if (rule.scope === "area") return rule.id && normalizeName(rule.id) === normalizedArea;
+    if (rule.scope === "device") return rule.id && rule.id === input.target.device_id;
+    if (rule.scope === "entity") return rule.id && rule.id === input.target.entity_id;
+    return false;
+  };
+
+  const matchesRule = (rule: RiskPolicyRule) => {
+    if (!matchesScope(rule)) return false;
+    if (rule.domain !== "*" && rule.domain !== domain) return false;
+    if (rule.action !== "*" && rule.action !== actionKey) return false;
+    return true;
+  };
+
+  const evaluateBounds = (bounds?: RiskPolicyBounds) => {
+    if (!bounds) return { ok: true, reasons: [] as string[] };
+    const boundsReasons: string[] = [];
+    const requestedTemp = extractRequestedTemperature(input.actionPlan.payload);
+    if (bounds.min !== undefined || bounds.max !== undefined || bounds.max_delta !== undefined) {
+      if (requestedTemp === undefined) {
+        boundsReasons.push("bounds:missing_value");
+      } else {
+        if (bounds.min !== undefined && requestedTemp < bounds.min) {
+          boundsReasons.push("bounds:below_min");
+        }
+        if (bounds.max !== undefined && requestedTemp > bounds.max) {
+          boundsReasons.push("bounds:above_max");
+        }
+        if (bounds.max_delta !== undefined && input.currentState) {
+          const currentTemp = toNumberLoose(
+            input.currentState.attributes?.["current_temperature"] ??
+              input.currentState.attributes?.["temperature"],
+          );
+          if (currentTemp !== undefined && Math.abs(requestedTemp - currentTemp) > bounds.max_delta) {
+            boundsReasons.push("bounds:delta_exceeded");
+          }
+        }
+      }
+    }
+    if (bounds.allowed_modes && bounds.allowed_modes.length > 0) {
+      const mode = normalizeName(String(input.actionPlan.payload.hvac_mode ?? input.actionPlan.payload.preset_mode ?? ""));
+      if (mode && !bounds.allowed_modes.some((entry) => normalizeName(entry) === mode)) {
+        boundsReasons.push("bounds:mode_not_allowed");
+      }
+    }
+    return { ok: boundsReasons.length === 0, reasons: boundsReasons };
+  };
+
+  const evaluateConditions = (conditions?: RiskPolicyConditions) => {
+    if (!conditions) return { ok: true, reasons: [] as string[] };
+    const conditionReasons: string[] = [];
+    const window = parseTimeWindow(conditions.time_window);
+    if (window && !withinTimeWindow(window, now)) {
+      conditionReasons.push("condition:outside_time_window");
+    }
+    if (conditions.cooldown_seconds) {
+      const key = `${input.target.entity_id}:${actionKey}`;
+      const lastTs = input.state.last_action_ts[key];
+      if (lastTs) {
+        const last = Date.parse(lastTs);
+        if (Number.isFinite(last)) {
+          const delta = (now.getTime() - last) / 1000;
+          if (delta < conditions.cooldown_seconds) {
+            conditionReasons.push("condition:cooldown_active");
+          }
+        }
+      }
+    }
+    return { ok: conditionReasons.length === 0, reasons: conditionReasons };
+  };
+
+  for (const rawRule of input.policy.rules) {
+    const rule = normalizeRiskPolicyRule(rawRule);
+    if (!matchesRule(rule)) continue;
+    const boundsCheck = evaluateBounds(rule.bounds);
+    const conditionCheck = evaluateConditions(rule.conditions);
+    reasons.push(`rule:${rule.rule_id}`);
+    reasons.push(...boundsCheck.reasons, ...conditionCheck.reasons);
+    let decision = rule.decision;
+    if (!boundsCheck.ok || !conditionCheck.ok) {
+      decision = "confirm";
+    }
+    if (decision === "auto_approve" && isReliabilityWeak(input.reliabilityStats) && !rule.force) {
+      return {
+        decision: "confirm",
+        reasons: [...reasons, "reliability:weak"],
+        matched_rule: rule,
+        action_key: actionKey,
+      } satisfies RiskPolicyEvaluation;
+    }
+    return { decision, reasons, matched_rule: rule, action_key: actionKey } satisfies RiskPolicyEvaluation;
+  }
+
+  const fallback = resolvePolicyDefault(input.policy, domain, actionKey);
+  const boundsCheck = (() => {
+    if (!fallback.bounds) return { ok: true, reasons: [] as string[] };
+    return evaluateBounds(fallback.bounds);
+  })();
+  reasons.push(`default:${domain}.${actionKey}`);
+  reasons.push(...boundsCheck.reasons);
+  let decision = fallback.decision;
+  if (!boundsCheck.ok) decision = "confirm";
+  if (decision === "auto_approve" && isReliabilityWeak(input.reliabilityStats)) {
+    decision = "confirm";
+    reasons.push("reliability:weak");
+  }
+  return { decision, reasons, action_key: actionKey } satisfies RiskPolicyEvaluation;
 };
 
 const resolveTargetFromSnapshot = (input: {
@@ -8229,6 +8589,314 @@ const registerTools = (api: OpenClawPluginApi) => {
 
   registerTool(
     {
+      name: "ha_risk_policy_get",
+      description: "Return the current risk policy configuration.",
+      parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      async execute() {
+        const started = Date.now();
+        try {
+          const policy = await loadRiskPolicy();
+          await traceToolCall({
+            tool: "ha_risk_policy_get",
+            durationMs: Date.now() - started,
+            ok: true,
+            endpoint: "risk_policy",
+            resultBytes: Buffer.byteLength(JSON.stringify(policy), "utf8"),
+          });
+          return textResult(
+            JSON.stringify(
+              {
+                ok: true,
+                path: RISK_POLICY_PATH,
+                policy,
+              },
+              null,
+              2,
+            ),
+          );
+        } catch (err) {
+          await traceToolCall({
+            tool: "ha_risk_policy_get",
+            durationMs: Date.now() - started,
+            ok: false,
+            endpoint: "risk_policy",
+            error: err,
+          });
+          return textResult(`HA risk_policy_get error: ${String(err)}`);
+        }
+      },
+    },
+    { optional: true },
+  );
+
+  registerTool(
+    {
+      name: "ha_risk_policy_upsert_rule",
+      description: "Add or update a risk policy rule.",
+      parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          rule_id: { type: "string" },
+          scope: { type: "string" },
+          id: { type: "string" },
+          domain: { type: "string" },
+          action: { type: "string" },
+          decision: { type: "string" },
+          bounds: { type: "object", additionalProperties: true },
+          conditions: { type: "object", additionalProperties: true },
+          note: { type: "string" },
+          force: { type: "boolean" },
+        },
+        required: ["scope", "id", "domain", "action", "decision"],
+      },
+      async execute(
+        _id: string,
+        params: {
+          rule_id?: string;
+          scope: string;
+          id: string;
+          domain: string;
+          action: string;
+          decision: string;
+          bounds?: RiskPolicyBounds;
+          conditions?: RiskPolicyConditions;
+          note?: string;
+          force?: boolean;
+        },
+      ) {
+        const started = Date.now();
+        try {
+          const policy = await loadRiskPolicy();
+          const ruleId = params.rule_id?.trim() || randomUUID();
+          const rule: RiskPolicyRule = {
+            rule_id: ruleId,
+            scope: params.scope as RiskPolicyRule["scope"],
+            id: params.id,
+            domain: params.domain,
+            action: params.action,
+            decision: params.decision as RiskPolicyDecision,
+            bounds: params.bounds,
+            conditions: params.conditions,
+            note: params.note,
+            force: params.force ?? false,
+          };
+          const idx = policy.rules.findIndex((entry) => entry.rule_id === ruleId);
+          if (idx >= 0) {
+            policy.rules[idx] = rule;
+          } else {
+            policy.rules.push(rule);
+          }
+          await saveRiskPolicy(policy);
+          await traceToolCall({
+            tool: "ha_risk_policy_upsert_rule",
+            params,
+            durationMs: Date.now() - started,
+            ok: true,
+            endpoint: "risk_policy",
+          });
+          return textResult(JSON.stringify({ ok: true, rule, path: RISK_POLICY_PATH }, null, 2));
+        } catch (err) {
+          await traceToolCall({
+            tool: "ha_risk_policy_upsert_rule",
+            params,
+            durationMs: Date.now() - started,
+            ok: false,
+            endpoint: "risk_policy",
+            error: err,
+          });
+          return textResult(`HA risk_policy_upsert_rule error: ${String(err)}`);
+        }
+      },
+    },
+    { optional: true },
+  );
+
+  registerTool(
+    {
+      name: "ha_risk_policy_set_preset",
+      description: "Apply the BOG preset risk policy defaults.",
+      parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {},
+      },
+      async execute() {
+        const started = Date.now();
+        try {
+          const policy = await loadRiskPolicy();
+          policy.defaults = DEFAULT_RISK_POLICY.defaults;
+          await saveRiskPolicy(policy);
+          await traceToolCall({
+            tool: "ha_risk_policy_set_preset",
+            durationMs: Date.now() - started,
+            ok: true,
+            endpoint: "risk_policy",
+          });
+          return textResult(JSON.stringify({ ok: true, policy, path: RISK_POLICY_PATH }, null, 2));
+        } catch (err) {
+          await traceToolCall({
+            tool: "ha_risk_policy_set_preset",
+            durationMs: Date.now() - started,
+            ok: false,
+            endpoint: "risk_policy",
+            error: err,
+          });
+          return textResult(`HA risk_policy_set_preset error: ${String(err)}`);
+        }
+      },
+    },
+    { optional: true },
+  );
+
+  registerTool(
+    {
+      name: "ha_risk_policy_explain",
+      description: "Explain how the risk policy would evaluate a target + intent.",
+      parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          target: { type: "object", additionalProperties: true },
+          intent: { type: "object", additionalProperties: true },
+          data: { type: "object", additionalProperties: true },
+        },
+        required: ["target"],
+      },
+      async execute(
+        _id: string,
+        params: {
+          target: { entity_id?: string; name?: string; area?: string; device_id?: string; domain?: string };
+          intent?: { action?: string; value?: unknown; property?: string };
+          data?: Record<string, unknown>;
+        },
+      ) {
+        const started = Date.now();
+        try {
+          const snapshot = await fetchInventorySnapshot();
+          const semanticMap = await buildSemanticMapFromSnapshot(snapshot);
+          const learnedStore = await loadLearnedSemanticMap();
+          const brain = await buildDeviceBrainResult({
+            snapshot,
+            learnedStore,
+            semanticMap: semanticMap.by_entity,
+            intentProperty: params.intent?.property ?? "",
+            target: {
+              entity_id: params.target.entity_id,
+              name: params.target.name,
+              area: params.target.area,
+              device_id: params.target.device_id,
+              domain: params.target.domain,
+            },
+          });
+          const target = brain.best ? snapshot.entities[brain.best.entity_id] : null;
+          if (!target) {
+            return textResult(JSON.stringify({ ok: false, reason: "target_not_found" }, null, 2));
+          }
+          const overrides = await loadSemanticOverrides();
+          const deviceEntities = Object.values(snapshot.entities).filter(
+            (entry) => entry.device_id && entry.device_id === target.device_id,
+          );
+          const resolution =
+            semanticMap.by_entity[target.entity_id] ??
+            buildSemanticResolution({
+              entity: target,
+              deviceEntities,
+              overrides,
+              learnedStore,
+              servicesByDomain: snapshot.services_by_domain ?? {},
+              deviceGraph: snapshot.device_graph ?? {},
+            });
+          const actionTarget = pickActionTargetEntity({
+            target,
+            resolution,
+            snapshot,
+            semanticMap: semanticMap.by_entity,
+          });
+          const actionResolution =
+            semanticMap.by_entity[actionTarget.entity_id] ??
+            buildSemanticResolution({
+              entity: actionTarget,
+              deviceEntities,
+              overrides,
+              learnedStore,
+              servicesByDomain: snapshot.services_by_domain ?? {},
+              deviceGraph: snapshot.device_graph ?? {},
+            });
+          const intent = params.intent ?? {};
+          const data = params.data ?? {};
+          const plan = buildUniversalPlan({ entity: actionTarget, resolution: actionResolution, intent, data });
+          const payload = buildServicePayload({ entity_id: [actionTarget.entity_id] }, plan.payload);
+          const normalized = await normalizeFriendlyServiceCall({
+            domain: plan.domain,
+            service: plan.service,
+            payload,
+            entityIds: [actionTarget.entity_id],
+            semanticType: actionResolution.semantic_type,
+          });
+          const primary = {
+            domain: plan.domain,
+            service: normalized.service,
+            payload: normalized.payload,
+          };
+          const currentState = await fetchEntityState(actionTarget.entity_id);
+          const policy = await loadRiskPolicy();
+          const state = await loadRiskPolicyState();
+          const reliabilityStats = await loadReliabilityStats();
+          const evalResult = await evaluateRiskPolicy({
+            policy,
+            state,
+            target: actionTarget,
+            actionPlan: primary,
+            intent,
+            currentState,
+            reliabilityStats: reliabilityStats[`${actionTarget.entity_id}:${primary.domain}.${primary.service}`],
+          });
+          await traceToolCall({
+            tool: "ha_risk_policy_explain",
+            params,
+            durationMs: Date.now() - started,
+            ok: true,
+            endpoint: "risk_policy",
+          });
+          return textResult(
+            JSON.stringify(
+              {
+                ok: true,
+                target_entity_id: target.entity_id,
+                action_entity_id: actionTarget.entity_id,
+                action_plan: primary,
+                action_key: evalResult.action_key,
+                decision: evalResult.decision,
+                reasons: evalResult.reasons,
+                matched_rule: evalResult.matched_rule ?? null,
+              },
+              null,
+              2,
+            ),
+          );
+        } catch (err) {
+          await traceToolCall({
+            tool: "ha_risk_policy_explain",
+            params,
+            durationMs: Date.now() - started,
+            ok: false,
+            endpoint: "risk_policy",
+            error: err,
+          });
+          return textResult(`HA risk_policy_explain error: ${String(err)}`);
+        }
+      },
+    },
+    { optional: true },
+  );
+
+  registerTool(
+    {
       name: "ha_inventory_report",
       description: "Generate a compact inventory report + semantic map.",
       parameters: {
@@ -8246,6 +8914,7 @@ const registerTools = (api: OpenClawPluginApi) => {
           const learnedStore = await loadLearnedSemanticMap();
           const riskApprovals = await loadRiskApprovals();
           const reliabilityStats = await loadReliabilityStats();
+          const riskPolicy = await loadRiskPolicy();
           const actionableEntries = Object.values(semanticMap.by_entity).filter(
             (entry) => !entry.non_actionable,
           );
@@ -8272,12 +8941,41 @@ const registerTools = (api: OpenClawPluginApi) => {
               reasons: entry.reasons,
               missing_signals: entry.missing_signals,
             }));
+          const riskPolicyCounts = actionableEntries.reduce(
+            (acc, entry) => {
+              const primary = entry.recommended_primary ?? "";
+              const [domain, service] = primary.split(".");
+              const actionKey = resolveCanonicalActionKey({
+                domain: domain || entry.semantic_type,
+                service: service || "",
+              });
+              const decision = resolvePolicyDefault(riskPolicy, normalizeName(domain || entry.semantic_type), actionKey).decision;
+              acc[decision] = (acc[decision] ?? 0) + 1;
+              return acc;
+            },
+            {} as Record<RiskPolicyDecision, number>,
+          );
+          const confirmDefaults = Object.entries(riskPolicy.defaults)
+            .flatMap(([domain, actions]) =>
+              Object.entries(actions)
+                .filter(([, rule]) => rule.decision === "confirm")
+                .map(([action]) => `${domain}.${action}`),
+            )
+            .filter((entry) => !entry.includes("*.") && !entry.endsWith(".*"))
+            .slice(0, 10);
           const needsOverrideLines = semanticMap.needs_override
             .slice(0, 20)
             .map((entry) => `- ${entry.entity_id}: ${entry.reason}`);
           const telemetryVacuumLines = telemetryVacuumList
             .map((entry) => `- ${entry.entity_id}: ${entry.semantic_type}`)
             .join("\n");
+          const riskPolicyLines = [
+            `- auto_approve: ${riskPolicyCounts.auto_approve ?? 0}`,
+            `- confirm: ${riskPolicyCounts.confirm ?? 0}`,
+            `- readonly_only: ${riskPolicyCounts.readonly_only ?? 0}`,
+            `- deny: ${riskPolicyCounts.deny ?? 0}`,
+          ];
+          const confirmDefaultsLines = confirmDefaults.map((entry) => `- ${entry}`);
           const report = [
             "# HA Inventory Report",
             "",
@@ -8287,6 +8985,12 @@ const registerTools = (api: OpenClawPluginApi) => {
             `Actionable Entities: ${actionableEntries.length}`,
             `Domains: ${Object.keys(snapshot.services_by_domain ?? {}).length}`,
             `NO_JEBANCI_SCORE: ${noJebanciScore}%`,
+            "",
+            "## Risk Policy Summary",
+            ...riskPolicyLines,
+            "",
+            "## Risky Actions (Confirm By Default)",
+            confirmDefaultsLines.length > 0 ? confirmDefaultsLines.join("\n") : "- none",
             "",
             "## Needs Override",
             needsOverrideLines.length > 0 ? needsOverrideLines.join("\n") : "- none",
@@ -8318,6 +9022,10 @@ const registerTools = (api: OpenClawPluginApi) => {
                 no_jebanci_score: noJebanciScore,
                 ambiguous: ambiguousList,
                 telemetry_vacuum: telemetryVacuumList,
+                risk_policy_summary: {
+                  counts: riskPolicyCounts,
+                  confirm_defaults: confirmDefaults,
+                },
                 learned_map: learnedStore,
                 risk_approvals: riskApprovals,
                 reliability_stats: reliabilityStats,
@@ -8579,7 +9287,7 @@ const registerTools = (api: OpenClawPluginApi) => {
           let reliabilityPreference: { from: string; to: string } | null = null;
           if (!explicitIntent) {
             const preferred = await pickReliableService({
-              entityId: target.entity_id,
+              entityId: actionTarget.entity_id,
               primary: { domain: plan.domain, service: plan.service },
               fallbacks: plan.fallbacks.map((fallback) => ({ domain: fallback.domain, service: fallback.service })),
             });
@@ -8597,31 +9305,6 @@ const registerTools = (api: OpenClawPluginApi) => {
                 from: `${plan.domain}.${plan.service}`,
                 to: `${preferred.domain}.${preferred.service}`,
               };
-            }
-          }
-              const actionKind = `${selectedPlan.domain}.${selectedPlan.service}`;
-              if (riskLevel === "high" && !params.force_confirm) {
-                const approved = await hasRiskApproval(actionTarget.entity_id, actionKind);
-                if (!approved) {
-                  return textResult(
-                    JSON.stringify(
-                      {
-                        ok: false,
-                        error: "confirm_required",
-                        reason: "risky_semantic",
-                        semantic: actionResolution,
-                        risk_level: riskLevel,
-                        action_kind: actionKind,
-                        action_entity_id: actionTarget.entity_id,
-                        telemetry_entities_used: telemetryEntitiesUsed,
-                        assistant_reply:
-                          "Potrebna je potvrda. Koristi ha_prepare_risky_action + ha_confirm_action.",
-                        assistant_reply_short: "Potrebna je potvrda.",
-                      },
-                  null,
-                  2,
-                ),
-              );
             }
           }
               const basePayload = buildServicePayload({ entity_id: [actionTarget.entity_id] }, selectedPlan.payload);
@@ -8694,6 +9377,115 @@ const registerTools = (api: OpenClawPluginApi) => {
                 );
               }
 
+              const riskPolicy = await loadRiskPolicy();
+              const riskPolicyState = await loadRiskPolicyState();
+              const reliabilityStatsMap = await loadReliabilityStats();
+              const riskEval = await evaluateRiskPolicy({
+                policy: riskPolicy,
+                state: riskPolicyState,
+                target: actionTarget,
+                actionPlan: { domain: primary.domain, service: primary.service, payload: primary.payload },
+                intent,
+                currentState,
+                reliabilityStats: reliabilityStatsMap[`${actionTarget.entity_id}:${primary.domain}.${primary.service}`],
+                isReadOnly: false,
+              });
+
+              if (riskEval.decision === "deny") {
+                return textResult(
+                  JSON.stringify(
+                    {
+                      ok: false,
+                      error: "denied",
+                      reason: "risk_policy_denied",
+                      target: target.entity_id,
+                      action_entity_id: actionTarget.entity_id,
+                      semantic: actionResolution,
+                      semantic_explain: {
+                        target_entity_id: target.entity_id,
+                        target_semantic: resolution,
+                        action_entity_id: actionTarget.entity_id,
+                        action_semantic: actionResolution,
+                      },
+                      telemetry_entities_used: telemetryEntitiesUsed,
+                      risk_decision: riskEval.decision,
+                      risk_reason: riskEval.reasons,
+                      risk_rule_matched: riskEval.matched_rule ?? null,
+                    },
+                    null,
+                    2,
+                  ),
+                );
+              }
+
+              if (riskEval.decision === "readonly_only") {
+                const beforeState = await fetchEntityState(actionTarget.entity_id);
+                return textResult(
+                  JSON.stringify(
+                    {
+                      ok: true,
+                      read_only: true,
+                      target: target.entity_id,
+                      action_entity_id: actionTarget.entity_id,
+                      semantic: actionResolution,
+                      semantic_explain: {
+                        target_entity_id: target.entity_id,
+                        target_semantic: resolution,
+                        action_entity_id: actionTarget.entity_id,
+                        action_semantic: actionResolution,
+                      },
+                      telemetry_entities_used: telemetryEntitiesUsed,
+                      risk_decision: riskEval.decision,
+                      risk_reason: riskEval.reasons,
+                      risk_rule_matched: riskEval.matched_rule ?? null,
+                      verification: {
+                        attempted: false,
+                        ok: true,
+                        level: "state",
+                        method: "state_poll",
+                        reason: "policy_readonly",
+                        targets: [actionTarget.entity_id],
+                        before: beforeState ? { [actionTarget.entity_id]: beforeState } : null,
+                        after: beforeState ? { [actionTarget.entity_id]: beforeState } : null,
+                      },
+                      timing,
+                    },
+                    null,
+                    2,
+                  ),
+                );
+              }
+
+              if (riskEval.decision === "confirm" && !params.force_confirm) {
+                return textResult(
+                  JSON.stringify(
+                    {
+                      ok: false,
+                      error: "confirm_required",
+                      reason: "risk_policy_confirm",
+                      target: target.entity_id,
+                      action_entity_id: actionTarget.entity_id,
+                      semantic: actionResolution,
+                      semantic_explain: {
+                        target_entity_id: target.entity_id,
+                        target_semantic: resolution,
+                        action_entity_id: actionTarget.entity_id,
+                        action_semantic: actionResolution,
+                      },
+                      telemetry_entities_used: telemetryEntitiesUsed,
+                      risk_decision: riskEval.decision,
+                      risk_reason: riskEval.reasons,
+                      risk_rule_matched: riskEval.matched_rule ?? null,
+                      assistant_reply:
+                        "Potrebna je potvrda. Koristi ha_prepare_risky_action + ha_confirm_action.",
+                      assistant_reply_short: "Potrebna je potvrda.",
+                    },
+                    null,
+                    2,
+                  ),
+                );
+              }
+
               stage.value = "execute";
               const attempts: Array<Record<string, unknown>> = [];
               const beforeState = currentState ?? (await fetchEntityState(actionTarget.entity_id));
@@ -8755,9 +9547,9 @@ const registerTools = (api: OpenClawPluginApi) => {
               const reliability =
                 Math.round(((actionResolution.confidence + capabilityScore + levelScore) / 3) * 100) / 100;
 
-          const intentLabel = `${normalizeName(intent.action ?? "")}:${normalizeName(intent.property ?? "")}`;
-          const statsKey = `${actionTarget.entity_id}:${primary.domain}.${primary.service}`;
-          const statsReason = capabilityMismatch.length > 0 ? `capability_mismatch:${capabilityMismatch.join("|")}` : result.verification.reason;
+              const intentLabel = `${normalizeName(intent.action ?? "")}:${normalizeName(intent.property ?? "")}`;
+              const statsKey = `${actionTarget.entity_id}:${primary.domain}.${primary.service}`;
+              const statsReason = capabilityMismatch.length > 0 ? `capability_mismatch:${capabilityMismatch.join("|")}` : result.verification.reason;
               stage.value = "learn";
               const stats = await updateSemanticStats(statsKey, result.verification.ok, statsReason);
               const reliabilityStats = await updateReliabilityStats({
@@ -8783,6 +9575,7 @@ const registerTools = (api: OpenClawPluginApi) => {
                 ok: result.verification.ok,
                 deviceFingerprint: actionTarget.device_fingerprint,
               });
+              await recordRiskPolicyAction(actionTarget.entity_id, riskEval.action_key);
               const learnedAlias = params.target.name
                 ? await updateLearnedAliasMap({
                     alias: params.target.name,
@@ -8841,6 +9634,9 @@ const registerTools = (api: OpenClawPluginApi) => {
                       action_semantic: actionResolution,
                     },
                     telemetry_entities_used: telemetryEntitiesUsed,
+                    risk_decision: riskEval.decision,
+                    risk_reason: riskEval.reasons,
+                    risk_rule_matched: riskEval.matched_rule ?? null,
                     plan: primary,
                     attempts,
                     fallback_used: fallbackUsed,

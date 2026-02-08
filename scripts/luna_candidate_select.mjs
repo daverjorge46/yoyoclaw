@@ -92,6 +92,8 @@ const candidates = {
   fan: pickCandidate("fan", "fan", null),
   outlet: pickCandidate("outlet", "switch") ?? pickCandidate("generic_switch", "switch"),
   vacuum: pickCandidate("vacuum", "vacuum", null),
+  climate: pickCandidate("climate", "climate", null),
+  lock: pickCandidate("lock", "lock", null),
   source: {
     snapshot: snapshotPath,
     semantic: semanticPath,

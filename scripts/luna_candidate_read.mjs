@@ -15,5 +15,8 @@ const data = JSON.parse(await readFile(argPath, "utf8"));
 const light = data.light ?? "";
 const fan = data.fan ?? "";
 const outlet = data.outlet ?? "";
+const vacuum = data.vacuum ?? "";
+const climate = data.climate ?? "";
+const lock = data.lock ?? "";
 
-process.stdout.write([light, fan, outlet].join(" "));
+process.stdout.write([light, fan, outlet, vacuum, climate, lock].join(" "));
