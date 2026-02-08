@@ -1,3 +1,10 @@
+---
+metadata:
+  openclaw:
+    events:
+      - message:received
+---
+
 # LINE 雙軌回覆系統
 
 ## 概述

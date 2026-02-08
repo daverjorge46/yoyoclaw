@@ -1,7 +1,10 @@
 ---
 name: group-context
 description: Inject group-specific context files based on channel/group config
-metadata: {"moltbot":{"events":["agent:bootstrap"]}}
+metadata:
+  openclaw:
+    events:
+      - agent:bootstrap
 enabled: true
 ---
 
@@ -20,9 +23,7 @@ In `moltbot.json`, add `contextFiles` to any group config:
       "groups": {
         "Cxxxxxx": {
           "enabled": true,
-          "contextFiles": [
-            "contexts/my-group-context.md"
-          ]
+          "contextFiles": ["contexts/my-group-context.md"]
         }
       }
     }
