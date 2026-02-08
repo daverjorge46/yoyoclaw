@@ -388,6 +388,9 @@ export async function runEmbeddedPiAgent(
       let toolResultTruncationAttempted = false;
       const usageAccumulator = createUsageAccumulator();
       let autoCompactionCount = 0;
+      // Guard: allow at most one OAuth token refresh attempt per error cycle.
+      // Reset on successful API call (markAuthProfileGood path).
+      let authRefreshAttempted = false;
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
@@ -651,6 +654,17 @@ export async function runEmbeddedPiAgent(
               };
             }
             const promptFailoverReason = classifyFailoverReason(errorText);
+            // Attempt reactive OAuth token refresh before applying cooldown on auth errors.
+            // This avoids killing single-profile OAuth sessions when the token simply expired.
+            if (promptFailoverReason === "auth" && lastProfileId && !authRefreshAttempted) {
+              authRefreshAttempted = true;
+              try {
+                await applyApiKeyInfo(lastProfileId);
+                continue; // retry with refreshed token
+              } catch {
+                // refresh failed, fall through to existing cooldown logic
+              }
+            }
             if (promptFailoverReason && promptFailoverReason !== "timeout" && lastProfileId) {
               await markAuthProfileFailure({
                 store: authStore,
@@ -733,6 +747,22 @@ export async function runEmbeddedPiAgent(
 
           // Treat timeout as potential rate limit (Antigravity hangs on rate limit)
           const shouldRotate = (!aborted && failoverFailure) || timedOut;
+
+          // Attempt reactive OAuth token refresh before applying cooldown on auth errors.
+          if (
+            shouldRotate &&
+            assistantFailoverReason === "auth" &&
+            lastProfileId &&
+            !authRefreshAttempted
+          ) {
+            authRefreshAttempted = true;
+            try {
+              await applyApiKeyInfo(lastProfileId);
+              continue; // retry with refreshed token
+            } catch {
+              // refresh failed, fall through to existing cooldown/rotation logic
+            }
+          }
 
           if (shouldRotate) {
             if (lastProfileId) {
@@ -822,6 +852,7 @@ export async function runEmbeddedPiAgent(
             `embedded run done: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - started} aborted=${aborted}`,
           );
           if (lastProfileId) {
+            authRefreshAttempted = false; // reset guard on successful API call
             await markAuthProfileGood({
               store: authStore,
               provider,
