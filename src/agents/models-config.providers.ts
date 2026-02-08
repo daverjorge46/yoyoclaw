@@ -22,6 +22,7 @@ import {
   SYNTHETIC_BASE_URL,
   SYNTHETIC_MODEL_CATALOG,
 } from "./synthetic-models.js";
+import { OLLAMA_NATIVE_BASE_URL } from "./ollama-stream.js";
 import {
   TOGETHER_BASE_URL,
   TOGETHER_MODEL_CATALOG,
@@ -79,7 +80,7 @@ const QWEN_PORTAL_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
-const OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+const OLLAMA_BASE_URL = OLLAMA_NATIVE_BASE_URL;
 const OLLAMA_API_BASE_URL = OLLAMA_BASE_URL;
 const OLLAMA_DEFAULT_CONTEXT_WINDOW = 128000;
 const OLLAMA_DEFAULT_MAX_TOKENS = 8192;
