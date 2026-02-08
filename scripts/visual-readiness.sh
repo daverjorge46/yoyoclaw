@@ -61,6 +61,9 @@ ts="$(date +%Y%m%d-%H%M%S)"
 out="/tmp/openclaw-ui-snapshot-$ts"
 mkdir -p "$out"
 
+# Persist permissions state alongside the visual artifacts (helps debug "blank" captures).
+printf "%s\n" "$perm_out" > "$out/peekaboo-permissions.txt"
+
 echo ""
 echo "== Capturing snapshot bundle =="
 # Peekaboo’s menubar command is `peekaboo menubar list` (not `peekaboo list menubar`).
