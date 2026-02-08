@@ -525,6 +525,17 @@ Slack tool actions can be gated with `channels.slack.actions.*`:
 | memberInfo   | enabled | Member info            |
 | emojiList    | enabled | Custom emoji list      |
 
+## Home Tab
+
+When a user opens the bot's **Home** tab in Slack, OpenClaw automatically publishes a Block Kit view showing:
+
+- Agent version
+- Bot identity
+- Slash command quick reference (uses your configured slash command)
+- Links to docs, GitHub, and community
+
+The view is cached per user and only re-published when the version changes (e.g., after an update or restart). No additional configuration is required — the Home Tab works out of the box as long as the Slack app manifest includes `app_home.messages_tab_enabled: true` (which is the default).
+
 ## Security notes
 
 - Writes default to the bot token so state-changing actions stay scoped to the

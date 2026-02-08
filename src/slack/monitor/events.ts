@@ -2,6 +2,7 @@ import type { ResolvedSlackAccount } from "../accounts.js";
 import type { SlackMonitorContext } from "./context.js";
 import type { SlackMessageHandler } from "./message-handler.js";
 import { registerSlackChannelEvents } from "./events/channels.js";
+import { registerSlackHomeTabEvents } from "./events/home.js";
 import { registerSlackMemberEvents } from "./events/members.js";
 import { registerSlackMessageEvents } from "./events/messages.js";
 import { registerSlackPinEvents } from "./events/pins.js";
@@ -20,4 +21,5 @@ export function registerSlackMonitorEvents(params: {
   registerSlackMemberEvents({ ctx: params.ctx });
   registerSlackChannelEvents({ ctx: params.ctx });
   registerSlackPinEvents({ ctx: params.ctx });
+  registerSlackHomeTabEvents({ ctx: params.ctx });
 }
