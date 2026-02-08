@@ -3,6 +3,7 @@ import path from "node:path";
 import type { AnyAgentTool } from "./common.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { readLatestCompactionSummary } from "../../gateway/session-utils.fs.js";
 import { isSubagentSessionKey, resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
 import { jsonResult, readStringArrayParam } from "./common.js";
 import {
@@ -13,7 +14,7 @@ import {
   resolveInternalSessionKey,
   resolveMainSessionAlias,
   type SessionListRow,
-  stripToolMessages,
+  summarizeMessages,
 } from "./sessions-helpers.js";
 
 const SessionsListToolSchema = Type.Object({
@@ -188,6 +189,13 @@ export function createSessionsListTool(opts?: {
           transcriptPath,
         };
 
+        if (sessionId && storePath) {
+          const compactionSummary = readLatestCompactionSummary(sessionId, storePath);
+          if (compactionSummary) {
+            row.summary = compactionSummary;
+          }
+        }
+
         if (messageLimit > 0) {
           const resolvedKey = resolveInternalSessionKey({
             key: displayKey,
@@ -199,8 +207,9 @@ export function createSessionsListTool(opts?: {
             params: { sessionKey: resolvedKey, limit: messageLimit },
           });
           const rawMessages = Array.isArray(history?.messages) ? history.messages : [];
-          const filtered = stripToolMessages(rawMessages);
-          row.messages = filtered.length > messageLimit ? filtered.slice(-messageLimit) : filtered;
+          const summaries = summarizeMessages(rawMessages);
+          row.messages =
+            summaries.length > messageLimit ? summaries.slice(-messageLimit) : summaries;
         }
 
         rows.push(row);
