@@ -277,7 +277,8 @@ export async function publishSlackHomeTab(
   const client = await getClient(opts);
   await client.views.publish({
     user_id: userId,
-    view: { type: "home", blocks },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Block Kit JSON built dynamically
+    view: { type: "home", blocks: blocks as any },
   });
   markHomeTabCustom(userId);
 }

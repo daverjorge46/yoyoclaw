@@ -20,8 +20,12 @@ export function formatUptime(ms: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0) parts.push(`${hours}h`);
+  if (days > 0) {
+    parts.push(`${days}d`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
   parts.push(`${minutes}m`);
   return parts.join(" ");
 }
@@ -201,7 +205,8 @@ export function registerSlackHomeTabEvents(params: { ctx: SlackMonitorContext })
           user_id: userId,
           view: {
             type: "home",
-            blocks,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Block Kit JSON built dynamically
+            blocks: blocks as any,
           },
         });
 
