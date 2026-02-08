@@ -15,7 +15,23 @@ import { formatCliCommand } from "./command-format.js";
 export function resolveBundledExtensionRootDir(
   here = path.dirname(fileURLToPath(import.meta.url)),
 ) {
+  // Step 1: Try to locate package.json (package root) and check for assets/chrome-extension there
   let current = here;
+  while (current !== path.dirname(current)) {
+    if (fs.existsSync(path.join(current, "package.json"))) {
+      const packageRoot = current;
+      const candidate = path.join(packageRoot, "assets", "chrome-extension");
+      if (hasManifest(candidate)) {
+        return candidate;
+      }
+      // Found package.json but no extension at expected path, fall through to other strategies
+      break;
+    }
+    current = path.dirname(current);
+  }
+
+  // Step 2: Walk up looking for assets/chrome-extension (original logic)
+  current = here;
   while (true) {
     const candidate = path.join(current, "assets", "chrome-extension");
     if (hasManifest(candidate)) {
@@ -28,6 +44,7 @@ export function resolveBundledExtensionRootDir(
     current = parent;
   }
 
+  // Step 3: Fall back to relative path (for dev builds)
   return path.resolve(here, "../../assets/chrome-extension");
 }
 
