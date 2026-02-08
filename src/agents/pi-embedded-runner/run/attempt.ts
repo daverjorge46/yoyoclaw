@@ -1,4 +1,4 @@
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { AgentMessage, StreamFn } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import { createAgentSession, SessionManager, SettingsManager } from "@mariozechner/pi-coding-agent";
@@ -521,11 +521,11 @@ export async function runEmbeddedAttempt(
       // Remove thinking blocks from assistant messages that also include tool calls.
       // Some OpenAI-compatible APIs reject assistant messages that include both `content` and
       // `thinking` when tool calls are present (pi-ai surfaces this as a template error).
-      const originalStreamFn = activeSession.agent.streamFn;
-      activeSession.agent.streamFn = ((model: unknown, context: unknown, options?: unknown) => {
-        const sanitized = stripThinkingFromAssistantToolCallMessages(context);
-        return (originalStreamFn as any)(model, sanitized, options);
-      }) as any;
+      const originalStreamFn = (activeSession.agent.streamFn ?? streamSimple) as StreamFn;
+      activeSession.agent.streamFn = ((model, context, options) => {
+        const sanitized = stripThinkingFromAssistantToolCallMessages(context) as typeof context;
+        return originalStreamFn(model, sanitized, options);
+      }) satisfies StreamFn;
 
       applyExtraParamsToAgent(
         activeSession.agent,
