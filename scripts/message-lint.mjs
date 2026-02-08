@@ -1,126 +1,29 @@
 #!/usr/bin/env node
 
 /**
- * scripts/message-lint.mjs
+ * scripts/message-lint.mjs (legacy wrapper)
  *
- * Lightweight linter for outbound messages destined for chat surfaces
- * (WhatsApp/Signal/etc.). Encodes the repo's "fast lint" rules from
- * BOOTSTRAP.md so humans/agents can sanity-check a draft before sending.
+ * This script is kept for backward compatibility, but the canonical implementation
+ * now lives in: scripts/external-message-lint.ts (Bun).
  *
- * Usage:
+ * Why: we previously had multiple message linters that drifted. This wrapper
+ * delegates to external-message-lint to keep rules consistent.
+ *
+ * Usage (legacy):
  *   node scripts/message-lint.mjs --file /path/to/message.txt
  *   node scripts/message-lint.mjs --text "Outcome: ..."
  */
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 
-/** @param {string} msg */
-function lintMessage(msg) {
-  /** @type {{level: "error" | "warn"; code: string; message: string}[]} */
-  const issues = [];
-
-  const text = String(msg ?? "");
-  const lines = text.replace(/\r\n/g, "\n").split("\n");
-
-  // Rule: No Markdown headings (avoid lines that start with #).
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.trimStart().startsWith("#")) {
-      issues.push({
-        level: "error",
-        code: "no_markdown_headings",
-        message: `Line ${i + 1} starts with '#'. Use plain labels like 'Outcome:' instead.`,
-      });
-      break;
-    }
-  }
-
-  // Rule: No fenced code blocks.
-  if (text.includes("```")) {
-    issues.push({
-      level: "error",
-      code: "no_code_fences",
-      message: "Message contains ``` code fences. Avoid fenced blocks for chat surfaces.",
-    });
-  }
-
-  // Rule: Max one question mark.
-  const questionCount = (text.match(/\?/g) || []).length;
-  if (questionCount > 1) {
-    issues.push({
-      level: "error",
-      code: "max_one_question",
-      message: `Message contains ${questionCount} question marks. Keep to at most 1 '?'.`,
-    });
-  }
-
-  // Rule (warn): URLs with query params often sneak in extra '?' characters.
-  // Encourage canonical URLs without '?...' so the message can still include a real question.
-  const urlWithQuery = text.match(/https?:\/\/\S+\?\S+/g) || [];
-  if (urlWithQuery.length > 0) {
-    const example = urlWithQuery[0];
-    issues.push({
-      level: "warn",
-      code: "url_has_query_params",
-      message: `Message contains a URL with '?': ${example}. Consider stripping query params to avoid accidental extra '?'s.`,
-    });
-  }
-
-  // Rule: First non-empty line should start with Outcome: or Done:
-  const firstNonEmpty = lines.find((l) => l.trim().length > 0) ?? "";
-  if (firstNonEmpty && !(firstNonEmpty.startsWith("Outcome:") || firstNonEmpty.startsWith("Done:"))) {
-    issues.push({
-      level: "error",
-      code: "starts_with_outcome",
-      message: "First non-empty line should start with 'Outcome:' (or 'Done:').",
-    });
-  }
-
-  // Rule: Commands should be short, prefixed with "$ ", and limited.
-  const commandLines = lines.filter((l) => l.startsWith("$ "));
-  if (commandLines.length > 3) {
-    issues.push({
-      level: "error",
-      code: "max_three_commands",
-      message: `Message contains ${commandLines.length} '$ ' command lines. Keep to <= 3.`,
-    });
-  }
-
-  // Heuristic: common commands missing "$ " prefix.
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trimStart();
-    if (!trimmed) continue;
-    if (trimmed.startsWith("$ ")) continue;
-    if (/^(sudo|openclaw|pnpm|bunx?|git|curl|ssh)\b/.test(trimmed)) {
-      issues.push({
-        level: "warn",
-        code: "command_missing_prefix",
-        message: `Line ${i + 1} looks like a command but doesn't start with '$ '.`,
-      });
-    }
-  }
-
-  // Soft rule: keep lines reasonably short for SMS-y clients.
-  const MAX_LEN = 110;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.length > MAX_LEN) {
-      issues.push({
-        level: "warn",
-        code: "line_too_long",
-        message: `Line ${i + 1} is ${line.length} chars (>${MAX_LEN}). Consider wrapping for readability.`,
-      });
-      // One warning is enough; avoid noisy output.
-      break;
-    }
-  }
-
-  return issues;
-}
-
 function usage() {
-  console.error("Usage:\n  node scripts/message-lint.mjs --file <path>\n  node scripts/message-lint.mjs --text <string>");
+  // Keep stderr output terse + pasteable.
+  // (Avoid Markdown headings / fenced code blocks.)
+  // eslint-disable-next-line no-console
+  console.error(
+    "Usage:\n  node scripts/message-lint.mjs --file <path>\n  node scripts/message-lint.mjs --text <string>",
+  );
   process.exit(2);
 }
 
@@ -148,6 +51,7 @@ if (!filePath && !textArg) {
 let msg = "";
 if (filePath) {
   if (!fs.existsSync(filePath)) {
+    // eslint-disable-next-line no-console
     console.error(`message-lint: file not found: ${filePath}`);
     process.exit(2);
   }
@@ -156,17 +60,60 @@ if (filePath) {
   msg = String(textArg ?? "");
 }
 
-const issues = lintMessage(msg);
+// Delegate to the canonical linter.
+const proc = spawnSync(
+  "bun",
+  ["scripts/external-message-lint.ts", "--json"],
+  {
+    input: msg,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024,
+  },
+);
+
+if (proc.error) {
+  // eslint-disable-next-line no-console
+  console.error(
+    "message-lint: failed to run Bun. Install Bun or run the canonical linter directly:\n" +
+      "  bun scripts/external-message-lint.ts\n" +
+      String(proc.error?.message ?? proc.error),
+  );
+  process.exit(2);
+}
+
+const stdout = String(proc.stdout ?? "").trim();
+let parsed;
+try {
+  parsed = stdout ? JSON.parse(stdout) : undefined;
+} catch (err) {
+  // eslint-disable-next-line no-console
+  console.error(
+    "message-lint: could not parse external-message-lint JSON output.\n" +
+      "Run directly for diagnostics:\n" +
+      "  bun scripts/external-message-lint.ts\n" +
+      String(err?.stack ?? err),
+  );
+  process.exit(2);
+}
+
+const issues = Array.isArray(parsed?.issues) ? parsed.issues : [];
 if (issues.length === 0) {
+  // Legacy behavior.
+  // eslint-disable-next-line no-console
   console.log("OK");
   process.exit(0);
 }
 
 let hasError = false;
 for (const it of issues) {
-  if (it.level === "error") hasError = true;
-  const prefix = it.level.toUpperCase();
-  console.log(`${prefix}: ${it.code}: ${it.message}`);
+  const level = String(it?.level ?? "warn");
+  const code = String(it?.code ?? "unknown");
+  const message = String(it?.message ?? "").trim();
+  if (level === "error") hasError = true;
+  const prefix = level.toUpperCase();
+  // Legacy-ish output: LEVEL: code: message
+  // eslint-disable-next-line no-console
+  console.log(`${prefix}: ${code}: ${message}`);
 }
 
 process.exit(hasError ? 1 : 0);
