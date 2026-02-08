@@ -261,8 +261,10 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
     const chatGuid = message.chat_guid ?? undefined;
     const chatIdentifier = message.chat_identifier ?? undefined;
 
+    // Try to find group config by chat_id first, then by chat_guid.
+    // This allows users to configure groups by either the numeric rowid or the stable guid.
     const groupIdCandidate = chatId !== undefined ? String(chatId) : undefined;
-    const groupListPolicy = groupIdCandidate
+    let groupListPolicy = groupIdCandidate
       ? resolveChannelGroupPolicy({
           cfg,
           channel: "imessage",
@@ -276,12 +278,28 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
           defaultConfig: undefined,
         };
 
+    // If no group config found by chat_id, try by chat_guid (more stable identifier).
+    // Users often configure groups by guid since it persists across database changes.
+    let effectiveGroupId = groupIdCandidate;
+    if (chatGuid && groupListPolicy.allowlistEnabled && !groupListPolicy.groupConfig) {
+      const guidPolicy = resolveChannelGroupPolicy({
+        cfg,
+        channel: "imessage",
+        accountId: accountInfo.accountId,
+        groupId: chatGuid,
+      });
+      if (guidPolicy.groupConfig || guidPolicy.allowed) {
+        groupListPolicy = guidPolicy;
+        effectiveGroupId = chatGuid;
+      }
+    }
+
     // Some iMessage threads can have multiple participants but still report
     // is_group=false depending on how Messages stores the identifier.
     // If the owner explicitly configures a chat_id under imessage.groups, treat
     // that thread as a "group" for permission gating and session isolation.
     const treatAsGroupByConfig = Boolean(
-      groupIdCandidate && groupListPolicy.allowlistEnabled && groupListPolicy.groupConfig,
+      effectiveGroupId && groupListPolicy.allowlistEnabled && groupListPolicy.groupConfig,
     );
 
     const isGroup = Boolean(message.is_group) || treatAsGroupByConfig;
@@ -289,7 +307,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
       return;
     }
 
-    const groupId = isGroup ? groupIdCandidate : undefined;
+    const groupId = isGroup ? effectiveGroupId : undefined;
     const storeAllowFrom = await readChannelAllowFromStore("imessage").catch(() => []);
     const effectiveDmAllowFrom = Array.from(new Set([...allowFrom, ...storeAllowFrom]))
       .map((v) => String(v).trim())
