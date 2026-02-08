@@ -1,4 +1,4 @@
-import type { SimplexControlAccountState, SimplexInviteMode } from "./app-channels.ts";
+import type { SimplexInviteMode } from "./app-channels.ts";
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus } from "./app-tool-stream.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
@@ -34,6 +34,7 @@ import type {
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { SimplexControlState } from "./views/channels.simplex-control-state.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
 export type AppViewState = {
@@ -118,7 +119,7 @@ export type AppViewState = {
   whatsappBusy: boolean;
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
-  simplexControlByAccount: Record<string, SimplexControlAccountState>;
+  simplexControlByAccount: Record<string, SimplexControlState>;
   configFormDirty: boolean;
   presenceLoading: boolean;
   presenceEntries: PresenceEntry[];

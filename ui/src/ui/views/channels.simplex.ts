@@ -68,16 +68,16 @@ export function renderSimplexCard(params: {
     const addressExists = Boolean(state?.addressLink);
     return html`
       ${
-        state?.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${state.error}
+        state?.message
+          ? html`<div class="callout" style="margin-top: 12px;">
+            ${state.message}
           </div>`
           : nothing
       }
       ${
-        state?.message
-          ? html`<div class="callout" style="margin-top: 12px;">
-            ${state.message}
+        state?.error
+          ? html`<div class="callout danger" style="margin-top: 12px;">
+            ${state.error}
           </div>`
           : nothing
       }
@@ -98,14 +98,14 @@ export function renderSimplexCard(params: {
         </button>
       </div>
       ${(() => {
-        const latest = state?.latestOneTimeInvite;
-        if (!latest) {
+        const latestLink = state?.latestOneTimeInviteLink?.trim();
+        if (!latestLink) {
           return nothing;
         }
         return renderLinkField({
           label: "1-time Link",
-          link: latest.link,
-          qrDataUrl: latest.qrDataUrl,
+          link: latestLink,
+          qrDataUrl: state?.latestOneTimeInviteQrDataUrl ?? null,
         });
       })()}
       ${
