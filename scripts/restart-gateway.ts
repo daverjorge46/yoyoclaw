@@ -28,12 +28,24 @@ async function main() {
 
   try {
     // 1. Trigger Restart (Don't wait for it to finish, as it kills the connection)
-    // We use nohup or backgrounding to ensure the restart command survives the parent shell if needed.
-    // However, 'openclaw gateway restart' usually handles its own process replacement.
-    // We just run it and catch the potential "connection lost" error.
-    exec("openclaw gateway restart");
+    // We use execAsync but don't await the result because the gateway might kill itself before returning.
+    // Instead, we just fire it and handle any immediate launch error.
+    exec("openclaw gateway restart", (error) => {
+      if (error) {
+        // This callback fires if the command fails to spawn or exits with error code.
+        // BUT: 'restart' kills the process, so an error here might just mean "connection lost", which is expected.
+        // We only care if it's a "command not found" type error.
+        if (!error.message.includes("Connection") && !error.message.includes("closed")) {
+          console.warn(
+            "⚠️ Restart command reported error (might be expected):",
+            error.message.split("\n")[0],
+          );
+        }
+      }
+    });
   } catch (e) {
-    // Ignore error here, as the command might exit abruptly due to restart
+    // Synchronous errors
+    console.error("❌ Failed to spawn restart command:", e);
   }
 
   console.log("⏳ Waiting for Gateway to come back online...");

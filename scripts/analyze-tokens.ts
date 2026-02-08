@@ -4,8 +4,12 @@ import os from "os";
 import path from "path";
 
 // Config
-const SESSIONS_DIR = path.join(os.homedir(), ".openclaw/sessions");
-const REPORT_FILE = path.join(os.homedir(), "OpenClaw/housekeeper/memory/token-report.md");
+// Support ENV overrides for robust path resolution
+const SESSIONS_DIR =
+  process.env.OPENCLAW_SESSIONS_DIR || path.join(os.homedir(), ".openclaw/sessions");
+const HOUSEKEEPER_ROOT =
+  process.env.HOUSEKEEPER_ROOT || path.join(os.homedir(), "OpenClaw/housekeeper");
+const REPORT_FILE = path.join(HOUSEKEEPER_ROOT, "memory/token-report.md");
 const LOG_LIMIT = 50; // Analyze last 50 session files
 
 interface TokenUsage {
@@ -23,9 +27,9 @@ interface SessionStats {
   costEstimate: number; // Rough estimate in USD
 }
 
-// Pricing (Approximate for calculation, e.g., Gemini Pro)
-const PRICE_INPUT_1K = 0.000125;
-const PRICE_OUTPUT_1K = 0.000375;
+// Pricing (Approximate baseline for "Smart" models like Claude 3.5 Sonnet / Gemini Pro 1.5)
+const PRICE_INPUT_1K = 0.003;
+const PRICE_OUTPUT_1K = 0.015;
 
 async function analyzeFile(filePath: string): Promise<SessionStats | null> {
   try {
@@ -140,6 +144,9 @@ ${statsList
 - **High Consumption Warning**: Sessions with > 50k tokens are flagged.
 - **Efficiency Goal**: Aim for < 2000 tokens/turn average.
 `;
+
+    // Ensure target directory exists
+    await fs.mkdir(path.dirname(REPORT_FILE), { recursive: true });
 
     await fs.writeFile(REPORT_FILE, report);
     console.log(`✅ Report generated at: ${REPORT_FILE}`);

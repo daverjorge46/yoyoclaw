@@ -3,18 +3,20 @@ import os from "os";
 import path from "path";
 
 // Config
-// Session log is inferred from OPENCLAW_SESSION_FILE env var if available,
-// or we look for the latest session file.
-// But usually, OpenClaw doesn't inject the log path into the agent runtime explicitly.
-// Strategy: Scan ~/.openclaw/sessions/ for the newest file (which is the current one).
-const SESSIONS_DIR = path.join(os.homedir(), ".openclaw/sessions");
-const HOUSEKEEPER_MEMORY = path.join(os.homedir(), "OpenClaw/housekeeper/memory");
-const METER_STATE_FILE = path.join(os.tmpdir(), "openclaw-task-meter.json");
+// Support ENV overrides for robust path resolution
+const SESSIONS_DIR =
+  process.env.OPENCLAW_SESSIONS_DIR || path.join(os.homedir(), ".openclaw/sessions");
+const HOUSEKEEPER_ROOT =
+  process.env.HOUSEKEEPER_ROOT || path.join(os.homedir(), "OpenClaw/housekeeper");
+const HOUSEKEEPER_MEMORY = path.join(HOUSEKEEPER_ROOT, "memory");
+
+// Store temporary state in memory folder to survive restarts
+const METER_STATE_FILE = path.join(HOUSEKEEPER_MEMORY, ".task-meter-state.json");
 const TASK_LOG_FILE = path.join(HOUSEKEEPER_MEMORY, "task-costs.json");
 
-// Pricing (Approximate)
-const PRICE_INPUT_1K = 0.000125;
-const PRICE_OUTPUT_1K = 0.000375;
+// Pricing (Approximate baseline)
+const PRICE_INPUT_1K = 0.003;
+const PRICE_OUTPUT_1K = 0.015;
 
 interface TokenUsage {
   input: number;
@@ -75,6 +77,9 @@ async function getCurrentUsage(filePath: string): Promise<TokenUsage> {
 }
 
 async function startTask(taskName: string) {
+  // Ensure memory dir exists
+  await fs.mkdir(HOUSEKEEPER_MEMORY, { recursive: true });
+
   const logFile = await getLatestSessionFile();
   const usage = await getCurrentUsage(logFile);
 
@@ -125,7 +130,6 @@ async function stopTask(taskName: string) {
   };
 
   // Append to history
-  await fs.mkdir(HOUSEKEEPER_MEMORY, { recursive: true });
   let history: TaskRecord[] = [];
   try {
     history = JSON.parse(await fs.readFile(TASK_LOG_FILE, "utf-8"));

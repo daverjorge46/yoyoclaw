@@ -1,10 +1,12 @@
 import fs from "fs/promises";
+import os from "os";
 import path from "path";
 
 // Config
-// We store stats in the housekeeper memory/ folder (outside the repo)
-// to persist across repo resets/checkouts.
-const HOUSEKEEPER_MEMORY = path.join(process.env.HOME || "", "OpenClaw/housekeeper/memory");
+// Support ENV overrides for robust path resolution
+const HOUSEKEEPER_ROOT =
+  process.env.HOUSEKEEPER_ROOT || path.join(os.homedir(), "OpenClaw/housekeeper");
+const HOUSEKEEPER_MEMORY = path.join(HOUSEKEEPER_ROOT, "memory");
 const STATS_FILE = path.join(HOUSEKEEPER_MEMORY, "error-stats.json");
 
 interface ErrorStats {
