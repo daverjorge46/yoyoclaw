@@ -199,7 +199,7 @@ function cmdBuilds() {
 
 async function cmdRun() {
   const port = getPortArg();
-  const localOnly = args.includes("--local");
+  const localOnly = !args.includes("--remote-poll");
   const branch = getArgValue("--branch") ?? "main";
   const remote = getArgValue("--remote") ?? "origin";
   const pollInterval = parseInt(getArgValue("--poll") ?? "60", 10) * 1000;
@@ -319,7 +319,7 @@ Options:
   --poll <seconds>    Update poll interval in run mode (default: 60)
   --keep <count>      Max builds to keep when pruning (default: 32)
   --force             Force rebuild
-  --local             Local-only mode: watch HEAD for changes, never pull from remote
+  --remote-poll       Poll remote for updates instead of watching local HEAD
 `);
 }
 
