@@ -19,6 +19,7 @@ export type SubagentRunRecord = {
   task: string;
   cleanup: "delete" | "keep";
   label?: string;
+  model?: string;
   createdAt: number;
   startedAt?: number;
   endedAt?: number;
@@ -386,6 +387,7 @@ export function registerSubagentRun(params: {
   task: string;
   cleanup: "delete" | "keep";
   label?: string;
+  model?: string;
   runTimeoutSeconds?: number;
 }) {
   const now = Date.now();
@@ -403,6 +405,7 @@ export function registerSubagentRun(params: {
     task: params.task,
     cleanup: params.cleanup,
     label: params.label,
+    model: params.model,
     createdAt: now,
     startedAt: now,
     archiveAtMs,
