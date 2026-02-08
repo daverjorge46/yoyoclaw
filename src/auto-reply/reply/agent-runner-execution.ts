@@ -582,6 +582,21 @@ export async function runAgentTurnWithFallback(params: {
         };
       }
 
+      // Auto-recover from context overflow by resetting session (last resort after compaction failed)
+      if (
+        isContextOverflow &&
+        !didResetAfterCompactionFailure &&
+        (await params.resetSessionAfterCompactionFailure(message))
+      ) {
+        didResetAfterCompactionFailure = true;
+        return {
+          kind: "final",
+          payload: {
+            text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again!",
+          },
+        };
+      }
+
       defaultRuntime.error(`Embedded agent failed before reply: ${message}`);
       const trimmedMessage = message.replace(/\.\s*$/, "");
       const fallbackText = isContextOverflow
