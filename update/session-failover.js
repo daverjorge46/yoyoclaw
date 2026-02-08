@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Simple model failover utility for OpenClaw sessions.
-// Usage: node update/failover.js --sessionKey <sessionKey> --models provider1/model1,provider2/model2 --store <path/to/sessions.json> --timeout 5000
+// Usage: node update/session-failover.js --sessionKey <sessionKey> --models provider1/model1,provider2/model2 --store <path/to/sessions.json> --timeout 5000
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
