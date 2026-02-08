@@ -17,7 +17,8 @@ Ensure the following environment variables are set in your OpenClaw environment 
 
 ## Usage
 
-When the user asks a question that falls into the When the ua cWhen the user asks a question that falls into the When the ua cWhen the user 
+When the user asks a question that falls into the When the ua cWhen the user asks a question that falls into the When the ua cWhen the user
+
 ### Command
 
 ```bash
@@ -54,4 +55,3 @@ Action:
 ```bash
 python3 skills/remote-agent/scripts/client.py --query "Run the data processing pipeline"
 ```
-
