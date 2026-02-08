@@ -72,7 +72,7 @@ export function normalizeMentionText(text: string): string {
   return (text ?? "").replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u206f]/g, "").toLowerCase();
 }
 
-export function matchesMentionPatterns(text: string, mentionRegexes: RegExp[]): boolean {
+export function matchesMentionPatterns(text: string, mentionRegexes?: RegExp[]): boolean {
   if (!mentionRegexes || mentionRegexes.length === 0) {
     return false;
   }
@@ -91,7 +91,7 @@ export type ExplicitMentionSignal = {
 
 export function matchesMentionWithExplicit(params: {
   text: string;
-  mentionRegexes: RegExp[];
+  mentionRegexes?: RegExp[];
   explicit?: ExplicitMentionSignal;
 }): boolean {
   const cleaned = normalizeMentionText(params.text ?? "");
