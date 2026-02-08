@@ -12,6 +12,7 @@ import {
 import { locked } from "./locked.js";
 import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
 import { armTimer, emit, executeJob, runMissedJobs, stopTimer, wake } from "./timer.js";
+import { DEFAULT_JOB_TIMEOUT_MS } from "./timer.js";
 
 export async function start(state: CronServiceState) {
   await locked(state, async () => {

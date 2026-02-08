@@ -18,7 +18,7 @@ const MAX_TIMER_DELAY_MS = 60_000;
  * on top of the per-provider / per-agent timeouts to prevent one stuck job
  * from wedging the entire cron lane.
  */
-const DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000; // 10 minutes
+export const DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000; // 10 minutes
 
 /**
  * Exponential backoff delays (in ms) indexed by consecutive error count.
@@ -162,11 +162,11 @@ export async function onTimer(state: CronServiceState) {
   try {
     const dueJobs = await locked(state, async () => {
       await ensureLoaded(state, { forceReload: true, skipRecompute: true });
-      const due = findDueJobs(state);
+      const { due, changed } = findDueJobs(state);
 
       if (due.length === 0) {
-        const changed = recomputeNextRuns(state);
-        if (changed) {
+        const recomputeChanged = recomputeNextRuns(state);
+        if (changed || recomputeChanged) {
           await persist(state);
         }
         return [];
@@ -279,14 +279,16 @@ export async function onTimer(state: CronServiceState) {
   }
 }
 
-function findDueJobs(state: CronServiceState): CronJob[] {
+function findDueJobs(state: CronServiceState): { due: CronJob[]; changed: boolean } {
   if (!state.store) {
-    return [];
+    return { due: [], changed: false };
   }
   const now = state.deps.nowMs();
-  return state.store.jobs.filter((j) => {
+  let changed = false;
+  const due = state.store.jobs.filter((j) => {
     if (!j.state) {
       j.state = {};
+      changed = true;
     }
     if (!j.enabled) {
       return false;
@@ -303,6 +305,7 @@ function findDueJobs(state: CronServiceState): CronJob[] {
           "cron: clearing stale running marker",
         );
         j.state.runningAtMs = undefined;
+        changed = true;
       } else {
         return false;
       }
@@ -310,6 +313,7 @@ function findDueJobs(state: CronServiceState): CronJob[] {
     const next = j.state.nextRunAtMs;
     return typeof next === "number" && now >= next;
   });
+  return { due, changed };
 }
 
 export async function runMissedJobs(state: CronServiceState) {
@@ -336,6 +340,7 @@ export async function runMissedJobs(state: CronServiceState) {
           "cron: clearing stale running marker",
         );
         j.state.runningAtMs = undefined;
+        changed = true;
       } else {
         return false;
       }
@@ -382,6 +387,7 @@ export async function runDueJobs(state: CronServiceState) {
           "cron: clearing stale running marker",
         );
         j.state.runningAtMs = undefined;
+        changed = true;
       } else {
         return false;
       }
