@@ -1,0 +1,50 @@
+[
+  {
+    "source": "OpenClaw",
+    "target": "OpenClaw"
+  },
+  {
+    "source": "Gateway",
+    "target": "Gateway"
+  },
+  {
+    "source": "Pi",
+    "target": "Pi"
+  },
+  {
+    "source": "Skills",
+    "target": "Skills"
+  },
+  {
+    "source": "local loopback",
+    "target": "loopback local"
+  },
+  {
+    "source": "Tailscale",
+    "target": "Tailscale"
+  },
+  {
+    "source": "Getting Started",
+    "target": "Primeiros Passos"
+  },
+  {
+    "source": "Getting started",
+    "target": "Primeiros Passos"
+  },
+  {
+    "source": "Quick start",
+    "target": "Início rápido"
+  },
+  {
+    "source": "Quick Start",
+    "target": "Início rápido"
+  },
+  {
+    "source": "Onboarding",
+    "target": "Onboarding"
+  },
+  {
+    "source": "wizard",
+    "target": "wizard"
+  }
+]
