@@ -288,31 +288,12 @@ function buildHierarchySnapshot(): HierarchySnapshot {
         .map((member) => resolveKnownAgentId(cfg, member))
         .filter((member): member is string => Boolean(member));
 
-      // Build edges from messages: each message implies interaction with all other members
-      for (const msg of session.messages) {
-        const source = resolveKnownAgentId(cfg, msg.from);
-        if (!source) {
-          continue;
-        }
-        for (const member of members) {
-          if (member !== source) {
-            collaborationEdges.push({
-              source,
-              target: member,
-              type: msg.type,
-              topic: session.topic,
-            });
-          }
-        }
-      }
-
-      // Build edges from decision proposals: proposer interacts with all who challenged/agreed
+      // Build proposal edges from decisions: proposer → proposer (they debated)
       for (const decision of session.decisions) {
         const proposers = decision.proposals
           .map((p) => resolveKnownAgentId(cfg, p.from))
           .filter((p): p is string => Boolean(p));
 
-        // Each proposer connects to other proposers (they debated)
         for (let i = 0; i < proposers.length; i++) {
           for (let j = i + 1; j < proposers.length; j++) {
             collaborationEdges.push({
@@ -321,6 +302,48 @@ function buildHierarchySnapshot(): HierarchySnapshot {
               type: "proposal",
               topic: decision.topic,
             });
+          }
+        }
+      }
+
+      // Build challenge edges: challenger → proposal author (directional)
+      for (const msg of session.messages) {
+        if (msg.type !== "challenge" || !msg.referencesDecision) {
+          // Non-challenge messages: edge from sender to all members (clarification, agreement, etc.)
+          const source = resolveKnownAgentId(cfg, msg.from);
+          if (!source) {
+            continue;
+          }
+          for (const member of members) {
+            if (member !== source) {
+              collaborationEdges.push({
+                source,
+                target: member,
+                type: msg.type,
+                topic: session.topic,
+              });
+            }
+          }
+          continue;
+        }
+
+        // Challenge: find the proposal authors for the referenced decision
+        const challenger = resolveKnownAgentId(cfg, msg.from);
+        if (!challenger) {
+          continue;
+        }
+        const decision = session.decisions.find((d) => d.id === msg.referencesDecision);
+        if (decision) {
+          for (const proposal of decision.proposals) {
+            const proposer = resolveKnownAgentId(cfg, proposal.from);
+            if (proposer && proposer !== challenger) {
+              collaborationEdges.push({
+                source: challenger,
+                target: proposer,
+                type: "challenge",
+                topic: decision.topic,
+              });
+            }
           }
         }
       }
@@ -334,13 +357,11 @@ function buildHierarchySnapshot(): HierarchySnapshot {
     const allDelegations = getAllDelegations();
     for (const deleg of allDelegations) {
       let edgeType: CollaborationEdge["type"];
-      if (deleg.state === "rejected") {
+      if (deleg.state === "rejected" || deleg.state === "failed") {
         edgeType = "rejection";
-      } else if (
-        deleg.state === "completed" ||
-        deleg.state === "assigned" ||
-        deleg.state === "in_progress"
-      ) {
+      } else if (deleg.state === "completed") {
+        edgeType = "approval";
+      } else if (deleg.state === "assigned" || deleg.state === "in_progress") {
         edgeType = deleg.direction === "upward" ? "approval" : "delegation";
       } else if (deleg.state === "pending_review") {
         edgeType = "request";
