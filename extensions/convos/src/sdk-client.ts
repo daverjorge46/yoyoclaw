@@ -332,6 +332,12 @@ export class ConvosSDKClient {
     // Wrap with Convos to get invite functionality
     const convosGroup = this.convos.group(group);
 
+    // Set the agent's display name in the conversation so it shows
+    // the agent name instead of "Somebody" in the Convos app.
+    if (name) {
+      await convosGroup.setConversationProfile({ name });
+    }
+
     // Create invite (automatically manages metadata)
     const invite = await convosGroup.createInvite({ name });
 
