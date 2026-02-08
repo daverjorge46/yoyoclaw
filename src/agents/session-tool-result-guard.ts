@@ -150,7 +150,10 @@ export function installSessionToolResultGuard(
     }
     if (allowSyntheticToolResults) {
       for (const [id, name] of pending.entries()) {
-        const synthetic = makeMissingToolResult({ toolCallId: id, toolName: name });
+        const synthetic = makeMissingToolResult({
+          toolCallId: id,
+          toolName: name,
+        });
         originalAppend(
           persistToolResult(synthetic, {
             toolCallId: id,
@@ -223,9 +226,8 @@ export function installSessionToolResultGuard(
 
     // Don't track tool calls from aborted/errored messages — they may be incomplete
     // and creating synthetic results for them causes API 400 errors (#12112)
-    const stopReason = nextRole === "assistant"
-      ? (nextMessage as { stopReason?: string }).stopReason
-      : undefined;
+    const stopReason =
+      nextRole === "assistant" ? (nextMessage as { stopReason?: string }).stopReason : undefined;
     if (toolCalls.length > 0 && stopReason !== "error" && stopReason !== "aborted") {
       for (const call of toolCalls) {
         pending.set(call.id, call.name);
