@@ -709,8 +709,9 @@ export async function runTui(opts: TuiOptions) {
     void loadHistory();
   };
   editor.onCtrlY = () => {
-    setThinkingExpanded(!thinkingExpanded);
-    setActivityStatus(thinkingExpanded ? "thinking expanded" : "thinking compact");
+    const next = !thinkingExpanded;
+    setThinkingExpanded(next);
+    setActivityStatus(next ? "thinking expanded" : "thinking compact");
     void loadHistory();
   };
 
