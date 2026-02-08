@@ -230,6 +230,15 @@ describe("bedrock discovery", () => {
             responseStreamingSupported: true,
             modelLifecycle: { status: "ACTIVE" },
           },
+          {
+            modelId: "anthropic.claude-opus-4-6-v1:0",
+            modelName: "Claude Opus 4.6",
+            providerName: "anthropic",
+            inputModalities: ["TEXT", "IMAGE"],
+            outputModalities: ["TEXT"],
+            responseStreamingSupported: true,
+            modelLifecycle: { status: "ACTIVE" },
+          },
         ],
       })
       .mockResolvedValueOnce({
@@ -260,14 +269,25 @@ describe("bedrock discovery", () => {
       });
 
     const models = await discoverBedrockModels({ region: "us-east-1", clientFactory });
-    expect(models).toHaveLength(3);
+    expect(models).toHaveLength(4); // 2 foundation + 2 inference profiles
+
+    // Check foundation models
+    expect(models.find((m) => m.id === "anthropic.claude-3-haiku-20240307-v1:0")).toMatchObject({
+      id: "anthropic.claude-3-haiku-20240307-v1:0",
+      name: "Claude 3 Haiku",
+      input: ["text"],
+    });
+
+    // Check inference profiles inherit capabilities from foundation models
     expect(models.find((m) => m.id === "us.anthropic.claude-3-haiku-20240307-v1:0")).toMatchObject({
       id: "us.anthropic.claude-3-haiku-20240307-v1:0",
       name: "US Anthropic Claude 3 Haiku",
+      input: ["text"], // Inherited from foundation model
     });
     expect(models.find((m) => m.id === "global.anthropic.claude-opus-4-6-v1")).toMatchObject({
       id: "global.anthropic.claude-opus-4-6-v1",
       name: "Global Anthropic Claude Opus 4.6",
+      input: ["text", "image"], // Inherited from foundation model
     });
   });
 
@@ -341,5 +361,98 @@ describe("bedrock discovery", () => {
     });
     expect(models).toHaveLength(1);
     expect(models[0].id).toBe("us.anthropic.claude-3-haiku-20240307-v1:0");
+  });
+
+  it("filters out inference profiles without valid foundation models", async () => {
+    const { discoverBedrockModels, resetBedrockDiscoveryCacheForTest } =
+      await import("./bedrock-discovery.js");
+    resetBedrockDiscoveryCacheForTest();
+
+    sendMock
+      .mockResolvedValueOnce({
+        modelSummaries: [
+          {
+            modelId: "anthropic.claude-3-haiku-20240307-v1:0",
+            modelName: "Claude 3 Haiku",
+            providerName: "anthropic",
+            inputModalities: ["TEXT"],
+            outputModalities: ["TEXT"],
+            responseStreamingSupported: true,
+            modelLifecycle: { status: "ACTIVE" },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        inferenceProfileSummaries: [
+          {
+            inferenceProfileId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+            inferenceProfileName: "US Anthropic Claude 3 Haiku",
+            status: "ACTIVE",
+            models: [
+              {
+                modelArn:
+                  "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
+              },
+            ],
+          },
+          {
+            // This profile references a model that doesn't exist in foundation models
+            inferenceProfileId: "us.anthropic.claude-nonexistent-v1:0",
+            inferenceProfileName: "US Anthropic Nonexistent",
+            status: "ACTIVE",
+            models: [
+              {
+                modelArn:
+                  "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-nonexistent-v1:0",
+              },
+            ],
+          },
+        ],
+      });
+
+    const models = await discoverBedrockModels({ region: "us-east-1", clientFactory });
+    // Should only include 1 foundation model + 1 valid inference profile (nonexistent one filtered out)
+    expect(models).toHaveLength(2);
+    expect(models.find((m) => m.id === "us.anthropic.claude-nonexistent-v1:0")).toBeUndefined();
+  });
+
+  it("filters out inference profiles with non-streaming foundation models", async () => {
+    const { discoverBedrockModels, resetBedrockDiscoveryCacheForTest } =
+      await import("./bedrock-discovery.js");
+    resetBedrockDiscoveryCacheForTest();
+
+    sendMock
+      .mockResolvedValueOnce({
+        modelSummaries: [
+          {
+            modelId: "anthropic.claude-3-haiku-20240307-v1:0",
+            modelName: "Claude 3 Haiku",
+            providerName: "anthropic",
+            inputModalities: ["TEXT"],
+            outputModalities: ["TEXT"],
+            responseStreamingSupported: false, // No streaming support
+            modelLifecycle: { status: "ACTIVE" },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        inferenceProfileSummaries: [
+          {
+            inferenceProfileId: "us.anthropic.claude-3-haiku-20240307-v1:0",
+            inferenceProfileName: "US Anthropic Claude 3 Haiku",
+            status: "ACTIVE",
+            models: [
+              {
+                modelArn:
+                  "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
+              },
+            ],
+          },
+        ],
+      });
+
+    const models = await discoverBedrockModels({ region: "us-east-1", clientFactory });
+    // Both foundation model and inference profile should be filtered out (no streaming)
+    expect(models).toHaveLength(0);
   });
 });

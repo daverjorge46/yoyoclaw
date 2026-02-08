@@ -145,6 +145,7 @@ function toModelDefinition(
 
 function inferenceProfileToModelDefinition(
   profile: BedrockInferenceProfileSummary,
+  foundationModels: Map<string, BedrockModelSummary>,
   defaults: { contextWindow: number; maxTokens: number },
 ): ModelDefinitionConfig | null {
   const id = profile.inferenceProfileId?.trim();
@@ -152,8 +153,26 @@ function inferenceProfileToModelDefinition(
     return null;
   }
 
+  // Get the underlying foundation model to validate capabilities
+  const modelArn = profile.models?.[0]?.modelArn;
+  const modelId = modelArn?.split("/").pop();
+  const foundationModel = modelId ? foundationModels.get(modelId) : undefined;
+
+  // If we can't find the foundation model, skip this profile
+  if (!foundationModel) {
+    return null;
+  }
+
+  // Apply the same validation as foundation models
+  if (!foundationModel.responseStreamingSupported) {
+    return null;
+  }
+
+  if (!includesTextModalities(foundationModel.outputModalities)) {
+    return null;
+  }
+
   const name = profile.inferenceProfileName?.trim() || id;
-  const modelId = profile.models?.[0]?.modelArn?.split("/").pop() ?? id;
 
   // Check if the profile ID or name suggests reasoning support
   const haystack = `${id} ${name}`.toLowerCase();
@@ -163,7 +182,7 @@ function inferenceProfileToModelDefinition(
     id,
     name,
     reasoning,
-    input: ["text", "image"],
+    input: mapInputModalities(foundationModel),
     cost: DEFAULT_COST,
     contextWindow: defaults.contextWindow,
     maxTokens: defaults.maxTokens,
@@ -217,7 +236,14 @@ export async function discoverBedrockModels(params: {
 
     // Discover foundation models
     const modelsResponse = await client.send(new ListFoundationModelsCommand({}));
+    const foundationModelsMap = new Map<string, BedrockModelSummary>();
+
     for (const summary of modelsResponse.modelSummaries ?? []) {
+      // Build map for inference profile validation
+      if (summary.modelId) {
+        foundationModelsMap.set(summary.modelId, summary);
+      }
+
       if (!shouldIncludeSummary(summary, providerFilter)) {
         continue;
       }
@@ -237,7 +263,7 @@ export async function discoverBedrockModels(params: {
           if (profile.status !== "ACTIVE") {
             continue;
           }
-          const modelDef = inferenceProfileToModelDefinition(profile, {
+          const modelDef = inferenceProfileToModelDefinition(profile, foundationModelsMap, {
             contextWindow: defaultContextWindow,
             maxTokens: defaultMaxTokens,
           });
