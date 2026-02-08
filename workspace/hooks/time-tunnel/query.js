@@ -30,6 +30,7 @@ let db = null;
 let vecInitialized = false;
 let consolidationTablesReady = false;
 let consciousnessTablesReady = false;
+let tablesInitialized = false;
 
 function getDb() {
   if (db) return db;
@@ -44,6 +45,19 @@ function getDb() {
       vecInitialized = vecModule.initVectorSearch(db);
     } catch (err) {
       console.warn("[time-tunnel] Vector search not available:", err.message);
+    }
+  }
+
+  // Upfront table initialization — all init functions call getDb() internally
+  // but db is already set above, so no recursion
+  if (!tablesInitialized) {
+    tablesInitialized = true;
+    try {
+      initConsolidationTables();
+      initConsciousnessTables();
+      initContextAtomTables();
+    } catch (err) {
+      console.warn("[time-tunnel] Upfront table init error:", err.message);
     }
   }
 
@@ -1183,6 +1197,53 @@ function generateSummaryPrompt(date, byChat) {
 }
 
 /**
+ * 規則式日報摘要（無需外部 API）
+ */
+function generateRuleBasedDailySummary(date, dayData) {
+  const lines = [`# ${date} 對話摘要`, ""];
+  lines.push(`總訊息數：${dayData.totalMessages}，跨 ${dayData.chats} 個聊天室。`);
+  lines.push("");
+
+  for (const [chatName, data] of Object.entries(dayData.byChat)) {
+    const msgs = data.messages;
+    const participants = [...new Set(msgs.map((m) => m.sender).filter(Boolean))];
+    lines.push(`## ${chatName}${data.project ? ` [${data.project}]` : ""}`);
+    lines.push(`- ${msgs.length} 條消息，參與者：${participants.slice(0, 5).join("、")}`);
+
+    // 高頻詞彙
+    const topicCounts = {};
+    for (const msg of msgs) {
+      if (!msg.content) continue;
+      const phrases = msg.content.match(/[\u4e00-\u9fff]{2,4}/g) || [];
+      for (const p of phrases) {
+        topicCounts[p] = (topicCounts[p] || 0) + 1;
+      }
+    }
+    const topTopics = Object.entries(topicCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([word]) => word);
+    if (topTopics.length > 0) {
+      lines.push(`- 高頻詞彙：${topTopics.join("、")}`);
+    }
+
+    // 關鍵訊息
+    const keywords = ["決定", "確定", "完成", "問題", "解決", "重要", "計劃", "發布"];
+    const keyMsgs = msgs.filter((m) => m.content && keywords.some((kw) => m.content.includes(kw)));
+    if (keyMsgs.length > 0) {
+      lines.push("- 關鍵訊息：");
+      for (const km of keyMsgs.slice(0, 3)) {
+        lines.push(`  - ${km.sender}: ${km.content.substring(0, 80)}`);
+      }
+    }
+    lines.push("");
+  }
+
+  lines.push(`---\n> 規則式摘要，生成時間：${new Date().toISOString()}`);
+  return lines.join("\n");
+}
+
+/**
  * 調用 LLM 生成摘要（需要配置 API）
  * @param {string} date - 日期
  * @param {Object} options - 選項
@@ -1195,16 +1256,11 @@ export async function generateDailySummary(date, options = {}) {
     return { date, summary: "當天沒有對話記錄。", stats: dayData };
   }
 
-  // 嘗試調用 DeepSeek API
+  // 嘗試調用 DeepSeek API，無 key 時使用規則式摘要
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
-    return {
-      date,
-      summary: null,
-      error: "未配置 DEEPSEEK_API_KEY，無法生成摘要",
-      prompt: dayData.summaryPrompt,
-      stats: dayData,
-    };
+    const summary = generateRuleBasedDailySummary(date, dayData);
+    return { date, summary, stats: dayData };
   }
 
   try {
@@ -1903,40 +1959,21 @@ export function getConversationGraph(options = {}) {
 const embeddingCache = new Map();
 
 /**
- * 獲取文本的嵌入向量（調用 DeepSeek API）
+ * 獲取文本的嵌入向量（統一使用 384 維 hash-based 嵌入）
+ * @deprecated 新代碼應直接使用 vecModule.generateLocalEmbedding
  * @param {string} text - 文本
- * @returns {Promise<number[]|null>} 嵌入向量
+ * @returns {Promise<Float32Array|null>} 嵌入向量 (384 維)
  */
 async function getEmbedding(text) {
   if (!text || text.length < 5) return null;
 
-  // 檢查緩存
   const cacheKey = text.substring(0, 200);
   if (embeddingCache.has(cacheKey)) {
     return embeddingCache.get(cacheKey);
   }
 
   try {
-    // Hash-based TF-IDF embedding fallback (no external API needed)
-    const words = text
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 1);
-    const vector = new Array(100).fill(0);
-
-    for (const word of words) {
-      const hash = word.split("").reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 100, 0);
-      vector[hash] += 1;
-    }
-
-    // 歸一化
-    const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0));
-    if (magnitude > 0) {
-      for (let i = 0; i < vector.length; i++) {
-        vector[i] /= magnitude;
-      }
-    }
-
+    const vector = vecModule.generateLocalEmbedding(text);
     embeddingCache.set(cacheKey, vector);
     return vector;
   } catch (err) {
