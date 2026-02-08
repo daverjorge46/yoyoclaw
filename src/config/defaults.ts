@@ -353,6 +353,40 @@ export function applyLoggingDefaults(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
+export function applyToolDefaults(cfg: OpenClawConfig): OpenClawConfig {
+  const tools = cfg.tools;
+  const agentToAgent = tools?.agentToAgent;
+  const hasEnabled = agentToAgent?.enabled !== undefined;
+  const hasAllow = agentToAgent?.allow !== undefined;
+
+  if (hasEnabled && hasAllow) {
+    return cfg;
+  }
+
+  const nextTools = tools ? { ...tools } : {};
+  const nextAgentToAgent = nextTools.agentToAgent ? { ...nextTools.agentToAgent } : {};
+
+  let mutated = false;
+  if (!hasEnabled) {
+    nextAgentToAgent.enabled = true;
+    mutated = true;
+  }
+  if (!hasAllow) {
+    nextAgentToAgent.allow = ["*"];
+    mutated = true;
+  }
+
+  if (!mutated) {
+    return cfg;
+  }
+
+  nextTools.agentToAgent = nextAgentToAgent;
+  return {
+    ...cfg,
+    tools: nextTools,
+  };
+}
+
 export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig {
   const defaults = cfg.agents?.defaults;
   if (!defaults) {
