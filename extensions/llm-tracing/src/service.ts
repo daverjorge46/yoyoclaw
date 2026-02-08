@@ -329,6 +329,18 @@ export function createLlmTracingService(api: OpenClawPluginApi): OpenClawPluginS
           }
 
           // Session context - keep as custom attributes
+          if (hookCtx?.hostId) {
+            span.setAttribute("openclaw.host_id", hookCtx.hostId);
+          }
+          if (hookCtx?.gatewayInstanceId) {
+            span.setAttribute("openclaw.gateway_instance_id", hookCtx.gatewayInstanceId);
+          }
+          if (event.runId) {
+            span.setAttribute("openclaw.run_id", event.runId);
+          }
+          if (hookCtx?.sessionId) {
+            span.setAttribute("openclaw.session_id", hookCtx.sessionId);
+          }
           if (hookCtx?.sessionKey) {
             span.setAttribute("openclaw.session_key", hookCtx.sessionKey);
           }
