@@ -1197,116 +1197,102 @@ function generateSummaryPrompt(date, byChat) {
 }
 
 /**
- * 規則式日報摘要（無需外部 API）
+ * 按需組裝日報 — 直接從原始資料即時查詢，不預生成、不存檔、不壓縮。
+ *
+ * 設計哲學：摘要是視圖（view），不是資料源（source of truth）。
+ * - Agent 回憶 → 走 vector atoms（retrieveContextAtoms）
+ * - 人類看報表 → 走這個函式
+ * 兩條路，永不混用。
+ *
+ * @param {string} date - YYYY-MM-DD
+ * @param {Object} options - { project?, chat? }
+ * @returns {{ date, summary, stats }}
  */
-function generateRuleBasedDailySummary(date, dayData) {
-  const lines = [`# ${date} 對話摘要`, ""];
-  lines.push(`總訊息數：${dayData.totalMessages}，跨 ${dayData.chats} 個聊天室。`);
-  lines.push("");
-
-  for (const [chatName, data] of Object.entries(dayData.byChat)) {
-    const msgs = data.messages;
-    const participants = [...new Set(msgs.map((m) => m.sender).filter(Boolean))];
-    lines.push(`## ${chatName}${data.project ? ` [${data.project}]` : ""}`);
-    lines.push(`- ${msgs.length} 條消息，參與者：${participants.slice(0, 5).join("、")}`);
-
-    // 高頻詞彙
-    const topicCounts = {};
-    for (const msg of msgs) {
-      if (!msg.content) continue;
-      const phrases = msg.content.match(/[\u4e00-\u9fff]{2,4}/g) || [];
-      for (const p of phrases) {
-        topicCounts[p] = (topicCounts[p] || 0) + 1;
-      }
-    }
-    const topTopics = Object.entries(topicCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([word]) => word);
-    if (topTopics.length > 0) {
-      lines.push(`- 高頻詞彙：${topTopics.join("、")}`);
-    }
-
-    // 關鍵訊息
-    const keywords = ["決定", "確定", "完成", "問題", "解決", "重要", "計劃", "發布"];
-    const keyMsgs = msgs.filter((m) => m.content && keywords.some((kw) => m.content.includes(kw)));
-    if (keyMsgs.length > 0) {
-      lines.push("- 關鍵訊息：");
-      for (const km of keyMsgs.slice(0, 3)) {
-        lines.push(`  - ${km.sender}: ${km.content.substring(0, 80)}`);
-      }
-    }
-    lines.push("");
-  }
-
-  lines.push(`---\n> 規則式摘要，生成時間：${new Date().toISOString()}`);
-  return lines.join("\n");
-}
-
-/**
- * 調用 LLM 生成摘要（需要配置 API）
- * @param {string} date - 日期
- * @param {Object} options - 選項
- * @returns {Promise<string>} 摘要文本
- */
-export async function generateDailySummary(date, options = {}) {
+export function generateDailySummary(date, options = {}) {
   const dayData = getDayForSummary(date, options);
 
   if (dayData.totalMessages === 0) {
     return { date, summary: "當天沒有對話記錄。", stats: dayData };
   }
 
-  // 嘗試調用 DeepSeek API，無 key 時使用規則式摘要
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    const summary = generateRuleBasedDailySummary(date, dayData);
-    return { date, summary, stats: dayData };
-  }
+  const lines = [`# ${date} 日報`, ""];
+  lines.push(`共 ${dayData.totalMessages} 條訊息，${dayData.chats} 個聊天室。`);
+  lines.push("");
 
-  try {
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: "你是一個對話摘要助手。請用繁體中文生成簡潔、有結構的摘要。",
-          },
-          { role: "user", content: dayData.summaryPrompt },
-        ],
-        max_tokens: 1000,
-        temperature: 0.3,
-      }),
-    });
+  for (const [chatName, data] of Object.entries(dayData.byChat)) {
+    const msgs = data.messages;
+    const participants = [...new Set(msgs.map((m) => m.sender).filter(Boolean))];
 
-    const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content || "生成失敗";
+    lines.push(`## ${chatName}${data.project ? ` [${data.project}]` : ""}`);
+    lines.push(`${msgs.length} 條 | ${participants.slice(0, 5).join("、")}`);
 
-    // 保存摘要到文件
-    const summaryDir = path.join(DATA_DIR, "summaries");
-    if (!fs.existsSync(summaryDir)) {
-      fs.mkdirSync(summaryDir, { recursive: true });
+    // 話題頻率 — 直指本體，不解讀
+    const freq = {};
+    for (const m of msgs) {
+      if (!m.content) continue;
+      const phrases = m.content.match(/[\u4e00-\u9fff]{2,4}/g) || [];
+      for (const p of phrases) freq[p] = (freq[p] || 0) + 1;
     }
-    fs.writeFileSync(
-      path.join(summaryDir, `${date}.md`),
-      `# ${date} 對話摘要\n\n${summary}\n\n---\n\n> 生成時間：${new Date().toISOString()}\n`,
-    );
+    const topics = Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([w, c]) => `${w}(${c})`);
+    if (topics.length > 0) lines.push(`話題：${topics.join(" ")}`);
 
-    return { date, summary, stats: dayData };
-  } catch (err) {
-    return {
-      date,
-      summary: null,
-      error: `API 調用失敗: ${err.message}`,
-      prompt: dayData.summaryPrompt,
-      stats: dayData,
-    };
+    // 關鍵時刻 — 原文節錄，不轉譯
+    const keyWords = [
+      "決定",
+      "確定",
+      "完成",
+      "問題",
+      "解決",
+      "重要",
+      "計劃",
+      "發布",
+      "TODO",
+      "bug",
+    ];
+    const keyMoments = msgs.filter(
+      (m) => m.content && keyWords.some((kw) => m.content.toLowerCase().includes(kw.toLowerCase())),
+    );
+    if (keyMoments.length > 0) {
+      lines.push("關鍵：");
+      for (const km of keyMoments.slice(0, 5)) {
+        lines.push(`  ${km.time || ""} ${km.sender}: ${km.content.substring(0, 100)}`);
+      }
+    }
+
+    // 節奏 — 訊息密度分佈
+    const hourBuckets = new Array(24).fill(0);
+    for (const m of msgs) {
+      const h = parseInt(m.time?.split(":")[0] || "0", 10);
+      hourBuckets[h]++;
+    }
+    const activePeriods = hourBuckets
+      .map((count, h) => (count > 0 ? `${String(h).padStart(2, "0")}h(${count})` : null))
+      .filter(Boolean);
+    if (activePeriods.length > 0) lines.push(`節奏：${activePeriods.join(" ")}`);
+
+    lines.push("");
   }
+
+  // 知識庫命中（如果有 context atoms）
+  try {
+    const dateQuery = `${date} 重點`;
+    const atoms = retrieveContextAtoms(dateQuery, { limit: 3, minScore: 0.1 });
+    if (atoms.length > 0) {
+      lines.push("## 相關知識原子");
+      for (const a of atoms) {
+        lines.push(`- [${a.source_file}/${a.heading}] ${a.content.substring(0, 120)}`);
+      }
+      lines.push("");
+    }
+  } catch {
+    // context atoms not available — fine
+  }
+
+  const summary = lines.join("\n");
+  return { date, summary, stats: dayData };
 }
 
 /**
