@@ -326,7 +326,26 @@ describe("bedrock discovery", () => {
 
     sendMock
       .mockResolvedValueOnce({
-        modelSummaries: [],
+        modelSummaries: [
+          {
+            modelId: "anthropic.claude-3-haiku-20240307-v1:0",
+            modelName: "Claude 3 Haiku",
+            providerName: "Anthropic",
+            responseStreamingSupported: true,
+            outputModalities: ["TEXT"],
+            inputModalities: ["TEXT", "IMAGE"],
+            modelLifecycle: { status: "ACTIVE" },
+          },
+          {
+            modelId: "amazon.nova-lite-v1:0",
+            modelName: "Nova Lite",
+            providerName: "Amazon",
+            responseStreamingSupported: true,
+            outputModalities: ["TEXT"],
+            inputModalities: ["TEXT", "IMAGE"],
+            modelLifecycle: { status: "ACTIVE" },
+          },
+        ],
       })
       .mockResolvedValueOnce({
         inferenceProfileSummaries: [
@@ -359,8 +378,9 @@ describe("bedrock discovery", () => {
       config: { providerFilter: ["anthropic"] },
       clientFactory,
     });
-    expect(models).toHaveLength(1);
-    expect(models[0].id).toBe("us.anthropic.claude-3-haiku-20240307-v1:0");
+    expect(models).toHaveLength(2); // 1 foundation model + 1 inference profile
+    expect(models.find((m) => m.id === "anthropic.claude-3-haiku-20240307-v1:0")).toBeDefined();
+    expect(models.find((m) => m.id === "us.anthropic.claude-3-haiku-20240307-v1:0")).toBeDefined();
   });
 
   it("filters out inference profiles without valid foundation models", async () => {
