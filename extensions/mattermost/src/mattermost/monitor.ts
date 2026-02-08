@@ -908,7 +908,19 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
     opts.abortSignal?.addEventListener("abort", onAbort, { once: true });
 
     return await new Promise((resolve) => {
+      let lastPongAt = Date.now();
+      let pingInterval: ReturnType<typeof setInterval> | undefined;
+      let healthInterval: ReturnType<typeof setInterval> | undefined;
+
+      const clearHeartbeat = () => {
+        if (pingInterval) clearInterval(pingInterval);
+        if (healthInterval) clearInterval(healthInterval);
+        pingInterval = undefined;
+        healthInterval = undefined;
+      };
+
       ws.on("open", () => {
+        lastPongAt = Date.now();
         opts.statusSink?.({
           connected: true,
           lastConnectedAt: Date.now(),
@@ -921,9 +933,28 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
             data: { token: botToken },
           }),
         );
+
+        pingInterval = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.ping();
+          }
+        }, 30_000);
+
+        healthInterval = setInterval(() => {
+          if (Date.now() - lastPongAt > 90_000) {
+            runtime.log?.("mattermost websocket stale (no pong in 90s), forcing reconnect");
+            clearHeartbeat();
+            ws.terminate();
+          }
+        }, 15_000);
+      });
+
+      ws.on("pong", () => {
+        lastPongAt = Date.now();
       });
 
       ws.on("message", async (data) => {
+        lastPongAt = Date.now();
         const raw = rawDataToString(data);
         let payload: MattermostEventPayload;
         try {
@@ -959,6 +990,7 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
       });
 
       ws.on("close", (code, reason) => {
+        clearHeartbeat();
         const message = reason.length > 0 ? reason.toString("utf8") : "";
         opts.statusSink?.({
           connected: false,
