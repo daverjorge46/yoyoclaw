@@ -269,4 +269,165 @@ describe("installSessionToolResultGuard", () => {
     };
     expect(textBlock.text).toBe(originalText);
   });
+
+  it("redacts secrets from tool result text before persistence", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        content: [
+          {
+            type: "text",
+            text: '{"botToken": "xoxb-fake-test-token-not-real-abcdefghij"}',
+          },
+        ],
+      }),
+    );
+
+    const entries = sm
+      .getEntries()
+      .filter((e) => e.type === "message")
+      .map((e) => (e as { message: AgentMessage }).message);
+
+    const toolResult = entries.find((m) => m.role === "toolResult") as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const textBlock = toolResult.content.find((b: { type: string }) => b.type === "text") as {
+      text: string;
+    };
+    // The xoxb- token should be redacted
+    expect(textBlock.text).not.toContain("xoxb-fake-test-token-not-real-abcdefghij");
+    expect(textBlock.text).toContain("xoxb-f");
+    expect(textBlock.text).toContain("…");
+  });
+
+  it("redacts Anthropic API keys from tool result text", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        content: [
+          {
+            type: "text",
+            text: 'token: "sk-ant-fake-test-key-abcdefghijklmnopqrstuvwxyz"',
+          },
+        ],
+      }),
+    );
+
+    const entries = sm
+      .getEntries()
+      .filter((e) => e.type === "message")
+      .map((e) => (e as { message: AgentMessage }).message);
+
+    const toolResult = entries.find((m) => m.role === "toolResult") as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const textBlock = toolResult.content.find((b: { type: string }) => b.type === "text") as {
+      text: string;
+    };
+    expect(textBlock.text).not.toContain("sk-ant-fake-test-key-abcdefghijklmnopqrstuvwxyz");
+  });
+
+  it("redacts Bearer tokens from tool result text", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        content: [
+          {
+            type: "text",
+            text: 'curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwiZXhwIjoiMTIzNCJ9.payload.signature"',
+          },
+        ],
+      }),
+    );
+
+    const entries = sm
+      .getEntries()
+      .filter((e) => e.type === "message")
+      .map((e) => (e as { message: AgentMessage }).message);
+
+    const toolResult = entries.find((m) => m.role === "toolResult") as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const textBlock = toolResult.content.find((b: { type: string }) => b.type === "text") as {
+      text: string;
+    };
+    expect(textBlock.text).not.toContain(
+      "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwiZXhwIjoiMTIzNCJ9",
+    );
+  });
+
+  it("does not modify tool results without secrets", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    const cleanText = "total 42\ndrwxr-xr-x 5 user user 4096 Feb 8 ls output";
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        content: [{ type: "text", text: cleanText }],
+      }),
+    );
+
+    const entries = sm
+      .getEntries()
+      .filter((e) => e.type === "message")
+      .map((e) => (e as { message: AgentMessage }).message);
+
+    const toolResult = entries.find((m) => m.role === "toolResult") as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const textBlock = toolResult.content.find((b: { type: string }) => b.type === "text") as {
+      text: string;
+    };
+    expect(textBlock.text).toBe(cleanText);
+  });
+
+  it("redacts Google API keys from tool result text", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        content: [
+          {
+            type: "text",
+            text: '"apiKey": "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"',
+          },
+        ],
+      }),
+    );
+
+    const entries = sm
+      .getEntries()
+      .filter((e) => e.type === "message")
+      .map((e) => (e as { message: AgentMessage }).message);
+
+    const toolResult = entries.find((m) => m.role === "toolResult") as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const textBlock = toolResult.content.find((b: { type: string }) => b.type === "text") as {
+      text: string;
+    };
+    expect(textBlock.text).not.toContain("AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+  });
 });

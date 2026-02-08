@@ -1,6 +1,7 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { TextContent } from "@mariozechner/pi-ai";
 import type { SessionManager } from "@mariozechner/pi-coding-agent";
+import { redactSensitiveText } from "../logging/redact.js";
 import { emitSessionTranscriptUpdate } from "../sessions/transcript-events.js";
 import { HARD_MAX_TOOL_RESULT_CHARS } from "./pi-embedded-runner/tool-result-truncation.js";
 import { makeMissingToolResult, sanitizeToolCallInputs } from "./session-transcript-repair.js";
@@ -69,6 +70,43 @@ function capToolResultSize(msg: AgentMessage): AgentMessage {
   });
 
   return { ...msg, content: newContent } as AgentMessage;
+}
+
+/**
+ * Redact sensitive secrets (API keys, tokens, passwords) from text content
+ * blocks in a tool result message before persisting to the session transcript.
+ *
+ * Uses the same patterns as `src/logging/redact.ts` (`DEFAULT_REDACT_PATTERNS`)
+ * so that secrets are masked at write-time, not just at read-time.
+ */
+function redactToolResultSecrets(msg: AgentMessage): AgentMessage {
+  const role = (msg as { role?: string }).role;
+  if (role !== "toolResult") {
+    return msg;
+  }
+  const content = (msg as { content?: unknown }).content;
+  if (!Array.isArray(content)) {
+    return msg;
+  }
+
+  let changed = false;
+  const newContent = content.map((block: unknown) => {
+    if (!block || typeof block !== "object" || (block as { type?: string }).type !== "text") {
+      return block;
+    }
+    const textBlock = block as TextContent;
+    if (typeof textBlock.text !== "string" || !textBlock.text) {
+      return block;
+    }
+    const redacted = redactSensitiveText(textBlock.text);
+    if (redacted === textBlock.text) {
+      return block;
+    }
+    changed = true;
+    return { ...textBlock, text: redacted };
+  });
+
+  return changed ? ({ ...msg, content: newContent } as AgentMessage) : msg;
 }
 
 type ToolCall = { id: string; name?: string };
@@ -184,9 +222,11 @@ export function installSessionToolResultGuard(
       if (id) {
         pending.delete(id);
       }
-      // Apply hard size cap before persistence to prevent oversized tool results
+      // Apply secret redaction and hard size cap before persistence to prevent
+      // secrets from leaking into session transcripts and oversized tool results
       // from consuming the entire context window on subsequent LLM calls.
-      const capped = capToolResultSize(nextMessage);
+      const redacted = redactToolResultSecrets(nextMessage);
+      const capped = capToolResultSize(redacted);
       return originalAppend(
         persistToolResult(capped, {
           toolCallId: id ?? undefined,
