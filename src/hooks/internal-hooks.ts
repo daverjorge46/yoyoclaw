@@ -8,7 +8,13 @@
 import type { WorkspaceBootstrapFile } from "../agents/workspace.js";
 import type { OpenClawConfig } from "../config/config.js";
 
-export type InternalHookEventType = "command" | "session" | "agent" | "gateway" | "model";
+export type InternalHookEventType =
+  | "command"
+  | "session"
+  | "agent"
+  | "gateway"
+  | "model"
+  | "message";
 
 export type AgentBootstrapHookContext = {
   workspaceDir: string;
@@ -85,6 +91,57 @@ export type ModelFailoverHookResult = {
   allow?: boolean;
   vetoReason?: string;
   overrideTarget?: string;
+};
+
+// =============================================================================
+// Message Hooks - Time Tunnel 時光隧道
+// =============================================================================
+
+export type MessageHookContext = {
+  /** Message direction */
+  direction: "inbound" | "outbound";
+  /** Channel (telegram, line, discord, etc.) */
+  channel: string;
+  /** Chat ID */
+  chatId: string;
+  /** Chat type (group, dm, channel) */
+  chatType?: string;
+  /** Chat name if available */
+  chatName?: string;
+  /** Sender ID */
+  senderId?: string;
+  /** Sender name */
+  senderName?: string;
+  /** Message ID */
+  messageId?: string;
+  /** Reply to message ID */
+  replyToId?: string;
+  /** Text content */
+  content?: string;
+  /** Media type if present */
+  mediaType?: string;
+  /** Media URL if present */
+  mediaUrl?: string;
+  /** Session key */
+  sessionKey?: string;
+  /** Agent ID */
+  agentId?: string;
+  /** Workspace directory */
+  workspaceDir?: string;
+  /** Raw event data (stringified, truncated) */
+  rawEvent?: string;
+};
+
+export type MessageReceivedHookEvent = InternalHookEvent & {
+  type: "message";
+  action: "received";
+  context: MessageHookContext;
+};
+
+export type MessageSentHookEvent = InternalHookEvent & {
+  type: "message";
+  action: "sent";
+  context: MessageHookContext;
 };
 
 export type ModelCompleteHookContext = {
@@ -425,4 +482,66 @@ export async function triggerModelCompleteHook(event: ModelCompleteHookEvent): P
       );
     }
   }
+}
+
+/**
+ * Trigger message received hook (fire-and-forget)
+ *
+ * Called when a message is received from any channel.
+ */
+export async function triggerMessageReceivedHook(event: MessageReceivedHookEvent): Promise<void> {
+  const typeHandlers = handlers.get(event.type) ?? [];
+  const specificHandlers = handlers.get(`${event.type}:${event.action}`) ?? [];
+  const allHandlers = [...typeHandlers, ...specificHandlers];
+
+  if (allHandlers.length === 0) {
+    return;
+  }
+
+  for (const handler of allHandlers) {
+    try {
+      await handler(event);
+    } catch (err) {
+      console.error(
+        `Hook error [${event.type}:${event.action}]:`,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+}
+
+/**
+ * Trigger message sent hook (fire-and-forget)
+ *
+ * Called when a message is sent to any channel.
+ */
+export async function triggerMessageSentHook(event: MessageSentHookEvent): Promise<void> {
+  const typeHandlers = handlers.get(event.type) ?? [];
+  const specificHandlers = handlers.get(`${event.type}:${event.action}`) ?? [];
+  const allHandlers = [...typeHandlers, ...specificHandlers];
+
+  if (allHandlers.length === 0) {
+    return;
+  }
+
+  for (const handler of allHandlers) {
+    try {
+      await handler(event);
+    } catch (err) {
+      console.error(
+        `Hook error [${event.type}:${event.action}]:`,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+}
+
+export function isMessageReceivedEvent(
+  event: InternalHookEvent,
+): event is MessageReceivedHookEvent {
+  return event.type === "message" && event.action === "received";
+}
+
+export function isMessageSentEvent(event: InternalHookEvent): event is MessageSentHookEvent {
+  return event.type === "message" && event.action === "sent";
 }

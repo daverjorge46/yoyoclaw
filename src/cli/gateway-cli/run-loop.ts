@@ -1,6 +1,7 @@
 import type { startGatewayServer } from "../../gateway/server.js";
 import type { defaultRuntime } from "../../runtime.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
+import { waitForInFlightCompletion, getInFlightCount } from "../../infra/in-flight-tracker.js";
 import {
   consumeGatewaySigusr1RestartAuthorization,
   isGatewaySigusr1RestartExternallyAllowed,
@@ -35,14 +36,27 @@ export async function runGatewayLoop(params: {
     const isRestart = action === "restart";
     gatewayLog.info(`received ${signal}; ${isRestart ? "restarting" : "shutting down"}`);
 
+    // Level 50: 增加超時時間以等待 in-flight 請求（原 5 秒 → 35 秒）
     const forceExitTimer = setTimeout(() => {
       gatewayLog.error("shutdown timed out; exiting without full cleanup");
       cleanupSignals();
       params.runtime.exit(0);
-    }, 5000);
+    }, 35000);
 
     void (async () => {
       try {
+        // Level 50: 先等待 in-flight 請求完成
+        const pendingCount = getInFlightCount();
+        if (pendingCount > 0) {
+          gatewayLog.info(`waiting for ${pendingCount} in-flight request(s) before shutdown...`);
+          const result = await waitForInFlightCompletion(30000);
+          if (result.timedOut) {
+            gatewayLog.warn(`in-flight wait timed out with ${result.remaining} request(s) pending`);
+          } else {
+            gatewayLog.info("all in-flight requests completed");
+          }
+        }
+
         await server?.close({
           reason: isRestart ? "gateway restarting" : "gateway stopping",
           restartExpectedMs: isRestart ? 1500 : null,
