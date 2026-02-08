@@ -49,6 +49,7 @@ function buildSlackManifest(botName: string) {
         always_online: false,
       },
       app_home: {
+        home_tab_enabled: true,
         messages_tab_enabled: true,
         messages_tab_read_only_enabled: false,
       },
@@ -86,6 +87,7 @@ function buildSlackManifest(botName: string) {
       socket_mode_enabled: true,
       event_subscriptions: {
         bot_events: [
+          "app_home_opened",
           "app_mention",
           "message.channels",
           "message.groups",
