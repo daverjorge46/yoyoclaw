@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import { SlackAccountSchema } from "../../../config/zod-schema.providers-core.js";
 import { buildHomeTabBlocks, formatUptime, resolveAgentModelDisplay } from "./home.js";
 
 describe("formatUptime", () => {
@@ -184,5 +185,28 @@ describe("buildHomeTabBlocks", () => {
     expect(fullText).not.toContain("token");
     expect(fullText).not.toContain("Dashboard");
     expect(fullText).not.toContain("127.0.0.1");
+  });
+});
+
+describe("Zod schema validation", () => {
+  it("accepts homeTab config in SlackAccountSchema", () => {
+    const result = SlackAccountSchema.safeParse({
+      homeTab: { enabled: true },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts homeTab: false in actions config", () => {
+    const result = SlackAccountSchema.safeParse({
+      actions: { homeTab: false },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects unknown keys in homeTab config", () => {
+    const result = SlackAccountSchema.safeParse({
+      homeTab: { enabled: true, unknownKey: "bad" },
+    });
+    expect(result.success).toBe(false);
   });
 });

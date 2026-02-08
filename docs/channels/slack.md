@@ -537,6 +537,24 @@ When a user opens the bot's **Home** tab in Slack, OpenClaw automatically publis
 
 The view is cached per user and only re-published when the version changes (e.g., after an update or restart). No additional configuration is required — the Home Tab works out of the box as long as the Slack app manifest includes `app_home.messages_tab_enabled: true` (which is the default).
 
+### Configuration
+
+The Home Tab can be toggled via config:
+
+```json5
+{
+  channels: {
+    slack: {
+      homeTab: {
+        enabled: false, // Disable the Home Tab entirely (default: true)
+      },
+    },
+  },
+}
+```
+
+When `enabled` is `false`, the `app_home_opened` event handler is not registered.
+
 ### Custom Home Tab via `updateHomeTab`
 
 Agents can dynamically customize a user's Home Tab using the `updateHomeTab` action:
@@ -556,9 +574,17 @@ Example:
 }
 ```
 
-Once an agent publishes a custom view, the default Home Tab view will **not** overwrite it on subsequent tab opens. The default view resumes after a process restart.
+Once an agent publishes a custom view, the default Home Tab view will **not** overwrite it on subsequent tab opens.
 
-This action is gated by the `homeTab` key in the actions config (enabled by default).
+To restore the default view, use the `resetHomeTab` action:
+
+| Parameter | Type     | Required | Description                                      |
+| --------- | -------- | -------- | ------------------------------------------------ |
+| `userId`  | `string` | yes      | Slack user ID whose Home tab to reset to default |
+
+The default view also resumes automatically after a process restart.
+
+Both actions are gated by the `homeTab` key in the actions config (enabled by default).
 
 ## Security notes
 
