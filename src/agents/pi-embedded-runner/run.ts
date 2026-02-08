@@ -669,7 +669,7 @@ export async function runEmbeddedPiAgent(
               });
             }
             if (
-              (promptFailoverReason !== null || isFailoverErrorMessage(errorText)) &&
+              promptFailoverReason &&
               promptFailoverReason !== "timeout" &&
               (await advanceAuthProfile())
             ) {
@@ -688,16 +688,13 @@ export async function runEmbeddedPiAgent(
             }
             // Throw FailoverError for prompt errors when fallbacks configured
             // This enables model fallback for quota/rate limit/auth errors during prompt submission
-            if (
-              fallbackConfigured &&
-              (promptFailoverReason !== null || isFailoverErrorMessage(errorText))
-            ) {
+            if (fallbackConfigured && promptFailoverReason) {
               throw new FailoverError(errorText, {
-                reason: promptFailoverReason ?? "unknown",
+                reason: promptFailoverReason,
                 provider,
                 model: modelId,
                 profileId: lastProfileId,
-                status: resolveFailoverStatus(promptFailoverReason ?? "unknown"),
+                status: resolveFailoverStatus(promptFailoverReason),
               });
             }
             throw promptError;
