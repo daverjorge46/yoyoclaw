@@ -19,11 +19,53 @@ export function renderSimplexCard(params: {
     return endpoint ? endpoint : "n/a";
   };
 
+  const copyText = async (value: string) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      }
+    } catch {
+      // Ignore clipboard errors in readonly dashboard mode.
+    }
+  };
+
+  const renderLinkField = (params: {
+    label: string;
+    link: string;
+    qrDataUrl?: string | null;
+    onDelete?: () => void;
+  }) => {
+    const { label, link, qrDataUrl, onDelete } = params;
+    return html`
+      <div
+        style="margin-top: 12px; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;"
+      >
+        <div style="font-weight: 600; margin-bottom: 8px;">${label}</div>
+        <div class="row" style="gap: 8px; align-items: center; flex-wrap: wrap;">
+          <input
+            style="flex: 1; min-width: 220px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; background: var(--bg-secondary); color: var(--text-primary);"
+            readonly
+            .value=${link}
+          />
+          <button class="btn" @click=${() => void copyText(link)}>Copy</button>
+          ${onDelete ? html`<button class="btn danger" @click=${onDelete}>Delete</button>` : nothing}
+        </div>
+        ${
+          qrDataUrl
+            ? html`<div class="qr-wrap" style="margin-top: 10px;">
+              <img src=${qrDataUrl} alt="${label} QR" />
+            </div>`
+            : nothing
+        }
+      </div>
+    `;
+  };
+
   const renderSimplexControls = (accountId: string) => {
     const state = props.simplexControlByAccount[accountId];
     const busyCreate = state?.busyCreate ?? false;
-    const busyPending = state?.busyPending ?? false;
     const busyRevoke = state?.busyRevoke ?? false;
+    const addressExists = Boolean(state?.addressLink);
     return html`
       ${
         state?.error
@@ -39,67 +81,50 @@ export function renderSimplexCard(params: {
           </div>`
           : nothing
       }
-      ${
-        state?.link
-          ? html`<div class="status-list" style="margin-top: 12px;">
-            <div>
-              <span class="label">Address link</span>
-              <span title=${state.link}>${state.link}</span>
-            </div>
-          </div>`
-          : nothing
-      }
-      ${
-        state?.qrDataUrl
-          ? html`<div class="qr-wrap">
-            <img src=${state.qrDataUrl} alt="SimpleX link QR" />
-          </div>`
-          : nothing
-      }
-      ${
-        state?.pendingHints && state.pendingHints.length > 0
-          ? html`<div class="status-list" style="margin-top: 12px;">
-            ${state.pendingHints.map(
-              (entry) => html`
-                <div>
-                  <span class="label">Pending</span>
-                  <span>${entry}</span>
-                </div>
-              `,
-            )}
-          </div>`
-          : nothing
-      }
       <div class="row" style="margin-top: 12px; flex-wrap: wrap;">
         <button
           class="btn primary"
           ?disabled=${busyCreate}
           @click=${() => props.onSimplexInviteCreate(accountId, "connect")}
         >
-          ${busyCreate ? "Working..." : "Create invite"}
+          ${busyCreate ? "Working..." : "Create 1-time Link"}
         </button>
         <button
           class="btn"
           ?disabled=${busyCreate}
-          @click=${() => props.onSimplexInviteCreate(accountId, "address")}
+          @click=${() => props.onSimplexAddressShowOrCreate(accountId)}
         >
-          Create address
-        </button>
-        <button
-          class="btn"
-          ?disabled=${busyPending}
-          @click=${() => props.onSimplexInviteList(accountId)}
-        >
-          ${busyPending ? "Loading..." : "Pending"}
-        </button>
-        <button
-          class="btn danger"
-          ?disabled=${busyRevoke}
-          @click=${() => props.onSimplexInviteRevoke(accountId)}
-        >
-          ${busyRevoke ? "Revoking..." : "Revoke address"}
+          ${addressExists ? "Show Address" : "Create Address"}
         </button>
       </div>
+      ${(() => {
+        const latest = state?.latestOneTimeInvite;
+        if (!latest) {
+          return nothing;
+        }
+        return renderLinkField({
+          label: "1-time Link",
+          link: latest.link,
+          qrDataUrl: latest.qrDataUrl,
+        });
+      })()}
+      ${
+        state?.addressLink
+          ? renderLinkField({
+              label: "Address",
+              link: state.addressLink,
+              qrDataUrl: state.addressQrDataUrl,
+              onDelete: () => props.onSimplexInviteRevoke(accountId),
+            })
+          : nothing
+      }
+      ${
+        busyRevoke
+          ? html`
+              <div class="muted" style="margin-top: 8px">Deleting address...</div>
+            `
+          : nothing
+      }
     `;
   };
 

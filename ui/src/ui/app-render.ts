@@ -278,8 +278,9 @@ export function renderApp(state: AppViewState) {
                 onNostrProfileToggleAdvanced: () => state.handleNostrProfileToggleAdvanced(),
                 onSimplexInviteCreate: (accountId, mode) =>
                   state.handleSimplexInviteCreate(accountId, mode),
-                onSimplexInviteList: (accountId) => state.handleSimplexInviteList(accountId),
                 onSimplexInviteRevoke: (accountId) => state.handleSimplexInviteRevoke(accountId),
+                onSimplexAddressShowOrCreate: (accountId) =>
+                  state.handleSimplexAddressShowOrCreate(accountId),
               })
             : nothing
         }

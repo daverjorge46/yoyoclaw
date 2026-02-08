@@ -13,24 +13,22 @@ export type SimplexInviteMode = "connect" | "address";
 
 export type SimplexControlAccountState = {
   busyCreate: boolean;
-  busyPending: boolean;
   busyRevoke: boolean;
   message: string | null;
   error: string | null;
-  link: string | null;
-  qrDataUrl: string | null;
-  pendingHints: string[];
+  addressLink: string | null;
+  addressQrDataUrl: string | null;
+  latestOneTimeInvite: { link: string; qrDataUrl: string | null } | null;
 };
 
 const EMPTY_SIMPLEX_CONTROL_STATE: SimplexControlAccountState = {
   busyCreate: false,
-  busyPending: false,
   busyRevoke: false,
   message: null,
   error: null,
-  link: null,
-  qrDataUrl: null,
-  pendingHints: [],
+  addressLink: null,
+  addressQrDataUrl: null,
+  latestOneTimeInvite: null,
 };
 
 function readSimplexControlState(host: OpenClawApp, accountId: string): SimplexControlAccountState {
@@ -330,12 +328,24 @@ export async function handleSimplexInviteCreate(
       mode,
     });
     const resolvedId = result.accountId ?? accountId;
+    const existing = readSimplexControlState(host, resolvedId);
     writeSimplexControlState(host, resolvedId, {
       busyCreate: false,
       error: null,
-      message: result.link ? `${mode === "address" ? "Address" : "Invite"} link generated.` : null,
-      link: result.link ?? null,
-      qrDataUrl: result.qrDataUrl ?? null,
+      message: result.link ? `${mode === "address" ? "Address" : "1-time link"} generated.` : null,
+      addressLink:
+        mode === "address" ? (result.link ?? existing.addressLink) : existing.addressLink,
+      addressQrDataUrl:
+        mode === "address"
+          ? (result.qrDataUrl ?? existing.addressQrDataUrl)
+          : existing.addressQrDataUrl,
+      latestOneTimeInvite:
+        mode === "connect" && result.link
+          ? {
+              link: result.link,
+              qrDataUrl: result.qrDataUrl ?? null,
+            }
+          : existing.latestOneTimeInvite,
     });
   } catch (err) {
     writeSimplexControlState(host, accountId, {
@@ -345,41 +355,38 @@ export async function handleSimplexInviteCreate(
   }
 }
 
-export async function handleSimplexInviteList(host: OpenClawApp, accountId: string) {
+async function fetchSimplexInviteList(host: OpenClawApp, accountId: string) {
+  const result = await host.client?.request<{
+    accountId?: string;
+    addressLink?: string | null;
+    addressQrDataUrl?: string | null;
+  }>("simplex.invite.list", {
+    accountId,
+  });
+  return result ?? null;
+}
+
+export async function handleSimplexAddressShowOrCreate(host: OpenClawApp, accountId: string) {
   if (!host.client || !host.connected) {
     return;
   }
-  const current = readSimplexControlState(host, accountId);
-  if (current.busyPending) {
-    return;
-  }
-  writeSimplexControlState(host, accountId, {
-    busyPending: true,
-    error: null,
-    message: null,
-  });
   try {
-    const result = await host.client.request<{
-      accountId?: string;
-      addressLink?: string | null;
-      pendingHints?: string[] | null;
-    }>("simplex.invite.list", {
-      accountId,
-    });
-    const resolvedId = result.accountId ?? accountId;
-    writeSimplexControlState(host, resolvedId, {
-      busyPending: false,
-      error: null,
-      message: "Pending status refreshed.",
-      link: result.addressLink ?? current.link,
-      pendingHints: result.pendingHints ?? [],
-    });
-  } catch (err) {
-    writeSimplexControlState(host, accountId, {
-      busyPending: false,
-      error: String(err),
-    });
+    const list = await fetchSimplexInviteList(host, accountId);
+    const resolvedId = list?.accountId ?? accountId;
+    const hasAddress = Boolean(list?.addressLink?.trim());
+    if (hasAddress) {
+      writeSimplexControlState(host, resolvedId, {
+        error: null,
+        message: "Address loaded.",
+        addressLink: list?.addressLink ?? null,
+        addressQrDataUrl: list?.addressQrDataUrl ?? null,
+      });
+      return;
+    }
+  } catch {
+    // Fall through to create path.
   }
+  await handleSimplexInviteCreate(host, accountId, "address");
 }
 
 export async function handleSimplexInviteRevoke(host: OpenClawApp, accountId: string) {
@@ -404,9 +411,9 @@ export async function handleSimplexInviteRevoke(host: OpenClawApp, accountId: st
       busyRevoke: false,
       error: null,
       message: "Address revoked.",
-      link: null,
-      qrDataUrl: null,
-      pendingHints: [],
+      addressLink: null,
+      addressQrDataUrl: null,
+      latestOneTimeInvite: current.latestOneTimeInvite,
     });
   } catch (err) {
     writeSimplexControlState(host, accountId, {

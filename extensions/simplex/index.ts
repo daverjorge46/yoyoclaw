@@ -268,10 +268,14 @@ const plugin = {
             ...extractSimplexLinks(contactsResponse),
           ]),
         ];
+        const addressQrDataUrl = addressLink
+          ? `data:image/png;base64,${await renderQrPngBase64(addressLink)}`
+          : null;
         const pendingHints = extractSimplexPendingHints(contactsResponse);
         respond(true, {
           accountId,
           addressLink,
+          addressQrDataUrl,
           links,
           pendingHints,
           addressResponse,

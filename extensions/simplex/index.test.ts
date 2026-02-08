@@ -190,7 +190,7 @@ describe("simplex invite gateway", () => {
       {
         resp: {
           type: "ok",
-          output: "Pending contact request from Bob",
+          output: "Pending contact request from Bob simplex://invite999",
         },
       },
     ]);
@@ -214,10 +214,12 @@ describe("simplex invite gateway", () => {
     expect(payload).toMatchObject({
       accountId: "default",
       addressLink: "simplex://address789",
-      links: ["simplex://address789"],
+      links: ["simplex://address789", "simplex://invite999"],
+      addressQrDataUrl: "data:image/png;base64,mock-base64",
     });
     expect((payload as { pendingHints?: string[] }).pendingHints?.length).toBeGreaterThan(0);
     expect(__getCommands()).toEqual(["/show_address", "/contacts"]);
+    expect(qrMocks.renderQrPngBase64).toHaveBeenCalledWith("simplex://address789");
   });
 
   it("revokes address link for selected account", async () => {

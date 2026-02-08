@@ -51,8 +51,8 @@ export type ChannelsProps = {
   onNostrProfileImport: () => void;
   onNostrProfileToggleAdvanced: () => void;
   onSimplexInviteCreate: (accountId: string, mode: SimplexInviteMode) => void;
-  onSimplexInviteList: (accountId: string) => void;
   onSimplexInviteRevoke: (accountId: string) => void;
+  onSimplexAddressShowOrCreate: (accountId: string) => void;
 };
 
 export type ChannelsChannelData = {
