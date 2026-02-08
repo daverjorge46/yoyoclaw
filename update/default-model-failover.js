@@ -55,9 +55,23 @@ function loadJson(filePath) {
   return JSON.parse(raw);
 }
 
+function atomicWriteFileSync(targetPath, data) {
+  const dir = path.dirname(targetPath);
+  fs.mkdirSync(dir, { recursive: true });
+  const base = path.basename(targetPath);
+  const tmpPath = path.join(dir, `${base}.tmp-${process.pid}-${Date.now()}`);
+  try {
+    fs.writeFileSync(tmpPath, data, { encoding: "utf8", mode: 0o600 });
+    fs.renameSync(tmpPath, targetPath);
+    try { fs.chmodSync(targetPath, 0o600); } catch {}
+  } catch (err) {
+    try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch {}
+    throw err;
+  }
+}
+
 function saveJson(filePath, obj) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(obj, null, 2), "utf8");
+  atomicWriteFileSync(filePath, JSON.stringify(obj, null, 2));
 }
 
 function splitModelRef(raw) {
@@ -95,7 +109,7 @@ async function probeModel(provider, model, timeoutMs) {
       }
       const res = await fetch(`https://api.anthropic.com/v1/models/${encodeURIComponent(model)}`, {
         signal: ac.signal,
-        headers: { "x-api-key": key },
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
       });
       return res.ok;
     }
@@ -122,7 +136,7 @@ function applyDefaultModel(cfg, provider, model) {
   }
   // merge into existing object to preserve keys like fallbacks
   cfg.agents.defaults.model = {
-    ...(cfg.agents.defaults.model || {}),
+    ...cfg.agents.defaults.model,
     primary: `${provider}/${model}`,
   };
 }

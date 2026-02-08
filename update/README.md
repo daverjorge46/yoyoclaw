@@ -33,8 +33,8 @@ node update/default-model-failover.js \
 
 Behavior and safety
 
-- Both scripts probe candidate models in the order provided and apply the first model that responds within the provided timeout (milliseconds). If none respond, `session-failover` resets session overrides to default; `default-model-failover` leaves the config unchanged but always writes a backup before touching the file.
-- `default-model-failover.js` creates a timestamped backup of the target config (same directory by default, or use `--backup-dir` to override).
+- Both scripts probe candidate models in the order provided and apply the first model that responds within the provided timeout (milliseconds). If none respond, `session-failover` resets session overrides to default; `default-model-failover` leaves the config unchanged and writes a backup before modifying the file if the target config already exists.
+- `default-model-failover.js` creates a timestamped backup of the existing target config (same directory by default, or use `--backup-dir` to override); if the config file does not yet exist, no backup file is created.
 
 Probing caveats and environment variables
 
@@ -62,5 +62,6 @@ Customization
 Safety checklist before running
 
 - Ensure you have backups of `%USERPROFILE%/.openclaw/openclaw.json` and your session store files.
+- Stop any running OpenClaw processes before running these scripts to avoid clobbering concurrent writes to config or session store files.
 - Export any provider API keys the script expects, or modify `probeModel` to accept your existing env var names.
 - Test with a short candidate list and a small timeout to verify behavior before automating.

@@ -37,8 +37,22 @@ function loadStore(storePath) {
   return JSON.parse(raw);
 }
 
+function atomicWriteFileSync(targetPath, data) {
+  const dir = path.dirname(targetPath);
+  const base = path.basename(targetPath);
+  const tmpPath = path.join(dir, `${base}.tmp-${process.pid}-${Date.now()}`);
+  try {
+    fs.writeFileSync(tmpPath, data, { encoding: "utf8", mode: 0o600 });
+    fs.renameSync(tmpPath, targetPath);
+    try { fs.chmodSync(targetPath, 0o600); } catch {}
+  } catch (err) {
+    try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch {}
+    throw err;
+  }
+}
+
 function saveStore(storePath, store) {
-  fs.writeFileSync(storePath, JSON.stringify(store, null, 2), "utf8");
+  atomicWriteFileSync(storePath, JSON.stringify(store, null, 2));
 }
 
 function splitModelRef(raw) {
@@ -53,6 +67,24 @@ function splitModelRef(raw) {
   return { provider: trimmed.slice(0, slash), model: trimmed.slice(slash + 1) };
 }
 
+function clearAuthProfileOverrides(entry) {
+  // Mirrors the cleanup in src/sessions/model-overrides.ts:52-65
+  let updated = false;
+  if (entry.authProfileOverride) {
+    delete entry.authProfileOverride;
+    updated = true;
+  }
+  if (entry.authProfileOverrideSource) {
+    delete entry.authProfileOverrideSource;
+    updated = true;
+  }
+  if (entry.authProfileOverrideCompactionCount !== undefined) {
+    delete entry.authProfileOverrideCompactionCount;
+    updated = true;
+  }
+  return updated;
+}
+
 function applyModelOverrideToEntry(entry, selection) {
   // Mirrors OpenClaw's applyModelOverrideToSessionEntry behaviour
   let updated = false;
@@ -65,13 +97,7 @@ function applyModelOverrideToEntry(entry, selection) {
       delete entry.modelOverride;
       updated = true;
     }
-    // Clear auth profile overrides to stay consistent with OpenClaw core
-    if (entry.authProfileOverride) {
-      delete entry.authProfileOverride;
-      updated = true;
-    }
-    if (entry.authProfileOverrideName) {
-      delete entry.authProfileOverrideName;
+    if (clearAuthProfileOverrides(entry)) {
       updated = true;
     }
   } else {
@@ -83,13 +109,7 @@ function applyModelOverrideToEntry(entry, selection) {
       entry.modelOverride = selection.model;
       updated = true;
     }
-    // Clear auth profile overrides when switching provider/model without a profile
-    if (entry.authProfileOverride) {
-      delete entry.authProfileOverride;
-      updated = true;
-    }
-    if (entry.authProfileOverrideName) {
-      delete entry.authProfileOverrideName;
+    if (clearAuthProfileOverrides(entry)) {
       updated = true;
     }
   }
@@ -126,7 +146,7 @@ async function probeModel(provider, model, timeoutMs) {
       }
       const res = await fetch(`https://api.anthropic.com/v1/models/${encodeURIComponent(model)}`, {
         signal: ac.signal,
-        headers: { "x-api-key": key },
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
       });
       return res.ok;
     }
