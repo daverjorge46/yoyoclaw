@@ -2,6 +2,7 @@ import type { StreamFn } from "@mariozechner/pi-agent-core";
 import type { SimpleStreamOptions } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
+import { isCacheTtlEligibleProvider } from "./cache-ttl.js";
 import { log } from "./logger.js";
 
 const OPENROUTER_APP_HEADERS: Record<string, string> = {
@@ -36,14 +37,15 @@ type CacheRetentionStreamOptions = Partial<SimpleStreamOptions> & {
  *
  * Mapping: "5m" → "short", "1h" → "long"
  *
- * Only applies to Anthropic provider (OpenRouter uses openai-completions API
- * with hardcoded cache_control, not the cacheRetention stream option).
+ * Applies to any cache-eligible provider: native Anthropic, OpenRouter with
+ * Anthropic models, and openrouter-passthrough with Anthropic models.
  */
 function resolveCacheRetention(
   extraParams: Record<string, unknown> | undefined,
   provider: string,
+  modelId: string,
 ): CacheRetention | undefined {
-  if (provider !== "anthropic") {
+  if (!isCacheTtlEligibleProvider(provider, modelId)) {
     return undefined;
   }
 
@@ -68,6 +70,7 @@ function createStreamFnWithExtraParams(
   baseStreamFn: StreamFn | undefined,
   extraParams: Record<string, unknown> | undefined,
   provider: string,
+  modelId: string,
 ): StreamFn | undefined {
   if (!extraParams || Object.keys(extraParams).length === 0) {
     return undefined;
@@ -80,7 +83,7 @@ function createStreamFnWithExtraParams(
   if (typeof extraParams.maxTokens === "number") {
     streamParams.maxTokens = extraParams.maxTokens;
   }
-  const cacheRetention = resolveCacheRetention(extraParams, provider);
+  const cacheRetention = resolveCacheRetention(extraParams, provider, modelId);
   if (cacheRetention) {
     streamParams.cacheRetention = cacheRetention;
   }
@@ -142,14 +145,14 @@ export function applyExtraParamsToAgent(
         )
       : undefined;
   const merged = Object.assign({}, extraParams, override);
-  const wrappedStreamFn = createStreamFnWithExtraParams(agent.streamFn, merged, provider);
+  const wrappedStreamFn = createStreamFnWithExtraParams(agent.streamFn, merged, provider, modelId);
 
   if (wrappedStreamFn) {
     log.debug(`applying extraParams to agent streamFn for ${provider}/${modelId}`);
     agent.streamFn = wrappedStreamFn;
   }
 
-  if (provider === "openrouter") {
+  if (provider === "openrouter" || provider === "openrouter-passthrough") {
     log.debug(`applying OpenRouter app attribution headers for ${provider}/${modelId}`);
     agent.streamFn = createOpenRouterHeadersWrapper(agent.streamFn);
   }
