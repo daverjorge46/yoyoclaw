@@ -21,12 +21,12 @@ describe("dispatchInboundMessage hooks", () => {
       Body: "Hello, this is a test message",
       From: "user123",
       SessionKey: "test-session",
-      Channel: "telegram",
+      Surface: "telegram",
       ChatType: "direct",
       MessageSid: "msg-123",
     };
 
-    const cfg = { workspace: { dir: "/test/workspace" } } as OpenClawConfig;
+    const cfg = {} as OpenClawConfig;
     const dispatcher = {
       dispatch: vi.fn(),
       waitForIdle: vi.fn().mockResolvedValue(undefined),

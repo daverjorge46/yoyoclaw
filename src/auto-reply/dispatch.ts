@@ -32,12 +32,11 @@ export async function dispatchInboundMessage(params: {
       body: messageBody,
       rawBody: finalized.RawBody,
       senderId: finalized.From,
-      channel: finalized.Channel,
+      channel: finalized.Surface ?? finalized.Provider,
       chatType: finalized.ChatType,
       messageId: finalized.MessageSid,
       replyToId: finalized.ReplyToId,
       wasMentioned: finalized.WasMentioned,
-      workspaceDir: params.cfg.workspace?.dir,
     });
     // Fire and forget - don't block message processing
     void triggerInternalHook(hookEvent);
