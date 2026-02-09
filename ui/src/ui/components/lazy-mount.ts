@@ -41,7 +41,9 @@ export class LazyMount extends LitElement {
   private static scheduleMount(task: () => void) {
     this.queue.push(task);
 
-    if (this.isScheduled) return;
+    if (this.isScheduled) {
+      return;
+    }
     this.isScheduled = true;
 
     const process = (deadline?: IdleDeadline) => {
@@ -49,17 +51,30 @@ export class LazyMount extends LitElement {
 
       // Process items while time remains or budget isn't exceeded
       while (this.queue.length > 0) {
-        if (deadline && deadline.timeRemaining() < 2) break; // Defensive 2ms buffer
-        if (!deadline && performance.now() - start > 8) break; // 8ms cap (half frame) in fallback
+        if (deadline && deadline.timeRemaining() < 2) {
+          break; // Defensive 2ms buffer
+        }
+        if (!deadline && performance.now() - start > 8) {
+          break; // 8ms cap (half frame) in fallback
+        }
 
         const nextTask = this.queue.shift();
-        if (nextTask) nextTask();
+        if (nextTask) {
+          nextTask();
+        }
       }
 
       if (this.queue.length > 0) {
         // Reschedule remainder
         if ("requestIdleCallback" in window) {
-          (window as any).requestIdleCallback(process, { timeout: 200 });
+          (
+            window as unknown as {
+              requestIdleCallback: (
+                cb: (d?: IdleDeadline) => void,
+                opt?: { timeout: number },
+              ) => void;
+            }
+          ).requestIdleCallback(process, { timeout: 200 });
         } else {
           requestAnimationFrame(() => process());
         }
@@ -69,7 +84,11 @@ export class LazyMount extends LitElement {
     };
 
     if ("requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(process, { timeout: 200 });
+      (
+        window as unknown as {
+          requestIdleCallback: (cb: (d?: IdleDeadline) => void, opt?: { timeout: number }) => void;
+        }
+      ).requestIdleCallback(process, { timeout: 200 });
     } else {
       requestAnimationFrame(() => process());
     }
@@ -81,7 +100,8 @@ export class LazyMount extends LitElement {
 
     const isTest =
       typeof window !== "undefined" &&
-      ((window as any).__vitest_browser__ || (window as any).__FORCE_LAZY_MOUNT__);
+      ((window as unknown as Record<string, unknown>).__vitest_browser__ ||
+        (window as unknown as Record<string, unknown>).__FORCE_LAZY_MOUNT__);
 
     // Apply critical CSS performance properties to host
     this.style.display = "block";
@@ -108,7 +128,9 @@ export class LazyMount extends LitElement {
   }
 
   private setupObserver() {
-    if (this.observer || this.hasAppeared) return;
+    if (this.observer || this.hasAppeared) {
+      return;
+    }
 
     this.observer = new IntersectionObserver(
       (entries) => {
@@ -137,7 +159,9 @@ export class LazyMount extends LitElement {
   }
 
   private performMount() {
-    if (this.hasAppeared) return;
+    if (this.hasAppeared) {
+      return;
+    }
 
     this.hasAppeared = true;
     this.requestUpdate();
@@ -150,7 +174,8 @@ export class LazyMount extends LitElement {
   render() {
     const isTest =
       typeof window !== "undefined" &&
-      ((window as any).__vitest_browser__ || (window as any).__FORCE_LAZY_MOUNT__);
+      ((window as unknown as Record<string, unknown>).__vitest_browser__ ||
+        (window as unknown as Record<string, unknown>).__FORCE_LAZY_MOUNT__);
 
     if (!this.hasAppeared && !this.immediate && !isTest) {
       // Placeholder

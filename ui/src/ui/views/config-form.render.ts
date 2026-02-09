@@ -554,7 +554,7 @@ export function renderConfigForm(props: ConfigFormProps) {
                 </div>
                 <div class="config-section-card__content">
                   ${
-                    (window as any).__FORCE_LAZY_MOUNT__
+                    (window as unknown as Record<string, unknown>).__FORCE_LAZY_MOUNT__
                       ? renderNode({
                           schema: node,
                           value: scopedValue,
@@ -613,7 +613,7 @@ export function renderConfigForm(props: ConfigFormProps) {
                 </summary>
                 <div class="config-section-card__content">
                   ${
-                    (window as any).__FORCE_LAZY_MOUNT__
+                    (window as unknown as Record<string, unknown>).__FORCE_LAZY_MOUNT__
                       ? renderNode({
                           schema: node,
                           value: value[key],
