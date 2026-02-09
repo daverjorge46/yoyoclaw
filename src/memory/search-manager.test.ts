@@ -110,16 +110,18 @@ describe("getMemorySearchManager caching", () => {
       agents: { list: [{ id: retryAgentId, default: true, workspace: "/tmp/workspace" }] },
     } as const;
 
-    mockPrimary.search.mockRejectedValueOnce(new Error("qmd query failed"));
+    mockPrimary.search.mockRejectedValue(new Error("qmd query failed (code 1): bad"));
     const first = await getMemorySearchManager({ cfg, agentId: retryAgentId });
     expect(first.manager).toBeTruthy();
     if (!first.manager) {
       throw new Error("manager missing");
     }
 
-    const fallbackResults = await first.manager.search("hello");
-    expect(fallbackResults).toHaveLength(1);
-    expect(fallbackResults[0]?.path).toBe("MEMORY.md");
+    for (let i = 0; i < 5; i += 1) {
+      const fallbackResults = await first.manager.search("hello");
+      expect(fallbackResults).toHaveLength(1);
+      expect(fallbackResults[0]?.path).toBe("MEMORY.md");
+    }
 
     const second = await getMemorySearchManager({ cfg, agentId: retryAgentId });
     expect(second.manager).toBeTruthy();
@@ -135,14 +137,16 @@ describe("getMemorySearchManager caching", () => {
       agents: { list: [{ id: retryAgentId, default: true, workspace: "/tmp/workspace" }] },
     } as const;
 
-    mockPrimary.search.mockRejectedValueOnce(new Error("qmd query failed"));
+    mockPrimary.search.mockRejectedValue(new Error("qmd query failed (code 1): bad"));
 
     const first = await getMemorySearchManager({ cfg, agentId: retryAgentId });
     expect(first.manager).toBeTruthy();
     if (!first.manager) {
       throw new Error("manager missing");
     }
-    await first.manager.search("hello");
+    for (let i = 0; i < 5; i += 1) {
+      await first.manager.search("hello");
+    }
 
     const second = await getMemorySearchManager({ cfg, agentId: retryAgentId });
     expect(second.manager).toBeTruthy();
@@ -180,6 +184,7 @@ describe("getMemorySearchManager caching", () => {
     expect(results).toHaveLength(1);
     expect(results[0]?.path).toBe("MEMORY.md");
     expect(fallbackSearch).toHaveBeenCalledTimes(1);
+    expect(mockPrimary.close).not.toHaveBeenCalled();
   });
 });
 

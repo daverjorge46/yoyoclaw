@@ -122,8 +122,6 @@ class FallbackMemoryManager implements MemorySearchManager {
         return results;
       } catch (err) {
         this.lastError = err instanceof Error ? err.message : String(err);
-        // Evict the failed wrapper so the next request can retry QMD with a fresh manager.
-        this.evictCacheEntry();
         const transient = isTransientQmdError(err);
 
         if (transient) {
@@ -140,6 +138,10 @@ class FallbackMemoryManager implements MemorySearchManager {
               `qmd memory search failed ${this.consecutivePrimaryFailures}x; disabling qmd and switching to builtin index: ${this.lastError}`,
             );
             await this.deps.primary.close?.().catch(() => {});
+            // Only evict the cached wrapper when we permanently disable QMD. This ensures transient
+            // failures don't churn the cached manager while still allowing a fresh QMD wrapper on
+            // later calls once we've tripped the disable threshold.
+            this.evictCacheEntry();
           } else {
             log.warn(
               `qmd memory search failed (consecutive=${this.consecutivePrimaryFailures}/${threshold}); falling back to builtin for this query: ${this.lastError}`,
