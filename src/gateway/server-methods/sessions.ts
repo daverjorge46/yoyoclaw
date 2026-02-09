@@ -366,6 +366,23 @@ export const sessionsHandlers: GatewayRequestHandlers = {
 
     const archived: string[] = [];
     if (deleteTranscript && sessionId) {
+      // Clean up any old .deleted files for this sessionId to prevent duplicates
+      const agentDir = resolveAgentDir(cfg, target.agentId);
+      const sessionsDir = path.join(agentDir, "sessions");
+      try {
+        const files = fs.readdirSync(sessionsDir);
+        const oldDeleted = files.filter((f) => f.startsWith(`${sessionId}.jsonl.deleted.`));
+        for (const oldFile of oldDeleted) {
+          try {
+            fs.unlinkSync(path.join(sessionsDir, oldFile));
+          } catch {
+            // Best-effort cleanup
+          }
+        }
+      } catch {
+        // Directory might not exist, that's fine
+      }
+
       const candidates = resolveSessionTranscriptCandidates(
         sessionId,
         storePath,
@@ -778,8 +795,16 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         "utf-8",
       );
 
-      // Delete the old archived file
-      fs.unlinkSync(deletedPath);
+      // Delete ALL archived files for this sessionId to prevent duplicates
+      const files = fs.readdirSync(sessionsDir);
+      const allDeleted = files.filter((f) => f.startsWith(`${sessionId}.jsonl.deleted.`));
+      for (const oldFile of allDeleted) {
+        try {
+          fs.unlinkSync(path.join(sessionsDir, oldFile));
+        } catch {
+          // Best-effort cleanup
+        }
+      }
 
       // Restore session entry in sessions.json
       const sessionKey = `agent:${agentId}:${sessionId}`;
