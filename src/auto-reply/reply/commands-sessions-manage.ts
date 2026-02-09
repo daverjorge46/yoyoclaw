@@ -1,7 +1,7 @@
 import type { CommandHandler } from "./commands-types.js";
 import { callGateway } from "../../gateway/call.js";
 import { logVerbose } from "../../globals.js";
-import { formatTimeAgo } from "../../infra/format-time/format-relative.ts";
+import { formatTimeAgo } from "../../infra/format-time/format-relative.js";
 
 const COMMAND = "/session";
 
@@ -57,19 +57,13 @@ export const handleSessionManageCommand: CommandHandler = async (params, allowTe
       });
 
       if (result?.ok && result.key) {
-        // Build URL for webchat (try to detect if we're in webchat)
-        const isWebchat = params.command.channel === "webchat";
-        const switchUrl = isWebchat
-          ? `${typeof window !== "undefined" ? window.location.origin : ""}?session=${result.key}`
-          : null;
-
         const lines = [
           `✅ Created session "${label}"`,
           `Key: ${result.key}`,
-          switchUrl ? `Switch: ${switchUrl}` : undefined,
           "",
           "This session is persistent and won't be reset by /new.",
-        ].filter(Boolean);
+          "To switch: use the session key in your Control UI or as a URL parameter (?session=<key>).",
+        ];
 
         return { shouldContinue: false, reply: { text: lines.join("\n") } };
       }

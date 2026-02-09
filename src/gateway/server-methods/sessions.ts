@@ -395,15 +395,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const p = params as {
-      label: string;
-      description?: string;
-      persistent?: boolean;
-      agentId?: string;
-      basedOn?: string;
-    };
-
-    const label = p.label.trim();
+    const p = params;
+    const label = String(p.label ?? "").trim();
     if (!label) {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "label required"));
       return;
