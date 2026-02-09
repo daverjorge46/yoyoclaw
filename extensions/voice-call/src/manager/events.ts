@@ -95,6 +95,7 @@ export function processEvent(ctx: CallManagerContext, event: NormalizedEvent): v
   if (!call && event.direction === "inbound" && event.providerCallId) {
     if (!shouldAcceptInbound(ctx.config, event.from)) {
       if (ctx.provider && event.providerCallId) {
+        // Early-reject happens before an internal callId exists; hang up by providerCallId.
         void ctx.provider
           .hangupCall({
             callId: event.providerCallId ?? event.callId,

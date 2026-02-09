@@ -546,6 +546,7 @@ export class CallManager {
 
     if (!this.shouldAcceptInbound(params.from)) {
       if (this.provider && params.providerCallId) {
+        // Early-reject happens before an internal callId exists; hang up by providerCallId.
         void this.provider
           .hangupCall({
             callId: params.providerCallId,
