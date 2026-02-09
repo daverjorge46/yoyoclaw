@@ -88,7 +88,6 @@ const HTTP_ERROR_HINTS = [
   "invalid",
   "too many requests",
   "permission",
-  "payment",
 ];
 
 function stripFinalTagsFromText(text: string): string {
@@ -427,14 +426,7 @@ export function sanitizeUserFacingText(text: string): string {
     );
   }
 
-  // Only rewrite billing errors when the text looks like a leaked error payload,
-  // not normal assistant text that happens to contain "402" (e.g., "$402.55").
-  if (
-    isBillingErrorMessage(trimmed) &&
-    (isRawApiErrorPayload(trimmed) ||
-      isLikelyHttpErrorText(trimmed) ||
-      ERROR_PREFIX_RE.test(trimmed))
-  ) {
+  if (isBillingErrorMessage(trimmed)) {
     return BILLING_ERROR_USER_MESSAGE;
   }
 
