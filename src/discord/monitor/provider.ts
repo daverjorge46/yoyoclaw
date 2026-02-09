@@ -765,12 +765,23 @@ async function sendLifecycleDM(
           await rest.post(Routes.channelMessages(dmChannel.id), {
             body: { content: message },
           });
+          logVerbose(`discord lifecycle DM sent to ${userId}`);
+        } else {
+          logVerbose(`discord lifecycle DM: no channel returned for user ${userId}`);
         }
-      } catch {
-        // Best-effort; don't block lifecycle events.
+      } catch (err) {
+        logVerbose(`discord lifecycle DM failed for user ${userId}: ${formatErrorMessage(err)}`);
       }
     }
   };
 
-  await Promise.race([send(), new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))]);
+  await Promise.race([
+    send(),
+    new Promise<void>((resolve) => {
+      setTimeout(() => {
+        logVerbose(`discord lifecycle DM timed out after ${timeoutMs}ms`);
+        resolve();
+      }, timeoutMs);
+    }),
+  ]);
 }
