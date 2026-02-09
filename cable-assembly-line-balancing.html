@@ -86,6 +86,12 @@
     background: var(--surface2); color: var(--muted);
     border-color: transparent; text-align: right;
   }
+  .form-table .readonly.calc {
+    background: rgba(56,189,248,0.15); color: var(--accent);
+    border-color: transparent; text-align: right;
+  }
+  .form-table th.input-col { background: rgba(74,222,128,0.2); }
+  .form-table th.calc-col { background: rgba(56,189,248,0.2); }
   .form-table .row-num { color: var(--muted); text-align: center; width: 30px; }
   .form-table .actions { white-space: nowrap; }
   .form-table .actions button {
@@ -292,20 +298,27 @@
           <thead>
             <tr>
               <th style="width:30px">#</th>
-              <th style="width:100px">Employee Code</th>
-              <th style="min-width:150px">Name</th>
-              <th style="width:80px">Shift Start</th>
-              <th style="width:80px">Shift End</th>
-              <th style="width:80px">Break (min)</th>
-              <th style="width:80px">Work Hours</th>
-              <th style="width:80px">Hourly Rate</th>
-              <th style="width:80px">Daily Cost</th>
-              <th style="width:80px">Actions</th>
+              <th class="input-col" style="width:90px">Employee Code</th>
+              <th class="input-col" style="min-width:140px">Name</th>
+              <th class="input-col" style="width:75px">Shift Start</th>
+              <th class="input-col" style="width:75px">Shift End</th>
+              <th class="input-col" style="width:70px">Break (min)</th>
+              <th class="calc-col" style="width:75px">Hours/Week</th>
+              <th class="input-col" style="width:70px">Hours/Day</th>
+              <th class="input-col" style="width:80px">Participation %</th>
+              <th class="calc-col" style="width:85px">Working Days/Yr</th>
+              <th class="calc-col" style="width:80px">Net Work Hrs</th>
+              <th class="input-col" style="width:80px">Hourly Rate</th>
+              <th style="width:60px">Actions</th>
             </tr>
           </thead>
           <tbody id="workerTableBody"></tbody>
         </table>
       </div>
+      <p style="font-size:0.65rem;color:var(--muted);margin-top:8px;">
+        <span style="display:inline-block;width:12px;height:12px;background:rgba(74,222,128,0.3);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>User Input
+        <span style="display:inline-block;width:12px;height:12px;background:rgba(56,189,248,0.3);border-radius:2px;margin-left:12px;margin-right:4px;vertical-align:middle;"></span>Auto-Calculated
+      </p>
       <button class="btn-add" onclick="addWorker()">+ Add Worker</button>
 
       <div class="schedule-summary" id="scheduleSummary"></div>
@@ -397,6 +410,15 @@
       <div class="schedule-summary" id="analysisSummary"></div>
     </div>
 
+    <div class="section" style="border: 2px solid var(--green); background: rgba(74,222,128,0.05);">
+      <div class="section-title" style="color:var(--green);">📊 Capacity Calculation <span class="badge" style="background:var(--green);">BASED ON LINE BALANCING</span></div>
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:16px;">
+        Theoretical capacity is calculated based on the bottleneck time after line balancing and the total net working hours from the workforce roster.
+      </p>
+      <div class="kpi-row" id="capacityKPIs"></div>
+      <div class="schedule-summary" id="capacitySummary"></div>
+    </div>
+
     <div class="section">
       <div class="section-title">Process Summary Table</div>
       <div class="table-scroll">
@@ -410,6 +432,7 @@
               <th>Raw Time (s)</th>
               <th>Workers</th>
               <th>Eff. Time (s)</th>
+              <th>OPH</th>
               <th>Utilization %</th>
             </tr>
           </thead>
@@ -445,12 +468,16 @@ let processes = [
 ];
 
 let workers = [
-  { uid: 'w1', code: 'EMP001', name: 'John Smith', shiftStart: '08:00', shiftEnd: '17:00', breakMin: 60, hourlyRate: 15.00 },
-  { uid: 'w2', code: 'EMP002', name: 'Maria Garcia', shiftStart: '08:00', shiftEnd: '17:00', breakMin: 60, hourlyRate: 15.00 },
-  { uid: 'w3', code: 'EMP003', name: 'David Chen', shiftStart: '08:00', shiftEnd: '17:00', breakMin: 60, hourlyRate: 16.50 },
-  { uid: 'w4', code: 'EMP004', name: 'Sarah Johnson', shiftStart: '08:00', shiftEnd: '17:00', breakMin: 60, hourlyRate: 15.00 },
-  { uid: 'w5', code: 'EMP005', name: 'Ahmed Hassan', shiftStart: '08:00', shiftEnd: '17:00', breakMin: 60, hourlyRate: 17.00 },
+  { uid: 'w1', code: 'M01 - MC', name: 'Muhitdin Cagin', shiftStart: '06:00', shiftEnd: '11:15', breakMin: 15, hoursPerDay: 5, participationRate: 60, hourlyRate: 17.42 },
+  { uid: 'w2', code: 'M02 - PK', name: 'Petra Krause', shiftStart: '06:00', shiftEnd: '14:00', breakMin: 30, hoursPerDay: 7, participationRate: 30, hourlyRate: 17.42 },
+  { uid: 'w3', code: 'M03 - DM', name: 'Diana Menger', shiftStart: '07:00', shiftEnd: '12:15', breakMin: 15, hoursPerDay: 5, participationRate: 97, hourlyRate: 17.42 },
+  { uid: 'w4', code: 'M04 - JN', name: 'Jonas Nickel', shiftStart: '06:00', shiftEnd: '13:30', breakMin: 30, hoursPerDay: 1.4, participationRate: 97, hourlyRate: 17.42 },
+  { uid: 'w5', code: 'M05 - SA', name: 'Saeideh Alinezhad', shiftStart: '07:00', shiftEnd: '15:30', breakMin: 30, hoursPerDay: 7, participationRate: 97, hourlyRate: 17.42 },
 ];
+
+// Global capacity settings
+const WORKING_DAYS_PER_YEAR = 210;
+const DAYS_PER_YEAR = 365;
 
 const MACHINE_CATALOGUE = [
   'Cutting Machine', 'Stripping Machine', 'Crimping Machine (Manual)', 'Crimping Machine (Auto)',
@@ -503,19 +530,38 @@ function getTotalTime() {
   return processes.reduce((s, p) => s + p.total, 0);
 }
 
-function getWorkerHours(w) {
+function getWorkerShiftHours(w) {
+  // Calculate hours based on shift times (for Hours/Week calculation)
   const [sh, sm] = w.shiftStart.split(':').map(Number);
   const [eh, em] = w.shiftEnd.split(':').map(Number);
   const totalMin = (eh * 60 + em) - (sh * 60 + sm) - w.breakMin;
   return Math.max(0, totalMin / 60);
 }
 
+function getWorkerHoursPerWeek(w) {
+  // Assuming 5-day work week based on shift hours
+  return getWorkerShiftHours(w) * 5;
+}
+
+function getWorkerNetWorkingHours(w) {
+  // Net Working Hours = Hours/Day * Participation Rate
+  return (w.hoursPerDay || 0) * ((w.participationRate || 0) / 100);
+}
+
+function getWorkingDaysPerYearPercent() {
+  return (WORKING_DAYS_PER_YEAR / DAYS_PER_YEAR * 100);
+}
+
 function getWorkerDailyCost(w) {
-  return +(getWorkerHours(w) * w.hourlyRate).toFixed(2);
+  return +((w.hoursPerDay || 0) * w.hourlyRate).toFixed(2);
 }
 
 function getTotalDailyWorkHours() {
-  return workers.reduce((s, w) => s + getWorkerHours(w), 0);
+  return workers.reduce((s, w) => s + (w.hoursPerDay || 0), 0);
+}
+
+function getTotalNetWorkingHours() {
+  return workers.reduce((s, w) => s + getWorkerNetWorkingHours(w), 0);
 }
 
 function getTotalDailyLaborCost() {
@@ -525,6 +571,11 @@ function getTotalDailyLaborCost() {
 function getAvgWorkHoursPerWorker() {
   if (workers.length === 0) return 0;
   return getTotalDailyWorkHours() / workers.length;
+}
+
+function getAvgNetWorkHoursPerWorker() {
+  if (workers.length === 0) return 0;
+  return getTotalNetWorkingHours() / workers.length;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -604,9 +655,14 @@ function moveProcess(idx, dir) {
 function renderWorkerTable() {
   const tbody = document.getElementById('workerTableBody');
   let html = '';
+  const workingDaysPct = getWorkingDaysPerYearPercent();
+
   workers.forEach((w, i) => {
-    const hrs = getWorkerHours(w);
-    const cost = getWorkerDailyCost(w);
+    const hoursPerWeek = getWorkerHoursPerWeek(w);
+    const netWorkHrs = getWorkerNetWorkingHours(w);
+    const hoursPerDay = w.hoursPerDay || 0;
+    const participationRate = w.participationRate || 0;
+
     html += `<tr>
       <td class="row-num">${i + 1}</td>
       <td><input type="text" value="${w.code}" onchange="updateWorker(${i},'code',this.value)"></td>
@@ -614,9 +670,12 @@ function renderWorkerTable() {
       <td><input type="time" value="${w.shiftStart}" onchange="updateWorker(${i},'shiftStart',this.value)"></td>
       <td><input type="time" value="${w.shiftEnd}" onchange="updateWorker(${i},'shiftEnd',this.value)"></td>
       <td><input type="number" value="${w.breakMin}" min="0" step="5" onchange="updateWorker(${i},'breakMin',parseInt(this.value)||0)"></td>
-      <td><input type="text" class="readonly" value="${hrs.toFixed(2)}" readonly></td>
-      <td><input type="number" value="${w.hourlyRate.toFixed(2)}" min="0" step="0.50" onchange="updateWorker(${i},'hourlyRate',parseFloat(this.value)||0)"></td>
-      <td><input type="text" class="readonly" value="$${cost.toFixed(2)}" readonly></td>
+      <td><input type="text" class="readonly calc" value="${hoursPerWeek.toFixed(0)}" readonly></td>
+      <td><input type="number" value="${hoursPerDay}" min="0" max="24" step="0.1" onchange="updateWorker(${i},'hoursPerDay',parseFloat(this.value)||0)"></td>
+      <td><input type="number" value="${participationRate}" min="0" max="100" step="1" onchange="updateWorker(${i},'participationRate',parseFloat(this.value)||0)"></td>
+      <td><input type="text" class="readonly calc" value="${workingDaysPct.toFixed(1)}%" readonly></td>
+      <td><input type="text" class="readonly calc" value="${netWorkHrs.toFixed(2)}" readonly></td>
+      <td><input type="number" value="${w.hourlyRate.toFixed(2)}" min="0" step="0.01" onchange="updateWorker(${i},'hourlyRate',parseFloat(this.value)||0)"></td>
       <td class="actions">
         <button class="btn-delete" onclick="deleteWorker(${i})">✕</button>
       </td>
@@ -633,14 +692,16 @@ function updateWorker(idx, field, value) {
 }
 
 function addWorker() {
-  const rate = parseFloat(document.getElementById('defaultHourlyRate').value) || 15;
+  const rate = parseFloat(document.getElementById('defaultHourlyRate').value) || 17.42;
   workers.push({
     uid: genUid(),
     code: 'EMP' + String(workers.length + 1).padStart(3, '0'),
     name: 'New Worker',
-    shiftStart: '08:00',
-    shiftEnd: '17:00',
-    breakMin: 60,
+    shiftStart: '06:00',
+    shiftEnd: '14:00',
+    breakMin: 30,
+    hoursPerDay: 7,
+    participationRate: 97,
     hourlyRate: rate
   });
   renderWorkerTable();
@@ -659,21 +720,28 @@ function updateWorkerCosts() {
 
 function renderScheduleSummary() {
   const totalHrs = getTotalDailyWorkHours();
+  const totalNetHrs = getTotalNetWorkingHours();
   const totalCost = getTotalDailyLaborCost();
   const avgHrs = getAvgWorkHoursPerWorker();
-  const avgRate = workers.length > 0 ? totalCost / totalHrs : 0;
+  const avgNetHrs = getAvgNetWorkHoursPerWorker();
+  const avgRate = workers.length > 0 && totalHrs > 0 ? totalCost / totalHrs : 0;
+  const avgParticipation = workers.length > 0
+    ? workers.reduce((s, w) => s + (w.participationRate || 0), 0) / workers.length
+    : 0;
 
   document.getElementById('scheduleSummary').innerHTML = `
     <div class="schedule-card">
       <h4>Workforce Summary</h4>
       <div class="stat"><span class="stat-label">Total Workers:</span><span class="stat-value">${workers.length}</span></div>
-      <div class="stat"><span class="stat-label">Total Daily Hours:</span><span class="stat-value">${totalHrs.toFixed(1)} hrs</span></div>
-      <div class="stat"><span class="stat-label">Avg Hours/Worker:</span><span class="stat-value">${avgHrs.toFixed(1)} hrs</span></div>
+      <div class="stat"><span class="stat-label">Total Hours/Day:</span><span class="stat-value">${totalHrs.toFixed(1)} hrs</span></div>
+      <div class="stat"><span class="stat-label">Total Net Work Hrs:</span><span class="stat-value">${totalNetHrs.toFixed(2)} hrs</span></div>
+      <div class="stat"><span class="stat-label">Avg Participation:</span><span class="stat-value">${avgParticipation.toFixed(0)}%</span></div>
     </div>
     <div class="schedule-card">
       <h4>Labor Cost</h4>
-      <div class="stat"><span class="stat-label">Total Daily Cost:</span><span class="stat-value">$${totalCost.toFixed(2)}</span></div>
-      <div class="stat"><span class="stat-label">Avg Rate:</span><span class="stat-value">$${avgRate.toFixed(2)}/hr</span></div>
+      <div class="stat"><span class="stat-label">Total Daily Cost:</span><span class="stat-value">€${totalCost.toFixed(2)}</span></div>
+      <div class="stat"><span class="stat-label">Avg Rate:</span><span class="stat-value">€${avgRate.toFixed(2)}/hr</span></div>
+      <div class="stat"><span class="stat-label">Working Days/Year:</span><span class="stat-value">${WORKING_DAYS_PER_YEAR}</span></div>
     </div>
   `;
 }
@@ -1056,19 +1124,21 @@ function renderBarChart() {
 
   stations.forEach((st, si) => {
     const effT = effectiveStationTime(si);
-    const workers = stationResources[si]?.workers || 1;
+    const workersCount = stationResources[si]?.workers || 1;
     let stackHtml = '';
     st.tasks.forEach(ti => {
       const p = processes[ti];
-      const segTime = p.total / workers;
+      const segTime = p.total / workersCount;
       const h = Math.max(2, (segTime / maxTime) * chartHeight);
+      const oph = segTime > 0 ? (3600 / segTime).toFixed(1) : 0;
       stackHtml += `<div class="task-segment color-${ti % 11}" style="height:${h}px;">
         ${p.sapNo.slice(-3)}
         <div class="tooltip">
           <strong>${p.sapNo}</strong><br>${p.desc}<br>
           Cycle: ${p.cycle}s | Eff: ${p.eff}%<br>
-          Total: ${p.total.toFixed(2)}s | Workers: ${workers}<br>
-          Effective: ${segTime.toFixed(2)}s
+          Total: ${p.total.toFixed(2)}s | Workers: ${workersCount}<br>
+          Effective: ${segTime.toFixed(2)}s<br>
+          <strong style="color:var(--green);">OPH: ${oph}</strong>
         </div>
       </div>`;
     });
@@ -1076,12 +1146,15 @@ function renderBarChart() {
     const utilPct = (effT / maxTime * 100);
     const utilColor = utilPct > 85 ? 'var(--green)' : utilPct > 70 ? 'var(--yellow)' : 'var(--red)';
 
+    // Calculate station OPH
+    const stationOPH = effT > 0 ? (3600 / effT).toFixed(0) : 0;
     html += `<div class="station-col">
       <div class="station-bar-stack">${stackHtml}</div>
       <div class="station-label">Stn ${si + 1}</div>
       <div class="station-time">${effT.toFixed(1)}s</div>
       <div style="font-size:0.6rem;color:${utilColor};">${utilPct.toFixed(0)}%</div>
-      <div style="font-size:0.55rem;color:var(--muted);">${workers}W</div>
+      <div style="font-size:0.55rem;color:var(--muted);">${workersCount}W</div>
+      <div style="font-size:0.55rem;color:var(--green);">${stationOPH}/hr</div>
     </div>`;
   });
 
@@ -1187,49 +1260,83 @@ function renderAnalysis() {
 
   // Daily production based on workforce
   const totalWorkHours = getTotalDailyWorkHours();
+  const totalNetWorkHours = getTotalNetWorkingHours();
   const avgWorkHours = getAvgWorkHoursPerWorker();
-  const dailyOutputPerWorker = avgWorkHours * oph;
-  const theoreticalDailyOutput = Math.floor(avgWorkHours * 3600 / bottleneck);
+  const avgNetWorkHours = getAvgNetWorkHoursPerWorker();
 
   // Costs
   const totalDailyCost = getTotalDailyLaborCost();
   const totalWorkers = Object.values(stationResources).reduce((s, r) => s + r.workers, 0);
-  const avgHourlyRate = workers.length > 0 ? totalDailyCost / totalWorkHours : 15;
+  const avgHourlyRate = workers.length > 0 && totalWorkHours > 0 ? totalDailyCost / totalWorkHours : 17.42;
   const laborCostPerUnit = totalWorkers > 0 ? (totalWorkers * avgHourlyRate * (bottleneck / 3600)) : 0;
+
+  // Capacity calculation based on net working hours
+  const theoreticalDailyOutput = Math.floor(totalNetWorkHours * 3600 / bottleneck);
+  const theoreticalWeeklyOutput = theoreticalDailyOutput * 5;
+  const theoreticalYearlyOutput = theoreticalDailyOutput * WORKING_DAYS_PER_YEAR;
   const totalDailyLaborCost = theoreticalDailyOutput * laborCostPerUnit;
 
   document.getElementById('analysisKPIs').innerHTML = `
-    <div class="kpi-card highlight"><div class="kpi-value">${theoreticalDailyOutput}</div><div class="kpi-label">Daily Output (units)</div></div>
     <div class="kpi-card"><div class="kpi-value">${oph.toFixed(1)}</div><div class="kpi-label">Output/Hour</div></div>
-    <div class="kpi-card"><div class="kpi-value">${avgWorkHours.toFixed(1)}h</div><div class="kpi-label">Avg Work Hours</div></div>
+    <div class="kpi-card"><div class="kpi-value">${bottleneck.toFixed(2)}s</div><div class="kpi-label">Bottleneck Time</div></div>
     <div class="kpi-card"><div class="kpi-value">${workers.length}</div><div class="kpi-label">Workers in Roster</div></div>
     <div class="kpi-card"><div class="kpi-value">${totalWorkers.toFixed(2)}</div><div class="kpi-label">Workers Assigned</div></div>
-    <div class="kpi-card cost"><div class="kpi-value">$${laborCostPerUnit.toFixed(3)}</div><div class="kpi-label">Labor Cost/Unit</div></div>
-    <div class="kpi-card cost"><div class="kpi-value">$${totalDailyLaborCost.toFixed(2)}</div><div class="kpi-label">Daily Labor Cost</div></div>
-    <div class="kpi-card cost"><div class="kpi-value">$${totalDailyCost.toFixed(2)}</div><div class="kpi-label">Daily Wages</div></div>
+    <div class="kpi-card"><div class="kpi-value">${totalNetWorkHours.toFixed(2)}h</div><div class="kpi-label">Total Net Work Hrs</div></div>
+    <div class="kpi-card cost"><div class="kpi-value">€${laborCostPerUnit.toFixed(3)}</div><div class="kpi-label">Labor Cost/Unit</div></div>
+    <div class="kpi-card cost"><div class="kpi-value">€${totalDailyCost.toFixed(2)}</div><div class="kpi-label">Daily Wages</div></div>
   `;
 
   document.getElementById('analysisSummary').innerHTML = `
     <div class="schedule-card">
-      <h4>Production Calculations</h4>
+      <h4>Production Metrics</h4>
       <div class="stat"><span class="stat-label">Bottleneck Time:</span><span class="stat-value">${bottleneck.toFixed(2)}s</span></div>
       <div class="stat"><span class="stat-label">Units per Hour:</span><span class="stat-value">${oph.toFixed(1)}</span></div>
-      <div class="stat"><span class="stat-label">Work Hours (avg):</span><span class="stat-value">${avgWorkHours.toFixed(2)} hrs</span></div>
-      <div class="stat"><span class="stat-label">Theoretical Daily:</span><span class="stat-value">${theoreticalDailyOutput} units</span></div>
+      <div class="stat"><span class="stat-label">Stations:</span><span class="stat-value">${stations.length}</span></div>
+      <div class="stat"><span class="stat-label">Total Cycle:</span><span class="stat-value">${getTotalTime().toFixed(1)}s</span></div>
     </div>
     <div class="schedule-card">
       <h4>Cost Analysis</h4>
       <div class="stat"><span class="stat-label">Workers Assigned:</span><span class="stat-value">${totalWorkers.toFixed(2)}</span></div>
-      <div class="stat"><span class="stat-label">Avg Hourly Rate:</span><span class="stat-value">$${avgHourlyRate.toFixed(2)}</span></div>
-      <div class="stat"><span class="stat-label">Labor/Unit:</span><span class="stat-value">$${laborCostPerUnit.toFixed(4)}</span></div>
-      <div class="stat"><span class="stat-label">Daily Labor Cost:</span><span class="stat-value">$${totalDailyLaborCost.toFixed(2)}</span></div>
+      <div class="stat"><span class="stat-label">Avg Hourly Rate:</span><span class="stat-value">€${avgHourlyRate.toFixed(2)}</span></div>
+      <div class="stat"><span class="stat-label">Labor/Unit:</span><span class="stat-value">€${laborCostPerUnit.toFixed(4)}</span></div>
+      <div class="stat"><span class="stat-label">Daily Labor Cost:</span><span class="stat-value">€${totalDailyLaborCost.toFixed(2)}</span></div>
     </div>
     <div class="schedule-card">
       <h4>Efficiency Metrics</h4>
       <div class="stat"><span class="stat-label">Line Efficiency:</span><span class="stat-value">${((effTimes.reduce((s, t) => s + t, 0) / (stations.length * bottleneck)) * 100).toFixed(1)}%</span></div>
-      <div class="stat"><span class="stat-label">Stations:</span><span class="stat-value">${stations.length}</span></div>
-      <div class="stat"><span class="stat-label">Total Cycle:</span><span class="stat-value">${getTotalTime().toFixed(1)}s</span></div>
       <div class="stat"><span class="stat-label">Idle Time:</span><span class="stat-value">${((stations.length * bottleneck) - effTimes.reduce((s, t) => s + t, 0)).toFixed(1)}s</span></div>
+    </div>
+  `;
+
+  // Capacity Calculation Section
+  document.getElementById('capacityKPIs').innerHTML = `
+    <div class="kpi-card highlight"><div class="kpi-value">${theoreticalDailyOutput.toLocaleString()}</div><div class="kpi-label">Daily Capacity (units)</div></div>
+    <div class="kpi-card highlight"><div class="kpi-value">${theoreticalWeeklyOutput.toLocaleString()}</div><div class="kpi-label">Weekly Capacity (units)</div></div>
+    <div class="kpi-card highlight"><div class="kpi-value">${theoreticalYearlyOutput.toLocaleString()}</div><div class="kpi-label">Yearly Capacity (units)</div></div>
+    <div class="kpi-card"><div class="kpi-value">${totalNetWorkHours.toFixed(2)}h</div><div class="kpi-label">Net Work Hrs/Day</div></div>
+    <div class="kpi-card"><div class="kpi-value">${WORKING_DAYS_PER_YEAR}</div><div class="kpi-label">Working Days/Year</div></div>
+  `;
+
+  document.getElementById('capacitySummary').innerHTML = `
+    <div class="schedule-card">
+      <h4>Capacity Formula</h4>
+      <div class="stat"><span class="stat-label">Net Work Hours:</span><span class="stat-value">${totalNetWorkHours.toFixed(2)} hrs</span></div>
+      <div class="stat"><span class="stat-label">Bottleneck:</span><span class="stat-value">${bottleneck.toFixed(2)} seconds</span></div>
+      <div class="stat"><span class="stat-label">Formula:</span><span class="stat-value">NetHrs × 3600 / Bottleneck</span></div>
+      <div class="stat"><span class="stat-label">Daily:</span><span class="stat-value">${totalNetWorkHours.toFixed(2)} × 3600 / ${bottleneck.toFixed(2)} = ${theoreticalDailyOutput}</span></div>
+    </div>
+    <div class="schedule-card">
+      <h4>Weekly Projection</h4>
+      <div class="stat"><span class="stat-label">Work Days/Week:</span><span class="stat-value">5 days</span></div>
+      <div class="stat"><span class="stat-label">Daily Output:</span><span class="stat-value">${theoreticalDailyOutput.toLocaleString()} units</span></div>
+      <div class="stat"><span class="stat-label">Weekly Output:</span><span class="stat-value">${theoreticalWeeklyOutput.toLocaleString()} units</span></div>
+      <div class="stat"><span class="stat-label">Weekly Labor Cost:</span><span class="stat-value">€${(totalDailyLaborCost * 5).toFixed(2)}</span></div>
+    </div>
+    <div class="schedule-card">
+      <h4>Yearly Projection</h4>
+      <div class="stat"><span class="stat-label">Working Days/Year:</span><span class="stat-value">${WORKING_DAYS_PER_YEAR} days</span></div>
+      <div class="stat"><span class="stat-label">Yearly Output:</span><span class="stat-value">${theoreticalYearlyOutput.toLocaleString()} units</span></div>
+      <div class="stat"><span class="stat-label">Yearly Labor Cost:</span><span class="stat-value">€${(totalDailyLaborCost * WORKING_DAYS_PER_YEAR).toFixed(2)}</span></div>
     </div>
   `;
 
@@ -1240,9 +1347,9 @@ function renderAnalysis() {
   let tableHtml = '';
   processes.forEach((p, i) => {
     const si = assignment[i];
-    const workers = stationResources[si]?.workers || 1;
-    const effTime = p.total / workers;
-    const bottleneck = Math.max(...stations.map((_, si) => effectiveStationTime(si)));
+    const workersInStation = stationResources[si]?.workers || 1;
+    const effTime = p.total / workersInStation;
+    const processOPH = effTime > 0 ? (3600 / effTime).toFixed(1) : 0;
     const util = (effTime / bottleneck * 100);
     tableHtml += `<tr>
       <td style="color:var(--muted)">${i + 1}</td>
@@ -1250,8 +1357,9 @@ function renderAnalysis() {
       <td>${p.desc}</td>
       <td>Station ${si + 1}</td>
       <td>${p.total.toFixed(2)}</td>
-      <td>${workers}</td>
+      <td>${workersInStation}</td>
       <td>${effTime.toFixed(2)}</td>
+      <td style="color:var(--green)">${processOPH}</td>
       <td style="color:${util > 85 ? 'var(--green)' : util > 70 ? 'var(--yellow)' : 'var(--red)'}">${util.toFixed(1)}%</td>
     </tr>`;
   });
@@ -1357,13 +1465,15 @@ function clearProcessData() {
 // ══════════════════════════════════════════════════════════════
 
 function exportWorkersCSV() {
-  const headers = ['Employee Code','Name','Shift Start','Shift End','Break (min)','Hourly Rate'];
+  const headers = ['Employee Code','Name','Shift Start','Shift End','Break (min)','Hours/Day','Participation %','Hourly Rate'];
   const rows = workers.map(w => [
     w.code,
     '"' + w.name.replace(/"/g, '""') + '"',
     w.shiftStart,
     w.shiftEnd,
     w.breakMin,
+    w.hoursPerDay || 0,
+    w.participationRate || 0,
     w.hourlyRate.toFixed(2)
   ].join(','));
   const csv = [headers.join(','), ...rows].join('\n');
@@ -1390,10 +1500,12 @@ function importWorkersCSV(input) {
         uid: genUid(),
         code: cols[0] || '',
         name: cols[1] || '',
-        shiftStart: cols[2] || '08:00',
-        shiftEnd: cols[3] || '17:00',
-        breakMin: parseInt(cols[4]) || 60,
-        hourlyRate: parseFloat(cols[5]) || 15.00
+        shiftStart: cols[2] || '06:00',
+        shiftEnd: cols[3] || '14:00',
+        breakMin: parseInt(cols[4]) || 30,
+        hoursPerDay: parseFloat(cols[5]) || 7,
+        participationRate: parseFloat(cols[6]) || 97,
+        hourlyRate: parseFloat(cols[7]) || 17.42
       });
     }
     if (newWorkers.length > 0) {
