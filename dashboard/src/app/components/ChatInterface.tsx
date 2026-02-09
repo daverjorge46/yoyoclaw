@@ -1,15 +1,22 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { ChevronDown, ArrowUp, Paperclip, Globe, Zap, Sparkles, Command, User, Bot, AlertCircle, Loader2, Copy, Check } from "lucide-react";
+import { ChevronDown, ArrowUp, Paperclip, Globe, Zap, Sparkles, Command, User, Bot, AlertCircle, Loader2, Copy, Check, X, File, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { sendMessageStream } from "../lib/chat";
 import { generateId, generateTitle, type Message, type Conversation, type ChatSettings } from "../lib/types";
-import { saveConversation, getConversation, loadConversations } from "../lib/chat";
-import { getDefaultProviders } from "../lib/models";
+import { saveConversation, getConversation } from "../lib/chat";
+import { PROVIDERS, type ProviderKey } from "../lib/openclaw";
 
 interface ChatInterfaceProps {
   theme: "dark" | "light";
   chatId?: string | null;
   onConversationUpdate?: () => void;
+}
+
+interface Attachment {
+  id: string;
+  file: File;
+  preview?: string;
+  type: "image" | "file";
 }
 
 const QUICK_ACTIONS = [
@@ -27,7 +34,6 @@ const SUGGESTIONS = [
 
 // Markdown-like renderer (basic)
 function renderContent(content: string, isDark: boolean) {
-  // Simple code block detection
   const parts = content.split(/(```[\s\S]*?```)/g);
   
   return parts.map((part, idx) => {
@@ -53,7 +59,6 @@ function renderContent(content: string, isDark: boolean) {
       );
     }
     
-    // Handle inline code
     const inlineFormatted = part.split(/(`[^`]+`)/g).map((segment, i) => {
       if (segment.startsWith("`") && segment.endsWith("`")) {
         return (
@@ -157,11 +162,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [streamingContent, setStreamingContent] = useState("");
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  
+  // Model selection state
+  const [selectedProvider, setSelectedProvider] = useState<ProviderKey>("anthropic");
+  const [selectedModel, setSelectedModel] = useState("claude-sonnet-4-20250514");
+  
+  // Attachment state
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
-  // Get settings from localStorage
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedProvider = localStorage.getItem("easyhub_provider") as ProviderKey;
+    const savedModel = localStorage.getItem("easyhub_default_model");
+    if (savedProvider && PROVIDERS[savedProvider]) {
+      setSelectedProvider(savedProvider);
+    }
+    if (savedModel) {
+      setSelectedModel(savedModel);
+    }
+  }, []);
+
+  // Get settings for API call
   const getSettings = useCallback((): ChatSettings => {
-    const provider = localStorage.getItem("easyhub_provider") || "anthropic";
-    const model = localStorage.getItem("easyhub_default_model") || "claude-sonnet-4-20250514";
     const apiKeysStr = localStorage.getItem("easyhub_api_keys");
     const apiKeys = apiKeysStr ? JSON.parse(apiKeysStr) : {};
     const temperature = parseFloat(localStorage.getItem("easyhub_temperature") || "0.7");
@@ -169,23 +191,30 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const systemPrompt = localStorage.getItem("easyhub_system_prompt") || undefined;
 
     return {
-      provider,
-      model,
-      apiKey: apiKeys[provider] || "",
+      provider: selectedProvider,
+      model: selectedModel,
+      apiKey: apiKeys[selectedProvider] || "",
       temperature,
       maxTokens,
       systemPrompt,
     };
-  }, []);
+  }, [selectedProvider, selectedModel]);
 
   // Get current model name for display
   const getCurrentModelName = useCallback((): string => {
-    const settings = getSettings();
-    const providers = getDefaultProviders();
-    const provider = providers.find(p => p.id === settings.provider);
-    const model = provider?.models.find(m => m.id === settings.model);
-    return model?.name || settings.model;
-  }, [getSettings]);
+    const provider = PROVIDERS[selectedProvider];
+    const model = provider?.models.find(m => m.id === selectedModel);
+    return model?.name || selectedModel;
+  }, [selectedProvider, selectedModel]);
+
+  // Handle model change
+  const handleModelChange = (provider: ProviderKey, model: string) => {
+    setSelectedProvider(provider);
+    setSelectedModel(model);
+    // Also save to localStorage
+    localStorage.setItem("easyhub_provider", provider);
+    localStorage.setItem("easyhub_default_model", model);
+  };
 
   // Load conversation when chatId changes
   useEffect(() => {
@@ -196,12 +225,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setMessages(conv.messages || []);
       }
     } else {
-      // New chat
       setCurrentConversation(null);
       setMessages([]);
     }
     setError(null);
     setStreamingContent("");
+    setAttachments([]);
   }, [chatId]);
 
   // Auto-resize textarea
@@ -223,21 +252,63 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
 
+  // Handle file attachment
+  const handleAttachment = (files: FileList | null) => {
+    if (!files) return;
+    
+    const newAttachments: Attachment[] = [];
+    
+    Array.from(files).forEach((file) => {
+      const isImage = file.type.startsWith("image/");
+      const attachment: Attachment = {
+        id: generateId(),
+        file,
+        type: isImage ? "image" : "file",
+      };
+      
+      if (isImage) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          attachment.preview = e.target?.result as string;
+          setAttachments(prev => [...prev]);
+        };
+        reader.readAsDataURL(file);
+      }
+      
+      newAttachments.push(attachment);
+    });
+    
+    setAttachments(prev => [...prev, ...newAttachments]);
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  };
+
   // Send message
   const handleSend = async () => {
     const content = value.trim();
-    if (!content || isLoading) return;
+    if ((!content && attachments.length === 0) || isLoading) return;
 
     setError(null);
     setValue("");
     
     const settings = getSettings();
     
+    // Build message content with attachments info
+    let messageContent = content;
+    if (attachments.length > 0) {
+      const attachmentInfo = attachments
+        .map(a => `[Attached: ${a.file.name}]`)
+        .join(" ");
+      messageContent = attachmentInfo + (content ? "\n\n" + content : "");
+    }
+    
     // Create user message
     const userMessage: Message = {
       id: generateId(),
       role: "user",
-      content,
+      content: messageContent,
       timestamp: Date.now(),
     };
 
@@ -245,13 +316,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setMessages(newMessages);
     setIsLoading(true);
     setStreamingContent("");
+    setAttachments([]);
 
     // Create or update conversation
     let conversation = currentConversation;
     if (!conversation) {
       conversation = {
         id: generateId(),
-        title: generateTitle(content),
+        title: generateTitle(content || attachments[0]?.file.name || "New chat"),
         messages: newMessages,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -267,7 +339,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
     }
 
-    // Save immediately with user message
     saveConversation(conversation);
     onConversationUpdate?.();
 
@@ -293,7 +364,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           setStreamingContent("");
           setIsLoading(false);
 
-          // Save conversation with assistant response
           const updatedConversation = {
             ...conversation!,
             messages: updatedMessages,
@@ -316,7 +386,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  // Handle keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -334,14 +403,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     textareaRef.current?.focus();
   };
 
-  // Show chat view if we have messages
   const hasMessages = messages.length > 0 || streamingContent;
 
   return (
     <div className="flex flex-col items-center w-full max-w-[720px] px-6 h-full">
       <AnimatePresence mode="wait">
         {!hasMessages ? (
-          // Welcome screen
           <motion.div
             key="welcome"
             initial={{ opacity: 0, y: 20 }}
@@ -363,7 +430,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </p>
             </div>
 
-            {/* Input Box */}
             <InputBox
               ref={textareaRef}
               value={value}
@@ -372,10 +438,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onKeyDown={handleKeyDown}
               isDark={isDark}
               isLoading={isLoading}
-              modelName={getCurrentModelName()}
+              selectedProvider={selectedProvider}
+              selectedModel={selectedModel}
+              onModelChange={handleModelChange}
+              attachments={attachments}
+              onAttachment={handleAttachment}
+              onRemoveAttachment={removeAttachment}
             />
 
-            {/* Quick Actions */}
             <div className="w-full mt-10">
               <div className="flex flex-wrap justify-center gap-3">
                 {QUICK_ACTIONS.map((action, idx) => (
@@ -400,7 +470,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
             </div>
 
-            {/* Suggestions */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -426,20 +495,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </motion.div>
           </motion.div>
         ) : (
-          // Chat view
           <motion.div
             key="chat"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col w-full h-full min-h-[60vh]"
           >
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto py-6 space-y-6 mb-4">
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} isDark={isDark} />
               ))}
               
-              {/* Streaming response */}
               {streamingContent && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -460,7 +526,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </motion.div>
               )}
 
-              {/* Loading indicator */}
               {isLoading && !streamingContent && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -484,7 +549,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </motion.div>
               )}
 
-              {/* Error message */}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -508,7 +572,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Box (sticky at bottom) */}
             <div className="shrink-0 pb-4">
               <InputBox
                 ref={textareaRef}
@@ -518,7 +581,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onKeyDown={handleKeyDown}
                 isDark={isDark}
                 isLoading={isLoading}
-                modelName={getCurrentModelName()}
+                selectedProvider={selectedProvider}
+                selectedModel={selectedModel}
+                onModelChange={handleModelChange}
+                attachments={attachments}
+                onAttachment={handleAttachment}
+                onRemoveAttachment={removeAttachment}
               />
             </div>
           </motion.div>
@@ -528,7 +596,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   );
 };
 
-// Separate InputBox component for reuse
+// Enhanced InputBox with model selector and file attachments
 interface InputBoxProps {
   value: string;
   onChange: (value: string) => void;
@@ -536,11 +604,35 @@ interface InputBoxProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
   isDark: boolean;
   isLoading: boolean;
-  modelName: string;
+  selectedProvider: ProviderKey;
+  selectedModel: string;
+  onModelChange: (provider: ProviderKey, model: string) => void;
+  attachments: Attachment[];
+  onAttachment: (files: FileList | null) => void;
+  onRemoveAttachment: (id: string) => void;
 }
 
 const InputBox = React.forwardRef<HTMLTextAreaElement, InputBoxProps>(
-  ({ value, onChange, onSend, onKeyDown, isDark, isLoading, modelName }, ref) => {
+  ({ value, onChange, onSend, onKeyDown, isDark, isLoading, selectedProvider, selectedModel, onModelChange, attachments, onAttachment, onRemoveAttachment }, ref) => {
+    const [showModelSelector, setShowModelSelector] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const modelSelectorRef = useRef<HTMLDivElement>(null);
+
+    // Close model selector when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (modelSelectorRef.current && !modelSelectorRef.current.contains(e.target as Node)) {
+          setShowModelSelector(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const currentProvider = PROVIDERS[selectedProvider];
+    const currentModel = currentProvider?.models.find(m => m.id === selectedModel);
+    const modelName = currentModel?.name || selectedModel;
+
     return (
       <motion.div 
         initial={{ opacity: 0, scale: 0.98 }}
@@ -553,6 +645,52 @@ const InputBox = React.forwardRef<HTMLTextAreaElement, InputBoxProps>(
         }`}
       >
         <div className="flex flex-col">
+          {/* Attachments Preview */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-3 pt-2">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className={`relative group/attachment flex items-center gap-2 px-3 py-2 rounded-xl ${
+                    isDark ? "bg-white/5" : "bg-gray-100"
+                  }`}
+                >
+                  {attachment.type === "image" && attachment.preview ? (
+                    <img 
+                      src={attachment.preview} 
+                      alt={attachment.file.name}
+                      className="w-10 h-10 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${
+                      isDark ? "bg-white/10" : "bg-gray-200"
+                    }`}>
+                      <File size={20} className={isDark ? "text-gray-400" : "text-gray-500"} />
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className={`text-xs font-medium truncate max-w-[120px] ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}>
+                      {attachment.file.name}
+                    </span>
+                    <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                      {(attachment.file.size / 1024).toFixed(1)} KB
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onRemoveAttachment(attachment.id)}
+                    className={`absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full opacity-0 group-hover/attachment:opacity-100 transition-opacity ${
+                      isDark ? "bg-red-500/80 text-white" : "bg-red-500 text-white"
+                    }`}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <textarea
             ref={ref}
             value={value}
@@ -568,7 +706,17 @@ const InputBox = React.forwardRef<HTMLTextAreaElement, InputBoxProps>(
           
           <div className="flex items-center justify-between px-2 pb-2">
             <div className="flex items-center gap-1">
+              {/* File Attachment Button */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf,.txt,.md,.json,.csv,.doc,.docx"
+                onChange={(e) => onAttachment(e.target.files)}
+                className="hidden"
+              />
               <button 
+                onClick={() => fileInputRef.current?.click()}
                 className={`p-2 rounded-full transition-colors ${
                   isDark ? "hover:bg-white/5 text-gray-500 hover:text-gray-300" : "hover:bg-black/5 text-gray-400 hover:text-gray-600"
                 }`}
@@ -576,26 +724,104 @@ const InputBox = React.forwardRef<HTMLTextAreaElement, InputBoxProps>(
               >
                 <Paperclip size={20} />
               </button>
+              
               <div className={`w-[1px] h-4 mx-1 ${isDark ? "bg-white/10" : "bg-black/10"}`} />
-              <button 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all border ${
-                  isDark 
-                    ? "text-gray-400 border-white/5 hover:border-white/20 hover:bg-white/5" 
-                    : "text-gray-500 border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                {modelName}
-                <ChevronDown size={14} />
-              </button>
+              
+              {/* Model Selector */}
+              <div className="relative" ref={modelSelectorRef}>
+                <button 
+                  onClick={() => setShowModelSelector(!showModelSelector)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-all border ${
+                    showModelSelector
+                      ? isDark
+                        ? "text-[#2dd4bf] border-[#2dd4bf]/30 bg-[#2dd4bf]/10"
+                        : "text-[#0d9488] border-[#2dd4bf]/30 bg-[#2dd4bf]/10"
+                      : isDark 
+                        ? "text-gray-400 border-white/5 hover:border-white/20 hover:bg-white/5" 
+                        : "text-gray-500 border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {modelName}
+                  <ChevronDown size={14} className={`transition-transform ${showModelSelector ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Model Dropdown */}
+                <AnimatePresence>
+                  {showModelSelector && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className={`absolute bottom-full left-0 mb-2 w-[320px] max-h-[400px] overflow-y-auto rounded-2xl border shadow-2xl ${
+                        isDark ? "bg-[#1a1a1a] border-white/10" : "bg-white border-gray-200"
+                      }`}
+                    >
+                      {(Object.keys(PROVIDERS) as ProviderKey[]).map((providerId) => {
+                        const provider = PROVIDERS[providerId];
+                        return (
+                          <div key={providerId}>
+                            <div className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider sticky top-0 ${
+                              isDark ? "bg-[#1a1a1a] text-gray-500 border-b border-white/5" : "bg-white text-gray-400 border-b border-gray-100"
+                            }`}>
+                              {provider.name}
+                            </div>
+                            {provider.models.map((model) => {
+                              const isSelected = selectedProvider === providerId && selectedModel === model.id;
+                              return (
+                                <button
+                                  key={model.id}
+                                  onClick={() => {
+                                    onModelChange(providerId, model.id);
+                                    setShowModelSelector(false);
+                                  }}
+                                  className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                                    isSelected
+                                      ? isDark
+                                        ? "bg-[#2dd4bf]/10 text-[#2dd4bf]"
+                                        : "bg-[#2dd4bf]/10 text-[#0d9488]"
+                                      : isDark
+                                        ? "hover:bg-white/5 text-gray-300"
+                                        : "hover:bg-gray-50 text-gray-700"
+                                  }`}
+                                >
+                                  <div>
+                                    <div className="text-sm font-medium">{model.name}</div>
+                                    <div className={`text-xs mt-0.5 ${
+                                      isDark ? "text-gray-500" : "text-gray-400"
+                                    }`}>
+                                      {model.id}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-xs px-2 py-0.5 rounded-lg ${
+                                      isDark ? "bg-white/5 text-gray-400" : "bg-gray-100 text-gray-500"
+                                    }`}>
+                                      {(model.context / 1000).toFixed(0)}K
+                                    </span>
+                                    {isSelected && (
+                                      <Check size={16} className="text-[#2dd4bf]" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onSend}
-              disabled={!value.trim() || isLoading}
+              disabled={(!value.trim() && attachments.length === 0) || isLoading}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all shadow-lg ${
-                value.trim() && !isLoading
+                (value.trim() || attachments.length > 0) && !isLoading
                   ? "bg-[#2dd4bf] text-black" 
                   : (isDark ? "bg-white/5 text-gray-600" : "bg-black/5 text-gray-300")
               } disabled:cursor-not-allowed`}
