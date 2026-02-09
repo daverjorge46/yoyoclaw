@@ -178,6 +178,7 @@ export async function runCliAgent(params: {
   // 1. Replace --output-format json → stream-json
   // 2. Add --verbose (required by claude CLI for stream-json with -p)
   // 3. Remove --tools "" so native CLI tools (Read, Bash, Glob) are available
+  // 4. Disallow MCP wrapper tool so the model uses native tools directly
   //    — this produces clean tool feedback like "📖 Read: /path" instead of
   //    the verbose MCP wrapper prompt from claude_code.
   const streamArgs = (() => {
@@ -204,6 +205,9 @@ export async function runCliAgent(params: {
       out.push(args[i]);
     }
     out.push("--verbose");
+    // Block the MCP wrapper tool so the model must use native tools (Read,
+    // Bash, Glob, etc.) whose names produce clean tool feedback in Discord.
+    out.push("--disallowedTools", "mcp__claude-code-mcp__claude_code");
     return out;
   })();
 
