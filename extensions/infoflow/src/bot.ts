@@ -328,6 +328,23 @@ export async function handleInfoflowMessage(params: HandleInfoflowMessageParams)
     },
   });
 
+  // Mention gating: skip reply if requireMention is enabled and bot was not mentioned
+  // Session is already recorded above for context history
+  if (isGroup) {
+    const requireMention = account.config.requireMention !== false;
+    const canDetectMention = Boolean(account.config.robotName);
+    const wasMentioned = event.wasMentioned === true;
+
+    if (requireMention && canDetectMention && !wasMentioned) {
+      if (verbose) {
+        console.log(
+          `[infoflow] Group message recorded but reply skipped: requireMention=true, wasMentioned=false`,
+        );
+      }
+      return;
+    }
+  }
+
   const { dispatcherOptions, replyOptions } = createInfoflowReplyDispatcher({
     cfg,
     agentId: route.agentId,
