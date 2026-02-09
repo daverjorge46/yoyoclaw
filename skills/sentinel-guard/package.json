@@ -1,0 +1,26 @@
+{
+  "name": "@agent-os/sentinel-guard",
+  "version": "0.1.0",
+  "description": "Transaction policy engine, wallet executor, circuit breaker, and audit log",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "tsx": "^4.21.0"
+  }
+}
