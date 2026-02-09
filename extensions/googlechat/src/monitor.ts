@@ -387,7 +387,12 @@ function extractMentionInfo(annotations: GoogleChatAnnotation[], botUser?: strin
     if (botTargets.has(userName)) {
       return true;
     }
-    return normalizeUserId(userName) === "app";
+    if (normalizeUserId(userName) === "app") {
+      return true;
+    }
+    // Webhook events use numeric user IDs (users/123...) instead of users/app.
+    // Detect bot self-mentions by checking the user type field.
+    return entry.userMention?.user?.type?.toUpperCase() === "BOT";
   });
   return { hasAnyMention, wasMentioned };
 }
