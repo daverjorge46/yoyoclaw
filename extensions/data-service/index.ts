@@ -70,6 +70,7 @@ const CONNECTOR_TOOL_NAMES = [
   "connector_schema",
   "connector_lookup",
   "user_connectors",
+  "coworker_list",
 ] as const;
 
 /** All tool names registered by this plugin */
