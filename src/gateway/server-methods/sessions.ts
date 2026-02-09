@@ -390,8 +390,11 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         target.agentId,
       );
 
+      // Deduplicate candidates to avoid archiving the same file multiple times
+      const uniqueCandidates = Array.from(new Set(candidates));
+
       // If no transcript files exist but we have metadata, create one with just the metadata
-      const existingFiles = candidates.filter((c) => fs.existsSync(c));
+      const existingFiles = uniqueCandidates.filter((c) => fs.existsSync(c));
       if (existingFiles.length === 0 && entry && candidates.length > 0) {
         const metadataFile = candidates[0];
         try {
