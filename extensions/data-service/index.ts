@@ -296,8 +296,19 @@ const dataServicePlugin = {
         return;
       }
 
-      // Store context for this session
-      setSessionContext(sessionKey, { orgId, userId, projectId, apiKey });
+      // Store context for this session using BOTH raw and canonicalized keys
+      // The gateway canonicalizes session keys (e.g., "abc" -> "agent:main:abc")
+      // but the frontend sends the raw key. Store under both to ensure lookup works.
+      const context = { orgId, userId, projectId, apiKey };
+      setSessionContext(sessionKey, context);
+
+      // Also store with the canonicalized key format that before_tool_call will use
+      const canonicalKey = sessionKey.startsWith("agent:")
+        ? sessionKey
+        : `agent:main:${sessionKey}`;
+      if (canonicalKey !== sessionKey) {
+        setSessionContext(canonicalKey, context);
+      }
 
       // Debug logging
       console.log("[data-service] setContext called:", {
