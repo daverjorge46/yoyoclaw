@@ -1,5 +1,5 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
-import type { SessionsListResult } from "../types.ts";
+import type { DeletedSessionEntry, SessionsListResult } from "../types.ts";
 import { toNumber } from "../format.ts";
 
 export type SessionsState = {
@@ -13,16 +13,7 @@ export type SessionsState = {
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
   sessionsShowDeleted: boolean;
-  sessionsDeletedList: Array<{
-    sessionId: string;
-    file: string;
-    size: number;
-    deletedAt: string | null;
-    mtime: number;
-    label?: string;
-    description?: string;
-    persistent?: boolean;
-  }> | null;
+  sessionsDeletedList: DeletedSessionEntry[] | null;
   sessionKey: string;
 };
 
@@ -123,16 +114,7 @@ export async function loadDeletedSessions(state: SessionsState, onUpdate?: () =>
   try {
     const res = await state.client.request<{
       ok: boolean;
-      deleted: Array<{
-        sessionId: string;
-        file: string;
-        size: number;
-        deletedAt: string | null;
-        mtime: number;
-        label?: string;
-        description?: string;
-        persistent?: boolean;
-      }>;
+      deleted: DeletedSessionEntry[];
     }>("sessions.list.deleted", { limit: 100 });
     if (res && res.ok) {
       console.log(

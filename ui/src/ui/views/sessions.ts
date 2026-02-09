@@ -1,5 +1,5 @@
 import { html, nothing } from "lit";
-import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
+import type { DeletedSessionEntry, GatewaySessionRow, SessionsListResult } from "../types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatSessionTokens } from "../presenter.ts";
@@ -13,16 +13,7 @@ export type SessionsProps = {
   includeGlobal: boolean;
   includeUnknown: boolean;
   showDeleted: boolean;
-  deletedSessions: Array<{
-    sessionId: string;
-    file: string;
-    size: number;
-    deletedAt: string | null;
-    mtime: number;
-    label?: string;
-    description?: string;
-    persistent?: boolean;
-  }> | null;
+  deletedSessions: DeletedSessionEntry[] | null;
   basePath: string;
   onFiltersChange: (next: {
     activeMinutes: string;

@@ -19,6 +19,7 @@ import type {
   CronJob,
   CronRunLogEntry,
   CronStatus,
+  DeletedSessionEntry,
   HealthSnapshot,
   LogEntry,
   LogLevel,
@@ -149,6 +150,8 @@ export type AppViewState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+  sessionsShowDeleted: boolean;
+  sessionsDeletedList: DeletedSessionEntry[] | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
   usageCostSummary: CostUsageSummary | null;

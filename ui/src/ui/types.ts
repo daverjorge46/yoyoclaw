@@ -414,6 +414,17 @@ export type SessionsListResult = {
   sessions: GatewaySessionRow[];
 };
 
+export type DeletedSessionEntry = {
+  sessionId: string;
+  file: string;
+  size: number;
+  deletedAt: string | null;
+  mtime: number;
+  label?: string;
+  description?: string;
+  persistent?: boolean;
+};
+
 export type SessionsPatchResult = {
   ok: true;
   path: string;

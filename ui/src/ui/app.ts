@@ -228,13 +228,7 @@ export class OpenClawApp extends LitElement {
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;
   @state() sessionsShowDeleted = false;
-  @state() sessionsDeletedList: Array<{
-    sessionId: string;
-    file: string;
-    size: number;
-    deletedAt: string | null;
-    mtime: number;
-  }> | null = null;
+  @state() sessionsDeletedList: import("./types.js").DeletedSessionEntry[] | null = null;
 
   @state() usageLoading = false;
   @state() usageResult: import("./types.js").SessionsUsageResult | null = null;
