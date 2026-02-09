@@ -1,4 +1,5 @@
 // swiftlint:disable all
+// swiftformat:disable all
 import Foundation
 public let GATEWAY_PROTOCOL_VERSION = 3
 
