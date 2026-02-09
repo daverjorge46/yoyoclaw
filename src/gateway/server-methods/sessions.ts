@@ -807,16 +807,27 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       }
 
       // Restore session entry in sessions.json
-      const sessionKey = `agent:${agentId}:${sessionId}`;
       const storePath = path.join(sessionsDir, "sessions.json");
 
+      // Determine the correct session key format
+      let sessionKey: string;
+      const isValidMetadata = metadata && typeof metadata === "object" && !Array.isArray(metadata);
+      const metadataObj = isValidMetadata ? (metadata as Record<string, unknown>) : null;
+      const isNamedSession = metadataObj && metadataObj.userCreated === true;
+
+      if (isNamedSession) {
+        // Named sessions use agent:agentId:named:sessionId format
+        sessionKey = `agent:${agentId}:named:${sessionId}`;
+      } else {
+        // Regular sessions use agent:agentId:sessionId format
+        sessionKey = `agent:${agentId}:${sessionId}`;
+      }
+
       await updateSessionStore(storePath, (store) => {
-        const isValidMetadata =
-          metadata && typeof metadata === "object" && !Array.isArray(metadata);
-        if (isValidMetadata) {
+        if (isValidMetadata && metadataObj) {
           // Restore full metadata
           store[sessionKey] = {
-            ...(metadata as Record<string, unknown>),
+            ...metadataObj,
             sessionId, // Ensure sessionId is always set
             updatedAt: Date.now(),
             sessionFile: restoredPath,
