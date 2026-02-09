@@ -279,6 +279,39 @@ function buildQmdCacheKey(agentId: string, config: ResolvedQmdConfig): string {
   return `${agentId}:${stableSerialize(config)}`;
 }
 
+function isTransientQmdError(err: unknown): boolean {
+  const code = err && typeof err === "object" ? (err as { code?: unknown }).code : undefined;
+  if (typeof code === "string") {
+    if (code === "ENOENT") {
+      return false;
+    }
+    if (
+      code === "ETIMEDOUT" ||
+      code === "ECONNRESET" ||
+      code === "EPIPE" ||
+      code === "EAI_AGAIN" ||
+      code === "ECONNREFUSED" ||
+      code === "ENETUNREACH" ||
+      code === "EHOSTUNREACH"
+    ) {
+      return true;
+    }
+  }
+
+  const message = err instanceof Error ? err.message : String(err);
+  const lower = message.toLowerCase();
+  if (lower.includes("timed out") || lower.includes("timeout")) {
+    return true;
+  }
+  if (lower.includes("database is locked") || lower.includes("resource busy")) {
+    return true;
+  }
+  if (lower.includes("temporarily unavailable") || lower.includes("try again")) {
+    return true;
+  }
+  return false;
+}
+
 async function tryGetBuiltinManager(params: {
   cfg: OpenClawConfig;
   agentId: string;
