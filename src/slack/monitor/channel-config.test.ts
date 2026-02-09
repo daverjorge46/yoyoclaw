@@ -53,4 +53,15 @@ describe("resolveSlackChannelConfig", () => {
       matchSource: "direct",
     });
   });
+
+  it("resolves implicitMentionInThreads from channel config", () => {
+    const res = resolveSlackChannelConfig({
+      channelId: "C1",
+      channels: { C1: { allow: true, implicitMentionInThreads: true } },
+      defaultRequireMention: true,
+    });
+    expect(res).toMatchObject({
+      implicitMentionInThreads: true,
+    });
+  });
 });

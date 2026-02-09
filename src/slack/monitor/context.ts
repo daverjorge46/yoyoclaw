@@ -76,6 +76,7 @@ export type SlackMonitorContext = {
       enabled?: boolean;
       allow?: boolean;
       requireMention?: boolean;
+      implicitMentionInThreads?: boolean;
       allowBots?: boolean;
       users?: Array<string | number>;
       skills?: string[];

@@ -223,11 +223,11 @@ export async function prepareSlackMessage(params: {
           canResolveExplicit: Boolean(ctx.botUserId),
         },
       }));
+  const threadReplyImplicit = Boolean(channelConfig?.implicitMentionInThreads && isThreadReply);
   const implicitMention = Boolean(
     !isDirectMessage &&
-    ctx.botUserId &&
     message.thread_ts &&
-    message.parent_user_id === ctx.botUserId,
+    (threadReplyImplicit || (ctx.botUserId && message.parent_user_id === ctx.botUserId)),
   );
 
   const sender = message.user ? await ctx.resolveUserName(message.user) : null;

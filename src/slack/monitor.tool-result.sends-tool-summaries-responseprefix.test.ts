@@ -500,6 +500,53 @@ describe("monitorSlackProvider tool results", () => {
     expect(replyMock.mock.calls[0][0].WasMentioned).toBe(true);
   });
 
+  it("treats thread replies as implicit mentions when implicitMentionInThreads is enabled", async () => {
+    slackTestState.config = {
+      channels: {
+        slack: {
+          dm: { enabled: true, policy: "open", allowFrom: ["*"] },
+          channels: {
+            C1: { allow: true, requireMention: true, implicitMentionInThreads: true },
+          },
+        },
+      },
+    };
+    replyMock.mockResolvedValue({ text: "hi" });
+
+    const controller = new AbortController();
+    const run = monitorSlackProvider({
+      botToken: "bot-token",
+      appToken: "app-token",
+      abortSignal: controller.signal,
+    });
+
+    await waitForSlackEvent("message");
+    const handler = getSlackHandlers()?.get("message");
+    if (!handler) {
+      throw new Error("Slack message handler not registered");
+    }
+
+    await handler({
+      event: {
+        type: "message",
+        user: "U1",
+        text: "following up",
+        ts: "124",
+        thread_ts: "123",
+        parent_user_id: "U2",
+        channel: "C1",
+        channel_type: "channel",
+      },
+    });
+
+    await flush();
+    controller.abort();
+    await run;
+
+    expect(replyMock).toHaveBeenCalledTimes(1);
+    expect(replyMock.mock.calls[0][0].WasMentioned).toBe(true);
+  });
+
   it("accepts channel messages without mention when channels.slack.requireMention is false", async () => {
     slackTestState.config = {
       channels: {

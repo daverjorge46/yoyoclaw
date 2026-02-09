@@ -515,6 +515,7 @@ Channel options (`channels.slack.channels.<id>` or `channels.slack.channels.<nam
 
 - `allow`: allow/deny the channel when `groupPolicy="allowlist"`.
 - `requireMention`: mention gating for the channel.
+- `implicitMentionInThreads`: when `true`, thread replies bypass mention gating (top-level messages still require @mention).
 - `tools`: optional per-channel tool policy overrides (`allow`/`deny`/`alsoAllow`).
 - `toolsBySender`: optional per-sender tool policy overrides within the channel (keys are sender ids/@handles/emails; `"*"` wildcard supported).
 - `allowBots`: allow bot-authored messages in this channel (default: false).
@@ -557,6 +558,7 @@ Slack tool actions can be gated with `channels.slack.actions.*`:
 ## Notes
 
 - Mention gating is controlled via `channels.slack.channels` (set `requireMention` to `true`); `agents.list[].groupChat.mentionPatterns` (or `messages.groupChat.mentionPatterns`) also count as mentions.
+- If you need thread replies to bypass mention gating, set `channels.slack.channels.<id>.implicitMentionInThreads: true`.
 - Multi-agent override: set per-agent patterns on `agents.list[].groupChat.mentionPatterns`.
 - Reaction notifications follow `channels.slack.reactionNotifications` (use `reactionAllowlist` with mode `allowlist`).
 - Bot-authored messages are ignored by default; enable via `channels.slack.allowBots` or `channels.slack.channels.<id>.allowBots`.
