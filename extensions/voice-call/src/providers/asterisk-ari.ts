@@ -16,11 +16,11 @@ import type {
   WebhookContext,
   WebhookVerificationResult,
   NormalizedEvent,
-  TerminalStates,
 } from "../types.js";
 import type { VoiceCallProvider } from "./base.js";
 import { loadCoreAgentDeps } from "../core-bridge.js";
 import { chunkAudio } from "../telephony-audio.js";
+import { TerminalStates } from "../types.js";
 import { AriClient, type AriEvent } from "./asterisk-ari/ari-client.js";
 import { AriMedia, type MediaGraph } from "./asterisk-ari/ari-media.js";
 
