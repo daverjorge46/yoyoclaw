@@ -373,6 +373,103 @@ describe("msteams attachments", () => {
       expect(saveMediaBufferMock).toHaveBeenCalled();
     });
 
+    it("fetches hostedContents via /$value when contentBytes is null", async () => {
+      const { downloadMSTeamsGraphMedia } = await load();
+      const imageData = Buffer.from("fake-png-data");
+      const messageUrl = "https://graph.microsoft.com/v1.0/chats/19%3Achat/messages/123";
+      const fetchMock = vi.fn(async (url: string) => {
+        if (url.endsWith("/hostedContents")) {
+          // Graph API collection response: contentBytes is always null
+          return new Response(
+            JSON.stringify({
+              value: [
+                {
+                  id: "aWQ9LHR5cGU9MSx1cmw9",
+                  contentType: "image/png",
+                  contentBytes: null,
+                },
+              ],
+            }),
+            { status: 200 },
+          );
+        }
+        if (url.includes("/hostedContents/") && url.endsWith("/$value")) {
+          // Individual /$value fetch returns raw binary
+          return new Response(imageData, {
+            status: 200,
+            headers: { "content-type": "image/png" },
+          });
+        }
+        if (url === messageUrl) {
+          return new Response(
+            JSON.stringify({ body: {}, attachments: [] }),
+            { status: 200 },
+          );
+        }
+        if (url.endsWith("/attachments")) {
+          return new Response(JSON.stringify({ value: [] }), { status: 200 });
+        }
+        return new Response("not found", { status: 404 });
+      });
+
+      const media = await downloadMSTeamsGraphMedia({
+        messageUrl,
+        tokenProvider: { getAccessToken: vi.fn(async () => "token") },
+        maxBytes: 1024 * 1024,
+        fetchFn: fetchMock as unknown as typeof fetch,
+      });
+
+      expect(media.media).toHaveLength(1);
+      expect(media.hostedCount).toBe(1);
+      // Verify the /$value endpoint was called
+      const valueCall = fetchMock.mock.calls.find(
+        ([url]) => typeof url === "string" && url.includes("/$value"),
+      );
+      expect(valueCall).toBeDefined();
+      expect(saveMediaBufferMock).toHaveBeenCalled();
+    });
+
+    it("skips hostedContents when contentBytes is null and id is missing", async () => {
+      const { downloadMSTeamsGraphMedia } = await load();
+      const messageUrl = "https://graph.microsoft.com/v1.0/chats/19%3Achat/messages/123";
+      const fetchMock = vi.fn(async (url: string) => {
+        if (url.endsWith("/hostedContents")) {
+          return new Response(
+            JSON.stringify({
+              value: [
+                {
+                  contentType: "image/png",
+                  contentBytes: null,
+                  // no id — cannot fetch via /$value
+                },
+              ],
+            }),
+            { status: 200 },
+          );
+        }
+        if (url === messageUrl) {
+          return new Response(
+            JSON.stringify({ body: {}, attachments: [] }),
+            { status: 200 },
+          );
+        }
+        if (url.endsWith("/attachments")) {
+          return new Response(JSON.stringify({ value: [] }), { status: 200 });
+        }
+        return new Response("not found", { status: 404 });
+      });
+
+      const media = await downloadMSTeamsGraphMedia({
+        messageUrl,
+        tokenProvider: { getAccessToken: vi.fn(async () => "token") },
+        maxBytes: 1024 * 1024,
+        fetchFn: fetchMock as unknown as typeof fetch,
+      });
+
+      expect(media.media).toHaveLength(0);
+      expect(media.hostedCount).toBe(1);
+    });
+
     it("merges SharePoint reference attachments with hosted content", async () => {
       const { downloadMSTeamsGraphMedia } = await load();
       const hostedBase64 = Buffer.from("png").toString("base64");
