@@ -43,48 +43,50 @@ export async function runStartupRecovery(params: StartupRecoveryParams): Promise
   runtime.log?.(`discord: checking for unanswered messages from last ${recoveryMinutes} minutes`);
 
   try {
-    // Fetch the bot's DM channels
-    const dmChannels = (await rest.get(Routes.userChannels())) as APIChannel[];
+    // Resolve DM channels by opening them with each allowlisted user.
+    // GET /users/@me/channels returns only cached channels, which is empty
+    // after a restart — exactly when recovery matters. POST is idempotent
+    // and returns the existing DM channel for each user.
+    let relevantChannels: APIChannel[] = [];
 
-    if (!dmChannels || dmChannels.length === 0) {
+    if (allowFrom && allowFrom.length > 0) {
+      for (const userId of allowFrom) {
+        try {
+          const channel = (await rest.post(Routes.userChannels(), {
+            body: { recipient_id: String(userId) },
+          })) as APIChannel;
+          if (channel?.id) {
+            relevantChannels.push(channel);
+          }
+        } catch (err) {
+          logVerbose(
+            `discord startup-recovery: failed to open DM for user ${userId}: ${formatErrorMessage(err)}`,
+          );
+        }
+      }
+    } else {
+      // No allowlist — fall back to cached channel list (may be empty after restart)
+      const dmChannels = (await rest.get(Routes.userChannels())) as APIChannel[];
+      if (dmChannels?.length) {
+        const groupDmEnabled = discordConfig.dm?.groupEnabled ?? false;
+        relevantChannels = dmChannels.filter((channel) => {
+          const isDm = channel.type === ChannelType.DM;
+          const isGroupDm = channel.type === ChannelType.GroupDM;
+          return isDm || (isGroupDm && groupDmEnabled);
+        });
+      }
+    }
+
+    if (relevantChannels.length === 0) {
       logVerbose("discord startup-recovery: no DM channels found");
       return;
     }
-
-    // Filter to actual DM channels (not group DMs unless enabled)
-    const groupDmEnabled = discordConfig.dm?.groupEnabled ?? false;
-    const relevantChannels = dmChannels.filter((channel) => {
-      const isDm = channel.type === ChannelType.DM;
-      const isGroupDm = channel.type === ChannelType.GroupDM;
-      if (isDm) {
-        return true;
-      }
-      if (isGroupDm && groupDmEnabled) {
-        return true;
-      }
-      return false;
-    });
 
     logVerbose(`discord startup-recovery: found ${relevantChannels.length} DM channel(s) to check`);
 
     let processedCount = 0;
 
     for (const channel of relevantChannels) {
-      // For DM channels, check if the recipient is in allowlist
-      if (allowFrom && allowFrom.length > 0) {
-        const recipients = (channel as { recipients?: Array<{ id: string }> }).recipients ?? [];
-        const recipientIds = recipients.map((r) => r.id);
-        const isAllowed = recipientIds.some(
-          (id) => allowFrom.includes(id) || allowFrom.includes(Number(id)),
-        );
-        if (!isAllowed) {
-          logVerbose(
-            `discord startup-recovery: skipping channel ${channel.id} (recipient not in allowlist)`,
-          );
-          continue;
-        }
-      }
-
       try {
         const processed = await checkAndProcessChannel({
           ...params,
