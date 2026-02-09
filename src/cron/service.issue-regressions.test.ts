@@ -212,7 +212,7 @@ describe("Cron issue regressions", () => {
     await store.cleanup();
   });
 
-  it("does not hot-loop zero-delay timers while a run is already in progress", async () => {
+  it("re-arms with safe delay (not zero) while a run is already in progress (#12278)", async () => {
     const timeoutSpy = vi.spyOn(globalThis, "setTimeout");
     const store = await makeStorePath();
     const now = Date.parse("2026-02-06T10:05:00.000Z");
@@ -233,8 +233,14 @@ describe("Cron issue regressions", () => {
 
     await onTimer(state);
 
-    expect(timeoutSpy).not.toHaveBeenCalled();
-    expect(state.timer).toBeNull();
+    // Should re-arm with MAX_TIMER_DELAY_MS (60s) to prevent both hot-looping
+    // and permanent timer death.
+    const delays = timeoutSpy.mock.calls
+      .map(([, delay]) => delay)
+      .filter((delay): delay is number => typeof delay === "number");
+    expect(delays).toContain(60_000);
+    expect(state.timer).not.toBeNull();
+    clearTimeout(state.timer!);
     timeoutSpy.mockRestore();
     await store.cleanup();
   });
