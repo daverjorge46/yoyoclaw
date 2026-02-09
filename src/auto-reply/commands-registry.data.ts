@@ -445,6 +445,21 @@ function buildChatCommands(): ChatCommandDefinition[] {
       category: "session",
     }),
     defineChatCommand({
+      key: "session-switch",
+      description: "Switch to an existing session.",
+      textAlias: "/session switch",
+      scope: "text",
+      category: "session",
+      args: [
+        {
+          name: "name",
+          description: "Session name/label or key",
+          type: "string",
+          captureRemaining: true,
+        },
+      ],
+    }),
+    defineChatCommand({
       key: "think",
       nativeName: "think",
       description: "Set thinking level.",

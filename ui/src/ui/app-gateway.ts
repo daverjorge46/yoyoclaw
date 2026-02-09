@@ -5,7 +5,12 @@ import type { GatewayEventFrame, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import type { UiSettings } from "./storage.ts";
 import type { AgentsListResult, PresenceEntry, HealthSnapshot, StatusSummary } from "./types.ts";
-import { CHAT_SESSIONS_ACTIVE_MINUTES, flushChatQueueForEvent, refreshChat } from "./app-chat.ts";
+import {
+  CHAT_SESSIONS_ACTIVE_MINUTES,
+  clearChatState,
+  flushChatQueueForEvent,
+  refreshChat,
+} from "./app-chat.ts";
 import {
   applySettings,
   loadCron,
@@ -220,6 +225,8 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
           const keyMatch = text?.match(/Key:\s*(agent:[^\s]+)/);
           if (keyMatch && keyMatch[1]) {
             const newSessionKey = keyMatch[1];
+            // Clear current chat state before switching
+            clearChatState(host as unknown as OpenClawApp);
             // Switch to the newly created session
             const url = new URL(window.location.href);
             url.searchParams.set("session", newSessionKey);

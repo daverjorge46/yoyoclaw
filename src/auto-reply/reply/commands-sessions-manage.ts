@@ -28,8 +28,9 @@ export const handleSessionManageCommand: CommandHandler = async (params, allowTe
     const help = [
       "📋 Session Management",
       "Usage:",
-      "  /session new <name>  - Create a new named session",
-      "  /session list        - List available sessions",
+      "  /session new <name>    - Create a new named session",
+      "  /session switch <name> - Switch to an existing session",
+      "  /session list          - List available sessions",
       "",
       "Named sessions are persistent and won't be reset by /new.",
     ].join("\n");
@@ -153,5 +154,76 @@ export const handleSessionManageCommand: CommandHandler = async (params, allowTe
     }
   }
 
-  return { shouldContinue: false, reply: { text: "⚠️ Unknown action. Try: new, list" } };
+  if (action === "switch") {
+    const target = restTokens.join(" ").trim();
+    if (!target) {
+      return {
+        shouldContinue: false,
+        reply: { text: "⚠️ Usage: /session switch <name-or-key>" },
+      };
+    }
+
+    try {
+      const result = await callGateway<{
+        sessions: Array<{
+          key: string;
+          label?: string;
+        }>;
+      }>({
+        method: "sessions.list",
+        params: { limit: 100 },
+      });
+
+      if (!result || !Array.isArray(result.sessions)) {
+        return {
+          shouldContinue: false,
+          reply: { text: "❌ Failed to fetch sessions." },
+        };
+      }
+
+      // Try to find session by label or key
+      let targetSession = result.sessions.find(
+        (s) => s.label?.toLowerCase() === target.toLowerCase(),
+      );
+
+      if (!targetSession) {
+        // Try by key prefix
+        const byKey = result.sessions.filter((s) =>
+          s.key.toLowerCase().includes(target.toLowerCase()),
+        );
+        if (byKey.length === 1) {
+          targetSession = byKey[0];
+        } else if (byKey.length > 1) {
+          return {
+            shouldContinue: false,
+            reply: { text: `⚠️ Ambiguous session name "${target}". Multiple matches found.` },
+          };
+        }
+      }
+
+      if (!targetSession) {
+        return {
+          shouldContinue: false,
+          reply: { text: `❌ Session "${target}" not found.` },
+        };
+      }
+
+      const lines = [
+        `✅ Switching to session "${targetSession.label || targetSession.key}"`,
+        `Key: ${targetSession.key}`,
+        "",
+        "Session switch will take effect immediately.",
+      ];
+
+      return { shouldContinue: false, reply: { text: lines.join("\n") } };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        shouldContinue: false,
+        reply: { text: `❌ Failed to switch session: ${message}` },
+      };
+    }
+  }
+
+  return { shouldContinue: false, reply: { text: "⚠️ Unknown action. Try: new, switch, list" } };
 };

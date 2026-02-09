@@ -187,6 +187,7 @@ export async function handleSendChat(
 
   const refreshSessions = isChatResetCommand(message);
   const isSessionCreate = message.toLowerCase().startsWith("/session new ");
+  const isSessionSwitch = message.toLowerCase().startsWith("/session switch ");
 
   if (messageOverride == null) {
     host.chatMessage = "";
@@ -208,9 +209,18 @@ export async function handleSendChat(
     refreshSessions,
   });
 
-  if (runId && isSessionCreate) {
+  if (runId && (isSessionCreate || isSessionSwitch)) {
     host.sessionCreateCommands.add(runId);
   }
+}
+
+export function clearChatState(host: ChatHost) {
+  host.chatMessage = "";
+  host.chatAttachments = [];
+  host.chatQueue = [];
+  host.chatRunId = null;
+  host.chatSending = false;
+  resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
 }
 
 export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: boolean }) {
