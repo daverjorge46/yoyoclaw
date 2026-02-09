@@ -30,8 +30,8 @@ export async function prependSystemEvents(params: {
       return null;
     }
     // Filter out the actual heartbeat prompt, but not cron jobs that mention "heartbeat"
-    // The heartbeat prompt starts with "Read HEARTBEAT.md" - cron payloads won't match this
-    if (lower.startsWith("read heartbeat.md")) {
+    // The heartbeat prompt starts with "Read ./HEARTBEAT.md" - cron payloads won't match this
+    if (lower.startsWith("read ./heartbeat.md") || lower.startsWith("read heartbeat.md")) {
       return null;
     }
     // Also filter heartbeat poll/wake noise
