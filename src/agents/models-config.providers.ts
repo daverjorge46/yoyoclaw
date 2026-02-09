@@ -680,6 +680,7 @@ export function buildAisaProvider(): ProviderConfig {
         cost: AISA_DEFAULT_COST,
         contextWindow: AISA_DEFAULT_CONTEXT_WINDOW,
         maxTokens: AISA_DEFAULT_MAX_TOKENS,
+        compat: { supportsDeveloperRole: false },
       },
       {
         id: "deepseek-v3.1",
@@ -689,6 +690,7 @@ export function buildAisaProvider(): ProviderConfig {
         cost: AISA_DEFAULT_COST,
         contextWindow: 128000,
         maxTokens: AISA_DEFAULT_MAX_TOKENS,
+        compat: { supportsDeveloperRole: false },
       },
       {
         id: "kimi-k2.5",
@@ -698,6 +700,7 @@ export function buildAisaProvider(): ProviderConfig {
         cost: AISA_DEFAULT_COST,
         contextWindow: AISA_DEFAULT_CONTEXT_WINDOW,
         maxTokens: AISA_DEFAULT_MAX_TOKENS,
+        compat: { supportsDeveloperRole: false },
       },
     ],
   };
