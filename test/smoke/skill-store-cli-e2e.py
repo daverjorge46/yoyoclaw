@@ -10,7 +10,7 @@ Gateway restarts to keep total runtime reasonable.
 import json, os, sys, subprocess, hashlib, shutil, time
 
 STORE_CLI = "/home/seclab/.cursor/worktrees/openclaw-dev__SSH__ssh_seclab_192.168.53.96_/pdj/skills/skill-store/store-cli.py"
-TRIGGER_SCRIPT = "/home/seclab/.cursor/worktrees/openclaw-dev__SSH__ssh_seclab_192.168.53.96_/pdj/test/smoke/trigger-skills-status.mjs"
+TRIGGER_SCRIPT = "/home/seclab/.cursor/worktrees/openclaw-dev__SSH__ssh_seclab_192.168.53.96_/pdj/test/smoke/trigger-skills-status.cjs"
 ATD_DIR = "/home/seclab/.cursor/worktrees/openclaw-dev__SSH__ssh_seclab_192.168.53.96_/atd"
 MANAGED_DIR = os.path.expanduser("~/.openclaw-dev/skills")
 MANIFEST_CACHE = os.path.expanduser("~/.openclaw-dev/security/skill-guard/manifest-cache.json")
@@ -82,9 +82,11 @@ def wait_for_config_sync(timeout=120):
 def trigger_skills_status():
     """Trigger Gateway skills.status via WebSocket to force Guard evaluation."""
     p("    (触发 skills.status 强制 Guard 评估...)")
+    env = os.environ.copy()
+    env["NODE_PATH"] = os.path.join(ATD_DIR, "node_modules")
     r = subprocess.run(
         ["node", TRIGGER_SCRIPT, "dev", "19001"],
-        capture_output=True, text=True, timeout=30, cwd=ATD_DIR
+        capture_output=True, text=True, timeout=30, cwd=ATD_DIR, env=env
     )
     if r.returncode == 0 and r.stdout.strip():
         try:
@@ -131,7 +133,11 @@ for f in [MANIFEST_CACHE, AUDIT_LOG]:
     if os.path.isfile(f): os.remove(f)
 if os.path.isdir(MANAGED_DIR):
     for d in os.listdir(MANAGED_DIR):
-        shutil.rmtree(os.path.join(MANAGED_DIR, d))
+        fp = os.path.join(MANAGED_DIR, d)
+        if os.path.isdir(fp):
+            shutil.rmtree(fp)
+        else:
+            os.remove(fp)
 os.makedirs(MANAGED_DIR, exist_ok=True)
 test("1.1 缓存清理完成", not os.path.isfile(MANIFEST_CACHE))
 test("1.2 managed skills 清空", len(os.listdir(MANAGED_DIR)) == 0)
@@ -169,6 +175,13 @@ test("3.5 skills info skill-store ok", rc == 0)
 test("3.6 显示 Ready 状态", "Ready" in out)
 test("3.7 显示 SHA256 描述", "SHA256" in out)
 test("3.8 来源 openclaw-bundled", "openclaw-bundled" in out)
+
+# ━━ Phase 3b: store-cli.py sync (独立 manifest 获取) ━━━━━━━
+p("\n━━ Phase 3b: store-cli.py sync ━━")
+rc, out, err = run_cli("sync")
+test("3b.1 sync 退出码 0", rc == 0, err[:200])
+test("3b.2 sync 返回 Store 名称", "Store:" in out or "Manifest synced" in out)
+test("3b.3 sync 后 manifest 文件存在", os.path.isfile(MANIFEST_CACHE))
 
 # ━━ Phase 4: store-cli.py search ━━━━━━━━━━━━━━━━━━━━━━━━━━
 p("\n━━ Phase 4: store-cli.py search ━━")

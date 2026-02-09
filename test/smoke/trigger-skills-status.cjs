@@ -1,21 +1,25 @@
+#!/usr/bin/env node
 // Trigger skills.status via Gateway WebSocket to force Guard evaluation.
-// Usage: node trigger-skills-status.mjs [password] [port]
+// Usage: node trigger-skills-status.cjs [password] [port]
 //
-// Uses createRequire to resolve 'ws' from the atd worktree's node_modules,
-// since ESM import resolution is based on script location, not CWD.
-import { createRequire } from 'module';
-import { randomUUID } from 'crypto';
+// Connects to the Gateway WebSocket, authenticates, sends a skills.status
+// request, and outputs the result as JSON.
+// Requires 'ws' package — set NODE_PATH or run from a directory that has it.
 
-// Resolve 'ws' from CWD (allows running from the atd worktree dir where ws is installed)
-const require = createRequire(process.cwd() + '/');
 const { WebSocket } = require('ws');
+const { randomUUID } = require('crypto');
 
 const password = process.argv[2] || 'dev';
 const port = process.argv[3] || '19001';
 const ws = new WebSocket(`ws://127.0.0.1:${port}`, { origin: `http://localhost:${port}` });
 
+let connectSent = false;
+let skillsStatusSent = false;
+
 ws.on('message', (raw) => {
     const msg = JSON.parse(raw.toString());
+
+    // Step 1: Respond to connect.challenge with credentials
     if (msg.type === 'event' && msg.event === 'connect.challenge') {
         ws.send(JSON.stringify({
             type: 'req', method: 'connect', id: randomUUID(),
@@ -26,15 +30,34 @@ ws.on('message', (raw) => {
                 auth: { password }
             }
         }));
-    } else if (msg.type === 'res' && msg.ok && msg.payload?.hello) {
+        connectSent = true;
+        return;
+    }
+
+    // Step 2: After connect success, send skills.status
+    if (msg.type === 'res' && msg.ok && connectSent && !skillsStatusSent) {
+        // This is the connect response (payload has: protocol, server, features, etc.)
         ws.send(JSON.stringify({ type: 'req', method: 'skills.status', id: randomUUID() }));
-    } else if (msg.type === 'res' && msg.ok && msg.payload?.skills) {
+        skillsStatusSent = true;
+        return;
+    }
+
+    // Step 3: Receive skills.status response
+    if (msg.type === 'res' && msg.ok && skillsStatusSent && msg.payload?.skills) {
         const skills = msg.payload.skills;
         const blocked = skills.filter(s => s.guardBlocked).map(s => s.name);
         console.log(JSON.stringify({ count: skills.length, blocked }));
         ws.close();
         process.exit(0);
     }
+
+    // Handle errors
+    if (msg.type === 'res' && !msg.ok) {
+        console.error('Response error:', JSON.stringify(msg).substring(0, 300));
+        ws.close();
+        process.exit(1);
+    }
 });
+
 ws.on('error', (err) => { console.error('WebSocket error:', err.message); process.exit(1); });
-setTimeout(() => { ws.close(); process.exit(1); }, 30000);
+setTimeout(() => { console.error('Timeout (30s)'); ws.close(); process.exit(1); }, 30000);
