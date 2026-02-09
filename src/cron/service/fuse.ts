@@ -153,7 +153,7 @@ interface FuseResponse {
 }
 
 // Fetch that handles file:// URLs
-async function fetchURL(url: string | URL, options?: RequestInit): Promise<FuseResponse> {
+export async function fetchURL(url: string | URL, options?: RequestInit): Promise<FuseResponse> {
   const urlString = typeof url === "string" ? url : url.toString();
 
   if (urlString.startsWith("file://")) {
