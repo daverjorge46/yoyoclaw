@@ -3,7 +3,7 @@ import { handleToolExecutionEnd } from "./pi-embedded-subscribe.handlers.tools.j
 import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handlers.types.js";
 
 function makeCtx(overrides?: {
-  onConsecutiveToolErrors?: (count: number, lastError: string | undefined) => boolean;
+  onConsecutiveToolErrors?: (count: number, lastError: string | undefined) => void;
   consecutiveToolErrorThreshold?: number;
 }): EmbeddedPiSubscribeContext {
   return {
@@ -109,7 +109,7 @@ describe("tool execution circuit breaker", () => {
   });
 
   it("should trigger callback at threshold (default 3)", () => {
-    const onConsecutiveToolErrors = vi.fn().mockReturnValue(true);
+    const onConsecutiveToolErrors = vi.fn();
     const ctx = makeCtx({ onConsecutiveToolErrors });
 
     handleToolExecutionEnd(ctx, makeErrorEvent());
@@ -122,7 +122,7 @@ describe("tool execution circuit breaker", () => {
   });
 
   it("should not trigger callback below threshold", () => {
-    const onConsecutiveToolErrors = vi.fn().mockReturnValue(true);
+    const onConsecutiveToolErrors = vi.fn();
     const ctx = makeCtx({ onConsecutiveToolErrors });
 
     handleToolExecutionEnd(ctx, makeErrorEvent());
@@ -131,7 +131,7 @@ describe("tool execution circuit breaker", () => {
   });
 
   it("should respect custom threshold", () => {
-    const onConsecutiveToolErrors = vi.fn().mockReturnValue(true);
+    const onConsecutiveToolErrors = vi.fn();
     const ctx = makeCtx({ onConsecutiveToolErrors, consecutiveToolErrorThreshold: 5 });
 
     for (let i = 0; i < 4; i++) {
@@ -154,7 +154,7 @@ describe("tool execution circuit breaker", () => {
   });
 
   it("should reset counter after success breaks the streak", () => {
-    const onConsecutiveToolErrors = vi.fn().mockReturnValue(true);
+    const onConsecutiveToolErrors = vi.fn();
     const ctx = makeCtx({ onConsecutiveToolErrors });
 
     handleToolExecutionEnd(ctx, makeErrorEvent());
@@ -168,7 +168,7 @@ describe("tool execution circuit breaker", () => {
 
   it("should log warning when circuit breaker triggers", () => {
     const ctx = makeCtx({
-      onConsecutiveToolErrors: () => true,
+      onConsecutiveToolErrors: vi.fn(),
     });
 
     handleToolExecutionEnd(ctx, makeErrorEvent());

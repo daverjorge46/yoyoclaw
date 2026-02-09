@@ -644,7 +644,6 @@ export async function runEmbeddedAttempt(
               `runId=${params.runId} sessionId=${params.sessionId}`,
           );
           abortRun(false, new Error(`Circuit breaker: ${count} consecutive tool validation failures`));
-          return true;
         },
         consecutiveToolErrorThreshold: 3,
         enforceFinalTag: params.enforceFinalTag,
