@@ -80,7 +80,17 @@ const TOOL_PROFILES: Record<ToolProfileId, ToolProfilePolicy> = {
 };
 
 export function normalizeToolName(name: string) {
-  const normalized = name.trim().toLowerCase();
+  // Strip special tokens that some models (like Qwen) may output in tool names
+  // e.g., "connector_actions<|channel|>json" -> "connector_actions"
+  let cleaned = name.trim();
+
+  // Remove special tokens like <|channel|>, <|endoftext|>, <|im_end|>, etc.
+  cleaned = cleaned.replace(/<\|[^|>]+\|>/g, "");
+
+  // Remove any trailing format hints like "json", "xml" that may be appended
+  // after special tokens are stripped (e.g., "connector_actionsjson" -> "connector_actions")
+  // Only do this if the result doesn't match a known tool name
+  const normalized = cleaned.trim().toLowerCase();
   return TOOL_NAME_ALIASES[normalized] ?? normalized;
 }
 
