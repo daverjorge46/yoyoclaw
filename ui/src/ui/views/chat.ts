@@ -424,22 +424,16 @@ export function renderChat(props: ChatProps) {
             >
               ${canAbort ? "Stop" : "New session"}
             </button>
-            ${
-              props.dictationEnabled === true
-                ? html`
-              <button
-                class="btn chat-dictation-btn ${props.dictationState === "recording" ? "chat-dictation-btn--recording" : ""}"
-                type="button"
-                ?disabled=${!props.connected}
-                @click=${props.onDictationToggle}
-                data-tooltip=${navigator.platform.includes("Mac") ? "⌘⇧D" : "Ctrl+Shift+D"}
-                aria-label=${props.dictationState === "recording" ? "Stop dictation" : "Start dictation"}
-              >
-                ${icons.mic}
-              </button>
-            `
-                : nothing
-            }
+            <button
+              class="btn chat-dictation-btn ${props.dictationState === "recording" ? "chat-dictation-btn--recording" : ""}"
+              type="button"
+              ?disabled=${!props.connected || !props.dictationEnabled}
+              @click=${props.onDictationToggle}
+              data-tooltip=${navigator.platform.includes("Mac") ? "⌘⇧D" : "Ctrl+Shift+D"}
+              aria-label=${props.dictationState === "recording" ? "Stop dictation" : "Start dictation"}
+            >
+              ${icons.mic}
+            </button>
             <button
               class="btn primary"
               ?disabled=${!props.connected}
