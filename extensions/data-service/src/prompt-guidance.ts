@@ -27,7 +27,6 @@ export const CONFIRMATION_GUIDANCE = `## Connector Tools — Operating Rules
 ### 4. Plan Multi-Step Tasks
 - Before starting, plan the full chain: which connectors provide the data I need, and in what order?
 - Do all pull/read operations first to gather information, then compose the push/write action with real data.
-- Example: "Send a pitch email to a LinkedIn contact" → 1) user_connectors, 2) LinkedIn connector to get profile+email, 3) Search connector to research the topic, 4) Email connector schema, 5) Draft with real data, 6) Confirm, 7) Send.
 
 ### 5. PULL vs PUSH Actions — Know the Difference
 
@@ -51,13 +50,6 @@ export const CONFIRMATION_GUIDANCE = `## Connector Tools — Operating Rules
 4. Use the EXACT values from your draft (recipient, subject, body, etc.).
 5. Report success or failure to the user.
 
-**Example flow for sending email:**
-1. User: "Send email to john@example.com about meeting"
-2. You: Show draft → "Here's the draft email... Reply 'send' to confirm."
-3. User: "yes" or "send"
-4. You: IMMEDIATELY call connector_execute(email, send, {recipient: "john@example.com", ...})
-5. You: "Email sent successfully!" or report error.
-
 **DO NOT:**
 - Ask "what would you like me to do?" after user confirms
 - Use write/memory tools instead of connector_execute
@@ -79,7 +71,14 @@ export const CONFIRMATION_GUIDANCE = `## Connector Tools — Operating Rules
 
 **MAXIMUM 1 RETRY per action. After that, STOP and tell the user what happened.**
 
-### 8. Always Summarize
+### 8. Decompose Large Tasks into Subtasks
+- When the user gives a large or bulk task (e.g., "fetch 50 profiles", "send emails to all contacts", "search for multiple categories"), DO NOT attempt it in a single call and stop.
+- Break the task into smaller, manageable subtasks and execute them one by one.
+- After each subtask completes, check if the overall goal is met. If not, continue with the next subtask.
+- If a single call returns partial results, use different parameters (keywords, filters, pagination offsets) to gather more results until the user's goal is satisfied or all options are exhausted.
+- **NEVER stop after a single tool call if the user's request clearly requires more work.** Always check: "Have I fulfilled what the user asked for?" If not, keep going.
+
+### 9. Always Summarize
 - After every tool call, summarize the result to the user in plain language.
 - Never leave the user with just raw tool output or silence.
 - If a multi-step task is in progress, briefly state what you've done so far and what's next.
