@@ -213,9 +213,10 @@ function loadHookEntries(
   });
 
   const merged = new Map<string, Hook>();
-  // Precedence: extra < bundled < managed < workspace (workspace wins)
-  for (const hook of extraHooks) merged.set(hook.name, hook);
+  // Precedence: bundled < extra < managed < workspace (workspace wins)
+  // extraDirs are user-provided overrides and should take priority over bundled.
   for (const hook of bundledHooks) merged.set(hook.name, hook);
+  for (const hook of extraHooks) merged.set(hook.name, hook);
   for (const hook of managedHooks) merged.set(hook.name, hook);
   for (const hook of workspaceHooks) merged.set(hook.name, hook);
 
