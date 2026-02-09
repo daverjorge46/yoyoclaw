@@ -207,6 +207,15 @@ export function createNonStreamingOllamaFn(toolDefs: ToolDef[]): StreamFn {
           console.error(
             `[CLAWD] non-streaming: model=${model.id} tools=${tools.length} msgs=${messages.length}`,
           );
+          // Dump system message content for debugging
+          const sysMsgs = messages.filter((m: any) => m.role === "system");
+          for (const sm of sysMsgs) {
+            const content =
+              typeof sm.content === "string" ? sm.content : JSON.stringify(sm.content);
+            console.error(
+              `[CLAWD] system msg (${content.length} chars): ${content.slice(0, 500)}...`,
+            );
+          }
         }
 
         const apiKey = _options?.apiKey || process.env.OLLAMA_API_KEY || "ollama-local";
