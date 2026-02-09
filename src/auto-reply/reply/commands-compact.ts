@@ -8,6 +8,7 @@ import {
 } from "../../agents/pi-embedded.js";
 import { resolveSessionFilePath } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { formatContextUsageShort, formatTokenCount } from "../status.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
@@ -60,6 +61,28 @@ export const handleCompactCommand: CommandHandler = async (params) => {
     };
   }
   const sessionId = params.sessionEntry.sessionId;
+
+  // Trigger command:compact internal hook (e.g. pre-compaction-flush)
+  // This runs BEFORE compaction and can inject system-event messages.
+  try {
+    const hookEvent = createInternalHookEvent("command", "compact", params.sessionKey ?? "", {
+      sessionEntry: params.sessionEntry,
+      sessionId,
+      commandSource: params.command.surface,
+      senderId: params.command.senderId,
+    });
+    await triggerInternalHook(hookEvent);
+
+    // If hooks injected messages, enqueue them as system events for the agent
+    // to process in the compacted session's first turn.
+    for (const msg of hookEvent.messages) {
+      enqueueSystemEvent(msg, { sessionKey: params.sessionKey });
+    }
+  } catch (hookErr) {
+    // Non-fatal — don't block compaction if a hook fails
+    logVerbose(`command:compact hook error (non-fatal): ${hookErr}`);
+  }
+
   if (isEmbeddedPiRunActive(sessionId)) {
     abortEmbeddedPiRun(sessionId);
     await waitForEmbeddedPiRunEnd(sessionId, 15_000);

@@ -437,31 +437,54 @@ export async function compactEmbeddedPiSessionDirect(
         if (limited.length > 0) {
           session.agent.replaceMessages(limited);
         }
-        // Run before_compaction hook — lets plugins flush memory, save state, etc.
+        /**
+         * Plugin Lifecycle Hooks (before_compaction / after_compaction):
+         * - Triggered during the compaction process itself
+         * - before_compaction: after history limit, before session.compact()
+         * - after_compaction: after session.compact() completes
+         * - Used by external plugins for memory management, state flushing
+         * - Separate from internal hooks (command:compact) which fire in commands-compact.ts
+         * - Both are non-fatal: errors are logged but don't block compaction
+         * - 10-second timeout prevents a hanging plugin from blocking compaction indefinitely
+         */
+        const HOOK_TIMEOUT_MS = 10_000;
         const hookRunner = getGlobalHookRunner();
         if (hookRunner?.hasHooks("before_compaction")) {
           let tokensBefore: number | undefined;
-          try {
-            tokensBefore = 0;
-            for (const message of session.messages) {
-              tokensBefore += estimateTokens(message);
+          // Only estimate tokens for reasonably-sized sessions
+          if (session.messages.length < 2000) {
+            try {
+              tokensBefore = 0;
+              for (const message of session.messages) {
+                tokensBefore += estimateTokens(message);
+              }
+            } catch {
+              tokensBefore = undefined;
             }
-          } catch {
-            tokensBefore = undefined;
           }
           try {
-            await hookRunner.runBeforeCompaction(
-              {
-                messageCount: session.messages.length,
-                tokenCount: tokensBefore,
-              },
-              {
-                sessionKey: params.sessionKey,
-                workspaceDir: resolvedWorkspace,
-              },
-            );
+            await Promise.race([
+              hookRunner.runBeforeCompaction(
+                {
+                  messageCount: session.messages.length,
+                  tokenCount: tokensBefore,
+                },
+                {
+                  sessionKey: params.sessionKey,
+                  workspaceDir: resolvedWorkspace,
+                },
+              ),
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("before_compaction hook timed out")),
+                  HOOK_TIMEOUT_MS,
+                ),
+              ),
+            ]);
           } catch (hookErr) {
-            log.warn(`before_compaction hook error (non-fatal): ${hookErr}`);
+            log.warn(
+              `before_compaction hook error (non-fatal, session: ${params.sessionKey}): ${hookErr instanceof Error ? hookErr.message : String(hookErr)}`,
+            );
           }
         }
 
@@ -470,19 +493,29 @@ export async function compactEmbeddedPiSessionDirect(
         // Run after_compaction hook
         if (hookRunner?.hasHooks("after_compaction")) {
           try {
-            await hookRunner.runAfterCompaction(
-              {
-                messageCount: session.messages.length,
-                tokenCount: undefined,
-                compactedCount: result.tokensBefore ?? 0,
-              },
-              {
-                sessionKey: params.sessionKey,
-                workspaceDir: resolvedWorkspace,
-              },
-            );
+            await Promise.race([
+              hookRunner.runAfterCompaction(
+                {
+                  messageCount: session.messages.length,
+                  tokenCount: undefined,
+                  compactedCount: result.tokensBefore ?? 0,
+                },
+                {
+                  sessionKey: params.sessionKey,
+                  workspaceDir: resolvedWorkspace,
+                },
+              ),
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("after_compaction hook timed out")),
+                  HOOK_TIMEOUT_MS,
+                ),
+              ),
+            ]);
           } catch (hookErr) {
-            log.warn(`after_compaction hook error (non-fatal): ${hookErr}`);
+            log.warn(
+              `after_compaction hook error (non-fatal, session: ${params.sessionKey}): ${hookErr instanceof Error ? hookErr.message : String(hookErr)}`,
+            );
           }
         }
 
