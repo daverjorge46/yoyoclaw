@@ -153,6 +153,7 @@ export async function compactEmbeddedPiSessionDirect(
       const { resolveCopilotApiToken } = await import("../../providers/github-copilot-token.js");
       const copilotToken = await resolveCopilotApiToken({
         githubToken: apiKeyInfo.apiKey,
+        githubHost: apiKeyInfo.enterpriseUrl,
       });
       authStorage.setRuntimeApiKey(model.provider, copilotToken.token);
     } else {
