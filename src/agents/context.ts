@@ -7,6 +7,16 @@ import { ensureOpenClawModelsJson } from "./models-config.js";
 
 type ModelEntry = { id: string; contextWindow?: number };
 
+// Known context window overrides for models with incorrect values in upstream catalogs.
+// These values reflect the extended context windows available via beta or tier 4 access.
+const KNOWN_CONTEXT_OVERRIDES: Record<string, number> = {
+  // Claude 4.5 models support 1M context window (beta, tier 4+)
+  // Source: https://platform.claude.com/docs/en/build-with-claude/context-windows
+  "claude-sonnet-4-5": 1_000_000,
+  "claude-opus-4-6": 1_000_000,
+  "claude-sonnet-4": 1_000_000,
+};
+
 const MODEL_CACHE = new Map<string, number>();
 const loadPromise = (async () => {
   try {
@@ -33,6 +43,11 @@ const loadPromise = (async () => {
 export function lookupContextTokens(modelId?: string): number | undefined {
   if (!modelId) {
     return undefined;
+  }
+  // Check known overrides first (for models with incorrect upstream values)
+  const override = KNOWN_CONTEXT_OVERRIDES[modelId];
+  if (override) {
+    return override;
   }
   // Best-effort: kick off loading, but don't block.
   void loadPromise;
