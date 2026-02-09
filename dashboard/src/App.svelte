@@ -1,99 +1,78 @@
 <script>
-  import Header from './lib/Header.svelte';
-  import StatusCards from './lib/StatusCards.svelte';
-  import ActivityFeed from './lib/ActivityFeed.svelte';
-  import SessionsList from './lib/SessionsList.svelte';
+  import Sidebar from './lib/Sidebar.svelte';
+  import ChatArea from './lib/ChatArea.svelte';
 
-  // Mock data - will be replaced with real API calls
-  let systemStatus = {
-    gateway: 'online',
-    uptime: '2d 14h 32m',
-    model: 'claude-opus-4-5'
-  };
-
-  let channels = [
-    { name: 'Telegram', status: 'connected', icon: '📱' },
-    { name: 'WhatsApp', status: 'disconnected', icon: '💬' },
-    { name: 'Discord', status: 'connected', icon: '🎮' },
-    { name: 'Web Chat', status: 'connected', icon: '🌐' }
+  let currentModel = 'claude-opus-4-5';
+  let chatHistory = [
+    { id: 1, title: 'Dashboard setup', time: '10:25 AM' },
+    { id: 2, title: 'Fork OpenClaw repo', time: '10:15 AM' },
+    { id: 3, title: 'Odoo local dev', time: 'Yesterday' }
   ];
 
-  let recentActivity = [
-    { time: '10:24', action: 'Message received', source: 'Telegram', details: 'Khaled: proceed' },
-    { time: '10:20', action: 'Repo cloned', source: 'System', details: 'easyhub fork created' },
-    { time: '10:15', action: 'Session started', source: 'Web Chat', details: 'Main session' }
+  let tools = [
+    { id: 'history', icon: '🕐', label: 'History' },
+    { id: 'channels', icon: '📡', label: 'Channels' },
+    { id: 'sessions', icon: '💬', label: 'Sessions' },
+    { id: 'memory', icon: '🧠', label: 'Memory' },
+    { id: 'skills', icon: '⚡', label: 'Skills' },
+    { id: 'cron', icon: '⏰', label: 'Scheduled' }
   ];
 
-  let sessions = [
-    { id: 'main', label: 'Main Session', status: 'active', channel: 'webchat' },
-    { id: 'cron-1', label: 'OpenCode Checker', status: 'idle', channel: 'cron' }
+  let quickActions = [
+    { icon: '🔍', label: 'Search' },
+    { icon: '📊', label: 'Analyze' },
+    { icon: '📝', label: 'Summarize' },
+    { icon: '💻', label: 'Code' },
+    { icon: '🌐', label: 'Browse' }
   ];
+
+  let activeTool = null;
+
+  function handleToolSelect(toolId) {
+    activeTool = activeTool === toolId ? null : toolId;
+  }
 </script>
 
-<main>
-  <Header status={systemStatus} />
+<div class="app">
+  <Sidebar 
+    {tools} 
+    {activeTool} 
+    on:toolSelect={(e) => handleToolSelect(e.detail)}
+  />
   
-  <div class="dashboard">
-    <section class="channels">
-      <h2>📡 Connected Channels</h2>
-      <StatusCards {channels} />
-    </section>
-
-    <section class="activity">
-      <h2>📋 Recent Activity</h2>
-      <ActivityFeed activities={recentActivity} />
-    </section>
-
-    <section class="sessions">
-      <h2>🔄 Active Sessions</h2>
-      <SessionsList {sessions} />
-    </section>
-  </div>
-</main>
+  <main>
+    <ChatArea 
+      {currentModel}
+      {quickActions}
+      {chatHistory}
+      on:modelChange={(e) => currentModel = e.detail}
+    />
+  </main>
+</div>
 
 <style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
   :global(body) {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0f0f0f;
+    background: #0a0a0a;
     color: #e0e0e0;
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
   }
 
   main {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  .dashboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 24px;
-    margin-top: 24px;
-  }
-
-  .channels {
-    grid-column: 1 / -1;
-  }
-
-  section {
-    background: #1a1a1a;
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #2a2a2a;
-  }
-
-  h2 {
-    margin: 0 0 16px 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #fff;
-  }
-
-  @media (max-width: 768px) {
-    .dashboard {
-      grid-template-columns: 1fr;
-    }
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 </style>
