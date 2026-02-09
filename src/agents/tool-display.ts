@@ -11,7 +11,7 @@ type ToolDisplaySpec = {
   emoji?: string;
   title?: string;
   label?: string;
-  suppress?: boolean;
+  detailOnly?: boolean;
   detailKeys?: string[];
   actions?: Record<string, ToolDisplayActionSpec>;
 };
@@ -27,7 +27,7 @@ export type ToolDisplay = {
   emoji: string;
   title: string;
   label: string;
-  suppress: boolean;
+  detailOnly: boolean;
   verb?: string;
   detail?: string;
 };
@@ -274,7 +274,7 @@ export function resolveToolDisplay(params: {
     emoji,
     title,
     label,
-    suppress: spec?.suppress ?? false,
+    detailOnly: spec?.detailOnly ?? false,
     verb,
     detail,
   };
@@ -296,6 +296,9 @@ export function formatToolDetail(display: ToolDisplay): string | undefined {
 
 export function formatToolSummary(display: ToolDisplay): string {
   const detail = formatToolDetail(display);
+  if (display.detailOnly && detail) {
+    return `${display.emoji} ${detail}`;
+  }
   return detail
     ? `${display.emoji} ${display.label}: ${detail}`
     : `${display.emoji} ${display.label}`;

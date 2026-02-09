@@ -6,7 +6,7 @@ describe("MCP tool name normalization", () => {
     const display = resolveToolDisplay({ name: "mcp__claude-code-mcp__claude_code" });
     expect(display.name).toBe("claude_code");
     expect(display.title).toBe("Claude Code");
-    expect(display.emoji).toBe("🤖");
+    expect(display.emoji).toBe("🔧");
   });
 
   it("strips mcp prefix for unknown MCP tools", () => {
@@ -21,26 +21,33 @@ describe("MCP tool name normalization", () => {
     expect(display.title).toBe("Read");
   });
 
-  it("formats claude_code summary with prompt detail", () => {
+  it("formats claude_code summary with detail only (no label)", () => {
     const summary = formatToolSummary(
       resolveToolDisplay({
         name: "mcp__claude-code-mcp__claude_code",
         args: { prompt: "list files in /tmp" },
       }),
     );
-    expect(summary).toBe("🤖 Claude Code: list files in /tmp");
+    expect(summary).toBe("🔧 list files in /tmp");
   });
 });
 
-describe("tool display suppress", () => {
-  it("marks claude_code as suppressed", () => {
+describe("tool display detailOnly", () => {
+  it("marks claude_code as detailOnly", () => {
     const display = resolveToolDisplay({ name: "mcp__claude-code-mcp__claude_code" });
-    expect(display.suppress).toBe(true);
+    expect(display.detailOnly).toBe(true);
   });
 
-  it("does not suppress regular tools", () => {
+  it("does not set detailOnly for regular tools", () => {
     const display = resolveToolDisplay({ name: "read" });
-    expect(display.suppress).toBe(false);
+    expect(display.detailOnly).toBe(false);
+  });
+
+  it("falls back to label format when detailOnly tool has no detail", () => {
+    const summary = formatToolSummary(
+      resolveToolDisplay({ name: "mcp__claude-code-mcp__claude_code" }),
+    );
+    expect(summary).toBe("🔧 Claude Code");
   });
 });
 

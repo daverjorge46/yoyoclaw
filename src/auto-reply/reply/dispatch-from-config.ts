@@ -302,9 +302,6 @@ export async function dispatchReplyFromConfig(params: {
           (params.replyOptions?.toolFeedback
             ? (info: { toolName: string; toolCallId: string; input?: Record<string, unknown> }) => {
                 const display = resolveToolDisplay({ name: info.toolName, args: info.input });
-                if (display.suppress) {
-                  return;
-                }
                 const summary = formatToolSummary(display);
                 const payload: ReplyPayload = { text: `*${summary}*` };
                 if (shouldRouteToOriginating) {
