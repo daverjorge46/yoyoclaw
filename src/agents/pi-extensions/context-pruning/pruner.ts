@@ -2,6 +2,7 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent, TextContent, ToolResultMessage } from "@mariozechner/pi-ai";
 import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
 import type { EffectiveContextPruningSettings } from "./settings.js";
+import { createInternalHookEvent, triggerInternalHook } from "../../../hooks/internal-hooks.js";
 import { makeToolPrunablePredicate } from "./tools.js";
 
 const CHARS_PER_TOKEN_ESTIMATE = 4;
@@ -222,13 +223,15 @@ ${tail}`;
   return { ...msg, content: [asText(trimmed + note)] };
 }
 
-export function pruneContextMessages(params: {
+export async function pruneContextMessages(params: {
   messages: AgentMessage[];
   settings: EffectiveContextPruningSettings;
   ctx: Pick<ExtensionContext, "model">;
   isToolPrunable?: (toolName: string) => boolean;
   contextWindowTokensOverride?: number;
-}): AgentMessage[] {
+  sessionKey?: string;
+  sessionId?: string;
+}): Promise<AgentMessage[]> {
   const { messages, settings, ctx } = params;
   const contextWindowTokens =
     typeof params.contextWindowTokensOverride === "number" &&
@@ -266,6 +269,32 @@ export function pruneContextMessages(params: {
   }
 
   const prunableToolIndexes: number[] = [];
+  let softTrimmedCount = 0;
+  let hardClearedCount = 0;
+  const prunedToolNames = new Set<string>();
+  const hookSessionKey =
+    params.sessionKey?.trim() ||
+    (params.sessionId ? `session:${params.sessionId}` : "session:unknown");
+  const emitPruneHook = () => {
+    if (softTrimmedCount === 0 && hardClearedCount === 0) {
+      return;
+    }
+    // TODO(#8606): Consider emitting pruned content summaries or IDs; we only report counts
+    // and tool names to avoid leaking full tool output in hooks.
+    try {
+      const hookEvent = createInternalHookEvent("session", "prune", hookSessionKey, {
+        sessionId: params.sessionId,
+        softTrimmedCount,
+        hardClearedCount,
+        toolNames: prunedToolNames.size > 0 ? Array.from(prunedToolNames) : undefined,
+      });
+      void triggerInternalHook(hookEvent).catch(() => {
+        // Best-effort only; pruning should never fail due to hooks.
+      });
+    } catch {
+      // Best-effort only; pruning should never fail due to hooks.
+    }
+  };
   let next: AgentMessage[] | null = null;
 
   for (let i = pruneStartIndex; i < cutoffIndex; i++) {
@@ -296,14 +325,20 @@ export function pruneContextMessages(params: {
       next = messages.slice();
     }
     next[i] = updated as unknown as AgentMessage;
+    softTrimmedCount += 1;
+    if ((msg as ToolResultMessage).toolName) {
+      prunedToolNames.add((msg as ToolResultMessage).toolName);
+    }
   }
 
   const outputAfterSoftTrim = next ?? messages;
   ratio = totalChars / charWindow;
   if (ratio < settings.hardClearRatio) {
+    emitPruneHook();
     return outputAfterSoftTrim;
   }
   if (!settings.hardClear.enabled) {
+    emitPruneHook();
     return outputAfterSoftTrim;
   }
 
@@ -340,7 +375,12 @@ export function pruneContextMessages(params: {
     const afterChars = estimateMessageChars(cleared as unknown as AgentMessage);
     totalChars += afterChars - beforeChars;
     ratio = totalChars / charWindow;
+    hardClearedCount += 1;
+    if ((msg as ToolResultMessage).toolName) {
+      prunedToolNames.add((msg as ToolResultMessage).toolName);
+    }
   }
 
+  emitPruneHook();
   return next ?? messages;
 }
