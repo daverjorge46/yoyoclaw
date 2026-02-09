@@ -750,7 +750,7 @@ export async function applyAuthChoiceApiProviders(
     let hasCredential = false;
 
     if (!hasCredential && params.opts?.token && params.opts?.tokenProvider === "asksage") {
-      await setAskSageApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
+      setAskSageApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
       hasCredential = true;
     }
 
@@ -772,7 +772,7 @@ export async function applyAuthChoiceApiProviders(
         initialValue: true,
       });
       if (useExisting) {
-        await setAskSageApiKey(envKey.apiKey, params.agentDir);
+        setAskSageApiKey(envKey.apiKey, params.agentDir);
         hasCredential = true;
       }
     }
@@ -781,7 +781,7 @@ export async function applyAuthChoiceApiProviders(
         message: "Enter Ask Sage API key",
         validate: validateApiKeyInput,
       });
-      await setAskSageApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
+      setAskSageApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
     }
     nextConfig = applyAuthProfileConfig(nextConfig, {
       profileId: "asksage:default",
