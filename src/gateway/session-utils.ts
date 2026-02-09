@@ -845,13 +845,6 @@ export function listSessionsFromStore(params: {
   });
 
   // Merge active and deleted sessions
-  console.log(
-    "[DEBUG listSessionsFromStore] Merging",
-    sessions.length,
-    "active +",
-    deletedRows.length,
-    "deleted",
-  );
   sessions = [...sessions, ...deletedRows].toSorted(
     (a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0),
   );
