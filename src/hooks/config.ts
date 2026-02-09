@@ -68,13 +68,20 @@ export function resolveRuntimePlatform(): string {
 export function hasBinary(bin: string): boolean {
   const pathEnv = process.env.PATH ?? "";
   const parts = pathEnv.split(path.delimiter).filter(Boolean);
+  const hasExt = path.extname(bin).length > 0;
+  const exts =
+    process.platform === "win32" && !hasExt
+      ? (process.env.PATHEXT ?? ".COM;.EXE;.BAT;.CMD").split(";").filter(Boolean)
+      : [""];
   for (const part of parts) {
-    const candidate = path.join(part, bin);
-    try {
-      fs.accessSync(candidate, fs.constants.X_OK);
-      return true;
-    } catch {
-      // keep scanning
+    for (const ext of exts) {
+      const candidate = path.join(part, bin + ext);
+      try {
+        fs.accessSync(candidate, fs.constants.X_OK);
+        return true;
+      } catch {
+        // keep scanning
+      }
     }
   }
   return false;
