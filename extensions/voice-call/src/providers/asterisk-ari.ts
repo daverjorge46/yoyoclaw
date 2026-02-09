@@ -941,6 +941,8 @@ export class AsteriskAriProvider implements VoiceCallProvider {
       await this.client.answerChannel(sipChannelId);
     } catch {}
 
+    this.maybeEmitAnswered(state);
+
     try {
       await this.setupMedia(state);
     } catch (err) {
@@ -959,10 +961,6 @@ export class AsteriskAriProvider implements VoiceCallProvider {
         reason: "error",
       });
       return;
-    }
-
-    if (evt.channel?.state?.toLowerCase() === "up") {
-      this.maybeEmitAnswered(state);
     }
   }
 
