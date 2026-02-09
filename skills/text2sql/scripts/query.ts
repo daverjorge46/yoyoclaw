@@ -172,7 +172,6 @@ async function main(): Promise<void> {
   }
 
   const opts = parseArgs(process.argv);
-
   // Reject non-SELECT before connecting (so we can test without a real DB).
   if (opts.cmd === "query" && opts.sql && !isReadOnlySelect(opts.sql)) {
     console.error("Only SELECT queries are allowed. Rejected.");
