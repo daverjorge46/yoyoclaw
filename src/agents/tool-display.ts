@@ -198,7 +198,9 @@ function resolveReadDetail(args: unknown): string | undefined {
     return undefined;
   }
   const record = args as Record<string, unknown>;
-  const path = typeof record.path === "string" ? record.path : undefined;
+  const path =
+    (typeof record.path === "string" ? record.path : undefined) ??
+    (typeof record.file_path === "string" ? record.file_path : undefined);
   if (!path) {
     return undefined;
   }
