@@ -285,7 +285,9 @@ export async function startGatewayServer(
       await fn();
     } catch (err) {
       if (isPluginHookExecutionError(err) && err.failClosed) {
-        throw err;
+        if (phase === "gateway_pre_start" || phase === "gateway_start") {
+          throw err;
+        }
       }
       log.warn(`${phase} hook failed: ${String(err)}`);
     }
