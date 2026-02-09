@@ -197,14 +197,19 @@ export async function prepareSlackMessage(params: {
   const threadContext = resolveSlackThreadContext({ message, replyToMode: ctx.replyToMode });
   const threadTs = threadContext.incomingThreadTs;
   const isThreadReply = threadContext.isThreadReply;
+  // When Slack provides `thread_ts` for thread starters it can equal `ts`.
+  // Still treat that as the thread id for session routing so the starter and
+  // all replies share the same session key (prevents "missing earlier context"
+  // when follow-ups arrive in-thread).
+  const sessionThreadId = threadTs;
   const threadKeys = resolveThreadSessionKeys({
     baseSessionKey,
-    threadId: isThreadReply ? threadTs : undefined,
-    parentSessionKey: isThreadReply && ctx.threadInheritParent ? baseSessionKey : undefined,
+    threadId: sessionThreadId,
+    parentSessionKey: sessionThreadId && ctx.threadInheritParent ? baseSessionKey : undefined,
   });
   const sessionKey = threadKeys.sessionKey;
   const historyKey =
-    isThreadReply && ctx.threadHistoryScope === "thread" ? sessionKey : message.channel;
+    sessionThreadId && ctx.threadHistoryScope === "thread" ? sessionKey : message.channel;
 
   const mentionRegexes = buildMentionRegexes(cfg, route.agentId);
   const hasAnyMention = /<@[^>]+>/.test(message.text ?? "");
