@@ -255,10 +255,16 @@ export function stripAbortedAssistantMessages(messages: AgentMessage[]): AgentMe
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    if (!msg || typeof msg !== "object") continue;
-    if (msg.role !== "assistant") continue;
+    if (!msg || typeof msg !== "object") {
+      continue;
+    }
+    if (msg.role !== "assistant") {
+      continue;
+    }
     const stopReason = (msg as { stopReason?: unknown }).stopReason;
-    if (stopReason !== "aborted" && stopReason !== "error") continue;
+    if (stopReason !== "aborted" && stopReason !== "error") {
+      continue;
+    }
 
     abortedIndices.add(i);
     if (Array.isArray(msg.content)) {
@@ -275,7 +281,9 @@ export function stripAbortedAssistantMessages(messages: AgentMessage[]): AgentMe
     }
   }
 
-  if (abortedIndices.size === 0) return messages;
+  if (abortedIndices.size === 0) {
+    return messages;
+  }
 
   const out: AgentMessage[] = [];
   for (let i = 0; i < messages.length; i++) {
@@ -283,7 +291,9 @@ export function stripAbortedAssistantMessages(messages: AgentMessage[]): AgentMe
     if (abortedIndices.has(i)) {
       // Replace aborted assistant with a text-only message carrying context
       const stopReason = String((msg as { stopReason?: unknown }).stopReason);
-      const content = Array.isArray(msg.content) ? msg.content : [];
+      const content = Array.isArray((msg as { content?: unknown }).content)
+        ? (msg as { content?: unknown[] }).content!
+        : [];
       const description = describeAbortedToolCalls(content as unknown[], stopReason);
       out.push({
         ...msg,
@@ -294,7 +304,9 @@ export function stripAbortedAssistantMessages(messages: AgentMessage[]): AgentMe
     }
     if (msg.role === "toolResult") {
       const toolCallId = (msg as { toolCallId?: unknown }).toolCallId;
-      if (typeof toolCallId === "string" && abortedToolCallIds.has(toolCallId)) continue;
+      if (typeof toolCallId === "string" && abortedToolCallIds.has(toolCallId)) {
+        continue;
+      }
     }
     out.push(msg);
   }
