@@ -25,6 +25,7 @@ Native companion apps for Windows are also planned; the Gateway is recommended v
 
 ## VPS & hosting
 
+- ClawRun (one-click + GUI + secure proxy): [ClawRun](/install/clawrun)
 - VPS hub: [VPS hosting](/vps)
 - Fly.io: [Fly.io](/install/fly)
 - Hetzner (Docker): [Hetzner](/install/hetzner)

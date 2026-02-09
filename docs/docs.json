@@ -827,6 +827,7 @@
               {
                 "group": "Hosting and deployment",
                 "pages": [
+                  "install/clawrun",
                   "install/fly",
                   "install/hetzner",
                   "install/gcp",
