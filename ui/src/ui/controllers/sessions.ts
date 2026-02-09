@@ -15,6 +15,7 @@ export type SessionsState = {
   sessionsShowDeleted: boolean;
   sessionsDeletedList: DeletedSessionEntry[] | null;
   sessionKey: string;
+  requestUpdate?: () => void;
 };
 
 export async function loadSessions(
@@ -57,6 +58,7 @@ export async function loadSessions(
     state.sessionsError = String(err);
   } finally {
     state.sessionsLoading = false;
+    state.requestUpdate?.();
   }
 }
 
@@ -89,8 +91,10 @@ export async function patchSession(
   try {
     await state.client.request("sessions.patch", params);
     await loadSessions(state);
+    state.requestUpdate?.();
   } catch (err) {
     state.sessionsError = String(err);
+    state.requestUpdate?.();
   }
 }
 
@@ -115,6 +119,7 @@ export async function loadDeletedSessions(state: SessionsState) {
     state.sessionsError = String(err);
   } finally {
     state.sessionsLoading = false;
+    state.requestUpdate?.();
   }
 }
 
@@ -147,6 +152,7 @@ export async function restoreSession(state: SessionsState, sessionId: string) {
     state.sessionsError = String(err);
   } finally {
     state.sessionsLoading = false;
+    state.requestUpdate?.();
   }
 }
 
@@ -198,5 +204,6 @@ export async function deleteSession(state: SessionsState, key: string) {
     state.sessionsError = String(err);
   } finally {
     state.sessionsLoading = false;
+    state.requestUpdate?.();
   }
 }
