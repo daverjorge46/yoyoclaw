@@ -23,7 +23,7 @@ import {
   getMediaUnderstandingProvider,
   normalizeMediaProviderId,
 } from "./providers/index.js";
-import type { MediaUnderstandingDecision } from "./types.js";
+import type { MediaUnderstandingDecision, MediaUnderstandingProvider } from "./types.js";
 
 export type CoreAudioTranscriptionResult = {
   text: string | null;
@@ -119,7 +119,7 @@ function trimOutput(text: string, maxChars?: number): string {
 
 async function resolveAutoAudioEntry(params: {
   cfg: OpenClawConfig;
-  providerRegistry: Map<string, { capabilities?: string[] }>;
+  providerRegistry: Map<string, MediaUnderstandingProvider>;
 }): Promise<MediaUnderstandingModelConfig | null> {
   for (const providerId of AUTO_AUDIO_KEY_PROVIDERS) {
     const provider = getMediaUnderstandingProvider(providerId, params.providerRegistry);
