@@ -182,6 +182,10 @@ export default function compactionSafeguardExtension(api: ExtensionAPI): void {
       ];
       const repairReport = repairToolUseResultPairing(allMessages);
       if (repairReport.droppedOrphanCount > 0 || repairReport.droppedDuplicateCount > 0) {
+        // Apply repaired messages back to preparation so the framework
+        // uses the cleaned transcript in the fallback return path.
+        preparation.messagesToSummarize = repairReport.messages;
+        preparation.turnPrefixMessages = [];
         console.warn(
           `Compaction safeguard: repaired transcript in fallback path — ` +
             `dropped ${repairReport.droppedOrphanCount} orphan(s), ` +
