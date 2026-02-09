@@ -95,6 +95,12 @@ function resolveCronDeliveryBestEffort(job: CronJob): boolean {
   return false;
 }
 
+/** Returns true when every skill in the snapshot is within the allowlist. */
+function snapshotMatchesFilter(snapshotSkills: Array<{ name: string }>, filter: string[]): boolean {
+  const allowed = new Set(filter);
+  return snapshotSkills.every((s) => allowed.has(s.name));
+}
+
 export type RunCronAgentTurnResult = {
   status: "ok" | "error" | "skipped";
   summary?: string;
@@ -376,9 +382,15 @@ let skillsSnapshot = cronSession.sessionEntry.skillsSnapshot;
   } else {
     const existingSnapshot = cronSession.sessionEntry.skillsSnapshot;
     const skillsSnapshotVersion = getSkillsSnapshotVersion(workspaceDir);
-    const needsSkillsSnapshot =
-      !existingSnapshot || existingSnapshot.version !== skillsSnapshotVersion;
     const skillFilter = resolveAgentSkillsFilter(params.cfg, agentId);
+    const snapshotSkillsMismatch =
+      skillFilter !== undefined &&
+      existingSnapshot != null &&
+      !snapshotMatchesFilter(existingSnapshot.skills, skillFilter);
+    const needsSkillsSnapshot =
+      !existingSnapshot ||
+      existingSnapshot.version !== skillsSnapshotVersion ||
+      snapshotSkillsMismatch;
     if (needsSkillsSnapshot) {
       skillsSnapshot = buildWorkspaceSkillSnapshot(workspaceDir, {
         config: cfgWithAgentDefaults,
