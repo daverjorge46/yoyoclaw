@@ -11,6 +11,10 @@ import type { Router } from "../router/index.js";
 import type { ApprovalLevel, Task } from "../types.js";
 import { checkRateLimit } from "../security/guards.js";
 import type { TokenTracker } from "../monitoring/token-tracker.js";
+import { compileDailyJournal, formatJournalForTelegram } from "../monitoring/daily-journal.js";
+import type { AuditLog } from "../persistence/audit.js";
+import type { ErrorJournal } from "../errors/journal.js";
+import type { ModelRef } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Approval queue — pending tasks awaiting user confirmation
@@ -33,6 +37,12 @@ export interface TelegramChannelConfig {
   allowedUsers: number[];
   router: Router;
   tokenTracker?: TokenTracker;
+  journalDeps?: {
+    auditLog: AuditLog;
+    errorJournal: ErrorJournal;
+    projectRoot: string;
+    analysisModel: ModelRef;
+  };
 }
 
 export function createTelegramBot(config: TelegramChannelConfig): Bot {
@@ -185,6 +195,28 @@ export function createTelegramBot(config: TelegramChannelConfig): Bot {
       await ctx.reply(lines.join("\n"));
     } catch (err) {
       await ctx.reply(`Error checking budget: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  });
+
+  // /journal — compile and show today's learning journal on demand
+  bot.command("journal", async (ctx) => {
+    if (!config.tokenTracker || !config.journalDeps) {
+      await ctx.reply("Journal not configured.");
+      return;
+    }
+
+    try {
+      await ctx.replyWithChatAction("typing");
+      const journal = await compileDailyJournal({
+        projectRoot: config.journalDeps.projectRoot,
+        auditLog: config.journalDeps.auditLog,
+        errorJournal: config.journalDeps.errorJournal,
+        tokenTracker: config.tokenTracker,
+        analysisModel: config.journalDeps.analysisModel,
+      });
+      await ctx.reply(formatJournalForTelegram(journal));
+    } catch (err) {
+      await ctx.reply(`Error compiling journal: ${err instanceof Error ? err.message : String(err)}`);
     }
   });
 

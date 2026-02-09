@@ -8,9 +8,11 @@ import type { Task, ImapConfig } from "../types.js";
 import { BaseAgent, type AgentResult } from "./base-agent.js";
 import { startEmailMonitor, type EmailMessage } from "../tools/email.js";
 import { runDailyAnalysis } from "../errors/analysis.js";
-import { runKnowledgeScout } from "../scout/knowledge-scout.js";
+import { runKnowledgeScout, type ScoutReport } from "../scout/knowledge-scout.js";
 import { ErrorJournal } from "../errors/journal.js";
 import type { TokenTracker } from "../monitoring/token-tracker.js";
+import { compileDailyJournal, formatJournalForTelegram, type DailyJournal } from "../monitoring/daily-journal.js";
+import { AuditLog } from "../persistence/audit.js";
 
 export interface CronJob {
   id: string;
@@ -116,15 +118,24 @@ export class MonitorAgent extends BaseAgent {
   }
 
   /**
-   * Start the weekly knowledge scout.
-   * Searches Reddit, HN, etc. for techniques to improve skills/config.
+   * Start the knowledge scout on a configurable schedule.
+   * Default: daily at 06:00. Set scheduleHour and scheduleDays to customise.
    */
-  startKnowledgeScout(): void {
-    // Run weekly — check every hour, execute on Sundays at 06:00
+  startKnowledgeScout(opts?: {
+    hour?: number;
+    days?: number[]; // 0=Sun, 1=Mon... empty/undefined = every day
+    onReport?: (report: ScoutReport) => void | Promise<void>;
+  }): void {
+    const hour = opts?.hour ?? 6;
+    const days = opts?.days; // undefined = every day
+
     const interval = setInterval(async () => {
       const now = new Date();
-      if (now.getDay() === 0 && now.getHours() === 6 && now.getMinutes() === 0) {
-        console.log("[monitor] Running weekly knowledge scout...");
+      if (now.getHours() === hour && now.getMinutes() === 0) {
+        // Check day-of-week filter (if set)
+        if (days && days.length > 0 && !days.includes(now.getDay())) return;
+
+        console.log("[monitor] Running knowledge scout...");
         try {
           const report = await runKnowledgeScout({
             projectRoot: this.deps.projectRoot,
@@ -135,6 +146,7 @@ export class MonitorAgent extends BaseAgent {
           console.log(
             `[monitor] Scout complete: ${report.insights.length} insights, ${report.proposals.length} proposals`,
           );
+          if (opts?.onReport) await opts.onReport(report);
         } catch (err) {
           console.error("[monitor] Knowledge scout failed:", err);
         }
@@ -142,7 +154,10 @@ export class MonitorAgent extends BaseAgent {
     }, 60_000);
 
     this.cronIntervals.push(interval);
-    console.log("[monitor] Knowledge scout scheduler started (weekly, Sundays 06:00)");
+    const scheduleDesc = days && days.length > 0
+      ? `days [${days.join(",")}] at ${hour}:00`
+      : `daily at ${hour}:00`;
+    console.log(`[monitor] Knowledge scout scheduler started (${scheduleDesc})`);
   }
 
   /**
@@ -203,6 +218,40 @@ export class MonitorAgent extends BaseAgent {
 
     this.cronIntervals.push(interval);
     console.log("[monitor] Budget monitor started (every 30 min)");
+  }
+
+  /**
+   * Start the daily learning journal. Compiles at 21:00 each night.
+   * Sends a narrative summary of what happened, what was learned, and what to focus on.
+   */
+  startDailyJournal(
+    tokenTracker: TokenTracker,
+    onJournal: (message: string) => void | Promise<void>,
+  ): void {
+    const interval = setInterval(async () => {
+      const now = new Date();
+      if (now.getHours() === 21 && now.getMinutes() === 0) {
+        console.log("[monitor] Compiling daily learning journal...");
+        try {
+          const journal = await compileDailyJournal({
+            projectRoot: this.deps.projectRoot,
+            auditLog: this.deps.auditLog,
+            errorJournal: this.deps.errorJournal,
+            tokenTracker,
+            analysisModel: this.resolveModel({
+              route: { model: "cloud" },
+            } as Task),
+          });
+          const msg = formatJournalForTelegram(journal);
+          await onJournal(msg);
+        } catch (err) {
+          console.error("[monitor] Daily journal failed:", err);
+        }
+      }
+    }, 60_000);
+
+    this.cronIntervals.push(interval);
+    console.log("[monitor] Daily learning journal started (21:00)");
   }
 
   /**

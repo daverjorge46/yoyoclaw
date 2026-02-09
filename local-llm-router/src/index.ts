@@ -22,6 +22,7 @@ import { MonitorAgent } from "./agents/monitor.js";
 import type { AgentId, ModelsRegistry } from "./types.js";
 import type { RoutingConfig } from "./router/dispatcher.js";
 import type { AgentDeps } from "./agents/base-agent.js";
+import { buildModelAliasIndex, resolveModelForEngine } from "./router/model-selection.js";
 import { createTelegramBot, sendNotification } from "./channels/telegram.js";
 import { TokenTracker } from "./monitoring/token-tracker.js";
 import * as readline from "node:readline";
@@ -205,7 +206,7 @@ async function main(): Promise<void> {
   // Start monitor background services
   const monitor = agents.monitor as MonitorAgent;
   monitor.startDailyAnalysis(errorJournal);
-  monitor.startKnowledgeScout();
+  monitor.startKnowledgeScout({ hour: 6 }); // daily at 06:00
 
   // Start email monitoring if IMAP is configured
   if (process.env.IMAP_HOST) {
@@ -247,11 +248,20 @@ async function main(): Promise<void> {
       .map((id) => parseInt(id.trim(), 10))
       .filter((id) => !isNaN(id));
 
+    const aliasIndex = buildModelAliasIndex(modelsRegistry);
+    const cloudModel = resolveModelForEngine("cloud", modelsRegistry, aliasIndex);
+
     const bot = createTelegramBot({
       botToken: process.env.TELEGRAM_BOT_TOKEN,
       allowedUsers,
       router,
       tokenTracker,
+      journalDeps: {
+        auditLog,
+        errorJournal,
+        projectRoot: PROJECT_ROOT,
+        analysisModel: cloudModel,
+      },
     });
 
     bot.start({
@@ -266,6 +276,9 @@ async function main(): Promise<void> {
         await sendNotification(bot, primaryChatId, msg);
       });
       monitor.startDailyCostSummary(tokenTracker, async (msg) => {
+        await sendNotification(bot, primaryChatId, msg);
+      });
+      monitor.startDailyJournal(tokenTracker, async (msg) => {
         await sendNotification(bot, primaryChatId, msg);
       });
     }
