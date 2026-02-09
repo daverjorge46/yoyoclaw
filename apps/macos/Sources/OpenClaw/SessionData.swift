@@ -87,6 +87,7 @@ struct SessionRow: Identifiable {
     var ageText: String {
         relativeAge(from: self.updatedAt)
     }
+
     var label: String {
         self.displayName ?? self.key
     }
