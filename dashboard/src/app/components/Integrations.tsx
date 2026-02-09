@@ -23,9 +23,11 @@ const CHANNELS = [
   { 
     id: "whatsapp", 
     name: "WhatsApp", 
-    description: "QR code pairing required",
-    configFields: [],
-    requiresPairing: true,
+    description: "Connect your WhatsApp account",
+    configFields: [
+      { key: "phoneNumber", label: "Phone Number", type: "text", placeholder: "+1234567890" }
+    ],
+    showQRButton: true,
   },
   { 
     id: "discord", 
@@ -615,16 +617,7 @@ export const Integrations: React.FC<IntegrationsProps> = ({ isOpen, onClose, the
                           <div className={`px-4 pb-4 pt-2 border-t ${
                             isDark ? "border-white/5" : "border-gray-100"
                           }`}>
-                            {channel.requiresPairing ? (
-                              <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                                <p className="mb-3">This channel requires QR code pairing through the gateway.</p>
-                                <code className={`block p-3 rounded-lg text-xs font-mono ${
-                                  isDark ? "bg-black/30" : "bg-gray-100"
-                                }`}>
-                                  openclaw gateway
-                                </code>
-                              </div>
-                            ) : channel.configFields.length > 0 ? (
+                            {channel.configFields && channel.configFields.length > 0 ? (
                               <div className="space-y-3">
                                 {channel.configFields.map((field) => (
                                   <div key={field.key}>
@@ -661,6 +654,27 @@ export const Integrations: React.FC<IntegrationsProps> = ({ isOpen, onClose, the
                                     </div>
                                   </div>
                                 ))}
+                                
+                                {/* QR Code pairing button for WhatsApp */}
+                                {channel.showQRButton && (
+                                  <div className="mt-3">
+                                    <button
+                                      className={`w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 ${
+                                        isDark
+                                          ? "bg-[#2dd4bf]/20 text-[#2dd4bf] hover:bg-[#2dd4bf]/30"
+                                          : "bg-[#2dd4bf]/10 text-[#0d9488] hover:bg-[#2dd4bf]/20"
+                                      } transition-colors`}
+                                    >
+                                      <MessageSquare size={16} />
+                                      Scan QR Code to Connect
+                                    </button>
+                                    <p className={`text-xs mt-2 text-center ${
+                                      isDark ? "text-gray-500" : "text-gray-400"
+                                    }`}>
+                                      You'll need to scan a QR code with your WhatsApp mobile app
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             ) : null}
                             
