@@ -23,8 +23,7 @@ let ws: WebSocket;
 let port: number;
 
 beforeAll(async () => {
-  testState.gatewayControlUi = { enabled: true, allowedOrigins: ["*"] };
-  const started = await startServerWithClient(undefined, { controlUiEnabled: true });
+  const started = await startServerWithClient();
   server = started.server;
   ws = started.ws;
   port = started.port;
