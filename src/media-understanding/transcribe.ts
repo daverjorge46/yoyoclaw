@@ -197,8 +197,6 @@ async function transcribeAudioBufferWithCore(params: {
     );
     const prompt = resolvePrompt("audio", entry.prompt ?? config?.prompt, maxChars);
 
-    const auth = await resolveApiKeyForProvider({ provider: providerId, cfg: params.cfg });
-    const apiKey = requireApiKey(auth, providerId);
     const providerConfig = params.cfg.models?.providers?.[providerId];
     const baseUrl = entry.baseUrl ?? config?.baseUrl ?? providerConfig?.baseUrl;
     const mergedHeaders = {
@@ -211,6 +209,8 @@ async function transcribeAudioBufferWithCore(params: {
     const model = entry.model?.trim() || DEFAULT_AUDIO_MODELS[providerId] || entry.model;
 
     try {
+      const auth = await resolveApiKeyForProvider({ provider: providerId, cfg: params.cfg });
+      const apiKey = requireApiKey(auth, providerId);
       const result = await provider.transcribeAudio({
         buffer: params.buffer,
         fileName: params.fileName ?? "audio.wav",
