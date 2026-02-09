@@ -58,6 +58,7 @@ type CallState = {
   speaking: boolean;
   ttsTimer?: NodeJS.Timeout;
   stt?: CoreSttSession;
+  sttMessageHandler?: (msg: Buffer) => void;
   pendingMulaw?: Buffer;
   pendingSpeakText?: string;
   rtpPeer?: { address: string; port: number };
@@ -875,7 +876,7 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     if (!session) return;
 
     let loggedPayload = false;
-    state.media.sttUdp.on("message", (msg) => {
+    const handler = (msg: Buffer) => {
       const payload = this.stripRtpHeader(msg);
       if (!payload.length) return;
       if (!loggedPayload) {
@@ -886,7 +887,9 @@ export class AsteriskAriProvider implements VoiceCallProvider {
         });
       }
       session.onAudio(payload);
-    });
+    };
+    state.sttMessageHandler = handler;
+    state.media.sttUdp.on("message", handler);
 
     state.stt = session;
     console.log("[ari] core STT setup ok");
@@ -972,6 +975,10 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     if (state.ttsTimer) {
       clearInterval(state.ttsTimer);
       state.ttsTimer = undefined;
+    }
+    if (state.media && state.sttMessageHandler) {
+      state.media.sttUdp.off("message", state.sttMessageHandler);
+      state.sttMessageHandler = undefined;
     }
     if (state.media) {
       await this.mediaFactory.teardown(state.media);
