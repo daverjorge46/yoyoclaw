@@ -181,11 +181,13 @@ export const sendHandlers: GatewayRequestHandlers = {
             route: derivedRoute,
           });
         }
+        const hookSessionKey = providedSessionKey ?? derivedRoute?.sessionKey;
         const results = await deliverOutboundPayloads({
           cfg,
           channel: outboundChannel,
           to: resolved.to,
           accountId,
+          sessionKey: hookSessionKey,
           payloads: [{ text: message, mediaUrl, mediaUrls }],
           gifPlayback: request.gifPlayback,
           deps: outboundDeps,
