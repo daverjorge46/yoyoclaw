@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 /**
  * Read-only PostgreSQL query script for text2sql skill.
  * Commands: list_tables | schema --table T | sample --table T [--limit N] | query --sql "SELECT ..." [--limit N]
@@ -165,13 +166,12 @@ async function runQuery(client: Client, sql: string, limit: number): Promise<voi
 }
 
 async function main(): Promise<void> {
-  const opts = parseArgs(process.argv);
-
   if (!process.env.DATABASE_URL) {
     console.error("DATABASE_URL is not set. Set it to a read-only PostgreSQL connection string.");
     process.exit(1);
   }
 
+  const opts = parseArgs(process.argv);
   // Reject non-SELECT before connecting (so we can test without a real DB).
   if (opts.cmd === "query" && opts.sql && !isReadOnlySelect(opts.sql)) {
     console.error("Only SELECT queries are allowed. Rejected.");
