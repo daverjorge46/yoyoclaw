@@ -376,6 +376,11 @@ export const sessionsHandlers: GatewayRequestHandlers = {
           continue;
         }
         try {
+          // Append session metadata to the transcript file before archiving
+          if (entry) {
+            const metadataLine = JSON.stringify({ __session_metadata__: entry }) + "\n";
+            fs.appendFileSync(candidate, metadataLine, "utf-8");
+          }
           archived.push(archiveFileOnDisk(candidate, "deleted"));
         } catch {
           // Best-effort.
@@ -577,8 +582,6 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     );
   },
   "sessions.list.deleted": async ({ params, respond }) => {
-    console.log("[sessions.list.deleted] Called with params:", params);
-
     if (!validateSessionsListDeletedParams(params)) {
       respond(
         false,
@@ -593,11 +596,10 @@ export const sessionsHandlers: GatewayRequestHandlers = {
 
     const p = params;
     const cfg = loadConfig();
+
     const agentId = normalizeAgentId(p.agentId ?? resolveDefaultAgentId(cfg));
     const agentDir = resolveAgentDir(cfg, agentId);
     const sessionsDir = path.join(agentDir, "sessions");
-
-    console.log("[sessions.list.deleted] sessionsDir:", sessionsDir);
 
     try {
       if (!fs.existsSync(sessionsDir)) {
@@ -606,10 +608,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       }
 
       const files = fs.readdirSync(sessionsDir);
-      console.log("[sessions.list.deleted] Total files:", files.length);
-
       const deletedFiles = files.filter((f) => f.includes(".jsonl.deleted."));
-      console.log("[sessions.list.deleted] Deleted files found:", deletedFiles.length);
 
       const deleted = deletedFiles
         .map((file) => {
@@ -623,6 +622,26 @@ export const sessionsHandlers: GatewayRequestHandlers = {
           const timestampMatch = file.match(/\.deleted\.(.+)$/);
           const timestamp = timestampMatch ? timestampMatch[1] : null;
 
+          // Try to read metadata from the file
+          let metadata: any = null;
+          try {
+            const content = fs.readFileSync(fullPath, "utf-8");
+            const lines = content.split("\n").filter((line) => line.trim());
+            if (lines.length > 0) {
+              const lastLine = lines[lines.length - 1];
+              try {
+                const parsed = JSON.parse(lastLine);
+                if (parsed.__session_metadata__) {
+                  metadata = parsed.__session_metadata__;
+                }
+              } catch {
+                // Last line isn't valid JSON or doesn't have metadata
+              }
+            }
+          } catch {
+            // File read error, skip this file
+          }
+
           return {
             sessionId,
             file,
@@ -630,15 +649,18 @@ export const sessionsHandlers: GatewayRequestHandlers = {
             size: stat.size,
             deletedAt: timestamp,
             mtime: stat.mtimeMs,
+            metadata,
+            label: metadata?.label,
+            description: metadata?.description,
+            persistent: metadata?.persistent,
           };
         })
-        .filter((item) => item.sessionId != null)
+        .filter((item) => item.sessionId != null && item.metadata != null)
         .toSorted((a, b) => b.mtime - a.mtime);
 
       const limit = p.limit ?? 50;
       const result = deleted.slice(0, limit);
 
-      console.log("[sessions.list.deleted] Returning", result.length, "deleted sessions");
       respond(true, { ok: true, deleted: result }, undefined);
     } catch (err) {
       respond(
@@ -703,25 +725,64 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         return;
       }
 
-      // Restore the transcript file
-      fs.renameSync(deletedPath, restoredPath);
+      // Read the deleted file to extract metadata
+      const fileContent = fs.readFileSync(deletedPath, "utf-8");
+      const lines = fileContent.split("\n").filter((line) => line.trim());
 
-      // Create a minimal session entry in sessions.json
+      // Look for metadata line at the end
+      let metadata: any = null;
+      let transcriptLines = lines;
+
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        try {
+          const parsed = JSON.parse(lastLine);
+          if (parsed.__session_metadata__) {
+            metadata = parsed.__session_metadata__;
+            // Remove metadata line from transcript
+            transcriptLines = lines.slice(0, -1);
+          }
+        } catch {
+          // Last line isn't metadata, that's fine
+        }
+      }
+
+      // Write the transcript file without metadata line
+      fs.writeFileSync(
+        restoredPath,
+        transcriptLines.join("\n") + (transcriptLines.length > 0 ? "\n" : ""),
+        "utf-8",
+      );
+
+      // Delete the old archived file
+      fs.unlinkSync(deletedPath);
+
+      // Restore session entry in sessions.json
       const sessionKey = `agent:${agentId}:${sessionId}`;
       const storePath = path.join(sessionsDir, "sessions.json");
 
       await updateSessionStore(storePath, (store) => {
-        store[sessionKey] = {
-          sessionId,
-          updatedAt: Date.now(),
-          systemSent: false,
-          abortedLastRun: false,
-          sessionFile: restoredPath,
-          inputTokens: 0,
-          outputTokens: 0,
-          totalTokens: 0,
-          contextTokens: 0,
-        };
+        if (metadata) {
+          // Restore full metadata
+          store[sessionKey] = {
+            ...metadata,
+            updatedAt: Date.now(),
+            sessionFile: restoredPath,
+          };
+        } else {
+          // Fallback to minimal entry if no metadata found
+          store[sessionKey] = {
+            sessionId,
+            updatedAt: Date.now(),
+            systemSent: false,
+            abortedLastRun: false,
+            sessionFile: restoredPath,
+            inputTokens: 0,
+            outputTokens: 0,
+            totalTokens: 0,
+            contextTokens: 0,
+          };
+        }
       });
 
       respond(true, { ok: true, key: sessionKey, sessionId, restored: deletedFile }, undefined);

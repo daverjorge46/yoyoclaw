@@ -19,6 +19,9 @@ export type SessionsState = {
     size: number;
     deletedAt: string | null;
     mtime: number;
+    label?: string;
+    description?: string;
+    persistent?: boolean;
   }> | null;
   sessionKey: string;
 };
@@ -118,6 +121,9 @@ export async function loadDeletedSessions(state: SessionsState) {
         size: number;
         deletedAt: string | null;
         mtime: number;
+        label?: string;
+        description?: string;
+        persistent?: boolean;
       }>;
     }>("sessions.list.deleted", { limit: 100 });
     if (res && res.ok) {

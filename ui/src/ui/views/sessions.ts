@@ -19,6 +19,9 @@ export type SessionsProps = {
     size: number;
     deletedAt: string | null;
     mtime: number;
+    label?: string;
+    description?: string;
+    persistent?: boolean;
   }> | null;
   basePath: string;
   onFiltersChange: (next: {
@@ -250,8 +253,8 @@ export function renderSessions(props: SessionsProps) {
                     ? html`
                         <div class="table" style="margin-top: 16px;">
                           <div class="table-head">
+                            <div>Label</div>
                             <div>Session ID</div>
-                            <div>File</div>
                             <div>Size</div>
                             <div>Deleted At</div>
                             <div>Actions</div>
@@ -259,11 +262,35 @@ export function renderSessions(props: SessionsProps) {
                           ${props.deletedSessions.map(
                             (deleted) => html`
                               <div class="table-row">
-                                <div style="font-family: monospace; font-size: 0.9em;">
-                                  ${deleted.sessionId}
+                                <div>
+                                  ${
+                                    deleted.label
+                                      ? html`
+                                          <strong>${deleted.label}</strong>
+                                          ${
+                                            deleted.persistent === true
+                                              ? html`
+                                                  <span class="session-badge" title="Persistent session">📌</span>
+                                                `
+                                              : nothing
+                                          }
+                                          ${
+                                            deleted.description
+                                              ? html`<div
+                                                  style="font-size: 0.85em; color: var(--muted); margin-top: 2px;"
+                                                >
+                                                  ${deleted.description}
+                                                </div>`
+                                              : nothing
+                                          }
+                                        `
+                                      : html`
+                                          <span style="color: var(--muted); font-style: italic">(unnamed)</span>
+                                        `
+                                  }
                                 </div>
-                                <div style="font-size: 0.85em; color: var(--muted);">
-                                  ${deleted.file}
+                                <div style="font-family: monospace; font-size: 0.85em; color: var(--muted);">
+                                  ${deleted.sessionId.substring(0, 8)}...
                                 </div>
                                 <div>${(deleted.size / 1024).toFixed(1)} KB</div>
                                 <div>
