@@ -24,8 +24,8 @@ vi.mock("../../hooks/internal-hooks.js", async () => {
 });
 
 vi.mock("../../../hooks/internal-hooks.js", async () => {
-  const actual = await vi.importActual<typeof import("../../hooks/internal-hooks.js")>(
-    "../../hooks/internal-hooks.js",
+  const actual = await vi.importActual<typeof import("../../../hooks/internal-hooks.js")>(
+    "../../../hooks/internal-hooks.js",
   );
   return {
     ...actual,
