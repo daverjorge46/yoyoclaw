@@ -221,6 +221,7 @@ export class OpenClawApp extends LitElement {
   @state() agentSkillsAgentId: string | null = null;
 
   @state() sessionsLoading = false;
+  @state() sessionsDeletedLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
   @state() sessionsError: string | null = null;
   @state() sessionsFilterActive = "";

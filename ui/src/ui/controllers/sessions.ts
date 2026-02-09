@@ -6,6 +6,7 @@ export type SessionsState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
   sessionsLoading: boolean;
+  sessionsDeletedLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
   sessionsFilterActive: string;
@@ -102,10 +103,10 @@ export async function loadDeletedSessions(state: SessionsState) {
   if (!state.client || !state.connected) {
     return;
   }
-  if (state.sessionsLoading) {
+  if (state.sessionsDeletedLoading) {
     return;
   }
-  state.sessionsLoading = true;
+  state.sessionsDeletedLoading = true;
   state.sessionsError = null;
   try {
     const res = await state.client.request<{
@@ -118,7 +119,7 @@ export async function loadDeletedSessions(state: SessionsState) {
   } catch (err) {
     state.sessionsError = String(err);
   } finally {
-    state.sessionsLoading = false;
+    state.sessionsDeletedLoading = false;
     state.requestUpdate?.();
   }
 }

@@ -144,6 +144,7 @@ export type AppViewState = {
   agentSkillsReport: SkillStatusReport | null;
   agentSkillsAgentId: string | null;
   sessionsLoading: boolean;
+  sessionsDeletedLoading: boolean;
   sessionsResult: SessionsListResult | null;
   sessionsError: string | null;
   sessionsFilterActive: string;
