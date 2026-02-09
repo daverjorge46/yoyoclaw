@@ -188,7 +188,9 @@ export const channelsHandlers: GatewayRequestHandlers = {
       return { accounts, defaultAccountId, defaultAccount, resolvedAccounts };
     };
 
-    const channelLabels = Object.fromEntries(plugins.map((plugin) => [plugin.id, plugin.meta.label]));
+    const channelLabels = Object.fromEntries(
+      plugins.map((plugin) => [plugin.id, plugin.meta.label]),
+    );
     const channelDetailLabels = Object.fromEntries(
       plugins.map((plugin) => [
         plugin.id,

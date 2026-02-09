@@ -460,11 +460,7 @@ export function attachGatewayWsMessageHandler(params: {
             if (!ok) return;
           } else {
             const allowedRoles = new Set(
-              Array.isArray(paired.roles)
-                ? paired.roles
-                : paired.role
-                  ? [paired.role]
-                  : [],
+              Array.isArray(paired.roles) ? paired.roles : paired.role ? [paired.role] : [],
             );
             if (allowedRoles.size === 0) {
               const ok = await requirePairing("role-upgrade", paired);

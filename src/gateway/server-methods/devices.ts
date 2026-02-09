@@ -19,7 +19,9 @@ import {
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
-function redactPairedDevice(device: { tokens?: Record<string, DeviceAuthToken> } & Record<string, unknown>) {
+function redactPairedDevice(
+  device: { tokens?: Record<string, DeviceAuthToken> } & Record<string, unknown>,
+) {
   const { tokens, ...rest } = device;
   return {
     ...rest,
@@ -79,7 +81,7 @@ export const deviceHandlers: GatewayRequestHandlers = {
         deviceId: approved.device.deviceId,
         decision: "approved",
         ts: Date.now(),
-        },
+      },
       { dropIfSlow: true },
     );
     respond(true, { requestId, device: redactPairedDevice(approved.device) }, undefined);
