@@ -577,6 +577,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     );
   },
   "sessions.list.deleted": async ({ params, respond }) => {
+    console.log("[sessions.list.deleted] Called with params:", params);
+
     if (!validateSessionsListDeletedParams(params)) {
       respond(
         false,
@@ -595,6 +597,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     const agentDir = resolveAgentDir(cfg, agentId);
     const sessionsDir = path.join(agentDir, "sessions");
 
+    console.log("[sessions.list.deleted] sessionsDir:", sessionsDir);
+
     try {
       if (!fs.existsSync(sessionsDir)) {
         respond(true, { ok: true, deleted: [] }, undefined);
@@ -602,7 +606,10 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       }
 
       const files = fs.readdirSync(sessionsDir);
+      console.log("[sessions.list.deleted] Total files:", files.length);
+
       const deletedFiles = files.filter((f) => f.includes(".jsonl.deleted."));
+      console.log("[sessions.list.deleted] Deleted files found:", deletedFiles.length);
 
       const deleted = deletedFiles
         .map((file) => {
@@ -631,6 +638,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       const limit = p.limit ?? 50;
       const result = deleted.slice(0, limit);
 
+      console.log("[sessions.list.deleted] Returning", result.length, "deleted sessions");
       respond(true, { ok: true, deleted: result }, undefined);
     } catch (err) {
       respond(
