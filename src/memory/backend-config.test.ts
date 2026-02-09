@@ -29,7 +29,7 @@ describe("resolveMemoryBackendConfig", () => {
     expect(resolved.qmd?.update.waitForBootSync).toBe(false);
     expect(resolved.qmd?.update.commandTimeoutMs).toBe(30_000);
     expect(resolved.qmd?.update.updateTimeoutMs).toBe(120_000);
-    expect(resolved.qmd?.update.embedTimeoutMs).toBe(120_000);
+    expect(resolved.qmd?.update.embedTimeoutMs).toBe(600_000);
   });
 
   it("parses quoted qmd command paths", () => {
