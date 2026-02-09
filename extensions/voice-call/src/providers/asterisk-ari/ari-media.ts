@@ -191,6 +191,7 @@ export class AriMedia {
     return new Promise((resolve, reject) => {
       const onError = (err: unknown) => {
         udp.off("listening", onListening);
+        udp.off("error", onError);
         reject(err);
       };
       const onListening = () => {
