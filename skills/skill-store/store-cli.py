@@ -41,14 +41,18 @@ INSTALL_PREFIX = "store."
 def find_config_path():
     """Find the openclaw config file.
     
-    Priority: OPENCLAW_CONFIG_PATH env var > ~/.openclaw-dev > ~/.openclaw
+    Priority: OPENCLAW_CONFIG_PATH env var > ~/.openclaw (production) > ~/.openclaw-dev
+    
+    The official production path (~/.openclaw) takes precedence over the dev
+    environment (~/.openclaw-dev) to prevent accidental installs to the wrong
+    managed skills directory.
     """
     env_path = os.environ.get("OPENCLAW_CONFIG_PATH")
     if env_path and os.path.isfile(env_path):
         return env_path
     candidates = [
-        os.path.expanduser("~/.openclaw-dev/openclaw.json"),
         os.path.expanduser("~/.openclaw/openclaw.json"),
+        os.path.expanduser("~/.openclaw-dev/openclaw.json"),
     ]
     for p in candidates:
         if os.path.isfile(p):
@@ -102,20 +106,22 @@ def load_config():
 def resolve_paths():
     """Resolve standard paths.
     
-    Uses dirname of OPENCLAW_CONFIG_PATH if set, otherwise ~/.openclaw-dev or ~/.openclaw.
+    Uses dirname of OPENCLAW_CONFIG_PATH if set, otherwise ~/.openclaw (production)
+    then ~/.openclaw-dev. This mirrors find_config_path() priority so installs
+    always target the same config directory that the CLI reads from.
     """
     config_dir = None
     env_path = os.environ.get("OPENCLAW_CONFIG_PATH")
     if env_path and os.path.isfile(env_path):
         config_dir = os.path.dirname(env_path)
     else:
-        for d in ["~/.openclaw-dev", "~/.openclaw"]:
+        for d in ["~/.openclaw", "~/.openclaw-dev"]:
             expanded = os.path.expanduser(d)
             if os.path.isdir(expanded):
                 config_dir = expanded
                 break
     if not config_dir:
-        config_dir = os.path.expanduser("~/.openclaw-dev")
+        config_dir = os.path.expanduser("~/.openclaw")
 
     return {
         "manifest_cache": os.path.join(config_dir, "security", "skill-guard", "manifest-cache.json"),
