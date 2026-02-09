@@ -26,16 +26,6 @@ export function resolveHeartbeatVisibility(params: {
 }): ResolvedHeartbeatVisibility {
   const { cfg, channel, accountId } = params;
 
-  // Webchat uses channel defaults only (no per-channel or per-account config)
-  if (channel === "webchat") {
-    const channelDefaults = cfg.channels?.defaults?.heartbeat;
-    return {
-      showOk: channelDefaults?.showOk ?? DEFAULT_VISIBILITY.showOk,
-      showAlerts: channelDefaults?.showAlerts ?? DEFAULT_VISIBILITY.showAlerts,
-      useIndicator: channelDefaults?.useIndicator ?? DEFAULT_VISIBILITY.useIndicator,
-    };
-  }
-
   // Layer 1: Global channel defaults
   const channelDefaults = cfg.channels?.defaults?.heartbeat;
 
@@ -52,6 +42,8 @@ export function resolveHeartbeatVisibility(params: {
   const accountCfg = accountId ? channelCfg?.accounts?.[accountId] : undefined;
   const perAccount = accountCfg?.heartbeat;
 
+  // Webchat supports per-channel config via cfg.channels.webchat.heartbeat,
+  // but if missing it should strictly fallback to channels.defaults.heartbeat.
   // Precedence: per-account > per-channel > channel-defaults > global defaults
   return {
     showOk:

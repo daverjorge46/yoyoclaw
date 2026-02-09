@@ -259,7 +259,11 @@ export const chatHandlers: GatewayRequestHandlers = {
 
     const deliveryContext = deliveryContextFromSession(entry);
     const rawChannel = deliveryContext?.channel ?? entry?.channel ?? entry?.lastChannel;
-    const resolvedChannel = resolveGatewayMessageChannel(rawChannel) ?? INTERNAL_MESSAGE_CHANNEL;
+    let resolvedChannel = resolveGatewayMessageChannel(rawChannel);
+    if (!resolvedChannel && isWebchatClient(context.client)) {
+      resolvedChannel = "webchat";
+    }
+    resolvedChannel ??= INTERNAL_MESSAGE_CHANNEL;
     const sessionAccountId = deliveryContext?.accountId ?? entry?.lastAccountId;
 
     let thinkingLevel = entry?.thinkingLevel;
