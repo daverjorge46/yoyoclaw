@@ -153,16 +153,14 @@ export const configHandlers: GatewayRequestHandlers = {
       let current: unknown = schema.schema;
       const parts = scope.split(".");
       for (const part of parts) {
-        const c = current as Record<string, unknown>;
+        const schemaObj = current as { properties?: Record<string, unknown> };
+        const props = schemaObj.properties;
         if (
-          c &&
-          typeof c === "object" &&
-          "properties" in c &&
-          c.properties &&
-          typeof c.properties === "object" &&
-          part in (c.properties as Record<string, unknown>)
+          props &&
+          typeof props === "object" &&
+          Object.prototype.hasOwnProperty.call(props, part)
         ) {
-          current = (c.properties as Record<string, unknown>)[part];
+          current = props[part];
         } else {
           respond(
             false,
