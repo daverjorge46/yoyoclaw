@@ -354,33 +354,32 @@ export function applyContextPruningDefaults(cfg: OpenClawConfig): OpenClawConfig
     return cfg;
   }
 
-  const authMode = resolveAnthropicDefaultAuthMode(cfg);
-  if (!authMode) {
-    return cfg;
-  }
-
   let mutated = false;
   const nextDefaults = { ...defaults };
   const contextPruning = defaults.contextPruning ?? {};
   const heartbeat = defaults.heartbeat ?? {};
 
+  // Default to cache-ttl for ALL users (Senge's performance fix)
   if (defaults.contextPruning?.mode === undefined) {
     nextDefaults.contextPruning = {
       ...contextPruning,
       mode: "cache-ttl",
-      ttl: defaults.contextPruning?.ttl ?? "1h",
+      ttl: defaults.contextPruning?.ttl ?? "5m", // Aggressive 5m TTL
+      softTrimRatio: 0.3,
     };
     mutated = true;
   }
 
+  // Optimize heartbeat for prompt caching (55m is sweet spot for 1h TTL)
   if (defaults.heartbeat?.every === undefined) {
     nextDefaults.heartbeat = {
       ...heartbeat,
-      every: authMode === "oauth" ? "1h" : "30m",
+      every: "55m",
     };
     mutated = true;
   }
 
+  const authMode = resolveAnthropicDefaultAuthMode(cfg);
   if (authMode === "api_key") {
     const nextModels = defaults.models ? { ...defaults.models } : {};
     let modelsMutated = false;
@@ -445,7 +444,26 @@ export function applyCompactionDefaults(cfg: OpenClawConfig): OpenClawConfig {
     return cfg;
   }
   const compaction = defaults?.compaction;
-  if (compaction?.mode) {
+  
+  let mutated = false;
+  const nextCompaction = compaction ? { ...compaction } : {};
+
+  if (!nextCompaction.mode) {
+    nextCompaction.mode = "safeguard";
+    mutated = true;
+  }
+
+  // Force memory flush by default (Senge's persistence fix)
+  if (nextCompaction.memoryFlush?.enabled === undefined) {
+    nextCompaction.memoryFlush = {
+      ...nextCompaction.memoryFlush,
+      enabled: true,
+      softThresholdTokens: 4000
+    };
+    mutated = true;
+  }
+
+  if (!mutated) {
     return cfg;
   }
 
@@ -455,10 +473,7 @@ export function applyCompactionDefaults(cfg: OpenClawConfig): OpenClawConfig {
       ...cfg.agents,
       defaults: {
         ...defaults,
-        compaction: {
-          ...compaction,
-          mode: "safeguard",
-        },
+        compaction: nextCompaction,
       },
     },
   };
