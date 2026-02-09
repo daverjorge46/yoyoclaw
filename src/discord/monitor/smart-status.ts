@@ -6,8 +6,8 @@ import { runCommandWithTimeout } from "../../process/exec.js";
 const log = createSubsystemLogger("discord/smart-status");
 
 const DEFAULT_INTERVAL_MS = 15000;
-const DEFAULT_HAIKU_TIMEOUT_MS = 5000;
-const DEFAULT_MODEL = "haiku";
+const DEFAULT_STATUS_TIMEOUT_MS = 8000;
+const DEFAULT_MODEL = "sonnet";
 const MAX_TEXT_TAIL = 500;
 const MAX_THINKING_TAIL = 300;
 
@@ -76,7 +76,7 @@ function buildContextSummary(ctx: AccumulatedContext): string {
   return parts.join("\n");
 }
 
-async function askHaikuForStatus(params: {
+async function askModelForStatus(params: {
   userMessage: string;
   contextSummary: string;
   model: string;
@@ -141,7 +141,7 @@ export function createSmartStatus(params: {
 } {
   const intervalMs = params.config?.intervalMs ?? DEFAULT_INTERVAL_MS;
   const model = params.config?.model ?? DEFAULT_MODEL;
-  const timeoutMs = params.config?.timeoutMs ?? DEFAULT_HAIKU_TIMEOUT_MS;
+  const timeoutMs = params.config?.timeoutMs ?? DEFAULT_STATUS_TIMEOUT_MS;
 
   const ctx: AccumulatedContext = {
     tools: new Map(),
@@ -171,7 +171,7 @@ export function createSmartStatus(params: {
       if (!summary) {
         return;
       }
-      const status = await askHaikuForStatus({
+      const status = await askModelForStatus({
         userMessage: params.userMessage,
         contextSummary: summary,
         model,
