@@ -317,6 +317,7 @@ The announce message includes a status derived from the runtime outcome (not fro
 
 <Tip>
 If no user-facing announcement is needed, the main-agent summarize step can return `NO_REPLY` and nothing is posted.
+This is different from `ANNOUNCE_SKIP`, which is used in agent-to-agent announce flow (`sessions_send`).
 </Tip>
 
 ## Tool Policy
