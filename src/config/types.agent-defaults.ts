@@ -65,6 +65,8 @@ export type CliBackendConfig = {
   clearEnv?: string[];
   /** Flag used to pass model id (e.g. --model). */
   modelArg?: string;
+  /** Flag used to pass model id when resuming. Empty string skips model arg on resume. Defaults to modelArg. */
+  resumeModelArg?: string;
   /** Model aliases mapping (config model id → CLI model id). */
   modelAliases?: Record<string, string>;
   /** Flag used to pass session id (e.g. --session-id). */

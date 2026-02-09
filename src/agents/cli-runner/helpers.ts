@@ -531,8 +531,11 @@ export function buildCliArgs(params: {
   useResume: boolean;
 }): string[] {
   const args: string[] = [...params.baseArgs];
-  if (params.backend.modelArg && params.modelId) {
-    args.push(params.backend.modelArg, params.modelId);
+  const effectiveModelArg = params.useResume
+    ? (params.backend.resumeModelArg ?? params.backend.modelArg)
+    : params.backend.modelArg;
+  if (effectiveModelArg && params.modelId) {
+    args.push(effectiveModelArg, params.modelId);
   }
   if (!params.useResume && params.systemPrompt && params.backend.systemPromptArg) {
     args.push(params.backend.systemPromptArg, params.systemPrompt);

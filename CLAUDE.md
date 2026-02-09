@@ -929,7 +929,29 @@ Context overflow: prompt too large for the model. Try again with less input or a
 }
 ```
 
-#### 13. USER.md Setup
+#### 13. clearEnv Defeated by exec.ts Re-Merge (Code Fix Required)
+
+**Symptom:** Claude Code CLI reports "Credit balance is too low to access the Anthropic API" even with a valid Max subscription, because it's using the API key instead of its OAuth subscription.
+
+**Root Cause:** `cli-runner.ts` builds a cleaned env via `clearEnv` (deleting `ANTHROPIC_API_KEY`), but `exec.ts:103` re-merges `{ ...process.env, ...env }` which re-injects the cleared keys from `process.env`. The `delete` operator removes the property from the `env` object, so the spread picks the key back up from `process.env`.
+
+**Fix:** In `src/agents/cli-runner.ts`, use `next[key] = undefined` instead of `delete next[key]`. When `exec.ts` spreads `{ ...process.env, ...env }`, `undefined` overrides the real value. Node.js `spawn()` filters out env vars with `undefined` values, so the child process won't see `ANTHROPIC_API_KEY`.
+
+**Why not fix exec.ts?** 7 other callers of `runCommandWithTimeout` pass partial env overrides (e.g., `{ COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" }`) and depend on the `process.env` merge. Changing exec.ts would break them all.
+
+#### 14. Codex CLI Resume Args (Code Fix Required)
+
+**Symptom:** `codex exec resume` fails with `error: unexpected argument '--color' found`.
+
+**Root Cause:** `DEFAULT_CODEX_BACKEND.resumeArgs` in `src/agents/cli-backends.ts` included flags (`--color`, `--sandbox`, `--skip-git-repo-check`) that `codex exec resume` doesn't accept. The resume subcommand only accepts `[SESSION_ID] [PROMPT]` and `-c <key=value>`. Additionally, `buildCliArgs()` always added `--model` which resume also doesn't accept.
+
+**Fix applied in 4 files:**
+- `src/agents/cli-backends.ts` — `resumeArgs` changed to `["exec", "resume", "{sessionId}"]`; added `resumeModelArg: ""` to skip `--model` on resume
+- `src/agents/cli-runner/helpers.ts` — `buildCliArgs()` uses `resumeModelArg` when resuming; empty string skips, undefined falls back to `modelArg`
+- `src/config/types.agent-defaults.ts` — Added `resumeModelArg?: string` to `CliBackendConfig`
+- `src/config/zod-schema.core.ts` — Added `resumeModelArg` to zod schema
+
+#### 15. USER.md Setup
 
 **No issues encountered.** The USER.md file creation worked smoothly using direct file write with heredoc.
 
@@ -964,17 +986,17 @@ Use this checklist to verify complete DJ setup:
   - [ ] `GOG_KEYRING_PASSWORD` set in `~/.bashrc`
   - [ ] `GOG_ACCOUNT` set in `~/.bashrc`
 - [ ] **USER.md**: Profile created at `~/.openclaw/workspace/USER.md`
-- [ ] **Model Configuration**: `anthropic/claude-opus-4-5` (primary) with `codex-cli/gpt-5-codex` (fallback)
+- [ ] **Model Configuration**: `claude-cli/opus` (primary) with `codex-cli/gpt-5-codex` (fallback)
 - [ ] **Gateway Restart**: Restarted with all environment variables
 
-**Working openclaw.json reference (CLI-primary + Telegram):**
+**Working openclaw.json reference (CLI-only + Telegram):**
 ```json
 {
   "agents": {
     "defaults": {
       "model": {
         "primary": "claude-cli/opus",
-        "fallbacks": ["codex-cli/gpt-5-codex", "anthropic/claude-opus-4-5"]
+        "fallbacks": ["codex-cli/gpt-5-codex"]
       },
       "timeoutSeconds": 120,
       "cliBackends": {
@@ -986,11 +1008,12 @@ Use this checklist to verify complete DJ setup:
           "modelArg": "--model",
           "sessionMode": "always",
           "sessionArg": "--session-id",
+          "clearEnv": ["ANTHROPIC_API_KEY"],
           "timeoutMs": 25000
         },
         "codex-cli": {
           "command": "codex",
-          "args": ["exec", "--json", "--color", "never", "--sandbox", "read-only", "--skip-git-repo-check"],
+          "args": ["exec", "--json", "--sandbox", "read-only", "--skip-git-repo-check"],
           "output": "jsonl",
           "input": "arg",
           "modelArg": "--model",
@@ -1019,30 +1042,29 @@ Use this checklist to verify complete DJ setup:
 }
 ```
 
-**CLI-primary model with seamless fallback:**
+**CLI-only model setup (no API fallback):**
 
-The gateway uses CLI backends as primary to save API credits (CLI uses subscriptions, not API tokens). Fallback chain:
+The gateway uses CLI backends exclusively — no Anthropic API credits consumed. Fallback chain:
 1. `claude-cli/opus` — Claude Code subscription (primary, free)
 2. `codex-cli/gpt-5-codex` — Codex/OpenAI subscription (fallback, free)
-3. `anthropic/claude-opus-4-5` — Direct API (last resort, paid)
 
-**Per-backend timeout**: CLI backends have `timeoutMs: 25000` (25s) for fast fallback when `claude -p` hangs due to concurrency. The global `timeoutSeconds: 120` applies to the API fallback, giving complex prompts enough time.
+**Important**: `clearEnv: ["ANTHROPIC_API_KEY"]` is critical for claude-cli. Without it (or with the pre-fix `delete` bug), Claude Code CLI picks up the API key from the environment and uses it instead of its OAuth subscription, leading to billing errors.
+
+**Per-backend timeout**: CLI backends have `timeoutMs: 25000` (25s) for fast fallback when `claude -p` hangs due to concurrency. The global `timeoutSeconds: 120` is the default for any non-CLI fallback.
 
 **How fallback works**: When a CLI backend times out (SIGKILL after 25s), it throws `FailoverError(reason: "timeout")`. The fallback chain in `runWithModelFallback()` catches this and tries the next candidate. Billing errors (402, "credit balance too low") also trigger fallback via `FailoverError(reason: "billing")`.
 
 **Telegram usage:**
 - Default messages use Claude CLI (subscription)
 - If CLI hangs (concurrent interactive session), auto-fallback to Codex within 25s
-- If Codex fails, auto-fallback to Anthropic API
+- If Codex also fails, error is returned (no API fallback)
 - `/model codex` manually switches to Codex
-- `/model opus` manually switches to Claude Opus (API)
-- To switch back to API-primary: change `model.primary` to `anthropic/claude-opus-4-5` in openclaw.json
+- `/model opus` manually switches back to Claude Opus (CLI)
 
 **Gateway startup (WSL2):**
 ```bash
 source ~/.bashrc
 export NOTION_API_KEY="$(cat ~/.openclaw/credentials/notion-api-key.txt)"
-export ANTHROPIC_API_KEY="$(cat ~/.openclaw/credentials/anthropic-api-key.txt)"
 export OPENCLAW_GATEWAY_TOKEN="local-dev-token"
 cd /mnt/d/Dev/Clawdbot/openclaw
 node openclaw.mjs gateway run --port 18789 --verbose

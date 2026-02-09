@@ -207,9 +207,9 @@ export async function runCliAgent(params: {
       }
 
       const env = (() => {
-        const next = { ...process.env, ...backend.env };
+        const next: Record<string, string | undefined> = { ...process.env, ...backend.env };
         for (const key of backend.clearEnv ?? []) {
-          delete next[key];
+          next[key] = undefined;
         }
         return next;
       })();
