@@ -156,9 +156,27 @@ export function armTimer(state: CronServiceState) {
 
 export async function onTimer(state: CronServiceState) {
   if (state.running) {
+    // A previous onTimer is still executing. Re-arm with a safe delay to
+    // prevent both hot-looping (zero-delay on past-due jobs) and permanent
+    // timer death (no re-arm at all). The running onTimer's finally block
+    // will re-arm with the correct delay when it finishes.
+    if (state.deps.cronEnabled) {
+      state.deps.log.debug({}, "cron: onTimer skipped - already running, re-arming with safe delay");
+      if (state.timer) {
+        clearTimeout(state.timer);
+      }
+      state.timer = setTimeout(async () => {
+        try {
+          await onTimer(state);
+        } catch (err) {
+          state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+        }
+      }, MAX_TIMER_DELAY_MS);
+    }
     return;
   }
   state.running = true;
+  state.deps.log.debug({}, "cron: onTimer tick");
   try {
     const dueJobs = await locked(state, async () => {
       await ensureLoaded(state, { forceReload: true, skipRecompute: true });
