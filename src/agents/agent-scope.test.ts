@@ -213,7 +213,7 @@ describe("resolveAgentConfig", () => {
     vi.stubEnv("OPENCLAW_HOME", home);
 
     const workspace = resolveAgentWorkspaceDir({} as OpenClawConfig, "main");
-    expect(workspace).toBe(path.join(home, ".openclaw", "workspace"));
+    expect(workspace).toBe(path.join(path.resolve(home), ".openclaw", "workspace"));
   });
 
   it("uses OPENCLAW_HOME for default agentDir", () => {
@@ -223,6 +223,6 @@ describe("resolveAgentConfig", () => {
     vi.stubEnv("OPENCLAW_STATE_DIR", "");
 
     const agentDir = resolveAgentDir({} as OpenClawConfig, "main");
-    expect(agentDir).toBe(path.join(home, ".openclaw", "agents", "main", "agent"));
+    expect(agentDir).toBe(path.join(path.resolve(home), ".openclaw", "agents", "main", "agent"));
   });
 });

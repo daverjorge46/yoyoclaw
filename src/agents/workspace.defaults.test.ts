@@ -14,6 +14,8 @@ describe("DEFAULT_AGENT_WORKSPACE_DIR", () => {
     vi.resetModules();
 
     const mod = await import("./workspace.js");
-    expect(mod.DEFAULT_AGENT_WORKSPACE_DIR).toBe(path.join(home, ".openclaw", "workspace"));
+    expect(mod.DEFAULT_AGENT_WORKSPACE_DIR).toBe(
+      path.join(path.resolve(home), ".openclaw", "workspace"),
+    );
   });
 });
