@@ -9,7 +9,8 @@ export type PluginHttpRouteHandler = (
   res: ServerResponse,
 ) => Promise<void> | void;
 
-function safeEqual(a: string, b: string): boolean {
+/** @internal Exported for testing only. */
+export function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
   if (bufA.length !== bufB.length) {
