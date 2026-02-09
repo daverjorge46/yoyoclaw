@@ -168,9 +168,9 @@ describe("CronService restart catch-up", () => {
     const enqueueSystemEvent = vi.fn();
     const requestHeartbeatNow = vi.fn();
 
-    // Simulate extended downtime: job was last run Feb 6 20:00 UTC,
-    // nextRunAtMs was persisted as Feb 8 14:00 UTC (incorrectly far future).
-    // Gateway restarts at Feb 7 10:00 UTC.
+    // Simulate extended downtime: job was last run Dec 13 20:00 UTC,
+    // nextRunAtMs was persisted as Dec 16 14:00 UTC (incorrectly far future).
+    // Gateway restarts at Dec 14 10:00 UTC.
     // Cron expression: 0 8,11,14,17,20 * * * (runs at 08:00,11:00,14:00,17:00,20:00 daily)
     vi.setSystemTime(new Date("2025-12-14T10:00:00.000Z")); // restart time
 
