@@ -2,23 +2,83 @@ import { Type } from "@sinclair/typebox";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { CsvQueryFilter } from "../../sessions/files/types.js";
 import type { AnyAgentTool } from "./common.js";
+import { resolveStorePath } from "../../config/sessions/paths.js";
+import { loadSessionStore } from "../../config/sessions/store.js";
+import { buildAgentMainSessionKey, DEFAULT_AGENT_ID } from "../../routing/session-key.js";
 import { queryCsv } from "../../sessions/files/csv-query.js";
 import { searchText } from "../../sessions/files/pdf-search.js";
 import { listFiles, getFile, getParsedCsv } from "../../sessions/files/storage.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { jsonResult, readStringParam, readNumberParam } from "./common.js";
+import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
+
+function resolveSessionIdFromKey(params: {
+  sessionKey?: string;
+  cfg: OpenClawConfig;
+  agentId: string;
+}): string | null {
+  const { sessionKey, cfg, agentId } = params;
+  if (!sessionKey) {
+    return null;
+  }
+
+  const { mainKey, alias } = resolveMainSessionAlias(cfg);
+  const storePath = resolveStorePath(cfg.session?.store, { agentId });
+  const store = loadSessionStore(storePath);
+
+  const internal = resolveInternalSessionKey({
+    key: sessionKey,
+    alias,
+    mainKey,
+  });
+
+  const candidates = new Set<string>([sessionKey, internal]);
+  if (!sessionKey.startsWith("agent:")) {
+    candidates.add(`agent:${DEFAULT_AGENT_ID}:${sessionKey}`);
+    candidates.add(`agent:${DEFAULT_AGENT_ID}:${internal}`);
+  }
+  if (sessionKey === "main") {
+    candidates.add(
+      buildAgentMainSessionKey({
+        agentId: DEFAULT_AGENT_ID,
+        mainKey,
+      }),
+    );
+  }
+
+  for (const key of candidates) {
+    const entry = store[key];
+    if (entry?.sessionId) {
+      return entry.sessionId;
+    }
+  }
+
+  return null;
+}
 
 const SessionFilesListSchema = Type.Object({
-  sessionId: Type.String({ description: "Session ID to list files for" }),
+  sessionId: Type.Optional(
+    Type.String({
+      description: "Session ID to list files for (optional, uses current session if not provided)",
+    }),
+  ),
 });
 
 const SessionFilesGetSchema = Type.Object({
-  sessionId: Type.String({ description: "Session ID to get file from" }),
+  sessionId: Type.Optional(
+    Type.String({
+      description: "Session ID to get file from (optional, uses current session if not provided)",
+    }),
+  ),
   fileId: Type.String({ description: "File ID to retrieve" }),
 });
 
 const SessionFilesQueryCsvSchema = Type.Object({
-  sessionId: Type.String({ description: "Session ID to query CSV from" }),
+  sessionId: Type.Optional(
+    Type.String({
+      description: "Session ID to query CSV from (optional, uses current session if not provided)",
+    }),
+  ),
   fileId: Type.String({ description: "CSV file ID to query" }),
   filterColumn: Type.Optional(Type.String({ description: "Column name to filter on" })),
   filterOperator: Type.Optional(
@@ -41,7 +101,11 @@ const SessionFilesQueryCsvSchema = Type.Object({
 });
 
 const SessionFilesSearchSchema = Type.Object({
-  sessionId: Type.String({ description: "Session ID to search files in" }),
+  sessionId: Type.Optional(
+    Type.String({
+      description: "Session ID to search files in (optional, uses current session if not provided)",
+    }),
+  ),
   fileId: Type.String({ description: "File ID to search" }),
   query: Type.String({ description: "Search query (space-separated tokens)" }),
   maxResults: Type.Optional(Type.Number({ description: "Maximum number of matches to return" })),
@@ -65,7 +129,22 @@ export function createSessionFilesListTool(options: {
     description: "List all files stored for a session",
     parameters: SessionFilesListSchema,
     execute: async (_toolCallId, params) => {
-      const sessionId = readStringParam(params, "sessionId", { required: true });
+      let sessionId = readStringParam(params, "sessionId");
+      if (!sessionId) {
+        sessionId =
+          resolveSessionIdFromKey({
+            sessionKey: options.agentSessionKey,
+            cfg,
+            agentId,
+          }) ?? undefined;
+      }
+      if (!sessionId) {
+        return jsonResult({
+          files: [],
+          error:
+            "sessionId is required. Provide sessionId parameter or ensure agentSessionKey is set.",
+        });
+      }
       try {
         const files = await listFiles({ sessionId, agentId });
         return jsonResult({ files });
@@ -95,7 +174,22 @@ export function createSessionFilesGetTool(options: {
     description: "Get file content and metadata by file ID",
     parameters: SessionFilesGetSchema,
     execute: async (_toolCallId, params) => {
-      const sessionId = readStringParam(params, "sessionId", { required: true });
+      let sessionId = readStringParam(params, "sessionId");
+      if (!sessionId) {
+        sessionId =
+          resolveSessionIdFromKey({
+            sessionKey: options.agentSessionKey,
+            cfg,
+            agentId,
+          }) ?? undefined;
+      }
+      if (!sessionId) {
+        return jsonResult({
+          content: null,
+          error:
+            "sessionId is required. Provide sessionId parameter or ensure agentSessionKey is set.",
+        });
+      }
       const fileId = readStringParam(params, "fileId", { required: true });
       try {
         const { buffer, metadata } = await getFile({ sessionId, agentId, fileId });
@@ -128,7 +222,24 @@ export function createSessionFilesQueryCsvTool(options: {
       "Query CSV files with filters. Supports filtering by column values, limiting results, and selecting specific columns.",
     parameters: SessionFilesQueryCsvSchema,
     execute: async (_toolCallId, params) => {
-      const sessionId = readStringParam(params, "sessionId", { required: true });
+      let sessionId = readStringParam(params, "sessionId");
+      if (!sessionId) {
+        sessionId =
+          resolveSessionIdFromKey({
+            sessionKey: options.agentSessionKey,
+            cfg,
+            agentId,
+          }) ?? undefined;
+      }
+      if (!sessionId) {
+        return jsonResult({
+          rows: [],
+          total: 0,
+          columns: [],
+          error:
+            "sessionId is required. Provide sessionId parameter or ensure agentSessionKey is set.",
+        });
+      }
       const fileId = readStringParam(params, "fileId", { required: true });
       const filterColumn = readStringParam(params, "filterColumn");
       const filterOperator = readStringParam(params, "filterOperator") as
@@ -188,7 +299,22 @@ export function createSessionFilesSearchTool(options: {
       "Search text content in PDF or text files. Returns matching lines with context. Query uses space-separated tokens (all must match).",
     parameters: SessionFilesSearchSchema,
     execute: async (_toolCallId, params) => {
-      const sessionId = readStringParam(params, "sessionId", { required: true });
+      let sessionId = readStringParam(params, "sessionId");
+      if (!sessionId) {
+        sessionId =
+          resolveSessionIdFromKey({
+            sessionKey: options.agentSessionKey,
+            cfg,
+            agentId,
+          }) ?? undefined;
+      }
+      if (!sessionId) {
+        return jsonResult({
+          matches: [],
+          error:
+            "sessionId is required. Provide sessionId parameter or ensure agentSessionKey is set.",
+        });
+      }
       const fileId = readStringParam(params, "fileId", { required: true });
       const query = readStringParam(params, "query", { required: true });
       const maxResults = readNumberParam(params, "maxResults");
