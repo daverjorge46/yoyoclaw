@@ -8,6 +8,7 @@ import type { Task, ImapConfig } from "../types.js";
 import { BaseAgent, type AgentResult } from "./base-agent.js";
 import { startEmailMonitor, type EmailMessage } from "../tools/email.js";
 import { runDailyAnalysis } from "../errors/analysis.js";
+import { runKnowledgeScout } from "../scout/knowledge-scout.js";
 import { ErrorJournal } from "../errors/journal.js";
 
 export interface CronJob {
@@ -111,6 +112,36 @@ export class MonitorAgent extends BaseAgent {
 
     this.cronIntervals.push(interval);
     console.log("[monitor] Daily analysis scheduler started");
+  }
+
+  /**
+   * Start the weekly knowledge scout.
+   * Searches Reddit, HN, etc. for techniques to improve skills/config.
+   */
+  startKnowledgeScout(): void {
+    // Run weekly — check every hour, execute on Sundays at 06:00
+    const interval = setInterval(async () => {
+      const now = new Date();
+      if (now.getDay() === 0 && now.getHours() === 6 && now.getMinutes() === 0) {
+        console.log("[monitor] Running weekly knowledge scout...");
+        try {
+          const report = await runKnowledgeScout({
+            projectRoot: this.deps.projectRoot,
+            analysisModel: this.resolveModel({
+              route: { model: "cloud" },
+            } as Task),
+          });
+          console.log(
+            `[monitor] Scout complete: ${report.insights.length} insights, ${report.proposals.length} proposals`,
+          );
+        } catch (err) {
+          console.error("[monitor] Knowledge scout failed:", err);
+        }
+      }
+    }, 60_000);
+
+    this.cronIntervals.push(interval);
+    console.log("[monitor] Knowledge scout scheduler started (weekly, Sundays 06:00)");
   }
 
   /**

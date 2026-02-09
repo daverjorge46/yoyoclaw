@@ -193,6 +193,7 @@ async function main(): Promise<void> {
   // Start monitor background services
   const monitor = agents.monitor as MonitorAgent;
   monitor.startDailyAnalysis(errorJournal);
+  monitor.startKnowledgeScout();
 
   // Start email monitoring if IMAP is configured
   if (process.env.IMAP_HOST) {
