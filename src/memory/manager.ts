@@ -14,10 +14,10 @@ import type {
   MemorySource,
   MemorySyncProgressUpdate,
 } from "./types.js";
-import { isVerbose, logVerbose } from "../globals.js";
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
+import { isVerbose, logVerbose } from "../globals.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
 import { resolveUserPath } from "../utils.js";
@@ -2330,14 +2330,17 @@ export class MemoryIndexManager implements MemorySearchManager {
       const avgLinesPerChunk = chunks.length > 0 ? Math.round(totalLines / chunks.length) : 0;
 
       const maxChars = Math.max(32, this.settings.chunking.tokens * 4);
-      const maxLinesConfig = this.settings.chunking.maxLines
-        ? `, maxLines=${this.settings.chunking.maxLines}`
-        : "";
+      const maxLinesConfig =
+        typeof this.settings.chunking.maxLines === "number"
+          ? `, maxLines=${this.settings.chunking.maxLines}`
+          : "";
       logVerbose(`📄 ${entry.path}`);
       logVerbose(
         `   Chunks: ${chunks.length} from ${totalLines} lines (~${avgLinesPerChunk} lines/chunk)`,
       );
-      logVerbose(`   Size: ${totalBytes} bytes (avg=${avgChunkSize}, min=${minChunkSize}, max=${maxChunkSize})`);
+      logVerbose(
+        `   Size: ${totalBytes} bytes (avg=${avgChunkSize}, min=${minChunkSize}, max=${maxChunkSize})`,
+      );
       logVerbose(
         `   Config: maxChars=${maxChars} (tokens=${this.settings.chunking.tokens}${maxLinesConfig})`,
       );

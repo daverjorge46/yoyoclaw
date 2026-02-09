@@ -267,7 +267,11 @@ function mergeConfig(
     model,
     local,
     store,
-    chunking: { tokens: Math.max(1, chunking.tokens), overlap },
+    chunking: {
+      tokens: Math.max(1, chunking.tokens),
+      overlap,
+      maxLines: chunking.maxLines,
+    },
     sync: {
       ...sync,
       sessions: {
