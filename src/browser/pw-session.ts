@@ -503,9 +503,11 @@ export function refLocator(page: Page, ref: string) {
 export async function closePlaywrightBrowserConnection(): Promise<void> {
   const cur = cached;
   cached = null;
+  connecting = null;
   if (!cur) {
     return;
   }
+  cur.browser.removeAllListeners("disconnected");
   await cur.browser.close().catch(() => {});
 }
 
@@ -540,7 +542,13 @@ export async function forceDisconnectPlaywrightForTarget(opts: {
   }
   const cur = cached;
   cached = null;
+  // Also clear `connecting` so the next call does a fresh connectOverCDP
+  // rather than awaiting a stale promise.
+  connecting = null;
   if (cur) {
+    // Remove the "disconnected" listener to prevent the old browser's teardown
+    // from racing with a fresh connection and nulling the new `cached`.
+    cur.browser.removeAllListeners("disconnected");
     // Fire-and-forget: don't await because browser.close() may hang on the stuck CDP pipe.
     // The new connection (created by the next connectBrowser call) is independent.
     cur.browser.close().catch(() => {});
