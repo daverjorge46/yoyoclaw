@@ -1,0 +1,9 @@
+{
+  "id": "kimi-portal-auth",
+  "providers": ["kimi-portal"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

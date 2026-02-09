@@ -1,0 +1,14 @@
+{
+  "name": "@openclaw/kimi-portal-auth",
+  "version": "2026.2.9-1",
+  "description": "OpenClaw Kimi Portal OAuth provider plugin",
+  "type": "module",
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
