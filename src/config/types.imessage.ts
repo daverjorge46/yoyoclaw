@@ -59,6 +59,8 @@ export type IMessageAccountConfig = {
   /** Chunking mode: "length" (default) splits by size; "newline" splits on every newline. */
   chunkMode?: "length" | "newline";
   blockStreaming?: boolean;
+  /** Show tool usage feedback (e.g. "📖 Read: file.txt") as block replies. */
+  toolFeedback?: boolean;
   /** Merge streamed block replies before sending. */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   groups?: Record<

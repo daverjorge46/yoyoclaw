@@ -303,6 +303,7 @@ export const dispatchTelegramMessage = async ({
     replyOptions: {
       skillFilter,
       disableBlockStreaming,
+      toolFeedback: true,
       onPartialReply: draftStream ? (payload) => updateDraftFromPartial(payload.text) : undefined,
       onModelSelected,
     },

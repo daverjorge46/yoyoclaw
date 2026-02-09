@@ -642,6 +642,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
       cfg,
       dispatcher,
       replyOptions: {
+        toolFeedback: true,
         disableBlockStreaming:
           typeof accountInfo.config.blockStreaming === "boolean"
             ? !accountInfo.config.blockStreaming

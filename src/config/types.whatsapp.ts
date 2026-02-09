@@ -69,6 +69,8 @@ export type WhatsAppConfig = {
   mediaMaxMb?: number;
   /** Disable block streaming for this account. */
   blockStreaming?: boolean;
+  /** Show tool usage feedback (e.g. "📖 Read: file.txt") as block replies. */
+  toolFeedback?: boolean;
   /** Merge streamed block replies before sending. */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   /** Per-action tool gating (default: true for all). */
@@ -139,6 +141,8 @@ export type WhatsAppAccountConfig = {
   chunkMode?: "length" | "newline";
   mediaMaxMb?: number;
   blockStreaming?: boolean;
+  /** Show tool usage feedback (e.g. "📖 Read: file.txt") as block replies. */
+  toolFeedback?: boolean;
   /** Merge streamed block replies before sending. */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   groups?: Record<

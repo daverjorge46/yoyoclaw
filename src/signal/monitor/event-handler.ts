@@ -226,6 +226,7 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
       dispatcher,
       replyOptions: {
         ...replyOptions,
+        toolFeedback: true,
         disableBlockStreaming:
           typeof deps.blockStreaming === "boolean" ? !deps.blockStreaming : undefined,
         onModelSelected,

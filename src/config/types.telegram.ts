@@ -92,6 +92,8 @@ export type TelegramAccountConfig = {
   chunkMode?: "length" | "newline";
   /** Disable block streaming for this account. */
   blockStreaming?: boolean;
+  /** Show tool usage feedback (e.g. "📖 Read: file.txt") as block replies. */
+  toolFeedback?: boolean;
   /** Chunking config for draft streaming in `streamMode: "block"`. */
   draftChunk?: BlockStreamingChunkConfig;
   /** Merge streamed block replies before sending. */
