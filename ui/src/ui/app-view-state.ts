@@ -22,9 +22,11 @@ import type {
   LogLevel,
   NostrProfile,
   PresenceEntry,
+  JobsListResult,
   SessionsListResult,
   SkillStatusReport,
   StatusSummary,
+  TrackedJob,
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
@@ -131,6 +133,19 @@ export type AppViewState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+  jobsLoading: boolean;
+  jobsError: string | null;
+  jobsList: JobsListResult | null;
+  jobsSelectedRunId: string | null;
+  jobsSelectedJob: TrackedJob | null;
+  jobsFilterStatus: string;
+  jobsFilterChannel: string;
+  jobsHideHeartbeats: boolean;
+  handleJobsLoad: () => Promise<void>;
+  handleJobSelect: (runId: string | null) => void;
+  handleJobsFilterStatusChange: (status: string) => void;
+  handleJobsFilterChannelChange: (channel: string) => void;
+  handleJobsHideHeartbeatsChange: (hide: boolean) => void;
   cronLoading: boolean;
   cronJobs: CronJob[];
   cronStatus: CronStatus | null;

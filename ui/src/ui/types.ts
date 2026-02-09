@@ -553,3 +553,38 @@ export type LogEntry = {
   message?: string | null;
   meta?: Record<string, unknown> | null;
 };
+
+export type JobStatus = "running" | "completed" | "failed" | "aborted";
+
+export type JobToolCall = {
+  toolCallId: string;
+  name: string;
+  startedAt: number;
+  endedAt?: number;
+  isError?: boolean;
+};
+
+export type TrackedJob = {
+  runId: string;
+  status: JobStatus;
+  sessionKey?: string;
+  channel?: string;
+  agentId?: string;
+  lane?: string;
+  isHeartbeat?: boolean;
+  startedAt: number;
+  endedAt?: number;
+  durationMs?: number;
+  toolCalls: JobToolCall[];
+  activeToolCount: number;
+  textPreview: string;
+  thinkingPreview: string;
+  error?: string;
+};
+
+export type JobsListResult = {
+  ts: number;
+  jobs: TrackedJob[];
+  total: number;
+  activeCount: number;
+};

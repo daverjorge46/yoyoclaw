@@ -63,6 +63,7 @@ import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderInstances } from "./views/instances.ts";
+import { renderJobs } from "./views/jobs.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
@@ -325,6 +326,26 @@ export function renderApp(state: AppViewState) {
                 onRefresh: () => loadSessions(state),
                 onPatch: (key, patch) => patchSession(state, key, patch),
                 onDelete: (key) => deleteSession(state, key),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "jobs"
+            ? renderJobs({
+                loading: state.jobsLoading,
+                error: state.jobsError,
+                result: state.jobsList,
+                selectedRunId: state.jobsSelectedRunId,
+                selectedJob: state.jobsSelectedJob,
+                filterStatus: state.jobsFilterStatus,
+                filterChannel: state.jobsFilterChannel,
+                hideHeartbeats: state.jobsHideHeartbeats,
+                onRefresh: () => state.handleJobsLoad(),
+                onFilterStatusChange: (status) => state.handleJobsFilterStatusChange(status),
+                onFilterChannelChange: (channel) => state.handleJobsFilterChannelChange(channel),
+                onHideHeartbeatsChange: (hide) => state.handleJobsHideHeartbeatsChange(hide),
+                onSelectJob: (runId) => state.handleJobSelect(runId),
               })
             : nothing
         }

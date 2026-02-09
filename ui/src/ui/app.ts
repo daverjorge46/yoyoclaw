@@ -226,6 +226,15 @@ export class OpenClawApp extends LitElement {
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;
 
+  @state() jobsLoading = false;
+  @state() jobsError: string | null = null;
+  @state() jobsList: import("./types.ts").JobsListResult | null = null;
+  @state() jobsSelectedRunId: string | null = null;
+  @state() jobsSelectedJob: import("./types.ts").TrackedJob | null = null;
+  @state() jobsFilterStatus = "";
+  @state() jobsFilterChannel = "";
+  @state() jobsHideHeartbeats = true;
+
   @state() cronLoading = false;
   @state() cronJobs: CronJob[] = [];
   @state() cronStatus: CronStatus | null = null;
@@ -371,6 +380,38 @@ export class OpenClawApp extends LitElement {
 
   async loadCron() {
     await loadCronInternal(this as unknown as Parameters<typeof loadCronInternal>[0]);
+  }
+
+  async handleJobsLoad() {
+    const { loadJobs } = await import("./controllers/jobs.ts");
+    await loadJobs(this as unknown as import("./controllers/jobs.ts").JobsHost);
+  }
+
+  handleJobSelect(runId: string | null) {
+    if (!runId) {
+      this.jobsSelectedRunId = null;
+      this.jobsSelectedJob = null;
+      return;
+    }
+    this.jobsSelectedRunId = runId;
+    import("./controllers/jobs.ts").then(({ loadJobDetail }) =>
+      loadJobDetail(this as unknown as import("./controllers/jobs.ts").JobsHost, runId),
+    );
+  }
+
+  handleJobsFilterStatusChange(status: string) {
+    this.jobsFilterStatus = status;
+    void this.handleJobsLoad();
+  }
+
+  handleJobsFilterChannelChange(channel: string) {
+    this.jobsFilterChannel = channel;
+    void this.handleJobsLoad();
+  }
+
+  handleJobsHideHeartbeatsChange(hide: boolean) {
+    this.jobsHideHeartbeats = hide;
+    void this.handleJobsLoad();
   }
 
   async handleAbortChat() {

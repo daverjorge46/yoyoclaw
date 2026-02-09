@@ -24,6 +24,7 @@ import {
   parseExecApprovalResolved,
   removeExecApproval,
 } from "./controllers/exec-approval.ts";
+import { handleJobsEvent, type JobsHost } from "./controllers/jobs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
@@ -224,6 +225,14 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
       host.presenceError = null;
       host.presenceStatus = null;
     }
+    return;
+  }
+
+  if (evt.event === "jobs" && host.tab === "jobs") {
+    handleJobsEvent(
+      host as unknown as JobsHost,
+      evt.payload as Record<string, unknown> | undefined,
+    );
     return;
   }
 
