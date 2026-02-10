@@ -133,6 +133,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locs = locations
         Task { @MainActor in
+            // Resolve the one-shot continuation first (if any).
             if let cont = self.locationContinuation {
                 self.locationContinuation = nil
                 if let latest = locs.last {
@@ -140,9 +141,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
                 } else {
                     cont.resume(throwing: Error.unavailable)
                 }
-                return
+                // Don't return — also forward to significant-change callback below
+                // so both consumers receive updates when both are active.
             }
-            // Significant location change update — forward to callback.
             if let callback = self.significantLocationCallback, let latest = locs.last {
                 callback(latest)
             }

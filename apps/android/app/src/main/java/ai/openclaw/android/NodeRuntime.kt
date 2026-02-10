@@ -25,6 +25,7 @@ import ai.openclaw.android.node.LocationCaptureManager
 import ai.openclaw.android.BuildConfig
 import ai.openclaw.android.node.CanvasController
 import ai.openclaw.android.node.ScreenRecordManager
+import ai.openclaw.android.node.SignificantLocationMonitor
 import ai.openclaw.android.node.SmsManager
 import ai.openclaw.android.protocol.OpenClawCapability
 import ai.openclaw.android.protocol.OpenClawCameraCommand
@@ -598,23 +599,19 @@ class NodeRuntime(context: Context) {
       )
   }
 
+  private val significantLocationMonitor by lazy {
+    SignificantLocationMonitor(
+      scope = scope,
+      location = location,
+      locationMode = locationMode,
+      hasFineLocationPermission = ::hasFineLocationPermission,
+      hasCoarseLocationPermission = ::hasCoarseLocationPermission,
+      sendNodeEvent = { event, payloadJson -> nodeSession.sendNodeEvent(event, payloadJson) },
+    )
+  }
+
   private fun startSignificantLocationMonitoring() {
-    if (locationMode.value == LocationMode.Off) return
-    if (!hasFineLocationPermission() && !hasCoarseLocationPermission()) return
-    location.startMonitoringSignificantChanges { lat, lon, accuracyMeters ->
-      scope.launch {
-        nodeSession.sendNodeEvent(
-          event = "location.update",
-          payloadJson =
-            buildJsonObject {
-              put("lat", JsonPrimitive(lat))
-              put("lon", JsonPrimitive(lon))
-              put("accuracyMeters", JsonPrimitive(accuracyMeters.toDouble()))
-              put("source", JsonPrimitive("android-significant-location"))
-            }.toString(),
-        )
-      }
-    }
+    significantLocationMonitor.start()
   }
 
   fun connectManual() {
