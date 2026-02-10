@@ -32,8 +32,10 @@ installGatewayTestHooks({ scope: "suite" });
 let server: Awaited<ReturnType<typeof startServerWithClient>>["server"];
 let ws: WebSocket;
 let port: number;
+const previousCustomUpdateScript = process.env.OPENCLAW_UPDATE_RUN_SCRIPT;
 
 beforeAll(async () => {
+  delete process.env.OPENCLAW_UPDATE_RUN_SCRIPT;
   const started = await startServerWithClient();
   server = started.server;
   ws = started.ws;
@@ -42,6 +44,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  if (previousCustomUpdateScript === undefined) {
+    delete process.env.OPENCLAW_UPDATE_RUN_SCRIPT;
+  } else {
+    process.env.OPENCLAW_UPDATE_RUN_SCRIPT = previousCustomUpdateScript;
+  }
   ws.close();
   await server.close();
 });
@@ -223,6 +230,61 @@ describe("gateway update.run", () => {
       expect(res.ok).toBe(true);
       expect(updateMock.mock.calls[0]?.[0]?.channel).toBe("beta");
     } finally {
+      process.off("SIGUSR1", sigusr1);
+    }
+  });
+
+  test("uses OPENCLAW_UPDATE_RUN_SCRIPT when configured", async () => {
+    const sigusr1 = vi.fn();
+    process.on("SIGUSR1", sigusr1);
+
+    const customScriptDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-custom-update-"));
+    const customScriptPath = path.join(customScriptDir, "update.sh");
+
+    try {
+      await fs.writeFile(
+        customScriptPath,
+        '#!/usr/bin/env bash\necho "custom update runner"\nexit 0\n',
+        { encoding: "utf-8", mode: 0o755 },
+      );
+      process.env.OPENCLAW_UPDATE_RUN_SCRIPT = customScriptPath;
+
+      await writeConfigFile({ update: { channel: "beta" } });
+      const updateMock = vi.mocked(runGatewayUpdate);
+      updateMock.mockClear();
+
+      const id = "req-update-custom-script";
+      ws.send(
+        JSON.stringify({
+          type: "req",
+          id,
+          method: "update.run",
+          params: {
+            restartDelayMs: 0,
+          },
+        }),
+      );
+      const res = await onceMessage<{
+        ok: boolean;
+        payload?: {
+          result?: {
+            status?: string;
+            steps?: Array<{ command?: string }>;
+          };
+        };
+      }>(ws, (o) => o.type === "res" && o.id === id);
+      expect(res.ok).toBe(true);
+      expect(res.payload?.result?.status).toBe("ok");
+      expect(updateMock).not.toHaveBeenCalled();
+      const firstCommand = res.payload?.result?.steps?.[0]?.command ?? "";
+      expect(firstCommand).toContain(customScriptPath);
+      expect(firstCommand).toContain("--channel beta");
+
+      await waitForSignal(() => sigusr1.mock.calls.length > 0);
+      expect(sigusr1).toHaveBeenCalled();
+    } finally {
+      delete process.env.OPENCLAW_UPDATE_RUN_SCRIPT;
+      await fs.rm(customScriptDir, { recursive: true, force: true });
       process.off("SIGUSR1", sigusr1);
     }
   });

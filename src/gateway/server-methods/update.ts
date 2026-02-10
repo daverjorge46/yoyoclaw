@@ -1,3 +1,5 @@
+import { constants as fsConstants } from "node:fs";
+import fs from "node:fs/promises";
 import type { GatewayRequestHandlers } from "./types.js";
 import { loadConfig } from "../../config/config.js";
 import { resolveOpenClawPackageRoot } from "../../infra/openclaw-root.js";
@@ -8,13 +10,87 @@ import {
 } from "../../infra/restart-sentinel.js";
 import { scheduleGatewaySigusr1Restart } from "../../infra/restart.js";
 import { normalizeUpdateChannel } from "../../infra/update-channels.js";
-import { runGatewayUpdate } from "../../infra/update-runner.js";
+import { runGatewayUpdate, type UpdateRunResult } from "../../infra/update-runner.js";
+import { runCommandWithTimeout } from "../../process/exec.js";
 import {
   ErrorCodes,
   errorShape,
   formatValidationErrors,
   validateUpdateRunParams,
 } from "../protocol/index.js";
+
+const CUSTOM_UPDATE_SCRIPT_ENV = "OPENCLAW_UPDATE_RUN_SCRIPT";
+const DEFAULT_UPDATE_TIMEOUT_MS = 20 * 60_000;
+const MAX_LOG_CHARS = 8000;
+
+function trimLogTail(text: string, maxChars = MAX_LOG_CHARS): string {
+  if (text.length <= maxChars) {
+    return text;
+  }
+  return text.slice(text.length - maxChars);
+}
+
+function resolveCustomUpdateScriptPath(): string | null {
+  const raw = process.env[CUSTOM_UPDATE_SCRIPT_ENV];
+  if (typeof raw !== "string") {
+    return null;
+  }
+  const trimmed = raw.trim();
+  return trimmed ? trimmed : null;
+}
+
+async function runCustomUpdateScript(params: {
+  scriptPath: string;
+  timeoutMs?: number;
+  cwd: string;
+  channel?: "stable" | "beta" | "dev";
+}): Promise<UpdateRunResult> {
+  const startedAt = Date.now();
+  const timeoutMs = params.timeoutMs ?? DEFAULT_UPDATE_TIMEOUT_MS;
+  const commandArgv = [params.scriptPath, "--yes"];
+  if (params.channel) {
+    commandArgv.push("--channel", params.channel);
+  }
+
+  let result:
+    | { stdout: string; stderr: string; code: number | null }
+    | { stdout: string; stderr: string; code: null };
+  try {
+    const out = await runCommandWithTimeout(commandArgv, {
+      cwd: params.cwd,
+      timeoutMs,
+      env: {
+        OPENCLAW_UPDATE_IN_PROGRESS: "1",
+      },
+    });
+    result = {
+      stdout: out.stdout,
+      stderr: out.stderr,
+      code: out.code,
+    };
+  } catch (err) {
+    result = { stdout: "", stderr: String(err), code: null };
+  }
+
+  const step = {
+    name: "custom update script",
+    command: commandArgv.join(" "),
+    cwd: params.cwd,
+    durationMs: Date.now() - startedAt,
+    exitCode: result.code,
+    stdoutTail: trimLogTail(result.stdout, MAX_LOG_CHARS),
+    stderrTail: trimLogTail(result.stderr, MAX_LOG_CHARS),
+  };
+
+  return {
+    status: result.code === 0 ? "ok" : "error",
+    mode: "unknown",
+    root: params.cwd,
+    reason: result.code === 0 ? undefined : "custom-script-failed",
+    steps: [step],
+    durationMs: Date.now() - startedAt,
+  };
+}
 
 export const updateHandlers: GatewayRequestHandlers = {
   "update.run": async ({ params, respond }) => {
@@ -58,12 +134,43 @@ export const updateHandlers: GatewayRequestHandlers = {
           argv1: process.argv[1],
           cwd: process.cwd(),
         })) ?? process.cwd();
-      result = await runGatewayUpdate({
-        timeoutMs,
-        cwd: root,
-        argv1: process.argv[1],
-        channel: configChannel ?? undefined,
-      });
+      const customScriptPath = resolveCustomUpdateScriptPath();
+      if (customScriptPath) {
+        try {
+          await fs.access(customScriptPath, fsConstants.X_OK);
+          result = await runCustomUpdateScript({
+            scriptPath: customScriptPath,
+            timeoutMs,
+            cwd: root,
+            channel: configChannel ?? undefined,
+          });
+        } catch {
+          result = {
+            status: "error",
+            mode: "unknown",
+            root,
+            reason: `custom-script-not-executable:${customScriptPath}`,
+            steps: [
+              {
+                name: "custom update script",
+                command: customScriptPath,
+                cwd: root,
+                durationMs: 0,
+                exitCode: 1,
+                stderrTail: `configured ${CUSTOM_UPDATE_SCRIPT_ENV} is not executable`,
+              },
+            ],
+            durationMs: 0,
+          };
+        }
+      } else {
+        result = await runGatewayUpdate({
+          timeoutMs,
+          cwd: root,
+          argv1: process.argv[1],
+          channel: configChannel ?? undefined,
+        });
+      }
     } catch (err) {
       result = {
         status: "error",
