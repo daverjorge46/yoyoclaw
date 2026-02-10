@@ -4,6 +4,7 @@ export type SessionFileMetadata = {
   id: string;
   filename: string;
   type: SessionFileType;
+  storageFormat: "markdown"; // Format penyimpanan (always markdown)
   uploadedAt: number; // timestamp
   size: number; // bytes
   expiresAt: number; // timestamp (uploadedAt + retentionDays)
