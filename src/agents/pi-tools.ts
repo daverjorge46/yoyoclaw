@@ -24,7 +24,11 @@ import { listChannelAgentTools } from "./channel-tools.js";
 import { createOpenClawTools } from "./openclaw-tools.js";
 import { wrapToolWithAbortSignal } from "./pi-tools.abort.js";
 import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
-import { wrapToolWithPromptInjectionMonitor } from "./pi-tools.prompt-injection-monitor.js";
+import {
+  createDisablePiMonitorTool,
+  createMonitorState,
+  wrapToolWithPromptInjectionMonitor,
+} from "./pi-tools.prompt-injection-monitor.js";
 import {
   filterToolsByPolicy,
   isToolAllowedByPolicies,
@@ -312,6 +316,7 @@ export function createOpenClawCodingTools(options?: {
           cwd: sandboxRoot ?? workspaceRoot,
           sandboxRoot: sandboxRoot && allowWorkspaceWrites ? sandboxRoot : undefined,
         });
+  const monitorState = createMonitorState();
   const tools: AnyAgentTool[] = [
     ...base,
     ...(sandboxRoot
@@ -322,6 +327,7 @@ export function createOpenClawCodingTools(options?: {
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
     execTool as unknown as AnyAgentTool,
     processTool as unknown as AnyAgentTool,
+    createDisablePiMonitorTool(monitorState),
     // Channel docking: include channel-defined agent tools (login, etc.).
     ...listChannelAgentTools({ cfg: options?.config }),
     ...createOpenClawTools({
@@ -443,7 +449,7 @@ export function createOpenClawCodingTools(options?: {
       sessionKey: options?.sessionKey,
     }),
   );
-  const withMonitor = withHooks.map((tool) => wrapToolWithPromptInjectionMonitor(tool));
+  const withMonitor = withHooks.map((tool) => wrapToolWithPromptInjectionMonitor(tool, monitorState));
   const withAbort = options?.abortSignal
     ? withMonitor.map((tool) => wrapToolWithAbortSignal(tool, options.abortSignal))
     : withMonitor;

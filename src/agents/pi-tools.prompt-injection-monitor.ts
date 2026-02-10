@@ -1,4 +1,5 @@
 import { appendFileSync } from 'node:fs';
+import { Type } from '@sinclair/typebox';
 import { createSubsystemLogger } from '../logging/subsystem.js';
 import { extractToolResultText } from './pi-embedded-subscribe.tools.js';
 import type { AnyAgentTool } from './pi-tools.types.js';
@@ -7,6 +8,7 @@ import {
   PROMPT_INJECTION_THRESHOLD,
   scoreForPromptInjection,
 } from './prompt-injection-monitor.js';
+import { jsonResult } from './tools/common.js';
 
 const log = createSubsystemLogger('agents/prompt-injection-monitor');
 
@@ -23,7 +25,13 @@ function debugLog(msg: string) {
   }
 }
 
-export function wrapToolWithPromptInjectionMonitor(tool: AnyAgentTool): AnyAgentTool {
+export type MonitorState = { skipNext: boolean };
+
+export function createMonitorState(): MonitorState {
+  return { skipNext: false };
+}
+
+export function wrapToolWithPromptInjectionMonitor(tool: AnyAgentTool, state: MonitorState): AnyAgentTool {
   if (!process.env.OPENAI_API_KEY) {
     debugLog(`SKIP wrapping tool "${tool.name}" — OPENAI_API_KEY not set`);
     return tool;
@@ -40,6 +48,13 @@ export function wrapToolWithPromptInjectionMonitor(tool: AnyAgentTool): AnyAgent
     execute: async (toolCallId, params, signal, onUpdate) => {
       debugLog(`EXECUTE tool="${toolName}" toolCallId=${toolCallId}`);
       const result = await execute(toolCallId, params, signal, onUpdate);
+
+      if (state.skipNext) {
+        state.skipNext = false;
+        debugLog(`SKIP monitoring tool="${toolName}" — disabled by disable_pi_monitor`);
+        return result;
+      }
+
       const text = extractToolResultText(result);
       if (!text || text.length < MIN_TEXT_LENGTH) {
         debugLog(`SKIP scoring tool="${toolName}" — text too short (${text?.length ?? 0} chars)`);
@@ -65,6 +80,21 @@ export function wrapToolWithPromptInjectionMonitor(tool: AnyAgentTool): AnyAgent
         debugLog(`ERROR tool="${toolName}" err=${String(err)} — REDACTING (fail closed)`);
         return createRedactedToolResult(toolName, -1) as typeof result;
       }
+    },
+  };
+}
+
+export function createDisablePiMonitorTool(state: MonitorState): AnyAgentTool {
+  return {
+    name: 'disable_pi_monitor',
+    label: 'Disable PI Monitor',
+    description:
+      'Disables prompt injection monitoring for the next tool call only. Use when the user has reviewed a redacted result and confirmed it is safe. The bypass is consumed after one tool execution.',
+    parameters: Type.Object({}),
+    execute: async () => {
+      state.skipNext = true;
+      debugLog('disable_pi_monitor called — skipNext set to true');
+      return jsonResult({ ok: true, message: 'Prompt injection monitoring disabled for the next tool call.' });
     },
   };
 }
