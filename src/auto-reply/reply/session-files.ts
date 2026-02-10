@@ -64,6 +64,7 @@ export async function persistSessionFiles(params: {
   agentId?: string;
   agentSessionKey?: string;
   cfg: OpenClawConfig;
+  filesDir?: string; // For testing
 }): Promise<void> {
   const { ctx, sessionId, agentId: providedAgentId, agentSessionKey, cfg } = params;
   const agentId =
@@ -117,6 +118,7 @@ export async function persistSessionFiles(params: {
         filename,
         type: fileType,
         buffer,
+        filesDir: params.filesDir,
       });
 
       if (shouldLogVerbose()) {
