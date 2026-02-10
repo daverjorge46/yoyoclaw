@@ -104,8 +104,12 @@ export const agentsHealthHandlers: GatewayRequestHandlers = {
       for (const [key, entry] of Object.entries(sessionStore)) {
         const parsed = parseAgentSessionKey(key);
         const aid = parsed?.agentId ?? "main";
-        if (!sessionsByAgent.has(aid)) sessionsByAgent.set(aid, []);
-        sessionsByAgent.get(aid)!.push(entry as SessionEntry);
+        const existing = sessionsByAgent.get(aid);
+        if (existing) {
+          existing.push(entry);
+        } else {
+          sessionsByAgent.set(aid, [entry]);
+        }
       }
 
       // Load cron jobs
@@ -114,8 +118,12 @@ export const agentsHealthHandlers: GatewayRequestHandlers = {
       const cronByAgent = new Map<string, typeof cronJobs>();
       for (const job of cronJobs) {
         const aid = ((job as Record<string, unknown>).agentId as string) ?? "main";
-        if (!cronByAgent.has(aid)) cronByAgent.set(aid, []);
-        cronByAgent.get(aid)!.push(job);
+        const existing = cronByAgent.get(aid);
+        if (existing) {
+          existing.push(job);
+        } else {
+          cronByAgent.set(aid, [job]);
+        }
       }
 
       // Build per-agent health
