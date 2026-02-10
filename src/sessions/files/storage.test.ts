@@ -34,6 +34,50 @@ describe("file storage", () => {
     expect(content).toContain("test content");
   });
 
+  it("saves file with storageFormat markdown", async () => {
+    const buffer = Buffer.from("test,data\n1,2");
+    const fileId = await saveFile({
+      sessionId,
+      agentId,
+      filename: "test.csv",
+      type: "csv",
+      buffer,
+      filesDir: testDir,
+    });
+
+    const files = await listFiles({ sessionId, agentId, filesDir: testDir });
+    expect(files).toHaveLength(1);
+    expect(files[0].storageFormat).toBe("markdown");
+    expect(files[0].type).toBe("csv"); // type should still be original content type
+  });
+
+  it("sets storageFormat markdown for all file types", async () => {
+    const testCases = [
+      { type: "csv" as const, content: "a,b\n1,2" },
+      { type: "json" as const, content: '{"key":"value"}' },
+      { type: "text" as const, content: "plain text" },
+    ];
+
+    for (const testCase of testCases) {
+      const buffer = Buffer.from(testCase.content);
+      await saveFile({
+        sessionId,
+        agentId,
+        filename: `test.${testCase.type}`,
+        type: testCase.type,
+        buffer,
+        filesDir: testDir,
+      });
+    }
+
+    const files = await listFiles({ sessionId, agentId, filesDir: testDir });
+    expect(files.length).toBeGreaterThanOrEqual(testCases.length);
+
+    for (const file of files) {
+      expect(file.storageFormat).toBe("markdown");
+    }
+  });
+
   it("saves CSV and parses it", async () => {
     const csv = "name,sales\nProduct A,1000";
     const buffer = Buffer.from(csv);
