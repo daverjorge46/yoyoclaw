@@ -271,10 +271,13 @@ export const agentHandlers: GatewayRequestHandlers = {
         // Use explicit delivery context from request if provided (cron/subagent announce),
         // otherwise fall back to session's stored delivery context
         deliveryContext: explicitDeliveryContext ?? deliveryFields.deliveryContext,
-        lastChannel: explicitDeliveryContext?.channel ?? deliveryFields.lastChannel ?? entry?.lastChannel,
+        lastChannel:
+          explicitDeliveryContext?.channel ?? deliveryFields.lastChannel ?? entry?.lastChannel,
         lastTo: explicitDeliveryContext?.to ?? deliveryFields.lastTo ?? entry?.lastTo,
         lastAccountId:
-          explicitDeliveryContext?.accountId ?? deliveryFields.lastAccountId ?? entry?.lastAccountId,
+          explicitDeliveryContext?.accountId ??
+          deliveryFields.lastAccountId ??
+          entry?.lastAccountId,
         lastThreadId:
           explicitDeliveryContext?.threadId ?? deliveryFields.lastThreadId ?? entry?.lastThreadId,
         modelOverride: entry?.modelOverride,
