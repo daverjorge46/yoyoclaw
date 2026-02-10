@@ -250,6 +250,7 @@ export function startGatewayConfigReloader(opts: {
   readSnapshot: () => Promise<ConfigFileSnapshot>;
   onHotReload: (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => Promise<void>;
   onRestart: (plan: GatewayReloadPlan, nextConfig: OpenClawConfig) => void;
+  isRestartRecentlyScheduled?: () => boolean;
   log: {
     info: (msg: string) => void;
     warn: (msg: string) => void;
@@ -314,6 +315,10 @@ export function startGatewayConfigReloader(opts: {
       }
       if (settings.mode === "restart") {
         if (!restartQueued) {
+          if (opts.isRestartRecentlyScheduled?.()) {
+            opts.log.info("config reload skipped (restart already scheduled)");
+            return;
+          }
           restartQueued = true;
           opts.onRestart(plan, nextConfig);
         }
@@ -329,6 +334,10 @@ export function startGatewayConfigReloader(opts: {
           return;
         }
         if (!restartQueued) {
+          if (opts.isRestartRecentlyScheduled?.()) {
+            opts.log.info("config reload skipped (restart already scheduled)");
+            return;
+          }
           restartQueued = true;
           opts.onRestart(plan, nextConfig);
         }
