@@ -4,7 +4,10 @@
  * Checks: volume spikes (>2σ), IV jumps, put/call ratio extremes
  */
 
-const FINNHUB_KEY = process.env.FINNHUB_KEY || "d59m7jhr01qgqlm152p0d59m7jhr01qgqlm152pg";
+const FINNHUB_KEY = process.env.FINNHUB_KEY;
+if (!FINNHUB_KEY) {
+  throw new Error("FINNHUB_KEY environment variable is required");
+}
 const TICKERS = (process.env.TICKERS || "AAPL,MSFT,NVDA,TSLA,NBIS").split(",");
 
 async function fetchJSON(url) {

@@ -8,7 +8,10 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 
-const FINNHUB_KEY = process.env.FINNHUB_KEY || "d59m7jhr01qgqlm152p0d59m7jhr01qgqlm152pg";
+const FINNHUB_KEY = process.env.FINNHUB_KEY;
+if (!FINNHUB_KEY) {
+  throw new Error("FINNHUB_KEY environment variable is required");
+}
 const DATA_DIR = process.env.DATA_DIR || join(process.env.HOME, ".openclaw/data");
 const PORTFOLIO_PATH = join(DATA_DIR, "portfolio.json");
 
