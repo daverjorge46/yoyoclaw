@@ -1,5 +1,14 @@
+networks:
+  openclaw-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
 services:
   openclaw-gateway:
+    networks:
+      - openclaw-net
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,6 +42,8 @@ services:
       ["node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789"]
 
   openclaw-cli:
+    networks:
+      - openclaw-net
     build: . # Changed from 'image' to ensure it uses your optimized Dockerfile
     environment:
       HOME: /home/node
@@ -56,6 +67,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.sandbox-browser
+    networks:
+      openclaw-net:
+        ipv4_address: 172.20.0.10
     environment:
       OPENCLAW_BROWSER_HEADLESS: "1" # Enable headless mode
       OPENCLAW_BROWSER_CDP_PORT: "9222"
