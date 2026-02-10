@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { toClientToolDefinitions } from "./pi-tool-definition-adapter.js";
-import {
-  wrapToolWithBeforeToolCallHook,
-  wrapToolWithHooks,
-} from "./pi-tools.before-tool-call.js";
+import { wrapToolWithBeforeToolCallHook, wrapToolWithHooks } from "./pi-tools.before-tool-call.js";
 
 vi.mock("../plugins/hook-runner-global.js");
 
@@ -271,9 +268,9 @@ describe("after_tool_call hook integration", () => {
     // oxlint-disable-next-line typescript/no-explicit-any
     const tool = wrapToolWithHooks({ name: "exec", execute } as any);
 
-    await expect(
-      tool.execute("call-6", { cmd: "bad" }, undefined, undefined),
-    ).rejects.toThrow("tool failed");
+    await expect(tool.execute("call-6", { cmd: "bad" }, undefined, undefined)).rejects.toThrow(
+      "tool failed",
+    );
 
     // Give the void promise a tick to resolve
     await new Promise((r) => setTimeout(r, 10));
@@ -294,9 +291,11 @@ describe("after_tool_call hook integration", () => {
     hookRunner.hasHooks.mockReturnValue(true);
     hookRunner.runBeforeToolCall.mockResolvedValue(undefined);
     hookRunner.runAfterToolCall.mockResolvedValue(undefined);
-    const execute = vi.fn().mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({ content: [] }), 50)),
-    );
+    const execute = vi
+      .fn()
+      .mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({ content: [] }), 50)),
+      );
     // oxlint-disable-next-line typescript/no-explicit-any
     const tool = wrapToolWithHooks({ name: "exec", execute } as any);
 
