@@ -40,6 +40,7 @@ import { getQueueSize } from "../process/command-queue.js";
 import { CommandLane } from "../process/lanes.js";
 import { normalizeAgentId, toAgentStoreSessionKey } from "../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
+import { sleep } from "../utils.js";
 import { formatErrorMessage } from "./errors.js";
 import { emitHeartbeatEvent, resolveIndicatorType } from "./heartbeat-events.js";
 import { resolveHeartbeatVisibility } from "./heartbeat-visibility.js";
@@ -547,8 +548,27 @@ export async function runHeartbeatOnce(opts: {
 
   const { entry, sessionKey, storePath } = resolveHeartbeatSession(cfg, agentId, heartbeat);
   const sessionId = entry?.sessionId;
-  if (sessionId && isEmbeddedPiRunActive(sessionId)) {
-    return { status: "skipped", reason: "session-busy" };
+  if (sessionId) {
+    const maxRetries = 5;
+    const retryDelayMs = 2 * 60 * 1000;
+    let attempt = 0;
+    while (isEmbeddedPiRunActive(sessionId)) {
+      if (attempt >= maxRetries) {
+        log.info("heartbeat: session busy after deferrals; skipping", {
+          sessionId,
+          attempts: attempt,
+        });
+        return { status: "skipped", reason: "session-busy" };
+      }
+      attempt += 1;
+      log.info("heartbeat: session busy; deferring heartbeat", {
+        sessionId,
+        attempt,
+        maxRetries,
+        delayMs: retryDelayMs,
+      });
+      await sleep(retryDelayMs);
+    }
   }
   const previousUpdatedAt = entry?.updatedAt;
   const delivery = resolveHeartbeatDeliveryTarget({ cfg, entry, heartbeat });
