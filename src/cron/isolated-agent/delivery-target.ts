@@ -82,6 +82,7 @@ export async function resolveDeliveryTarget(
     : useOrigin && origin?.to
       ? origin.to
       : undefined;
+  const allowMismatchedLastTo = requestedChannel === "last";
 
   const sessionCfg = cfg.session;
   const mainSessionKey = resolveAgentMainSessionKey({ cfg, agentId });
@@ -93,7 +94,7 @@ export async function resolveDeliveryTarget(
     entry: main,
     requestedChannel,
     explicitTo,
-    allowMismatchedLastTo: true,
+    allowMismatchedLastTo,
   });
 
   let fallbackChannel: Exclude<OutboundChannel, "none"> | undefined;
@@ -117,7 +118,7 @@ export async function resolveDeliveryTarget(
         requestedChannel,
         explicitTo,
         fallbackChannel,
-        allowMismatchedLastTo: true,
+        allowMismatchedLastTo,
         mode: preliminary.mode,
       })
     : preliminary;
@@ -128,12 +129,17 @@ export async function resolveDeliveryTarget(
   const accountId = useOrigin && origin?.accountId ? origin.accountId : resolved.accountId;
   const threadId = useOrigin && origin?.threadId != null ? origin.threadId : resolved.threadId;
 
+  // Only carry threadId when delivering to the same recipient as the session's
+  // last conversation. This prevents stale thread IDs (e.g. from a Telegram
+  // supergroup topic) from being sent to a different target (e.g. a private
+  // chat) where they would cause API errors.
+
   if (!toCandidate) {
     return {
       channel,
       to: undefined,
       accountId: resolved.accountId,
-      threadId: resolved.threadId,
+      threadId,
       mode,
     };
   }
@@ -149,7 +155,7 @@ export async function resolveDeliveryTarget(
     channel,
     to: docked.ok ? docked.to : undefined,
     accountId: resolved.accountId,
-    threadId: resolved.threadId,
+    threadId,
     mode,
     error: docked.ok ? undefined : docked.error,
   };

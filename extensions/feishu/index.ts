@@ -1,8 +1,48 @@
-import type { OpenClawPluginApi } from "../../src/plugin-sdk/index.js";
-import { emptyPluginConfigSchema } from "../../src/plugin-sdk/index.js";
-
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
+import { registerFeishuBitableTools } from "./src/bitable.js";
 import { feishuPlugin } from "./src/channel.js";
-import { createFeishuTools } from "../../src/feishu/tools/index.js";
+import { registerFeishuDocTools } from "./src/docx.js";
+import { registerFeishuDriveTools } from "./src/drive.js";
+import { registerFeishuPermTools } from "./src/perm.js";
+import { setFeishuRuntime } from "./src/runtime.js";
+import { registerFeishuWikiTools } from "./src/wiki.js";
+
+export { monitorFeishuProvider } from "./src/monitor.js";
+export {
+  sendMessageFeishu,
+  sendCardFeishu,
+  updateCardFeishu,
+  editMessageFeishu,
+  getMessageFeishu,
+} from "./src/send.js";
+export {
+  uploadImageFeishu,
+  uploadFileFeishu,
+  sendImageFeishu,
+  sendFileFeishu,
+  sendMediaFeishu,
+} from "./src/media.js";
+export { probeFeishu } from "./src/probe.js";
+export {
+  addReactionFeishu,
+  removeReactionFeishu,
+  listReactionsFeishu,
+  FeishuEmoji,
+} from "./src/reactions.js";
+export {
+  extractMentionTargets,
+  extractMessageBody,
+  isMentionForwardRequest,
+  formatMentionForText,
+  formatMentionForCard,
+  formatMentionAllForText,
+  formatMentionAllForCard,
+  buildMentionedMessage,
+  buildMentionedCardContent,
+  type MentionTarget,
+} from "./src/mention.js";
+export { feishuPlugin } from "./src/channel.js";
 
 const plugin = {
   id: "feishu",
@@ -10,18 +50,13 @@ const plugin = {
   description: "Feishu/Lark channel plugin",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
-    // Register the channel
+    setFeishuRuntime(api.runtime);
     api.registerChannel({ plugin: feishuPlugin });
-
-    // Register Feishu document/wiki/drive/perm tools
-    // Tools are conditionally created based on config (tools.doc, tools.wiki, etc.)
-    const tools = createFeishuTools(api.config);
-    for (const tool of tools) {
-      api.registerTool(tool, { name: tool.name });
-    }
-    if (tools.length > 0) {
-      api.logger.info(`Registered ${tools.length} Feishu tools: ${tools.map((t) => t.name).join(", ")}`);
-    }
+    registerFeishuDocTools(api);
+    registerFeishuWikiTools(api);
+    registerFeishuDriveTools(api);
+    registerFeishuPermTools(api);
+    registerFeishuBitableTools(api);
   },
 };
 
