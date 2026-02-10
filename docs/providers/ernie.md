@@ -214,6 +214,7 @@ If you see "No API key found for provider ernie":
    ```
 
 3. Check auth profiles:
+
    ```bash
    cat ~/.openclaw/auth-profiles.json
    ```
