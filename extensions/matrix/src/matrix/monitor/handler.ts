@@ -515,6 +515,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
       const groupSystemPrompt = roomConfig?.systemPrompt?.trim() || undefined;
       const ctxPayload = core.channel.reply.finalizeInboundContext({
         Body: body,
+        BodyForAgent: bodyText,
         RawBody: bodyText,
         CommandBody: bodyText,
         From: isDirectMessage ? `matrix:${senderId}` : `matrix:channel:${roomId}`,
