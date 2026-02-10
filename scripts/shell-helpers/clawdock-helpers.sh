@@ -48,6 +48,29 @@ CLAWDOCK_COMMON_PATHS=(
   "${HOME}/src/openclaw"
 )
 
+_clawdock_filter_warnings() {
+  grep -v "^WARN\|^time="
+}
+
+_clawdock_trim_quotes() {
+  local value="$1"
+  value="${value#\"}"
+  value="${value%\"}"
+  printf "%s" "$value"
+}
+
+_clawdock_read_config_dir() {
+  if [[ ! -f "$CLAWDOCK_CONFIG" ]]; then
+    return 1
+  fi
+  local raw
+  raw=$(sed -n 's/^CLAWDOCK_DIR=//p' "$CLAWDOCK_CONFIG" | head -n 1)
+  if [[ -z "$raw" ]]; then
+    return 1
+  fi
+  _clawdock_trim_quotes "$raw"
+}
+
 # Ensure CLAWDOCK_DIR is set and valid
 _clawdock_ensure_dir() {
   # Already set and valid?
@@ -56,11 +79,11 @@ _clawdock_ensure_dir() {
   fi
 
   # Try loading from config
-  if [[ -f "$CLAWDOCK_CONFIG" ]]; then
-    source "$CLAWDOCK_CONFIG"
-    if [[ -n "$CLAWDOCK_DIR" && -f "${CLAWDOCK_DIR}/docker-compose.yml" ]]; then
-      return 0
-    fi
+  local config_dir
+  config_dir=$(_clawdock_read_config_dir)
+  if [[ -n "$config_dir" && -f "${config_dir}/docker-compose.yml" ]]; then
+    CLAWDOCK_DIR="$config_dir"
+    return 0
   fi
 
   # Auto-detect from common paths
@@ -114,6 +137,19 @@ _clawdock_ensure_dir() {
 _clawdock_compose() {
   _clawdock_ensure_dir || return 1
   command docker compose -f "${CLAWDOCK_DIR}/docker-compose.yml" "$@"
+}
+
+_clawdock_read_env_token() {
+  _clawdock_ensure_dir || return 1
+  if [[ ! -f "${CLAWDOCK_DIR}/.env" ]]; then
+    return 1
+  fi
+  local raw
+  raw=$(sed -n 's/^OPENCLAW_GATEWAY_TOKEN=//p' "${CLAWDOCK_DIR}/.env" | head -n 1)
+  if [[ -z "$raw" ]]; then
+    return 1
+  fi
+  _clawdock_trim_quotes "$raw"
 }
 
 # Basic Operations
@@ -177,14 +213,20 @@ clawdock-clean() {
 # Health check
 clawdock-health() {
   _clawdock_ensure_dir || return 1
-  _clawdock_compose exec openclaw-gateway \
-    node dist/index.js health --token "$(grep OPENCLAW_GATEWAY_TOKEN ${CLAWDOCK_DIR}/.env | cut -d'=' -f2)"
+  local token
+  token=$(_clawdock_read_env_token)
+  if [[ -z "$token" ]]; then
+    echo "❌ Error: Could not find gateway token"
+    echo "   Check: ${CLAWDOCK_DIR}/.env"
+    return 1
+  fi
+  _clawdock_compose exec -e "OPENCLAW_GATEWAY_TOKEN=$token" openclaw-gateway \
+    node dist/index.js health
 }
 
 # Show gateway token
 clawdock-token() {
-  _clawdock_ensure_dir || return 1
-  grep OPENCLAW_GATEWAY_TOKEN "${CLAWDOCK_DIR}/.env" | cut -d'=' -f2
+  _clawdock_read_env_token
 }
 
 # Fix token configuration (run this once after setup)
@@ -192,7 +234,8 @@ clawdock-fix-token() {
   _clawdock_ensure_dir || return 1
 
   echo "🔧 Configuring gateway token..."
-  local token=$(clawdock-token)
+  local token
+  token=$(clawdock-token)
   if [[ -z "$token" ]]; then
     echo "❌ Error: Could not find gateway token"
     echo "   Check: ${CLAWDOCK_DIR}/.env"
@@ -202,11 +245,12 @@ clawdock-fix-token() {
   echo "📝 Setting token: ${token:0:20}..."
 
   _clawdock_compose exec -e "TOKEN=$token" openclaw-gateway \
-    bash -c './openclaw.mjs config set gateway.remote.token "$TOKEN" && ./openclaw.mjs config set gateway.auth.token "$TOKEN"' 2>&1 | grep -v "^WARN\|^time="
+    bash -c './openclaw.mjs config set gateway.remote.token "$TOKEN" && ./openclaw.mjs config set gateway.auth.token "$TOKEN"' 2>&1 | _clawdock_filter_warnings
 
   echo "🔍 Verifying token was saved..."
-  local saved_token=$(_clawdock_compose exec openclaw-gateway \
-    bash -c "./openclaw.mjs config get gateway.remote.token 2>/dev/null" 2>&1 | grep -v "^WARN\|^time=" | tr -d '\r\n' | head -c 64)
+  local saved_token
+  saved_token=$(_clawdock_compose exec openclaw-gateway \
+    bash -c "./openclaw.mjs config get gateway.remote.token 2>/dev/null" 2>&1 | _clawdock_filter_warnings | tr -d '\r\n' | head -c 64)
 
   if [[ "$saved_token" == "$token" ]]; then
     echo "✅ Token saved correctly!"
@@ -217,7 +261,7 @@ clawdock-fix-token() {
   fi
 
   echo "🔄 Restarting gateway..."
-  _clawdock_compose restart openclaw-gateway 2>&1 | grep -v "^WARN\|^time="
+  _clawdock_compose restart openclaw-gateway 2>&1 | _clawdock_filter_warnings
 
   echo "⏳ Waiting for gateway to start..."
   sleep 5
@@ -231,7 +275,15 @@ clawdock-dashboard() {
   _clawdock_ensure_dir || return 1
 
   echo "🦞 Getting dashboard URL..."
-  local url=$(_clawdock_compose run --rm openclaw-cli dashboard --no-open 2>&1 | grep -v "^WARN\|^time=" | grep -o 'http[s]\?://[^[:space:]]*')
+  local output status url
+  output=$(_clawdock_compose run --rm openclaw-cli dashboard --no-open 2>&1)
+  status=$?
+  url=$(printf "%s\n" "$output" | _clawdock_filter_warnings | grep -o 'http[s]\?://[^[:space:]]*' | head -n 1)
+  if [[ $status -ne 0 ]]; then
+    echo "❌ Failed to get dashboard URL"
+    echo -e "   Try restarting: $(_cmd clawdock-restart)"
+    return 1
+  fi
 
   if [[ -n "$url" ]]; then
     echo "✅ Opening: $url"
@@ -252,11 +304,11 @@ clawdock-devices() {
   _clawdock_ensure_dir || return 1
 
   echo "🔍 Checking device pairings..."
-  _clawdock_compose exec openclaw-gateway \
-    node dist/index.js devices list 2>&1 | grep -v "^WARN\|^time="
-
-  local exit_code=${PIPESTATUS[0]}
-  if [ $exit_code -ne 0 ]; then
+  local output status
+  output=$(_clawdock_compose exec openclaw-gateway node dist/index.js devices list 2>&1)
+  status=$?
+  printf "%s\n" "$output" | _clawdock_filter_warnings
+  if [ $status -ne 0 ]; then
     echo ""
     echo -e "${_CLR_CYAN}💡 If you see token errors above:${_CLR_RESET}"
     echo -e "   1. Verify token is set: $(_cmd clawdock-token)"
@@ -290,7 +342,7 @@ clawdock-approve() {
 
   echo "✅ Approving device: $1"
   _clawdock_compose exec openclaw-gateway \
-    node dist/index.js devices approve "$1" 2>&1 | grep -v "^WARN\|^time="
+    node dist/index.js devices approve "$1" 2>&1 | _clawdock_filter_warnings
 
   echo ""
   echo "✅ Device approved! Refresh your browser."
@@ -359,4 +411,3 @@ clawdock-help() {
   echo -e "${_CLR_BLUE}📚 Docs: ${_CLR_RESET}${_CLR_CYAN}https://docs.openclaw.ai${_CLR_RESET}"
   echo ""
 }
-
