@@ -637,8 +637,8 @@ export const buildTelegramMessageContext = async ({
     Sticker: allMedia[0]?.stickerMetadata,
     ...(locationData ? toLocationContext(locationData) : undefined),
     CommandAuthorized: commandAuthorized,
-    // For groups: use resolved forum topic id; for DMs: use raw messageThreadId
-    MessageThreadId: threadSpec.id,
+    // Only set MessageThreadId for groups/forums — DM threadIds cause "message thread not found" errors (#13566)
+    MessageThreadId: threadSpec.scope !== "dm" ? threadSpec.id : undefined,
     IsForum: isForum,
     // Originating channel for reply routing.
     OriginatingChannel: "telegram" as const,
