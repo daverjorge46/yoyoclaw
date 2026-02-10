@@ -372,7 +372,7 @@ export function normalizeCronJobInput(
   }
 
   if (typeof base.schedule === "string") {
-    const trimmed = (base.schedule as string).trim();
+    const trimmed = base.schedule.trim();
     if (trimmed) {
       if (CRON_EXPR_RE.test(trimmed)) {
         next.schedule = coerceSchedule({ kind: "cron", expr: trimmed });
@@ -388,7 +388,7 @@ export function normalizeCronJobInput(
   }
 
   if (typeof base.payload === "string") {
-    const trimmed = (base.payload as string).trim();
+    const trimmed = base.payload.trim();
     if (trimmed) {
       next.payload = coercePayload({ kind: "systemEvent", text: trimmed });
     }
