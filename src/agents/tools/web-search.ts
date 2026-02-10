@@ -17,7 +17,7 @@ import {
   writeCache,
 } from "./web-shared.js";
 
-const SEARCH_PROVIDERS = ["brave", "perplexity", "qveris"] as const;
+const SEARCH_PROVIDERS = ["brave", "perplexity", "grok", "qveris"] as const;
 const DEFAULT_SEARCH_COUNT = 5;
 const MAX_SEARCH_COUNT = 10;
 
@@ -27,6 +27,9 @@ const PERPLEXITY_DIRECT_BASE_URL = "https://api.perplexity.ai";
 const DEFAULT_PERPLEXITY_MODEL = "perplexity/sonar-pro";
 const PERPLEXITY_KEY_PREFIXES = ["pplx-"];
 const OPENROUTER_KEY_PREFIXES = ["sk-or-"];
+
+const XAI_API_ENDPOINT = "https://api.x.ai/v1/responses";
+const DEFAULT_GROK_MODEL = "grok-4-1-fast";
 
 const SEARCH_CACHE = new Map<string, CacheEntry<Record<string, unknown>>>();
 const BRAVE_FRESHNESS_SHORTCUTS = new Set(["pd", "pw", "pm", "py"]);
@@ -91,6 +94,22 @@ type PerplexityConfig = {
 };
 
 type PerplexityApiKeySource = "config" | "perplexity_env" | "openrouter_env" | "none";
+
+type GrokConfig = {
+  apiKey?: string;
+  model?: string;
+  inlineCitations?: boolean;
+};
+
+type GrokSearchResponse = {
+  output_text?: string;
+  citations?: string[];
+  inline_citations?: Array<{
+    start_index: number;
+    end_index: number;
+    url: string;
+  }>;
+};
 
 type PerplexitySearchResponse = {
   choices?: Array<{
@@ -164,6 +183,14 @@ function missingSearchKeyPayload(provider: (typeof SEARCH_PROVIDERS)[number]) {
       docs: "https://docs.openclaw.ai/tools/web",
     };
   }
+  if (provider === "grok") {
+    return {
+      error: "missing_xai_api_key",
+      message:
+        "web_search (grok) needs an xAI API key. Set XAI_API_KEY in the Gateway environment, or configure tools.web.search.grok.apiKey.",
+      docs: "https://docs.openclaw.ai/tools/web",
+    };
+  }
   return {
     error: "missing_brave_api_key",
     message: `web_search needs a Brave Search API key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
@@ -181,6 +208,9 @@ function resolveSearchProvider(search?: WebSearchConfig): (typeof SEARCH_PROVIDE
   }
   if (raw === "perplexity") {
     return "perplexity";
+  }
+  if (raw === "grok") {
+    return "grok";
   }
   if (raw === "brave") {
     return "brave";
@@ -278,9 +308,13 @@ function resolvePerplexityModel(perplexity?: PerplexityConfig): string {
 }
 
 function resolveQverisSearchConfig(search?: WebSearchConfig): QverisSearchConfig {
-  if (!search || typeof search !== "object") return {};
+  if (!search || typeof search !== "object") {
+    return {};
+  }
   const qveris = "qveris" in search ? search.qveris : undefined;
-  if (!qveris || typeof qveris !== "object") return {};
+  if (!qveris || typeof qveris !== "object") {
+    return {};
+  }
   return qveris as QverisSearchConfig;
 }
 
@@ -290,13 +324,19 @@ function resolveQverisApiKey(
 ): string | undefined {
   // Priority: web.search.qveris.apiKey > tools.qveris.apiKey > QVERIS_API_KEY env
   const fromSearchConfig = normalizeApiKey(qverisSearch?.apiKey);
-  if (fromSearchConfig) return fromSearchConfig;
+  if (fromSearchConfig) {
+    return fromSearchConfig;
+  }
 
   const fromGlobalConfig = normalizeApiKey(globalQveris?.qveris?.apiKey);
-  if (fromGlobalConfig) return fromGlobalConfig;
+  if (fromGlobalConfig) {
+    return fromGlobalConfig;
+  }
 
   const fromEnv = normalizeApiKey(process.env.QVERIS_API_KEY);
-  if (fromEnv) return fromEnv;
+  if (fromEnv) {
+    return fromEnv;
+  }
 
   return undefined;
 }
@@ -307,16 +347,50 @@ function resolveQverisBaseUrl(
 ): string {
   // Priority: web.search.qveris.baseUrl > tools.qveris.baseUrl > default
   const fromSearchConfig = qverisSearch?.baseUrl?.trim();
-  if (fromSearchConfig) return fromSearchConfig;
+  if (fromSearchConfig) {
+    return fromSearchConfig;
+  }
 
   const fromGlobalConfig = globalQveris?.qveris?.baseUrl?.trim();
-  if (fromGlobalConfig) return fromGlobalConfig;
+  if (fromGlobalConfig) {
+    return fromGlobalConfig;
+  }
 
   return DEFAULT_QVERIS_BASE_URL;
 }
 
 function resolveQverisToolId(qverisSearch?: QverisSearchConfig): string {
   return qverisSearch?.toolId?.trim() || DEFAULT_QVERIS_SEARCH_TOOL_ID;
+}
+
+function resolveGrokConfig(search?: WebSearchConfig): GrokConfig {
+  if (!search || typeof search !== "object") {
+    return {};
+  }
+  const grok = "grok" in search ? search.grok : undefined;
+  if (!grok || typeof grok !== "object") {
+    return {};
+  }
+  return grok as GrokConfig;
+}
+
+function resolveGrokApiKey(grok?: GrokConfig): string | undefined {
+  const fromConfig = normalizeApiKey(grok?.apiKey);
+  if (fromConfig) {
+    return fromConfig;
+  }
+  const fromEnv = normalizeApiKey(process.env.XAI_API_KEY);
+  return fromEnv || undefined;
+}
+
+function resolveGrokModel(grok?: GrokConfig): string {
+  const fromConfig =
+    grok && "model" in grok && typeof grok.model === "string" ? grok.model.trim() : "";
+  return fromConfig || DEFAULT_GROK_MODEL;
+}
+
+function resolveGrokInlineCitations(grok?: GrokConfig): boolean {
+  return grok?.inlineCitations === true;
 }
 
 function resolveSearchCount(value: unknown, fallback: number): number {
@@ -473,6 +547,55 @@ async function runQverisSearch(params: {
   };
 }
 
+async function runGrokSearch(params: {
+  query: string;
+  apiKey: string;
+  model: string;
+  timeoutSeconds: number;
+  inlineCitations: boolean;
+}): Promise<{
+  content: string;
+  citations: string[];
+  inlineCitations?: GrokSearchResponse["inline_citations"];
+}> {
+  const body: Record<string, unknown> = {
+    model: params.model,
+    input: [
+      {
+        role: "user",
+        content: params.query,
+      },
+    ],
+    tools: [{ type: "web_search" }],
+  };
+
+  if (params.inlineCitations) {
+    body.include = ["inline_citations"];
+  }
+
+  const res = await fetch(XAI_API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${params.apiKey}`,
+    },
+    body: JSON.stringify(body),
+    signal: withTimeout(undefined, params.timeoutSeconds * 1000),
+  });
+
+  if (!res.ok) {
+    const detail = await readResponseText(res);
+    throw new Error(`xAI API error (${res.status}): ${detail || res.statusText}`);
+  }
+
+  const data = (await res.json()) as GrokSearchResponse;
+  const content = data.output_text ?? "No response";
+  const citations = data.citations ?? [];
+  const inlineCitations = data.inline_citations;
+
+  return { content, citations, inlineCitations };
+}
+
 async function runWebSearch(params: {
   query: string;
   count: number;
@@ -488,6 +611,8 @@ async function runWebSearch(params: {
   perplexityModel?: string;
   qverisBaseUrl?: string;
   qverisToolId?: string;
+  grokModel?: string;
+  grokInlineCitations?: boolean;
 }): Promise<Record<string, unknown>> {
   const cacheKey = normalizeCacheKey(
     params.provider === "brave"
@@ -539,6 +664,28 @@ async function runWebSearch(params: {
       tookMs: Date.now() - start,
       content: wrapWebContent(content),
       citations,
+    };
+    writeCache(SEARCH_CACHE, cacheKey, payload, params.cacheTtlMs);
+    return payload;
+  }
+
+  if (params.provider === "grok") {
+    const { content, citations, inlineCitations } = await runGrokSearch({
+      query: params.query,
+      apiKey: params.apiKey,
+      model: params.grokModel ?? DEFAULT_GROK_MODEL,
+      timeoutSeconds: params.timeoutSeconds,
+      inlineCitations: params.grokInlineCitations ?? false,
+    });
+
+    const payload = {
+      query: params.query,
+      provider: params.provider,
+      model: params.grokModel ?? DEFAULT_GROK_MODEL,
+      tookMs: Date.now() - start,
+      content,
+      citations,
+      inlineCitations,
     };
     writeCache(SEARCH_CACHE, cacheKey, payload, params.cacheTtlMs);
     return payload;
@@ -617,13 +764,16 @@ export function createWebSearchTool(options?: {
   const provider = resolveSearchProvider(search);
   const perplexityConfig = resolvePerplexityConfig(search);
   const qverisSearchConfig = resolveQverisSearchConfig(search);
+  const grokConfig = resolveGrokConfig(search);
 
   const description =
     provider === "perplexity"
       ? "Search the web using Perplexity Sonar (direct or via OpenRouter). Returns AI-synthesized answers with citations from real-time web search."
       : provider === "qveris"
         ? "Search the web using QVeris smart search API. Returns relevant search results from third-party data sources."
-        : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
+        : provider === "grok"
+          ? "Search the web using xAI Grok. Returns AI-synthesized answers with citations from real-time web search."
+          : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
 
   return {
     label: "Web Search",
@@ -638,7 +788,9 @@ export function createWebSearchTool(options?: {
           ? perplexityAuth?.apiKey
           : provider === "qveris"
             ? resolveQverisApiKey(qverisSearchConfig, options?.config?.tools)
-            : resolveSearchApiKey(search);
+            : provider === "grok"
+              ? resolveGrokApiKey(grokConfig)
+              : resolveSearchApiKey(search);
 
       if (!apiKey) {
         return jsonResult(missingSearchKeyPayload(provider));
@@ -686,6 +838,8 @@ export function createWebSearchTool(options?: {
         perplexityModel: resolvePerplexityModel(perplexityConfig),
         qverisBaseUrl: resolveQverisBaseUrl(qverisSearchConfig, options?.config?.tools),
         qverisToolId: resolveQverisToolId(qverisSearchConfig),
+        grokModel: resolveGrokModel(grokConfig),
+        grokInlineCitations: resolveGrokInlineCitations(grokConfig),
       });
       return jsonResult(result);
     },
@@ -696,4 +850,7 @@ export const __testing = {
   inferPerplexityBaseUrlFromApiKey,
   resolvePerplexityBaseUrl,
   normalizeFreshness,
+  resolveGrokApiKey,
+  resolveGrokModel,
+  resolveGrokInlineCitations,
 } as const;

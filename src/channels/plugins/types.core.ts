@@ -1,10 +1,9 @@
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
-import type { TSchema } from "@sinclair/typebox";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { PollInput } from "../../polls.js";
 import type { GatewayClientMode, GatewayClientName } from "../../utils/message-channel.js";
-import type { NormalizedChatType } from "../chat-type.js";
+import type { ChatType } from "../chat-type.js";
 import type { ChatChannelId } from "../registry.js";
 import type { ChannelMessageActionName as ChannelMessageActionNameFromList } from "./message-action-names.js";
 
@@ -12,7 +11,8 @@ export type ChannelId = ChatChannelId | (string & {});
 
 export type ChannelOutboundTargetMode = "explicit" | "implicit" | "heartbeat";
 
-export type ChannelAgentTool = AgentTool<TSchema, unknown>;
+/** Agent tool type using the same TSchema resolution as pi-agent-core (avoids CJS/ESM typebox mismatch). */
+export type ChannelAgentTool = AgentTool;
 
 export type ChannelAgentToolFactory = (params: { cfg?: OpenClawConfig }) => ChannelAgentTool[];
 
@@ -162,7 +162,7 @@ export type ChannelGroupContext = {
 };
 
 export type ChannelCapabilities = {
-  chatTypes: Array<NormalizedChatType | "thread">;
+  chatTypes: Array<ChatType | "thread">;
   polls?: boolean;
   reactions?: boolean;
   edit?: boolean;
@@ -251,12 +251,12 @@ export type ChannelThreadingToolContext = {
    */
   skipCrossContextDecoration?: boolean;
   /**
-   * Channel where the control message originated (e.g. "x", "discord").
+   * Channel where the control message originated (e.g. "x", "feishu").
    * Used for X reply permission: when "x", reply only allowed to the mentioning user.
    */
   originatingChannel?: string;
   /**
-   * Sender ID of the control message (channel-specific, e.g. X user ID or Discord user ID).
+   * Sender ID of the control message (channel-specific, e.g. X user ID or Feishu user ID).
    * Used for X reply permission: when originating from X, target tweet author must match.
    */
   originatingSenderId?: string;
