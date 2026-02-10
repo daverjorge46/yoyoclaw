@@ -7,7 +7,7 @@ import { loadSessionStore } from "../../config/sessions/store.js";
 import { buildAgentMainSessionKey, DEFAULT_AGENT_ID } from "../../routing/session-key.js";
 import { queryCsv } from "../../sessions/files/csv-query.js";
 import { searchText } from "../../sessions/files/pdf-search.js";
-import { listFiles, getFile, getParsedCsv } from "../../sessions/files/storage.js";
+import { listFiles, getFile, getParsedCsv, deleteFile } from "../../sessions/files/storage.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
 import { jsonResult, readStringParam, readNumberParam } from "./common.js";
 import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
@@ -109,6 +109,16 @@ const SessionFilesSearchSchema = Type.Object({
   fileId: Type.String({ description: "File ID to search" }),
   query: Type.String({ description: "Search query (space-separated tokens)" }),
   maxResults: Type.Optional(Type.Number({ description: "Maximum number of matches to return" })),
+});
+
+const SessionFilesDeleteSchema = Type.Object({
+  sessionId: Type.Optional(
+    Type.String({
+      description:
+        "Session ID to delete file from (optional, uses current session if not provided)",
+    }),
+  ),
+  fileId: Type.String({ description: "File ID to delete" }),
 });
 
 export function createSessionFilesListTool(options: {
@@ -333,6 +343,52 @@ export function createSessionFilesSearchTool(options: {
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return jsonResult({ matches: [], error: message });
+      }
+    },
+  };
+}
+
+export function createSessionFilesDeleteTool(options: {
+  config?: OpenClawConfig;
+  agentSessionKey?: string;
+}): AnyAgentTool | null {
+  const cfg = options.config;
+  if (!cfg) {
+    return null;
+  }
+  const agentId = resolveSessionAgentId({
+    sessionKey: options.agentSessionKey,
+    config: cfg,
+  });
+  return {
+    label: "Session Files Delete",
+    name: "session_files_delete",
+    description: "Delete a file from session storage by file ID",
+    parameters: SessionFilesDeleteSchema,
+    execute: async (_toolCallId, params) => {
+      let sessionId = readStringParam(params, "sessionId");
+      if (!sessionId) {
+        sessionId =
+          resolveSessionIdFromKey({
+            sessionKey: options.agentSessionKey,
+            cfg,
+            agentId,
+          }) ?? undefined;
+      }
+      if (!sessionId) {
+        return jsonResult({
+          deleted: false,
+          error:
+            "sessionId is required. Provide sessionId parameter or ensure agentSessionKey is set.",
+        });
+      }
+      const fileId = readStringParam(params, "fileId", { required: true });
+      try {
+        await deleteFile({ sessionId, agentId, fileId });
+        return jsonResult({ deleted: true, fileId });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return jsonResult({ deleted: false, error: message });
       }
     },
   };

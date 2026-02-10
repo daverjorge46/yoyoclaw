@@ -20,6 +20,7 @@ import {
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
 import {
+  createSessionFilesDeleteTool,
   createSessionFilesGetTool,
   createSessionFilesListTool,
   createSessionFilesQueryCsvTool,
@@ -118,6 +119,10 @@ export function createOpenClawTools(options?: {
     config: options?.config,
     agentSessionKey: options?.agentSessionKey,
   });
+  const sessionFilesDelete = createSessionFilesDeleteTool({
+    config: options?.config,
+    agentSessionKey: options?.agentSessionKey,
+  });
   const tools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
@@ -177,6 +182,7 @@ export function createOpenClawTools(options?: {
     ...(sessionFilesGet ? [sessionFilesGet] : []),
     ...(sessionFilesQueryCsv ? [sessionFilesQueryCsv] : []),
     ...(sessionFilesSearch ? [sessionFilesSearch] : []),
+    ...(sessionFilesDelete ? [sessionFilesDelete] : []),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
