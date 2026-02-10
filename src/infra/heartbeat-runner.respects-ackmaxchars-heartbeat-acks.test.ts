@@ -359,10 +359,10 @@ describe("resolveHeartbeatIntervalMs", () => {
   it("resets daily sessions when heartbeat runs after boundary", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 0, 18, 5, 0, 0));
-    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-hb-daily-"));
-    const storePath = path.join(tmpDir, "sessions.json");
-    const replySpy = vi.spyOn(replyModule, "getReplyFromConfig");
     try {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-hb-daily-"));
+      const storePath = path.join(tmpDir, "sessions.json");
+      const replySpy = vi.spyOn(replyModule, "getReplyFromConfig");
       const cfg: OpenClawConfig = {
         agents: {
           defaults: {
@@ -417,9 +417,9 @@ describe("resolveHeartbeatIntervalMs", () => {
       const store = loadSessionStore(storePath);
       expect(initResult?.isNewSession).toBe(true);
       expect(store[sessionKey]?.sessionId).not.toBe(existingSessionId);
-    } finally {
       replySpy.mockRestore();
       await fs.rm(tmpDir, { recursive: true, force: true });
+    } finally {
       vi.useRealTimers();
     }
   });
