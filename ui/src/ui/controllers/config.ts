@@ -6,6 +6,7 @@ import {
   serializeConfigForm,
   setPathValue,
 } from "./config/form-utils.ts";
+import { t } from "../i18n.ts";
 
 export type ConfigState = {
   client: GatewayBrowserClient | null;
@@ -112,7 +113,7 @@ export async function saveConfig(state: ConfigState) {
         : state.configRaw;
     const baseHash = state.configSnapshot?.hash;
     if (!baseHash) {
-      state.lastError = "Config hash missing; reload and retry.";
+      state.lastError = t("config.hashMissing");
       return;
     }
     await state.client.request("config.set", { raw, baseHash });
@@ -138,7 +139,7 @@ export async function applyConfig(state: ConfigState) {
         : state.configRaw;
     const baseHash = state.configSnapshot?.hash;
     if (!baseHash) {
-      state.lastError = "Config hash missing; reload and retry.";
+      state.lastError = t("config.hashMissing");
       return;
     }
     await state.client.request("config.apply", {
