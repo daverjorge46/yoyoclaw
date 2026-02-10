@@ -45,6 +45,7 @@ export type EmbeddedPiSubscribeState = {
   lastBlockReplyText?: string;
   assistantMessageIndex: number;
   hadToolSinceLastText: boolean;
+  lastFullMessageText?: string;
   lastAssistantTextNormalized?: string;
   lastAssistantTextTrimmed?: string;
   assistantTextBaseline: number;

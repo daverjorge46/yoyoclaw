@@ -204,4 +204,139 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(onBlockReply).toHaveBeenCalledTimes(2);
     expect(subscription.assistantTexts).toEqual(["First response", "Follow-up response"]);
   });
+
+  it("deduplicates with block chunking enabled (text_end mode)", () => {
+    let handler: SessionEventHandler | undefined;
+    const session: StubSession = {
+      subscribe: (fn) => {
+        handler = fn;
+        return () => {};
+      },
+    };
+
+    const onBlockReply = vi.fn();
+
+    const subscription = subscribeEmbeddedPiSession({
+      session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
+      runId: "run-dedup-chunking",
+      onBlockReply,
+      blockReplyBreak: "text_end",
+      // Use chunk sizes larger than the test message so all text stays in the
+      // chunker buffer until the forced text_end drain — this exercises the
+      // full-message dedup path that fires before chunking occurs.
+      blockReplyChunking: { minChars: 50, maxChars: 200 },
+    });
+
+    // --- Assistant message 1 ---
+    handler?.({ type: "message_start", message: { role: "assistant" } });
+
+    handler?.({
+      type: "message_update",
+      message: { role: "assistant" },
+      assistantMessageEvent: { type: "text_delta", delta: "Chunked response!" },
+    });
+
+    handler?.({
+      type: "message_update",
+      message: { role: "assistant" },
+      assistantMessageEvent: { type: "text_end", content: "Chunked response!" },
+    });
+
+    expect(onBlockReply).toHaveBeenCalledTimes(1);
+
+    // Tool round-trip
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "exec",
+      toolCallId: "tool-chunk-1",
+      args: { command: "echo ok" },
+    });
+
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "exec",
+      toolCallId: "tool-chunk-1",
+      result: "ok",
+    });
+
+    // --- Assistant message 2: model repeats same text ---
+    handler?.({ type: "message_start", message: { role: "assistant" } });
+
+    handler?.({
+      type: "message_update",
+      message: { role: "assistant" },
+      assistantMessageEvent: { type: "text_delta", delta: "Chunked response!" },
+    });
+
+    handler?.({
+      type: "message_update",
+      message: { role: "assistant" },
+      assistantMessageEvent: { type: "text_end", content: "Chunked response!" },
+    });
+
+    // Duplicate should be suppressed even with chunking active
+    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    expect(subscription.assistantTexts).toEqual(["Chunked response!"]);
+  });
+
+  it("deduplicates with block chunking enabled (message_end mode)", () => {
+    let handler: SessionEventHandler | undefined;
+    const session: StubSession = {
+      subscribe: (fn) => {
+        handler = fn;
+        return () => {};
+      },
+    };
+
+    const onBlockReply = vi.fn();
+
+    const subscription = subscribeEmbeddedPiSession({
+      session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
+      runId: "run-dedup-chunking-msg-end",
+      onBlockReply,
+      blockReplyBreak: "message_end",
+      blockReplyChunking: { minChars: 50, maxChars: 200 },
+    });
+
+    // --- Assistant message 1 ---
+    handler?.({ type: "message_start", message: { role: "assistant" } });
+
+    const msg1 = {
+      role: "assistant",
+      content: [{ type: "text", text: "Chunked message_end response!" }],
+    } as AssistantMessage;
+
+    handler?.({ type: "message_end", message: msg1 });
+
+    expect(onBlockReply).toHaveBeenCalledTimes(1);
+
+    // Tool round-trip
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "exec",
+      toolCallId: "tool-chunk-msg-1",
+      args: { command: "echo ok" },
+    });
+
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "exec",
+      toolCallId: "tool-chunk-msg-1",
+      result: "ok",
+    });
+
+    // --- Assistant message 2: model repeats same text ---
+    handler?.({ type: "message_start", message: { role: "assistant" } });
+
+    const msg2 = {
+      role: "assistant",
+      content: [{ type: "text", text: "Chunked message_end response!" }],
+    } as AssistantMessage;
+
+    handler?.({ type: "message_end", message: msg2 });
+
+    // Duplicate should be suppressed even with chunking active
+    expect(onBlockReply).toHaveBeenCalledTimes(1);
+    expect(subscription.assistantTexts).toEqual(["Chunked message_end response!"]);
+  });
 });

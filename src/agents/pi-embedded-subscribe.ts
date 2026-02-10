@@ -55,6 +55,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     lastBlockReplyText: undefined,
     assistantMessageIndex: 0,
     hadToolSinceLastText: false,
+    lastFullMessageText: undefined,
     lastAssistantTextNormalized: undefined,
     lastAssistantTextTrimmed: undefined,
     assistantTextBaseline: 0,
@@ -116,6 +117,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     // legitimate identical replies across messages are still delivered.
     if (!state.hadToolSinceLastText) {
       state.lastBlockReplyText = undefined;
+      state.lastFullMessageText = undefined;
       state.lastAssistantTextNormalized = undefined;
       state.lastAssistantTextTrimmed = undefined;
     }
