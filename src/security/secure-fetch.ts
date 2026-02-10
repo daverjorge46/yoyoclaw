@@ -144,7 +144,7 @@ export function installSecureFetch(): void {
   // Replace global fetch
   globalThis.fetch = secureFetch as typeof fetch;
 
-  console.log("[secure-fetch] Installed fetch wrapper, routing through:", PROXY_URL);
+  // Activated — routing all fetch() calls through the host secrets proxy.
 }
 
 /**

@@ -229,7 +229,7 @@ export type SecretsProxyOptions = {
   socketPath?: string;
   registry: SecretRegistry;
   /** Shared secret token that clients must send in X-Proxy-Token header. */
-  authToken?: string;
+  authToken: string;
 };
 
 /** Generate a random proxy auth token. */
@@ -239,6 +239,10 @@ export function generateProxyAuthToken(): string {
 
 export async function startSecretsProxy(opts: SecretsProxyOptions): Promise<http.Server> {
   const { registry, authToken } = opts;
+
+  if (!authToken) {
+    throw new Error("authToken is required — the secrets proxy must not run without authentication");
+  }
 
   const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
     // Cached allowlist: re-reads from disk only when config file mtime changes

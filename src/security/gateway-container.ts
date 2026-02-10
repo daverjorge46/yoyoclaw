@@ -362,7 +362,7 @@ function filterSecretEnv(env: Record<string, string | undefined>): Record<string
 
     // Allow OpenClaw-specific env vars needed for gateway operation
     if (ALLOWED_SECRET_ENV_VARS.has(upperKey)) {
-      filtered[upperKey] = value;
+      filtered[key] = value;
       continue;
     }
 
@@ -386,7 +386,7 @@ function filterSecretEnv(env: Record<string, string | undefined>): Record<string
       continue;
     }
 
-    filtered[upperKey] = value;
+    filtered[key] = value;
   }
 
   return filtered;
