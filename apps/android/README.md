@@ -30,12 +30,16 @@ pnpm openclaw gateway --port 18789 --verbose
 
 2) In the Android app:
 - Open **Settings**
-- Either select a discovered gateway under **Discovered Gateways**, or use **Advanced → Manual Gateway** (host + port).
+- Either select a discovered gateway under **Discovered Gateways**, or use **Advanced → Manual Gateway**.
+- For Tailscale Serve setups:
+  - Host: your tailnet DNS name (for example `my-host.tailnet.ts.net`)
+  - Port: `443`
+  - TLS: enabled
 
 3) Approve pairing (on the gateway machine):
 ```bash
-openclaw nodes pending
-openclaw nodes approve <requestId>
+openclaw devices list
+openclaw devices approve <requestId>
 ```
 
 More details: `docs/platforms/android.md`.
