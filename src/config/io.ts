@@ -135,6 +135,67 @@ function warnOnConfigMiskeys(raw: unknown, logger: Pick<typeof console, "warn">)
   }
 }
 
+const ENV_TEMPLATE_PATTERN = /\$\{[A-Z_][A-Z0-9_]*\}/;
+
+function hasEnvTemplate(value: unknown): value is string {
+  return typeof value === "string" && ENV_TEMPLATE_PATTERN.test(value);
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+/**
+ * Preserve `${VAR}` references from the on-disk config when callers pass the
+ * same resolved value back into writeConfigFile.
+ */
+function preserveEnvReferences(
+  nextValue: unknown,
+  resolvedOriginal: unknown,
+  parsedOriginal: unknown,
+): unknown {
+  if (Array.isArray(nextValue)) {
+    const resolvedArray = Array.isArray(resolvedOriginal) ? resolvedOriginal : [];
+    const parsedArray = Array.isArray(parsedOriginal) ? parsedOriginal : [];
+    return nextValue.map((item, index) =>
+      preserveEnvReferences(item, resolvedArray[index], parsedArray[index]),
+    );
+  }
+
+  if (!nextValue || typeof nextValue !== "object") {
+    return nextValue;
+  }
+
+  const nextRecord = nextValue as Record<string, unknown>;
+  const resolvedRecord = asRecord(resolvedOriginal) ?? {};
+  const parsedRecord = asRecord(parsedOriginal) ?? {};
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(nextRecord)) {
+    const resolvedPrev = resolvedRecord[key];
+    const parsedPrev = parsedRecord[key];
+    if (
+      typeof value === "string" &&
+      typeof resolvedPrev === "string" &&
+      hasEnvTemplate(parsedPrev) &&
+      value === resolvedPrev
+    ) {
+      result[key] = parsedPrev;
+      continue;
+    }
+    if (value && typeof value === "object") {
+      result[key] = preserveEnvReferences(value, resolvedPrev, parsedPrev);
+      continue;
+    }
+    result[key] = value;
+  }
+
+  return result;
+}
+
 function stampConfigVersion(cfg: OpenClawConfig): OpenClawConfig {
   const now = new Date().toISOString();
   return {
@@ -493,7 +554,16 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
 
   async function writeConfigFile(cfg: OpenClawConfig) {
     clearConfigCache();
-    const validated = validateConfigObjectWithPlugins(cfg);
+    let cfgForWrite = cfg;
+    const snapshot = await readConfigFileSnapshot();
+    if (snapshot.exists && snapshot.valid) {
+      cfgForWrite = preserveEnvReferences(
+        cfgForWrite,
+        snapshot.config,
+        snapshot.parsed,
+      ) as OpenClawConfig;
+    }
+    const validated = validateConfigObjectWithPlugins(cfgForWrite);
     if (!validated.ok) {
       const issue = validated.issues[0];
       const pathLabel = issue?.path ? issue.path : "<root>";
@@ -507,7 +577,7 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
     }
     const dir = path.dirname(configPath);
     await deps.fs.promises.mkdir(dir, { recursive: true, mode: 0o700 });
-    const json = JSON.stringify(applyModelDefaults(stampConfigVersion(cfg)), null, 2)
+    const json = JSON.stringify(applyModelDefaults(stampConfigVersion(cfgForWrite)), null, 2)
       .trimEnd()
       .concat("\n");
 
