@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import type { RuntimeEnv } from "../runtime.js";
+import { hasBinary } from "../hooks/config.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { CONFIG_DIR } from "../utils.js";
 
@@ -157,51 +158,69 @@ export async function installSignalCli(runtime: RuntimeEnv): Promise<SignalInsta
   await fs.mkdir(installRoot, { recursive: true });
 
   // Validate archive entries to prevent path traversal and symlink attacks (CWE-22)
-  try {
-    const isZip = assetName.endsWith(".zip");
-    // Use verbose listing to detect both path traversal and symlinks
-    const listArgv = isZip ? ["unzip", "-Z", archivePath] : ["tar", "tvf", archivePath];
-    const listResult = await runCommandWithTimeout(listArgv, { timeoutMs: 60_000 });
-    if (listResult.code === 0) {
-      const resolvedRoot = path.resolve(installRoot);
-      const lines = listResult.stdout.split("\n").filter(Boolean);
-      for (const line of lines) {
-        // Reject symlinks: they can be used to redirect writes outside target.
-        // Symlink entries start with 'l' in verbose listing (both tar and zipinfo).
-        if (line.startsWith("l")) {
-          if (isZip) {
-            return { ok: false, error: "Archive contains symlinks (potential traversal vector)" };
-          }
-          // For tar, check if symlink target escapes
-          const arrowIdx = line.indexOf(" -> ");
-          if (arrowIdx !== -1) {
-            const target = line.slice(arrowIdx + 4);
-            const resolvedLink = path.resolve(installRoot, target);
-            if (
-              resolvedLink !== resolvedRoot &&
-              !resolvedLink.startsWith(resolvedRoot + path.sep)
-            ) {
-              return { ok: false, error: `Archive symlink escapes target: ${target}` };
-            }
+  const isZip = assetName.endsWith(".zip");
+  const listTool = isZip ? "unzip" : "tar";
+  if (hasBinary(listTool)) {
+    if (isZip) {
+      // unzip -Z (zipinfo): wykryj symlinki w archiwum ZIP
+      const listResult = await runCommandWithTimeout(["unzip", "-Z", archivePath], {
+        timeoutMs: 60_000,
+      });
+      if (listResult.code === 0) {
+        for (const line of listResult.stdout.split("\n")) {
+          if (line.startsWith("l")) {
+            return {
+              ok: false,
+              error: "Archive contains symlinks (potential traversal vector)",
+            };
           }
         }
-        // For tar, also check entry names for path traversal (no built-in protection)
-        if (!isZip) {
+      }
+    } else {
+      // tar: walidacja w dwoch krokach:
+      // 1) tar tf - surowe nazwy plikow (jedna na linie, bezpieczne parsowanie ze spacjami)
+      // 2) tar tvf - tylko do detekcji symlinkow (linie zaczynajace sie od 'l')
+      const resolvedRoot = path.resolve(installRoot);
+
+      // Krok 1: Walidacja sciezek (tar tf zwraca czyste nazwy, po jednej na linie)
+      const tfResult = await runCommandWithTimeout(["tar", "tf", archivePath], {
+        timeoutMs: 60_000,
+      });
+      if (tfResult.code === 0) {
+        for (const entryName of tfResult.stdout.split("\n").filter(Boolean)) {
+          const normalized = entryName.replaceAll("\\", "/");
+          const resolved = path.resolve(installRoot, normalized);
+          if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
+            return {
+              ok: false,
+              error: `Archive entry escapes target directory: ${entryName}`,
+            };
+          }
+        }
+      }
+
+      // Krok 2: Detekcja symlinkow z niebezpiecznymi targetami (tar tvf)
+      const tvfResult = await runCommandWithTimeout(["tar", "tvf", archivePath], {
+        timeoutMs: 60_000,
+      });
+      if (tvfResult.code === 0) {
+        for (const line of tvfResult.stdout.split("\n").filter(Boolean)) {
+          if (!line.startsWith("l")) {
+            continue;
+          }
           const arrowIdx = line.indexOf(" -> ");
-          const namePart = arrowIdx !== -1 ? line.slice(0, arrowIdx) : line;
-          const entryName = namePart.split(/\s+/).at(-1) ?? "";
-          if (entryName) {
-            const normalized = entryName.replaceAll("\\", "/");
-            const resolved = path.resolve(installRoot, normalized);
-            if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
-              return { ok: false, error: `Archive entry escapes target directory: ${entryName}` };
-            }
+          if (arrowIdx === -1) {
+            continue;
+          }
+          const target = line.slice(arrowIdx + 4);
+          const normalizedTarget = target.replaceAll("\\", "/");
+          const resolvedLink = path.resolve(installRoot, normalizedTarget);
+          if (resolvedLink !== resolvedRoot && !resolvedLink.startsWith(resolvedRoot + path.sep)) {
+            return { ok: false, error: `Archive symlink escapes target: ${target}` };
           }
         }
       }
     }
-  } catch {
-    // If listing fails (e.g. tool not available), let extraction proceed
   }
 
   if (assetName.endsWith(".zip")) {

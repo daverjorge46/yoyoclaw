@@ -315,31 +315,39 @@ async function validateArchiveEntries(params: {
   if (!hasBinary("tar")) {
     return { ok: true };
   }
-  const listResult = await runCommandWithTimeout(["tar", "tvf", archivePath], { timeoutMs });
-  if (listResult.code !== 0) {
-    return { ok: false, error: "failed to list archive contents" };
-  }
 
   const resolvedTarget = path.resolve(targetDir);
-  const lines = listResult.stdout.split("\n").filter(Boolean);
-  for (const line of lines) {
-    // Check for symlinks with targets escaping the target directory
-    const symlinkTarget = parseTarSymlinkTarget(line);
-    if (symlinkTarget) {
-      const resolvedLink = path.resolve(targetDir, symlinkTarget);
-      if (resolvedLink !== resolvedTarget && !resolvedLink.startsWith(resolvedTarget + path.sep)) {
-        return { ok: false, error: `archive contains symlink escaping target: ${symlinkTarget}` };
-      }
-    }
 
-    // Extract entry name (last field before potential ' -> target') and check traversal.
-    // tar tvf format: "permissions owner/group size date time name[ -> target]"
-    const arrowIdx = line.indexOf(" -> ");
-    const namePart = arrowIdx !== -1 ? line.slice(0, arrowIdx) : line;
-    const fields = namePart.split(/\s+/);
-    const entryName = fields.at(-1) ?? "";
-    if (entryName && entryEscapesTarget(entryName, targetDir)) {
+  // Krok 1: tar tf zwraca czyste nazwy plikow (po jednej na linie).
+  // Bezpieczne parsowanie nawet gdy nazwa zawiera spacje.
+  const tfResult = await runCommandWithTimeout(["tar", "tf", archivePath], { timeoutMs });
+  if (tfResult.code !== 0) {
+    return { ok: false, error: "failed to list archive contents" };
+  }
+  for (const entryName of tfResult.stdout.split("\n").filter(Boolean)) {
+    if (entryEscapesTarget(entryName, targetDir)) {
       return { ok: false, error: `archive entry escapes target directory: ${entryName}` };
+    }
+  }
+
+  // Krok 2: tar tvf tylko do detekcji symlinkow (linie zaczynajace sie od 'l')
+  const tvfResult = await runCommandWithTimeout(["tar", "tvf", archivePath], { timeoutMs });
+  if (tvfResult.code === 0) {
+    for (const line of tvfResult.stdout.split("\n").filter(Boolean)) {
+      const symlinkTarget = parseTarSymlinkTarget(line);
+      if (symlinkTarget) {
+        const normalizedTarget = symlinkTarget.replaceAll("\\", "/");
+        const resolvedLink = path.resolve(targetDir, normalizedTarget);
+        if (
+          resolvedLink !== resolvedTarget &&
+          !resolvedLink.startsWith(resolvedTarget + path.sep)
+        ) {
+          return {
+            ok: false,
+            error: `archive contains symlink escaping target: ${symlinkTarget}`,
+          };
+        }
+      }
     }
   }
   return { ok: true };
