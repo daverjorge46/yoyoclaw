@@ -351,7 +351,6 @@ export async function monitorSignalProvider(opts: MonitorSignalOpts = {}): Promi
     }
 
     // Signal enhancements: build enhancement deps
-    const requireMention = accountInfo.config.requireMention ?? false;
     const enhancementDeps: SignalEnhancementDeps = {
       cfg,
       baseUrl,
@@ -360,7 +359,6 @@ export async function monitorSignalProvider(opts: MonitorSignalOpts = {}): Promi
       mediaMaxBytes,
       ignoreAttachments,
       fetchAttachment,
-      requireMention,
     };
 
     const handleEvent = createSignalEventHandler({

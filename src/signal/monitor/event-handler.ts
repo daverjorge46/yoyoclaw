@@ -49,7 +49,6 @@ import {
 import { sendMessageSignal, sendReadReceiptSignal, sendTypingSignal } from "../send.js";
 import {
   buildEnhancedMessage,
-  checkRequireMention,
   loadSignalMediaCache,
   preCacheGroupMedia,
   stripMentionPlaceholders,
@@ -517,10 +516,6 @@ export function createSignalEventHandler(
         deps: eDeps,
       });
     }
-    if (eDeps && checkRequireMention({ dataMessage, isGroup, deps: eDeps })) {
-      return;
-    }
-
     const useAccessGroups = deps.cfg.commands?.useAccessGroups !== false;
     const ownerAllowedForCommands = isSignalSenderAllowed(sender, effectiveDmAllow);
     const groupAllowedForCommands = isSignalSenderAllowed(sender, effectiveGroupAllow);

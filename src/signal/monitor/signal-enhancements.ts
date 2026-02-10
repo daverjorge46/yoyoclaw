@@ -2,7 +2,7 @@
  * Signal Enhancements Module
  *
  * All Signal-specific enhancements (sticker support, quote/reply messages,
- * requireMention, persistent media cache, pre-cache, agent media cache) live here.
+ * persistent media cache, pre-cache, agent media cache) live here.
  * Upstream files only need minimal hook calls into this module.
  */
 import fs from "node:fs/promises";
@@ -86,9 +86,7 @@ export type SignalEnhancementDeps = Pick<
   | "mediaMaxBytes"
   | "ignoreAttachments"
   | "fetchAttachment"
-> & {
-  requireMention: boolean;
-};
+>;
 
 // ── Pre-cache: per-group persistent media index + LRU ────────────────────────
 //
@@ -421,46 +419,6 @@ async function fetchQuotedAttachment(params: {
     logVerbose(`quoted attachment fetch failed: ${String(err)}`);
     return null;
   }
-}
-
-// ── requireMention gate ─────────────────────────────────────────────────────
-
-export function checkRequireMention(params: {
-  dataMessage: SignalDataMessage;
-  isGroup: boolean;
-  deps: SignalEnhancementDeps;
-}): boolean {
-  const { isGroup, deps } = params;
-  if (!isGroup || !deps.requireMention) {
-    return false;
-  }
-
-  const enhanced = asEnhanced(params.dataMessage);
-  const mentions = enhanced?.mentions ?? [];
-  const botAccount = deps.account?.replace(/^\+/, "") ?? "";
-  const botAccountId = deps.accountId ?? "";
-  logVerbose(
-    `[requireMention] mentions=${JSON.stringify(mentions)}, botAccount=${botAccount}, botAccountId=${botAccountId}`,
-  );
-
-  const isMentioned = mentions.some((m) => {
-    const mentionNumber = m.number?.replace(/^\+/, "") ?? "";
-    if (mentionNumber && mentionNumber === botAccount) {
-      return true;
-    }
-    const mentionUuid = m.uuid ?? "";
-    if (mentionUuid && mentionUuid === botAccountId) {
-      return true;
-    }
-    return false;
-  });
-
-  if (!isMentioned) {
-    logVerbose("Blocked signal group message (requireMention, not mentioned)");
-    return true; // blocked
-  }
-  logVerbose("[requireMention] mention detected, proceeding");
-  return false; // not blocked
 }
 
 // ── Pre-cache group media ───────────────────────────────────────────────────
