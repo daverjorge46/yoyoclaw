@@ -570,66 +570,37 @@ function scanDeletedSessions(params: { storePath: string; agentId: string }): Ar
     }
 
     const files = fs.readdirSync(sessionsDir);
-    const deletedFiles = files.filter((f) => f.includes(".jsonl.deleted."));
+    // Find deleted sessions by their metadata sidecar files
+    const metadataFiles = files.filter((f) => f.endsWith(".metadata.json"));
 
-    const deleted = deletedFiles
+    const deleted = metadataFiles
       .map((file) => {
-        // Extract sessionId from filename: <sessionId>.jsonl.deleted.<timestamp>
-        const match = file.match(/^([0-9a-f-]{36})\.jsonl\.deleted\./i);
+        // Extract sessionId from filename: <sessionId>.metadata.json
+        const match = file.match(/^([0-9a-f-]{36})\.metadata\.json$/i);
         const sessionId = match ? match[1] : null;
 
         if (!sessionId) {
           return null;
         }
 
-        // Extract timestamp from filename
-        const timestampMatch = file.match(/\.deleted\.(.+)$/);
+        // Find the corresponding deleted transcript to get the timestamp
+        const deletedTranscript = files.find((f) => f.startsWith(`${sessionId}.jsonl.deleted.`));
+        const timestampMatch = deletedTranscript?.match(/\.deleted\.(.+)$/);
         const timestamp = timestampMatch ? timestampMatch[1] : undefined;
 
-        // Try to read metadata from the file
+        // Read metadata from the sidecar file
         let metadata: SessionEntry | null = null;
         try {
-          const fullPath = path.join(sessionsDir, file);
-          const stat = fs.statSync(fullPath);
-          const fileSize = stat.size;
-          if (fileSize > 0) {
-            // Read only the tail of the file to find metadata (avoid loading entire transcript)
-            const TAIL_SIZE = 8192;
-            const readSize = Math.min(TAIL_SIZE, fileSize);
-            const buffer = Buffer.alloc(readSize);
-            const fd = fs.openSync(fullPath, "r");
-            try {
-              fs.readSync(fd, buffer, 0, readSize, fileSize - readSize);
-              const tail = buffer.toString("utf-8");
-              const lines = tail.split("\n");
-              // Check last non-empty line for metadata
-              for (let i = lines.length - 1; i >= 0; i--) {
-                const line = lines[i].trim();
-                if (!line) {
-                  continue;
-                }
-                try {
-                  const parsed = JSON.parse(line);
-                  if (parsed.__session_metadata__) {
-                    const meta = parsed.__session_metadata__;
-                    if (meta && typeof meta === "object" && !Array.isArray(meta)) {
-                      metadata = meta as SessionEntry;
-                    }
-                  }
-                } catch {
-                  // Not JSON or not metadata
-                }
-                break; // Only check the last non-empty line
-              }
-            } finally {
-              fs.closeSync(fd);
-            }
+          const sidecarPath = path.join(sessionsDir, file);
+          const content = fs.readFileSync(sidecarPath, "utf-8");
+          const parsed = JSON.parse(content);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            metadata = parsed as SessionEntry;
           }
         } catch {
-          // File read error, skip this file
+          // File read error or invalid JSON, skip
         }
 
-        // Only include deleted sessions that have metadata
         if (!metadata) {
           return null;
         }
