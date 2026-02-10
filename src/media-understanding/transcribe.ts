@@ -3,10 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { MsgContext } from "../auto-reply/templating.js";
 import type { OpenClawConfig } from "../config/config.js";
-import type {
-  MediaUnderstandingConfig,
-  MediaUnderstandingModelConfig,
-} from "../config/types.tools.js";
+import type { MediaUnderstandingModelConfig } from "../config/types.tools.js";
 import type { MediaUnderstandingDecision, MediaUnderstandingProvider } from "./types.js";
 import { requireApiKey, resolveApiKeyForProvider } from "../agents/model-auth.js";
 import { DEFAULT_AUDIO_MODELS, DEFAULT_TIMEOUT_SECONDS } from "./defaults.js";
