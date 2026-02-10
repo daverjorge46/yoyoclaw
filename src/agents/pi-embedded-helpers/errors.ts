@@ -408,9 +408,10 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
   }
   const errorContext = opts?.errorContext ?? false;
   const stripped = stripFinalTagsFromText(text);
-  const trimmed = stripped.trim();
+  const cleaned = stripped.replace(/^(?:[ \t]*\n)+/, "");
+  const trimmed = cleaned.trim();
   if (!trimmed) {
-    return stripped;
+    return cleaned;
   }
 
   // Only apply error-pattern rewrites when the caller knows this text is an error payload.
@@ -449,7 +450,7 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
     }
   }
 
-  return collapseConsecutiveDuplicateBlocks(stripped);
+  return collapseConsecutiveDuplicateBlocks(cleaned);
 }
 
 export function isRateLimitAssistantError(msg: AssistantMessage | undefined): boolean {
