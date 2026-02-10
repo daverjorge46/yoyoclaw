@@ -381,7 +381,7 @@ function resolveBaiduConfig(search?: WebSearchConfig): BaiduConfig {
   return baidu as BaiduConfig;
 }
 
-function resolveBaiduApiKey(search?: WebSearchConfig): string | undefined {
+function resolveBaiduApiKey(search?: BaiduConfig): string | undefined {
   const fromConfig =
     search && "apiKey" in search && typeof search.apiKey === "string"
       ? normalizeSecretInput(search.apiKey)
