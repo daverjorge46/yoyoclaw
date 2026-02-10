@@ -5,6 +5,11 @@ import {
   resolveCloudflareAiGatewayBaseUrl,
 } from "../agents/cloudflare-ai-gateway.js";
 import {
+  buildHuggingfaceModelDefinition,
+  HUGGINGFACE_BASE_URL,
+  HUGGINGFACE_MODEL_CATALOG,
+} from "../agents/huggingface-models.js";
+import {
   buildQianfanProvider,
   buildXiaomiProvider,
   QIANFAN_DEFAULT_MODEL_ID,
@@ -16,11 +21,6 @@ import {
   SYNTHETIC_DEFAULT_MODEL_REF,
   SYNTHETIC_MODEL_CATALOG,
 } from "../agents/synthetic-models.js";
-import {
-  buildHuggingfaceModelDefinition,
-  HUGGINGFACE_BASE_URL,
-  HUGGINGFACE_MODEL_CATALOG,
-} from "../agents/huggingface-models.js";
 import {
   buildTogetherModelDefinition,
   TOGETHER_BASE_URL,
@@ -705,9 +705,7 @@ export function applyHuggingfaceProviderConfig(cfg: OpenClawConfig): OpenClawCon
   const hfModels = HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   const mergedModels = [
     ...existingModels,
-    ...hfModels.filter(
-      (model) => !existingModels.some((existing) => existing.id === model.id),
-    ),
+    ...hfModels.filter((model) => !existingModels.some((existing) => existing.id === model.id)),
   ];
   const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
     string,

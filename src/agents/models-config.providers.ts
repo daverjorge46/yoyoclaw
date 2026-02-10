@@ -10,18 +10,18 @@ import {
   buildCloudflareAiGatewayModelDefinition,
   resolveCloudflareAiGatewayBaseUrl,
 } from "./cloudflare-ai-gateway.js";
-import { resolveAwsSdkEnvVarName, resolveEnvApiKey } from "./model-auth.js";
-import {
-  buildSyntheticModelDefinition,
-  SYNTHETIC_BASE_URL,
-  SYNTHETIC_MODEL_CATALOG,
-} from "./synthetic-models.js";
 import {
   discoverHuggingfaceModels,
   HUGGINGFACE_BASE_URL,
   HUGGINGFACE_MODEL_CATALOG,
   buildHuggingfaceModelDefinition,
 } from "./huggingface-models.js";
+import { resolveAwsSdkEnvVarName, resolveEnvApiKey } from "./model-auth.js";
+import {
+  buildSyntheticModelDefinition,
+  SYNTHETIC_BASE_URL,
+  SYNTHETIC_MODEL_CATALOG,
+} from "./synthetic-models.js";
 import {
   TOGETHER_BASE_URL,
   TOGETHER_MODEL_CATALOG,
@@ -429,9 +429,9 @@ async function buildHuggingfaceProvider(apiKey?: string): Promise<ProviderConfig
   // Resolve env var name to value for discovery (GET /v1/models requires Bearer token).
   const resolvedSecret =
     apiKey?.trim() !== ""
-      ? (/^[A-Z][A-Z0-9_]*$/.test(apiKey!.trim())
-          ? (process.env[apiKey!.trim()] ?? "").trim()
-          : apiKey!.trim())
+      ? /^[A-Z][A-Z0-9_]*$/.test(apiKey!.trim())
+        ? (process.env[apiKey!.trim()] ?? "").trim()
+        : apiKey!.trim()
       : "";
   const models =
     resolvedSecret !== ""

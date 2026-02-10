@@ -12,9 +12,7 @@ export const HUGGINGFACE_POLICY_SUFFIXES = ["cheapest", "fastest"] as const;
  */
 export function isHuggingfacePolicyLocked(modelRef: string): boolean {
   const ref = String(modelRef).trim();
-  return HUGGINGFACE_POLICY_SUFFIXES.some(
-    (s) => ref.endsWith(`:${s}`) || ref === s,
-  );
+  return HUGGINGFACE_POLICY_SUFFIXES.some((s) => ref.endsWith(`:${s}`) || ref === s);
 }
 
 /** Default cost when not in static catalog (HF pricing varies by provider). */
@@ -124,8 +122,7 @@ export function buildHuggingfaceModelDefinition(
  */
 function inferredMetaFromModelId(id: string): { name: string; reasoning: boolean } {
   const base = id.split("/").pop() ?? id;
-  const reasoning =
-    /r1|reasoning|thinking|reason/i.test(id) || /-\d+[tb]?-thinking/i.test(base);
+  const reasoning = /r1|reasoning|thinking|reason/i.test(id) || /-\d+[tb]?-thinking/i.test(base);
   const name = base.replace(/-/g, " ").replace(/\b(\w)/g, (c) => c.toUpperCase());
   return { name, reasoning };
 }
@@ -150,9 +147,7 @@ function displayNameFromApiEntry(entry: HFModelEntry, inferredName: string): str
  * Discover chat-completion models from Hugging Face Inference Providers (GET /v1/models).
  * Requires a valid HF token. Falls back to static catalog on failure or in test env.
  */
-export async function discoverHuggingfaceModels(
-  apiKey: string,
-): Promise<ModelDefinitionConfig[]> {
+export async function discoverHuggingfaceModels(apiKey: string): Promise<ModelDefinitionConfig[]> {
   if (process.env.VITEST === "true" || process.env.NODE_ENV === "test") {
     return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   }
@@ -186,9 +181,7 @@ export async function discoverHuggingfaceModels(
       return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
     }
 
-    const catalogById = new Map(
-      HUGGINGFACE_MODEL_CATALOG.map((m) => [m.id, m] as const),
-    );
+    const catalogById = new Map(HUGGINGFACE_MODEL_CATALOG.map((m) => [m.id, m] as const));
     const seen = new Set<string>();
     const models: ModelDefinitionConfig[] = [];
 
@@ -207,9 +200,7 @@ export async function discoverHuggingfaceModels(
         const name = displayNameFromApiEntry(entry, inferred.name);
         const modalities = entry.architecture?.input_modalities;
         const input: Array<"text" | "image"> =
-          Array.isArray(modalities) && modalities.includes("image")
-            ? ["text", "image"]
-            : ["text"];
+          Array.isArray(modalities) && modalities.includes("image") ? ["text", "image"] : ["text"];
         const providers = Array.isArray(entry.providers) ? entry.providers : [];
         const providerWithContext = providers.find(
           (p) => typeof p?.context_length === "number" && p.context_length > 0,
@@ -232,9 +223,7 @@ export async function discoverHuggingfaceModels(
       ? models
       : HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   } catch (error) {
-    console.warn(
-      `[huggingface-models] Discovery failed: ${String(error)}, using static catalog`,
-    );
+    console.warn(`[huggingface-models] Discovery failed: ${String(error)}, using static catalog`);
     return HUGGINGFACE_MODEL_CATALOG.map(buildHuggingfaceModelDefinition);
   }
 }

@@ -90,6 +90,7 @@ When you configure a Hugging Face API key (via onboarding or `HF_TOKEN`), OpenCl
   - **`:provider`** — force a specific backend (e.g. `:sambanova`, `:together`).
 
   When you select **:cheapest** or **:fastest** (e.g. in the onboarding model dropdown), the provider is locked: the router decides by cost or speed and no optional “prefer specific backend” step is shown. You can add these as separate entries in `models.providers.huggingface.models` or set `model.primary` with the suffix. You can also set your default order in [Inference Provider settings](https://hf.co/settings/inference-providers) (no suffix = use that order).
+
 - **Config merge:** Existing entries in `models.providers.huggingface.models` (e.g. in `models.json`) are kept when config is merged. So any custom `name`, `alias`, or model options you set there are preserved.
 
 ## Model IDs and configuration examples
@@ -98,18 +99,18 @@ Model refs use the form `huggingface/<org>/<model>` (Hub-style IDs). The list be
 
 **Example IDs (from the inference endpoint):**
 
-| Model | Ref (prefix with `huggingface/`) |
-|-------|----------------------------------|
-| DeepSeek R1 | `deepseek-ai/DeepSeek-R1` |
-| DeepSeek V3.2 | `deepseek-ai/DeepSeek-V3.2` |
-| Qwen3 8B | `Qwen/Qwen3-8B` |
-| Qwen2.5 7B Instruct | `Qwen/Qwen2.5-7B-Instruct` |
-| Qwen3 32B | `Qwen/Qwen3-32B` |
+| Model                  | Ref (prefix with `huggingface/`)    |
+| ---------------------- | ----------------------------------- |
+| DeepSeek R1            | `deepseek-ai/DeepSeek-R1`           |
+| DeepSeek V3.2          | `deepseek-ai/DeepSeek-V3.2`         |
+| Qwen3 8B               | `Qwen/Qwen3-8B`                     |
+| Qwen2.5 7B Instruct    | `Qwen/Qwen2.5-7B-Instruct`          |
+| Qwen3 32B              | `Qwen/Qwen3-32B`                    |
 | Llama 3.3 70B Instruct | `meta-llama/Llama-3.3-70B-Instruct` |
-| Llama 3.1 8B Instruct | `meta-llama/Llama-3.1-8B-Instruct` |
-| GPT-OSS 120B | `openai/gpt-oss-120b` |
-| GLM 4.7 | `zai-org/GLM-4.7` |
-| Kimi K2.5 | `moonshotai/Kimi-K2.5` |
+| Llama 3.1 8B Instruct  | `meta-llama/Llama-3.1-8B-Instruct`  |
+| GPT-OSS 120B           | `openai/gpt-oss-120b`               |
+| GLM 4.7                | `zai-org/GLM-4.7`                   |
+| Kimi K2.5              | `moonshotai/Kimi-K2.5`              |
 
 You can append `:fastest`, `:cheapest`, or `:provider` (e.g. `:together`, `:sambanova`) to the model id. Set your default order in [Inference Provider settings](https://hf.co/settings/inference-providers); see [Inference Providers](https://huggingface.co/docs/inference-providers) and **GET** `https://router.huggingface.co/v1/models` for the full list.
 
