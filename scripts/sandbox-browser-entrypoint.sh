@@ -46,6 +46,12 @@ CHROME_ARGS+=(
   "--no-sandbox"
 )
 
+# Add extra args if provided
+if [[ -n "${OPENCLAW_BROWSER_EXTRA_ARGS:-}" ]]; then
+  read -ra EXTRA_ARGS <<< "${OPENCLAW_BROWSER_EXTRA_ARGS}"
+  CHROME_ARGS+=("${EXTRA_ARGS[@]}")
+fi
+
 chromium "${CHROME_ARGS[@]}" about:blank &
 
 for _ in $(seq 1 50); do
