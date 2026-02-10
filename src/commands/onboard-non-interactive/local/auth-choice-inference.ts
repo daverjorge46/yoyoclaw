@@ -24,6 +24,7 @@ type AuthChoiceFlagOptions = Pick<
   | "xiaomiApiKey"
   | "minimaxApiKey"
   | "opencodeZenApiKey"
+  | "novitaApiKey"
   | "xaiApiKey"
   | "litellmApiKey"
   | "customBaseUrl"
@@ -54,6 +55,7 @@ const AUTH_CHOICE_FLAG_MAP = [
   { flag: "opencodeZenApiKey", authChoice: "opencode-zen", label: "--opencode-zen-api-key" },
   { flag: "huggingfaceApiKey", authChoice: "huggingface-api-key", label: "--huggingface-api-key" },
   { flag: "litellmApiKey", authChoice: "litellm-api-key", label: "--litellm-api-key" },
+  { flag: "novitaApiKey", authChoice: "novita-api-key", label: "--novita-api-key" },
 ] satisfies ReadonlyArray<AuthChoiceFlag>;
 
 export type AuthChoiceInference = {
