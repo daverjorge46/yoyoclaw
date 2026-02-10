@@ -103,7 +103,7 @@ type GrokConfig = {
 };
 
 type GrokSearchResult = {
-  output: GrokOutputWrapper[];
+  output?: GrokOutputWrapper[];
 };
 
 type GrokOutputWrapper = {
