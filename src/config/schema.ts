@@ -1,50 +1,17 @@
 import { CHANNEL_IDS } from "../channels/registry.js";
 import { VERSION } from "../version.js";
-import { LIMITS_FIELD_LABELS, LIMITS_FIELD_HELP } from "./limits.schema.js";
+import { LIMITS_FIELD_LABELS, LIMITS_FIELD_HELP } from "./schema.rate-limits.js";
+import {
+  ConfigSchema,
+  ConfigSchemaResponse,
+  ConfigUiHints,
+  ChannelUiMetadata,
+  PluginUiMetadata,
+  JsonSchemaNode,
+} from "./schema.types.js";
 import { OpenClawSchema } from "./zod-schema.js";
 
-export type ConfigUiHint = {
-  label?: string;
-  help?: string;
-  group?: string;
-  order?: number;
-  advanced?: boolean;
-  sensitive?: boolean;
-  placeholder?: string;
-  itemTemplate?: unknown;
-};
-
-export type ConfigUiHints = Record<string, ConfigUiHint>;
-
-export type ConfigSchema = ReturnType<typeof OpenClawSchema.toJSONSchema>;
-
-type JsonSchemaNode = Record<string, unknown>;
-
-export type ConfigSchemaResponse = {
-  schema: ConfigSchema;
-  uiHints: ConfigUiHints;
-  version: string;
-  generatedAt: string;
-};
-
-export type PluginUiMetadata = {
-  id: string;
-  name?: string;
-  description?: string;
-  configUiHints?: Record<
-    string,
-    Pick<ConfigUiHint, "label" | "help" | "advanced" | "sensitive" | "placeholder">
-  >;
-  configSchema?: JsonSchemaNode;
-};
-
-export type ChannelUiMetadata = {
-  id: string;
-  label?: string;
-  description?: string;
-  configSchema?: JsonSchemaNode;
-  configUiHints?: Record<string, ConfigUiHint>;
-};
+// Types moved to schema.types.ts
 
 const GROUP_LABELS: Record<string, string> = {
   wizard: "Wizard",
@@ -1014,9 +981,9 @@ function applyPluginSchemas(schema: ConfigSchema, plugins: PluginUiMetadata[]): 
     const pluginSchema = asSchemaObject(plugin.configSchema);
     const nextConfigSchema =
       baseConfigSchema &&
-      pluginSchema &&
-      isObjectSchema(baseConfigSchema) &&
-      isObjectSchema(pluginSchema)
+        pluginSchema &&
+        isObjectSchema(baseConfigSchema) &&
+        isObjectSchema(pluginSchema)
         ? mergeObjectSchema(baseConfigSchema, pluginSchema)
         : cloneSchema(plugin.configSchema);
 
