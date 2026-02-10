@@ -38,7 +38,7 @@ export function createTokenEfficientToolsWrapper(streamFn: StreamFn): StreamFn {
       return streamFn(model, context, options);
     }
 
-    const ctx = context as ContextLike;
+    const ctx = context as unknown as ContextLike;
     const hasTools = Array.isArray(ctx.tools) && ctx.tools.length > 0;
 
     if (!hasTools) {
@@ -46,7 +46,10 @@ export function createTokenEfficientToolsWrapper(streamFn: StreamFn): StreamFn {
     }
 
     // Merge beta header with any existing betas
-    const existingBetas = (options as { betas?: string[] } | undefined)?.betas ?? [];
+    const optionsRecord = (options ?? {}) as Record<string, unknown>;
+    const existingBetas = (
+      Array.isArray(optionsRecord.betas) ? optionsRecord.betas : []
+    ) as string[];
     const betas = [...existingBetas, TOKEN_EFFICIENT_TOOLS_BETA];
 
     log.debug("adding token-efficient-tools beta header");
@@ -54,6 +57,6 @@ export function createTokenEfficientToolsWrapper(streamFn: StreamFn): StreamFn {
     return streamFn(model, context, {
       ...options,
       betas,
-    });
+    } as Parameters<StreamFn>[2]);
   };
 }

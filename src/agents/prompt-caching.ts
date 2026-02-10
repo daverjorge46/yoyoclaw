@@ -196,9 +196,12 @@ export function createPromptCachingWrapper(
       return streamFn(model, context, options);
     }
 
-    const modifiedContext = injectCacheBreakpoints(context as ContextLike);
+    const modifiedContext = injectCacheBreakpoints(context as unknown as ContextLike);
 
-    const originalOnMessage = options?.onMessage;
+    const optionsRecord = (options ?? {}) as Record<string, unknown>;
+    const originalOnMessage = optionsRecord.onMessage as
+      | ((msg: Record<string, unknown>) => void)
+      | undefined;
     const wrappedOptions = {
       ...options,
       onMessage: (message: Record<string, unknown>) => {
@@ -218,6 +221,6 @@ export function createPromptCachingWrapper(
       },
     };
 
-    return streamFn(model, modifiedContext, wrappedOptions);
+    return streamFn(model, modifiedContext as unknown as Parameters<StreamFn>[1], wrappedOptions);
   };
 }
