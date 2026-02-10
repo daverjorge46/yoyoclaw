@@ -134,33 +134,29 @@ jobs:
           TARBALL_NAME="openclaw-${VERSION}.tgz"
 
           echo "Creating bundled tarball: $TARBALL_NAME"
+          echo "Bundling node_modules ($(du -sh node_modules 2>/dev/null | cut -f1) total)..."
 
-          # Create a temporary package directory
-          mkdir -p ./package-temp
-
-          # Copy all necessary files
-          cp -r dist ./package-temp/
-          cp -r node_modules ./package-temp/
-          cp -r assets ./package-temp/ 2>/dev/null || true
-          cp -r extensions ./package-temp/
-          cp -r skills ./package-temp/
-          cp -r docs ./package-temp/ 2>/dev/null || true
-          cp package.json ./package-temp/
-          cp openclaw.mjs ./package-temp/
-          cp README.md ./package-temp/ 2>/dev/null || true
-          cp LICENSE ./package-temp/ 2>/dev/null || true
-          cp CHANGELOG.md ./package-temp/ 2>/dev/null || true
-
-          # Create tarball with node_modules included
-          cd package-temp
-          tar -czf "../artifacts/${TARBALL_NAME}" .
-          cd ..
-
-          # Cleanup
-          rm -rf ./package-temp
+          # Create tarball directly without intermediate copy (much faster)
+          tar -czf "./artifacts/${TARBALL_NAME}" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules/.cache' \
+            dist/ \
+            node_modules/ \
+            extensions/ \
+            skills/ \
+            package.json \
+            openclaw.mjs \
+            $(test -d assets && echo "assets/") \
+            $(test -d docs && echo "docs/") \
+            $(test -f README.md && echo "README.md") \
+            $(test -f LICENSE && echo "LICENSE") \
+            $(test -f CHANGELOG.md && echo "CHANGELOG.md") \
+            2>/dev/null || true
 
           echo "Tarball created successfully"
           ls -lh ./artifacts/
+          echo "Tarball size: $(du -h ./artifacts/${TARBALL_NAME} | cut -f1)"
 
       - name: Set artifact name
         id: artifact
