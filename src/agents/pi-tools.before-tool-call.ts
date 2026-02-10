@@ -1,3 +1,4 @@
+import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { AnyAgentTool } from "./tools/common.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
@@ -138,7 +139,7 @@ export function wrapToolWithHooks(tool: AnyAgentTool, ctx?: HookContext): AnyAge
 
       // Execute tool and measure duration
       const startTime = Date.now();
-      let result: unknown;
+      let result: AgentToolResult<unknown>;
       let error: string | undefined;
       try {
         result = await execute(toolCallId, beforeOutcome.params, signal, onUpdate);
@@ -154,7 +155,7 @@ export function wrapToolWithHooks(tool: AnyAgentTool, ctx?: HookContext): AnyAge
           durationMs,
           toolCallId,
           ctx,
-        });
+        }).catch(() => {});
         throw err;
       }
 
@@ -169,7 +170,7 @@ export function wrapToolWithHooks(tool: AnyAgentTool, ctx?: HookContext): AnyAge
         ctx,
       });
 
-      return afterOutcome.modified ? afterOutcome.result : result;
+      return (afterOutcome.modified ? afterOutcome.result : result) as AgentToolResult<unknown>;
     },
   };
 }
