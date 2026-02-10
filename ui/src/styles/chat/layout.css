@@ -386,15 +386,15 @@
   color: var(--text);
 }
 
-.btn--icon.active,
-.btn--icon[aria-pressed="true"] {
+.chat-controls .btn--icon.active,
+.chat-controls .btn--icon[aria-pressed="true"] {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-subtle);
 }
 
-:root[data-theme="light"] .btn--icon.active,
-:root[data-theme="light"] .btn--icon[aria-pressed="true"] {
+:root[data-theme="light"] .chat-controls .btn--icon.active,
+:root[data-theme="light"] .chat-controls .btn--icon[aria-pressed="true"] {
   color: var(--accent);
   border-color: rgba(220, 38, 38, 0.4);
   background: rgba(220, 38, 38, 0.1);
