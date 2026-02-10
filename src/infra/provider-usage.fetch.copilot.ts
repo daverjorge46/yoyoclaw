@@ -1,7 +1,7 @@
 import type { ProviderUsageSnapshot, UsageWindow } from "./provider-usage.types.js";
+import { resolveGitHubCopilotEndpoints } from "../providers/github-copilot-endpoints.js";
 import { fetchJson } from "./provider-usage.fetch.shared.js";
 import { clampPercent, PROVIDER_LABELS } from "./provider-usage.shared.js";
-import { resolveGitHubCopilotEndpoints } from "../providers/github-copilot-endpoints.js";
 
 type CopilotUsageResponse = {
   quota_snapshots?: {

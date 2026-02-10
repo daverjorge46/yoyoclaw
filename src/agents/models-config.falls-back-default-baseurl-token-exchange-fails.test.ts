@@ -67,7 +67,9 @@ describe("models-config", () => {
         };
 
         // Falls back to the default endpoint derived from github.com
-        expect(parsed.providers["github-copilot"]?.baseUrl).toBe("https://api.individual.githubcopilot.com");
+        expect(parsed.providers["github-copilot"]?.baseUrl).toBe(
+          "https://api.individual.githubcopilot.com",
+        );
       } finally {
         process.env.COPILOT_GITHUB_TOKEN = previous;
       }

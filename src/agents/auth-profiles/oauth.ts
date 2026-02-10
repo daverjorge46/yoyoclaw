@@ -188,7 +188,12 @@ export async function resolveApiKeyForProfile(params: {
     ) {
       return null;
     }
-    return { apiKey: token, provider: cred.provider, email: cred.email, enterpriseUrl: cred.enterpriseUrl };
+    return {
+      apiKey: token,
+      provider: cred.provider,
+      email: cred.email,
+      enterpriseUrl: cred.enterpriseUrl,
+    };
   }
   if (Date.now() < cred.expires) {
     return {

@@ -46,9 +46,7 @@ export function resolveGitHubCopilotEndpoints(
   const dotCom = isGitHubDotCom(effectiveHost);
 
   // github.com uses api.github.com; GHE Cloud uses api.{host}
-  const apiBase = dotCom
-    ? "https://api.github.com"
-    : `https://api.${effectiveHost}`;
+  const apiBase = dotCom ? "https://api.github.com" : `https://api.${effectiveHost}`;
 
   return {
     host: effectiveHost,

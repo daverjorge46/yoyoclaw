@@ -1,14 +1,7 @@
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 import { loadJsonFile, saveJsonFile } from "../infra/json-file.js";
-import {
-  resolveGitHubCopilotEndpoints,
-  isGitHubDotCom,
-  type GitHubCopilotEndpoints,
-} from "./github-copilot-endpoints.js";
-
-// Keep for backward compat; callers that don't pass endpoints get github.com.
-const COPILOT_TOKEN_URL = "https://api.github.com/copilot_internal/v2/token";
+import { resolveGitHubCopilotEndpoints, isGitHubDotCom } from "./github-copilot-endpoints.js";
 
 export type CachedCopilotToken = {
   token: string;
@@ -18,13 +11,11 @@ export type CachedCopilotToken = {
   updatedAt: number;
 };
 
-function resolveCopilotTokenCachePath(
-  env: NodeJS.ProcessEnv = process.env,
-  host?: string,
-) {
-  const suffix = host && !isGitHubDotCom(host)
-    ? `github-copilot.${host}.token.json`
-    : "github-copilot.token.json";
+function resolveCopilotTokenCachePath(env: NodeJS.ProcessEnv = process.env, host?: string) {
+  const suffix =
+    host && !isGitHubDotCom(host)
+      ? `github-copilot.${host}.token.json`
+      : "github-copilot.token.json";
   return path.join(resolveStateDir(env), "credentials", suffix);
 }
 
@@ -162,8 +153,7 @@ export async function resolveCopilotApiToken(params: {
   // copilot-proxy.githubusercontent.com) that cannot be hostname-swapped to get
   // the org-specific API base URL (copilot-api.{host}).
   const baseUrl =
-    deriveCopilotApiBaseUrlFromToken(payload.token) ??
-    endpoints.defaultCopilotApiBaseUrl;
+    deriveCopilotApiBaseUrlFromToken(payload.token) ?? endpoints.defaultCopilotApiBaseUrl;
 
   return {
     token: payload.token,

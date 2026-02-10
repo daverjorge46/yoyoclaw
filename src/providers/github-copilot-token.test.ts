@@ -157,9 +157,7 @@ describe("github-copilot token", () => {
   });
 
   it("deriveCopilotApiBaseUrlFromProxyEndpoint transforms copilot-proxy to copilot-api", async () => {
-    const { deriveCopilotApiBaseUrlFromProxyEndpoint } = await import(
-      "./github-copilot-token.js"
-    );
+    const { deriveCopilotApiBaseUrlFromProxyEndpoint } = await import("./github-copilot-token.js");
 
     expect(deriveCopilotApiBaseUrlFromProxyEndpoint("https://copilot-proxy.myorg.ghe.com")).toBe(
       "https://copilot-api.myorg.ghe.com",
