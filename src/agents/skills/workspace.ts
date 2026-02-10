@@ -4,6 +4,7 @@ import {
   type Skill,
 } from "@mariozechner/pi-coding-agent";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "../../config/config.js";
 import type {
@@ -17,6 +18,7 @@ import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { CONFIG_DIR, resolveUserPath } from "../../utils.js";
 import { resolveBundledSkillsDir } from "./bundled-dir.js";
 import { shouldIncludeSkill } from "./config.js";
+import { createFilteredSkillDir } from "./filter-skill-dirs.js";
 import {
   parseFrontmatter,
   resolveOpenClawMetadata,
@@ -150,10 +152,37 @@ function loadSkillEntries(
     dir: managedSkillsDir,
     source: "openclaw-managed",
   });
-  const workspaceSkills = loadSkills({
-    dir: workspaceSkillsDir,
-    source: "openclaw-workspace",
-  });
+  let workspaceSkills: Skill[] = [];
+  const tempDir = path.join(
+    os.tmpdir(),
+    `openclaw-skills-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
+  fs.mkdirSync(tempDir, { recursive: true });
+  try {
+    createFilteredSkillDir(workspaceSkillsDir, tempDir);
+    workspaceSkills = loadSkills({
+      dir: tempDir,
+      source: "openclaw-workspace",
+    });
+    // Remap paths from temp dir back to the original workspace skills dir
+    // so that filePath/baseDir survive temp-dir cleanup.
+    // Use .map() to create new Skill objects instead of mutating originals.
+    workspaceSkills = workspaceSkills.map((skill) => ({
+      ...skill,
+      filePath: skill.filePath.startsWith(tempDir)
+        ? path.join(workspaceSkillsDir, path.relative(tempDir, skill.filePath))
+        : skill.filePath,
+      baseDir: skill.baseDir.startsWith(tempDir)
+        ? path.join(workspaceSkillsDir, path.relative(tempDir, skill.baseDir))
+        : skill.baseDir,
+    }));
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // ignore cleanup failures
+    }
+  }
 
   const merged = new Map<string, Skill>();
   // Precedence: extra < bundled < managed < workspace
