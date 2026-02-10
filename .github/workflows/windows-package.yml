@@ -128,7 +128,8 @@ jobs:
           echo "This resolves all symlinks and creates a standalone package"
 
           # Use pnpm deploy to create a standalone directory with all deps resolved
-          pnpm deploy --prod --filter=openclaw ./deploy-temp
+          # --legacy flag is required for pnpm v10+
+          pnpm deploy --prod --legacy ./deploy-temp
 
           echo "Deploy complete. Creating tarball..."
           mkdir -p ./artifacts
