@@ -107,7 +107,7 @@ export function scheduleFollowupDrain(
               originatingThreadId,
             });
           }
-          continue;
+          // Don't continue here - let the loop continue normally to process other queue modes
         }
 
         const summaryPrompt = buildQueueSummaryPrompt({ state: queue, noun: "message" });
