@@ -6,10 +6,10 @@
  * dashboard rendering or CLI output.
  */
 
+import type { SessionEntry } from "../../config/sessions.js";
 import type { GatewayRequestHandlers } from "./types.js";
 import { listAgentIds } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
-import type { SessionEntry } from "../../config/sessions.js";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
 import { errorShape } from "../protocol/index.js";
 import { listAgentsForGateway, loadCombinedSessionStoreForGateway } from "../session-utils.js";
