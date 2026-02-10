@@ -98,5 +98,3 @@ OpenCray 是一个开源社区项目，我们非常欢迎您的参与！
 
 本项目遵循 [MIT 协议](LICENSE)。
 
----
-*OpenCray 与 OpenClaw 保持上游同步，定期合并核心功能更新。*
