@@ -61,6 +61,7 @@ describe("index manager", () => {
       id: "file-1",
       filename: "test.csv",
       type: "csv",
+      storageFormat: "markdown",
       uploadedAt: Date.now(),
       size: 100,
       expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,

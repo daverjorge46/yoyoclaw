@@ -33,6 +33,7 @@ export async function saveFile(params: {
     id: fileId,
     filename,
     type,
+    storageFormat: "markdown", // Always markdown
     uploadedAt: Date.now(),
     size: buffer.byteLength,
     expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
