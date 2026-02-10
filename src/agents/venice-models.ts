@@ -380,8 +380,8 @@ export async function discoverVeniceModels(): Promise<ModelDefinitionConfig[]> {
       return VENICE_MODEL_CATALOG.map(buildVeniceModelDefinition);
     }
 
-    // Filter out offline models
-    const onlineModels = data.data.filter((m) => !m.model_spec?.offline);
+    // Filter out offline or malformed models
+    const onlineModels = data.data.filter((m) => m.model_spec && !m.model_spec.offline);
 
     // Merge discovered models with catalog metadata
     const catalogById = new Map<string, VeniceCatalogEntry>(
