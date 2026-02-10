@@ -653,7 +653,20 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         .toSorted()
         .pop();
 
-      if (!deletedFile) {
+      // Read metadata from sidecar file
+      const sidecarPath = path.join(sessionsDir, `${sessionId}.metadata.json`);
+      let metadata: Record<string, unknown> | null = null;
+      try {
+        const content = fs.readFileSync(sidecarPath, "utf-8");
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          metadata = parsed as Record<string, unknown>;
+        }
+      } catch {
+        // No sidecar or invalid JSON
+      }
+
+      if (!deletedFile && !metadata) {
         respond(
           false,
           undefined,
@@ -662,7 +675,6 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         return;
       }
 
-      const deletedPath = path.join(sessionsDir, deletedFile);
       const restoredPath = path.join(sessionsDir, `${sessionId}.jsonl`);
 
       // Check if a session with this ID already exists
@@ -678,86 +690,18 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         return;
       }
 
-      // Read only the tail of the file to extract metadata (avoid loading full transcript)
-      const TAIL_SIZE = 8192; // Read last 8KB to find metadata
-      const stat = fs.statSync(deletedPath);
-      const fileSize = stat.size;
-      let metadata: unknown = null;
-      let hasMetadata = false;
-
-      if (fileSize > 0) {
-        const readSize = Math.min(TAIL_SIZE, fileSize);
-        const buffer = Buffer.alloc(readSize);
-        const fd = fs.openSync(deletedPath, "r");
-        try {
-          fs.readSync(fd, buffer, 0, readSize, fileSize - readSize);
-          const tail = buffer.toString("utf-8");
-          const lines = tail.split("\n");
-          // Check last non-empty line for metadata
-          for (let i = lines.length - 1; i >= 0; i--) {
-            const line = lines[i].trim();
-            if (!line) {
-              continue;
-            }
-            try {
-              const parsed = JSON.parse(line);
-              if (parsed.__session_metadata__) {
-                metadata = parsed.__session_metadata__;
-                hasMetadata = true;
-                break;
-              }
-            } catch {
-              // Not JSON or not metadata
-            }
-            break; // Only check the last non-empty line
-          }
-        } finally {
-          fs.closeSync(fd);
-        }
+      // Restore transcript: just rename the archived file back (no mutation needed)
+      if (deletedFile) {
+        const deletedPath = path.join(sessionsDir, deletedFile);
+        fs.renameSync(deletedPath, restoredPath);
       }
 
-      // Copy the deleted file to restored path, removing metadata line if present
-      if (hasMetadata && fileSize > 0) {
-        // Stream copy, excluding the last line
-        const input = fs.createReadStream(deletedPath, { encoding: "utf-8" });
-        const output = fs.createWriteStream(restoredPath, { encoding: "utf-8" });
-        let buffer = "";
-        let lastLine = "";
-
-        await new Promise<void>((resolve, reject) => {
-          input.on("data", (chunk: string) => {
-            buffer += chunk;
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || ""; // Keep incomplete line in buffer
-            for (const line of lines) {
-              if (lastLine) {
-                output.write(lastLine + "\n");
-              }
-              lastLine = line;
-            }
-          });
-          input.on("end", () => {
-            // Don't write the last line (it's the metadata)
-            if (buffer && buffer !== lastLine) {
-              if (lastLine) {
-                output.write(lastLine + "\n");
-              }
-            }
-            output.end();
-          });
-          output.on("finish", resolve);
-          input.on("error", reject);
-          output.on("error", reject);
-        });
-      } else {
-        // No metadata, just copy the file as-is
-        fs.copyFileSync(deletedPath, restoredPath);
-      }
-
-      // Delete ALL archived files for this sessionId to prevent duplicates
+      // Clean up remaining archived transcripts and sidecar
       const allFiles = fs.readdirSync(sessionsDir);
-      const allDeleted = allFiles.filter((f) => f.startsWith(`${sessionId}.jsonl.deleted.`));
-      for (const oldFile of allDeleted) {
+      const toCleanup = allFiles.filter(
+        (f) => f.startsWith(`${sessionId}.jsonl.deleted.`) || f === `${sessionId}.metadata.json`,
+      );
+      for (const oldFile of toCleanup) {
         try {
           fs.unlinkSync(path.join(sessionsDir, oldFile));
         } catch {
@@ -770,9 +714,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
 
       // Determine the correct session key format
       let sessionKey: string;
-      const isValidMetadata = metadata && typeof metadata === "object" && !Array.isArray(metadata);
-      const metadataObj = isValidMetadata ? (metadata as Record<string, unknown>) : null;
-      const isNamedSession = metadataObj && metadataObj.userCreated === true;
+      const isNamedSession = metadata && metadata.userCreated === true;
 
       if (isNamedSession) {
         // Named sessions use agent:agentId:named:sessionId format
@@ -783,10 +725,10 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       }
 
       await updateSessionStore(storePath, (store) => {
-        if (isValidMetadata && metadataObj) {
+        if (metadata) {
           // Restore full metadata
           store[sessionKey] = {
-            ...metadataObj,
+            ...metadata,
             sessionId, // Ensure sessionId is always set
             updatedAt: Date.now(),
             sessionFile: restoredPath,
