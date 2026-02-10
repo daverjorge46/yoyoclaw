@@ -377,6 +377,7 @@ export async function runReplyAgent(params: {
     }
 
     const usage = runResult.meta.agentMeta?.usage;
+    const promptUsage = runResult.meta.agentMeta?.promptUsage ?? usage;
     const modelUsed = runResult.meta.agentMeta?.model ?? fallbackModel ?? defaultModel;
     const providerUsed =
       runResult.meta.agentMeta?.provider ?? fallbackProvider ?? followupRun.run.provider;
@@ -392,7 +393,7 @@ export async function runReplyAgent(params: {
     await persistSessionUsageUpdate({
       storePath,
       sessionKey,
-      usage,
+      usage: promptUsage,
       modelUsed,
       providerUsed,
       contextTokensUsed,

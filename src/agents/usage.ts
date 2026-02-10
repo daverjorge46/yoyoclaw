@@ -128,9 +128,5 @@ export function deriveSessionTotalTokens(params: {
     return undefined;
   }
 
-  const contextTokens = params.contextTokens;
-  if (typeof contextTokens === "number" && Number.isFinite(contextTokens) && contextTokens > 0) {
-    total = Math.min(total, contextTokens);
-  }
   return total;
 }

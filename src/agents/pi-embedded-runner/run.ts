@@ -450,10 +450,9 @@ export async function runEmbeddedPiAgent(
       );
 
       const { aborted, promptError, timedOut, sessionIdUsed, lastAssistant } = attempt;
-      mergeUsageIntoAccumulator(
-        usageAccumulator,
-        attempt.attemptUsage ?? normalizeUsage(lastAssistant?.usage as UsageLike),
-      );
+      const lastAssistantUsage =
+        attempt.lastAssistantUsage ?? normalizeUsage(lastAssistant?.usage as UsageLike);
+      mergeUsageIntoAccumulator(usageAccumulator, attempt.attemptUsage ?? lastAssistantUsage);
       autoCompactionCount += Math.max(0, attempt.compactionCount ?? 0);
       const formattedAssistantErrorText = lastAssistant
         ? formatAssistantErrorText(lastAssistant, {
@@ -804,6 +803,7 @@ export async function runEmbeddedPiAgent(
         provider: lastAssistant?.provider ?? provider,
         model: lastAssistant?.model ?? model.id,
         usage,
+        promptUsage: lastAssistantUsage,
         compactionCount: autoCompactionCount > 0 ? autoCompactionCount : undefined,
       };
 

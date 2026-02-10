@@ -16,7 +16,7 @@ import {
 } from "./pi-embedded-helpers.js";
 import { createEmbeddedPiSessionEventHandler } from "./pi-embedded-subscribe.handlers.js";
 import { formatReasoningMessage } from "./pi-embedded-utils.js";
-import { hasNonzeroUsage, normalizeUsage, type UsageLike } from "./usage.js";
+import { hasNonzeroUsage, normalizeUsage, type NormalizedUsage, type UsageLike } from "./usage.js";
 
 const THINKING_TAG_SCAN_RE = /<\s*(\/?)\s*(?:think(?:ing)?|thought|antthinking)\s*>/gi;
 const FINAL_TAG_SCAN_RE = /<\s*(\/?)\s*final\s*>/gi;
@@ -77,6 +77,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     cacheWrite: 0,
     total: 0,
   };
+  let lastAssistantUsage: NormalizedUsage | undefined;
   let compactionCount = 0;
 
   const assistantTexts = state.assistantTexts;
@@ -236,6 +237,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!hasNonzeroUsage(usage)) {
       return;
     }
+    lastAssistantUsage = usage;
     usageTotals.input += usage.input ?? 0;
     usageTotals.output += usage.output ?? 0;
     usageTotals.cacheRead += usage.cacheRead ?? 0;
@@ -265,6 +267,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       total: usageTotals.total || derivedTotal || undefined,
     };
   };
+  const getLastAssistantUsage = () => (lastAssistantUsage ? { ...lastAssistantUsage } : undefined);
   const incrementCompactionCount = () => {
     compactionCount += 1;
   };
@@ -582,6 +585,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     recordAssistantUsage,
     incrementCompactionCount,
     getUsageTotals,
+    getLastAssistantUsage,
     getCompactionCount: () => compactionCount,
   };
 
@@ -600,6 +604,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     didSendViaMessagingTool: () => messagingToolSentTexts.length > 0,
     getLastToolError: () => (state.lastToolError ? { ...state.lastToolError } : undefined),
     getUsageTotals,
+    getLastAssistantUsage,
     getCompactionCount: () => compactionCount,
     waitForCompactionRetry: () => {
       if (state.compactionInFlight || state.pendingCompactionRetry > 0) {

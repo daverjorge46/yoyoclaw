@@ -107,6 +107,7 @@ export type EmbeddedRunAttemptResult = {
   messagingToolSentTexts: string[];
   messagingToolSentTargets: MessagingToolSend[];
   cloudCodeAssistFormatError: boolean;
+  lastAssistantUsage?: NormalizedUsage;
   attemptUsage?: NormalizedUsage;
   compactionCount?: number;
   /** Client tool call detected (OpenResponses hosted tools). */

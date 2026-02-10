@@ -697,6 +697,7 @@ export async function runEmbeddedAttempt(
         didSendViaMessagingTool,
         getLastToolError,
         getUsageTotals,
+        getLastAssistantUsage,
         getCompactionCount,
       } = subscription;
 
@@ -956,6 +957,7 @@ export async function runEmbeddedAttempt(
         cloudCodeAssistFormatError: Boolean(
           lastAssistant?.errorMessage && isCloudCodeAssistFormatError(lastAssistant.errorMessage),
         ),
+        lastAssistantUsage: getLastAssistantUsage(),
         attemptUsage: getUsageTotals(),
         compactionCount: getCompactionCount(),
         // Client tool call detected (OpenResponses hosted tools)

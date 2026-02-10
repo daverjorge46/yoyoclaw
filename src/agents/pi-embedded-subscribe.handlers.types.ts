@@ -104,6 +104,7 @@ export type EmbeddedPiSubscribeContext = {
   recordAssistantUsage: (usage: unknown) => void;
   incrementCompactionCount: () => void;
   getUsageTotals: () => NormalizedUsage | undefined;
+  getLastAssistantUsage: () => NormalizedUsage | undefined;
   getCompactionCount: () => number;
 };
 
