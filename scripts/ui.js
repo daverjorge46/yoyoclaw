@@ -9,6 +9,13 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..");
 const uiDir = path.join(repoRoot, "ui");
 
+if (!fs.existsSync(uiDir)) {
+  process.stderr.write(
+    "Control UI source directory (ui/) not found. This command is only available in source installs.\n",
+  );
+  process.exit(1);
+}
+
 function usage() {
   // keep this tiny; it's invoked from npm scripts too
   process.stderr.write("Usage: node scripts/ui.js <install|dev|build|test> [...args]\n");
