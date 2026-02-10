@@ -11,6 +11,7 @@ import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
+import { createSafeCallTool } from "./tools/safe-call-tool.js";
 import { createSessionCompactTool } from "./tools/session-compact-tool.js";
 import { createSessionStatusTool } from "./tools/session-status-tool.js";
 import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
@@ -95,7 +96,7 @@ export function createOpenClawTools(options?: {
         sandboxRoot: options?.sandboxRoot,
         requireExplicitTarget: options?.requireExplicitMessageTarget,
       });
-  const tools: AnyAgentTool[] = [
+  const coreTools: AnyAgentTool[] = [
     createBrowserTool({
       sandboxBridgeUrl: options?.sandboxBrowserBridgeUrl,
       allowHostControl: options?.allowHostBrowserControl,
@@ -172,9 +173,15 @@ export function createOpenClawTools(options?: {
       agentAccountId: options?.agentAccountId,
       sandboxed: options?.sandboxed,
     },
-    existingToolNames: new Set(tools.map((tool) => tool.name)),
+    existingToolNames: new Set([...coreTools.map((tool) => tool.name), "safe_call"]),
     toolAllowlist: options?.pluginToolAllowlist,
   });
 
-  return [...tools, ...pluginTools];
+  const wrappedTools = [...coreTools, ...pluginTools];
+  const safeCallTool = createSafeCallTool({
+    resolveTool: (name) =>
+      wrappedTools.find((tool) => tool.name === name && tool.name !== "safe_call"),
+  });
+
+  return [...wrappedTools, safeCallTool];
 }
