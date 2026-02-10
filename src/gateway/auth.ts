@@ -3,7 +3,12 @@ import type { GatewayAuthConfig, GatewayTailscaleMode } from "../config/config.j
 import { safeEqual } from "../infra/safe-equal.js";
 import { readTailscaleWhoisIdentity, type TailscaleWhoisIdentity } from "../infra/tailscale.js";
 import { logWarn } from "../logger.js";
-import { isTrustedProxyAddress, parseForwardedForClientIp, resolveGatewayClientIp } from "./net.js";
+import {
+  isLoopbackAddress,
+  isTrustedProxyAddress,
+  parseForwardedForClientIp,
+  resolveGatewayClientIp,
+} from "./net.js";
 export type ResolvedGatewayAuthMode = "token" | "password";
 
 export type ResolvedGatewayAuth = {
@@ -35,25 +40,6 @@ type TailscaleWhoisLookup = (ip: string) => Promise<TailscaleWhoisIdentity | nul
 
 function normalizeLogin(login: string): string {
   return login.trim().toLowerCase();
-}
-
-function isLoopbackAddress(ip: string | undefined): boolean {
-  if (!ip) {
-    return false;
-  }
-  if (ip === "127.0.0.1") {
-    return true;
-  }
-  if (ip.startsWith("127.")) {
-    return true;
-  }
-  if (ip === "::1") {
-    return true;
-  }
-  if (ip.startsWith("::ffff:127.")) {
-    return true;
-  }
-  return false;
 }
 
 function getHostName(hostHeader?: string): string {
