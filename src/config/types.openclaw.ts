@@ -101,18 +101,17 @@ export type OpenClawConfig = {
   limits?: {
     enabled?: boolean;
     defaults?: {
-      rpm?: number;
       tpm?: number;
       rpd?: number;
-      dailyBudgetUsd?: number;
-      monthlyBudgetUsd?: number;
+      dailyTokenBudget?: number;
+      monthlyTokenBudget?: number;
     };
     providers?: Record<string, {
       rpm?: number;
       tpm?: number;
       rpd?: number;
-      dailyBudgetUsd?: number;
-      monthlyBudgetUsd?: number;
+      dailyTokenBudget?: number;
+      monthlyTokenBudget?: number;
     } | undefined>;
     queue?: { maxSize?: number; timeoutMs?: number };
     budgets?: { warningThresholds?: number[]; hardBlock?: boolean };

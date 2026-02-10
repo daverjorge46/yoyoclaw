@@ -73,11 +73,11 @@ export function registerLimitsCli(program: Command): void {
         .action(async () => {
             try {
                 const { loadConfig } = await import("../config/config.js");
-                const cfg = await loadConfig();
+                const cfg = loadConfig();
                 const limitsConfig = resolveRateLimitsConfig(cfg.limits);
 
                 if (!limitsConfig.enabled) {
-                    console.log("Rate limiting is disabled.");
+                    console.log("Rate limiting is disabled (default).");
                     console.log('Enable with: limits.enabled = true in openclaw.yaml');
                     return;
                 }
@@ -141,7 +141,7 @@ export function registerLimitsCli(program: Command): void {
         .action(async (provider?: string) => {
             try {
                 const { loadConfig } = await import("../config/config.js");
-                const cfg = await loadConfig();
+                const cfg = loadConfig();
                 const limitsConfig = resolveRateLimitsConfig(cfg.limits);
 
                 const runner = getRateLimitedRunner({ config: limitsConfig });

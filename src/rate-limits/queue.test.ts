@@ -13,12 +13,16 @@ describe("RateLimitQueue", () => {
         pendingPromises = [];
     });
 
-    afterEach(() => {
-        // Drain all pending entries before restoring timers to prevent unhandled rejections.
-        queue.drainAll();
+    afterEach(async () => {
+        try {
+            // Drain all pending entries before restoring timers to prevent unhandled rejections.
+            queue.drainAll();
+        } catch {
+            // Ignore drain errors
+        }
         // Suppress unhandled rejections from drained promises.
         for (const p of pendingPromises) {
-            p.catch(() => { });
+            void p.catch(() => { });
         }
         pendingPromises = [];
         vi.restoreAllMocks();

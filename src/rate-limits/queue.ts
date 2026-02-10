@@ -63,7 +63,7 @@ export class RateLimitQueue {
                 reject,
                 enqueuedAt: Date.now(),
             };
-            (queue as QueueEntry<unknown>[]).push(entry as QueueEntry<unknown>);
+            queue.push(entry as QueueEntry<unknown>);
         });
 
         // Schedule a drain attempt when the rate-limit window resets.

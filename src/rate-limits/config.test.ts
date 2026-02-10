@@ -4,7 +4,7 @@ import { resolveRateLimitsConfig } from "./config.js";
 describe("resolveRateLimitsConfig", () => {
     it("returns defaults when no config provided", () => {
         const config = resolveRateLimitsConfig(undefined);
-        expect(config.enabled).toBe(true);
+        expect(config.enabled).toBe(false);
         expect(config.defaults.rpm).toBe(60);
         expect(config.defaults.tpm).toBe(100_000);
         expect(config.defaults.rpd).toBe(0);

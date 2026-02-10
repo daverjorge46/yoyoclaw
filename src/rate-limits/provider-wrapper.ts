@@ -11,7 +11,7 @@
  */
 
 import { retryAsync, type RetryConfig } from "../infra/retry.js";
-import { type NormalizedUsage, normalizeUsage, type UsageLike } from "../agents/usage.js";
+import { normalizeUsage, type UsageLike } from "../agents/usage.js";
 import { BudgetTracker } from "./budget.js";
 import { SlidingWindowLimiter } from "./limiter.js";
 import {
@@ -173,7 +173,7 @@ export class RateLimitedRunner {
                 onRetry: (info) => {
                     logRetryAfter429(scope, info.attempt, info.delayMs);
                     // Accumulate usage from failed attempt if available
-                    const usage = normalizeUsage((info.err as any)?.usage);
+                    const usage = normalizeUsage((info.err as { usage?: unknown })?.usage as UsageLike);
                     if (usage) {
                         accumulatedTokens += usage.total ?? ((usage.input ?? 0) + (usage.output ?? 0));
                     }
@@ -183,9 +183,7 @@ export class RateLimitedRunner {
             // 5. Record usage after successful call.
             const usage = normalizeUsage(result.usage);
             if (usage) {
-                if (usage) {
-                    accumulatedTokens += usage.total ?? ((usage.input ?? 0) + (usage.output ?? 0));
-                }
+                accumulatedTokens += usage.total ?? ((usage.input ?? 0) + (usage.output ?? 0));
             }
 
             if (accumulatedTokens > 0) {
@@ -238,7 +236,9 @@ export class RateLimitedRunner {
         // Discover active limiters (provider:model:type)
         for (const key of this.limiter.keys()) {
             const lastColon = key.lastIndexOf(":");
-            if (lastColon === -1) continue;
+            if (lastColon === -1) {
+                continue;
+            }
             const base = key.substring(0, lastColon); // "provider:model"
 
             const firstColon = base.indexOf(":");

@@ -2,6 +2,8 @@ import type { OpenClawConfig } from "../config/config.js";
 import { resolveRateLimitsConfig } from "../rate-limits/config.js";
 import {
   type CallResult,
+} from "../rate-limits/types.js";
+import {
   getRateLimitedRunner,
 } from "../rate-limits/provider-wrapper.js";
 import type { FailoverReason } from "./pi-embedded-helpers.js";

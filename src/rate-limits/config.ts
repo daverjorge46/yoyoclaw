@@ -31,7 +31,7 @@ export type RawLimitsConfig = {
 };
 
 export function resolveRateLimitsConfig(raw?: RawLimitsConfig): ResolvedLimitsConfig {
-    const enabled = raw?.enabled !== false; // default: true
+    const enabled = raw?.enabled ?? false; // default: false (opt-in)
 
     const defaults: Required<RateLimitProviderConfig> = {
         rpm: positiveOrDefault(raw?.defaults?.rpm, DEFAULT_PROVIDER_LIMITS.rpm),

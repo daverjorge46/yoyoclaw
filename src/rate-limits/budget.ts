@@ -231,8 +231,12 @@ export class BudgetTracker {
                 parsed.firedThresholds = {};
             }
             // Migration: if old struct exists, discard it (backward compat not required)
-            if (!parsed.dailyTokens) parsed.dailyTokens = {};
-            if (!parsed.monthlyTokens) parsed.monthlyTokens = {};
+            if (!parsed.dailyTokens) {
+                parsed.dailyTokens = {};
+            }
+            if (!parsed.monthlyTokens) {
+                parsed.monthlyTokens = {};
+            }
 
             return parsed;
         } catch {

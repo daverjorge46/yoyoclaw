@@ -1,5 +1,5 @@
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { RateLimitedRunner } from "./provider-wrapper.js";
 import { resolveRateLimitsConfig } from "./config.js";
 import type { CallResult, RateLimitScope } from "./types.js";
@@ -16,6 +16,21 @@ describe("RateLimitedRunner - Retries & Usage", () => {
         if (fs.existsSync(TEST_STATE_DIR)) {
             fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
         }
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        runner.flush?.();
+        vi.clearAllTimers();
+        try {
+            if (fs.existsSync(TEST_STATE_DIR)) {
+                fs.rmSync(TEST_STATE_DIR, { recursive: true, force: true });
+            }
+        } catch {
+            // Ignore cleanup errors (e.g. file locks)
+        }
+    });
+    beforeEach(() => {
         const config = resolveRateLimitsConfig({
             enabled: true,
             retry: { attempts: 3, minDelayMs: 1, maxDelayMs: 10, jitter: 0 },
@@ -32,8 +47,10 @@ describe("RateLimitedRunner - Retries & Usage", () => {
             attempts++;
             if (attempts < 3) {
                 const err = new Error("Rate limit 429");
-                (err as any).status = 429; // Trigger retry
-                (err as any).usage = { input: 10, output: 5 }; // 15 tokens per failure
+                Object.assign(err, {
+                    status: 429, // Trigger retry
+                    usage: { input: 10, output: 5 }, // 15 tokens per failure
+                });
                 throw err;
             }
             return {
@@ -57,7 +74,7 @@ describe("RateLimitedRunner - Retries & Usage", () => {
             attempts++;
             if (attempts < 2) {
                 const err = new Error("Rate limit 429");
-                (err as any).status = 429;
+                Object.assign(err, { status: 429 });
                 // No usage on error
                 throw err;
             }

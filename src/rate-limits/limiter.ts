@@ -81,8 +81,7 @@ export class SlidingWindowLimiter {
         ensureWindow(entry);
         const estimate = slidingEstimate(entry);
         if (estimate >= entry.limit) {
-            const elapsed = now() - entry.state.windowStart;
-            const retryAfterMs = Math.max(1, entry.windowMs - elapsed);
+            const retryAfterMs = Math.max(1, entry.windowMs - (now() - entry.state.windowStart));
             return { allowed: false, retryAfterMs };
         }
         entry.state.current += 1;
@@ -114,7 +113,6 @@ export class SlidingWindowLimiter {
             return null;
         }
         ensureWindow(entry);
-        const elapsed = now() - entry.state.windowStart;
         return {
             current: Math.round(slidingEstimate(entry)),
             limit: entry.limit,
