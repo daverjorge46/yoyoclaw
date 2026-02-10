@@ -113,6 +113,8 @@ export type MsgContext = {
   GatewayClientScopes?: string[];
   /** Thread identifier (Telegram topic id or Matrix thread event id). */
   MessageThreadId?: string | number;
+  /** True when the message was received from an existing thread (not a thread starter). */
+  IsInThread?: boolean;
   /** Telegram forum supergroup marker. */
   IsForum?: boolean;
   /**

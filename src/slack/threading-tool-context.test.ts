@@ -108,4 +108,22 @@ describe("buildSlackThreadingToolContext", () => {
     });
     expect(result.replyToMode).toBe("off");
   });
+
+  it("passes through isInThread from context", () => {
+    const result = buildSlackThreadingToolContext({
+      cfg: emptyCfg,
+      accountId: null,
+      context: { ChatType: "channel", IsInThread: true },
+    });
+    expect(result.isInThread).toBe(true);
+  });
+
+  it("isInThread is undefined when not set in context", () => {
+    const result = buildSlackThreadingToolContext({
+      cfg: emptyCfg,
+      accountId: null,
+      context: { ChatType: "channel" },
+    });
+    expect(result.isInThread).toBeUndefined();
+  });
 });

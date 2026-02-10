@@ -236,6 +236,8 @@ export type ChannelThreadingContext = {
   ReplyToIdFull?: string;
   ThreadLabel?: string;
   MessageThreadId?: string | number;
+  /** True when the original message was from an existing thread. */
+  IsInThread?: boolean;
 };
 
 export type ChannelThreadingToolContext = {
@@ -250,6 +252,12 @@ export type ChannelThreadingToolContext = {
    * not forwarding/relaying a message from another conversation.
    */
   skipCrossContextDecoration?: boolean;
+  /**
+   * When true, the original message was from an existing thread (not just a potential
+   * thread starter). Auto-threading should respect this regardless of replyToMode,
+   * since replying in the same thread is expected behavior.
+   */
+  isInThread?: boolean;
 };
 
 export type ChannelMessagingAdapter = {

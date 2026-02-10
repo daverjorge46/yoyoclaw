@@ -34,13 +34,16 @@ export type SlackActionContext = {
   replyToMode?: "off" | "first" | "all";
   /** Mutable ref to track if a reply was sent (for "first" mode). */
   hasRepliedRef?: { value: boolean };
+  /** When true, the original message was from an existing thread. */
+  isInThread?: boolean;
 };
 
 /**
  * Resolve threadTs for a Slack message based on context and replyToMode.
+ * - When isInThread is true: always inject threadTs (respects existing thread context)
  * - "all": always inject threadTs
  * - "first": inject only for first message (updates hasRepliedRef)
- * - "off": never auto-inject
+ * - "off": never auto-inject for top-level messages
  */
 function resolveThreadTsFromContext(
   explicitThreadTs: string | undefined,
@@ -67,7 +70,13 @@ function resolveThreadTsFromContext(
     return undefined;
   }
 
-  // Check replyToMode
+  // When the original message was from an existing thread, always reply to that thread
+  // regardless of replyToMode. This ensures natural conversation flow within threads.
+  if (context.isInThread) {
+    return context.currentThreadTs;
+  }
+
+  // For top-level messages, respect replyToMode configuration.
   if (context.replyToMode === "all") {
     return context.currentThreadTs;
   }

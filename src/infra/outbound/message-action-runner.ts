@@ -228,15 +228,20 @@ function resolveSlackAutoThreadId(params: {
   if (!context?.currentThreadTs || !context.currentChannelId) {
     return undefined;
   }
-  // Only mirror auto-threading when Slack would reply in the active thread for this channel.
-  if (context.replyToMode !== "all" && context.replyToMode !== "first") {
-    return undefined;
-  }
   const parsedTarget = parseSlackTarget(params.to, { defaultKind: "channel" });
   if (!parsedTarget || parsedTarget.kind !== "channel") {
     return undefined;
   }
   if (parsedTarget.id.toLowerCase() !== context.currentChannelId.toLowerCase()) {
+    return undefined;
+  }
+  // When the original message was from an existing thread, always reply to that thread
+  // regardless of replyToMode. This ensures natural conversation flow within threads.
+  if (context.isInThread) {
+    return context.currentThreadTs;
+  }
+  // For top-level messages, respect replyToMode configuration.
+  if (context.replyToMode !== "all" && context.replyToMode !== "first") {
     return undefined;
   }
   if (context.replyToMode === "first" && context.hasRepliedRef?.value) {

@@ -585,6 +585,9 @@ export async function prepareSlackMessage(params: {
     ReplyToId: threadContext.replyToId,
     // Preserve thread context for routed tool notifications.
     MessageThreadId: threadContext.messageThreadId,
+    // Mark as in-thread when the message was a reply within an existing thread.
+    // This ensures tool-initiated messages stay in the thread regardless of replyToMode.
+    IsInThread: threadContext.isThreadReply,
     ParentSessionKey: threadKeys.parentSessionKey,
     ThreadStarterBody: threadStarterBody,
     ThreadHistoryBody: threadHistoryBody,

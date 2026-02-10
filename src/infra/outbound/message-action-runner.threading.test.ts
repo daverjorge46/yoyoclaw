@@ -239,4 +239,60 @@ describe("runMessageAction threading auto-injection", () => {
     };
     expect(call?.ctx?.params?.threadId).toBe("999");
   });
+
+  it("uses thread context when isInThread is true even with replyToMode=off", async () => {
+    mocks.executeSendAction.mockResolvedValue({
+      handledBy: "plugin",
+      payload: {},
+    });
+
+    await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "slack",
+        target: "channel:C123",
+        message: "hi",
+      },
+      toolContext: {
+        currentChannelId: "C123",
+        currentThreadTs: "555.666",
+        replyToMode: "off",
+        isInThread: true,
+      },
+      agentId: "main",
+    });
+
+    const call = mocks.executeSendAction.mock.calls[0]?.[0];
+    // Should use thread context because isInThread=true, despite replyToMode=off
+    expect(call?.ctx?.mirror?.sessionKey).toBe("agent:main:slack:channel:c123:thread:555.666");
+  });
+
+  it("skips auto-threading when isInThread is false and replyToMode=off", async () => {
+    mocks.executeSendAction.mockResolvedValue({
+      handledBy: "plugin",
+      payload: {},
+    });
+
+    await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "slack",
+        target: "channel:C123",
+        message: "hi",
+      },
+      toolContext: {
+        currentChannelId: "C123",
+        currentThreadTs: "555.666",
+        replyToMode: "off",
+        isInThread: false,
+      },
+      agentId: "main",
+    });
+
+    const call = mocks.executeSendAction.mock.calls[0]?.[0];
+    // Should NOT use thread context because replyToMode=off and not in a thread
+    expect(call?.ctx?.mirror?.sessionKey).toBe("agent:main:slack:channel:c123");
+  });
 });
