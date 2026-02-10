@@ -206,6 +206,25 @@ export async function monitorWebChannel(
         _lastInboundMsg = msg;
         await onMessage(msg);
       },
+      onReaction: async (reaction) => {
+        // Surface reaction events to the agent session
+        const reactionRoute = resolveAgentRoute({
+          cfg,
+          channel: "whatsapp",
+          accountId: account.accountId,
+        });
+        const reactor = reaction.reactorE164 ?? reaction.reactorJid ?? "unknown";
+        const targetMsgShort = reaction.targetMessageId?.slice(0, 12) ?? "?";
+        const eventText =
+          reaction.action === "add"
+            ? `[Reaction] ${reaction.emoji} from ${reactor} on message ${targetMsgShort}`
+            : `[Reaction removed] from ${reactor} on message ${targetMsgShort}`;
+        enqueueSystemEvent(eventText, {
+          sessionKey: reactionRoute.sessionKey,
+        });
+        status.lastEventAt = Date.now();
+        emitStatus();
+      },
     });
 
     status.connected = true;
