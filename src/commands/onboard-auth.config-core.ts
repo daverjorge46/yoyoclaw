@@ -471,7 +471,7 @@ export function applyEternalAIProviderConfig(cfg: OpenClawConfig): OpenClawConfi
   const models = { ...cfg.agents?.defaults?.models };
   models[ETERNALAI_DEFAULT_MODEL_REF] = {
     ...models[ETERNALAI_DEFAULT_MODEL_REF],
-    alias: models[ETERNALAI_DEFAULT_MODEL_REF]?.alias ?? "Llama 3.3 70B",
+    alias: models[ETERNALAI_DEFAULT_MODEL_REF]?.alias ?? "glm-4.7-flash",
   };
 
   const providers = { ...cfg.models?.providers };
