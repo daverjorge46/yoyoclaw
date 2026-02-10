@@ -14,8 +14,9 @@ export async function saveFile(params: {
   type: SessionFileType;
   buffer: Buffer;
   filesDir?: string; // For testing
+  retentionDays?: number; // File retention period in days (default: 7)
 }): Promise<string> {
-  const { sessionId, agentId, filename, type, buffer, filesDir } = params;
+  const { sessionId, agentId, filename, type, buffer, filesDir, retentionDays = 7 } = params;
   const baseDir = filesDir ?? resolveSessionFilesDir(sessionId, agentId);
   const indexPath = path.join(baseDir, "index.json");
 
@@ -36,7 +37,7 @@ export async function saveFile(params: {
     storageFormat: "markdown", // Always markdown
     uploadedAt: Date.now(),
     size: buffer.byteLength,
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+    expiresAt: Date.now() + retentionDays * 24 * 60 * 60 * 1000,
   };
 
   // Parse CSV if needed

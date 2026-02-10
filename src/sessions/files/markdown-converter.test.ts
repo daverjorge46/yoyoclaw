@@ -41,8 +41,8 @@ describe("csvToMarkdownTable", () => {
   it("handles CSV with only headers", () => {
     const csv = "id,name,price";
     const result = csvToMarkdownTable(csv);
-    // Library format includes trailing spaces
-    expect(result).toBe("| id | name | price | \n|----|------|-------|");
+    // CSV with only headers (no data rows, no newline) should return empty string
+    expect(result).toBe("");
   });
 });
 
@@ -135,7 +135,7 @@ describe("convertToMarkdown", () => {
     const buffer = Buffer.from("invalid PDF content", "utf-8");
     const result = await convertToMarkdown(buffer, "pdf", "test.pdf");
     expect(typeof result).toBe("string");
-    // Should return error message for invalid PDF
-    expect(result).toContain("PDF extraction failed");
+    // Should return empty string for invalid PDF (error is logged, not returned)
+    expect(result).toBe("");
   });
 });

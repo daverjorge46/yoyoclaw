@@ -119,6 +119,7 @@ export async function persistSessionFiles(params: {
         type: fileType,
         buffer,
         filesDir: params.filesDir,
+        retentionDays: cfg.session?.files?.retentionDays,
       });
 
       if (shouldLogVerbose()) {
@@ -211,6 +212,7 @@ export async function persistSessionFilesFromCache(params: {
         filename,
         type: fileType,
         buffer: bufferResult.buffer,
+        retentionDays: cfg.session?.files?.retentionDays,
       });
 
       if (shouldLogVerbose()) {

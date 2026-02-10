@@ -1,10 +1,13 @@
 import csvToMarkdown from "csv-to-markdown-table";
 import type { InputFileLimits } from "../../media/input-files.js";
+import { logVerbose, shouldLogVerbose } from "../../globals.js";
 import { extractPdfContent } from "../../media/input-files.js";
 
 export function csvToMarkdownTable(csv: string): string {
-  if (!csv.trim()) {
-    return "";
+  const trimmed = csv.trim();
+  // Validate: CSV must have content and at least one newline (header + data row)
+  if (!trimmed || !trimmed.includes("\n")) {
+    return ""; // Empty or single line CSV (no data rows)
   }
 
   // Use csv-to-markdown-table library
@@ -106,9 +109,12 @@ export async function convertToMarkdown(
         const pdfText = extracted.text || "";
         return pdfToMarkdown(pdfText, false);
       } catch (err) {
-        // If PDF extraction fails, return empty string or error message
+        // If PDF extraction fails, log error and return empty string
         // This can happen with invalid PDFs or missing dependencies
-        return `PDF extraction failed: ${String(err)}`;
+        if (shouldLogVerbose()) {
+          logVerbose(`PDF extraction failed for ${_filename}: ${String(err)}`);
+        }
+        return ""; // Return empty string instead of error message to avoid confusing users
       }
     }
     default: {
