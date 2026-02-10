@@ -1,5 +1,19 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it, vi } from "vitest";
+
+// Use vi.hoisted so the mock variable is available when the hoisted vi.mock factory runs.
+const { mockGenerateSummary } = vi.hoisted(() => ({
+  mockGenerateSummary: vi.fn(),
+}));
+
+vi.mock("@mariozechner/pi-coding-agent", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@mariozechner/pi-coding-agent")>();
+  return {
+    ...actual,
+    generateSummary: mockGenerateSummary,
+  };
+});
+
 import {
   chunkMessagesByMaxTokens,
   estimateMessagesTokens,
@@ -152,20 +166,22 @@ describe("pruneHistoryForContextShare", () => {
 
 describe("chunkMessagesByMaxTokens", () => {
   it("splits messages into chunks that fit within token limit", () => {
+    // Each message: 40000 chars → 10000 tokens. 4 messages → 40000 tokens total.
+    // With maxChunkTokens=15000, should split into multiple chunks.
     const messages: AgentMessage[] = [
-      makeMessage(1, 4000),
-      makeMessage(2, 4000),
-      makeMessage(3, 4000),
-      makeMessage(4, 4000),
+      makeMessage(1, 40000),
+      makeMessage(2, 40000),
+      makeMessage(3, 40000),
+      makeMessage(4, 40000),
     ];
 
-    const chunks = chunkMessagesByMaxTokens(messages, 8000);
+    const chunks = chunkMessagesByMaxTokens(messages, 15000);
     expect(chunks.length).toBeGreaterThan(1);
 
     for (const chunk of chunks) {
       const tokens = estimateMessagesTokens(chunk);
       // Allow some wiggle room for estimation
-      expect(tokens).toBeLessThanOrEqual(12000);
+      expect(tokens).toBeLessThanOrEqual(20000);
     }
 
     expect(chunks.flat().length).toBe(messages.length);
@@ -196,13 +212,16 @@ describe("chunkMessagesByMaxTokens", () => {
 
 describe("isOversizedForSummary", () => {
   it("identifies messages exceeding 50% of context window", () => {
-    const largeMsg = makeMessage(1, 60000);
+    // estimateTokens uses chars/4, then SAFETY_MARGIN (1.2x) is applied.
+    // For 200000 chars: 200000/4 * 1.2 = 60000 tokens > 100000 * 0.5 = 50000
+    const largeMsg = makeMessage(1, 200000);
     const contextWindow = 100000;
 
     expect(isOversizedForSummary(largeMsg, contextWindow)).toBe(true);
   });
 
   it("allows messages under 50% of context window", () => {
+    // For 20000 chars: 20000/4 * 1.2 = 6000 tokens < 100000 * 0.5 = 50000
     const smallMsg = makeMessage(1, 20000);
     const contextWindow = 100000;
 
@@ -218,18 +237,7 @@ describe("summarizeWithFallback", () => {
     ];
 
     const mockModel = { contextWindow: 100000 };
-    const mockGenerateSummary = vi.fn().mockRejectedValue(new Error("Context overflow"));
-
-    // Mock the generateSummary function
-    vi.mock("@mariozechner/pi-coding-agent", () => ({
-      generateSummary: mockGenerateSummary,
-      estimateTokens: (msg: AgentMessage) => {
-        if (typeof msg.content === "string") {
-          return msg.content.length / 4;
-        }
-        return 0;
-      },
-    }));
+    mockGenerateSummary.mockRejectedValue(new Error("Context overflow"));
 
     const result = await summarizeWithFallback({
       messages,
@@ -256,17 +264,7 @@ describe("summarizeWithFallback", () => {
     ];
 
     const mockModel = { contextWindow: 100000 };
-    const mockGenerateSummary = vi.fn().mockRejectedValue(new Error("Context overflow"));
-
-    vi.mock("@mariozechner/pi-coding-agent", () => ({
-      generateSummary: mockGenerateSummary,
-      estimateTokens: (msg: AgentMessage) => {
-        if (typeof msg.content === "string") {
-          return msg.content.length / 4;
-        }
-        return 0;
-      },
-    }));
+    mockGenerateSummary.mockRejectedValue(new Error("Context overflow"));
 
     const result = await summarizeWithFallback({
       messages,
