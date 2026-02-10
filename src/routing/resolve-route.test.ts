@@ -471,6 +471,40 @@ describe("discord role mention routing", () => {
     expect(route.matchedBy).toBe("binding.peer");
   });
 
+  test("parent peer binding still wins over role mention", () => {
+    const cfg: OpenClawConfig = {
+      bindings: [
+        {
+          agentId: "storm",
+          match: {
+            channel: "discord",
+            peer: { kind: "channel", id: "storm-chat" },
+          },
+        },
+        {
+          agentId: "guild-fallback",
+          match: {
+            channel: "discord",
+            guildId: "g1",
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "discord",
+      guildId: "g1",
+      peer: { kind: "channel", id: "thread-1" },
+      parentPeer: { kind: "channel", id: "storm-chat" },
+      mentionedRoleIds: ["r-hunter"],
+      roleBindings: {
+        "r-hunter": "hunter",
+      },
+    });
+    expect(route.agentId).toBe("storm");
+    expect(route.matchedBy).toBe("binding.peer.parent");
+  });
+
   test("role mention wins over guild fallback when peer is not bound", () => {
     const cfg: OpenClawConfig = {
       bindings: [
