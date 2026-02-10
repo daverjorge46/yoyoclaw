@@ -12,6 +12,8 @@ export type GatewayContainerOptions = {
   gatewayPort: number;
   /** Port the relay listens on inside the internal network */
   proxyPort: number;
+  /** Port the host proxy is listening on (defaults to proxyPort if not set) */
+  hostProxyPort?: number;
   /** Unix socket path to the host proxy (Linux/macOS). Mutually exclusive with TCP mode. */
   proxySocketPath?: string;
   env?: Record<string, string | undefined>;
@@ -61,7 +63,11 @@ async function removeSecureNetwork(): Promise<void> {
  *   socat TCP-LISTEN → TCP:host.docker.internal:port
  *   Proxy is on 127.0.0.1, reachable only via Docker Desktop's host gateway.
  */
-async function startRelayContainer(proxyPort: number, proxySocketPath?: string): Promise<void> {
+async function startRelayContainer(
+  proxyPort: number,
+  hostProxyPort: number,
+  proxySocketPath?: string,
+): Promise<void> {
   // Remove any existing relay
   try {
     await execDocker(["rm", "-f", RELAY_CONTAINER_NAME], { allowFailure: true });
@@ -94,7 +100,7 @@ async function startRelayContainer(proxyPort: number, proxySocketPath?: string):
       "--add-host", "host.docker.internal:host-gateway",
       SOCAT_IMAGE,
       `TCP-LISTEN:${proxyPort},fork,reuseaddr`,
-      `TCP:host.docker.internal:${proxyPort}`,
+      `TCP:host.docker.internal:${hostProxyPort}`,
     );
   }
 
@@ -108,7 +114,7 @@ async function startRelayContainer(proxyPort: number, proxySocketPath?: string):
     await execDocker(["network", "disconnect", "bridge", RELAY_CONTAINER_NAME]);
   }
 
-  const mode = proxySocketPath ? `socket:${proxySocketPath}` : `tcp:host.docker.internal:${proxyPort}`;
+  const mode = proxySocketPath ? `socket:${proxySocketPath}` : `tcp:host.docker.internal:${hostProxyPort}`;
   logger.info(`Relay container started: ${RELAY_CONTAINER_NAME} (${mode} → port ${proxyPort})`);
 }
 
@@ -142,7 +148,7 @@ export async function startGatewayContainer(opts: GatewayContainerOptions): Prom
 
   // Set up network isolation: internal network + relay
   await ensureSecureNetwork();
-  await startRelayContainer(opts.proxyPort, opts.proxySocketPath);
+  await startRelayContainer(opts.proxyPort, opts.hostProxyPort ?? opts.proxyPort, opts.proxySocketPath);
 
   const filteredEnv = filterSecretEnv(opts.env || process.env);
 
