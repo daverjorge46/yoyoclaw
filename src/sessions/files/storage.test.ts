@@ -29,9 +29,9 @@ describe("file storage", () => {
     });
     expect(fileId).toBeTruthy();
     const file = await getFile({ sessionId, agentId, fileId, filesDir: testDir });
-    // File is now saved as markdown (wrapped in code block for plain text)
+    // File is now saved as raw content (not wrapped in code block)
     const content = file.buffer.toString();
-    expect(content).toContain("test content");
+    expect(content).toBe("test content"); // Raw content, not wrapped
   });
 
   it("saves file with storageFormat markdown", async () => {
@@ -181,9 +181,9 @@ describe("file storage", () => {
         .catch(() => false);
       expect(rawExists).toBe(false);
 
-      // Content should be markdown table
+      // Content should be raw CSV (not markdown table)
       const mdContent = await fs.readFile(mdPath, "utf-8");
-      expect(mdContent).toContain("| id | name |");
+      expect(mdContent).toBe("id,name\n1,Test"); // Raw CSV content
     });
 
     it("saves JSON file as .md", async () => {
@@ -199,8 +199,7 @@ describe("file storage", () => {
 
       const mdPath = path.join(testDir, `${fileId}-test.json.md`);
       const mdContent = await fs.readFile(mdPath, "utf-8");
-      expect(mdContent).toContain("```json");
-      expect(mdContent).toContain('"key": "value"');
+      expect(mdContent).toBe('{"key":"value"}'); // Raw JSON content
     });
 
     it("saves text file as .md", async () => {
@@ -216,8 +215,7 @@ describe("file storage", () => {
 
       const mdPath = path.join(testDir, `${fileId}-test.txt.md`);
       const mdContent = await fs.readFile(mdPath, "utf-8");
-      expect(mdContent).toContain("```");
-      expect(mdContent).toContain("Plain text content");
+      expect(mdContent).toBe("Plain text content"); // Raw text content
     });
   });
 });
