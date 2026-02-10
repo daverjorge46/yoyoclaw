@@ -386,6 +386,21 @@
   color: var(--text);
 }
 
+.btn--icon.active,
+.btn--icon[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+:root[data-theme="light"] .btn--icon.active,
+:root[data-theme="light"] .btn--icon[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: rgba(220, 38, 38, 0.4);
+  background: rgba(220, 38, 38, 0.1);
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12);
+}
+
 .btn--icon svg {
   display: block;
   width: 18px;
