@@ -1,5 +1,6 @@
 import type { IncomingMessage } from "node:http";
 import { timingSafeEqual } from "node:crypto";
+import { AuthRateLimiter } from "./auth-rate-limiter.js";
 import type { GatewayAuthConfig, GatewayTailscaleMode } from "../config/config.js";
 import { readTailscaleWhoisIdentity, type TailscaleWhoisIdentity } from "../infra/tailscale.js";
 import {
@@ -221,6 +222,12 @@ export function assertGatewayAuthConfigured(auth: ResolvedGatewayAuth): void {
   }
 }
 
+/** Shared rate limiter for gateway authentication attempts. */
+const authRateLimiter = new AuthRateLimiter();
+
+/** Expose for testing. */
+export { authRateLimiter as _authRateLimiter };
+
 export async function authorizeGatewayConnect(params: {
   auth: ResolvedGatewayAuth;
   connectAuth?: ConnectAuth | null;
@@ -231,6 +238,15 @@ export async function authorizeGatewayConnect(params: {
   const { auth, connectAuth, req, trustedProxies } = params;
   const tailscaleWhois = params.tailscaleWhois ?? readTailscaleWhoisIdentity;
   const localDirect = isLocalDirectRequest(req, trustedProxies);
+
+  // Rate-limit authentication attempts per client IP (skip for local direct requests).
+  if (!localDirect) {
+    const clientIp = resolveRequestClientIp(req, trustedProxies) ?? "unknown";
+    const allowed = authRateLimiter.check(clientIp);
+    if (!allowed) {
+      return { ok: false, reason: "rate_limited" };
+    }
+  }
 
   if (auth.allowTailscale && !localDirect) {
     const tailscaleCheck = await resolveVerifiedTailscaleUser({
@@ -254,6 +270,10 @@ export async function authorizeGatewayConnect(params: {
       return { ok: false, reason: "token_missing" };
     }
     if (!safeEqual(connectAuth.token, auth.token)) {
+      if (!localDirect) {
+        const clientIp = resolveRequestClientIp(req, trustedProxies) ?? "unknown";
+        authRateLimiter.recordFailure(clientIp);
+      }
       return { ok: false, reason: "token_mismatch" };
     }
     return { ok: true, method: "token" };
@@ -268,6 +288,10 @@ export async function authorizeGatewayConnect(params: {
       return { ok: false, reason: "password_missing" };
     }
     if (!safeEqual(password, auth.password)) {
+      if (!localDirect) {
+        const clientIp = resolveRequestClientIp(req, trustedProxies) ?? "unknown";
+        authRateLimiter.recordFailure(clientIp);
+      }
       return { ok: false, reason: "password_mismatch" };
     }
     return { ok: true, method: "password" };
