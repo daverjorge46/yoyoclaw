@@ -5,6 +5,7 @@ import type { DiscordChannelConfigResolved } from "./allow-list.js";
 import type { DiscordMessageEvent } from "./listeners.js";
 import { createReplyReferencePlanner } from "../../auto-reply/reply/reply-reference.js";
 import { logVerbose } from "../../globals.js";
+import { createLruCache } from "../../infra/dedupe.js";
 import { buildAgentSessionKey } from "../../routing/resolve-route.js";
 import { truncateUtf16Safe } from "../../utils.js";
 import { resolveDiscordChannelInfo } from "./message-utils.js";
@@ -29,7 +30,11 @@ type DiscordThreadParentInfo = {
   type?: ChannelType;
 };
 
-const DISCORD_THREAD_STARTER_CACHE = new Map<string, DiscordThreadStarter>();
+// LRU cache with 10-minute TTL for thread starters (prevents unbounded growth)
+const DISCORD_THREAD_STARTER_CACHE = createLruCache<DiscordThreadStarter>({
+  maxSize: 1000,
+  ttlMs: 10 * 60 * 1000,
+});
 
 export function __resetDiscordThreadStarterCacheForTest() {
   DISCORD_THREAD_STARTER_CACHE.clear();

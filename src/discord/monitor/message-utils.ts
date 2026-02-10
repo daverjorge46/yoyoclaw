@@ -1,6 +1,7 @@
 import type { ChannelType, Client, Message } from "@buape/carbon";
 import type { APIAttachment } from "discord-api-types/v10";
 import { logVerbose } from "../../globals.js";
+import { createLruCache } from "../../infra/dedupe.js";
 import { fetchRemoteMedia } from "../../media/fetch.js";
 import { saveMediaBuffer } from "../../media/store.js";
 
@@ -37,12 +38,11 @@ type DiscordMessageSnapshot = {
   message?: DiscordSnapshotMessage | null;
 };
 
-const DISCORD_CHANNEL_INFO_CACHE_TTL_MS = 5 * 60 * 1000;
-const DISCORD_CHANNEL_INFO_NEGATIVE_CACHE_TTL_MS = 30 * 1000;
-const DISCORD_CHANNEL_INFO_CACHE = new Map<
-  string,
-  { value: DiscordChannelInfo | null; expiresAt: number }
->();
+// LRU cache with 5-minute TTL for channel info (prevents unbounded growth)
+const DISCORD_CHANNEL_INFO_CACHE = createLruCache<DiscordChannelInfo | null>({
+  maxSize: 500,
+  ttlMs: 5 * 60 * 1000,
+});
 
 export function __resetDiscordChannelInfoCacheForTest() {
   DISCORD_CHANNEL_INFO_CACHE.clear();
@@ -53,19 +53,13 @@ export async function resolveDiscordChannelInfo(
   channelId: string,
 ): Promise<DiscordChannelInfo | null> {
   const cached = DISCORD_CHANNEL_INFO_CACHE.get(channelId);
-  if (cached) {
-    if (cached.expiresAt > Date.now()) {
-      return cached.value;
-    }
-    DISCORD_CHANNEL_INFO_CACHE.delete(channelId);
+  if (cached !== undefined) {
+    return cached;
   }
   try {
     const channel = await client.fetchChannel(channelId);
     if (!channel) {
-      DISCORD_CHANNEL_INFO_CACHE.set(channelId, {
-        value: null,
-        expiresAt: Date.now() + DISCORD_CHANNEL_INFO_NEGATIVE_CACHE_TTL_MS,
-      });
+      DISCORD_CHANNEL_INFO_CACHE.set(channelId, null);
       return null;
     }
     const name = "name" in channel ? (channel.name ?? undefined) : undefined;
@@ -79,17 +73,11 @@ export async function resolveDiscordChannelInfo(
       parentId,
       ownerId,
     };
-    DISCORD_CHANNEL_INFO_CACHE.set(channelId, {
-      value: payload,
-      expiresAt: Date.now() + DISCORD_CHANNEL_INFO_CACHE_TTL_MS,
-    });
+    DISCORD_CHANNEL_INFO_CACHE.set(channelId, payload);
     return payload;
   } catch (err) {
     logVerbose(`discord: failed to fetch channel ${channelId}: ${String(err)}`);
-    DISCORD_CHANNEL_INFO_CACHE.set(channelId, {
-      value: null,
-      expiresAt: Date.now() + DISCORD_CHANNEL_INFO_NEGATIVE_CACHE_TTL_MS,
-    });
+    DISCORD_CHANNEL_INFO_CACHE.set(channelId, null);
     return null;
   }
 }

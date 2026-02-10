@@ -359,12 +359,9 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
 
   try {
     if (slackMode === "socket") {
-      // Monitor socket connection health
-      app.receiver?.on?.("error", (err: Error) => {
-        runtime.error?.(`slack socket error: ${err.message}`);
-      });
-      app.receiver?.on?.("close", () => {
-        runtime.log?.("slack socket closed, will auto-reconnect");
+      // Monitor socket connection health via app error handler
+      app.error(async (error) => {
+        runtime.error?.(`slack error: ${error.error?.message ?? String(error)}`);
       });
 
       await app.start();

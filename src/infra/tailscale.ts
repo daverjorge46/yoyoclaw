@@ -6,6 +6,7 @@ import { runExec } from "../process/exec.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
 import { colorize, isRich, theme } from "../terminal/theme.js";
 import { ensureBinary } from "./binaries.js";
+import { createLruCache } from "./dedupe.js";
 
 function parsePossiblyNoisyJsonObject(stdout: string): Record<string, unknown> {
   const trimmed = stdout.trim();
@@ -232,12 +233,11 @@ export type TailscaleWhoisIdentity = {
   name?: string;
 };
 
-type TailscaleWhoisCacheEntry = {
-  value: TailscaleWhoisIdentity | null;
-  expiresAt: number;
-};
-
-const whoisCache = new Map<string, TailscaleWhoisCacheEntry>();
+// LRU cache with 1-minute default TTL for Tailscale whois lookups
+const whoisCache = createLruCache<TailscaleWhoisIdentity | null>({
+  maxSize: 500,
+  ttlMs: 60_000,
+});
 
 function extractExecErrorText(err: unknown) {
   const errOutput = err as ExecErrorDetails;
@@ -445,20 +445,12 @@ function parseWhoisIdentity(payload: Record<string, unknown>): TailscaleWhoisIde
   return { login, name };
 }
 
-function readCachedWhois(ip: string, now: number): TailscaleWhoisIdentity | null | undefined {
-  const cached = whoisCache.get(ip);
-  if (!cached) {
-    return undefined;
-  }
-  if (cached.expiresAt <= now) {
-    whoisCache.delete(ip);
-    return undefined;
-  }
-  return cached.value;
+function readCachedWhois(ip: string): TailscaleWhoisIdentity | null | undefined {
+  return whoisCache.get(ip);
 }
 
-function writeCachedWhois(ip: string, value: TailscaleWhoisIdentity | null, ttlMs: number) {
-  whoisCache.set(ip, { value, expiresAt: Date.now() + ttlMs });
+function writeCachedWhois(ip: string, value: TailscaleWhoisIdentity | null) {
+  whoisCache.set(ip, value);
 }
 
 export async function readTailscaleWhoisIdentity(
@@ -470,14 +462,11 @@ export async function readTailscaleWhoisIdentity(
   if (!normalized) {
     return null;
   }
-  const now = Date.now();
-  const cached = readCachedWhois(normalized, now);
+  const cached = readCachedWhois(normalized);
   if (cached !== undefined) {
     return cached;
   }
 
-  const cacheTtlMs = opts?.cacheTtlMs ?? 60_000;
-  const errorTtlMs = opts?.errorTtlMs ?? 5_000;
   try {
     const tailscaleBin = await getTailscaleBinary();
     const { stdout } = await exec(tailscaleBin, ["whois", "--json", normalized], {
@@ -486,10 +475,10 @@ export async function readTailscaleWhoisIdentity(
     });
     const parsed = stdout ? parsePossiblyNoisyJsonObject(stdout) : {};
     const identity = parseWhoisIdentity(parsed);
-    writeCachedWhois(normalized, identity, cacheTtlMs);
+    writeCachedWhois(normalized, identity);
     return identity;
   } catch {
-    writeCachedWhois(normalized, null, errorTtlMs);
+    writeCachedWhois(normalized, null);
     return null;
   }
 }
