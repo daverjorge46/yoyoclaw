@@ -166,13 +166,13 @@ class GatewayDiscovery(
         while (true) {
           try {
             refreshUnicast(domain)
-            attempt = 0 // Reset attempt counter on successful refresh
+            attempt = 0
+            delay(BASE_BACKOFF_DELAY_MS) // Fixed polling interval on success
           } catch (_: Throwable) {
-            // Continue with backoff delay on failure (best-effort discovery)
+            // Backoff on failure with exponential delay
+            delay(calculateBackoffDelay(attempt))
+            attempt++
           }
-          val delay = calculateBackoffDelay(attempt)
-          delay(delay)
-          attempt++
         }
       }
   }
@@ -472,7 +472,7 @@ class GatewayDiscovery(
     if (servers.isEmpty()) return null
 
     return try {
-      val timeoutSeconds = (DISCOVERY_TIMEOUT_MS / 1000).toInt()
+      val timeoutSeconds = maxOf(((DISCOVERY_TIMEOUT_MS + 999) / 1000).toInt(), 1)
       val resolvers =
         servers.mapNotNull { addr ->
           try {
