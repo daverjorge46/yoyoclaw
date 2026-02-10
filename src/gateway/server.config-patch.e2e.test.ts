@@ -193,6 +193,63 @@ describe("gateway config.patch", () => {
     expect(stored.channels?.telegram?.botToken).toBe("token-1");
   });
 
+  it("does not redact maxTokens field", async () => {
+    const setId = "req-set-maxtokens";
+    ws.send(
+      JSON.stringify({
+        type: "req",
+        id: setId,
+        method: "config.set",
+        params: {
+          raw: JSON.stringify({
+            gateway: { mode: "local" },
+            models: {
+              providers: {
+                openai: {
+                  maxTokens: 4096,
+                  apiKey: "sk-test-key",
+                },
+              },
+            },
+          }),
+        },
+      }),
+    );
+    const setRes = await onceMessage<{ ok: boolean }>(
+      ws,
+      (o) => o.type === "res" && o.id === setId,
+    );
+    expect(setRes.ok).toBe(true);
+
+    const getId = "req-get-maxtokens";
+    ws.send(
+      JSON.stringify({
+        type: "req",
+        id: getId,
+        method: "config.get",
+        params: {},
+      }),
+    );
+    const getRes = await onceMessage<{
+      ok: boolean;
+      payload?: {
+        config?: { models?: { providers?: { openai?: { maxTokens?: number; apiKey?: string } } } };
+        raw?: string;
+      };
+    }>(ws, (o) => o.type === "res" && o.id === getId);
+    expect(getRes.ok).toBe(true);
+
+    // maxTokens should NOT be redacted (should be a number)
+    expect(getRes.payload?.config?.models?.providers?.openai?.maxTokens).toBe(4096);
+
+    // apiKey SHOULD be redacted
+    expect(getRes.payload?.config?.models?.providers?.openai?.apiKey).toBe("__OPENCLAW_REDACTED__");
+
+    // Also verify in raw string
+    expect(getRes.payload?.raw).toContain("4096");
+    expect(getRes.payload?.raw).not.toContain("sk-test-key");
+  });
+
   it("writes config, stores sentinel, and schedules restart", async () => {
     const setId = "req-set-restart";
     ws.send(

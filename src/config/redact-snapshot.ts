@@ -15,6 +15,10 @@ export const REDACTED_SENTINEL = "__OPENCLAW_REDACTED__";
 const SENSITIVE_KEY_PATTERNS = [/token/i, /password/i, /secret/i, /api.?key/i];
 
 function isSensitiveKey(key: string): boolean {
+  // Exclude non-sensitive fields that happen to match patterns
+  if (key.toLowerCase() === "maxtokens") {
+    return false;
+  }
   return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
 }
 
