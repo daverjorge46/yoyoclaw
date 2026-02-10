@@ -34,16 +34,12 @@ const PERMISSION_PATTERNS: Record<PermissionKind, RegExp> = {
 };
 
 /**
- * Audit a single skill based on its tool names and descriptions.
+ * Audit a single skill based on its name and description.
  */
 export function auditSkill(entry: SkillEntry): SkillAuditResult {
   const permissions = new Set<PermissionKind>();
-  const tools = entry.skill.tools.map((t) => t.name);
-  const searchableText = [
-    entry.skill.name,
-    entry.skill.description ?? "",
-    ...entry.skill.tools.flatMap((t) => [t.name, t.description ?? ""]),
-  ].join(" ");
+  const tools: string[] = [];
+  const searchableText = [entry.skill.name, entry.skill.description ?? ""].join(" ");
 
   for (const [kind, pattern] of Object.entries(PERMISSION_PATTERNS)) {
     if (pattern.test(searchableText)) {
