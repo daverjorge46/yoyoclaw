@@ -34,6 +34,12 @@ import { normalizeChannelId } from "../channels/plugins/index.js";
 import { logVerbose } from "../globals.js";
 import { isVoiceCompatibleAudio } from "../media/audio.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
+import {
+  callTypecast,
+  callTypecastTelephony,
+  resolveTypecastDefaults,
+  type ResolvedTypecastConfig,
+} from "./typecast.js";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_TTS_MAX_LENGTH = 1500;
@@ -46,10 +52,6 @@ const DEFAULT_ELEVENLABS_VOICE_ID = "pMsXgVXv3BLzUgSXRplE";
 const DEFAULT_ELEVENLABS_MODEL_ID = "eleven_multilingual_v2";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini-tts";
 const DEFAULT_OPENAI_VOICE = "alloy";
-const DEFAULT_TYPECAST_BASE_HOST = "https://api.typecast.ai";
-const DEFAULT_TYPECAST_MODEL = "ssfm-v30" as const;
-const DEFAULT_TYPECAST_EMOTION_PRESET = "normal" as const;
-const DEFAULT_TYPECAST_EMOTION_INTENSITY = 1.0;
 const DEFAULT_EDGE_VOICE = "en-US-MichelleNeural";
 const DEFAULT_EDGE_LANG = "en-US";
 const DEFAULT_EDGE_OUTPUT_FORMAT = "audio-24khz-48kbitrate-mono-mp3";
@@ -67,7 +69,6 @@ const TELEGRAM_OUTPUT = {
   // ElevenLabs output formats use codec_sample_rate_bitrate naming.
   // Opus @ 48kHz/64kbps is a good voice-note tradeoff for Telegram.
   elevenlabs: "opus_48000_64",
-  // Typecast supports wav and mp3; use mp3 for Telegram compatibility.
   typecast: "mp3" as const,
   extension: ".opus",
   voiceCompatible: true,
@@ -116,22 +117,7 @@ export type ResolvedTtsConfig = {
     model: string;
     voice: string;
   };
-  typecast: {
-    apiKey?: string;
-    baseHost: string;
-    voiceId?: string;
-    model: "ssfm-v21" | "ssfm-v30";
-    language?: string;
-    emotionPreset: "normal" | "happy" | "sad" | "angry" | "whisper" | "toneup" | "tonedown";
-    emotionIntensity: number;
-    seed?: number;
-    output: {
-      volume: number;
-      audioPitch: number;
-      audioTempo: number;
-      audioFormat: "wav" | "mp3";
-    };
-  };
+  typecast: ResolvedTypecastConfig;
   edge: {
     enabled: boolean;
     voice: string;
@@ -306,22 +292,7 @@ export function resolveTtsConfig(cfg: OpenClawConfig): ResolvedTtsConfig {
       model: raw.openai?.model ?? DEFAULT_OPENAI_MODEL,
       voice: raw.openai?.voice ?? DEFAULT_OPENAI_VOICE,
     },
-    typecast: {
-      apiKey: raw.typecast?.apiKey,
-      baseHost: raw.typecast?.baseHost?.trim() || DEFAULT_TYPECAST_BASE_HOST,
-      voiceId: raw.typecast?.voiceId,
-      model: raw.typecast?.model ?? DEFAULT_TYPECAST_MODEL,
-      language: raw.typecast?.language,
-      emotionPreset: raw.typecast?.emotionPreset ?? DEFAULT_TYPECAST_EMOTION_PRESET,
-      emotionIntensity: raw.typecast?.emotionIntensity ?? DEFAULT_TYPECAST_EMOTION_INTENSITY,
-      seed: raw.typecast?.seed,
-      output: {
-        volume: raw.typecast?.output?.volume ?? 100,
-        audioPitch: raw.typecast?.output?.audioPitch ?? 0,
-        audioTempo: raw.typecast?.output?.audioTempo ?? 1.0,
-        audioFormat: raw.typecast?.output?.audioFormat ?? "mp3",
-      },
-    },
+    typecast: resolveTypecastDefaults(raw.typecast),
     edge: {
       enabled: raw.edge?.enabled ?? true,
       voice: raw.edge?.voice?.trim() || DEFAULT_EDGE_VOICE,
@@ -675,13 +646,8 @@ function parseTtsDirectives(
             if (!policy.allowProvider) {
               break;
             }
-            if (
-              rawValue === "openai" ||
-              rawValue === "elevenlabs" ||
-              rawValue === "typecast" ||
-              rawValue === "edge"
-            ) {
-              overrides.provider = rawValue;
+            if ((TTS_PROVIDERS as readonly string[]).includes(rawValue)) {
+              overrides.provider = rawValue as TtsProvider;
             } else {
               warnings.push(`unsupported provider "${rawValue}"`);
             }
@@ -1121,107 +1087,6 @@ async function elevenLabsTTS(params: {
   }
 }
 
-/** Parse sample rate from a WAV header (bytes 24–27, little-endian uint32). */
-function parseWavSampleRate(buf: Buffer, fallback = 24000): number {
-  if (
-    buf.length >= 28 &&
-    buf[0] === 0x52 &&
-    buf[1] === 0x49 &&
-    buf[2] === 0x46 &&
-    buf[3] === 0x46
-  ) {
-    return buf.readUInt32LE(24);
-  }
-  return fallback;
-}
-
-async function typecastTTS(params: {
-  text: string;
-  apiKey: string;
-  baseHost: string;
-  voiceId?: string;
-  model: "ssfm-v21" | "ssfm-v30";
-  language?: string;
-  emotionPreset: string;
-  emotionIntensity: number;
-  seed?: number;
-  output: {
-    volume: number;
-    audioPitch: number;
-    audioTempo: number;
-    audioFormat: "wav" | "mp3";
-  };
-  timeoutMs: number;
-}): Promise<Buffer> {
-  const {
-    text,
-    apiKey,
-    baseHost,
-    voiceId,
-    model,
-    language,
-    emotionPreset,
-    emotionIntensity,
-    seed,
-    output,
-    timeoutMs,
-  } = params;
-
-  if (!voiceId) {
-    throw new Error("Typecast voiceId is required");
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const normalizedBase = baseHost.replace(/\/+$/, "");
-    const url = `${normalizedBase}/v1/text-to-speech`;
-
-    const body: Record<string, unknown> = {
-      text,
-      voice_id: voiceId,
-      model,
-      prompt: {
-        emotion_preset: emotionPreset,
-        emotion_intensity: emotionIntensity,
-      },
-      output: {
-        volume: output.volume,
-        audio_pitch: output.audioPitch,
-        audio_tempo: output.audioTempo,
-        audio_format: output.audioFormat,
-      },
-    };
-
-    if (language) {
-      body.language = language;
-    }
-    if (seed !== undefined) {
-      body.seed = seed;
-    }
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "X-API-KEY": apiKey,
-        "Content-Type": "application/json",
-        Accept: `audio/${output.audioFormat}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Typecast API error (${response.status})`);
-    }
-
-    return Buffer.from(await response.arrayBuffer());
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function openaiTTS(params: {
   text: string;
   apiKey: string;
@@ -1434,22 +1299,13 @@ export async function textToSpeech(params: {
           timeoutMs: config.timeoutMs,
         });
       } else if (provider === "typecast") {
-        audioBuffer = await typecastTTS({
-          text: params.text,
+        audioBuffer = await callTypecast(
+          config.typecast,
+          params.text,
           apiKey,
-          baseHost: config.typecast.baseHost,
-          voiceId: config.typecast.voiceId,
-          model: config.typecast.model,
-          language: config.typecast.language,
-          emotionPreset: config.typecast.emotionPreset,
-          emotionIntensity: config.typecast.emotionIntensity,
-          seed: config.typecast.seed,
-          output: {
-            ...config.typecast.output,
-            audioFormat: output.typecast,
-          },
-          timeoutMs: config.timeoutMs,
-        });
+          output.typecast,
+          config.timeoutMs,
+        );
       } else {
         const openaiModelOverride = params.overrides?.openai?.model;
         const openaiVoiceOverride = params.overrides?.openai?.voice;
@@ -1470,18 +1326,17 @@ export async function textToSpeech(params: {
       writeFileSync(audioPath, audioBuffer);
       scheduleCleanup(tempDir);
 
-      const outputFormatMap: Record<string, string> = {
-        openai: output.openai,
-        elevenlabs: output.elevenlabs,
-        typecast: output.typecast,
-      };
-
       return {
         success: true,
         audioPath,
         latencyMs,
         provider,
-        outputFormat: outputFormatMap[provider] ?? output.openai,
+        outputFormat:
+          provider === "elevenlabs"
+            ? output.elevenlabs
+            : provider === "typecast"
+              ? output.typecast
+              : output.openai,
         voiceCompatible: output.voiceCompatible,
       };
     } catch (err) {
@@ -1559,36 +1414,22 @@ export async function textToSpeechTelephony(params: {
           sampleRate: output.sampleRate,
         };
       }
-
       if (provider === "typecast") {
-        // Typecast outputs wav for telephony; parse WAV header for actual sample rate.
-        const audioBuffer = await typecastTTS({
-          text: params.text,
+        const { audioBuffer, sampleRate } = await callTypecastTelephony(
+          config.typecast,
+          params.text,
           apiKey,
-          baseHost: config.typecast.baseHost,
-          voiceId: config.typecast.voiceId,
-          model: config.typecast.model,
-          language: config.typecast.language,
-          emotionPreset: config.typecast.emotionPreset,
-          emotionIntensity: config.typecast.emotionIntensity,
-          seed: config.typecast.seed,
-          output: {
-            ...config.typecast.output,
-            audioFormat: "wav",
-          },
-          timeoutMs: config.timeoutMs,
-        });
-
+          config.timeoutMs,
+        );
         return {
           success: true,
           audioBuffer,
           latencyMs: Date.now() - providerStart,
           provider,
           outputFormat: "wav",
-          sampleRate: parseWavSampleRate(audioBuffer),
+          sampleRate,
         };
       }
-
       const output = TELEPHONY_OUTPUT.openai;
       const audioBuffer = await openaiTTS({
         text: params.text,
