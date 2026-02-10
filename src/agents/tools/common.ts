@@ -255,12 +255,14 @@ export type AvailableTag = {
  * Returns `undefined` when the value is missing or not an array.
  * Entries that lack a string `name` are silently dropped.
  */
-export function parseAvailableTags(
-  raw: unknown,
-): AvailableTag[] | undefined {
-  if (raw === undefined || raw === null) return undefined;
-  if (!Array.isArray(raw)) return undefined;
-  return raw
+export function parseAvailableTags(raw: unknown): AvailableTag[] | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+  if (!Array.isArray(raw)) {
+    return undefined;
+  }
+  const result = raw
     .filter(
       (t): t is Record<string, unknown> =>
         typeof t === "object" && t !== null && typeof t.name === "string",
@@ -276,4 +278,6 @@ export function parseAvailableTags(
         ? { emoji_name: t.emoji_name as string | null }
         : {}),
     }));
+  // Return undefined instead of empty array to avoid accidentally clearing all tags
+  return result.length ? result : undefined;
 }
