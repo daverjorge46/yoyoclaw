@@ -49,6 +49,23 @@ Full troubleshooting: [/channels/whatsapp#troubleshooting-quick](/channels/whats
 | `/start` but no usable reply flow | `openclaw pairing list telegram`                | Approve pairing or change DM policy.                      |
 | Bot online but group stays silent | Verify mention requirement and bot privacy mode | Disable privacy mode for group visibility or mention bot. |
 | Send failures with network errors | Inspect logs for Telegram API call failures     | Fix DNS/IPv6/proxy routing to `api.telegram.org`.         |
+| DMs silently ignored (dmPolicy)   | Check `channels.telegram.dmPolicy` in config    | Ensure not set to `"disabled"`; check verbose logs.       |
+| Bot polls but messages vanish     | `openclaw logs --follow` + send a test DM       | Check DM policy + allowFrom; see note below.              |
+| 409 conflict on getUpdates        | Check for multiple processes or bot instances    | Kill duplicate gateway processes; use one token per bot.  |
+
+**Note — messages polled but not processed:** When the gateway consumes messages from
+Telegram (blocking manual `getUpdates` calls with 409) but nothing reaches the agent,
+the most common causes are:
+
+1. **DM policy filtering** — `dmPolicy: "pairing"` (default) silently queues unapproved
+   senders. Run `openclaw pairing list telegram` to check. Switch to `"allowlist"` with
+   explicit `allowFrom` entries if you want immediate access.
+2. **Stale update offset** — The gateway persists the last processed update ID. If the
+   offset file (`~/.openclaw/state/telegram/update-offset-*.json`) contains an ID higher
+   than current updates, new messages are skipped. Delete the file and restart.
+3. **allowFrom mismatch** — When using `dmPolicy: "allowlist"`, ensure `allowFrom`
+   contains either the numeric user ID (recommended) or `@username`. Numeric IDs are
+   more reliable as usernames can change.
 
 Full troubleshooting: [/channels/telegram#troubleshooting](/channels/telegram#troubleshooting)
 

@@ -49,8 +49,8 @@ Minimal config:
 
 Optional BotFather settings:
 
-- `/setjoingroups` — allow/deny adding the bot to groups.
-- `/setprivacy` — control whether the bot sees all group messages.
+- `/setjoingroups` - allow/deny adding the bot to groups.
+- `/setprivacy` - control whether the bot sees all group messages.
 
 ### 2) Configure the token (env or config)
 
@@ -93,7 +93,7 @@ If your bot must see _all_ group messages, you have two options:
 - Disable privacy mode with `/setprivacy` **or**
 - Add the bot as a group **admin** (admin bots receive all messages).
 
-**Note:** When you toggle privacy mode, Telegram requires removing + re‑adding the bot
+**Note:** When you toggle privacy mode, Telegram requires removing + re-adding the bot
 to each group for the change to take effect.
 
 ### Group permissions (admin rights)
@@ -124,14 +124,14 @@ Draft streaming is DM-only; Telegram does not support it in groups or channels.
 
 ## Formatting (Telegram HTML)
 
-- Outbound Telegram text uses `parse_mode: "HTML"` (Telegram’s supported tag subset).
+- Outbound Telegram text uses `parse_mode: "HTML"` (Telegram's supported tag subset).
 - Markdown-ish input is rendered into **Telegram-safe HTML** (bold/italic/strike/code/links); block elements are flattened to text with newlines/bullets.
 - Raw HTML from models is escaped to avoid Telegram parse errors.
 - If Telegram rejects the HTML payload, OpenClaw retries the same message as plain text.
 
 ## Commands (native + custom)
 
-OpenClaw registers native commands (like `/status`, `/reset`, `/model`) with Telegram’s bot menu on startup.
+OpenClaw registers native commands (like `/status`, `/reset`, `/model`) with Telegram's bot menu on startup.
 You can add custom commands to the menu via config:
 
 ```json5
@@ -157,8 +157,8 @@ More help: [Channel troubleshooting](/channels/troubleshooting).
 Notes:
 
 - Custom commands are **menu entries only**; OpenClaw does not implement them unless you handle them elsewhere.
-- Some commands can be handled by plugins/skills without being registered in Telegram’s command menu. These still work when typed (they just won't show up in `/commands` / the menu).
-- Command names are normalized (leading `/` stripped, lowercased) and must match `a-z`, `0-9`, `_` (1–32 chars).
+- Some commands can be handled by plugins/skills without being registered in Telegram's command menu. These still work when typed (they just won't show up in `/commands` / the menu).
+- Command names are normalized (leading `/` stripped, lowercased) and must match `a-z`, `0-9`, `_` (1-32 chars).
 - Custom commands **cannot override native commands**. Conflicts are ignored and logged.
 - If `commands.native` is disabled, only custom commands are registered (or cleared if none).
 
@@ -313,11 +313,11 @@ For per-account configuration:
 
 Scopes:
 
-- `off` — inline buttons disabled
-- `dm` — only DMs (group targets blocked)
-- `group` — only groups (DM targets blocked)
-- `all` — DMs + groups
-- `allowlist` — DMs + groups, but only senders allowed by `allowFrom`/`groupAllowFrom` (same rules as control commands)
+- `off` - inline buttons disabled
+- `dm` - only DMs (group targets blocked)
+- `group` - only groups (DM targets blocked)
+- `all` - DMs + groups
+- `allowlist` - DMs + groups, but only senders allowed by `allowFrom`/`groupAllowFrom` (same rules as control commands)
 
 Default: `allowlist`.
 Legacy: `capabilities: ["inlineButtons"]` = `inlineButtons: "all"`.
@@ -363,7 +363,7 @@ Use the global setting when all Telegram bots/accounts should behave the same. U
   - `openclaw pairing list telegram`
   - `openclaw pairing approve telegram <CODE>`
 - Pairing is the default token exchange used for Telegram DMs. Details: [Pairing](/channels/pairing)
-- `channels.telegram.allowFrom` accepts numeric user IDs (recommended) or `@username` entries. It is **not** the bot username; use the human sender’s ID. The wizard accepts `@username` and resolves it to the numeric ID when possible.
+- `channels.telegram.allowFrom` accepts numeric user IDs (recommended) or `@username` entries. It is **not** the bot username; use the human sender's ID. The wizard accepts `@username` and resolves it to the numeric ID when possible.
 
 #### Finding your Telegram user ID
 
@@ -446,7 +446,7 @@ OpenClaw defaults to audio files for backward compatibility.
 
 To force a voice note bubble in agent replies, include this tag anywhere in the reply:
 
-- `[[audio_as_voice]]` — send audio as a voice note instead of a file.
+- `[[audio_as_voice]]` - send audio as a voice note instead of a file.
 
 The tag is stripped from the delivered text. Other channels ignore this tag.
 
@@ -496,12 +496,12 @@ When a user sends a sticker, OpenClaw handles it based on the sticker type:
 
 Template context field available when receiving stickers:
 
-- `Sticker` — object with:
-  - `emoji` — emoji associated with the sticker
-  - `setName` — name of the sticker set
-  - `fileId` — Telegram file ID (send the same sticker back)
-  - `fileUniqueId` — stable ID for cache lookup
-  - `cachedDescription` — cached vision description when available
+- `Sticker` - object with:
+  - `emoji` - emoji associated with the sticker
+  - `setName` - name of the sticker set
+  - `fileId` - Telegram file ID (send the same sticker back)
+  - `fileUniqueId` - stable ID for cache lookup
+  - `cachedDescription` - cached vision description when available
 
 ### Sticker cache
 
@@ -565,9 +565,9 @@ The agent can send and search stickers using the `sticker` and `sticker-search` 
 
 Parameters:
 
-- `fileId` (required) — the Telegram file ID of the sticker. Obtain this from `Sticker.fileId` when receiving a sticker, or from a `sticker-search` result.
-- `replyTo` (optional) — message ID to reply to.
-- `threadId` (optional) — message thread ID for forum topics.
+- `fileId` (required) - the Telegram file ID of the sticker. Obtain this from `Sticker.fileId` when receiving a sticker, or from a `sticker-search` result.
+- `replyTo` (optional) - message ID to reply to.
+- `threadId` (optional) - message thread ID for forum topics.
 
 **Search for stickers:**
 
@@ -674,15 +674,15 @@ The agent sees reactions as **system notifications** in the conversation history
 **Configuration:**
 
 - `channels.telegram.reactionNotifications`: Controls which reactions trigger notifications
-  - `"off"` — ignore all reactions
-  - `"own"` — notify when users react to bot messages (best-effort; in-memory) (default)
-  - `"all"` — notify for all reactions
+  - `"off"` - ignore all reactions
+  - `"own"` - notify when users react to bot messages (best-effort; in-memory) (default)
+  - `"all"` - notify for all reactions
 
 - `channels.telegram.reactionLevel`: Controls agent's reaction capability
-  - `"off"` — agent cannot react to messages
-  - `"ack"` — bot sends acknowledgment reactions (👀 while processing) (default)
-  - `"minimal"` — agent can react sparingly (guideline: 1 per 5-10 exchanges)
-  - `"extensive"` — agent can react liberally when appropriate
+  - `"off"` - agent cannot react to messages
+  - `"ack"` - bot sends acknowledgment reactions (👀 while processing) (default)
+  - `"minimal"` - agent can react sparingly (guideline: 1 per 5-10 exchanges)
+  - `"extensive"` - agent can react liberally when appropriate
 
 **Forum groups:** Reactions in forum groups include `message_thread_id` and use session keys like `agent:main:telegram:group:{chatId}:topic:{threadId}`. This ensures reactions and messages in the same topic stay together.
 
@@ -712,12 +712,22 @@ The agent sees reactions as **system notifications** in the conversation history
 
 ## Troubleshooting
 
-**Bot doesn’t respond to non-mention messages in a group:**
+**Bot doesn't respond to DMs:**
 
-- If you set `channels.telegram.groups.*.requireMention=false`, Telegram’s Bot API **privacy mode** must be disabled.
+- Check `dmPolicy` — if set to `"disabled"`, all DMs are silently dropped.
+- If `dmPolicy` is `"pairing"` (default), the bot will send a pairing code on first contact. You must approve it with `openclaw pairing approve telegram <code>`.
+- If `dmPolicy` is `"allowlist"`, your Telegram user ID or `@username` must be in `channels.telegram.allowFrom`. Numeric IDs are more reliable than usernames.
+- If `dmPolicy` is `"open"`, `channels.telegram.allowFrom` must include `"*"` — omitting it causes config validation failure.
+- Verify the bot is actually polling: run `curl https://api.telegram.org/bot<TOKEN>/getUpdates` while the gateway is **stopped**. A `409 Conflict` while the gateway is running means the gateway is actively polling (good). If you get updates while the gateway is running, the gateway is not consuming them (check logs).
+- Check for stale update offset: if the gateway previously processed messages, it stores the last update ID. A corrupted or future-dated offset can cause all new messages to be skipped. Delete `~/.openclaw/state/telegram/update-offset-*.json` and restart.
+- Run `openclaw channels status --probe` to verify the bot token is valid and the bot is reachable.
+
+**Bot doesn't respond to non-mention messages in a group:**
+
+- If you set `channels.telegram.groups.*.requireMention=false`, Telegram's Bot API **privacy mode** must be disabled.
   - BotFather: `/setprivacy` → **Disable** (then remove + re-add the bot to the group)
 - `openclaw channels status` shows a warning when config expects unmentioned group messages.
-- `openclaw channels status --probe` can additionally check membership for explicit numeric group IDs (it can’t audit wildcard `"*"` rules).
+- `openclaw channels status --probe` can additionally check membership for explicit numeric group IDs (it can't audit wildcard `"*"` rules).
 - Quick test: `/activation always` (session-only; use config for persistence)
 
 **Bot not seeing group messages at all:**
@@ -736,6 +746,14 @@ The agent sees reactions as **system notifications** in the conversation history
 
 - Make sure your Telegram user ID is authorized (via pairing or `channels.telegram.allowFrom`)
 - Commands require authorization even in groups with `groupPolicy: "open"`
+
+**Bot receives messages (blocks manual polling with 409) but never processes them:**
+
+- The gateway is successfully polling `getUpdates` (confirmed by 409 conflicts when manually polling), but messages never reach the agent.
+- **Check DM policy**: `dmPolicy: "pairing"` (default) silently queues unapproved senders. Run `openclaw pairing list telegram` to see pending requests. For immediate access, switch to `"allowlist"` with `allowFrom` containing your numeric Telegram user ID.
+- **Check update offset**: The gateway persists the last processed update ID in `~/.openclaw/state/telegram/update-offset-*.json`. If this file contains an ID higher than current updates (e.g., from a previous bot token), all new messages are silently skipped. Delete the offset file and restart the gateway.
+- **Check allowFrom format**: When using `dmPolicy: "allowlist"`, prefer numeric user IDs (e.g., `1580140515`) over `@username` — IDs are stable while usernames can change. You can include both: `allowFrom: ["@MyUsername", 1580140515]`.
+- **Enable verbose logging**: `OPENCLAW_LOG_LEVEL=verbose openclaw gateway start` shows exactly where messages are filtered.
 
 **Long-polling aborts immediately on Node 22+ (often with proxies/custom fetch):**
 
@@ -788,9 +806,9 @@ Provider options:
 - `channels.telegram.actions.reactions`: gate Telegram tool reactions.
 - `channels.telegram.actions.sendMessage`: gate Telegram tool message sends.
 - `channels.telegram.actions.deleteMessage`: gate Telegram tool message deletes.
-- `channels.telegram.actions.sticker`: gate Telegram sticker actions — send and search (default: false).
-- `channels.telegram.reactionNotifications`: `off | own | all` — control which reactions trigger system events (default: `own` when not set).
-- `channels.telegram.reactionLevel`: `off | ack | minimal | extensive` — control agent's reaction capability (default: `minimal` when not set).
+- `channels.telegram.actions.sticker`: gate Telegram sticker actions - send and search (default: false).
+- `channels.telegram.reactionNotifications`: `off | own | all` - control which reactions trigger system events (default: `own` when not set).
+- `channels.telegram.reactionLevel`: `off | ack | minimal | extensive` - control agent's reaction capability (default: `minimal` when not set).
 
 Related global options:
 
