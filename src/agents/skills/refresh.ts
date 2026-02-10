@@ -30,24 +30,14 @@ export const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[] = [
   /(^|[\\/])node_modules([\\/]|$)/,
   /(^|[\\/])dist([\\/]|$)/,
   // Python virtual environments and caches
-  /(^|[\\/])venv([\\/]|$)/,
   /(^|[\\/])\.venv([\\/]|$)/,
+  /(^|[\\/])venv([\\/]|$)/,
   /(^|[\\/])__pycache__([\\/]|$)/,
-  /(^|[\\/])\.pytest_cache([\\/]|$)/,
   /(^|[\\/])\.mypy_cache([\\/]|$)/,
-  /(^|[\\/])\.hypothesis([\\/]|$)/,
-  // Node.js package manager caches
-  /(^|[\\/])\.npm([\\/]|$)/,
-  /(^|[\\/])\.yarn([\\/]|$)/,
-  /(^|[\\/])\.pnpm([\\/]|$)/,
-  // Rust build artifacts
-  /(^|[\\/])target([\\/]|$)/,
-  // Generic build directories
+  /(^|[\\/])\.pytest_cache([\\/]|$)/,
+  // Build artifacts and caches
   /(^|[\\/])build([\\/]|$)/,
-  // Next.js
-  /(^|[\\/])\.next([\\/]|$)/,
-  // Nuxt.js
-  /(^|[\\/])\.nuxt([\\/]|$)/,
+  /(^|[\\/])\.cache([\\/]|$)/,
 ];
 
 function bumpVersion(current: number): number {
