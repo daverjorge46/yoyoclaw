@@ -65,6 +65,7 @@ export type TelegramMediaRef = {
 type TelegramMessageContextOptions = {
   forceWasMentioned?: boolean;
   messageIdOverride?: string;
+  reactionMessageId?: string;
 };
 
 type TelegramLogger = {
@@ -595,6 +596,7 @@ export const buildTelegramMessageContext = async ({
     Provider: "telegram",
     Surface: "telegram",
     MessageSid: options?.messageIdOverride ?? String(msg.message_id),
+    MessageSidFull: options?.reactionMessageId ?? undefined,
     ReplyToId: replyTarget?.id,
     ReplyToBody: replyTarget?.body,
     ReplyToSender: replyTarget?.sender,
