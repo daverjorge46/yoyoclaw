@@ -11,6 +11,8 @@ const {
   resolveGrokModel,
   resolveGrokInlineCitations,
   extractGrokContent,
+  resolveSearxngConfig,
+  resolveSearxngBaseUrl,
 } = __testing;
 
 describe("web_search perplexity baseUrl defaults", () => {
@@ -161,5 +163,26 @@ describe("web_search grok response parsing", () => {
     expect(extractGrokContent({ output_text: "hello from output_text" })).toBe(
       "hello from output_text",
     );
+  });
+});
+
+describe("web_search searxng configuration", () => {
+  it("resolves config object correctly", () => {
+    expect(resolveSearxngConfig({ searxng: { baseUrl: "http://localhost:8080" } })).toEqual({
+      baseUrl: "http://localhost:8080",
+    });
+    expect(resolveSearxngConfig({})).toEqual({});
+  });
+
+  it("resolves and cleans base URL", () => {
+    expect(resolveSearxngBaseUrl({ baseUrl: "http://localhost:8080/" })).toBe(
+      "http://localhost:8080",
+    );
+    expect(resolveSearxngBaseUrl({ baseUrl: " https://searx.be " })).toBe("https://searx.be");
+  });
+
+  it("returns undefined for missing or invalid base URL", () => {
+    expect(resolveSearxngBaseUrl({})).toBeUndefined();
+    expect(resolveSearxngBaseUrl({ baseUrl: "" })).toBeUndefined();
   });
 });
