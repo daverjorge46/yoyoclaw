@@ -1,0 +1,6 @@
+# GateClaw allowlist
+# One GitHub username per line (no @)
+# Maintainers/collaborators are also allowed automatically by workflow.
+
+splieseis
+psteinberg
