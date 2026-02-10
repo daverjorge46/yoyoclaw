@@ -42,17 +42,18 @@ Use this to identify when upstream absorbs our fixes so we can drop the fork del
 Fires a `message_sent` hook after successful outbound message delivery across all channels.
 Includes canonical address normalization (`<source>:<method>:<id>` format).
 
-| Commit      | Description                                                     |
-| ----------- | --------------------------------------------------------------- |
-| `ddc477e42` | Wire message_sent hook to deliverOutboundPayloads               |
-| `76cb4d3f9` | Wire message_sent hook to Discord reply delivery path           |
-| `e77d80d12` | Centralise message_sent hook in reply dispatcher                |
-| `962524fc7` | Add tests for message_sent hook in reply dispatcher and deliver |
-| `093b3ecc9` | Only report delivered payload text in message_sent hook         |
-| `ef2f9464a` | Skip message_sent hook when hookContext is missing              |
-| `a8fb56450` | Correct message_sent hook payload bugs flagged in review        |
-| `fe9e62401` | Normalize hook addresses to canonical format (#6)               |
-| `0f0a4ff8e` | Address CodeRabbit review feedback on message_sent hook PR (#7) |
+| Commit      | Description                                                        |
+| ----------- | ------------------------------------------------------------------ |
+| `ddc477e42` | Wire message_sent hook to deliverOutboundPayloads                  |
+| `76cb4d3f9` | Wire message_sent hook to Discord reply delivery path              |
+| `e77d80d12` | Centralise message_sent hook in reply dispatcher                   |
+| `962524fc7` | Add tests for message_sent hook in reply dispatcher and deliver    |
+| `093b3ecc9` | Only report delivered payload text in message_sent hook            |
+| `ef2f9464a` | Skip message_sent hook when hookContext is missing                 |
+| `a8fb56450` | Correct message_sent hook payload bugs flagged in review           |
+| `fe9e62401` | Normalize hook addresses to canonical format (#6)                  |
+| `0f0a4ff8e` | Address CodeRabbit review feedback on message_sent hook PR (#7)    |
+| `668e4b36c` | Canonicalize conversationId in message_sent hook from deliver path |
 
 **Files:**
 
@@ -165,7 +166,7 @@ gh pr list --repo openclaw/openclaw --author davidrudduck --state open
 
 ## Total Fork Delta
 
-- **22 non-merge commits**
-- **24 files changed** (+696 lines, -32 lines)
+- **26 non-merge commits**
+- **24 files changed** (+700 lines, -32 lines)
 - **4 change groups**: message_sent hook, .trim() guards, security hardening, housekeeping
 - **8 open PRs** upstream
