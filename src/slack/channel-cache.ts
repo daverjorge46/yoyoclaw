@@ -1,4 +1,5 @@
 import type { WebClient } from "@slack/web-api";
+import crypto from "node:crypto";
 import { createSlackWebClient } from "./client.js";
 
 export type CachedSlackChannel = {
@@ -119,8 +120,8 @@ class SlackChannelCache {
   // ============ Private methods ============
 
   private getAccountKey(token: string): string {
-    // Use first 16 chars of token as key (safe identifier)
-    return token.slice(0, 16);
+    // Hash the full token to avoid collision between tokens with same prefix
+    return crypto.createHash("sha256").update(token).digest("hex").slice(0, 16);
   }
 
   private normalizeInput(input: string): {
@@ -140,7 +141,8 @@ class SlackChannelCache {
 
     // Handle prefixed IDs: slack:C123456, channel:C123456
     const prefixed = trimmed.replace(/^(slack:|channel:)/i, "");
-    if (/^[CG][A-Z0-9]+$/i.test(prefixed)) {
+    // Slack IDs are always C/G followed by alphanumeric (must include at least one digit)
+    if (/^[CG][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(prefixed)) {
       return { id: prefixed.toUpperCase() };
     }
 

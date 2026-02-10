@@ -23,6 +23,7 @@ export type CacheEntry<T = unknown> = {
   value: T;
   createdAt: number;
   expiresAt: number;
+  lastAccessedAt: number;
   hitCount: number;
   sizeBytes: number;
 };
@@ -65,14 +66,33 @@ const DEFAULT_CONFIG: QueryCacheConfig = {
 
 /**
  * Generate a cache key from service, query, and params.
+ * Uses stable JSON serialization (sorted keys) for consistent hashing.
  */
 export function generateCacheKey(
   service: string,
   query: string,
   params?: Record<string, unknown>,
 ): string {
-  const input = JSON.stringify({ service, query, params: params ?? {} });
+  const stableParams = params ? sortObjectKeys(params) : {};
+  const input = JSON.stringify({ service, query, params: stableParams });
   return crypto.createHash("sha256").update(input).digest("hex").slice(0, 32);
+}
+
+/**
+ * Recursively sort object keys for stable serialization.
+ */
+function sortObjectKeys(obj: unknown): unknown {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sortObjectKeys);
+  }
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(obj).toSorted()) {
+    sorted[key] = sortObjectKeys((obj as Record<string, unknown>)[key]);
+  }
+  return sorted;
 }
 
 /**
@@ -113,6 +133,7 @@ export class QueryCache {
     }
 
     entry.hitCount++;
+    entry.lastAccessedAt = Date.now();
     this.stats.hitCount++;
     return entry.value as T;
   }
@@ -140,15 +161,23 @@ export class QueryCache {
     const serialized = JSON.stringify(value);
     const sizeBytes = Buffer.byteLength(serialized, "utf8");
 
+    // If overwriting, delete old entry first to maintain accurate size accounting
+    const oldEntry = this.cache.get(key);
+    if (oldEntry) {
+      this.cache.delete(key);
+    }
+
     // Evict if needed
     this.evictIfNeeded(sizeBytes);
 
+    const now = Date.now();
     const entry: CacheEntry = {
       key,
       category,
       value,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + ttlMs,
+      createdAt: now,
+      expiresAt: now + ttlMs,
+      lastAccessedAt: now,
       hitCount: 0,
       sizeBytes,
     };
@@ -242,22 +271,19 @@ export class QueryCache {
   }
 
   private evictOldest(): void {
-    // Evict the entry with lowest (hitCount / age) score
-    let worstKey: string | undefined;
-    let worstScore = Infinity;
-    const now = Date.now();
+    // Evict the least recently accessed entry (true LRU)
+    let lruKey: string | undefined;
+    let oldestAccess = Infinity;
 
     for (const [key, entry] of this.cache) {
-      const age = Math.max(1, now - entry.createdAt);
-      const score = (entry.hitCount + 1) / (age / 1000); // hits per second
-      if (score < worstScore) {
-        worstScore = score;
-        worstKey = key;
+      if (entry.lastAccessedAt < oldestAccess) {
+        oldestAccess = entry.lastAccessedAt;
+        lruKey = key;
       }
     }
 
-    if (worstKey) {
-      this.cache.delete(worstKey);
+    if (lruKey) {
+      this.cache.delete(lruKey);
       this.stats.evictionCount++;
     }
   }

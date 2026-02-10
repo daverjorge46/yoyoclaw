@@ -115,12 +115,14 @@ export function isRetryableError(err: unknown): boolean {
 
 /**
  * Calculate backoff delay with jitter.
+ * Result is always clamped to [0, maxDelayMs] after jitter is applied.
  */
 export function calculateBackoff(attempt: number, config: RetryConfig): number {
   const exponentialDelay = config.baseDelayMs * Math.pow(2, attempt);
   const cappedDelay = Math.min(exponentialDelay, config.maxDelayMs);
   const jitter = cappedDelay * config.jitterFactor * (Math.random() * 2 - 1);
-  return Math.max(0, Math.round(cappedDelay + jitter));
+  // Clamp final result to respect maxDelayMs contract even after jitter
+  return Math.min(config.maxDelayMs, Math.max(0, Math.round(cappedDelay + jitter)));
 }
 
 /**

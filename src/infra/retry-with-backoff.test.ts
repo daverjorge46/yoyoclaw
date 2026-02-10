@@ -44,6 +44,15 @@ describe("retry-with-backoff", () => {
       const config = { maxRetries: 4, baseDelayMs: 1000, maxDelayMs: 8000, jitterFactor: 0 };
       expect(calculateBackoff(10, config)).toBe(8000);
     });
+    it("never exceeds maxDelayMs even with jitter", () => {
+      const config = { maxRetries: 4, baseDelayMs: 1000, maxDelayMs: 8000, jitterFactor: 0.5 };
+      // Run many iterations to statistically verify jitter does not exceed max
+      for (let i = 0; i < 100; i++) {
+        const delay = calculateBackoff(10, config);
+        expect(delay).toBeLessThanOrEqual(8000);
+        expect(delay).toBeGreaterThanOrEqual(0);
+      }
+    });
   });
 
   describe("retryWithBackoff", () => {
@@ -110,7 +119,7 @@ describe("retry-with-backoff", () => {
           },
           { maxRetries: 2, baseDelayMs: 10, maxDelayMs: 80 },
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         expect(err.retryMetadata).toBeDefined();
         expect(err.retryMetadata.attempts).toBe(3);
         expect(err.retryMetadata.finalStatus).toBe("failed");
