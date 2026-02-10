@@ -69,4 +69,26 @@ describe("sanitizeUserFacingText", () => {
     const text = "Hello there!\n\nDifferent line.";
     expect(sanitizeUserFacingText(text)).toBe(text);
   });
+
+  it("does not rewrite conversational text mentioning billing or payment terms", () => {
+    const text =
+      "The payment processing module handles credit card transactions. When a 402 status code is returned, the system retries with a different payment method.";
+    expect(sanitizeUserFacingText(text)).toBe(text);
+  });
+
+  it("does not rewrite subagent output discussing billing features", () => {
+    const text =
+      "I've implemented the billing dashboard. It shows credit balance, payment history, and allows users to upgrade their plan.";
+    expect(sanitizeUserFacingText(text)).toBe(text);
+  });
+
+  it("still rewrites actual billing error payloads", () => {
+    const raw =
+      '{"type":"error","error":{"message":"insufficient credits","type":"billing_error"}}';
+    expect(sanitizeUserFacingText(raw)).toContain("billing error");
+  });
+
+  it("still rewrites HTTP 402 error responses", () => {
+    expect(sanitizeUserFacingText("402 Payment Required")).toContain("billing error");
+  });
 });
