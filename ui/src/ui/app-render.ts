@@ -209,6 +209,7 @@ export function renderApp(state: AppViewState) {
                 sessionsCount,
                 cronEnabled: state.cronStatus?.enabled ?? null,
                 cronNext,
+                cronJobs: state.cronJobs,
                 lastChannelsRefresh: state.channelsLastSuccess,
                 health: state.debugHealth,
                 onSettingsChange: (next) => state.applySettings(next),

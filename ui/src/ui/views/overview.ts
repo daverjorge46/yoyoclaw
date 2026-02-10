@@ -1,7 +1,7 @@
 import { html } from "lit";
 import type { GatewayHelloOk } from "../gateway.ts";
 import type { UiSettings } from "../storage.ts";
-import type { HealthSnapshot } from "../types.ts";
+import type { CronJob, HealthSnapshot } from "../types.ts";
 import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
 import { formatNextRun } from "../presenter.ts";
 
@@ -15,6 +15,7 @@ export type OverviewProps = {
   sessionsCount: number | null;
   cronEnabled: boolean | null;
   cronNext: number | null;
+  cronJobs: CronJob[];
   lastChannelsRefresh: number | null;
   health: HealthSnapshot | null;
   onSettingsChange: (next: UiSettings) => void;
@@ -32,6 +33,7 @@ export function renderOverview(props: OverviewProps) {
   const tick = snapshot?.policy?.tickIntervalMs ? `${snapshot.policy.tickIntervalMs}ms` : "n/a";
   const vectraHealth = ((props.health as { vectra?: Record<string, unknown> } | null)?.vectra ??
     null) as Record<string, unknown> | null;
+  const taskItems = props.cronJobs.slice(0, 6);
   const authHint = (() => {
     if (props.connected || !props.lastError) {
       return null;
@@ -255,6 +257,36 @@ export function renderOverview(props: OverviewProps) {
           }
         </div>
       </div>
+    </section>
+
+    <section class="card" style="margin-top: 18px;">
+      <div class="card-title">Task Manager</div>
+      <div class="card-sub">Recent scheduled tasks (Cron jobs) from the gateway.</div>
+      ${
+        taskItems.length === 0
+          ? html`<div class="muted" style="margin-top: 12px">No scheduled tasks yet.</div>`
+          : html`
+              <div class="list" style="margin-top: 12px;">
+                ${taskItems.map(
+                  (job) => html`
+                    <div class="list-item">
+                      <div class="list-main">
+                        <div class="list-title">${job.name}</div>
+                        <div class="list-sub">${job.schedule.kind}</div>
+                      </div>
+                      <div class="list-meta">
+                        <div>${job.enabled ? "Enabled" : "Disabled"}</div>
+                        <div class="muted">${job.state?.lastStatus ?? "n/a"}</div>
+                        <div class="muted">
+                          Next: ${job.state?.nextRunAtMs ? formatRelativeTimestamp(job.state.nextRunAtMs) : "n/a"}
+                        </div>
+                      </div>
+                    </div>
+                  `,
+                )}
+              </div>
+            `
+      }
     </section>
 
     <section class="card" style="margin-top: 18px;">
