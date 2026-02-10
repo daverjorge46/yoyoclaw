@@ -87,9 +87,11 @@ const MARKER_STRIP_PATTERN = /[\p{Cf}\p{M}]/u;
 const MARKER_LETTER_WILDCARD = "\uE000";
 const MARKER_OPEN_DELIMITER_WILDCARD = "\uE001";
 const MARKER_CLOSE_DELIMITER_WILDCARD = "\uE002";
+const MARKER_SEPARATOR_WILDCARD = "\uE003";
 const MARKER_NON_ASCII_LETTER_PATTERN = /\p{L}/u;
 const MARKER_OPEN_DELIMITER_PATTERN = /[\p{Ps}\p{Pi}]/u;
 const MARKER_CLOSE_DELIMITER_PATTERN = /[\p{Pe}\p{Pf}]/u;
+const MARKER_SEPARATOR_PATTERN = /[\p{Pc}\u02CD\u2017]/u;
 
 function buildMarkerRegex(marker: string): RegExp {
   let pattern = "";
@@ -104,6 +106,10 @@ function buildMarkerRegex(marker: string): RegExp {
     }
     if (char === ">") {
       pattern += `[>${MARKER_CLOSE_DELIMITER_WILDCARD}]`;
+      continue;
+    }
+    if (char === "_") {
+      pattern += `[_${MARKER_SEPARATOR_WILDCARD}]`;
       continue;
     }
     pattern += char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -122,6 +128,9 @@ function foldMarkerSkeletonChar(char: string): string {
   }
   if ((char >= "A" && char <= "Z") || char === "_" || char === "<" || char === ">") {
     return char;
+  }
+  if (MARKER_SEPARATOR_PATTERN.test(char)) {
+    return MARKER_SEPARATOR_WILDCARD;
   }
   if (MARKER_NON_ASCII_LETTER_PATTERN.test(char)) {
     return MARKER_LETTER_WILDCARD;
@@ -165,7 +174,7 @@ function foldMarkerText(input: string): { text: string; starts: number[]; ends: 
 function replaceMarkers(content: string): string {
   const folded = foldMarkerText(content);
   if (
-    !/(external_untrusted_content|end_external_untrusted_content|[\uE000\uE001\uE002])/iu.test(
+    !/(external_untrusted_content|end_external_untrusted_content|[\uE000\uE001\uE002\uE003])/iu.test(
       folded.text,
     )
   ) {
