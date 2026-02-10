@@ -369,5 +369,8 @@ export {
 } from "../line/markdown-to-line.js";
 export type { ProcessedLineMessage } from "../line/markdown-to-line.js";
 
+// Agent runner (used by llm-task extension)
+export { runEmbeddedPiAgent } from "../agents/pi-embedded-runner.js";
+
 // Media utilities
 export { loadWebMedia, type WebMediaResult } from "../web/media.js";

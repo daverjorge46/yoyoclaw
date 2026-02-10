@@ -1,34 +1,12 @@
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
 import Ajv from "ajv";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-// NOTE: This extension is intended to be bundled with OpenClaw.
-// When running from source (tests/dev), OpenClaw internals live under src/.
-// When running from a built install, internals live under dist/ (no src/ tree).
-// So we resolve internal imports dynamically with src-first, dist-fallback.
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
-
-type RunEmbeddedPiAgentFn = (params: Record<string, unknown>) => Promise<unknown>;
-
-async function loadRunEmbeddedPiAgent(): Promise<RunEmbeddedPiAgentFn> {
-  // Source checkout (tests/dev)
-  try {
-    const mod = await import("../../../src/agents/pi-embedded-runner.js");
-    if (typeof (mod as any).runEmbeddedPiAgent === "function") {
-      return (mod as any).runEmbeddedPiAgent;
-    }
-  } catch {
-    // ignore
-  }
-
-  // Bundled install (built)
-  const mod = await import("../../../agents/pi-embedded-runner.js");
-  if (typeof mod.runEmbeddedPiAgent !== "function") {
-    throw new Error("Internal error: runEmbeddedPiAgent not available");
-  }
-  return mod.runEmbeddedPiAgent;
-}
+// Resolve via the plugin-sdk so the import works in both source checkout and
+// bundled global installs (jiti resolves openclaw/plugin-sdk at runtime).
+import { runEmbeddedPiAgent } from "openclaw/plugin-sdk";
 
 function stripCodeFences(s: string): string {
   const trimmed = s.trim();
@@ -173,8 +151,6 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
         tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-llm-task-"));
         const sessionId = `llm-task-${Date.now()}`;
         const sessionFile = path.join(tmpDir, "session.json");
-
-        const runEmbeddedPiAgent = await loadRunEmbeddedPiAgent();
 
         const result = await runEmbeddedPiAgent({
           sessionId,
