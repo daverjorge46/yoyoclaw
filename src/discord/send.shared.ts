@@ -382,10 +382,13 @@ async function sendDiscordMedia(
       }) as Promise<{ id: string; channel_id: string }>,
     "media",
   )) as { id: string; channel_id: string };
-  for (const chunk of chunks.slice(1)) {
+  const followUpChunks = chunks.slice(1);
+  for (let i = 0; i < followUpChunks.length; i++) {
+    const chunk = followUpChunks[i];
     if (!chunk.trim()) {
       continue;
     }
+    const isLast = i === followUpChunks.length - 1;
     await sendDiscordText(
       rest,
       channelId,
@@ -394,7 +397,8 @@ async function sendDiscordMedia(
       request,
       maxLinesPerMessage,
       undefined,
-      undefined,
+      // Attach components to the last chunk so buttons/selects are not lost
+      isLast ? components : undefined,
       chunkMode,
     );
   }
