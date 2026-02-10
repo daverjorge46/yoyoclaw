@@ -36,7 +36,7 @@ describe("file storage", () => {
 
   it("saves file with storageFormat markdown", async () => {
     const buffer = Buffer.from("test,data\n1,2");
-    const fileId = await saveFile({
+    await saveFile({
       sessionId,
       agentId,
       filename: "test.csv",
