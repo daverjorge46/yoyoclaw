@@ -612,7 +612,7 @@ async function runWebSearch(params: {
 }): Promise<Record<string, unknown>> {
   const cacheKey = normalizeCacheKey(
     params.provider == "baidu"
-      ? `${params.provider}:${params.query}`
+      ? `${params.provider}:${params.query}:${params.count}`
       : params.provider === "brave"
         ? `${params.provider}:${params.query}:${params.count}:${params.country || "default"}:${params.search_lang || "default"}:${params.ui_lang || "default"}:${params.freshness || "default"}`
         : params.provider === "perplexity"
