@@ -96,9 +96,6 @@ importers:
       croner:
         specifier: ^10.0.1
         version: 10.0.1
-      csv-to-markdown-table:
-        specifier: ^1.6.3
-        version: 1.6.3
       discord-api-types:
         specifier: ^0.38.38
         version: 0.38.38
@@ -3439,10 +3436,6 @@ packages:
 
   cssom@0.5.0:
     resolution: {integrity: sha512-iKuQcq+NdHqlAcwUY0o/HL69XQrUaQdMjmStJ8JFmUaiiQErlhrmuigkg/CU4E2J0IyUKUrMAgl36TvN67MqTw==}
-
-  csv-to-markdown-table@1.6.3:
-    resolution: {integrity: sha512-o/s0+YHKbtw4PCTKUxdBwRKzWIi300CvIbqOm+lNmPWc5t9tNCfLfmHUF00CXGwvajPAdFG9XkwRUcL0XZRzjg==}
-    hasBin: true
 
   curve25519-js@0.0.4:
     resolution: {integrity: sha512-axn2UMEnkhyDUPWOwVKBMVIzSQy2ejH2xRGy1wq81dqRwApXfIzfbE3hIX0ZRFBIihf/KDqK158DLwESu4AK1w==}
@@ -9302,8 +9295,6 @@ snapshots:
   css-what@6.2.2: {}
 
   cssom@0.5.0: {}
-
-  csv-to-markdown-table@1.6.3: {}
 
   curve25519-js@0.0.4: {}
 
