@@ -1,0 +1,8 @@
+{
+  "id": "google-drive",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
