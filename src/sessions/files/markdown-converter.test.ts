@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { csvToMarkdownTable, jsonToMarkdown } from "./markdown-converter.js";
+import { csvToMarkdownTable, jsonToMarkdown, textToMarkdown } from "./markdown-converter.js";
 
 describe("csvToMarkdownTable", () => {
   it("converts simple CSV to markdown table", () => {
@@ -60,5 +60,25 @@ describe("jsonToMarkdown", () => {
     const result = jsonToMarkdown(json);
     expect(result).toContain("```json");
     expect(result).toContain("{ invalid json }");
+  });
+});
+
+describe("textToMarkdown", () => {
+  it("keeps markdown-compatible text as-is", () => {
+    const text = "# Heading\n\nParagraph with **bold** text.";
+    const result = textToMarkdown(text);
+    expect(result).toBe(text);
+  });
+
+  it("wraps plain text in code block if needed", () => {
+    const text = "Plain text\nwith multiple\nlines";
+    const result = textToMarkdown(text);
+    // Should detect it's not markdown and wrap
+    expect(result).toContain("```");
+  });
+
+  it("handles empty text", () => {
+    const result = textToMarkdown("");
+    expect(result).toBe("");
   });
 });

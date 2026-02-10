@@ -24,3 +24,30 @@ export function jsonToMarkdown(json: string): string {
   }
   return `\`\`\`json\n${formatted}\n\`\`\``;
 }
+
+function looksLikeMarkdown(text: string): boolean {
+  // Simple heuristic: check for common markdown patterns
+  const markdownPatterns = [
+    /^#{1,6}\s+/m, // Headers
+    /\*\*.*\*\*/, // Bold
+    /\*.*\*/m, // Italic
+    /\[.*\]\(.*\)/, // Links
+    /^\s*[-*+]\s+/m, // Lists
+    /^\s*\d+\.\s+/m, // Numbered lists
+    /```/, // Code blocks
+    /^\s*\|.*\|/m, // Tables
+  ];
+  return markdownPatterns.some((pattern) => pattern.test(text));
+}
+
+export function textToMarkdown(text: string): string {
+  if (!text.trim()) {
+    return "";
+  }
+  // If it looks like markdown, keep as-is
+  if (looksLikeMarkdown(text)) {
+    return text;
+  }
+  // Otherwise wrap in code block
+  return `\`\`\`\n${text}\n\`\`\``;
+}
