@@ -109,11 +109,18 @@ describe("memory tools cross-agent access", () => {
     }
 
     const result = await tool.execute("call_4", { query: "hello", all: true });
-    const details = result.details as { results: Array<{ agentId: string; score?: number }> };
+    const details = result.details as {
+      results: Array<{ agentId: string; score?: number }>;
+      provider?: string;
+      model?: string;
+      fallback?: unknown;
+    };
     expect(details.results).toHaveLength(3);
     expect(details.results[0]?.agentId).toBe("ops");
     expect(details.results.map((entry) => entry.agentId).toSorted()).toEqual(
       ["main", "ops", "research"].toSorted(),
     );
+    expect(details.provider).toBe("openai");
+    expect(details.model).toBe("text-embedding-3-small");
   });
 });
