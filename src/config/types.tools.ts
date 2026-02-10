@@ -336,8 +336,8 @@ export type ToolsConfig = {
     search?: {
       /** Enable web search tool (default: true when API key is present). */
       enabled?: boolean;
-      /** Search provider ("brave", "perplexity", or "grok"). */
-      provider?: "brave" | "perplexity" | "grok";
+      /** Search provider ("brave", "perplexity", "grok", or "nimble"). */
+      provider?: "brave" | "perplexity" | "grok" | "nimble";
       /** Brave Search API key (optional; defaults to BRAVE_API_KEY env var). */
       apiKey?: string;
       /** Default search results count (1-10). */
@@ -363,6 +363,13 @@ export type ToolsConfig = {
         model?: string;
         /** Include inline citations in response text as markdown links (default: false). */
         inlineCitations?: boolean;
+      };
+      /** Nimble-specific configuration (used when provider="nimble"). */
+      nimble?: {
+        /** API key for Nimble (defaults to NIMBLE_API_KEY env var). */
+        apiKey?: string;
+        /** Base URL for API requests (defaults to https://sdk.nimbleway.com/v1/search). */
+        baseUrl?: string;
       };
     };
     fetch?: {

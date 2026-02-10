@@ -21,4 +21,23 @@ describe("web search provider config", () => {
 
     expect(res.ok).toBe(true);
   });
+
+  it("accepts nimble provider and config", () => {
+    const res = validateConfigObject({
+      tools: {
+        web: {
+          search: {
+            enabled: true,
+            provider: "nimble",
+            nimble: {
+              apiKey: "test-key",
+              baseUrl: "https://sdk.nimbleway.com/v1/search",
+            },
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
 });
