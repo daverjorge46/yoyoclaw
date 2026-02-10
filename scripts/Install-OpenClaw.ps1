@@ -131,9 +131,27 @@ try {
             $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
             $npmCommand = Get-Command npm -ErrorAction SilentlyContinue
             if ($nodeCommand -and $npmCommand) {
+                Write-Host "This may take several minutes. Progress will be shown below..." -ForegroundColor Cyan
+                Write-Host ""
                 Push-Location $openclawBinPath
-                npm install --omit=dev 2>&1 | Out-Null
+
+                # Show npm install output with package names
+                npm install --omit=dev --loglevel=info 2>&1 | ForEach-Object {
+                    $line = $_.ToString()
+                    # Highlight package names being installed
+                    if ($line -match "added|removed|changed|updated") {
+                        Write-Host $line -ForegroundColor Green
+                    } elseif ($line -match "warn") {
+                        Write-Host $line -ForegroundColor Yellow
+                    } elseif ($line -match "error|ERR") {
+                        Write-Host $line -ForegroundColor Red
+                    } else {
+                        Write-Host $line -ForegroundColor Gray
+                    }
+                }
+
                 Pop-Location
+                Write-Host ""
                 Write-Host "Dependencies installed" -ForegroundColor Green
             } else {
                 Write-Host "ERROR: npm is required but not found." -ForegroundColor Red
