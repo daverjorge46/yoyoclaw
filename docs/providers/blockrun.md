@@ -83,4 +83,4 @@ Example savings:
 
 - **GitHub**: [github.com/BlockRunAI/ClawRouter](https://github.com/BlockRunAI/ClawRouter)
 - **Docs**: [blockrun.ai/docs](https://blockrun.ai/docs)
-- **npm**: [@blockrun/clawrouter](https://npmjs.com/package/@blockrun/clawrouter)
+- **npm**: [@blockrun/clawrouter](https://www.npmjs.com/package/@blockrun/clawrouter)
