@@ -22,7 +22,7 @@ function buildWarningContext(params: WarningParams): string {
   const { warning } = params;
   return [
     warning.activeSessionKey,
-    warning.pruneDays,
+    warning.pruneAfterMs,
     warning.maxEntries,
     warning.wouldPrune ? "prune" : "",
     warning.wouldCap ? "cap" : "",
@@ -31,10 +31,27 @@ function buildWarningContext(params: WarningParams): string {
     .join("|");
 }
 
+function formatDuration(ms: number): string {
+  if (ms >= 86_400_000) {
+    const days = Math.round(ms / 86_400_000);
+    return `${days} day${days === 1 ? "" : "s"}`;
+  }
+  if (ms >= 3_600_000) {
+    const hours = Math.round(ms / 3_600_000);
+    return `${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+  if (ms >= 60_000) {
+    const mins = Math.round(ms / 60_000);
+    return `${mins} minute${mins === 1 ? "" : "s"}`;
+  }
+  const secs = Math.round(ms / 1000);
+  return `${secs} second${secs === 1 ? "" : "s"}`;
+}
+
 function buildWarningText(warning: SessionMaintenanceWarning): string {
   const reasons: string[] = [];
   if (warning.wouldPrune) {
-    reasons.push(`older than ${warning.pruneDays} days`);
+    reasons.push(`older than ${formatDuration(warning.pruneAfterMs)}`);
   }
   if (warning.wouldCap) {
     reasons.push(`not in the most recent ${warning.maxEntries} sessions`);

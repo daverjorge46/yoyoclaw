@@ -162,9 +162,9 @@ Save to `~/.openclaw/openclaw.json` and you can DM the bot from that number.
     store: "~/.openclaw/agents/default/sessions/sessions.json",
     maintenance: {
       mode: "warn",
-      pruneDays: 30,
+      pruneAfter: "30d",
       maxEntries: 500,
-      rotateBytes: 10_485_760,
+      rotateBytes: "10mb",
     },
     typingIntervalSeconds: 5,
     sendPolicy: {

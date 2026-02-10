@@ -5,6 +5,8 @@ import path from "node:path";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { SessionMaintenanceConfig, SessionMaintenanceMode } from "../types.base.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { parseByteSize } from "../../cli/parse-bytes.js";
+import { parseDurationMs } from "../../cli/parse-duration.js";
 import {
   deliveryContextFromSession,
   mergeDeliveryContext,
@@ -204,7 +206,7 @@ export function readSessionUpdatedAt(params: {
 // Session Store Pruning, Capping & File Rotation
 // ============================================================================
 
-const DEFAULT_SESSION_PRUNE_DAYS = 30;
+const DEFAULT_SESSION_PRUNE_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 const DEFAULT_SESSION_MAX_ENTRIES = 500;
 const DEFAULT_SESSION_ROTATE_BYTES = 10_485_760; // 10 MB
 const DEFAULT_SESSION_MAINTENANCE_MODE: SessionMaintenanceMode = "warn";
@@ -213,17 +215,48 @@ export type SessionMaintenanceWarning = {
   activeSessionKey: string;
   activeUpdatedAt?: number;
   totalEntries: number;
-  pruneDays: number;
+  pruneAfterMs: number;
   maxEntries: number;
   wouldPrune: boolean;
   wouldCap: boolean;
 };
 
+type ResolvedSessionMaintenanceConfig = {
+  mode: SessionMaintenanceMode;
+  pruneAfterMs: number;
+  maxEntries: number;
+  rotateBytes: number;
+};
+
+function resolvePruneAfterMs(maintenance?: SessionMaintenanceConfig): number {
+  const raw = maintenance?.pruneAfter ?? maintenance?.pruneDays;
+  if (raw === undefined || raw === null || raw === "") {
+    return DEFAULT_SESSION_PRUNE_AFTER_MS;
+  }
+  try {
+    return parseDurationMs(String(raw).trim(), { defaultUnit: "d" });
+  } catch {
+    return DEFAULT_SESSION_PRUNE_AFTER_MS;
+  }
+}
+
+function resolveRotateBytes(maintenance?: SessionMaintenanceConfig): number {
+  const raw = maintenance?.rotateBytes;
+  if (raw === undefined || raw === null || raw === "") {
+    return DEFAULT_SESSION_ROTATE_BYTES;
+  }
+  try {
+    return parseByteSize(String(raw).trim(), { defaultUnit: "b" });
+  } catch {
+    return DEFAULT_SESSION_ROTATE_BYTES;
+  }
+}
+
 /**
  * Resolve maintenance settings from openclaw.json (`session.maintenance`).
  * Falls back to built-in defaults when config is missing or unset.
  */
-export function resolveMaintenanceConfig(): Required<SessionMaintenanceConfig> {
+export function resolveMaintenanceConfig(): ResolvedSessionMaintenanceConfig {
   let maintenance: SessionMaintenanceConfig | undefined;
   try {
     maintenance = loadConfig().session?.maintenance;
@@ -232,9 +265,9 @@ export function resolveMaintenanceConfig(): Required<SessionMaintenanceConfig> {
   }
   return {
     mode: maintenance?.mode ?? DEFAULT_SESSION_MAINTENANCE_MODE,
-    pruneDays: maintenance?.pruneDays ?? DEFAULT_SESSION_PRUNE_DAYS,
+    pruneAfterMs: resolvePruneAfterMs(maintenance),
     maxEntries: maintenance?.maxEntries ?? DEFAULT_SESSION_MAX_ENTRIES,
-    rotateBytes: maintenance?.rotateBytes ?? DEFAULT_SESSION_ROTATE_BYTES,
+    rotateBytes: resolveRotateBytes(maintenance),
   };
 }
 
@@ -245,11 +278,11 @@ export function resolveMaintenanceConfig(): Required<SessionMaintenanceConfig> {
  */
 export function pruneStaleEntries(
   store: Record<string, SessionEntry>,
-  overrideDays?: number,
+  overrideMaxAgeMs?: number,
   opts: { log?: boolean } = {},
 ): number {
-  const maxAgeDays = overrideDays ?? resolveMaintenanceConfig().pruneDays;
-  const cutoffMs = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+  const maxAgeMs = overrideMaxAgeMs ?? resolveMaintenanceConfig().pruneAfterMs;
+  const cutoffMs = Date.now() - maxAgeMs;
   let pruned = 0;
   for (const [key, entry] of Object.entries(store)) {
     if (entry?.updatedAt != null && entry.updatedAt < cutoffMs) {
@@ -258,7 +291,7 @@ export function pruneStaleEntries(
     }
   }
   if (pruned > 0 && opts.log !== false) {
-    log.info("pruned stale session entries", { pruned, maxAgeDays });
+    log.info("pruned stale session entries", { pruned, maxAgeMs });
   }
   return pruned;
 }
@@ -275,7 +308,7 @@ function getEntryUpdatedAt(entry?: SessionEntry): number {
 export function getActiveSessionMaintenanceWarning(params: {
   store: Record<string, SessionEntry>;
   activeSessionKey: string;
-  pruneDays: number;
+  pruneAfterMs: number;
   maxEntries: number;
   nowMs?: number;
 }): SessionMaintenanceWarning | null {
@@ -288,7 +321,7 @@ export function getActiveSessionMaintenanceWarning(params: {
     return null;
   }
   const now = params.nowMs ?? Date.now();
-  const cutoffMs = now - params.pruneDays * 24 * 60 * 60 * 1000;
+  const cutoffMs = now - params.pruneAfterMs;
   const wouldPrune =
     activeEntry.updatedAt != null ? activeEntry.updatedAt < cutoffMs : false;
   const keys = Object.keys(params.store);
@@ -307,7 +340,7 @@ export function getActiveSessionMaintenanceWarning(params: {
     activeSessionKey,
     activeUpdatedAt: activeEntry.updatedAt,
     totalEntries: keys.length,
-    pruneDays: params.pruneDays,
+    pruneAfterMs: params.pruneAfterMs,
     maxEntries: params.maxEntries,
     wouldPrune,
     wouldCap,
@@ -440,7 +473,7 @@ async function saveSessionStoreUnlocked(
         const warning = getActiveSessionMaintenanceWarning({
           store,
           activeSessionKey,
-          pruneDays: maintenance.pruneDays,
+          pruneAfterMs: maintenance.pruneAfterMs,
           maxEntries: maintenance.maxEntries,
         });
         if (warning) {
@@ -448,7 +481,7 @@ async function saveSessionStoreUnlocked(
             activeSessionKey: warning.activeSessionKey,
             wouldPrune: warning.wouldPrune,
             wouldCap: warning.wouldCap,
-            pruneDays: warning.pruneDays,
+            pruneAfterMs: warning.pruneAfterMs,
             maxEntries: warning.maxEntries,
           });
           await opts?.onWarn?.(warning);
@@ -456,7 +489,7 @@ async function saveSessionStoreUnlocked(
       }
     } else {
       // Prune stale entries and cap total count before serializing.
-      pruneStaleEntries(store, maintenance.pruneDays);
+      pruneStaleEntries(store, maintenance.pruneAfterMs);
       capEntryCount(store, maintenance.maxEntries);
 
       // Rotate the on-disk file if it exceeds the size threshold.

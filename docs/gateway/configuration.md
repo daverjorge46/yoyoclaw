@@ -2769,9 +2769,9 @@ Controls session scoping, reset policy, reset triggers, and where the session st
     store: "~/.openclaw/agents/{agentId}/sessions/sessions.json",
     maintenance: {
       mode: "warn",
-      pruneDays: 30,
+      pruneAfter: "30d",
       maxEntries: 500,
-      rotateBytes: 10_485_760,
+      rotateBytes: "10mb",
     },
     // Direct chats collapse to agent:<agentId>:<mainKey> (default: "main").
     mainKey: "main",
@@ -2811,9 +2811,9 @@ Fields:
 - `sendPolicy.rules[]`: match by `channel`, `chatType` (`direct|group|room`), or `keyPrefix` (e.g. `cron:`). First deny wins; otherwise allow.
 - `maintenance`: session store maintenance settings for pruning, capping, and rotation.
   - `mode`: `"warn"` (default) warns the active session (best-effort delivery) when it would be evicted without enforcing maintenance. `"enforce"` applies pruning and rotation.
-  - `pruneDays`: remove entries older than this many days (default 30).
+  - `pruneAfter`: remove entries older than this duration (for example `"30m"`, `"1h"`, `"30d"`). Default "30d".
   - `maxEntries`: cap the number of session entries kept (default 500).
-  - `rotateBytes`: rotate `sessions.json` when it exceeds this size in bytes (default 10485760).
+  - `rotateBytes`: rotate `sessions.json` when it exceeds this size (for example `"10kb"`, `"1mb"`, `"10mb"`). Default "10mb".
 
 ### `skills` (skills config)
 

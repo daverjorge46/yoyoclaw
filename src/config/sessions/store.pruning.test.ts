@@ -43,7 +43,7 @@ describe("pruneStaleEntries", () => {
       ["fresh", makeEntry(now - 1 * DAY_MS)],
     ]);
 
-    const pruned = pruneStaleEntries(store, 30);
+    const pruned = pruneStaleEntries(store, 30 * DAY_MS);
 
     expect(pruned).toBe(1);
     expect(store.old).toBeUndefined();
@@ -58,7 +58,7 @@ describe("pruneStaleEntries", () => {
       ["c", makeEntry(now)],
     ]);
 
-    const pruned = pruneStaleEntries(store, 7);
+    const pruned = pruneStaleEntries(store, 7 * DAY_MS);
 
     expect(pruned).toBe(0);
     expect(Object.keys(store)).toHaveLength(3);
@@ -70,7 +70,7 @@ describe("pruneStaleEntries", () => {
       fresh: makeEntry(Date.now()),
     };
 
-    const pruned = pruneStaleEntries(store, 1);
+    const pruned = pruneStaleEntries(store, 1 * DAY_MS);
 
     expect(pruned).toBe(0);
     expect(store.noDate).toBeDefined();
@@ -78,7 +78,7 @@ describe("pruneStaleEntries", () => {
 
   it("empty store is a no-op", () => {
     const store: Record<string, SessionEntry> = {};
-    const pruned = pruneStaleEntries(store, 30);
+    const pruned = pruneStaleEntries(store, 30 * DAY_MS);
 
     expect(pruned).toBe(0);
     expect(Object.keys(store)).toHaveLength(0);
@@ -92,7 +92,7 @@ describe("pruneStaleEntries", () => {
       ["c", makeEntry(now - 100 * DAY_MS)],
     ]);
 
-    const pruned = pruneStaleEntries(store, 5);
+    const pruned = pruneStaleEntries(store, 5 * DAY_MS);
 
     expect(pruned).toBe(3);
     expect(Object.keys(store)).toHaveLength(0);
@@ -107,7 +107,7 @@ describe("pruneStaleEntries", () => {
       ["fresh2", makeEntry(now)],
     ]);
 
-    const pruned = pruneStaleEntries(store, 10);
+    const pruned = pruneStaleEntries(store, 10 * DAY_MS);
 
     expect(pruned).toBe(2);
     expect(Object.keys(store)).toHaveLength(2);
@@ -117,7 +117,7 @@ describe("pruneStaleEntries", () => {
     const now = Date.now();
     const store = makeStore([["borderline", makeEntry(now - 30 * DAY_MS + 1000)]]);
 
-    const pruned = pruneStaleEntries(store, 30);
+    const pruned = pruneStaleEntries(store, 30 * DAY_MS);
 
     expect(pruned).toBe(0);
     expect(store.borderline).toBeDefined();
@@ -366,7 +366,12 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("saveSessionStore prunes stale entries on write", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { mode: "enforce", pruneDays: 7, maxEntries: 500, rotateBytes: 10_485_760 },
+        maintenance: {
+          mode: "enforce",
+          pruneAfter: "7d",
+          maxEntries: 500,
+          rotateBytes: 10_485_760,
+        },
       },
     });
 
@@ -386,7 +391,12 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("saveSessionStore caps entries over limit", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { mode: "enforce", pruneDays: 30, maxEntries: 5, rotateBytes: 10_485_760 },
+        maintenance: {
+          mode: "enforce",
+          pruneAfter: "30d",
+          maxEntries: 5,
+          rotateBytes: 10_485_760,
+        },
       },
     });
 
@@ -411,7 +421,12 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("saveSessionStore rotates file when over size limit and creates .bak", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { mode: "enforce", pruneDays: 30, maxEntries: 500, rotateBytes: 100 },
+        maintenance: {
+          mode: "enforce",
+          pruneAfter: "30d",
+          maxEntries: 500,
+          rotateBytes: "100b",
+        },
       },
     });
 
@@ -442,7 +457,12 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("saveSessionStore applies both pruning and capping together", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { mode: "enforce", pruneDays: 10, maxEntries: 3, rotateBytes: 10_485_760 },
+        maintenance: {
+          mode: "enforce",
+          pruneAfter: "10d",
+          maxEntries: 3,
+          rotateBytes: 10_485_760,
+        },
       },
     });
 
@@ -471,7 +491,12 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("saveSessionStore skips enforcement when maintenance mode is warn", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { mode: "warn", pruneDays: 7, maxEntries: 1, rotateBytes: 10_485_760 },
+        maintenance: {
+          mode: "warn",
+          pruneAfter: "7d",
+          maxEntries: 1,
+          rotateBytes: 10_485_760,
+        },
       },
     });
 
@@ -492,7 +517,7 @@ describe("Integration: saveSessionStore with pruning", () => {
   it("resolveMaintenanceConfig reads from loadConfig().session.maintenance", async () => {
     mockLoadConfig.mockReturnValue({
       session: {
-        maintenance: { pruneDays: 7, maxEntries: 100, rotateBytes: 5_000_000 },
+        maintenance: { pruneAfter: "7d", maxEntries: 100, rotateBytes: "5mb" },
       },
     });
 
@@ -501,21 +526,35 @@ describe("Integration: saveSessionStore with pruning", () => {
 
     expect(config).toEqual({
       mode: "warn",
-      pruneDays: 7,
+      pruneAfterMs: 7 * DAY_MS,
       maxEntries: 100,
-      rotateBytes: 5_000_000,
+      rotateBytes: 5 * 1024 * 1024,
     });
   });
 
   it("resolveMaintenanceConfig uses defaults for missing fields", async () => {
-    mockLoadConfig.mockReturnValue({ session: { maintenance: { pruneDays: 14 } } });
+    mockLoadConfig.mockReturnValue({ session: { maintenance: { pruneAfter: "14d" } } });
 
     const { resolveMaintenanceConfig } = await import("./store.js");
     const config = resolveMaintenanceConfig();
 
     expect(config).toEqual({
       mode: "warn",
-      pruneDays: 14,
+      pruneAfterMs: 14 * DAY_MS,
+      maxEntries: 500,
+      rotateBytes: 10_485_760,
+    });
+  });
+
+  it("resolveMaintenanceConfig falls back to deprecated pruneDays", async () => {
+    mockLoadConfig.mockReturnValue({ session: { maintenance: { pruneDays: 2 } } });
+
+    const { resolveMaintenanceConfig } = await import("./store.js");
+    const config = resolveMaintenanceConfig();
+
+    expect(config).toEqual({
+      mode: "warn",
+      pruneAfterMs: 2 * DAY_MS,
       maxEntries: 500,
       rotateBytes: 10_485_760,
     });
