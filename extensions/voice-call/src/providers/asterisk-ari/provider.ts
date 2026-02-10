@@ -584,7 +584,8 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     const shouldRespond = call.direction === "inbound" || mode === "conversation";
     if (!shouldRespond) return;
 
-    if (!this.coreConfig) {
+    const coreConfig = this.coreConfig;
+    if (!coreConfig) {
       console.warn("[ari] Core config missing; skipping auto-response");
       return;
     }
@@ -602,7 +603,7 @@ export class AsteriskAriProvider implements VoiceCallProvider {
           const { generateVoiceResponse } = await import("../../response-generator.js");
           const result = await generateVoiceResponse({
             voiceConfig: this.voiceConfig,
-            coreConfig: this.coreConfig,
+            coreConfig,
             callId: state.callId,
             from: current.from,
             transcript: current.transcript,

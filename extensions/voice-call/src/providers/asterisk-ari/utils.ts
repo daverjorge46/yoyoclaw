@@ -13,7 +13,13 @@ export function buildEndpoint(to: string, trunk?: string): string {
   return t ? `PJSIP/${t}/${to}` : `PJSIP/${to}`;
 }
 
-export function makeEvent(partial: Omit<NormalizedEvent, "id" | "timestamp">): NormalizedEvent {
+// NOTE: Omit<Union, K> does NOT preserve per-variant fields because keyof(Union)
+// only includes keys common to all members. Use a distributive conditional.
+export type NormalizedEventInput = NormalizedEvent extends any
+  ? Omit<NormalizedEvent, "id" | "timestamp">
+  : never;
+
+export function makeEvent(partial: NormalizedEventInput): NormalizedEvent {
   return {
     id: crypto.randomUUID(),
     timestamp: nowMs(),

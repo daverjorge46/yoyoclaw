@@ -16,38 +16,32 @@ export type AriConfig = {
 };
 
 export function requireAriConfig(cfg: AriConfigInner): AriConfig {
-  const baseUrl = cfg.baseUrl;
-  const username = cfg.username;
-  const password = cfg.password;
-  const app = cfg.app;
-  const rtpHost = cfg.rtpHost;
-  const rtpPort = cfg.rtpPort;
-  const codec = cfg.codec;
-
   const missing: string[] = [];
-  if (!baseUrl) missing.push("baseUrl");
-  if (!username) missing.push("username");
-  if (!password) missing.push("password");
-  if (!app) missing.push("app");
-  if (!rtpHost) missing.push("rtpHost");
-  if (!rtpPort) missing.push("rtpPort");
-  if (!codec) missing.push("codec");
+  if (!cfg.baseUrl) missing.push("baseUrl");
+  if (!cfg.username) missing.push("username");
+  if (!cfg.password) missing.push("password");
+  if (!cfg.app) missing.push("app");
+  if (!cfg.rtpHost) missing.push("rtpHost");
+  if (!cfg.rtpPort) missing.push("rtpPort");
+  if (!cfg.codec) missing.push("codec");
   if (missing.length) {
     throw new Error(`asteriskAri config missing: ${missing.join(", ")}`);
   }
 
+  const codec = cfg.codec;
   if (codec !== "ulaw" && codec !== "alaw") {
     throw new Error(`asteriskAri codec must be ulaw|alaw (got ${String(codec)})`);
   }
 
+  // After the checks above, we know these are defined.
   return {
-    baseUrl,
-    username,
-    password,
-    app,
+    baseUrl: cfg.baseUrl!,
+    username: cfg.username!,
+    password: cfg.password!,
+    app: cfg.app!,
     trunk: cfg.trunk,
-    rtpHost,
-    rtpPort,
+    rtpHost: cfg.rtpHost!,
+    rtpPort: cfg.rtpPort,
     codec,
   };
 }
