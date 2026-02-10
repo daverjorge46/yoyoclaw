@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "../config/config.js";
 import type { ExecFn } from "./windows-acl.js";
@@ -480,11 +481,16 @@ async function collectChannelSecurityFindings(params: {
     return undefined;
   };
 
-  const sanitizeCheckIdPart = (value: string): string =>
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]+/g, "_");
+  const accountCheckSuffix = (value: string): string => {
+    const raw = value.trim();
+    const slug =
+      raw
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, "_")
+        .replace(/^_+|_+$/g, "") || "account";
+    const hash = createHash("sha256").update(raw).digest("hex").slice(0, 8);
+    return `.${slug}_${hash}`;
+  };
 
   const warnDmPolicy = async (input: {
     label: string;
@@ -586,7 +592,7 @@ async function collectChannelSecurityFindings(params: {
       if (!configured) {
         continue;
       }
-      const accountCheckSuffix = includeAccountLabel ? `.${sanitizeCheckIdPart(accountId)}` : "";
+      const accountCheckIdSuffix = includeAccountLabel ? accountCheckSuffix(accountId) : "";
       const labelBase = plugin.meta.label ?? plugin.id;
       const label = includeAccountLabel ? `${labelBase} (${accountId})` : labelBase;
 
@@ -649,7 +655,7 @@ async function collectChannelSecurityFindings(params: {
             !hasAnyUserAllowlist
           ) {
             findings.push({
-              checkId: `channels.discord.commands.native.unrestricted${accountCheckSuffix}`,
+              checkId: `channels.discord.commands.native.unrestricted${accountCheckIdSuffix}`,
               severity: "critical",
               title: "Discord slash commands are unrestricted",
               detail:
@@ -665,7 +671,7 @@ async function collectChannelSecurityFindings(params: {
             !hasAnyUserAllowlist
           ) {
             findings.push({
-              checkId: `channels.discord.commands.native.no_allowlists${accountCheckSuffix}`,
+              checkId: `channels.discord.commands.native.no_allowlists${accountCheckIdSuffix}`,
               severity: "warn",
               title: "Discord slash commands have no allowlists",
               detail:
@@ -703,7 +709,7 @@ async function collectChannelSecurityFindings(params: {
           const useAccessGroups = params.cfg.commands?.useAccessGroups !== false;
           if (!useAccessGroups) {
             findings.push({
-              checkId: `channels.slack.commands.slash.useAccessGroups_off${accountCheckSuffix}`,
+              checkId: `channels.slack.commands.slash.useAccessGroups_off${accountCheckIdSuffix}`,
               severity: "critical",
               title: "Slack slash commands bypass access groups",
               detail:
@@ -727,7 +733,7 @@ async function collectChannelSecurityFindings(params: {
             });
             if (!ownerAllowFromConfigured && !hasAnyChannelUsersAllowlist) {
               findings.push({
-                checkId: `channels.slack.commands.slash.no_allowlists${accountCheckSuffix}`,
+                checkId: `channels.slack.commands.slash.no_allowlists${accountCheckIdSuffix}`,
                 severity: "warn",
                 title: "Slack slash commands have no allowlists",
                 detail:
@@ -753,7 +759,7 @@ async function collectChannelSecurityFindings(params: {
           allowFrom: dmPolicy.allowFrom,
           policyPath: dmPolicy.policyPath,
           allowFromPath: dmPolicy.allowFromPath,
-          checkIdSuffix: accountCheckSuffix,
+          checkIdSuffix: accountCheckIdSuffix,
           normalizeEntry: dmPolicy.normalizeEntry,
         });
       }
@@ -835,7 +841,7 @@ async function collectChannelSecurityFindings(params: {
 
         if (storeHasWildcard || groupAllowFromHasWildcard) {
           findings.push({
-            checkId: `channels.telegram.groups.allowFrom.wildcard${accountCheckSuffix}`,
+            checkId: `channels.telegram.groups.allowFrom.wildcard${accountCheckIdSuffix}`,
             severity: "critical",
             title: "Telegram group allowlist contains wildcard",
             detail:
@@ -856,7 +862,7 @@ async function collectChannelSecurityFindings(params: {
             globalSetting: params.cfg.commands?.nativeSkills,
           });
           findings.push({
-            checkId: `channels.telegram.groups.allowFrom.missing${accountCheckSuffix}`,
+            checkId: `channels.telegram.groups.allowFrom.missing${accountCheckIdSuffix}`,
             severity: "critical",
             title: "Telegram group commands have no sender allowlist",
             detail:

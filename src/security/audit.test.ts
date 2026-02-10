@@ -448,6 +448,51 @@ describe("security audit", () => {
     ).toBe(true);
   });
 
+  it("uses collision-resistant check IDs for multi-account findings", async () => {
+    const cfg: OpenClawConfig = {};
+    const plugins: ChannelPlugin[] = [
+      {
+        id: "whatsapp",
+        meta: {
+          id: "whatsapp",
+          label: "WhatsApp",
+          selectionLabel: "WhatsApp",
+          docsPath: "/channels/whatsapp",
+          blurb: "Test",
+        },
+        capabilities: { chatTypes: ["direct"] },
+        config: {
+          listAccountIds: () => ["Ops", "ops"],
+          defaultAccountId: () => "Ops",
+          resolveAccount: (_cfg, accountId) => ({ accountId }),
+          isEnabled: () => true,
+          isConfigured: () => true,
+        },
+        security: {
+          resolveDmPolicy: () => ({
+            policy: "open",
+            allowFrom: ["*"],
+            policyPath: "channels.whatsapp.accounts.<id>.dmPolicy",
+            allowFromPath: "channels.whatsapp.accounts.<id>.",
+          }),
+        },
+      } as unknown as ChannelPlugin,
+    ];
+
+    const res = await runSecurityAudit({
+      config: cfg,
+      includeFilesystem: false,
+      includeChannelSecurity: true,
+      plugins,
+    });
+
+    const ids = res.findings
+      .filter((f) => f.checkId.startsWith("channels.whatsapp.dm.open"))
+      .map((f) => f.checkId);
+    expect(ids.length).toBe(2);
+    expect(new Set(ids).size).toBe(2);
+  });
+
   it("flags Discord native commands without a guild user allowlist", async () => {
     const prevStateDir = process.env.OPENCLAW_STATE_DIR;
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-security-audit-discord-"));
