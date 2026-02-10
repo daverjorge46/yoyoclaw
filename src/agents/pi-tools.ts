@@ -24,6 +24,7 @@ import { listChannelAgentTools } from "./channel-tools.js";
 import { createOpenClawTools } from "./openclaw-tools.js";
 import { wrapToolWithAbortSignal } from "./pi-tools.abort.js";
 import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
+import { wrapToolWithPromptInjectionMonitor } from "./pi-tools.prompt-injection-monitor.js";
 import {
   filterToolsByPolicy,
   isToolAllowedByPolicies,
@@ -442,9 +443,10 @@ export function createOpenClawCodingTools(options?: {
       sessionKey: options?.sessionKey,
     }),
   );
+  const withMonitor = withHooks.map((tool) => wrapToolWithPromptInjectionMonitor(tool));
   const withAbort = options?.abortSignal
-    ? withHooks.map((tool) => wrapToolWithAbortSignal(tool, options.abortSignal))
-    : withHooks;
+    ? withMonitor.map((tool) => wrapToolWithAbortSignal(tool, options.abortSignal))
+    : withMonitor;
 
   // NOTE: Keep canonical (lowercase) tool names here.
   // pi-ai's Anthropic OAuth transport remaps tool names to Claude Code-style names
