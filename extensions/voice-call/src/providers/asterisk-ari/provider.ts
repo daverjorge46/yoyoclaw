@@ -35,6 +35,11 @@ import { requireAriConfig, type AriConfig, type CallState, type CoreSttSession }
 import { buildEndpoint, makeEvent, nowMs } from "./utils.js";
 
 export class AsteriskAriProvider implements VoiceCallProvider {
+  destroy(): void {
+    // Ensure we don't leak a reconnecting websocket across runtime restarts/tests.
+    this.client.closeWs();
+  }
+
   private markEndedOnce(callId: string, providerCallId: string | undefined): boolean {
     if (this.endedCallIds.has(callId)) return false;
     if (providerCallId && this.endedProviderCallIds.has(providerCallId)) return false;

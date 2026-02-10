@@ -230,6 +230,16 @@ export async function createVoiceCallRuntime(params: {
   }
 
   const stop = async () => {
+    try {
+      if (typeof provider.destroy === "function") {
+        await provider.destroy();
+      }
+    } catch (err) {
+      log.warn(
+        `[voice-call] Provider shutdown failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
     if (tunnelResult) {
       await tunnelResult.stop();
     }

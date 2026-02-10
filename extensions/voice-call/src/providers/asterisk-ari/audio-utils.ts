@@ -29,11 +29,12 @@ export function mulawToAlawBuffer(mulaw: Buffer): Buffer {
 export function computeRms(pcm: Buffer): number {
   if (pcm.length < 2) return 0;
   let sum = 0;
-  for (let i = 0; i < pcm.length; i += 2) {
+  // Ensure we only read full int16 samples.
+  for (let i = 0; i + 1 < pcm.length; i += 2) {
     const sample = pcm.readInt16LE(i);
     sum += sample * sample;
   }
-  const count = pcm.length / 2;
+  const count = Math.floor(pcm.length / 2);
   return Math.sqrt(sum / Math.max(1, count));
 }
 
