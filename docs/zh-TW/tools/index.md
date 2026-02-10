@@ -86,8 +86,7 @@ Example (global coding profile, messaging-only support agent):
 
 使用 `tools.byProvider` 可針對特定提供者
 （或單一 `provider/model`）**進一步限制** 工具，而不影響你的全域預設值。
-每個代理程式可覆寫：`agents.list[].tools.byProvider`。
-36. 每代理覆寫：`agents.list[].tools.byProvider`。
+每個代理程式可覆寫：`agents.list[].tools.byProvider`。36. 每代理覆寫：`agents.list[].tools.byProvider`。
 
 此設定會在基礎工具設定檔之後、允許／拒絕清單之前套用，因此只能縮小工具集合。
 Provider keys accept either `provider` (e.g. `google-antigravity`) or

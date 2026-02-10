@@ -44,11 +44,11 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
         ```
       </Tab>
     </Tabs>
-    
+
     Klart — skriptet hanterar Node-detektering, installation och introduktion.
-    
+
     För att hoppa över introduktionen och bara installera binären:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
         ```
       </Tab>
     </Tabs>
-    
+
     För alla flaggor, miljövariabler och CI-/automationsalternativ, se [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp-byggfel?">
           Om du har libvips installerat globalt (vanligt på macOS via Homebrew) och `sharp` misslyckas, tvinga förbyggda binärer:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Om du ser `sharp: Please add node-gyp to your dependencies`, installera antingen byggverktyg (macOS: Xcode CLT + `npm install -g node-gyp`) eller använd miljövariabeln ovan.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm kräver uttryckligt godkännande för paket med byggskript. Efter att den första installationen visar varningen ”Ignored build scripts”, kör `pnpm approve-builds -g` och välj de listade paketen.
         </Note>
@@ -111,7 +111,7 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
     <Steps>
       <Step title="Klona och bygg">
         Klona [OpenClaw-repot](https://github.com/openclaw/openclaw) och bygg:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
       </Step>
       <Step title="Länka CLI:t">
         Gör kommandot `openclaw` tillgängligt globalt:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Alternativt kan du hoppa över länkningen och köra kommandon via `pnpm openclaw ...` inifrån repot.
       </Step>
       <Step title="Kör introduktionen">
@@ -135,7 +135,7 @@ På Windows rekommenderar vi starkt att köra OpenClaw under [WSL2](https://lear
         ```
       </Step>
     </Steps>
-    
+
     För djupare utvecklingsarbetsflöden, se [Konfigurering](/start/setup).
     ```
 

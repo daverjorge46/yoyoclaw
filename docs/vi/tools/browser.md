@@ -9,8 +9,7 @@ title: "Trình duyệt (do OpenClaw quản lý)"
 
 # Trình duyệt (do openclaw quản lý)
 
-OpenClaw can run a **dedicated Chrome/Brave/Edge/Chromium profile** that the agent controls.
-35. Nó được cô lập khỏi trình duyệt cá nhân của bạn và được quản lý thông qua một dịch vụ điều khiển cục bộ nhỏ bên trong Gateway (chỉ loopback).
+OpenClaw can run a **dedicated Chrome/Brave/Edge/Chromium profile** that the agent controls. 35. Nó được cô lập khỏi trình duyệt cá nhân của bạn và được quản lý thông qua một dịch vụ điều khiển cục bộ nhỏ bên trong Gateway (chỉ loopback).
 
 Góc nhìn cho người mới:
 
@@ -145,8 +144,7 @@ tokens instead of committing them to config files.
 ## Node browser proxy (mặc định zero-config)
 
 If you run a **node host** on the machine that has your browser, OpenClaw can
-auto-route browser tool calls to that node without any extra browser config.
-38. Đây là đường dẫn mặc định cho các gateway từ xa.
+auto-route browser tool calls to that node without any extra browser config. 38. Đây là đường dẫn mặc định cho các gateway từ xa.
 
 Ghi chú:
 
@@ -354,8 +352,7 @@ bạn hoán đổi trình duyệt và profile cục bộ/từ xa.
 
 ## Tham chiếu nhanh CLI
 
-All commands accept `--browser-profile <name>` to target a specific profile.
-39. Tất cả các lệnh cũng chấp nhận `--json` để xuất kết quả dạng máy đọc được (payload ổn định).
+All commands accept `--browser-profile <name>` to target a specific profile. 39. Tất cả các lệnh cũng chấp nhận `--json` để xuất kết quả dạng máy đọc được (payload ổn định).
 
 Cơ bản:
 

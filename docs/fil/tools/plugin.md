@@ -63,8 +63,7 @@ Maaaring magrehistro ang mga plugin ng:
 - **Skills** (sa pamamagitan ng paglista ng mga directory ng `skills` sa plugin manifest)
 - **Mga auto-reply command** (nag-e-execute nang hindi tinatawag ang AI agent)
 
-Plugins run **in‑process** with the Gateway, so treat them as trusted code.
-25. Gabay sa paggawa ng tool: [Plugin agent tools](/plugins/agent-tools).
+Plugins run **in‑process** with the Gateway, so treat them as trusted code. 25. Gabay sa paggawa ng tool: [Plugin agent tools](/plugins/agent-tools).
 
 ## Mga runtime helper
 
@@ -425,7 +424,7 @@ Model provider docs live under `/providers/*`.
 
 1. Pumili ng id + hugis ng config
 
-- 29) Lahat ng channel config ay nasa ilalim ng \`channels.<id>\`\`.
+- 29. Lahat ng channel config ay nasa ilalim ng \`channels.<id>\`\`.
 - Prefer `channels.<id>.accounts.<accountId>` for multi‑account setups.
 
 2. Tukuyin ang metadata ng channel

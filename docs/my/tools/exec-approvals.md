@@ -119,8 +119,8 @@ allowlist entry တစ်ခုချင်းစီတွင် အောက်
 33. `tools.exec.safeBins` သည် **stdin-only** binaries များ (ဥပမာ `jq`) ကို အနည်းငယ် သတ်မှတ်ထားပြီး explicit allowlist entries မလိုအပ်ဘဲ allowlist mode ဖြင့် chạy နိုင်ပါသည်။ 34. Safe bins များသည် positional file args နှင့် path-like tokens များကို ငြင်းပယ်သဖြင့် incoming stream ပေါ်တွင်သာ လုပ်ဆောင်နိုင်ပါသည်။
 34. Shell chaining နှင့် redirections များကို allowlist mode တွင် auto-allow မလုပ်ပါ။
 
-36. Shell chaining (`&&`, `||`, `;`) ကို top-level segment တစ်ခုချင်းစီက allowlist (safe bins သို့မဟုတ် skill auto-allow အပါအဝင်) ကို ပြည့်မီပါက ခွင့်ပြုပါသည်။ 37. Redirections များကို allowlist mode တွင် မထောက်ပံ့သေးပါ။
-37. Command substitution (`$()` / backticks) ကို allowlist parsing အတွင်း ငြင်းပယ်ပါသည်၊ double quotes အတွင်းပါ ပါဝင်သော်လည်း ဖြစ်ပါသည်; literal `$()` စာသား လိုအပ်ပါက single quotes ကို အသုံးပြုပါ။
+35. Shell chaining (`&&`, `||`, `;`) ကို top-level segment တစ်ခုချင်းစီက allowlist (safe bins သို့မဟုတ် skill auto-allow အပါအဝင်) ကို ပြည့်မီပါက ခွင့်ပြုပါသည်။ 37. Redirections များကို allowlist mode တွင် မထောက်ပံ့သေးပါ။
+36. Command substitution (`$()` / backticks) ကို allowlist parsing အတွင်း ငြင်းပယ်ပါသည်၊ double quotes အတွင်းပါ ပါဝင်သော်လည်း ဖြစ်ပါသည်; literal `$()` စာသား လိုအပ်ပါက single quotes ကို အသုံးပြုပါ။
 
 Default safe bins— `jq`, `grep`, `cut`, `sort`, `uniq`, `head`, `tail`, `tr`, `wc`။
 
@@ -128,8 +128,8 @@ Default safe bins— `jq`, `grep`, `cut`, `sort`, `uniq`, `head`, `tail`, `tr`, 
 
 39. Defaults၊ agent တစ်ခုချင်းစီအလိုက် overrides နှင့် allowlists များကို ပြင်ဆင်ရန် **Control UI → Nodes → Exec approvals** ကတ်ကို အသုံးပြုပါ။ 40. Scope (Defaults သို့မဟုတ် agent တစ်ခု) ကို ရွေးချယ်ပြီး policy ကို ပြင်ဆင်ပါ၊ allowlist patterns များကို ထည့်/ဖယ် လုပ်ပြီးနောက် **Save** ကို နှိပ်ပါ။ 41. စာရင်းကို စနစ်တကျ ထိန်းသိမ်းနိုင်ရန် UI တွင် pattern တစ်ခုချင်းစီအတွက် **last used** metadata ကို ပြသပါသည်။
 
-42. Target selector သည် **Gateway** (local approvals) သို့မဟုတ် **Node** ကို ရွေးချယ်ပေးပါသည်။ 43. Nodes များသည် `system.execApprovals.get/set` ကို advertise လုပ်ထားရပါမည် (macOS app သို့မဟုတ် headless node host)။
-43. Node တစ်ခုက exec approvals ကို မ advertise လုပ်သေးပါက ၎င်း၏ local `~/.openclaw/exec-approvals.json` ကို တိုက်ရိုက် ပြင်ဆင်ပါ။
+40. Target selector သည် **Gateway** (local approvals) သို့မဟုတ် **Node** ကို ရွေးချယ်ပေးပါသည်။ 43. Nodes များသည် `system.execApprovals.get/set` ကို advertise လုပ်ထားရပါမည် (macOS app သို့မဟုတ် headless node host)။
+41. Node တစ်ခုက exec approvals ကို မ advertise လုပ်သေးပါက ၎င်း၏ local `~/.openclaw/exec-approvals.json` ကို တိုက်ရိုက် ပြင်ဆင်ပါ။
 
 CLI— `openclaw approvals` သည် gateway သို့မဟုတ် node ကို ပြင်ဆင်နိုင်ပါသည်
 ([Approvals CLI](/cli/approvals) ကို ကြည့်ပါ)။

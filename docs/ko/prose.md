@@ -119,11 +119,11 @@ OpenProse 는 여러 상태 백엔드를 지원합니다:
 
 OpenProse 프로그램은 OpenClaw 기본 요소로 매핑됩니다:
 
-| OpenProse 개념  | OpenClaw 도구      |
-| ------------- | ---------------- |
+| OpenProse 개념        | OpenClaw 도구    |
+| --------------------- | ---------------- |
 | 세션 생성 / 작업 도구 | `sessions_spawn` |
-| 파일 읽기/쓰기      | `read` / `write` |
-| 웹 가져오기        | `web_fetch`      |
+| 파일 읽기/쓰기        | `read` / `write` |
+| 웹 가져오기           | `web_fetch`      |
 
 도구 허용 목록이 이러한 도구를 차단하는 경우 OpenProse 프로그램은 실패합니다. [Skills 설정](/tools/skills-config)을 참고하십시오.
 

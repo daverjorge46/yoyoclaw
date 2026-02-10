@@ -168,15 +168,15 @@ Bu, aracının alt aracılar oluşturmak için çağırdığı araçtır.
 
 ### Parametreler
 
-| Parametre           | Ana makine hacim bağlaması | Varsayılan                             | Açıklama                                                                                                |
-| ------------------- | -------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `task`              | string                     | _(zorunlu)_         | Alt aracının ne yapması gerektiği                                                                       |
-| `etiket`            | string                     | —                                      | Tanımlama için kısa etiket                                                                              |
-| `agentId`           | string                     | _(çağıranın aracı)_ | Farklı bir aracı kimliği altında oluştur (izin verilmiş olmalıdır)                   |
-| `model`             | string                     | _(isteğe bağlı)_    | Bu alt aracı için modeli geçersiz kıl                                                                   |
+| Parametre           | Ana makine hacim bağlaması | Varsayılan          | Açıklama                                                             |
+| ------------------- | -------------------------- | ------------------- | -------------------------------------------------------------------- |
+| `task`              | string                     | _(zorunlu)_         | Alt aracının ne yapması gerektiği                                    |
+| `etiket`            | string                     | —                   | Tanımlama için kısa etiket                                           |
+| `agentId`           | string                     | _(çağıranın aracı)_ | Farklı bir aracı kimliği altında oluştur (izin verilmiş olmalıdır)   |
+| `model`             | string                     | _(isteğe bağlı)_    | Bu alt aracı için modeli geçersiz kıl                                |
 | `thinking`          | string                     | _(isteğe bağlı)_    | Düşünme seviyesini geçersiz kıl (`off`, `low`, `medium`, `high` vb.) |
-| `runTimeoutSeconds` | sayı                       | `0` (sınırsız)      | Alt aracıyı N saniye sonra durdur                                                                       |
-| `temizlik`          | "delete" \| "keep"         | "keep"                                 | "delete" duyurudan hemen sonra arşivler                                                                 |
+| `runTimeoutSeconds` | sayı                       | `0` (sınırsız)      | Alt aracıyı N saniye sonra durdur                                    |
+| `temizlik`          | "delete" \| "keep"         | "keep"              | "delete" duyurudan hemen sonra arşivler                              |
 
 ### Model Çözümleme Sırası
 
@@ -222,13 +222,13 @@ Varsayılan olarak, alt aracılar yalnızca kendi aracı kimlikleri altında olu
 
 Geçerli oturum için alt aracı çalışmalarını incelemek ve kontrol etmek üzere `/subagents` eğik çizgi komutunu kullanın:
 
-| Command                                    | Açıklama                                                                      |
-| ------------------------------------------ | ----------------------------------------------------------------------------- |
-| `/subagents list`                          | Tüm alt aracı çalışmalarını listele (aktif ve tamamlanmış) |
-| `/subagents stop <id\\|#\\|all>`         | Stop a running sub-agent                                                      |
-| `/subagents log <id\\|#> [limit] [tools]` | Alt aracı dökümünü görüntüle                                                  |
-| `/subagents info <id\\|#>`                | Ayrıntılı çalışma meta verilerini göster                                      |
-| `/subagents send <id\\|#> <message>`      | Çalışan bir alt aracıya mesaj gönder                                          |
+| Command                | Açıklama                                                   |
+| ---------------------- | ---------------------------------------------------------- | ---------------------------------------- | ------------------------ |
+| `/subagents list`      | Tüm alt aracı çalışmalarını listele (aktif ve tamamlanmış) |
+| `/subagents stop <id\\ | #\\                                                        | all>`                                    | Stop a running sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                                        | Alt aracı dökümünü görüntüle             |
+| `/subagents info <id\\ | #>`                                                        | Ayrıntılı çalışma meta verilerini göster |
+| `/subagents send <id\\ | #> <message>`                                              | Çalışan bir alt aracıya mesaj gönder     |
 
 Alt aracıları liste dizini (`1`, `2`), çalışma kimliği öneki, tam oturum anahtarı veya `last` ile referans alabilirsiniz.
 
@@ -245,11 +245,11 @@ Alt aracıları liste dizini (`1`, `2`), çalışma kimliği öneki, tam oturum 
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -281,7 +281,7 @@ Alt aracıları liste dizini (`1`, `2`), çalışma kimliği öneki, tam oturum 
 
     ````
     Alt aracının dökümünden son 10 mesajı gösterir. Araç çağrısı mesajlarını dahil etmek için `tools` ekleyin:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -423,40 +423,41 @@ Alt ajan ayrıca, kendisine atanan göreve odaklanmasını, görevi tamamlaması
 
 <Accordion title="Complete sub-agent configuration">```json5
 {
-  agents: {
-    defaults: {
-      model: { primary: "anthropic/claude-sonnet-4" },
-      subagents: {
-        model: "minimax/MiniMax-M2.1",
-        thinking: "low",
-        maxConcurrent: 4,
-        archiveAfterMinutes: 30,
-      },
-    },
-    list: [
-      {
-        id: "main",
-        default: true,
-        name: "Personal Assistant",
-      },
-      {
-        id: "ops",
-        name: "Ops Agent",
-        subagents: {
-          model: "anthropic/claude-sonnet-4",
-          allowAgents: ["main"], // ops can spawn sub-agents under "main"
-        },
-      },
-    ],
-  },
-  tools: {
-    subagents: {
-      tools: {
-        deny: ["browser"], // sub-agents can't use the browser
-      },
-    },
-  },
+agents: {
+defaults: {
+model: { primary: "anthropic/claude-sonnet-4" },
+subagents: {
+model: "minimax/MiniMax-M2.1",
+thinking: "low",
+maxConcurrent: 4,
+archiveAfterMinutes: 30,
+},
+},
+list: [
+{
+id: "main",
+default: true,
+name: "Personal Assistant",
+},
+{
+id: "ops",
+name: "Ops Agent",
+subagents: {
+model: "anthropic/claude-sonnet-4",
+allowAgents: ["main"], // ops can spawn sub-agents under "main"
+},
+},
+],
+},
+tools: {
+subagents: {
+tools: {
+deny: ["browser"], // sub-agents can't use the browser
+},
+},
+},
 }
+
 ```</Accordion>
 
 ## Sınırlamalar
@@ -474,3 +475,4 @@ Alt ajan ayrıca, kendisine atanan göreve odaklanmasını, görevi tamamlaması
 - [Çok Ajanlı Sandbox ve Araçlar](/tools/multi-agent-sandbox-tools) — ajan başına araç kısıtlamaları ve sandboxing
 - [Yapılandırma](/gateway/configuration) — `agents.defaults.subagents` referansı
 - [Kuyruk](/concepts/queue) — `subagent` hattının nasıl çalıştığı
+```

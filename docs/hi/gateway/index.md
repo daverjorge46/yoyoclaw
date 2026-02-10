@@ -253,7 +253,7 @@ openclaw logs --follow
     single-user मशीनों के लिए user services की सिफ़ारिश करते हैं (सरल env, per-user कॉन्फ़िग)।
 12. multi-user या हमेशा-चालू सर्वरों के लिए **system service** का उपयोग करें (linger की आवश्यकता नहीं, साझा supervision)।
 
-14. `openclaw gateway install` user unit लिखता है। 15. `openclaw doctor` unit का ऑडिट करता है
+13. `openclaw gateway install` user unit लिखता है। 15. `openclaw doctor` unit का ऑडिट करता है
     और इसे वर्तमान अनुशंसित डिफ़ॉल्ट्स से मेल कराने के लिए अपडेट कर सकता है।
 
 `~/.config/systemd/user/openclaw-gateway[-<profile>].service` बनाएँ:

@@ -154,14 +154,14 @@ OpenClaw 會自動提供本機安裝路徑。
 1. 前往 [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. 填寫 **Basics** 分頁：
 
-   | 欄位                 | 值                                   |
-   | ------------------ | ----------------------------------- |
+   | 欄位               | 值                                                  |
+   | ------------------ | --------------------------------------------------- |
    | **Bot handle**     | 你的機器人名稱，例如 `openclaw-msteams`（必須唯一） |
-   | **Subscription**   | 選擇你的 Azure 訂閱                       |
-   | **Resource group** | 新建或使用既有                             |
-   | **Pricing tier**   | 開發／測試用選 **Free**                    |
-   | **Type of App**    | **Single Tenant**（建議，見下方說明）         |
-   | **Creation type**  | **Create new Microsoft App ID**     |
+   | **Subscription**   | 選擇你的 Azure 訂閱                                 |
+   | **Resource group** | 新建或使用既有                                      |
+   | **Pricing tier**   | 開發／測試用選 **Free**                             |
+   | **Type of App**    | **Single Tenant**（建議，見下方說明）               |
+   | **Creation type**  | **Create new Microsoft App ID**                     |
 
 > **Deprecation notice:** Creation of new multi-tenant bots was deprecated after 2025-07-31. Use **Single Tenant** for new bots.
 
@@ -270,7 +270,6 @@ tailscale funnel 3978
    ```
 
    也可改用環境變數而非設定鍵：
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -403,12 +402,12 @@ Works:
 
 ### RSC vs Graph API
 
-| 能力        | RSC 權限          | Graph API                              |
-| --------- | --------------- | -------------------------------------- |
-| **即時訊息**  | 是（透過 webhook）   | No (polling only)   |
-| **歷史訊息**  | 否               | 是（可查詢歷史）                               |
-| **設定複雜度** | 僅需 app manifest | 需要系統管理員同意 + 權杖流程                       |
-| **離線可用**  | 否（必須執行中）        | Yes (query anytime) |
+| 能力           | RSC 權限           | Graph API                     |
+| -------------- | ------------------ | ----------------------------- |
+| **即時訊息**   | 是（透過 webhook） | No (polling only)             |
+| **歷史訊息**   | 否                 | 是（可查詢歷史）              |
+| **設定複雜度** | 僅需 app manifest  | 需要系統管理員同意 + 權杖流程 |
+| **離線可用**   | 否（必須執行中）   | Yes (query anytime)           |
 
 **結論：** RSC 用於即時監聽；Graph API 用於歷史存取。若要在離線時補齊遺漏訊息，需要 Graph API 與 `ChannelMessage.Read.All`（需管理員同意）。 For catching up on missed messages while offline, you need Graph API with `ChannelMessage.Read.All` (requires admin consent).
 
@@ -481,10 +480,10 @@ Teams 的 Markdown 比 Slack 或 Discord 更受限：
 
 Teams 近期在相同資料模型上提供兩種頻道 UI 樣式：
 
-| 樣式                   | Description     | 建議的 `replyStyle` |
-| -------------------- | --------------- | ---------------- |
-| **Posts**（經典）        | 訊息以卡片呈現，回覆在下方串接 | `thread`（預設）     |
-| **Threads**（類 Slack） | 訊息線性流動，較像 Slack | `top-level`      |
+| 樣式                    | Description                    | 建議的 `replyStyle` |
+| ----------------------- | ------------------------------ | ------------------- |
+| **Posts**（經典）       | 訊息以卡片呈現，回覆在下方串接 | `thread`（預設）    |
+| **Threads**（類 Slack） | 訊息線性流動，較像 Slack       | `top-level`         |
 
 **問題：** Teams API 不會暴露頻道使用的 UI 樣式。若使用錯誤的 `replyStyle`： If you use the wrong `replyStyle`:
 
@@ -525,11 +524,11 @@ Authorization headers are only attached for hosts in `channels.msteams.mediaAuth
 
 Bots can send files in DMs using the FileConsentCard flow (built-in). However, **sending files in group chats/channels** requires additional setup:
 
-| 情境           | 檔案傳送方式                          | 需要的設定                            |
-| ------------ | ------------------------------- | -------------------------------- |
-| **私訊**       | FileConsentCard → 使用者同意 → 機器人上傳 | Works out of the box             |
-| **群組聊天／頻道**  | 上傳至 SharePoint → 分享連結           | 需要 `sharePointSiteId` + Graph 權限 |
-| **圖片（任何情境）** | Base64 內嵌                       | Works out of the box             |
+| 情境                 | 檔案傳送方式                              | 需要的設定                           |
+| -------------------- | ----------------------------------------- | ------------------------------------ |
+| **私訊**             | FileConsentCard → 使用者同意 → 機器人上傳 | Works out of the box                 |
+| **群組聊天／頻道**   | 上傳至 SharePoint → 分享連結              | 需要 `sharePointSiteId` + Graph 權限 |
+| **圖片（任何情境）** | Base64 內嵌                               | Works out of the box                 |
 
 ### 為何群組聊天需要 SharePoint
 
@@ -572,21 +571,21 @@ Bots don't have a personal OneDrive drive (the `/me/drive` Graph API endpoint do
 
 ### 分享行為
 
-| 權限                                      | 分享行為                |
-| --------------------------------------- | ------------------- |
-| 僅 `Sites.ReadWrite.All`                 | 組織範圍分享連結（組織內任何人可存取） |
-| `Sites.ReadWrite.All` + `Chat.Read.All` | 逐使用者分享連結（僅聊天成員可存取）  |
+| 權限                                    | 分享行為                               |
+| --------------------------------------- | -------------------------------------- |
+| 僅 `Sites.ReadWrite.All`                | 組織範圍分享連結（組織內任何人可存取） |
+| `Sites.ReadWrite.All` + `Chat.Read.All` | 逐使用者分享連結（僅聊天成員可存取）   |
 
 逐使用者分享較安全，僅聊天參與者可存取檔案。若缺少 `Chat.Read.All` 權限，機器人會回退至組織範圍分享。 1. 如果缺少 `Chat.Read.All` 權限，機器人將回退為全組織範圍的分享。
 
 ### 回退行為
 
-| 情境                                 | 結果                                |
-| ---------------------------------- | --------------------------------- |
-| 群組聊天 + 檔案 + 已設定 `sharePointSiteId` | 上傳至 SharePoint，傳送分享連結             |
-| 群組聊天 + 檔案 + 未設定 `sharePointSiteId` | 嘗試 OneDrive 上傳（可能失敗），僅傳送文字        |
-| 個人聊天 + 檔案                          | FileConsentCard 流程（無需 SharePoint） |
-| 任何情境 + 圖片                          | Base64 內嵌（無需 SharePoint）          |
+| 情境                                        | 結果                                       |
+| ------------------------------------------- | ------------------------------------------ |
+| 群組聊天 + 檔案 + 已設定 `sharePointSiteId` | 上傳至 SharePoint，傳送分享連結            |
+| 群組聊天 + 檔案 + 未設定 `sharePointSiteId` | 嘗試 OneDrive 上傳（可能失敗），僅傳送文字 |
+| 個人聊天 + 檔案                             | FileConsentCard 流程（無需 SharePoint）    |
+| 任何情境 + 圖片                             | Base64 內嵌（無需 SharePoint）             |
 
 ### 檔案儲存位置
 
@@ -636,12 +635,12 @@ openclaw message send --channel msteams \
 
 MSTeams 目標使用前綴區分使用者與對話：
 
-| 目標類型      | 格式                               | 範例                                          |
-| --------- | -------------------------------- | ------------------------------------------- |
-| 使用者（依 ID） | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197` |
-| 使用者（依名稱）  | `user:<display-name>`            | `user:John Smith`（需要 Graph API）             |
-| 群組／頻道     | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`    |
-| 群組／頻道（原始） | `<conversation-id>`              | `19:abc123...@thread.tacv2`（若包含 `@thread`）  |
+| 目標類型           | 格式                             | 範例                                            |
+| ------------------ | -------------------------------- | ----------------------------------------------- |
+| 使用者（依 ID）    | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`     |
+| 使用者（依名稱）   | `user:<display-name>`            | `user:John Smith`（需要 Graph API）             |
+| 群組／頻道         | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`        |
+| 群組／頻道（原始） | `<conversation-id>`              | `19:abc123...@thread.tacv2`（若包含 `@thread`） |
 
 **CLI 範例：**
 
@@ -721,13 +720,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 機器人在私有頻道中的支援有限：
 
-| 功能                               | 標準頻道 | 10. 私人頻道     |
-| -------------------------------- | ---- | ----------------------------------- |
-| 11. 機器人安裝 | 是    | 有限                                  |
-| 即時訊息（webhook）                    | 是    | 可能無法運作                              |
-| RSC 權限                           | 是    | 可能行為不同                              |
-| @mentions           | 是    | 12. 如果機器人可存取 |
-| Graph API 歷史                     | 是    | 是（需權限）                              |
+| 功能                | 標準頻道 | 10. 私人頻道         |
+| ------------------- | -------- | -------------------- |
+| 11. 機器人安裝      | 是       | 有限                 |
+| 即時訊息（webhook） | 是       | 可能無法運作         |
+| RSC 權限            | 是       | 可能行為不同         |
+| @mentions           | 是       | 12. 如果機器人可存取 |
+| Graph API 歷史      | 是       | 是（需權限）         |
 
 **私有頻道不可用時的替代方案：**
 

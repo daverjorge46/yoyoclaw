@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Konfigurationsreference
 
-| Nøgle        | Type                                                         | Standard                                    | Beskrivelse                                 |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------- |
-| `privateKey` | string                                                       | krævet                                      | Privat nøgle i `nsec`- eller hex-format     |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL'er (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM-adgangspolitik                           |
-| `allowFrom`  | string[] | `[]`                                        | Tilladte afsenderes pubkeys                 |
-| `enabled`    | boolean                                                      | `true`                                      | Aktivér/deaktivér kanal                     |
-| `name`       | string                                                       | -                                           | Vist navn                                   |
-| `profile`    | object                                                       | -                                           | NIP-01 profilmetadata                       |
+| Nøgle        | Type     | Standard                                    | Beskrivelse                             |
+| ------------ | -------- | ------------------------------------------- | --------------------------------------- |
+| `privateKey` | string   | krævet                                      | Privat nøgle i `nsec`- eller hex-format |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL'er (WebSocket)                |
+| `dmPolicy`   | string   | `pairing`                                   | DM-adgangspolitik                       |
+| `allowFrom`  | string[] | `[]`                                        | Tilladte afsenderes pubkeys             |
+| `enabled`    | boolean  | `true`                                      | Aktivér/deaktivér kanal                 |
+| `name`       | string   | -                                           | Vist navn                               |
+| `profile`    | object   | -                                           | NIP-01 profilmetadata                   |
 
 ## Profilmetadata
 
@@ -166,12 +166,12 @@ Tips:
 
 ## Protokolunderstøttelse
 
-| NIP    | Status       | Beskrivelse                                    |
-| ------ | ------------ | ---------------------------------------------- |
-| NIP-01 | Understøttet | Grundlæggende event-format + profilmetadata    |
-| NIP-04 | Understøttet | Krypterede DM'er (`kind:4`) |
-| NIP-17 | Planlagt     | Gaveindpakkede DM'er                           |
-| NIP-44 | Planlagt     | Versioneret kryptering                         |
+| NIP    | Status       | Beskrivelse                                 |
+| ------ | ------------ | ------------------------------------------- |
+| NIP-01 | Understøttet | Grundlæggende event-format + profilmetadata |
+| NIP-04 | Understøttet | Krypterede DM'er (`kind:4`)                 |
+| NIP-17 | Planlagt     | Gaveindpakkede DM'er                        |
+| NIP-44 | Planlagt     | Versioneret kryptering                      |
 
 ## Test
 

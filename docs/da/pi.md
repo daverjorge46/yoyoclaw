@@ -28,12 +28,12 @@ OpenClaw bruger pi SDK til at integrere en AI-kodning agent i sin messaging gate
 }
 ```
 
-| Pakke             | Formål                                                                                                                      |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Pakke             | Formål                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
 | `pi-ai`           | Kerne-LLM-abstraktioner: `Model`, `streamSimple`, meddelelsestyper, udbyder-API’er                          |
-| `pi-agent-core`   | Agent-loop, værktøjsudførelse, `AgentMessage`-typer                                                                         |
+| `pi-agent-core`   | Agent-loop, værktøjsudførelse, `AgentMessage`-typer                                                         |
 | `pi-coding-agent` | Højniveau-SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, indbyggede værktøjer |
-| `pi-tui`          | Terminal-UI-komponenter (bruges i OpenClaws lokale TUI-tilstand)                                         |
+| `pi-tui`          | Terminal-UI-komponenter (bruges i OpenClaws lokale TUI-tilstand)                                            |
 
 ## Filstruktur
 
@@ -511,15 +511,15 @@ Dette giver den interaktive terminaloplevelse, der minder om pi’s oprindelige 
 
 ## Vigtige forskelle fra Pi CLI
 
-| Aspekt              | Pi CLI                              | OpenClaw indlejret                                                                                                   |
-| ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Kald                | `pi`-kommando / RPC                 | SDK via `createAgentSession()`                                                                                       |
-| Værktøjer           | Standard kodeværktøjer              | Brugerdefineret OpenClaw-værktøjssuite                                                                               |
-| Systemprompt        | AGENTS.md + prompts | Dynamisk pr. kanal/kontekst                                                                          |
-| Sessionslagring     | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (eller `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth                | Enkelt legitimationsoplysning       | Multi-profil med rotation                                                                                            |
-| Udvidelser          | Indlæses fra disk                   | Programmatisk + diskstier                                                                                            |
-| Hændelseshåndtering | TUI-rendering                       | Callback-baseret (onBlockReply m.m.)                              |
+| Aspekt              | Pi CLI                        | OpenClaw indlejret                                                                                |
+| ------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| Kald                | `pi`-kommando / RPC           | SDK via `createAgentSession()`                                                                    |
+| Værktøjer           | Standard kodeværktøjer        | Brugerdefineret OpenClaw-værktøjssuite                                                            |
+| Systemprompt        | AGENTS.md + prompts           | Dynamisk pr. kanal/kontekst                                                                       |
+| Sessionslagring     | `~/.pi/agent/sessions/`       | `~/.openclaw/agents/<agentId>/sessions/` (eller `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth                | Enkelt legitimationsoplysning | Multi-profil med rotation                                                                         |
+| Udvidelser          | Indlæses fra disk             | Programmatisk + diskstier                                                                         |
+| Hændelseshåndtering | TUI-rendering                 | Callback-baseret (onBlockReply m.m.)                                                              |
 
 ## Fremtidige overvejelser
 

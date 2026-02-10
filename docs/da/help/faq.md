@@ -1259,16 +1259,16 @@ Relaterede: [Agent arbejdsområde](/concepts/agent-workspace), [Memory](/concept
 
 Alt lever under `$OPENCLAW_STATE_DIR` (standard: `~/.openclaw`):
 
-| Sti                                                             | Formål                                                                                                          |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Hoved konfig (JSON5)                                                                         |
-| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Ældre OAuth import (kopieret til auth profiler ved første brug)                              |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profiler (OAuth + API nøgler)                                                           |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Runtime auth cache (administreres automatisk)                                                |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Leverandør status (f.eks. `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                   | Peragent tilstand (agentDir + sessioner)                                                     |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Samtalshistorik og tilstand (pr. agent)                                      |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (pr. agent)                                                 |
+| Sti                                                             | Formål                                                          |
+| --------------------------------------------------------------- | --------------------------------------------------------------- |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Hoved konfig (JSON5)                                            |
+| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Ældre OAuth import (kopieret til auth profiler ved første brug) |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profiler (OAuth + API nøgler)                              |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Runtime auth cache (administreres automatisk)                   |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Leverandør status (f.eks. `whatsapp/<accountId>/creds.json`)    |
+| `$OPENCLAW_STATE_DIR/agents/`                                   | Peragent tilstand (agentDir + sessioner)                        |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Samtalshistorik og tilstand (pr. agent)                         |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (pr. agent)                                    |
 
 Legacy single-agent sti: `~/.openclaw/agent/*` (migreret af `openclaw doctor`).
 

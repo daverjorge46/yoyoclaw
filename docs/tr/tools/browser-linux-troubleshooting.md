@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Yapılandırma Referansı
 
-| Seçenek                  | Açıklama                                                                                            | Varsayılan                                                                                    |
-| ------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Tarayıcı denetimini etkinleştir                                                                     | `true`                                                                                        |
+| Seçenek                  | Açıklama                                                                         | Varsayılan                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `browser.enabled`        | Tarayıcı denetimini etkinleştir                                                  | `true`                                                                     |
 | `browser.executablePath` | Chromium tabanlı bir tarayıcı ikili dosyasının yolu (Chrome/Brave/Edge/Chromium) | otomatik algılanır (Chromium tabanlıysa varsayılan tarayıcıyı tercih eder) |
-| `browser.headless`       | GUI olmadan çalıştır                                                                                | `false`                                                                                       |
-| `browser.noSandbox`      | `--no-sandbox` bayrağını ekle (bazı Linux kurulumları için gereklidir)           | `false`                                                                                       |
-| `browser.attachOnly`     | Tarayıcıyı başlatma, yalnızca mevcut olana bağlan                                                   | `false`                                                                                       |
-| `browser.cdpPort`        | Chrome DevTools Protocol portu                                                                      | `18800`                                                                                       |
+| `browser.headless`       | GUI olmadan çalıştır                                                             | `false`                                                                    |
+| `browser.noSandbox`      | `--no-sandbox` bayrağını ekle (bazı Linux kurulumları için gereklidir)           | `false`                                                                    |
+| `browser.attachOnly`     | Tarayıcıyı başlatma, yalnızca mevcut olana bağlan                                | `false`                                                                    |
+| `browser.cdpPort`        | Chrome DevTools Protocol portu                                                   | `18800`                                                                    |
 
 ### Sorun: "Chrome uzantı aktarımı çalışıyor, ancak hiçbir sekme bağlı değil"
 

@@ -20,13 +20,13 @@ Oracles gratisnivå kan vara ett bra val för OpenClaw (särskilt om du redan ha
 
 ## Kostnadsjämförelse (2026)
 
-| Leverantör   | Plan            | Specifikationer            | Pris/mån             | Noteringar                      |
-| ------------ | --------------- | -------------------------- | -------------------- | ------------------------------- |
-| Oracle Cloud | Always Free ARM | upp till 4 OCPU, 24 GB RAM | $0                   | ARM, begränsad kapacitet        |
-| Hetzner      | CX22            | 2 vCPU, 4 GB RAM           | ~ $4 | Billigaste betalda alternativet |
-| DigitalOcean | Basic           | 1 vCPU, 1 GB RAM           | $6                   | Enkelt UI, bra dokumentation    |
-| Vultr        | Cloud Compute   | 1 vCPU, 1 GB RAM           | $6                   | Många platser                   |
-| Linode       | Nanode          | 1 vCPU, 1 GB RAM           | $5                   | Numera del av Akamai            |
+| Leverantör   | Plan            | Specifikationer            | Pris/mån | Noteringar                      |
+| ------------ | --------------- | -------------------------- | -------- | ------------------------------- |
+| Oracle Cloud | Always Free ARM | upp till 4 OCPU, 24 GB RAM | $0       | ARM, begränsad kapacitet        |
+| Hetzner      | CX22            | 2 vCPU, 4 GB RAM           | ~ $4     | Billigaste betalda alternativet |
+| DigitalOcean | Basic           | 1 vCPU, 1 GB RAM           | $6       | Enkelt UI, bra dokumentation    |
+| Vultr        | Cloud Compute   | 1 vCPU, 1 GB RAM           | $6       | Många platser                   |
+| Linode       | Nanode          | 1 vCPU, 1 GB RAM           | $5       | Numera del av Akamai            |
 
 ---
 

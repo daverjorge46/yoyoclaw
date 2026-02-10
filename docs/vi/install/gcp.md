@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Các loại máy:**
 
-| Type     | Specs                                        | Cost                       | Notes                  |
-| -------- | -------------------------------------------- | -------------------------- | ---------------------- |
-| e2-small | 2 vCPU, 2GB RAM                              | ~$12/tháng | Khuyến nghị            |
-| e2-micro | 2 vCPU (chia sẻ), 1GB RAM | Đủ điều kiện free tier     | Có thể OOM khi tải cao |
+| Type     | Specs                     | Cost                   | Notes                  |
+| -------- | ------------------------- | ---------------------- | ---------------------- |
+| e2-small | 2 vCPU, 2GB RAM           | ~$12/tháng             | Khuyến nghị            |
+| e2-micro | 2 vCPU (chia sẻ), 1GB RAM | Đủ điều kiện free tier | Có thể OOM khi tải cao |
 
 **CLI:**
 

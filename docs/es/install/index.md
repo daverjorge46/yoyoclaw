@@ -44,11 +44,11 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
         ```
       </Tab>
     </Tabs>
-    
+
     Eso es todo — el script gestiona la detección de Node, la instalación y el onboarding.
-    
+
     Para omitir el onboarding e instalar solo el binario:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
         ```
       </Tab>
     </Tabs>
-    
+
     Para todas las flags, variables de entorno y opciones de CI/automatización, consulte [Internos del instalador](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="¿errores de compilación de sharp?">
           Si tiene libvips instalado globalmente (común en macOS vía Homebrew) y `sharp` falla, fuerce los binarios precompilados:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Si ve `sharp: Please add node-gyp to your dependencies`, instale las herramientas de compilación (macOS: Xcode CLT + `npm install -g node-gyp`) o use la variable de entorno anterior.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm requiere aprobación explícita para paquetes con scripts de compilación. Después de que la primera instalación muestre la advertencia "Ignored build scripts", ejecute `pnpm approve-builds -g` y seleccione los paquetes listados.
         </Note>
@@ -111,7 +111,7 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
     <Steps>
       <Step title="Clonar y compilar">
         Clone el [repositorio de OpenClaw](https://github.com/openclaw/openclaw) y compile:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
       </Step>
       <Step title="Vincular la CLI">
         Haga que el comando `openclaw` esté disponible globalmente:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Alternativamente, omita el vínculo y ejecute los comandos mediante `pnpm openclaw ...` desde dentro del repositorio.
       </Step>
       <Step title="Ejecutar onboarding">
@@ -135,7 +135,7 @@ El **script de instalación** es la forma recomendada de instalar OpenClaw. Gest
         ```
       </Step>
     </Steps>
-    
+
     Para flujos de trabajo de desarrollo más profundos, consulte [Configuración](/start/setup).
     ```
 

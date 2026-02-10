@@ -40,12 +40,12 @@ otherwise -> reply
 
 Jeśli chcesz...
 
-| Cel                                                                         | Co ustawić                                                                |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Zezwolić na wszystkie grupy, ale odpowiadać tylko na @wzmianki | `groups: { "*": { requireMention: true } }`                               |
-| Wyłączyć wszystkie odpowiedzi w grupach                                     | `groupPolicy: "disabled"`                                                 |
-| Tylko określone grupy                                                       | `groups: { "<group-id>": { ... } }` (bez klucza `"*"`) |
-| Tylko Ty możesz wyzwalać w grupach                                          | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                |
+| Cel                                                            | Co ustawić                                                 |
+| -------------------------------------------------------------- | ---------------------------------------------------------- |
+| Zezwolić na wszystkie grupy, ale odpowiadać tylko na @wzmianki | `groups: { "*": { requireMention: true } }`                |
+| Wyłączyć wszystkie odpowiedzi w grupach                        | `groupPolicy: "disabled"`                                  |
+| Tylko określone grupy                                          | `groups: { "<group-id>": { ... } }` (bez klucza `"*"`)     |
+| Tylko Ty możesz wyzwalać w grupach                             | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Klucze sesji
 
@@ -174,8 +174,8 @@ Kontroluj, jak wiadomości grupowe/pokojowe są obsługiwane per kanał:
 }
 ```
 
-| Polityka      | Zachowanie                                                                               |
-| ------------- | ---------------------------------------------------------------------------------------- |
+| Polityka      | Zachowanie                                                               |
+| ------------- | ------------------------------------------------------------------------ |
 | `"open"`      | Grupy omijają listy dozwolonych; kontrola wzmianek nadal obowiązuje.     |
 | `"disabled"`  | Całkowicie blokuje wszystkie wiadomości grupowe.                         |
 | `"allowlist"` | Zezwala tylko na grupy/pokoje zgodne z skonfigurowaną listą dozwolonych. |

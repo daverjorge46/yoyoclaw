@@ -44,11 +44,11 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
         ```
       </Tab>
     </Tabs>
-    
+
     ဒါပါပဲ — script က Node ကို ရှာဖွေခြင်း၊ ထည့်သွင်းခြင်းနှင့် onboarding ကို ကိုင်တွယ်ပေးပါသည်။
-    
+
     onboarding ကို ကျော်ပြီး binary ကိုသာ ထည့်သွင်းလိုပါက —
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
         ```
       </Tab>
     </Tabs>
-    
+
     flag များ၊ env vars များနှင့် CI/automation ရွေးချယ်စရာများအားလုံးအတွက် [Installer internals](/install/installer) ကို ကြည့်ပါ။
     ```
 
@@ -77,14 +77,14 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp build errors?">
           libvips ကို global အဖြစ် ထည့်သွင်းထားပါက (macOS တွင် Homebrew မှတစ်ဆင့် သာမန်အားဖြင့် ဖြစ်တတ်သည်) နှင့် `sharp` မအောင်မြင်ပါက prebuilt binaries ကို အတင်းအသုံးပြုပါ —
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           `sharp: Please add node-gyp to your dependencies` ကို တွေ့ရပါက build tooling ကို ထည့်သွင်းပါ (macOS: Xcode CLT + `npm install -g node-gyp`) သို့မဟုတ် အထက်ပါ env var ကို အသုံးပြုပါ။
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm သည် build scripts ပါသော packages များအတွက် အတည်ပြုချက်ကို ထင်ရှားစွာ လိုအပ်ပါသည်။ ပထမဆုံး install အပြီး “Ignored build scripts” သတိပေးချက် ပြပါက `pnpm approve-builds -g` ကို လည်ပတ်ပြီး ဖော်ပြထားသော packages များကို ရွေးချယ်ပါ။
         </Note>
@@ -111,7 +111,7 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
     <Steps>
       <Step title="Clone and build">
         [OpenClaw repo](https://github.com/openclaw/openclaw) ကို clone လုပ်ပြီး build လုပ်ပါ —
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
       </Step>
       <Step title="Link the CLI">
         `openclaw` အမိန့်ကို global အဖြစ် အသုံးပြုနိုင်စေရန် —
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         သို့မဟုတ် link မလုပ်ဘဲ repo အတွင်းမှ `pnpm openclaw ...` ဖြင့် အမိန့်များကို လည်ပတ်နိုင်ပါသည်။
       </Step>
       <Step title="Run onboarding">
@@ -135,7 +135,7 @@ Windows တွင် OpenClaw ကို [WSL2](https://learn.microsoft.com/en-us
         ```
       </Step>
     </Steps>
-    
+
     ပိုမိုနက်ရှိုင်းသော development workflow များအတွက် [Setup](/start/setup) ကို ကြည့်ပါ။
     ```
 

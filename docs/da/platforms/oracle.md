@@ -20,13 +20,13 @@ Oracles gratis tier kan være et godt match til OpenClaw (især hvis du allerede
 
 ## Omkostningssammenligning (2026)
 
-| Udbyder      | Plan            | Specifikationer         | Pris/md              | Noter                      |
-| ------------ | --------------- | ----------------------- | -------------------- | -------------------------- |
-| Oracle Cloud | Always Free ARM | op til 4 OCPU, 24GB RAM | $0                   | ARM, begrænset kapacitet   |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM         | ~ $4 | Billigste betalte mulighed |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6                   | Nem UI, gode docs          |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6                   | Mange lokationer           |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5                   | Nu en del af Akamai        |
+| Udbyder      | Plan            | Specifikationer         | Pris/md | Noter                      |
+| ------------ | --------------- | ----------------------- | ------- | -------------------------- |
+| Oracle Cloud | Always Free ARM | op til 4 OCPU, 24GB RAM | $0      | ARM, begrænset kapacitet   |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM         | ~ $4    | Billigste betalte mulighed |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6      | Nem UI, gode docs          |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6      | Mange lokationer           |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5      | Nu en del af Akamai        |
 
 ---
 

@@ -28,10 +28,10 @@ These are **not** browser automation. Ang `web_fetch` ay gumagawa ng simpleng HT
 
 ## Pagpili ng search provider
 
-| Provider                               | Mga Bentahe                                   | Mga Kahinaan                                   | API Key                                     |
-| -------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ------------------------------------------- |
+| Provider            | Mga Bentahe                                   | Mga Kahinaan                                   | API Key                                     |
+| ------------------- | --------------------------------------------- | ---------------------------------------------- | ------------------------------------------- |
 | **Brave** (default) | Mabilis, structured na resulta, may free tier | Tradisyunal na search results                  | `BRAVE_API_KEY`                             |
-| **Perplexity**                         | AI-synthesized na sagot, citations, real-time | Kailangan ng access sa Perplexity o OpenRouter | `OPENROUTER_API_KEY` o `PERPLEXITY_API_KEY` |
+| **Perplexity**      | AI-synthesized na sagot, citations, real-time | Kailangan ng access sa Perplexity o OpenRouter | `OPENROUTER_API_KEY` o `PERPLEXITY_API_KEY` |
 
 Tingnan ang [Brave Search setup](/brave-search) at [Perplexity Sonar](/perplexity) para sa mga detalye na partikular sa provider.
 
@@ -133,11 +133,11 @@ Kung walang base URL na nakatakda, pumipili ang OpenClaw ng default batay sa pin
 
 ### Mga available na Perplexity model
 
-| Model                                               | Paglalarawan                                         | Pinakamainam para sa    |
-| --------------------------------------------------- | ---------------------------------------------------- | ----------------------- |
-| `perplexity/sonar`                                  | Mabilis na Q&A na may web search | Mga quick lookup        |
-| `perplexity/sonar-pro` (default) | Multi-step reasoning na may web search               | Mga komplikadong tanong |
-| `perplexity/sonar-reasoning-pro`                    | Chain-of-thought analysis                            | Malalim na pananaliksik |
+| Model                            | Paglalarawan                           | Pinakamainam para sa    |
+| -------------------------------- | -------------------------------------- | ----------------------- |
+| `perplexity/sonar`               | Mabilis na Q&A na may web search       | Mga quick lookup        |
+| `perplexity/sonar-pro` (default) | Multi-step reasoning na may web search | Mga komplikadong tanong |
+| `perplexity/sonar-reasoning-pro` | Chain-of-thought analysis              | Malalim na pananaliksik |
 
 ## web_search
 

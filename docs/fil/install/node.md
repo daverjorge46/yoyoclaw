@@ -29,7 +29,7 @@ Kung magpi-print ito ng `v22.x.x` o mas mataas, ayos ka na. Kung hindi naka-inst
     ```bash
     brew install node
     ```
-    
+
     O i-download ang macOS installer mula sa [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Kung magpi-print ito ng `v22.x.x` o mas mataas, ayos ka na. Kung hindi naka-inst
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     O gumamit ng version manager (tingnan sa ibaba).
     ````
 
@@ -60,13 +60,13 @@ Kung magpi-print ito ng `v22.x.x` o mas mataas, ayos ka na. Kung hindi naka-inst
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     O i-download ang Windows installer mula sa [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ Halos palagi itong nangangahulugang wala sa iyong PATH ang global bin directory 
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Pagkatapos ay magbukas ng bagong terminal (o patakbuhin ang `rehash` sa zsh / `hash -r` sa bash).
           </Tab>
           <Tab title="Windows">

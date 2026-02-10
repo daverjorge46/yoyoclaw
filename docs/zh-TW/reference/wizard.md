@@ -137,7 +137,7 @@ openclaw onboard --non-interactive \
 <Note>
 
 `--json` **不**代表非互動模式。請在指令碼中使用 `--non-interactive`（以及 `--workspace`）。
- Use `--non-interactive` (and `--workspace`) for scripts.
+Use `--non-interactive` (and `--workspace`) for scripts.
 </Note>
 
 <AccordionGroup>

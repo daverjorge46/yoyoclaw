@@ -34,7 +34,7 @@ OpenClaw memory is **plain Markdown in the agent workspace**. หน่วยค
 
 ## การล้างหน่วยความจำอัตโนมัติ(pre-compaction ping)
 
-เมื่อเซสชัน**ใกล้ถึงการคอมแพ็กชันอัตโนมัติ**OpenClawจะทริกเกอร์**รอบการทำงานเงียบแบบเอเจนต์**เพื่อเตือนโมเดลให้เขียนหน่วยความจำที่คงทน**ก่อน**ที่บริบทจะถูกคอมแพ็กต์พรอมป์ต์ค่าเริ่มต้นระบุชัดว่าโมเดล_อาจตอบกลับ_แต่โดยทั่วไป`NO_REPLY`คือคำตอบที่ถูกต้องเพื่อไม่ให้ผู้ใช้เห็นรอบนี้ The default prompts explicitly say the model _may reply_,
+เมื่อเซสชัน**ใกล้ถึงการคอมแพ็กชันอัตโนมัติ**OpenClawจะทริกเกอร์**รอบการทำงานเงียบแบบเอเจนต์**เพื่อเตือนโมเดลให้เขียนหน่วยความจำที่คงทน**ก่อน**ที่บริบทจะถูกคอมแพ็กต์พรอมป์ต์ค่าเริ่มต้นระบุชัดว่าโมเดล*อาจตอบกลับ*แต่โดยทั่วไป`NO_REPLY`คือคำตอบที่ถูกต้องเพื่อไม่ให้ผู้ใช้เห็นรอบนี้ The default prompts explicitly say the model _may reply_,
 but usually `NO_REPLY` is the correct response so the user never sees this turn.
 
 การควบคุมทำผ่าน`agents.defaults.compaction.memoryFlush`:

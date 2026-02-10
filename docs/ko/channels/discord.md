@@ -395,27 +395,27 @@ ack 반응을 제거하려면 `messages.removeAckAfterReply` 을 사용합니다
 
 ### 도구 액션 기본값
 
-| 액션 그룹          | 기본값      | 참고 자료                                    |
-| -------------- | -------- | ---------------------------------------- |
-| reactions      | enabled  | 반응 + 반응 목록 + emojiList                   |
-| stickers       | enabled  | 스티커 전송                                   |
-| emojiUploads   | enabled  | Upload emojis                            |
-| stickerUploads | enabled  | 스티커 업로드                                  |
-| polls          | enabled  | 투표 생성                                    |
-| permissions    | enabled  | 채널 권한 스냅샷                                |
-| messages       | enabled  | 읽기/전송/편집/삭제                              |
-| threads        | enabled  | 생성/목록/답글                                 |
-| pins           | enabled  | 고정/해제/목록                                 |
-| search         | enabled  | 메시지 검색 (미리보기 기능)      |
-| memberInfo     | enabled  | 멤버 정보                                    |
-| roleInfo       | enabled  | 역할 목록                                    |
-| channelInfo    | enabled  | 채널 정보 + 목록                               |
-| channels       | enabled  | 채널/카테고리 관리                               |
-| voiceStatus    | enabled  | 음성 상태 조회                                 |
-| events         | enabled  | 예약 이벤트 목록/생성                             |
-| roles          | disabled | 역할 추가/제거                                 |
-| moderation     | disabled | 타임아웃/킥/밴                                 |
-| presence       | disabled | 봇 상태/활동 (setPresence) |
+| 액션 그룹      | 기본값   | 참고 자료                    |
+| -------------- | -------- | ---------------------------- |
+| reactions      | enabled  | 반응 + 반응 목록 + emojiList |
+| stickers       | enabled  | 스티커 전송                  |
+| emojiUploads   | enabled  | Upload emojis                |
+| stickerUploads | enabled  | 스티커 업로드                |
+| polls          | enabled  | 투표 생성                    |
+| permissions    | enabled  | 채널 권한 스냅샷             |
+| messages       | enabled  | 읽기/전송/편집/삭제          |
+| threads        | enabled  | 생성/목록/답글               |
+| pins           | enabled  | 고정/해제/목록               |
+| search         | enabled  | 메시지 검색 (미리보기 기능)  |
+| memberInfo     | enabled  | 멤버 정보                    |
+| roleInfo       | enabled  | 역할 목록                    |
+| channelInfo    | enabled  | 채널 정보 + 목록             |
+| channels       | enabled  | 채널/카테고리 관리           |
+| voiceStatus    | enabled  | 음성 상태 조회               |
+| events         | enabled  | 예약 이벤트 목록/생성        |
+| roles          | disabled | 역할 추가/제거               |
+| moderation     | disabled | 타임아웃/킥/밴               |
+| presence       | disabled | 봇 상태/활동 (setPresence)   |
 
 - `replyToMode`: `off` (기본값), `first`, 또는 `all`. 모델에 답글 태그가 포함된 경우에만 적용됩니다.
 

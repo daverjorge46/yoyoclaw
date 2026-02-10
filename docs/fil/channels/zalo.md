@@ -127,16 +127,16 @@ Suporta sa multi-account: gamitin ang `channels.zalo.accounts` na may per-accoun
 
 ## Mga kakayahan
 
-| Feature                           | Katayuan                                            |
-| --------------------------------- | --------------------------------------------------- |
-| Direct messages                   | ✅ Suportado                                         |
-| Groups                            | ❌ Paparating (ayon sa Zalo docs) |
-| Media (images) | ✅ Suportado                                         |
-| Reactions                         | ❌ Hindi suportado                                   |
-| Threads                           | ❌ Hindi suportado                                   |
-| Polls                             | ❌ Hindi suportado                                   |
-| Native commands                   | ❌ Hindi suportado                                   |
-| Streaming                         | ⚠️ Naka-block (2000 char limit)  |
+| Feature         | Katayuan                          |
+| --------------- | --------------------------------- |
+| Direct messages | ✅ Suportado                      |
+| Groups          | ❌ Paparating (ayon sa Zalo docs) |
+| Media (images)  | ✅ Suportado                      |
+| Reactions       | ❌ Hindi suportado                |
+| Threads         | ❌ Hindi suportado                |
+| Polls           | ❌ Hindi suportado                |
+| Native commands | ❌ Hindi suportado                |
+| Streaming       | ⚠️ Naka-block (2000 char limit)   |
 
 ## Mga target ng delivery (CLI/cron)
 

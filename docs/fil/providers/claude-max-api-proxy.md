@@ -13,10 +13,10 @@ title: "Claude Max API Proxy"
 
 ## Bakit Ito Gagamitin?
 
-| Paraan                  | Gastos                                                                                        | Pinakamainam Para Sa                                     |
-| ----------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Paraan                  | Gastos                                                     | Pinakamainam Para Sa                                     |
+| ----------------------- | ---------------------------------------------------------- | -------------------------------------------------------- |
 | Anthropic API           | Bayad kada token (~$15/M input, $75/M output para sa Opus) | Production apps, mataas na volume                        |
-| Claude Max subscription | $200/buwan na flat                                                                            | Personal na gamit, development, walang limit na paggamit |
+| Claude Max subscription | $200/buwan na flat                                         | Personal na gamit, development, walang limit na paggamit |
 
 Kung mayroon kang Claude Max subscription at gusto mo itong gamitin sa mga OpenAI-compatible na tool, makakatipid ka ng malaking halaga gamit ang proxy na ito.
 

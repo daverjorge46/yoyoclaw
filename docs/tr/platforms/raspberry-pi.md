@@ -23,12 +23,12 @@ Raspberry Pi üzerinde **~$35-80** tek seferlik maliyetle (aylık ücret yok) ka
 
 | Pi Modeli       | RAM     | Çalışır mı? | Notlar                                |
 | --------------- | ------- | ----------- | ------------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ En iyi    | En hızlı, önerilen                    |
-| **Pi 4**        | 4GB     | ✅ İyi       | Çoğu kullanıcı için ideal             |
-| **Pi 4**        | 2GB     | ✅ Uygun     | Çalışır, swap ekleyin                 |
+| **Pi 5**        | 4GB/8GB | ✅ En iyi   | En hızlı, önerilen                    |
+| **Pi 4**        | 4GB     | ✅ İyi      | Çoğu kullanıcı için ideal             |
+| **Pi 4**        | 2GB     | ✅ Uygun    | Çalışır, swap ekleyin                 |
 | **Pi 4**        | 1GB     | ⚠️ Sıkı     | Swap ile mümkün, minimal yapılandırma |
 | **Pi 3B+**      | 1GB     | ⚠️ Yavaş    | Çalışır ancak hantaldır               |
-| **Pi Zero 2 W** | 512MB   | ❌           | Önerilmez                             |
+| **Pi Zero 2 W** | 512MB   | ❌          | Önerilmez                             |
 
 **Minimum özellikler:** 1GB RAM, 1 çekirdek, 500MB disk  
 **Önerilen:** 2GB+ RAM, 64-bit işletim sistemi, 16GB+ SD kart (veya USB SSD)
@@ -223,13 +223,13 @@ htop
 
 OpenClaw’ın çoğu özelliği ARM64 üzerinde çalışır; ancak bazı harici ikililer ARM derlemeleri gerektirebilir:
 
-| Araç                                   | ARM64 Durumu | Notlar                              |
-| -------------------------------------- | ------------ | ----------------------------------- |
-| Node.js                | ✅            | Çok iyi çalışır                     |
-| WhatsApp (Baileys)  | ✅            | Saf JS, sorun yok                   |
-| Telegram                               | ✅            | Saf JS, sorun yok                   |
+| Araç                | ARM64 Durumu | Notlar                              |
+| ------------------- | ------------ | ----------------------------------- |
+| Node.js             | ✅           | Çok iyi çalışır                     |
+| WhatsApp (Baileys)  | ✅           | Saf JS, sorun yok                   |
+| Telegram            | ✅           | Saf JS, sorun yok                   |
 | gog (Gmail CLI)     | ⚠️           | ARM sürümü var mı kontrol edin      |
-| Chromium (tarayıcı) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (tarayıcı) | ✅           | `sudo apt install chromium-browser` |
 
 Bir skill başarısız olursa, ikilisinin ARM derlemesi olup olmadığını kontrol edin. Birçok Go/Rust aracı vardır; bazıları yoktur.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Maliyet Karşılaştırması
 
-| Kurulum                           | Tek Seferlik Maliyet | Aylık Maliyet            | Notlar                                             |
-| --------------------------------- | -------------------- | ------------------------ | -------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                       | + güç (~$5/yıl) |
-| **Pi 4 (4GB)** | ~$55 | $0                       | Önerilir                                           |
-| **Pi 5 (4GB)** | ~$60 | $0                       | En iyi performans                                  |
-| **Pi 5 (8GB)** | ~$80 | $0                       | Aşırı ama geleceğe hazır                           |
-| DigitalOcean                      | $0                   | $6/ay                    | $72/yıl                                            |
-| Hetzner                           | $0                   | €3.79/ay | ~$50/yıl                           |
+| Kurulum        | Tek Seferlik Maliyet | Aylık Maliyet | Notlar                   |
+| -------------- | -------------------- | ------------- | ------------------------ |
+| **Pi 4 (2GB)** | ~$45                 | $0            | + güç (~$5/yıl)          |
+| **Pi 4 (4GB)** | ~$55                 | $0            | Önerilir                 |
+| **Pi 5 (4GB)** | ~$60                 | $0            | En iyi performans        |
+| **Pi 5 (8GB)** | ~$80                 | $0            | Aşırı ama geleceğe hazır |
+| DigitalOcean   | $0                   | $6/ay         | $72/yıl                  |
+| Hetzner        | $0                   | €3.79/ay      | ~$50/yıl                 |
 
 **Başabaş:** Bir Pi, bulut VPS’e kıyasla ~6-12 ayda kendini amorti eder.
 

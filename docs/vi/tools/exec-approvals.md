@@ -10,8 +10,7 @@ title: "Phê duyệt Exec"
 # Phê duyệt exec
 
 Phê duyệt exec là **hàng rào bảo vệ của ứng dụng đồng hành / node host** để cho phép một agent trong sandbox chạy
-các lệnh trên host thật (`gateway` hoặc `node`). 25. Hãy hình dung nó như một khóa an toàn: các lệnh chỉ được phép khi policy + allowlist + (tùy chọn) phê duyệt của người dùng đều đồng ý.
-26. Exec approvals là **bổ sung** cho tool policy và elevated gating (trừ khi elevated được đặt là `full`, khi đó sẽ bỏ qua approvals).
+các lệnh trên host thật (`gateway` hoặc `node`). 25. Hãy hình dung nó như một khóa an toàn: các lệnh chỉ được phép khi policy + allowlist + (tùy chọn) phê duyệt của người dùng đều đồng ý. 26. Exec approvals là **bổ sung** cho tool policy và elevated gating (trừ khi elevated được đặt là `full`, khi đó sẽ bỏ qua approvals).
 Chính sách hiệu lực là **nghiêm ngặt hơn** giữa `tools.exec.*` và các giá trị mặc định của phê duyệt; nếu một trường phê duyệt bị bỏ qua, giá trị `tools.exec` sẽ được sử dụng.
 
 Nếu UI của ứng dụng đồng hành **không khả dụng**, mọi yêu cầu cần lời nhắc sẽ
@@ -122,8 +121,8 @@ Mỗi mục trong danh sách cho phép theo dõi:
     các đối số tệp theo vị trí và các token dạng đường dẫn, vì vậy chúng chỉ có thể thao tác trên luồng đầu vào.
     Ghép chuỗi shell và chuyển hướng không được tự động cho phép trong chế độ allowlist.
 
-39. Ghép lệnh shell (`&&`, `||`, `;`) được cho phép khi mọi phân đoạn cấp cao nhất đều thỏa mãn allowlist (bao gồm safe bins hoặc auto-allow từ skill). 40. Chuyển hướng vẫn không được hỗ trợ trong chế độ allowlist.
-40. Thay thế lệnh (`$()` / backticks) bị từ chối trong quá trình phân tích allowlist, kể cả bên trong dấu ngoặc kép; hãy dùng dấu ngoặc đơn nếu bạn cần văn bản `$()` theo nghĩa đen.
+37. Ghép lệnh shell (`&&`, `||`, `;`) được cho phép khi mọi phân đoạn cấp cao nhất đều thỏa mãn allowlist (bao gồm safe bins hoặc auto-allow từ skill). 40. Chuyển hướng vẫn không được hỗ trợ trong chế độ allowlist.
+38. Thay thế lệnh (`$()` / backticks) bị từ chối trong quá trình phân tích allowlist, kể cả bên trong dấu ngoặc kép; hãy dùng dấu ngoặc đơn nếu bạn cần văn bản `$()` theo nghĩa đen.
 
 Safe bins mặc định: `jq`, `grep`, `cut`, `sort`, `uniq`, `head`, `tail`, `tr`, `wc`.
 
@@ -133,8 +132,7 @@ Safe bins mặc định: `jq`, `grep`, `cut`, `sort`, `uniq`, `head`, `tail`, `t
     thêm/xóa các mẫu allowlist, rồi **Save**. 44. UI hiển thị metadata **last used** cho từng pattern để bạn có thể giữ danh sách gọn gàng.
 
 Bộ chọn đích chọn **Gateway** (phê duyệt cục bộ) hoặc một **Node**. Các node
-phải quảng bá `system.execApprovals.get/set` (ứng dụng macOS hoặc node host headless).
-47. Nếu một node chưa quảng bá exec approvals, hãy chỉnh sửa trực tiếp tệp cục bộ `~/.openclaw/exec-approvals.json` của nó.
+phải quảng bá `system.execApprovals.get/set` (ứng dụng macOS hoặc node host headless). 47. Nếu một node chưa quảng bá exec approvals, hãy chỉnh sửa trực tiếp tệp cục bộ `~/.openclaw/exec-approvals.json` của nó.
 
 CLI: `openclaw approvals` hỗ trợ chỉnh sửa gateway hoặc node (xem [Approvals CLI](/cli/approvals)).
 

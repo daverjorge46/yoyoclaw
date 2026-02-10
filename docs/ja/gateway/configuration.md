@@ -1098,8 +1098,7 @@ OpenClawは、`channels.telegram`設定セクションが存在する場合に�
 
 - Telegram `sendMessageDraft` (実際のメッセージではなくバブルの下書き) を使用します。
 - **プライベートチャットのトピック** (DMでmessage_thread_id; botはトピックを有効にしています) が必要です。
-- `/reasoning stream` は下書きに推論をストリームし、最終的な答えを送ります。
-  3. 再試行ポリシーのデフォルトと挙動は、[Retry policy](/concepts/retry) に記載されています。
+- `/reasoning stream` は下書きに推論をストリームし、最終的な答えを送ります。3. 再試行ポリシーのデフォルトと挙動は、[Retry policy](/concepts/retry) に記載されています。
 
 ### `channels.discord` (botのトランスポート)
 
@@ -1184,8 +1183,7 @@ Bot-authored messages はデフォルトでは無視されます。 `channels.di
 - `own`: ボット自身のメッセージへのリアクション（デフォルト）。
 - `all`: すべてのメッセージへのすべてのリアクション。
 - `allowlist`: `guilds.<id>.users` からのリアクションのみ（空リストで無効）。
-  アウトバウンドテキストは `channels.discord.textChunkLimit` (デフォルトは2000)。 `channels.discord.chunkMode="newline"を設定すると、長さが分割される前に空白の行 (段落境界) に分割されます。 Discordクライアントは非常に背の高いメッセージをクリップできます。そのため、`channels.discord.maxLinesPerMessage\` (デフォルト17) は2000文字以下であっても長い複数行の返信を分割します。
-  5. 再試行ポリシーのデフォルトと挙動は、[Retry policy](/concepts/retry) に記載されています。
+  アウトバウンドテキストは `channels.discord.textChunkLimit` (デフォルトは2000)。 `channels.discord.chunkMode="newline"を設定すると、長さが分割される前に空白の行 (段落境界) に分割されます。 Discordクライアントは非常に背の高いメッセージをクリップできます。そのため、`channels.discord.maxLinesPerMessage\` (デフォルト17) は2000文字以下であっても長い複数行の返信を分割します。5. 再試行ポリシーのデフォルトと挙動は、[Retry policy](/concepts/retry) に記載されています。
 
 ### `channels.googlechat` (Chat API webhook)
 
@@ -1306,13 +1304,13 @@ Bot-authored messages はデフォルトでは無視されます。 `channels.sl
 
 Slack アクショングループ (gate `slack` tools actions):
 
-| アクショングループ  | デフォルト   | Notes             |
-| ---------- | ------- | ----------------- |
-| reactions  | enabled | React + リアクションリスト |
-| messages   | enabled | 読み取り/送信/編集/削除     |
-| pins       | enabled | ピン/解除/一覧          |
-| memberInfo | enabled | メンバー情報            |
-| emojiList  | enabled | カスタム絵文字一覧         |
+| アクショングループ | デフォルト | Notes                      |
+| ------------------ | ---------- | -------------------------- |
+| reactions          | enabled    | React + リアクションリスト |
+| messages           | enabled    | 読み取り/送信/編集/削除    |
+| pins               | enabled    | ピン/解除/一覧             |
+| memberInfo         | enabled    | メンバー情報               |
+| emojiList          | enabled    | カスタム絵文字一覧         |
 
 ### `channels.mattermost` (botトークン)
 
@@ -1537,13 +1535,13 @@ inbound/outboundプレフィックスと任意のackリアクションをコン�
 
 `responsePrefix` 文字列には、動的に解決するテンプレート変数を含めることができます。
 
-| 変数                | 説明         | マージ動作                               |
-| ----------------- | ---------- | ----------------------------------- |
-| `{model}`         | 短いモデル名     | `claude-opus-4-6`, `gpt-4o`         |
-| `{modelFull}`     | フルモデル識別子   | `anthropic/claude-opus-4-6`         |
-| `{provider}`      | プロバイダー名    | `anthropic`, `openai`               |
-| `{thinkingLevel}` | 現在の思考レベル   | `high`, `low`, `off`                |
-| `{identity.name}` | エージェントの身元名 | (\`"auto"モードと同じ) |
+| 変数              | 説明                 | マージ動作                  |
+| ----------------- | -------------------- | --------------------------- |
+| `{model}`         | 短いモデル名         | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | フルモデル識別子     | `anthropic/claude-opus-4-6` |
+| `{provider}`      | プロバイダー名       | `anthropic`, `openai`       |
+| `{thinkingLevel}` | 現在の思考レベル     | `high`, `low`, `off`        |
+| `{identity.name}` | エージェントの身元名 | (\`"auto"モードと同じ)      |
 
 変数は大文字小文字を区別しません (`{MODEL}` = `{model}`)。 `{think}` は `{thinkingLevel} ` のエイリアスです。
 未解決の変数はリテラルテキストとして残ります。
@@ -1838,8 +1836,7 @@ MiniMax auth: `MINIMAX_API_KEY` (env) を設定するか、`models.providers.min
 - 最後の `keepLastAssistants` アシスタントメッセージを保護します。削除後のツール結果はありません。
 - ブートストラップのプレフィックスを保護します (最初のユーザーメッセージが削除される前には何もありません)。
 - モード:
-  - `adaptive`: 推定されたコンテキスト比が `softTrimRatio` を横切ったときに、ソフトトリムが特大のツール結果を表示します(ヘッド/テールを維持します)。
-    24. 推定コンテキスト比率が `hardClearRatio` を超え、かつ剪定可能なツール結果の量（`minPrunableToolChars`）が十分にある場合、最も古い対象ツール結果をハードクリアします。
+  - `adaptive`: 推定されたコンテキスト比が `softTrimRatio` を横切ったときに、ソフトトリムが特大のツール結果を表示します(ヘッド/テールを維持します)。24. 推定コンテキスト比率が `hardClearRatio` を超え、かつ剪定可能なツール結果の量（`minPrunableToolChars`）が十分にある場合、最も古い対象ツール結果をハードクリアします。
   - `アグレッシブ`: カットオフの前に適切なツール結果を常に`hardClear.placeholder`に置き換えます(比率チェックはありません)。
 
 ソフト対ハード剪定（LLMに送信されるコンテキスト内の変更）：
@@ -1979,8 +1976,7 @@ MiniMax auth: `MINIMAX_API_KEY` (env) を設定するか、`models.providers.min
 - `agents.defaults.blockStreamingCoalesce`: 送信前にストリーミングされたブロックをマージします。
   デフォルトは `{ idleMs: 1000 }` で、`blockStreamingChunk`
   から `minChars` を継承し、`maxChars` はチャンネルテキストの上限に上限を設定します。 シグナル/Slack/Discord/Googleチャットのデフォルト
-  は、オーバーライドしない限り、`minChars: 1500`になります。
-  27. チャンネルごとの上書き設定：`channels.whatsapp.blockStreamingCoalesce`、`channels.telegram.blockStreamingCoalesce`、
+  は、オーバーライドしない限り、`minChars: 1500`になります。27. チャンネルごとの上書き設定：`channels.whatsapp.blockStreamingCoalesce`、`channels.telegram.blockStreamingCoalesce`、
   `channels.discord.blockStreamingCoalesce`、`channels.slack.blockStreamingCoalesce`、`channels.mattermost.blockStreamingCoalesce`、
   `channels.signal.blockStreamingCoalesce`、`channels.imessage.blockStreamingCoalesce`、`channels.msteams.blockStreamingCoalesce`、
   `channels.googlechat.blockStreamingCoalesce`
@@ -3359,27 +3355,27 @@ openclaw dns setup --apply
 
 テンプレートプレースホルダは、 `tools.media.*.models[].args` と `tools.media.models[].args` (および将来テンプレートされた引数フィールド)で展開されます。
 
-| Variable           | 説明                                                       |                  |              |            |       |        |          |         |         |    |
-| ------------------ | -------------------------------------------------------- | ---------------- | ------------ | ---------- | ----- | ------ | -------- | ------- | ------- | -- |
-| `{{Body}}`         | 受信メッセージ本文の全文                                             |                  |              |            |       |        |          |         |         |    |
-| `{{RawBody}}`      | 生の受信メッセージ本文（履歴／送信者ラッパーなし。コマンド解析に最適）                      |                  |              |            |       |        |          |         |         |    |
-| `{{BodyStripped}}` | グループメンションを除去した本文（エージェントの既定に最適）                           |                  |              |            |       |        |          |         |         |    |
-| `{{From}}`         | 送信者識別子（WhatsApp では E.164。チャネルにより異なる場合あり） |                  |              |            |       |        |          |         |         |    |
-| `{{To}}`           | 宛先識別子                                                    |                  |              |            |       |        |          |         |         |    |
-| `{{MessageSid}}`   | チャネルのメッセージ ID（利用可能な場合）                                   |                  |              |            |       |        |          |         |         |    |
-| `{{SessionId}}`    | 現在のセッション UUID                                            |                  |              |            |       |        |          |         |         |    |
-| `{{IsNewSession}}` | 新しいセッションが作成された場合は `"true"`                               |                  |              |            |       |        |          |         |         |    |
-| `{{MediaUrl}}`     | 受信メディアの疑似 URL（存在する場合）                                    |                  |              |            |       |        |          |         |         |    |
-| `{{MediaPath}}`    | ローカルのメディアパス（ダウンロードされた場合）                                 |                  |              |            |       |        |          |         |         |    |
-| `{{MediaType}}`    | メディア種別（image/audio/document/…）                           | `{{Transcript}}` | 音声文字起こし（有効時） |            |       |        |          |         |         |    |
-| `{{Prompt}}`       | CLI エントリ向けに解決されたメディアプロンプト                                |                  |              |            |       |        |          |         |         |    |
-| `{{MaxChars}}`     | CLI エントリ向けに解決された最大出力文字数                                  |                  |              |            |       |        |          |         |         |    |
-| `{{ChatType}}`     | `"direct"` または `"group"`                                 |                  |              |            |       |        |          |         |         |    |
-| `{{GroupSubject}}` | グループの件名（ベストエフォート）                                        |                  |              |            |       |        |          |         |         |    |
-| `{{GroupMembers}}` | グループメンバーのプレビュー（ベストエフォート）                                 |                  |              |            |       |        |          |         |         |    |
-| `{{SenderName}}`   | 送信者の表示名（ベストエフォート）                                        |                  |              |            |       |        |          |         |         |    |
-| `{{SenderE164}}`   | 送信者の電話番号（ベストエフォート）                                       |                  |              |            |       |        |          |         |         |    |
-| `{{Provider}}`     | プロバイダのヒント（whatsapp                                       | telegram         | discord      | googlechat | slack | signal | imessage | msteams | webchat | …） |
+| Variable           | 説明                                                                   |                  |                          |            |       |        |          |         |         |     |
+| ------------------ | ---------------------------------------------------------------------- | ---------------- | ------------------------ | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
+| `{{Body}}`         | 受信メッセージ本文の全文                                               |                  |                          |            |       |        |          |         |         |     |
+| `{{RawBody}}`      | 生の受信メッセージ本文（履歴／送信者ラッパーなし。コマンド解析に最適） |                  |                          |            |       |        |          |         |         |     |
+| `{{BodyStripped}}` | グループメンションを除去した本文（エージェントの既定に最適）           |                  |                          |            |       |        |          |         |         |     |
+| `{{From}}`         | 送信者識別子（WhatsApp では E.164。チャネルにより異なる場合あり）      |                  |                          |            |       |        |          |         |         |     |
+| `{{To}}`           | 宛先識別子                                                             |                  |                          |            |       |        |          |         |         |     |
+| `{{MessageSid}}`   | チャネルのメッセージ ID（利用可能な場合）                              |                  |                          |            |       |        |          |         |         |     |
+| `{{SessionId}}`    | 現在のセッション UUID                                                  |                  |                          |            |       |        |          |         |         |     |
+| `{{IsNewSession}}` | 新しいセッションが作成された場合は `"true"`                            |                  |                          |            |       |        |          |         |         |     |
+| `{{MediaUrl}}`     | 受信メディアの疑似 URL（存在する場合）                                 |                  |                          |            |       |        |          |         |         |     |
+| `{{MediaPath}}`    | ローカルのメディアパス（ダウンロードされた場合）                       |                  |                          |            |       |        |          |         |         |     |
+| `{{MediaType}}`    | メディア種別（image/audio/document/…）                                 | `{{Transcript}}` | 音声文字起こし（有効時） |            |       |        |          |         |         |     |
+| `{{Prompt}}`       | CLI エントリ向けに解決されたメディアプロンプト                         |                  |                          |            |       |        |          |         |         |     |
+| `{{MaxChars}}`     | CLI エントリ向けに解決された最大出力文字数                             |                  |                          |            |       |        |          |         |         |     |
+| `{{ChatType}}`     | `"direct"` または `"group"`                                            |                  |                          |            |       |        |          |         |         |     |
+| `{{GroupSubject}}` | グループの件名（ベストエフォート）                                     |                  |                          |            |       |        |          |         |         |     |
+| `{{GroupMembers}}` | グループメンバーのプレビュー（ベストエフォート）                       |                  |                          |            |       |        |          |         |         |     |
+| `{{SenderName}}`   | 送信者の表示名（ベストエフォート）                                     |                  |                          |            |       |        |          |         |         |     |
+| `{{SenderE164}}`   | 送信者の電話番号（ベストエフォート）                                   |                  |                          |            |       |        |          |         |         |     |
+| `{{Provider}}`     | プロバイダのヒント（whatsapp                                           | telegram         | discord                  | googlechat | slack | signal | imessage | msteams | webchat | …） |
 
 ## Cron (ゲートウェイスケジューラ)
 

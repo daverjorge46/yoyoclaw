@@ -175,11 +175,11 @@ Wenn Sie `capabilities` weglassen, ist der Eintrag für die Liste geeignet, in d
 
 ## Anbieter-Unterstützungsmatrix (OpenClaw-Integrationen)
 
-| Fähigkeit | Anbieter-Integration                              | Hinweise                                                                             |
-| --------- | ------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Bild      | OpenAI / Anthropic / Google / andere über `pi-ai` | Jedes bildfähige Modell im Register funktioniert.                    |
+| Fähigkeit | Anbieter-Integration                              | Hinweise                                          |
+| --------- | ------------------------------------------------- | ------------------------------------------------- |
+| Bild      | OpenAI / Anthropic / Google / andere über `pi-ai` | Jedes bildfähige Modell im Register funktioniert. |
 | Audio     | OpenAI, Groq, Deepgram, Google                    | Anbieter-Transkription (Whisper/Deepgram/Gemini). |
-| Video     | Google (Gemini API)            | Anbieter-Videoerkennung.                                             |
+| Video     | Google (Gemini API)                               | Anbieter-Videoerkennung.                          |
 
 ## Empfohlene Anbieter
 

@@ -365,22 +365,22 @@ openclaw pairing list feishu
 
 ## 공통 명령어
 
-| Command   | Description |
-| --------- | ----------- |
-| `/status` | 봇 상태 표시     |
-| `/reset`  | 세션 초기화      |
-| `/model`  | 모델 표시/전환    |
+| Command   | Description    |
+| --------- | -------------- |
+| `/status` | 봇 상태 표시   |
+| `/reset`  | 세션 초기화    |
+| `/model`  | 모델 표시/전환 |
 
 > 참고: Feishu 는 아직 네이티브 명령 메뉴를 지원하지 않으므로, 명령은 텍스트로 전송해야 합니다.
 
 ## Gateway 관리 명령어
 
-| Command                    | Description       |
-| -------------------------- | ----------------- |
-| `openclaw gateway status`  | Gateway 상태 표시     |
+| Command                    | Description              |
+| -------------------------- | ------------------------ |
+| `openclaw gateway status`  | Gateway 상태 표시        |
 | `openclaw gateway install` | Gateway 서비스 설치/시작 |
-| `openclaw gateway stop`    | Gateway 서비스 중지    |
-| `openclaw gateway restart` | Gateway 서비스 재시작   |
+| `openclaw gateway stop`    | Gateway 서비스 중지      |
+| `openclaw gateway restart` | Gateway 서비스 재시작    |
 | `openclaw logs --follow`   | Gateway 로그 실시간 조회 |
 
 ---
@@ -528,34 +528,34 @@ Feishu 는 인터랙티브 카드를 통한 스트리밍 응답을 지원합니�
 
 주요 옵션:
 
-| Setting                                           | Description                                                         | Default   |
-| ------------------------------------------------- | ------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | 채널 활성화/비활성화                                                         | `true`    |
-| `channels.feishu.domain`                          | API 도메인 (`feishu` 또는 `lark`)                     | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                              | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                          | -         |
-| `channels.feishu.accounts.<id>.domain`            | 계정별 API 도메인 재정의                                                     | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM policy                                                           | `pairing` |
+| Setting                                           | Description                              | Default   |
+| ------------------------------------------------- | ---------------------------------------- | --------- |
+| `channels.feishu.enabled`                         | 채널 활성화/비활성화                     | `true`    |
+| `channels.feishu.domain`                          | API 도메인 (`feishu` 또는 `lark`)        | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                                   | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                               | -         |
+| `channels.feishu.accounts.<id>.domain`            | 계정별 API 도메인 재정의                 | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM policy                                | `pairing` |
 | `channels.feishu.allowFrom`                       | 다이렉트 메시지 허용 목록 (open_id 목록) | -         |
-| `channels.feishu.groupPolicy`                     | 그룹 정책                                                               | `open`    |
-| `channels.feishu.groupAllowFrom`                  | 그룹 허용 목록                                                            | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | @멘션 필요                                                 | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | 그룹 활성화                                                              | `true`    |
-| `channels.feishu.textChunkLimit`                  | 메시지 청크 크기                                                           | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | 미디어 크기 제한                                                           | `30`      |
-| `channels.feishu.streaming`                       | 스트리밍 카드 출력 활성화                                                      | `true`    |
-| `channels.feishu.blockStreaming`                  | 블록 스트리밍 활성화                                                         | `true`    |
+| `channels.feishu.groupPolicy`                     | 그룹 정책                                | `open`    |
+| `channels.feishu.groupAllowFrom`                  | 그룹 허용 목록                           | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | @멘션 필요                               | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | 그룹 활성화                              | `true`    |
+| `channels.feishu.textChunkLimit`                  | 메시지 청크 크기                         | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | 미디어 크기 제한                         | `30`      |
+| `channels.feishu.streaming`                       | 스트리밍 카드 출력 활성화                | `true`    |
+| `channels.feishu.blockStreaming`                  | 블록 스트리밍 활성화                     | `true`    |
 
 ---
 
 ## dmPolicy 참조
 
-| Value         | Behavior                                               |
-| ------------- | ------------------------------------------------------ |
+| Value         | Behavior                                                       |
+| ------------- | -------------------------------------------------------------- |
 | `"pairing"`   | **기본값.** 알 수 없는 사용자는 페어링 코드를 받으며 승인 필요 |
-| `"allowlist"` | `allowFrom` 에 있는 사용자만 대화 가능                            |
-| `"open"`      | 모든 사용자 허용 (`"*"` 이 allowFrom 에 필요)  |
-| `"disabled"`  | Disable DMs                                            |
+| `"allowlist"` | `allowFrom` 에 있는 사용자만 대화 가능                         |
+| `"open"`      | 모든 사용자 허용 (`"*"` 이 allowFrom 에 필요)                  |
+| `"disabled"`  | Disable DMs                                                    |
 
 ---
 

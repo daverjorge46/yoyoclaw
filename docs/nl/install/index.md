@@ -44,11 +44,11 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
         ```
       </Tab>
     </Tabs>
-    
+
     Dat is alles — het script regelt Node-detectie, installatie en onboarding.
-    
+
     Om onboarding over te slaan en alleen het binaire bestand te installeren:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
         ```
       </Tab>
     </Tabs>
-    
+
     Voor alle flags, omgevingsvariabelen en CI-/automatiseringsopties, zie [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp-buildfouten?">
           Als je libvips globaal hebt geïnstalleerd (gebruikelijk op macOS via Homebrew) en `sharp` faalt, forceer dan vooraf gebouwde binaries:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Als je `sharp: Please add node-gyp to your dependencies` ziet, installeer dan build-tooling (macOS: Xcode CLT + `npm install -g node-gyp`) of gebruik de bovenstaande omgevingsvariabele.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm vereist expliciete goedkeuring voor pakketten met build-scripts. Nadat de eerste installatie de waarschuwing "Ignored build scripts" toont, voer `pnpm approve-builds -g` uit en selecteer de vermelde pakketten.
         </Note>
@@ -111,7 +111,7 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
     <Steps>
       <Step title="Clonen en bouwen">
         Clone de [OpenClaw-repo](https://github.com/openclaw/openclaw) en bouw:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
       </Step>
       <Step title="De CLI koppelen">
         Maak het `openclaw`-commando globaal beschikbaar:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Je kunt ook het koppelen overslaan en opdrachten uitvoeren via `pnpm openclaw ...` vanuit de repo.
       </Step>
       <Step title="Onboarding uitvoeren">
@@ -135,7 +135,7 @@ Het **installatiescript** is de aanbevolen manier om OpenClaw te installeren. He
         ```
       </Step>
     </Steps>
-    
+
     Voor uitgebreidere ontwikkelworkflows, zie [Installatie](/start/setup).
     ```
 

@@ -114,8 +114,7 @@ Ví dụ `package.json`:
 }
 ```
 
-Mỗi mục trỏ tới một thư mục hook chứa `HOOK.md` và `handler.ts` (hoặc `index.ts`).
-6. Hook pack có thể kèm theo dependency; chúng sẽ được cài dưới `~/.openclaw/hooks/<id>`.
+Mỗi mục trỏ tới một thư mục hook chứa `HOOK.md` và `handler.ts` (hoặc `index.ts`). 6. Hook pack có thể kèm theo dependency; chúng sẽ được cài dưới `~/.openclaw/hooks/<id>`.
 
 ## Cấu trúc Hook
 

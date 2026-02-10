@@ -127,16 +127,16 @@ Mehrkonten-Unterstützung: Verwenden Sie `channels.zalo.accounts` mit kontospezi
 
 ## Funktionen
 
-| Funktion                           | Status                                               |
-| ---------------------------------- | ---------------------------------------------------- |
-| Direktnachrichten                  | ✅ Unterstützt                                        |
-| Gruppen                            | ❌ Coming soon (laut Zalo‑Doku)    |
-| Medien (Bilder) | ✅ Unterstützt                                        |
-| Reaktionen                         | ❌ Nicht unterstützt                                  |
-| Threads                            | ❌ Nicht unterstützt                                  |
-| Umfragen                           | ❌ Nicht unterstützt                                  |
-| Native Befehle                     | ❌ Nicht unterstützt                                  |
-| Streaming                          | ⚠️ Blockiert (2000‑Zeichen‑Limit) |
+| Funktion          | Status                            |
+| ----------------- | --------------------------------- |
+| Direktnachrichten | ✅ Unterstützt                    |
+| Gruppen           | ❌ Coming soon (laut Zalo‑Doku)   |
+| Medien (Bilder)   | ✅ Unterstützt                    |
+| Reaktionen        | ❌ Nicht unterstützt              |
+| Threads           | ❌ Nicht unterstützt              |
+| Umfragen          | ❌ Nicht unterstützt              |
+| Native Befehle    | ❌ Nicht unterstützt              |
+| Streaming         | ⚠️ Blockiert (2000‑Zeichen‑Limit) |
 
 ## Zieladressen für Zustellung (CLI/Cron)
 

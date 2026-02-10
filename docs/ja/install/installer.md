@@ -11,11 +11,11 @@ title: "インストーラーの内部"
 
 OpenClaw には 3 つのインストーラー スクリプトが同梱されており、`openclaw.ai` から配信されます。
 
-| スクリプト                              | プラットフォーム            | 何を行うか                                                                             |
-| ---------------------------------- | ------------------- | --------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL | 必要に応じて Node をインストールし、npm（デフォルト）または git 経由で OpenClaw をインストールし、オンボーディングを実行できます。     |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL | Node と OpenClaw をローカル プレフィックス（`~/.openclaw`）にインストールします。root 権限は不要です。 ルートは必要ありません。 |
-| [`install.ps1`](#installps1)       | Windows（PowerShell） | 必要に応じて Node をインストールし、npm（デフォルト）または git 経由で OpenClaw をインストールし、オンボーディングを実行できます。     |
+| スクリプト                         | プラットフォーム      | 何を行うか                                                                                                                         |
+| ---------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL   | 必要に応じて Node をインストールし、npm（デフォルト）または git 経由で OpenClaw をインストールし、オンボーディングを実行できます。 |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL   | Node と OpenClaw をローカル プレフィックス（`~/.openclaw`）にインストールします。root 権限は不要です。 ルートは必要ありません。    |
+| [`install.ps1`](#installps1)       | Windows（PowerShell） | 必要に応じて Node をインストールし、npm（デフォルト）または git 経由で OpenClaw をインストールし、オンボーディングを実行できます。 |
 
 ## クイック コマンド
 
@@ -134,39 +134,39 @@ TTY が利用できず、かつインストール メソッドが設定されて
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| フラグ                               | 説明                                                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | インストール メソッドを選択（デフォルト: `npm`）。別名: `--method` エイリアス: `--method`  |
-| `--npm`                           | npm メソッドのショートカット                                                                                               |
-| `--git`                           | git メソッドのショートカット。別名: `--github` Alias: `--github`                              |
-| `--version <version\\|dist-tag>` | npm バージョンまたは dist-tag（デフォルト: `latest`）                                                         |
-| `--beta`                          | 利用可能であれば beta の dist-tag を使用し、なければ `latest` にフォールバック                                                           |
-| `--git-dir <path>`                | チェックアウト ディレクトリ（デフォルト: `~/openclaw`）。別名: `--dir` Alias: `--dir` |
-| `--no-git-update`                 | 既存のチェックアウトに対する `git pull` をスキップ                                                                                |
-| `--no-prompt`                     | プロンプトを無効化                                                                                                      |
-| `--no-onboard`                    | オンボーディングをスキップ                                                                                                  |
-| `--onboard`                       | オンボーディングを有効化                                                                                                   |
-| `--dry-run`                       | 変更を適用せずにアクションを印刷                                                                                               |
-| `--verbose`                       | デバッグ出力を有効化（`set -x`、npm の notice レベル ログ）                                                                       |
-| `--help`                          | 使用方法を表示（`-h`）                                                                                                  |
+| フラグ                  | 説明                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                                                  | インストール メソッドを選択（デフォルト: `npm`）。別名: `--method` エイリアス: `--method` |
+| `--npm`                 | npm メソッドのショートカット                                                          |
+| `--git`                 | git メソッドのショートカット。別名: `--github` Alias: `--github`                      |
+| `--version <version\\   | dist-tag>`                                                                            | npm バージョンまたは dist-tag（デフォルト: `latest`）                                     |
+| `--beta`                | 利用可能であれば beta の dist-tag を使用し、なければ `latest` にフォールバック        |
+| `--git-dir <path>`      | チェックアウト ディレクトリ（デフォルト: `~/openclaw`）。別名: `--dir` Alias: `--dir` |
+| `--no-git-update`       | 既存のチェックアウトに対する `git pull` をスキップ                                    |
+| `--no-prompt`           | プロンプトを無効化                                                                    |
+| `--no-onboard`          | オンボーディングをスキップ                                                            |
+| `--onboard`             | オンボーディングを有効化                                                              |
+| `--dry-run`             | 変更を適用せずにアクションを印刷                                                      |
+| `--verbose`             | デバッグ出力を有効化（`set -x`、npm の notice レベル ログ）                           |
+| `--help`                | 使用方法を表示（`-h`）                                                                |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 変数                                              | 説明                                               |
-| ----------------------------------------------- | ------------------------------------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | インストール メソッド                                      |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm バージョンまたは dist-tag                            |
-| `OPENCLAW_BETA=0\\|1`                          | 利用可能であれば beta を使用                                |
-| `OPENCLAW_GIT_DIR=<path>`                       | チェックアウト ディレクトリ                                   |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | git 更新の切り替え                                      |
-| `OPENCLAW_NO_PROMPT=1`                          | プロンプトを無効化                                        |
-| `OPENCLAW_NO_ONBOARD=1`                         | オンボーディングをスキップ                                    |
-| `OPENCLAW_DRY_RUN=1`                            | ドライ ラン モード                                       |
-| `OPENCLAW_VERBOSE=1`                            | デバッグ モード                                         |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm ログ レベル                                       |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | sharp/libvips の挙動を制御（デフォルト: `1`） |
+| 変数                             | 説明                        |
+| -------------------------------- | --------------------------- | --------------------------------------------- | ----------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`                        | インストール メソッド                         |
+| `OPENCLAW_VERSION=latest\\       | next\\                      | <semver>`                                     | npm バージョンまたは dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                          | 利用可能であれば beta を使用                  |
+| `OPENCLAW_GIT_DIR=<path>`        | チェックアウト ディレクトリ |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                          | git 更新の切り替え                            |
+| `OPENCLAW_NO_PROMPT=1`           | プロンプトを無効化          |
+| `OPENCLAW_NO_ONBOARD=1`          | オンボーディングをスキップ  |
+| `OPENCLAW_DRY_RUN=1`             | ドライ ラン モード          |
+| `OPENCLAW_VERBOSE=1`             | デバッグ モード             |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                      | notice`                                       | npm ログ レベル               |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                          | sharp/libvips の挙動を制御（デフォルト: `1`） |
 
   </Accordion>
 </AccordionGroup>
@@ -220,30 +220,30 @@ TTY が利用できず、かつインストール メソッドが設定されて
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| フラグ                    | 説明                                                             |
-| ---------------------- | -------------------------------------------------------------- |
-| `--prefix <path>`      | インストール プレフィックス（デフォルト: `~/.openclaw`）           |
-| `--version <ver>`      | OpenClaw のバージョンまたは dist-tag（デフォルト: `latest`）   |
-| `--node-version <ver>` | Node バージョン（デフォルト: `22.22.0`）                   |
-| `--json`               | NDJSON イベントを出力                                                 |
-| `--onboard`            | インストール後に `openclaw onboard` を実行                                |
-| `--no-onboard`         | オンボーディングをスキップ（デフォルト）                                           |
+| フラグ                 | 説明                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `--prefix <path>`      | インストール プレフィックス（デフォルト: `~/.openclaw`）                                         |
+| `--version <ver>`      | OpenClaw のバージョンまたは dist-tag（デフォルト: `latest`）                                     |
+| `--node-version <ver>` | Node バージョン（デフォルト: `22.22.0`）                                                         |
+| `--json`               | NDJSON イベントを出力                                                                            |
+| `--onboard`            | インストール後に `openclaw onboard` を実行                                                       |
+| `--no-onboard`         | オンボーディングをスキップ（デフォルト）                                                         |
 | `--set-npm-prefix`     | Linux で、現在のプレフィックスが書き込み不可の場合に npm プレフィックスを `~/.npm-global` に強制 |
-| `--help`               | 使用方法を表示（`-h`）                                                  |
+| `--help`               | 使用方法を表示（`-h`）                                                                           |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 変数                                              | 説明                                                        |
-| ----------------------------------------------- | --------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | インストール プレフィックス                                            |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw のバージョンまたは dist-tag                               |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node バージョン                                                |
-| `OPENCLAW_NO_ONBOARD=1`                         | オンボーディングをスキップ                                             |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm ログ レベル                                                |
-| `OPENCLAW_GIT_DIR=<path>`                       | レガシー クリーンアップの検索パス（古い `Peekaboo` サブモジュールのチェックアウトを削除する際に使用） |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | sharp/libvips の挙動を制御（デフォルト: `1`）          |
+| 変数                             | 説明                                                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------- |
+| `OPENCLAW_PREFIX=<path>`         | インストール プレフィックス                                                                           |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw のバージョンまたは dist-tag                                                                  |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node バージョン                                                                                       |
+| `OPENCLAW_NO_ONBOARD=1`          | オンボーディングをスキップ                                                                            |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                                | notice`                                       | npm ログ レベル |
+| `OPENCLAW_GIT_DIR=<path>`        | レガシー クリーンアップの検索パス（古い `Peekaboo` サブモジュールのチェックアウトを削除する際に使用） |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                                    | sharp/libvips の挙動を制御（デフォルト: `1`） |
 
   </Accordion>
 </AccordionGroup>
@@ -298,26 +298,26 @@ TTY が利用できず、かつインストール メソッドが設定されて
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| フラグ                         | 説明                                                               |
-| --------------------------- | ---------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | インストール メソッド（デフォルト: `npm`）                        |
-| `-Tag <tag>`                | npm dist-tag（デフォルト: `latest`）                    |
-| `-GitDir <path>`            | チェックアウト ディレクトリ（デフォルト: `%USERPROFILE%\openclaw`） |
-| `-NoOnboard`                | オンボーディングをスキップ                                                    |
-| `-NoGitUpdate`              | `git pull` をスキップ                                                 |
-| `-DryRun`                   | 印刷アクションのみ                                                        |
+| フラグ                | 説明                                                                |
+| --------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
+| `-InstallMethod npm\\ | git`                                                                | インストール メソッド（デフォルト: `npm`） |
+| `-Tag <tag>`          | npm dist-tag（デフォルト: `latest`）                                |
+| `-GitDir <path>`      | チェックアウト ディレクトリ（デフォルト: `%USERPROFILE%\openclaw`） |
+| `-NoOnboard`          | オンボーディングをスキップ                                          |
+| `-NoGitUpdate`        | `git pull` をスキップ                                               |
+| `-DryRun`             | 印刷アクションのみ                                                  |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 変数                                   | 説明             |
-| ------------------------------------ | -------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | インストール メソッド    |
-| `OPENCLAW_GIT_DIR=<path>`            | チェックアウト ディレクトリ |
-| `OPENCLAW_NO_ONBOARD=1`              | オンボーディングをスキップ  |
-| `OPENCLAW_GIT_UPDATE=0`              | git pull を無効化  |
-| `OPENCLAW_DRY_RUN=1`                 | ドライ ラン モード     |
+| 変数                           | 説明                        |
+| ------------------------------ | --------------------------- | --------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`                        | インストール メソッド |
+| `OPENCLAW_GIT_DIR=<path>`      | チェックアウト ディレクトリ |
+| `OPENCLAW_NO_ONBOARD=1`        | オンボーディングをスキップ  |
+| `OPENCLAW_GIT_UPDATE=0`        | git pull を無効化           |
+| `OPENCLAW_DRY_RUN=1`           | ドライ ラン モード          |
 
   </Accordion>
 </AccordionGroup>

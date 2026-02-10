@@ -63,8 +63,7 @@ openclaw nodes canvas snapshot --node <id>
 
 ## Canvas အတွင်းရှိ A2UI
 
-A2UI is hosted by the Gateway canvas host and rendered inside the Canvas panel.
-30. Gateway သည် Canvas host ကို ကြော်ငြာပေးသောအခါ macOS app သည် ပထမဆုံး ဖွင့်ချိန်တွင် A2UI host စာမျက်နှာသို့ အလိုအလျောက် သွားရောက်ပါသည်။
+A2UI is hosted by the Gateway canvas host and rendered inside the Canvas panel. 30. Gateway သည် Canvas host ကို ကြော်ငြာပေးသောအခါ macOS app သည် ပထမဆုံး ဖွင့်ချိန်တွင် A2UI host စာမျက်နှာသို့ အလိုအလျောက် သွားရောက်ပါသည်။
 
 မူလ A2UI host URL —
 

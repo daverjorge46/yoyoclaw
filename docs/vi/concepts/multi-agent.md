@@ -372,8 +372,7 @@ Bắt đầu từ v2026.1.6, mỗi tác tử có thể có sandbox và hạn ch�
 - **Kiểm soát tài nguyên**: Sandbox các tác tử cụ thể trong khi giữ các tác tử khác trên host
 - **Chính sách linh hoạt**: Quyền khác nhau cho từng tác tử
 
-Lưu ý: `tools.elevated` là **toàn cục** và dựa trên người gửi; không thể cấu hình theo từng agent.
-5. Nếu bạn cần ranh giới theo từng agent, hãy dùng `agents.list[].tools` để từ chối `exec`.
+Lưu ý: `tools.elevated` là **toàn cục** và dựa trên người gửi; không thể cấu hình theo từng agent. 5. Nếu bạn cần ranh giới theo từng agent, hãy dùng `agents.list[].tools` để từ chối `exec`.
 Đối với nhắm mục tiêu theo nhóm, hãy dùng `agents.list[].groupChat.mentionPatterns` để các @mention ánh xạ chính xác tới agent mong muốn.
 
 Xem [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) để có ví dụ chi tiết.

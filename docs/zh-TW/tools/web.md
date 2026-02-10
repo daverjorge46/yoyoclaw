@@ -29,10 +29,10 @@ These are **not** browser automation. 對於 JS 密集型網站或登入，請�
 
 ## 選擇搜尋提供者
 
-| 提供者            | Pros          | Cons                          | API 金鑰                                      |
-| -------------- | ------------- | ----------------------------- | ------------------------------------------- |
-| **Brave**（預設）  | 快速、結構化結果、免費方案 | 傳統搜尋結果                        | `BRAVE_API_KEY`                             |
-| **Perplexity** | AI 綜合答案、引用、即時 | 需要 Perplexity 或 OpenRouter 存取 | `OPENROUTER_API_KEY` 或 `PERPLEXITY_API_KEY` |
+| 提供者            | Pros                       | Cons                               | API 金鑰                                     |
+| ----------------- | -------------------------- | ---------------------------------- | -------------------------------------------- |
+| **Brave**（預設） | 快速、結構化結果、免費方案 | 傳統搜尋結果                       | `BRAVE_API_KEY`                              |
+| **Perplexity**    | AI 綜合答案、引用、即時    | 需要 Perplexity 或 OpenRouter 存取 | `OPENROUTER_API_KEY` 或 `PERPLEXITY_API_KEY` |
 
 請參閱 [Brave Search 設定](/brave-search) 與 [Perplexity Sonar](/perplexity) 以取得提供者專屬細節。
 
@@ -132,11 +132,11 @@ crypto/prepaid).
 
 ### 可用的 Perplexity 模型
 
-| 模型                               | Description | 最適合  |
-| -------------------------------- | ----------- | ---- |
-| `perplexity/sonar`               | 具網頁搜尋的快速問答  | 快速查詢 |
-| `perplexity/sonar-pro`（預設）       | 具網頁搜尋的多步推理  | 複雜問題 |
-| `perplexity/sonar-reasoning-pro` | 思維鏈分析       | 深度研究 |
+| 模型                             | Description          | 最適合   |
+| -------------------------------- | -------------------- | -------- |
+| `perplexity/sonar`               | 具網頁搜尋的快速問答 | 快速查詢 |
+| `perplexity/sonar-pro`（預設）   | 具網頁搜尋的多步推理 | 複雜問題 |
+| `perplexity/sonar-reasoning-pro` | 思維鏈分析           | 深度研究 |
 
 ## web_search
 

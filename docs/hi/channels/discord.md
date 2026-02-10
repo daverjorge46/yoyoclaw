@@ -199,8 +199,8 @@ env var के माध्यम से बॉट टोकन सेट कर
 - Owner संकेत: जब प्रति‑गिल्ड या प्रति‑चैनल `users` allowlist प्रेषक से मेल खाती है, तो OpenClaw सिस्टम प्रॉम्प्ट में उस प्रेषक को owner मानता है। चैनलों के पार एक ग्लोबल owner के लिए, `commands.ownerAllowFrom` सेट करें।
 - बॉट-लेखित संदेश डिफ़ॉल्ट रूप से अनदेखे किए जाते हैं; उन्हें अनुमति देने के लिए `channels.discord.allowBots=true` सेट करें (अपने स्वयं के संदेश फ़िल्टर रहते हैं)।
 - चेतावनी: यदि आप अन्य बॉट्स को उत्तर देने की अनुमति देते हैं (`channels.discord.allowBots=true`), तो `requireMention`, `channels.discord.guilds.*.channels.<id>
-  .users` allowlists, और/या `AGENTS.md` और `SOUL.md` में guardrails को साफ़ करके बॉट‑टू‑बॉट उत्तर लूप्स को रोकें।`channels.discord.groupPolicy` का डिफ़ॉल्ट **allowlist** है; इसे `"open"` पर सेट करें या `channels.discord.guilds` के अंतर्गत एक गिल्ड एंट्री जोड़ें (वैकल्पिक रूप से `channels.discord.guilds.<id>
-  .channels` के अंतर्गत चैनल सूचीबद्ध करके प्रतिबंधित करें)।
+.users` allowlists, और/या `AGENTS.md` और `SOUL.md` में guardrails को साफ़ करके बॉट‑टू‑बॉट उत्तर लूप्स को रोकें।`channels.discord.groupPolicy` का डिफ़ॉल्ट **allowlist** है; इसे `"open"` पर सेट करें या `channels.discord.guilds` के अंतर्गत एक गिल्ड एंट्री जोड़ें (वैकल्पिक रूप से `channels.discord.guilds.<id>
+.channels` के अंतर्गत चैनल सूचीबद्ध करके प्रतिबंधित करें)।
 
 ### 6. सत्यापित करें कि यह काम करता है
 
@@ -417,27 +417,27 @@ Allowlist नोट्स (PK-सक्षम):
 
 ### Tool action defaults
 
-| Action group   | Default  | Notes                                               |
-| -------------- | -------- | --------------------------------------------------- |
-| reactions      | enabled  | React + list reactions + emojiList                  |
-| stickers       | enabled  | स्टिकर भेजें                                        |
-| emojiUploads   | enabled  | इमोजी अपलोड करें                                    |
-| stickerUploads | enabled  | स्टिकर अपलोड करें                                   |
-| polls          | enabled  | पोल बनाएँ                                           |
-| permissions    | enabled  | चैनल अनुमति स्नैपशॉट                                |
-| messages       | enabled  | पढ़ें/भेजें/संपादित/हटाएँ                           |
-| threads        | enabled  | बनाएँ/सूचीबद्ध/उत्तर दें                            |
-| pins           | enabled  | पिन/अनपिन/सूची                                      |
-| search         | enabled  | संदेश खोज (preview फीचर)         |
-| memberInfo     | enabled  | सदस्य जानकारी                                       |
-| roleInfo       | enabled  | भूमिका सूची                                         |
-| channelInfo    | enabled  | चैनल जानकारी + सूची                                 |
-| channels       | enabled  | चैनल/श्रेणी प्रबंधन                                 |
-| voiceStatus    | enabled  | वॉइस स्टेट लुकअप                                    |
-| events         | enabled  | शेड्यूल्ड इवेंट्स सूची/निर्माण                      |
-| roles          | disabled | भूमिका जोड़ना/हटाना                                 |
-| moderation     | disabled | Timeout/kick/ban                                    |
-| presence       | disabled | बॉट स्थिति/गतिविधि (setPresence) |
+| Action group   | Default  | Notes                              |
+| -------------- | -------- | ---------------------------------- |
+| reactions      | enabled  | React + list reactions + emojiList |
+| stickers       | enabled  | स्टिकर भेजें                       |
+| emojiUploads   | enabled  | इमोजी अपलोड करें                   |
+| stickerUploads | enabled  | स्टिकर अपलोड करें                  |
+| polls          | enabled  | पोल बनाएँ                          |
+| permissions    | enabled  | चैनल अनुमति स्नैपशॉट               |
+| messages       | enabled  | पढ़ें/भेजें/संपादित/हटाएँ          |
+| threads        | enabled  | बनाएँ/सूचीबद्ध/उत्तर दें           |
+| pins           | enabled  | पिन/अनपिन/सूची                     |
+| search         | enabled  | संदेश खोज (preview फीचर)           |
+| memberInfo     | enabled  | सदस्य जानकारी                      |
+| roleInfo       | enabled  | भूमिका सूची                        |
+| channelInfo    | enabled  | चैनल जानकारी + सूची                |
+| channels       | enabled  | चैनल/श्रेणी प्रबंधन                |
+| voiceStatus    | enabled  | वॉइस स्टेट लुकअप                   |
+| events         | enabled  | शेड्यूल्ड इवेंट्स सूची/निर्माण     |
+| roles          | disabled | भूमिका जोड़ना/हटाना                |
+| moderation     | disabled | Timeout/kick/ban                   |
+| presence       | disabled | बॉट स्थिति/गतिविधि (setPresence)   |
 
 - 24. वर्तमान संदेश आईडी प्रॉम्प्ट्स में `[message_id: …]` के रूप में जोड़ी जाती हैं; इतिहास प्रविष्टियों में पहले से ही आईडी शामिल होती हैं। 25. जब `guilds.<id>`
   25. `.channels` मौजूद हो, तो सूचीबद्ध न किए गए चैनल डिफ़ॉल्ट रूप से अस्वीकृत होते हैं।

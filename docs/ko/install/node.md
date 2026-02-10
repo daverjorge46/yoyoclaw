@@ -29,7 +29,7 @@ node -v
     ```bash
     brew install node
     ```
-    
+
     또는 [nodejs.org](https://nodejs.org/) 에서 macOS 설치 프로그램을 다운로드하십시오.
     ````
 
@@ -42,13 +42,13 @@ node -v
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     또는 버전 매니저를 사용할 수 있습니다(아래 참조).
     ````
 
@@ -60,13 +60,13 @@ node -v
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     또는 [nodejs.org](https://nodejs.org/) 에서 Windows 설치 프로그램을 다운로드하십시오.
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             그런 다음 새 터미널을 열거나(zsh 에서는 `rehash`, bash 에서는 `hash -r` 실행) 변경 사항을 적용하십시오.
           </Tab>
           <Tab title="Windows">

@@ -41,8 +41,8 @@ Ten model zagrożeń opiera się na [MITRE ATLAS](https://atlas.mitre.org/) (Adv
 
 6. Każde zagrożenie otrzymuje identyfikator, taki jak `T-EXEC-003`. 7. Kategorie to:
 
-| Kod                                | Kategoria                                                              |
-| ---------------------------------- | ---------------------------------------------------------------------- |
+| Kod         | Kategoria                                       |
+| ----------- | ----------------------------------------------- |
 | 8. RECON    | 9. Rozpoznanie — zbieranie informacji           |
 | 10. ACCESS  | 11. Dostęp początkowy — uzyskanie wejścia       |
 | 12. EXEC    | 13. Wykonanie — uruchamianie złośliwych działań |
@@ -57,7 +57,7 @@ Ten model zagrożeń opiera się na [MITRE ATLAS](https://atlas.mitre.org/) (Adv
 ### 26. Poziomy ryzyka
 
 | 27. Poziom        | 28. Znaczenie                                                                     |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| ----------------- | --------------------------------------------------------------------------------- |
 | 29. **Krytyczny** | 30. Pełne przejęcie systemu lub wysokie prawdopodobieństwo + krytyczny wpływ      |
 | 31. **Wysoki**    | 32. Znaczne szkody prawdopodobne lub średnie prawdopodobieństwo + krytyczny wpływ |
 | 33. **Średni**    | 34. Umiarkowane ryzyko lub niskie prawdopodobieństwo + wysoki wpływ               |

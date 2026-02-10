@@ -632,7 +632,7 @@ OpenClaw Bot API کا `sendMessageDraft` استعمال کرتا ہے (حقیق�
   - `off`: ڈرافٹ اسٹریمنگ غیر فعال کریں۔
 - اختیاری (صرف `streamMode: "block"` کے لیے):
   - `channels.telegram.draftChunk: { minChars?, maxChars?, breakPreference?
-    }` نوٹ: ڈرافٹ اسٹریمنگ **بلاک اسٹریمنگ** (چینل پیغامات) سے الگ ہے۔
+}` نوٹ: ڈرافٹ اسٹریمنگ **بلاک اسٹریمنگ** (چینل پیغامات) سے الگ ہے۔
     - ڈیفالٹس: `minChars: 200`, `maxChars: 800`, `breakPreference: "paragraph"` (حد `channels.telegram.textChunkLimit` تک)۔
 
 بلاک اسٹریمنگ بطور ڈیفالٹ بند ہوتی ہے اور اگر آپ ڈرافٹ اپڈیٹس کے بجائے ابتدائی ٹیلیگرام پیغامات چاہتے ہیں تو `channels.telegram.blockStreaming: true` درکار ہے۔
@@ -763,8 +763,8 @@ Telegram ری ایکشنز **الگ `message_reaction` ایونٹس کے طور 
   - `channels.telegram.groups.<id>`channels.telegram.groups.<id>
     .requireMention\`: مینشن گیٹنگ کی ڈیفالٹ۔
   - `channels.telegram.groups.<id>
-    .groupPolicy`: گروپ کے لیے groupPolicy اووررائیڈ (`open | allowlist | disabled`)۔`channels.telegram.groups.<id>
-    .allowFrom`: فی گروپ بھیجنے والے کی اجازت فہرست کا اووررائیڈ۔
+.groupPolicy`: گروپ کے لیے groupPolicy اووررائیڈ (`open | allowlist | disabled`)۔`channels.telegram.groups.<id>
+.allowFrom`: فی گروپ بھیجنے والے کی اجازت فہرست کا اووررائیڈ۔
   - `channels.telegram.groups.<id>`channels.telegram.groups.<id>
     .enabled`: جب `false\` ہو تو گروپ کو غیر فعال کریں۔
   - `channels.telegram.groups.<id>`channels.telegram.groups.<id>
@@ -772,8 +772,8 @@ Telegram ری ایکشنز **الگ `message_reaction` ایونٹس کے طور 
     .groupPolicy`: groupPolicy کے لیے فی موضوع اووررائیڈ (`open | allowlist | disabled\`)۔
   - `channels.telegram.groups.<id>.systemPrompt`: extra system prompt for the group.
   - `channels.telegram.groups.<id>
-    .topics.<threadId>
-    .requireMention`: فی موضوع مینشن گیٹنگ اووررائیڈ۔Happy Eyeballs ٹائم آؤٹس سے بچنے کے لیے Node 22 پر ڈیفالٹ طور پر غیر فعال ہے۔
+.topics.<threadId>
+.requireMention`: فی موضوع مینشن گیٹنگ اووررائیڈ۔Happy Eyeballs ٹائم آؤٹس سے بچنے کے لیے Node 22 پر ڈیفالٹ طور پر غیر فعال ہے۔
   - `channels.telegram.network.autoSelectFamily`: Node کے autoSelectFamily کو اووررائیڈ کریں (true=فعال، false=غیر فعال)۔`channels.telegram.commands.native` کے ساتھ اووررائیڈ کریں۔Tlon ایک غیر مرکزی میسنجر ہے جو Urbit پر بنایا گیا ہے۔
   - `commands.native` (ڈیفالٹ `"auto"` → Telegram/Discord کے لیے آن، Slack کے لیے آف)، `commands.text`, `commands.useAccessGroups` (کمانڈ رویّہ)۔گروپ جوابات کے لیے ڈیفالٹ طور پر @ مینشن درکار ہوتا ہے اور انہیں اجازت فہرستوں کے ذریعے مزید محدود کیا جا سکتا ہے۔اسٹیٹس: پلگ اِن کے ذریعے سپورٹڈ۔
   - DMs، گروپ مینشنز، تھریڈ ریپلائیز، اور صرف متن والا میڈیا فال بیک

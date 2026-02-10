@@ -22,7 +22,7 @@ title: "OpenClaw"
     />
 </p>
 
-> _"EXFOLIATE! <strong>Anumang OS gateway para sa mga AI agent sa WhatsApp, Telegram, Discord, iMessage, at higit pa.</strong>
+> \_"EXFOLIATE! <strong>Anumang OS gateway para sa mga AI agent sa WhatsApp, Telegram, Discord, iMessage, at higit pa.</strong>
 
 <p align="center"><br />
   Magpadala ng mensahe, makakuha ng tugon ng agent mula sa iyong bulsa.Nagdaragdag ang mga plugin ng Mattermost at iba pa. Kailangan mo ba ang kumpletong install at dev setup?

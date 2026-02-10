@@ -43,10 +43,10 @@ OpenClaw, Anthropic’in prompt caching özelliğini destekler. Bu özellik **ya
 
 Model yapılandırmanızda `cacheRetention` parametresini kullanın:
 
-| Değer   | Önbellek Süresi  | Açıklama                                                            |
-| ------- | ---------------- | ------------------------------------------------------------------- |
-| `none`  | Önbellekleme yok | Prompt caching’i devre dışı bırakır                                 |
-| `short` | 5 dakika         | API Anahtarı kimlik doğrulaması için varsayılan                     |
+| Değer   | Önbellek Süresi  | Açıklama                                         |
+| ------- | ---------------- | ------------------------------------------------ |
+| `none`  | Önbellekleme yok | Prompt caching’i devre dışı bırakır              |
+| `short` | 5 dakika         | API Anahtarı kimlik doğrulaması için varsayılan  |
 | `long`  | 1 saat           | Genişletilmiş önbellek (beta bayrağı gerektirir) |
 
 ```json5

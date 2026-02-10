@@ -50,12 +50,12 @@ Jeśli zobaczysz `NODE_BACKGROUND_UNAVAILABLE`, przenieś aplikację węzła na 
 
 ## Macierz uprawnień
 
-| Możliwość                    | iOS                                                              | Android                                                                    | Aplikacja węzła macOS                                    | Typowy kod błędu               |
-| ---------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Aparat (+ mikrofon dla dźwięku klipu)         | Aparat (+ mikrofon dla dźwięku klipu)                   | Aparat (+ mikrofon dla dźwięku klipu) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Nagrywanie ekranu (+ mikrofon opcjonalnie)    | Monit o przechwytywanie ekranu (+ mikrofon opcjonalnie) | Nagrywanie ekranu                                        | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Podczas użycia lub Zawsze (zależnie od trybu) | Lokalizacja na pierwszym planie/w tle w zależności od trybu                | Uprawnienie lokalizacji                                  | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/d (ścieżka hosta węzła)                     | n/d (ścieżka hosta węzła)                               | Wymagane zatwierdzenia exec                              | `SYSTEM_RUN_DENIED`            |
+| Możliwość                    | iOS                                           | Android                                                     | Aplikacja węzła macOS                 | Typowy kod błędu               |
+| ---------------------------- | --------------------------------------------- | ----------------------------------------------------------- | ------------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Aparat (+ mikrofon dla dźwięku klipu)         | Aparat (+ mikrofon dla dźwięku klipu)                       | Aparat (+ mikrofon dla dźwięku klipu) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Nagrywanie ekranu (+ mikrofon opcjonalnie)    | Monit o przechwytywanie ekranu (+ mikrofon opcjonalnie)     | Nagrywanie ekranu                     | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Podczas użycia lub Zawsze (zależnie od trybu) | Lokalizacja na pierwszym planie/w tle w zależności od trybu | Uprawnienie lokalizacji               | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/d (ścieżka hosta węzła)                     | n/d (ścieżka hosta węzła)                                   | Wymagane zatwierdzenia exec           | `SYSTEM_RUN_DENIED`            |
 
 ## Parowanie a zatwierdzenia
 

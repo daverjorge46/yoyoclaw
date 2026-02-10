@@ -29,7 +29,7 @@ Hvis dette udskriver `v22.x.x` eller højere, er du god. Hvis Node ikke er insta
     ```bash
     brew install node
     ```
-    
+
     Eller download macOS-installationsprogrammet fra [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Hvis dette udskriver `v22.x.x` eller højere, er du god. Hvis Node ikke er insta
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Eller brug en versionsmanager (se nedenfor).
     ````
 
@@ -60,13 +60,13 @@ Hvis dette udskriver `v22.x.x` eller højere, er du god. Hvis Node ikke er insta
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Eller download Windows-installationsprogrammet fra [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ Det betyder næsten altid, at npm’s globale bin-mappe ikke er på din PATH.
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Åbn derefter en ny terminal (eller kør `rehash` i zsh / `hash -r` i bash).
           </Tab>
           <Tab title="Windows">

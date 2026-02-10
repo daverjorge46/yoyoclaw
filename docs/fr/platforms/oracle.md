@@ -20,13 +20,13 @@ L’offre gratuite d’Oracle peut être très adaptée à OpenClaw (en particul
 
 ## Comparaison des coûts (2026)
 
-| Fournisseur  | Forfait         | Specifications            | Prix/mo              | Notes                                 |
-| ------------ | --------------- | ------------------------- | -------------------- | ------------------------------------- |
-| Oracle Cloud | Always Free ARM | jusqu’à 4 OCPU, 24 Go RAM | $0                   | ARM, capacité limitée                 |
-| Hetzner      | CX22            | 2 vCPU, 4 Go RAM          | ~ $4 | Option payante la moins chère         |
-| DigitalOcean | Basic           | 1 vCPU, 1 Go RAM          | $6                   | Interface simple, bonne documentation |
-| Vultr        | Cloud Compute   | 1 vCPU, 1 Go RAM          | $6                   | Nombreux emplacements                 |
-| Linode       | Nanode          | 1 vCPU, 1 Go RAM          | $5                   | Désormais partie d’Akamai             |
+| Fournisseur  | Forfait         | Specifications            | Prix/mo | Notes                                 |
+| ------------ | --------------- | ------------------------- | ------- | ------------------------------------- |
+| Oracle Cloud | Always Free ARM | jusqu’à 4 OCPU, 24 Go RAM | $0      | ARM, capacité limitée                 |
+| Hetzner      | CX22            | 2 vCPU, 4 Go RAM          | ~ $4    | Option payante la moins chère         |
+| DigitalOcean | Basic           | 1 vCPU, 1 Go RAM          | $6      | Interface simple, bonne documentation |
+| Vultr        | Cloud Compute   | 1 vCPU, 1 Go RAM          | $6      | Nombreux emplacements                 |
+| Linode       | Nanode          | 1 vCPU, 1 Go RAM          | $5      | Désormais partie d’Akamai             |
 
 ---
 

@@ -138,6 +138,7 @@ Lark (ग्लोबल) टेनेंट्स को [https://open.larksuit
 ![Enable bot capability](../images/feishu-step5-bot-capability.png)
 
 ### 47. आप इसे `channels.feishu.domain` पर या प्रति खाते (`channels.feishu.accounts.<id>`
+
 48. `.domain`) पर सेट कर सकते हैं। 49. 1.
 
 ⚠️ **महत्वपूर्ण:** इवेंट सब्सक्रिप्शन सेट करने से पहले सुनिश्चित करें:
@@ -529,34 +530,34 @@ Feishu DMs या समूहों को विभिन्न एजें�
 
 मुख्य विकल्प:
 
-| Setting                                           | Description                                                         | Default   |
-| ------------------------------------------------- | ------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | चैनल सक्षम/अक्षम करें                                               | `true`    |
-| `channels.feishu.domain`                          | API डोमेन (`feishu` या `lark`)                   | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                              | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                          | -         |
-| `channels.feishu.accounts.<id>.domain`            | प्रति-खाता API डोमेन ओवरराइड                                        | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM नीति                                                             | `pairing` |
-| `channels.feishu.allowFrom`                       | DM allowlist (open_id सूची) | -         |
-| `channels.feishu.groupPolicy`                     | समूह नीति                                                           | `open`    |
-| `channels.feishu.groupAllowFrom`                  | समूह allowlist                                                      | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | @mention आवश्यक                                        | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | समूह सक्षम करें                                                     | `true`    |
-| `channels.feishu.textChunkLimit`                  | संदेश चंक आकार                                                      | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | मीडिया आकार सीमा                                                    | `30`      |
-| `channels.feishu.streaming`                       | स्ट्रीमिंग कार्ड आउटपुट सक्षम करें                                  | `true`    |
-| `channels.feishu.blockStreaming`                  | ब्लॉक स्ट्रीमिंग सक्षम करें                                         | `true`    |
+| Setting                                           | Description                        | Default   |
+| ------------------------------------------------- | ---------------------------------- | --------- |
+| `channels.feishu.enabled`                         | चैनल सक्षम/अक्षम करें              | `true`    |
+| `channels.feishu.domain`                          | API डोमेन (`feishu` या `lark`)     | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                             | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                         | -         |
+| `channels.feishu.accounts.<id>.domain`            | प्रति-खाता API डोमेन ओवरराइड       | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM नीति                            | `pairing` |
+| `channels.feishu.allowFrom`                       | DM allowlist (open_id सूची)        | -         |
+| `channels.feishu.groupPolicy`                     | समूह नीति                          | `open`    |
+| `channels.feishu.groupAllowFrom`                  | समूह allowlist                     | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | @mention आवश्यक                    | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | समूह सक्षम करें                    | `true`    |
+| `channels.feishu.textChunkLimit`                  | संदेश चंक आकार                     | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | मीडिया आकार सीमा                   | `30`      |
+| `channels.feishu.streaming`                       | स्ट्रीमिंग कार्ड आउटपुट सक्षम करें | `true`    |
+| `channels.feishu.blockStreaming`                  | ब्लॉक स्ट्रीमिंग सक्षम करें        | `true`    |
 
 ---
 
 ## dmPolicy संदर्भ
 
-| Value         | Behavior                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------ |
+| Value         | Behavior                                                                   |
+| ------------- | -------------------------------------------------------------------------- |
 | `"pairing"`   | **डिफ़ॉल्ट.** अज्ञात उपयोगकर्ताओं को पेयरिंग कोड मिलता है; स्वीकृति आवश्यक |
-| `"allowlist"` | केवल `allowFrom` में मौजूद उपयोगकर्ता ही चैट कर सकते हैं                                   |
-| `"open"`      | सभी उपयोगकर्ताओं को अनुमति दें (allowFrom में `"*"` आवश्यक)             |
-| `"disabled"`  | DMs अक्षम करें                                                                             |
+| `"allowlist"` | केवल `allowFrom` में मौजूद उपयोगकर्ता ही चैट कर सकते हैं                   |
+| `"open"`      | सभी उपयोगकर्ताओं को अनुमति दें (allowFrom में `"*"` आवश्यक)                |
+| `"disabled"`  | DMs अक्षम करें                                                             |
 
 ---
 

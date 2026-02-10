@@ -1038,7 +1038,7 @@ Controls how chat commands are enabled across connectors.
     dmPolicy: "pairing", // pairing | allowlist | open | disabled
     allowFrom: ["tg:123456789"], // optional; "open" requires ["_"]
     groups: {
-    "_": { requireMention: true },
+    "\_": { requireMention: true },
     "-1001234567890": {
     allowFrom: ["@admin"],
     systemPrompt: "Keep answers brief.",
@@ -1528,13 +1528,13 @@ exec ssh -T gateway-host imsg "$@"
 
 `responsePrefix` स्ट्रिंग में ऐसे टेम्पलेट वेरिएबल्स शामिल हो सकते हैं जो डायनामिक रूप से रेज़ॉल्व होते हैं:
 
-| Variable                        | विवरण                 | Example                                 |
-| ------------------------------- | --------------------- | --------------------------------------- |
-| `{model}`                       | संक्षिप्त मॉडल नाम    | `claude-opus-4-6`, `gpt-4o`             |
-| `{modelFull}`                   | पूर्ण मॉडल पहचानकर्ता | `anthropic/claude-opus-4-6`             |
-| {provider}                      | प्रोवाइडर का नाम      | `anthropic`, `openai`                   |
-| {thinkingLevel}                 | वर्तमान सोच स्तर      | `high`, `low`, `off`                    |
-| {identity.name} | एजेंट पहचान का नाम    | ("auto" मोड के समान) |
+| Variable        | विवरण                 | Example                     |
+| --------------- | --------------------- | --------------------------- |
+| `{model}`       | संक्षिप्त मॉडल नाम    | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`   | पूर्ण मॉडल पहचानकर्ता | `anthropic/claude-opus-4-6` |
+| {provider}      | प्रोवाइडर का नाम      | `anthropic`, `openai`       |
+| {thinkingLevel} | वर्तमान सोच स्तर      | `high`, `low`, `off`        |
+| {identity.name} | एजेंट पहचान का नाम    | ("auto" मोड के समान)        |
 
 Variables are case-insensitive (`{MODEL}` = `{model}`). `{think}` `{thinkingLevel}` का एक उपनाम है।
 अनरिज़ॉल्व्ड वेरिएबल्स लिटरल टेक्स्ट के रूप में ही रहते हैं।
@@ -2378,9 +2378,9 @@ to `"bridge"` (or your custom network) if the agent needs outbound access.
 
 1. नोट: इनबाउंड अटैचमेंट्स को सक्रिय वर्कस्पेस में `media/inbound/*` पर स्टेज किया जाता है। 2. `workspaceAccess: "rw"` के साथ, इसका मतलब है कि फ़ाइलें एजेंट वर्कस्पेस में लिखी जाती हैं।
 
-3. नोट: `docker.binds` अतिरिक्त होस्ट डायरेक्टरीज़ को माउंट करता है; ग्लोबल और प्रति-एजेंट बाइंड्स को मर्ज किया जाता है।
+2. नोट: `docker.binds` अतिरिक्त होस्ट डायरेक्टरीज़ को माउंट करता है; ग्लोबल और प्रति-एजेंट बाइंड्स को मर्ज किया जाता है।
 
-4. वैकल्पिक ब्राउज़र इमेज को इस प्रकार बिल्ड करें:
+3. वैकल्पिक ब्राउज़र इमेज को इस प्रकार बिल्ड करें:
 
 ```bash
 scripts/sandbox-browser-setup.sh
@@ -2389,9 +2389,9 @@ scripts/sandbox-browser-setup.sh
 5. जब `agents.defaults.sandbox.browser.enabled=true` होता है, तो ब्राउज़र टूल एक सैंडबॉक्स्ड Chromium इंस्टेंस (CDP) का उपयोग करता है। 6. यदि noVNC सक्षम है (headless=false होने पर डिफ़ॉल्ट), तो noVNC URL सिस्टम प्रॉम्प्ट में इंजेक्ट किया जाता है ताकि एजेंट उसका संदर्भ ले सके।
 6. इसके लिए मुख्य कॉन्फ़िग में `browser.enabled` की आवश्यकता नहीं है; सैंडबॉक्स नियंत्रण URL प्रति सत्र इंजेक्ट किया जाता है।
 
-8. `agents.defaults.sandbox.browser.allowHostControl` (डिफ़ॉल्ट: false) सैंडबॉक्स्ड सत्रों को ब्राउज़र टूल (`target: "host"`) के माध्यम से **होस्ट** ब्राउज़र कंट्रोल सर्वर को स्पष्ट रूप से लक्षित करने की अनुमति देता है। 9. यदि आप सख़्त सैंडबॉक्स आइसोलेशन चाहते हैं तो इसे बंद रखें।
+7. `agents.defaults.sandbox.browser.allowHostControl` (डिफ़ॉल्ट: false) सैंडबॉक्स्ड सत्रों को ब्राउज़र टूल (`target: "host"`) के माध्यम से **होस्ट** ब्राउज़र कंट्रोल सर्वर को स्पष्ट रूप से लक्षित करने की अनुमति देता है। 9. यदि आप सख़्त सैंडबॉक्स आइसोलेशन चाहते हैं तो इसे बंद रखें।
 
-10. रिमोट कंट्रोल के लिए अलाउलिस्ट्स:
+8. रिमोट कंट्रोल के लिए अलाउलिस्ट्स:
 
 - 11. `allowedControlUrls`: `target: "custom"` के लिए अनुमत सटीक कंट्रोल URLs।
 - 12. `allowedControlHosts`: अनुमत होस्टनेम (केवल होस्टनेम, पोर्ट नहीं)।
@@ -2403,7 +2403,7 @@ scripts/sandbox-browser-setup.sh
 17. OpenClaw **pi-coding-agent** मॉडल कैटलॉग का उपयोग करता है। 18. आप कस्टम प्रोवाइडर्स जोड़ सकते हैं (LiteLLM, लोकल OpenAI-संगत सर्वर, Anthropic प्रॉक्सी, आदि)। 19. इसके लिए `~/.openclaw/agents/<agentId>/agent/models.json` लिखकर या OpenClaw कॉन्फ़िग में `models.providers` के अंतर्गत वही स्कीमा परिभाषित करके।
 18. प्रोवाइडर-वार अवलोकन + उदाहरण: [/concepts/model-providers](/concepts/model-providers)।
 
-21. जब `models.providers` मौजूद होता है, तो OpenClaw स्टार्टअप पर `~/.openclaw/agents/<agentId>/agent/` में एक `models.json` लिखता/मर्ज करता है:
+19. जब `models.providers` मौजूद होता है, तो OpenClaw स्टार्टअप पर `~/.openclaw/agents/<agentId>/agent/` में एक `models.json` लिखता/मर्ज करता है:
 
 - 22. डिफ़ॉल्ट व्यवहार: **merge** (मौजूदा प्रोवाइडर्स को रखता है, नाम पर ओवरराइड करता है)।
 - 23. फ़ाइल सामग्री को ओवरराइट करने के लिए `models.mode: "replace"` सेट करें।
@@ -2469,7 +2469,7 @@ scripts/sandbox-browser-setup.sh
 
 34. Z.AI मॉडल बिल्ट-इन `zai` प्रोवाइडर के माध्यम से उपलब्ध हैं। 35. अपने वातावरण में `ZAI_API_KEY` सेट करें और मॉडल को provider/model द्वारा संदर्भित करें।
 
-36. शॉर्टकट: `openclaw onboard --auth-choice zai-api-key`।
+35. शॉर्टकट: `openclaw onboard --auth-choice zai-api-key`।
 
 ```json5
 {
@@ -3328,28 +3328,28 @@ openclaw dns setup --apply
 
 टेम्पलेट प्लेसहोल्डर्स `tools.media.*.models[].args` और `tools.media.models[].args` (और भविष्य के किसी भी टेम्पलेटेड आर्ग्युमेंट फ़ील्ड) में एक्सपैंड होते हैं।
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | पूर्ण इनबाउंड संदेश बॉडी                                                       |
-\| `{{RawBody}}`      | रॉ इनबाउंड संदेश बॉडी (कोई हिस्ट्री/सेंडर रैपर नहीं; कमांड पार्सिंग के लिए सर्वोत्तम) |
-\| `{{BodyStripped}}` | बॉडी जिसमें ग्रुप मेंशन हटाए गए हों (एजेंट्स के लिए सर्वोत्तम डिफ़ॉल्ट)                     |
-\| `{{From}}`         | सेंडर पहचानकर्ता (WhatsApp के लिए E.164; चैनल के अनुसार भिन्न हो सकता है)                  |
-\| `{{To}}`           | डेस्टिनेशन पहचानकर्ता                                                          |
-\| `{{MessageSid}}`   | चैनल संदेश आईडी (जब उपलब्ध हो)                                             |
-\| `{{SessionId}}`    | वर्तमान सेशन UUID                                                            |
-\| `{{IsNewSession}}` | नया सेशन बनाए जाने पर `"true"`                                         |
-\| `{{MediaUrl}}`     | इनबाउंड मीडिया pseudo-URL (यदि मौजूद हो)                                           |
-\| `{{MediaPath}}`    | लोकल मीडिया पाथ (यदि डाउनलोड किया गया हो)                                                |
-\| `{{MediaType}}`    | मीडिया प्रकार (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | ऑडियो ट्रांसक्रिप्ट (जब सक्षम हो)                                                 |
-\| `{{Prompt}}`       | CLI एंट्रीज़ के लिए रेज़ॉल्व किया गया मीडिया प्रॉम्प्ट                                           |
-\| `{{MaxChars}}`     | CLI एंट्रीज़ के लिए रेज़ॉल्व किए गए अधिकतम आउटपुट कैरेक्टर्स                                       |
-\| `{{ChatType}}`     | `"direct"` या `"group"`                                                         |
-\| `{{GroupSubject}}` | ग्रुप विषय (best effort)                                                     |
-\| `{{GroupMembers}}` | ग्रुप मेंबर्स प्रीव्यू (best effort)                                             |
-\| `{{SenderName}}`   | सेंडर डिस्प्ले नाम (best effort)                                               |
-\| `{{SenderE164}}`   | सेंडर फ़ोन नंबर (best effort)                                               |
-\| `{{Provider}}`     | प्रोवाइडर संकेत (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | पूर्ण इनबाउंड संदेश बॉडी |
+\| `{{RawBody}}` | रॉ इनबाउंड संदेश बॉडी (कोई हिस्ट्री/सेंडर रैपर नहीं; कमांड पार्सिंग के लिए सर्वोत्तम) |
+\| `{{BodyStripped}}` | बॉडी जिसमें ग्रुप मेंशन हटाए गए हों (एजेंट्स के लिए सर्वोत्तम डिफ़ॉल्ट) |
+\| `{{From}}` | सेंडर पहचानकर्ता (WhatsApp के लिए E.164; चैनल के अनुसार भिन्न हो सकता है) |
+\| `{{To}}` | डेस्टिनेशन पहचानकर्ता |
+\| `{{MessageSid}}` | चैनल संदेश आईडी (जब उपलब्ध हो) |
+\| `{{SessionId}}` | वर्तमान सेशन UUID |
+\| `{{IsNewSession}}` | नया सेशन बनाए जाने पर `"true"` |
+\| `{{MediaUrl}}` | इनबाउंड मीडिया pseudo-URL (यदि मौजूद हो) |
+\| `{{MediaPath}}` | लोकल मीडिया पाथ (यदि डाउनलोड किया गया हो) |
+\| `{{MediaType}}` | मीडिया प्रकार (image/audio/document/…) |
+\| `{{Transcript}}` | ऑडियो ट्रांसक्रिप्ट (जब सक्षम हो) |
+\| `{{Prompt}}` | CLI एंट्रीज़ के लिए रेज़ॉल्व किया गया मीडिया प्रॉम्प्ट |
+\| `{{MaxChars}}` | CLI एंट्रीज़ के लिए रेज़ॉल्व किए गए अधिकतम आउटपुट कैरेक्टर्स |
+\| `{{ChatType}}` | `"direct"` या `"group"` |
+\| `{{GroupSubject}}` | ग्रुप विषय (best effort) |
+\| `{{GroupMembers}}` | ग्रुप मेंबर्स प्रीव्यू (best effort) |
+\| `{{SenderName}}` | सेंडर डिस्प्ले नाम (best effort) |
+\| `{{SenderE164}}` | सेंडर फ़ोन नंबर (best effort) |
+\| `{{Provider}}` | प्रोवाइडर संकेत (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway शेड्यूलर)
 

@@ -84,10 +84,10 @@ OpenClaw 可以在 `MEMORY.md` 與 `memory/*.md` 上建立小型向量索引，
 - 9. 監看記憶檔案的變更（去抖動）。
 - 10. 預設使用遠端嵌入（embeddings）。 預設使用遠端嵌入。若未設定 `memorySearch.provider`，OpenClaw 會自動選擇：
   1. 若設定了 `memorySearch.local.modelPath` 且檔案存在，使用 `local`。
-  2. 若可解析 OpenAI 金鑰，使用 `openai`。
-  3. 若可解析 Gemini 金鑰，使用 `gemini`。
-  4. 若可解析 Voyage 金鑰，使用 `voyage`。
-  5. 否則在完成設定前，記憶搜尋會維持停用。
+  1. 若可解析 OpenAI 金鑰，使用 `openai`。
+  1. 若可解析 Gemini 金鑰，使用 `gemini`。
+  1. 若可解析 Voyage 金鑰，使用 `voyage`。
+  1. 否則在完成設定前，記憶搜尋會維持停用。
 - 本地模式使用 node-llama-cpp，且可能需要 `pnpm approve-builds`。
 - 可用時使用 sqlite-vec 以加速 SQLite 內的向量搜尋。
 
@@ -132,7 +132,6 @@ QMD 進行擷取。重點如下： 17. Markdown 仍是唯一可信來源；OpenC
   - OpenClaw 在執行 QMD 時會自動設定 `XDG_CONFIG_HOME`/`XDG_CACHE_HOME`。
   - 若要手動預先下載模型（並暖身與 OpenClaw 相同的索引），
     請使用代理程式的 XDG 目錄執行一次性查詢。
-
     22. OpenClaw 的 QMD 狀態位於你的**狀態目錄**下（預設為 `~/.openclaw`）。
         OpenClaw 的 QMD 狀態位於你的 **狀態目錄**（預設為 `~/.openclaw`）。
         你可以匯出 OpenClaw 使用的相同 XDG 變數，將 `qmd` 指向完全相同的索引：
@@ -170,8 +169,7 @@ QMD 進行擷取。重點如下： 17. Markdown 仍是唯一可信來源；OpenC
 - `limits`：限制回憶負載（`maxResults`、`maxSnippetChars`、
   `maxInjectedChars`、`timeoutMs`）。
 - `scope`：與 [`session.sendPolicy`](/gateway/configuration#session) 相同的結構描述。
-  預設僅限私訊（`deny` 全部、`allow` 直接聊天）；放寬後可在群組／頻道中顯示 QMD 命中。
-  23. 預設為僅 DM（全部 `deny`，僅 `allow` 直接聊天）；放寬設定即可在群組/頻道中顯示 QMD 命中結果。
+  預設僅限私訊（`deny` 全部、`allow` 直接聊天）；放寬後可在群組／頻道中顯示 QMD 命中。23. 預設為僅 DM（全部 `deny`，僅 `allow` 直接聊天）；放寬設定即可在群組/頻道中顯示 QMD 命中結果。
 - When `scope` denies a search, OpenClaw logs a warning with the derived
   `channel`/`chatType` so empty results are easier to debug.
 - 來自工作區外的片段會以

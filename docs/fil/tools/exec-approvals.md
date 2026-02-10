@@ -11,8 +11,7 @@ title: "Exec Approvals"
 
 Exec approvals are the **companion app / node host guardrail** for letting a sandboxed agent run
 commands on a real host (`gateway` or `node`). Think of it like a safety interlock:
-commands are allowed only when policy + allowlist + (optional) user approval all agree.
-48. Ang mga pag-apruba sa exec ay **dagdag pa** sa tool policy at elevated gating (maliban kung ang elevated ay nakatakda sa `full`, na nilalaktawan ang mga pag-apruba).
+commands are allowed only when policy + allowlist + (optional) user approval all agree. 48. Ang mga pag-apruba sa exec ay **dagdag pa** sa tool policy at elevated gating (maliban kung ang elevated ay nakatakda sa `full`, na nilalaktawan ang mga pag-apruba).
 Effective policy is the **stricter** of `tools.exec.*` and approvals defaults; if an approvals field is omitted, the `tools.exec` value is used.
 
 Kung ang companion app UI ay **hindi available**, anumang request na nangangailangan ng prompt ay

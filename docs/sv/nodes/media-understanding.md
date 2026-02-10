@@ -175,11 +175,11 @@ Om du utelämnar `capabilities`, är posten berättigad till listan den visas i.
 
 ## Matris för leverantörsstöd (OpenClaw‑integrationer)
 
-| Kapacitet | Leverantörsintegration                          | Noteringar                                                                              |
-| --------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Bild      | OpenAI / Anthropic / Google / andra via `pi-ai` | Alla bildkapabla modeller i registret fungerar.                         |
+| Kapacitet | Leverantörsintegration                          | Noteringar                                           |
+| --------- | ----------------------------------------------- | ---------------------------------------------------- |
+| Bild      | OpenAI / Anthropic / Google / andra via `pi-ai` | Alla bildkapabla modeller i registret fungerar.      |
 | Ljud      | OpenAI, Groq, Deepgram, Google                  | Leverantörstranskribering (Whisper/Deepgram/Gemini). |
-| Video     | Google (Gemini API)          | Leverantörsbaserad videoförståelse.                                     |
+| Video     | Google (Gemini API)                             | Leverantörsbaserad videoförståelse.                  |
 
 ## Rekommenderade leverantörer
 

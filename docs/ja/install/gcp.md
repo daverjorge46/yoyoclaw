@@ -117,10 +117,10 @@ gcloud services enable compute.googleapis.com
 
 **マシンタイプ:**
 
-| Type     | Specs               | Cost    | Notes         |
-| -------- | ------------------- | ------- | ------------- |
-| e2-small | 2 vCPU, 2GB RAM     | 約 $12/月 | 推奨            |
-| e2-micro | 2 vCPU（共有）, 1GB RAM | 無料枠対象   | 負荷時に OOM の可能性 |
+| Type     | Specs                   | Cost       | Notes                 |
+| -------- | ----------------------- | ---------- | --------------------- |
+| e2-small | 2 vCPU, 2GB RAM         | 約 $12/月  | 推奨                  |
+| e2-micro | 2 vCPU（共有）, 1GB RAM | 無料枠対象 | 負荷時に OOM の可能性 |
 
 **CLI:**
 
@@ -411,18 +411,18 @@ OpenClaw は Docker で実行されますが、Docker 自体は真のソース�
 長期間保持するすべての状態は、再起動・再ビルド・再起動（OS 再起動）後も残る必要があります。
 すべての長寿命の状態は、再起動、再構築、再起動、および再起動を生き残らなければなりません。
 
-| コンポーネント          | 場所                                | 永続化の仕組み     | Notes                      |
-| ---------------- | --------------------------------- | ----------- | -------------------------- |
-| Gateway 設定       | `/home/node/.openclaw/`           | ホストのボリューム   | `openclaw.json`、トークンを含む    |
-| モデル認証プロファイル      | `/home/node/.openclaw/`           | ホストのボリューム   | OAuth トークン、API キー          |
-| Skill 設定         | `/home/node/.openclaw/skills/`    | ホストのボリューム   | Skill レベルの状態               |
-| エージェント Workspace | `/home/node/.openclaw/workspace/` | ホストのボリューム   | コードとエージェント成果物              |
-| WhatsApp セッション   | `/home/node/.openclaw/`           | ホストのボリューム   | QR ログインを保持                 |
-| Gmail キーリング      | `/home/node/.openclaw/`           | ホスト + パスワード | `GOG_KEYRING_PASSWORD` が必要 |
-| 外部バイナリ           | `/usr/local/bin/`                 | Docker イメージ | ビルド時に焼かれなければなりません          |
-| Node ランタイム       | コンテナのファイルシステム                     | Docker イメージ | 各イメージビルドで再構築               |
-| OS パッケージ         | コンテナのファイルシステム                     | Docker イメージ | 実行時にインストールしない              |
-| Docker コンテナ      | エフェメラル                            | 再起動可能       | 破棄しても安全                    |
+| コンポーネント         | 場所                              | 永続化の仕組み      | Notes                              |
+| ---------------------- | --------------------------------- | ------------------- | ---------------------------------- |
+| Gateway 設定           | `/home/node/.openclaw/`           | ホストのボリューム  | `openclaw.json`、トークンを含む    |
+| モデル認証プロファイル | `/home/node/.openclaw/`           | ホストのボリューム  | OAuth トークン、API キー           |
+| Skill 設定             | `/home/node/.openclaw/skills/`    | ホストのボリューム  | Skill レベルの状態                 |
+| エージェント Workspace | `/home/node/.openclaw/workspace/` | ホストのボリューム  | コードとエージェント成果物         |
+| WhatsApp セッション    | `/home/node/.openclaw/`           | ホストのボリューム  | QR ログインを保持                  |
+| Gmail キーリング       | `/home/node/.openclaw/`           | ホスト + パスワード | `GOG_KEYRING_PASSWORD` が必要      |
+| 外部バイナリ           | `/usr/local/bin/`                 | Docker イメージ     | ビルド時に焼かれなければなりません |
+| Node ランタイム        | コンテナのファイルシステム        | Docker イメージ     | 各イメージビルドで再構築           |
+| OS パッケージ          | コンテナのファイルシステム        | Docker イメージ     | 実行時にインストールしない         |
+| Docker コンテナ        | エフェメラル                      | 再起動可能          | 破棄しても安全                     |
 
 ---
 

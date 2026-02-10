@@ -55,8 +55,7 @@ OAuth لاگ اِن الگ الگ پروفائلز بناتا ہے تاکہ مت
 
 ### سیشن اسٹکنس (کیچ-فرینڈلی)
 
-OpenClaw **pins the chosen auth profile per session** to keep provider caches warm.
-22. یہ **ہر درخواست پر** روٹیٹ نہیں کرتا۔ The pinned profile is reused until:
+OpenClaw **pins the chosen auth profile per session** to keep provider caches warm. 22. یہ **ہر درخواست پر** روٹیٹ نہیں کرتا۔ The pinned profile is reused until:
 
 - سیشن ری سیٹ نہ ہو (`/new` / `/reset`)
 - کوئی کمپیکشن مکمل نہ ہو (کمپیکشن کاؤنٹ میں اضافہ)

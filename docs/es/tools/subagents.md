@@ -157,15 +157,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### Parámetros
 
-| Parameter           | Tipo                     | Predeterminado                        | Descripción                                                                                       |
-| ------------------- | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `task`              | string                   | _(required)_       | What the sub-agent should do                                                                      |
-| `etiqueta`          | string                   | —                                     | Short label for identification                                                                    |
-| `agentId`           | string                   | _(caller's agent)_ | Spawn under a different agent id (must be allowed)                             |
-| `modelo`            | string                   | _(optional)_       | Override the model for this sub-agent                                                             |
-| `thinking`          | string                   | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | number                   | `0` (no limit)     | Abort the sub-agent after N seconds                                                               |
-| `limpieza`          | `"delete"` \\| `"keep"` | `"keep"`                              | `"delete"` archives immediately after announce                                                    |
+| Parameter           | Tipo          | Predeterminado     | Descripción                                                    |
+| ------------------- | ------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
+| `task`              | string        | _(required)_       | What the sub-agent should do                                   |
+| `etiqueta`          | string        | —                  | Short label for identification                                 |
+| `agentId`           | string        | _(caller's agent)_ | Spawn under a different agent id (must be allowed)             |
+| `modelo`            | string        | _(optional)_       | Override the model for this sub-agent                          |
+| `thinking`          | string        | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | number        | `0` (no limit)     | Abort the sub-agent after N seconds                            |
+| `limpieza`          | `"delete"` \\ | `"keep"`           | `"keep"`                                                       | `"delete"` archives immediately after announce |
 
 ### Model Resolution Order
 
@@ -212,13 +212,13 @@ By default, sub-agents can only spawn under their own agent id. Para permitir qu
 
 Usa el comando slash `/subagents` para inspeccionar y controlar ejecuciones de subagentes para la sesión actual:
 
-| Comando                                    | Descripción                                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `/subagents list`                          | Listar todas las ejecuciones de subagentes (activas y completadas) |
-| `/subagents stop <id\\|#\\|all>`         | Detener un subagente en ejecución                                                     |
-| `/subagents log <id\\|#> [limit] [tools]` | Ver la transcripción del subagente                                                    |
-| `/subagents info <id\\|#>`                | Mostrar metadatos detallados de la ejecución                                          |
-| `/subagents send <id\\|#> <message>`      | Enviar un mensaje a un subagente en ejecución                                         |
+| Comando                | Descripción                                                        |
+| ---------------------- | ------------------------------------------------------------------ | --------------------------------------------- | --------------------------------- |
+| `/subagents list`      | Listar todas las ejecuciones de subagentes (activas y completadas) |
+| `/subagents stop <id\\ | #\\                                                                | all>`                                         | Detener un subagente en ejecución |
+| `/subagents log <id\\  | #> [limit] [tools]`                                                | Ver la transcripción del subagente            |
+| `/subagents info <id\\ | #>`                                                                | Mostrar metadatos detallados de la ejecución  |
+| `/subagents send <id\\ | #> <message>`                                                      | Enviar un mensaje a un subagente en ejecución |
 
 Puedes referenciar subagentes por índice de la lista (`1`, `2`), prefijo del ID de ejecución, clave de sesión completa o `last`.
 
@@ -235,11 +235,11 @@ Puedes referenciar subagentes por índice de la lista (`1`, `2`), prefijo del ID
     2) ✅ · comprobar dependencias · 45s · ejecución e5f6g7h8 · agente:main:subagent:...
     3) 🔄 · desplegar staging · 1m12s · ejecución i9j0k1l2 · agente:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Solicitud de detención para desplegar staging.
     ```
@@ -271,7 +271,7 @@ Puedes referenciar subagentes por índice de la lista (`1`, `2`), prefijo del ID
 
     ````
     Muestra los últimos 10 mensajes de la transcripción del subagente. Añade `tools` para incluir mensajes de llamadas a herramientas:
-    
+
     ```
     /subagents log 1 10 tools
     ```

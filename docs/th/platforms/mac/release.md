@@ -71,8 +71,7 @@ SPARKLE_PRIVATE_KEY_FILE=/path/to/ed25519-private-key scripts/make_appcast.sh di
 ```
 
 สร้างบันทึกการรีลีสแบบ HTML จาก `CHANGELOG.md` (ผ่าน [`scripts/changelog-to-html.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/changelog-to-html.sh)) และฝังลงในรายการ appcast
-คอมมิตไฟล์ `appcast.xml` ที่อัปเดตแล้วไปพร้อมกับแอสเซ็ตของรีลีส (zip + dSYM) ระหว่างการเผยแพร่
-36. คอมมิต `appcast.xml` ที่อัปเดตแล้วควบคู่กับแอสเซ็ตรีลีส (zip + dSYM) เมื่อเผยแพร่
+คอมมิตไฟล์ `appcast.xml` ที่อัปเดตแล้วไปพร้อมกับแอสเซ็ตของรีลีส (zip + dSYM) ระหว่างการเผยแพร่ 36. คอมมิต `appcast.xml` ที่อัปเดตแล้วควบคู่กับแอสเซ็ตรีลีส (zip + dSYM) เมื่อเผยแพร่
 
 ## เผยแพร่และตรวจสอบ
 

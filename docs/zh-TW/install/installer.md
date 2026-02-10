@@ -11,11 +11,11 @@ title: "安裝程式內部機制"
 
 OpenClaw 提供三個安裝程式腳本，皆由 `openclaw.ai` 提供。
 
-| 43. 腳本      | 平台                  | What it does                                             |
-| ---------------------------------- | ------------------- | -------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS／Linux／WSL     | 視需要安裝 Node，透過 npm（預設）或 git 安裝 OpenClaw，並可執行入門引導。         |
+| 43. 腳本                           | 平台                  | What it does                                                                 |
+| ---------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS／Linux／WSL     | 視需要安裝 Node，透過 npm（預設）或 git 安裝 OpenClaw，並可執行入門引導。    |
 | [`install-cli.sh`](#install-clish) | macOS／Linux／WSL     | 將 Node 與 OpenClaw 安裝到本機前綴目錄（`~/.openclaw`）。 不需要 root 權限。 |
-| [`install.ps1`](#installps1)       | Windows（PowerShell） | 視需要安裝 Node，透過 npm（預設）或 git 安裝 OpenClaw，並可執行入門引導。         |
+| [`install.ps1`](#installps1)       | Windows（PowerShell） | 視需要安裝 Node，透過 npm（預設）或 git 安裝 OpenClaw，並可執行入門引導。    |
 
 ## 快速指令
 
@@ -134,39 +134,39 @@ OpenClaw 提供三個安裝程式腳本，皆由 `openclaw.ai` 提供。
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| 旗標                                | Description                                                                                                                   |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | 選擇安裝方法（預設：`npm`）。別名：`--method` 49. 別名：`--method`                                                              |
-| `--npm`                           | npm 方法的捷徑                                                                                                                     |
-| `--git`                           | git 方法的捷徑。別名：`--github` 別名：`--github`                                                                                         |
-| `--version <version\\|dist-tag>` | npm 版本或 dist-tag（預設：`latest`）                                                                                                 |
-| `--beta`                          | 若可用則使用 beta dist-tag，否則回退至 `latest`                                                                                           |
-| `--git-dir <path>`                | Checkout directory (default: `~/openclaw`). Alias: `--dir` |
-| `--no-git-update`                 | Skip `git pull` for existing checkout                                                                                         |
-| `--no-prompt`                     | 停用提示                                                                                                                          |
-| `--no-onboard`                    | Skip onboarding                                                                                                               |
-| `--onboard`                       | Enable onboarding                                                                                                             |
-| `--dry-run`                       | 僅列印動作，不套用變更                                                                                                                   |
-| `--verbose`                       | 啟用除錯輸出（`set -x`、npm notice 級別日誌）                                                                                              |
-| `--help`                          | 顯示使用說明（`-h`）                                                                                                                  |
+| 旗標                    | Description                                                |
+| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `--install-method npm\\ | git`                                                       | 選擇安裝方法（預設：`npm`）。別名：`--method` 49. 別名：`--method` |
+| `--npm`                 | npm 方法的捷徑                                             |
+| `--git`                 | git 方法的捷徑。別名：`--github` 別名：`--github`          |
+| `--version <version\\   | dist-tag>`                                                 | npm 版本或 dist-tag（預設：`latest`）                              |
+| `--beta`                | 若可用則使用 beta dist-tag，否則回退至 `latest`            |
+| `--git-dir <path>`      | Checkout directory (default: `~/openclaw`). Alias: `--dir` |
+| `--no-git-update`       | Skip `git pull` for existing checkout                      |
+| `--no-prompt`           | 停用提示                                                   |
+| `--no-onboard`          | Skip onboarding                                            |
+| `--onboard`             | Enable onboarding                                          |
+| `--dry-run`             | 僅列印動作，不套用變更                                     |
+| `--verbose`             | 啟用除錯輸出（`set -x`、npm notice 級別日誌）              |
+| `--help`                | 顯示使用說明（`-h`）                                       |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 變數                                              | Description                 |
-| ----------------------------------------------- | --------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | 安裝方法                        |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm 版本或 dist-tag            |
-| `OPENCLAW_BETA=0\\|1`                          | 若可用則使用 beta                 |
-| `OPENCLAW_GIT_DIR=<path>`                       | Checkout directory          |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | 切換 git 更新                   |
-| `OPENCLAW_NO_PROMPT=1`                          | 停用提示                        |
-| `OPENCLAW_NO_ONBOARD=1`                         | Skip onboarding             |
-| `OPENCLAW_DRY_RUN=1`                            | Dry run 模式                  |
-| `OPENCLAW_VERBOSE=1`                            | 除錯模式                        |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm 日誌層級                    |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | 控制 sharp/libvips 行為（預設：`1`） |
+| 變數                             | Description        |
+| -------------------------------- | ------------------ | ------------------------------------ | ------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`               | 安裝方法                             |
+| `OPENCLAW_VERSION=latest\\       | next\\             | <semver>`                            | npm 版本或 dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                 | 若可用則使用 beta                    |
+| `OPENCLAW_GIT_DIR=<path>`        | Checkout directory |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                 | 切換 git 更新                        |
+| `OPENCLAW_NO_PROMPT=1`           | 停用提示           |
+| `OPENCLAW_NO_ONBOARD=1`          | Skip onboarding    |
+| `OPENCLAW_DRY_RUN=1`             | Dry run 模式       |
+| `OPENCLAW_VERBOSE=1`             | 除錯模式           |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\             | notice`                              | npm 日誌層級        |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                 | 控制 sharp/libvips 行為（預設：`1`） |
 
   </Accordion>
 </AccordionGroup>
@@ -221,30 +221,30 @@ Designed for environments where you want everything under a local prefix (defaul
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| 旗標                     | Description                                        |
-| ---------------------- | -------------------------------------------------- |
-| `--prefix <path>`      | 安裝前綴路徑（預設：`~/.openclaw`）                           |
-| `--version <ver>`      | OpenClaw 版本或 dist-tag（預設：`latest`）                 |
-| `--node-version <ver>` | Node 版本（預設：`22.22.0`）                              |
-| `--json`               | 輸出 NDJSON 事件                                       |
-| `--onboard`            | 安裝後執行 `openclaw onboard`                           |
-| `--no-onboard`         | 跳過入門引導（預設）                                         |
+| 旗標                   | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `--prefix <path>`      | 安裝前綴路徑（預設：`~/.openclaw`）                                      |
+| `--version <ver>`      | OpenClaw 版本或 dist-tag（預設：`latest`）                               |
+| `--node-version <ver>` | Node 版本（預設：`22.22.0`）                                             |
+| `--json`               | 輸出 NDJSON 事件                                                         |
+| `--onboard`            | 安裝後執行 `openclaw onboard`                                            |
+| `--no-onboard`         | 跳過入門引導（預設）                                                     |
 | `--set-npm-prefix`     | 在 Linux 上，若目前前綴路徑不可寫入，強制將 npm 前綴設為 `~/.npm-global` |
-| `--help`               | 顯示使用說明（`-h`）                                       |
+| `--help`               | 顯示使用說明（`-h`）                                                     |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 變數                                              | Description                           |
-| ----------------------------------------------- | ------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | 安裝前綴路徑                                |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw 版本或 dist-tag                 |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node 版本                               |
-| `OPENCLAW_NO_ONBOARD=1`                         | Skip onboarding                       |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm 日誌層級                              |
-| `OPENCLAW_GIT_DIR=<path>`                       | 舊版清理查找路徑（在移除舊的 `Peekaboo` 子模組檢出內容時使用） |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | 控制 sharp/libvips 行為（預設：`1`）           |
+| 變數                             | Description                                                    |
+| -------------------------------- | -------------------------------------------------------------- | ------------------------------------ | ------------ |
+| `OPENCLAW_PREFIX=<path>`         | 安裝前綴路徑                                                   |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw 版本或 dist-tag                                       |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node 版本                                                      |
+| `OPENCLAW_NO_ONBOARD=1`          | Skip onboarding                                                |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                         | notice`                              | npm 日誌層級 |
+| `OPENCLAW_GIT_DIR=<path>`        | 舊版清理查找路徑（在移除舊的 `Peekaboo` 子模組檢出內容時使用） |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                             | 控制 sharp/libvips 行為（預設：`1`） |
 
   </Accordion>
 </AccordionGroup>
@@ -299,26 +299,26 @@ Designed for environments where you want everything under a local prefix (defaul
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| 旗標                          | Description                        |
-| --------------------------- | ---------------------------------- |
-| `-InstallMethod npm\\|git` | 安裝方法（預設：`npm`）                     |
-| `-Tag <tag>`                | npm dist-tag（預設：`latest`）          |
-| `-GitDir <path>`            | 檢出目錄（預設：`%USERPROFILE%\openclaw`） |
-| `-NoOnboard`                | Skip onboarding                    |
-| `-NoGitUpdate`              | 跳過 `git pull`                      |
-| `-DryRun`                   | 僅列印動作                              |
+| 旗標                  | Description                                |
+| --------------------- | ------------------------------------------ | ----------------------- |
+| `-InstallMethod npm\\ | git`                                       | 安裝方法（預設：`npm`） |
+| `-Tag <tag>`          | npm dist-tag（預設：`latest`）             |
+| `-GitDir <path>`      | 檢出目錄（預設：`%USERPROFILE%\openclaw`） |
+| `-NoOnboard`          | Skip onboarding                            |
+| `-NoGitUpdate`        | 跳過 `git pull`                            |
+| `-DryRun`             | 僅列印動作                                 |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| 變數                                   | Description        |
-| ------------------------------------ | ------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | 安裝方法               |
-| `OPENCLAW_GIT_DIR=<path>`            | Checkout directory |
-| `OPENCLAW_NO_ONBOARD=1`              | Skip onboarding    |
-| `OPENCLAW_GIT_UPDATE=0`              | 停用 git pull        |
-| `OPENCLAW_DRY_RUN=1`                 | Dry run 模式         |
+| 變數                           | Description        |
+| ------------------------------ | ------------------ | -------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`               | 安裝方法 |
+| `OPENCLAW_GIT_DIR=<path>`      | Checkout directory |
+| `OPENCLAW_NO_ONBOARD=1`        | Skip onboarding    |
+| `OPENCLAW_GIT_UPDATE=0`        | 停用 git pull      |
+| `OPENCLAW_DRY_RUN=1`           | Dry run 模式       |
 
   </Accordion>
 </AccordionGroup>

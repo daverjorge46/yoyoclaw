@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## 設定參考
 
-| Key          | Type                                                         | Default                                     | Description                       |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------- |
-| `privateKey` | string                                                       | required                                    | 私鑰（`nsec` 或十六進位格式）                |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | 中繼站 URL（WebSocket）                |
-| `dmPolicy`   | string                                                       | `pairing`                                   | 40. 私訊存取政策 |
-| `allowFrom`  | string[] | `[]`                                        | 允許的寄件者公鑰                          |
-| `enabled`    | boolean                                                      | `true`                                      | 啟用／停用頻道                           |
-| `name`       | string                                                       | -                                           | 顯示名稱                              |
-| `profile`    | object                                                       | -                                           | NIP-01 個人資料中繼資料                   |
+| Key          | Type     | Default                                     | Description                   |
+| ------------ | -------- | ------------------------------------------- | ----------------------------- |
+| `privateKey` | string   | required                                    | 私鑰（`nsec` 或十六進位格式） |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | 中繼站 URL（WebSocket）       |
+| `dmPolicy`   | string   | `pairing`                                   | 40. 私訊存取政策              |
+| `allowFrom`  | string[] | `[]`                                        | 允許的寄件者公鑰              |
+| `enabled`    | boolean  | `true`                                      | 啟用／停用頻道                |
+| `name`       | string   | -                                           | 顯示名稱                      |
+| `profile`    | object   | -                                           | NIP-01 個人資料中繼資料       |
 
 ## Profile metadata
 
@@ -166,12 +166,12 @@ Profile data is published as a NIP-01 `kind:0` event. You can manage it from the
 
 ## 協定支援
 
-| NIP    | Status | Description                                 |
-| ------ | ------ | ------------------------------------------- |
-| NIP-01 | 已支援    | 基本事件格式 + 個人資料中繼資料                           |
-| NIP-04 | 已支援    | Encrypted DMs (`kind:4`) |
-| NIP-17 | 規劃中    | Gift-wrapped DMs                            |
-| NIP-44 | 規劃中    | 版本化加密                                       |
+| NIP    | Status | Description                     |
+| ------ | ------ | ------------------------------- |
+| NIP-01 | 已支援 | 基本事件格式 + 個人資料中繼資料 |
+| NIP-04 | 已支援 | Encrypted DMs (`kind:4`)        |
+| NIP-17 | 規劃中 | Gift-wrapped DMs                |
+| NIP-44 | 規劃中 | 版本化加密                      |
 
 ## 測試
 

@@ -43,11 +43,11 @@ OpenClaw Anthropic کی پرامپٹ کیشنگ خصوصیت کو سپورٹ ک�
 
 اپنی ماڈل کنفیگ میں `cacheRetention` پیرامیٹر استعمال کریں:
 
-| Value   | Cache Duration | Description                                       |
-| ------- | -------------- | ------------------------------------------------- |
-| `none`  | No caching     | prompt caching کو غیر فعال کریں                   |
-| `short` | 5 minutes      | API Key تصدیق کے لیے بطورِ طے شدہ                 |
-| `long`  | 1 hour         | توسیعی cache (beta flag درکار) |
+| Value   | Cache Duration | Description                       |
+| ------- | -------------- | --------------------------------- |
+| `none`  | No caching     | prompt caching کو غیر فعال کریں   |
+| `short` | 5 minutes      | API Key تصدیق کے لیے بطورِ طے شدہ |
+| `long`  | 1 hour         | توسیعی cache (beta flag درکار)    |
 
 ```json5
 {

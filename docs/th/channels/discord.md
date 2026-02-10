@@ -65,8 +65,7 @@ title: "Discord"
 13. คำสั่งเนทีฟใช้คีย์เซสชันแบบแยก (`agent:<agentId>:discord:slash:<userId>`) แทนเซสชันที่ใช้ร่วมกัน `main`
 
 หมายเหตุ: การแปลงชื่อ → id ใช้การค้นหาสมาชิกกิลด์และต้องใช้Server Members Intent; หากบอตค้นหาสมาชิกไม่ได้ ให้ใช้idหรือการกล่าวถึง `<@id>`
-หมายเหตุ: Slugเป็นตัวพิมพ์เล็กและแทนที่ช่องว่างด้วย `-`.
-43. หมายเหตุ: slug เป็นตัวพิมพ์เล็ก และแทนที่ช่องว่างด้วย `-` 44. ชื่อช่องทางจะถูกทำเป็น slug โดยไม่รวม `#` นำหน้า
+หมายเหตุ: Slugเป็นตัวพิมพ์เล็กและแทนที่ช่องว่างด้วย `-`. 43. หมายเหตุ: slug เป็นตัวพิมพ์เล็ก และแทนที่ช่องว่างด้วย `-` 44. ชื่อช่องทางจะถูกทำเป็น slug โดยไม่รวม `#` นำหน้า
 ชื่อช่องจะถูกทำเป็นslugโดยไม่มี `#` นำหน้า
 หมายเหตุ: บรรทัดบริบทกิลด์ `[from:]` จะรวม `author.tag` + `id` เพื่อให้ง่ายต่อการตอบแบบping-ready
 
@@ -393,27 +392,27 @@ Discordใช้idตัวเลขทุกที่; คอนฟิกOpenCl
 
 ### Tool action defaults
 
-| Action group   | Default  | Notes                                             |
-| -------------- | -------- | ------------------------------------------------- |
-| reactions      | enabled  | React + list reactions + emojiList                |
-| stickers       | enabled  | ส่งสติกเกอร์                                      |
-| emojiUploads   | enabled  | 16. อัปโหลดอีโมจิ          |
-| stickerUploads | enabled  | อัปโหลดสติกเกอร์                                  |
-| polls          | enabled  | สร้างโพล                                          |
-| permissions    | enabled  | สแน็ปช็อตสิทธิ์ช่อง                               |
-| messages       | enabled  | อ่าน/ส่ง/แก้ไข/ลบ                                 |
-| threads        | enabled  | สร้าง/แสดงรายการ/ตอบกลับ                          |
-| pins           | enabled  | ปักหมุด/ยกเลิก/แสดงรายการ                         |
-| search         | enabled  | ค้นหาข้อความ (ฟีเจอร์พรีวิว)   |
-| memberInfo     | enabled  | ข้อมูลสมาชิก                                      |
-| roleInfo       | enabled  | รายการบทบาท                                       |
-| channelInfo    | enabled  | ข้อมูลช่อง + รายการ                               |
-| channels       | enabled  | จัดการช่อง/หมวดหมู่                               |
-| voiceStatus    | enabled  | ตรวจสอบสถานะเสียง                                 |
-| events         | enabled  | แสดงรายการ/สร้างอีเวนต์ที่ตั้งเวลา                |
-| roles          | disabled | เพิ่ม/ลบบทบาท                                     |
-| moderation     | disabled | Timeout/kick/ban                                  |
-| presence       | disabled | สถานะ/กิจกรรมบอต (setPresence) |
+| Action group   | Default  | Notes                              |
+| -------------- | -------- | ---------------------------------- |
+| reactions      | enabled  | React + list reactions + emojiList |
+| stickers       | enabled  | ส่งสติกเกอร์                       |
+| emojiUploads   | enabled  | 16. อัปโหลดอีโมจิ                  |
+| stickerUploads | enabled  | อัปโหลดสติกเกอร์                   |
+| polls          | enabled  | สร้างโพล                           |
+| permissions    | enabled  | สแน็ปช็อตสิทธิ์ช่อง                |
+| messages       | enabled  | อ่าน/ส่ง/แก้ไข/ลบ                  |
+| threads        | enabled  | สร้าง/แสดงรายการ/ตอบกลับ           |
+| pins           | enabled  | ปักหมุด/ยกเลิก/แสดงรายการ          |
+| search         | enabled  | ค้นหาข้อความ (ฟีเจอร์พรีวิว)       |
+| memberInfo     | enabled  | ข้อมูลสมาชิก                       |
+| roleInfo       | enabled  | รายการบทบาท                        |
+| channelInfo    | enabled  | ข้อมูลช่อง + รายการ                |
+| channels       | enabled  | จัดการช่อง/หมวดหมู่                |
+| voiceStatus    | enabled  | ตรวจสอบสถานะเสียง                  |
+| events         | enabled  | แสดงรายการ/สร้างอีเวนต์ที่ตั้งเวลา |
+| roles          | disabled | เพิ่ม/ลบบทบาท                      |
+| moderation     | disabled | Timeout/kick/ban                   |
+| presence       | disabled | สถานะ/กิจกรรมบอต (setPresence)     |
 
 - `replyToMode`: `off` (ค่าเริ่มต้น), `first`, หรือ `all`. ใช้เฉพาะเมื่อโมเดลมีแท็กการตอบกลับ
 
@@ -423,8 +422,7 @@ Discordใช้idตัวเลขทุกที่; คอนฟิกOpenCl
 
 - `[[reply_to_current]]` — ตอบกลับข้อความDiscordที่เป็นตัวกระตุ้น
 - `[[reply_to:<id>]]` — ตอบกลับข้อความตามidที่ระบุจากบริบท/ประวัติ
-  idข้อความปัจจุบันจะถูกต่อท้ายพรอมป์ต์เป็น `[message_id: …]`; รายการประวัติมีidอยู่แล้ว
-  17. id ของข้อความปัจจุบันจะถูกต่อท้ายใน prompt เป็น `[message_id: …]`; รายการประวัติมี id รวมอยู่แล้ว
+  idข้อความปัจจุบันจะถูกต่อท้ายพรอมป์ต์เป็น `[message_id: …]`; รายการประวัติมีidอยู่แล้ว 17. id ของข้อความปัจจุบันจะถูกต่อท้ายใน prompt เป็น `[message_id: …]`; รายการประวัติมี id รวมอยู่แล้ว
 
 พฤติกรรมถูกควบคุมโดย `channels.discord.replyToMode`:
 
@@ -465,8 +463,7 @@ Discordใช้idตัวเลขทุกที่; คอนฟิกOpenCl
 - `setPresence` (กิจกรรมบอตและสถานะออนไลน์)
 
 idข้อความDiscordจะถูกเปิดเผยในบริบทที่แทรก (`[discord message id: …]` และบรรทัดประวัติ) เพื่อให้เอเจนต์กำหนดเป้าหมายได้
-อีโมจิสามารถเป็นยูนิโค้ด (เช่น `✅`) หรือไวยากรณ์อีโมจิแบบกำหนดเองเช่น `<:party_blob:1234567890>`.
-18. อีโมจิอาจเป็นยูนิโค้ด (เช่น `✅`) หรือไวยากรณ์อีโมจิแบบกำหนดเอง เช่น `<:party_blob:1234567890>`
+อีโมจิสามารถเป็นยูนิโค้ด (เช่น `✅`) หรือไวยากรณ์อีโมจิแบบกำหนดเองเช่น `<:party_blob:1234567890>`. 18. อีโมจิอาจเป็นยูนิโค้ด (เช่น `✅`) หรือไวยากรณ์อีโมจิแบบกำหนดเอง เช่น `<:party_blob:1234567890>`
 
 ## Safety & ops
 

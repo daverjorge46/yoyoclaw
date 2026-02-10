@@ -43,11 +43,11 @@ OpenClaw hỗ trợ tính năng lưu bộ đệm prompt của Anthropic. Đây l
 
 Dùng tham số `cacheRetention` trong cấu hình mô hình của bạn:
 
-| Giá trị | Thời lượng lưu đệm | Mô tả                                            |
-| ------- | ------------------ | ------------------------------------------------ |
-| `none`  | Không lưu đệm      | Tắt lưu đệm prompt                               |
-| `short` | 5 phút             | Mặc định cho xác thực bằng khóa API              |
-| `long`  | 1 giờ              | Lưu đệm mở rộng (cần cờ beta) |
+| Giá trị | Thời lượng lưu đệm | Mô tả                               |
+| ------- | ------------------ | ----------------------------------- |
+| `none`  | Không lưu đệm      | Tắt lưu đệm prompt                  |
+| `short` | 5 phút             | Mặc định cho xác thực bằng khóa API |
+| `long`  | 1 giờ              | Lưu đệm mở rộng (cần cờ beta)       |
 
 ```json5
 {

@@ -260,11 +260,11 @@ Para sa tunay na laging-on, isaalang-alang ang isang dedicated Mac mini o isang 
 
 ## Pag-troubleshoot
 
-| Problema                      | Solusyon                                                                                                        |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Hindi makapag-SSH sa VM       | Tiyaking naka-enable ang "Remote Login" sa System Settings ng VM                                                |
-| Hindi lumalabas ang VM IP     | Hintaying ganap na mag-boot ang VM, patakbuhin muli ang `lume get openclaw`                                     |
-| Hindi makita ang Lume command | Idagdag ang `~/.local/bin` sa iyong PATH                                                                        |
+| Problema                      | Solusyon                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| Hindi makapag-SSH sa VM       | Tiyaking naka-enable ang "Remote Login" sa System Settings ng VM                             |
+| Hindi lumalabas ang VM IP     | Hintaying ganap na mag-boot ang VM, patakbuhin muli ang `lume get openclaw`                  |
+| Hindi makita ang Lume command | Idagdag ang `~/.local/bin` sa iyong PATH                                                     |
 | Hindi ma-scan ang WhatsApp QR | Tiyaking naka-login ka sa VM (hindi sa host) kapag pinapatakbo ang `openclaw channels login` |
 
 ---

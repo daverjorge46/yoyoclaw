@@ -1545,12 +1545,12 @@ Setze es auf `"auto"` um `[{identity.name}]` für den Routed Agent abzuleiten (w
 
 Der `responsePrefix` String kann Template-Variablen enthalten, die dynamisch auflösen:
 
-| Variable          | Description                | Beispiel                                          |
-| ----------------- | -------------------------- | ------------------------------------------------- |
-| `{model}`         | Kurzer Modellname          | `claude-opus-4-6`, `gpt-4o`                       |
-| `{modelFull}`     | Vollständige Model-Kennung | `anthropic/claude-opus-4-6`                       |
-| `{provider}`      | Name des Anbieters         | `anthropic`, `openai`                             |
-| `{thinkingLevel}` | Aktuelle Denkstufe         | `high`, `low`, `off`                              |
+| Variable          | Description                | Beispiel                       |
+| ----------------- | -------------------------- | ------------------------------ |
+| `{model}`         | Kurzer Modellname          | `claude-opus-4-6`, `gpt-4o`    |
+| `{modelFull}`     | Vollständige Model-Kennung | `anthropic/claude-opus-4-6`    |
+| `{provider}`      | Name des Anbieters         | `anthropic`, `openai`          |
+| `{thinkingLevel}` | Aktuelle Denkstufe         | `high`, `low`, `off`           |
 | `{identity.name}` | Agenten-Identitätsname     | (identisch mit `"auto"` Modus) |
 
 Variablen sind Groß- und Kleinschreibung (`{MODEL}` = `{model}`). `{think}` ist ein Alias für `{thinkingLevel}`.
@@ -1665,7 +1665,7 @@ Standard für den Talk-Modus (macOS/iOS/Android). Sprach-IDs fallen zurück auf 
     modelId: "eleven_v3",
     outputFormat: "mp3_44100_128",
     apiKey: "elevenlabs_api_key",
-    interruptOnSpeech: true
+    interruptOnSpeech: true,
   },
 }
 ```
@@ -3386,16 +3386,16 @@ Template-Platzhalter werden in `tools.media.*.models[].args` und `tools.media.mo
 \| `{{IsNewSession}}` | `"true"` wenn eine neue Session erstellt wurde |
 \| `{{MediaUrl}}` | Inbound media pseudo-URL (falls vorhanden) |
 \| `{{MediaPath}}` | Lokaler Medienpfad (falls heruntergeladen) |
-\| `{{MediaType}}` | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio-Transkript (wenn aktiviert)                                                |
-\| `{{Prompt}}`       | Aufgelöster Medien-Prompt für CLI-Einträge                                       |
-\| `{{MaxChars}}`     | Aufgelöste maximale Ausgabezeichen für CLI-Einträge                               |
-\| `{{ChatType}}`     | `"direct"` oder `"group"`                                                     |
-\| `{{GroupSubject}}` | Gruppenthema (bestmöglicher Versuch)                                              |
-\| `{{GroupMembers}}` | Vorschau der Gruppenmitglieder (bestmöglicher Versuch)                            |
-\| `{{SenderName}}`   | Anzeigename des Absenders (bestmöglicher Versuch)                                 |
-\| `{{SenderE164}}`   | Telefonnummer des Absenders (bestmöglicher Versuch)                               |
-\| `{{Provider}}`     | Anbieter-Hinweis (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio-Transkript (wenn aktiviert) |
+\| `{{Prompt}}` | Aufgelöster Medien-Prompt für CLI-Einträge |
+\| `{{MaxChars}}` | Aufgelöste maximale Ausgabezeichen für CLI-Einträge |
+\| `{{ChatType}}` | `"direct"` oder `"group"` |
+\| `{{GroupSubject}}` | Gruppenthema (bestmöglicher Versuch) |
+\| `{{GroupMembers}}` | Vorschau der Gruppenmitglieder (bestmöglicher Versuch) |
+\| `{{SenderName}}` | Anzeigename des Absenders (bestmöglicher Versuch) |
+\| `{{SenderE164}}` | Telefonnummer des Absenders (bestmöglicher Versuch) |
+\| `{{Provider}}` | Anbieter-Hinweis (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway Zeitplaner)
 

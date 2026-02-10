@@ -29,7 +29,7 @@ node -v
     ```bash
     brew install node
     ```
-    
+
     Либо загрузите установщик для macOS с [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ node -v
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Либо используйте менеджер версий (см. ниже).
     ````
 
@@ -60,13 +60,13 @@ node -v
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Либо загрузите установщик для Windows с [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Затем откройте новый терминал (или выполните `rehash` в zsh / `hash -r` в bash).
           </Tab>
           <Tab title="Windows">

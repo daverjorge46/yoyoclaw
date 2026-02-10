@@ -47,7 +47,6 @@ OpenClaw သည် local install လမ်းကြောင်းကို အ�
    - သို့မဟုတ် ကိုယ်တိုင် host ပြုလုပ်ပါ။
 
 3. bot အကောင့်အတွက် access token ရယူပါ:
-
    - သင့် homeserver တွင် `curl` ကို အသုံးပြုပြီး Matrix login API ကို သုံးပါ:
 
    ```bash
@@ -195,17 +194,17 @@ Once verified, the bot can decrypt messages in encrypted rooms.
 
 ## Capabilities
 
-| Feature         | Status                                                                                                                            |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Direct messages | ✅ ပံ့ပိုးထားသည်                                                                                                                   |
-| Rooms           | ✅ ပံ့ပိုးထားသည်                                                                                                                   |
-| Threads         | ✅ ပံ့ပိုးထားသည်                                                                                                                   |
-| Media           | ✅ ပံ့ပိုးထားသည်                                                                                                                   |
+| Feature         | Status                                                                                                          |
+| --------------- | --------------------------------------------------------------------------------------------------------------- |
+| Direct messages | ✅ ပံ့ပိုးထားသည်                                                                                                |
+| Rooms           | ✅ ပံ့ပိုးထားသည်                                                                                                |
+| Threads         | ✅ ပံ့ပိုးထားသည်                                                                                                |
+| Media           | ✅ ပံ့ပိုးထားသည်                                                                                                |
 | E2EE            | ✅ ပံ့ပိုးထားသည် (crypto module လိုအပ်)                                                                         |
 | Reactions       | ✅ ပံ့ပိုးထားသည် (tools မှတစ်ဆင့် ပို့/ဖတ်)                                                                     |
 | Polls           | ✅ ပို့ခြင်း ပံ့ပိုးထားသည်; ဝင်လာသော poll start များကို စာသားအဖြစ် ပြောင်းလဲသည် (responses/ends ကို လျစ်လျူရှု) |
 | Location        | ✅ ပံ့ပိုးထားသည် (geo URI; altitude ကို လျစ်လျူရှု)                                                             |
-| Native commands | ✅ ပံ့ပိုးထားသည်                                                                                                                   |
+| Native commands | ✅ ပံ့ပိုးထားသည်                                                                                                |
 
 ## Troubleshooting
 

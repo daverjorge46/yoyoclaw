@@ -61,7 +61,7 @@ WhatsApp requires a real mobile number for verification. VoIP and virtual number
 
 1. OpenClaw အတွက် **ဖုန်းနံပါတ် သီးသန့်တစ်ခု** ကို အသုံးပြုပါ။ 2. UX အကောင်းဆုံး၊ လမ်းကြောင်းရှင်းလင်းပြီး ကိုယ်တိုင်ကိုယ်တိုင် ချတ်လုပ်ရသည့် အဆင်မပြေမှုများ မရှိပါ။ 3. အကောင်းဆုံး ပြင်ဆင်မှု: **အပို/ဟောင်း Android ဖုန်း + eSIM**။ 4. Wi‑Fi နှင့် လျှပ်စစ်အား ချိတ်ထားပြီး QR ဖြင့် လင့်ခ်လုပ်ပါ။
 
-5. **WhatsApp Business:** တူညီသော စက်ပေါ်တွင် နံပါတ်ကွဲကွဲဖြင့် WhatsApp Business ကို အသုံးပြုနိုင်ပါသည်။ 6. ကိုယ်ရေးကိုယ်တာ WhatsApp ကို ခွဲထားရန် အလွန်ကောင်းသည် — WhatsApp Business ကို တပ်ဆင်ပြီး OpenClaw နံပါတ်ကို အဲဒီထဲတွင် စာရင်းသွင်းပါ။
+2. **WhatsApp Business:** တူညီသော စက်ပေါ်တွင် နံပါတ်ကွဲကွဲဖြင့် WhatsApp Business ကို အသုံးပြုနိုင်ပါသည်။ 6. ကိုယ်ရေးကိုယ်တာ WhatsApp ကို ခွဲထားရန် အလွန်ကောင်းသည် — WhatsApp Business ကို တပ်ဆင်ပြီး OpenClaw နံပါတ်ကို အဲဒီထဲတွင် စာရင်းသွင်းပါ။
 
 **Sample config (dedicated number, single-user allowlist):**
 

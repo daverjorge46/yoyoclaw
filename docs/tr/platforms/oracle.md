@@ -20,13 +20,13 @@ Oracle’ın ücretsiz katmanı OpenClaw için iyi bir uyum olabilir (özellikle
 
 ## Maliyet Karşılaştırması (2026)
 
-| Sağlayıcı    | Plan            | Özellikler                | Aylık fiyat          | Notlar                          |
-| ------------ | --------------- | ------------------------- | -------------------- | ------------------------------- |
-| Oracle Cloud | Always Free ARM | 4 OCPU’ya kadar, 24GB RAM | $0                   | ARM, sınırlı kapasite           |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | ~ $4 | En ucuz ücretli seçenek         |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6                   | Kolay arayüz, iyi dokümantasyon |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6                   | Birçok konum                    |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5                   | Artık Akamai’nin parçası        |
+| Sağlayıcı    | Plan            | Özellikler                | Aylık fiyat | Notlar                          |
+| ------------ | --------------- | ------------------------- | ----------- | ------------------------------- |
+| Oracle Cloud | Always Free ARM | 4 OCPU’ya kadar, 24GB RAM | $0          | ARM, sınırlı kapasite           |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | ~ $4        | En ucuz ücretli seçenek         |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6          | Kolay arayüz, iyi dokümantasyon |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6          | Birçok konum                    |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5          | Artık Akamai’nin parçası        |
 
 ---
 

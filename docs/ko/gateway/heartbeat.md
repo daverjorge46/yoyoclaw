@@ -278,12 +278,12 @@ channels:
 
 ### 일반적인 패턴
 
-| 목표                                          | 설정                                                                                       |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 기본 동작 (OK 는 무음, 알림은 전달)  | _(설정 불필요)_                                                            |
+| 목표                                     | 설정                                                                                     |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 기본 동작 (OK 는 무음, 알림은 전달)      | _(설정 불필요)_                                                                          |
 | 완전 무음 (메시지 없음, 인디케이터 없음) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
-| 인디케이터 전용 (메시지 없음)        | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| 한 채널에서만 OK 전달                               | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| 인디케이터 전용 (메시지 없음)            | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
+| 한 채널에서만 OK 전달                    | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (선택 사항)
 

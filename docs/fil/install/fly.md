@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Mga pangunahing setting:**
 
-| Setting                        | Bakit                                                                                                   |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Naka-bind sa `0.0.0.0` para maabot ng proxy ng Fly ang gateway                                          |
+| Setting                        | Bakit                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `--bind lan`                   | Naka-bind sa `0.0.0.0` para maabot ng proxy ng Fly ang gateway                       |
 | `--allow-unconfigured`         | Nagsisimula nang walang config file (gagawa ka ng isa pagkatapos)                    |
 | `internal_port = 3000`         | Dapat tumugma sa `--port 3000` (o `OPENCLAW_GATEWAY_PORT`) para sa Fly health checks |
-| `memory = "2048mb"`            | 512MB ay masyadong maliit; 2GB ang inirerekomenda                                                       |
-| `OPENCLAW_STATE_DIR = "/data"` | Pinapanatili ang state sa volume                                                                        |
+| `memory = "2048mb"`            | 512MB ay masyadong maliit; 2GB ang inirerekomenda                                    |
+| `OPENCLAW_STATE_DIR = "/data"` | Pinapanatili ang state sa volume                                                     |
 
 ## 3. Mag-set ng secrets
 

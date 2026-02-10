@@ -62,7 +62,7 @@ pnpm gateway:watch
 
 13. Karaniwang hindi kailangan: maaaring magsilbi ang isang Gateway ng maraming messaging channels at agents. 14. Gumamit lamang ng maraming Gateways para sa redundancy o mahigpit na isolation (hal: rescue bot).
 
-15. Sinusuportahan kung ihiwalay mo ang state + config at gumamit ng natatanging mga port. macOS: \`bot.molt.<profile>
+14. Sinusuportahan kung ihiwalay mo ang state + config at gumamit ng natatanging mga port. macOS: \`bot.molt.<profile>
 
 Ang mga pangalan ng serbisyo ay profile-aware:
 
@@ -285,8 +285,7 @@ sudo loginctl enable-linger youruser
 systemctl --user enable --now openclaw-gateway[-<profile>].service
 ```
 
-Gumawa ng `/etc/systemd/system/openclaw-gateway[-<profile>].service` (kopyahin ang unit sa itaas, palitan ang `WantedBy=multi-user.target`, itakda ang `User=` + `WorkingDirectory=`), pagkatapos:
-33. Pinapatakbo ng onboarding ito sa Linux/WSL2 (maaaring humingi ng sudo; nagsusulat sa `/var/lib/systemd/linger`).
+Gumawa ng `/etc/systemd/system/openclaw-gateway[-<profile>].service` (kopyahin ang unit sa itaas, palitan ang `WantedBy=multi-user.target`, itakda ang `User=` + `WorkingDirectory=`), pagkatapos: 33. Pinapatakbo ng onboarding ito sa Linux/WSL2 (maaaring humingi ng sudo; nagsusulat sa `/var/lib/systemd/linger`).
 
 ```
 sudo systemctl daemon-reload

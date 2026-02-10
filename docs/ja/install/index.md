@@ -26,7 +26,7 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
 <Tip>
 
 **インストーラースクリプト**は、OpenClaw をインストールする推奨方法です。Node の検出、インストール、オンボーディングを 1 ステップで処理します。
- Node の検出、インストール、オンボーディングを 1 つのステップで処理します。
+Node の検出、インストール、オンボーディングを 1 つのステップで処理します。
 </Tip>
 
 <AccordionGroup>
@@ -46,11 +46,11 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
         ```
       </Tab>
     </Tabs>
-    
+
     以上です — スクリプトが Node の検出、インストール、オンボーディングを処理します。
-    
+
     オンボーディングをスキップしてバイナリのみをインストールする場合：
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -63,7 +63,7 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
         ```
       </Tab>
     </Tabs>
-    
+
     すべてのフラグ、環境変数、CI/自動化オプションについては、［Installer internals］(/install/installer) を参照してください。
     ```
 
@@ -79,14 +79,14 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp のビルドエラー？">
           libvips をグローバルにインストールしている場合（macOS で Homebrew 経由の場合に一般的）、`sharp` が失敗したら、事前ビルド済みバイナリを強制してください：
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           `sharp: Please add node-gyp to your dependencies` が表示される場合は、ビルドツール（macOS：Xcode CLT + `npm install -g node-gyp`）をインストールするか、上記の環境変数を使用してください。
         </Accordion>
       </Tab>
@@ -96,7 +96,7 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm では、ビルドスクリプトを含むパッケージに対して明示的な承認が必要です。最初のインストールで「Ignored build scripts」の警告が表示されたら、`pnpm approve-builds -g` を実行し、一覧のパッケージを選択してください。
         </Note>
@@ -113,7 +113,7 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
     <Steps>
       <Step title="クローンとビルド">
         [OpenClaw リポジトリ](https://github.com/openclaw/openclaw) をクローンしてビルドします：
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -124,11 +124,11 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
       </Step>
       <Step title="CLI をリンク">
         `openclaw` コマンドをグローバルで利用可能にします：
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         あるいは、リンクを省略して、リポジトリ内から `pnpm openclaw ...` 経由でコマンドを実行できます。
       </Step>
       <Step title="オンボーディングを実行">
@@ -137,7 +137,7 @@ Windows では、[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) �
         ```
       </Step>
     </Steps>
-    
+
     より高度な開発ワークフローについては、［セットアップ］(/start/setup) を参照してください。
     ```
 

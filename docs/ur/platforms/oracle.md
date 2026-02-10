@@ -20,13 +20,13 @@ Oracle کا فری ٹیر OpenClaw کے لیے ایک اچھا انتخاب ہو
 
 ## لاگت کا موازنہ (2026)
 
-| فراہم کنندہ  | پلان            | خصوصیات                         | ماہانہ قیمت          | نوٹس                     |
-| ------------ | --------------- | ------------------------------- | -------------------- | ------------------------ |
-| Oracle Cloud | Always Free ARM | زیادہ سے زیادہ 4 OCPU، 24GB RAM | $0                   | ARM، محدود صلاحیت        |
-| Hetzner      | CX22            | 2 vCPU، 4GB RAM                 | ~ $4 | سب سے سستا بامعاوضہ آپشن |
-| DigitalOcean | Basic           | 1 vCPU، 1GB RAM                 | $6                   | آسان UI، اچھی دستاویزات  |
-| Vultr        | Cloud Compute   | 1 vCPU، 1GB RAM                 | $6                   | کئی مقامات               |
-| Linode       | Nanode          | 1 vCPU، 1GB RAM                 | $5                   | اب Akamai کا حصہ         |
+| فراہم کنندہ  | پلان            | خصوصیات                         | ماہانہ قیمت | نوٹس                     |
+| ------------ | --------------- | ------------------------------- | ----------- | ------------------------ |
+| Oracle Cloud | Always Free ARM | زیادہ سے زیادہ 4 OCPU، 24GB RAM | $0          | ARM، محدود صلاحیت        |
+| Hetzner      | CX22            | 2 vCPU، 4GB RAM                 | ~ $4        | سب سے سستا بامعاوضہ آپشن |
+| DigitalOcean | Basic           | 1 vCPU، 1GB RAM                 | $6          | آسان UI، اچھی دستاویزات  |
+| Vultr        | Cloud Compute   | 1 vCPU، 1GB RAM                 | $6          | کئی مقامات               |
+| Linode       | Nanode          | 1 vCPU، 1GB RAM                 | $5          | اب Akamai کا حصہ         |
 
 ---
 
@@ -147,10 +147,10 @@ curl http://localhost:18789
 44. OCI کی Virtual Cloud Network نیٹ ورک ایج پر فائر وال کے طور پر کام کرتی ہے — ٹریفک انسٹینس تک پہنچنے سے پہلے ہی بلاک ہو جاتی ہے۔ 45. یہ نیٹ ورک ایج پر پورٹ 22 پر SSH، HTTP، HTTPS، اور باقی سب کچھ بلاک کر دیتا ہے۔
 
 1. OCI Console میں **Networking → Virtual Cloud Networks** پر جائیں
-2. اپنا VCN منتخب کریں → **Security Lists** → Default Security List
-3. تمام ingress قواعد **ہٹا دیں** سوائے:
+1. اپنا VCN منتخب کریں → **Security Lists** → Default Security List
+1. تمام ingress قواعد **ہٹا دیں** سوائے:
    - `0.0.0.0/0 UDP 41641` (Tailscale)
-4. ڈیفالٹ egress قواعد برقرار رکھیں (تمام آؤٹ باؤنڈ کی اجازت)
+1. ڈیفالٹ egress قواعد برقرار رکھیں (تمام آؤٹ باؤنڈ کی اجازت)
 
 46) اب سے، آپ صرف Tailscale کے ذریعے کنیکٹ کر سکتے ہیں۔ 47. کسی SSH ٹنل کی ضرورت نہیں۔
 

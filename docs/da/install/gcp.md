@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Maskintyper:**
 
-| Type     | Specifikationer                           | Pris                                     | Noter                       |
-| -------- | ----------------------------------------- | ---------------------------------------- | --------------------------- |
-| e2-small | 2 vCPU, 2GB RAM                           | ~$12/md. | Anbefalet                   |
-| e2-micro | 2 vCPU (delt), 1GB RAM | Free tier-berettiget                     | Kan få OOM under belastning |
+| Type     | Specifikationer        | Pris                 | Noter                       |
+| -------- | ---------------------- | -------------------- | --------------------------- |
+| e2-small | 2 vCPU, 2GB RAM        | ~$12/md.             | Anbefalet                   |
+| e2-micro | 2 vCPU (delt), 1GB RAM | Free tier-berettiget | Kan få OOM under belastning |
 
 **CLI:**
 

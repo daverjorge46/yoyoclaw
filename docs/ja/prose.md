@@ -120,11 +120,11 @@ OpenProse は複数の状態バックエンドをサポートします。
 
 OpenProse プログラムは OpenClaw のプリミティブにマッピングされます。
 
-| OpenProse の概念  | OpenClaw のツール    |
-| -------------- | ---------------- |
-| セッション生成／タスクツール | `sessions_spawn` |
-| ファイルの読み書き      | `read` / `write` |
-| Web 取得         | `web_fetch`      |
+| OpenProse の概念             | OpenClaw のツール |
+| ---------------------------- | ----------------- |
+| セッション生成／タスクツール | `sessions_spawn`  |
+| ファイルの読み書き           | `read` / `write`  |
+| Web 取得                     | `web_fetch`       |
 
 ツールの許可リストがこれらのツールをブロックしている場合、OpenProse プログラムは失敗します。[Skills config](/tools/skills-config) を参照してください。 [スキル設定](/tools/skills-config)を参照してください。
 

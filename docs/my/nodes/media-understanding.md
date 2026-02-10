@@ -135,8 +135,8 @@ CLI template များတွင် အောက်ပါအချက်မျ
    - `sherpa-onnx-offline` (`SHERPA_ONNX_MODEL_DIR` နှင့် encoder/decoder/joiner/tokens လိုအပ်)
    - `whisper-cli` (`whisper-cpp`; `WHISPER_CPP_MODEL` သို့မဟုတ် bundled tiny model ကို အသုံးပြု)
    - `whisper` (Python CLI; မော်ဒယ်များကို အလိုအလျောက် ဒေါင်းလုဒ်)
-2. **Gemini CLI** (`gemini`) ကို `read_many_files` ဖြင့် အသုံးပြုခြင်း
-3. **Provider key များ**
+1. **Gemini CLI** (`gemini`) ကို `read_many_files` ဖြင့် အသုံးပြုခြင်း
+1. **Provider key များ**
    - Audio: OpenAI → Groq → Deepgram → Google
    - Image: OpenAI → Anthropic → Google → MiniMax
    - Video: Google
@@ -174,8 +174,8 @@ CLI template များတွင် အောက်ပါအချက်မျ
 | Capability | Provider integration                                    | မှတ်ချက်များ                                                           |
 | ---------- | ------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Image      | OpenAI / Anthropic / Google / `pi-ai` မှတဆင့် အခြားများ | registry ထဲရှိ image-capable မော်ဒယ် မည်သည့်အရာမဆို အလုပ်လုပ်နိုင်သည်။ |
-| Audio      | OpenAI, Groq, Deepgram, Google                          | Provider transcription (Whisper/Deepgram/Gemini)    |
-| Video      | Google (Gemini API)                  | Provider video နားလည်မှု                                               |
+| Audio      | OpenAI, Groq, Deepgram, Google                          | Provider transcription (Whisper/Deepgram/Gemini)                       |
+| Video      | Google (Gemini API)                                     | Provider video နားလည်မှု                                               |
 
 ## အကြံပြု provider များ
 

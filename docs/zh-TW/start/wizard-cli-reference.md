@@ -9,8 +9,7 @@ sidebarTitle: "CLI 參考"
 
 # CLI 入門引導參考
 
-This page is the full reference for `openclaw onboard`.
-42. 簡短指南請見 [Onboarding Wizard (CLI)](/start/wizard)。
+This page is the full reference for `openclaw onboard`. 42. 簡短指南請見 [Onboarding Wizard (CLI)](/start/wizard)。
 
 ## What the wizard does
 
@@ -119,7 +118,7 @@ If Control UI assets are missing, the wizard attempts to build them; fallback is
 - 探索提示：
   - macOS：Bonjour（`dns-sd`）
   - Linux：Avahi（`avahi-browse`）
-</Note>
+    </Note>
 
 ## Auth and model options
 

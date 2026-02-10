@@ -28,12 +28,12 @@ OpenClaw, bir yapay zekâ kodlama ajanını mesajlaşma gateway (ağ geçidi) mi
 }
 ```
 
-| Paket             | Amaç                                                                                                                          |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Paket             | Amaç                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
 | `pi-ai`           | Temel LLM soyutlamaları: `Model`, `streamSimple`, mesaj türleri, sağlayıcı API’leri                           |
-| `pi-agent-core`   | Ajan döngüsü, araç çalıştırma, `AgentMessage` türleri                                                                         |
+| `pi-agent-core`   | Ajan döngüsü, araç çalıştırma, `AgentMessage` türleri                                                         |
 | `pi-coding-agent` | Yüksek seviyeli SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, yerleşik araçlar |
-| `pi-tui`          | Terminal UI bileşenleri (OpenClaw’un yerel TUI modunda kullanılır)                                         |
+| `pi-tui`          | Terminal UI bileşenleri (OpenClaw’un yerel TUI modunda kullanılır)                                            |
 
 ## Dosya Yapısı
 
@@ -511,15 +511,15 @@ Bu, pi’nin yerel moduna benzer etkileşimli terminal deneyimini sağlar.
 
 ## Pi CLI’den Temel Farklar
 
-| Aspect           | Pi CLI                                 | OpenClaw Gömülü                                                                                                     |
-| ---------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Uzantılar        | `pi` komutu / RPC                      | `createAgentSession()` üzerinden SDK                                                                                |
-| Araçlar          | Varsayılan kodlama araçları            | Özel OpenClaw araç seti                                                                                             |
-| Sistem prompt’u  | AGENTS.md + prompt’lar | Kanal/bağlama göre dinamik                                                                                          |
-| Oturum depolama  | `~/.pi/agent/sessions/`                | `~/.openclaw/agents/<agentId>/sessions/` (veya `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Kimlik doğrulama | Tek kimlik bilgisi                     | Rotasyonlu çoklu profil                                                                                             |
-| Extensions       | Diskten yüklenir                       | Programatik + disk yolları                                                                                          |
-| Olay işleme      | TUI çizimi                             | Geri çağrı tabanlı (onBlockReply vb.)                                            |
+| Aspect           | Pi CLI                      | OpenClaw Gömülü                                                                                  |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| Uzantılar        | `pi` komutu / RPC           | `createAgentSession()` üzerinden SDK                                                             |
+| Araçlar          | Varsayılan kodlama araçları | Özel OpenClaw araç seti                                                                          |
+| Sistem prompt’u  | AGENTS.md + prompt’lar      | Kanal/bağlama göre dinamik                                                                       |
+| Oturum depolama  | `~/.pi/agent/sessions/`     | `~/.openclaw/agents/<agentId>/sessions/` (veya `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Kimlik doğrulama | Tek kimlik bilgisi          | Rotasyonlu çoklu profil                                                                          |
+| Extensions       | Diskten yüklenir            | Programatik + disk yolları                                                                       |
+| Olay işleme      | TUI çizimi                  | Geri çağrı tabanlı (onBlockReply vb.)                                                            |
 
 ## Gelecek Değerlendirmeleri
 

@@ -23,10 +23,10 @@ Venice AI, sansürsüz modellere destek ve anonimleştirilmiş proxy üzerinden 
 
 Venice iki gizlilik seviyesi sunar — doğru modeli seçmek için bunu anlamak kritik önemdedir:
 
-| Mod                   | Açıklama                                                                                                                                                                | Modeller                                                     |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| **Özel**              | Tamamen özel. İstemler/yanıtlar **asla saklanmaz veya kaydedilmez**. Geçicidir.                                         | Llama, Qwen, DeepSeek, Venice Uncensored vb. |
-| **Anonimleştirilmiş** | Meta veriler çıkarılarak Venice üzerinden proxy edilir. Alttaki sağlayıcı (OpenAI, Anthropic) anonim istekler görür. | Claude, GPT, Gemini, Grok, Kimi, MiniMax                     |
+| Mod                   | Açıklama                                                                                                             | Modeller                                     |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Özel**              | Tamamen özel. İstemler/yanıtlar **asla saklanmaz veya kaydedilmez**. Geçicidir.                                      | Llama, Qwen, DeepSeek, Venice Uncensored vb. |
+| **Anonimleştirilmiş** | Meta veriler çıkarılarak Venice üzerinden proxy edilir. Alttaki sağlayıcı (OpenAI, Anthropic) anonim istekler görür. | Claude, GPT, Gemini, Grok, Kimi, MiniMax     |
 
 ## Özellikler
 
@@ -127,38 +127,38 @@ openclaw models list | grep venice
 
 ### Özel Modeller (15) — Tamamen Özel, Kayıt Yok
 
-| Model Kimliği                    | Adı                                        | Context (tokens) | Özellikler              |
-| -------------------------------- | ------------------------------------------ | ----------------------------------- | ----------------------- |
-| `llama-3.3-70b`                  | Llama 3.3 70B              | 131k                                | Genel                   |
-| `llama-3.2-3b`                   | Llama 3.2 3B               | 131k                                | Hızlı, hafif            |
-| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B    | 131k                                | Complex tasks           |
-| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking                        | 131k                                | Reasoning               |
-| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct                        | 131k                                | Genel                   |
-| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B                           | 262k                                | Kod                     |
-| `qwen3-next-80b`                 | Qwen3 Next 80B                             | 262k                                | Genel                   |
-| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B                              | 262k                                | Görsel                  |
-| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k                                 | Hızlı, akıl yürütme     |
-| `deepseek-v3.2`                  | DeepSeek V3.2              | 163k                                | Reasoning               |
-| `venice-uncensored`              | Venice Uncensored                          | 32k                                 | Uncensored              |
-| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k                                | Görsel                  |
-| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct                       | 202k                                | Görsel                  |
-| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B                        | 131k                                | Genel                   |
-| `zai-org-glm-4.7`                | GLM 4.7                    | 202k                                | Reasoning, multilingual |
+| Model Kimliği                    | Adı                     | Context (tokens) | Özellikler              |
+| -------------------------------- | ----------------------- | ---------------- | ----------------------- |
+| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k             | Genel                   |
+| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k             | Hızlı, hafif            |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k             | Complex tasks           |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking     | 131k             | Reasoning               |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct     | 131k             | Genel                   |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B        | 262k             | Kod                     |
+| `qwen3-next-80b`                 | Qwen3 Next 80B          | 262k             | Genel                   |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B           | 262k             | Görsel                  |
+| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k              | Hızlı, akıl yürütme     |
+| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k             | Reasoning               |
+| `venice-uncensored`              | Venice Uncensored       | 32k              | Uncensored              |
+| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k             | Görsel                  |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct    | 202k             | Görsel                  |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k             | Genel                   |
+| `zai-org-glm-4.7`                | GLM 4.7                 | 202k             | Reasoning, multilingual |
 
 ### Anonimleştirilmiş Modeller (10) — Venice Proxy Üzerinden
 
-| Model Kimliği            | Orijinal                          | Context (tokens) | Özellikler           |
-| ------------------------ | --------------------------------- | ----------------------------------- | -------------------- |
-| `claude-opus-45`         | Claude Opus 4.5   | 202k                                | Akıl yürütme, görsel |
-| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k                                | Akıl yürütme, görsel |
-| `openai-gpt-52`          | GPT-5.2           | 262k                                | Reasoning            |
-| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k                                | Akıl yürütme, görsel |
-| `gemini-3-pro-preview`   | Gemini 3 Pro                      | 202k                                | Akıl yürütme, görsel |
-| `gemini-3-flash-preview` | Gemini 3 Flash                    | 262k                                | Akıl yürütme, görsel |
-| `grok-41-fast`           | Grok 4.1 Fast     | 262k                                | Akıl yürütme, görsel |
-| `grok-code-fast-1`       | Grok Code Fast 1                  | 262k                                | Akıl yürütme, kod    |
-| `kimi-k2-thinking`       | Kimi K2 Thinking                  | 262k                                | Reasoning            |
-| `minimax-m21`            | MiniMax M2.1      | 202k                                | Reasoning            |
+| Model Kimliği            | Orijinal          | Context (tokens) | Özellikler           |
+| ------------------------ | ----------------- | ---------------- | -------------------- |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k             | Akıl yürütme, görsel |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k             | Akıl yürütme, görsel |
+| `openai-gpt-52`          | GPT-5.2           | 262k             | Reasoning            |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k             | Akıl yürütme, görsel |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k             | Akıl yürütme, görsel |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k             | Akıl yürütme, görsel |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k             | Akıl yürütme, görsel |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k             | Akıl yürütme, kod    |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k             | Reasoning            |
+| `minimax-m21`            | MiniMax M2.1      | 202k             | Reasoning            |
 
 ## Model Keşfi
 
@@ -168,12 +168,12 @@ openclaw models list | grep venice
 
 ## Akış ve Araç Desteği
 
-| Özellik                                 | Destek                                                                          |
-| --------------------------------------- | ------------------------------------------------------------------------------- |
-| **Akış (Streaming)** | ✅ Tüm modeller                                                                  |
-| **Fonksiyon çağırma**                   | ✅ Çoğu model (API’de `supportsFunctionCalling` kontrol edin) |
-| **Görsel/Resimler**                     | ✅ “Vision” özelliği işaretli modeller                                           |
-| **JSON modu**                           | ✅ `response_format` ile desteklenir                                             |
+| Özellik               | Destek                                                        |
+| --------------------- | ------------------------------------------------------------- |
+| **Akış (Streaming)**  | ✅ Tüm modeller                                               |
+| **Fonksiyon çağırma** | ✅ Çoğu model (API’de `supportsFunctionCalling` kontrol edin) |
+| **Görsel/Resimler**   | ✅ “Vision” özelliği işaretli modeller                        |
+| **JSON modu**         | ✅ `response_format` ile desteklenir                          |
 
 ## Fiyatlandırma
 
@@ -184,12 +184,12 @@ Venice kredi tabanlı bir sistem kullanır. Güncel oranlar için [venice.ai/pri
 
 ## Karşılaştırma: Venice vs Doğrudan API
 
-| Aspect         | Venice (Anonimleştirilmiş) | Doğrudan API           |
-| -------------- | --------------------------------------------- | ---------------------- |
-| **Gizlilik**   | Meta veriler çıkarılır, anonim                | Hesabınız bağlı        |
-| **Gecikme**    | +10–50ms (proxy)           | Doğrudan               |
-| **Özellikler** | Çoğu özellik desteklenir                      | Tüm özellikler         |
-| **Faturalama** | Venice kredileri                              | Sağlayıcı faturalaması |
+| Aspect         | Venice (Anonimleştirilmiş)     | Doğrudan API           |
+| -------------- | ------------------------------ | ---------------------- |
+| **Gizlilik**   | Meta veriler çıkarılır, anonim | Hesabınız bağlı        |
+| **Gecikme**    | +10–50ms (proxy)               | Doğrudan               |
+| **Özellikler** | Çoğu özellik desteklenir       | Tüm özellikler         |
+| **Faturalama** | Venice kredileri               | Sağlayıcı faturalaması |
 
 ## Kullanım Örnekleri
 

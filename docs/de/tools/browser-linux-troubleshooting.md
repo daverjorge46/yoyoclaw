@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Konfigurationsreferenz
 
-| Option                   | Beschreibung                                                                                    | Standard                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Browsersteuerung aktivieren                                                                     | `true`                                                                                          |
+| Option                   | Beschreibung                                                                 | Standard                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `browser.enabled`        | Browsersteuerung aktivieren                                                  | `true`                                                                       |
 | `browser.executablePath` | Pfad zu einem Chromium-basierten Browser-Binary (Chrome/Brave/Edge/Chromium) | automatisch erkannt (bevorzugt den Standardbrowser, sofern Chromium-basiert) |
-| `browser.headless`       | Ohne GUI ausführen                                                                              | `false`                                                                                         |
-| `browser.noSandbox`      | Flag `--no-sandbox` hinzufügen (für einige Linux-Setups erforderlich)        | `false`                                                                                         |
-| `browser.attachOnly`     | Browser nicht starten, nur an einen bestehenden anhängen                                        | `false`                                                                                         |
-| `browser.cdpPort`        | Chrome-DevTools-Protocol-Port                                                                   | `18800`                                                                                         |
+| `browser.headless`       | Ohne GUI ausführen                                                           | `false`                                                                      |
+| `browser.noSandbox`      | Flag `--no-sandbox` hinzufügen (für einige Linux-Setups erforderlich)        | `false`                                                                      |
+| `browser.attachOnly`     | Browser nicht starten, nur an einen bestehenden anhängen                     | `false`                                                                      |
+| `browser.cdpPort`        | Chrome-DevTools-Protocol-Port                                                | `18800`                                                                      |
 
 ### Problem: „Chrome extension relay is running, but no tab is connected“
 

@@ -135,11 +135,11 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 
 6. heartbeat poll ကို လက်ခံရရှိတဲ့အခါ (မက်ဆေ့ချ်က သတ်မှတ်ထားတဲ့ heartbeat prompt နဲ့ ကိုက်ညီရင်) အမြဲ `HEARTBEAT_OK` ပဲ ပြန်မပြောပါနဲ့။ 7. heartbeats ကို အသုံးဝင်အောင် သုံးပါ!
 
-8. မူလ heartbeat prompt:
+7. မူလ heartbeat prompt:
    \`Read HEARTBEAT.md if it exists (workspace context).
-9. Follow it strictly.
-10. Do not infer or repeat old tasks from prior chats.
-11. If nothing needs attention, reply HEARTBEAT_OK.`12.`HEARTBEAT.md`ကို အတိုချုံး စစ်ဆေးစာရင်း (checklist) သို့မဟုတ် သတိပေးချက်တွေ ထည့်ရေးဖို့ လွတ်လပ်ပါတယ်။ 13. token သုံးစွဲမှု မများစေရန် အတိုလေးပဲ ထားပါ။ 14. **အကြံပြုချက်:** အလားတူ အချိန်ကာလလိုက် စစ်ဆေးမှုတွေကို cron job အများကြီး မဖန်တီးဘဲ`HEARTBEAT.md\` ထဲမှာ စုပေါင်းထားပါ။
+8. Follow it strictly.
+9. Do not infer or repeat old tasks from prior chats.
+10. If nothing needs attention, reply HEARTBEAT_OK.`12.`HEARTBEAT.md`ကို အတိုချုံး စစ်ဆေးစာရင်း (checklist) သို့မဟုတ် သတိပေးချက်တွေ ထည့်ရေးဖို့ လွတ်လပ်ပါတယ်။ 13. token သုံးစွဲမှု မများစေရန် အတိုလေးပဲ ထားပါ။ 14. **အကြံပြုချက်:** အလားတူ အချိန်ကာလလိုက် စစ်ဆေးမှုတွေကို cron job အများကြီး မဖန်တီးဘဲ`HEARTBEAT.md\` ထဲမှာ စုပေါင်းထားပါ။
 
 You are free to edit `HEARTBEAT.md` with a short checklist or reminders. 16. လူတစ်ယောက်က သူ့ရဲ့ မှတ်တမ်းစာအုပ်ကို ပြန်လည်ဖတ်ရှုပြီး စိတ်ထဲက မော်ဒယ်ကို ပြန်တည်ဆောက်နေသလို စဉ်းစားပါ။
 
@@ -218,4 +218,4 @@ The goal: Be helpful without being annoying. 22. OpenClaw က စတင်ချ
 
 ## သင့်ပုံစံနဲ့ လုပ်ပါ
 
-This is a starting point. 24. _မင်း အခုမှ နိုးလာတယ်။
+This is a starting point. 24. \_မင်း အခုမှ နိုးလာတယ်။

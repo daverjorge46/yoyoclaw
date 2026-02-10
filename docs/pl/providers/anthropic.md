@@ -43,11 +43,11 @@ OpenClaw obsługuje funkcję buforowania promptów Anthropic. Jest to **wyłącz
 
 Użyj parametru `cacheRetention` w konfiguracji modelu:
 
-| Wartość | Czas cache | Opis                                                     |
-| ------- | ---------- | -------------------------------------------------------- |
-| `none`  | Brak cache | Wyłącza buforowanie promptów                             |
-| `short` | 5 minut    | Domyślne dla uwierzytelniania kluczem API                |
-| `long`  | 1 godzina  | Rozszerzony cache (wymaga flagi beta) |
+| Wartość | Czas cache | Opis                                      |
+| ------- | ---------- | ----------------------------------------- |
+| `none`  | Brak cache | Wyłącza buforowanie promptów              |
+| `short` | 5 minut    | Domyślne dla uwierzytelniania kluczem API |
+| `long`  | 1 godzina  | Rozszerzony cache (wymaga flagi beta)     |
 
 ```json5
 {

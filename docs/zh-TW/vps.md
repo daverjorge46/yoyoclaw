@@ -29,8 +29,7 @@ title: "VPS 託管"
 - 您可透過 **Control UI** 或 **Tailscale／SSH** 從筆電／手機連線。
 - 將 VPS 視為單一事實來源，並**備份**狀態與工作區。
 - 安全預設：將 Gateway 閘道器維持在 loopback，並透過 SSH 通道或 Tailscale Serve 存取。
-  若您綁定至 `lan`/`tailnet`，請要求 `gateway.auth.token` 或 `gateway.auth.password`。
-  6. 若綁定至 `lan`/`tailnet`，需要設定 `gateway.auth.token` 或 `gateway.auth.password`。
+  若您綁定至 `lan`/`tailnet`，請要求 `gateway.auth.token` 或 `gateway.auth.password`。6. 若綁定至 `lan`/`tailnet`，需要設定 `gateway.auth.token` 或 `gateway.auth.password`。
 
 遠端存取：[Gateway remote](/gateway/remote)  
 平台中樞：[Platforms](/platforms)

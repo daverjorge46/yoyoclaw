@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## อ้างอิงการกำหนดค่า
 
-| Key          | Type                                                         | Default                                     | Description                               |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ----------------------------------------- |
-| `privateKey` | string                                                       | required                                    | คีย์ส่วนตัวในรูปแบบ`nsec`หรือhex          |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URLของRelay(WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | นโยบายการเข้าถึงDM                        |
-| `allowFrom`  | string[] | `[]`                                        | pubkeyของผู้ส่งที่อนุญาต                  |
-| `enabled`    | boolean                                                      | `true`                                      | เปิด/ปิดใช้งานช่องทาง                     |
-| `name`       | string                                                       | -                                           | ชื่อที่แสดง                               |
-| `profile`    | object                                                       | -                                           | เมทาดาทาโปรไฟล์NIP-01                     |
+| Key          | Type     | Default                                     | Description                      |
+| ------------ | -------- | ------------------------------------------- | -------------------------------- |
+| `privateKey` | string   | required                                    | คีย์ส่วนตัวในรูปแบบ`nsec`หรือhex |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URLของRelay(WebSocket)           |
+| `dmPolicy`   | string   | `pairing`                                   | นโยบายการเข้าถึงDM               |
+| `allowFrom`  | string[] | `[]`                                        | pubkeyของผู้ส่งที่อนุญาต         |
+| `enabled`    | boolean  | `true`                                      | เปิด/ปิดใช้งานช่องทาง            |
+| `name`       | string   | -                                           | ชื่อที่แสดง                      |
+| `profile`    | object   | -                                           | เมทาดาทาโปรไฟล์NIP-01            |
 
 ## เมทาดาทาโปรไฟล์
 
@@ -166,12 +166,12 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## การรองรับโปรโตคอล
 
-| NIP    | Status | Description                                |
-| ------ | ------ | ------------------------------------------ |
-| NIP-01 | รองรับ | รูปแบบอีเวนต์พื้นฐาน+เมทาดาทาโปรไฟล์       |
-| NIP-04 | รองรับ | DMที่เข้ารหัส(`kind:4`) |
-| NIP-17 | วางแผน | DMแบบGift-wrap                             |
-| NIP-44 | วางแผน | การเข้ารหัสแบบมีเวอร์ชัน                   |
+| NIP    | Status | Description                          |
+| ------ | ------ | ------------------------------------ |
+| NIP-01 | รองรับ | รูปแบบอีเวนต์พื้นฐาน+เมทาดาทาโปรไฟล์ |
+| NIP-04 | รองรับ | DMที่เข้ารหัส(`kind:4`)              |
+| NIP-17 | วางแผน | DMแบบGift-wrap                       |
+| NIP-44 | วางแผน | การเข้ารหัสแบบมีเวอร์ชัน             |
 
 ## การทดสอบ
 

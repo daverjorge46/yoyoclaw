@@ -377,11 +377,11 @@ reacción de acuse después de que el bot responda.
 
 De forma predeterminada, OpenClaw responde en el canal principal. Use `channels.slack.replyToMode` para controlar el enhebrado automático:
 
-| Modo    | Comportamiento                                                                                                                                                                                                                         |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Predeterminado.** Responder en el canal principal. Solo enhebra si el mensaje desencadenante ya estaba en un hilo.                                                                   |
+| Modo    | Comportamiento                                                                                                                                                                      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Predeterminado.** Responder en el canal principal. Solo enhebra si el mensaje desencadenante ya estaba en un hilo.                                                                |
 | `first` | La primera respuesta va al hilo (bajo el mensaje desencadenante), las respuestas posteriores van al canal principal. Útil para mantener el contexto visible evitando saturar hilos. |
-| `all`   | Todas las respuestas van al hilo. Mantiene las conversaciones contenidas pero puede reducir la visibilidad.                                                                                            |
+| `all`   | Todas las respuestas van al hilo. Mantiene las conversaciones contenidas pero puede reducir la visibilidad.                                                                         |
 
 El modo se aplica tanto a las auto‑respuestas como a las llamadas de herramientas del agente (`slack sendMessage`).
 

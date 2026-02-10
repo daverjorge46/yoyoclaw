@@ -109,6 +109,7 @@ sidebarTitle: "CLI reference"
     - อาจขอ sudo (เขียนไปที่ `/var/lib/systemd/linger`); จะลองโดยไม่ใช้ sudo ก่อน
       - การเลือกระบบรันไทม์: Node (แนะนำ; จำเป็นสำหรับ WhatsApp และ Telegram)
     Bun ไม่แนะนำ </Step>
+
   <Step title="Health check">
     - เริ่มเกตเวย์ (ถ้าจำเป็น) และรัน `openclaw health`
   - `openclaw status --deep` จะเพิ่ม health probe ของเกตเวย์ลงในผลลัพธ์สถานะ
@@ -132,7 +133,7 @@ sidebarTitle: "CLI reference"
 - คำแนะนำการค้นหา:
   - macOS: Bonjour (`dns-sd`)
   - Linux: Avahi (`avahi-browse`)
-</Note>
+    </Note>
 
 ## รายละเอียดโหมดRemote
 

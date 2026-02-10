@@ -138,7 +138,7 @@ When you receive a heartbeat poll (message matches the configured heartbeat prom
 31. Lời nhắc heartbeat mặc định:
     `Read HEARTBEAT.md if it exists (workspace context).` 32. Hãy tuân thủ nghiêm ngặt. 33. Đừng suy diễn hoặc lặp lại các nhiệm vụ cũ từ các cuộc trò chuyện trước. If nothing needs attention, reply HEARTBEAT_OK.\`
 
-34. Bạn được tự do chỉnh sửa `HEARTBEAT.md` với một checklist ngắn hoặc các lời nhắc. Keep it small to limit token burn.
+32. Bạn được tự do chỉnh sửa `HEARTBEAT.md` với một checklist ngắn hoặc các lời nhắc. Keep it small to limit token burn.
 
 ### Heartbeat vs Cron: Khi nào dùng cái nào
 

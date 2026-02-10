@@ -1259,16 +1259,16 @@ models - see [Memory](/concepts/memory) for the setup details.
 
 すべてが`$OPENCLAW_STATE_DIR`の下にあります（デフォルト：`~/.openclaw`）：
 
-| パス                                                              | 目的                                                       |
-| --------------------------------------------------------------- | -------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                             | メイン設定 (JSON5)                         |
+| パス                                                            | 目的                                                             |
+| --------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                             | メイン設定 (JSON5)                                               |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | 従来の OAuth インポート (最初の使用時に認証プロファイルにコピー) |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | 認証プロファイル (OAuth + API キー)             |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | ランタイム認証キャッシュ (自動的に管理)                 |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | プロバイダの状態（例：`whatsapp/<accountId>/creds.json`）            |
-| `$OPENCLAW_STATE_DIR/agents/`                                   | エージェント毎の状態 (agentDir + セッション)         |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | 会話の履歴と状態（エージェントごと）                                       |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | セッションメタデータ（エージェントごと）                                     |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | 認証プロファイル (OAuth + API キー)                              |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | ランタイム認証キャッシュ (自動的に管理)                          |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | プロバイダの状態（例：`whatsapp/<accountId>/creds.json`）        |
+| `$OPENCLAW_STATE_DIR/agents/`                                   | エージェント毎の状態 (agentDir + セッション)                     |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | 会話の履歴と状態（エージェントごと）                             |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | セッションメタデータ（エージェントごと）                         |
 
 従来のシングルエージェントパス: `~/.openclaw/agent/*` (`openclaw医師`によって移行されました)。
 
@@ -2430,8 +2430,7 @@ OpenClawは起動時にすぐにWebSocketリスナーをバインドしてラン
 - プロファイルの設定ごとに固有の `gateway.port` を設定します（手動で実行するには `--port` を渡します）。
 - Install a per-profile service: `openclaw --profile <name> gateway install`.
 
-プロファイルもサフィックスサービス名(`bot.mort.<profile>`; legacy `com.openclaw.*`, `openclaw-gateway-<profile>.service`, `OpenClawゲートウェイ (<profile>)`).
-25. 完全ガイド: [複数ゲートウェイ](/gateway/multiple-gateways)。
+プロファイルもサフィックスサービス名(`bot.mort.<profile>`; legacy `com.openclaw.*`, `openclaw-gateway-<profile>.service`, `OpenClawゲートウェイ (<profile>)`). 25. 完全ガイド: [複数ゲートウェイ](/gateway/multiple-gateways)。
 
 ### 無効なハンドシェイクコード1008が意味するもの
 
@@ -2667,8 +2666,7 @@ openclaw message send --target +1555550123 --message "Here you go" --media /path
 
 ### 迅速な注入はパブリックボットに対する懸念のみです
 
-いいえ. 迅速な注入は**信頼できないコンテンツ**についてです。誰がボットをDMできるかだけではありません。
-27. アシスタントが外部コンテンツ（ウェブ検索/取得、ブラウザページ、メール、ドキュメント、添付ファイル、貼り付けたログ）を読む場合、そのコンテンツにはモデルを乗っ取ろうとする指示が含まれている可能性があります。 これは、**あなたが唯一の送信者**であっても起こります。
+いいえ. 迅速な注入は**信頼できないコンテンツ**についてです。誰がボットをDMできるかだけではありません。27. アシスタントが外部コンテンツ（ウェブ検索/取得、ブラウザページ、メール、ドキュメント、添付ファイル、貼り付けたログ）を読む場合、そのコンテンツにはモデルを乗っ取ろうとする指示が含まれている可能性があります。 これは、**あなたが唯一の送信者**であっても起こります。
 
 最大のリスクは、ツールが有効になっている場合です。モデルを
 に騙したり、あなたの代わりにツールを呼び出したりすることができます。 爆風の半径を以下によって減らす:

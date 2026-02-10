@@ -11,7 +11,7 @@ title: "Linux အက်ပ်"
 9. Gateway ကို Linux ပေါ်တွင် အပြည့်အဝ ပံ့ပိုးထားပါသည်။ 10. **Node သည် အကြံပြုထားသော runtime ဖြစ်သည်**။
 10. Gateway အတွက် Bun ကို မအကြံပြုပါ (WhatsApp/Telegram bug များကြောင့်)။
 
-12. Native Linux companion app များကို စီစဉ်ထားပါသည်။ Contributions are welcome if you want to help build one.
+11. Native Linux companion app များကို စီစဉ်ထားပါသည်။ Contributions are welcome if you want to help build one.
 
 ## Beginner quick path (VPS)
 

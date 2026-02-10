@@ -127,16 +127,16 @@ Hỗ trợ nhiều tài khoản: dùng `channels.zalo.accounts` với token theo
 
 ## Khả năng
 
-| Tính năng                           | Trạng thái                                           |
-| ----------------------------------- | ---------------------------------------------------- |
-| Tin nhắn trực tiếp                  | ✅ Được hỗ trợ                                        |
-| Nhóm                                | ❌ Sắp ra mắt (theo tài liệu Zalo) |
-| Media (hình ảnh) | ✅ Được hỗ trợ                                        |
-| Reaction                            | ❌ Không hỗ trợ                                       |
-| Threads                             | ❌ Không hỗ trợ                                       |
-| Polls                               | ❌ Không hỗ trợ                                       |
-| Lệnh gốc                            | ❌ Không hỗ trợ                                       |
-| Streaming                           | ⚠️ Bị chặn (giới hạn 2000 ký tự)  |
+| Tính năng          | Trạng thái                         |
+| ------------------ | ---------------------------------- |
+| Tin nhắn trực tiếp | ✅ Được hỗ trợ                     |
+| Nhóm               | ❌ Sắp ra mắt (theo tài liệu Zalo) |
+| Media (hình ảnh)   | ✅ Được hỗ trợ                     |
+| Reaction           | ❌ Không hỗ trợ                    |
+| Threads            | ❌ Không hỗ trợ                    |
+| Polls              | ❌ Không hỗ trợ                    |
+| Lệnh gốc           | ❌ Không hỗ trợ                    |
+| Streaming          | ⚠️ Bị chặn (giới hạn 2000 ký tự)   |
 
 ## Đích gửi (CLI/cron)
 

@@ -9,7 +9,7 @@ read_when:
 
 31. OpenClaw memory သည် **agent workspace ထဲရှိ plain Markdown** ဖြစ်ပါသည်။ 32. File များသည် source of truth ဖြစ်ပြီး၊ model သည် disk သို့ ရေးသားထားသော အရာများကိုသာ “မှတ်မိ” ပါသည်။
 
-33. Memory search tools များကို active memory plugin (default: `memory-core`) မှ ပံ့ပိုးပေးပါသည်။ 34. Memory plugins များကို `plugins.slots.memory = "none"` ဖြင့် ပိတ်နိုင်ပါသည်။
+32. Memory search tools များကို active memory plugin (default: `memory-core`) မှ ပံ့ပိုးပေးပါသည်။ 34. Memory plugins များကို `plugins.slots.memory = "none"` ဖြင့် ပိတ်နိုင်ပါသည်။
 
 ## Memory files (Markdown)
 
@@ -79,10 +79,10 @@ Defaults —
 - မေမိုရီ ဖိုင် ပြောင်းလဲမှုများကို စောင့်ကြည့်သည် (debounced)။
 - 41. Default အနေဖြင့် remote embeddings ကို အသုံးပြုပါသည်။ 42. `memorySearch.provider` ကို မသတ်မှတ်ထားပါက OpenClaw သည် auto-select လုပ်ပါသည်။
   1. `local` ကို `memorySearch.local.modelPath` သတ်မှတ်ထားပြီး ဖိုင် ရှိပါက။
-  2. OpenAI key ကို ဖြေရှင်းနိုင်ပါက `openai`။
-  3. Gemini key ကို ဖြေရှင်းနိုင်ပါက `gemini`။
-  4. Voyage key ကို ဖြေရှင်းနိုင်ပါက `voyage`။
-  5. မဟုတ်ပါက စီစဉ်ချိန်ညှိမချင်း memory search ကို ပိတ်ထားမည်။
+  1. OpenAI key ကို ဖြေရှင်းနိုင်ပါက `openai`။
+  1. Gemini key ကို ဖြေရှင်းနိုင်ပါက `gemini`။
+  1. Voyage key ကို ဖြေရှင်းနိုင်ပါက `voyage`။
+  1. မဟုတ်ပါက စီစဉ်ချိန်ညှိမချင်း memory search ကို ပိတ်ထားမည်။
 - Local mode သည် node-llama-cpp ကို အသုံးပြုပြီး `pnpm approve-builds` လိုအပ်နိုင်သည်။
 - SQLite အတွင်း vector search ကို မြန်ဆန်စေရန် sqlite-vec (ရရှိနိုင်ပါက) ကို အသုံးပြုသည်။
 

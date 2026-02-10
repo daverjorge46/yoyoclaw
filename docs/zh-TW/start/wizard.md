@@ -22,7 +22,7 @@ openclaw onboard
 
 最快速的第一次聊天：開啟 Control UI（不需要設定頻道）。執行
 `openclaw dashboard`，並在瀏覽器中聊天。文件：[Dashboard](/web/dashboard)。
- Run
+Run
 `openclaw dashboard` and chat in the browser. 文件：[Dashboard](/web/dashboard)。
 </Info>
 
@@ -36,7 +36,7 @@ openclaw agents add <name>
 <Note>
 
 `--json` 並不代表非互動模式。用於腳本時，請使用 `--non-interactive`。
- For scripts, use `--non-interactive`.
+For scripts, use `--non-interactive`.
 </Note>
 
 <Tip>
@@ -44,7 +44,7 @@ openclaw agents add <name>
 建議：設定 Brave Search API 金鑰，讓代理程式可以使用 `web_search`
 （`web_fetch` 無需金鑰也可運作）。最簡單的路徑：`openclaw configure --section web`，
 它會儲存 `tools.web.search.apiKey`。文件：[Web tools](/tools/web)。
- Easiest path: `openclaw configure --section web`
+Easiest path: `openclaw configure --section web`
 which stores `tools.web.search.apiKey`. 1. 文件：[Web 工具](/tools/web)。
 </Tip>
 

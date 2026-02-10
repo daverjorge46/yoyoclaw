@@ -29,10 +29,10 @@ Dies ist **keine** Browser-Automatisierung. Für JS-lastige Seiten oder Logins v
 
 ## Auswahl eines Suchanbieters
 
-| Anbieter                                | Vorteile                                      | Nachteile                                    | API-Schlüssel                                  |
-| --------------------------------------- | --------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
+| Anbieter             | Vorteile                                      | Nachteile                                    | API-Schlüssel                                  |
+| -------------------- | --------------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
 | **Brave** (Standard) | Schnell, strukturierte Ergebnisse, Free-Tier  | Klassische Suchergebnisse                    | `BRAVE_API_KEY`                                |
-| **Perplexity**                          | KI-synthetisierte Antworten, Zitate, Echtzeit | Erfordert Perplexity- oder OpenRouter-Zugang | `OPENROUTER_API_KEY` oder `PERPLEXITY_API_KEY` |
+| **Perplexity**       | KI-synthetisierte Antworten, Zitate, Echtzeit | Erfordert Perplexity- oder OpenRouter-Zugang | `OPENROUTER_API_KEY` oder `PERPLEXITY_API_KEY` |
 
 Siehe [Brave Search Einrichtung](/brave-search) und [Perplexity Sonar](/perplexity) für anbieterspezifische Details.
 
@@ -133,11 +133,11 @@ Wenn keine Base-URL gesetzt ist, wählt OpenClaw einen Standard basierend auf de
 
 ### Verfügbare Perplexity-Modelle
 
-| Modell                                               | Beschreibung                                   | Am besten für         |
-| ---------------------------------------------------- | ---------------------------------------------- | --------------------- |
-| `perplexity/sonar`                                   | Schnelles Q&A mit Websuche | Schnelle Nachschläge  |
-| `perplexity/sonar-pro` (Standard) | Mehrstufiges Schlussfolgern mit Websuche       | Komplexe Fragen       |
-| `perplexity/sonar-reasoning-pro`                     | Chain-of-Thought-Analyse                       | Tiefgehende Recherche |
+| Modell                            | Beschreibung                             | Am besten für         |
+| --------------------------------- | ---------------------------------------- | --------------------- |
+| `perplexity/sonar`                | Schnelles Q&A mit Websuche               | Schnelle Nachschläge  |
+| `perplexity/sonar-pro` (Standard) | Mehrstufiges Schlussfolgern mit Websuche | Komplexe Fragen       |
+| `perplexity/sonar-reasoning-pro`  | Chain-of-Thought-Analyse                 | Tiefgehende Recherche |
 
 ## web_search
 

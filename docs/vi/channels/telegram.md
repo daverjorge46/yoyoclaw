@@ -617,8 +617,7 @@ Tìm kiếm dùng fuzzy matching trên văn bản mô tả, ký tự emoji và t
 
 ## Streaming (drafts)
 
-Telegram can stream **draft bubbles** while the agent is generating a response.
-40. OpenClaw sử dụng Bot API `sendMessageDraft` (không phải tin nhắn thật) và sau đó gửi
+Telegram can stream **draft bubbles** while the agent is generating a response. 40. OpenClaw sử dụng Bot API `sendMessageDraft` (không phải tin nhắn thật) và sau đó gửi
 
 Yêu cầu (Telegram Bot API 9.3+):
 
@@ -663,9 +662,9 @@ Reasoning stream (chỉ Telegram):
 50. Cấu hình qua `channels.telegram.retry`. When a user adds a reaction, OpenClaw:
 
 1. Nhận update `message_reaction` từ Telegram API
-2. Chuyển thành **system event** với định dạng: `"Telegram reaction added: {emoji} by {user} on msg {id}"`
-3. Đưa system event vào hàng đợi dùng **cùng khóa phiên** với tin nhắn thường
-4. Khi tin nhắn tiếp theo đến trong cuộc hội thoại đó, system event sẽ được xả và thêm vào đầu ngữ cảnh của tác tử
+1. Chuyển thành **system event** với định dạng: `"Telegram reaction added: {emoji} by {user} on msg {id}"`
+1. Đưa system event vào hàng đợi dùng **cùng khóa phiên** với tin nhắn thường
+1. Khi tin nhắn tiếp theo đến trong cuộc hội thoại đó, system event sẽ được xả và thêm vào đầu ngữ cảnh của tác tử
 
 Tác tử thấy reaction như **thông báo hệ thống** trong lịch sử hội thoại, không phải metadata của tin nhắn.
 

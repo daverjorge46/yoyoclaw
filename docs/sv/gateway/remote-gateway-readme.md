@@ -164,11 +164,11 @@ launchctl bootout gui/$UID/bot.molt.ssh-tunnel
 
 ## Hur det fungerar
 
-| Komponent                            | Vad den gör                                                                      |
-| ------------------------------------ | -------------------------------------------------------------------------------- |
-| `LocalForward 18789 127.0.0.1:18789` | Vidarebefordrar lokal port 18789 till fjärrport 18789                            |
+| Komponent                            | Vad den gör                                                   |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `LocalForward 18789 127.0.0.1:18789` | Vidarebefordrar lokal port 18789 till fjärrport 18789         |
 | `ssh -N`                             | SSH utan att köra fjärrkommandon (endast portvidarebefordran) |
-| `KeepAlive`                          | Startar automatiskt om tunneln om den kraschar                                   |
-| `RunAtLoad`                          | Startar tunneln när agenten laddas                                               |
+| `KeepAlive`                          | Startar automatiskt om tunneln om den kraschar                |
+| `RunAtLoad`                          | Startar tunneln när agenten laddas                            |
 
 OpenClaw.app ansluter till `ws://127.0.0.1:18789` på din klientmaskin. SSH-tunneln framåt som ansluter till port 18789 på fjärrmaskinen där Gateway körs.

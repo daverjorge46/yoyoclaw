@@ -127,16 +127,16 @@ Stöd för flera konton: använd `channels.zalo.accounts` med per-konto-token oc
 
 ## Funktioner
 
-| Funktion                          | Status                                                          |
-| --------------------------------- | --------------------------------------------------------------- |
-| Direktmeddelanden                 | ✅ Stöds                                                         |
-| Grupper                           | ❌ Kommer snart (enligt Zalo-dokumentationen) |
-| Media (bilder) | ✅ Stöds                                                         |
-| Reaktioner                        | ❌ Stöds inte                                                    |
-| Trådar                            | ❌ Stöds inte                                                    |
-| Omröstningar                      | ❌ Stöds inte                                                    |
-| Inbyggda kommandon                | ❌ Stöds inte                                                    |
-| Streaming                         | ⚠️ Blockerad (2000-teckensgräns)             |
+| Funktion           | Status                                        |
+| ------------------ | --------------------------------------------- |
+| Direktmeddelanden  | ✅ Stöds                                      |
+| Grupper            | ❌ Kommer snart (enligt Zalo-dokumentationen) |
+| Media (bilder)     | ✅ Stöds                                      |
+| Reaktioner         | ❌ Stöds inte                                 |
+| Trådar             | ❌ Stöds inte                                 |
+| Omröstningar       | ❌ Stöds inte                                 |
+| Inbyggda kommandon | ❌ Stöds inte                                 |
+| Streaming          | ⚠️ Blockerad (2000-teckensgräns)              |
 
 ## Leveransmål (CLI/cron)
 

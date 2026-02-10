@@ -127,16 +127,16 @@ Ortam seçeneği: `ZALO_BOT_TOKEN=...` (yalnızca varsayılan hesap için çalı
 
 ## Capabilities
 
-| Özellik                               | Status                                                  |
-| ------------------------------------- | ------------------------------------------------------- |
-| Doğrudan mesajlar                     | ✅ Destekleniyor                                         |
-| Gruplar                               | ❌ Yakında (Zalo belgelerine göre)    |
-| Medya (görüntüler) | ✅ Destekleniyor                                         |
-| Tepkiler                              | ❌ Desteklenmiyor                                        |
-| Konular                               | ❌ Desteklenmiyor                                        |
-| Polls                                 | ❌ Desteklenmiyor                                        |
-| Native commands                       | ❌ Desteklenmiyor                                        |
-| Streaming                             | ⚠️ Engellendi (2000 karakter sınırı) |
+| Özellik            | Status                               |
+| ------------------ | ------------------------------------ |
+| Doğrudan mesajlar  | ✅ Destekleniyor                     |
+| Gruplar            | ❌ Yakında (Zalo belgelerine göre)   |
+| Medya (görüntüler) | ✅ Destekleniyor                     |
+| Tepkiler           | ❌ Desteklenmiyor                    |
+| Konular            | ❌ Desteklenmiyor                    |
+| Polls              | ❌ Desteklenmiyor                    |
+| Native commands    | ❌ Desteklenmiyor                    |
+| Streaming          | ⚠️ Engellendi (2000 karakter sınırı) |
 
 ## Teslim hedefleri (CLI/cron)
 

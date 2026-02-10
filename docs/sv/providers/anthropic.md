@@ -43,11 +43,11 @@ OpenClaw stöder Anthropic's prompt caching funktion. Detta är **API-bara**; pr
 
 Använd parametern `cacheRetention` i din modellkonfig:
 
-| Värde   | Cache-varaktighet | Beskrivning                                          |
-| ------- | ----------------- | ---------------------------------------------------- |
-| `none`  | Ingen caching     | Inaktivera prompt-caching                            |
-| `short` | 5 minuter         | Standard för API-nyckelautentisering                 |
-| `long`  | 1 timme           | Utökad cache (kräver beta-flagga) |
+| Värde   | Cache-varaktighet | Beskrivning                          |
+| ------- | ----------------- | ------------------------------------ |
+| `none`  | Ingen caching     | Inaktivera prompt-caching            |
+| `short` | 5 minuter         | Standard för API-nyckelautentisering |
+| `long`  | 1 timme           | Utökad cache (kräver beta-flagga)    |
 
 ```json5
 {

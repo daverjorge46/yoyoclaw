@@ -16,13 +16,13 @@ DigitalOcean ပေါ်တွင် **တစ်လ $6** (သို့မဟု
 
 ## ကုန်ကျစရိတ် နှိုင်းယှဉ်မှု (2026)
 
-| Provider     | Plan            | Specs                  | Price/mo                                                       | Notes                                 |
-| ------------ | --------------- | ---------------------- | -------------------------------------------------------------- | ------------------------------------- |
-| Oracle Cloud | Always Free ARM | up to 4 OCPU, 24GB RAM | $0                                                             | ARM, limited capacity / signup quirks |
+| Provider     | Plan            | Specs                  | Price/mo    | Notes                                 |
+| ------------ | --------------- | ---------------------- | ----------- | ------------------------------------- |
+| Oracle Cloud | Always Free ARM | up to 4 OCPU, 24GB RAM | $0          | ARM, limited capacity / signup quirks |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM        | €3.79 (~$4) | Cheapest paid option                  |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM        | $6                                                             | Easy UI, good docs                    |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM        | $6                                                             | Many locations                        |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM        | $5                                                             | Now part of Akamai                    |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM        | $6          | Easy UI, good docs                    |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM        | $6          | Many locations                        |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM        | $5          | Now part of Akamai                    |
 
 **Provider ကို ရွေးချယ်ခြင်း:**
 

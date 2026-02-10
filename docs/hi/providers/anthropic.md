@@ -43,10 +43,10 @@ OpenClaw supports Anthropic's prompt caching feature. This is **API-only**; subs
 
 अपने मॉडल विन्यास में `cacheRetention` पैरामीटर का उपयोग करें:
 
-| Value   | Cache Duration | Description                                           |
-| ------- | -------------- | ----------------------------------------------------- |
-| `none`  | No caching     | Prompt caching अक्षम करें                             |
-| `short` | 5 minutes      | API Key प्रमाणीकरण के लिए डिफ़ॉल्ट                    |
+| Value   | Cache Duration | Description                        |
+| ------- | -------------- | ---------------------------------- |
+| `none`  | No caching     | Prompt caching अक्षम करें          |
+| `short` | 5 minutes      | API Key प्रमाणीकरण के लिए डिफ़ॉल्ट |
 | `long`  | 1 hour         | विस्तारित कैश (beta फ़्लैग आवश्यक) |
 
 ```json5

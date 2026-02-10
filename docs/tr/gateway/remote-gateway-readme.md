@@ -164,11 +164,11 @@ launchctl bootout gui/$UID/bot.molt.ssh-tunnel
 
 ## Nasıl Çalışır
 
-| Bileşen                              | Ne Yapar                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------ |
-| `LocalForward 18789 127.0.0.1:18789` | Yerel 18789 portunu uzak 18789 portuna yönlendirir                             |
+| Bileşen                              | Ne Yapar                                                    |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `LocalForward 18789 127.0.0.1:18789` | Yerel 18789 portunu uzak 18789 portuna yönlendirir          |
 | `ssh -N`                             | Uzak komutlar çalıştırmadan SSH (yalnızca port yönlendirme) |
-| `KeepAlive`                          | Çökerse tüneli otomatik olarak yeniden başlatır                                |
-| `RunAtLoad`                          | Ajan yüklendiğinde tüneli başlatır                                             |
+| `KeepAlive`                          | Çökerse tüneli otomatik olarak yeniden başlatır             |
+| `RunAtLoad`                          | Ajan yüklendiğinde tüneli başlatır                          |
 
 OpenClaw.app, istemci makinenizdeki `ws://127.0.0.1:18789` adresine bağlanır. SSH tüneli bu bağlantıyı, Gateway’in çalıştığı uzak makinedeki 18789 portuna yönlendirir.

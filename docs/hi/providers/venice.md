@@ -23,9 +23,9 @@ Venice AI provides privacy-focused AI inference with support for uncensored mode
 
 Venice दो गोपनीयता स्तर प्रदान करता है — सही मॉडल चुनने के लिए इन्हें समझना महत्वपूर्ण है:
 
-| मोड            | विवरण                                                                                                                                                                   | मॉडल                                          |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| **Private**    | पूरी तरह निजी। Prompts/responses are **never stored or logged**. Ephemeral.                                                             | Llama, Qwen, DeepSeek, Venice Uncensored, आदि |
+| मोड            | विवरण                                                                                                                | मॉडल                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **Private**    | पूरी तरह निजी। Prompts/responses are **never stored or logged**. Ephemeral.                                          | Llama, Qwen, DeepSeek, Venice Uncensored, आदि |
 | **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic) sees anonymized requests. | Claude, GPT, Gemini, Grok, Kimi, MiniMax      |
 
 ## विशेषताएँ
@@ -127,38 +127,38 @@ openclaw models list | grep venice
 
 ### Private मॉडल (15) — पूर्णतः निजी, कोई लॉगिंग नहीं
 
-| मॉडल ID                          | नाम                                        | संदर्भ (टोकन) | विशेषताएँ     |
-| -------------------------------- | ------------------------------------------ | -------------------------------- | ------------- |
-| `llama-3.3-70b`                  | Llama 3.3 70B              | 131k                             | सामान्य       |
-| `llama-3.2-3b`                   | Llama 3.2 3B               | 131k                             | तेज़, हल्का   |
-| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B    | 131k                             | जटिल कार्य    |
-| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking                        | 131k                             | तर्क          |
-| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct                        | 131k                             | सामान्य       |
-| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B                           | 262k                             | कोड           |
-| `qwen3-next-80b`                 | Qwen3 Next 80B                             | 262k                             | सामान्य       |
-| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B                              | 262k                             | विज़न         |
-| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k                              | तेज़, तर्क    |
-| `deepseek-v3.2`                  | DeepSeek V3.2              | 163k                             | तर्क          |
-| `venice-uncensored`              | Venice Uncensored                          | 32k                              | अनसेंसरड      |
-| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k                             | विज़न         |
-| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct                       | 202k                             | विज़न         |
-| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B                        | 131k                             | सामान्य       |
-| `zai-org-glm-4.7`                | GLM 4.7                    | 202k                             | तर्क, बहुभाषी |
+| मॉडल ID                          | नाम                     | संदर्भ (टोकन) | विशेषताएँ     |
+| -------------------------------- | ----------------------- | ------------- | ------------- |
+| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k          | सामान्य       |
+| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k          | तेज़, हल्का   |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k          | जटिल कार्य    |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking     | 131k          | तर्क          |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct     | 131k          | सामान्य       |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B        | 262k          | कोड           |
+| `qwen3-next-80b`                 | Qwen3 Next 80B          | 262k          | सामान्य       |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B           | 262k          | विज़न         |
+| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k           | तेज़, तर्क    |
+| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k          | तर्क          |
+| `venice-uncensored`              | Venice Uncensored       | 32k           | अनसेंसरड      |
+| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k          | विज़न         |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct    | 202k          | विज़न         |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k          | सामान्य       |
+| `zai-org-glm-4.7`                | GLM 4.7                 | 202k          | तर्क, बहुभाषी |
 
 ### Anonymized मॉडल (10) — Venice प्रॉक्सी के माध्यम से
 
-| मॉडल ID                  | मूल                               | संदर्भ (टोकन) | विशेषताएँ   |
-| ------------------------ | --------------------------------- | -------------------------------- | ----------- |
-| `claude-opus-45`         | Claude Opus 4.5   | 202k                             | तर्क, विज़न |
-| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k                             | तर्क, विज़न |
-| `openai-gpt-52`          | GPT-5.2           | 262k                             | तर्क        |
-| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k                             | तर्क, विज़न |
-| `gemini-3-pro-preview`   | Gemini 3 Pro                      | 202k                             | तर्क, विज़न |
-| `gemini-3-flash-preview` | Gemini 3 Flash                    | 262k                             | तर्क, विज़न |
-| `grok-41-fast`           | Grok 4.1 Fast     | 262k                             | तर्क, विज़न |
-| `grok-code-fast-1`       | Grok Code Fast 1                  | 262k                             | तर्क, कोड   |
-| `kimi-k2-thinking`       | Kimi K2 Thinking                  | 262k                             | तर्क        |
-| `minimax-m21`            | MiniMax M2.1      | 202k                             | तर्क        |
+| मॉडल ID                  | मूल               | संदर्भ (टोकन) | विशेषताएँ   |
+| ------------------------ | ----------------- | ------------- | ----------- |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k          | तर्क, विज़न |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k          | तर्क, विज़न |
+| `openai-gpt-52`          | GPT-5.2           | 262k          | तर्क        |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k          | तर्क, विज़न |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k          | तर्क, विज़न |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k          | तर्क, विज़न |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k          | तर्क, विज़न |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k          | तर्क, कोड   |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k          | तर्क        |
+| `minimax-m21`            | MiniMax M2.1      | 202k          | तर्क        |
 
 ## मॉडल डिस्कवरी
 
@@ -168,12 +168,12 @@ OpenClaw automatically discovers models from the Venice API when `VENICE_API_KEY
 
 ## स्ट्रीमिंग और टूल समर्थन
 
-| फ़ीचर              | समर्थन                                                                       |
-| ------------------ | ---------------------------------------------------------------------------- |
-| **स्ट्रीमिंग**     | ✅ सभी मॉडल                                                                   |
+| फ़ीचर              | समर्थन                                                     |
+| ------------------ | ---------------------------------------------------------- |
+| **स्ट्रीमिंग**     | ✅ सभी मॉडल                                                |
 | **फ़ंक्शन कॉलिंग** | ✅ अधिकांश मॉडल (`supportsFunctionCalling` API में जाँचें) |
-| **विज़न/छवियाँ**   | ✅ "Vision" फ़ीचर वाले मॉडल                                                   |
-| **JSON मोड**       | ✅ `response_format` के माध्यम से समर्थित                                     |
+| **विज़न/छवियाँ**   | ✅ "Vision" फ़ीचर वाले मॉडल                                |
+| **JSON मोड**       | ✅ `response_format` के माध्यम से समर्थित                  |
 
 ## मूल्य निर्धारण
 
@@ -184,12 +184,12 @@ Venice uses a credit-based system. Check [venice.ai/pricing](https://venice.ai/p
 
 ## तुलना: Venice बनाम Direct API
 
-| पहलू         | Venice (Anonymized) | Direct API       |
-| ------------ | -------------------------------------- | ---------------- |
-| **गोपनीयता** | मेटाडेटा हटाया गया, अनामीकृत           | आपका खाता लिंक्ड |
-| **लेटेंसी**  | +10-50ms (प्रॉक्सी) | प्रत्यक्ष        |
-| **फ़ीचर**    | अधिकांश फ़ीचर समर्थित                  | पूर्ण फ़ीचर      |
-| **बिलिंग**   | Venice क्रेडिट                         | प्रदाता बिलिंग   |
+| पहलू         | Venice (Anonymized)          | Direct API       |
+| ------------ | ---------------------------- | ---------------- |
+| **गोपनीयता** | मेटाडेटा हटाया गया, अनामीकृत | आपका खाता लिंक्ड |
+| **लेटेंसी**  | +10-50ms (प्रॉक्सी)          | प्रत्यक्ष        |
+| **फ़ीचर**    | अधिकांश फ़ीचर समर्थित        | पूर्ण फ़ीचर      |
+| **बिलिंग**   | Venice क्रेडिट               | प्रदाता बिलिंग   |
 
 ## उपयोग उदाहरण
 

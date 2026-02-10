@@ -108,8 +108,7 @@ Mặc định:
 Ghi chú về path: khi bật `tailscale.mode`, OpenClaw tự động đặt
 `hooks.gmail.serve.path` thành `/` và giữ path công khai tại
 `hooks.gmail.tailscale.path` (mặc định `/gmail-pubsub`) vì Tailscale
-loại bỏ tiền tố set-path trước khi proxy.
-3. Nếu bạn cần backend nhận được đường dẫn có tiền tố, hãy đặt `hooks.gmail.tailscale.target` (hoặc `--tailscale-target`) thành một URL đầy đủ như `http://127.0.0.1:8788/gmail-pubsub` và khớp với `hooks.gmail.serve.path`.
+loại bỏ tiền tố set-path trước khi proxy. 3. Nếu bạn cần backend nhận được đường dẫn có tiền tố, hãy đặt `hooks.gmail.tailscale.target` (hoặc `--tailscale-target`) thành một URL đầy đủ như `http://127.0.0.1:8788/gmail-pubsub` và khớp với `hooks.gmail.serve.path`.
 
 Muốn một endpoint tùy chỉnh? Sử dụng `--push-endpoint <url>` hoặc `--tailscale off`.
 

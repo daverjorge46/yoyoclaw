@@ -1145,10 +1145,7 @@ Multi-account support lives under `channels.discord.accounts` (see the multi-acc
 }
 ```
 
-Sinisimulan ng OpenClaw ang Discord lamang kapag may umiiral na `channels.discord` na seksyon ng config. 1. Ang token ay kinukuha mula sa `channels.discord.token`, na may `DISCORD_BOT_TOKEN` bilang fallback para sa default account (maliban kung `channels.discord.enabled` ay `false`). 2. Gamitin ang `user:<id>` (DM) o `channel:<id>` (guild channel) kapag tinutukoy ang mga delivery target para sa cron/CLI commands; ang mga numeric ID na walang prefix ay hindi malinaw at tinatanggihan.
-3. Ang mga guild slug ay lowercase na may mga espasyong pinalitan ng `-`; ang mga channel key ay gumagamit ng slugged na pangalan ng channel (walang leading `#`). Prefer guild ids as keys to avoid rename ambiguity.
-5. Ang mga mensaheng gawa ng bot ay binabalewala bilang default. 6. I-enable gamit ang `channels.discord.allowBots` (ang sariling mga mensahe ay sinasala pa rin upang maiwasan ang self-reply loops).
-7. Mga mode ng notification para sa reaksyon:
+Sinisimulan ng OpenClaw ang Discord lamang kapag may umiiral na `channels.discord` na seksyon ng config. 1. Ang token ay kinukuha mula sa `channels.discord.token`, na may `DISCORD_BOT_TOKEN` bilang fallback para sa default account (maliban kung `channels.discord.enabled` ay `false`). 2. Gamitin ang `user:<id>` (DM) o `channel:<id>` (guild channel) kapag tinutukoy ang mga delivery target para sa cron/CLI commands; ang mga numeric ID na walang prefix ay hindi malinaw at tinatanggihan. 3. Ang mga guild slug ay lowercase na may mga espasyong pinalitan ng `-`; ang mga channel key ay gumagamit ng slugged na pangalan ng channel (walang leading `#`). Prefer guild ids as keys to avoid rename ambiguity. 5. Ang mga mensaheng gawa ng bot ay binabalewala bilang default. 6. I-enable gamit ang `channels.discord.allowBots` (ang sariling mga mensahe ay sinasala pa rin upang maiwasan ang self-reply loops). 7. Mga mode ng notification para sa reaksyon:
 
 - `off`: walang reaction event.
 - `own`: mga reaction sa sariling mensahe ng bot (default).
@@ -1257,7 +1254,7 @@ Mga tala:
 
 26. Ang suporta sa multi-account ay nasa ilalim ng `channels.slack.accounts` (tingnan ang seksyong multi-account sa itaas). 27. Ang mga env token ay nalalapat lamang sa default account.
 
-28. Sinisimulan ng OpenClaw ang Slack kapag naka-enable ang provider at parehong token ay naka-set (sa pamamagitan ng config o `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN`). Gamitin ang `user:<id>` (DM) o `channel:<id>` kapag tinutukoy ang mga delivery target para sa mga utos ng cron/CLI.
+27. Sinisimulan ng OpenClaw ang Slack kapag naka-enable ang provider at parehong token ay naka-set (sa pamamagitan ng config o `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN`). Gamitin ang `user:<id>` (DM) o `channel:<id>` kapag tinutukoy ang mga delivery target para sa mga utos ng cron/CLI.
     Itakda ang `channels.slack.configWrites: false` upang harangan ang mga config write na pinasimulan ng Slack (kasama ang mga channel ID migration at `/config set|unset`).
 
 Ang mga mensaheng isinulat ng bot ay hindi pinapansin bilang default. I-enable gamit ang `channels.slack.allowBots` o `channels.slack.channels.<id>.allowBots`
@@ -1310,7 +1307,7 @@ I-install muna ito: `openclaw plugins install @openclaw/mattermost` (o `./extens
 
 44. Sinisimulan ng OpenClaw ang Mattermost kapag naka-configure ang account (bot token + base URL) at naka-enable. 45. Ang token + base URL ay kinukuha mula sa `channels.mattermost.botToken` + `channels.mattermost.baseUrl` o `MATTERMOST_BOT_TOKEN` + `MATTERMOST_URL` para sa default account (maliban kung `channels.mattermost.enabled` ay `false`).
 
-46. Mga chat mode:
+45. Mga chat mode:
 
 - 2. `oncall` (default): tumugon sa mga mensahe sa channel lamang kapag na-@mention.
 - `onmessage`: tumugon sa bawat mensahe sa channel.
@@ -1511,13 +1508,13 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| Variable          | Description            | Example                                    |
-| ----------------- | ---------------------- | ------------------------------------------ |
-| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o`                |
-| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6`                |
-| `{provider}`      | Provider name          | `anthropic`, `openai`                      |
-| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`                       |
-| `{identity.name}` | Agent identity name    | (same as `"auto"` mode) |
+| Variable          | Description            | Example                     |
+| ----------------- | ---------------------- | --------------------------- |
+| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider name          | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`        |
+| `{identity.name}` | Agent identity name    | (same as `"auto"` mode)     |
 
 Variables are case-insensitive (`{MODEL}` = `{model}`). `{think}` is an alias for `{thinkingLevel}`.
 Unresolved variables remain as literal text.
@@ -1616,8 +1613,7 @@ Mga tala:
 
 ### `talk`
 
-Mga default para sa Talk mode (macOS/iOS/Android). Ang mga Voice ID ay nagfa-fallback sa `ELEVENLABS_VOICE_ID` o `SAG_VOICE_ID` kapag hindi nakatakda.
-7. Ang `apiKey` ay babalik sa `ELEVENLABS_API_KEY` (o sa shell profile ng gateway) kapag hindi nakatakda.
+Mga default para sa Talk mode (macOS/iOS/Android). Ang mga Voice ID ay nagfa-fallback sa `ELEVENLABS_VOICE_ID` o `SAG_VOICE_ID` kapag hindi nakatakda. 7. Ang `apiKey` ay babalik sa `ELEVENLABS_API_KEY` (o sa shell profile ng gateway) kapag hindi nakatakda.
 Pinapayagan ng `voiceAliases` ang mga Talk directive na gumamit ng mga madaling tandaan na pangalan (hal. `"voice":"Clawd"`).
 
 ```json5
@@ -3346,28 +3342,28 @@ openclaw dns setup --apply
 
 Ang mga template placeholder ay pinalalawak sa `tools.media.*.models[].args` at `tools.media.models[].args` (at anumang mga susunod na templated argument fields).
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Full inbound message body                                                       |
-\| `{{RawBody}}`      | Raw inbound message body (no history/sender wrappers; best for command parsing) |
-\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents)                     |
-\| `{{From}}`         | Sender identifier (E.164 for WhatsApp; may differ per channel)                  |
-\| `{{To}}`           | Destination identifier                                                          |
-\| `{{MessageSid}}`   | Channel message id (when available)                                             |
-\| `{{SessionId}}`    | Current session UUID                                                            |
-\| `{{IsNewSession}}` | `"true"` when a new session was created                                         |
-\| `{{MediaUrl}}`     | Inbound media pseudo-URL (if present)                                           |
-\| `{{MediaPath}}`    | Local media path (if downloaded)                                                |
-\| `{{MediaType}}`    | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Full inbound message body |
+\| `{{RawBody}}` | Raw inbound message body (no history/sender wrappers; best for command parsing) |
+\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents) |
+\| `{{From}}` | Sender identifier (E.164 for WhatsApp; may differ per channel) |
+\| `{{To}}` | Destination identifier |
+\| `{{MessageSid}}` | Channel message id (when available) |
+\| `{{SessionId}}` | Current session UUID |
+\| `{{IsNewSession}}` | `"true"` when a new session was created |
+\| `{{MediaUrl}}` | Inbound media pseudo-URL (if present) |
+\| `{{MediaPath}}` | Local media path (if downloaded) |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

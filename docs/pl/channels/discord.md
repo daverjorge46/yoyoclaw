@@ -395,26 +395,26 @@ Uwagi dotyczące list dozwolonych (z włączonym PK):
 
 ### Domyślne akcje narzędzi
 
-| Grupa akcji    | Domyślne | Uwagi                                                  |
-| -------------- | -------- | ------------------------------------------------------ |
-| reactions      | enabled  | Reakcje + lista reakcji + emojiList                    |
-| stickers       | enabled  | Wysyłanie naklejek                                     |
-| emojiUploads   | enabled  | Wgrywanie emoji                                        |
-| stickerUploads | enabled  | Wgrywanie naklejek                                     |
-| polls          | enabled  | Tworzenie ankiet                                       |
-| permissions    | enabled  | Migawka uprawnień kanału                               |
-| messages       | enabled  | Odczyt/wysyłanie/edycja/usuwanie                       |
-| threads        | enabled  | Tworzenie/listowanie/odpowiedzi                        |
-| pins           | enabled  | Przypinanie/odpinanie/lista                            |
+| Grupa akcji    | Domyślne | Uwagi                               |
+| -------------- | -------- | ----------------------------------- |
+| reactions      | enabled  | Reakcje + lista reakcji + emojiList |
+| stickers       | enabled  | Wysyłanie naklejek                  |
+| emojiUploads   | enabled  | Wgrywanie emoji                     |
+| stickerUploads | enabled  | Wgrywanie naklejek                  |
+| polls          | enabled  | Tworzenie ankiet                    |
+| permissions    | enabled  | Migawka uprawnień kanału            |
+| messages       | enabled  | Odczyt/wysyłanie/edycja/usuwanie    |
+| threads        | enabled  | Tworzenie/listowanie/odpowiedzi     |
+| pins           | enabled  | Przypinanie/odpinanie/lista         |
 | search         | enabled  | Wyszukiwanie wiadomości (preview)   |
-| memberInfo     | enabled  | Informacje o członku                                   |
-| roleInfo       | enabled  | Lista ról                                              |
-| channelInfo    | enabled  | Informacje o kanale + lista                            |
-| channels       | enabled  | Zarządzanie kanałami/kategoriami                       |
-| voiceStatus    | enabled  | Podgląd stanu głosu                                    |
-| events         | enabled  | Lista/tworzenie wydarzeń                               |
-| roles          | disabled | Dodawanie/usuwanie ról                                 |
-| moderation     | disabled | Timeout/kick/ban                                       |
+| memberInfo     | enabled  | Informacje o członku                |
+| roleInfo       | enabled  | Lista ról                           |
+| channelInfo    | enabled  | Informacje o kanale + lista         |
+| channels       | enabled  | Zarządzanie kanałami/kategoriami    |
+| voiceStatus    | enabled  | Podgląd stanu głosu                 |
+| events         | enabled  | Lista/tworzenie wydarzeń            |
+| roles          | disabled | Dodawanie/usuwanie ról              |
+| moderation     | disabled | Timeout/kick/ban                    |
 | presence       | disabled | Status/aktywność bota (setPresence) |
 
 - `replyToMode`: `off` (domyślnie), `first` lub `all`. Stosowane tylko, gdy model zawiera tag odpowiedzi.

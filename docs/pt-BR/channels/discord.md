@@ -395,26 +395,26 @@ Notas de lista de permissões (com PK ativado):
 
 ### Padrões de ações de ferramentas
 
-| Grupo de ações | Padrão   | Notas                                                    |
-| -------------- | -------- | -------------------------------------------------------- |
-| reactions      | enabled  | Reagir + listar reações + emojiList                      |
-| stickers       | enabled  | Enviar stickers                                          |
-| emojiUploads   | enabled  | Enviar emojis                                            |
-| stickerUploads | enabled  | Enviar stickers                                          |
-| polls          | enabled  | Criar enquetes                                           |
-| permissions    | enabled  | Snapshot de permissões do canal                          |
-| messages       | enabled  | Ler/enviar/editar/excluir                                |
-| threads        | enabled  | Criar/listar/responder                                   |
-| pins           | enabled  | Fixar/desafixar/listar                                   |
+| Grupo de ações | Padrão   | Notas                                 |
+| -------------- | -------- | ------------------------------------- |
+| reactions      | enabled  | Reagir + listar reações + emojiList   |
+| stickers       | enabled  | Enviar stickers                       |
+| emojiUploads   | enabled  | Enviar emojis                         |
+| stickerUploads | enabled  | Enviar stickers                       |
+| polls          | enabled  | Criar enquetes                        |
+| permissions    | enabled  | Snapshot de permissões do canal       |
+| messages       | enabled  | Ler/enviar/editar/excluir             |
+| threads        | enabled  | Criar/listar/responder                |
+| pins           | enabled  | Fixar/desafixar/listar                |
 | search         | enabled  | Busca de mensagens (recurso prévia)   |
-| memberInfo     | enabled  | Informações do membro                                    |
-| roleInfo       | enabled  | Lista de cargos                                          |
-| channelInfo    | enabled  | Info do canal + lista                                    |
-| channels       | enabled  | Gerenciamento de canais/categorias                       |
-| voiceStatus    | enabled  | Consulta de estado de voz                                |
-| events         | enabled  | Listar/criar eventos agendados                           |
-| roles          | disabled | Adicionar/remover cargos                                 |
-| moderation     | disabled | Timeout/expulsar/banir                                   |
+| memberInfo     | enabled  | Informações do membro                 |
+| roleInfo       | enabled  | Lista de cargos                       |
+| channelInfo    | enabled  | Info do canal + lista                 |
+| channels       | enabled  | Gerenciamento de canais/categorias    |
+| voiceStatus    | enabled  | Consulta de estado de voz             |
+| events         | enabled  | Listar/criar eventos agendados        |
+| roles          | disabled | Adicionar/remover cargos              |
+| moderation     | disabled | Timeout/expulsar/banir                |
 | presence       | disabled | Status/atividade do bot (setPresence) |
 
 - `replyToMode`: `off` (padrão), `first` ou `all`. Aplica-se apenas quando o modelo inclui uma tag de resposta.

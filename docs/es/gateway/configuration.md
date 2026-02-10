@@ -1545,12 +1545,12 @@ Establézcalo en `"auto"` para derivar `[{identity.name}]` para el agente enruta
 
 La cadena `responsePrefix` puede incluir variables de plantilla que se resuelven dinámicamente:
 
-| Variable          | Descripción                       | Ejemplo                                         |
-| ----------------- | --------------------------------- | ----------------------------------------------- |
-| `{model}`         | Nombre corto del modelo           | `claude-opus-4-6`, `gpt-4o`                     |
-| `{modelFull}`     | Identificador completo del modelo | `anthropic/claude-opus-4-6`                     |
-| `{provider}`      | Nombre del proveedor              | `anthropic`, `openai`                           |
-| `{thinkingLevel}` | Nivel de pensamiento actual       | `high`, `low`, `off`                            |
+| Variable          | Descripción                       | Ejemplo                      |
+| ----------------- | --------------------------------- | ---------------------------- |
+| `{model}`         | Nombre corto del modelo           | `claude-opus-4-6`, `gpt-4o`  |
+| `{modelFull}`     | Identificador completo del modelo | `anthropic/claude-opus-4-6`  |
+| `{provider}`      | Nombre del proveedor              | `anthropic`, `openai`        |
+| `{thinkingLevel}` | Nivel de pensamiento actual       | `high`, `low`, `off`         |
 | `{identity.name}` | Nombre de identidad del agente    | (igual que el modo `"auto"`) |
 
 Las variables no distinguen mayúsculas/minúsculas (`{MODEL}` = `{model}`). `{think}` es un alias de `{thinkingLevel}`.
@@ -2265,8 +2265,8 @@ Anulación por agente (restricción adicional):
   agents: {
     list: [
       {
-        id: "family", Herramientas
-        : {
+        id: "family",
+        Herramientas: {
           elevado: { enabled: false },
         },
       },
@@ -2913,8 +2913,8 @@ Valores predeterminados:
     activado: true,
     evaluateEnabled: true,
     // cdpUrl: "http://127. .0. :18792", // legado un solo perfil anular
-    defaultProfile: "chrome", Perfiles
-    : {
+    defaultProfile: "chrome",
+    Perfiles: {
       openclaw: { cdpPort: 18800, color: "#FF4500" },
       trabajo: { cdpPort: 18801, color: "#0066CC" },
       remote: { cdpUrl: "http://10. .0.42:9222", color: "#00AA00" },
@@ -3319,8 +3319,8 @@ Los certificados autogenerados requieren 'openssl' en PATH; si la generación fa
 ```json5
 {
   bridge: {
-    activado: true, Puerto
-    : 18790,
+    activado: true,
+    Puerto: 18790,
     bind: "tailnet",
     tls: {
       habilitado: true,
@@ -3384,16 +3384,16 @@ Los marcadores de posición de plantillas se expanden en `tools.media.*.models[]
 \| `{{IsNewSession}}` | `"true"` cuando se creó una nueva sesión |
 \| `{{MediaUrl}}` | Inbound media pseudo-URL (si está presente) |
 \| `{{MediaPath}}` | `{{MediaPath}}` | Local media path (si está descargado) |
-\| `{{MediaType}}` | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Transcripción de audio (cuando está habilitada)                                 |
-\| `{{Prompt}}`       | Prompt de medios resuelto para entradas de CLI                                  |
-\| `{{MaxChars}}`     | Máximo de caracteres de salida resuelto para entradas de CLI                    |
-\| `{{ChatType}}`     | `"direct"` o `"group"`                                                       |
-\| `{{GroupSubject}}` | Asunto del grupo (mejor esfuerzo)                                                |
-\| `{{GroupMembers}}` | Vista previa de los miembros del grupo (mejor esfuerzo)                         |
-\| `{{SenderName}}`   | Nombre para mostrar del remitente (mejor esfuerzo)                              |
-\| `{{SenderE164}}`   | Número de teléfono del remitente (mejor esfuerzo)                               |
-\| `{{Provider}}`     | Pista del proveedor (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Transcripción de audio (cuando está habilitada) |
+\| `{{Prompt}}` | Prompt de medios resuelto para entradas de CLI |
+\| `{{MaxChars}}` | Máximo de caracteres de salida resuelto para entradas de CLI |
+\| `{{ChatType}}` | `"direct"` o `"group"` |
+\| `{{GroupSubject}}` | Asunto del grupo (mejor esfuerzo) |
+\| `{{GroupMembers}}` | Vista previa de los miembros del grupo (mejor esfuerzo) |
+\| `{{SenderName}}` | Nombre para mostrar del remitente (mejor esfuerzo) |
+\| `{{SenderE164}}` | Número de teléfono del remitente (mejor esfuerzo) |
+\| `{{Provider}}` | Pista del proveedor (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Planificador de Gateway)
 

@@ -377,11 +377,11 @@ reakcję potwierdzenia po odpowiedzi bota.
 
 Domyślnie OpenClaw odpowiada w głównym kanale. Użyj `channels.slack.replyToMode`, aby kontrolować automatyczne wątkowanie:
 
-| Tryb    | Zachowanie                                                                                                                                                                                                                          |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Domyślny.** Odpowiedź w głównym kanale. Wątek tylko wtedy, gdy wiadomość wyzwalająca była już w wątku.                                                                            |
+| Tryb    | Zachowanie                                                                                                                                                                       |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Domyślny.** Odpowiedź w głównym kanale. Wątek tylko wtedy, gdy wiadomość wyzwalająca była już w wątku.                                                                         |
 | `first` | Pierwsza odpowiedź trafia do wątku (pod wiadomością wyzwalającą), kolejne odpowiedzi do głównego kanału. Przydatne do zachowania kontekstu przy ograniczaniu bałaganu w wątkach. |
-| `all`   | Wszystkie odpowiedzi trafiają do wątku. Utrzymuje rozmowy w jednym miejscu, ale może zmniejszać widoczność.                                                                                         |
+| `all`   | Wszystkie odpowiedzi trafiają do wątku. Utrzymuje rozmowy w jednym miejscu, ale może zmniejszać widoczność.                                                                      |
 
 Tryb dotyczy zarówno automatycznych odpowiedzi, jak i wywołań narzędzi agenta (`slack sendMessage`).
 

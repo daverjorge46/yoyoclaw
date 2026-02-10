@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Referencja konfiguracji
 
-| Opcja                    | Opis                                                                                                | Domyślne                                                                                             |
-| ------------------------ | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Włącza sterowanie przeglądarką                                                                      | `true`                                                                                               |
+| Opcja                    | Opis                                                                             | Domyślne                                                                          |
+| ------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `browser.enabled`        | Włącza sterowanie przeglądarką                                                   | `true`                                                                            |
 | `browser.executablePath` | Ścieżka do binarki przeglądarki opartej na Chromium (Chrome/Brave/Edge/Chromium) | automatycznie wykrywana (preferuje domyślną przeglądarkę, gdy oparta na Chromium) |
-| `browser.headless`       | Uruchamianie bez GUI                                                                                | `false`                                                                                              |
-| `browser.noSandbox`      | Dodaje flagę `--no-sandbox` (wymaganą w niektórych konfiguracjach Linuksa)       | `false`                                                                                              |
-| `browser.attachOnly`     | Nie uruchamia przeglądarki, tylko dołącza do istniejącej                                            | `false`                                                                                              |
-| `browser.cdpPort`        | Port Chrome DevTools Protocol                                                                       | `18800`                                                                                              |
+| `browser.headless`       | Uruchamianie bez GUI                                                             | `false`                                                                           |
+| `browser.noSandbox`      | Dodaje flagę `--no-sandbox` (wymaganą w niektórych konfiguracjach Linuksa)       | `false`                                                                           |
+| `browser.attachOnly`     | Nie uruchamia przeglądarki, tylko dołącza do istniejącej                         | `false`                                                                           |
+| `browser.cdpPort`        | Port Chrome DevTools Protocol                                                    | `18800`                                                                           |
 
 ### Problem: „Chrome extension relay is running, but no tab is connected”
 

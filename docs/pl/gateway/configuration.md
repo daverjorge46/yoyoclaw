@@ -1550,12 +1550,12 @@ Ustaw na `"auto"` aby uzyskać `[{identity.name}]` dla przekierowanego agenta (g
 
 Ciąg `responsePrefix` może zawierać zmienne szablonu, które rozwiązują dynamicznie:
 
-| Zmienna           | Opis                         | Przykład                                        |
-| ----------------- | ---------------------------- | ----------------------------------------------- |
-| `{model}`         | Krótka nazwa modelu          | `claude-opus-4-6`, `gpt-4o`                     |
-| `{modelFull}`     | Identyfikator pełnego modelu | `anthropic/claudeopus-4-6`                      |
-| `{provider}`      | Nazwa dostawcy               | `anthropic`, `openai`                           |
-| `{thinkingLevel}` | Bieżący poziom myślenia      | `wysoki`, `niski`, `off`                        |
+| Zmienna           | Opis                         | Przykład                     |
+| ----------------- | ---------------------------- | ---------------------------- |
+| `{model}`         | Krótka nazwa modelu          | `claude-opus-4-6`, `gpt-4o`  |
+| `{modelFull}`     | Identyfikator pełnego modelu | `anthropic/claudeopus-4-6`   |
+| `{provider}`      | Nazwa dostawcy               | `anthropic`, `openai`        |
+| `{thinkingLevel}` | Bieżący poziom myślenia      | `wysoki`, `niski`, `off`     |
 | `{identity.name}` | Nazwa tożsamości agenta      | (tak samo jak tryb "auto"\`) |
 
 Zmienne są niewrażliwe na wielkość liter (`{MODEL}` = `{model}`). `{think}` jest aliasem dla `{thinkingLevel}`.
@@ -1733,8 +1733,8 @@ Przykład: Opus 4.6 podstawowy z awaryjnym miniMax M2.1 (hosted MiniMax):
       models: {
         "anthropic/claude-opus-4-6": { alias: "opus" },
         "minimax/MiniMax-M2. ": { alias: "minimax" },
-      }, Model
-      : {
+      },
+      Model: {
         primary: "anthropic/claude-opus-4-6",
         spada: ["minimax/MiniMax-M2. "],
       },
@@ -2120,17 +2120,17 @@ Przykład:
     media: {
       audio: {
         włączone: true,
-        maxBajty: 20971520, Zakres
-        : {
-          domyślnie: "deny", Reguły
-          : [{ action: "allow", dopasowanie: { chatType: "direct" } }],
+        maxBajty: 20971520,
+        Zakres: {
+          domyślnie: "deny",
+          Reguły: [{ action: "allow", dopasowanie: { chatType: "direct" } }],
         },
         modele: [
           { provider: "openai", model: "gpt-4o-mini-transcribe" },
           { type: "cli", command: "whisper", args: ["--model", "base", "{{MediaPath}}"] },
         ],
-      }, Film
-      : {
+      },
+      Film: {
         włączony: true,
         maxBytes: 52428800,
         modely: [{ provider: "google", model: "gemini-3-flash-preview" }],
@@ -2270,8 +2270,8 @@ Nadpisanie perczynnika (dalsze ograniczenie):
   agents: {
     list: [
       {
-        id: "family", Narzędzia
-        : {
+        id: "family",
+        Narzędzia: {
           podwyższone: { enabled: false },
         },
       },
@@ -3395,16 +3395,16 @@ Szablonowe symbole są rozszerzone w `tools.media.*.models[].args` i `tools.medi
 \| `{{IsNewSession}}` | `"true"` gdy nowa sesja została utworzona |
 \| `{{MediaUrl}}` | Pseudo-URL mediów przychodzących (jeśli obecnie) |
 \| `{{MediaPath}}` | Lokalna ścieżka mediów (jeśli pobrana) |
-\| `{{MediaType}}` | Typ mediów (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{MediaType}}` | Typ mediów (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

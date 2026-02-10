@@ -14,7 +14,7 @@ sidebarTitle: "CLI automation"
 <Note>
 
 `--json` は非対話型モードを意味するものではありません。スクリプトでは `--non-interactive`（および `--workspace`）を使用してください。
- スクリプトには `--非対話型` (と `--workspace` )を使用します。
+スクリプトには `--非対話型` (と `--workspace` )を使用します。
 </Note>
 
 ## ベースラインの非対話型例

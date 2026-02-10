@@ -156,15 +156,15 @@ Detta är verktyget som agenten anropar för att skapa underagenter.
 
 ### Parametrar
 
-| Parameter           | Typ                  | Default                                 | Description                                                                                   |
-| ------------------- | -------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `task`              | string               | _(obligatorisk)_     | Vad underagenten ska göra                                                                     |
-| `etikett`           | string               | —                                       | Kort etikett för identifiering                                                                |
-| `agentId`           | string               | _(anroparens agent)_ | Skapa under en annan agent-id (måste vara tillåtet)                        |
-| `Modell`            | string               | _(valfri)_           | Åsidosätt modellen för denna underagent                                                       |
-| `thinking`          | string               | _(valfri)_           | Åsidosätt tänkenivå (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | nummer               | `0` (ingen gräns)    | Avbryt underagenten efter N sekunder                                                          |
-| `rensa upp`         | "delete" \\| "keep" | "keep"                                  | "delete" arkiverar omedelbart efter annonsering                                               |
+| Parameter           | Typ         | Default              | Description                                                |
+| ------------------- | ----------- | -------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
+| `task`              | string      | _(obligatorisk)_     | Vad underagenten ska göra                                  |
+| `etikett`           | string      | —                    | Kort etikett för identifiering                             |
+| `agentId`           | string      | _(anroparens agent)_ | Skapa under en annan agent-id (måste vara tillåtet)        |
+| `Modell`            | string      | _(valfri)_           | Åsidosätt modellen för denna underagent                    |
+| `thinking`          | string      | _(valfri)_           | Åsidosätt tänkenivå (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | nummer      | `0` (ingen gräns)    | Avbryt underagenten efter N sekunder                       |
+| `rensa upp`         | "delete" \\ | "keep"               | "keep"                                                     | "delete" arkiverar omedelbart efter annonsering |
 
 ### Ordning för modellupplösning
 
@@ -203,20 +203,20 @@ Som standard kan underagenter endast skapas under sin egen agent-id. 1. För att
 }
 ```
 
-<Tip>3. 
+<Tip>3.
 Använd verktyget `agents_list` för att ta reda på vilka agent-id:n som för närvarande är tillåtna för `sessions_spawn`.</Tip>
 
 ## 4. Hantering av underagenter (`/subagents`)
 
 5. Använd snedstreckskommandot `/subagents` för att granska och styra körningar av underagenter för den aktuella sessionen:
 
-| Kommando                                   | Beskrivning                                                                                              |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `/subagents list`                          | 6. Lista alla körningar av underagenter (aktiva och slutförda) |
-| `/subagents stop <id\\|#\\|all>`         | 7. Stoppa en körande underagent                                                   |
-| `/subagents log <id\\|#> [limit] [tools]` | 8. Visa underagentens transkript                                                  |
-| `/subagents info <id\\|#>`                | 9. Visa detaljerad körningsmetadata                                               |
-| `/subagents send <id\\|#> <message>`      | 10. Skicka ett meddelande till en körande underagent                              |
+| Kommando               | Beskrivning                                                    |
+| ---------------------- | -------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------- |
+| `/subagents list`      | 6. Lista alla körningar av underagenter (aktiva och slutförda) |
+| `/subagents stop <id\\ | #\\                                                            | all>`                                                | 7. Stoppa en körande underagent |
+| `/subagents log <id\\  | #> [limit] [tools]`                                            | 8. Visa underagentens transkript                     |
+| `/subagents info <id\\ | #>`                                                            | 9. Visa detaljerad körningsmetadata                  |
+| `/subagents send <id\\ | #> <message>`                                                  | 10. Skicka ett meddelande till en körande underagent |
 
 11. Du kan referera till underagenter via listindex (`1`, `2`), kör-id-prefix, fullständig sessionsnyckel eller `last`.
 
@@ -234,11 +234,11 @@ Använd verktyget `agents_list` för att ta reda på vilka agent-id:n som för n
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -272,7 +272,7 @@ Använd verktyget `agents_list` för att ta reda på vilka agent-id:n som för n
 
     ````
     17. Visar de senaste 10 meddelandena från underagentens transkript. Lägg till `tools` för att inkludera meddelanden om verktygsanrop:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -296,8 +296,8 @@ Använd verktyget `agents_list` för att ta reda på vilka agent-id:n som för n
 21. När en underagent avslutas går den igenom ett **announce**-steg:
 
 1. 22. Underagentens slutliga svar fångas
-2. 23. Ett sammanfattningsmeddelande skickas till huvudagentens session med resultat, status och statistik
-3. 24. Huvudagenten publicerar en sammanfattning i naturligt språk i din chatt
+1. 23. Ett sammanfattningsmeddelande skickas till huvudagentens session med resultat, status och statistik
+1. 24. Huvudagenten publicerar en sammanfattning i naturligt språk i din chatt
 
 Announce-svar bevarar tråd-/ämnesroutning när det finns (Slack-trådar, Telegram-ämnen, Matrix-trådar).
 
@@ -416,40 +416,41 @@ Underagenten får också en uppgiftsfokuserad systemprompt som instruerar den at
 
 <Accordion title="Complete sub-agent configuration">```json5
 {
-  agents: {
-    defaults: {
-      model: { primary: "anthropic/claude-sonnet-4" },
-      subagents: {
-        model: "minimax/MiniMax-M2.1",
-        thinking: "low",
-        maxConcurrent: 4,
-        archiveAfterMinutes: 30,
-      },
-    },
-    list: [
-      {
-        id: "main",
-        default: true,
-        name: "Personal Assistant",
-      },
-      {
-        id: "ops",
-        name: "Ops Agent",
-        subagents: {
-          model: "anthropic/claude-sonnet-4",
-          allowAgents: ["main"], // ops can spawn sub-agents under "main"
-        },
-      },
-    ],
-  },
-  tools: {
-    subagents: {
-      tools: {
-        deny: ["browser"], // sub-agents can't use the browser
-      },
-    },
-  },
+agents: {
+defaults: {
+model: { primary: "anthropic/claude-sonnet-4" },
+subagents: {
+model: "minimax/MiniMax-M2.1",
+thinking: "low",
+maxConcurrent: 4,
+archiveAfterMinutes: 30,
+},
+},
+list: [
+{
+id: "main",
+default: true,
+name: "Personal Assistant",
+},
+{
+id: "ops",
+name: "Ops Agent",
+subagents: {
+model: "anthropic/claude-sonnet-4",
+allowAgents: ["main"], // ops can spawn sub-agents under "main"
+},
+},
+],
+},
+tools: {
+subagents: {
+tools: {
+deny: ["browser"], // sub-agents can't use the browser
+},
+},
+},
 }
+
 ```</Accordion>
 
 ## Begränsningar
@@ -467,3 +468,4 @@ Underagenten får också en uppgiftsfokuserad systemprompt som instruerar den at
 - [Multi-Agent Sandbox and Tools](/tools/multi-agent-sandbox-tools) — per-agent tool restrictions and sandboxing
 - [Configuration](/gateway/configuration) — `agents.defaults.subagents` reference
 - [Queue](/concepts/queue) — how the `subagent` lane works
+```

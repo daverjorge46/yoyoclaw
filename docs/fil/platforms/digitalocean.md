@@ -16,13 +16,13 @@ Kung gusto mo ng $0/buwan na opsyon at ayos lang sa iyo ang ARM + provider-speci
 
 ## Paghahambing ng Gastos (2026)
 
-| Provider     | Plan            | Specs                     | Presyo/buwan                                                   | Mga tala                                    |
-| ------------ | --------------- | ------------------------- | -------------------------------------------------------------- | ------------------------------------------- |
-| Oracle Cloud | Always Free ARM | hanggang 4 OCPU, 24GB RAM | $0                                                             | ARM, limitadong capacity / quirks sa signup |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | €3.79 (~$4) | Pinakamurang bayad na opsyon                |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6                                                             | Madaling UI, magagandang docs               |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6                                                             | Maraming lokasyon                           |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5                                                             | Bahagi na ngayon ng Akamai                  |
+| Provider     | Plan            | Specs                     | Presyo/buwan | Mga tala                                    |
+| ------------ | --------------- | ------------------------- | ------------ | ------------------------------------------- |
+| Oracle Cloud | Always Free ARM | hanggang 4 OCPU, 24GB RAM | $0           | ARM, limitadong capacity / quirks sa signup |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | €3.79 (~$4)  | Pinakamurang bayad na opsyon                |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6           | Madaling UI, magagandang docs               |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6           | Maraming lokasyon                           |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5           | Bahagi na ngayon ng Akamai                  |
 
 **Pagpili ng provider:**
 

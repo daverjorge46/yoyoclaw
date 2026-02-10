@@ -28,12 +28,12 @@ OpenClaw uses the pi SDK to embed an AI coding agent into its messaging gateway 
 }
 ```
 
-| Package           | Purpose                                                                                                              |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Package           | Purpose                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
 | `pi-ai`           | بنیادی LLM تجریدات: `Model`, `streamSimple`, پیغام کی اقسام، فراہم کنندہ APIs                        |
-| `pi-agent-core`   | ایجنٹ لوپ، ٹول ایکزیکیوشن، `AgentMessage` اقسام                                                                      |
+| `pi-agent-core`   | ایجنٹ لوپ، ٹول ایکزیکیوشن، `AgentMessage` اقسام                                                      |
 | `pi-coding-agent` | اعلیٰ سطحی SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, بلٹ اِن ٹولز |
-| `pi-tui`          | ٹرمینل UI اجزاء (OpenClaw کے لوکل TUI موڈ میں استعمال ہوتے ہیں)                                   |
+| `pi-tui`          | ٹرمینل UI اجزاء (OpenClaw کے لوکل TUI موڈ میں استعمال ہوتے ہیں)                                      |
 
 ## فائل اسٹرکچر
 
@@ -511,15 +511,15 @@ import { ... } from "@mariozechner/pi-tui";
 
 ## Pi CLI سے کلیدی فرق
 
-| Aspect          | Pi CLI                              | OpenClaw Embedded                                                                                                 |
-| --------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` کمانڈ / RPC                    | SDK بذریعہ `createAgentSession()`                                                                                 |
-| Tools           | ڈیفالٹ کوڈنگ ٹولز                   | حسبِ ضرورت OpenClaw ٹول سوٹ                                                                                       |
-| System prompt   | AGENTS.md + پرامپٹس | فی چینل/سیاق متحرک                                                                                                |
-| Session storage | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (یا `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth            | واحد اسناد                          | روٹیشن کے ساتھ ملٹی پروفائل                                                                                       |
-| Extensions      | ڈسک سے لوڈ کیے جاتے ہیں             | پروگراماتی + ڈسک راستے                                                                                            |
-| Event handling  | TUI رینڈرنگ                         | کال بیک پر مبنی (onBlockReply وغیرہ)                                                           |
+| Aspect          | Pi CLI                  | OpenClaw Embedded                                                                              |
+| --------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
+| Invocation      | `pi` کمانڈ / RPC        | SDK بذریعہ `createAgentSession()`                                                              |
+| Tools           | ڈیفالٹ کوڈنگ ٹولز       | حسبِ ضرورت OpenClaw ٹول سوٹ                                                                    |
+| System prompt   | AGENTS.md + پرامپٹس     | فی چینل/سیاق متحرک                                                                             |
+| Session storage | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (یا `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth            | واحد اسناد              | روٹیشن کے ساتھ ملٹی پروفائل                                                                    |
+| Extensions      | ڈسک سے لوڈ کیے جاتے ہیں | پروگراماتی + ڈسک راستے                                                                         |
+| Event handling  | TUI رینڈرنگ             | کال بیک پر مبنی (onBlockReply وغیرہ)                                                           |
 
 ## مستقبل کے لیے غور و فکر
 

@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### อ้างอิงคอนฟิก
 
-| Option                   | Description                                                                                 | Default                                                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | เปิดใช้งานการควบคุมเบราว์เซอร์                                                              | `true`                                                                                              |
+| Option                   | Description                                                              | Default                                                                          |
+| ------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `browser.enabled`        | เปิดใช้งานการควบคุมเบราว์เซอร์                                           | `true`                                                                           |
 | `browser.executablePath` | พาธไปยังไบนารีของเบราว์เซอร์ที่อิง Chromium (Chrome/Brave/Edge/Chromium) | ตรวจจับอัตโนมัติ (ให้ความสำคัญกับเบราว์เซอร์ค่าเริ่มต้นเมื่อเป็น Chromium-based) |
-| `browser.headless`       | รันโดยไม่ใช้ GUI                                                                            | `false`                                                                                             |
-| `browser.noSandbox`      | เพิ่มแฟล็ก `--no-sandbox` (จำเป็นสำหรับบางการตั้งค่า Linux)              | `false`                                                                                             |
-| `browser.attachOnly`     | ไม่ต้องเปิดเบราว์เซอร์ ให้เชื่อมต่อกับที่มีอยู่เท่านั้น                                     | `false`                                                                                             |
-| `browser.cdpPort`        | พอร์ต Chrome DevTools Protocol                                                              | `18800`                                                                                             |
+| `browser.headless`       | รันโดยไม่ใช้ GUI                                                         | `false`                                                                          |
+| `browser.noSandbox`      | เพิ่มแฟล็ก `--no-sandbox` (จำเป็นสำหรับบางการตั้งค่า Linux)              | `false`                                                                          |
+| `browser.attachOnly`     | ไม่ต้องเปิดเบราว์เซอร์ ให้เชื่อมต่อกับที่มีอยู่เท่านั้น                  | `false`                                                                          |
+| `browser.cdpPort`        | พอร์ต Chrome DevTools Protocol                                           | `18800`                                                                          |
 
 ### ปัญหา: "Chrome extension relay is running, but no tab is connected"
 

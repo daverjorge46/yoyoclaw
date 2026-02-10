@@ -933,7 +933,7 @@ SaaS.
 
 Destaques:
 
-- **Seus dispositivos, seus dados:** rode o Gateway onde quiser (Mac, Linux, VPS) e mantenha o espaço* histórico de sessões local.
+- **Seus dispositivos, seus dados:** rode o Gateway onde quiser (Mac, Linux, VPS) e mantenha o espaço\* histórico de sessões local.
 - **Canais reais, não uma sandbox web:** WhatsApp/Telegram/Slack/Discord/Signal/iMessage/etc,
   mais voz móvel e tela nas plataformas suportadas.
 - **Model-agnostic:** use Anthropic, OpenAI, MiniMax, OpenRouter, etc com o roteamento por agente
@@ -1258,8 +1258,8 @@ Relacionado: [Espaço do representante](/concepts/agent-workspace), [Memory](/co
 
 Tudo mora abaixo de `$OPENCLAW_STATE_DIR` (padrão: `~/.openclaw`):
 
-| Caminho                                                         | Propósito                                                                                   |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Caminho                                                         | Propósito                                                                |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Configuração principal (JSON5)                                           |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Importação de OAuth antiga (copiada para perfis de auth no primeiro uso) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Perfis de autenticação (OAuth + chaves de API)                           |
@@ -1745,7 +1745,7 @@ Envie `/new` ou `/reset` como uma mensagem independente. Ver [Gerenciamento de S
 ### Fazer sessões reiniciadas automaticamente se eu nunca enviar novas
 
 Sim. Sessões expiram após `session.idleMinutes` (padrão **60**). A mensagem
-**próxima** inicia um novo id de sessão para essa chave de bate-papo. Isso não exclui transcrições* só inicia uma nova sessão.
+**próxima** inicia um novo id de sessão para essa chave de bate-papo. Isso não exclui transcrições\* só inicia uma nova sessão.
 
 ```json5
 {

@@ -395,27 +395,27 @@ kazara Discord ping’lerini önlemek için göndericiyi `Member (PK:System)` ol
 
 ### Tool action defaults
 
-| Eylem grubu    | Varsayılan | Notlar                                                |
-| -------------- | ---------- | ----------------------------------------------------- |
-| reactions      | enabled    | Tepki ver + tepkileri listele + emojiList             |
-| stickers       | enabled    | Send stickers                                         |
-| emojiUploads   | enabled    | Emoji yükle                                           |
-| stickerUploads | enabled    | Upload stickers                                       |
-| polls          | enabled    | Anket oluştur                                         |
-| permissions    | enabled    | Kanal izin anlık görüntüsü                            |
-| messages       | enabled    | Oku/gönder/düzenle/sil                                |
-| threads        | enabled    | Oluştur/listele/yanıtla                               |
-| pins           | enabled    | Sabitle/kaldır/listele                                |
-| search         | enabled    | Mesaj arama (önizleme özelliği)    |
-| memberInfo     | enabled    | Üye bilgisi                                           |
-| roleInfo       | enabled    | Rol listesi                                           |
-| channelInfo    | enabled    | Kanal bilgisi + liste                                 |
-| channels       | enabled    | Kanal/kategori yönetimi                               |
-| voiceStatus    | enabled    | Voice state lookup                                    |
-| events         | enabled    | Zamanlanmış etkinlikleri listele/oluştur              |
-| roles          | disabled   | Rol ekle/çıkar                                        |
-| moderation     | disabled   | Zaman aşımı/atma/yasaklama                            |
-| presence       | disabled   | Bot durumu/etkinliği (setPresence) |
+| Eylem grubu    | Varsayılan | Notlar                                    |
+| -------------- | ---------- | ----------------------------------------- |
+| reactions      | enabled    | Tepki ver + tepkileri listele + emojiList |
+| stickers       | enabled    | Send stickers                             |
+| emojiUploads   | enabled    | Emoji yükle                               |
+| stickerUploads | enabled    | Upload stickers                           |
+| polls          | enabled    | Anket oluştur                             |
+| permissions    | enabled    | Kanal izin anlık görüntüsü                |
+| messages       | enabled    | Oku/gönder/düzenle/sil                    |
+| threads        | enabled    | Oluştur/listele/yanıtla                   |
+| pins           | enabled    | Sabitle/kaldır/listele                    |
+| search         | enabled    | Mesaj arama (önizleme özelliği)           |
+| memberInfo     | enabled    | Üye bilgisi                               |
+| roleInfo       | enabled    | Rol listesi                               |
+| channelInfo    | enabled    | Kanal bilgisi + liste                     |
+| channels       | enabled    | Kanal/kategori yönetimi                   |
+| voiceStatus    | enabled    | Voice state lookup                        |
+| events         | enabled    | Zamanlanmış etkinlikleri listele/oluştur  |
+| roles          | disabled   | Rol ekle/çıkar                            |
+| moderation     | disabled   | Zaman aşımı/atma/yasaklama                |
+| presence       | disabled   | Bot durumu/etkinliği (setPresence)        |
 
 - `replyToMode`: `off` (varsayılan), `first` veya `all`. Yalnızca model bir yanıt etiketi içerdiğinde uygulanır.
 

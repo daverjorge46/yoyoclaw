@@ -13,10 +13,10 @@ title: "Claude Max API Proxy"
 
 ## 為什麼要使用？
 
-| 方案            | 成本                                                                                     | 最適合                          |
-| ------------- | -------------------------------------------------------------------------------------- | ---------------------------- |
-| Anthropic API | Pay per token (~$15/M input, $75/M output for Opus) | Production apps, high volume |
-| Claude Max 訂閱 | 每月 $200 固定費用                                                                           | 個人使用、開發、無限使用                 |
+| 方案            | 成本                                                | 最適合                       |
+| --------------- | --------------------------------------------------- | ---------------------------- |
+| Anthropic API   | Pay per token (~$15/M input, $75/M output for Opus) | Production apps, high volume |
+| Claude Max 訂閱 | 每月 $200 固定費用                                  | 個人使用、開發、無限使用     |
 
 如果你已經擁有 Claude Max 訂閱，並希望將它用於 OpenAI 相容的工具，這個 Proxy 可以為你節省可觀的費用。
 
@@ -90,7 +90,7 @@ curl http://localhost:3456/v1/chat/completions \
 
 ## 可用模型
 
-| 模型 ID             | Maps To         |
+| 模型 ID           | Maps To         |
 | ----------------- | --------------- |
 | `claude-opus-4`   | Claude Opus 4   |
 | `claude-sonnet-4` | Claude Sonnet 4 |

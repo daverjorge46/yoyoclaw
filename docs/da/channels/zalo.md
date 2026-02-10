@@ -127,16 +127,16 @@ Understøttelse af flere konti: brug `channels.zalo.accounts` med tokens pr. kon
 
 ## Funktioner
 
-| Funktion                             | Status                                            |
-| ------------------------------------ | ------------------------------------------------- |
-| Direkte beskeder                     | ✅ Understøttet                                    |
-| Grupper                              | ❌ Kommer snart (ifølge Zalo)   |
-| Medier (billeder) | ✅ Understøttet                                    |
-| Reaktioner                           | ❌ Ikke understøttet                               |
-| Tråde                                | ❌ Ikke understøttet                               |
-| Afstemninger                         | ❌ Ikke understøttet                               |
-| Native kommandoer                    | ❌ Ikke understøttet                               |
-| Streaming                            | ⚠️ Blokeret (2000-tegnsgrænse) |
+| Funktion          | Status                         |
+| ----------------- | ------------------------------ |
+| Direkte beskeder  | ✅ Understøttet                |
+| Grupper           | ❌ Kommer snart (ifølge Zalo)  |
+| Medier (billeder) | ✅ Understøttet                |
+| Reaktioner        | ❌ Ikke understøttet           |
+| Tråde             | ❌ Ikke understøttet           |
+| Afstemninger      | ❌ Ikke understøttet           |
+| Native kommandoer | ❌ Ikke understøttet           |
+| Streaming         | ⚠️ Blokeret (2000-tegnsgrænse) |
 
 ## Leveringsmål (CLI/cron)
 

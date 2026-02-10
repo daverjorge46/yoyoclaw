@@ -14,7 +14,7 @@ sidebarTitle: "CLI automation"
 <Note>
 
 `--json` ไม่ได้หมายความว่าเป็นโหมดไม่โต้ตอบ ใช้ `--non-interactive` (และ `--workspace`) สำหรับสคริปต์
- ใช้ `--non-interactive` (และ `--workspace`) สำหรับสคริปต์
+ใช้ `--non-interactive` (และ `--workspace`) สำหรับสคริปต์
 </Note>
 
 ## ตัวอย่างพื้นฐานแบบไม่โต้ตอบ

@@ -282,12 +282,12 @@ channels:
 
 ### Mga karaniwang pattern
 
-| Layunin                                                                | Config                                                                                   |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Default na gawi (tahimik na OK, naka-on ang alerts) | _(walang kailangang config)_                                          |
+| Layunin                                             | Config                                                                                   |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Default na gawi (tahimik na OK, naka-on ang alerts) | _(walang kailangang config)_                                                             |
 | Ganap na tahimik (walang mensahe, walang indicator) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Indicator-only (walang mensahe)                     | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK sa isang channel lang                                               | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK sa isang channel lang                            | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (opsyonal)
 

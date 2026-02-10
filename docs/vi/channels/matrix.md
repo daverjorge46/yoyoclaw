@@ -12,7 +12,7 @@ title: "Matrix"
     bot trực tiếp hoặc mời nó vào các phòng ("groups" của Matrix). 35. Beeper cũng là một tùy chọn client hợp lệ,
     nhưng yêu cầu phải bật E2EE.
 
-36. Trạng thái: được hỗ trợ thông qua plugin (@vector-im/matrix-bot-sdk). Tin nhắn trực tiếp, phòng, luồng, media, reaction,
+33. Trạng thái: được hỗ trợ thông qua plugin (@vector-im/matrix-bot-sdk). Tin nhắn trực tiếp, phòng, luồng, media, reaction,
     thăm dò ý kiến (gửi + poll-start dưới dạng văn bản), vị trí và E2EE (có hỗ trợ crypto).
 
 ## Yêu cầu plugin
@@ -47,7 +47,6 @@ Chi tiết: [Plugins](/tools/plugin)
    - Hoặc tự host.
 
 3. Lấy access token cho tài khoản bot:
-
    - Dùng Matrix login API với `curl` tại homeserver của bạn:
 
    ```bash
@@ -136,9 +135,9 @@ Bật bằng `channels.matrix.encryption: true`:
 43. Nếu access token (thiết bị) thay đổi, một kho mới sẽ được tạo và bot phải được
     xác minh lại cho các phòng được mã hóa.
 
-45. **Xác minh thiết bị:**
+44. **Xác minh thiết bị:**
     Khi E2EE được bật, bot sẽ yêu cầu xác minh từ các phiên khác của bạn khi khởi động.
-46. Mở Element (hoặc client khác) và chấp thuận yêu cầu xác minh để thiết lập độ tin cậy.
+45. Mở Element (hoặc client khác) và chấp thuận yêu cầu xác minh để thiết lập độ tin cậy.
     Sau khi được xác minh, bot có thể giải mã tin nhắn trong các phòng được mã hóa.
 
 ## Mô hình định tuyến
@@ -195,17 +194,17 @@ Bật bằng `channels.matrix.encryption: true`:
 
 ## Khả năng
 
-| Tính năng          | Trạng thái                                                                                                 |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Tin nhắn trực tiếp | ✅ Hỗ trợ                                                                                                   |
-| Phòng              | ✅ Hỗ trợ                                                                                                   |
-| Luồng              | ✅ Hỗ trợ                                                                                                   |
-| Media              | ✅ Hỗ trợ                                                                                                   |
+| Tính năng          | Trạng thái                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Tin nhắn trực tiếp | ✅ Hỗ trợ                                                                                |
+| Phòng              | ✅ Hỗ trợ                                                                                |
+| Luồng              | ✅ Hỗ trợ                                                                                |
+| Media              | ✅ Hỗ trợ                                                                                |
 | E2EE               | ✅ Hỗ trợ (cần mô-đun crypto)                                                            |
 | Phản ứng           | ✅ Hỗ trợ (gửi/đọc qua công cụ)                                                          |
 | Thăm dò            | ✅ Hỗ trợ gửi; poll bắt đầu gửi vào được chuyển thành văn bản (bỏ qua phản hồi/kết thúc) |
 | Vị trí             | ✅ Hỗ trợ (URI địa lý; bỏ qua độ cao)                                                    |
-| Lệnh gốc           | ✅ Hỗ trợ                                                                                                   |
+| Lệnh gốc           | ✅ Hỗ trợ                                                                                |
 
 ## Xử lý sự cố
 

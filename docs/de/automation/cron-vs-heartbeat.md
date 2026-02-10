@@ -13,14 +13,14 @@ Sowohl Heartbeats als auch Cron-Jobs ermöglichen es Ihnen, Aufgaben nach einem 
 
 ## Schnellentscheidungshilfe
 
-| Fall verwenden                                | Empfohlen                              | Warum                                             |
-| --------------------------------------------- | -------------------------------------- | ------------------------------------------------- |
-| Posteingang alle 30 Min prüfen                | Heartbeat                              | Bündelt mit anderen Prüfungen, kontextbewusst     |
+| Fall verwenden                                | Empfohlen           | Warum                                             |
+| --------------------------------------------- | ------------------- | ------------------------------------------------- |
+| Posteingang alle 30 Min prüfen                | Heartbeat           | Bündelt mit anderen Prüfungen, kontextbewusst     |
 | Täglichen Bericht exakt um 9 Uhr senden       | Cron (isoliert)     | Exaktes Timing erforderlich                       |
-| Kalender auf bevorstehende Termine überwachen | Heartbeat                              | Natürliche Lösung für periodische Aufmerksamkeit  |
+| Kalender auf bevorstehende Termine überwachen | Heartbeat           | Natürliche Lösung für periodische Aufmerksamkeit  |
 | Wöchentliche Tiefenanalyse ausführen          | Cron (isoliert)     | Eigenständige Aufgabe, kann anderes Modell nutzen |
 | Erinnere mich in 20 Minuten                   | Cron (main, `--at`) | Einmalig mit präzisem Timing                      |
-| Hintergrund-Check zur Projektgesundheit       | Heartbeat                              | Nutzt bestehenden Zyklus mit                      |
+| Hintergrund-Check zur Projektgesundheit       | Heartbeat           | Nutzt bestehenden Zyklus mit                      |
 
 ## Heartbeat: Periodische Aufmerksamkeit
 
@@ -215,13 +215,13 @@ Siehe [Lobster](/tools/lobster) für vollständige Nutzung und Beispiele.
 
 Sowohl Heartbeat als auch Cron können mit der Hauptsitzung interagieren, jedoch unterschiedlich:
 
-|         | Heartbeat                             | Cron (main)                | Cron (isoliert)                       |
-| ------- | ------------------------------------- | --------------------------------------------- | -------------------------------------------------------- |
-| Sitzung | Main                                  | Main (über Systemereignis) | `cron:<jobId>`                                           |
-| Verlauf | Geteilt                               | Geteilt                                       | Bei jedem Lauf neu                                       |
-| Kontext | Vollständig                           | Vollständig                                   | Keiner (startet sauber)               |
-| Modell  | Modell der Hauptsitzung               | Modell der Hauptsitzung                       | Kann überschrieben werden                                |
-| Ausgabe | Zugestellt, wenn nicht `HEARTBEAT_OK` | Heartbeat-Prompt + Ereignis                   | Zusammenfassung ankündigen (Standard) |
+|         | Heartbeat                             | Cron (main)                 | Cron (isoliert)                       |
+| ------- | ------------------------------------- | --------------------------- | ------------------------------------- |
+| Sitzung | Main                                  | Main (über Systemereignis)  | `cron:<jobId>`                        |
+| Verlauf | Geteilt                               | Geteilt                     | Bei jedem Lauf neu                    |
+| Kontext | Vollständig                           | Vollständig                 | Keiner (startet sauber)               |
+| Modell  | Modell der Hauptsitzung               | Modell der Hauptsitzung     | Kann überschrieben werden             |
+| Ausgabe | Zugestellt, wenn nicht `HEARTBEAT_OK` | Heartbeat-Prompt + Ereignis | Zusammenfassung ankündigen (Standard) |
 
 ### Wann Sie Cron in der Hauptsitzung verwenden sollten
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Kostenüberlegungen
 
-| Mechanismus                        | Kostenprofil                                                                        |
-| ---------------------------------- | ----------------------------------------------------------------------------------- |
-| Heartbeat                          | Ein Zug alle N Minuten; skaliert mit der Größe von HEARTBEAT.md     |
+| Mechanismus     | Kostenprofil                                                     |
+| --------------- | ---------------------------------------------------------------- |
+| Heartbeat       | Ein Zug alle N Minuten; skaliert mit der Größe von HEARTBEAT.md  |
 | Cron (main)     | Fügt Ereignis zum nächsten Heartbeat hinzu (kein isolierter Zug) |
-| Cron (isoliert) | Voller Agenten-Zug pro Job; kann günstigeres Modell nutzen                          |
+| Cron (isoliert) | Voller Agenten-Zug pro Job; kann günstigeres Modell nutzen       |
 
 **Tipps**:
 

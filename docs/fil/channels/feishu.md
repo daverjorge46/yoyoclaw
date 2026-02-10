@@ -528,34 +528,34 @@ Buong konpigurasyon: [Gateway configuration](/gateway/configuration)
 
 Mga pangunahing opsyon:
 
-| Setting                                                      | Deskripsyon                                                         | Default   |
-| ------------------------------------------------------------ | ------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                                    | I-enable/i-disable ang channel                                      | `true`    |
-| `channels.feishu.domain`                                     | API domain (`feishu` o `lark`)                   | `feishu`  |
-| `channels.feishu.accounts.<id>``.appId`                      | App ID                                                              | -         |
-| `channels.feishu.accounts.<id>``.appSecret`                  | App Secret                                                          | -         |
-| `channels.feishu.accounts.<id>``.domain`                     | Per-account API domain override                                     | `feishu`  |
-| `channels.feishu.dmPolicy`                                   | DM policy                                                           | `pairing` |
-| `channels.feishu.allowFrom`                                  | DM allowlist (open_id list) | -         |
-| `channels.feishu.groupPolicy`                                | Group policy                                                        | `open`    |
-| `channels.feishu.groupAllowFrom`                             | Group allowlist                                                     | -         |
-| `channels.feishu.groups.<chat_id>``.requireMention`          | Kailangan ng @mention                                  | `true`    |
-| `channels.feishu.groups.<chat_id>`.enabled\` | I-enable ang group                                                  | `true`    |
-| `channels.feishu.textChunkLimit`                             | Laki ng message chunk                                               | `2000`    |
-| `channels.feishu.mediaMaxMb`                                 | Limit ng laki ng media                                              | `30`      |
-| `channels.feishu.streaming`                                  | I-enable ang streaming card output                                  | `true`    |
-| `channels.feishu.blockStreaming`                             | I-enable ang block streaming                                        | `true`    |
+| Setting                                             | Deskripsyon                        | Default   |
+| --------------------------------------------------- | ---------------------------------- | --------- |
+| `channels.feishu.enabled`                           | I-enable/i-disable ang channel     | `true`    |
+| `channels.feishu.domain`                            | API domain (`feishu` o `lark`)     | `feishu`  |
+| `channels.feishu.accounts.<id>``.appId`             | App ID                             | -         |
+| `channels.feishu.accounts.<id>``.appSecret`         | App Secret                         | -         |
+| `channels.feishu.accounts.<id>``.domain`            | Per-account API domain override    | `feishu`  |
+| `channels.feishu.dmPolicy`                          | DM policy                          | `pairing` |
+| `channels.feishu.allowFrom`                         | DM allowlist (open_id list)        | -         |
+| `channels.feishu.groupPolicy`                       | Group policy                       | `open`    |
+| `channels.feishu.groupAllowFrom`                    | Group allowlist                    | -         |
+| `channels.feishu.groups.<chat_id>``.requireMention` | Kailangan ng @mention              | `true`    |
+| `channels.feishu.groups.<chat_id>`.enabled\`        | I-enable ang group                 | `true`    |
+| `channels.feishu.textChunkLimit`                    | Laki ng message chunk              | `2000`    |
+| `channels.feishu.mediaMaxMb`                        | Limit ng laki ng media             | `30`      |
+| `channels.feishu.streaming`                         | I-enable ang streaming card output | `true`    |
+| `channels.feishu.blockStreaming`                    | I-enable ang block streaming       | `true`    |
 
 ---
 
 ## Sanggunian ng dmPolicy
 
-| Value         | Behavior                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| Value         | Behavior                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------- |
 | `"pairing"`   | **Default.** Ang mga hindi kilalang user ay nakakakuha ng pairing code; kailangang aprubahan |
-| `"allowlist"` | Tanging ang mga user sa `allowFrom` lang ang maaaring makipag-chat                                           |
-| `"open"`      | Payagan ang lahat ng user (kailangan ang `"*"` sa allowFrom)                              |
-| `"disabled"`  | I-disable ang mga DM                                                                                         |
+| `"allowlist"` | Tanging ang mga user sa `allowFrom` lang ang maaaring makipag-chat                           |
+| `"open"`      | Payagan ang lahat ng user (kailangan ang `"*"` sa allowFrom)                                 |
+| `"disabled"`  | I-disable ang mga DM                                                                         |
 
 ---
 

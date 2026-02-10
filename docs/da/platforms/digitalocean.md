@@ -16,13 +16,13 @@ Hvis du vil have en $0/måned-mulighed og ikke har noget imod ARM + udbyderspeci
 
 ## Prissammenligning (2026)
 
-| Udbyder      | Plan            | Specifikationer         | Pris/md.                       | Noter                                         |
-| ------------ | --------------- | ----------------------- | ---------------------------------------------- | --------------------------------------------- |
-| Oracle Cloud | Always Free ARM | op til 4 OCPU, 24GB RAM | $0                                             | ARM, begrænset kapacitet / tilmeldings-quirks |
+| Udbyder      | Plan            | Specifikationer         | Pris/md.    | Noter                                         |
+| ------------ | --------------- | ----------------------- | ----------- | --------------------------------------------- |
+| Oracle Cloud | Always Free ARM | op til 4 OCPU, 24GB RAM | $0          | ARM, begrænset kapacitet / tilmeldings-quirks |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM         | €3,79 (~$4) | Billigste betalte mulighed                    |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6                                             | Nem UI, god dokumentation                     |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6                                             | Mange lokationer                              |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5                                             | Nu en del af Akamai                           |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6          | Nem UI, god dokumentation                     |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6          | Mange lokationer                              |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5          | Nu en del af Akamai                           |
 
 **Valg af udbyder:**
 

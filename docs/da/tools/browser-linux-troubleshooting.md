@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Konfigurationsreference
 
-| Option                   | Beskrivelse                                                                               | Standard                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Aktivér browserkontrol                                                                    | `true`                                                                                          |
+| Option                   | Beskrivelse                                                            | Standard                                                                     |
+| ------------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `browser.enabled`        | Aktivér browserkontrol                                                 | `true`                                                                       |
 | `browser.executablePath` | Sti til en Chromium-baseret browser-binær (Chrome/Brave/Edge/Chromium) | auto-detekteret (foretrækker standardbrowseren, når den er Chromium-baseret) |
-| `browser.headless`       | Kør uden GUI                                                                              | `false`                                                                                         |
-| `browser.noSandbox`      | Tilføj `--no-sandbox`-flag (nødvendigt for nogle Linux-opsætninger)    | `false`                                                                                         |
-| `browser.attachOnly`     | Start ikke browseren, tilknyt kun til eksisterende                                        | `false`                                                                                         |
-| `browser.cdpPort`        | Chrome DevTools Protocol-port                                                             | `18800`                                                                                         |
+| `browser.headless`       | Kør uden GUI                                                           | `false`                                                                      |
+| `browser.noSandbox`      | Tilføj `--no-sandbox`-flag (nødvendigt for nogle Linux-opsætninger)    | `false`                                                                      |
+| `browser.attachOnly`     | Start ikke browseren, tilknyt kun til eksisterende                     | `false`                                                                      |
+| `browser.cdpPort`        | Chrome DevTools Protocol-port                                          | `18800`                                                                      |
 
 ### Problem: "Chrome extension relay is running, but no tab is connected"
 

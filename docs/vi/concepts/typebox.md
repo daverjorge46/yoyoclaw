@@ -22,7 +22,7 @@ Mỗi thông điệp WS của Gateway là một trong ba frame:
 - **Request**: `{ type: "req", id, method, params }`
 - **Response**: `{ type: "res", id, ok, payload | error }`
 - **Event**: `{ type: "event", event, payload, seq?, stateVersion?
-  }` Khung đầu tiên **phải** là một yêu cầu `connect`.
+}` Khung đầu tiên **phải** là một yêu cầu `connect`.
 
 Sau đó, client có thể gọi
 các phương thức (ví dụ: `health`, `send`, `chat.send`) và đăng ký sự kiện (ví dụ:

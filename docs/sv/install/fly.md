@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Viktiga inställningar:**
 
-| Inställning                    | Varför                                                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `--bind lan`                   | Binder till `0.0.0.0` så att Flys proxy kan nå gatewayen                                               |
+| Inställning                    | Varför                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `--bind lan`                   | Binder till `0.0.0.0` så att Flys proxy kan nå gatewayen                            |
 | `--allow-unconfigured`         | Startar utan en konfigfil (du skapar en senare)                                     |
 | `internal_port = 3000`         | Måste matcha `--port 3000` (eller `OPENCLAW_GATEWAY_PORT`) för Flys hälsokontroller |
-| `memory = "2048mb"`            | 512MB är för lite; 2GB rekommenderas                                                                   |
-| `OPENCLAW_STATE_DIR = "/data"` | Beständig lagring av tillstånd på volymen                                                              |
+| `memory = "2048mb"`            | 512MB är för lite; 2GB rekommenderas                                                |
+| `OPENCLAW_STATE_DIR = "/data"` | Beständig lagring av tillstånd på volymen                                           |
 
 ## 3. Sätt hemligheter
 

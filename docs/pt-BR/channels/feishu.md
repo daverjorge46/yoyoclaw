@@ -528,34 +528,34 @@ Configuração completa: [Configuração do Gateway](/gateway/configuration)
 
 Opções principais:
 
-| Configuração                                      | Descrição                                                                            | Padrão    |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------ | --------- |
-| `channels.feishu.enabled`                         | Ativar/desativar canal                                                               | `true`    |
-| `channels.feishu.domain`                          | Domínio da API (`feishu` ou `lark`)                               | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                               | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                                           | -         |
-| `channels.feishu.accounts.<id>.domain`            | Substituição de domínio da API por conta                                             | `feishu`  |
-| `channels.feishu.dmPolicy`                        | Política de DM                                                                       | `pairing` |
+| Configuração                                      | Descrição                                    | Padrão    |
+| ------------------------------------------------- | -------------------------------------------- | --------- |
+| `channels.feishu.enabled`                         | Ativar/desativar canal                       | `true`    |
+| `channels.feishu.domain`                          | Domínio da API (`feishu` ou `lark`)          | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                                       | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                   | -         |
+| `channels.feishu.accounts.<id>.domain`            | Substituição de domínio da API por conta     | `feishu`  |
+| `channels.feishu.dmPolicy`                        | Política de DM                               | `pairing` |
 | `channels.feishu.allowFrom`                       | Lista de permissões de DM (lista de open_id) | -         |
-| `channels.feishu.groupPolicy`                     | Política de grupo                                                                    | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Lista de permissões de grupo                                                         | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | Exigir @mention                                                         | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Ativar grupo                                                                         | `true`    |
-| `channels.feishu.textChunkLimit`                  | Tamanho do bloco de mensagem                                                         | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | Limite de tamanho de mídia                                                           | `30`      |
-| `channels.feishu.streaming`                       | Ativar saída de cartão em streaming                                                  | `true`    |
-| `channels.feishu.blockStreaming`                  | Ativar streaming em blocos                                                           | `true`    |
+| `channels.feishu.groupPolicy`                     | Política de grupo                            | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Lista de permissões de grupo                 | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | Exigir @mention                              | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Ativar grupo                                 | `true`    |
+| `channels.feishu.textChunkLimit`                  | Tamanho do bloco de mensagem                 | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | Limite de tamanho de mídia                   | `30`      |
+| `channels.feishu.streaming`                       | Ativar saída de cartão em streaming          | `true`    |
+| `channels.feishu.blockStreaming`                  | Ativar streaming em blocos                   | `true`    |
 
 ---
 
 ## Referência dmPolicy
 
-| Valor         | Comportamento                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
+| Valor         | Comportamento                                                                           |
+| ------------- | --------------------------------------------------------------------------------------- |
 | `"pairing"`   | **Padrão.** Usuários desconhecidos recebem um código de pareamento; devem ser aprovados |
-| `"allowlist"` | Apenas usuários em `allowFrom` podem conversar                                                          |
-| `"open"`      | Permitir todos os usuários (requer `"*"` em allowFrom)                               |
-| `"disabled"`  | Desativar DMs                                                                                           |
+| `"allowlist"` | Apenas usuários em `allowFrom` podem conversar                                          |
+| `"open"`      | Permitir todos os usuários (requer `"*"` em allowFrom)                                  |
+| `"disabled"`  | Desativar DMs                                                                           |
 
 ---
 

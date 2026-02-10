@@ -155,14 +155,14 @@ Voordat je OpenClaw configureert, moet je een Azure Bot-resource aanmaken.
 1. Ga naar [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. Vul het tabblad **Basics** in:
 
-   | Waarde             | Waarde                                                                                    |
-   | ------------------ | ----------------------------------------------------------------------------------------- |
-   | **Bot handle**     | Je botnaam, bijv. `openclaw-msteams` (moet uniek zijn) |
-   | **Subscription**   | Selecteer je Azure-abonnement                                                             |
-   | **Resource group** | Nieuw aanmaken of bestaand gebruiken                                                      |
-   | **Pricing tier**   | **Free** voor dev/test                                                                    |
-   | **Type of App**    | **Single Tenant** (aanbevolen – zie opmerking hieronder)               |
-   | **Creation type**  | **Create new Microsoft App ID**                                                           |
+   | Waarde             | Waarde                                                   |
+   | ------------------ | -------------------------------------------------------- |
+   | **Bot handle**     | Je botnaam, bijv. `openclaw-msteams` (moet uniek zijn)   |
+   | **Subscription**   | Selecteer je Azure-abonnement                            |
+   | **Resource group** | Nieuw aanmaken of bestaand gebruiken                     |
+   | **Pricing tier**   | **Free** voor dev/test                                   |
+   | **Type of App**    | **Single Tenant** (aanbevolen – zie opmerking hieronder) |
+   | **Creation type**  | **Create new Microsoft App ID**                          |
 
 > **Deprecatiebericht:** Het aanmaken van nieuwe multi-tenant bots is na 2025-07-31 afgeschaft. Gebruik **Single Tenant** voor nieuwe bots.
 
@@ -271,7 +271,6 @@ Dit is vaak eenvoudiger dan handmatig JSON-manifests bewerken.
    ```
 
    Je kunt ook omgevingsvariabelen gebruiken in plaats van config-sleutels:
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -404,12 +403,12 @@ Toevoegen:
 
 ### RSC vs Graph API
 
-| Mogelijkheid                | RSC-rechten                           | Graph API                                      |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- |
-| **Realtime berichten**      | Ja (via webhook)   | Nee (alleen polling)        |
-| **Historische berichten**   | Nee                                   | Ja (geschiedenis opvragen)  |
-| **Installatiecomplexiteit** | Alleen app-manifest                   | Vereist admin‑toestemming + tokenflow          |
-| **Werkt offline**           | Nee (moet draaien) | Ja (op elk moment opvragen) |
+| Mogelijkheid                | RSC-rechten         | Graph API                             |
+| --------------------------- | ------------------- | ------------------------------------- |
+| **Realtime berichten**      | Ja (via webhook)    | Nee (alleen polling)                  |
+| **Historische berichten**   | Nee                 | Ja (geschiedenis opvragen)            |
+| **Installatiecomplexiteit** | Alleen app-manifest | Vereist admin‑toestemming + tokenflow |
+| **Werkt offline**           | Nee (moet draaien)  | Ja (op elk moment opvragen)           |
 
 **Kortom:** RSC is voor realtime luisteren; Graph API is voor historische toegang. Om gemiste berichten in te halen terwijl je offline was, heb je Graph API nodig met `ChannelMessage.Read.All` (vereist admin‑toestemming).
 
@@ -482,10 +481,10 @@ Belangrijke instellingen (zie `/gateway/configuration` voor gedeelde kanaalpatro
 
 Teams introduceerde recent twee kanaal‑UI‑stijlen boven hetzelfde datamodel:
 
-| Stijl                                         | Beschrijving                                             | Aanbevolen `replyStyle`                 |
-| --------------------------------------------- | -------------------------------------------------------- | --------------------------------------- |
-| **Posts** (klassiek)       | Berichten verschijnen als kaarten met antwoorden eronder | `thread` (standaard) |
-| **Threads** (Slack‑achtig) | Berichten lopen lineair, meer zoals Slack                | `top-level`                             |
+| Stijl                      | Beschrijving                                             | Aanbevolen `replyStyle` |
+| -------------------------- | -------------------------------------------------------- | ----------------------- |
+| **Posts** (klassiek)       | Berichten verschijnen als kaarten met antwoorden eronder | `thread` (standaard)    |
+| **Threads** (Slack‑achtig) | Berichten lopen lineair, meer zoals Slack                | `top-level`             |
 
 **Het probleem:** De Teams‑API geeft niet bloot welke UI‑stijl een kanaal gebruikt. Gebruik je de verkeerde `replyStyle`:
 
@@ -526,11 +525,11 @@ Authorization‑headers worden alleen toegevoegd voor hosts in `channels.msteams
 
 Bots kunnen bestanden in DM’s verzenden via de FileConsentCard‑flow (ingebouwd). **Bestanden verzenden in groepschats/kanalen** vereist echter extra installatie:
 
-| Context                                   | Hoe bestanden worden verzonden                       | Benodigde setup                            |
-| ----------------------------------------- | ---------------------------------------------------- | ------------------------------------------ |
-| **DM’s**                                  | FileConsentCard → gebruiker accepteert → bot uploadt | Werkt out of the box                       |
-| **Groepschats/kanalen**                   | Upload naar SharePoint → deel‑link                   | Vereist `sharePointSiteId` + Graph‑rechten |
-| **Afbeeldingen (elk)** | Base64‑gecodeerd inline                              | Werkt out of the box                       |
+| Context                 | Hoe bestanden worden verzonden                       | Benodigde setup                            |
+| ----------------------- | ---------------------------------------------------- | ------------------------------------------ |
+| **DM’s**                | FileConsentCard → gebruiker accepteert → bot uploadt | Werkt out of the box                       |
+| **Groepschats/kanalen** | Upload naar SharePoint → deel‑link                   | Vereist `sharePointSiteId` + Graph‑rechten |
+| **Afbeeldingen (elk)**  | Base64‑gecodeerd inline                              | Werkt out of the box                       |
 
 ### Waarom groepschats SharePoint nodig hebben
 
@@ -573,8 +572,8 @@ Bots hebben geen persoonlijke OneDrive‑schijf (het `/me/drive` Graph API‑end
 
 ### Delen gedrag
 
-| Bevoegdheden                            | Delen gedrag                                                                     |
-| --------------------------------------- | -------------------------------------------------------------------------------- |
+| Bevoegdheden                            | Delen gedrag                                                  |
+| --------------------------------------- | ------------------------------------------------------------- |
 | `Sites.ReadWrite.All` alleen            | Organisatiebrede deel‑link (iedereen in de org heeft toegang) |
 | `Sites.ReadWrite.All` + `Chat.Read.All` | Per‑gebruiker deel‑link (alleen chatleden hebben toegang)     |
 
@@ -582,9 +581,9 @@ Per‑gebruiker delen is veiliger omdat alleen chatdeelnemers toegang hebben. Al
 
 ### Fallback‑gedrag
 
-| Scenario                                                 | Resultaat                                                                 |
-| -------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Groepschat + bestand + `sharePointSiteId` geconfigureerd | Upload naar SharePoint, stuur deel‑link                                   |
+| Scenario                                                 | Resultaat                                              |
+| -------------------------------------------------------- | ------------------------------------------------------ |
+| Groepschat + bestand + `sharePointSiteId` geconfigureerd | Upload naar SharePoint, stuur deel‑link                |
 | Groepschat + bestand + geen `sharePointSiteId`           | Poging OneDrive‑upload (kan falen), stuur alleen tekst |
 | Persoonlijke chat + bestand                              | FileConsentCard‑flow (werkt zonder SharePoint)         |
 | Elke context + afbeelding                                | Base64‑gecodeerd inline (werkt zonder SharePoint)      |
@@ -637,11 +636,11 @@ Zie [Adaptive Cards‑documentatie](https://adaptivecards.io/) voor schema en vo
 
 MSTeams‑doelen gebruiken prefixes om onderscheid te maken tussen gebruikers en conversaties:
 
-| Doeltype                               | Formaat                          | Voorbeeld                                                            |
-| -------------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
-| Gebruiker (op ID)   | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                          |
+| Doeltype            | Formaat                          | Voorbeeld                                         |
+| ------------------- | -------------------------------- | ------------------------------------------------- |
+| Gebruiker (op ID)   | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`       |
 | Gebruiker (op naam) | `user:<display-name>`            | `user:John Smith` (vereist Graph API)             |
-| Groep/kanaal                           | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                             |
+| Groep/kanaal        | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`          |
 | Groep/kanaal (raw)  | `<conversation-id>`              | `19:abc123...@thread.tacv2` (als `@thread` bevat) |
 
 **CLI‑voorbeelden:**
@@ -722,13 +721,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 Bots hebben beperkte ondersteuning in privékanalen:
 
-| Functie                                         | Standaardkanalen | Privékanalen                        |
-| ----------------------------------------------- | ---------------- | ----------------------------------- |
-| Bot‑installatie                                 | Ja               | Beperkt                             |
-| Realtime berichten (webhook) | Ja               | Werkt mogelijk niet                 |
-| RSC‑rechten                                     | Ja               | Kan anders werken                   |
-| @mentions                          | Ja               | Als bot toegankelijk is             |
-| Graph API‑geschiedenis                          | Ja               | Ja (met rechten) |
+| Functie                      | Standaardkanalen | Privékanalen            |
+| ---------------------------- | ---------------- | ----------------------- |
+| Bot‑installatie              | Ja               | Beperkt                 |
+| Realtime berichten (webhook) | Ja               | Werkt mogelijk niet     |
+| RSC‑rechten                  | Ja               | Kan anders werken       |
+| @mentions                    | Ja               | Als bot toegankelijk is |
+| Graph API‑geschiedenis       | Ja               | Ja (met rechten)        |
 
 **Workarounds als privékanalen niet werken:**
 

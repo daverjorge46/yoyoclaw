@@ -50,12 +50,12 @@ Hvis du ser `NODE_BACKGROUND_UNAVAILABLE`, så bring node-appen i forgrunden og 
 
 ## Tilladelsesmatrix
 
-| Kapabilitet                  | iOS                                                                     | Android                                                           | macOS node-app                                     | Typisk fejlkode                |
-| ---------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Kamera (+ mikrofon for kliplyd)                      | Kamera (+ mikrofon for kliplyd)                | Kamera (+ mikrofon for kliplyd) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Skærmoptagelse (+ mikrofon valgfri)                  | Prompt for skærmoptagelse (+ mikrofon valgfri) | Skærmoptagelse                                     | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Mens appen bruges eller Altid (afhænger af tilstand) | Forgrunds-/baggrundsplacering afhængigt af tilstand               | Placerings­tilladelse                              | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (node host path)                                 | n/a (node host path)                           | Exec-godkendelser kræves                           | `SYSTEM_RUN_DENIED`            |
+| Kapabilitet                  | iOS                                                  | Android                                             | macOS node-app                  | Typisk fejlkode                |
+| ---------------------------- | ---------------------------------------------------- | --------------------------------------------------- | ------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Kamera (+ mikrofon for kliplyd)                      | Kamera (+ mikrofon for kliplyd)                     | Kamera (+ mikrofon for kliplyd) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Skærmoptagelse (+ mikrofon valgfri)                  | Prompt for skærmoptagelse (+ mikrofon valgfri)      | Skærmoptagelse                  | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Mens appen bruges eller Altid (afhænger af tilstand) | Forgrunds-/baggrundsplacering afhængigt af tilstand | Placerings­tilladelse           | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (node host path)                                 | n/a (node host path)                                | Exec-godkendelser kræves        | `SYSTEM_RUN_DENIED`            |
 
 ## Parring versus godkendelser
 

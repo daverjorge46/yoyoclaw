@@ -123,8 +123,7 @@ Gerçek dünyadaki kurulumlar için hızlı yanıtlar ve daha derin sorun giderm
   - [How do I start a fresh conversation?](#how-do-i-start-a-fresh-conversation)
   - [`/new` hiç göndermesem oturumlar otomatik olarak sıfırlanır mı?](#do-sessions-reset-automatically-if-i-never-send-new)
   - [OpenClaw örneklerinden oluşan bir ekipte bir CEO ve birçok ajan olacak şekilde yapılandırmanın bir yolu var mı?](#is-there-a-way-to-make-a-team-of-openclaw-instances-one-ceo-and-many-agents)
-  - Bağlam neden görev ortasında kesildi?
-    4. Bunu nasıl önlerim? How do I prevent it?](#why-did-context-get-truncated-midtask-how-do-i-prevent-it)
+  - Bağlam neden görev ortasında kesildi? 4. Bunu nasıl önlerim? How do I prevent it?](#why-did-context-get-truncated-midtask-how-do-i-prevent-it)
   - [How do I completely reset OpenClaw but keep it installed?](#how-do-i-completely-reset-openclaw-but-keep-it-installed)
   - [I'm getting "context too large" errors - how do I reset or compact?](#im-getting-context-too-large-errors-how-do-i-reset-or-compact)
   - [Neden her 30 dakikada bir heartbeat mesajları alıyorum?](#why-am-i-getting-heartbeat-messages-every-30-minutes)
@@ -142,8 +141,7 @@ Gerçek dünyadaki kurulumlar için hızlı yanıtlar ve daha derin sorun giderm
   - [OpenClaw, Flawd ve Krill hangi modelleri kullanıyor?](#what-do-openclaw-flawd-and-krill-use-for-models)
   - [Yeniden başlatmadan, anında modelleri nasıl değiştiririm?](#how-do-i-switch-models-on-the-fly-without-restarting)
   - [Günlük işler için GPT 5.2’yi, kodlama için Codex 5.3’ü kullanabilir miyim?](#can-i-use-gpt-52-for-daily-tasks-and-codex-53-for-coding)
-  - Neden "Model …
-    24. is not allowed" görüyorum ve ardından yanıt gelmiyor?
+  - Neden "Model … 24. is not allowed" görüyorum ve ardından yanıt gelmiyor?
   - [Neden "Unknown model: minimax/MiniMax-M2.1" görüyorum?](#why-do-i-see-unknown-model-minimaxminimaxm21) [MiniMax’i varsayılan olarak, karmaşık görevler için OpenAI’yi kullanabilir miyim?](#can-i-use-minimax-as-my-default-and-openai-for-complex-tasks)
   - [opus / sonnet / gpt yerleşik kısayollar mı?](#are-opus-sonnet-gpt-builtin-shortcuts)
   - [Model kısayollarını (takma adları) nasıl tanımlarım/geçersiz kılarım?](#how-do-i-defineoverride-model-shortcuts-aliases)
@@ -424,7 +422,7 @@ Evet. 23. **State dizinini** ve **workspace**’i kopyalayın, sonra Doctor’ı
 31. **Önemli:** Yalnızca workspace’inizi GitHub’a commit/push ederseniz, **hafıza + bootstrap dosyalarını** yedeklemiş olursunuz, ancak oturum geçmişini veya doğrulamayı **yedeklemiş olmazsınız**. 32. Bunlar
     `~/.openclaw/` altında bulunur (örneğin `~/.openclaw/agents/<agentId>/sessions/`).
 
-33. İlgili: [Migrating](/install/migrating), [Where things live on disk](/help/faq#where-does-openclaw-store-its-data),
+32. İlgili: [Migrating](/install/migrating), [Where things live on disk](/help/faq#where-does-openclaw-store-its-data),
     [Agent workspace](/concepts/agent-workspace), [Doctor](/gateway/doctor),
     [Remote mode](/gateway/remote).
 
@@ -441,7 +439,7 @@ Evet. 23. **State dizinini** ve **workspace**’i kopyalayın, sonra Doctor’ı
     detay: [Troubleshooting](/help/troubleshooting#docsopenclawai-shows-an-ssl-error-comcastxfinity).
 41. Engeli kaldırmamıza yardımcı olmak için lütfen buradan bildirin: [https://spa.xfinity.com/check_url_status](https://spa.xfinity.com/check_url_status).
 
-44. Siteye hâlâ erişemiyorsanız, dokümanlar GitHub’da yansılanmıştır:
+42. Siteye hâlâ erişemiyorsanız, dokümanlar GitHub’da yansılanmıştır:
     [https://github.com/openclaw/openclaw/tree/main/docs](https://github.com/openclaw/openclaw/tree/main/docs)
 
 ### 45. Stable ile beta arasındaki fark nedir
@@ -1060,13 +1058,13 @@ Doğrudan hayır. macOS skills are gated by `metadata.openclaw.os` plus required
 4. **Seçenek A - Gateway’i bir Mac üzerinde çalıştırın (en basiti).**
    Gateway’i macOS ikili dosyalarının bulunduğu yerde çalıştırın, ardından Linux’tan [uzak modda](#how-do-i-run-openclaw-in-remote-mode-client-connects-to-a-gateway-elsewhere) veya Tailscale üzerinden bağlanın. 5. Gateway ana bilgisayarı macOS olduğu için beceriler normal şekilde yüklenir.
 
-6. **Seçenek B - bir macOS düğümü kullanın (SSH yok).**
+5. **Seçenek B - bir macOS düğümü kullanın (SSH yok).**
    Gateway’i Linux’ta çalıştırın, bir macOS düğümüyle (menü çubuğu uygulaması) eşleştirin ve Mac’te **Node Run Commands** ayarını "Always Ask" veya "Always Allow" olarak ayarlayın. 7. OpenClaw, gerekli ikili dosyalar düğümde mevcut olduğunda macOS-yalnız becerileri uygun kabul edebilir. 8. Ajan bu becerileri `nodes` aracı üzerinden çalıştırır. 9. "Always Ask" seçerseniz, istemde "Always Allow"u onaylamak o komutu izin listesine ekler.
 
-10. **Seçenek C - macOS ikili dosyalarını SSH üzerinden proxy’leyin (ileri seviye).**
-    Gateway’i Linux’ta tutun, ancak gerekli CLI ikili dosyalarının bir Mac’te çalışan SSH sarmalayıcılarına çözülmesini sağlayın. 11. Ardından, uygun kalması için beceriyi Linux’a izin verecek şekilde geçersiz kılın.
+6. **Seçenek C - macOS ikili dosyalarını SSH üzerinden proxy’leyin (ileri seviye).**
+   Gateway’i Linux’ta tutun, ancak gerekli CLI ikili dosyalarının bir Mac’te çalışan SSH sarmalayıcılarına çözülmesini sağlayın. 11. Ardından, uygun kalması için beceriyi Linux’a izin verecek şekilde geçersiz kılın.
 
-1. 12. İkili dosya için bir SSH sarmalayıcı oluşturun (örnek: Apple Notes için `memo`):
+7. 12. İkili dosya için bir SSH sarmalayıcı oluşturun (örnek: Apple Notes için `memo`):
 
    ````bash
    13. ```bash
@@ -1076,21 +1074,29 @@ Doğrudan hayır. macOS skills are gated by `metadata.openclaw.os` plus required
    ```
    ````
 
-2. Put the wrapper on `PATH` on the Linux host (for example `~/bin/memo`).
+8. Put the wrapper on `PATH` on the Linux host (for example `~/bin/memo`).
 
-3. Override the skill metadata (workspace or `~/.openclaw/skills`) to allow Linux:
+9. Override the skill metadata (workspace or `~/.openclaw/skills`) to allow Linux:
 
    ````markdown
    16. ```yaml
+
+       ```
+
    ---
+
    name: apple-notes
    description: Manage Apple Notes via the memo CLI on macOS.
    metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+
    ---
+
+   ```
+
    ```
    ````
 
-4. Start a new session so the skills snapshot refreshes.
+10. Start a new session so the skills snapshot refreshes.
 
 ### 18) Bir Notion veya HeyGen entegrasyonunuz var mı
 
@@ -1240,13 +1246,13 @@ Related: [Agent workspace](/concepts/agent-workspace), [Memory](/concepts/memory
 
 Everything lives under `$OPENCLAW_STATE_DIR` (default: `~/.openclaw`):
 
-| Yol                                                             | Amaç                                                                                                |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Yol                                                             | Amaç                                                                             |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Ana yapılandırma (JSON5)                                                         |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Eski OAuth içe aktarma (ilk kullanımda kimlik doğrulama profillerine kopyalanır) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Kimlik doğrulama profilleri (OAuth + API anahtarları)                            |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Çalışma zamanı kimlik doğrulama önbelleği (otomatik olarak yönetilir)            |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Sağlayıcı durumu (örn. `whatsapp/<accountId>/creds.json`)        |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Sağlayıcı durumu (örn. `whatsapp/<accountId>/creds.json`)                        |
 | `$OPENCLAW_STATE_DIR/agents/`                                   | Ajan başına durum (agentDir + oturumlar)                                         |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Konuşma geçmişi ve durum (ajan başına)                                           |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Oturum meta verileri (ajan başına)                                               |
@@ -1440,9 +1446,9 @@ Tam yapılandırma örneklerini [Browser](/tools/browser#use-brave-or-another-ch
 1. Telegram mesajları **gateway** tarafından işlenir. 2. Gateway ajanı çalıştırır ve
    ancak bir node aracı gerektiğinde **Gateway WebSocket** üzerinden nodeları çağırır:
 
-3. Telegram → Gateway → Agent → `node.*` → Node → Gateway → Telegram
+2. Telegram → Gateway → Agent → `node.*` → Node → Gateway → Telegram
 
-4. Nodelar gelen sağlayıcı trafiğini görmez; yalnızca node RPC çağrılarını alırlar.
+3. Nodelar gelen sağlayıcı trafiğini görmez; yalnızca node RPC çağrılarını alırlar.
 
 ### 5. Gateway uzakta barındırılıyorsa ajanım bilgisayarıma nasıl erişebilir
 
@@ -1451,11 +1457,11 @@ Short answer: **pair your computer as a node**. 7. Gateway başka bir yerde çal
 8. Tipik kurulum:
 
 1. 9. Gateway’i her zaman açık olan bir ana makinede (VPS/ev sunucusu) çalıştırın.
-2. 10. Gateway ana makinesi ile bilgisayarınızı aynı tailnet içine alın.
-3. Ensure the Gateway WS is reachable (tailnet bind or SSH tunnel).
-4. Open the macOS app locally and connect in **Remote over SSH** mode (or direct tailnet)
+1. 10. Gateway ana makinesi ile bilgisayarınızı aynı tailnet içine alın.
+1. Ensure the Gateway WS is reachable (tailnet bind or SSH tunnel).
+1. Open the macOS app locally and connect in **Remote over SSH** mode (or direct tailnet)
    so it can register as a node.
-5. 13. Gateway üzerinde node’u onaylayın:
+1. 13. Gateway üzerinde node’u onaylayın:
 
    ```bash
    openclaw nodes pending
@@ -1467,7 +1473,7 @@ Short answer: **pair your computer as a node**. 7. Gateway başka bir yerde çal
 15. Güvenlik hatırlatması: bir macOS node’u eşlemek o makinede `system.run` çalıştırılmasına izin verir. 16. Yalnızca güvendiğiniz cihazları
     eşleştirin ve [Security](/gateway/security) bölümünü inceleyin.
 
-17. Dokümanlar: [Nodes](/nodes), [Gateway protocol](/gateway/protocol), [macOS remote mode](/platforms/mac/remote), [Security](/gateway/security).
+16. Dokümanlar: [Nodes](/nodes), [Gateway protocol](/gateway/protocol), [macOS remote mode](/platforms/mac/remote), [Security](/gateway/security).
 
 ### Tailscale is connected but I get no replies What now
 
@@ -1498,7 +1504,7 @@ güvenilir şekilde bunu bağlayabilirsiniz:
     dinlediği bir sohbeti hedefleyerek. 34. Botlardan biri uzak bir VPS üzerindeyse, CLI’nızı SSH/Tailscale üzerinden o uzak Gateway’e yönlendirin
     ([Remote access](/gateway/remote) bölümüne bakın).
 
-35. Örnek desen (hedef Gateway’e erişebilen bir makineden çalıştırın):
+33. Örnek desen (hedef Gateway’e erişebilen bir makineden çalıştırın):
 
 ```bash
 36. openclaw agent --message "Hello from local bot" --deliver --channel telegram --reply-to <chat-id>
@@ -1907,7 +1913,7 @@ Evet. 15. Birden fazla izole ajan çalıştırmak ve gelen mesajları kanal/hesa
 
 17. Tarayıcı erişimi güçlüdür ancak “bir insanın yapabildiği her şeyi yapar” değildir — anti-botlar, CAPTCHA’lar ve MFA otomasyonu yine de engelleyebilir. 18. En güvenilir tarayıcı kontrolü için, tarayıcının çalıştığı makinede Chrome uzantısı rölesini kullanın (Gateway’i ise herhangi bir yerde tutabilirsiniz).
 
-19. En iyi uygulama kurulumu:
+18. En iyi uygulama kurulumu:
 
 - 20. Her zaman açık bir Gateway sunucusu (VPS/Mac mini).
 - 21. Rol başına bir ajan (bağlamalar).
@@ -1942,9 +1948,9 @@ agents.defaults.model.primary
 36. Pratik kural: yüksek riskli işler için **karşılayabildiğiniz en iyi modeli**, rutin sohbet veya özetler için daha ucuz bir modeli kullanın. 37. Modelleri ajan bazında yönlendirebilir ve uzun görevleri paralelleştirmek için alt ajanlar kullanabilirsiniz (her alt ajan token tüketir). 38. [Modeller](/concepts/models) ve
     [Alt ajanlar](/tools/subagents) bölümlerine bakın.
 
-39. Güçlü uyarı: daha zayıf/aşırı kuantize edilmiş modeller, prompt enjeksiyonu ve güvensiz davranışlara daha açıktır. 40. [Güvenlik](/gateway/security) bölümüne bakın.
+37. Güçlü uyarı: daha zayıf/aşırı kuantize edilmiş modeller, prompt enjeksiyonu ve güvensiz davranışlara daha açıktır. 40. [Güvenlik](/gateway/security) bölümüne bakın.
 
-41. Daha fazla bağlam: [Modeller](/concepts/models).
+38. Daha fazla bağlam: [Modeller](/concepts/models).
 
 ### 42. Kendi barındırdığım modelleri llamacpp vLLM Ollama ile kullanabilir miyim
 
@@ -1953,7 +1959,7 @@ Evet. 43. Yerel sunucunuz OpenAI uyumlu bir API sunuyorsa, ona özel bir sağlay
 45. Güvenlik notu: daha küçük veya yoğun şekilde kuantize edilmiş modeller, prompt enjeksiyonuna daha açıktır. 46. Araç kullanabilen herhangi bir bot için **büyük modelleri** şiddetle öneririz.
 46. Yine de küçük modeller istiyorsanız, sandboxing’i ve katı araç izin listelerini etkinleştirin.
 
-48. Dokümanlar: [Ollama](/providers/ollama), [Yerel modeller](/gateway/local-models),
+47. Dokümanlar: [Ollama](/providers/ollama), [Yerel modeller](/gateway/local-models),
     [Model sağlayıcıları](/concepts/model-providers), [Güvenlik](/gateway/security),
     [Sandboxing](/gateway/sandboxing).
 
@@ -1961,7 +1967,7 @@ Evet. 43. Yerel sunucunuz OpenAI uyumlu bir API sunuyorsa, ona özel bir sağlay
 
 50. **Model komutlarını** kullanın veya yalnızca **model** alanlarını düzenleyin. 1. Tam yapılandırma değişimlerinden kaçının.
 
-2. Güvenli seçenekler:
+51. Güvenli seçenekler:
 
 - 3. Sohbette `/model` (hızlı, oturum bazlı)
 - 4. `openclaw models set ...` (yalnızca model yapılandırmasını günceller)
@@ -2007,8 +2013,7 @@ You can also force a specific auth profile for the provider (per session):
 /model opus@anthropic:work
 ```
 
-Tip: `/model status` shows which agent is active, which `auth-profiles.json` file is being used, and which auth profile will be tried next.
-23. Ayrıca yapılandırılmış sağlayıcı uç noktasını (`baseUrl`) ve mevcutsa API modunu (`api`) da gösterir.
+Tip: `/model status` shows which agent is active, which `auth-profiles.json` file is being used, and which auth profile will be tried next. 23. Ayrıca yapılandırılmış sağlayıcı uç noktasını (`baseUrl`) ve mevcutsa API modunu (`api`) da gösterir.
 
 24. **Profil ile ayarladığım bir profili nasıl sabitlikten çıkarırım**
 
@@ -2045,19 +2050,19 @@ Model "provider/model" is not allowed. Use /model to list available models.
 
 41. Bu, **sağlayıcının yapılandırılmadığı** (MiniMax sağlayıcı yapılandırması veya kimlik doğrulama profili bulunamadığı) anlamına gelir; dolayısıyla model çözümlenemiyor. 42. Bu algılama için bir düzeltme **2026.1.12** sürümünde (yazım sırasında yayımlanmamış) bulunmaktadır.
 
-43. Düzeltme kontrol listesi:
+42. Düzeltme kontrol listesi:
 
-1. 44. **2026.1.12** sürümüne yükseltin (veya kaynaktan `main` çalıştırın), ardından ağ geçidini yeniden başlatın.
-2. 45. MiniMax’in yapılandırıldığından (sihirbaz veya JSON) emin olun ya da sağlayıcının enjekte edilebilmesi için ortam/kimlik doğrulama profillerinde bir MiniMax API anahtarı bulunduğunu doğrulayın.
-3. 46. Tam model kimliğini kullanın (büyük/küçük harfe duyarlı): `minimax/MiniMax-M2.1` veya
-       `minimax/MiniMax-M2.1-lightning`.
-4. Run:
+43. 44. **2026.1.12** sürümüne yükseltin (veya kaynaktan `main` çalıştırın), ardından ağ geçidini yeniden başlatın.
+44. 45. MiniMax’in yapılandırıldığından (sihirbaz veya JSON) emin olun ya da sağlayıcının enjekte edilebilmesi için ortam/kimlik doğrulama profillerinde bir MiniMax API anahtarı bulunduğunu doğrulayın.
+45. 46. Tam model kimliğini kullanın (büyük/küçük harfe duyarlı): `minimax/MiniMax-M2.1` veya
+        `minimax/MiniMax-M2.1-lightning`.
+46. Run:
 
-   ```bash
-   openclaw models list
-   ```
+    ```bash
+    openclaw models list
+    ```
 
-   47. ve listeden seçin (veya sohbette `/model list`).
+    47. ve listeden seçin (veya sohbette `/model list`).
 
 48) Bkz. [MiniMax](/providers/minimax) ve [Models](/concepts/models).
 
@@ -2185,7 +2190,7 @@ Düzeltme seçenekleri:
 38. Failover iki aşamada gerçekleşir:
 
 1. 39. Aynı sağlayıcı içinde **kimlik doğrulama profili rotasyonu**.
-2. `agents.defaults.model.fallbacks` içindeki bir sonraki modele **model geri dönüşü**.
+1. `agents.defaults.model.fallbacks` içindeki bir sonraki modele **model geri dönüşü**.
 
 40) Başarısız olan profillere bekleme süreleri uygulanır (üstel geri çekilme), böylece OpenClaw bir sağlayıcı hız sınırına takıldığında veya geçici olarak arızalıyken bile yanıt vermeye devam edebilir.
 
@@ -2315,7 +2320,7 @@ The wizard explicitly supports Anthropic setup-token and OpenAI Codex OAuth and 
 
 6. Çünkü "running", **denetleyicinin** (launchd/systemd/schtasks) bakış açısıdır. 7. RPC probe, CLI'nin gerçekten gateway WebSocket'ine bağlanıp `status` çağırmasıdır.
 
-8. `openclaw gateway status` kullanın ve şu satırlara güvenin:
+7. `openclaw gateway status` kullanın ve şu satırlara güvenin:
 
 - 9. `Probe target:` (probe'un gerçekten kullandığı URL)
 - 10. `Listening:` (portta gerçekte neyin dinlediği)
@@ -2337,7 +2342,7 @@ Fix:
 
 17. OpenClaw, başlatılır başlatılmaz WebSocket dinleyicisini bağlayarak bir çalışma kilidi uygular (varsayılan `ws://127.0.0.1:18789`). 18. Bağlama işlemi `EADDRINUSE` ile başarısız olursa, başka bir örneğin zaten dinlediğini belirten `GatewayLockError` fırlatır.
 
-19. Çözüm: diğer örneği durdurun, portu boşaltın veya `openclaw gateway --port <port>` ile çalıştırın.
+18. Çözüm: diğer örneği durdurun, portu boşaltın veya `openclaw gateway --port <port>` ile çalıştırın.
 
 ### 20. OpenClaw'ı uzak modda nasıl çalıştırırım, istemci başka bir yerdeki Gateway'e bağlansın
 
@@ -2393,7 +2398,7 @@ Fix:
 
 44. Genellikle hayır - tek bir Gateway birden fazla mesajlaşma kanalı ve ajan çalıştırabilir. 45. Birden fazla Gateway'i yalnızca yedeklilik (ör: kurtarma botu) veya katı izolasyon gerektiğinde kullanın.
 
-46. Evet, ama izole etmelisiniz:
+45. Evet, ama izole etmelisiniz:
 
 - 47. `OPENCLAW_CONFIG_PATH` (örnek başına config)
 - 48. `OPENCLAW_STATE_DIR` (örnek başına durum)
@@ -2726,7 +2731,7 @@ Sihirbaz telefon numarası istemi: kendi DM’lerinizin izinli olması için **a
 
 7. Hâlâ gürültülüyse, Control UI içindeki oturum ayarlarını kontrol edin ve verbose değerini **inherit** olarak ayarlayın. 8. Ayrıca config içinde `verboseDefault` değeri `on` olarak ayarlanmış bir bot profili kullanmadığınızı doğrulayın.
 
-9. Dokümanlar: [Thinking and verbose](/tools/thinking), [Security](/gateway/security#reasoning--verbose-output-in-groups).
+8. Dokümanlar: [Thinking and verbose](/tools/thinking), [Security](/gateway/security#reasoning--verbose-output-in-groups).
 
 ### 10. Çalışan bir görevi nasıl durdurur/iptal ederim
 
@@ -2757,7 +2762,7 @@ interrupt
 
 19. OpenClaw, varsayılan olarak **sağlayıcılar arası** mesajlaşmayı engeller. 20. Bir araç çağrısı Telegram'a bağlıysa, açıkça izin vermedikçe Discord'a göndermez.
 
-21. Ajan için sağlayıcılar arası mesajlaşmayı etkinleştirin:
+20. Ajan için sağlayıcılar arası mesajlaşmayı etkinleştirin:
 
 ```json5
 22. {

@@ -47,7 +47,6 @@ Details: [Plugins](/tools/plugin)
    - Oder hosten Sie es selbst.
 
 3. Besorgen Sie sich ein Zugriffstoken für das Bot-Konto:
-
    - Verwenden Sie die Matrix-Login-API mit `curl` auf Ihrem Homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Nach der Verifizierung kann der Bot Nachrichten in verschlüsselten Räumen ents
 
 ## Funktionen
 
-| Feature           | Status                                                                                                                 |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Direktnachrichten | ✅ Unterstützt                                                                                                          |
-| Räume             | ✅ Unterstützt                                                                                                          |
-| Threads           | ✅ Unterstützt                                                                                                          |
-| Medien            | ✅ Unterstützt                                                                                                          |
+| Feature           | Status                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Direktnachrichten | ✅ Unterstützt                                                                                       |
+| Räume             | ✅ Unterstützt                                                                                       |
+| Threads           | ✅ Unterstützt                                                                                       |
+| Medien            | ✅ Unterstützt                                                                                       |
 | E2EE              | ✅ Unterstützt (Krypto-Modul erforderlich)                                                           |
 | Reaktionen        | ✅ Unterstützt (Senden/Lesen über Werkzeuge)                                                         |
 | Umfragen          | ✅ Senden unterstützt; eingehende Poll-Starts werden in Text umgewandelt (Antworten/Enden ignoriert) |
 | Standort          | ✅ Unterstützt (Geo-URI; Höhe ignoriert)                                                             |
-| Native Befehle    | ✅ Unterstützt                                                                                                          |
+| Native Befehle    | ✅ Unterstützt                                                                                       |
 
 ## Fehlerbehebung
 

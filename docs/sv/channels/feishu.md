@@ -528,34 +528,34 @@ Fullständig konfiguration: [Gateway-konfiguration](/gateway/configuration)
 
 Viktiga alternativ:
 
-| Inställning                                       | Beskrivning                                                                | Standard  |
-| ------------------------------------------------- | -------------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | Aktivera/inaktivera kanal                                                  | `true`    |
-| `channels.feishu.domain`                          | API-domän (`feishu` eller `lark`)                       | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                     | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                                 | -         |
-| `channels.feishu.accounts.<id>.domain`            | Åsidosättning av API-domän per konto                                       | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM-policy                                                                  | `pairing` |
-| `channels.feishu.allowFrom`                       | DM-tillåtelselista (open_id-lista) | -         |
-| `channels.feishu.groupPolicy`                     | Grupppolicy                                                                | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Grupp-tillåtelselista                                                      | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | Kräv @omnämnande                                              | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Aktivera grupp                                                             | `true`    |
-| `channels.feishu.textChunkLimit`                  | Meddelandesegmentstorlek                                                   | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | Mediastorleksgräns                                                         | `30`      |
-| `channels.feishu.streaming`                       | Aktivera strömmande kortutdata                                             | `true`    |
-| `channels.feishu.blockStreaming`                  | Aktivera blockstreaming                                                    | `true`    |
+| Inställning                                       | Beskrivning                          | Standard  |
+| ------------------------------------------------- | ------------------------------------ | --------- |
+| `channels.feishu.enabled`                         | Aktivera/inaktivera kanal            | `true`    |
+| `channels.feishu.domain`                          | API-domän (`feishu` eller `lark`)    | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                               | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                           | -         |
+| `channels.feishu.accounts.<id>.domain`            | Åsidosättning av API-domän per konto | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM-policy                            | `pairing` |
+| `channels.feishu.allowFrom`                       | DM-tillåtelselista (open_id-lista)   | -         |
+| `channels.feishu.groupPolicy`                     | Grupppolicy                          | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Grupp-tillåtelselista                | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | Kräv @omnämnande                     | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Aktivera grupp                       | `true`    |
+| `channels.feishu.textChunkLimit`                  | Meddelandesegmentstorlek             | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | Mediastorleksgräns                   | `30`      |
+| `channels.feishu.streaming`                       | Aktivera strömmande kortutdata       | `true`    |
+| `channels.feishu.blockStreaming`                  | Aktivera blockstreaming              | `true`    |
 
 ---
 
 ## dmPolicy-referens
 
-| Värde         | Beteende                                                                           |
-| ------------- | ---------------------------------------------------------------------------------- |
+| Värde         | Beteende                                                           |
+| ------------- | ------------------------------------------------------------------ |
 | `"pairing"`   | **Standard.** Okända användare får en parningskod; måste godkännas |
-| `"allowlist"` | Endast användare i `allowFrom` kan chatta                                          |
-| `"open"`      | Tillåt alla användare (kräver `"*"` i allowFrom)                |
-| `"disabled"`  | Inaktivera DM                                                                      |
+| `"allowlist"` | Endast användare i `allowFrom` kan chatta                          |
+| `"open"`      | Tillåt alla användare (kräver `"*"` i allowFrom)                   |
+| `"disabled"`  | Inaktivera DM                                                      |
 
 ---
 

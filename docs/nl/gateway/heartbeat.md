@@ -311,12 +311,12 @@ channels:
 
 ### Veelvoorkomende patronen
 
-| Doel                                                              | Config                                                                                   |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Standaardgedrag (stille OK's, alerts aan)      | _(geen configuratie nodig)_                                           |
+| Doel                                           | Config                                                                                   |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Standaardgedrag (stille OK's, alerts aan)      | _(geen configuratie nodig)_                                                              |
 | Volledig stil (geen berichten, geen indicator) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Alleen indicator (geen berichten)              | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK's alleen in één kanaal                                         | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK's alleen in één kanaal                      | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (optioneel)
 

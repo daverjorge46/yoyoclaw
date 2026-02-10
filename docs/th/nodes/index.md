@@ -276,8 +276,7 @@ openclaw nodes notify --node <idOrNameOrIp> --title "Ping" --body "Gateway ready
 - `system.run` รองรับ `--cwd`, `--env KEY=VAL`, `--command-timeout`, และ `--needs-screen-recording`
 - `system.notify` รองรับ `--priority <passive|active|timeSensitive>` และ `--delivery <system|overlay|auto>`
 - โหนดmacOSจะทิ้งการแทนที่ `PATH`; โฮสต์โหนดแบบไม่มีหน้าจอจะยอมรับ `PATH` เฉพาะเมื่อมันนำหน้าPATHของโฮสต์โหนด
-- ในโหมดโหนดmacOS `system.run` ถูกควบคุมด้วยการอนุมัติการรันในแอปmacOS(การตั้งค่า→Exec approvals) โหมดAsk/allowlist/fullทำงานเหมือนโฮสต์โหนดแบบไม่มีหน้าจอ; การปฏิเสธพรอมต์จะคืนค่า `SYSTEM_RUN_DENIED`
-  25. Ask/allowlist/full ทำงานเหมือนกับ headless node host; คำขอที่ถูกปฏิเสธจะส่งคืน `SYSTEM_RUN_DENIED`
+- ในโหมดโหนดmacOS `system.run` ถูกควบคุมด้วยการอนุมัติการรันในแอปmacOS(การตั้งค่า→Exec approvals) โหมดAsk/allowlist/fullทำงานเหมือนโฮสต์โหนดแบบไม่มีหน้าจอ; การปฏิเสธพรอมต์จะคืนค่า `SYSTEM_RUN_DENIED` 25. Ask/allowlist/full ทำงานเหมือนกับ headless node host; คำขอที่ถูกปฏิเสธจะส่งคืน `SYSTEM_RUN_DENIED`
 - บนโฮสต์โหนดแบบไม่มีหน้าจอ `system.run` ถูกควบคุมด้วยการอนุมัติการรัน(`~/.openclaw/exec-approvals.json`)
 
 ## การผูกexecกับโหนด

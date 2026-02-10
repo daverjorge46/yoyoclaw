@@ -23,10 +23,10 @@ Venice AI 提供注重隱私的 AI 推論，支援無審查模型，並可透過
 
 Venice 提供兩種隱私等級——了解這一點是選擇模型的關鍵：
 
-| 模式             | Description                                                                                                                                                             | 模型                                      |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| **Private**    | 完全私有。 Prompts/responses are **never stored or logged**. Ephemeral.                                                                      | Llama、Qwen、DeepSeek、Venice Uncensored 等 |
-| **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic) sees anonymized requests. | Claude、GPT、Gemini、Grok、Kimi、MiniMax     |
+| 模式           | Description                                                                                                          | 模型                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **Private**    | 完全私有。 Prompts/responses are **never stored or logged**. Ephemeral.                                              | Llama、Qwen、DeepSeek、Venice Uncensored 等 |
+| **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic) sees anonymized requests. | Claude、GPT、Gemini、Grok、Kimi、MiniMax    |
 
 ## 功能
 
@@ -112,53 +112,53 @@ openclaw models list | grep venice
 
 ## 我該使用哪個模型？
 
-| 使用情境               | 建議模型                             | 原因               |
-| ------------------ | -------------------------------- | ---------------- |
+| 使用情境               | 建議模型                         | 原因                        |
+| ---------------------- | -------------------------------- | --------------------------- |
 | **一般聊天**           | `llama-3.3-70b`                  | 全方位表現佳，完全私密      |
-| **整體最佳品質**         | `claude-opus-45`                 | Opus 在高難度任務上仍然最強 |
-| **隱私 + Claude 品質** | `claude-opus-45`                 | 透過匿名代理提供最佳推理     |
+| **整體最佳品質**       | `claude-opus-45`                 | Opus 在高難度任務上仍然最強 |
+| **隱私 + Claude 品質** | `claude-opus-45`                 | 透過匿名代理提供最佳推理    |
 | **程式設計**           | `qwen3-coder-480b-a35b-instruct` | 為程式碼最佳化，262k 上下文 |
-| **視覺任務**           | `qwen3-vl-235b-a22b`             | 最佳的私密視覺模型        |
-| **無審查**            | `venice-uncensored`              | 無內容限制            |
-| **快速 + 低成本**       | `qwen3-4b`                       | 輕量且仍具能力          |
-| **複雜推理**           | `deepseek-v3.2`                  | 推理能力強，私密         |
+| **視覺任務**           | `qwen3-vl-235b-a22b`             | 最佳的私密視覺模型          |
+| **無審查**             | `venice-uncensored`              | 無內容限制                  |
+| **快速 + 低成本**      | `qwen3-4b`                       | 輕量且仍具能力              |
+| **複雜推理**           | `deepseek-v3.2`                  | 推理能力強，私密            |
 
 ## 可用模型（共 25 個）
 
 ### Private 模型（15）— 完全私密，不記錄
 
-| Model ID                         | 名稱                                      | 上下文（tokens） | 功能         |
-| -------------------------------- | --------------------------------------- | ----------- | ---------- |
-| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k        | 一般用途       |
-| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k        | 快速、輕量      |
-| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k        | 複雜任務       |
-| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking                     | 131k        | 推理         |
-| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct                     | 131k        | 一般用途       |
-| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B                        | 262k        | 程式碼        |
-| `qwen3-next-80b`                 | Qwen3 Next 80B                          | 262k        | 一般用途       |
-| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B                           | 262k        | 視覺         |
-| `qwen3-4b`                       | Venice Small（Qwen3 4B）                  | 32k         | 快速、推理      |
-| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k        | 推理         |
-| `venice-uncensored`              | Venice Uncensored                       | 32k         | Uncensored |
-| `mistral-31-24b`                 | Venice Medium（Mistral）                  | 131k        | 視覺         |
-| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct                    | 202k        | 視覺         |
-| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B                     | 131k        | 一般用途       |
-| `zai-org-glm-4.7`                | GLM 4.7                 | 202k        | 推理、多語言     |
+| Model ID                         | 名稱                     | 上下文（tokens） | 功能         |
+| -------------------------------- | ------------------------ | ---------------- | ------------ |
+| `llama-3.3-70b`                  | Llama 3.3 70B            | 131k             | 一般用途     |
+| `llama-3.2-3b`                   | Llama 3.2 3B             | 131k             | 快速、輕量   |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B  | 131k             | 複雜任務     |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking      | 131k             | 推理         |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct      | 131k             | 一般用途     |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B         | 262k             | 程式碼       |
+| `qwen3-next-80b`                 | Qwen3 Next 80B           | 262k             | 一般用途     |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B            | 262k             | 視覺         |
+| `qwen3-4b`                       | Venice Small（Qwen3 4B） | 32k              | 快速、推理   |
+| `deepseek-v3.2`                  | DeepSeek V3.2            | 163k             | 推理         |
+| `venice-uncensored`              | Venice Uncensored        | 32k              | Uncensored   |
+| `mistral-31-24b`                 | Venice Medium（Mistral） | 131k             | 視覺         |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct     | 202k             | 視覺         |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B      | 131k             | 一般用途     |
+| `zai-org-glm-4.7`                | GLM 4.7                  | 202k             | 推理、多語言 |
 
 ### Anonymized 模型（10）— 透過 Venice 代理
 
-| Model ID                 | 原始模型                              | 上下文（tokens） | 功能     |
-| ------------------------ | --------------------------------- | ----------- | ------ |
-| `claude-opus-45`         | Claude Opus 4.5   | 202k        | 推理、視覺  |
-| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k        | 推理、視覺  |
-| `openai-gpt-52`          | GPT-5.2           | 262k        | 推理     |
-| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k        | 推理、視覺  |
-| `gemini-3-pro-preview`   | Gemini 3 Pro                      | 202k        | 推理、視覺  |
-| `gemini-3-flash-preview` | Gemini 3 Flash                    | 262k        | 推理、視覺  |
-| `grok-41-fast`           | Grok 4.1 Fast     | 262k        | 推理、視覺  |
-| `grok-code-fast-1`       | Grok Code Fast 1                  | 262k        | 推理、程式碼 |
-| `kimi-k2-thinking`       | Kimi K2 Thinking                  | 262k        | 推理     |
-| `minimax-m21`            | MiniMax M2.1      | 202k        | 推理     |
+| Model ID                 | 原始模型          | 上下文（tokens） | 功能         |
+| ------------------------ | ----------------- | ---------------- | ------------ |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k             | 推理、視覺   |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k             | 推理、視覺   |
+| `openai-gpt-52`          | GPT-5.2           | 262k             | 推理         |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k             | 推理、視覺   |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k             | 推理、視覺   |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k             | 推理、視覺   |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k             | 推理、視覺   |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k             | 推理、程式碼 |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k             | 推理         |
+| `minimax-m21`            | MiniMax M2.1      | 202k             | 推理         |
 
 ## 模型探索
 
@@ -168,12 +168,12 @@ openclaw models list | grep venice
 
 ## 串流與工具支援
 
-| 功能          | 支援狀態                                         |
-| ----------- | -------------------------------------------- |
-| **串流**      | ✅ 所有模型                                       |
-| **函式呼叫**    | ✅ 多數模型（請在 API 中查看 `supportsFunctionCalling`） |
-| **視覺／圖片**   | ✅ 標示為「Vision」功能的模型                           |
-| **JSON 模式** | ✅ 透過 `response_format` 支援                    |
+| 功能           | 支援狀態                                                 |
+| -------------- | -------------------------------------------------------- |
+| **串流**       | ✅ 所有模型                                              |
+| **函式呼叫**   | ✅ 多數模型（請在 API 中查看 `supportsFunctionCalling`） |
+| **視覺／圖片** | ✅ 標示為「Vision」功能的模型                            |
+| **JSON 模式**  | ✅ 透過 `response_format` 支援                           |
 
 ## 定價
 
@@ -184,12 +184,12 @@ Venice 採用點數制系統。 Venice 採用以點數為基礎的系統。請�
 
 ## 比較：Venice 與直接 API
 
-| 面向     | Venice（Anonymized） | 直接 API  |
-| ------ | ------------------ | ------- |
-| **隱私** | 中繼資料已移除並匿名化        | 與你的帳戶連結 |
-| **延遲** | +10–50ms（代理）       | 直接      |
-| **功能** | 多數功能支援             | 完整功能    |
-| **計費** | Venice 點數          | 提供者計費   |
+| 面向     | Venice（Anonymized）   | 直接 API       |
+| -------- | ---------------------- | -------------- |
+| **隱私** | 中繼資料已移除並匿名化 | 與你的帳戶連結 |
+| **延遲** | +10–50ms（代理）       | 直接           |
+| **功能** | 多數功能支援           | 完整功能       |
+| **計費** | Venice 點數            | 提供者計費     |
 
 ## 使用範例
 

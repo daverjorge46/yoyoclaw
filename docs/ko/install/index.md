@@ -44,11 +44,11 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
         ```
       </Tab>
     </Tabs>
-    
+
     이상입니다 — 스크립트가 Node 감지, 설치, 온보딩을 모두 처리합니다.
-    
+
     온보딩을 건너뛰고 바이너리만 설치하려면 다음을 사용하십시오.
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
         ```
       </Tab>
     </Tabs>
-    
+
     모든 플래그, 환경 변수, CI/자동화 옵션에 대해서는 [Installer internals](/install/installer)를 참고하십시오.
     ```
 
@@ -77,14 +77,14 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp 빌드 오류가 발생하나요?">
           (macOS 에서 Homebrew 를 통해 설치하는 경우가 흔한) libvips 가 전역으로 설치되어 있고 `sharp` 가 실패한다면, 미리 빌드된 바이너리를 강제로 사용하십시오.
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           `sharp: Please add node-gyp to your dependencies` 가 표시된다면, 빌드 도구를 설치(macOS: Xcode CLT + `npm install -g node-gyp`)하거나 위의 환경 변수를 사용하십시오.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm 은 빌드 스크립트가 있는 패키지에 대해 명시적인 승인이 필요합니다. 첫 설치에서 "Ignored build scripts" 경고가 표시된 후, `pnpm approve-builds -g` 를 실행하고 나열된 패키지를 선택하십시오.
         </Note>
@@ -111,7 +111,7 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
     <Steps>
       <Step title="클론 및 빌드">
         [OpenClaw repo](https://github.com/openclaw/openclaw)를 클론한 후 빌드하십시오.
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
       </Step>
       <Step title="CLI 연결">
         `openclaw` 명령을 전역에서 사용할 수 있도록 합니다.
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         또는 링크를 건너뛰고, 리포지토리 내부에서 `pnpm openclaw ...` 를 통해 명령을 실행할 수 있습니다.
       </Step>
       <Step title="온보딩 실행">
@@ -135,7 +135,7 @@ Windows 에서는 [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)�
         ```
       </Step>
     </Steps>
-    
+
     보다 심화된 개발 워크플로우에 대해서는 [Setup](/start/setup)을 참고하십시오.
     ```
 

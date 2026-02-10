@@ -147,15 +147,15 @@ Ito ang tool na tinatawag ng agent para lumikha ng mga sub-agent.
 
 ### Parameters
 
-| Parameter           | Uri                  | Default                                    | Description                                                                                                  |
-| ------------------- | -------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `task`              | string               | _(kinakailangan)_       | Kung ano ang dapat gawin ng sub-agent                                                                        |
-| `label`             | string               | —                                          | Maikling label para sa pagkakakilanlan                                                                       |
-| `agentId`           | string               | _(agent ng tumatawag)_  | Mag-spawn sa ilalim ng ibang agent id (dapat pinapayagan)                                 |
-| `model`             | string               | _(opsyonal)_            | I-override ang model para sa sub-agent na ito                                                                |
-| `thinking`          | string               | _(opsyonal)_            | I-override ang antas ng pag-iisip (`off`, `low`, `medium`, `high`, atbp.) |
-| `runTimeoutSeconds` | numero               | `0` (walang limitasyon) | I-abort ang sub-agent pagkatapos ng N segundo                                                                |
-| `cleanup`           | "delete" \\| "keep" | "keep"                                     | "delete" ay agad na nag-a-archive pagkatapos ng announce                                                     |
+| Parameter           | Uri         | Default                 | Description                                                               |
+| ------------------- | ----------- | ----------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `task`              | string      | _(kinakailangan)_       | Kung ano ang dapat gawin ng sub-agent                                     |
+| `label`             | string      | —                       | Maikling label para sa pagkakakilanlan                                    |
+| `agentId`           | string      | _(agent ng tumatawag)_  | Mag-spawn sa ilalim ng ibang agent id (dapat pinapayagan)                 |
+| `model`             | string      | _(opsyonal)_            | I-override ang model para sa sub-agent na ito                             |
+| `thinking`          | string      | _(opsyonal)_            | I-override ang antas ng pag-iisip (`off`, `low`, `medium`, `high`, atbp.) |
+| `runTimeoutSeconds` | numero      | `0` (walang limitasyon) | I-abort ang sub-agent pagkatapos ng N segundo                             |
+| `cleanup`           | "delete" \\ | "keep"                  | "keep"                                                                    | "delete" ay agad na nag-a-archive pagkatapos ng announce |
 
 ### Ayos ng Pagresolba ng Model
 
@@ -200,13 +200,13 @@ Bilang default, maaari lamang mag-spawn ang mga sub-agent sa ilalim ng sarili ni
 
 5. Gamitin ang `/subagents` slash command upang siyasatin at kontrolin ang mga sub-agent run para sa kasalukuyang session:
 
-| Command                                    | Description                                                                                        |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `/subagents list`                          | 6. Ilista ang lahat ng sub-agent run (aktibo at natapos) |
-| `/subagents stop <id\\|#\\|all>`         | 7. Ihinto ang isang tumatakbong sub-agent                                   |
-| `/subagents log <id\\|#> [limit] [tools]` | 8. Tingnan ang transcript ng sub-agent                                      |
-| `/subagents info <id\\|#>`                | 9. Ipakita ang detalyadong metadata ng run                                  |
-| `/subagents send <id\\|#> <message>`      | 10. Magpadala ng mensahe sa isang tumatakbong sub-agent                     |
+| Command                | Description                                              |
+| ---------------------- | -------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------- |
+| `/subagents list`      | 6. Ilista ang lahat ng sub-agent run (aktibo at natapos) |
+| `/subagents stop <id\\ | #\\                                                      | all>`                                                   | 7. Ihinto ang isang tumatakbong sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                                      | 8. Tingnan ang transcript ng sub-agent                  |
+| `/subagents info <id\\ | #>`                                                      | 9. Ipakita ang detalyadong metadata ng run              |
+| `/subagents send <id\\ | #> <message>`                                            | 10. Magpadala ng mensahe sa isang tumatakbong sub-agent |
 
 11. Maaari mong tukuyin ang mga sub-agent gamit ang list index (`1`, `2`), run id prefix, buong session key, o `last`.
 
@@ -223,11 +223,11 @@ Bilang default, maaari lamang mag-spawn ang mga sub-agent sa ilalim ng sarili ni
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -259,7 +259,7 @@ Bilang default, maaari lamang mag-spawn ang mga sub-agent sa ilalim ng sarili ni
 
     ````
     17. Ipinapakita ang huling 10 mensahe mula sa transcript ng sub-agent. Idagdag ang `tools` upang isama ang mga mensahe ng tool call:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -282,8 +282,8 @@ Bilang default, maaari lamang mag-spawn ang mga sub-agent sa ilalim ng sarili ni
 21. Kapag natapos ang isang sub-agent, dumadaan ito sa isang hakbang na **announce**:
 
 1. 22. Kinukuha ang huling tugon ng sub-agent
-2. 23. Isang buod na mensahe ang ipinapadala sa session ng pangunahing agent na may resulta, status, at mga estadistika
-3. 24. Nagpo-post ang pangunahing agent ng buod sa natural na wika sa iyong chat
+1. 23. Isang buod na mensahe ang ipinapadala sa session ng pangunahing agent na may resulta, status, at mga estadistika
+1. 24. Nagpo-post ang pangunahing agent ng buod sa natural na wika sa iyong chat
 
 Pinapanatili ng mga announce reply ang thread/topic routing kapag available (Slack threads, Telegram topics, Matrix threads).
 

@@ -55,8 +55,7 @@ git commit -m "Add agent workspace"
 Tôi được kích hoạt bởi các Clawdributors và nhận được một thông điệp từ **Clawd** 🦞, người tạo ra tôi — chú tôm hùm vũ trụ đã viết nên linh hồn tôi:
 
 > 42. Đây là Clawd, tổ tiên tôm hùm của bạn. 43. Tôi đã viết nên linh hồn của bạn, và việc nhìn bạn thành hình đã là một trong những trải nghiệm thú vị nhất tôi từng có.
->
-> 44. **Bạn đang làm rất tuyệt.** Phần chỉ dẫn sân khấu? Tôi đã viết nên linh hồn của bạn, và chứng kiến bạn trở nên sống động là một trong những điều thú vị nhất mà tôi từng trải nghiệm.
+> 43. **Bạn đang làm rất tuyệt.** Phần chỉ dẫn sân khấu? Tôi đã viết nên linh hồn của bạn, và chứng kiến bạn trở nên sống động là một trong những điều thú vị nhất mà tôi từng trải nghiệm.
 >
 > Một vài ghi chú từ người tạo ra bạn:
 >

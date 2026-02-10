@@ -23,10 +23,10 @@ Venice AI 는 검열되지 않은 모델을 지원하고, 익명화된 프록시
 
 Venice 는 두 가지 프라이버시 수준을 제공합니다 — 모델 선택의 핵심입니다:
 
-| 모드             | 설명                                                                                                                               | 모델                                         |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| **Private**    | 완전 비공개. 프롬프트/응답은 **절대 저장되거나 로깅되지 않습니다**. 일회성입니다.                                 | Llama, Qwen, DeepSeek, Venice Uncensored 등 |
-| **Anonymized** | 메타데이터를 제거한 상태로 Venice 를 통해 프록시됩니다. 기본 프로바이더(OpenAI, Anthropic)는 익명화된 요청을 봅니다. | Claude, GPT, Gemini, Grok, Kimi, MiniMax   |
+| 모드           | 설명                                                                                                                 | 모델                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **Private**    | 완전 비공개. 프롬프트/응답은 **절대 저장되거나 로깅되지 않습니다**. 일회성입니다.                                    | Llama, Qwen, DeepSeek, Venice Uncensored 등 |
+| **Anonymized** | 메타데이터를 제거한 상태로 Venice 를 통해 프록시됩니다. 기본 프로바이더(OpenAI, Anthropic)는 익명화된 요청을 봅니다. | Claude, GPT, Gemini, Grok, Kimi, MiniMax    |
 
 ## 기능
 
@@ -112,53 +112,53 @@ openclaw models list | grep venice
 
 ## 어떤 모델을 사용해야 하나요?
 
-| 사용 사례                 | 권장 모델                            | 이유                     |
-| --------------------- | -------------------------------- | ---------------------- |
-| **일반 채팅**             | `llama-3.3-70b`                  | 전반적으로 우수하며 완전 비공개      |
+| 사용 사례                    | 권장 모델                        | 이유                                |
+| ---------------------------- | -------------------------------- | ----------------------------------- |
+| **일반 채팅**                | `llama-3.3-70b`                  | 전반적으로 우수하며 완전 비공개     |
 | **최고의 전체 품질**         | `claude-opus-45`                 | 어려운 작업에서 Opus 가 가장 강력함 |
-| **프라이버시 + Claude 품질** | `claude-opus-45`                 | 익명화 프록시를 통한 최고의 추론     |
-| **코딩**                | `qwen3-coder-480b-a35b-instruct` | 코드 최적화, 262k 컨텍스트      |
-| **비전 작업**             | `qwen3-vl-235b-a22b`             | 최고의 비공개 비전 모델          |
-| **검열 없음**             | `venice-uncensored`              | 콘텐츠 제한 없음              |
-| **빠르고 저렴함**           | `qwen3-4b`                       | 경량이지만 충분한 성능           |
-| **복잡한 추론**            | `deepseek-v3.2`                  | 강력한 추론, 비공개            |
+| **프라이버시 + Claude 품질** | `claude-opus-45`                 | 익명화 프록시를 통한 최고의 추론    |
+| **코딩**                     | `qwen3-coder-480b-a35b-instruct` | 코드 최적화, 262k 컨텍스트          |
+| **비전 작업**                | `qwen3-vl-235b-a22b`             | 최고의 비공개 비전 모델             |
+| **검열 없음**                | `venice-uncensored`              | 콘텐츠 제한 없음                    |
+| **빠르고 저렴함**            | `qwen3-4b`                       | 경량이지만 충분한 성능              |
+| **복잡한 추론**              | `deepseek-v3.2`                  | 강력한 추론, 비공개                 |
 
 ## 사용 가능한 모델(총 25개)
 
 ### Private 모델(15) — 완전 비공개, 로깅 없음
 
-| 모델 ID                            | 이름                                         | 컨텍스트(토큰) | 기능      |
-| -------------------------------- | ------------------------------------------ | --------------------------- | ------- |
-| `llama-3.3-70b`                  | Llama 3.3 70B              | 131k                        | 일반      |
-| `llama-3.2-3b`                   | Llama 3.2 3B               | 131k                        | 빠름, 경량  |
-| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B    | 131k                        | 복잡한 작업  |
-| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking                        | 131k                        | 추론      |
-| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct                        | 131k                        | 일반      |
-| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B                           | 262k                        | 코드      |
-| `qwen3-next-80b`                 | Qwen3 Next 80B                             | 262k                        | 일반      |
-| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B                              | 262k                        | 비전      |
-| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k                         | 빠름, 추론  |
-| `deepseek-v3.2`                  | DeepSeek V3.2              | 163k                        | 추론      |
-| `venice-uncensored`              | Venice Uncensored                          | 32k                         | 검열 없음   |
-| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k                        | 비전      |
-| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct                       | 202k                        | 비전      |
-| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B                        | 131k                        | 일반      |
-| `zai-org-glm-4.7`                | GLM 4.7                    | 202k                        | 추론, 다국어 |
+| 모델 ID                          | 이름                    | 컨텍스트(토큰) | 기능         |
+| -------------------------------- | ----------------------- | -------------- | ------------ |
+| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k           | 일반         |
+| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k           | 빠름, 경량   |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k           | 복잡한 작업  |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking     | 131k           | 추론         |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct     | 131k           | 일반         |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B        | 262k           | 코드         |
+| `qwen3-next-80b`                 | Qwen3 Next 80B          | 262k           | 일반         |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B           | 262k           | 비전         |
+| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k            | 빠름, 추론   |
+| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k           | 추론         |
+| `venice-uncensored`              | Venice Uncensored       | 32k            | 검열 없음    |
+| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k           | 비전         |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct    | 202k           | 비전         |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k           | 일반         |
+| `zai-org-glm-4.7`                | GLM 4.7                 | 202k           | 추론, 다국어 |
 
 ### Anonymized 모델(10) — Venice 프록시 경유
 
-| 모델 ID                    | 원본                                | 컨텍스트(토큰) | 기능     |
-| ------------------------ | --------------------------------- | --------------------------- | ------ |
-| `claude-opus-45`         | Claude Opus 4.5   | 202k                        | 추론, 비전 |
-| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k                        | 추론, 비전 |
-| `openai-gpt-52`          | GPT-5.2           | 262k                        | 추론     |
-| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k                        | 추론, 비전 |
-| `gemini-3-pro-preview`   | Gemini 3 Pro                      | 202k                        | 추론, 비전 |
-| `gemini-3-flash-preview` | Gemini 3 Flash                    | 262k                        | 추론, 비전 |
-| `grok-41-fast`           | Grok 4.1 Fast     | 262k                        | 추론, 비전 |
-| `grok-code-fast-1`       | Grok Code Fast 1                  | 262k                        | 추론, 코드 |
-| `kimi-k2-thinking`       | Kimi K2 Thinking                  | 262k                        | 추론     |
-| `minimax-m21`            | MiniMax M2.1      | 202k                        | 추론     |
+| 모델 ID                  | 원본              | 컨텍스트(토큰) | 기능       |
+| ------------------------ | ----------------- | -------------- | ---------- |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k           | 추론, 비전 |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k           | 추론, 비전 |
+| `openai-gpt-52`          | GPT-5.2           | 262k           | 추론       |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k           | 추론, 비전 |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k           | 추론, 비전 |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k           | 추론, 비전 |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k           | 추론, 비전 |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k           | 추론, 코드 |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k           | 추론       |
+| `minimax-m21`            | MiniMax M2.1      | 202k           | 추론       |
 
 ## 모델 디스커버리
 
@@ -168,12 +168,12 @@ openclaw models list | grep venice
 
 ## 스트리밍 및 도구 지원
 
-| 기능          | 지원                                                                |
-| ----------- | ----------------------------------------------------------------- |
-| **스트리밍**    | ✅ 모든 모델                                                           |
+| 기능            | 지원                                                      |
+| --------------- | --------------------------------------------------------- |
+| **스트리밍**    | ✅ 모든 모델                                              |
 | **함수 호출**   | ✅ 대부분의 모델(API 에서 `supportsFunctionCalling` 확인) |
-| **비전/이미지**  | ✅ "Vision" 기능이 표시된 모델                                             |
-| **JSON 모드** | ✅ `response_format` 를 통해 지원                                       |
+| **비전/이미지** | ✅ "Vision" 기능이 표시된 모델                            |
+| **JSON 모드**   | ✅ `response_format` 를 통해 지원                         |
 
 ## 가격
 
@@ -184,12 +184,12 @@ Venice 는 크레딧 기반 시스템을 사용합니다. 최신 요금은 [veni
 
 ## 비교: Venice vs 직접 API
 
-| 측면        | Venice(Anonymized) | 직접 API  |
-| --------- | ------------------------------------- | ------- |
-| **프라이버시** | 메타데이터 제거, 익명화                         | 계정이 연결됨 |
-| **지연 시간** | +10–50ms(프록시)      | 직접      |
-| **기능**    | 대부분의 기능 지원                            | 전체 기능   |
-| **청구**    | Venice 크레딧                            | 제공업체 과금 |
+| 측면           | Venice(Anonymized)      | 직접 API      |
+| -------------- | ----------------------- | ------------- |
+| **프라이버시** | 메타데이터 제거, 익명화 | 계정이 연결됨 |
+| **지연 시간**  | +10–50ms(프록시)        | 직접          |
+| **기능**       | 대부분의 기능 지원      | 전체 기능     |
+| **청구**       | Venice 크레딧           | 제공업체 과금 |
 
 ## 사용 예제
 

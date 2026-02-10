@@ -23,12 +23,12 @@ Perfekt til:
 
 | Pi-model        | RAM     | Virker?    | Noter                            |
 | --------------- | ------- | ---------- | -------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ Bedst    | Hurtigst, anbefalet              |
-| **Pi 4**        | 4GB     | ✅ God      | Sweet spot for de fleste brugere |
-| **Pi 4**        | 2GB     | ✅ OK       | Virker, tilføj swap              |
+| **Pi 5**        | 4GB/8GB | ✅ Bedst   | Hurtigst, anbefalet              |
+| **Pi 4**        | 4GB     | ✅ God     | Sweet spot for de fleste brugere |
+| **Pi 4**        | 2GB     | ✅ OK      | Virker, tilføj swap              |
 | **Pi 4**        | 1GB     | ⚠️ Stramt  | Muligt med swap, minimal konfig  |
 | **Pi 3B+**      | 1GB     | ⚠️ Langsom | Virker men er sløv               |
-| **Pi Zero 2 W** | 512MB   | ❌          | Ikke anbefalet                   |
+| **Pi Zero 2 W** | 512MB   | ❌         | Ikke anbefalet                   |
 
 **Minimumsspecifikationer:** 1GB RAM, 1 kerne, 500MB disk  
 **Anbefalet:** 2GB+ RAM, 64-bit OS, 16GB+ SD-kort (eller USB SSD)
@@ -223,13 +223,13 @@ htop
 
 De fleste OpenClaw-funktioner virker på ARM64, men nogle eksterne binærer kan kræve ARM-builds:
 
-| Værktøj                               | ARM64-status | Noter                               |
-| ------------------------------------- | ------------ | ----------------------------------- |
-| Node.js               | ✅            | Virker rigtig godt                  |
-| WhatsApp (Baileys) | ✅            | Ren JS, ingen problemer             |
-| Telegram                              | ✅            | Ren JS, ingen problemer             |
+| Værktøj            | ARM64-status | Noter                               |
+| ------------------ | ------------ | ----------------------------------- |
+| Node.js            | ✅           | Virker rigtig godt                  |
+| WhatsApp (Baileys) | ✅           | Ren JS, ingen problemer             |
+| Telegram           | ✅           | Ren JS, ingen problemer             |
 | gog (Gmail CLI)    | ⚠️           | Tjek for ARM-udgivelse              |
-| Chromium (browser) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (browser) | ✅           | `sudo apt install chromium-browser` |
 
 Hvis en færdighed mislykkes, tjek om dens binære har en ARM bygning. Mange Go/Rust værktøjer gør; nogle ikke.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Sammenligning af omkostninger
 
-| Opsætning                         | Engangsomkostning    | Månedlig omkostning | Noter                                               |
-| --------------------------------- | -------------------- | ------------------- | --------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                  | + strøm (~$5/år) |
-| **Pi 4 (4GB)** | ~$55 | $0                  | Anbefalet                                           |
-| **Pi 5 (4GB)** | ~$60 | $0                  | Bedste ydeevne                                      |
-| **Pi 5 (8GB)** | ~$80 | $0                  | Overkill men fremtidssikret                         |
-| DigitalOcean                      | $0                   | $6/md               | $72/år                                              |
-| Hetzner                           | $0                   | €3,79/md            | ~$50/år                             |
+| Opsætning      | Engangsomkostning | Månedlig omkostning | Noter                       |
+| -------------- | ----------------- | ------------------- | --------------------------- |
+| **Pi 4 (2GB)** | ~$45              | $0                  | + strøm (~$5/år)            |
+| **Pi 4 (4GB)** | ~$55              | $0                  | Anbefalet                   |
+| **Pi 5 (4GB)** | ~$60              | $0                  | Bedste ydeevne              |
+| **Pi 5 (8GB)** | ~$80              | $0                  | Overkill men fremtidssikret |
+| DigitalOcean   | $0                | $6/md               | $72/år                      |
+| Hetzner        | $0                | €3,79/md            | ~$50/år                     |
 
 **Break-even:** En Pi tjener sig selv hjem på ~6-12 måneder sammenlignet med cloud VPS.
 

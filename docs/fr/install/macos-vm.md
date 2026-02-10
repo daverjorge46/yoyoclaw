@@ -260,11 +260,11 @@ Pour un fonctionnement réellement continu, envisagez un Mac mini dédié ou un 
 
 ## Problemes courants
 
-| Problème                                  | Solution                                                                                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Impossible de se connecter en SSH à la VM | Vérifiez que « Remote Login » est activé dans les Réglages Système de la VM                                                     |
-| IP de la VM non affichée                  | Attendez que la VM ait complètement démarré, relancez `lume get openclaw` à nouveau                                             |
-| Commande Lume introuvable                 | Ajoutez `~/.local/bin` à votre PATH                                                                                             |
+| Problème                                  | Solution                                                                                                     |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Impossible de se connecter en SSH à la VM | Vérifiez que « Remote Login » est activé dans les Réglages Système de la VM                                  |
+| IP de la VM non affichée                  | Attendez que la VM ait complètement démarré, relancez `lume get openclaw` à nouveau                          |
+| Commande Lume introuvable                 | Ajoutez `~/.local/bin` à votre PATH                                                                          |
 | QR WhatsApp ne se scanne pas              | Assurez-vous d’être connecté dans la VM (et non sur l’hôte) lors de l’exécution de `openclaw channels login` |
 
 ---

@@ -78,12 +78,12 @@ primary_region = "iad"
 
 **Ana ayarlar:**
 
-| Ayar                           | Neden                                                                                                                   |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Fly proxy’sinin gateway’e erişebilmesi için `0.0.0.0`’e bağlanır                                                        |
-| `--allow-unconfigured`         | Bir yapılandırma dosyası olmadan başlar (sonrasında oluşturacaksınız)                                |
-| `internal_port = 3000`         | Fly sağlık kontrolleri için `--port 3000` (veya `OPENCLAW_GATEWAY_PORT`) ile eşleşmelidir            |
-| `memory = "2048mb"`            | 512MB çok küçüktür; 2GB önerilir                                                                                        |
+| Ayar                           | Neden                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `--bind lan`                   | Fly proxy’sinin gateway’e erişebilmesi için `0.0.0.0`’e bağlanır                                        |
+| `--allow-unconfigured`         | Bir yapılandırma dosyası olmadan başlar (sonrasında oluşturacaksınız)                                   |
+| `internal_port = 3000`         | Fly sağlık kontrolleri için `--port 3000` (veya `OPENCLAW_GATEWAY_PORT`) ile eşleşmelidir               |
+| `memory = "2048mb"`            | 512MB çok küçüktür; 2GB önerilir                                                                        |
 | `OPENCLAW_STATE_DIR = "/data"` | **Tüm API anahtarları ve token’lar için yapılandırma dosyası yerine ortam değişkenlerini tercih edin.** |
 
 ## 3. Gizli anahtarları ayarlayın

@@ -392,27 +392,27 @@ Mga tala sa allowlist (PK-enabled):
 
 ### Mga default ng tool action
 
-| Action group   | Default  | Mga tala                                             |
-| -------------- | -------- | ---------------------------------------------------- |
-| reactions      | enabled  | React + list reactions + emojiList                   |
-| stickers       | enabled  | Magpadala ng stickers                                |
-| emojiUploads   | enabled  | Mag-upload ng emojis                                 |
-| stickerUploads | enabled  | Mag-upload ng stickers                               |
-| polls          | enabled  | Gumawa ng mga poll                                   |
-| permissions    | enabled  | Snapshot ng pahintulot sa channel                    |
-| messages       | enabled  | Basa/padala/edit/bura                                |
-| threads        | enabled  | Gumawa/maglista/magreply                             |
-| pins           | enabled  | Pin/unpin/list                                       |
-| search         | enabled  | Paghahanap ng mensahe (preview)   |
-| memberInfo     | enabled  | Impormasyon ng member                                |
-| roleInfo       | enabled  | Listahan ng role                                     |
-| channelInfo    | enabled  | Impormasyon + listahan ng channel                    |
-| channels       | enabled  | Pamamahala ng channel/category                       |
-| voiceStatus    | enabled  | Lookup ng voice state                                |
-| events         | enabled  | Maglista/gumawa ng scheduled event                   |
-| roles          | disabled | Role add/remove                                      |
-| moderation     | disabled | Timeout/kick/ban                                     |
-| presence       | disabled | Bot status/activity (setPresence) |
+| Action group   | Default  | Mga tala                           |
+| -------------- | -------- | ---------------------------------- |
+| reactions      | enabled  | React + list reactions + emojiList |
+| stickers       | enabled  | Magpadala ng stickers              |
+| emojiUploads   | enabled  | Mag-upload ng emojis               |
+| stickerUploads | enabled  | Mag-upload ng stickers             |
+| polls          | enabled  | Gumawa ng mga poll                 |
+| permissions    | enabled  | Snapshot ng pahintulot sa channel  |
+| messages       | enabled  | Basa/padala/edit/bura              |
+| threads        | enabled  | Gumawa/maglista/magreply           |
+| pins           | enabled  | Pin/unpin/list                     |
+| search         | enabled  | Paghahanap ng mensahe (preview)    |
+| memberInfo     | enabled  | Impormasyon ng member              |
+| roleInfo       | enabled  | Listahan ng role                   |
+| channelInfo    | enabled  | Impormasyon + listahan ng channel  |
+| channels       | enabled  | Pamamahala ng channel/category     |
+| voiceStatus    | enabled  | Lookup ng voice state              |
+| events         | enabled  | Maglista/gumawa ng scheduled event |
+| roles          | disabled | Role add/remove                    |
+| moderation     | disabled | Timeout/kick/ban                   |
+| presence       | disabled | Bot status/activity (setPresence)  |
 
 - `replyToMode`: `off` (default), `first`, or `all`. Applies only when the model includes a reply tag.
 

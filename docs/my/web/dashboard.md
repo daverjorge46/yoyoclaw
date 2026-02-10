@@ -22,9 +22,9 @@ Gateway dashboard သည် ပုံမှန်အားဖြင့် `/` �
 
 14. Authentication ကို WebSocket handshake အချိန်တွင် `connect.params.auth` (token သို့မဟုတ် password) ဖြင့် အတည်ပြုပါသည်။ 15. [Gateway configuration](/gateway/configuration) တွင် `gateway.auth` ကို ကြည့်ပါ။
 
-16. လုံခြုံရေး မှတ်ချက်: Control UI သည် **admin surface** (chat, config, exec approvals) ဖြစ်ပါသည်။
-17. အများပြည်သူအတွက် မဖွင့်ပြပါနှင့်။ 18. UI သည် ပထမဆုံး load ပြီးနောက် token ကို `localStorage` တွင် သိမ်းဆည်းပါသည်။
-18. localhost, Tailscale Serve သို့မဟုတ် SSH tunnel ကို ဦးစားပေး အသုံးပြုပါ။
+15. လုံခြုံရေး မှတ်ချက်: Control UI သည် **admin surface** (chat, config, exec approvals) ဖြစ်ပါသည်။
+16. အများပြည်သူအတွက် မဖွင့်ပြပါနှင့်။ 18. UI သည် ပထမဆုံး load ပြီးနောက် token ကို `localStorage` တွင် သိမ်းဆည်းပါသည်။
+17. localhost, Tailscale Serve သို့မဟုတ် SSH tunnel ကို ဦးစားပေး အသုံးပြုပါ။
 
 ## Fast path (အကြံပြု)
 

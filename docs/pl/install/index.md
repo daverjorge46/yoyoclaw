@@ -44,11 +44,11 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
         ```
       </Tab>
     </Tabs>
-    
+
     To wszystko — skrypt zajmuje się wykrywaniem Node, instalacją i onboardingiem.
-    
+
     Aby pominąć onboarding i tylko zainstalować binarkę:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
         ```
       </Tab>
     </Tabs>
-    
+
     Wszystkie flagi, zmienne środowiskowe oraz opcje CI/automatyzacji znajdziesz w [Wnętrzu instalatora](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="błędy budowania sharp?">
           Jeśli masz globalnie zainstalowane libvips (częste na macOS przez Homebrew) i `sharp` kończy się niepowodzeniem, wymuś prekompilowane binaria:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Jeśli zobaczysz `sharp: Please add node-gyp to your dependencies`, zainstaluj narzędzia do budowania (macOS: Xcode CLT + `npm install -g node-gyp`) albo użyj powyższej zmiennej środowiskowej.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm wymaga jawnej zgody dla pakietów ze skryptami budowania. Po pierwszej instalacji, gdy pojawi się ostrzeżenie „Ignored build scripts”, uruchom `pnpm approve-builds -g` i wybierz wymienione pakiety.
         </Note>
@@ -111,7 +111,7 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
     <Steps>
       <Step title="Klonowanie i budowanie">
         Sklonuj [repozytorium OpenClaw](https://github.com/openclaw/openclaw) i zbuduj:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
       </Step>
       <Step title="Podlinkowanie CLI">
         Udostępnij polecenie `openclaw` globalnie:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Alternatywnie pomiń linkowanie i uruchamiaj polecenia przez `pnpm openclaw ...` z poziomu repozytorium.
       </Step>
       <Step title="Uruchom onboarding">
@@ -135,7 +135,7 @@ W systemie Windows zdecydowanie zalecamy uruchamianie OpenClaw w [WSL2](https://
         ```
       </Step>
     </Steps>
-    
+
     Bardziej zaawansowane przepływy deweloperskie znajdziesz w [Konfiguracji](/start/setup).
     ```
 

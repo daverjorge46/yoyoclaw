@@ -16,13 +16,13 @@ Aylık $0 seçeneği istiyor ve ARM + sağlayıcıya özgü kurulumla uğraşmay
 
 ## Maliyet Karşılaştırması (2026)
 
-| Sağlayıcı    | Plan            | Özellikler                | Price/mo                                                       | Notlar                                     |
-| ------------ | --------------- | ------------------------- | -------------------------------------------------------------- | ------------------------------------------ |
-| Oracle Cloud | Always Free ARM | 4 OCPU’ya kadar, 24GB RAM | $0                                                             | ARM, sınırlı kapasite / kayıt tuhaflıkları |
+| Sağlayıcı    | Plan            | Özellikler                | Price/mo    | Notlar                                     |
+| ------------ | --------------- | ------------------------- | ----------- | ------------------------------------------ |
+| Oracle Cloud | Always Free ARM | 4 OCPU’ya kadar, 24GB RAM | $0          | ARM, sınırlı kapasite / kayıt tuhaflıkları |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM           | €3.79 (~$4) | En ucuz ücretli seçenek                    |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6                                                             | Easy UI, good docs                         |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6                                                             | Çok sayıda lokasyon                        |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5                                                             | Artık Akamai’nin parçası                   |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6          | Easy UI, good docs                         |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6          | Çok sayıda lokasyon                        |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5          | Artık Akamai’nin parçası                   |
 
 **Bir sağlayıcı seçmek:**
 

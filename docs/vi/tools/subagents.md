@@ -155,15 +155,15 @@ Việc lưu trữ sẽ đổi tên bản ghi hội thoại thành `*.deleted.<ti
 
 ### Tham số
 
-| Tham số             | Type                 | Default                                  | Description                                                                                                      |
-| ------------------- | -------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `task`              | string               | _(bắt buộc)_          | Sub-agent nên thực hiện điều gì                                                                                  |
-| `label`             | string               | —                                        | Nhãn ngắn để nhận diện                                                                                           |
-| `agentId`           | string               | _(agent của bên gọi)_ | Tạo dưới một agent id khác (phải được cho phép)                                               |
-| `mô hình`           | string               | _(tùy chọn)_          | Ghi đè model cho sub-agent này                                                                                   |
-| `thinking`          | string               | _(tùy chọn)_          | Ghi đè mức độ suy nghĩ (`off`, `low`, `medium`, `high`, v.v.) |
-| `runTimeoutSeconds` | số                   | `0` (không giới hạn)  | Hủy sub-agent sau N giây                                                                                         |
-| `dọn dẹp`           | "delete" \\| "keep" | "keep"                                   | "delete" lưu trữ ngay sau khi thông báo                                                                          |
+| Tham số             | Type        | Default               | Description                                                   |
+| ------------------- | ----------- | --------------------- | ------------------------------------------------------------- | --------------------------------------- |
+| `task`              | string      | _(bắt buộc)_          | Sub-agent nên thực hiện điều gì                               |
+| `label`             | string      | —                     | Nhãn ngắn để nhận diện                                        |
+| `agentId`           | string      | _(agent của bên gọi)_ | Tạo dưới một agent id khác (phải được cho phép)               |
+| `mô hình`           | string      | _(tùy chọn)_          | Ghi đè model cho sub-agent này                                |
+| `thinking`          | string      | _(tùy chọn)_          | Ghi đè mức độ suy nghĩ (`off`, `low`, `medium`, `high`, v.v.) |
+| `runTimeoutSeconds` | số          | `0` (không giới hạn)  | Hủy sub-agent sau N giây                                      |
+| `dọn dẹp`           | "delete" \\ | "keep"                | "keep"                                                        | "delete" lưu trữ ngay sau khi thông báo |
 
 ### Thứ tự phân giải model
 
@@ -209,13 +209,13 @@ Theo mặc định, các sub-agent chỉ có thể được spawn dưới chính
 
 Sử dụng lệnh slash `/subagents` để kiểm tra và điều khiển các lần chạy sub-agent cho phiên hiện tại:
 
-| Lệnh                                       | Mô tả                                                                                      |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `/subagents list`                          | Liệt kê tất cả các lần chạy sub-agent (đang hoạt động và đã hoàn thành) |
-| `/subagents stop <id\\|#\\|all>`         | Dừng một sub-agent đang chạy                                                               |
-| `/subagents log <id\\|#> [limit] [tools]` | Xem transcript của sub-agent                                                               |
-| `/subagents info <id\\|#>`                | Hiển thị metadata chi tiết của lần chạy                                                    |
-| `/subagents send <id\\|#> <message>`      | Gửi một tin nhắn tới sub-agent đang chạy                                                   |
+| Lệnh                   | Mô tả                                                                   |
+| ---------------------- | ----------------------------------------------------------------------- | ---------------------------------------- | ---------------------------- |
+| `/subagents list`      | Liệt kê tất cả các lần chạy sub-agent (đang hoạt động và đã hoàn thành) |
+| `/subagents stop <id\\ | #\\                                                                     | all>`                                    | Dừng một sub-agent đang chạy |
+| `/subagents log <id\\  | #> [limit] [tools]`                                                     | Xem transcript của sub-agent             |
+| `/subagents info <id\\ | #>`                                                                     | Hiển thị metadata chi tiết của lần chạy  |
+| `/subagents send <id\\ | #> <message>`                                                           | Gửi một tin nhắn tới sub-agent đang chạy |
 
 Bạn có thể tham chiếu sub-agent bằng chỉ số trong danh sách (`1`, `2`), tiền tố run id, session key đầy đủ, hoặc `last`.
 
@@ -232,11 +232,11 @@ Bạn có thể tham chiếu sub-agent bằng chỉ số trong danh sách (`1`, 
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -268,7 +268,7 @@ Bạn có thể tham chiếu sub-agent bằng chỉ số trong danh sách (`1`, 
 
     ````
     Hiển thị 10 tin nhắn cuối cùng từ transcript của sub-agent. Thêm `tools` để bao gồm các thông điệp gọi công cụ:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -412,40 +412,41 @@ Tác nhân phụ cũng nhận được một prompt hệ thống tập trung và
 
 <Accordion title="Complete sub-agent configuration">```json5
 {
-  agents: {
-    defaults: {
-      model: { primary: "anthropic/claude-sonnet-4" },
-      subagents: {
-        model: "minimax/MiniMax-M2.1",
-        thinking: "low",
-        maxConcurrent: 4,
-        archiveAfterMinutes: 30,
-      },
-    },
-    list: [
-      {
-        id: "main",
-        default: true,
-        name: "Personal Assistant",
-      },
-      {
-        id: "ops",
-        name: "Ops Agent",
-        subagents: {
-          model: "anthropic/claude-sonnet-4",
-          allowAgents: ["main"], // ops can spawn sub-agents under "main"
-        },
-      },
-    ],
-  },
-  tools: {
-    subagents: {
-      tools: {
-        deny: ["browser"], // sub-agents can't use the browser
-      },
-    },
-  },
+agents: {
+defaults: {
+model: { primary: "anthropic/claude-sonnet-4" },
+subagents: {
+model: "minimax/MiniMax-M2.1",
+thinking: "low",
+maxConcurrent: 4,
+archiveAfterMinutes: 30,
+},
+},
+list: [
+{
+id: "main",
+default: true,
+name: "Personal Assistant",
+},
+{
+id: "ops",
+name: "Ops Agent",
+subagents: {
+model: "anthropic/claude-sonnet-4",
+allowAgents: ["main"], // ops can spawn sub-agents under "main"
+},
+},
+],
+},
+tools: {
+subagents: {
+tools: {
+deny: ["browser"], // sub-agents can't use the browser
+},
+},
+},
 }
+
 ```</Accordion>
 
 ## Hạn chế
@@ -463,3 +464,4 @@ Tác nhân phụ cũng nhận được một prompt hệ thống tập trung và
 - [Multi-Agent Sandbox and Tools](/tools/multi-agent-sandbox-tools) — per-agent tool restrictions and sandboxing
 - [Configuration](/gateway/configuration) — `agents.defaults.subagents` reference
 - [Queue](/concepts/queue) — how the `subagent` lane works
+```

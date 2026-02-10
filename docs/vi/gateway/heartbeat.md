@@ -282,12 +282,12 @@ channels:
 
 ### Mẫu thường gặp
 
-| Mục tiêu                                                             | Cấu hình                                                                                 |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Hành vi mặc định (OK im lặng, có cảnh báo)        | _(không cần cấu hình)_                                                |
+| Mục tiêu                                          | Cấu hình                                                                                 |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Hành vi mặc định (OK im lặng, có cảnh báo)        | _(không cần cấu hình)_                                                                   |
 | Im lặng hoàn toàn (không tin nhắn, không chỉ báo) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Chỉ chỉ báo (không tin nhắn)                      | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK chỉ ở một kênh                                                    | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK chỉ ở một kênh                                 | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (tùy chọn)
 

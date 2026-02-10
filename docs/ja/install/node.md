@@ -29,7 +29,7 @@ node -v
     ```bash
     brew install node
     ```
-    
+
     または [nodejs.org](https://nodejs.org/) から macOS インストーラーをダウンロードしてください。
     ````
 
@@ -42,13 +42,13 @@ node -v
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     もしくは、バージョンマネージャーを使用してください（下記参照）。
     ````
 
@@ -60,13 +60,13 @@ node -v
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     または [nodejs.org](https://nodejs.org/) から Windows インストーラーをダウンロードしてください。
     ````
 
@@ -126,7 +126,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             その後、新しいターミナルを開く（または zsh では `rehash`、bash では `hash -r` を実行）してください。
           </Tab>
           <Tab title="Windows">

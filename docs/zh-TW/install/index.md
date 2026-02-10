@@ -44,11 +44,11 @@ title: "安裝"
         ```
       </Tab>
     </Tabs>
-    
+
     就這樣 — 腳本會處理 Node 偵測、安裝與入門引導。
-    
+
     若要略過入門引導、僅安裝二進位檔：
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ title: "安裝"
         ```
       </Tab>
     </Tabs>
-    
+
     所有旗標、環境變數與 CI／自動化選項，請參閱 [Installer internals](/install/installer)。
     ```
 
@@ -77,14 +77,14 @@ title: "安裝"
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp 建置錯誤？">
           若你已全域安裝 libvips（在 macOS 上常見於 Homebrew），且 `sharp` 失敗，請強制使用預先建置的二進位檔：
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           若看到 `sharp: Please add node-gyp to your dependencies`，請安裝建置工具（macOS：Xcode CLT + `npm install -g node-gyp`），或使用上述環境變數。
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ title: "安裝"
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm 需要對含有建置腳本的套件給予明確核准。首次安裝出現「Ignored build scripts」警告後，請執行 `pnpm approve-builds -g`，並選取列出的套件。
         </Note>
@@ -104,14 +104,14 @@ title: "安裝"
 
   </Accordion>
 
-  <Accordion title="From source" icon="github">39. 
-        適用於貢獻者或任何想要從本機檢出執行的人。
+<Accordion title="From source" icon="github">39.
+適用於貢獻者或任何想要從本機檢出執行的人。
 
     ```
     <Steps>
       <Step title="複製並建置">
         複製 [OpenClaw repo](https://github.com/openclaw/openclaw) 並建置：
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ title: "安裝"
       </Step>
       <Step title="連結 CLI">
         讓 `openclaw` 指令可全域使用：
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         或者略過連結，直接在 repo 內透過 `pnpm openclaw ...` 執行指令。
       </Step>
       <Step title="執行入門引導">
@@ -135,7 +135,7 @@ title: "安裝"
         ```
       </Step>
     </Steps>
-    
+
     更深入的開發流程，請參閱 [Setup](/start/setup)。
     ```
 

@@ -115,10 +115,10 @@ gcloud services enable compute.googleapis.com
 
 **機器類型：**
 
-| 類型       | 規格                 | 費用                       | 注意事項       |
-| -------- | ------------------ | ------------------------ | ---------- |
-| e2-small | 2 vCPU，2GB RAM     | 約 ~$12/月 | 建議         |
-| e2-micro | 2 vCPU（共享），1GB RAM | 符合免費額度                   | 高負載時可能 OOM |
+| 類型     | 規格                    | 費用         | 注意事項         |
+| -------- | ----------------------- | ------------ | ---------------- |
+| e2-small | 2 vCPU，2GB RAM         | 約 ~$12/月   | 建議             |
+| e2-micro | 2 vCPU（共享），1GB RAM | 符合免費額度 | 高負載時可能 OOM |
 
 **CLI：**
 
@@ -409,18 +409,18 @@ OpenClaw 在 Docker 中執行，但 Docker 並非單一事實來源。
 所有長期狀態都必須能在重啟、重建與重新開機後存活。
 All long-lived state must survive restarts, rebuilds, and reboots.
 
-| 元件            | 位置                                | 持久化機制             | 注意事項                      |
-| ------------- | --------------------------------- | ----------------- | ------------------------- |
-| Gateway 設定    | `/home/node/.openclaw/`           | Host volume mount | 包含 `openclaw.json`、權杖     |
-| 模型身分驗證設定      | `/home/node/.openclaw/`           | 主機磁碟區掛載           | OAuth 權杖、API 金鑰           |
-| Skill 設定      | `/home/node/.openclaw/skills/`    | Host volume mount | Skill 層級狀態                |
-| 代理程式工作區       | `/home/node/.openclaw/workspace/` | Host volume mount | 程式碼與代理程式產物                |
-| WhatsApp 工作階段 | `/home/node/.openclaw/`           | Host volume mount | 保留 QR 登入                  |
-| Gmail 金鑰圈     | `/home/node/.openclaw/`           | 主機 Volume + 密碼    | 需要 `GOG_KEYRING_PASSWORD` |
-| 外部二進位檔        | `/usr/local/bin/`                 | Docker 映像檔        | 必須在建置時烘焙                  |
-| Node 執行環境     | 容器檔案系統                            | Docker 映像檔        | 每次映像檔建置都會重建               |
-| OS 套件         | 容器檔案系統                            | Docker 映像檔        | 請勿在執行期安裝                  |
-| Docker 容器     | 暫時性                               | 可重新啟動             | 可安全銷毀                     |
+| 元件              | 位置                              | 持久化機制         | 注意事項                    |
+| ----------------- | --------------------------------- | ------------------ | --------------------------- |
+| Gateway 設定      | `/home/node/.openclaw/`           | Host volume mount  | 包含 `openclaw.json`、權杖  |
+| 模型身分驗證設定  | `/home/node/.openclaw/`           | 主機磁碟區掛載     | OAuth 權杖、API 金鑰        |
+| Skill 設定        | `/home/node/.openclaw/skills/`    | Host volume mount  | Skill 層級狀態              |
+| 代理程式工作區    | `/home/node/.openclaw/workspace/` | Host volume mount  | 程式碼與代理程式產物        |
+| WhatsApp 工作階段 | `/home/node/.openclaw/`           | Host volume mount  | 保留 QR 登入                |
+| Gmail 金鑰圈      | `/home/node/.openclaw/`           | 主機 Volume + 密碼 | 需要 `GOG_KEYRING_PASSWORD` |
+| 外部二進位檔      | `/usr/local/bin/`                 | Docker 映像檔      | 必須在建置時烘焙            |
+| Node 執行環境     | 容器檔案系統                      | Docker 映像檔      | 每次映像檔建置都會重建      |
+| OS 套件           | 容器檔案系統                      | Docker 映像檔      | 請勿在執行期安裝            |
+| Docker 容器       | 暫時性                            | 可重新啟動         | 可安全銷毀                  |
 
 ---
 

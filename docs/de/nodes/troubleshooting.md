@@ -50,12 +50,12 @@ Wenn Sie `NODE_BACKGROUND_UNAVAILABLE` sehen, bringen Sie die Node-App in den Vo
 
 ## Berechtigungsmatrix
 
-| Fähigkeit                    | iOS                                                                       | Android                                                                   | macOS-Node-App                                        | Typischer Fehlercode           |
-| ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Kamera (+ Mikrofon für Clip-Audio)                     | Kamera (+ Mikrofon für Clip-Audio)                     | Kamera (+ Mikrofon für Clip-Audio) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Bildschirmaufnahme (+ Mikrofon optional)               | Bildschirmaufnahme-Aufforderung (+ Mikrofon optional)  | Bildschirmaufnahme                                    | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Während der Nutzung oder Immer (abhängig vom Modus)    | Standort im Vorder-/Hintergrund je nach Modus                             | Standortberechtigung                                  | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n. a. (Node-Host-Pfad) | n. a. (Node-Host-Pfad) | Exec-Genehmigungen erforderlich                       | `SYSTEM_RUN_DENIED`            |
+| Fähigkeit                    | iOS                                                 | Android                                               | macOS-Node-App                     | Typischer Fehlercode           |
+| ---------------------------- | --------------------------------------------------- | ----------------------------------------------------- | ---------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Kamera (+ Mikrofon für Clip-Audio)                  | Kamera (+ Mikrofon für Clip-Audio)                    | Kamera (+ Mikrofon für Clip-Audio) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Bildschirmaufnahme (+ Mikrofon optional)            | Bildschirmaufnahme-Aufforderung (+ Mikrofon optional) | Bildschirmaufnahme                 | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Während der Nutzung oder Immer (abhängig vom Modus) | Standort im Vorder-/Hintergrund je nach Modus         | Standortberechtigung               | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n. a. (Node-Host-Pfad)                              | n. a. (Node-Host-Pfad)                                | Exec-Genehmigungen erforderlich    | `SYSTEM_RUN_DENIED`            |
 
 ## Pairing versus Genehmigungen
 

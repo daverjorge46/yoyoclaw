@@ -395,26 +395,26 @@ Notes sur les allowlists (PK active) :
 
 ### Action par défaut de l'outil
 
-| Groupe d’actions | Par défaut | Notes                                                            |
-| ---------------- | ---------- | ---------------------------------------------------------------- |
-| reactions        | active     | React + lister reactions + emojiList                             |
-| stickers         | active     | Envoyer des stickers                                             |
-| emojiUploads     | active     | Televerser des emojis                                            |
-| stickerUploads   | active     | Televerser des stickers                                          |
-| polls            | active     | Creer des sondages                                               |
-| permissions      | active     | Instantane des permissions de canal                              |
-| messages         | active     | Lire/envoyer/modifier/supprimer                                  |
-| threads          | active     | Creer/lister/repondre                                            |
-| pins             | active     | Epingler/retirer/lister                                          |
+| Groupe d’actions | Par défaut | Notes                                         |
+| ---------------- | ---------- | --------------------------------------------- |
+| reactions        | active     | React + lister reactions + emojiList          |
+| stickers         | active     | Envoyer des stickers                          |
+| emojiUploads     | active     | Televerser des emojis                         |
+| stickerUploads   | active     | Televerser des stickers                       |
+| polls            | active     | Creer des sondages                            |
+| permissions      | active     | Instantane des permissions de canal           |
+| messages         | active     | Lire/envoyer/modifier/supprimer               |
+| threads          | active     | Creer/lister/repondre                         |
+| pins             | active     | Epingler/retirer/lister                       |
 | search           | active     | Recherche de messages (fonctionnalite apercu) |
-| memberInfo       | active     | Infos membre                                                     |
-| roleInfo         | active     | Liste des roles                                                  |
-| channelInfo      | active     | Infos canal + liste                                              |
-| channels         | active     | Gestion canaux/categories                                        |
-| voiceStatus      | active     | Recherche d'état vocal                                           |
-| events           | active     | Lister/creer des evenements programmes                           |
-| roles            | desactive  | Ajout/suppression de roles                                       |
-| moderation       | desactive  | Timeout/expulsion/bannissement                                   |
+| memberInfo       | active     | Infos membre                                  |
+| roleInfo         | active     | Liste des roles                               |
+| channelInfo      | active     | Infos canal + liste                           |
+| channels         | active     | Gestion canaux/categories                     |
+| voiceStatus      | active     | Recherche d'état vocal                        |
+| events           | active     | Lister/creer des evenements programmes        |
+| roles            | desactive  | Ajout/suppression de roles                    |
+| moderation       | desactive  | Timeout/expulsion/bannissement                |
 | presence         | desactive  | Statut/activite du bot (setPresence)          |
 
 - `replyToMode` : `off` (defaut), `first`, ou `all`. S’applique uniquement lorsque le modele inclut une balise de reponse.

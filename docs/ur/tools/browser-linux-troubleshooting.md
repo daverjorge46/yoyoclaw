@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### کنفیگ حوالہ
 
-| Option                   | Description                                                                             | Default                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `browser.enabled`        | براؤزر کنٹرول فعال کریں                                                                 | `true`                                                                                    |
+| Option                   | Description                                                          | Default                                                                |
+| ------------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `browser.enabled`        | براؤزر کنٹرول فعال کریں                                              | `true`                                                                 |
 | `browser.executablePath` | Chromium پر مبنی براؤزر بائنری کا راستہ (Chrome/Brave/Edge/Chromium) | خودکار طور پر معلوم (جب Chromium پر مبنی ہو تو ڈیفالٹ براؤزر کو ترجیح) |
-| `browser.headless`       | GUI کے بغیر چلائیں                                                                      | `false`                                                                                   |
-| `browser.noSandbox`      | `--no-sandbox` فلیگ شامل کریں (کچھ لینکس سیٹ اپس کے لیے درکار)       | `false`                                                                                   |
-| `browser.attachOnly`     | براؤزر لانچ نہ کریں، صرف موجودہ سے منسلک ہوں                                            | `false`                                                                                   |
-| `browser.cdpPort`        | Chrome DevTools Protocol پورٹ                                                           | `18800`                                                                                   |
+| `browser.headless`       | GUI کے بغیر چلائیں                                                   | `false`                                                                |
+| `browser.noSandbox`      | `--no-sandbox` فلیگ شامل کریں (کچھ لینکس سیٹ اپس کے لیے درکار)       | `false`                                                                |
+| `browser.attachOnly`     | براؤزر لانچ نہ کریں، صرف موجودہ سے منسلک ہوں                         | `false`                                                                |
+| `browser.cdpPort`        | Chrome DevTools Protocol پورٹ                                        | `18800`                                                                |
 
 ### مسئلہ: "Chrome extension relay is running, but no tab is connected"
 

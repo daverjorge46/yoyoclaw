@@ -29,10 +29,10 @@ Dessa är **inte** webbläsarautomatisering. För JS-tunga webbplatser eller inl
 
 ## Välja sökleverantör
 
-| Leverantör                              | Fördelar                                   | Nackdelar                                   | API-nyckel                                      |
-| --------------------------------------- | ------------------------------------------ | ------------------------------------------- | ----------------------------------------------- |
+| Leverantör           | Fördelar                                   | Nackdelar                                   | API-nyckel                                      |
+| -------------------- | ------------------------------------------ | ------------------------------------------- | ----------------------------------------------- |
 | **Brave** (standard) | Snabbt, strukturerade resultat, gratisnivå | Traditionella sökresultat                   | `BRAVE_API_KEY`                                 |
-| **Perplexity**                          | AI-syntetiserade svar, citeringar, realtid | Kräver Perplexity- eller OpenRouter-åtkomst | `OPENROUTER_API_KEY` eller `PERPLEXITY_API_KEY` |
+| **Perplexity**       | AI-syntetiserade svar, citeringar, realtid | Kräver Perplexity- eller OpenRouter-åtkomst | `OPENROUTER_API_KEY` eller `PERPLEXITY_API_KEY` |
 
 Se [Brave Search setup](/brave-search) och [Perplexity Sonar](/perplexity) för leverantörsspecifika detaljer.
 
@@ -133,11 +133,11 @@ Om ingen bas-URL är satt väljer OpenClaw ett standardvärde baserat på API-ny
 
 ### Tillgängliga Perplexity-modeller
 
-| Modell                                               | Beskrivning                                   | Bäst för        |
-| ---------------------------------------------------- | --------------------------------------------- | --------------- |
-| `perplexity/sonar`                                   | Snabb Q&A med webbsökning | Snabba uppslag  |
-| `perplexity/sonar-pro` (standard) | Flerstegsresonemang med webbsökning           | Komplexa frågor |
-| `perplexity/sonar-reasoning-pro`                     | Chain-of-thought-analys                       | Djup research   |
+| Modell                            | Beskrivning                         | Bäst för        |
+| --------------------------------- | ----------------------------------- | --------------- |
+| `perplexity/sonar`                | Snabb Q&A med webbsökning           | Snabba uppslag  |
+| `perplexity/sonar-pro` (standard) | Flerstegsresonemang med webbsökning | Komplexa frågor |
+| `perplexity/sonar-reasoning-pro`  | Chain-of-thought-analys             | Djup research   |
 
 ## web_search
 

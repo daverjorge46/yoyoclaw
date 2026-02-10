@@ -15,7 +15,7 @@ OpenClaw dispose de trois contrôles liés (mais différents) :
 
 ## Débogage rapide
 
-Utilisez l’inspecteur pour voir ce qu’OpenClaw fait _réellement_ :
+Utilisez l’inspecteur pour voir ce qu’OpenClaw fait *réellement* :
 
 ```bash
 openclaw sandbox explain

@@ -26,7 +26,7 @@ title: "ติดตั้ง"
 <Tip>
 
 **สคริปต์ติดตั้ง** เป็นวิธีที่แนะนำในการติดตั้ง OpenClaw โดยจะจัดการการตรวจพบ Node การติดตั้ง และการเริ่มต้นใช้งานในขั้นตอนเดียว
- It handles Node detection, installation, and onboarding in one step.
+It handles Node detection, installation, and onboarding in one step.
 </Tip>
 
 <AccordionGroup>
@@ -46,11 +46,11 @@ title: "ติดตั้ง"
         ```
       </Tab>
     </Tabs>
-    
+
     เท่านี้ก็เรียบร้อย — สคริปต์จะจัดการการตรวจพบ Node การติดตั้ง และการเริ่มต้นใช้งานให้ทั้งหมด
-    
+
     หากต้องการข้ามการเริ่มต้นใช้งานและติดตั้งเฉพาะไบนารี:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -63,7 +63,7 @@ title: "ติดตั้ง"
         ```
       </Tab>
     </Tabs>
-    
+
     สำหรับแฟล็ก ตัวแปรสภาพแวดล้อม และตัวเลือก CI/อัตโนมัติทั้งหมด ดูที่ [Installer internals](/install/installer)
     ```
 
@@ -79,14 +79,14 @@ title: "ติดตั้ง"
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="เกิดข้อผิดพลาดการ build ของ sharp?">
           หากคุณติดตั้ง libvips แบบ global (พบบ่อยบน macOS ผ่าน Homebrew) และ `sharp` ล้มเหลว ให้บังคับใช้ไบนารีแบบ prebuilt:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           หากคุณเห็น `sharp: Please add node-gyp to your dependencies` ให้ติดตั้งเครื่องมือสำหรับ build (macOS: Xcode CLT + `npm install -g node-gyp`) หรือใช้ตัวแปรสภาพแวดล้อมด้านบน
         </Accordion>
       </Tab>
@@ -96,7 +96,7 @@ title: "ติดตั้ง"
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm ต้องการการอนุมัติอย่างชัดเจนสำหรับแพ็กเกจที่มีสคริปต์ build หลังจากการติดตั้งครั้งแรกแสดงคำเตือน "Ignored build scripts" ให้รัน `pnpm approve-builds -g` และเลือกแพ็กเกจที่แสดงรายการ
         </Note>
@@ -113,7 +113,7 @@ title: "ติดตั้ง"
     <Steps>
       <Step title="โคลนและ build">
         โคลน [รีโป OpenClaw](https://github.com/openclaw/openclaw) และ build:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -124,11 +124,11 @@ title: "ติดตั้ง"
       </Step>
       <Step title="ลิงก์ CLI">
         ทำให้คำสั่ง `openclaw` ใช้งานได้แบบ global:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         หรือจะข้ามการลิงก์และรันคำสั่งผ่าน `pnpm openclaw ...` จากภายในรีโปก็ได้
       </Step>
       <Step title="รันการเริ่มต้นใช้งาน">
@@ -137,7 +137,7 @@ title: "ติดตั้ง"
         ```
       </Step>
     </Steps>
-    
+
     สำหรับเวิร์กโฟลว์การพัฒนาที่ลึกขึ้น ดูที่ [การตั้งค่า](/start/setup)
     ```
 

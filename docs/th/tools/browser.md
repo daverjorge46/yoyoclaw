@@ -134,7 +134,7 @@ openclaw config set browser.executablePath "/usr/bin/google-chrome"
 - **การควบคุมภายในเครื่อง (ค่าเริ่มต้น):** Gateway เริ่มบริการควบคุม loopback และสามารถเปิดเบราว์เซอร์ภายในเครื่องได้
 - **การควบคุมระยะไกล (โฮสต์โหนด):** รันโฮสต์โหนดบนเครื่องที่มีเบราว์เซอร์; Gateway จะพร็อกซีการกระทำของเบราว์เซอร์ไปยังโฮสต์นั้น
 - **Remote CDP:** ตั้งค่า `browser.profiles.<name>`.cdpUrl`(หรือ`browser.cdpUrl`) เพื่อ
-  เชื่อมต่อกับเบราว์เซอร์ที่ใช้ Chromium แบบระยะไกล .cdpUrl` (หรือ `browser.cdpUrl`)
+เชื่อมต่อกับเบราว์เซอร์ที่ใช้ Chromium แบบระยะไกล .cdpUrl` (หรือ `browser.cdpUrl`)
   เพื่อแนบกับเบราว์เซอร์ที่อิง Chromium ระยะไกล ในกรณีนี้ OpenClaw จะไม่เปิดเบราว์เซอร์ภายในเครื่อง
 
 URL ของ Remote CDP สามารถมีการยืนยันตัวตนได้:

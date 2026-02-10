@@ -44,11 +44,11 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
         ```
       </Tab>
     </Tabs>
-    
+
     बस इतना ही — यह स्क्रिप्ट Node की पहचान, स्थापना, और ऑनबोर्डिंग संभालती है।
-    
+
     ऑनबोर्डिंग छोड़कर केवल बाइनरी स्थापित करने के लिए:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
         ```
       </Tab>
     </Tabs>
-    
+
     सभी फ़्लैग, env vars, और CI/ऑटोमेशन विकल्पों के लिए, [Installer internals](/install/installer) देखें।
     ```
 
@@ -77,14 +77,14 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp बिल्ड त्रुटियाँ?">
           यदि आपके पास libvips वैश्विक रूप से स्थापित है (macOS पर Homebrew के माध्यम से सामान्य) और `sharp` विफल हो जाता है, तो प्रीबिल्ट बाइनरी को बाध्य करें:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           यदि आपको `sharp: Please add node-gyp to your dependencies` दिखाई देता है, तो या तो बिल्ड टूलिंग स्थापित करें (macOS: Xcode CLT + `npm install -g node-gyp`) या ऊपर दिए गए env var का उपयोग करें।
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm को बिल्ड स्क्रिप्ट वाले पैकेजों के लिए स्पष्ट अनुमोदन की आवश्यकता होती है। पहली इंस्टॉल के बाद यदि "Ignored build scripts" चेतावनी दिखाई दे, तो `pnpm approve-builds -g` चलाएँ और सूचीबद्ध पैकेजों का चयन करें।
         </Note>
@@ -111,7 +111,7 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
     <Steps>
       <Step title="Clone और build करें">
         [OpenClaw repo](https://github.com/openclaw/openclaw) को clone करें और build करें:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
       </Step>
       <Step title="CLI को link करें">
         `openclaw` कमांड को वैश्विक रूप से उपलब्ध करें:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         वैकल्पिक रूप से, link को छोड़ दें और repo के अंदर से `pnpm openclaw ...` के माध्यम से कमांड चलाएँ।
       </Step>
       <Step title="ऑनबोर्डिंग चलाएँ">
@@ -135,7 +135,7 @@ Windows पर, हम दृढ़ता से अनुशंसा करत
         ```
       </Step>
     </Steps>
-    
+
     गहन विकास वर्कफ़्लो के लिए, [Setup](/start/setup) देखें।
     ```
 

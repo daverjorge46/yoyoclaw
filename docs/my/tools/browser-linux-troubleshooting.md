@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Config ကိုးကားချက်
 
-| Option                   | ဖော်ပြချက်                                                                                   | Default                                                                                 |
-| ------------------------ | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Browser control ကို ဖွင့်ရန်                                                                 | `true`                                                                                  |
+| Option                   | ဖော်ပြချက်                                                                | Default                                                              |
+| ------------------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `browser.enabled`        | Browser control ကို ဖွင့်ရန်                                              | `true`                                                               |
 | `browser.executablePath` | Chromium အခြေခံ browser binary (Chrome/Brave/Edge/Chromium) ၏ လမ်းကြောင်း | auto-detected (Chromium အခြေခံ ဖြစ်ပါက ပုံမှန် browser ကို ဦးစားပေး) |
-| `browser.headless`       | GUI မပါဘဲ လည်ပတ်ရန်                                                                          | `false`                                                                                 |
-| `browser.noSandbox`      | `--no-sandbox` flag ကို ထည့်ရန် (Linux setup အချို့တွင် လိုအပ်)           | `false`                                                                                 |
-| `browser.attachOnly`     | Browser ကို မစတင်ဘဲ ရှိပြီးသားကိုသာ attach လုပ်ရန်                                           | `false`                                                                                 |
-| `browser.cdpPort`        | Chrome DevTools Protocol port                                                                | `18800`                                                                                 |
+| `browser.headless`       | GUI မပါဘဲ လည်ပတ်ရန်                                                       | `false`                                                              |
+| `browser.noSandbox`      | `--no-sandbox` flag ကို ထည့်ရန် (Linux setup အချို့တွင် လိုအပ်)           | `false`                                                              |
+| `browser.attachOnly`     | Browser ကို မစတင်ဘဲ ရှိပြီးသားကိုသာ attach လုပ်ရန်                        | `false`                                                              |
+| `browser.cdpPort`        | Chrome DevTools Protocol port                                             | `18800`                                                              |
 
 ### ပြဿနာ: "Chrome extension relay is running, but no tab is connected"
 

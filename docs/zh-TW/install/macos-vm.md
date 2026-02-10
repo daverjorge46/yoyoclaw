@@ -260,11 +260,11 @@ lume run openclaw --no-display
 
 ## Troubleshooting
 
-| 問題               | 解決方式                                            |
-| ---------------- | ----------------------------------------------- |
-| 無法 SSH 連線至 VM    | 確認 VM 的「系統設定」中已啟用「遠端登入」                         |
-| 未顯示 VM IP        | 等待 VM 完全開機，再次執行 `lume get openclaw`             |
-| 找不到 Lume 指令      | 將 `~/.local/bin` 加入你的 PATH                      |
+| 問題                 | 解決方式                                                         |
+| -------------------- | ---------------------------------------------------------------- |
+| 無法 SSH 連線至 VM   | 確認 VM 的「系統設定」中已啟用「遠端登入」                       |
+| 未顯示 VM IP         | 等待 VM 完全開機，再次執行 `lume get openclaw`                   |
+| 找不到 Lume 指令     | 將 `~/.local/bin` 加入你的 PATH                                  |
 | WhatsApp QR 無法掃描 | 執行 `openclaw channels login` 時，請確認你登入的是 VM（非主機） |
 
 ---

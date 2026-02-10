@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Typy maszyn:**
 
-| Typ      | Specyfikacja                                        | Koszt                           | Uwagi                              |
-| -------- | --------------------------------------------------- | ------------------------------- | ---------------------------------- |
-| e2-small | 2 vCPU, 2 GB RAM                                    | ~12 $ / miesiąc | Zalecane                           |
-| e2-micro | 2 vCPU (współdzielone), 1 GB RAM | Warstwa darmowa                 | Może powodować OOM przy obciążeniu |
+| Typ      | Specyfikacja                     | Koszt           | Uwagi                              |
+| -------- | -------------------------------- | --------------- | ---------------------------------- |
+| e2-small | 2 vCPU, 2 GB RAM                 | ~12 $ / miesiąc | Zalecane                           |
+| e2-micro | 2 vCPU (współdzielone), 1 GB RAM | Warstwa darmowa | Może powodować OOM przy obciążeniu |
 
 **CLI:**
 

@@ -11,9 +11,9 @@ title: "ပလက်ဖောင်းများ"
 43. OpenClaw core ကို TypeScript ဖြင့် ရေးသားထားပါသည်။ 44. **Node ကို အကြံပြုထားသော runtime အဖြစ် အသုံးပြုရန် အကြံပြုပါသည်**။
 44. Gateway အတွက် Bun ကို မအကြံပြုပါ (WhatsApp/Telegram bugs များကြောင့်)။
 
-46. Companion apps များကို macOS (menu bar app) နှင့် mobile nodes (iOS/Android) အတွက် ရရှိနိုင်ပါသည်။ Windows and
+45. Companion apps များကို macOS (menu bar app) နှင့် mobile nodes (iOS/Android) အတွက် ရရှိနိုင်ပါသည်။ Windows and
     Linux companion apps are planned, but the Gateway is fully supported today.
-47. Windows အတွက် native companion apps များကိုလည်း စီစဉ်ထားပြီး Gateway ကို WSL2 မှတဆင့် အသုံးပြုရန် အကြံပြုပါသည်။
+46. Windows အတွက် native companion apps များကိုလည်း စီစဉ်ထားပြီး Gateway ကို WSL2 မှတဆင့် အသုံးပြုရန် အကြံပြုပါသည်။
 
 ## သင့် OS ကို ရွေးချယ်ပါ
 

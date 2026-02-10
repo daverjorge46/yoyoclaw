@@ -377,11 +377,11 @@ reaction d’accuse de reception apres la reponse du bot.
 
 Par defaut, OpenClaw repond dans le canal principal. Utilisez `channels.slack.replyToMode` pour controler le fil automatique :
 
-| Mode    | Comportement                                                                                                                                                                                                                        |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Par defaut.** Repondre dans le canal principal. Ne creer un fil que si le message declencheur etait deja dans un fil.                                                             |
+| Mode    | Comportement                                                                                                                                                                     |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Par defaut.** Repondre dans le canal principal. Ne creer un fil que si le message declencheur etait deja dans un fil.                                                          |
 | `first` | La premiere reponse va dans le fil (sous le message declencheur), les reponses suivantes vont dans le canal principal. Utile pour conserver le contexte sans encombrer les fils. |
-| `all`   | Toutes les reponses vont dans le fil. Garde les conversations contenues mais peut reduire la visibilite.                                                                                            |
+| `all`   | Toutes les reponses vont dans le fil. Garde les conversations contenues mais peut reduire la visibilite.                                                                         |
 
 Le mode s’applique aux reponses automatiques et aux appels d’outils de l’agent (`slack sendMessage`).
 

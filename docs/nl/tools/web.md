@@ -29,10 +29,10 @@ Dit is **geen** browserautomatisering. Voor JS-zware sites of inlogflows, gebrui
 
 ## Een zoekprovider kiezen
 
-| Provider                                 | Voordelen                                          | Nadelen                                   | API-sleutel                                  |
-| ---------------------------------------- | -------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| Provider              | Voordelen                                          | Nadelen                                   | API-sleutel                                  |
+| --------------------- | -------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
 | **Brave** (standaard) | Snel, gestructureerde resultaten, gratis tier      | Traditionele zoekresultaten               | `BRAVE_API_KEY`                              |
-| **Perplexity**                           | AI-gesynthetiseerde antwoorden, citaties, realtime | Vereist Perplexity- of OpenRouter-toegang | `OPENROUTER_API_KEY` of `PERPLEXITY_API_KEY` |
+| **Perplexity**        | AI-gesynthetiseerde antwoorden, citaties, realtime | Vereist Perplexity- of OpenRouter-toegang | `OPENROUTER_API_KEY` of `PERPLEXITY_API_KEY` |
 
 Zie [Brave Search setup](/brave-search) en [Perplexity Sonar](/perplexity) voor providerspecifieke details.
 
@@ -132,11 +132,11 @@ Als er geen base-URL is ingesteld, kiest OpenClaw een standaard op basis van de 
 
 ### Beschikbare Perplexity-modellen
 
-| Model                                                 | Beschrijving                                         | Beste voor            |
-| ----------------------------------------------------- | ---------------------------------------------------- | --------------------- |
-| `perplexity/sonar`                                    | Snelle Q&A met webzoekopdrachten | Snelle zoekopdrachten |
-| `perplexity/sonar-pro` (standaard) | Meertraps redeneren met webzoekopdrachten            | Complexe vragen       |
-| `perplexity/sonar-reasoning-pro`                      | Chain-of-thought-analyse                             | Diepgaand onderzoek   |
+| Model                              | Beschrijving                              | Beste voor            |
+| ---------------------------------- | ----------------------------------------- | --------------------- |
+| `perplexity/sonar`                 | Snelle Q&A met webzoekopdrachten          | Snelle zoekopdrachten |
+| `perplexity/sonar-pro` (standaard) | Meertraps redeneren met webzoekopdrachten | Complexe vragen       |
+| `perplexity/sonar-reasoning-pro`   | Chain-of-thought-analyse                  | Diepgaand onderzoek   |
 
 ## web_search
 

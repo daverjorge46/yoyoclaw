@@ -377,11 +377,11 @@ ack-reactie te verwijderen nadat de bot heeft geantwoord.
 
 Standaard antwoordt OpenClaw in het hoofdkanaal. Gebruik `channels.slack.replyToMode` om automatische threading te regelen:
 
-| Modus   | Gedrag                                                                                                                                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `off`   | **Standaard.** Antwoord in het hoofdkanaal. Thread alleen als het triggerende bericht al in een thread stond.                                                                        |
+| Modus   | Gedrag                                                                                                                                                                            |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Standaard.** Antwoord in het hoofdkanaal. Thread alleen als het triggerende bericht al in een thread stond.                                                                     |
 | `first` | Eerste antwoord gaat in de thread (onder het triggerende bericht), vervolgreplies gaan naar het hoofdkanaal. Handig om context zichtbaar te houden en thread-rommel te vermijden. |
-| `all`   | Alle antwoorden gaan in de thread. Houdt gesprekken compact maar kan zichtbaarheid verminderen.                                                                                                      |
+| `all`   | Alle antwoorden gaan in de thread. Houdt gesprekken compact maar kan zichtbaarheid verminderen.                                                                                   |
 
 De modus geldt voor zowel auto-replies als agent tool calls (`slack sendMessage`).
 

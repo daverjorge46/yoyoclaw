@@ -76,11 +76,11 @@ Ayrıntılar için [Configuration: Env var substitution](/gateway/configuration#
 
 ## Yol ile ilgili ortam değişkenleri
 
-| Değişken               | Amaç                                                                                                                                                                                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Değişken               | Amaç                                                                                                                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENCLAW_HOME`        | Tüm dahili yol çözümlemesi için kullanılan ana dizini geçersiz kılar (`~/.openclaw/`, agent dizinleri, oturumlar, kimlik bilgileri). OpenClaw’ı özel bir servis kullanıcısı olarak çalıştırırken kullanışlıdır. |
-| `OPENCLAW_STATE_DIR`   | Durum dizinini geçersiz kılar (varsayılan `~/.openclaw`).                                                                                                                                                                       |
-| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                                            |
+| `OPENCLAW_STATE_DIR`   | Durum dizinini geçersiz kılar (varsayılan `~/.openclaw`).                                                                                                                                                       |
+| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                            |
 
 ### `OPENCLAW_HOME`
 

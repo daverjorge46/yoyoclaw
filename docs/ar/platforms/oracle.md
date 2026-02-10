@@ -20,13 +20,13 @@ title: "Oracle Cloud"
 
 ## مقارنة التكاليف (2026)
 
-| Provider     | الخطة           | المواصفات            | السعر/شهر            | الملاحظات             |
-| ------------ | --------------- | -------------------- | -------------------- | --------------------- |
-| Oracle Cloud | Always Free ARM | حتى 4 OCPU، 24GB RAM | $0                   | ARM، سعة محدودة       |
-| Hetzner      | CX22            | 2 vCPU، 4GB RAM      | ~ $4 | أرخص خيار مدفوع       |
-| DigitalOcean | Basic           | 1 vCPU، 1GB RAM      | $6                   | واجهة سهلة، توثيق جيد |
-| Vultr        | Cloud Compute   | 1 vCPU، 1GB RAM      | $6                   | مواقع عديدة           |
-| Linode       | Nanode          | 1 vCPU، 1GB RAM      | $5                   | أصبح جزءًا من Akamai  |
+| Provider     | الخطة           | المواصفات            | السعر/شهر | الملاحظات             |
+| ------------ | --------------- | -------------------- | --------- | --------------------- |
+| Oracle Cloud | Always Free ARM | حتى 4 OCPU، 24GB RAM | $0        | ARM، سعة محدودة       |
+| Hetzner      | CX22            | 2 vCPU، 4GB RAM      | ~ $4      | أرخص خيار مدفوع       |
+| DigitalOcean | Basic           | 1 vCPU، 1GB RAM      | $6        | واجهة سهلة، توثيق جيد |
+| Vultr        | Cloud Compute   | 1 vCPU، 1GB RAM      | $6        | مواقع عديدة           |
+| Linode       | Nanode          | 1 vCPU، 1GB RAM      | $5        | أصبح جزءًا من Akamai  |
 
 ---
 

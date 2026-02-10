@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Machine types:**
 
-| Type     | Specs                                       | Cost                     | Notes                 |
-| -------- | ------------------------------------------- | ------------------------ | --------------------- |
-| e2-small | 2 vCPU, 2GB RAM                             | ~$12/माह | अनुशंसित              |
-| e2-micro | 2 vCPU (shared), 1GB RAM | फ्री टियर योग्य          | लोड पर OOM हो सकता है |
+| Type     | Specs                    | Cost            | Notes                 |
+| -------- | ------------------------ | --------------- | --------------------- |
+| e2-small | 2 vCPU, 2GB RAM          | ~$12/माह        | अनुशंसित              |
+| e2-micro | 2 vCPU (shared), 1GB RAM | फ्री टियर योग्य | लोड पर OOM हो सकता है |
 
 **CLI:**
 

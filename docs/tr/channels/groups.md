@@ -40,12 +40,12 @@ otherwise -> reply
 
 İsterseniz...
 
-| Amaç                                                                 | What to set                                                                 |
-| -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Tüm gruplara izin ver ama yalnızca @mention ile yanıtla | `groups: { "*": { requireMention: true } }`                                 |
-| Tüm grup yanıtlarını devre dışı bırak                                | `groupPolicy: "disabled"`                                                   |
-| Yalnızca belirli gruplar                                             | `groups: { "<group-id>": { ... } }` (`"*"` anahtarı yok) |
-| Gruplarda yalnızca siz tetikleyebilirsiniz                           | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                  |
+| Amaç                                                    | What to set                                                |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| Tüm gruplara izin ver ama yalnızca @mention ile yanıtla | `groups: { "*": { requireMention: true } }`                |
+| Tüm grup yanıtlarını devre dışı bırak                   | `groupPolicy: "disabled"`                                  |
+| Yalnızca belirli gruplar                                | `groups: { "<group-id>": { ... } }` (`"*"` anahtarı yok)   |
+| Gruplarda yalnızca siz tetikleyebilirsiniz              | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Oturum anahtarları
 
@@ -174,8 +174,8 @@ Kanal başına grup/oda mesajlarının nasıl ele alınacağını kontrol edin:
 }
 ```
 
-| Politika      | Davranış                                                                                      |
-| ------------- | --------------------------------------------------------------------------------------------- |
+| Politika      | Davranış                                                                      |
+| ------------- | ----------------------------------------------------------------------------- |
 | `"open"`      | Gruplar izin listelerini atlar; mention gating yine de geçerlidir.            |
 | `"disabled"`  | Tüm grup mesajlarını tamamen engeller.                                        |
 | `"allowlist"` | Yalnızca yapılandırılmış izin listesiyle eşleşen gruplara/odalara izin verir. |

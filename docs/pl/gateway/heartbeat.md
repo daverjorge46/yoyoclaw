@@ -289,12 +289,12 @@ channels:
 
 ### Typowe wzorce
 
-| Cel                                                                | Konfiguracja                                                                             |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Zachowanie domyślne (ciche OK, alerty)          | _(brak konfiguracji)_                                                 |
+| Cel                                             | Konfiguracja                                                                             |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Zachowanie domyślne (ciche OK, alerty)          | _(brak konfiguracji)_                                                                    |
 | W pełni ciche (brak wiadomości, brak wskaźnika) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Tylko wskaźnik (brak wiadomości)                | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK tylko w jednym kanale                                           | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK tylko w jednym kanale                        | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (opcjonalne)
 

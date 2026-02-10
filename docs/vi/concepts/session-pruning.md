@@ -43,8 +43,8 @@ read_when:
 37. Việc cắt tỉa dùng ước lượng cửa sổ ngữ cảnh (ký tự ≈ token × 4). 38. Cửa sổ cơ sở được phân giải theo thứ tự này:
 
 1. Ghi đè `models.providers.*.models[].contextWindow`.
-2. Định nghĩa mô hình `contextWindow` (từ sổ đăng ký mô hình).
-3. Mặc định `200000` token.
+1. Định nghĩa mô hình `contextWindow` (từ sổ đăng ký mô hình).
+1. Mặc định `200000` token.
 
 Nếu đặt `agents.defaults.contextTokens`, giá trị này được coi là mức trần (min) cho cửa sổ đã xác định.
 

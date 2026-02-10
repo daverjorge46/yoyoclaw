@@ -29,7 +29,7 @@ Bu komut `v22.x.x` veya daha yeni bir sürüm yazdırıyorsa sorun yok. Node yü
     ```bash
     brew install node
     ```
-    
+
     Ya da macOS yükleyicisini [nodejs.org](https://nodejs.org/) üzerinden indirin.
     ````
 
@@ -42,13 +42,13 @@ Bu komut `v22.x.x` veya daha yeni bir sürüm yazdırıyorsa sorun yok. Node yü
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Alternatif olarak bir sürüm yöneticisi kullanabilirsiniz (aşağıya bakın).
     ````
 
@@ -60,13 +60,13 @@ Bu komut `v22.x.x` veya daha yeni bir sürüm yazdırıyorsa sorun yok. Node yü
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Ya da Windows yükleyicisini [nodejs.org](https://nodejs.org/) üzerinden indirin.
     ````
 
@@ -123,7 +123,7 @@ Bu, neredeyse her zaman npm’in global bin dizininin PATH’inizde olmadığı 
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Ardından yeni bir terminal açın (veya zsh’te `rehash`, bash’te `hash -r` çalıştırın).
           </Tab>
           <Tab title="Windows">

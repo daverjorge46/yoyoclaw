@@ -47,7 +47,6 @@ Detalhes: [Plugins](/tools/plugin)
    - Ou hospede você mesmo.
 
 3. Obtenha um token de acesso para a conta do bot:
-
    - Use a API de login do Matrix com `curl` no seu homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Depois de verificado, o bot pode descriptografar mensagens em salas criptografad
 
 ## Capacidades
 
-| Funcionalidade    | Status                                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Mensagens diretas | ✅ Suportado                                                                                                                    |
-| Ambientes         | ✅ Suportado                                                                                                                    |
-| Threads           | ✅ Suportado                                                                                                                    |
-| Mídia             | ✅ Suportado                                                                                                                    |
+| Funcionalidade    | Status                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| Mensagens diretas | ✅ Suportado                                                                                                 |
+| Ambientes         | ✅ Suportado                                                                                                 |
+| Threads           | ✅ Suportado                                                                                                 |
+| Mídia             | ✅ Suportado                                                                                                 |
 | E2EE              | ✅ Suportado (módulo de crypto necessário)                                                                   |
 | Reações           | ✅ Suportado (enviar/ler via ferramentas)                                                                    |
 | Enquetes          | ✅ Envio suportado; inícios de enquete recebidos são convertidos em texto (respostas/finalizações ignoradas) |
 | Localização       | ✅ Suportado (URI geo; altitude ignorada)                                                                    |
-| Comandos nativos  | ✅ Suportado                                                                                                                    |
+| Comandos nativos  | ✅ Suportado                                                                                                 |
 
 ## Solução de problemas
 

@@ -23,12 +23,12 @@ Perfekt för:
 
 | Pi-modell       | RAM     | Fungerar?  | Noteringar                       |
 | --------------- | ------- | ---------- | -------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ Bäst     | Snabbast, rekommenderas          |
-| **Pi 4**        | 4GB     | ✅ Bra      | Bästa valet för de flesta        |
-| **Pi 4**        | 2GB     | ✅ OK       | Fungerar, lägg till swap         |
+| **Pi 5**        | 4GB/8GB | ✅ Bäst    | Snabbast, rekommenderas          |
+| **Pi 4**        | 4GB     | ✅ Bra     | Bästa valet för de flesta        |
+| **Pi 4**        | 2GB     | ✅ OK      | Fungerar, lägg till swap         |
 | **Pi 4**        | 1GB     | ⚠️ Snålt   | Möjligt med swap, minimal konfig |
 | **Pi 3B+**      | 1GB     | ⚠️ Långsam | Fungerar men seg                 |
-| **Pi Zero 2 W** | 512MB   | ❌          | Rekommenderas inte               |
+| **Pi Zero 2 W** | 512MB   | ❌         | Rekommenderas inte               |
 
 **Minimikrav:** 1GB RAM, 1 kärna, 500MB disk  
 **Rekommenderat:** 2GB+ RAM, 64-bitars OS, 16GB+ SD-kort (eller USB-SSD)
@@ -223,13 +223,13 @@ htop
 
 De flesta OpenClaw-funktioner fungerar på ARM64, men vissa externa binärer kan behöva ARM-byggen:
 
-| Verktyg                                  | ARM64-status | Noteringar                          |
-| ---------------------------------------- | ------------ | ----------------------------------- |
-| Node.js                  | ✅            | Fungerar utmärkt                    |
-| WhatsApp (Baileys)    | ✅            | Ren JS, inga problem                |
-| Telegram                                 | ✅            | Ren JS, inga problem                |
+| Verktyg               | ARM64-status | Noteringar                          |
+| --------------------- | ------------ | ----------------------------------- |
+| Node.js               | ✅           | Fungerar utmärkt                    |
+| WhatsApp (Baileys)    | ✅           | Ren JS, inga problem                |
+| Telegram              | ✅           | Ren JS, inga problem                |
 | gog (Gmail CLI)       | ⚠️           | Kontrollera om ARM-version finns    |
-| Chromium (webbläsare) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (webbläsare) | ✅           | `sudo apt install chromium-browser` |
 
 Om en färdighet misslyckas, kontrollera om dess binär har en ARM-bygge. Många Go/Rust verktyg gör; vissa inte.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Kostnadsjämförelse
 
-| Setup                             | Engångskostnad       | Månadskostnad | Noteringar                                          |
-| --------------------------------- | -------------------- | ------------- | --------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0            | + ström (~$5/år) |
-| **Pi 4 (4GB)** | ~$55 | $0            | Rekommenderas                                       |
-| **Pi 5 (4GB)** | ~$60 | $0            | Bästa prestanda                                     |
-| **Pi 5 (8GB)** | ~$80 | $0            | Overkill men framtidssäker                          |
-| DigitalOcean                      | $0                   | $6/mån        | $72/år                                              |
-| Hetzner                           | $0                   | €3,79/mån     | ~$50/år                             |
+| Setup          | Engångskostnad | Månadskostnad | Noteringar                 |
+| -------------- | -------------- | ------------- | -------------------------- |
+| **Pi 4 (2GB)** | ~$45           | $0            | + ström (~$5/år)           |
+| **Pi 4 (4GB)** | ~$55           | $0            | Rekommenderas              |
+| **Pi 5 (4GB)** | ~$60           | $0            | Bästa prestanda            |
+| **Pi 5 (8GB)** | ~$80           | $0            | Overkill men framtidssäker |
+| DigitalOcean   | $0             | $6/mån        | $72/år                     |
+| Hetzner        | $0             | €3,79/mån     | ~$50/år                    |
 
 **Break-even:** En Pi betalar sig på ~6–12 månader jämfört med moln-VPS.
 

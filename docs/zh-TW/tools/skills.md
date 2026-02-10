@@ -48,8 +48,7 @@ Skills 會從**三個**位置載入：
 ClawHub 是 OpenClaw 的公開 Skills 登錄中心。請造訪
 [https://clawhub.com](https://clawhub.com)。你可以用它來探索、安裝、更新與備份 Skills。
 完整指南：[ClawHub](/tools/clawhub)。 9. 瀏覽於
-[https://clawhub.com](https://clawhub.com)。 使用它來探索、安裝、更新與備份技能。
-11. 完整指南：[ClawHub](/tools/clawhub)。
+[https://clawhub.com](https://clawhub.com)。 使用它來探索、安裝、更新與備份技能。11. 完整指南：[ClawHub](/tools/clawhub)。
 
 常見流程：
 
@@ -132,10 +131,7 @@ metadata:
 關於沙箱化的注意事項：
 
 - `requires.bins` 會在 Skill 載入時於**主機**上檢查。
-- If an agent is sandboxed, the binary must also exist **inside the container**.
-  6. 透過 `agents.defaults.sandbox.docker.setupCommand` 安裝（或使用自訂映像）。
-  25. `setupCommand` 會在容器建立後執行一次。
-  8. 套件安裝也需要網路對外連線、可寫入的根檔案系統，以及沙盒中的 root 使用者。
+- If an agent is sandboxed, the binary must also exist **inside the container**. 6. 透過 `agents.defaults.sandbox.docker.setupCommand` 安裝（或使用自訂映像）。25. `setupCommand` 會在容器建立後執行一次。8. 套件安裝也需要網路對外連線、可寫入的根檔案系統，以及沙盒中的 root 使用者。
   Example: the `summarize` skill (`skills/summarize/SKILL.md`) needs the `summarize` CLI
   in the sandbox container to run there.
 
@@ -173,8 +169,7 @@ metadata:
 - 安裝器規格可包含 `os: ["darwin"|"linux"|"win32"]` 以依平台篩選選項。
 - Node 安裝會遵循 `skills.install.nodeManager` 於 `openclaw.json` 中的設定（預設：npm；選項：npm/pnpm/yarn/bun）。
   這只影響 **Skill 安裝**；Gateway 閘道器的執行階段仍應使用 Node
-  （不建議在 WhatsApp／Telegram 使用 Bun）。
-  29. 這只影響**技能安裝**；Gateway 執行階段仍應為 Node（不建議 WhatsApp/Telegram 使用 Bun）。
+  （不建議在 WhatsApp／Telegram 使用 Bun）。29. 這只影響**技能安裝**；Gateway 執行階段仍應為 Node（不建議 WhatsApp/Telegram 使用 Bun）。
 - Go 安裝：若缺少 `go` 且有 `brew` 可用，Gateway 閘道器會先透過 Homebrew 安裝 Go，並在可行情況下將 `GOBIN` 設為 Homebrew 的 `bin`。
 - Download 安裝：`url`（必填）、`archive`（`tar.gz` | `tar.bz2` | `zip`）、`extract`（預設：偵測到封存檔時自動）、`stripComponents`、`targetDir`（預設：`~/.openclaw/tools/<skillKey>`）。
 
@@ -235,7 +230,7 @@ This is **scoped to the agent run**, not a global shell environment.
 
 35. OpenClaw 會在**工作階段開始時**快照符合資格的技能，並在同一工作階段的後續回合中重用該清單。 36. 對技能或設定的變更會在下一個新工作階段生效。
 
-37. 當啟用技能監看器或出現新的符合資格的遠端節點時，技能也可在工作階段中途重新整理（見下文）。 Think of this as a **hot reload**: the refreshed list is picked up on the next agent turn.
+36. 當啟用技能監看器或出現新的符合資格的遠端節點時，技能也可在工作階段中途重新整理（見下文）。 Think of this as a **hot reload**: the refreshed list is picked up on the next agent turn.
 
 ## 遠端 macOS 節點（Linux Gateway）
 

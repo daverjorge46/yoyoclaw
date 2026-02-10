@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Sanggunian sa konpigurasyon
 
-| Key          | Type                                                         | Default                                     | Paglalarawan                                    |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ----------------------------------------------- |
-| `privateKey` | string                                                       | required                                    | Private key sa `nsec` o hex format              |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Mga URL ng relay (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | Patakaran sa access ng DM                       |
-| `allowFrom`  | string[] | `[]`                                        | Mga pinapayagang pubkey ng sender               |
-| `enabled`    | boolean                                                      | `true`                                      | I-enable/i-disable ang channel                  |
-| `name`       | string                                                       | -                                           | Display name                                    |
-| `profile`    | object                                                       | -                                           | Metadata ng profile (NIP-01) |
+| Key          | Type     | Default                                     | Paglalarawan                       |
+| ------------ | -------- | ------------------------------------------- | ---------------------------------- |
+| `privateKey` | string   | required                                    | Private key sa `nsec` o hex format |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Mga URL ng relay (WebSocket)       |
+| `dmPolicy`   | string   | `pairing`                                   | Patakaran sa access ng DM          |
+| `allowFrom`  | string[] | `[]`                                        | Mga pinapayagang pubkey ng sender  |
+| `enabled`    | boolean  | `true`                                      | I-enable/i-disable ang channel     |
+| `name`       | string   | -                                           | Display name                       |
+| `profile`    | object   | -                                           | Metadata ng profile (NIP-01)       |
 
 ## Metadata ng profile
 
@@ -169,7 +169,7 @@ Mga tip:
 | NIP    | Status    | Paglalarawan                                      |
 | ------ | --------- | ------------------------------------------------- |
 | NIP-01 | Supported | Pangunahing format ng event + metadata ng profile |
-| NIP-04 | Supported | Naka-encrypt na DM (`kind:4`)  |
+| NIP-04 | Supported | Naka-encrypt na DM (`kind:4`)                     |
 | NIP-17 | Planned   | Gift-wrapped na DM                                |
 | NIP-44 | Planned   | Versioned encryption                              |
 

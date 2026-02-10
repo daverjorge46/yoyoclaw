@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Référence de configuration
 
-| Clé          | Type                                                         | Par défaut                                  | Description                                   |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------------------- |
-| `privateKey` | string                                                       | required                                    | Clé privée au format `nsec` ou hex            |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URL des relais (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | Politique d’accès aux DM                      |
-| `allowFrom`  | string[] | `[]`                                        | Pubkeys d’expéditeurs autorisés               |
-| `enabled`    | boolean                                                      | `true`                                      | Activer/désactiver le canal                   |
-| `name`       | string                                                       | -                                           | Nom d’affichage                               |
-| `profile`    | object                                                       | -                                           | Métadonnées de profil NIP-01                  |
+| Clé          | Type     | Par défaut                                  | Description                        |
+| ------------ | -------- | ------------------------------------------- | ---------------------------------- |
+| `privateKey` | string   | required                                    | Clé privée au format `nsec` ou hex |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URL des relais (WebSocket)         |
+| `dmPolicy`   | string   | `pairing`                                   | Politique d’accès aux DM           |
+| `allowFrom`  | string[] | `[]`                                        | Pubkeys d’expéditeurs autorisés    |
+| `enabled`    | boolean  | `true`                                      | Activer/désactiver le canal        |
+| `name`       | string   | -                                           | Nom d’affichage                    |
+| `profile`    | object   | -                                           | Métadonnées de profil NIP-01       |
 
 ## Métadonnées de profil
 
@@ -166,12 +166,12 @@ Conseils :
 
 ## Support du protocole
 
-| NIP    | Statut         | Description                                         |
-| ------ | -------------- | --------------------------------------------------- |
-| NIP-01 | Pris en charge | Format d’événement de base + métadonnées de profil  |
-| NIP-04 | Pris en charge | DM chiffrés (`kind:4`)           |
-| NIP-17 | Planifié       | DM enveloppés (« gift-wrapped ») |
-| NIP-44 | Planifié       | Chiffrement versionné                               |
+| NIP    | Statut         | Description                                        |
+| ------ | -------------- | -------------------------------------------------- |
+| NIP-01 | Pris en charge | Format d’événement de base + métadonnées de profil |
+| NIP-04 | Pris en charge | DM chiffrés (`kind:4`)                             |
+| NIP-17 | Planifié       | DM enveloppés (« gift-wrapped »)                   |
+| NIP-44 | Planifié       | Chiffrement versionné                              |
 
 ## Tests
 

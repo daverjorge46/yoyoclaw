@@ -21,13 +21,13 @@ Perpekto para sa:
 
 ## Mga Kinakailangan sa Hardware
 
-| Pi Model        | RAM     | Gumagana?       | Mga Tala                            |
-| --------------- | ------- | --------------- | ----------------------------------- |
+| Pi Model        | RAM     | Gumagana?        | Mga Tala                            |
+| --------------- | ------- | ---------------- | ----------------------------------- |
 | **Pi 5**        | 4GB/8GB | ✅ Pinakamahusay | Pinakamabilis, inirerekomenda       |
 | **Pi 4**        | 4GB     | ✅ Maganda       | Sweet spot para sa karamihan        |
 | **Pi 4**        | 2GB     | ✅ OK            | Gumagana, magdagdag ng swap         |
-| **Pi 4**        | 1GB     | ⚠️ Sikip        | Posible may swap, minimal na config |
-| **Pi 3B+**      | 1GB     | ⚠️ Mabagal      | Gumagana pero mabagal               |
+| **Pi 4**        | 1GB     | ⚠️ Sikip         | Posible may swap, minimal na config |
+| **Pi 3B+**      | 1GB     | ⚠️ Mabagal       | Gumagana pero mabagal               |
 | **Pi Zero 2 W** | 512MB   | ❌               | Hindi inirerekomenda                |
 
 **Minimum na specs:** 1GB RAM, 1 core, 500MB disk  
@@ -223,13 +223,13 @@ htop
 
 Karamihan sa mga tampok ng OpenClaw ay gumagana sa ARM64, pero maaaring kailanganin ng ARM builds ang ilang external binaries:
 
-| Tool                                  | Status sa ARM64 | Mga Tala                            |
-| ------------------------------------- | --------------- | ----------------------------------- |
-| Node.js               | ✅               | Mahusay na gumagana                 |
-| WhatsApp (Baileys) | ✅               | Pure JS, walang isyu                |
-| Telegram                              | ✅               | Pure JS, walang isyu                |
+| Tool               | Status sa ARM64 | Mga Tala                            |
+| ------------------ | --------------- | ----------------------------------- |
+| Node.js            | ✅              | Mahusay na gumagana                 |
+| WhatsApp (Baileys) | ✅              | Pure JS, walang isyu                |
+| Telegram           | ✅              | Pure JS, walang isyu                |
 | gog (Gmail CLI)    | ⚠️              | Tingnan kung may ARM release        |
-| Chromium (browser) | ✅               | `sudo apt install chromium-browser` |
+| Chromium (browser) | ✅              | `sudo apt install chromium-browser` |
 
 Kung pumalya ang isang skill, tingnan kung may ARM build ang binary nito. Many Go/Rust tools do; some don't.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Paghahambing ng Gastos
 
-| Setup                             | One-Time Cost        | Buwanang Gastos             | Mga Tala                                                 |
-| --------------------------------- | -------------------- | --------------------------- | -------------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                          | + kuryente (~$5/taon) |
-| **Pi 4 (4GB)** | ~$55 | $0                          | Inirerekomenda                                           |
-| **Pi 5 (4GB)** | ~$60 | $0                          | Pinakamahusay na performance                             |
-| **Pi 5 (8GB)** | ~$80 | $0                          | Sobra pero handa sa hinaharap                            |
-| DigitalOcean                      | $0                   | $6/buwan                    | $72/taon                                                 |
-| Hetzner                           | $0                   | €3.79/buwan | ~$50/taon                                |
+| Setup          | One-Time Cost | Buwanang Gastos | Mga Tala                      |
+| -------------- | ------------- | --------------- | ----------------------------- |
+| **Pi 4 (2GB)** | ~$45          | $0              | + kuryente (~$5/taon)         |
+| **Pi 4 (4GB)** | ~$55          | $0              | Inirerekomenda                |
+| **Pi 5 (4GB)** | ~$60          | $0              | Pinakamahusay na performance  |
+| **Pi 5 (8GB)** | ~$80          | $0              | Sobra pero handa sa hinaharap |
+| DigitalOcean   | $0            | $6/buwan        | $72/taon                      |
+| Hetzner        | $0            | €3.79/buwan     | ~$50/taon                     |
 
 **Break-even:** Nababayaran ng Pi ang sarili nito sa loob ng ~6-12 buwan kumpara sa cloud VPS.
 

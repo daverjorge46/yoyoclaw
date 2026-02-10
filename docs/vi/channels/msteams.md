@@ -155,14 +155,14 @@ Trước khi cấu hình OpenClaw, bạn cần tạo tài nguyên Azure Bot.
 1. Vào [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. Điền tab **Basics**:
 
-   | Trường             | Giá trị                                                                      |
-   | ------------------ | ---------------------------------------------------------------------------- |
+   | Trường             | Giá trị                                                   |
+   | ------------------ | --------------------------------------------------------- |
    | **Bot handle**     | Tên bot của bạn, ví dụ `openclaw-msteams` (phải duy nhất) |
-   | **Subscription**   | Chọn subscription Azure                                                      |
-   | **Resource group** | Tạo mới hoặc dùng sẵn                                                        |
-   | **Pricing tier**   | **Free** cho dev/test                                                        |
+   | **Subscription**   | Chọn subscription Azure                                   |
+   | **Resource group** | Tạo mới hoặc dùng sẵn                                     |
+   | **Pricing tier**   | **Free** cho dev/test                                     |
    | **Type of App**    | **Single Tenant** (khuyến nghị - xem lưu ý bên dưới)      |
-   | **Creation type**  | **Create new Microsoft App ID**                                              |
+   | **Creation type**  | **Create new Microsoft App ID**                           |
 
 > **Thông báo ngừng hỗ trợ:** Việc tạo bot đa tenant mới đã bị ngừng sau 2025-07-31. Use **Single Tenant** for new bots.
 
@@ -271,7 +271,6 @@ Cách này thường dễ hơn so với chỉnh tay JSON manifest.
    ```
 
    Bạn cũng có thể dùng biến môi trường thay cho khóa cấu hình:
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -404,12 +403,12 @@ Bổ sung:
 
 ### RSC vs Graph API
 
-| Khả năng                    | Quyền RSC                            | Graph API                                       |
-| --------------------------- | ------------------------------------ | ----------------------------------------------- |
-| **Tin nhắn thời gian thực** | Có (qua webhook)  | Không (chỉ polling)          |
-| **Tin nhắn lịch sử**        | Không                                | Có (truy vấn lịch sử)        |
-| **Độ phức tạp thiết lập**   | Chỉ manifest app                     | Cần admin consent + luồng token                 |
-| **Hoạt động offline**       | Không (phải chạy) | Có (truy vấn bất kỳ lúc nào) |
+| Khả năng                    | Quyền RSC         | Graph API                       |
+| --------------------------- | ----------------- | ------------------------------- |
+| **Tin nhắn thời gian thực** | Có (qua webhook)  | Không (chỉ polling)             |
+| **Tin nhắn lịch sử**        | Không             | Có (truy vấn lịch sử)           |
+| **Độ phức tạp thiết lập**   | Chỉ manifest app  | Cần admin consent + luồng token |
+| **Hoạt động offline**       | Không (phải chạy) | Có (truy vấn bất kỳ lúc nào)    |
 
 **Bottom line:** RSC is for real-time listening; Graph API is for historical access. For catching up on missed messages while offline, you need Graph API with `ChannelMessage.Read.All` (requires admin consent).
 
@@ -482,10 +481,10 @@ Các thiết lập chính (xem `/gateway/configuration` cho mẫu kênh dùng ch
 
 Teams gần đây giới thiệu hai kiểu UI kênh trên cùng mô hình dữ liệu:
 
-| Kiểu                                         | Mô tả                                             | `replyStyle` khuyến nghị               |
-| -------------------------------------------- | ------------------------------------------------- | -------------------------------------- |
-| **Posts** (cổ điển)       | Tin nhắn dạng thẻ với trả lời theo luồng bên dưới | `thread` (mặc định) |
-| **Threads** (giống Slack) | Tin nhắn hiển thị tuyến tính, giống Slack         | `top-level`                            |
+| Kiểu                      | Mô tả                                             | `replyStyle` khuyến nghị |
+| ------------------------- | ------------------------------------------------- | ------------------------ |
+| **Posts** (cổ điển)       | Tin nhắn dạng thẻ với trả lời theo luồng bên dưới | `thread` (mặc định)      |
+| **Threads** (giống Slack) | Tin nhắn hiển thị tuyến tính, giống Slack         | `top-level`              |
 
 **The problem:** The Teams API does not expose which UI style a channel uses. If you use the wrong `replyStyle`:
 
@@ -526,10 +525,10 @@ Authorization headers are only attached for hosts in `channels.msteams.mediaAuth
 
 Bots can send files in DMs using the FileConsentCard flow (built-in). However, **sending files in group chats/channels** requires additional setup:
 
-| Ngữ cảnh                                       | Cách gửi tệp                                         | Thiết lập cần thiết                  |
-| ---------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
-| **DMs**                                        | FileConsentCard → người dùng chấp nhận → bot tải lên | Hoạt động sẵn                        |
-| **Chat nhóm/kênh**                             | Tải lên SharePoint → chia sẻ liên kết                | Cần `sharePointSiteId` + quyền Graph |
+| Ngữ cảnh                    | Cách gửi tệp                                         | Thiết lập cần thiết                  |
+| --------------------------- | ---------------------------------------------------- | ------------------------------------ |
+| **DMs**                     | FileConsentCard → người dùng chấp nhận → bot tải lên | Hoạt động sẵn                        |
+| **Chat nhóm/kênh**          | Tải lên SharePoint → chia sẻ liên kết                | Cần `sharePointSiteId` + quyền Graph |
 | **Hình ảnh (mọi ngữ cảnh)** | Inline mã hóa Base64                                 | Hoạt động sẵn                        |
 
 ### Vì sao chat nhóm cần SharePoint
@@ -573,8 +572,8 @@ Bots don't have a personal OneDrive drive (the `/me/drive` Graph API endpoint do
 
 ### Hành vi chia sẻ
 
-| Quyền                                   | Hành vi chia sẻ                                                               |
-| --------------------------------------- | ----------------------------------------------------------------------------- |
+| Quyền                                   | Hành vi chia sẻ                                            |
+| --------------------------------------- | ---------------------------------------------------------- |
 | `Sites.ReadWrite.All` only              | Liên kết chia sẻ toàn tổ chức (ai trong org cũng truy cập) |
 | `Sites.ReadWrite.All` + `Chat.Read.All` | Liên kết chia sẻ theo người dùng (chỉ thành viên chat)     |
 
@@ -582,9 +581,9 @@ Per-user sharing is more secure as only the chat participants can access the fil
 
 ### Hành vi dự phòng
 
-| Kịch bản                                      | Kết quả                                                                    |
-| --------------------------------------------- | -------------------------------------------------------------------------- |
-| Chat nhóm + tệp + cấu hình `sharePointSiteId` | Tải lên SharePoint, gửi liên kết chia sẻ                                   |
+| Kịch bản                                      | Kết quả                                                 |
+| --------------------------------------------- | ------------------------------------------------------- |
+| Chat nhóm + tệp + cấu hình `sharePointSiteId` | Tải lên SharePoint, gửi liên kết chia sẻ                |
 | Chat nhóm + tệp + không có `sharePointSiteId` | Thử tải lên OneDrive (có thể thất bại), chỉ gửi văn bản |
 | Chat cá nhân + tệp                            | Luồng FileConsentCard (không cần SharePoint)            |
 | Mọi ngữ cảnh + hình ảnh                       | Inline mã hóa Base64 (không cần SharePoint)             |
@@ -637,11 +636,11 @@ See [Adaptive Cards documentation](https://adaptivecards.io/) for card schema an
 
 Đích MSTeams dùng tiền tố để phân biệt người dùng và hội thoại:
 
-| Loại đích                                | Định dạng                        | Ví dụ                                                               |
-| ---------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
-| Người dùng (theo ID)  | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                         |
+| Loại đích             | Định dạng                        | Ví dụ                                            |
+| --------------------- | -------------------------------- | ------------------------------------------------ |
+| Người dùng (theo ID)  | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`      |
 | Người dùng (theo tên) | `user:<display-name>`            | `user:John Smith` (cần Graph API)                |
-| Nhóm/kênh                                | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                            |
+| Nhóm/kênh             | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`         |
 | Nhóm/kênh (raw)       | `<conversation-id>`              | `19:abc123...@thread.tacv2` (nếu chứa `@thread`) |
 
 **Ví dụ CLI:**
@@ -722,13 +721,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 Bot hỗ trợ hạn chế trong kênh riêng tư:
 
-| Tính năng                                            | Kênh chuẩn | Kênh riêng tư                    |
-| ---------------------------------------------------- | ---------- | -------------------------------- |
-| Cài đặt bot                                          | Có         | Hạn chế                          |
-| Tin nhắn thời gian thực (webhook) | Có         | Có thể không hoạt động           |
-| Quyền RSC                                            | Có         | Có thể khác biệt                 |
-| @mentions                               | Có         | Nếu bot truy cập được            |
-| Lịch sử Graph API                                    | Có         | Có (có quyền) |
+| Tính năng                         | Kênh chuẩn | Kênh riêng tư          |
+| --------------------------------- | ---------- | ---------------------- |
+| Cài đặt bot                       | Có         | Hạn chế                |
+| Tin nhắn thời gian thực (webhook) | Có         | Có thể không hoạt động |
+| Quyền RSC                         | Có         | Có thể khác biệt       |
+| @mentions                         | Có         | Nếu bot truy cập được  |
+| Lịch sử Graph API                 | Có         | Có (có quyền)          |
 
 **Giải pháp nếu kênh riêng tư không hoạt động:**
 

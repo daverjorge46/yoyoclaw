@@ -23,12 +23,12 @@ Perfect voor:
 
 | Pi-model        | RAM     | Werkt?      | Notities                               |
 | --------------- | ------- | ----------- | -------------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ Best      | Snelst, aanbevolen                     |
-| **Pi 4**        | 4GB     | ✅ Goed      | Beste balans voor de meeste gebruikers |
-| **Pi 4**        | 2GB     | ✅ Oké       | Werkt, voeg swap toe                   |
+| **Pi 5**        | 4GB/8GB | ✅ Best     | Snelst, aanbevolen                     |
+| **Pi 4**        | 4GB     | ✅ Goed     | Beste balans voor de meeste gebruikers |
+| **Pi 4**        | 2GB     | ✅ Oké      | Werkt, voeg swap toe                   |
 | **Pi 4**        | 1GB     | ⚠️ Krap     | Mogelijk met swap, minimale config     |
 | **Pi 3B+**      | 1GB     | ⚠️ Langzaam | Werkt, maar traag                      |
-| **Pi Zero 2 W** | 512MB   | ❌           | Niet aanbevolen                        |
+| **Pi Zero 2 W** | 512MB   | ❌          | Niet aanbevolen                        |
 
 **Minimale specs:** 1GB RAM, 1 core, 500MB schijf  
 **Aanbevolen:** 2GB+ RAM, 64-bits OS, 16GB+ SD-kaart (of USB-SSD)
@@ -223,13 +223,13 @@ htop
 
 De meeste OpenClaw-functies werken op ARM64, maar sommige externe binaries hebben mogelijk ARM-builds nodig:
 
-| Tool                                  | ARM64-status | Notities                            |
-| ------------------------------------- | ------------ | ----------------------------------- |
-| Node.js               | ✅            | Werkt uitstekend                    |
-| WhatsApp (Baileys) | ✅            | Pure JS, geen problemen             |
-| Telegram                              | ✅            | Pure JS, geen problemen             |
+| Tool               | ARM64-status | Notities                            |
+| ------------------ | ------------ | ----------------------------------- |
+| Node.js            | ✅           | Werkt uitstekend                    |
+| WhatsApp (Baileys) | ✅           | Pure JS, geen problemen             |
+| Telegram           | ✅           | Pure JS, geen problemen             |
 | gog (Gmail CLI)    | ⚠️           | Controleer of er een ARM-release is |
-| Chromium (browser) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (browser) | ✅           | `sudo apt install chromium-browser` |
 
 Als een skill faalt, controleer dan of de binary een ARM-build heeft. Veel Go/Rust-tools hebben dat; sommige niet.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Kostenvergelijking
 
-| Setup                             | Eenmalige kosten     | Maandelijkse kosten         | Notities                                               |
-| --------------------------------- | -------------------- | --------------------------- | ------------------------------------------------------ |
-| **Pi 4 (2GB)** | ~$45 | $0                          | + stroom (~$5/jaar) |
-| **Pi 4 (4GB)** | ~$55 | $0                          | Aanbevolen                                             |
-| **Pi 5 (4GB)** | ~$60 | $0                          | Beste prestaties                                       |
-| **Pi 5 (8GB)** | ~$80 | $0                          | Overkill maar toekomstbestendig                        |
-| DigitalOcean                      | $0                   | $6/maand                    | $72/jaar                                               |
-| Hetzner                           | $0                   | €3.79/maand | ~$50/jaar                              |
+| Setup          | Eenmalige kosten | Maandelijkse kosten | Notities                        |
+| -------------- | ---------------- | ------------------- | ------------------------------- |
+| **Pi 4 (2GB)** | ~$45             | $0                  | + stroom (~$5/jaar)             |
+| **Pi 4 (4GB)** | ~$55             | $0                  | Aanbevolen                      |
+| **Pi 5 (4GB)** | ~$60             | $0                  | Beste prestaties                |
+| **Pi 5 (8GB)** | ~$80             | $0                  | Overkill maar toekomstbestendig |
+| DigitalOcean   | $0               | $6/maand            | $72/jaar                        |
+| Hetzner        | $0               | €3.79/maand         | ~$50/jaar                       |
 
 **Omslagpunt:** Een Pi verdient zichzelf terug in ~6-12 maanden vergeleken met een cloud-VPS.
 

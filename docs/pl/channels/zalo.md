@@ -127,16 +127,16 @@ Obsługa wielu kont: użyj `channels.zalo.accounts` z tokenami per konto oraz op
 
 ## Możliwości
 
-| Funkcja                           | Status                                                |
-| --------------------------------- | ----------------------------------------------------- |
-| Wiadomości bezpośrednie           | ✅ Obsługiwane                                         |
-| Grupy                             | ❌ Wkrótce (wg dokumentacji Zalo)   |
-| Media (obrazy) | ✅ Obsługiwane                                         |
-| Reakcje                           | ❌ Nieobsługiwane                                      |
-| Wątki                             | ❌ Nieobsługiwane                                      |
-| Ankiety                           | ❌ Nieobsługiwane                                      |
-| Polecenia natywne                 | ❌ Nieobsługiwane                                      |
-| Strumieniowanie                   | ⚠️ Zablokowane (limit 2000 znaków) |
+| Funkcja                 | Status                             |
+| ----------------------- | ---------------------------------- |
+| Wiadomości bezpośrednie | ✅ Obsługiwane                     |
+| Grupy                   | ❌ Wkrótce (wg dokumentacji Zalo)  |
+| Media (obrazy)          | ✅ Obsługiwane                     |
+| Reakcje                 | ❌ Nieobsługiwane                  |
+| Wątki                   | ❌ Nieobsługiwane                  |
+| Ankiety                 | ❌ Nieobsługiwane                  |
+| Polecenia natywne       | ❌ Nieobsługiwane                  |
+| Strumieniowanie         | ⚠️ Zablokowane (limit 2000 znaków) |
 
 ## Cele dostarczania (CLI/cron)
 

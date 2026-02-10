@@ -50,12 +50,12 @@ Si ve `NODE_BACKGROUND_UNAVAILABLE`, lleve la app del nodo al primer plano y vue
 
 ## Matriz de permisos
 
-| Capacidad                    | iOS                                                             | Android                                                                | app de nodo macOS                                           | Código de fallo típico         |
-| ---------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Cámara (+ micrófono para audio del clip)     | Cámara (+ micrófono para audio del clip)            | Cámara (+ micrófono para audio del clip) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Grabación de pantalla (+ micrófono opcional) | Aviso de captura de pantalla (+ micrófono opcional) | Grabación de pantalla                                       | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Mientras se usa o Siempre (depende del modo) | Ubicación en primer plano/segundo plano según el modo                  | Permiso de ubicación                                        | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (ruta del host del nodo)                 | n/a (ruta del host del nodo)                        | Se requieren aprobaciones de exec                           | `SYSTEM_RUN_DENIED`            |
+| Capacidad                    | iOS                                          | Android                                               | app de nodo macOS                        | Código de fallo típico         |
+| ---------------------------- | -------------------------------------------- | ----------------------------------------------------- | ---------------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Cámara (+ micrófono para audio del clip)     | Cámara (+ micrófono para audio del clip)              | Cámara (+ micrófono para audio del clip) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Grabación de pantalla (+ micrófono opcional) | Aviso de captura de pantalla (+ micrófono opcional)   | Grabación de pantalla                    | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Mientras se usa o Siempre (depende del modo) | Ubicación en primer plano/segundo plano según el modo | Permiso de ubicación                     | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (ruta del host del nodo)                 | n/a (ruta del host del nodo)                          | Se requieren aprobaciones de exec        | `SYSTEM_RUN_DENIED`            |
 
 ## Emparejamiento versus aprobaciones
 

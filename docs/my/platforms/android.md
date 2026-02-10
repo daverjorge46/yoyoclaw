@@ -66,7 +66,7 @@ Debugging ဆိုင်ရာ မှတ်စုများ: [Bonjour](/gatew
 29. Android NSD/mDNS discovery သည် network များကို မဖြတ်ကျော်နိုင်ပါ။ 30. သင့် Android node နှင့် gateway သည် မတူညီသော network များပေါ်တွင် ရှိသော်လည်း Tailscale ဖြင့် ချိတ်ဆက်ထားပါက Wide-Area Bonjour / unicast DNS-SD ကို အသုံးပြုပါ:
 
 1. Gateway ဟို့စ်ပေါ်တွင် DNS-SD zone (ဥပမာ `openclaw.internal.`) ကို တည်ဆောက်ပြီး `_openclaw-gw._tcp` records များကို publish လုပ်ပါ။
-2. သင်ရွေးချယ်ထားသော domain ကို ညွှန်ပြသည့် DNS server သို့ Tailscale split DNS ကို configure လုပ်ပါ။
+1. သင်ရွေးချယ်ထားသော domain ကို ညွှန်ပြသည့် DNS server သို့ Tailscale split DNS ကို configure လုပ်ပါ။
 
 အသေးစိတ်နှင့် CoreDNS config ဥပမာ: [Bonjour](/gateway/bonjour)။
 

@@ -372,11 +372,11 @@ Token cũng có thể cung cấp qua biến môi trường:
 
 By default, OpenClaw replies in the main channel. 36. Sử dụng `channels.slack.replyToMode` để điều khiển việc tự động tạo thread:
 
-| Mode    | Behavior                                                                                                                                                                                                                                           |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | 37. **Mặc định.** Trả lời trong kênh chính. 38. Chỉ tạo thread nếu tin nhắn kích hoạt đã nằm trong một thread.                                              |
+| Mode    | Behavior                                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `off`   | 37. **Mặc định.** Trả lời trong kênh chính. 38. Chỉ tạo thread nếu tin nhắn kích hoạt đã nằm trong một thread.                                                           |
 | `first` | 39. Phản hồi đầu tiên vào thread (bên dưới tin nhắn kích hoạt), các phản hồi tiếp theo vào kênh chính. Useful for keeping context visible while avoiding thread clutter. |
-| `all`   | All replies go to thread. Keeps conversations contained but may reduce visibility.                                                                                                                                 |
+| `all`   | All replies go to thread. Keeps conversations contained but may reduce visibility.                                                                                       |
 
 Chế độ áp dụng cho cả trả lời tự động và lời gọi công cụ của tác tử (`slack sendMessage`).
 

@@ -43,8 +43,8 @@ read_when:
 43. بنیادی window اس ترتیب میں resolve ہوتی ہے: 44. Compaction الگ چیز ہے: compaction خلاصہ بنا کر محفوظ کرتی ہے، pruning ہر درخواست پر عارضی ہوتی ہے۔
 
 1. `models.providers.*.models[].contextWindow` اووررائیڈ۔
-2. ماڈل کی تعریف `contextWindow` (ماڈل رجسٹری سے)۔
-3. ڈیفالٹ `200000` ٹوکنز۔
+1. ماڈل کی تعریف `contextWindow` (ماڈل رجسٹری سے)۔
+1. ڈیفالٹ `200000` ٹوکنز۔
 
 اگر `agents.defaults.contextTokens` سیٹ ہو تو اسے حل شدہ ونڈو پر ایک حد (کم از کم) کے طور پر لیا جاتا ہے۔
 

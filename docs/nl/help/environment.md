@@ -76,11 +76,11 @@ Zie [Configuratie: substitutie van omgevingsvariabelen](/gateway/configuration#e
 
 ## Pad-gerelateerde omgevingsvariabelen
 
-| Variabele              | Doel                                                                                                                                                                                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Variabele              | Doel                                                                                                                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENCLAW_HOME`        | Overschrijf de homedirectory die wordt gebruikt voor alle interne padresolutie (`~/.openclaw/`, agentmappen, sessies, referenties). Handig wanneer OpenClaw wordt uitgevoerd als een speciale servicegebruiker. |
-| `OPENCLAW_STATE_DIR`   | Overschrijf de state-directory (standaard `~/.openclaw`).                                                                                                                                                                       |
-| `OPENCLAW_CONFIG_PATH` | Overschrijf het pad naar het configuratiebestand (standaard `~/.openclaw/openclaw.json`).                                                                                                                                       |
+| `OPENCLAW_STATE_DIR`   | Overschrijf de state-directory (standaard `~/.openclaw`).                                                                                                                                                       |
+| `OPENCLAW_CONFIG_PATH` | Overschrijf het pad naar het configuratiebestand (standaard `~/.openclaw/openclaw.json`).                                                                                                                       |
 
 ### `OPENCLAW_HOME`
 

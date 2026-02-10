@@ -41,14 +41,14 @@ Client                    Gateway
 
 一般的なメソッド + イベント:
 
-| Category  | Examples                                                  | Notes                        |
-| --------- | --------------------------------------------------------- | ---------------------------- |
-| Core      | `connect`, `health`, `status`                             | `connect` が最初である必要があります      |
+| Category  | Examples                                                  | Notes                                  |
+| --------- | --------------------------------------------------------- | -------------------------------------- |
+| Core      | `connect`, `health`, `status`                             | `connect` が最初である必要があります   |
 | Messaging | `send`, `poll`, `agent`, `agent.wait`                     | 副作用には `idempotencyKey` が必要です |
 | Chat      | `chat.history`, `chat.send`, `chat.abort`, `chat.inject`  | WebChat はこれらを使用します           |
-| Sessions  | `sessions.list`, `sessions.patch`, `sessions.delete`      | セッション管理                      |
-| Nodes     | `node.list`, `node.invoke`, `node.pair.*`                 | Gateway WS + ノードアクション        |
-| Events    | `tick`, `presence`, `agent`, `chat`, `health`, `shutdown` | サーバープッシュ                     |
+| Sessions  | `sessions.list`, `sessions.patch`, `sessions.delete`      | セッション管理                         |
+| Nodes     | `node.list`, `node.invoke`, `node.pair.*`                 | Gateway WS + ノードアクション          |
+| Events    | `tick`, `presence`, `agent`, `chat`, `health`, `shutdown` | サーバープッシュ                       |
 
 正式な一覧は `src/gateway/server.ts`（`METHODS`, `EVENTS`）にあります。
 

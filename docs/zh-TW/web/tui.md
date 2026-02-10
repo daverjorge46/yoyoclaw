@@ -143,8 +143,7 @@ Session controls:
 - `--timeout-ms <ms>`：代理程式逾時（毫秒）（預設為 `agents.defaults.timeoutSeconds`）
 
 注意：當你設定 `--url` 時，TUI 不會回退使用設定或環境中的認證。
-請明確傳入 `--token` 或 `--password`。缺少明確的認證會視為錯誤。
-42. 明確傳入 `--token` 或 `--password`。 43. 缺少明確的認證會被視為錯誤。
+請明確傳入 `--token` 或 `--password`。缺少明確的認證會視為錯誤。42. 明確傳入 `--token` 或 `--password`。 43. 缺少明確的認證會被視為錯誤。
 
 ## 44. 疑難排解
 

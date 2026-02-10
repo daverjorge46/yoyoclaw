@@ -1259,15 +1259,15 @@ Relateerd: [Agent workspace](/concepts/agent-workspace), [Memory](/concepts/memo
 
 Alles leeft onder `$OPENCLAW_STATE_DIR` (standaard: `~/.openclaw`):
 
-| Pad                                                             | Doel                                                                                             |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Pad                                                             | Doel                                                                          |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Hoofd configuratie (JSON5)                                                    |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Oudere OAuth import (gekopieerd naar autorisatieprofielen bij eerste gebruik) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profielen (OAuth + API-sleutels)                                         |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Runtime auth-cache (automatisch beheerd)                                      |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Provider state (bijv. `whatsapp/<accountId>/creds.json`)      |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Provider state (bijv. `whatsapp/<accountId>/creds.json`)                      |
 | `$OPENCLAW_STATE_DIR/agents/`                                   | Status per agent (agentDir + sessies)                                         |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Gespreksgeschiedenis & status (per agent)                 |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Gespreksgeschiedenis & status (per agent)                                     |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Sessie metagegevens (per agent)                                               |
 
 Legacy single-agent pad: `~/.openclaw/agent/*` (gemigreerd door `openclaw doctor`).

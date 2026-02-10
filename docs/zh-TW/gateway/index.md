@@ -64,7 +64,7 @@ pnpm gateway:watch
 
 50. 若你隔離狀態與設定並使用唯一的連接埠，即可支援。 21. 完整指南：[Multiple gateways](/gateway/multiple-gateways)。
 
-22. 服務名稱具備設定檔感知能力：
+51. 服務名稱具備設定檔感知能力：
 
 - macOS：`bot.molt.<profile>`（舊版 `com.openclaw.*` 可能仍存在）
 - Linux：`openclaw-gateway-<profile>.service`
@@ -251,8 +251,7 @@ openclaw logs --follow
 
 OpenClaw 在 Linux/WSL2 預設安裝 **systemd 使用者服務**。我們
 建議單一使用者機器使用使用者服務（環境較簡單、每使用者設定）。
-多使用者或常駐伺服器則使用 **系統服務**（不需 lingering，共用監督）。 39. 我們建議在單使用者機器上使用使用者服務（環境較簡單、每位使用者各自的設定）。
-40. 對於多使用者或永遠在線的伺服器，請使用 **系統服務**（不需要 lingering，共享監督）。
+多使用者或常駐伺服器則使用 **系統服務**（不需 lingering，共用監督）。 39. 我們建議在單使用者機器上使用使用者服務（環境較簡單、每位使用者各自的設定）。40. 對於多使用者或永遠在線的伺服器，請使用 **系統服務**（不需要 lingering，共享監督）。
 
 `openclaw gateway install` writes the user unit. `openclaw doctor` audits the
 unit and can update it to match the current recommended defaults.

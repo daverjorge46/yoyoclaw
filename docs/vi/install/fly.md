@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Thiết lập chính:**
 
-| Thiết lập                      | Lý do                                                                                                  |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `--bind lan`                   | Gắn vào `0.0.0.0` để proxy của Fly có thể truy cập gateway                                             |
+| Thiết lập                      | Lý do                                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `--bind lan`                   | Gắn vào `0.0.0.0` để proxy của Fly có thể truy cập gateway                          |
 | `--allow-unconfigured`         | Khởi động không cần file cấu hình (bạn sẽ tạo sau)                                  |
 | `internal_port = 3000`         | Phải khớp với `--port 3000` (hoặc `OPENCLAW_GATEWAY_PORT`) cho health check của Fly |
-| `memory = "2048mb"`            | 512MB là quá ít; khuyến nghị 2GB                                                                       |
-| `OPENCLAW_STATE_DIR = "/data"` | Lưu trạng thái trên volume                                                                             |
+| `memory = "2048mb"`            | 512MB là quá ít; khuyến nghị 2GB                                                    |
+| `OPENCLAW_STATE_DIR = "/data"` | Lưu trạng thái trên volume                                                          |
 
 ## 3. Đặt secrets
 

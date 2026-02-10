@@ -16,13 +16,13 @@ DigitalOcean 에서 **월 $6** (또는 예약 요금제로 월 $4)로 영구적�
 
 ## 비용 비교 (2026)
 
-| 프로바이더        | 플랜              | 사양                  | 21. 월별 가격                               | 참고 자료                   |
-| ------------ | --------------- | ------------------- | -------------------------------------------------------------- | ----------------------- |
-| Oracle Cloud | Always Free ARM | 최대 4 OCPU, 24GB RAM | $0                                                             | ARM, 제한된 용량 / 가입 시 까다로움 |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM     | €3.79 (~$4) | 가장 저렴한 유료 옵션            |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM     | $6                                                             | 쉬운 UI, 좋은 문서            |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM     | $6                                                             | 다양한 지역                  |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM     | $5                                                             | 현재 Akamai 의 일부          |
+| 프로바이더   | 플랜            | 사양                  | 21. 월별 가격 | 참고 자료                           |
+| ------------ | --------------- | --------------------- | ------------- | ----------------------------------- |
+| Oracle Cloud | Always Free ARM | 최대 4 OCPU, 24GB RAM | $0            | ARM, 제한된 용량 / 가입 시 까다로움 |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM       | €3.79 (~$4)   | 가장 저렴한 유료 옵션               |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM       | $6            | 쉬운 UI, 좋은 문서                  |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM       | $6            | 다양한 지역                         |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM       | $5            | 현재 Akamai 의 일부                 |
 
 **프로바이더 선택:**
 
@@ -209,12 +209,12 @@ tar -czvf openclaw-backup.tar.gz ~/.openclaw ~/.openclaw/workspace
 
 Oracle Cloud 는 여기의 어떤 유료 옵션보다도 훨씬 강력한 **Always Free** ARM 인스턴스를 월 $0 로 제공합니다.
 
-| 23. 제공되는 내용 | 사양            |
-| ---------------------------------- | ------------- |
-| **4 OCPU**                         | ARM Ampere A1 |
-| **24GB RAM**                       | 충분히 여유로움      |
-| **200GB 스토리지**                     | 블록 볼륨         |
-| **영구 무료**                          | 신용카드 요금 없음    |
+| 23. 제공되는 내용  | 사양               |
+| ------------------ | ------------------ |
+| **4 OCPU**         | ARM Ampere A1      |
+| **24GB RAM**       | 충분히 여유로움    |
+| **200GB 스토리지** | 블록 볼륨          |
+| **영구 무료**      | 신용카드 요금 없음 |
 
 **주의 사항:**
 

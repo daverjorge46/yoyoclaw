@@ -28,8 +28,7 @@ Per-agent ang auth: bawat agent ay nagbabasa mula sa sarili nitong `agentDir` au
 ~/.openclaw/agents/<agentId>/agent/auth-profiles.json
 ```
 
-Credentials are **not** shared between agents. 12. Huwag kailanman muling gamitin ang `agentDir` sa iba't ibang agent.
-13. Kung gusto mong magbahagi ng creds, kopyahin ang `auth-profiles.json` papunta sa `agentDir` ng ibang agent.
+Credentials are **not** shared between agents. 12. Huwag kailanman muling gamitin ang `agentDir` sa iba't ibang agent. 13. Kung gusto mong magbahagi ng creds, kopyahin ang `auth-profiles.json` papunta sa `agentDir` ng ibang agent.
 
 14. Para sa kung paano kumikilos ang sandboxing sa runtime, tingnan ang [Sandboxing](/gateway/sandboxing).
 15. Para sa pag-debug ng “bakit ito naka-block?”, tingnan ang [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) at `openclaw sandbox explain`.

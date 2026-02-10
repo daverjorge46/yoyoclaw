@@ -127,16 +127,16 @@ Ondersteuning voor meerdere accounts: gebruik `channels.zalo.accounts` met per-a
 
 ## Mogelijkheden
 
-| Functie                                 | Status                                                 |
-| --------------------------------------- | ------------------------------------------------------ |
-| Directe berichten                       | ✅ Ondersteund                                          |
-| Groepen                                 | ❌ Binnenkort (volgens Zalo-docs)    |
-| Media (afbeeldingen) | ✅ Ondersteund                                          |
-| Reacties                                | ❌ Niet ondersteund                                     |
-| Threads                                 | ❌ Niet ondersteund                                     |
-| Polls                                   | ❌ Niet ondersteund                                     |
-| Native opdrachten                       | ❌ Niet ondersteund                                     |
-| Streaming                               | ⚠️ Geblokkeerd (limiet 2000 tekens) |
+| Functie              | Status                              |
+| -------------------- | ----------------------------------- |
+| Directe berichten    | ✅ Ondersteund                      |
+| Groepen              | ❌ Binnenkort (volgens Zalo-docs)   |
+| Media (afbeeldingen) | ✅ Ondersteund                      |
+| Reacties             | ❌ Niet ondersteund                 |
+| Threads              | ❌ Niet ondersteund                 |
+| Polls                | ❌ Niet ondersteund                 |
+| Native opdrachten    | ❌ Niet ondersteund                 |
+| Streaming            | ⚠️ Geblokkeerd (limiet 2000 tekens) |
 
 ## Afleverdoelen (CLI/cron)
 

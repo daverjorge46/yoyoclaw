@@ -630,8 +630,8 @@ Group messages default to **require mention** (either metadata mention or regex 
 10. 解析順序：
 
 1. 11. 單一 DM 覆寫：`channels.<provider>`12. `.dms[userId].historyLimit`
-2. 13. 供應商預設：`channels.<provider>`14. `.dmHistoryLimit`
-3. 15. 無限制（保留所有歷史）
+1. 13. 供應商預設：`channels.<provider>`14. `.dmHistoryLimit`
+1. 15. 無限制（保留所有歷史）
 
 16) 支援的供應商：`telegram`、`whatsapp`、`discord`、`slack`、`signal`、`imessage`、`msteams`。
 
@@ -650,7 +650,7 @@ Group messages default to **require mention** (either metadata mention or regex 
 
 19. 提及閘控（mention gating）預設值依各頻道設定（`channels.whatsapp.groups`、`channels.telegram.groups`、`channels.imessage.groups`、`channels.discord.guilds`）。 20. 當設定了 `*.groups` 時，它同時也會作為群組允許清單；包含 `"*"` 以允許所有群組。
 
-21. 僅回應**特定文字觸發詞**（忽略原生 @ 提及）：
+20. 僅回應**特定文字觸發詞**（忽略原生 @ 提及）：
 
 ```json5
 22. {
@@ -736,8 +736,7 @@ Group messages default to **require mention** (either metadata mention or regex 
 
 - 37. `agents.list[]`：每個代理的覆寫設定。
   - 38. `id`：穩定的代理 ID（必填）。
-  - 39. `default`：選用；若設定了多個，第一個生效並記錄警告。
-        40. 若皆未設定，清單中的**第一個項目**即為預設代理。
+  - 39. `default`：選用；若設定了多個，第一個生效並記錄警告。40. 若皆未設定，清單中的**第一個項目**即為預設代理。
   - `name`：代理的顯示名稱。
   - `workspace`：預設為 `~/.openclaw/workspace-<agentId>`（對於 `main`，回退至 `agents.defaults.workspace`）。
   - `agentDir`：預設為 `~/.openclaw/agents/<agentId>/agent`。
@@ -1309,13 +1308,13 @@ Thread session isolation:
 
 Slack action groups (gate `slack` tool actions):
 
-| 動作群組       | Default | Notes       |
-| ---------- | ------- | ----------- |
-| reactions  | enabled | 新增反應＋列出反應   |
+| 動作群組   | Default | Notes                  |
+| ---------- | ------- | ---------------------- |
+| reactions  | enabled | 新增反應＋列出反應     |
 | messages   | enabled | 讀取／傳送／編輯／刪除 |
-| pins       | enabled | 釘選／取消釘選／列出  |
-| memberInfo | enabled | 成員資訊        |
-| emojiList  | enabled | 自訂表情符號清單    |
+| pins       | enabled | 釘選／取消釘選／列出   |
+| memberInfo | enabled | 成員資訊               |
+| emojiList  | enabled | 自訂表情符號清單       |
 
 ### `channels.mattermost`（bot token）
 
@@ -1544,16 +1543,15 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| 變數                | Description            | 範例                                         |
-| ----------------- | ---------------------- | ------------------------------------------ |
-| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o`                |
-| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6`                |
-| `{provider}`      | Provider name          | `anthropic`, `openai`                      |
-| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`                       |
-| `{identity.name}` | Agent identity name    | (same as `"auto"` mode) |
+| 變數              | Description            | 範例                        |
+| ----------------- | ---------------------- | --------------------------- |
+| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider name          | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`        |
+| `{identity.name}` | Agent identity name    | (same as `"auto"` mode)     |
 
-Variables are case-insensitive (`{MODEL}` = `{model}`). `{think}` is an alias for `{thinkingLevel}`.
-6. 尚未解析的變數會以字面文字保留。
+Variables are case-insensitive (`{MODEL}` = `{model}`). `{think}` is an alias for `{thinkingLevel}`. 6. 尚未解析的變數會以字面文字保留。
 
 ```json5
 2. {
@@ -1667,11 +1665,9 @@ on channels that support reactions (Slack/Discord/Telegram/Google Chat). 8. 預�
 
 ### `agents.defaults`
 
-Controls the embedded agent runtime (model/thinking/verbose/timeouts).
-18. `agents.defaults.models` 定義已設定的模型目錄（同時作為 `/model` 的允許清單）。
+Controls the embedded agent runtime (model/thinking/verbose/timeouts). 18. `agents.defaults.models` 定義已設定的模型目錄（同時作為 `/model` 的允許清單）。
 `agents.defaults.model.primary` sets the default model; `agents.defaults.model.fallbacks` are global failovers.
-`agents.defaults.imageModel` is optional and is **only used if the primary model lacks image input**.
-19. 每個 `agents.defaults.models` 項目可以包含：
+`agents.defaults.imageModel` is optional and is **only used if the primary model lacks image input**. 19. 每個 `agents.defaults.models` 項目可以包含：
 
 - `alias` (optional model shortcut, e.g. `/opus`).
 - `params` (optional provider-specific API params passed through to the model request).
@@ -1940,7 +1936,7 @@ See [/concepts/session-pruning](/concepts/session-pruning) for behavior details.
 
 37. `agents.defaults.compaction.mode` 用於選擇壓縮摘要策略。 Defaults to `default`; set `safeguard` to enable chunked summarization for very long histories. See [/concepts/compaction](/concepts/compaction).
 
-21. `agents.defaults.compaction.reserveTokensFloor` 會為 Pi 壓縮強制設定最小的 `reserveTokens`
+38. `agents.defaults.compaction.reserveTokensFloor` 會為 Pi 壓縮強制設定最小的 `reserveTokens`
     值（預設：`20000`）。 22. 將其設為 `0` 以停用此下限。
 
 當工作階段的 token 預估值跨過低於壓縮限制的
@@ -1984,16 +1980,14 @@ See [/concepts/session-pruning](/concepts/session-pruning) for behavior details.
 - `agents.defaults.blockStreamingCoalesce`: merge streamed blocks before sending.
   Signal／Slack／Discord／Google Chat 預設
   為 `minChars: 1500`，除非另行覆寫。 41. Signal/Slack/Discord/Google Chat 預設
-  為 `minChars: 1500`，除非另行覆寫。
-  42. 頻道覆寫：`channels.whatsapp.blockStreamingCoalesce`, `channels.telegram.blockStreamingCoalesce`,
+  為 `minChars: 1500`，除非另行覆寫。42. 頻道覆寫：`channels.whatsapp.blockStreamingCoalesce`, `channels.telegram.blockStreamingCoalesce`,
   `channels.discord.blockStreamingCoalesce`, `channels.slack.blockStreamingCoalesce`, `channels.mattermost.blockStreamingCoalesce`,
   `channels.signal.blockStreamingCoalesce`, `channels.imessage.blockStreamingCoalesce`, `channels.msteams.blockStreamingCoalesce`,
   `channels.googlechat.blockStreamingCoalesce`
   （以及每帳號變體）。
 
 - `agents.defaults.humanDelay`: randomized pause between **block replies** after the first.
-  Modes: `off` (default), `natural` (800–2500ms), `custom` (use `minMs`/`maxMs`).
-  45. 每個代理的覆寫：`agents.list[].humanDelay`。
+  Modes: `off` (default), `natural` (800–2500ms), `custom` (use `minMs`/`maxMs`). 45. 每個代理的覆寫：`agents.list[].humanDelay`。
   Example:
 
   ```json5
@@ -3364,28 +3358,28 @@ openclaw dns setup --apply
 
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
-\| 變數               | 說明                                                                            |
+\| 變數 | 說明 |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | 完整的傳入訊息內容                                                               |
-\| `{{RawBody}}`      | 原始傳入訊息內容（無歷史/寄件者包裝；最適合指令解析）                            |
-\| `{{BodyStripped}}` | 移除群組提及的訊息內容（代理的最佳預設）                                        |
-\| `{{From}}`         | 寄件者識別碼（WhatsApp 為 E.164；依通道可能不同）                               |
-\| `{{To}}`           | 目的地識別碼                                                                     |
-\| `{{MessageSid}}`   | 通道訊息 ID（若可用）                                                           |
-\| `{{SessionId}}`    | 目前工作階段 UUID                                                               |
-\| `{{IsNewSession}}` | 建立新工作階段時為 `"true"`                                                   |
-\| `{{MediaUrl}}`     | 傳入媒體的擬 URL（若存在）                                                      |
-\| `{{MediaPath}}`    | 本地媒體路徑（若已下載）                                                        |
-\| `{{MediaType}}`    | 媒體類型（image/audio/document/…）                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | 完整的傳入訊息內容 |
+\| `{{RawBody}}` | 原始傳入訊息內容（無歷史/寄件者包裝；最適合指令解析） |
+\| `{{BodyStripped}}` | 移除群組提及的訊息內容（代理的最佳預設） |
+\| `{{From}}` | 寄件者識別碼（WhatsApp 為 E.164；依通道可能不同） |
+\| `{{To}}` | 目的地識別碼 |
+\| `{{MessageSid}}` | 通道訊息 ID（若可用） |
+\| `{{SessionId}}` | 目前工作階段 UUID |
+\| `{{IsNewSession}}` | 建立新工作階段時為 `"true"` |
+\| `{{MediaUrl}}` | 傳入媒體的擬 URL（若存在） |
+\| `{{MediaPath}}` | 本地媒體路徑（若已下載） |
+\| `{{MediaType}}` | 媒體類型（image/audio/document/…） |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron（Gateway 排程器）
 

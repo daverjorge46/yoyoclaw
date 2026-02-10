@@ -68,20 +68,20 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - `Runtime: running`
     - `RPC probe: ok`
     - Ваш канал отображается как подключённый/готовый в `channels status --probe`
     - Отправитель выглядит одобренным (или политика DM открыта/используется allowlist)
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `drop guild message (mention required` → блокировка по упоминанию заблокировала сообщение в Discord.
     - `pairing request` → отправитель не одобрен и ожидает подтверждения сопряжения DM.
     - `blocked` / `allowlist` в логах канала → отправитель, комната или группа отфильтрованы.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#no-replies](/gateway/troubleshooting#no-replies)
     - [/channels/troubleshooting](/channels/troubleshooting)
     - [/channels/pairing](/channels/pairing)
@@ -100,19 +100,19 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - `Dashboard: http://...` отображается в `openclaw gateway status`
     - `RPC probe: ok`
     - В логах нет цикла аутентификации
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `device identity required` → HTTP/незащищённый контекст не может завершить аутентификацию устройства.
     - `unauthorized` / цикл переподключения → неверный токен/пароль или несоответствие режима аутентификации.
     - `gateway connect failed:` → UI нацелен на неверный URL/порт или шлюз недоступен.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#dashboard-control-ui-connectivity](/gateway/troubleshooting#dashboard-control-ui-connectivity)
     - [/web/control-ui](/web/control-ui)
     - [/gateway/authentication](/gateway/authentication)
@@ -131,19 +131,19 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - `Service: ... (loaded)`
     - `Runtime: running`
     - `RPC probe: ok`
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `Gateway start blocked: set gateway.mode=local` → режим шлюза Gateway не задан/удалённый.
     - `refusing to bind gateway ... without auth` → привязка не к loopback без токена/пароля.
     - `another gateway instance is already listening` или `EADDRINUSE` → порт уже занят.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#gateway-service-not-running](/gateway/troubleshooting#gateway-service-not-running)
     - [/gateway/background-process](/gateway/background-process)
     - [/gateway/configuration](/gateway/configuration)
@@ -162,19 +162,19 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - Транспорт канала подключён.
     - Проверки сопряжения/allowlist проходят.
     - Упоминания обнаруживаются там, где это требуется.
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `mention required` → блокировка по групповым упоминаниям остановила обработку.
     - `pairing` / `pending` → отправитель DM ещё не одобрен.
     - `not_in_channel`, `missing_scope`, `Forbidden`, `401/403` → проблема с токеном прав доступа канала.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#channel-connected-messages-not-flowing](/gateway/troubleshooting#channel-connected-messages-not-flowing)
     - [/channels/troubleshooting](/channels/troubleshooting)
     ```
@@ -193,20 +193,20 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - `cron.status` показывает, что включено, и есть следующий запуск.
     - `cron runs` показывает недавние записи `ok`.
     - Heartbeat включён и находится в пределах активных часов.
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `cron: scheduler disabled; jobs will not run automatically` → cron отключён.
     - `heartbeat skipped` с `reason=quiet-hours` → вне настроенных активных часов.
     - `requests-in-flight` → основной поток занят; пробуждение heartbeat было отложено.
     - `unknown accountId` → учётная запись цели доставки heartbeat не существует.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#cron-and-heartbeat-delivery](/gateway/troubleshooting#cron-and-heartbeat-delivery)
     - [/automation/troubleshooting](/automation/troubleshooting)
     - [/gateway/heartbeat](/gateway/heartbeat)
@@ -225,20 +225,20 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - Узел указан как подключённый и сопряжённый для роли `node`.
     - Для вызываемой команды существует соответствующая возможность.
     - Состояние разрешений для инструмента предоставлено.
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `NODE_BACKGROUND_UNAVAILABLE` → вывести приложение узла на передний план.
     - `*_PERMISSION_REQUIRED` → разрешение ОС было отклонено/отсутствует.
     - `SYSTEM_RUN_DENIED: approval required` → ожидается подтверждение выполнения команды.
     - `SYSTEM_RUN_DENIED: allowlist miss` → команда отсутствует в allowlist выполнения.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#node-paired-tool-fails](/gateway/troubleshooting#node-paired-tool-fails)
     - [/nodes/troubleshooting](/nodes/troubleshooting)
     - [/tools/exec-approvals](/tools/exec-approvals)
@@ -257,19 +257,19 @@ flowchart TD
 
     ```
     Хороший результат выглядит так:
-    
+
     - Статус браузера показывает `running: true` и выбранный браузер/профиль.
     - Профиль `openclaw` запускается или ретранслятор `chrome` имеет подключённую вкладку.
-    
+
     Распространённые сигнатуры логов:
-    
+
     - `Failed to start Chrome CDP on port` → не удалось запустить локальный браузер.
     - `browser.executablePath not found` → неверно указан путь к бинарному файлу.
     - `Chrome extension relay is running, but no tab is connected` → расширение не подключено.
     - `Browser attachOnly is enabled ... not reachable` → профиль только для подключения не имеет активной цели CDP.
-    
+
     Подробные страницы:
-    
+
     - [/gateway/troubleshooting#browser-tool-fails](/gateway/troubleshooting#browser-tool-fails)
     - [/tools/browser-linux-troubleshooting](/tools/browser-linux-troubleshooting)
     - [/tools/chrome-extension](/tools/chrome-extension)

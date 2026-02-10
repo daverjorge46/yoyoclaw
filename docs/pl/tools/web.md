@@ -29,10 +29,10 @@ To **nie** jest automatyzacja przeglądarki. Dla stron intensywnie wykorzystują
 
 ## Wybór dostawcy wyszukiwania
 
-| Dostawca                                | Zalety                                                         | Koty                                        | Klucz API                                     |
-| --------------------------------------- | -------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------- |
+| Dostawca             | Zalety                                                         | Koty                                        | Klucz API                                     |
+| -------------------- | -------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------- |
 | **Brave** (domyślny) | Szybkie, ustrukturyzowane wyniki, darmowy tier                 | Tradycyjne wyniki wyszukiwania              | `BRAVE_API_KEY`                               |
-| **Perplexity**                          | Odpowiedzi syntetyzowane przez AI, cytowania, czas rzeczywisty | Wymaga dostępu do Perplexity lub OpenRouter | `OPENROUTER_API_KEY` lub `PERPLEXITY_API_KEY` |
+| **Perplexity**       | Odpowiedzi syntetyzowane przez AI, cytowania, czas rzeczywisty | Wymaga dostępu do Perplexity lub OpenRouter | `OPENROUTER_API_KEY` lub `PERPLEXITY_API_KEY` |
 
 Zobacz [konfigurację Brave Search](/brave-search) oraz [Perplexity Sonar](/perplexity) po szczegóły specyficzne dla dostawców.
 
@@ -130,11 +130,11 @@ Jeśli nie ustawiono bazowego URL, OpenClaw wybiera domyślny na podstawie źró
 
 ### Dostępne modele Perplexity
 
-| Model                                                | Opis                                                    | Najlepsze do       |
-| ---------------------------------------------------- | ------------------------------------------------------- | ------------------ |
-| `perplexity/sonar`                                   | Szybkie Q&A z wyszukiwaniem w sieci | Szybkich sprawdzeń |
-| `perplexity/sonar-pro` (domyślny) | Wieloetapowe rozumowanie z wyszukiwaniem w sieci        | Złożonych pytań    |
-| `perplexity/sonar-reasoning-pro`                     | Analiza typu chain-of-thought                           | Dogłębnych badań   |
+| Model                             | Opis                                             | Najlepsze do       |
+| --------------------------------- | ------------------------------------------------ | ------------------ |
+| `perplexity/sonar`                | Szybkie Q&A z wyszukiwaniem w sieci              | Szybkich sprawdzeń |
+| `perplexity/sonar-pro` (domyślny) | Wieloetapowe rozumowanie z wyszukiwaniem w sieci | Złożonych pytań    |
+| `perplexity/sonar-reasoning-pro`  | Analiza typu chain-of-thought                    | Dogłębnych badań   |
 
 ## web_search
 

@@ -28,12 +28,12 @@ OpenClaw utiliza el SDK de pi para integrar un agente de codificación con IA de
 }
 ```
 
-| Paquete           | Propósito                                                                                                                          |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Paquete           | Propósito                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `pi-ai`           | Abstracciones centrales de LLM: `Model`, `streamSimple`, tipos de mensajes, APIs de proveedores                    |
-| `pi-agent-core`   | Bucle del agente, ejecución de herramientas, tipos `AgentMessage`                                                                  |
+| `pi-agent-core`   | Bucle del agente, ejecución de herramientas, tipos `AgentMessage`                                                  |
 | `pi-coding-agent` | SDK de alto nivel: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, herramientas integradas |
-| `pi-tui`          | Componentes de UI de terminal (usados en el modo TUI local de OpenClaw)                                         |
+| `pi-tui`          | Componentes de UI de terminal (usados en el modo TUI local de OpenClaw)                                            |
 
 ## Estructura de archivos
 
@@ -511,15 +511,15 @@ Esto proporciona la experiencia interactiva de terminal similar al modo nativo d
 
 ## Diferencias clave frente a Pi CLI
 
-| Aspecto                  | Pi CLI                                       | OpenClaw integrado                                                                                               |
-| ------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Invocación               | Comando `pi` / RPC                           | SDK mediante `createAgentSession()`                                                                              |
-| Herramientas             | Herramientas de codificación predeterminadas | Conjunto de herramientas personalizadas de OpenClaw                                                              |
-| Prompt del sistema       | AGENTS.md + prompts          | Dinámico por canal/contexto                                                                                      |
+| Aspecto                  | Pi CLI                                       | OpenClaw integrado                                                                            |
+| ------------------------ | -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Invocación               | Comando `pi` / RPC                           | SDK mediante `createAgentSession()`                                                           |
+| Herramientas             | Herramientas de codificación predeterminadas | Conjunto de herramientas personalizadas de OpenClaw                                           |
+| Prompt del sistema       | AGENTS.md + prompts                          | Dinámico por canal/contexto                                                                   |
 | Almacenamiento de sesión | `~/.pi/agent/sessions/`                      | `~/.openclaw/agents/<agentId>/sessions/` (o `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Autenticación            | Credencial única                             | Multi-perfil con rotación                                                                                        |
-| Extensiones              | Cargadas desde disco                         | Programáticas + rutas en disco                                                                                   |
-| Manejo de eventos        | Renderizado TUI                              | Basado en callbacks (onBlockReply, etc.)                                      |
+| Autenticación            | Credencial única                             | Multi-perfil con rotación                                                                     |
+| Extensiones              | Cargadas desde disco                         | Programáticas + rutas en disco                                                                |
+| Manejo de eventos        | Renderizado TUI                              | Basado en callbacks (onBlockReply, etc.)                                                      |
 
 ## Consideraciones futuras
 

@@ -125,15 +125,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### Parameters
 
-| Parameter           | Type                     | Default                               | Description                                                                                       |
-| ------------------- | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `task`              | string                   | _(required)_       | What the sub-agent should do                                                                      |
-| `label`             | string                   | —                                     | Short label for identification                                                                    |
-| `agentId`           | string                   | _(caller's agent)_ | Spawn under a different agent id (must be allowed)                             |
-| `model`             | string                   | _(optional)_       | Override the model for this sub-agent                                                             |
-| `thinking`          | string                   | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | number                   | `0` (no limit)     | Abort the sub-agent after N seconds                                                               |
-| `cleanup`           | `"delete"` \\| `"keep"` | `"keep"`                              | `"delete"` archives immediately after announce                                                    |
+| Parameter           | Type          | Default            | Description                                                    |
+| ------------------- | ------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
+| `task`              | string        | _(required)_       | What the sub-agent should do                                   |
+| `label`             | string        | —                  | Short label for identification                                 |
+| `agentId`           | string        | _(caller's agent)_ | Spawn under a different agent id (must be allowed)             |
+| `model`             | string        | _(optional)_       | Override the model for this sub-agent                          |
+| `thinking`          | string        | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | number        | `0` (no limit)     | Abort the sub-agent after N seconds                            |
+| `cleanup`           | `"delete"` \\ | `"keep"`           | `"keep"`                                                       | `"delete"` archives immediately after announce |
 
 ### Model Resolution Order
 
@@ -182,13 +182,13 @@ Use the `agents_list` tool to discover which agent ids are currently allowed for
 
 Use the `/subagents` slash command to inspect and control sub-agent runs for the current session:
 
-| Command                                    | Description                                                       |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| `/subagents list`                          | List all sub-agent runs (active and completed) |
-| `/subagents stop <id\\|#\\|all>`         | Stop a running sub-agent                                          |
-| `/subagents log <id\\|#> [limit] [tools]` | View sub-agent transcript                                         |
-| `/subagents info <id\\|#>`                | Show detailed run metadata                                        |
-| `/subagents send <id\\|#> <message>`      | Send a message to a running sub-agent                             |
+| Command                | Description                                    |
+| ---------------------- | ---------------------------------------------- | ------------------------------------- | ------------------------ |
+| `/subagents list`      | List all sub-agent runs (active and completed) |
+| `/subagents stop <id\\ | #\\                                            | all>`                                 | Stop a running sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                            | View sub-agent transcript             |
+| `/subagents info <id\\ | #>`                                            | Show detailed run metadata            |
+| `/subagents send <id\\ | #> <message>`                                  | Send a message to a running sub-agent |
 
 You can reference sub-agents by list index (`1`, `2`), run id prefix, full session key, or `last`.
 
@@ -206,11 +206,11 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -244,7 +244,7 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
 
     ````
     Shows the last 10 messages from the sub-agent's transcript. Add `tools` to include tool call messages:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -362,7 +362,7 @@ To restrict sub-agents to **only** specific tools:
 - 4. メインエージェントの auth プロファイルは **フォールバック** としてマージされます（競合時はエージェント側のプロファイルが優先されます）。
 - 5. マージは加算的です — メインのプロファイルは常にフォールバックとして利用可能です。
 
-<Note>6. 
+<Note>6.
 現在、サブエージェントごとに完全に分離された auth はサポートされていません。</Note>
 
 ## 7. コンテキストとシステムプロンプト
@@ -376,11 +376,11 @@ To restrict sub-agents to **only** specific tools:
 
 ## 12. サブエージェントの停止
 
-| 13. 方法                     | 14. 効果                                                    |
-| ------------------------------------------------- | -------------------------------------------------------------------------------- |
-| 15. チャット内の `/stop`         | 16. メインセッション **および** そこから生成されたすべてのアクティブなサブエージェント実行を中止します。 |
-| 17. `/subagents stop <id>` | 18. メインセッションに影響を与えず、特定のサブエージェントのみを停止します。                  |
-| 19. `runTimeoutSeconds`    | 20. 指定した時間後にサブエージェントの実行を自動的に中止します。                        |
+| 13. 方法                   | 14. 効果                                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 15. チャット内の `/stop`   | 16. メインセッション **および** そこから生成されたすべてのアクティブなサブエージェント実行を中止します。 |
+| 17. `/subagents stop <id>` | 18. メインセッションに影響を与えず、特定のサブエージェントのみを停止します。                             |
+| 19. `runTimeoutSeconds`    | 20. 指定した時間後にサブエージェントの実行を自動的に中止します。                                         |
 
 <Note>
 21. `runTimeoutSeconds` はセッションを自動アーカイブ **しません**。 22. セッションは、通常のアーカイブタイマーが発火するまで残ります。
@@ -388,8 +388,9 @@ To restrict sub-agents to **only** specific tools:
 
 ## 23. 完全な設定例
 
-<Accordion title="Complete sub-agent configuration">24. 
-```json5
+<Accordion title="Complete sub-agent configuration">24.
+
+````json5
 {
   agents: {
     defaults: {
@@ -442,3 +443,4 @@ To restrict sub-agents to **only** specific tools:
 - 31. [Multi-Agent Sandbox and Tools](/tools/multi-agent-sandbox-tools) — エージェントごとのツール制限とサンドボックス化
 - 32. [Configuration](/gateway/configuration) — `agents.defaults.subagents` のリファレンス
 - 33. [Queue](/concepts/queue) — `subagent` レーンの仕組み
+````

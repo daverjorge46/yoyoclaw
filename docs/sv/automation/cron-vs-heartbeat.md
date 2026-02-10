@@ -13,14 +13,14 @@ Både hjärtslag och cron-jobb låter dig köra uppgifter på ett schema. Denna 
 
 ## Snabb beslutshjälp
 
-| Användningsfall                                     | Rekommenderat                          | Varför                                        |
-| --------------------------------------------------- | -------------------------------------- | --------------------------------------------- |
-| Kontrollera inkorgen var 30:e minut | Heartbeat                              | Batchas med andra kontroller, kontextmedvetet |
-| Skicka daglig rapport kl. 9 exakt   | Cron (isolated)     | Exakt timing krävs                            |
-| Övervaka kalendern för kommande händelser           | Heartbeat                              | Naturlig passform för periodisk medvetenhet   |
-| Köra veckovis djupanalys                            | Cron (isolated)     | Fristående uppgift, kan använda annan modell  |
-| Påminn mig om 20 minuter                            | Cron (main, `--at`) | Engångsuppgift med exakt timing               |
-| Bakgrundskontroll av projekthälsa                   | Heartbeat                              | Åker snålskjuts på befintlig cykel            |
+| Användningsfall                           | Rekommenderat       | Varför                                        |
+| ----------------------------------------- | ------------------- | --------------------------------------------- |
+| Kontrollera inkorgen var 30:e minut       | Heartbeat           | Batchas med andra kontroller, kontextmedvetet |
+| Skicka daglig rapport kl. 9 exakt         | Cron (isolated)     | Exakt timing krävs                            |
+| Övervaka kalendern för kommande händelser | Heartbeat           | Naturlig passform för periodisk medvetenhet   |
+| Köra veckovis djupanalys                  | Cron (isolated)     | Fristående uppgift, kan använda annan modell  |
+| Påminn mig om 20 minuter                  | Cron (main, `--at`) | Engångsuppgift med exakt timing               |
+| Bakgrundskontroll av projekthälsa         | Heartbeat           | Åker snålskjuts på befintlig cykel            |
 
 ## Heartbeat: Periodisk medvetenhet
 
@@ -215,13 +215,13 @@ Se [Lobster](/tools/lobster) för fullständig användning och exempel.
 
 Både heartbeat och cron kan interagera med huvudsessionen, men på olika sätt:
 
-|          | Heartbeat                        | Cron (main)                | Cron (isolated)                     |
-| -------- | -------------------------------- | --------------------------------------------- | ------------------------------------------------------ |
-| Session  | Huvud                            | Huvud (via systemhändelse) | `cron:<jobId>`                                         |
-| Historik | Delad                            | Delad                                         | Ny vid varje körning                                   |
-| Kontext  | Full                             | Full                                          | Ingen (startar rent)                |
-| Modell   | Huvudsessionens modell           | Huvudsessionens modell                        | Kan överskrivas                                        |
-| Utdata   | Levereras om inte `HEARTBEAT_OK` | Heartbeat-prompt + händelse                   | Annonsera sammanfattning (standard) |
+|          | Heartbeat                        | Cron (main)                 | Cron (isolated)                     |
+| -------- | -------------------------------- | --------------------------- | ----------------------------------- |
+| Session  | Huvud                            | Huvud (via systemhändelse)  | `cron:<jobId>`                      |
+| Historik | Delad                            | Delad                       | Ny vid varje körning                |
+| Kontext  | Full                             | Full                        | Ingen (startar rent)                |
+| Modell   | Huvudsessionens modell           | Huvudsessionens modell      | Kan överskrivas                     |
+| Utdata   | Levereras om inte `HEARTBEAT_OK` | Heartbeat-prompt + händelse | Annonsera sammanfattning (standard) |
 
 ### När du ska använda main-session-cron
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Kostnadsöverväganden
 
-| Mekanism                           | Kostnadsprofil                                                                          |
-| ---------------------------------- | --------------------------------------------------------------------------------------- |
-| Heartbeat                          | Ett varv var N:e minut; skalar med HEARTBEAT.md-storlek |
-| Cron (main)     | Lägger till händelse till nästa heartbeat (ingen isolerad körning)   |
-| Cron (isolated) | Fullt agentvarv per jobb; kan använda billigare modell                                  |
+| Mekanism        | Kostnadsprofil                                                     |
+| --------------- | ------------------------------------------------------------------ |
+| Heartbeat       | Ett varv var N:e minut; skalar med HEARTBEAT.md-storlek            |
+| Cron (main)     | Lägger till händelse till nästa heartbeat (ingen isolerad körning) |
+| Cron (isolated) | Fullt agentvarv per jobb; kan använda billigare modell             |
 
 **Tips**:
 

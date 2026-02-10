@@ -528,23 +528,23 @@ Feishu DMs یا گروپس کو مختلف ایجنٹس کی طرف روٹ کر�
 
 اہم اختیارات:
 
-| سیٹنگ                                             | وضاحت                                                                  | بطورِ طے شدہ |
-| ------------------------------------------------- | ---------------------------------------------------------------------- | ------------ |
-| `channels.feishu.enabled`                         | چینل فعال/غیرفعال                                                      | `true`       |
-| `channels.feishu.domain`                          | API ڈومین (`feishu` یا `lark`)                      | `feishu`     |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                 | -            |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                             | -            |
-| `channels.feishu.accounts.<id>.domain`            | فی اکاؤنٹ API ڈومین اووررائیڈ                                          | `feishu`     |
-| `channels.feishu.dmPolicy`                        | DM پالیسی                                                              | `pairing`    |
+| سیٹنگ                                             | وضاحت                          | بطورِ طے شدہ |
+| ------------------------------------------------- | ------------------------------ | ------------ |
+| `channels.feishu.enabled`                         | چینل فعال/غیرفعال              | `true`       |
+| `channels.feishu.domain`                          | API ڈومین (`feishu` یا `lark`) | `feishu`     |
+| `channels.feishu.accounts.<id>.appId`             | App ID                         | -            |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                     | -            |
+| `channels.feishu.accounts.<id>.domain`            | فی اکاؤنٹ API ڈومین اووررائیڈ  | `feishu`     |
+| `channels.feishu.dmPolicy`                        | DM پالیسی                      | `pairing`    |
 | `channels.feishu.allowFrom`                       | DM اجازت فہرست (open_id فہرست) | -            |
-| `channels.feishu.groupPolicy`                     | گروپ پالیسی                                                            | `open`       |
-| `channels.feishu.groupAllowFrom`                  | گروپ اجازت فہرست                                                       | -            |
-| `channels.feishu.groups.<chat_id>.requireMention` | @mention لازمی                                            | `true`       |
-| `channels.feishu.groups.<chat_id>.enabled`        | گروپ فعال کریں                                                         | `true`       |
-| `channels.feishu.textChunkLimit`                  | پیغام کے حصے کا سائز                                                   | `2000`       |
-| `channels.feishu.mediaMaxMb`                      | میڈیا سائز کی حد                                                       | `30`         |
-| `channels.feishu.streaming`                       | اسٹریمنگ کارڈ آؤٹ پٹ فعال کریں                                         | `true`       |
-| `channels.feishu.blockStreaming`                  | بلاک اسٹریمنگ فعال کریں                                                | `true`       |
+| `channels.feishu.groupPolicy`                     | گروپ پالیسی                    | `open`       |
+| `channels.feishu.groupAllowFrom`                  | گروپ اجازت فہرست               | -            |
+| `channels.feishu.groups.<chat_id>.requireMention` | @mention لازمی                 | `true`       |
+| `channels.feishu.groups.<chat_id>.enabled`        | گروپ فعال کریں                 | `true`       |
+| `channels.feishu.textChunkLimit`                  | پیغام کے حصے کا سائز           | `2000`       |
+| `channels.feishu.mediaMaxMb`                      | میڈیا سائز کی حد               | `30`         |
+| `channels.feishu.streaming`                       | اسٹریمنگ کارڈ آؤٹ پٹ فعال کریں | `true`       |
+| `channels.feishu.blockStreaming`                  | بلاک اسٹریمنگ فعال کریں        | `true`       |
 
 ---
 
@@ -554,7 +554,7 @@ Feishu DMs یا گروپس کو مختلف ایجنٹس کی طرف روٹ کر�
 | ------------- | -------------------------------------------------------------------------- |
 | `"pairing"`   | **بطورِ طے شدہ۔** نامعلوم صارفین کو جوڑی بنانے کا کوڈ ملتا ہے؛ منظوری لازم |
 | `"allowlist"` | صرف `allowFrom` میں موجود صارفین چیٹ کر سکتے ہیں                           |
-| `"open"`      | تمام صارفین کو اجازت دیں (requires `"*"` in allowFrom)  |
+| `"open"`      | تمام صارفین کو اجازت دیں (requires `"*"` in allowFrom)                     |
 | `"disabled"`  | DMs غیر فعال کریں                                                          |
 
 ---

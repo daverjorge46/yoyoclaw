@@ -77,7 +77,7 @@ Xác thực (chạy/sửa trước PR):
 ### Evidence (redacted)
 ```
 
-_Tránh tiết lộ bí mật/chi tiết khai thác nơi công cộng._ Với các vấn đề nhạy cảm, giảm thiểu chi tiết và yêu cầu tiết lộ riêng tư._
+_Tránh tiết lộ bí mật/chi tiết khai thác nơi công cộng._ Với các vấn đề nhạy cảm, giảm thiểu chi tiết và yêu cầu tiết lộ riêng tư.\_
 
 #### Báo cáo hồi quy
 

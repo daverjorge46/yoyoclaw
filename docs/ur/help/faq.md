@@ -142,7 +142,7 @@ Quick answers plus deeper troubleshooting for real-world setups (local dev, VPS,
   - [OpenClaw، Flawd، اور Krill ماڈلز کے لیے کیا استعمال کرتے ہیں؟](#what-do-openclaw-flawd-and-krill-use-for-models)
   - [میں بغیر ری اسٹارٹ کیے فوری طور پر ماڈلز کیسے تبدیل کروں؟](#how-do-i-switch-models-on-the-fly-without-restarting)
   - [کیا میں روزمرہ کے کاموں کے لیے GPT 5.2 اور کوڈنگ کے لیے Codex 5.3 استعمال کر سکتا ہوں](#can-i-use-gpt-52-for-daily-tasks-and-codex-53-for-coding)
-  - [مجھے "Model …  is not allowed" کیوں نظر آتا ہے اور پھر کوئی جواب نہیں آتا؟](#why-do-i-see-model-is-not-allowed-and-then-no-reply)
+  - [مجھے "Model … is not allowed" کیوں نظر آتا ہے اور پھر کوئی جواب نہیں آتا؟](#why-do-i-see-model-is-not-allowed-and-then-no-reply)
   - [Why do I see "Unknown model: minimax/MiniMax-M2.1"?](#why-do-i-see-unknown-model-minimaxminimaxm21)
   - [کیا میں MiniMax کو اپنا ڈیفالٹ اور پیچیدہ کاموں کے لیے OpenAI استعمال کر سکتا ہوں؟](#can-i-use-minimax-as-my-default-and-openai-for-complex-tasks)
   - [کیا opus / sonnet / gpt بلٹ اِن شارٹ کٹس ہیں؟](#are-opus-sonnet-gpt-builtin-shortcuts)
@@ -723,8 +723,8 @@ OpenClaw supports **OpenAI Code (Codex)** via OAuth (ChatGPT sign-in). The wizar
 
 6. مراحل:
 
-1. 7. پلگ ان فعال کریں: `openclaw plugins enable google-gemini-cli-auth`
-2. لاگ اِن: `openclaw models auth login --provider google-gemini-cli --set-default`
+7. 7. پلگ ان فعال کریں: `openclaw plugins enable google-gemini-cli-auth`
+8. لاگ اِن: `openclaw models auth login --provider google-gemini-cli --set-default`
 
 8) یہ گیٹ وے ہوسٹ پر auth profiles میں OAuth ٹوکنز محفوظ کرتا ہے۔ 9. تفصیلات: [Model providers](/concepts/model-providers)۔
 
@@ -750,7 +750,7 @@ OpenClaw supports **OpenAI Code (Codex)** via OAuth (ChatGPT sign-in). The wizar
 27. آپ کو Messages میں سائن اِن کیا ہوا **کوئی macOS ڈیوائس** درکار ہے۔ 28. یہ **ضروری نہیں** کہ Mac mini ہو -
     کوئی بھی Mac کام کرتا ہے۔ 29. iMessage کے لیے **[BlueBubbles](/channels/bluebubbles) استعمال کریں** (تجویز کردہ) - BlueBubbles سرور macOS پر چلتا ہے، جبکہ Gateway Linux یا کہیں اور چل سکتا ہے۔
 
-30. عام سیٹ اپس:
+28. عام سیٹ اپس:
 
 - 31. Gateway کو Linux/VPS پر چلائیں، اور BlueBubbles سرور کو کسی بھی ایسے Mac پر چلائیں جو Messages میں سائن اِن ہو۔
 - 32. اگر آپ سب سے سادہ single‑machine سیٹ اپ چاہتے ہیں تو سب کچھ Mac پر چلائیں۔
@@ -777,7 +777,7 @@ OpenClaw supports **OpenAI Code (Codex)** via OAuth (ChatGPT sign-in). The wizar
 42. Bun **تجویز نہیں کیا جاتا**۔ 43. ہمیں runtime bugs نظر آتے ہیں، خاص طور پر WhatsApp اور Telegram کے ساتھ۔
 43. مستحکم gateways کے لیے **Node** استعمال کریں۔
 
-45. اگر پھر بھی آپ Bun کے ساتھ تجربہ کرنا چاہتے ہیں تو اسے non‑production gateway پر کریں
+44. اگر پھر بھی آپ Bun کے ساتھ تجربہ کرنا چاہتے ہیں تو اسے non‑production gateway پر کریں
     بغیر WhatsApp/Telegram کے۔
 
 ### 46. Telegram میں allowFrom میں کیا جاتا ہے
@@ -1251,8 +1251,8 @@ Memory files live on disk and persist until you delete them. حد آپ کی
 
 سب کچھ `$OPENCLAW_STATE_DIR` کے تحت رہتا ہے (ڈیفالٹ: `~/.openclaw`):
 
-| پاتھ                                                            | Purpose                                                                                     |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| پاتھ                                                            | Purpose                                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | مین کنفیگ (JSON5)                                                        |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | لیگیسی OAuth امپورٹ (پہلے استعمال پر auth پروفائلز میں کاپی کیا جاتا ہے) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth پروفائلز (OAuth + API keys)                                         |
@@ -1548,9 +1548,9 @@ openclaw agent --message "Hello from local bot" --deliver --channel telegram --r
 
 20. اگر آپ کو دوسرے لیپ ٹاپ پر صرف **لوکل ٹولز** (screen/camera/exec) درکار ہیں تو اسے بطور **نوڈ** شامل کریں۔ 21. اس سے ایک ہی گیٹ وے برقرار رہتا ہے اور ڈپلیکیٹ کنفیگریشن سے بچاؤ ہوتا ہے۔ 22. لوکل نوڈ ٹولز فی الحال صرف macOS تک محدود ہیں، لیکن ہم انہیں دیگر OSes تک بڑھانے کا منصوبہ رکھتے ہیں۔
 
-23. دوسرا گیٹ وے صرف تب انسٹال کریں جب آپ کو **سخت آئسولیشن** یا دو مکمل طور پر الگ بوٹس درکار ہوں۔
+21. دوسرا گیٹ وے صرف تب انسٹال کریں جب آپ کو **سخت آئسولیشن** یا دو مکمل طور پر الگ بوٹس درکار ہوں۔
 
-24. دستاویزات: [Nodes](/nodes), [Nodes CLI](/cli/nodes), [Multiple gateways](/gateway/multiple-gateways).
+22. دستاویزات: [Nodes](/nodes), [Nodes CLI](/cli/nodes), [Multiple gateways](/gateway/multiple-gateways).
 
 ### 25. کیا نوڈز گیٹ وے سروس چلاتے ہیں
 
@@ -1566,7 +1566,7 @@ openclaw agent --message "Hello from local bot" --deliver --channel telegram --r
 
 33. `config.apply` **پوری کنفیگ** کو بدل دیتا ہے۔ 34. اگر آپ جزوی آبجیکٹ بھیجیں تو باقی سب کچھ ہٹا دیا جاتا ہے۔
 
-35. بحالی:
+34. بحالی:
 
 - بیک اپ سے بحال کریں (git یا کاپی کی گئی `~/.openclaw/openclaw.json`)۔
 - 37. اگر آپ کے پاس بیک اپ نہیں ہے تو `openclaw doctor` دوبارہ چلائیں اور چینلز/ماڈلز دوبارہ کنفیگر کریں۔
@@ -1602,13 +1602,13 @@ openclaw agent --message "Hello from local bot" --deliver --channel telegram --r
    sudo tailscale up
    ```
 
-2. 50. **اپنے Mac پر انسٹال + لاگ اِن کریں**
+1. 50. **اپنے Mac پر انسٹال + لاگ اِن کریں**
    - 2. **MagicDNS فعال کریں (تجویز کردہ)**
 
-3. 3. Tailscale ایڈمن کنسول میں MagicDNS فعال کریں تاکہ VPS کا ایک مستحکم نام ہو۔
+1. 3. Tailscale ایڈمن کنسول میں MagicDNS فعال کریں تاکہ VPS کا ایک مستحکم نام ہو۔
    - 4. **tailnet hostname استعمال کریں**
 
-4. 5. SSH: `ssh user@your-vps.tailnet-xxxx.ts.net`
+1. 5. SSH: `ssh user@your-vps.tailnet-xxxx.ts.net`
    - 6. Gateway WS: `ws://your-vps.tailnet-xxxx.ts.net:18789`
    - Gateway WS: `ws://your-vps.tailnet-xxxx.ts.net:18789`
 
@@ -1624,17 +1624,17 @@ openclaw gateway --tailscale serve
 
 12. نوڈز اسی Gateway WS اینڈپوائنٹ کے ذریعے کنیکٹ ہوتے ہیں۔ 13. تجویز کردہ سیٹ اپ:
 
-14. **یقینی بنائیں کہ VPS اور Mac ایک ہی tailnet پر ہیں**۔
+13. **یقینی بنائیں کہ VPS اور Mac ایک ہی tailnet پر ہیں**۔
 
-1. 15. **macOS ایپ کو Remote موڈ میں استعمال کریں** (SSH ٹارگٹ tailnet hostname ہو سکتا ہے)۔
-2. 16. ایپ Gateway پورٹ کو ٹنل کرے گی اور ایک نوڈ کے طور پر کنیکٹ ہوگی۔
-   17. **گیٹ وے پر نوڈ کی منظوری دیں**:
-3. 18. ڈاکس: [Gateway protocol](/gateway/protocol), [Discovery](/gateway/discovery), [macOS remote mode](/platforms/mac/remote).
+14. 15. **macOS ایپ کو Remote موڈ میں استعمال کریں** (SSH ٹارگٹ tailnet hostname ہو سکتا ہے)۔
+15. 16. ایپ Gateway پورٹ کو ٹنل کرے گی اور ایک نوڈ کے طور پر کنیکٹ ہوگی۔
+    17. **گیٹ وے پر نوڈ کی منظوری دیں**:
+16. 18. ڈاکس: [Gateway protocol](/gateway/protocol), [Discovery](/gateway/discovery), [macOS remote mode](/platforms/mac/remote).
 
-   ```bash
-   openclaw nodes pending
-   openclaw nodes approve <requestId>
-   ```
+    ```bash
+    openclaw nodes pending
+    openclaw nodes approve <requestId>
+    ```
 
 19) Env vars اور .env لوڈنگ
 
@@ -1667,7 +1667,7 @@ openclaw gateway --tailscale serve
 31. گمشدہ کیز `~/.openclaw/.env` میں رکھیں تاکہ سروس کے آپ کے shell env کو inherit نہ کرنے کی صورت میں بھی وہ لوڈ ہو جائیں۔
 
 1. 32. shell امپورٹ فعال کریں (اختیاری سہولت):
-2. 33. یہ آپ کا لاگ اِن shell چلاتا ہے اور صرف وہی متوقع کیز امپورٹ کرتا ہے جو غائب ہوں (کبھی اووررائیڈ نہیں کرتا)۔
+1. 33. یہ آپ کا لاگ اِن shell چلاتا ہے اور صرف وہی متوقع کیز امپورٹ کرتا ہے جو غائب ہوں (کبھی اووررائیڈ نہیں کرتا)۔
 
 ```json5
 {
@@ -1690,17 +1690,17 @@ openclaw gateway --tailscale serve
     خودکار طور پر آپ کا لاگ اِن shell لوڈ نہیں کرے گا۔ 38. اگر Gateway سروس کے طور پر چل رہا ہو (launchd/systemd)، تو یہ آپ کے shell
     environment کو inherit نہیں کرے گا۔
 
-39. ان میں سے کوئی ایک کر کے مسئلہ حل کریں: 40. ٹوکن `~/.openclaw/.env` میں رکھیں:
+38. ان میں سے کوئی ایک کر کے مسئلہ حل کریں: 40. ٹوکن `~/.openclaw/.env` میں رکھیں:
 
-1. 41. COPILOT_GITHUB_TOKEN=...
+39. 41. COPILOT_GITHUB_TOKEN=...
 
-   ```
-   42. یا shell امپورٹ فعال کریں (`env.shellEnv.enabled: true`)۔
-   ```
+    ```
+    42. یا shell امپورٹ فعال کریں (`env.shellEnv.enabled: true`)۔
+    ```
 
-2. 43. یا اسے اپنی کنفیگ کے `env` بلاک میں شامل کریں (صرف اس صورت میں لاگو ہوگا جب غائب ہو)۔
+40. 43. یا اسے اپنی کنفیگ کے `env` بلاک میں شامل کریں (صرف اس صورت میں لاگو ہوگا جب غائب ہو)۔
 
-3. 44. پھر گیٹ وے کو ری اسٹارٹ کریں اور دوبارہ چیک کریں:
+41. 44. پھر گیٹ وے کو ری اسٹارٹ کریں اور دوبارہ چیک کریں:
 
 45) Copilot ٹوکنز `COPILOT_GITHUB_TOKEN` سے پڑھے جاتے ہیں (نیز `GH_TOKEN` / `GITHUB_TOKEN`)۔
 
@@ -2050,25 +2050,24 @@ Model "provider/model" is not allowed. Use /model to list available models.
 
 11. اس کا مطلب ہے کہ **provider کنفیگر نہیں ہے** (MiniMax پرووائیڈر کی کوئی کنفیگریشن یا auth پروفائل نہیں ملا)، اس لیے ماڈل resolve نہیں ہو سکتا۔ 12. اس ڈیٹیکشن کے لیے ایک فکس **2026.1.12** میں ہے (تحریر کے وقت unreleased)۔
 
-13. فکس چیک لسٹ:
+12. فکس چیک لسٹ:
 
-1. **2026.1.12** پر اپ گریڈ کریں (یا سورس `main` سے چلائیں)، پھر گیٹ وے ری اسٹارٹ کریں۔
-2. 15. یقینی بنائیں کہ MiniMax کنفیگر ہے (وزارڈ یا JSON)، یا env/auth پروفائلز میں MiniMax API key موجود ہو تاکہ پرووائیڈر انجیکٹ ہو سکے۔
-3. 16. عین ماڈل ID استعمال کریں (case-sensitive): `minimax/MiniMax-M2.1` یا `minimax/MiniMax-M2.1-lightning`۔
-4. Run:
+13. **2026.1.12** پر اپ گریڈ کریں (یا سورس `main` سے چلائیں)، پھر گیٹ وے ری اسٹارٹ کریں۔
+14. 15. یقینی بنائیں کہ MiniMax کنفیگر ہے (وزارڈ یا JSON)، یا env/auth پروفائلز میں MiniMax API key موجود ہو تاکہ پرووائیڈر انجیکٹ ہو سکے۔
+15. 16. عین ماڈل ID استعمال کریں (case-sensitive): `minimax/MiniMax-M2.1` یا `minimax/MiniMax-M2.1-lightning`۔
+16. Run:
 
-   ```bash
-   openclaw models list
-   ```
+    ```bash
+    openclaw models list
+    ```
 
-   17. اور فہرست میں سے منتخب کریں (یا چیٹ میں `/model list`)۔
+    17. اور فہرست میں سے منتخب کریں (یا چیٹ میں `/model list`)۔
 
 18) دیکھیں [MiniMax](/providers/minimax) اور [Models](/concepts/models)۔
 
 ### 19. کیا میں MiniMax کو ڈیفالٹ اور پیچیدہ کاموں کے لیے OpenAI استعمال کر سکتا ہوں
 
-ہاں. 20. **MiniMax کو ڈیفالٹ** کے طور پر استعمال کریں اور ضرورت پڑنے پر **فی سیشن** ماڈلز سوئچ کریں۔
-21. Fallbacks **غلطیوں** کے لیے ہوتے ہیں، "مشکل کاموں" کے لیے نہیں، اس لیے `/model` یا علیحدہ ایجنٹ استعمال کریں۔
+ہاں. 20. **MiniMax کو ڈیفالٹ** کے طور پر استعمال کریں اور ضرورت پڑنے پر **فی سیشن** ماڈلز سوئچ کریں۔ 21. Fallbacks **غلطیوں** کے لیے ہوتے ہیں، "مشکل کاموں" کے لیے نہیں، اس لیے `/model` یا علیحدہ ایجنٹ استعمال کریں۔
 
 22. **آپشن A: فی سیشن سوئچ**
 
@@ -2169,8 +2168,8 @@ OpenRouter (فی ٹوکن ادائیگی؛ متعدد ماڈلز):
 
 50. **نیا ایجنٹ شامل کرنے کے بعد پرووائیڈر کے لیے کوئی API key نہیں ملی**
 
-1. اس کا عام طور پر مطلب یہ ہوتا ہے کہ **نئے ایجنٹ** کے پاس خالی auth اسٹور ہے۔ 2. Auth ہر ایجنٹ کے لیے الگ ہوتی ہے اور
-   محفوظ کی جاتی ہے:
+51. اس کا عام طور پر مطلب یہ ہوتا ہے کہ **نئے ایجنٹ** کے پاس خالی auth اسٹور ہے۔ 2. Auth ہر ایجنٹ کے لیے الگ ہوتی ہے اور
+    محفوظ کی جاتی ہے:
 
 ```
 ~/.openclaw/agents/<agentId>/agent/auth-profiles.json
@@ -2190,7 +2189,7 @@ OpenRouter (فی ٹوکن ادائیگی؛ متعدد ماڈلز):
 8. فیل اوور دو مراحل میں ہوتا ہے:
 
 1. 9. ایک ہی فراہم کنندہ کے اندر **Auth پروفائل روٹیشن**۔
-2. **ماڈل فال بیک** `agents.defaults.model.fallbacks` میں اگلے ماڈل تک۔
+1. **ماڈل فال بیک** `agents.defaults.model.fallbacks` میں اگلے ماڈل تک۔
 
 10) ناکام ہونے والے پروفائلز پر کول ڈاؤن لاگو ہوتے ہیں (exponential backoff)، تاکہ OpenClaw اس وقت بھی جواب دیتا رہے جب کوئی فراہم کنندہ ریٹ لمٹڈ ہو یا عارضی طور پر ناکام ہو۔
 
@@ -2237,13 +2236,13 @@ OpenRouter (فی ٹوکن ادائیگی؛ متعدد ماڈلز):
 
 37. اگر آپ کی ماڈل کنفیگ میں Google Gemini بطور فالبیک شامل ہے (یا آپ نے Gemini شارٹ ہینڈ پر سوئچ کیا ہے)، تو OpenClaw ماڈل فالبیک کے دوران اسے آزمائے گا۔ 38. اگر آپ نے Google کی اسناد کنفیگر نہیں کیں، تو آپ کو `No API key found for provider "google"` نظر آئے گا۔
 
-39. حل: یا تو Google auth فراہم کریں، یا `agents.defaults.model.fallbacks` / aliases میں Google ماڈلز کو ہٹا دیں/ان سے گریز کریں تاکہ فالبیک وہاں روٹ نہ ہو۔
+38. حل: یا تو Google auth فراہم کریں، یا `agents.defaults.model.fallbacks` / aliases میں Google ماڈلز کو ہٹا دیں/ان سے گریز کریں تاکہ فالبیک وہاں روٹ نہ ہو۔
 
-40. **LLM request rejected message thinking signature required google antigravity**
+39. **LLM request rejected message thinking signature required google antigravity**
 
-41. وجہ: سیشن ہسٹری میں **بغیر دستخط کے thinking بلاکس** موجود ہیں (اکثر منسوخ/جزوی اسٹریم سے)۔ 42. Google Antigravity کو thinking بلاکس کے لیے دستخط درکار ہوتے ہیں۔
+40. وجہ: سیشن ہسٹری میں **بغیر دستخط کے thinking بلاکس** موجود ہیں (اکثر منسوخ/جزوی اسٹریم سے)۔ 42. Google Antigravity کو thinking بلاکس کے لیے دستخط درکار ہوتے ہیں۔
 
-43. حل: OpenClaw اب Google Antigravity Claude کے لیے بغیر دستخط والے thinking بلاکس کو ہٹا دیتا ہے۔ 44. اگر پھر بھی ظاہر ہو، تو **نیا سیشن** شروع کریں یا اس ایجنٹ کے لیے `/thinking off` سیٹ کریں۔
+41. حل: OpenClaw اب Google Antigravity Claude کے لیے بغیر دستخط والے thinking بلاکس کو ہٹا دیتا ہے۔ 44. اگر پھر بھی ظاہر ہو، تو **نیا سیشن** شروع کریں یا اس ایجنٹ کے لیے `/thinking off` سیٹ کریں۔
 
 ## 45. Auth پروفائلز: وہ کیا ہیں اور انہیں کیسے منظم کیا جائے
 
@@ -2396,7 +2395,7 @@ Fix:
 
 15. عموماً نہیں — ایک Gateway متعدد میسجنگ چینلز اور ایجنٹس چلا سکتا ہے۔ 16. متعدد Gateways صرف تب استعمال کریں جب آپ کو ریڈنڈنسی (مثلاً ریسکیو بوٹ) یا سخت آئسولیشن درکار ہو۔
 
-17. ہاں، لیکن آپ کو آئسولیٹ کرنا ہوگا:
+16. ہاں، لیکن آپ کو آئسولیٹ کرنا ہوگا:
 
 - 18. `OPENCLAW_CONFIG_PATH` (ہر انسٹینس کے لیے کنفگ)
 - 19. `OPENCLAW_STATE_DIR` (ہر انسٹینس کے لیے اسٹیٹ)
@@ -2425,8 +2424,8 @@ Fix:
 34. آپ نے غلط پورٹ یا پاتھ استعمال کیا۔
 
 1. 35. کسی پروکسی یا ٹنل نے auth ہیڈرز ہٹا دیے یا غیر Gateway ریکویسٹ بھیج دی۔
-2. 36. فوری حل:
-3. 37. WS URL استعمال کریں: `ws://<host>:18789` (یا اگر HTTPS ہو تو `wss://...`)۔
+1. 36. فوری حل:
+1. 37. WS URL استعمال کریں: `ws://<host>:18789` (یا اگر HTTPS ہو تو `wss://...`)۔
 
 38) WS پورٹ کو عام براؤزر ٹیب میں نہ کھولیں۔
 
@@ -2448,7 +2447,7 @@ Fix:
 
 44. لاگز کہاں ہیں؟ 45. فائل لاگز (structured): 46. آپ `logging.file` کے ذریعے ایک مستحکم پاتھ سیٹ کر سکتے ہیں۔
 
-47. فائل لاگ لیول `logging.level` کے ذریعے کنٹرول ہوتا ہے۔
+45. فائل لاگ لیول `logging.level` کے ذریعے کنٹرول ہوتا ہے۔
 
 ```bash
 openclaw logs --follow

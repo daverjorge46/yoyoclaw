@@ -28,12 +28,12 @@ OpenClaw 는 pi SDK 를 사용하여 메시징 Gateway(게이트웨이) 아키�
 }
 ```
 
-| 패키지               | 목적                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `pi-ai`           | 핵심 LLM 추상화: `Model`, `streamSimple`, 메시지 타입, 프로바이더 API                                 |
-| `pi-agent-core`   | 에이전트 루프, 도구 실행, `AgentMessage` 타입                                                                      |
+| 패키지            | 목적                                                                                          |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `pi-ai`           | 핵심 LLM 추상화: `Model`, `streamSimple`, 메시지 타입, 프로바이더 API                         |
+| `pi-agent-core`   | 에이전트 루프, 도구 실행, `AgentMessage` 타입                                                 |
 | `pi-coding-agent` | 고수준 SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, 내장 도구 |
-| `pi-tui`          | 터미널 UI 컴포넌트(OpenClaw 의 로컬 TUI 모드에서 사용)                                              |
+| `pi-tui`          | 터미널 UI 컴포넌트(OpenClaw 의 로컬 TUI 모드에서 사용)                                        |
 
 ## 파일 구조
 
@@ -511,15 +511,15 @@ import { ... } from "@mariozechner/pi-tui";
 
 ## Pi CLI 와의 주요 차이점
 
-| 20. 측면 | Pi CLI                           | OpenClaw 임베디드                                                                                                     |
-| ----------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 호출                            | `pi` 명령 / RPC                    | `createAgentSession()` 를 통한 SDK                                                                                   |
-| 도구                            | 기본 코딩 도구                         | 커스텀 OpenClaw 도구 세트                                                                                                |
-| 시스템 프롬프트                      | AGENTS.md + 프롬프트 | 채널/컨텍스트별 동적 구성                                                                                                    |
-| 세션 저장소                        | `~/.pi/agent/sessions/`          | `~/.openclaw/agents/<agentId>/sessions/` (또는 `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| 인증                            | 단일 자격 증명                         | 로테이션을 포함한 다중 프로파일                                                                                                 |
-| 확장                            | 디스크에서 로드                         | 프로그래밍 방식 + 디스크 경로                                                                                                 |
-| 이벤트 처리                        | TUI 렌더링                          | 콜백 기반(onBlockReply 등)                                                                          |
+| 20. 측면        | Pi CLI                  | OpenClaw 임베디드                                                                                |
+| --------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| 호출            | `pi` 명령 / RPC         | `createAgentSession()` 를 통한 SDK                                                               |
+| 도구            | 기본 코딩 도구          | 커스텀 OpenClaw 도구 세트                                                                        |
+| 시스템 프롬프트 | AGENTS.md + 프롬프트    | 채널/컨텍스트별 동적 구성                                                                        |
+| 세션 저장소     | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (또는 `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| 인증            | 단일 자격 증명          | 로테이션을 포함한 다중 프로파일                                                                  |
+| 확장            | 디스크에서 로드         | 프로그래밍 방식 + 디스크 경로                                                                    |
+| 이벤트 처리     | TUI 렌더링              | 콜백 기반(onBlockReply 등)                                                                       |
 
 ## 향후 고려 사항
 

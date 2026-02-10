@@ -11,7 +11,7 @@ title: "Nền tảng"
 47. OpenClaw core được viết bằng TypeScript. 48. **Node là runtime được khuyến nghị**.
 48. Bun không được khuyến nghị cho Gateway (lỗi WhatsApp/Telegram).
 
-50. Có các ứng dụng companion cho macOS (ứng dụng menu bar) và các node di động (iOS/Android). Windows and
+49. Có các ứng dụng companion cho macOS (ứng dụng menu bar) và các node di động (iOS/Android). Windows and
     Linux companion apps are planned, but the Gateway is fully supported today.
     Native companion apps for Windows are also planned; the Gateway is recommended via WSL2.
 

@@ -1048,7 +1048,7 @@ Stel `channels.telegram.configWrites: false` in om Telegram-geïnitieerde config
       ingeschakeld: waar,
       botToken: "jouw-bot-token",
       dmPolicy: "koppelen", // Pauzeer Allowlist open open
-      allowlist disabled 
+      allowlist disabled
  allowFrom: ["tg:123456789"], // optioneel; "open" vereist ["*"]
       groepen: {
         "*": { requireMention: true },
@@ -1548,12 +1548,12 @@ Zet het op `"auto"` om `[{identity.name}]` af te leiden voor de routed agent (wa
 
 De `responsePrefix` string kan sjabloonvariabelen bevatten die dynamisch oplossen:
 
-| Variabele         | Beschrijving               | Voorbeeld                                         |
-| ----------------- | -------------------------- | ------------------------------------------------- |
-| `{model}`         | Korte modelnaam            | `claude-opus-4-6`, `gpt-4o`                       |
-| `{modelFull}`     | Volledig model id          | `anthropic/claude-opus-4-6`                       |
-| `{provider}`      | Naam leverancier           | `anthropic`, `openai`                             |
-| `{thinkingLevel}` | Huidig gedachtenniveau     | `hoog`, `laag`, `off`                             |
+| Variabele         | Beschrijving               | Voorbeeld                      |
+| ----------------- | -------------------------- | ------------------------------ |
+| `{model}`         | Korte modelnaam            | `claude-opus-4-6`, `gpt-4o`    |
+| `{modelFull}`     | Volledig model id          | `anthropic/claude-opus-4-6`    |
+| `{provider}`      | Naam leverancier           | `anthropic`, `openai`          |
+| `{thinkingLevel}` | Huidig gedachtenniveau     | `hoog`, `laag`, `off`          |
 | `{identity.name}` | Naam medewerker identiteit | (hetzelfde als `"auto"` modus) |
 
 Variabelen zijn hoofdletterongevoelig (`{MODEL}` = `{model}`). `{think}` is een alias voor `{thinkingLevel}`.
@@ -2977,8 +2977,8 @@ Standaarden:
     // gecontroleerd Ui: { enabled: true basePath: "/openclaw" }
     // auth: { mode: "token", token: "your-token" } // tokens poorten WS + Control UI toegang
     // tailscale: { mode: "off" ~"serve" ## "funnel" }
-  }, }
-
+  },
+}
 ```
 
 Controle UI basispad:
@@ -3381,28 +3381,28 @@ openclaw dns setup --apply
 
 Template placeholders zijn uitgebreid in `tools.media.*.models[].args` en `tools.media.models[].args` (en eventuele toekomstige getemplated argumentvelden).
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Full inbound message body                                                       |
-\| `{{RawBody}}`      | Raw inbound message body (no history/sender wrappers; best for command parsing) |
-\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents)                     |
-\| `{{From}}`         | Sender identifier (E.164 for WhatsApp; may differ per channel)                  |
-\| `{{To}}`           | Destination identifier                                                          |
-\| `{{MessageSid}}`   | Channel message id (when available)                                             |
-\| `{{SessionId}}`    | Current session UUID                                                            |
-\| `{{IsNewSession}}` | `"true"` when a new session was created                                         |
-\| `{{MediaUrl}}`     | Inbound media pseudo-URL (if present)                                           |
-\| `{{MediaPath}}`    | Local media path (if downloaded)                                                |
-\| `{{MediaType}}`    | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Full inbound message body |
+\| `{{RawBody}}` | Raw inbound message body (no history/sender wrappers; best for command parsing) |
+\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents) |
+\| `{{From}}` | Sender identifier (E.164 for WhatsApp; may differ per channel) |
+\| `{{To}}` | Destination identifier |
+\| `{{MessageSid}}` | Channel message id (when available) |
+\| `{{SessionId}}` | Current session UUID |
+\| `{{IsNewSession}}` | `"true"` when a new session was created |
+\| `{{MediaUrl}}` | Inbound media pseudo-URL (if present) |
+\| `{{MediaPath}}` | Local media path (if downloaded) |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway planner)
 

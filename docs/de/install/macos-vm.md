@@ -260,11 +260,11 @@ Für echten Dauerbetrieb erwägen Sie einen dedizierten Mac mini oder einen klei
 
 ## Fehlerbehebung
 
-| Problem                    | Lösung                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kein SSH-Zugriff auf VM    | Prüfen Sie, ob „Remote Login“ in den Systemeinstellungen der VM aktiviert ist                                                               |
-| VM-IP wird nicht angezeigt | Warten Sie, bis die VM vollständig gebootet ist, und führen Sie `lume get openclaw` erneut aus                                              |
-| Lume-Befehl nicht gefunden | Fügen Sie `~/.local/bin` zu Ihrem PATH hinzu                                                                                                |
+| Problem                    | Lösung                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Kein SSH-Zugriff auf VM    | Prüfen Sie, ob „Remote Login“ in den Systemeinstellungen der VM aktiviert ist                                            |
+| VM-IP wird nicht angezeigt | Warten Sie, bis die VM vollständig gebootet ist, und führen Sie `lume get openclaw` erneut aus                           |
+| Lume-Befehl nicht gefunden | Fügen Sie `~/.local/bin` zu Ihrem PATH hinzu                                                                             |
 | WhatsApp-QR scannt nicht   | Stellen Sie sicher, dass Sie beim Ausführen von `openclaw channels login` in der VM (nicht auf dem Host) angemeldet sind |
 
 ---

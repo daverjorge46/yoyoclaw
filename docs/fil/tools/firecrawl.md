@@ -46,8 +46,7 @@ Mga tala:
 ## Stealth / bot circumvention
 
 Firecrawl exposes a **proxy mode** parameter for bot circumvention (`basic`, `stealth`, or `auto`).
-OpenClaw always uses `proxy: "auto"` plus `storeInCache: true` for Firecrawl requests.
-24. Kapag hindi tinukoy ang proxy, ang Firecrawl ay nagde-default sa `auto`. 25. Ang `auto` ay muling sumusubok gamit ang stealth proxies kung pumalya ang isang basic na pagtatangka, na maaaring gumamit ng mas maraming credits
+OpenClaw always uses `proxy: "auto"` plus `storeInCache: true` for Firecrawl requests. 24. Kapag hindi tinukoy ang proxy, ang Firecrawl ay nagde-default sa `auto`. 25. Ang `auto` ay muling sumusubok gamit ang stealth proxies kung pumalya ang isang basic na pagtatangka, na maaaring gumamit ng mas maraming credits
 kaysa sa basic-only scraping.
 
 ## Paano ginagamit ng `web_fetch` ang Firecrawl

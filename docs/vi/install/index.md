@@ -44,11 +44,11 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Tab>
     </Tabs>
-    
+
     Vậy là xong — script sẽ xử lý việc phát hiện Node, cài đặt và onboarding.
-    
+
     Để bỏ qua onboarding và chỉ cài binary:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Tab>
     </Tabs>
-    
+
     Để xem tất cả cờ, biến môi trường và tùy chọn CI/tự động hóa, xem [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="lỗi build sharp?">
           Nếu bạn đã cài libvips toàn cục (thường gặp trên macOS qua Homebrew) và `sharp` thất bại, hãy buộc dùng binary dựng sẵn:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Nếu bạn thấy `sharp: Please add node-gyp to your dependencies`, hãy cài công cụ build (macOS: Xcode CLT + `npm install -g node-gyp`) hoặc dùng biến môi trường ở trên.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm yêu cầu phê duyệt rõ ràng cho các gói có script build. Sau khi lần cài đầu tiên hiển thị cảnh báo "Ignored build scripts", hãy chạy `pnpm approve-builds -g` và chọn các gói được liệt kê.
         </Note>
@@ -111,7 +111,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
     <Steps>
       <Step title="Clone và build">
         Clone [repo OpenClaw](https://github.com/openclaw/openclaw) và build:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
       </Step>
       <Step title="Liên kết CLI">
         Làm cho lệnh `openclaw` khả dụng toàn cục:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Hoặc bỏ qua bước liên kết và chạy lệnh qua `pnpm openclaw ...` từ bên trong repo.
       </Step>
       <Step title="Chạy onboarding">
@@ -135,7 +135,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Step>
     </Steps>
-    
+
     Để xem các quy trình phát triển chuyên sâu hơn, xem [Thiết lập](/start/setup).
     ```
 

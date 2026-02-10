@@ -47,7 +47,6 @@ Ayrıntılar: [Eklentiler](/tools/plugin)
    - Ya da kendiniz barındırın.
 
 3. Bot hesabı için bir erişim belirteci alın:
-
    - Homeserver’ınızda `curl` ile Matrix giriş API’sini kullanın:
 
    ```bash
@@ -195,17 +194,17 @@ Doğrulandıktan sonra bot, şifreli odalardaki mesajları çözebilir.
 
 ## Capabilities
 
-| Özellik           | Status                                                                                                                 |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Doğrudan mesajlar | ✅ Desteklenir                                                                                                          |
-| Odalar            | ✅ Desteklenir                                                                                                          |
-| Thread’ler        | ✅ Desteklenir                                                                                                          |
-| Medya             | ✅ Desteklenir                                                                                                          |
+| Özellik           | Status                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Doğrudan mesajlar | ✅ Desteklenir                                                                                       |
+| Odalar            | ✅ Desteklenir                                                                                       |
+| Thread’ler        | ✅ Desteklenir                                                                                       |
+| Medya             | ✅ Desteklenir                                                                                       |
 | E2EE              | ✅ Supported (crypto module required)                                                                |
 | Tepkiler          | ✅ Desteklenir (araçlar üzerinden gönderme/okuma)                                                    |
 | Polls             | ✅ Gönderme desteklenir; gelen anket başlatmaları metne dönüştürülür (yanıtlar/bitişler yok sayılır) |
 | Konum             | ✅ Desteklenir (geo URI; irtifa yok sayılır)                                                         |
-| Native commands   | ✅ Desteklenir                                                                                                          |
+| Native commands   | ✅ Desteklenir                                                                                       |
 
 ## Sorun Giderme
 

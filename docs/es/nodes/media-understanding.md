@@ -174,11 +174,11 @@ Si omite `capabilities`, la entrada es elegible para la lista en la que aparece.
 
 ## Matriz de compatibilidad de proveedores (integraciones de OpenClaw)
 
-| Capacidad | Integración de proveedor                        | Notas                                                                                     |
-| --------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Imagen    | OpenAI / Anthropic / Google / otros vía `pi-ai` | Cualquier modelo con capacidad de imagen en el registro funciona.         |
-| Audio     | OpenAI, Groq, Deepgram, Google                  | Transcripción del proveedor (Whisper/Deepgram/Gemini). |
-| Video     | Google (API de Gemini)       | Comprensión de video del proveedor.                                       |
+| Capacidad | Integración de proveedor                        | Notas                                                             |
+| --------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| Imagen    | OpenAI / Anthropic / Google / otros vía `pi-ai` | Cualquier modelo con capacidad de imagen en el registro funciona. |
+| Audio     | OpenAI, Groq, Deepgram, Google                  | Transcripción del proveedor (Whisper/Deepgram/Gemini).            |
+| Video     | Google (API de Gemini)                          | Comprensión de video del proveedor.                               |
 
 ## Proveedores recomendados
 

@@ -40,12 +40,12 @@ otherwise -> reply
 
 Wenn Sie möchten …
 
-| Ziel                                                                 | Einstellung                                                                   |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Alle Gruppen zulassen, aber nur auf @mentions antworten | `groups: { "*": { requireMention: true } }`                                   |
-| Alle Gruppenantworten deaktivieren                                   | `groupPolicy: "disabled"`                                                     |
-| Nur bestimmte Gruppen                                                | `groups: { "<group-id>": { ... } }` (kein `"*"`-Schlüssel) |
-| Nur Sie können in Gruppen auslösen                                   | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                    |
+| Ziel                                                    | Einstellung                                                |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| Alle Gruppen zulassen, aber nur auf @mentions antworten | `groups: { "*": { requireMention: true } }`                |
+| Alle Gruppenantworten deaktivieren                      | `groupPolicy: "disabled"`                                  |
+| Nur bestimmte Gruppen                                   | `groups: { "<group-id>": { ... } }` (kein `"*"`-Schlüssel) |
+| Nur Sie können in Gruppen auslösen                      | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Sitzungsschlüssel
 
@@ -174,8 +174,8 @@ Steuern Sie, wie Gruppen-/Raumnachrichten pro Kanal behandelt werden:
 }
 ```
 
-| Richtlinien   | Verhalten                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------- |
+| Richtlinien   | Verhalten                                                                 |
+| ------------- | ------------------------------------------------------------------------- |
 | `"open"`      | Gruppen umgehen Allowlists; Mention-Gating gilt weiterhin.                |
 | `"disabled"`  | Alle Gruppennachrichten vollständig blockieren.                           |
 | `"allowlist"` | Nur Gruppen/Räume zulassen, die der konfigurierten Allowlist entsprechen. |

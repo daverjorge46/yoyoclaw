@@ -50,12 +50,12 @@ openclaw logs --follow
 
 ## Permissions matrix
 
-| Capability                   | iOS                                                               | Android                                                   | macOS node app                                  | ပုံမှန် မအောင်မြင်မှု ကုဒ်     |
-| ---------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------- | ------------------------------ |
-| `camera.snap`၊ `camera.clip` | Camera (+ clip အသံအတွက် mic)                   | Camera (+ clip အသံအတွက် mic)           | Camera (+ clip အသံအတွက် mic) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Screen Recording (+ mic optional)              | Screen capture prompt (+ mic optional) | Screen Recording                                | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | While Using သို့မဟုတ် Always (mode အပေါ်မူတည်) | Mode အပေါ်မူတည်၍ Foreground/Background location           | Location permission                             | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (node host path)                           | n/a (node host path)                   | Exec approvals လိုအပ်သည်                        | `SYSTEM_RUN_DENIED`            |
+| Capability                   | iOS                                            | Android                                         | macOS node app               | ပုံမှန် မအောင်မြင်မှု ကုဒ်     |
+| ---------------------------- | ---------------------------------------------- | ----------------------------------------------- | ---------------------------- | ------------------------------ |
+| `camera.snap`၊ `camera.clip` | Camera (+ clip အသံအတွက် mic)                   | Camera (+ clip အသံအတွက် mic)                    | Camera (+ clip အသံအတွက် mic) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Screen Recording (+ mic optional)              | Screen capture prompt (+ mic optional)          | Screen Recording             | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | While Using သို့မဟုတ် Always (mode အပေါ်မူတည်) | Mode အပေါ်မူတည်၍ Foreground/Background location | Location permission          | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (node host path)                           | n/a (node host path)                            | Exec approvals လိုအပ်သည်     | `SYSTEM_RUN_DENIED`            |
 
 ## Pairing နှင့် approvals အကြား ကွာခြားချက်
 

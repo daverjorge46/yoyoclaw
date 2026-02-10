@@ -103,8 +103,7 @@ systemctl --user daemon-reload
 ### Windows（排程工作）
 
 預設工作名稱為 `OpenClaw Gateway`（或 `OpenClaw Gateway (<profile>)`）。
-工作腳本位於你的狀態目錄下。
-30. 任務腳本位於你的狀態目錄之下。
+工作腳本位於你的狀態目錄下。30. 任務腳本位於你的狀態目錄之下。
 
 ```powershell
 schtasks /Delete /F /TN "OpenClaw Gateway"

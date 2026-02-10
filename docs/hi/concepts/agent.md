@@ -91,17 +91,17 @@ OpenClaw pi-mono कोडबेस (मॉडल/टूल्स) के हि
     current turn समाप्त न हो जाए, फिर queued payloads के साथ एक नया agent turn शुरू होता है। 18. Mode + debounce/cap behavior के लिए देखें
     [Queue](/concepts/queue)।
 
-19. Block streaming पूर्ण हुए assistant blocks को जैसे ही वे खत्म होते हैं भेज देता है; यह
+18. Block streaming पूर्ण हुए assistant blocks को जैसे ही वे खत्म होते हैं भेज देता है; यह
     **default रूप से off** होता है (`agents.defaults.blockStreamingDefault: "off"`)।
-20. Boundary को `agents.defaults.blockStreamingBreak` के माध्यम से tune करें (`text_end` बनाम `message_end`; default `text_end`)।
-21. Soft block chunking को `agents.defaults.blockStreamingChunk` से नियंत्रित करें (default
+19. Boundary को `agents.defaults.blockStreamingBreak` के माध्यम से tune करें (`text_end` बनाम `message_end`; default `text_end`)।
+20. Soft block chunking को `agents.defaults.blockStreamingChunk` से नियंत्रित करें (default
     800–1200 chars; paragraph breaks को प्राथमिकता, फिर newlines; sentences अंत में)।
-22. Streamed chunks को `agents.defaults.blockStreamingCoalesce` के साथ coalesce करें ताकि
+21. Streamed chunks को `agents.defaults.blockStreamingCoalesce` के साथ coalesce करें ताकि
     single-line spam कम हो (send से पहले idle-based merging)। 23. Non-Telegram channels में block replies सक्षम करने के लिए
     explicit `*.blockStreaming: true` की आवश्यकता होती है।
-23. Verbose tool summaries tool start पर emit होते हैं (कोई debounce नहीं); Control UI
+22. Verbose tool summaries tool start पर emit होते हैं (कोई debounce नहीं); Control UI
     tool output को agent events के माध्यम से stream करता है जब उपलब्ध हो।
-24. अधिक विवरण: [Streaming + chunking](/concepts/streaming)।
+23. अधिक विवरण: [Streaming + chunking](/concepts/streaming)।
 
 ## मॉडल रेफ़्स
 

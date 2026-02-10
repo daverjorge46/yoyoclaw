@@ -29,7 +29,7 @@ node -v
     ```bash
     brew install node
     ```
-    
+
     या [nodejs.org](https://nodejs.org/) से macOS इंस्टॉलर डाउनलोड करें।
     ````
 
@@ -42,13 +42,13 @@ node -v
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     या किसी संस्करण प्रबंधक का उपयोग करें (नीचे देखें)।
     ````
 
@@ -60,13 +60,13 @@ node -v
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     या [nodejs.org](https://nodejs.org/) से Windows इंस्टॉलर डाउनलोड करें।
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             फिर नया टर्मिनल खोलें (या zsh में `rehash` / bash में `hash -r` चलाएँ)।
           </Tab>
           <Tab title="Windows">

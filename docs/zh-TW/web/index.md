@@ -19,14 +19,12 @@ Gateway 會從與 Gateway WebSocket 相同的連接埠提供一個小型的 **�
 ## Webhooks
 
 當 `hooks.enabled=true` 時，Gateway 也會在相同的 HTTP 伺服器上公開一個小型 webhook 端點。
-請參閱 [Gateway 設定](/gateway/configuration) → `hooks` 以了解身分驗證與承載內容。
-12. 請參閱 [Gateway 設定](/gateway/configuration) → `hooks` 以了解驗證與負載。
+請參閱 [Gateway 設定](/gateway/configuration) → `hooks` 以了解身分驗證與承載內容。12. 請參閱 [Gateway 設定](/gateway/configuration) → `hooks` 以了解驗證與負載。
 
 ## 設定（預設開啟）
 
 當資產存在時（`dist/control-ui`），控制 UI **預設為啟用**。
-你可以透過設定來控制它：
-45. 你可以透過設定檔進行控制：
+你可以透過設定來控制它：45. 你可以透過設定檔進行控制：
 
 ```json5
 {

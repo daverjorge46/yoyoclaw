@@ -181,7 +181,7 @@ Sau đó trỏ UI tới URL Gateway WS của bạn (ví dụ: `ws://127.0.0.1:18
     cục bộ nhưng Gateway chạy ở nơi khác.
 
 1. Khởi động UI dev server: `pnpm ui:dev`
-2. Mở một URL như:
+1. Mở một URL như:
 
 ```text
 http://localhost:5173/?gatewayUrl=ws://<gateway-host>:18789

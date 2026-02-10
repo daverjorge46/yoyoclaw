@@ -661,9 +661,9 @@ Reasoning stream (Telegram only)-
     Telegram reactions များသည် မက်ဆေ့ချ် payload အတွင်းရှိ property မဟုတ်ဘဲ **သီးခြား `message_reaction` event များ** အဖြစ် ရောက်ရှိလာသည်။ 33. အသုံးပြုသူတစ်ဦး reaction ထည့်သည့်အခါ OpenClaw သည်:
 
 1. Telegram API မှ `message_reaction` update ကို လက်ခံရရှိသည်
-2. ၎င်းကို အောက်ပါ format ဖြင့် **system event** အဖြစ် ပြောင်းလဲသည်- `"Telegram reaction added: {emoji} by {user} on msg {id}"`
-3. ပုံမှန် မက်ဆေ့ချ်များနှင့် **session key တူညီစွာ** system event ကို queue ထဲ ထည့်သည်
-4. ထို conversation ထဲသို့ နောက်ထပ် မက်ဆေ့ချ် ဝင်လာသည့်အခါ system events များကို drain လုပ်ပြီး agent context ရှေ့တွင် ပေါင်းထည့်သည်
+1. ၎င်းကို အောက်ပါ format ဖြင့် **system event** အဖြစ် ပြောင်းလဲသည်- `"Telegram reaction added: {emoji} by {user} on msg {id}"`
+1. ပုံမှန် မက်ဆေ့ချ်များနှင့် **session key တူညီစွာ** system event ကို queue ထဲ ထည့်သည်
+1. ထို conversation ထဲသို့ နောက်ထပ် မက်ဆေ့ချ် ဝင်လာသည့်အခါ system events များကို drain လုပ်ပြီး agent context ရှေ့တွင် ပေါင်းထည့်သည်
 
 Agent သည် reactions များကို message metadata အဖြစ် မမြင်ဘဲ conversation history ထဲရှိ **system notifications** အဖြစ်သာ မြင်သည်။
 

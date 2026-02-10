@@ -185,8 +185,7 @@ Kimi Coding 使用 Moonshot AI 的 Anthropic 相容端點：
 ### Qwen OAuth（免費層）
 
 Qwen 透過裝置碼流程提供 Qwen Coder + Vision 的 OAuth 存取。
-啟用隨附外掛，然後登入：
-32. 啟用隨附的外掛，然後登入：
+啟用隨附外掛，然後登入：32. 啟用隨附的外掛，然後登入：
 
 ```bash
 openclaw plugins enable qwen-portal-auth
@@ -299,8 +298,7 @@ ollama pull llama3.3
 注意事項：
 
 - 對於自訂提供者，`reasoning`、`input`、`cost`、`contextWindow` 與 `maxTokens` 為選填。
-  若省略，OpenClaw 會預設為：
-  35. 若省略，OpenClaw 預設為：
+  若省略，OpenClaw 會預設為：35. 若省略，OpenClaw 預設為：
   - `reasoning: false`
   - `input: ["text"]`
   - `cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }`

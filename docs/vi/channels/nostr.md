@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Tham chiếu cấu hình
 
-| Khóa         | Kiểu                                                         | Mặc định                                    | Mô tả                                    |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
-| `privateKey` | string                                                       | required                                    | Khóa riêng ở định dạng `nsec` hoặc hex   |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URL relay (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | Chính sách truy cập DM                   |
-| `allowFrom`  | string[] | `[]`                                        | Pubkey người gửi được phép               |
-| `enabled`    | boolean                                                      | `true`                                      | Bật/tắt kênh                             |
-| `name`       | string                                                       | -                                           | Tên hiển thị                             |
-| `profile`    | object                                                       | -                                           | Metadata hồ sơ NIP-01                    |
+| Khóa         | Kiểu     | Mặc định                                    | Mô tả                                  |
+| ------------ | -------- | ------------------------------------------- | -------------------------------------- |
+| `privateKey` | string   | required                                    | Khóa riêng ở định dạng `nsec` hoặc hex |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | URL relay (WebSocket)                  |
+| `dmPolicy`   | string   | `pairing`                                   | Chính sách truy cập DM                 |
+| `allowFrom`  | string[] | `[]`                                        | Pubkey người gửi được phép             |
+| `enabled`    | boolean  | `true`                                      | Bật/tắt kênh                           |
+| `name`       | string   | -                                           | Tên hiển thị                           |
+| `profile`    | object   | -                                           | Metadata hồ sơ NIP-01                  |
 
 ## Metadata hồ sơ
 
@@ -169,7 +169,7 @@ Mẹo:
 | NIP    | Trạng thái | Mô tả                                     |
 | ------ | ---------- | ----------------------------------------- |
 | NIP-01 | Hỗ trợ     | Định dạng sự kiện cơ bản + metadata hồ sơ |
-| NIP-04 | Hỗ trợ     | DM mã hóa (`kind:4`)   |
+| NIP-04 | Hỗ trợ     | DM mã hóa (`kind:4`)                      |
 | NIP-17 | Dự kiến    | DM gói quà                                |
 | NIP-44 | Dự kiến    | Mã hóa có phiên bản                       |
 

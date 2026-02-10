@@ -260,11 +260,11 @@ Gerçek anlamda her zaman açık kullanım için özel bir Mac mini veya küçü
 
 ## Sorun Giderme
 
-| Problem                      | Çözüm                                                                                                                 |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| VM’ye SSH ile bağlanılamıyor | VM’nin Sistem Ayarları’nda “Remote Login”in etkin olduğundan emin olun                                                |
-| VM IP görünmüyor             | VM’nin tamamen açılmasını bekleyin, `lume get openclaw` komutunu tekrar çalıştırın                                    |
-| Lume komutu bulunamadı       | `~/.local/bin` öğesini PATH’inize ekleyin                                                                             |
+| Problem                      | Çözüm                                                                                              |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| VM’ye SSH ile bağlanılamıyor | VM’nin Sistem Ayarları’nda “Remote Login”in etkin olduğundan emin olun                             |
+| VM IP görünmüyor             | VM’nin tamamen açılmasını bekleyin, `lume get openclaw` komutunu tekrar çalıştırın                 |
+| Lume komutu bulunamadı       | `~/.local/bin` öğesini PATH’inize ekleyin                                                          |
 | WhatsApp QR taranmıyor       | `openclaw channels login` çalıştırılırken VM’ye (ana makineye değil) giriş yaptığınızdan emin olun |
 
 ---

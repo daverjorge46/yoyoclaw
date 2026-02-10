@@ -10,7 +10,7 @@ title: "子代理程式"
 
 40. 子代理可讓你在不阻塞主對話的情況下執行背景任務。 41. 當你產生一個子代理時，它會在自己獨立的工作階段中執行、完成工作，並在結束時將結果回報到聊天中。
 
-42. **使用案例：**
+41. **使用案例：**
 
 - 43. 在主代理持續回答問題的同時研究一個主題
 - 44. 並行執行多個長時間任務（網頁擷取、程式碼分析、檔案處理）
@@ -24,7 +24,7 @@ title: "子代理程式"
 
 48. 代理會在幕後呼叫 `sessions_spawn` 工具。 49. 當子代理完成時，會將其發現回報到你的聊天中。
 
-50. 你也可以明確指定選項：
+49. 你也可以明確指定選項：
 
 > "Spawn a sub-agent to analyze the server logs from today. Use gpt-5.2 and set a 5-minute timeout."
 
@@ -157,15 +157,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### 參數
 
-| Parameter           | 類型                       | Default                               | Description                                                                                       |
-| ------------------- | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `task`              | string                   | _(required)_       | What the sub-agent should do                                                                      |
-| `label`             | string                   | —                                     | Short label for identification                                                                    |
-| `agentId`           | string                   | _(caller's agent)_ | Spawn under a different agent id (must be allowed)                             |
-| `模型`                | string                   | _(optional)_       | Override the model for this sub-agent                                                             |
-| `thinking`          | string                   | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | number                   | `0` (no limit)     | Abort the sub-agent after N seconds                                                               |
-| `清理`                | `"delete"` \\| `"keep"` | `"keep"`                              | `"delete"` archives immediately after announce                                                    |
+| Parameter           | 類型          | Default            | Description                                                    |
+| ------------------- | ------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
+| `task`              | string        | _(required)_       | What the sub-agent should do                                   |
+| `label`             | string        | —                  | Short label for identification                                 |
+| `agentId`           | string        | _(caller's agent)_ | Spawn under a different agent id (must be allowed)             |
+| `模型`              | string        | _(optional)_       | Override the model for this sub-agent                          |
+| `thinking`          | string        | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | number        | `0` (no limit)     | Abort the sub-agent after N seconds                            |
+| `清理`              | `"delete"` \\ | `"keep"`           | `"keep"`                                                       | `"delete"` archives immediately after announce |
 
 ### Model Resolution Order
 
@@ -214,13 +214,13 @@ Use the `agents_list` tool to discover which agent ids are currently allowed for
 
 Use the `/subagents` slash command to inspect and control sub-agent runs for the current session:
 
-| 指令                                         | Description                                                       |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| `/subagents list`                          | List all sub-agent runs (active and completed) |
-| `/subagents stop <id\\|#\\|all>`         | Stop a running sub-agent                                          |
-| `/subagents log <id\\|#> [limit] [tools]` | View sub-agent transcript                                         |
-| `/subagents info <id\\|#>`                | Show detailed run metadata                                        |
-| `/subagents send <id\\|#> <message>`      | Send a message to a running sub-agent                             |
+| 指令                   | Description                                    |
+| ---------------------- | ---------------------------------------------- | ------------------------------------- | ------------------------ |
+| `/subagents list`      | List all sub-agent runs (active and completed) |
+| `/subagents stop <id\\ | #\\                                            | all>`                                 | Stop a running sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                            | View sub-agent transcript             |
+| `/subagents info <id\\ | #>`                                            | Show detailed run metadata            |
+| `/subagents send <id\\ | #> <message>`                                  | Send a message to a running sub-agent |
 
 You can reference sub-agents by list index (`1`, `2`), run id prefix, full session key, or `last`.
 
@@ -238,11 +238,11 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -276,7 +276,7 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
 
     ````
     Shows the last 10 messages from the sub-agent's transcript. Add `tools` to include tool call messages:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -393,7 +393,7 @@ Sub-agent auth is resolved by **agent id**, not by session type:
 - 22. 主代理的驗證設定檔會作為 **備援** 合併進來（發生衝突時以代理本身的設定為準）
 - 23. 合併是累加式的 — 主代理的設定檔永遠可作為備援使用
 
-<Note>24. 
+<Note>24.
 目前尚未支援每個子代理完全隔離的驗證。</Note>
 
 ## 25. 情境與系統提示
@@ -407,11 +407,11 @@ Sub-agent auth is resolved by **agent id**, not by session type:
 
 ## 30. 停止子代理
 
-| 31. 方法                     | 32. 效果                              |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| 33. 在聊天中輸入 `/stop`         | 34. 中止主工作階段 **以及** 從其產生的所有進行中的子代理執行 |
-| 35. `/subagents stop <id>` | 36. 停止特定子代理而不影響主工作階段                |
-| 37. `runTimeoutSeconds`    | 38. 在指定時間後自動中止子代理執行                 |
+| 31. 方法                   | 32. 效果                                                     |
+| -------------------------- | ------------------------------------------------------------ |
+| 33. 在聊天中輸入 `/stop`   | 34. 中止主工作階段 **以及** 從其產生的所有進行中的子代理執行 |
+| 35. `/subagents stop <id>` | 36. 停止特定子代理而不影響主工作階段                         |
+| 37. `runTimeoutSeconds`    | 38. 在指定時間後自動中止子代理執行                           |
 
 <Note>
 39. `runTimeoutSeconds` **不會** 自動封存工作階段。 40. 工作階段會保留，直到一般的封存計時器觸發。
@@ -419,8 +419,9 @@ Sub-agent auth is resolved by **agent id**, not by session type:
 
 ## 41. 完整設定範例
 
-<Accordion title="Complete sub-agent configuration">42. 
-```json5
+<Accordion title="Complete sub-agent configuration">42.
+
+````json5
 {
   agents: {
     defaults: {
@@ -473,3 +474,4 @@ Sub-agent auth is resolved by **agent id**, not by session type:
 - 48. [Multi-Agent Sandbox and Tools](/tools/multi-agent-sandbox-tools) — 每個代理的工具限制與沙箱機制
 - 49. [Configuration](/gateway/configuration) — `agents.defaults.subagents` 參考
 - 50. [Queue](/concepts/queue) — `subagent` 佇列的運作方式
+````

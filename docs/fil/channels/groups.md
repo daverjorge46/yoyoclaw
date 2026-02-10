@@ -40,12 +40,12 @@ otherwise -> reply
 
 Kung gusto mo...
 
-| Layunin                                                                | Itatakda                                                                                                 |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Payagan ang lahat ng grupo pero sumagot lang sa @mentions | `groups: { "*": { requireMention: true } }`                                                              |
-| I-disable ang lahat ng sagot sa grupo                                  | `groupPolicy: "disabled"`                                                                                |
-| Mga partikular na grupo lang                                           | 18. `groups: { "<group-id>": { ... 19. } }` (walang `"*"` key) |
-| Ikaw lang ang puwedeng mag-trigger sa mga grupo                        | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                                               |
+| Layunin                                                   | Itatakda                                                       |
+| --------------------------------------------------------- | -------------------------------------------------------------- |
+| Payagan ang lahat ng grupo pero sumagot lang sa @mentions | `groups: { "*": { requireMention: true } }`                    |
+| I-disable ang lahat ng sagot sa grupo                     | `groupPolicy: "disabled"`                                      |
+| Mga partikular na grupo lang                              | 18. `groups: { "<group-id>": { ... 19. } }` (walang `"*"` key) |
+| Ikaw lang ang puwedeng mag-trigger sa mga grupo           | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`     |
 
 ## Mga session key
 
@@ -174,8 +174,8 @@ Kontrolin kung paano hinahawakan ang mga mensahe sa grupo/room kada channel:
 }
 ```
 
-| Policy        | Pag-uugali                                                                                   |
-| ------------- | -------------------------------------------------------------------------------------------- |
+| Policy        | Pag-uugali                                                                   |
+| ------------- | ---------------------------------------------------------------------------- |
 | `"open"`      | Nilalampasan ng mga grupo ang mga allowlist; nananatili ang mention-gating.  |
 | `"disabled"`  | I-block ang lahat ng mensahe sa grupo nang buo.                              |
 | `"allowlist"` | Payagan lang ang mga grupo/room na tumutugma sa naka-configure na allowlist. |

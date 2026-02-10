@@ -155,14 +155,14 @@ Bago i-configure ang OpenClaw, kailangan mong gumawa ng Azure Bot resource.
 1. Pumunta sa [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. Punan ang tab na **Basics**:
 
-   | Field              | Value                                                                                             |
-   | ------------------ | ------------------------------------------------------------------------------------------------- |
+   | Field              | Value                                                          |
+   | ------------------ | -------------------------------------------------------------- |
    | **Bot handle**     | Pangalan ng iyong bot, hal., `openclaw-msteams` (dapat unique) |
-   | **Subscription**   | Piliin ang iyong Azure subscription                                                               |
-   | **Resource group** | Gumawa ng bago o gumamit ng umiiral                                                               |
-   | **Pricing tier**   | **Free** para sa dev/testing                                                                      |
-   | **Type of App**    | **Single Tenant** (inirerekomenda - tingnan ang tala sa ibaba)                 |
-   | **Creation type**  | **Create new Microsoft App ID**                                                                   |
+   | **Subscription**   | Piliin ang iyong Azure subscription                            |
+   | **Resource group** | Gumawa ng bago o gumamit ng umiiral                            |
+   | **Pricing tier**   | **Free** para sa dev/testing                                   |
+   | **Type of App**    | **Single Tenant** (inirerekomenda - tingnan ang tala sa ibaba) |
+   | **Creation type**  | **Create new Microsoft App ID**                                |
 
 > **Abiso ng pagkaluma:** Ang paglikha ng mga bagong multi-tenant bot ay dineprecate pagkatapos ng 2025-07-31. Gamitin ang **Single Tenant** para sa mga bagong bot.
 
@@ -271,7 +271,6 @@ Madalas itong mas madali kaysa mano-manong pag-edit ng JSON manifests.
    ```
 
    Maaari ka ring gumamit ng mga environment variable sa halip na mga config key:
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -404,12 +403,12 @@ Dagdag:
 
 ### RSC vs Graph API
 
-| Kakayahan               | RSC Permissions                            | Graph API                                               |
-| ----------------------- | ------------------------------------------ | ------------------------------------------------------- |
-| **Real-time messages**  | Oo (via webhook)        | Hindi (polling lang)                 |
-| **Historical messages** | Hindi                                      | Oo (maaaring mag-query ng history)   |
-| **Setup complexity**    | App manifest lang                          | Nangangailangan ng admin consent + token flow           |
-| **Works offline**       | Hindi (dapat tumatakbo) | Oo (maaaring mag-query anumang oras) |
+| Kakayahan               | RSC Permissions         | Graph API                                     |
+| ----------------------- | ----------------------- | --------------------------------------------- |
+| **Real-time messages**  | Oo (via webhook)        | Hindi (polling lang)                          |
+| **Historical messages** | Hindi                   | Oo (maaaring mag-query ng history)            |
+| **Setup complexity**    | App manifest lang       | Nangangailangan ng admin consent + token flow |
+| **Works offline**       | Hindi (dapat tumatakbo) | Oo (maaaring mag-query anumang oras)          |
 
 **Bottom line:** RSC is for real-time listening; Graph API is for historical access. For catching up on missed messages while offline, you need Graph API with `ChannelMessage.Read.All` (requires admin consent).
 
@@ -482,10 +481,10 @@ Mga key setting (tingnan ang `/gateway/configuration` para sa shared channel pat
 
 Kamakailan ay nagpakilala ang Teams ng dalawang channel UI style sa parehong underlying data model:
 
-| Style                                         | Paglalarawan                                                                | Inirerekomendang `replyStyle`         |
-| --------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------- |
-| **Posts** (classic)        | Lumalabas ang mga mensahe bilang mga card na may threaded replies sa ilalim | `thread` (default) |
-| **Threads** (parang Slack) | Dumadaloy ang mga mensahe nang linear, mas katulad ng Slack                 | `top-level`                           |
+| Style                      | Paglalarawan                                                                | Inirerekomendang `replyStyle` |
+| -------------------------- | --------------------------------------------------------------------------- | ----------------------------- |
+| **Posts** (classic)        | Lumalabas ang mga mensahe bilang mga card na may threaded replies sa ilalim | `thread` (default)            |
+| **Threads** (parang Slack) | Dumadaloy ang mga mensahe nang linear, mas katulad ng Slack                 | `top-level`                   |
 
 **The problem:** The Teams API does not expose which UI style a channel uses. If you use the wrong `replyStyle`:
 
@@ -526,10 +525,10 @@ Authorization headers are only attached for hosts in `channels.msteams.mediaAuth
 
 Bots can send files in DMs using the FileConsentCard flow (built-in). Gayunpaman, **ang pagpapadala ng mga file sa mga group chat/channel** ay nangangailangan ng karagdagang setup:
 
-| Konteksto                                              | Paano ipinapadala ang mga file                              | Kinakailangang setup                                            |
-| ------------------------------------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------- |
-| **DMs**                                                | FileConsentCard → tatanggap ang user → mag-a-upload ang bot | Gumagana kaagad                                                 |
-| **Group chats/channels**                               | Upload sa SharePoint → share link                           | Nangangailangan ng `sharePointSiteId` + mga pahintulot ng Graph |
+| Konteksto                           | Paano ipinapadala ang mga file                              | Kinakailangang setup                                            |
+| ----------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------- |
+| **DMs**                             | FileConsentCard → tatanggap ang user → mag-a-upload ang bot | Gumagana kaagad                                                 |
+| **Group chats/channels**            | Upload sa SharePoint → share link                           | Nangangailangan ng `sharePointSiteId` + mga pahintulot ng Graph |
 | **Mga larawan (anumang konteksto)** | Base64-encoded inline                                       | Gumagana kaagad                                                 |
 
 ### Bakit kailangan ng SharePoint ang group chats
@@ -573,8 +572,8 @@ Bots don't have a personal OneDrive drive (the `/me/drive` Graph API endpoint do
 
 ### Pag-uugali ng sharing
 
-| Pahintulot                              | Pag-uugali ng sharing                                                                    |
-| --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Pahintulot                              | Pag-uugali ng sharing                                                 |
+| --------------------------------------- | --------------------------------------------------------------------- |
 | `Sites.ReadWrite.All` lamang            | Organization-wide sharing link (maaaring ma-access ng sinuman sa org) |
 | `Sites.ReadWrite.All` + `Chat.Read.All` | Per-user sharing link (tanging mga miyembro ng chat ang may access)   |
 
@@ -582,9 +581,9 @@ Per-user sharing is more secure as only the chat participants can access the fil
 
 ### Fallback na pag-uugali
 
-| Senaryo                                                   | Resulta                                                                                       |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Group chat + file + naka-configure ang `sharePointSiteId` | Upload sa SharePoint, magpadala ng sharing link                                               |
+| Senaryo                                                   | Resulta                                                                    |
+| --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Group chat + file + naka-configure ang `sharePointSiteId` | Upload sa SharePoint, magpadala ng sharing link                            |
 | Group chat + file + walang `sharePointSiteId`             | Subukang mag-upload sa OneDrive (maaaring pumalya), magpadala ng text lang |
 | Personal chat + file                                      | FileConsentCard flow (gumagana nang walang SharePoint)                     |
 | Anumang konteksto + larawan                               | Base64-encoded inline (gumagana nang walang SharePoint)                    |
@@ -637,11 +636,11 @@ See [Adaptive Cards documentation](https://adaptivecards.io/) for card schema an
 
 Gumagamit ang mga target ng MSTeams ng mga prefix para makilala ang pagitan ng mga user at conversation:
 
-| Uri ng target                          | Format                           | Halimbawa                                                                     |
-| -------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
-| User (by ID)        | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                                   |
+| Uri ng target       | Format                           | Halimbawa                                                  |
+| ------------------- | -------------------------------- | ---------------------------------------------------------- |
+| User (by ID)        | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                |
 | User (by name)      | `user:<display-name>`            | `user:John Smith` (nangangailangan ng Graph API)           |
-| Group/channel                          | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                                      |
+| Group/channel       | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                   |
 | Group/channel (raw) | `<conversation-id>`              | `19:abc123...@thread.tacv2` (kung naglalaman ng `@thread`) |
 
 **Mga halimbawa ng CLI:**
@@ -722,13 +721,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 May limitadong suporta ang mga bot sa private channels:
 
-| Feature                                         | Standard Channels | Private Channels                       |
-| ----------------------------------------------- | ----------------- | -------------------------------------- |
-| Pag-install ng bot                              | Oo                | Limitado                               |
-| Real-time messages (webhook) | Oo                | Maaaring hindi gumana                  |
-| RSC permissions                                 | Oo                | Maaaring iba ang asal                  |
-| @mentions                          | Oo                | Kung naa-access ang bot                |
-| Graph API history                               | Oo                | Oo (may pahintulot) |
+| Feature                      | Standard Channels | Private Channels        |
+| ---------------------------- | ----------------- | ----------------------- |
+| Pag-install ng bot           | Oo                | Limitado                |
+| Real-time messages (webhook) | Oo                | Maaaring hindi gumana   |
+| RSC permissions              | Oo                | Maaaring iba ang asal   |
+| @mentions                    | Oo                | Kung naa-access ang bot |
+| Graph API history            | Oo                | Oo (may pahintulot)     |
 
 **Mga workaround kung hindi gumana ang private channels:**
 

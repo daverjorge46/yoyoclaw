@@ -29,7 +29,7 @@ Als dit `v22.x.x` of hoger weergeeft, zit je goed. Als Node niet is geïnstallee
     ```bash
     brew install node
     ```
-    
+
     Of download het macOS-installatieprogramma van [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Als dit `v22.x.x` of hoger weergeeft, zit je goed. Als Node niet is geïnstallee
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Of gebruik een versiebeheerder (zie hieronder).
     ````
 
@@ -60,13 +60,13 @@ Als dit `v22.x.x` of hoger weergeeft, zit je goed. Als Node niet is geïnstallee
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Of download het Windows-installatieprogramma van [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ Dit betekent bijna altijd dat de globale bin-map van npm niet in je PATH staat.
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Open daarna een nieuwe terminal (of voer `rehash` uit in zsh / `hash -r` in bash).
           </Tab>
           <Tab title="Windows">

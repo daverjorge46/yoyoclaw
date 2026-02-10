@@ -13,14 +13,14 @@ Hem heartbeat’ler hem de cron işleri, görevleri bir zaman çizelgesine göre
 
 ## Hızlı Karar Rehberi
 
-| Kullanım Senaryosu                               | Önerilen                               | Neden                                                     |
-| ------------------------------------------------ | -------------------------------------- | --------------------------------------------------------- |
-| Gelen kutusunu her 30 dakikada kontrol et        | Heartbeat                              | Diğer kontrollerle birlikte, bağlam farkındalıklı gruplar |
-| Her gün tam 9:00’da rapor gönder | Cron (isolated)     | Kesin zamanlama gerekir                                   |
-| Takvimde yaklaşan etkinlikleri izle              | Heartbeat                              | Periyodik farkındalık için doğal uyum                     |
-| Haftalık derin analiz çalıştır                   | Cron (isolated)     | Bağımsız görev, farklı model kullanılabilir               |
-| 20 dakika sonra hatırlat                         | Cron (main, `--at`) | Hassas zamanlamayla tek seferlik                          |
-| Arka plan proje sağlık kontrolü                  | Heartbeat                              | Mevcut döngüyü kullanır                                   |
+| Kullanım Senaryosu                        | Önerilen            | Neden                                                     |
+| ----------------------------------------- | ------------------- | --------------------------------------------------------- |
+| Gelen kutusunu her 30 dakikada kontrol et | Heartbeat           | Diğer kontrollerle birlikte, bağlam farkındalıklı gruplar |
+| Her gün tam 9:00’da rapor gönder          | Cron (isolated)     | Kesin zamanlama gerekir                                   |
+| Takvimde yaklaşan etkinlikleri izle       | Heartbeat           | Periyodik farkındalık için doğal uyum                     |
+| Haftalık derin analiz çalıştır            | Cron (isolated)     | Bağımsız görev, farklı model kullanılabilir               |
+| 20 dakika sonra hatırlat                  | Cron (main, `--at`) | Hassas zamanlamayla tek seferlik                          |
+| Arka plan proje sağlık kontrolü           | Heartbeat           | Mevcut döngüyü kullanır                                   |
 
 ## Heartbeat: Periyodik Farkındalık
 
@@ -215,13 +215,13 @@ Tam kullanım ve örnekler için [Lobster](/tools/lobster) sayfasına bakın.
 
 Hem heartbeat hem de cron ana oturumla etkileşime girebilir, ancak farklı şekillerde:
 
-|        | Heartbeat                            | Cron (main)           | Cron (isolated)    |
-| ------ | ------------------------------------ | ---------------------------------------- | ------------------------------------- |
-| Oturum | Ana                                  | Ana (sistem olayıyla) | `cron:<jobId>`                        |
-| Geçmiş | Paylaşılan                           | Paylaşılan                               | Her çalıştırmada taze                 |
-| Bağlam | Tam                                  | Tam                                      | Yok (temiz başlar) |
-| Model  | Ana oturum modeli                    | Ana oturum modeli                        | Geçersiz kılabilir                    |
-| Çıktı  | `HEARTBEAT_OK` değilse teslim edilir | Heartbeat istemi + olay                  | Varsayılan olarak özet duyurusu       |
+|        | Heartbeat                            | Cron (main)             | Cron (isolated)                 |
+| ------ | ------------------------------------ | ----------------------- | ------------------------------- |
+| Oturum | Ana                                  | Ana (sistem olayıyla)   | `cron:<jobId>`                  |
+| Geçmiş | Paylaşılan                           | Paylaşılan              | Her çalıştırmada taze           |
+| Bağlam | Tam                                  | Tam                     | Yok (temiz başlar)              |
+| Model  | Ana oturum modeli                    | Ana oturum modeli       | Geçersiz kılabilir              |
+| Çıktı  | `HEARTBEAT_OK` değilse teslim edilir | Heartbeat istemi + olay | Varsayılan olarak özet duyurusu |
 
 ### Ana oturum cron ne zaman kullanılmalı
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Maliyet Hususları
 
-| Mekanizma                          | Maliyet Profili                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| Heartbeat                          | Her N dakikada bir tur; HEARTBEAT.md boyutuyla ölçeklenir |
-| Cron (main)     | Bir sonraki heartbeat’e olay ekler (izole tur yok)     |
-| Cron (isolated) | İş başına tam ajan turu; daha ucuz model kullanılabilir                   |
+| Mekanizma       | Maliyet Profili                                           |
+| --------------- | --------------------------------------------------------- |
+| Heartbeat       | Her N dakikada bir tur; HEARTBEAT.md boyutuyla ölçeklenir |
+| Cron (main)     | Bir sonraki heartbeat’e olay ekler (izole tur yok)        |
+| Cron (isolated) | İş başına tam ajan turu; daha ucuz model kullanılabilir   |
 
 **İpuçları**:
 

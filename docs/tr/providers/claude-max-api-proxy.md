@@ -13,10 +13,10 @@ title: "Claude Max API Proxy"
 
 ## Neden Bunu Kullanmalısınız?
 
-| Yaklaşım             | Maliyet                                                                                     | En İyisi                                        |
-| -------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Yaklaşım             | Maliyet                                                  | En İyisi                                        |
+| -------------------- | -------------------------------------------------------- | ----------------------------------------------- |
 | Anthropic API        | Token başına ödeme (~$15/M giriş, Opus için $75/M çıkış) | Üretim uygulamaları, yüksek hacim               |
-| Claude Max aboneliği | Aylık sabit $200                                                                            | Kişisel kullanım, geliştirme, sınırsız kullanım |
+| Claude Max aboneliği | Aylık sabit $200                                         | Kişisel kullanım, geliştirme, sınırsız kullanım |
 
 Claude Max aboneliğiniz varsa ve bunu OpenAI uyumlu araçlarla kullanmak istiyorsanız, bu proxy önemli ölçüde tasarruf etmenizi sağlayabilir.
 

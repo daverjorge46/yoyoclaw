@@ -29,7 +29,7 @@ Nếu lệnh này in ra `v22.x.x` hoặc cao hơn, bạn đã sẵn sàng. Nếu
     ```bash
     brew install node
     ```
-    
+
     Hoặc tải trình cài đặt macOS từ [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Nếu lệnh này in ra `v22.x.x` hoặc cao hơn, bạn đã sẵn sàng. Nếu
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Hoặc dùng trình quản lý phiên bản (xem bên dưới).
     ````
 
@@ -60,13 +60,13 @@ Nếu lệnh này in ra `v22.x.x` hoặc cao hơn, bạn đã sẵn sàng. Nếu
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Hoặc tải trình cài đặt Windows từ [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Sau đó mở một terminal mới (hoặc chạy `rehash` trong zsh / `hash -r` trong bash).
           </Tab>
           <Tab title="Windows">

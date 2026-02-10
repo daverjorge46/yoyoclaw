@@ -120,11 +120,11 @@ Direct URLs are fetched as-is. This uses the `web_fetch` tool (or `exec` for POS
 
 OpenProse 程式會對應到 OpenClaw 的基元：
 
-| OpenProse 概念   | OpenClaw 工具      |
-| -------------- | ---------------- |
+| OpenProse 概念          | OpenClaw 工具    |
+| ----------------------- | ---------------- |
 | 產生工作階段／Task 工具 | `sessions_spawn` |
-| 檔案讀取／寫入        | `read` / `write` |
-| Web 擷取         | `web_fetch`      |
+| 檔案讀取／寫入          | `read` / `write` |
+| Web 擷取                | `web_fetch`      |
 
 若你的工具允許清單封鎖了這些工具，OpenProse 程式將會失敗。請參閱 [Skills 設定](/tools/skills-config)。 See [Skills config](/tools/skills-config).
 

@@ -76,11 +76,11 @@ Tingnan ang [Configuration: Env var substitution](/gateway/configuration#env-var
 
 ## Mga env var na may kinalaman sa path
 
-| Variable               | Layunin                                                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Variable               | Layunin                                                                                                                                                                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENCLAW_HOME`        | I-override ang home directory na ginagamit para sa lahat ng internal path resolution (`~/.openclaw/`, mga agent dir, session, credential). Kapaki-pakinabang kapag pinapatakbo ang OpenClaw bilang isang dedikadong service user. |
-| `OPENCLAW_STATE_DIR`   | I-override ang state directory (default `~/.openclaw`).                                                                                                                                                                                           |
-| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                                                              |
+| `OPENCLAW_STATE_DIR`   | I-override ang state directory (default `~/.openclaw`).                                                                                                                                                                           |
+| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                                              |
 
 ### `OPENCLAW_HOME`
 

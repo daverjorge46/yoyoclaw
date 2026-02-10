@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### 設定リファレンス
 
-| オプション                    | 説明                                                 | デフォルト                           |
-| ------------------------ | -------------------------------------------------- | ------------------------------- |
-| `browser.enabled`        | ブラウザー制御を有効化                                        | `true`                          |
+| オプション               | 説明                                                              | デフォルト                                            |
+| ------------------------ | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| `browser.enabled`        | ブラウザー制御を有効化                                            | `true`                                                |
 | `browser.executablePath` | Chromium 系ブラウザー（Chrome/Brave/Edge/Chromium）のバイナリパス | 自動検出（Chromium 系の場合は既定のブラウザーを優先） |
-| `browser.headless`       | GUI なしで実行                                          | `false`                         |
-| `browser.noSandbox`      | `--no-sandbox` フラグを追加（Linux の一部構成で必要）              | `false`                         |
-| `browser.attachOnly`     | ブラウザーを起動せず、既存のものにのみアタッチ                            | `false`                         |
-| `browser.cdpPort`        | Chrome DevTools Protocol のポート                      | `18800`                         |
+| `browser.headless`       | GUI なしで実行                                                    | `false`                                               |
+| `browser.noSandbox`      | `--no-sandbox` フラグを追加（Linux の一部構成で必要）             | `false`                                               |
+| `browser.attachOnly`     | ブラウザーを起動せず、既存のものにのみアタッチ                    | `false`                                               |
+| `browser.cdpPort`        | Chrome DevTools Protocol のポート                                 | `18800`                                               |
 
 ### 問題: 「Chrome extension relay is running, but no tab is connected」
 

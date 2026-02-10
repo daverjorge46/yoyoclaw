@@ -14,7 +14,7 @@ sidebarTitle: "CLI automation"
 <Note>
 
 `--json` 不代表非互動模式。請在腳本中使用 `--non-interactive`（以及 `--workspace`）。
- Use `--non-interactive` (and `--workspace`) for scripts.
+Use `--non-interactive` (and `--workspace`) for scripts.
 </Note>
 
 ## 基本的非互動式範例

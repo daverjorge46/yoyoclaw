@@ -379,11 +379,11 @@ ack reaction after the bot replies.
 
 By default, OpenClaw replies in the main channel. 預設情況下，OpenClaw 會在主頻道回覆。使用 `channels.slack.replyToMode` 來控制自動串回：
 
-| 模式      | 行為                                                                                                                                                                                                                     |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Default.** Reply in main channel. Only thread if the triggering message was already in a thread.                                                                     |
+| 模式    | 行為                                                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Default.** Reply in main channel. Only thread if the triggering message was already in a thread.                                                                  |
 | `first` | First reply goes to thread (under the triggering message), subsequent replies go to main channel. Useful for keeping context visible while avoiding thread clutter. |
-| `all`   | All replies go to thread. Keeps conversations contained but may reduce visibility.                                                                                                     |
+| `all`   | All replies go to thread. Keeps conversations contained but may reduce visibility.                                                                                  |
 
 此模式同時適用於自動回覆與代理程式工具呼叫（`slack sendMessage`）。
 
@@ -520,13 +520,13 @@ Make channels thread, keep DMs in the root:
 
 Slack 工具動作可透過 `channels.slack.actions.*` 設限：
 
-| 動作群組       | Default | 注意事項        |
-| ---------- | ------- | ----------- |
-| reactions  | enabled | 新增反應＋列出反應   |
+| 動作群組   | Default | 注意事項               |
+| ---------- | ------- | ---------------------- |
+| reactions  | enabled | 新增反應＋列出反應     |
 | messages   | enabled | 讀取／傳送／編輯／刪除 |
-| pins       | enabled | 釘選／取消釘選／列出  |
-| memberInfo | enabled | 成員資訊        |
-| emojiList  | enabled | 自訂表情符號清單    |
+| pins       | enabled | 釘選／取消釘選／列出   |
+| memberInfo | enabled | 成員資訊               |
+| emojiList  | enabled | 自訂表情符號清單       |
 
 ## 安全性注意事項
 

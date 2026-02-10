@@ -13,14 +13,14 @@ Både hjerteslag og cron job lader dig køre opgaver på en tidsplan. Denne guid
 
 ## Hurtig beslutningsguide
 
-| Use case                                         | Anbefalet                              | Hvorfor                                   |
-| ------------------------------------------------ | -------------------------------------- | ----------------------------------------- |
-| Afkryds indbakke hver 30 min.    | Heartbeat                              | Batch’er med andre tjek, kontekstbevidst  |
-| Send daglig rapport kl. 9 præcis | Cron (isoleret)     | Kræver præcis timing                      |
-| Overvåg kalender for kommende begivenheder       | Heartbeat                              | Naturligt match til periodisk overblik    |
-| Kør ugentlig dybdegående analyse                 | Cron (isoleret)     | Selvstændig opgave, kan bruge anden model |
-| Mind mig om 20 minutter                          | Cron (main, `--at`) | Éngangsopgave med præcis timing           |
-| Baggrundstjek af projektsundhed                  | Heartbeat                              | Kører oven på eksisterende cyklus         |
+| Use case                                   | Anbefalet           | Hvorfor                                   |
+| ------------------------------------------ | ------------------- | ----------------------------------------- |
+| Afkryds indbakke hver 30 min.              | Heartbeat           | Batch’er med andre tjek, kontekstbevidst  |
+| Send daglig rapport kl. 9 præcis           | Cron (isoleret)     | Kræver præcis timing                      |
+| Overvåg kalender for kommende begivenheder | Heartbeat           | Naturligt match til periodisk overblik    |
+| Kør ugentlig dybdegående analyse           | Cron (isoleret)     | Selvstændig opgave, kan bruge anden model |
+| Mind mig om 20 minutter                    | Cron (main, `--at`) | Éngangsopgave med præcis timing           |
+| Baggrundstjek af projektsundhed            | Heartbeat           | Kører oven på eksisterende cyklus         |
 
 ## Heartbeat: Periodisk overblik
 
@@ -215,13 +215,13 @@ Se [Lobster](/tools/lobster) for fuld brug og eksempler.
 
 Både heartbeat og cron kan interagere med hovedsessionen, men på forskellige måder:
 
-|          | Heartbeat                        | Cron (main)               | Cron (isoleret)            |
-| -------- | -------------------------------- | -------------------------------------------- | --------------------------------------------- |
-| Session  | Main                             | Main (via systemhændelse) | `cron:<jobId>`                                |
-| Historik | Delt                             | Delt                                         | Ny ved hver kørsel                            |
-| Kontekst | Fuld                             | Fuld                                         | Ingen (starter rent)       |
-| Model    | Hovedsessionens model            | Hovedsessionens model                        | Kan overrides                                 |
-| Output   | Leveres hvis ikke `HEARTBEAT_OK` | Heartbeat-prompt + hændelse                  | Annoncer resume (standard) |
+|          | Heartbeat                        | Cron (main)                 | Cron (isoleret)            |
+| -------- | -------------------------------- | --------------------------- | -------------------------- |
+| Session  | Main                             | Main (via systemhændelse)   | `cron:<jobId>`             |
+| Historik | Delt                             | Delt                        | Ny ved hver kørsel         |
+| Kontekst | Fuld                             | Fuld                        | Ingen (starter rent)       |
+| Model    | Hovedsessionens model            | Hovedsessionens model       | Kan overrides              |
+| Output   | Leveres hvis ikke `HEARTBEAT_OK` | Heartbeat-prompt + hændelse | Annoncer resume (standard) |
 
 ### Hvornår skal du bruge main session cron
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Omkostningsovervejelser
 
-| Mekanisme                          | Omkostningsprofil                                                                |
-| ---------------------------------- | -------------------------------------------------------------------------------- |
-| Heartbeat                          | Ét turn hver N minutter; skalerer med HEARTBEAT.md-størrelse     |
+| Mekanisme       | Omkostningsprofil                                             |
+| --------------- | ------------------------------------------------------------- |
+| Heartbeat       | Ét turn hver N minutter; skalerer med HEARTBEAT.md-størrelse  |
 | Cron (main)     | Tilføjer hændelse til næste heartbeat (ingen isoleret kørsel) |
-| Cron (isoleret) | Fuldt agent-turn pr. job; kan bruge billigere model              |
+| Cron (isoleret) | Fuldt agent-turn pr. job; kan bruge billigere model           |
 
 **Tips**:
 

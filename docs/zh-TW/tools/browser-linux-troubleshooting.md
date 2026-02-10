@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### 設定參考
 
-| 選項                       | Description                                            | Default                      |
-| ------------------------ | ------------------------------------------------------ | ---------------------------- |
-| `browser.enabled`        | 啟用瀏覽器控制                                                | `true`                       |
+| 選項                     | Description                                                         | Default                                        |
+| ------------------------ | ------------------------------------------------------------------- | ---------------------------------------------- |
+| `browser.enabled`        | 啟用瀏覽器控制                                                      | `true`                                         |
 | `browser.executablePath` | Chromium 系列瀏覽器二進位檔路徑（Chrome / Brave / Edge / Chromium） | 自動偵測（偏好 Chromium 系列的系統預設瀏覽器） |
-| `browser.headless`       | 以無 GUI 模式執行                                            | `false`                      |
-| `browser.noSandbox`      | 新增 `--no-sandbox` 旗標（某些 Linux 環境需要）                    | `false`                      |
-| `browser.attachOnly`     | 不啟動瀏覽器，只附加到既有實例                                        | `false`                      |
-| `browser.cdpPort`        | Chrome DevTools Protocol 連接埠                           | `18800`                      |
+| `browser.headless`       | 以無 GUI 模式執行                                                   | `false`                                        |
+| `browser.noSandbox`      | 新增 `--no-sandbox` 旗標（某些 Linux 環境需要）                     | `false`                                        |
+| `browser.attachOnly`     | 不啟動瀏覽器，只附加到既有實例                                      | `false`                                        |
+| `browser.cdpPort`        | Chrome DevTools Protocol 連接埠                                     | `18800`                                        |
 
 ### 問題：「Chrome extension relay is running, but no tab is connected」
 

@@ -118,7 +118,7 @@ Top tools (schema size):
 
 41. System prompt में एक compact **skills list** (name + description + location) शामिल होती है। 42. इस list का वास्तविक overhead होता है।
 
-43. Skill instructions default रूप से शामिल **नहीं** होतीं। 44. Model से अपेक्षा की जाती है कि वह skill की `SKILL.md` को **केवल आवश्यकता होने पर** `read` करे।
+42. Skill instructions default रूप से शामिल **नहीं** होतीं। 44. Model से अपेक्षा की जाती है कि वह skill की `SKILL.md` को **केवल आवश्यकता होने पर** `read` करे।
 
 ## Tools: दो प्रकार की लागतें होती हैं
 

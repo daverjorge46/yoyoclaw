@@ -47,7 +47,6 @@ Detaljer: [Plugins](/tools/plugin)
    - Eller hosta själv.
 
 3. Skaffa en åtkomsttoken för botkontot:
-
    - Använd Matrix inloggnings-API med `curl` på din homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ När boten har verifierats kan den dekryptera meddelanden i krypterade rum.
 
 ## Funktioner
 
-| Funktion           | Status                                                                                              |
-| ------------------ | --------------------------------------------------------------------------------------------------- |
-| Direktmeddelanden  | ✅ Stöds                                                                                             |
-| Rum                | ✅ Stöds                                                                                             |
-| Trådar             | ✅ Stöds                                                                                             |
-| Media              | ✅ Stöds                                                                                             |
+| Funktion           | Status                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Direktmeddelanden  | ✅ Stöds                                                                          |
+| Rum                | ✅ Stöds                                                                          |
+| Trådar             | ✅ Stöds                                                                          |
+| Media              | ✅ Stöds                                                                          |
 | E2EE               | ✅ Stöds (kryptomodul krävs)                                                      |
 | Reaktioner         | ✅ Stöds (skicka/läsa via verktyg)                                                |
 | Omröstningar       | ✅ Skick stöds; inkommande poll-start konverteras till text (svar/slut ignoreras) |
 | Plats              | ✅ Stöds (geo-URI; höjd ignoreras)                                                |
-| Inbyggda kommandon | ✅ Stöds                                                                                             |
+| Inbyggda kommandon | ✅ Stöds                                                                          |
 
 ## Felsökning
 

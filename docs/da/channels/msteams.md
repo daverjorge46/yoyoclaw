@@ -155,14 +155,14 @@ Før du konfigurerer OpenClaw, skal du oprette en Azure Bot-ressource.
 1. Gå til [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. Udfyld fanen **Basics**:
 
-   | Felt               | Værdi                                                                   |
-   | ------------------ | ----------------------------------------------------------------------- |
+   | Felt               | Værdi                                                |
+   | ------------------ | ---------------------------------------------------- |
    | **Bot handle**     | Dit botnavn, fx `openclaw-msteams` (skal være unikt) |
-   | **Subscription**   | Vælg dit Azure-abonnement                                               |
-   | **Resource group** | Opret ny eller brug eksisterende                                        |
-   | **Pricing tier**   | **Free** til dev/test                                                   |
+   | **Subscription**   | Vælg dit Azure-abonnement                            |
+   | **Resource group** | Opret ny eller brug eksisterende                     |
+   | **Pricing tier**   | **Free** til dev/test                                |
    | **Type of App**    | **Single Tenant** (anbefalet – se note nedenfor)     |
-   | **Creation type**  | **Create new Microsoft App ID**                                         |
+   | **Creation type**  | **Create new Microsoft App ID**                      |
 
 > **Afskrivningsmeddelelse:** Oprettelse af nye multi-tenant bots blev forældet efter 2025-07-31. Brug **Enkelt Leje** til nye bots.
 
@@ -271,7 +271,6 @@ Dette er ofte nemmere end håndredigering af JSON-manifester.
    ```
 
    Du kan også bruge miljøvariabler i stedet for konfigurationsnøgler:
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -404,12 +403,12 @@ Tilføjer:
 
 ### RSC vs Graph API
 
-| Funktion                   | RSC-tilladelser                     | Graph API                                       |
-| -------------------------- | ----------------------------------- | ----------------------------------------------- |
-| **Realtime-beskeder**      | Ja (via webhook) | Nej (kun polling)            |
-| **Historiske beskeder**    | Nej                                 | Ja (kan forespørge historik) |
-| **Opsætningskompleksitet** | Kun app-manifest                    | Kræver admin-samtykke + token-flow              |
-| **Virker offline**         | Nej (skal køre)  | Ja (forespørg når som helst) |
+| Funktion                   | RSC-tilladelser  | Graph API                          |
+| -------------------------- | ---------------- | ---------------------------------- |
+| **Realtime-beskeder**      | Ja (via webhook) | Nej (kun polling)                  |
+| **Historiske beskeder**    | Nej              | Ja (kan forespørge historik)       |
+| **Opsætningskompleksitet** | Kun app-manifest | Kræver admin-samtykke + token-flow |
+| **Virker offline**         | Nej (skal køre)  | Ja (forespørg når som helst)       |
 
 **Bundlinje:** RSC er til realtidslytte; GrafAPI er for historisk adgang. For at indhente ubesvarede beskeder mens du er offline, skal du bruge Graph API med `ChannelMessage.Read.All` (kræver admin samtykke).
 
@@ -482,10 +481,10 @@ Nøgleindstillinger (se `/gateway/configuration` for delte kanalmønstre):
 
 Teams har for nylig introduceret to kanal-UI-stile over den samme underliggende datamodel:
 
-| Stil                                                       | Beskrivelse                                         | Anbefalet `replyStyle`                 |
-| ---------------------------------------------------------- | --------------------------------------------------- | -------------------------------------- |
-| **Indlæg** (klassisk)                   | Beskeder vises som kort med trådede svar nedenunder | `thread` (standard) |
-| **Tråde** (Slack-lign.) | Beskeder flyder lineært, mere som Slack             | `top-level`                            |
+| Stil                    | Beskrivelse                                         | Anbefalet `replyStyle` |
+| ----------------------- | --------------------------------------------------- | ---------------------- |
+| **Indlæg** (klassisk)   | Beskeder vises som kort med trådede svar nedenunder | `thread` (standard)    |
+| **Tråde** (Slack-lign.) | Beskeder flyder lineært, mere som Slack             | `top-level`            |
 
 **Problemet:** Teams API afslører ikke hvilken UI stil en kanal anvender. Hvis du bruger den forkerte `replyStyle`:
 
@@ -526,11 +525,11 @@ Authorization headers are only attached for host in `channels.msteams.mediaAuthA
 
 Bots kan sende filer i DMs ved hjælp af FileConsentCard flow (indbygget). **Afsendelse af filer i gruppechats/kanaler** kræver dog yderligere opsætning:
 
-| Kontekst                               | Hvordan filer sendes                               | Nødvendig opsætning                           |
-| -------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
-| **DMs**                                | FileConsentCard → bruger accepterer → bot uploader | Virker out of the box                         |
-| **Gruppechats/kanaler**                | Upload til SharePoint → delingslink                | Kræver `sharePointSiteId` + Graph-tilladelser |
-| **Billeder (alle)** | Base64-kodet inline                                | Virker out of the box                         |
+| Kontekst                | Hvordan filer sendes                               | Nødvendig opsætning                           |
+| ----------------------- | -------------------------------------------------- | --------------------------------------------- |
+| **DMs**                 | FileConsentCard → bruger accepterer → bot uploader | Virker out of the box                         |
+| **Gruppechats/kanaler** | Upload til SharePoint → delingslink                | Kræver `sharePointSiteId` + Graph-tilladelser |
+| **Billeder (alle)**     | Base64-kodet inline                                | Virker out of the box                         |
 
 ### Hvorfor gruppechats kræver SharePoint
 
@@ -573,18 +572,18 @@ Bots har ikke et personligt OneDrive drev (`/me/drive` Graph API endpoint virker
 
 ### Delingsadfærd
 
-| Tilladelse                              | Delingsadfærd                                                                               |
-| --------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `Sites.ReadWrite.All` kun               | Organisationsdækkende delingslink (alle i org kan få adgang)             |
-| `Sites.ReadWrite.All` + `Chat.Read.All` | Pr.-bruger delingslink (kun chatmedlemmer kan få adgang) |
+| Tilladelse                              | Delingsadfærd                                                |
+| --------------------------------------- | ------------------------------------------------------------ |
+| `Sites.ReadWrite.All` kun               | Organisationsdækkende delingslink (alle i org kan få adgang) |
+| `Sites.ReadWrite.All` + `Chat.Read.All` | Pr.-bruger delingslink (kun chatmedlemmer kan få adgang)     |
 
 Per-bruger deling er mere sikker, da kun chatdeltagerne kan få adgang til filen. Hvis `Chat.Read.Alle` tilladelse mangler, falder botten tilbage til delingen i hele organisationen.
 
 ### Fallback-adfærd
 
-| Scenarie                                           | Resultat                                                              |
-| -------------------------------------------------- | --------------------------------------------------------------------- |
-| Gruppechat + fil + `sharePointSiteId` konfigureret | Upload til SharePoint, send delingslink                               |
+| Scenarie                                           | Resultat                                           |
+| -------------------------------------------------- | -------------------------------------------------- |
+| Gruppechat + fil + `sharePointSiteId` konfigureret | Upload til SharePoint, send delingslink            |
 | Gruppechat + fil + ingen `sharePointSiteId`        | Forsøg OneDrive-upload (kan fejle), send kun tekst |
 | Personlig chat + fil                               | FileConsentCard-flow (virker uden SharePoint)      |
 | Enhver kontekst + billede                          | Base64-kodet inline (virker uden SharePoint)       |
@@ -637,11 +636,11 @@ Se [Adaptive Cards documentation](https://adaptivecards.io/) for kortskema og ek
 
 MSTeams-mål bruger præfikser til at skelne mellem brugere og samtaler:
 
-| Måltype                                | Format                           | Eksempel                                                                   |
-| -------------------------------------- | -------------------------------- | -------------------------------------------------------------------------- |
-| Bruger (efter ID)   | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                                |
+| Måltype             | Format                           | Eksempel                                                |
+| ------------------- | -------------------------------- | ------------------------------------------------------- |
+| Bruger (efter ID)   | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`             |
 | Bruger (efter navn) | `user:<display-name>`            | `user:John Smith` (kræver Graph API)                    |
-| Gruppe/kanal                           | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                                   |
+| Gruppe/kanal        | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                |
 | Gruppe/kanal (rå)   | `<conversation-id>`              | `19:abc123...@thread.tacv2` (hvis indeholder `@thread`) |
 
 **CLI-eksempler:**
@@ -722,13 +721,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 Bots har begrænset support i private kanaler:
 
-| Funktion                                       | Standardkanaler | Private kanaler                         |
-| ---------------------------------------------- | --------------- | --------------------------------------- |
-| Bot-installation                               | Ja              | Begrænset                               |
-| Realtime-beskeder (webhook) | Ja              | Virker muligvis ikke                    |
-| RSC-tilladelser                                | Ja              | Kan opføre sig anderledes               |
-| @mentions                         | Ja              | Hvis botten er tilgængelig              |
-| Graph API-historik                             | Ja              | Ja (med tilladelser) |
+| Funktion                    | Standardkanaler | Private kanaler            |
+| --------------------------- | --------------- | -------------------------- |
+| Bot-installation            | Ja              | Begrænset                  |
+| Realtime-beskeder (webhook) | Ja              | Virker muligvis ikke       |
+| RSC-tilladelser             | Ja              | Kan opføre sig anderledes  |
+| @mentions                   | Ja              | Hvis botten er tilgængelig |
+| Graph API-historik          | Ja              | Ja (med tilladelser)       |
 
 **Workarounds hvis private kanaler ikke virker:**
 

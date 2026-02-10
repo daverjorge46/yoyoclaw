@@ -50,12 +50,12 @@ Nếu bạn thấy `NODE_BACKGROUND_UNAVAILABLE`, hãy đưa ứng dụng node r
 
 ## Ma trận quyền
 
-| Khả năng                     | iOS                                                          | Android                                                | Ứng dụng node macOS                                 | Mã lỗi thường gặp              |
-| ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ | --------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Camera (+ mic cho âm thanh clip)          | Camera (+ mic cho âm thanh clip)    | Camera (+ mic cho âm thanh clip) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Ghi màn hình (+ mic tùy chọn)             | Nhắc chụp màn hình (+ mic tùy chọn) | Ghi màn hình                                        | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Khi đang dùng hoặc Luôn luôn (tùy chế độ) | Vị trí nền trước/nền sau theo chế độ                   | Quyền vị trí                                        | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (đường dẫn máy chủ node)              | n/a (đường dẫn máy chủ node)        | Cần phê duyệt exec                                  | `SYSTEM_RUN_DENIED`            |
+| Khả năng                     | iOS                                       | Android                              | Ứng dụng node macOS              | Mã lỗi thường gặp              |
+| ---------------------------- | ----------------------------------------- | ------------------------------------ | -------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Camera (+ mic cho âm thanh clip)          | Camera (+ mic cho âm thanh clip)     | Camera (+ mic cho âm thanh clip) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Ghi màn hình (+ mic tùy chọn)             | Nhắc chụp màn hình (+ mic tùy chọn)  | Ghi màn hình                     | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Khi đang dùng hoặc Luôn luôn (tùy chế độ) | Vị trí nền trước/nền sau theo chế độ | Quyền vị trí                     | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (đường dẫn máy chủ node)              | n/a (đường dẫn máy chủ node)         | Cần phê duyệt exec               | `SYSTEM_RUN_DENIED`            |
 
 ## Ghép cặp so với phê duyệt
 

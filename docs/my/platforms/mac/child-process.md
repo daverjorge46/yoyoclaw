@@ -10,12 +10,12 @@ title: "Gateway Lifecycle"
 31. macOS app သည် ပုံမှန်အားဖြင့် **launchd ဖြင့် Gateway ကို စီမံခန့်ခွဲ** ပြီး Gateway ကို child process အဖြစ် မဖန်တီးပါ။ 32. ၎င်းသည် အရင်ဆုံး သတ်မှတ်ထားသော port ပေါ်တွင် လည်ပတ်နေသော Gateway ရှိမရှိ ချိတ်ဆက်ရန် ကြိုးစားပြီး မရနိုင်ပါက external `openclaw` CLI (embedded runtime မပါ) ဖြင့် launchd service ကို ဖွင့်ပေးပါသည်။ This gives you
     reliable auto‑start at login and restart on crashes.
 
-34. Child‑process mode (Gateway ကို app မှ တိုက်ရိုက် spawn လုပ်ခြင်း) ကို ယနေ့အထိ **မအသုံးပြုပါ**။
-35. UI နှင့် ပိုမို တင်းကျပ်စွာ ချိတ်ဆက်လိုပါက Gateway ကို terminal ထဲတွင် ကိုယ်တိုင် လည်ပတ်ပါ။
+32. Child‑process mode (Gateway ကို app မှ တိုက်ရိုက် spawn လုပ်ခြင်း) ကို ယနေ့အထိ **မအသုံးပြုပါ**။
+33. UI နှင့် ပိုမို တင်းကျပ်စွာ ချိတ်ဆက်လိုပါက Gateway ကို terminal ထဲတွင် ကိုယ်တိုင် လည်ပတ်ပါ။
 
 ## မူလအပြုအမူ (launchd)
 
-- 36. app သည် per‑user LaunchAgent ကို `bot.molt.gateway` အဖြစ် ထည့်သွင်းပေးပါသည်37.  (`--profile`/`OPENCLAW_PROFILE` ကို အသုံးပြုပါက `bot.molt.<profile>`; legacy `com.openclaw.*` ကို ပံ့ပိုးထားပါသည်)။
+- 36. app သည် per‑user LaunchAgent ကို `bot.molt.gateway` အဖြစ် ထည့်သွင်းပေးပါသည်37. (`--profile`/`OPENCLAW_PROFILE` ကို အသုံးပြုပါက `bot.molt.<profile>`; legacy `com.openclaw.*` ကို ပံ့ပိုးထားပါသည်)။
 - Local mode ကို ဖွင့်ထားသောအခါ LaunchAgent ကို load လုပ်ထားကြောင်း အတည်ပြုပြီး
   လိုအပ်ပါက Gateway ကို စတင်ပါသည်။
 - လော့ဂ်များကို launchd gateway log path တွင် ရေးသားပါသည် (Debug Settings တွင် မြင်နိုင်ပါသည်)။

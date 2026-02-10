@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Sanggunian ng Config
 
-| Option                   | Description                                                                                            | Default                                                                                     |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `browser.enabled`        | I-enable ang kontrol ng browser                                                                        | `true`                                                                                      |
+| Option                   | Description                                                                         | Default                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `browser.enabled`        | I-enable ang kontrol ng browser                                                     | `true`                                                                   |
 | `browser.executablePath` | Path papunta sa isang Chromium-based na browser binary (Chrome/Brave/Edge/Chromium) | auto-detected (mas pinipili ang default na browser kapag Chromium-based) |
-| `browser.headless`       | Patakbuhin nang walang GUI                                                                             | `false`                                                                                     |
-| `browser.noSandbox`      | Idagdag ang `--no-sandbox` flag (kailangan para sa ilang Linux setup)               | `false`                                                                                     |
-| `browser.attachOnly`     | Huwag ilunsad ang browser, kumabit lang sa umiiral                                                     | `false`                                                                                     |
-| `browser.cdpPort`        | Port ng Chrome DevTools Protocol                                                                       | `18800`                                                                                     |
+| `browser.headless`       | Patakbuhin nang walang GUI                                                          | `false`                                                                  |
+| `browser.noSandbox`      | Idagdag ang `--no-sandbox` flag (kailangan para sa ilang Linux setup)               | `false`                                                                  |
+| `browser.attachOnly`     | Huwag ilunsad ang browser, kumabit lang sa umiiral                                  | `false`                                                                  |
+| `browser.cdpPort`        | Port ng Chrome DevTools Protocol                                                    | `18800`                                                                  |
 
 ### Problema: "Chrome extension relay is running, but no tab is connected"
 

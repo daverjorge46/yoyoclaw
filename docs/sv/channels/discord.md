@@ -393,27 +393,27 @@ Noteringar om tillåtelselista (PK aktiverat):
 
 ### Standardvärden för verktygsåtgärder
 
-| Åtgärdsgrupp   | Standard | Noteringar                                              |
-| -------------- | -------- | ------------------------------------------------------- |
-| reactions      | enabled  | Reagera + lista reaktioner + emojiList                  |
-| stickers       | enabled  | Skicka stickers                                         |
-| emojiUploads   | enabled  | Ladda upp emojis                                        |
-| stickerUploads | enabled  | Ladda upp stickers                                      |
-| polls          | enabled  | Skapa omröstningar                                      |
-| permissions    | enabled  | Ögonblicksbild av kanalbehörigheter                     |
-| messages       | enabled  | Läs/skicka/redigera/ta bort                             |
-| threads        | enabled  | Skapa/lista/svara                                       |
-| pins           | enabled  | Fäst/lossa/lista                                        |
-| search         | enabled  | Meddelandesökning (förhandsfunktion) |
-| memberInfo     | enabled  | Medlemsinfo                                             |
-| roleInfo       | enabled  | Rollista                                                |
-| channelInfo    | enabled  | Kanalinfo + lista                                       |
-| channels       | enabled  | Kanal-/kategorihantering                                |
-| voiceStatus    | enabled  | Uppslag av röststatus                                   |
-| events         | enabled  | Lista/skapa schemalagda händelser                       |
-| roles          | disabled | Lägg till/ta bort roller                                |
-| moderation     | disabled | Timeout/kick/ban                                        |
-| presence       | disabled | Botstatus/aktivitet (setPresence)    |
+| Åtgärdsgrupp   | Standard | Noteringar                             |
+| -------------- | -------- | -------------------------------------- |
+| reactions      | enabled  | Reagera + lista reaktioner + emojiList |
+| stickers       | enabled  | Skicka stickers                        |
+| emojiUploads   | enabled  | Ladda upp emojis                       |
+| stickerUploads | enabled  | Ladda upp stickers                     |
+| polls          | enabled  | Skapa omröstningar                     |
+| permissions    | enabled  | Ögonblicksbild av kanalbehörigheter    |
+| messages       | enabled  | Läs/skicka/redigera/ta bort            |
+| threads        | enabled  | Skapa/lista/svara                      |
+| pins           | enabled  | Fäst/lossa/lista                       |
+| search         | enabled  | Meddelandesökning (förhandsfunktion)   |
+| memberInfo     | enabled  | Medlemsinfo                            |
+| roleInfo       | enabled  | Rollista                               |
+| channelInfo    | enabled  | Kanalinfo + lista                      |
+| channels       | enabled  | Kanal-/kategorihantering               |
+| voiceStatus    | enabled  | Uppslag av röststatus                  |
+| events         | enabled  | Lista/skapa schemalagda händelser      |
+| roles          | disabled | Lägg till/ta bort roller               |
+| moderation     | disabled | Timeout/kick/ban                       |
+| presence       | disabled | Botstatus/aktivitet (setPresence)      |
 
 - `replyToMode`: `off` (standard), `first`, eller `all`. Gäller endast när modellen innehåller en svarstagg.
 

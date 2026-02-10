@@ -9,8 +9,7 @@ title: "Exec 工具"
 # Exec 工具
 
 在工作區中執行 shell 指令。 Supports foreground + background execution via `process`.
-若 `process` 被拒絕，`exec` 會同步執行並忽略 `yieldMs`/`background`。
-49. 背景工作階段以代理為範圍；`process` 只能看到同一代理的工作階段。
+若 `process` 被拒絕，`exec` 會同步執行並忽略 `yieldMs`/`background`。49. 背景工作階段以代理為範圍；`process` 只能看到同一代理的工作階段。
 
 ## 參數
 
@@ -167,8 +166,7 @@ Paste (bracketed by default):
 ## apply_patch（實驗性）
 
 `apply_patch` 是 `exec` 的子工具，用於結構化的多檔案編輯。
-請明確啟用：
-32. 請明確啟用它：
+請明確啟用：32. 請明確啟用它：
 
 ```json5
 {

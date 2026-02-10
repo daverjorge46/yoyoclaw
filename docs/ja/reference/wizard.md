@@ -11,8 +11,7 @@ sidebarTitle: "Wizard Reference"
 # オンボーディング ウィザード リファレンス
 
 これは `openclaw onboard` CLI ウィザードの完全リファレンスです。
-概要については、[Onboarding Wizard](/start/wizard) を参照してください。
-8. 概要については、[Onboarding Wizard](/start/wizard) を参照してください。
+概要については、[Onboarding Wizard](/start/wizard) を参照してください。8. 概要については、[Onboarding Wizard](/start/wizard) を参照してください。
 
 ## フロー詳細（ローカルモード）
 
@@ -147,7 +146,7 @@ openclaw onboard --non-interactive \
 <Note>
 
 `--json` は非対話モードを **意味しません**。スクリプトでは `--non-interactive`（および `--workspace`）を使用してください。
- スクリプトには `--非対話型` (と `--workspace` )を使用します。
+スクリプトには `--非対話型` (と `--workspace` )を使用します。
 </Note>
 
 <AccordionGroup>

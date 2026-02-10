@@ -41,8 +41,8 @@ Typos, clarifications, outdated info, better examples - PRs welcome, no issue ne
 
 6. Her tehdit `T-EXEC-003` gibi bir kimlik alır. 7. Kategoriler şunlardır:
 
-| Kod                                | Category                                                              |
-| ---------------------------------- | --------------------------------------------------------------------- |
+| Kod         | Category                                       |
+| ----------- | ---------------------------------------------- |
 | 8. RECON    | 9. Keşif - bilgi toplama                       |
 | 10. ACCESS  | 11. İlk erişim - sisteme giriş elde etme       |
 | 12. EXEC    | 13. Yürütme - kötü amaçlı eylemleri çalıştırma |
@@ -57,7 +57,7 @@ IDs are assigned by maintainers during review. 25. Birini seçmeniz gerekmez.
 ### 26. Risk Seviyeleri
 
 | 27. Seviye     | 28. Anlam                                                         |
-| ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| -------------- | ----------------------------------------------------------------- |
 | 29. **Kritik** | 30. Tam sistem ele geçirilmesi veya yüksek olasılık + kritik etki |
 | 31. **Yüksek** | 32. Önemli hasar olası veya orta olasılık + kritik etki           |
 | 33. **Orta**   | 34. Orta düzey risk veya düşük olasılık + yüksek etki             |

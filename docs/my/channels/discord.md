@@ -323,34 +323,34 @@ Ack reaction များကို `messages.ackReaction` နှင့်
 - `guilds`: guild id (ဦးစားပေး) သို့မဟုတ် slug ဖြင့် key ပြုလုပ်ထားသော per-guild စည်းမျဉ်းများ။
 - `guilds."*"`: သီးခြား entry မရှိပါက အသုံးပြုမည့် default per-guild settings။
 - `guilds.<id>
-  .slug`: ပြသရန်အတွက် အသုံးပြုသော optional friendly slug။`guilds.<id>
-  .users`: optional per-guild user allowlist (id များ သို့မဟုတ် name များ)။
+.slug`: ပြသရန်အတွက် အသုံးပြုသော optional friendly slug။`guilds.<id>
+.users`: optional per-guild user allowlist (id များ သို့မဟုတ် name များ)။
 - `guilds.<id>
-  .tools`: channel override မရှိသည့်အခါ အသုံးပြုသော optional per-guild tool policy override များ (`allow`/`deny`/`alsoAllow`)။`guilds.<id>
-  .toolsBySender`: guild အဆင့်တွင် per-sender tool policy override များ (channel override မရှိသည့်အခါ အသုံးပြုသည်; `"*"` wildcard ကို ထောက်ပံ့သည်)။
+.tools`: channel override မရှိသည့်အခါ အသုံးပြုသော optional per-guild tool policy override များ (`allow`/`deny`/`alsoAllow`)။`guilds.<id>
+.toolsBySender`: guild အဆင့်တွင် per-sender tool policy override များ (channel override မရှိသည့်အခါ အသုံးပြုသည်; `"*"` wildcard ကို ထောက်ပံ့သည်)။
 - `guilds.<id>
-  .channels.<channel>
-  .allow`: `groupPolicy="allowlist"` ဖြစ်သည့်အခါ channel ကို allow/deny လုပ်ရန်။`guilds.<id>
-  .channels.<channel>
-  .requireMention`: channel အတွက် mention gating။
+.channels.<channel>
+.allow`: `groupPolicy="allowlist"` ဖြစ်သည့်အခါ channel ကို allow/deny လုပ်ရန်။`guilds.<id>
+.channels.<channel>
+.requireMention`: channel အတွက် mention gating။
 - `guilds.<id>
-  .channels.<channel>
-  .tools`: optional per-channel tool policy override များ (`allow`/`deny`/`alsoAllow`)။`guilds.<id>
-  .channels.<channel>
-  .toolsBySender`: channel အတွင်း per-sender tool policy override များ (`"*"` wildcard ကို ထောက်ပံ့သည်)။
+.channels.<channel>
+.tools`: optional per-channel tool policy override များ (`allow`/`deny`/`alsoAllow`)။`guilds.<id>
+.channels.<channel>
+.toolsBySender`: channel အတွင်း per-sender tool policy override များ (`"*"` wildcard ကို ထောက်ပံ့သည်)။
 - `guilds.<id>
-  .channels.<channel>
-  .users`: optional per-channel user allowlist။`guilds.<id>
-  .channels.<channel>
-  .skills`: skill filter (မထည့်လျှင် = skill အားလုံး၊ အလွတ်ထားလျှင် = မရှိ)။`guilds.<id>
-  .channels.<channel>
-  .systemPrompt`: channel အတွက် extra system prompt။
+.channels.<channel>
+.users`: optional per-channel user allowlist။`guilds.<id>
+.channels.<channel>
+.skills`: skill filter (မထည့်လျှင် = skill အားလုံး၊ အလွတ်ထားလျှင် = မရှိ)။`guilds.<id>
+.channels.<channel>
+.systemPrompt`: channel အတွက် extra system prompt။
 - Discord channel topic များကို **untrusted** context အဖြစ် inject လုပ်ပါသည် (system prompt မဟုတ်ပါ)။`guilds.<id>
-  .channels.<channel>
-  .enabled`: channel ကို ပိတ်ရန် `false` သတ်မှတ်ပါ။`guilds.<id>
-  .channels`: channel rule များ (key များမှာ channel slug များ သို့မဟုတ် id များ ဖြစ်သည်)။
+.channels.<channel>
+.enabled`: channel ကို ပိတ်ရန် `false` သတ်မှတ်ပါ။`guilds.<id>
+.channels`: channel rule များ (key များမှာ channel slug များ သို့မဟုတ် id များ ဖြစ်သည်)။
 - `guilds.<id>
-  .requireMention`: per-guild mention လိုအပ်ချက် (channel အလိုက် override လုပ်နိုင်သည်)။`guilds.<id>`.tools`: optional per-channel tool policy overrides (`allow`/`deny`/`alsoAllow\`).
+.requireMention`: per-guild mention လိုအပ်ချက် (channel အလိုက် override လုပ်နိုင်သည်)။`guilds.<id>`.tools`: optional per-channel tool policy overrides (`allow`/`deny`/`alsoAllow\`).
 - `guilds.<id>.channels.<channel>.toolsBySender`: optional per-sender tool policy overrides within the channel (`"*"` wildcard supported).
 - `guilds.<id>.channels.<channel>.users`: optional per-channel user allowlist.
 - `guilds.<id>.channels.<channel>.skills`: skill filter (omit = all skills, empty = none).
@@ -414,27 +414,27 @@ Allowlist မှတ်ချက်များ (PK-enabled):
 
 ### Tool action defaults
 
-| Action group   | Default  | Notes                                                |
-| -------------- | -------- | ---------------------------------------------------- |
-| reactions      | enabled  | React + list reactions + emojiList                   |
-| stickers       | enabled  | Send stickers                                        |
-| emojiUploads   | enabled  | Upload emojis                                        |
-| stickerUploads | enabled  | Upload stickers                                      |
-| polls          | enabled  | Create polls                                         |
-| permissions    | enabled  | Channel permission snapshot                          |
-| messages       | enabled  | Read/send/edit/delete                                |
-| threads        | enabled  | Create/list/reply                                    |
-| pins           | enabled  | Pin/unpin/list                                       |
-| search         | enabled  | Message search (preview feature)  |
-| memberInfo     | enabled  | Member info                                          |
-| roleInfo       | enabled  | Role list                                            |
-| channelInfo    | enabled  | Channel info + list                                  |
-| channels       | enabled  | Channel/category management                          |
-| voiceStatus    | enabled  | Voice state lookup                                   |
-| events         | enabled  | List/create scheduled events                         |
-| roles          | disabled | Role add/remove                                      |
-| moderation     | disabled | Timeout/kick/ban                                     |
-| presence       | disabled | Bot status/activity (setPresence) |
+| Action group   | Default  | Notes                              |
+| -------------- | -------- | ---------------------------------- |
+| reactions      | enabled  | React + list reactions + emojiList |
+| stickers       | enabled  | Send stickers                      |
+| emojiUploads   | enabled  | Upload emojis                      |
+| stickerUploads | enabled  | Upload stickers                    |
+| polls          | enabled  | Create polls                       |
+| permissions    | enabled  | Channel permission snapshot        |
+| messages       | enabled  | Read/send/edit/delete              |
+| threads        | enabled  | Create/list/reply                  |
+| pins           | enabled  | Pin/unpin/list                     |
+| search         | enabled  | Message search (preview feature)   |
+| memberInfo     | enabled  | Member info                        |
+| roleInfo       | enabled  | Role list                          |
+| channelInfo    | enabled  | Channel info + list                |
+| channels       | enabled  | Channel/category management        |
+| voiceStatus    | enabled  | Voice state lookup                 |
+| events         | enabled  | List/create scheduled events       |
+| roles          | disabled | Role add/remove                    |
+| moderation     | disabled | Timeout/kick/ban                   |
+| presence       | disabled | Bot status/activity (setPresence)  |
 
 - `replyToMode`: `off` (default), `first`, or `all`. Applies only when the model includes a reply tag.
 

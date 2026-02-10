@@ -10,8 +10,7 @@ title: "OpenCode Zen"
 
 OpenCode Zen 是由 OpenCode 團隊為程式代理程式推薦的**精選模型清單**。
 它是一條可選的、託管式模型存取途徑，使用 API 金鑰 與 `opencode` 提供者。
-Zen 目前仍處於 beta。
-50. 這是一條可選的、託管的模型存取路徑，使用 API 金鑰與 `opencode` 提供者。
+Zen 目前仍處於 beta。50. 這是一條可選的、託管的模型存取路徑，使用 API 金鑰與 `opencode` 提供者。
 Zen is currently in beta.
 
 ## CLI 設定

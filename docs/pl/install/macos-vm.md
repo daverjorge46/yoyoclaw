@@ -260,11 +260,11 @@ Dla prawdziwego trybu zawsze włączonego rozważ dedykowanego Maca mini lub ma�
 
 ## Rozwiązywanie problemów
 
-| Problem                          | Rozwiązanie                                                                                                             |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Nie można połączyć się przez SSH | Sprawdź, czy „Zdalne logowanie” jest włączone w Ustawieniach systemowych VM                                             |
-| Nie wyświetla się IP VM          | Poczekaj, aż VM w pełni się uruchomi, ponownie uruchom `lume get openclaw`                                              |
-| Nie znaleziono polecenia Lume    | Dodaj `~/.local/bin` do PATH                                                                                            |
+| Problem                          | Rozwiązanie                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Nie można połączyć się przez SSH | Sprawdź, czy „Zdalne logowanie” jest włączone w Ustawieniach systemowych VM                          |
+| Nie wyświetla się IP VM          | Poczekaj, aż VM w pełni się uruchomi, ponownie uruchom `lume get openclaw`                           |
+| Nie znaleziono polecenia Lume    | Dodaj `~/.local/bin` do PATH                                                                         |
 | Kod QR WhatsApp nie skanuje      | Upewnij się, że jesteś zalogowany do VM (a nie hosta) podczas uruchamiania `openclaw channels login` |
 
 ---

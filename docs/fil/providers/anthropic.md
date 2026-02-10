@@ -43,10 +43,10 @@ Sinusuportahan ng OpenClaw ang tampok na prompt caching ng Anthropic. Ito ay **A
 
 Gamitin ang parameter na `cacheRetention` sa iyong model config:
 
-| Value   | Cache Duration | Description                                                          |
-| ------- | -------------- | -------------------------------------------------------------------- |
-| `none`  | Walang caching | I-disable ang prompt caching                                         |
-| `short` | 5 minuto       | Default para sa API Key auth                                         |
+| Value   | Cache Duration | Description                                       |
+| ------- | -------------- | ------------------------------------------------- |
+| `none`  | Walang caching | I-disable ang prompt caching                      |
+| `short` | 5 minuto       | Default para sa API Key auth                      |
 | `long`  | 1 oras         | Pinalawig na cache (nangangailangan ng beta flag) |
 
 ```json5

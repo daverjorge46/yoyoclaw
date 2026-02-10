@@ -497,12 +497,12 @@ openclaw browser wait "#main" \
 14. जब कोई action fail होता है (जैसे “not visible”, “strict mode violation”, “covered”):
 
 1. `openclaw browser snapshot --interactive`
-2. `click <ref>` / `type <ref>` का उपयोग करें (interactive मोड में role refs को प्राथमिकता दें)
-3. यदि फिर भी विफल हो: Playwright क्या लक्षित कर रहा है यह देखने के लिए `openclaw browser highlight <ref>`
-4. यदि पेज अजीब व्यवहार करता है:
+1. `click <ref>` / `type <ref>` का उपयोग करें (interactive मोड में role refs को प्राथमिकता दें)
+1. यदि फिर भी विफल हो: Playwright क्या लक्षित कर रहा है यह देखने के लिए `openclaw browser highlight <ref>`
+1. यदि पेज अजीब व्यवहार करता है:
    - `openclaw browser errors --clear`
    - `openclaw browser requests --filter api --clear`
-5. गहन डिबगिंग के लिए: एक trace रिकॉर्ड करें:
+1. गहन डिबगिंग के लिए: एक trace रिकॉर्ड करें:
    - `openclaw browser trace start`
    - समस्या को पुनः उत्पन्न करें
    - `openclaw browser trace stop` ( `TRACE:<path>` प्रिंट करता है)

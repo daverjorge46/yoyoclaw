@@ -28,12 +28,12 @@ OpenClaw använder pi SDK för att bädda in en AI-kodningsagent i dess meddelan
 }
 ```
 
-| Paket             | Syfte                                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `pi-ai`           | Centrala LLM-abstraktioner: `Model`, `streamSimple`, meddelandetyper, leverantörs-API:er  |
-| `pi-agent-core`   | Agentloop, verktygsexekvering, `AgentMessage`-typer                                                                       |
+| Paket             | Syfte                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| `pi-ai`           | Centrala LLM-abstraktioner: `Model`, `streamSimple`, meddelandetyper, leverantörs-API:er                  |
+| `pi-agent-core`   | Agentloop, verktygsexekvering, `AgentMessage`-typer                                                       |
 | `pi-coding-agent` | SDK på hög nivå: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, inbyggda verktyg |
-| `pi-tui`          | Terminal-UI-komponenter (används i OpenClaws lokala TUI-läge)                                          |
+| `pi-tui`          | Terminal-UI-komponenter (används i OpenClaws lokala TUI-läge)                                             |
 
 ## Filstruktur
 
@@ -511,15 +511,15 @@ Detta ger en interaktiv terminalupplevelse liknande pi:s inbyggda läge.
 
 ## Viktiga skillnader jämfört med Pi CLI
 
-| Aspekt            | Pi CLI                               | OpenClaw inbäddad                                                                                                    |
-| ----------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Anrop             | `pi`-kommando / RPC                  | SDK via `createAgentSession()`                                                                                       |
-| Verktyg           | Standardverktyg för kodning          | Anpassad OpenClaw-verktygssvit                                                                                       |
-| Systemprompt      | AGENTS.md + prompter | Dynamisk per kanal/kontext                                                                                           |
-| Sessionslagring   | `~/.pi/agent/sessions/`              | `~/.openclaw/agents/<agentId>/sessions/` (eller `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Autentisering     | Enskild inloggning                   | Flera profiler med rotation                                                                                          |
-| Tillägg           | Laddas från disk                     | Programmatisk + disksökvägar                                                                                         |
-| Händelsehantering | TUI-rendering                        | Callback-baserad (onBlockReply, m.fl.)                            |
+| Aspekt            | Pi CLI                      | OpenClaw inbäddad                                                                                 |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
+| Anrop             | `pi`-kommando / RPC         | SDK via `createAgentSession()`                                                                    |
+| Verktyg           | Standardverktyg för kodning | Anpassad OpenClaw-verktygssvit                                                                    |
+| Systemprompt      | AGENTS.md + prompter        | Dynamisk per kanal/kontext                                                                        |
+| Sessionslagring   | `~/.pi/agent/sessions/`     | `~/.openclaw/agents/<agentId>/sessions/` (eller `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Autentisering     | Enskild inloggning          | Flera profiler med rotation                                                                       |
+| Tillägg           | Laddas från disk            | Programmatisk + disksökvägar                                                                      |
+| Händelsehantering | TUI-rendering               | Callback-baserad (onBlockReply, m.fl.)                                                            |
 
 ## Framtida överväganden
 

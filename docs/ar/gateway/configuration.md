@@ -1542,13 +1542,13 @@ head/tail مقتطفة مع علامة.
 
 يمكن أن يتضمن سلسلة "responsePrefix" متغيرات قالب تحل بشكل ديناميكي:
 
-| المتغير           | الوصف                | مثال                                       |
-| ----------------- | -------------------- | ------------------------------------------ |
-| `{model}`         | اسم النموذج القصير   | `claude-opus-4-6`, `gpt-4o`                |
-| `{modelFull}`     | معرف النموذج الكامل  | `البشري/claude-opus-4-6`                   |
-| `{provider}`      | اسم المزود           | `بشرية`, `openai`                          |
-| `{thinkingLevel}` | مستوى التفكير الحالي | `عالي`، `منخفض`، `إيقاف`                   |
-| `{identity.name}` | اسم هوية الوكيل      | (نفس الوضع `التلقائية`) |
+| المتغير           | الوصف                | مثال                        |
+| ----------------- | -------------------- | --------------------------- |
+| `{model}`         | اسم النموذج القصير   | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | معرف النموذج الكامل  | `البشري/claude-opus-4-6`    |
+| `{provider}`      | اسم المزود           | `بشرية`, `openai`           |
+| `{thinkingLevel}` | مستوى التفكير الحالي | `عالي`، `منخفض`، `إيقاف`    |
+| `{identity.name}` | اسم هوية الوكيل      | (نفس الوضع `التلقائية`)     |
 
 المتغيرات حساسة لحالة الأحرف (`{MODEL}` = `{model}`). `{think}` هو اسم مستعار لـ `{thinkingLevel}`.
 تبقى المتغيرات التي لم يتم حلها كنص حرفي.
@@ -1846,8 +1846,7 @@ MiniMax wri: تعيين `MINIMAX_API_KEY` (env) أو تكوين `models.provider
 - يحمي آخر رسائل المساعد "keeplastAssistants" (لا توجد نتائج للأداة بعد تلك النقطة مطبعة).
 - يحمي بادئة التمهيد (لا شيء قبل طباعة رسالة المستخدم الأولى).
 - الأساليب:
-  - `تكييفي`: نواتج الأدوات الزائدة الحجم (حافظ على الرأس / الذيل) عندما تتقاطع نسبة السياق المقدرة مع `softTrimRatio`.
-    19. ثم يقوم بمسح نتائج الأدوات الأقدم المؤهلة مسحًا صارمًا عندما تتجاوز نسبة السياق المقدّرة `hardClearRatio` **و**
+  - `تكييفي`: نواتج الأدوات الزائدة الحجم (حافظ على الرأس / الذيل) عندما تتقاطع نسبة السياق المقدرة مع `softTrimRatio`. 19. ثم يقوم بمسح نتائج الأدوات الأقدم المؤهلة مسحًا صارمًا عندما تتجاوز نسبة السياق المقدّرة `hardClearRatio` **و**
     يكون هناك حجم كافٍ من نتائج الأدوات القابلة للتقليم (`minPrunableToolChars`).
   - `عدوانية`: يستبدل دائما نتائج الأداة المؤهلة قبل القطع بـ \`hardclear.placeholder' (بدون فحص النسبة).
 
@@ -1991,7 +1990,7 @@ MiniMax wri: تعيين `MINIMAX_API_KEY` (env) أو تكوين `models.provider
   تجاوز القناة: `channels.whatsapp.blockStreamingCoalesce`، `channels.telegram.blockStreamingCoalesce`،
   `channels.discord.blockStreamingCoalesce`، `channels.slack.blockStreamingCoalesce`، `channels.mattermost.blockStreamingCoalesce`،
   `channels.signal.blockStreamingCoalesce`، `channels.blockStreamingCoalesce`، `channels.imessage.blockStreamingCoalesce`، `، `channels.msteams.blockStreamingCoalesce`،
-  `channels.golechat.blockaming.Streamesce\`
+`channels.golechat.blockaming.Streamesce\`
   (وتنوعا مختلفا).
 
 - `agents.defaults.humanDelay`: إيقاف مؤقت عشوائي بين **ردود الكتلة** بعد الأولى.
@@ -2785,19 +2784,23 @@ sandboxed أن تستهدف صراحة خادم **المضيف** للتحكم ف
   A["OpenClaw.app"]
   B["ws://127.0.0.1:18789\n(local port)"]
   T["SSH Tunnel"]```
-      A --> B
-      B --> T
+  A --> B
+  B --> T
   end
   subgraph Remote["Remote Machine"]
-      direction TB
-      C["Gateway WebSocket"]
-      D["ws://127.0.0.1:18789"]
+  direction TB
+  C["Gateway WebSocket"]
+  D["ws://127.0.0.1:18789"]
 
       C --> D
+
   end
   T --> C
+
   ```
   - إذا قمت فقط بتعيين الإرث 'session.idleMinutes' دون أي 'reset\`/'resetByType'، يبقى OpenClaw في وضع الخمول فقط لتحقيق التوافق الخلفي.
+  ```
+
 - `قلب إدليمينوتس`: تجاوز خامل اختياري لفحوص نبض القلب (إعادة الضبط اليومية لا تزال تنطبق عند التمكين).
 - 'agentToAgent.maxPingPongTurns': الحد الأقصى لدوران الرد - الظهر بين الطالب/الهدف (0-5، الافتراضي 5).
 - `sendPolicy.default`: `allow' أو `deny' عند عدم وجود قاعدة متطابقة.
@@ -3018,10 +3021,10 @@ OpenClaw يمكن أن يبدأ مثيل **كروم/Brave/Edge/Chromium لـ ope
 - 'gateway.auth.allowTailscale' يسمح لرأس هوية خدمة النطاق
   (tailscale-user-login') بإرضاء المصادقة عند وصول الطلب على loopback
   مع 'x-forwarded-for`، و 'x-forwarded-proto`، و 'x-forwarded-host`. يقوم OpenClaw
-    بالتحقق من الهوية عن طريق حل عنوان 'x-forwarded-for' عن طريق
-  'حسب المقياس التوكيفي' قبل قبوله. عندما 'true'، لا تحتاج طلبات الخدمة
-    الرمز المميز/كلمة المرور؛ قم بتعيين 'false' لطلب بيانات الاعتماد الصريحة. الافتراضي إلى
-  `true` عندما 'tailscale.mode = "serve"` و وضع المصادقة ليس `كلمة المرور`.
+  بالتحقق من الهوية عن طريق حل عنوان 'x-forwarded-for' عن طريق
+'حسب المقياس التوكيفي' قبل قبوله. عندما 'true'، لا تحتاج طلبات الخدمة
+  الرمز المميز/كلمة المرور؛ قم بتعيين 'false' لطلب بيانات الاعتماد الصريحة. الافتراضي إلى
+`true` عندما 'tailscale.mode = "serve"` و وضع المصادقة ليس `كلمة المرور`.
 - `gateway.tailscale.mode: "serve"` يستخدم خدمة النطاق الضوئي (الذيفة فقط، حلقة الظهور).
 - `gateway.tailscale.mode: "funnel"` يعرض لوحة المعلومات علناً؛ يتطلب المصادقة.
 - إعادة ضبط إعدادات Serve/Funnel عند الإغلاق.
@@ -3373,16 +3376,16 @@ openclaw dns setup --apply
 
 ويتسع نطاق العناصر النائبة للنماذج في `tools.media.*.models[].args` و`tools.media.models[].args` (وأي حقول حجة نموذجية مقبلة).
 
-متغير <unk> وصف <unk> <unk> ---------------------- <unk> ------------------------------------------------------------ <unk> ------------- <unk> -------- <unk> ---------- <unk> ------ <unk> ------ <unk> ---- <unk> ------ <unk> ------ <unk> -------- <unk> ------ <unk> ------- <unk> ----- <unk> --- <unk> --- <unk> --- <unk> <unk>{{Body}}<unk> ` جسم الرسالة المرسلة بالكامل <unk> <unk> A`{{RawBody}}`جسم الرسالة المرسلة (لا التاريخ/sender أفضل لتحليل الأوامر <unk> <unk>`{{BodyStripped}}`الجسم مع ذكر مجموعة تم تجريدها (أفضل الافتراضي للوكلاء) <unk> <unk>`{{From}}`<unk> المرسل (. 64 لـ WhatsApp؛ قد تختلف في كل قناة) <unk> <unk>`{{To}}`<unk> Ddestination ID <unk> <unk>`{{MessageSid}}`<unk> ChChanmessage id (عند توفر) <unk> <unk>`{{SessionId}}`<unk> هذه الدورة UUID <unk> <unk>`{{IsNewSession}}<unk> `true"` عند إنشاء جلسة جديدة <unk> <unk> `{{MediaUrl}}<unk> الوسائط المدرجة pseudo-URL (إذا كانت موجودة) <unk> <unk>{{MediaPath}}<unk> ممر الوسائط المحلية (إذا تم تنزيلها) <unk> <unk> `{{MediaType}}<unk> Media نوع (image/audio/document/…)                                             39. |
-\| `{{Transcript}}`   | تفريغ الصوت (عند التمكين)                                                 |
-\| `{{Prompt}}`       | موجه الوسائط المحلول لإدخالات CLI                                           |
-\| `{{MaxChars}}`     | الحد الأقصى المحلول لأحرف الإخراج لإدخالات CLI                               |
-\| `{{ChatType}}`     | "direct" أو "group"                                                         |
-\| `{{GroupSubject}}` | موضوع المجموعة (بأفضل جهد)                                                     |
-\| `{{GroupMembers}}` | معاينة أعضاء المجموعة (بأفضل جهد)                                             |
-\| `{{SenderName}}`   | اسم عرض المرسل (بأفضل جهد)                                               |
-\| `{{SenderE164}}`   | رقم هاتف المرسل (بأفضل جهد)                                               |
-\| `{{Provider}}`     | تلميح المزوّد (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+متغير <unk> وصف <unk> <unk> ---------------------- <unk> ------------------------------------------------------------ <unk> ------------- <unk> -------- <unk> ---------- <unk> ------ <unk> ------ <unk> ---- <unk> ------ <unk> ------ <unk> -------- <unk> ------ <unk> ------- <unk> ----- <unk> --- <unk> --- <unk> --- <unk> <unk>{{Body}}<unk> ` جسم الرسالة المرسلة بالكامل <unk> <unk> A`{{RawBody}}`جسم الرسالة المرسلة (لا التاريخ/sender أفضل لتحليل الأوامر <unk> <unk>`{{BodyStripped}}`الجسم مع ذكر مجموعة تم تجريدها (أفضل الافتراضي للوكلاء) <unk> <unk>`{{From}}`<unk> المرسل (. 64 لـ WhatsApp؛ قد تختلف في كل قناة) <unk> <unk>`{{To}}`<unk> Ddestination ID <unk> <unk>`{{MessageSid}}`<unk> ChChanmessage id (عند توفر) <unk> <unk>`{{SessionId}}`<unk> هذه الدورة UUID <unk> <unk>`{{IsNewSession}}<unk> `true"` عند إنشاء جلسة جديدة <unk> <unk> `{{MediaUrl}}<unk> الوسائط المدرجة pseudo-URL (إذا كانت موجودة) <unk> <unk>{{MediaPath}}<unk> ممر الوسائط المحلية (إذا تم تنزيلها) <unk> <unk> `{{MediaType}}<unk> Media نوع (image/audio/document/…) 39. |
+\| `{{Transcript}}` | تفريغ الصوت (عند التمكين) |
+\| `{{Prompt}}` | موجه الوسائط المحلول لإدخالات CLI |
+\| `{{MaxChars}}` | الحد الأقصى المحلول لأحرف الإخراج لإدخالات CLI |
+\| `{{ChatType}}` | "direct" أو "group" |
+\| `{{GroupSubject}}` | موضوع المجموعة (بأفضل جهد) |
+\| `{{GroupMembers}}` | معاينة أعضاء المجموعة (بأفضل جهد) |
+\| `{{SenderName}}` | اسم عرض المرسل (بأفضل جهد) |
+\| `{{SenderE164}}` | رقم هاتف المرسل (بأفضل جهد) |
+\| `{{Provider}}` | تلميح المزوّد (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## جدولة كرون (جدول)
 

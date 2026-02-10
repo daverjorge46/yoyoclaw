@@ -21,14 +21,14 @@ title: "Raspberry Pi"
 
 ## 硬體需求
 
-| Pi 型號           | RAM     | 可用？      | 注意事項               |
-| --------------- | ------- | -------- | ------------------ |
-| **Pi 5**        | 4GB/8GB | ✅ 最佳     | 最快，建議使用            |
-| **Pi 4**        | 4GB     | ✅ 良好     | 多數使用者的甜蜜點          |
-| **Pi 4**        | 2GB     | ✅ 尚可     | 可用，請增加 swap        |
-| **Pi 4**        | 1GB     | ⚠️ Tight | 透過 swap 可行，最小化設定   |
-| **Pi 3B+**      | 1GB     | ⚠️ 慢     | Works but sluggish |
-| **Pi Zero 2 W** | 512MB   | ❌        | 不建議                |
+| Pi 型號         | RAM     | 可用？   | 注意事項                   |
+| --------------- | ------- | -------- | -------------------------- |
+| **Pi 5**        | 4GB/8GB | ✅ 最佳  | 最快，建議使用             |
+| **Pi 4**        | 4GB     | ✅ 良好  | 多數使用者的甜蜜點         |
+| **Pi 4**        | 2GB     | ✅ 尚可  | 可用，請增加 swap          |
+| **Pi 4**        | 1GB     | ⚠️ Tight | 透過 swap 可行，最小化設定 |
+| **Pi 3B+**      | 1GB     | ⚠️ 慢    | Works but sluggish         |
+| **Pi Zero 2 W** | 512MB   | ❌       | 不建議                     |
 
 **最低規格：** 1GB RAM、1 核心、500MB 磁碟  
 **建議：** 2GB+ RAM、64 位元 OS、16GB+ SD 卡（或 USB SSD）
@@ -223,13 +223,13 @@ htop
 
 大多數 OpenClaw 功能可在 ARM64 上運作，但部分外部二進位檔需要 ARM 版本：
 
-| 工具                      | ARM64 狀態 | 注意事項                                |
-| ----------------------- | -------- | ----------------------------------- |
-| Node.js | ✅        | 運作良好                                |
-| WhatsApp（Baileys）       | ✅        | 純 JS，無問題                            |
-| Telegram                | ✅        | 純 JS，無問題                            |
-| gog（Gmail CLI）          | ⚠️       | 請確認是否有 ARM 發行版                      |
-| Chromium（瀏覽器）           | ✅        | `sudo apt install chromium-browser` |
+| 工具                | ARM64 狀態 | 注意事項                            |
+| ------------------- | ---------- | ----------------------------------- |
+| Node.js             | ✅         | 運作良好                            |
+| WhatsApp（Baileys） | ✅         | 純 JS，無問題                       |
+| Telegram            | ✅         | 純 JS，無問題                       |
+| gog（Gmail CLI）    | ⚠️         | 請確認是否有 ARM 發行版             |
+| Chromium（瀏覽器）  | ✅         | `sudo apt install chromium-browser` |
 
 If a skill fails, check if its binary has an ARM build. Many Go/Rust tools do; some don't.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## 成本比較
 
-| 設定            | 一次性成本                | 每月成本                    | 注意事項                        |
-| ------------- | -------------------- | ----------------------- | --------------------------- |
-| **Pi 4（2GB）** | ~$45 | $0                      | + 電力（~$5/年） |
-| **Pi 4（4GB）** | ~$55 | $0                      | 建議                          |
-| **Pi 5（4GB）** | ~$60 | $0                      | 最佳效能                        |
-| **Pi 5（8GB）** | ~$80 | $0                      | Overkill but future-proof   |
-| DigitalOcean  | $0                   | $6/月                    | $72/年                       |
-| Hetzner       | $0                   | €3.79/月 | ~$50/年      |
+| 設定            | 一次性成本 | 每月成本 | 注意事項                  |
+| --------------- | ---------- | -------- | ------------------------- |
+| **Pi 4（2GB）** | ~$45       | $0       | + 電力（~$5/年）          |
+| **Pi 4（4GB）** | ~$55       | $0       | 建議                      |
+| **Pi 5（4GB）** | ~$60       | $0       | 最佳效能                  |
+| **Pi 5（8GB）** | ~$80       | $0       | Overkill but future-proof |
+| DigitalOcean    | $0         | $6/月    | $72/年                    |
+| Hetzner         | $0         | €3.79/月 | ~$50/年                   |
 
 **回本點：** 相較雲端 VPS，Pi 約 **6-12 個月**即可回本。
 

@@ -395,26 +395,26 @@ Allowlist نوٹس (PK فعال):
 
 ### Tool action defaults
 
-| Action group   | Default  | Notes                                                 |
-| -------------- | -------- | ----------------------------------------------------- |
-| reactions      | enabled  | React + list reactions + emojiList                    |
-| stickers       | enabled  | اسٹیکرز بھیجیں                                        |
-| emojiUploads   | enabled  | ایموجیز اپ لوڈ کریں                                   |
-| stickerUploads | enabled  | اسٹیکرز اپ لوڈ کریں                                   |
-| polls          | enabled  | پولز بنائیں                                           |
-| permissions    | enabled  | چینل اجازتوں کا اسنیپ شاٹ                             |
-| messages       | enabled  | پڑھیں/بھیجیں/ترمیم/حذف                                |
-| threads        | enabled  | بنائیں/فہرست/جواب                                     |
-| pins           | enabled  | پن/ان پن/فہرست                                        |
+| Action group   | Default  | Notes                              |
+| -------------- | -------- | ---------------------------------- |
+| reactions      | enabled  | React + list reactions + emojiList |
+| stickers       | enabled  | اسٹیکرز بھیجیں                     |
+| emojiUploads   | enabled  | ایموجیز اپ لوڈ کریں                |
+| stickerUploads | enabled  | اسٹیکرز اپ لوڈ کریں                |
+| polls          | enabled  | پولز بنائیں                        |
+| permissions    | enabled  | چینل اجازتوں کا اسنیپ شاٹ          |
+| messages       | enabled  | پڑھیں/بھیجیں/ترمیم/حذف             |
+| threads        | enabled  | بنائیں/فہرست/جواب                  |
+| pins           | enabled  | پن/ان پن/فہرست                     |
 | search         | enabled  | پیغام تلاش (پری ویو فیچر)          |
-| memberInfo     | enabled  | ممبر معلومات                                          |
-| roleInfo       | enabled  | رول فہرست                                             |
-| channelInfo    | enabled  | چینل معلومات + فہرست                                  |
-| channels       | enabled  | چینل/کیٹیگری مینجمنٹ                                  |
-| voiceStatus    | enabled  | وائس اسٹیٹ تلاش                                       |
-| events         | enabled  | شیڈولڈ ایونٹس فہرست/بنائیں                            |
-| roles          | disabled | رول شامل/ہٹائیں                                       |
-| moderation     | disabled | Timeout/kick/ban                                      |
+| memberInfo     | enabled  | ممبر معلومات                       |
+| roleInfo       | enabled  | رول فہرست                          |
+| channelInfo    | enabled  | چینل معلومات + فہرست               |
+| channels       | enabled  | چینل/کیٹیگری مینجمنٹ               |
+| voiceStatus    | enabled  | وائس اسٹیٹ تلاش                    |
+| events         | enabled  | شیڈولڈ ایونٹس فہرست/بنائیں         |
+| roles          | disabled | رول شامل/ہٹائیں                    |
+| moderation     | disabled | Timeout/kick/ban                   |
 | presence       | disabled | بوٹ اسٹیٹس/ایکٹیویٹی (setPresence) |
 
 - `replyToMode`: `off` (default), `first`, or `all`. Applies only when the model includes a reply tag.

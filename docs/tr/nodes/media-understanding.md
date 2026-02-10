@@ -175,11 +175,11 @@ CLI girdileri için, **beklenmedik eşleşmeleri önlemek adına `capabilities`�
 
 ## Sağlayıcı destek matrisi (OpenClaw entegrasyonları)
 
-| Yetenek | Sağlayıcı entegrasyonu                                    | Notlar                                                                         |
-| ------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Görüntü | OpenAI / Anthropic / Google / `pi-ai` üzerinden diğerleri | Kayıttaki görüntü yetenekli herhangi bir model çalışır.        |
-| Ses     | OpenAI, Groq, Deepgram, Google                            | Sağlayıcı dökümü (Whisper/Deepgram/Gemini). |
-| Video   | Google (Gemini API)                    | Sağlayıcı video anlama.                                        |
+| Yetenek | Sağlayıcı entegrasyonu                                    | Notlar                                                  |
+| ------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| Görüntü | OpenAI / Anthropic / Google / `pi-ai` üzerinden diğerleri | Kayıttaki görüntü yetenekli herhangi bir model çalışır. |
+| Ses     | OpenAI, Groq, Deepgram, Google                            | Sağlayıcı dökümü (Whisper/Deepgram/Gemini).             |
+| Video   | Google (Gemini API)                                       | Sağlayıcı video anlama.                                 |
 
 ## Önerilen sağlayıcılar
 

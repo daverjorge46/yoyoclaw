@@ -77,7 +77,7 @@ Google Chat webhook 需要一個公開的 HTTPS 端點。基於安全性考量�
 
    記下 IP 位址（例如：`127.0.0.1`、`0.0.0.0`，或你的 Tailscale IP，如 `100.x.x.x`）。
 
-2. **僅向 tailnet 暴露儀表板（連接埠 8443）：**
+1. **僅向 tailnet 暴露儀表板（連接埠 8443）：**
 
    ```bash
    # If bound to localhost (127.0.0.1 or 0.0.0.0):
@@ -87,7 +87,7 @@ Google Chat webhook 需要一個公開的 HTTPS 端點。基於安全性考量�
    tailscale serve --bg --https 8443 http://100.106.161.80:18789
    ```
 
-3. **僅公開 webhook 路徑：**
+1. **僅公開 webhook 路徑：**
 
    ```bash
    # If bound to localhost (127.0.0.1 or 0.0.0.0):
@@ -97,10 +97,10 @@ Google Chat webhook 需要一個公開的 HTTPS 端點。基於安全性考量�
    tailscale funnel --bg --set-path /googlechat http://100.106.161.80:18789/googlechat
    ```
 
-4. 30. **授權節點使用 Funnel 存取：**
+1. 30. **授權節點使用 Funnel 存取：**
        若出現提示，請造訪輸出中顯示的授權 URL，以在你的 tailnet 政策中為此節點啟用 Funnel。
 
-5. **驗證設定：**
+1. **驗證設定：**
 
    ```bash
    tailscale serve status
@@ -217,7 +217,7 @@ status code: 405, reason phrase: HTTP error response: HTTP/1.1 405 Method Not Al
 
    若回傳「Config path not found」，請新增設定（參見 [設定重點](#config-highlights)）。
 
-2. 1. **外掛未啟用**：檢查外掛狀態：
+1. 1. **外掛未啟用**：檢查外掛狀態：
 
    ```bash
    openclaw plugins list | grep googlechat
@@ -225,7 +225,7 @@ status code: 405, reason phrase: HTTP error response: HTTP/1.1 405 Method Not Al
 
    若顯示「disabled」，請在設定中加入 `plugins.entries.googlechat.enabled: true`。
 
-3. **Gateway 閘道器未重新啟動**：新增設定後，請重新啟動 Gateway 閘道器：
+1. **Gateway 閘道器未重新啟動**：新增設定後，請重新啟動 Gateway 閘道器：
 
    ```bash
    openclaw gateway restart

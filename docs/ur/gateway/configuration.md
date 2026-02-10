@@ -290,8 +290,7 @@ See [/environment](/help/environment) for full precedence and sources.
 
 ### 23. مکمل ترجیح اور ذرائع کے لیے [/environment](/help/environment) دیکھیں۔
 
-Opt-in convenience: if enabled and none of the expected keys are set yet, OpenClaw runs your login shell and imports only the missing expected keys (never overrides).
-25. Opt-in سہولت: اگر فعال ہو اور متوقع keys میں سے کوئی بھی ابھی سیٹ نہ ہو، تو OpenClaw آپ کا لاگ اِن شیل چلاتا ہے اور صرف وہی متوقع keys امپورٹ کرتا ہے جو غائب ہوں (کبھی اووررائیڈ نہیں کرتا)۔
+Opt-in convenience: if enabled and none of the expected keys are set yet, OpenClaw runs your login shell and imports only the missing expected keys (never overrides). 25. Opt-in سہولت: اگر فعال ہو اور متوقع keys میں سے کوئی بھی ابھی سیٹ نہ ہو، تو OpenClaw آپ کا لاگ اِن شیل چلاتا ہے اور صرف وہی متوقع keys امپورٹ کرتا ہے جو غائب ہوں (کبھی اووررائیڈ نہیں کرتا)۔
 
 ```json5
 {
@@ -567,7 +566,7 @@ Run multiple WhatsApp accounts in one gateway:
 
 13. گروپ پیغامات بطورِ ڈیفالٹ **منشن درکار** ہوتے ہیں (یا تو میٹاڈیٹا منشن یا regex پیٹرنز)۔ 14. یہ WhatsApp، Telegram، Discord، Google Chat، اور iMessage گروپ چیٹس پر لاگو ہوتا ہے۔
 
-15. **منشن کی اقسام:**
+14. **منشن کی اقسام:**
 
 - 16. **میٹاڈیٹا منشنز**: پلیٹ فارم کے مقامی @-منشنز (مثلاً WhatsApp میں tap-to-mention)۔ 17. WhatsApp self-chat موڈ میں نظرانداز کیے جاتے ہیں (دیکھیں `channels.whatsapp.allowFrom`)۔
 - **Text patterns**: Regex patterns defined in `agents.list[].groupChat.mentionPatterns`. Always checked regardless of self-chat mode.
@@ -626,7 +625,7 @@ Resolution order:
 
 39. منشن گیٹنگ کے ڈیفالٹس ہر چینل میں موجود ہوتے ہیں (`channels.whatsapp.groups`, `channels.telegram.groups`, `channels.imessage.groups`, `channels.discord.guilds`)۔ 40. جب `*.groups` سیٹ کیا جائے تو یہ گروپ allowlist کے طور پر بھی کام کرتا ہے؛ تمام گروپس کی اجازت کے لیے `"*"` شامل کریں۔
 
-41. صرف مخصوص متنی ٹرگرز پر **جواب دینے** کے لیے (مقامی @-منشنز کو نظرانداز کرتے ہوئے):
+40. صرف مخصوص متنی ٹرگرز پر **جواب دینے** کے لیے (مقامی @-منشنز کو نظرانداز کرتے ہوئے):
 
 ```json5
 42. {
@@ -1272,7 +1271,7 @@ OpenClaw اس وقت Slack شروع کرتا ہے جب پرووائیڈر فعا
 
 1. بطور ڈیفالٹ بوٹ کی جانب سے تحریر کردہ پیغامات نظر انداز کر دیے جاتے ہیں۔ 2. `channels.slack.allowBots` یا `channels.slack.channels.<id>` کے ذریعے فعال کریں3. .allowBots\`.
 
-4. ردِعمل کی اطلاع کے موڈز:
+2. ردِعمل کی اطلاع کے موڈز:
 
 - `off`: کوئی reaction events نہیں۔
 - `own`: بوٹ کے اپنے پیغامات پر reactions (default)۔
@@ -1296,8 +1295,7 @@ OpenClaw اس وقت Slack شروع کرتا ہے جب پرووائیڈر فعا
 
 ### `channels.mattermost` (بوٹ ٹوکن)
 
-Mattermost بطور پلگ اِن فراہم کیا جاتا ہے اور کور انسٹال کے ساتھ شامل نہیں ہوتا۔
-11. پہلے اسے انسٹال کریں: `openclaw plugins install @openclaw/mattermost` (یا گِٹ چیک آؤٹ سے `./extensions/mattermost`)۔
+Mattermost بطور پلگ اِن فراہم کیا جاتا ہے اور کور انسٹال کے ساتھ شامل نہیں ہوتا۔ 11. پہلے اسے انسٹال کریں: `openclaw plugins install @openclaw/mattermost` (یا گِٹ چیک آؤٹ سے `./extensions/mattermost`)۔
 
 12. Mattermost کے لیے بوٹ ٹوکن کے ساتھ آپ کے سرور کا بیس URL درکار ہوتا ہے:
 
@@ -1518,13 +1516,13 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| متغیر             | Description            | Example                                      |
-| ----------------- | ---------------------- | -------------------------------------------- |
-| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o`                  |
-| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6`                  |
-| `{provider}`      | Provider name          | `anthropic`, `openai`                        |
-| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`                         |
-| `{identity.name}` | ایجنٹ کی شناخت کا نام  | (بالکل `"auto"` موڈ جیسا) |
+| متغیر             | Description            | Example                     |
+| ----------------- | ---------------------- | --------------------------- |
+| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider name          | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`        |
+| `{identity.name}` | ایجنٹ کی شناخت کا نام  | (بالکل `"auto"` موڈ جیسا)   |
 
 ویری ایبلز حروفِ بڑے چھوٹے سے غیر حساس ہیں (`{MODEL}` = `{model}`)۔ `{think}`، `{thinkingLevel}` کا متبادل نام ہے۔
 غیر حل شدہ متغیرات لفظی متن کی صورت میں برقرار رہتے ہیں۔
@@ -2368,13 +2366,12 @@ scripts/sandbox-browser-setup.sh
 ```
 
 جب `agents.defaults.sandbox.browser.enabled=true` ہو تو براؤزر ٹول سینڈباکسڈ Chromium انسٹینس (CDP) استعمال کرتا ہے۔ 1. اگر noVNC فعال ہو (headless=false ہونے پر ڈیفالٹ)،
-noVNC URL کو سسٹم پرامپٹ میں شامل کر دیا جاتا ہے تاکہ ایجنٹ اس کا حوالہ دے سکے۔
-2. اس کے لیے مرکزی کنفگ میں `browser.enabled` کی ضرورت نہیں؛ سینڈ باکس کنٹرول
+noVNC URL کو سسٹم پرامپٹ میں شامل کر دیا جاتا ہے تاکہ ایجنٹ اس کا حوالہ دے سکے۔ 2. اس کے لیے مرکزی کنفگ میں `browser.enabled` کی ضرورت نہیں؛ سینڈ باکس کنٹرول
 URL ہر سیشن کے لیے شامل کیا جاتا ہے۔
 
 3. `agents.defaults.sandbox.browser.allowHostControl` (ڈیفالٹ: false) سینڈ باکس شدہ سیشنز کو اجازت دیتا ہے کہ وہ براؤزر ٹول کے ذریعے (`target: "host"`) **ہوسٹ** براؤزر کنٹرول سرور کو واضح طور پر ہدف بنائیں۔ اگر آپ سخت سینڈ باکس آئسولیشن چاہتے ہیں تو اسے بند رکھیں۔
 
-5. ریموٹ کنٹرول کے لیے الاؤ لسٹس:
+4. ریموٹ کنٹرول کے لیے الاؤ لسٹس:
 
 - 6. `allowedControlUrls`: وہ عین کنٹرول URLs جو `target: "custom"` کے لیے اجازت یافتہ ہوں۔
 - 7. `allowedControlHosts`: اجازت یافتہ ہوسٹ نیمز (صرف ہوسٹ نیم، پورٹ نہیں)۔
@@ -2388,7 +2385,7 @@ URL ہر سیشن کے لیے شامل کیا جاتا ہے۔
     `~/.openclaw/agents/<agentId>/agent/models.json` لکھ کر یا وہی اسکیما اپنی OpenClaw کنفگ میں `models.providers` کے تحت متعین کر کے۔
 13. ہر پرووائیڈر کا جائزہ + مثالیں: [/concepts/model-providers](/concepts/model-providers)۔
 
-16. جب `models.providers` موجود ہو، OpenClaw اسٹارٹ اپ پر ایک `models.json` لکھتا/مرج کرتا ہے
+14. جب `models.providers` موجود ہو، OpenClaw اسٹارٹ اپ پر ایک `models.json` لکھتا/مرج کرتا ہے
     `~/.openclaw/agents/<agentId>/agent/` میں:
 
 - ڈیفالٹ رویہ: **merge** (موجودہ پرووائیڈرز کو برقرار رکھتا ہے، نام کی بنیاد پر اووررائیڈ کرتا ہے)
@@ -2458,7 +2455,7 @@ URL ہر سیشن کے لیے شامل کیا جاتا ہے۔
 29. Z.AI ماڈلز بلٹ اِن `zai` پرووائیڈر کے ذریعے دستیاب ہیں۔ 30. اپنے ماحول میں `ZAI_API_KEY`
     سیٹ کریں اور ماڈل کو provider/model کے ذریعے حوالہ دیں۔
 
-31. شارٹ کٹ: `openclaw onboard --auth-choice zai-api-key`۔
+30. شارٹ کٹ: `openclaw onboard --auth-choice zai-api-key`۔
 
 ```json5
 32. {
@@ -3232,7 +3229,7 @@ Mapping نوٹس:
 36. موجودہ بلڈز میں TCP برج لِسنر شامل نہیں؛ `bridge.*` کنفیگ کیز نظر انداز کی جاتی ہیں۔
 37. نوڈز گیٹ وے WebSocket کے ذریعے کنیکٹ ہوتے ہیں۔ 38. یہ سیکشن تاریخی حوالہ کے لیے رکھا گیا ہے۔
 
-39. لیگیسی رویہ:
+38. لیگیسی رویہ:
 
 - 40. گیٹ وے نوڈز (iOS/Android) کے لیے ایک سادہ TCP برج ایکسپوز کر سکتا تھا، عموماً پورٹ `18790` پر۔
 
@@ -3317,28 +3314,28 @@ openclaw dns setup --apply
 
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Full inbound message body                                                       |
-\| `{{RawBody}}`      | Raw inbound message body (no history/sender wrappers; best for command parsing) |
-\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents)                     |
-\| `{{From}}`         | Sender identifier (E.164 for WhatsApp; may differ per channel)                  |
-\| `{{To}}`           | Destination identifier                                                          |
-\| `{{MessageSid}}`   | Channel message id (when available)                                             |
-\| `{{SessionId}}`    | Current session UUID                                                            |
-\| `{{IsNewSession}}` | `"true"` when a new session was created                                         |
-\| `{{MediaUrl}}`     | Inbound media pseudo-URL (if present)                                           |
-\| `{{MediaPath}}`    | Local media path (if downloaded)                                                |
-\| `{{MediaType}}`    | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Full inbound message body |
+\| `{{RawBody}}` | Raw inbound message body (no history/sender wrappers; best for command parsing) |
+\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents) |
+\| `{{From}}` | Sender identifier (E.164 for WhatsApp; may differ per channel) |
+\| `{{To}}` | Destination identifier |
+\| `{{MessageSid}}` | Channel message id (when available) |
+\| `{{SessionId}}` | Current session UUID |
+\| `{{IsNewSession}}` | `"true"` when a new session was created |
+\| `{{MediaUrl}}` | Inbound media pseudo-URL (if present) |
+\| `{{MediaPath}}` | Local media path (if downloaded) |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

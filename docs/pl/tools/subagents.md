@@ -156,15 +156,15 @@ To jest narzędzie, które agent wywołuje, aby tworzyć sub-agentów.
 
 ### Parametry
 
-| Parametr            | Typ                      | Domyślna                                | Opis                                                                                             |
-| ------------------- | ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `task`              | string                   | _(wymagane)_         | Co powinien zrobić sub-agent                                                                     |
-| `etykieta`          | string                   | —                                       | Krótka etykieta identyfikacyjna                                                                  |
-| `agentId`           | string                   | _(agent wywołujący)_ | Utwórz pod innym identyfikatorem agenta (musi być dozwolone)                  |
-| `wzór`              | string                   | _(opcjonalne)_       | Nadpisz model dla tego sub-agenta                                                                |
-| `thinking`          | string                   | _(opcjonalne)_       | Nadpisz poziom myślenia (`off`, `low`, `medium`, `high` itd.) |
-| `runTimeoutSeconds` | liczba                   | `0` (brak limitu)    | Przerwij działanie sub-agenta po N sekundach                                                     |
-| `czyszczenie`       | `"delete"` \\| `"keep"` | `"keep"`                                | `"delete"` archiwizuje natychmiast po ogłoszeniu                                                 |
+| Parametr            | Typ           | Domyślna             | Opis                                                          |
+| ------------------- | ------------- | -------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
+| `task`              | string        | _(wymagane)_         | Co powinien zrobić sub-agent                                  |
+| `etykieta`          | string        | —                    | Krótka etykieta identyfikacyjna                               |
+| `agentId`           | string        | _(agent wywołujący)_ | Utwórz pod innym identyfikatorem agenta (musi być dozwolone)  |
+| `wzór`              | string        | _(opcjonalne)_       | Nadpisz model dla tego sub-agenta                             |
+| `thinking`          | string        | _(opcjonalne)_       | Nadpisz poziom myślenia (`off`, `low`, `medium`, `high` itd.) |
+| `runTimeoutSeconds` | liczba        | `0` (brak limitu)    | Przerwij działanie sub-agenta po N sekundach                  |
+| `czyszczenie`       | `"delete"` \\ | `"keep"`             | `"keep"`                                                      | `"delete"` archiwizuje natychmiast po ogłoszeniu |
 
 ### Kolejność rozstrzygania modelu
 
@@ -209,13 +209,13 @@ Domyślnie sub-agenci mogą być tworzeni tylko pod własnym identyfikatorem age
 
 Użyj komendy ukośnika `/subagents`, aby sprawdzić i kontrolować uruchomienia subagentów w bieżącej sesji:
 
-| Polecenie                                  | Opis                                                                                          |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `/subagents list`                          | Wyświetl listę wszystkich uruchomień subagentów (aktywnych i zakończonych) |
-| `/subagents stop <id\\|#\\|all>`         | Zatrzymaj działającego subagenta                                                              |
-| `/subagents log <id\\|#> [limit] [tools]` | Wyświetl transkrypcję subagenta                                                               |
-| `/subagents info <id\\|#>`                | Pokaż szczegółowe metadane uruchomienia                                                       |
-| `/subagents send <id\\|#> <message>`      | Wyślij wiadomość do działającego subagenta                                                    |
+| Polecenie              | Opis                                                                       |
+| ---------------------- | -------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------- |
+| `/subagents list`      | Wyświetl listę wszystkich uruchomień subagentów (aktywnych i zakończonych) |
+| `/subagents stop <id\\ | #\\                                                                        | all>`                                      | Zatrzymaj działającego subagenta |
+| `/subagents log <id\\  | #> [limit] [tools]`                                                        | Wyświetl transkrypcję subagenta            |
+| `/subagents info <id\\ | #>`                                                                        | Pokaż szczegółowe metadane uruchomienia    |
+| `/subagents send <id\\ | #> <message>`                                                              | Wyślij wiadomość do działającego subagenta |
 
 Możesz odwoływać się do podagentów według indeksu listy (`1`, `2`), prefiksu identyfikatora uruchomienia, pełnego klucza sesji lub `last`.
 
@@ -232,11 +232,11 @@ Możesz odwoływać się do podagentów według indeksu listy (`1`, `2`), prefik
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -268,7 +268,7 @@ Możesz odwoływać się do podagentów według indeksu listy (`1`, `2`), prefik
 
     ````
     Pokazuje ostatnie 10 wiadomości z transkrypcji subagenta. Dodaj `tools`, aby uwzględnić wiadomości wywołań narzędzi:
-    
+
     ```
     /subagents log 1 10 tools
     ```

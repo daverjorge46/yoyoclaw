@@ -23,12 +23,12 @@ Perfekt für:
 
 | Pi-Modell       | RAM     | Läuft?     | Hinweise                          |
 | --------------- | ------- | ---------- | --------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ Best     | Am schnellsten, empfohlen         |
-| **Pi 4**        | 4GB     | ✅ Gut      | Sweet Spot für die meisten Nutzer |
-| **Pi 4**        | 2GB     | ✅ OK       | Läuft, Swap hinzufügen            |
+| **Pi 5**        | 4GB/8GB | ✅ Best    | Am schnellsten, empfohlen         |
+| **Pi 4**        | 4GB     | ✅ Gut     | Sweet Spot für die meisten Nutzer |
+| **Pi 4**        | 2GB     | ✅ OK      | Läuft, Swap hinzufügen            |
 | **Pi 4**        | 1GB     | ⚠️ Knapp   | Mit Swap möglich, Minimal-Config  |
 | **Pi 3B+**      | 1GB     | ⚠️ Langsam | Läuft, aber träge                 |
-| **Pi Zero 2 W** | 512MB   | ❌          | Nicht empfohlen                   |
+| **Pi Zero 2 W** | 512MB   | ❌         | Nicht empfohlen                   |
 
 **Mindestanforderungen:** 1GB RAM, 1 Core, 500MB Speicher  
 **Empfohlen:** 2GB+ RAM, 64-Bit-OS, 16GB+ SD-Karte (oder USB-SSD)
@@ -223,13 +223,13 @@ htop
 
 Die meisten OpenClaw-Funktionen laufen auf ARM64, aber einige externe Binaries benötigen ARM-Builds:
 
-| Werkzeug                              | ARM64-Status | Hinweise                            |
-| ------------------------------------- | ------------ | ----------------------------------- |
-| Node.js               | ✅            | Läuft hervorragend                  |
-| WhatsApp (Baileys) | ✅            | Reines JS, keine Probleme           |
-| Telegram                              | ✅            | Reines JS, keine Probleme           |
+| Werkzeug           | ARM64-Status | Hinweise                            |
+| ------------------ | ------------ | ----------------------------------- |
+| Node.js            | ✅           | Läuft hervorragend                  |
+| WhatsApp (Baileys) | ✅           | Reines JS, keine Probleme           |
+| Telegram           | ✅           | Reines JS, keine Probleme           |
 | gog (Gmail CLI)    | ⚠️           | Auf ARM-Release prüfen              |
-| Chromium (Browser) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (Browser) | ✅           | `sudo apt install chromium-browser` |
 
 Wenn ein Skill fehlschlägt, prüfen Sie, ob dessen Binary einen ARM-Build hat. Viele Go-/Rust-Tools haben einen; manche nicht.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Kostenvergleich
 
-| Setup                             | Einmalige Kosten     | Monatliche Kosten | Hinweise                                              |
-| --------------------------------- | -------------------- | ----------------- | ----------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                | + Strom (~$5/Jahr) |
-| **Pi 4 (4GB)** | ~$55 | $0                | Empfohlen                                             |
-| **Pi 5 (4GB)** | ~$60 | $0                | Beste Performance                                     |
-| **Pi 5 (8GB)** | ~$80 | $0                | Overkill, aber zukunftssicher                         |
-| DigitalOcean                      | $0                   | $6/Monat          | $72/Jahr                                              |
-| Hetzner                           | $0                   | €3,79/Monat       | ~$50/Jahr                             |
+| Setup          | Einmalige Kosten | Monatliche Kosten | Hinweise                      |
+| -------------- | ---------------- | ----------------- | ----------------------------- |
+| **Pi 4 (2GB)** | ~$45             | $0                | + Strom (~$5/Jahr)            |
+| **Pi 4 (4GB)** | ~$55             | $0                | Empfohlen                     |
+| **Pi 5 (4GB)** | ~$60             | $0                | Beste Performance             |
+| **Pi 5 (8GB)** | ~$80             | $0                | Overkill, aber zukunftssicher |
+| DigitalOcean   | $0               | $6/Monat          | $72/Jahr                      |
+| Hetzner        | $0               | €3,79/Monat       | ~$50/Jahr                     |
 
 **Break-even:** Ein Pi amortisiert sich nach ~6–12 Monaten gegenüber einer Cloud-VPS.
 

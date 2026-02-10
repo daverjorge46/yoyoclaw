@@ -74,7 +74,7 @@ openclaw gateway call config.apply --params '{
 ## Mises à jour partielles (RPC)
 
 Utilisez `config.patch` pour fusionner une mise à jour partielle dans la configuration existante sans écraser
-les clés non liées. Cela applique la sémantique de _JSON merge patch_ :
+les clés non liées. Cela applique la sémantique de *JSON merge patch* :
 
 - les objets fusionnent récursivement
 - `null` supprime une clé
@@ -504,7 +504,7 @@ Pour les groupes, utilisez `channels.whatsapp.groupPolicy` + `channels.whatsapp.
       dmPolicy: "appairage", // appairage | allowlist | open | disabled
       allowFrom: ["+15555550123", "+447700900123"],
       textChunkLimit: 4000, // taille de chunk sortant optionnelle (caractères)
-      chunkMode : "length", // mode de chunking optionnel (longueur | newline)
+      chunkMode: "length", // mode de chunking optionnel (longueur | newline)
       mediaMaxMb: 50, // capuche média entrante en option (MB)
     },
   },
@@ -595,10 +595,10 @@ Les messages de groupe sont par défaut **require mention** (soit la mention des
 
 ```json5
 {
-  messages : {
+  messages: {
     groupChat: { historyLimit: 50 },
   },
-  agents : {
+  agents: {
     list: [{ id: "main", groupChat: { mentionPatterns: ["@openclaw", "openclaw"] } }],
   },
 }
@@ -635,7 +635,7 @@ Surcharge par agent (prend la priorité lorsque défini, même `[]`):
 
 ```json5
 {
-  agents : {
+  agents: {
     liste: [
       { id: "travail", groupChat: { mentionPatterns: ["@workbot", "\\+15555550123"] } },
       { id: "personnel", groupChat: { mentionPatterns: ["@homebot", "\\+15555550999"] } },
@@ -657,7 +657,7 @@ Pour répondre **seulement** aux déclencheurs de texte spécifiques (ignorant l
       groupes: { "*": { requireMention: true } },
     },
   },
-  agents : {
+  agents: {
     liste: [
       {
         id: "main",
@@ -682,7 +682,7 @@ Utilisez `channels.*.groupPolicy` pour contrôler si les messages de groupe/sall
       groupPolicy: "allowlist",
       groupeAllowDe: ["+15551234567"],
     },
-    télégramme : {
+    télégramme: {
       groupPolicy: "allowlist",
       groupAllowDe: ["tg:123456789", "@alice"],
     },
@@ -690,7 +690,7 @@ Utilisez `channels.*.groupPolicy` pour contrôler si les messages de groupe/sall
       groupPolicy: "allowlist",
       groupAllowDe: ["+15551234567"],
     },
-    imitation : {
+    imitation: {
       groupPolicy: "allowlist",
       groupAllowDe: ["chat_id:123"],
     },
@@ -953,12 +953,12 @@ et utilise le message le plus recent pour le fil de reponse et les IDs.
 
 ```json5
 {
-  messages : {
+  messages: {
     inbound: {
       debounceMs: 2000, // 0 désactive
       byChannel: {
         whatsapp: 5000,
-        slack : 1500,
+        slack: 1500,
         discord: 1500,
       },
     },
@@ -978,7 +978,7 @@ Contrôle comment les commandes de chat sont activées entre les connecteurs.
 ```json5
 {
   commandes: {
-    natif : "auto", // registre les commandes natives lorsque supporté (auto)
+    natif: "auto", // registre les commandes natives lorsque supporté (auto)
     text: true, // analyse les commandes slash dans les messages de chat
     bash: false, // allow ! (alias: /bash) (Hôte seulement; nécessite des outils. listes d'autorisations levées)
     bashForegroundMs: 2000, // bash fenêtre de premier plan (0 arrière-plans immédiatement)
@@ -1019,10 +1019,10 @@ Définissez `web.enabled: false` pour le garder désactivé par défaut.
     heartbeatSeconds: 60,
     reconnecté: {
       initialMs: 2000,
-      maxMs : 120000,
-      facteur : 1. ,
-      jitter: 0. ,
-      maxTentatives : 0,
+      maxMs: 120000,
+      facteur: 1,
+      jitter: 0,
+      maxTentatives: 0,
     },
   },
 }
@@ -1454,7 +1454,7 @@ Utilisez ceci pour les déploiements préconfigurés où vos fichiers d'espace d
 
 ```json5
 {
-  agents : { defaults: { skipBootstrap: true } },
+  agents: { defaults: { skipBootstrap: true } },
 }
 ```
 
@@ -1467,7 +1467,7 @@ Lorsqu’un fichier dépasse cette limite, OpenClaw consigne un avertissement et
 
 ```json5
 {
-  agents : { defaults: { bootstrapMaxChars: 20000 } },
+  agents: { defaults: { bootstrapMaxChars: 20000 } },
 }
 ```
 
@@ -1537,20 +1537,20 @@ Définissez à `"auto"` pour dériver `[{identity.name}]` pour l'agent routé (l
 
 La chaîne `responsePrefix` peut inclure des variables de modèle qui se résolvent dynamiquement :
 
-| Variable          | Description                   | Exemple                                        |
-| ----------------- | ----------------------------- | ---------------------------------------------- |
-| `{model}`         | Nom du modèle court           | `claude-opus-4-6`, `gpt-4o`                    |
-| `{modelFull}`     | Identifiant complet du modèle | `anthropique/claude-opus-4-6`                  |
-| `{provider}`      | Nom du fournisseur            | `anthropique`, `openai`                        |
-| `{thinkingLevel}` | Niveau de pensée actuel       | `high`, `low`, `off`                           |
-| `{identity.name}` | Nom d'identité de l'agent     | (même que le mode `"auto"`) |
+| Variable          | Description                   | Exemple                       |
+| ----------------- | ----------------------------- | ----------------------------- |
+| `{model}`         | Nom du modèle court           | `claude-opus-4-6`, `gpt-4o`   |
+| `{modelFull}`     | Identifiant complet du modèle | `anthropique/claude-opus-4-6` |
+| `{provider}`      | Nom du fournisseur            | `anthropique`, `openai`       |
+| `{thinkingLevel}` | Niveau de pensée actuel       | `high`, `low`, `off`          |
+| `{identity.name}` | Nom d'identité de l'agent     | (même que le mode `"auto"`)   |
 
 Les variables sont insensibles à la casse (`{MODEL}` = `{model}`). `{think}` est un alias pour `{thinkingLevel}`.
 Les variables non résolues restent en tant que texte littéral.
 
 ```json5
 {
-  messages : {
+  messages: {
     responsePrefix: "[{model} | think:{thinkingLevel}]",
   },
 }
@@ -1650,8 +1650,8 @@ Par défaut pour le mode Talk (macOS/iOS/Android). Les identifiants vocaux sont 
   talk: {
     voiceId: "elevenlabs_voice_id",
     voiceAliases: {
-      Griffe : "EXAVITQu4vr4xnSDxMaL",
-      Roger : "CwhRBWXzGAHq8TQ4Fs17",
+      Griffe: "EXAVITQu4vr4xnSDxMaL",
+      Roger: "CwhRBWXzGAHq8TQ4Fs17",
     },
     modelId: "eleven_v3",
     outputFormat: "mp3_44100_128",
@@ -1973,7 +1973,7 @@ Bloquer le streaming:
 
   ```json5
   {
-    agents : { defaults: { blockStreamingChunk: { minChars: 800, maxChars: 1200 } } },
+    agents: { defaults: { blockStreamingChunk: { minChars: 800, maxChars: 1200 } } },
   }
   ```
 
@@ -2252,12 +2252,12 @@ Surcharge par agent (restriction supplémentaire):
 
 ```json5
 {
-  agents : {
+  agents: {
     liste: [
       {
-        id: "famille", Outils
-        : {
-          élevés : { enabled: false },
+        id: "famille",
+        Outils: {
+          élevés: { enabled: false },
         },
       },
     ],
@@ -2827,9 +2827,9 @@ Exemple :
     },
     install: {
       preferBrew: true,
-      nodeManager : "npm",
+      nodeManager: "npm",
     },
-    entrées : {
+    entrées: {
       "nano-banana-pro": {
         apiKey: "GEMINI_KEY_HERE",
         env: {
@@ -2837,7 +2837,7 @@ Exemple :
         },
       },
       peekaboo: { enabled: true },
-      Su : { enabled: false },
+      Su: { enabled: false },
     },
   },
 }
@@ -2955,7 +2955,7 @@ Utilisez `gateway.mode` pour déclarer explicitement si cette machine doit exéc
 ```json5
 {
   gateway: {
-    mode : "local", // ou "remote"
+    mode: "local", // ou "remote"
     port: 18789, // WS + HTTP multiplex
     bind: "loopback",
     // controlUi: { enabled: true, basePath: "/openclaw" }
@@ -3374,16 +3374,16 @@ Les espaces réservés au modèle sont étendus dans `tools.media.*.models[].arg
 \| `{{IsNewSession}}` | `"true"` quand une nouvelle session a été créée |
 \| `{{MediaUrl}}` | pseudo-URL du média entrant (si présent) |
 \| `{{MediaPath}}` | Chemin du média local (si téléchargé) |
-\| `{{MediaType}}` | Type de média (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Transcription audio (lorsque activée)                                             |
-\| `{{Prompt}}`       | Prompt média résolu pour les entrées CLI                                          |
-\| `{{MaxChars}}`     | Nombre maximal de caractères de sortie résolu pour les entrées CLI               |
-\| `{{ChatType}}`     | `"direct"` ou `"group"`                                                         |
-\| `{{GroupSubject}}` | Sujet du groupe (meilleur effort)                                                 |
-\| `{{GroupMembers}}` | Aperçu des membres du groupe (meilleur effort)                                   |
-\| `{{SenderName}}`   | Nom d’affichage de l’expéditeur (meilleur effort)                                 |
-\| `{{SenderE164}}`   | Numéro de téléphone de l’expéditeur (meilleur effort)                             |
-\| `{{Provider}}`     | Indication du fournisseur (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)
+\| `{{MediaType}}` | Type de média (image/audio/document/…) |
+\| `{{Transcript}}` | Transcription audio (lorsque activée) |
+\| `{{Prompt}}` | Prompt média résolu pour les entrées CLI |
+\| `{{MaxChars}}` | Nombre maximal de caractères de sortie résolu pour les entrées CLI |
+\| `{{ChatType}}` | `"direct"` ou `"group"` |
+\| `{{GroupSubject}}` | Sujet du groupe (meilleur effort) |
+\| `{{GroupMembers}}` | Aperçu des membres du groupe (meilleur effort) |
+\| `{{SenderName}}` | Nom d’affichage de l’expéditeur (meilleur effort) |
+\| `{{SenderE164}}` | Numéro de téléphone de l’expéditeur (meilleur effort) |
+\| `{{Provider}}` | Indication du fournisseur (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)
 |
 
 ## Cron (Planificateur de Gateway)

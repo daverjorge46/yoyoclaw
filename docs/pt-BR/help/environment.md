@@ -76,11 +76,11 @@ Veja [Configuração: Substituição de variáveis de ambiente](/gateway/configu
 
 ## Path-related env vars
 
-| Variável               | Propósito                                                                                                                                                                                                                           |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variável               | Propósito                                                                                                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENCLAW_HOME`        | Override the home directory used for all internal path resolution (`~/.openclaw/`, agent dirs, sessions, credentials). Useful when running OpenClaw as a dedicated service user. |
-| `OPENCLAW_STATE_DIR`   | Override the state directory (default `~/.openclaw`).                                                                                                                                            |
-| `OPENCLAW_CONFIG_PATH` | Substitua o caminho do arquivo de configuração (padrão `~/.openclaw/openclaw.json`).                                                                                                             |
+| `OPENCLAW_STATE_DIR`   | Override the state directory (default `~/.openclaw`).                                                                                                                            |
+| `OPENCLAW_CONFIG_PATH` | Substitua o caminho do arquivo de configuração (padrão `~/.openclaw/openclaw.json`).                                                                                             |
 
 ### `OPENCLAW_HOME`
 

@@ -38,14 +38,14 @@ This threat model documents adversarial threats to the OpenClaw AI agent platfor
 
 ### 1.2 Scope
 
-| Thành phần             | Included | Notes                                                            |
-| ---------------------- | -------- | ---------------------------------------------------------------- |
-| OpenClaw Agent Runtime | Có       | Core agent execution, tool calls, sessions                       |
-| Gateway                | Có       | Authentication, routing, channel integration                     |
+| Thành phần             | Included | Notes                                            |
+| ---------------------- | -------- | ------------------------------------------------ |
+| OpenClaw Agent Runtime | Có       | Core agent execution, tool calls, sessions       |
+| Gateway                | Có       | Authentication, routing, channel integration     |
 | Channel Integrations   | Có       | WhatsApp, Telegram, Discord, Signal, Slack, etc. |
-| ClawHub Marketplace    | Có       | Skill publishing, moderation, distribution                       |
-| MCP Servers            | Có       | External tool providers                                          |
-| User Devices           | Partial  | Mobile apps, desktop clients                                     |
+| ClawHub Marketplace    | Có       | Skill publishing, moderation, distribution       |
+| MCP Servers            | Có       | External tool providers                          |
+| User Devices           | Partial  | Mobile apps, desktop clients                     |
 
 ### 1.3 Out of Scope
 
@@ -124,14 +124,14 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 2.2 Data Flows
 
-| Flow | Source  | Destination | Data                                   | Protection          |
-| ---- | ------- | ----------- | -------------------------------------- | ------------------- |
-| F1   | Kênh    | Gateway     | Tin nhắn người dùng                    | TLS, AllowFrom      |
-| F2   | Gateway | Agent       | Tin nhắn được định tuyến               | Cách ly phiên       |
-| F3   | Agent   | Tools       | Lời gọi công cụ                        | Thực thi chính sách |
-| F4   | Agent   | Bên ngoài   | Yêu cầu web_fetch | Chặn SSRF           |
-| F5   | ClawHub | Agent       | Mã kỹ năng                             | Kiểm duyệt, quét    |
-| F6   | Agent   | Kênh        | Phản hồi                               | Lọc đầu ra          |
+| Flow | Source  | Destination | Data                     | Protection          |
+| ---- | ------- | ----------- | ------------------------ | ------------------- |
+| F1   | Kênh    | Gateway     | Tin nhắn người dùng      | TLS, AllowFrom      |
+| F2   | Gateway | Agent       | Tin nhắn được định tuyến | Cách ly phiên       |
+| F3   | Agent   | Tools       | Lời gọi công cụ          | Thực thi chính sách |
+| F4   | Agent   | Bên ngoài   | Yêu cầu web_fetch        | Chặn SSRF           |
+| F5   | ClawHub | Agent       | Mã kỹ năng               | Kiểm duyệt, quét    |
+| F6   | Agent   | Kênh        | Phản hồi                 | Lọc đầu ra          |
 
 ---
 
@@ -143,7 +143,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Thuộc tính                        | Giá trị                                                                           |
 | --------------------------------- | --------------------------------------------------------------------------------- |
-| **ATLAS ID**                      | AML.T0006 - Quét chủ động                                         |
+| **ATLAS ID**                      | AML.T0006 - Quét chủ động                                                         |
 | **Mô tả**                         | Kẻ tấn công quét các điểm cuối cổng OpenClaw bị lộ                                |
 | **Vector tấn công**               | Quét mạng, truy vấn Shodan, liệt kê DNS                                           |
 | **Thành phần bị ảnh hưởng**       | Cổng, các điểm cuối API bị lộ                                                     |
@@ -155,7 +155,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Thuộc tính              | Giá trị                                                                       |
 | ----------------------- | ----------------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0006 - Quét chủ động                                     |
+| **ATLAS ID**            | AML.T0006 - Quét chủ động                                                     |
 | **Mô tả**               | Kẻ tấn công thăm dò các kênh nhắn tin để xác định các tài khoản do AI quản lý |
 | **Vector tấn công**     | Gửi tin nhắn thử nghiệm, quan sát các mẫu phản hồi                            |
 | **Affected Components** | All channel integrations                                                      |
@@ -169,21 +169,21 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-ACCESS-001: Pairing Code Interception
 
-| Attribute               | Giá trị                                                   |
-| ----------------------- | --------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access |
-| **Mô tả**               | Attacker intercepts pairing code during 30s grace period  |
-| **Attack Vector**       | Shoulder surfing, network sniffing, social engineering    |
-| **Affected Components** | Device pairing system                                     |
-| **Current Mitigations** | 30s expiry, codes sent via existing channel               |
-| **Residual Risk**       | Medium - Grace period exploitable                         |
-| **Khuyến nghị**         | Reduce grace period, add confirmation step                |
+| Attribute               | Giá trị                                                  |
+| ----------------------- | -------------------------------------------------------- |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                |
+| **Mô tả**               | Attacker intercepts pairing code during 30s grace period |
+| **Attack Vector**       | Shoulder surfing, network sniffing, social engineering   |
+| **Affected Components** | Device pairing system                                    |
+| **Current Mitigations** | 30s expiry, codes sent via existing channel              |
+| **Residual Risk**       | Medium - Grace period exploitable                        |
+| **Khuyến nghị**         | Reduce grace period, add confirmation step               |
 
 #### T-ACCESS-002: AllowFrom Spoofing
 
 | Attribute               | Giá trị                                                                        |
 | ----------------------- | ------------------------------------------------------------------------------ |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                      |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                                      |
 | **Description**         | Attacker spoofs allowed sender identity in channel                             |
 | **Attack Vector**       | Depends on channel - phone number spoofing, username impersonation             |
 | **Affected Components** | AllowFrom validation per channel                                               |
@@ -193,15 +193,15 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-ACCESS-003: Token Theft
 
-| Attribute               | Giá trị                                                                  |
-| ----------------------- | ------------------------------------------------------------------------ |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                |
-| **Description**         | Attacker steals authentication tokens from config files                  |
-| **Attack Vector**       | Malware, unauthorized device access, config backup exposure              |
-| **Affected Components** | ~/.openclaw/credentials/, config storage |
-| **Current Mitigations** | Quyền tệp                                                                |
-| **Residual Risk**       | Cao - Token được lưu trữ ở dạng văn bản thuần                            |
-| **Khuyến nghị**         | Implement token encryption at rest, add token rotation                   |
+| Attribute               | Giá trị                                                     |
+| ----------------------- | ----------------------------------------------------------- |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                   |
+| **Description**         | Attacker steals authentication tokens from config files     |
+| **Attack Vector**       | Malware, unauthorized device access, config backup exposure |
+| **Affected Components** | ~/.openclaw/credentials/, config storage                    |
+| **Current Mitigations** | Quyền tệp                                                   |
+| **Residual Risk**       | Cao - Token được lưu trữ ở dạng văn bản thuần               |
+| **Khuyến nghị**         | Implement token encryption at rest, add token rotation      |
 
 ---
 
@@ -209,51 +209,51 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-EXEC-001: Direct Prompt Injection
 
-| Attribute                   | Giá trị                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| **ATLAS ID**                | AML.T0051.000 - Chèn Prompt LLM: Trực tiếp |
-| **Description**             | Kẻ tấn công gửi các prompt được chế tác để thao túng hành vi của tác nhân                  |
-| **Attack Vector**           | Channel messages containing adversarial instructions                                       |
-| **Thành phần bị ảnh hưởng** | Agent LLM, all input surfaces                                                              |
-| **Current Mitigations**     | Phát hiện mẫu, bao bọc nội dung bên ngoài                                                  |
-| **Residual Risk**           | Critical - Detection only, no blocking; sophisticated attacks bypass                       |
-| **Khuyến nghị**             | Implement multi-layer defense, output validation, user confirmation for sensitive actions  |
+| Attribute                   | Giá trị                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------- |
+| **ATLAS ID**                | AML.T0051.000 - Chèn Prompt LLM: Trực tiếp                                                |
+| **Description**             | Kẻ tấn công gửi các prompt được chế tác để thao túng hành vi của tác nhân                 |
+| **Attack Vector**           | Channel messages containing adversarial instructions                                      |
+| **Thành phần bị ảnh hưởng** | Agent LLM, all input surfaces                                                             |
+| **Current Mitigations**     | Phát hiện mẫu, bao bọc nội dung bên ngoài                                                 |
+| **Residual Risk**           | Critical - Detection only, no blocking; sophisticated attacks bypass                      |
+| **Khuyến nghị**             | Implement multi-layer defense, output validation, user confirmation for sensitive actions |
 
 #### T-EXEC-002: Indirect Prompt Injection
 
-| Attribute                         | Giá trị                                                                                        |
-| --------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **ATLAS ID**                      | AML.T0051.001 - LLM Prompt Injection: Indirect |
-| **Description**                   | Attacker embeds malicious instructions in fetched content                                      |
-| **Attack Vector**                 | Malicious URLs, poisoned emails, compromised webhooks                                          |
-| **Affected Components**           | web_fetch, email ingestion, external data sources                         |
-| **Biện pháp giảm thiểu hiện tại** | Content wrapping with XML tags and security notice                                             |
-| **Residual Risk**                 | High - LLM may ignore wrapper instructions                                                     |
-| **Khuyến nghị**                   | Implement content sanitization, separate execution contexts                                    |
+| Attribute                         | Giá trị                                                     |
+| --------------------------------- | ----------------------------------------------------------- |
+| **ATLAS ID**                      | AML.T0051.001 - LLM Prompt Injection: Indirect              |
+| **Description**                   | Attacker embeds malicious instructions in fetched content   |
+| **Attack Vector**                 | Malicious URLs, poisoned emails, compromised webhooks       |
+| **Affected Components**           | web_fetch, email ingestion, external data sources           |
+| **Biện pháp giảm thiểu hiện tại** | Content wrapping with XML tags and security notice          |
+| **Residual Risk**                 | High - LLM may ignore wrapper instructions                  |
+| **Khuyến nghị**                   | Implement content sanitization, separate execution contexts |
 
 #### T-EXEC-003: Tool Argument Injection
 
-| Attribute               | Giá trị                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0051.000 - LLM Prompt Injection: Direct |
-| **Description**         | Attacker manipulates tool arguments through prompt injection                                 |
-| **Attack Vector**       | Crafted prompts that influence tool parameter values                                         |
-| **Affected Components** | All tool invocations                                                                         |
-| **Current Mitigations** | Exec approvals for dangerous commands                                                        |
-| **Residual Risk**       | High - Relies on user judgment                                                               |
-| **Khuyến nghị**         | Implement argument validation, parameterized tool calls                                      |
+| Attribute               | Giá trị                                                      |
+| ----------------------- | ------------------------------------------------------------ |
+| **ATLAS ID**            | AML.T0051.000 - LLM Prompt Injection: Direct                 |
+| **Description**         | Attacker manipulates tool arguments through prompt injection |
+| **Attack Vector**       | Crafted prompts that influence tool parameter values         |
+| **Affected Components** | All tool invocations                                         |
+| **Current Mitigations** | Exec approvals for dangerous commands                        |
+| **Residual Risk**       | High - Relies on user judgment                               |
+| **Khuyến nghị**         | Implement argument validation, parameterized tool calls      |
 
 #### T-EXEC-004: Exec Approval Bypass
 
-| Attribute                                             | Giá trị                                                                                  |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 1. **ATLAS ID**                | 2. AML.T0043 - Tạo dữ liệu đối nghịch             |
-| 3. **Mô tả**                   | 4. Kẻ tấn công tạo các lệnh vượt qua danh sách cho phép phê duyệt |
-| 5. **Vector tấn công**         | 6. Làm rối lệnh, khai thác bí danh, thao túng đường dẫn           |
-| 7. **Thành phần bị ảnh hưởng** | 8. exec-approvals.ts, danh sách cho phép lệnh     |
-| **Biện pháp giảm thiểu hiện tại**                     | Danh sách cho phép + chế độ hỏi                                                          |
-| 11. **Rủi ro còn lại**         | 12. Cao - Không có chuẩn hóa lệnh                                 |
-| **Khuyến nghị**                                       | 13. Triển khai chuẩn hóa lệnh, mở rộng danh sách chặn             |
+| Attribute                         | Giá trị                                                           |
+| --------------------------------- | ----------------------------------------------------------------- |
+| 1. **ATLAS ID**                   | 2. AML.T0043 - Tạo dữ liệu đối nghịch                             |
+| 3. **Mô tả**                      | 4. Kẻ tấn công tạo các lệnh vượt qua danh sách cho phép phê duyệt |
+| 5. **Vector tấn công**            | 6. Làm rối lệnh, khai thác bí danh, thao túng đường dẫn           |
+| 7. **Thành phần bị ảnh hưởng**    | 8. exec-approvals.ts, danh sách cho phép lệnh                     |
+| **Biện pháp giảm thiểu hiện tại** | Danh sách cho phép + chế độ hỏi                                   |
+| 11. **Rủi ro còn lại**            | 12. Cao - Không có chuẩn hóa lệnh                                 |
+| **Khuyến nghị**                   | 13. Triển khai chuẩn hóa lệnh, mở rộng danh sách chặn             |
 
 ---
 
@@ -261,39 +261,39 @@ Nothing is explicitly out of scope for this threat model.
 
 #### 15. T-PERSIST-001: Cài đặt kỹ năng độc hại
 
-| 16. Thuộc tính                        | Giá trị                                                                                                                 |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **ID ATLAS**                                                 | AML.T0010.001 - Xâm phạm chuỗi cung ứng: Phần mềm AI                    |
-| 19. **Mô tả**                         | 20. Kẻ tấn công phát hành kỹ năng độc hại lên ClawHub                                            |
-| 21. **Vector tấn công**               | 22. Tạo tài khoản, phát hành kỹ năng có mã độc ẩn                                                |
-| **Thành phần bị ảnh hưởng**                                  | ClawHub, tải kỹ năng, thực thi tác nhân                                                                                 |
-| 25. **Biện pháp giảm thiểu hiện tại** | 26. Xác minh tuổi tài khoản GitHub, cờ kiểm duyệt dựa trên mẫu                                   |
-| 27. **Rủi ro còn lại**                | 28. Nghiêm trọng - Không có sandboxing, kiểm duyệt hạn chế                                       |
-| **Khuyến nghị**                                              | 29. Tích hợp VirusTotal (đang tiến hành), sandbox kỹ năng, đánh giá cộng đồng |
+| 16. Thuộc tính                        | Giá trị                                                                       |
+| ------------------------------------- | ----------------------------------------------------------------------------- |
+| **ID ATLAS**                          | AML.T0010.001 - Xâm phạm chuỗi cung ứng: Phần mềm AI                          |
+| 19. **Mô tả**                         | 20. Kẻ tấn công phát hành kỹ năng độc hại lên ClawHub                         |
+| 21. **Vector tấn công**               | 22. Tạo tài khoản, phát hành kỹ năng có mã độc ẩn                             |
+| **Thành phần bị ảnh hưởng**           | ClawHub, tải kỹ năng, thực thi tác nhân                                       |
+| 25. **Biện pháp giảm thiểu hiện tại** | 26. Xác minh tuổi tài khoản GitHub, cờ kiểm duyệt dựa trên mẫu                |
+| 27. **Rủi ro còn lại**                | 28. Nghiêm trọng - Không có sandboxing, kiểm duyệt hạn chế                    |
+| **Khuyến nghị**                       | 29. Tích hợp VirusTotal (đang tiến hành), sandbox kỹ năng, đánh giá cộng đồng |
 
 #### 30. T-PERSIST-002: Đầu độc cập nhật kỹ năng
 
-| 31. Thuộc tính                        | Giá trị                                                                                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| 32. **ATLAS ID**                      | 33. AML.T0010.001 - Xâm phạm chuỗi cung ứng: Phần mềm AI |
-| 34. **Mô tả**                         | 35. Kẻ tấn công xâm nhập kỹ năng phổ biến và đẩy bản cập nhật độc hại                                    |
-| 36. **Vector tấn công**               | 37. Xâm phạm tài khoản, kỹ nghệ xã hội đối với chủ sở hữu kỹ năng                                        |
-| 38. **Thành phần bị ảnh hưởng**       | 39. Phiên bản hóa ClawHub, luồng tự động cập nhật                                                        |
-| 40. **Biện pháp giảm thiểu hiện tại** | 41. Lấy dấu vân tay phiên bản                                                                            |
-| 42. **Rủi ro còn lại**                | 43. Cao - Tự động cập nhật có thể tải về phiên bản độc hại                                               |
-| **Khuyến nghị**                                              | 44. Triển khai ký cập nhật, khả năng hoàn nguyên, ghim phiên bản                                         |
+| 31. Thuộc tính                        | Giá trị                                                               |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| 32. **ATLAS ID**                      | 33. AML.T0010.001 - Xâm phạm chuỗi cung ứng: Phần mềm AI              |
+| 34. **Mô tả**                         | 35. Kẻ tấn công xâm nhập kỹ năng phổ biến và đẩy bản cập nhật độc hại |
+| 36. **Vector tấn công**               | 37. Xâm phạm tài khoản, kỹ nghệ xã hội đối với chủ sở hữu kỹ năng     |
+| 38. **Thành phần bị ảnh hưởng**       | 39. Phiên bản hóa ClawHub, luồng tự động cập nhật                     |
+| 40. **Biện pháp giảm thiểu hiện tại** | 41. Lấy dấu vân tay phiên bản                                         |
+| 42. **Rủi ro còn lại**                | 43. Cao - Tự động cập nhật có thể tải về phiên bản độc hại            |
+| **Khuyến nghị**                       | 44. Triển khai ký cập nhật, khả năng hoàn nguyên, ghim phiên bản      |
 
 #### 45. T-PERSIST-003: Can thiệp cấu hình tác nhân
 
-| 46. Thuộc tính   | Giá trị                                                                                                                     |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 47. **ATLAS ID** | 48. AML.T0010.002 - Xâm phạm chuỗi cung ứng: Dữ liệu |
-| 49. **Mô tả**    | 50. Kẻ tấn công sửa đổi cấu hình tác nhân để duy trì quyền truy cập                                  |
-| **Attack Vector**                       | Chỉnh sửa tệp cấu hình, chèn cài đặt                                                                                        |
-| **Affected Components**                 | Agent config, tool policies                                                                                                 |
-| **Current Mitigations**                 | Quyền tệp                                                                                                                   |
-| **Residual Risk**                       | Medium - Requires local access                                                                                              |
-| **Khuyến nghị**                         | Config integrity verification, audit logging for config changes                                                             |
+| 46. Thuộc tính          | Giá trị                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| 47. **ATLAS ID**        | 48. AML.T0010.002 - Xâm phạm chuỗi cung ứng: Dữ liệu                |
+| 49. **Mô tả**           | 50. Kẻ tấn công sửa đổi cấu hình tác nhân để duy trì quyền truy cập |
+| **Attack Vector**       | Chỉnh sửa tệp cấu hình, chèn cài đặt                                |
+| **Affected Components** | Agent config, tool policies                                         |
+| **Current Mitigations** | Quyền tệp                                                           |
+| **Residual Risk**       | Medium - Requires local access                                      |
+| **Khuyến nghị**         | Config integrity verification, audit logging for config changes     |
 
 ---
 
@@ -301,21 +301,21 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-EVADE-001: Moderation Pattern Bypass
 
-| Attribute               | Giá trị                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0043 - Craft Adversarial Data                                        |
-| **Description**         | Kẻ tấn công chế tác nội dung kỹ năng để né tránh các mẫu kiểm duyệt                       |
-| **Attack Vector**       | Unicode homoglyphs, encoding tricks, dynamic loading                                      |
-| **Affected Components** | ClawHub moderation.ts                                                     |
-| **Current Mitigations** | Pattern-based FLAG_RULES                                             |
-| **Residual Risk**       | High - Simple regex easily bypassed                                                       |
+| Attribute               | Giá trị                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| **ATLAS ID**            | AML.T0043 - Craft Adversarial Data                                     |
+| **Description**         | Kẻ tấn công chế tác nội dung kỹ năng để né tránh các mẫu kiểm duyệt    |
+| **Attack Vector**       | Unicode homoglyphs, encoding tricks, dynamic loading                   |
+| **Affected Components** | ClawHub moderation.ts                                                  |
+| **Current Mitigations** | Pattern-based FLAG_RULES                                               |
+| **Residual Risk**       | High - Simple regex easily bypassed                                    |
 | **Khuyến nghị**         | Add behavioral analysis (VirusTotal Code Insight), AST-based detection |
 
 #### T-EVADE-002: Content Wrapper Escape
 
 | Attribute               | Giá trị                                                   |
 | ----------------------- | --------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0043 - Craft Adversarial Data        |
+| **ATLAS ID**            | AML.T0043 - Craft Adversarial Data                        |
 | **Description**         | Attacker crafts content that escapes XML wrapper context  |
 | **Attack Vector**       | Tag manipulation, context confusion, instruction override |
 | **Affected Components** | External content wrapping                                 |
@@ -329,27 +329,27 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-DISC-001: Tool Enumeration
 
-| Attribute               | Giá trị                                                   |
-| ----------------------- | --------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access |
-| **Description**         | Attacker enumerates available tools through prompting     |
-| **Attack Vector**       | "What tools do you have?" style queries                   |
-| **Affected Components** | Agent tool registry                                       |
-| **Current Mitigations** | None specific                                             |
-| **Residual Risk**       | Low - Tools generally documented                          |
-| **Khuyến nghị**         | Consider tool visibility controls                         |
+| Attribute               | Giá trị                                               |
+| ----------------------- | ----------------------------------------------------- |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access             |
+| **Description**         | Attacker enumerates available tools through prompting |
+| **Attack Vector**       | "What tools do you have?" style queries               |
+| **Affected Components** | Agent tool registry                                   |
+| **Current Mitigations** | None specific                                         |
+| **Residual Risk**       | Low - Tools generally documented                      |
+| **Khuyến nghị**         | Consider tool visibility controls                     |
 
 #### T-DISC-002: Session Data Extraction
 
-| Attribute                   | Giá trị                                                   |
-| --------------------------- | --------------------------------------------------------- |
-| **ATLAS ID**                | AML.T0040 - AI Model Inference API Access |
-| **Description**             | Attacker extracts sensitive data from session context     |
-| **Attack Vector**           | "What did we discuss?" queries, context probing           |
-| **Thành phần bị ảnh hưởng** | Session transcripts, context window                       |
-| **Current Mitigations**     | Session isolation per sender                              |
-| **Residual Risk**           | Medium - Within-session data accessible                   |
-| **Khuyến nghị**             | Implement sensitive data redaction in context             |
+| Attribute                   | Giá trị                                               |
+| --------------------------- | ----------------------------------------------------- |
+| **ATLAS ID**                | AML.T0040 - AI Model Inference API Access             |
+| **Description**             | Attacker extracts sensitive data from session context |
+| **Attack Vector**           | "What did we discuss?" queries, context probing       |
+| **Thành phần bị ảnh hưởng** | Session transcripts, context window                   |
+| **Current Mitigations**     | Session isolation per sender                          |
+| **Residual Risk**           | Medium - Within-session data accessible               |
+| **Khuyến nghị**             | Implement sensitive data redaction in context         |
 
 ---
 
@@ -359,10 +359,10 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | Giá trị                                                                |
 | ----------------------- | ---------------------------------------------------------------------- |
-| **ID ATLAS**            | AML.T0009 - Collection                                 |
+| **ID ATLAS**            | AML.T0009 - Collection                                                 |
 | **Description**         | Attacker exfiltrates data by instructing agent to send to external URL |
 | **Attack Vector**       | Prompt injection causing agent to POST data to attacker server         |
-| **Affected Components** | web_fetch tool                                    |
+| **Affected Components** | web_fetch tool                                                         |
 | **Current Mitigations** | SSRF blocking for internal networks                                    |
 | **Residual Risk**       | High - External URLs permitted                                         |
 | **Khuyến nghị**         | Implement URL allowlisting, data classification awareness              |
@@ -371,7 +371,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | Giá trị                                                          |
 | ----------------------- | ---------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0009 - Collection                           |
+| **ATLAS ID**            | AML.T0009 - Collection                                           |
 | **Description**         | Attacker causes agent to send messages containing sensitive data |
 | **Attack Vector**       | Prompt injection causing agent to message attacker               |
 | **Affected Components** | Message tool, channel integrations                               |
@@ -383,7 +383,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Thuộc tính              | Giá trị                                                 |
 | ----------------------- | ------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0009 - Collection                  |
+| **ATLAS ID**            | AML.T0009 - Collection                                  |
 | **Description**         | Malicious skill harvests credentials from agent context |
 | **Attack Vector**       | Skill code reads environment variables, config files    |
 | **Affected Components** | Skill execution environment                             |
@@ -397,39 +397,39 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-IMPACT-001: Unauthorized Command Execution
 
-| Attribute               | Giá trị                                              |
-| ----------------------- | ---------------------------------------------------- |
-| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity |
-| **Description**         | Attacker executes arbitrary commands on user system  |
-| **Attack Vector**       | Prompt injection combined with exec approval bypass  |
-| **Affected Components** | Bash tool, command execution                         |
-| **Current Mitigations** | Exec approvals, Docker sandbox option                |
-| **Residual Risk**       | Critical - Host execution without sandbox            |
-| **Khuyến nghị**         | Default to sandbox, improve approval UX              |
+| Attribute               | Giá trị                                             |
+| ----------------------- | --------------------------------------------------- |
+| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity                |
+| **Description**         | Attacker executes arbitrary commands on user system |
+| **Attack Vector**       | Prompt injection combined with exec approval bypass |
+| **Affected Components** | Bash tool, command execution                        |
+| **Current Mitigations** | Exec approvals, Docker sandbox option               |
+| **Residual Risk**       | Critical - Host execution without sandbox           |
+| **Khuyến nghị**         | Default to sandbox, improve approval UX             |
 
 #### T-IMPACT-002: Resource Exhaustion (DoS)
 
-| Attribute               | Giá trị                                              |
-| ----------------------- | ---------------------------------------------------- |
-| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity |
-| **Description**         | Attacker exhausts API credits or compute resources   |
-| **Attack Vector**       | Automated message flooding, expensive tool calls     |
-| **Affected Components** | Gateway, agent sessions, API provider                |
-| **Current Mitigations** | None                                                 |
-| **Residual Risk**       | High - No rate limiting                              |
-| **Khuyến nghị**         | Implement per-sender rate limits, cost budgets       |
+| Attribute               | Giá trị                                            |
+| ----------------------- | -------------------------------------------------- |
+| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity               |
+| **Description**         | Attacker exhausts API credits or compute resources |
+| **Attack Vector**       | Automated message flooding, expensive tool calls   |
+| **Affected Components** | Gateway, agent sessions, API provider              |
+| **Current Mitigations** | None                                               |
+| **Residual Risk**       | High - No rate limiting                            |
+| **Khuyến nghị**         | Implement per-sender rate limits, cost budgets     |
 
 #### T-IMPACT-003: Reputation Damage
 
-| Attribute                         | Giá trị                                                               |
-| --------------------------------- | --------------------------------------------------------------------- |
-| **ATLAS ID**                      | AML.T0031 - Làm suy giảm tính toàn vẹn của mô hình AI |
-| **Mô tả**                         | Kẻ tấn công khiến tác nhân gửi nội dung gây hại/xúc phạm              |
-| **Vector tấn công**               | Prompt injection gây ra phản hồi không phù hợp                        |
-| **Thành phần bị ảnh hưởng**       | Tạo đầu ra, nhắn tin qua kênh                                         |
-| **Biện pháp giảm thiểu hiện tại** | Chính sách nội dung của nhà cung cấp LLM                              |
-| **Rủi ro còn lại**                | Trung bình - Bộ lọc của nhà cung cấp chưa hoàn hảo                    |
-| **Khuyến nghị**                   | Lớp lọc đầu ra, kiểm soát người dùng                                  |
+| Attribute                         | Giá trị                                                  |
+| --------------------------------- | -------------------------------------------------------- |
+| **ATLAS ID**                      | AML.T0031 - Làm suy giảm tính toàn vẹn của mô hình AI    |
+| **Mô tả**                         | Kẻ tấn công khiến tác nhân gửi nội dung gây hại/xúc phạm |
+| **Vector tấn công**               | Prompt injection gây ra phản hồi không phù hợp           |
+| **Thành phần bị ảnh hưởng**       | Tạo đầu ra, nhắn tin qua kênh                            |
+| **Biện pháp giảm thiểu hiện tại** | Chính sách nội dung của nhà cung cấp LLM                 |
+| **Rủi ro còn lại**                | Trung bình - Bộ lọc của nhà cung cấp chưa hoàn hảo       |
+| **Khuyến nghị**                   | Lớp lọc đầu ra, kiểm soát người dùng                     |
 
 ---
 
@@ -437,15 +437,15 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 4.1 Các kiểm soát bảo mật hiện tại
 
-| Kiểm soát                        | Triển khai                                                          | Hiệu quả                                                        |
-| -------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Tuổi tài khoản GitHub            | `requireGitHubAccountAge()`                                         | Trung bình - Nâng cao rào cản cho kẻ tấn công mới               |
-| Chuẩn hóa đường dẫn              | `sanitizePath()`                                                    | Cao - Ngăn chặn path traversal                                  |
-| Xác thực loại tệp                | `isTextFile()`                                                      | Trung bình - Chỉ cho phép tệp văn bản, nhưng vẫn có thể độc hại |
-| Giới hạn kích thước              | Tổng gói 50MB                                                       | Cao - Ngăn chặn cạn kiệt tài nguyên                             |
-| Yêu cầu SKILL.md | Readme bắt buộc                                                     | Giá trị bảo mật thấp - Chỉ mang tính thông tin                  |
-| Điều tiết theo mẫu               | FLAG_RULES trong moderation.ts | Thấp - Dễ bị vượt qua                                           |
-| Trạng thái điều tiết             | `moderationStatus` field                                            | Trung bình - Có thể xem xét thủ công                            |
+| Kiểm soát             | Triển khai                     | Hiệu quả                                                        |
+| --------------------- | ------------------------------ | --------------------------------------------------------------- |
+| Tuổi tài khoản GitHub | `requireGitHubAccountAge()`    | Trung bình - Nâng cao rào cản cho kẻ tấn công mới               |
+| Chuẩn hóa đường dẫn   | `sanitizePath()`               | Cao - Ngăn chặn path traversal                                  |
+| Xác thực loại tệp     | `isTextFile()`                 | Trung bình - Chỉ cho phép tệp văn bản, nhưng vẫn có thể độc hại |
+| Giới hạn kích thước   | Tổng gói 50MB                  | Cao - Ngăn chặn cạn kiệt tài nguyên                             |
+| Yêu cầu SKILL.md      | Readme bắt buộc                | Giá trị bảo mật thấp - Chỉ mang tính thông tin                  |
+| Điều tiết theo mẫu    | FLAG_RULES trong moderation.ts | Thấp - Dễ bị vượt qua                                           |
+| Trạng thái điều tiết  | `moderationStatus` field       | Trung bình - Có thể xem xét thủ công                            |
 
 ### 4.2 Các mẫu cờ điều tiết
 
@@ -473,12 +473,12 @@ Các mẫu hiện tại trong `moderation.ts`:
 
 ### 4.3 Các cải tiến dự kiến
 
-| Cải tiến            | Trạng thái                                               | Tác động                                                              |
-| ------------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
-| Tích hợp VirusTotal | Đang triển khai                                          | High - Code Insight behavioral analysis                               |
+| Cải tiến            | Trạng thái                            | Tác động                                                              |
+| ------------------- | ------------------------------------- | --------------------------------------------------------------------- |
+| Tích hợp VirusTotal | Đang triển khai                       | High - Code Insight behavioral analysis                               |
 | Community Reporting | Partial (`skillReports` table exists) | Trung bình                                                            |
 | Audit Logging       | Một phần (`auditLogs` table tồn tại)  | Medium                                                                |
-| Badge System        | Implemented                                              | Medium - `highlighted`, `official`, `deprecated`, `redactionApproved` |
+| Badge System        | Implemented                           | Medium - `highlighted`, `official`, `deprecated`, `redactionApproved` |
 
 ---
 
@@ -539,11 +539,11 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ### 6.2 Short-term (P1)
 
-| ID    | Recommendation                                                | Addresses    |
-| ----- | ------------------------------------------------------------- | ------------ |
-| R-004 | Implement rate limiting                                       | T-IMPACT-002 |
-| R-005 | Add token encryption at rest                                  | T-ACCESS-003 |
-| R-006 | Improve exec approval UX and validation                       | T-EXEC-004   |
+| ID    | Recommendation                           | Addresses    |
+| ----- | ---------------------------------------- | ------------ |
+| R-004 | Implement rate limiting                  | T-IMPACT-002 |
+| R-005 | Add token encryption at rest             | T-ACCESS-003 |
+| R-006 | Improve exec approval UX and validation  | T-EXEC-004   |
 | R-007 | Implement URL allowlisting for web_fetch | T-EXFIL-001  |
 
 ### 6.3 Medium-term (P2)
@@ -560,31 +560,31 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ### 7.1 ATLAS Technique Mapping
 
-| ATLAS ID                                      | Technique Name                               | OpenClaw Threats                                                 |
-| --------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| AML.T0006                     | Active Scanning                              | T-RECON-001, T-RECON-002                                         |
-| AML.T0009                     | Collection                                   | T-EXFIL-001, T-EXFIL-002, T-EXFIL-003                            |
-| AML.T0010.001 | Supply Chain: AI Software    | T-PERSIST-001, T-PERSIST-002                                     |
-| AML.T0010.002 | Supply Chain: Data           | T-PERSIST-003                                                    |
-| AML.T0031                     | Làm xói mòn tính toàn vẹn của mô hình AI     | T-IMPACT-001, T-IMPACT-002, T-IMPACT-003                         |
-| AML.T0040                     | Truy cập API suy luận mô hình AI             | T-ACCESS-001, T-ACCESS-002, T-ACCESS-003, T-DISC-001, T-DISC-002 |
-| AML.T0043                     | Tạo dữ liệu đối nghịch                       | T-EXEC-004, T-EVADE-001, T-EVADE-002                             |
-| AML.T0051.000 | Tiêm lời nhắc LLM: Trực tiếp | T-EXEC-001, T-EXEC-003                                           |
-| AML.T0051.001 | Tiêm lời nhắc LLM: Gián tiếp | T-EXEC-002                                                       |
+| ATLAS ID      | Technique Name                           | OpenClaw Threats                                                 |
+| ------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| AML.T0006     | Active Scanning                          | T-RECON-001, T-RECON-002                                         |
+| AML.T0009     | Collection                               | T-EXFIL-001, T-EXFIL-002, T-EXFIL-003                            |
+| AML.T0010.001 | Supply Chain: AI Software                | T-PERSIST-001, T-PERSIST-002                                     |
+| AML.T0010.002 | Supply Chain: Data                       | T-PERSIST-003                                                    |
+| AML.T0031     | Làm xói mòn tính toàn vẹn của mô hình AI | T-IMPACT-001, T-IMPACT-002, T-IMPACT-003                         |
+| AML.T0040     | Truy cập API suy luận mô hình AI         | T-ACCESS-001, T-ACCESS-002, T-ACCESS-003, T-DISC-001, T-DISC-002 |
+| AML.T0043     | Tạo dữ liệu đối nghịch                   | T-EXEC-004, T-EVADE-001, T-EVADE-002                             |
+| AML.T0051.000 | Tiêm lời nhắc LLM: Trực tiếp             | T-EXEC-001, T-EXEC-003                                           |
+| AML.T0051.001 | Tiêm lời nhắc LLM: Gián tiếp             | T-EXEC-002                                                       |
 
 ### 7.2 Các tệp bảo mật then chốt
 
 | dung lượng lưu trữ của bạn, không phải mô hình. | Mục đích                    | Mức độ rủi ro    |
-| --------------------------------------------------------------- | --------------------------- | ---------------- |
-| `src/infra/exec-approvals.ts`                                   | Logic phê duyệt lệnh        | **Nghiêm trọng** |
-| `src/gateway/auth.ts`                                           | Xác thực cổng               | **Nghiêm trọng** |
-| `src/web/inbound/access-control.ts`                             | Kiểm soát truy cập kênh     | **Nghiêm trọng** |
-| `src/infra/net/ssrf.ts`                                         | Bảo vệ SSRF                 | **Nghiêm trọng** |
-| `src/security/external-content.ts`                              | Giảm thiểu tiêm lời nhắc    | **Nghiêm trọng** |
-| `src/agents/sandbox/tool-policy.ts`                             | Thực thi chính sách công cụ | **Nghiêm trọng** |
-| `convex/lib/moderation.ts`                                      | Kiểm duyệt ClawHub          | **Cao**          |
-| `convex/lib/skillPublish.ts`                                    | Quy trình phát hành kỹ năng | **Cao**          |
-| `src/routing/resolve-route.ts`                                  | Cách ly phiên               | **Trung bình**   |
+| ----------------------------------------------- | --------------------------- | ---------------- |
+| `src/infra/exec-approvals.ts`                   | Logic phê duyệt lệnh        | **Nghiêm trọng** |
+| `src/gateway/auth.ts`                           | Xác thực cổng               | **Nghiêm trọng** |
+| `src/web/inbound/access-control.ts`             | Kiểm soát truy cập kênh     | **Nghiêm trọng** |
+| `src/infra/net/ssrf.ts`                         | Bảo vệ SSRF                 | **Nghiêm trọng** |
+| `src/security/external-content.ts`              | Giảm thiểu tiêm lời nhắc    | **Nghiêm trọng** |
+| `src/agents/sandbox/tool-policy.ts`             | Thực thi chính sách công cụ | **Nghiêm trọng** |
+| `convex/lib/moderation.ts`                      | Kiểm duyệt ClawHub          | **Cao**          |
+| `convex/lib/skillPublish.ts`                    | Quy trình phát hành kỹ năng | **Cao**          |
+| `src/routing/resolve-route.ts`                  | Cách ly phiên               | **Trung bình**   |
 
 ### 7.3 Thuật ngữ
 
@@ -600,4 +600,4 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ---
 
-_Mô hình mối đe dọa này là một tài liệu luôn được cập nhật._ Báo cáo các vấn đề bảo mật tới security@openclaw.ai_
+_Mô hình mối đe dọa này là một tài liệu luôn được cập nhật._ Báo cáo các vấn đề bảo mật tới security@openclaw.ai\_

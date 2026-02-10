@@ -128,16 +128,16 @@ Zalo เป็นแอปส่งข้อความที่เน้นต
 
 ## Capabilities
 
-| Feature                           | Status                                        |
-| --------------------------------- | --------------------------------------------- |
-| Direct messages                   | ✅ รองรับ                                      |
-| Groups                            | ❌ เร็วๆนี้(ตามเอกสารZalo)  |
-| Media (images) | ✅ รองรับ                                      |
-| Reactions                         | ❌ ไม่รองรับ                                   |
-| Threads                           | ❌ ไม่รองรับ                                   |
-| Polls                             | ❌ ไม่รองรับ                                   |
-| Native commands                   | ❌ ไม่รองรับ                                   |
-| Streaming                         | ⚠️ ถูกปิด(จำกัด2000อักขระ) |
+| Feature         | Status                     |
+| --------------- | -------------------------- |
+| Direct messages | ✅ รองรับ                  |
+| Groups          | ❌ เร็วๆนี้(ตามเอกสารZalo) |
+| Media (images)  | ✅ รองรับ                  |
+| Reactions       | ❌ ไม่รองรับ               |
+| Threads         | ❌ ไม่รองรับ               |
+| Polls           | ❌ ไม่รองรับ               |
+| Native commands | ❌ ไม่รองรับ               |
+| Streaming       | ⚠️ ถูกปิด(จำกัด2000อักขระ) |
 
 ## Delivery targets (CLI/cron)
 

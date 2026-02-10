@@ -16,13 +16,13 @@ Si desea una opción de $0/mes y no le importa ARM + una configuración específ
 
 ## Comparación de costos (2026)
 
-| Proveedor    | Plan            | Especificaciones       | Precio/mes                                                     | Notas                                                |
-| ------------ | --------------- | ---------------------- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| Oracle Cloud | Always Free ARM | hasta 4 OCPU, 24GB RAM | $0                                                             | ARM, capacidad limitada / peculiaridades de registro |
+| Proveedor    | Plan            | Especificaciones       | Precio/mes  | Notas                                                |
+| ------------ | --------------- | ---------------------- | ----------- | ---------------------------------------------------- |
+| Oracle Cloud | Always Free ARM | hasta 4 OCPU, 24GB RAM | $0          | ARM, capacidad limitada / peculiaridades de registro |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM        | €3.79 (~$4) | Opción de pago más barata                            |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM        | $6                                                             | UI sencilla, buena documentación                     |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM        | $6                                                             | Muchas ubicaciones                                   |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM        | $5                                                             | Ahora parte de Akamai                                |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM        | $6          | UI sencilla, buena documentación                     |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM        | $6          | Muchas ubicaciones                                   |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM        | $5          | Ahora parte de Akamai                                |
 
 **Elección de proveedor:**
 

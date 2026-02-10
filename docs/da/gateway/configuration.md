@@ -964,7 +964,7 @@ og bruger den seneste meddelelse til svar tråde / IDs.
       byChannel: {
         whatsapp: 5000,
         slack: 1500,
-        discord: 1500
+        discord: 1500,
       },
     },
   },
@@ -1546,12 +1546,12 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 Strengen `responsePrefix` kan indeholde skabelonvariabler, der løser dynamisk:
 
-| Variabel          | Beskrivelse                  | Eksempel                                         |
-| ----------------- | ---------------------------- | ------------------------------------------------ |
-| `{model}`         | Kort modelnavn               | `claude-opus-4-6`, `gpt-4o`                      |
-| `{modelFull}`     | Identifikator for fuld model | `anthropic/claude-opus-4-6`                      |
-| `{provider}`      | Navn på udbyder              | `antropi`, `openai`                              |
-| `{thinkingLevel}` | Nuværende tankegang niveau   | `high`, `low`, `off`                             |
+| Variabel          | Beskrivelse                  | Eksempel                      |
+| ----------------- | ---------------------------- | ----------------------------- |
+| `{model}`         | Kort modelnavn               | `claude-opus-4-6`, `gpt-4o`   |
+| `{modelFull}`     | Identifikator for fuld model | `anthropic/claude-opus-4-6`   |
+| `{provider}`      | Navn på udbyder              | `antropi`, `openai`           |
+| `{thinkingLevel}` | Nuværende tankegang niveau   | `high`, `low`, `off`          |
 | `{identity.name}` | Agentens identitet navn      | (samme som `"auto"` tilstand) |
 
 Variablerne er ufølsomme (`{MODEL}` = `{model}`). `{think}` er et alias for `{thinkingLevel}`.
@@ -1913,8 +1913,8 @@ Eksempel (adaptiv justeret):
       contextPruning: {
         mode: "adaptive",
         keepLastAssistants: 3,
-        softTrimRatio: 0. ,
-        hardClearRatio: 0. ,
+        softTrimRatio: 0,
+        hardClearRatio: 0,
         minPrunableToolChars: 50000,
         softTrim: { maxChars: 4000, headChars: 1500, tailChars: 1500 },
         hardClear: { aktiveret: true, pladsholder: "[Gamle værktøj resultat indhold ryddet]" },
@@ -2887,7 +2887,7 @@ Eksempel:
       "voice-call": {
         aktiveret: true,
         config: {
-          udbyder: "twilio"
+          udbyder: "twilio",
         },
       },
     },
@@ -3379,28 +3379,28 @@ openclaw dns setup --apply
 
 Skabelon pladsholdere er udvidet i `tools.media.*.models[].args` og `tools.media.models[].args` (og eventuelle fremtidige skabelonerede argumentfelter).
 
-\| Variable           | Beskrivelse                                                                    |
+\| Variable | Beskrivelse |
 \| ------------------ | ------------------------------------------------------------------------------ | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Fuldt indgående beskedindhold                                                   |
-\| `{{RawBody}}`      | Rå indgående beskedindhold (ingen historik/afsender-wrappere; bedst til kommandoparsning) |
-\| `{{BodyStripped}}` | Indhold med gruppenævnelser fjernet (bedste standard for agenter)              |
-\| `{{From}}`         | Afsender-id (E.164 for WhatsApp; kan variere pr. kanal)                         |
-\| `{{To}}`           | Destinations-id                                                                 |
-\| `{{MessageSid}}`   | Kanalbesked-id (når tilgængelig)                                                |
-\| `{{SessionId}}`    | Aktuel sessions-UUID                                                           |
-\| `{{IsNewSession}}` | `"true"` når en ny session blev oprettet                                      |
-\| `{{MediaUrl}}`     | Indgående medie pseudo-URL (hvis til stede)                                    |
-\| `{{MediaPath}}`    | Lokal mediesti (hvis downloadet)                                               |
-\| `{{MediaType}}`    | Medietype (billede/lyd/dokument/…)                                             |
-\| `{{Transcript}}`   | Lydtransskription (når aktiveret)                                               |
-\| `{{Prompt}}`       | Opløst medieprompt for CLI-indgange                                            |
-\| `{{MaxChars}}`     | Opløst maks. antal outputtegn for CLI-indgange                                 |
-\| `{{ChatType}}`     | `"direct"` eller `"group"`                                                  |
-\| `{{GroupSubject}}` | Gruppeemne (bedste bud)                                                         |
-\| `{{GroupMembers}}` | Forhåndsvisning af gruppemedlemmer (bedste bud)                                |
-\| `{{SenderName}}`   | Afsenders visningsnavn (bedste bud)                                             |
-\| `{{SenderE164}}`   | Afsenders telefonnummer (bedste bud)                                           |
-\| `{{Provider}}`     | Udbyder-hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Fuldt indgående beskedindhold |
+\| `{{RawBody}}` | Rå indgående beskedindhold (ingen historik/afsender-wrappere; bedst til kommandoparsning) |
+\| `{{BodyStripped}}` | Indhold med gruppenævnelser fjernet (bedste standard for agenter) |
+\| `{{From}}` | Afsender-id (E.164 for WhatsApp; kan variere pr. kanal) |
+\| `{{To}}` | Destinations-id |
+\| `{{MessageSid}}` | Kanalbesked-id (når tilgængelig) |
+\| `{{SessionId}}` | Aktuel sessions-UUID |
+\| `{{IsNewSession}}` | `"true"` når en ny session blev oprettet |
+\| `{{MediaUrl}}` | Indgående medie pseudo-URL (hvis til stede) |
+\| `{{MediaPath}}` | Lokal mediesti (hvis downloadet) |
+\| `{{MediaType}}` | Medietype (billede/lyd/dokument/…) |
+\| `{{Transcript}}` | Lydtransskription (når aktiveret) |
+\| `{{Prompt}}` | Opløst medieprompt for CLI-indgange |
+\| `{{MaxChars}}` | Opløst maks. antal outputtegn for CLI-indgange |
+\| `{{ChatType}}` | `"direct"` eller `"group"` |
+\| `{{GroupSubject}}` | Gruppeemne (bedste bud) |
+\| `{{GroupMembers}}` | Forhåndsvisning af gruppemedlemmer (bedste bud) |
+\| `{{SenderName}}` | Afsenders visningsnavn (bedste bud) |
+\| `{{SenderE164}}` | Afsenders telefonnummer (bedste bud) |
+\| `{{Provider}}` | Udbyder-hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

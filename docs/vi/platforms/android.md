@@ -66,7 +66,7 @@ Ghi chú gỡ lỗi thêm: [Bonjour](/gateway/bonjour).
 33. Khám phá Android NSD/mDNS sẽ không vượt qua các mạng khác nhau. 34. Nếu node Android của bạn và gateway ở trên các mạng khác nhau nhưng được kết nối qua Tailscale, hãy dùng Wide-Area Bonjour / unicast DNS-SD thay thế:
 
 1. Thiết lập một vùng DNS-SD (ví dụ `openclaw.internal.`) trên máy chủ gateway và công bố các bản ghi `_openclaw-gw._tcp`.
-2. Cấu hình Tailscale split DNS cho miền đã chọn, trỏ tới máy chủ DNS đó.
+1. Cấu hình Tailscale split DNS cho miền đã chọn, trỏ tới máy chủ DNS đó.
 
 Chi tiết và ví dụ cấu hình CoreDNS: [Bonjour](/gateway/bonjour).
 

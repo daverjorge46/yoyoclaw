@@ -23,12 +23,12 @@ Perfeito para:
 
 | Modelo do Pi    | RAM     | Funciona?   | Observações                      |
 | --------------- | ------- | ----------- | -------------------------------- |
-| **Pi 5**        | 4GB/8GB | ✅ Melhor    | Mais rápido, recomendado         |
-| **Pi 4**        | 4GB     | ✅ Bom       | Ponto ideal para a maioria       |
-| **Pi 4**        | 2GB     | ✅ OK        | Funciona, adicione swap          |
+| **Pi 5**        | 4GB/8GB | ✅ Melhor   | Mais rápido, recomendado         |
+| **Pi 4**        | 4GB     | ✅ Bom      | Ponto ideal para a maioria       |
+| **Pi 4**        | 2GB     | ✅ OK       | Funciona, adicione swap          |
 | **Pi 4**        | 1GB     | ⚠️ Apertado | Possível com swap, config mínima |
 | **Pi 3B+**      | 1GB     | ⚠️ Devagar  | Funciona, mas é arrastado        |
-| **Pi Zero 2 W** | 512MB   | ❌           | Não recomendado                  |
+| **Pi Zero 2 W** | 512MB   | ❌          | Não recomendado                  |
 
 **Especificações mínimas:** 1GB de RAM, 1 núcleo, 500MB de disco  
 **Recomendado:** 2GB+ de RAM, SO 64-bit, cartão SD de 16GB+ (ou SSD USB)
@@ -223,13 +223,13 @@ htop
 
 A maioria dos recursos do OpenClaw funciona em ARM64, mas alguns binários externos podem precisar de builds ARM:
 
-| Ferramenta                              | Status ARM64 | Observações                         |
-| --------------------------------------- | ------------ | ----------------------------------- |
-| Node.js                 | ✅            | Funciona muito bem                  |
-| WhatsApp (Baileys)   | ✅            | JS puro, sem problemas              |
-| Telegram                                | ✅            | JS puro, sem problemas              |
+| Ferramenta           | Status ARM64 | Observações                         |
+| -------------------- | ------------ | ----------------------------------- |
+| Node.js              | ✅           | Funciona muito bem                  |
+| WhatsApp (Baileys)   | ✅           | JS puro, sem problemas              |
+| Telegram             | ✅           | JS puro, sem problemas              |
 | gog (Gmail CLI)      | ⚠️           | Verifique se há release ARM         |
-| Chromium (navegador) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (navegador) | ✅           | `sudo apt install chromium-browser` |
 
 Se uma skill falhar, verifique se o binário tem build ARM. Muitas ferramentas em Go/Rust têm; algumas não.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Comparação de Custos
 
-| Configuração                      | Custo Único          | Custo Mensal | Observações                                            |
-| --------------------------------- | -------------------- | ------------ | ------------------------------------------------------ |
-| **Pi 4 (2GB)** | ~$45 | $0           | + energia (~$5/ano) |
-| **Pi 4 (4GB)** | ~$55 | $0           | Recomendado                                            |
-| **Pi 5 (4GB)** | ~$60 | $0           | Melhor desempenho                                      |
-| **Pi 5 (8GB)** | ~$80 | $0           | Exagero, mas à prova do futuro                         |
-| DigitalOcean                      | $0                   | $6/mês       | $72/ano                                                |
-| Hetzner                           | $0                   | €3,79/mês    | ~$50/ano                               |
+| Configuração   | Custo Único | Custo Mensal | Observações                    |
+| -------------- | ----------- | ------------ | ------------------------------ |
+| **Pi 4 (2GB)** | ~$45        | $0           | + energia (~$5/ano)            |
+| **Pi 4 (4GB)** | ~$55        | $0           | Recomendado                    |
+| **Pi 5 (4GB)** | ~$60        | $0           | Melhor desempenho              |
+| **Pi 5 (8GB)** | ~$80        | $0           | Exagero, mas à prova do futuro |
+| DigitalOcean   | $0          | $6/mês       | $72/ano                        |
+| Hetzner        | $0          | €3,79/mês    | ~$50/ano                       |
 
 **Ponto de equilíbrio:** um Pi se paga em ~6–12 meses em comparação a um VPS na nuvem.
 

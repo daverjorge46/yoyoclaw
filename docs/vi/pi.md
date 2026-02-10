@@ -28,12 +28,12 @@ Tài liệu này mô tả cách OpenClaw tích hợp với [pi-coding-agent](htt
 }
 ```
 
-| Package           | Mục đích                                                                                                              |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Package           | Mục đích                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
 | `pi-ai`           | Trừu tượng LLM cốt lõi: `Model`, `streamSimple`, các kiểu message, API nhà cung cấp                   |
-| `pi-agent-core`   | Vòng lặp tác tử, thực thi công cụ, các kiểu `AgentMessage`                                                            |
+| `pi-agent-core`   | Vòng lặp tác tử, thực thi công cụ, các kiểu `AgentMessage`                                            |
 | `pi-coding-agent` | SDK mức cao: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, công cụ dựng sẵn |
-| `pi-tui`          | Các thành phần UI terminal (dùng trong chế độ TUI local của OpenClaw)                              |
+| `pi-tui`          | Các thành phần UI terminal (dùng trong chế độ TUI local của OpenClaw)                                 |
 
 ## Cấu trúc thư mục
 
@@ -511,15 +511,15 @@ import { ... } from "@mariozechner/pi-tui";
 
 ## Khác biệt chính so với Pi CLI
 
-| Khía cạnh     | Pi CLI                              | OpenClaw nhúng                                                                                                      |
-| ------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Cách gọi      | Lệnh `pi` / RPC                     | SDK thông qua `createAgentSession()`                                                                                |
-| Công cụ       | Công cụ viết mã mặc định            | Bộ công cụ OpenClaw tùy chỉnh                                                                                       |
-| System prompt | AGENTS.md + prompts | Động theo từng kênh/ngữ cảnh                                                                                        |
-| Lưu phiên     | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (hoặc `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Xác thực      | Một thông tin xác thực              | Đa hồ sơ với xoay vòng                                                                                              |
-| Extension     | Tải từ đĩa                          | Lập trình + đường dẫn đĩa                                                                                           |
-| Xử lý sự kiện | Kết xuất TUI                        | Dựa trên callback (onBlockReply, v.v.)                           |
+| Khía cạnh     | Pi CLI                   | OpenClaw nhúng                                                                                   |
+| ------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
+| Cách gọi      | Lệnh `pi` / RPC          | SDK thông qua `createAgentSession()`                                                             |
+| Công cụ       | Công cụ viết mã mặc định | Bộ công cụ OpenClaw tùy chỉnh                                                                    |
+| System prompt | AGENTS.md + prompts      | Động theo từng kênh/ngữ cảnh                                                                     |
+| Lưu phiên     | `~/.pi/agent/sessions/`  | `~/.openclaw/agents/<agentId>/sessions/` (hoặc `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Xác thực      | Một thông tin xác thực   | Đa hồ sơ với xoay vòng                                                                           |
+| Extension     | Tải từ đĩa               | Lập trình + đường dẫn đĩa                                                                        |
+| Xử lý sự kiện | Kết xuất TUI             | Dựa trên callback (onBlockReply, v.v.)                                                           |
 
 ## Cân nhắc tương lai
 

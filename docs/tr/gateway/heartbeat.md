@@ -286,12 +286,12 @@ channels:
 
 ### Yaygın kalıplar
 
-| Amaç                                                                  | Yapılandırma                                                                             |
-| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Varsayılan davranış (sessiz OK’ler, uyarılar açık) | _(yapılandırma gerekmez)_                                             |
+| Amaç                                               | Yapılandırma                                                                             |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Varsayılan davranış (sessiz OK’ler, uyarılar açık) | _(yapılandırma gerekmez)_                                                                |
 | Tamamen sessiz (mesaj yok, gösterge yok)           | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Yalnızca gösterge (mesaj yok)                      | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK’ler yalnızca tek bir kanalda                                       | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK’ler yalnızca tek bir kanalda                    | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (isteğe bağlı)
 

@@ -40,12 +40,12 @@ otherwise -> reply
 
 Nếu bạn muốn...
 
-| Mục tiêu                                                     | Cần thiết lập                                                         |
-| ------------------------------------------------------------ | --------------------------------------------------------------------- |
-| Cho phép mọi nhóm nhưng chỉ trả lời khi @đề cập | `groups: { "*": { requireMention: true } }`                           |
-| Tắt toàn bộ trả lời trong nhóm                               | `groupPolicy: "disabled"`                                             |
-| Chỉ các nhóm cụ thể                                          | `groups: { "<group-id>": { ... } }` (no `"*"` key) |
-| Chỉ bạn mới có thể kích hoạt trong nhóm                      | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`            |
+| Mục tiêu                                        | Cần thiết lập                                              |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| Cho phép mọi nhóm nhưng chỉ trả lời khi @đề cập | `groups: { "*": { requireMention: true } }`                |
+| Tắt toàn bộ trả lời trong nhóm                  | `groupPolicy: "disabled"`                                  |
+| Chỉ các nhóm cụ thể                             | `groups: { "<group-id>": { ... } }` (no `"*"` key)         |
+| Chỉ bạn mới có thể kích hoạt trong nhóm         | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Khóa phiên
 
@@ -174,8 +174,8 @@ Kiểm soát cách xử lý tin nhắn nhóm/phòng theo từng kênh:
 }
 ```
 
-| Chính sách    | Hành vi                                                                              |
-| ------------- | ------------------------------------------------------------------------------------ |
+| Chính sách    | Hành vi                                                              |
+| ------------- | -------------------------------------------------------------------- |
 | `"open"`      | Nhóm bỏ qua danh sách cho phép; kiểm soát đề cập vẫn áp dụng.        |
 | `"disabled"`  | Chặn hoàn toàn mọi tin nhắn nhóm.                                    |
 | `"allowlist"` | Chỉ cho phép các nhóm/phòng khớp với danh sách cho phép đã cấu hình. |

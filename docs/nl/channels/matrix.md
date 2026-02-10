@@ -47,7 +47,6 @@ Details: [Plugins](/tools/plugin)
    - Of host het zelf.
 
 3. Verkrijg een access token voor het botaccount:
-
    - Gebruik de Matrix login-API met `curl` op je homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Na verificatie kan de bot berichten in versleutelde kamers ontsleutelen.
 
 ## Mogelijkheden
 
-| Functie           | Status                                                                                                                  |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Directe berichten | ✅ Ondersteund                                                                                                           |
-| Kamers            | ✅ Ondersteund                                                                                                           |
-| Threads           | ✅ Ondersteund                                                                                                           |
-| Media             | ✅ Ondersteund                                                                                                           |
+| Functie           | Status                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| Directe berichten | ✅ Ondersteund                                                                                        |
+| Kamers            | ✅ Ondersteund                                                                                        |
+| Threads           | ✅ Ondersteund                                                                                        |
+| Media             | ✅ Ondersteund                                                                                        |
 | E2EE              | ✅ Ondersteund (crypto-module vereist)                                                                |
 | Reacties          | ✅ Ondersteund (verzenden/lezen via tools)                                                            |
 | Polls             | ✅ Verzenden ondersteund; inkomende poll-starts worden omgezet naar tekst (reacties/einden genegeerd) |
 | Locatie           | ✅ Ondersteund (geo-URI; hoogte genegeerd)                                                            |
-| Native opdrachten | ✅ Ondersteund                                                                                                           |
+| Native opdrachten | ✅ Ondersteund                                                                                        |
 
 ## Problemen oplossen
 

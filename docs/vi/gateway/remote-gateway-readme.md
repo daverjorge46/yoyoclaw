@@ -164,11 +164,11 @@ launchctl bootout gui/$UID/bot.molt.ssh-tunnel
 
 ## Cách hoạt động
 
-| Thành phần                           | Chức năng                                                               |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| `LocalForward 18789 127.0.0.1:18789` | Chuyển tiếp cổng cục bộ 18789 tới cổng 18789 trên máy từ xa             |
-| `ssh -N`                             | SSH không thực thi lệnh từ xa (chỉ chuyển tiếp cổng) |
-| `KeepAlive`                          | Tự động khởi động lại đường hầm nếu bị lỗi                              |
-| `RunAtLoad`                          | Khởi động đường hầm khi agent được nạp                                  |
+| Thành phần                           | Chức năng                                                   |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `LocalForward 18789 127.0.0.1:18789` | Chuyển tiếp cổng cục bộ 18789 tới cổng 18789 trên máy từ xa |
+| `ssh -N`                             | SSH không thực thi lệnh từ xa (chỉ chuyển tiếp cổng)        |
+| `KeepAlive`                          | Tự động khởi động lại đường hầm nếu bị lỗi                  |
+| `RunAtLoad`                          | Khởi động đường hầm khi agent được nạp                      |
 
 OpenClaw.app kết nối tới `ws://127.0.0.1:18789` trên máy khách của bạn. Đường hầm SSH chuyển tiếp kết nối đó tới cổng 18789 trên máy từ xa nơi Gateway đang chạy.

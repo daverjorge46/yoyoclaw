@@ -260,11 +260,11 @@ For sand altid-on, overveje en dedikeret Mac mini eller en lille VPS. Se [VPS ho
 
 ## Fejlfinding
 
-| Problem                   | Løsning                                                                                                        |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Kan ikke SSH ind i VM     | Tjek, at "Remote Login" er aktiveret i VM’ens Systemindstillinger                                              |
-| VM-IP vises ikke          | Vent til VM’en er helt bootet, kør `lume get openclaw` igen                                                    |
-| Lume-kommando ikke fundet | Tilføj `~/.local/bin` til din PATH                                                                             |
+| Problem                   | Løsning                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------- |
+| Kan ikke SSH ind i VM     | Tjek, at "Remote Login" er aktiveret i VM’ens Systemindstillinger                           |
+| VM-IP vises ikke          | Vent til VM’en er helt bootet, kør `lume get openclaw` igen                                 |
+| Lume-kommando ikke fundet | Tilføj `~/.local/bin` til din PATH                                                          |
 | WhatsApp-QR scanner ikke  | Sørg for, at du er logget ind i VM’en (ikke værten), når du kører `openclaw channels login` |
 
 ---

@@ -29,7 +29,7 @@ Si esto imprime `v22.x.x` o superior, está listo. Si Node no está instalado o 
     ```bash
     brew install node
     ```
-    
+
     O descargue el instalador de macOS desde [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Si esto imprime `v22.x.x` o superior, está listo. Si Node no está instalado o 
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     O use un gestor de versiones (vea abajo).
     ````
 
@@ -60,13 +60,13 @@ Si esto imprime `v22.x.x` o superior, está listo. Si Node no está instalado o 
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     O descargue el instalador de Windows desde [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ Esto casi siempre significa que el directorio bin global de npm no está en su P
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Luego abra una nueva terminal (o ejecute `rehash` en zsh / `hash -r` en bash).
           </Tab>
           <Tab title="Windows">

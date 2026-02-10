@@ -171,11 +171,11 @@ CLI のエントリでは、驚くべき一致を避けるために **明示的�
 
 ## プロバイダー対応マトリクス（OpenClaw 連携）
 
-| Capability | Provider integration                         | Notes                              |
-| ---------- | -------------------------------------------- | ---------------------------------- |
-| Image      | OpenAI / Anthropic / Google / `pi-ai` 経由のその他 | レジストリ内の画像対応モデルであれば動作します。           |
-| Audio      | OpenAI、Groq、Deepgram、Google                  | プロバイダの転記法（Whisper/Deepgram/Gemini） |
-| Video      | Google（Gemini API）                           | プロバイダーによる動画理解。                     |
+| Capability | Provider integration                               | Notes                                            |
+| ---------- | -------------------------------------------------- | ------------------------------------------------ |
+| Image      | OpenAI / Anthropic / Google / `pi-ai` 経由のその他 | レジストリ内の画像対応モデルであれば動作します。 |
+| Audio      | OpenAI、Groq、Deepgram、Google                     | プロバイダの転記法（Whisper/Deepgram/Gemini）    |
+| Video      | Google（Gemini API）                               | プロバイダーによる動画理解。                     |
 
 ## 推奨プロバイダー
 

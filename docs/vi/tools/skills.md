@@ -42,8 +42,7 @@ workspace thắng, sau đó managed/local, rồi bundled.
 ## Plugin + skills
 
 Plugins can ship their own skills by listing `skills` directories in
-`openclaw.plugin.json` (paths relative to the plugin root). 12. Bạn có thể kiểm soát chúng thông qua `metadata.openclaw.requires.config` trên mục cấu hình của plugin.
-13. Xem [Plugins](/tools/plugin) để biết cách khám phá/cấu hình và [Tools](/tools) để hiểu bề mặt công cụ mà các kỹ năng đó hướng dẫn. 14. ClawHub là registry kỹ năng công khai cho OpenClaw.
+`openclaw.plugin.json` (paths relative to the plugin root). 12. Bạn có thể kiểm soát chúng thông qua `metadata.openclaw.requires.config` trên mục cấu hình của plugin. 13. Xem [Plugins](/tools/plugin) để biết cách khám phá/cấu hình và [Tools](/tools) để hiểu bề mặt công cụ mà các kỹ năng đó hướng dẫn. 14. ClawHub là registry kỹ năng công khai cho OpenClaw.
 
 ## ClawHub (cài đặt + đồng bộ)
 

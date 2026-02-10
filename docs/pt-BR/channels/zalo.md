@@ -127,16 +127,16 @@ Suporte a múltiplas contas: use `channels.zalo.accounts` com tokens por conta e
 
 ## Capacidades
 
-| Funcionalidade                     | Status                                                      |
-| ---------------------------------- | ----------------------------------------------------------- |
-| Mensagens diretas                  | ✅ Suportado                                                 |
-| Grupos                             | ❌ Em breve (conforme docs do Zalo)       |
-| Mídia (imagens) | ✅ Suportado                                                 |
-| Reações                            | ❌ Não suportado                                             |
-| Tópicos                            | ❌ Não suportado                                             |
-| Enquetes                           | ❌ Não suportado                                             |
-| Comandos nativos                   | ❌ Não suportado                                             |
-| Streaming                          | ⚠️ Bloqueado (limite de 2000 caracteres) |
+| Funcionalidade    | Status                                   |
+| ----------------- | ---------------------------------------- |
+| Mensagens diretas | ✅ Suportado                             |
+| Grupos            | ❌ Em breve (conforme docs do Zalo)      |
+| Mídia (imagens)   | ✅ Suportado                             |
+| Reações           | ❌ Não suportado                         |
+| Tópicos           | ❌ Não suportado                         |
+| Enquetes          | ❌ Não suportado                         |
+| Comandos nativos  | ❌ Não suportado                         |
+| Streaming         | ⚠️ Bloqueado (limite de 2000 caracteres) |
 
 ## Destinos de entrega (CLI/cron)
 

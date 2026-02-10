@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Makine türleri:**
 
-| Ana makine hacim bağlaması | Özellikler                                      | Maliyet                 | Notlar                   |
-| -------------------------- | ----------------------------------------------- | ----------------------- | ------------------------ |
-| e2-small                   | 2 vCPU, 2GB RAM                                 | ~$12/ay | Önerilir                 |
-| e2-micro                   | 2 vCPU (paylaşımlı), 1GB RAM | Ücretsiz katman uygun   | Yük altında OOM olabilir |
+| Ana makine hacim bağlaması | Özellikler                   | Maliyet               | Notlar                   |
+| -------------------------- | ---------------------------- | --------------------- | ------------------------ |
+| e2-small                   | 2 vCPU, 2GB RAM              | ~$12/ay               | Önerilir                 |
+| e2-micro                   | 2 vCPU (paylaşımlı), 1GB RAM | Ücretsiz katman uygun | Yük altında OOM olabilir |
 
 **CLI:**
 
@@ -407,18 +407,18 @@ Gateway belirtecinizi yapıştırın.
 OpenClaw Docker içinde çalışır, ancak Docker tek doğruluk kaynağı değildir.
 Uzun ömürlü tüm durum yeniden başlatmalara, yeniden derlemelere ve yeniden başlatmalara dayanmalıdır.
 
-| Bileşen                                     | Konum                             | Kalıcılık mekanizması      | Notlar                                     |
-| ------------------------------------------- | --------------------------------- | -------------------------- | ------------------------------------------ |
-| Gateway yapılandırması                      | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | `openclaw.json`, belirteçler dahil         |
-| Model kimlik profilleri                     | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | OAuth belirteçleri, API anahtarları        |
-| Skill yapılandırmaları                      | `/home/node/.openclaw/skills/`    | Ana makine hacim bağlaması | Skill düzeyi durum                         |
-| concepts/agent-workspace.md | `/home/node/.openclaw/workspace/` | Ana makine hacim bağlaması | Kod ve ajan artefaktları                   |
-| WhatsApp oturumu                            | `/home/node/.openclaw/`           | Harici ikili dosyalar      | QR girişini korur                          |
-| Gmail anahtarlığı                           | `/home/node/.openclaw/`           | Ana makine hacmi + parola  | `GOG_KEYRING_PASSWORD` gerektirir          |
-| Derleme zamanında imaja gömülmelidir        | `/usr/local/bin/`                 | Docker görüntüsü           | Node çalışma zamanı                        |
-| Çalışma zamanında kurmayın                  | Konteyner dosya sistemi           | Docker görüntüsü           | Her derlemede yeniden oluşturulur          |
-| OS paketleri                                | Konteyner dosya sistemi           | Docker görüntüsü           | Gerekli ikili dosyaları imajın içine gömün |
-| Docker konteyneri                           | Geçicidir                         | Yeniden başlatılabilir     | Yok edilmesi güvenlidir                    |
+| Bileşen                              | Konum                             | Kalıcılık mekanizması      | Notlar                                     |
+| ------------------------------------ | --------------------------------- | -------------------------- | ------------------------------------------ |
+| Gateway yapılandırması               | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | `openclaw.json`, belirteçler dahil         |
+| Model kimlik profilleri              | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | OAuth belirteçleri, API anahtarları        |
+| Skill yapılandırmaları               | `/home/node/.openclaw/skills/`    | Ana makine hacim bağlaması | Skill düzeyi durum                         |
+| concepts/agent-workspace.md          | `/home/node/.openclaw/workspace/` | Ana makine hacim bağlaması | Kod ve ajan artefaktları                   |
+| WhatsApp oturumu                     | `/home/node/.openclaw/`           | Harici ikili dosyalar      | QR girişini korur                          |
+| Gmail anahtarlığı                    | `/home/node/.openclaw/`           | Ana makine hacmi + parola  | `GOG_KEYRING_PASSWORD` gerektirir          |
+| Derleme zamanında imaja gömülmelidir | `/usr/local/bin/`                 | Docker görüntüsü           | Node çalışma zamanı                        |
+| Çalışma zamanında kurmayın           | Konteyner dosya sistemi           | Docker görüntüsü           | Her derlemede yeniden oluşturulur          |
+| OS paketleri                         | Konteyner dosya sistemi           | Docker görüntüsü           | Gerekli ikili dosyaları imajın içine gömün |
+| Docker konteyneri                    | Geçicidir                         | Yeniden başlatılabilir     | Yok edilmesi güvenlidir                    |
 
 ---
 

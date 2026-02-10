@@ -1308,12 +1308,12 @@ Slack에서 시작된 설정 쓰기(채널 ID 마이그레이션 및 `/config se
 
 Slack 액션 그룹(`slack` 도구 액션을 제어):
 
-| 작업 그룹      | 기본값     | 참고 자료         |
-| ---------- | ------- | ------------- |
-| reactions  | enabled | 반응 추가 + 목록    |
-| messages   | enabled | 읽기/전송/편집/삭제   |
-| pins       | enabled | 고정/해제/목록      |
-| memberInfo | enabled | 멤버 정보         |
+| 작업 그룹  | 기본값  | 참고 자료               |
+| ---------- | ------- | ----------------------- |
+| reactions  | enabled | 반응 추가 + 목록        |
+| messages   | enabled | 읽기/전송/편집/삭제     |
+| pins       | enabled | 고정/해제/목록          |
+| memberInfo | enabled | 멤버 정보               |
 | emojiList  | enabled | 사용자 지정 이모지 목록 |
 
 ### `channels.mattermost` (봇 토큰)
@@ -1530,13 +1530,13 @@ exec ssh -T gateway-host imsg "$@"
 
 `responsePrefix` 문자열에는 동적으로 해석되는 템플릿 변수를 포함할 수 있습니다:
 
-| 변수                              | 설명         | 예제                                   |
-| ------------------------------- | ---------- | ------------------------------------ |
-| {model}                         | 짧은 모델 이름   | `claude-opus-4-6`, `gpt-4o`          |
-| {modelFull}                     | 전체 모델 식별자  | `anthropic/claude-opus-4-6`          |
-| {provider}                      | 제공자 이름     | `anthropic`, `openai`                |
-| {thinkingLevel}                 | 현재 사고 수준   | `high`, `low`, `off`                 |
-| {identity.name} | 에이전트 식별 이름 | (`"auto"` 모드와 동일) |
+| 변수            | 설명               | 예제                        |
+| --------------- | ------------------ | --------------------------- |
+| {model}         | 짧은 모델 이름     | `claude-opus-4-6`, `gpt-4o` |
+| {modelFull}     | 전체 모델 식별자   | `anthropic/claude-opus-4-6` |
+| {provider}      | 제공자 이름        | `anthropic`, `openai`       |
+| {thinkingLevel} | 현재 사고 수준     | `high`, `low`, `off`        |
+| {identity.name} | 에이전트 식별 이름 | (`"auto"` 모드와 동일)      |
 
 변수는 대소문자를 구분하지 않습니다 (`{MODEL}` = `{model}`). `{think}`는 `{thinkingLevel}`의 별칭입니다.
 해결되지 않은 변수는 리터럴 텍스트로 그대로 유지됩니다.
@@ -3287,28 +3287,28 @@ openclaw dns setup --apply
 
 템플릿 자리표시는 `tools.media.*.models[].args` 및 `tools.media.models[].args`(그리고 향후 템플릿이 적용되는 모든 인자 필드)에서 확장됩니다.
 
-| 변수                 | 설명                                                                           |          |         |            |       |        |          |         |         |    |
-| ------------------ | ---------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | -- |
-| `{{Body}}`         | 전체 인바운드 메시지 본문                                                               |          |         |            |       |        |          |         |         |    |
-| `{{RawBody}}`      | 원본 인바운드 메시지 본문(히스토리/발신자 래퍼 없음; 명령 파싱에 최적)                 |          |         |            |       |        |          |         |         |    |
-| `{{BodyStripped}}` | 그룹 멘션이 제거된 본문(에이전트에 가장 적합한 기본값)                           |          |         |            |       |        |          |         |         |    |
-| `{{From}}`         | 발신자 식별자(WhatsApp의 경우 E.164; 채널별로 다를 수 있음) |          |         |            |       |        |          |         |         |    |
-| `{{To}}`           | 수신자 식별자                                                                      |          |         |            |       |        |          |         |         |    |
-| `{{MessageSid}}`   | 채널 메시지 ID(사용 가능한 경우)                                      |          |         |            |       |        |          |         |         |    |
-| `{{SessionId}}`    | 현재 세션 UUID                                                                   |          |         |            |       |        |          |         |         |    |
-| `{{IsNewSession}}` | 새 세션이 생성되었을 때 `"true"`                                                       |          |         |            |       |        |          |         |         |    |
-| `{{MediaUrl}}`     | 인바운드 미디어 의사-URL(있는 경우)                                    |          |         |            |       |        |          |         |         |    |
-| `{{MediaPath}}`    | 로컬 미디어 경로(다운로드된 경우)                                       |          |         |            |       |        |          |         |         |    |
-| `{{MediaType}}`    | 미디어 유형(image/audio/document/…)                            |          |         |            |       |        |          |         |         |    |
-| `{{Transcript}}`   | Audio transcript (when enabled)                           |          |         |            |       |        |          |         |         |    |
-| `{{Prompt}}`       | Resolved media prompt for CLI entries                                        |          |         |            |       |        |          |         |         |    |
-| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                    |          |         |            |       |        |          |         |         |    |
-| `{{ChatType}}`     | `"direct"` or `"group"`                                                      |          |         |            |       |        |          |         |         |    |
-| `{{GroupSubject}}` | Group subject (best effort)                               |          |         |            |       |        |          |         |         |    |
-| `{{GroupMembers}}` | Group members preview (best effort)                       |          |         |            |       |        |          |         |         |    |
-| `{{SenderName}}`   | Sender display name (best effort)                         |          |         |            |       |        |          |         |         |    |
-| `{{SenderE164}}`   | Sender phone number (best effort)                         |          |         |            |       |        |          |         |         |    |
-| `{{Provider}}`     | Provider hint (whatsapp                                   | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
+| 변수               | 설명                                                                   |          |         |            |       |        |          |         |         |     |
+| ------------------ | ---------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
+| `{{Body}}`         | 전체 인바운드 메시지 본문                                              |          |         |            |       |        |          |         |         |     |
+| `{{RawBody}}`      | 원본 인바운드 메시지 본문(히스토리/발신자 래퍼 없음; 명령 파싱에 최적) |          |         |            |       |        |          |         |         |     |
+| `{{BodyStripped}}` | 그룹 멘션이 제거된 본문(에이전트에 가장 적합한 기본값)                 |          |         |            |       |        |          |         |         |     |
+| `{{From}}`         | 발신자 식별자(WhatsApp의 경우 E.164; 채널별로 다를 수 있음)            |          |         |            |       |        |          |         |         |     |
+| `{{To}}`           | 수신자 식별자                                                          |          |         |            |       |        |          |         |         |     |
+| `{{MessageSid}}`   | 채널 메시지 ID(사용 가능한 경우)                                       |          |         |            |       |        |          |         |         |     |
+| `{{SessionId}}`    | 현재 세션 UUID                                                         |          |         |            |       |        |          |         |         |     |
+| `{{IsNewSession}}` | 새 세션이 생성되었을 때 `"true"`                                       |          |         |            |       |        |          |         |         |     |
+| `{{MediaUrl}}`     | 인바운드 미디어 의사-URL(있는 경우)                                    |          |         |            |       |        |          |         |         |     |
+| `{{MediaPath}}`    | 로컬 미디어 경로(다운로드된 경우)                                      |          |         |            |       |        |          |         |         |     |
+| `{{MediaType}}`    | 미디어 유형(image/audio/document/…)                                    |          |         |            |       |        |          |         |         |     |
+| `{{Transcript}}`   | Audio transcript (when enabled)                                        |          |         |            |       |        |          |         |         |     |
+| `{{Prompt}}`       | Resolved media prompt for CLI entries                                  |          |         |            |       |        |          |         |         |     |
+| `{{MaxChars}}`     | Resolved max output chars for CLI entries                              |          |         |            |       |        |          |         |         |     |
+| `{{ChatType}}`     | `"direct"` or `"group"`                                                |          |         |            |       |        |          |         |         |     |
+| `{{GroupSubject}}` | Group subject (best effort)                                            |          |         |            |       |        |          |         |         |     |
+| `{{GroupMembers}}` | Group members preview (best effort)                                    |          |         |            |       |        |          |         |         |     |
+| `{{SenderName}}`   | Sender display name (best effort)                                      |          |         |            |       |        |          |         |         |     |
+| `{{SenderE164}}`   | Sender phone number (best effort)                                      |          |         |            |       |        |          |         |         |     |
+| `{{Provider}}`     | Provider hint (whatsapp                                                | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
 
 ## Cron (Gateway scheduler)
 

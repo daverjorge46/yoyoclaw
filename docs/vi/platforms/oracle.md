@@ -20,13 +20,13 @@ Gói miễn phí của Oracle có thể rất phù hợp cho OpenClaw (đặc bi
 
 ## So sánh chi phí (2026)
 
-| Nhà cung cấp | Gói             | Cấu hình                | Giá/tháng            | Ghi chú                  |
-| ------------ | --------------- | ----------------------- | -------------------- | ------------------------ |
-| Oracle Cloud | Always Free ARM | tối đa 4 OCPU, 24GB RAM | $0                   | ARM, dung lượng hạn chế  |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM         | ~ $4 | Lựa chọn trả phí rẻ nhất |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6                   | UI dễ dùng, tài liệu tốt |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6                   | Nhiều khu vực            |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5                   | Hiện thuộc Akamai        |
+| Nhà cung cấp | Gói             | Cấu hình                | Giá/tháng | Ghi chú                  |
+| ------------ | --------------- | ----------------------- | --------- | ------------------------ |
+| Oracle Cloud | Always Free ARM | tối đa 4 OCPU, 24GB RAM | $0        | ARM, dung lượng hạn chế  |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM         | ~ $4      | Lựa chọn trả phí rẻ nhất |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6        | UI dễ dùng, tài liệu tốt |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6        | Nhiều khu vực            |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5        | Hiện thuộc Akamai        |
 
 ---
 

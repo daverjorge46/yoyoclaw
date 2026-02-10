@@ -1098,10 +1098,11 @@ Keep the Gateway on Linux, but make the required CLI binaries resolve to SSH wra
 3. 2. Ghi đè metadata của skill (workspace hoặc `~/.openclaw/skills`) để cho phép Linux:
 
    ```markdown
-   3. ---
-   name: apple-notes
-   description: Quản lý Apple Notes thông qua CLI memo trên macOS.
-   metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+   3. ***
+      name: apple-notes
+      description: Quản lý Apple Notes thông qua CLI memo trên macOS.
+      metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+
    ---
    ```
 
@@ -1229,16 +1230,16 @@ Bộ nhớ có tồn tại mãi mãi không Các giới hạn là gì
 
 Giới hạn là
 
-| dung lượng lưu trữ của bạn, không phải mô hình.                            | Mục đích                                                                                                                         |
-| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Ngữ cảnh phiên** vẫn bị giới hạn bởi                                                     | cửa sổ ngữ cảnh của mô hình, vì vậy các cuộc trò chuyện dài có thể bị nén hoặc cắt bớt.                          |
-| Đó là lý do                                                                                | 44. Nhập OAuth kế thừa (được sao chép vào hồ sơ xác thực khi sử dụng lần đầu)          |
-| 45. `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Mọi thứ nằm ở đâu trên đĩa                                                                                                       |
-| Tất cả dữ liệu dùng với OpenClaw có được lưu cục bộ không                                  | Một Gateway có thể lưu trữ nhiều agent, mỗi agent có workspace, giá trị mặc định model và định tuyến riêng.      |
-| `$OPENCLAW_STATE_DIR/credentials/`                                                         | 47. Trạng thái nhà cung cấp (ví dụ: `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                                              | 48. Trạng thái theo agent (agentDir + sessions)                                        |
-| 49. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Lịch sử & trạng thái hội thoại (theo từng agent)                                          |
-| 50. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (per agent)                                                                                  |
+| dung lượng lưu trữ của bạn, không phải mô hình.                     | Mục đích                                                                                                    |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Ngữ cảnh phiên** vẫn bị giới hạn bởi                              | cửa sổ ngữ cảnh của mô hình, vì vậy các cuộc trò chuyện dài có thể bị nén hoặc cắt bớt.                     |
+| Đó là lý do                                                         | 44. Nhập OAuth kế thừa (được sao chép vào hồ sơ xác thực khi sử dụng lần đầu)                               |
+| 45. `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Mọi thứ nằm ở đâu trên đĩa                                                                                  |
+| Tất cả dữ liệu dùng với OpenClaw có được lưu cục bộ không           | Một Gateway có thể lưu trữ nhiều agent, mỗi agent có workspace, giá trị mặc định model và định tuyến riêng. |
+| `$OPENCLAW_STATE_DIR/credentials/`                                  | 47. Trạng thái nhà cung cấp (ví dụ: `whatsapp/<accountId>/creds.json`)                                      |
+| `$OPENCLAW_STATE_DIR/agents/`                                       | 48. Trạng thái theo agent (agentDir + sessions)                                                             |
+| 49. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Lịch sử & trạng thái hội thoại (theo từng agent)                                                            |
+| 50. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (per agent)                                                                                |
 
 Đường dẫn legacy cho agent đơn: `~/.openclaw/agent/*` (được migrate bởi `openclaw doctor`).
 
@@ -1897,7 +1898,7 @@ Có. Đây là lỗi xác thực nhà cung cấp: mô hình đã phát ra một 
 
 35. Truy cập trình duyệt rất mạnh nhưng không phải là "làm được mọi thứ như con người" — chống bot, CAPTCHA và MFA vẫn có thể chặn tự động hóa. 36. Để điều khiển trình duyệt đáng tin cậy nhất, hãy dùng relay của tiện ích Chrome trên máy chạy trình duyệt (và có thể đặt Gateway ở bất kỳ đâu).
 
-37. Thiết lập theo thực tiễn tốt nhất:
+36. Thiết lập theo thực tiễn tốt nhất:
 
 - 38. Máy chủ Gateway luôn bật (VPS/Mac mini).
 - 39. Mỗi agent cho một vai trò (bindings).
@@ -1937,7 +1938,7 @@ parallelize long tasks (each sub-agent consumes tokens). See [Models](/concepts/
 
 32. Cảnh báo mạnh: các mô hình yếu hơn hoặc bị quantize quá mức dễ bị tấn công prompt injection và hành vi không an toàn hơn. 33. Xem [Security](/gateway/security).
 
-34. Thêm ngữ cảnh: [Models](/concepts/models).
+33. Thêm ngữ cảnh: [Models](/concepts/models).
 
 ### Can I use selfhosted models llamacpp vLLM Ollama
 
@@ -2265,7 +2266,7 @@ Có. 29. Cấu hình hỗ trợ metadata tùy chọn cho profile và thứ tự 
 
 32. OpenClaw có thể tạm thời bỏ qua một profile nếu nó đang ở trạng thái **cooldown** ngắn (giới hạn tốc độ/timeouts/lỗi xác thực) hoặc trạng thái **disabled** dài hơn (thanh toán/không đủ tín dụng). Để kiểm tra, chạy `openclaw models status --json` và xem `auth.unusableProfiles`. 34. Tinh chỉnh: `auth.cooldowns.billingBackoffHours*`.
 
-35. Bạn cũng có thể đặt ghi đè thứ tự **theo từng agent** (được lưu trong `auth-profiles.json` của agent đó) thông qua CLI:
+33. Bạn cũng có thể đặt ghi đè thứ tự **theo từng agent** (được lưu trong `auth-profiles.json` của agent đó) thông qua CLI:
 
 ```bash
 36. # Mặc định là agent mặc định đã cấu hình (bỏ qua --agent)
@@ -2420,8 +2421,8 @@ Common causes:
 7. Cách khắc phục nhanh:
 
 1. 8. Dùng URL WS: `ws://<host>:18789` (hoặc `wss://...` nếu dùng HTTPS).
-2. Don't open the WS port in a normal browser tab.
-3. If auth is on, include the token/password in the `connect` frame.
+1. Don't open the WS port in a normal browser tab.
+1. If auth is on, include the token/password in the `connect` frame.
 
 11) Nếu bạn đang dùng CLI hoặc TUI, URL sẽ trông như sau:
 
@@ -2443,7 +2444,7 @@ openclaw tui --url ws://<host>:18789 --token <token>
 
 17. Bạn có thể đặt đường dẫn cố định thông qua `logging.file`. 18. Mức log của file được điều khiển bởi `logging.level`. Console verbosity is controlled by `--verbose` and `logging.consoleLevel`.
 
-20. Cách xem log nhanh nhất:
+18. Cách xem log nhanh nhất:
 
 ```bash
 openclaw logs --follow
@@ -2639,8 +2640,7 @@ Run `openclaw doctor` to surface risky DM policies.
 
 ### Prompt injection chỉ là mối lo đối với các bot công khai hay không
 
-Không. Prompt injection is about **untrusted content**, not just who can DM the bot.
-9. Nếu trợ lý của bạn đọc nội dung bên ngoài (tìm kiếm/lấy dữ liệu web, trang trình duyệt, email,
+Không. Prompt injection is about **untrusted content**, not just who can DM the bot. 9. Nếu trợ lý của bạn đọc nội dung bên ngoài (tìm kiếm/lấy dữ liệu web, trang trình duyệt, email,
 tài liệu, tệp đính kèm, log được dán), nội dung đó có thể chứa các chỉ dẫn nhằm
 chiếm quyền điều khiển mô hình. Rủi ro lớn nhất là khi các công cụ được bật: mô hình có thể bị đánh lừa để
 rò rỉ ngữ cảnh hoặc gọi công cụ thay mặt bạn.
@@ -2717,7 +2717,8 @@ openclaw pairing list whatsapp
 
 /verbose off
 /reasoning off
---------------
+
+---
 
 ### Làm thế nào để ngăn các thông báo hệ thống nội bộ hiển thị trong chat
 

@@ -317,15 +317,15 @@ Gateway belirtecinizi yapıştırın.
 OpenClaw Docker içinde çalışır, ancak Docker tek doğru kaynak değildir.
 Tüm uzun ömürlü durum; yeniden başlatmalar, yeniden oluşturma ve yeniden başlatma (reboot) sonrasında hayatta kalmalıdır.
 
-| Bileşen                                     | Konum                             | Kalıcılık mekanizması      | Notlar                                  |
-| ------------------------------------------- | --------------------------------- | -------------------------- | --------------------------------------- |
-| Gateway yapılandırması                      | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | `openclaw.json`, belirteçler dahil      |
-| Model kimlik profilleri                     | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | OAuth belirteçleri, API anahtarları     |
-| Skill yapılandırmaları                      | `/home/node/.openclaw/skills/`    | Ana makine hacim bağlaması | Skill düzeyi durum                      |
-| concepts/agent-workspace.md | `/home/node/.openclaw/workspace/` | Ana makine hacim bağlaması | Kod ve ajan artefaktları                |
-| WhatsApp oturumu                            | `/home/node/.openclaw/`           | Harici ikili dosyalar      | QR girişini korur                       |
-| Gmail anahtarlığı                           | `/home/node/.openclaw/`           | Ana makine volume + parola | `GOG_KEYRING_PASSWORD` gerektirir       |
-| Derleme zamanında imaja gömülmelidir        | `/usr/local/bin/`                 | Docker imajı               | Node çalışma zamanı                     |
-| Çalışma zamanında kurmayın                  | Container dosya sistemi           | Docker imajı               | Her imaj oluşturmada yeniden kurulur    |
-| OS paketleri                                | Container dosya sistemi           | Docker imajı               | Yalnızca kaynaktan derliyorsanız `pnpm` |
-| Docker container                            | Geçicidir                         | Yeniden başlatılabilir     | Yok edilmesi güvenlidir                 |
+| Bileşen                              | Konum                             | Kalıcılık mekanizması      | Notlar                                  |
+| ------------------------------------ | --------------------------------- | -------------------------- | --------------------------------------- |
+| Gateway yapılandırması               | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | `openclaw.json`, belirteçler dahil      |
+| Model kimlik profilleri              | `/home/node/.openclaw/`           | Ana makine hacim bağlaması | OAuth belirteçleri, API anahtarları     |
+| Skill yapılandırmaları               | `/home/node/.openclaw/skills/`    | Ana makine hacim bağlaması | Skill düzeyi durum                      |
+| concepts/agent-workspace.md          | `/home/node/.openclaw/workspace/` | Ana makine hacim bağlaması | Kod ve ajan artefaktları                |
+| WhatsApp oturumu                     | `/home/node/.openclaw/`           | Harici ikili dosyalar      | QR girişini korur                       |
+| Gmail anahtarlığı                    | `/home/node/.openclaw/`           | Ana makine volume + parola | `GOG_KEYRING_PASSWORD` gerektirir       |
+| Derleme zamanında imaja gömülmelidir | `/usr/local/bin/`                 | Docker imajı               | Node çalışma zamanı                     |
+| Çalışma zamanında kurmayın           | Container dosya sistemi           | Docker imajı               | Her imaj oluşturmada yeniden kurulur    |
+| OS paketleri                         | Container dosya sistemi           | Docker imajı               | Yalnızca kaynaktan derliyorsanız `pnpm` |
+| Docker container                     | Geçicidir                         | Yeniden başlatılabilir     | Yok edilmesi güvenlidir                 |

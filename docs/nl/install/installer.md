@@ -11,10 +11,10 @@ title: "Installer-interne werking"
 
 OpenClaw levert drie installerscripts, geserveerd vanaf `openclaw.ai`.
 
-| Script                             | Platform                                | Wat het doet                                                                                                                                    |
-| ---------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Installeert Node indien nodig, installeert OpenClaw via npm (standaard) of git, en kan onboarding uitvoeren. |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Installeert Node + OpenClaw in een lokaal prefix (`~/.openclaw`). Geen root vereist.         |
+| Script                             | Platform             | Wat het doet                                                                                                 |
+| ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installeert Node indien nodig, installeert OpenClaw via npm (standaard) of git, en kan onboarding uitvoeren. |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installeert Node + OpenClaw in een lokaal prefix (`~/.openclaw`). Geen root vereist.                         |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | Installeert Node indien nodig, installeert OpenClaw via npm (standaard) of git, en kan onboarding uitvoeren. |
 
 ## Snelle opdrachten
@@ -132,39 +132,39 @@ Het script eindigt met exitcode `2` bij een ongeldige methodekeuze of ongeldige 
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                              | Beschrijving                                                                                                                     |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | Kies installatiemethode (standaard: `npm`). Alias: `--method` |
-| `--npm`                           | Snelkoppeling voor npm-methode                                                                                                   |
-| `--git`                           | Snelkoppeling voor git-methode. Alias: `--github`                                                |
-| `--version <version\\|dist-tag>` | npm-versie of dist-tag (standaard: `latest`)                                                  |
-| `--beta`                          | Gebruik beta dist-tag indien beschikbaar, anders terugvallen op `latest`                                                         |
-| `--git-dir <path>`                | Checkout-directory (standaard: `~/openclaw`). Alias: `--dir`  |
-| `--no-git-update`                 | `git pull` overslaan voor bestaande checkout                                                                                     |
-| `--no-prompt`                     | Prompts uitschakelen                                                                                                             |
-| `--no-onboard`                    | Onboarding overslaan                                                                                                             |
-| `--onboard`                       | Onboarding inschakelen                                                                                                           |
-| `--dry-run`                       | Acties afdrukken zonder wijzigingen toe te passen                                                                                |
-| `--verbose`                       | Debug-uitvoer inschakelen (`set -x`, npm notice-level logs)                                                   |
-| `--help`                          | Gebruik tonen (`-h`)                                                                                          |
+| Flag                    | Beschrijving                                                             |
+| ----------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                                     | Kies installatiemethode (standaard: `npm`). Alias: `--method` |
+| `--npm`                 | Snelkoppeling voor npm-methode                                           |
+| `--git`                 | Snelkoppeling voor git-methode. Alias: `--github`                        |
+| `--version <version\\   | dist-tag>`                                                               | npm-versie of dist-tag (standaard: `latest`)                  |
+| `--beta`                | Gebruik beta dist-tag indien beschikbaar, anders terugvallen op `latest` |
+| `--git-dir <path>`      | Checkout-directory (standaard: `~/openclaw`). Alias: `--dir`             |
+| `--no-git-update`       | `git pull` overslaan voor bestaande checkout                             |
+| `--no-prompt`           | Prompts uitschakelen                                                     |
+| `--no-onboard`          | Onboarding overslaan                                                     |
+| `--onboard`             | Onboarding inschakelen                                                   |
+| `--dry-run`             | Acties afdrukken zonder wijzigingen toe te passen                        |
+| `--verbose`             | Debug-uitvoer inschakelen (`set -x`, npm notice-level logs)              |
+| `--help`                | Gebruik tonen (`-h`)                                                     |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabele                                       | Beschrijving                                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | Installatiemethode                                                                   |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm-versie of dist-tag                                                               |
-| `OPENCLAW_BETA=0\\|1`                          | Beta gebruiken indien beschikbaar                                                    |
-| `OPENCLAW_GIT_DIR=<path>`                       | Checkout-directory                                                                   |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | Git-updates schakelen                                                                |
-| `OPENCLAW_NO_PROMPT=1`                          | Prompts uitschakelen                                                                 |
-| `OPENCLAW_NO_ONBOARD=1`                         | Onboarding overslaan                                                                 |
-| `OPENCLAW_DRY_RUN=1`                            | Dry run-modus                                                                        |
-| `OPENCLAW_VERBOSE=1`                            | Debugmodus                                                                           |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-logniveau                                                                        |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Gedrag van sharp/libvips bepalen (standaard: `1`) |
+| Variabele                        | Beschrijving         |
+| -------------------------------- | -------------------- | ------------------------------------------------- | ---------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`                 | Installatiemethode                                |
+| `OPENCLAW_VERSION=latest\\       | next\\               | <semver>`                                         | npm-versie of dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                   | Beta gebruiken indien beschikbaar                 |
+| `OPENCLAW_GIT_DIR=<path>`        | Checkout-directory   |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                   | Git-updates schakelen                             |
+| `OPENCLAW_NO_PROMPT=1`           | Prompts uitschakelen |
+| `OPENCLAW_NO_ONBOARD=1`          | Onboarding overslaan |
+| `OPENCLAW_DRY_RUN=1`             | Dry run-modus        |
+| `OPENCLAW_VERBOSE=1`             | Debugmodus           |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\               | notice`                                           | npm-logniveau          |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                   | Gedrag van sharp/libvips bepalen (standaard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -219,30 +219,30 @@ Ontworpen voor omgevingen waar je alles onder een lokaal prefix wilt hebben (sta
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                   | Beschrijving                                                                                                    |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Installatieprefix (standaard: `~/.openclaw`)                                 |
-| `--version <ver>`      | OpenClaw-versie of dist-tag (standaard: `latest`)                            |
-| `--node-version <ver>` | Node-versie (standaard: `22.22.0`)                                           |
-| `--json`               | NDJSON-events genereren                                                                                         |
-| `--onboard`            | `openclaw onboard` uitvoeren na installatie                                                                     |
-| `--no-onboard`         | Onboarding overslaan (standaard)                                                             |
+| Flag                   | Beschrijving                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `--prefix <path>`      | Installatieprefix (standaard: `~/.openclaw`)                                                    |
+| `--version <ver>`      | OpenClaw-versie of dist-tag (standaard: `latest`)                                               |
+| `--node-version <ver>` | Node-versie (standaard: `22.22.0`)                                                              |
+| `--json`               | NDJSON-events genereren                                                                         |
+| `--onboard`            | `openclaw onboard` uitvoeren na installatie                                                     |
+| `--no-onboard`         | Onboarding overslaan (standaard)                                                                |
 | `--set-npm-prefix`     | Op Linux: npm-prefix forceren naar `~/.npm-global` als het huidige prefix niet beschrijfbaar is |
-| `--help`               | Gebruik tonen (`-h`)                                                                         |
+| `--help`               | Gebruik tonen (`-h`)                                                                            |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabele                                       | Beschrijving                                                                                                    |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | Installatieprefix                                                                                               |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw-versie of dist-tag                                                                                     |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node-versie                                                                                                     |
-| `OPENCLAW_NO_ONBOARD=1`                         | Onboarding overslaan                                                                                            |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-logniveau                                                                                                   |
-| `OPENCLAW_GIT_DIR=<path>`                       | Legacy cleanup-zoekpad (gebruikt bij het verwijderen van oude `Peekaboo` submodule-checkout) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Gedrag van sharp/libvips bepalen (standaard: `1`)                            |
+| Variabele                        | Beschrijving                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------- |
+| `OPENCLAW_PREFIX=<path>`         | Installatieprefix                                                                            |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw-versie of dist-tag                                                                  |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node-versie                                                                                  |
+| `OPENCLAW_NO_ONBOARD=1`          | Onboarding overslaan                                                                         |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                       | notice`                                           | npm-logniveau |
+| `OPENCLAW_GIT_DIR=<path>`        | Legacy cleanup-zoekpad (gebruikt bij het verwijderen van oude `Peekaboo` submodule-checkout) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                           | Gedrag van sharp/libvips bepalen (standaard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ Ontworpen voor omgevingen waar je alles onder een lokaal prefix wilt hebben (sta
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                        | Beschrijving                                                                                 |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | Installatiemethode (standaard: `npm`)                     |
-| `-Tag <tag>`                | npm dist-tag (standaard: `latest`)                        |
-| `-GitDir <path>`            | Checkout-directory (standaard: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | Onboarding overslaan                                                                         |
-| `-NoGitUpdate`              | `git pull` overslaan                                                                         |
-| `-DryRun`                   | Alleen acties afdrukken                                                                      |
+| Flag                  | Beschrijving                                             |
+| --------------------- | -------------------------------------------------------- | ------------------------------------- |
+| `-InstallMethod npm\\ | git`                                                     | Installatiemethode (standaard: `npm`) |
+| `-Tag <tag>`          | npm dist-tag (standaard: `latest`)                       |
+| `-GitDir <path>`      | Checkout-directory (standaard: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | Onboarding overslaan                                     |
+| `-NoGitUpdate`        | `git pull` overslaan                                     |
+| `-DryRun`             | Alleen acties afdrukken                                  |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabele                            | Beschrijving          |
-| ------------------------------------ | --------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | Installatiemethode    |
-| `OPENCLAW_GIT_DIR=<path>`            | Checkout-directory    |
-| `OPENCLAW_NO_ONBOARD=1`              | Onboarding overslaan  |
-| `OPENCLAW_GIT_UPDATE=0`              | Git pull uitschakelen |
-| `OPENCLAW_DRY_RUN=1`                 | Dry run-modus         |
+| Variabele                      | Beschrijving          |
+| ------------------------------ | --------------------- | ------------------ |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`                  | Installatiemethode |
+| `OPENCLAW_GIT_DIR=<path>`      | Checkout-directory    |
+| `OPENCLAW_NO_ONBOARD=1`        | Onboarding overslaan  |
+| `OPENCLAW_GIT_UPDATE=0`        | Git pull uitschakelen |
+| `OPENCLAW_DRY_RUN=1`           | Dry run-modus         |
 
   </Accordion>
 </AccordionGroup>

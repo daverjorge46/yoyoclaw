@@ -82,8 +82,7 @@ ssh -N -L 18789:127.0.0.1:18789 user@host
 注意：請將 `18789` 替換為你設定的 `gateway.port`（或 `--port`/`OPENCLAW_GATEWAY_PORT`）。
 注意：當你傳入 `--url` 時，CLI 不會回退使用設定或環境變數中的憑證。
 請明確包含 `--token` 或 `--password`。缺少明確憑證會視為錯誤。
-Note: when you pass `--url`, the CLI does not fall back to config or environment credentials.
-21. 請明確包含 `--token` 或 `--password`。 22. 缺少明確憑證會被視為錯誤。
+Note: when you pass `--url`, the CLI does not fall back to config or environment credentials. 21. 請明確包含 `--token` 或 `--password`。 22. 缺少明確憑證會被視為錯誤。
 
 ## CLI 遠端預設值
 

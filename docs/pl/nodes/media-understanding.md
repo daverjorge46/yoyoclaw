@@ -175,11 +175,11 @@ Jeśli pominiesz `capabilities`, wpis kwalifikuje się do listy, w której się 
 
 ## Macierz obsługi dostawców (integracje OpenClaw)
 
-| Możliwość | Integracja dostawcy                              | Uwagi                                                                               |
-| --------- | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Obraz     | OpenAI / Anthropic / Google / inne przez `pi-ai` | Każdy model obsługujący obrazy w rejestrze działa.                  |
-| Audio     | OpenAI, Groq, Deepgram, Google                   | Transkrypcja dostawcy (Whisper/Deepgram/Gemini). |
-| Wideo     | Google (Gemini API)           | Rozumienie wideo przez dostawcę.                                    |
+| Możliwość | Integracja dostawcy                              | Uwagi                                              |
+| --------- | ------------------------------------------------ | -------------------------------------------------- |
+| Obraz     | OpenAI / Anthropic / Google / inne przez `pi-ai` | Każdy model obsługujący obrazy w rejestrze działa. |
+| Audio     | OpenAI, Groq, Deepgram, Google                   | Transkrypcja dostawcy (Whisper/Deepgram/Gemini).   |
+| Wideo     | Google (Gemini API)                              | Rozumienie wideo przez dostawcę.                   |
 
 ## Zalecani dostawcy
 

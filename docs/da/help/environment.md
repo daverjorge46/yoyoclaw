@@ -76,11 +76,11 @@ Se [Konfiguration: Substitution af miljøvariabler](/gateway/configuration#env-v
 
 ## Sti-relaterede miljøvariabler
 
-| Variabel               | Formål                                                                                                                                                                                                                                              |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variabel               | Formål                                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `OPENCLAW_HOME`        | Tilsidesæt hjemmemappen, der bruges til al intern sti-opløsning (`~/.openclaw/`, agent-mapper, sessioner, legitimationsoplysninger). Nyttigt, når OpenClaw køres som en dedikeret servicebruger. |
-| `OPENCLAW_STATE_DIR`   | Tilsidesæt state-mappen (standard `~/.openclaw`).                                                                                                                                                                |
-| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                             |
+| `OPENCLAW_STATE_DIR`   | Tilsidesæt state-mappen (standard `~/.openclaw`).                                                                                                                                                |
+| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                             |
 
 ### `OPENCLAW_HOME`
 

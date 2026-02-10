@@ -38,14 +38,14 @@ Client                    Gateway
 
 常見方法與事件：
 
-| 40. 類別 | 範例                                                    | 注意事項                       |
-| ----------------------------- | ----------------------------------------------------- | -------------------------- |
-| Core                          | `connect`、`health`、`status`                           | `connect` 必須是第一個           |
-| Messaging                     | `send`、`poll`、`agent`、`agent.wait`                    | 有副作用的操作需要 `idempotencyKey` |
-| Chat                          | `chat.history`、`chat.send`、`chat.abort`、`chat.inject` | WebChat 使用這些               |
-| Sessions                      | `sessions.list`、`sessions.patch`、`sessions.delete`    | session admin              |
-| Nodes                         | `node.list`、`node.invoke`、`node.pair.*`               | Gateway WS + 節點動作          |
-| Events                        | `tick`、`presence`、`agent`、`chat`、`health`、`shutdown`  | 伺服器推送                      |
+| 40. 類別  | 範例                                                      | 注意事項                            |
+| --------- | --------------------------------------------------------- | ----------------------------------- |
+| Core      | `connect`、`health`、`status`                             | `connect` 必須是第一個              |
+| Messaging | `send`、`poll`、`agent`、`agent.wait`                     | 有副作用的操作需要 `idempotencyKey` |
+| Chat      | `chat.history`、`chat.send`、`chat.abort`、`chat.inject`  | WebChat 使用這些                    |
+| Sessions  | `sessions.list`、`sessions.patch`、`sessions.delete`      | session admin                       |
+| Nodes     | `node.list`、`node.invoke`、`node.pair.*`                 | Gateway WS + 節點動作               |
+| Events    | `tick`、`presence`、`agent`、`chat`、`health`、`shutdown` | 伺服器推送                          |
 
 權威清單位於 `src/gateway/server.ts`（`METHODS`、`EVENTS`）。
 

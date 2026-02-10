@@ -44,11 +44,11 @@ title: "التثبيت"
         ```
       </Tab>
     </Tabs>
-    
+
     هذا كل شيء — يتكفّل البرنامج باكتشاف Node وتثبيته والتهيئة الأولية.
-    
+
     لتجاوز التهيئة الأولية والاكتفاء بتثبيت الملف التنفيذي:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ title: "التثبيت"
         ```
       </Tab>
     </Tabs>
-    
+
     للاطلاع على جميع الأعلام ومتغيرات البيئة وخيارات CI/الأتمتة، راجع [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ title: "التثبيت"
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="أخطاء بناء sharp؟">
           إذا كان لديك libvips مثبتًا بشكل عام (شائع على macOS عبر Homebrew) وفشل `sharp`، فقم بفرض استخدام الثنائيات المُسبقة البناء:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           إذا رأيت `sharp: Please add node-gyp to your dependencies`، فإمّا أن تثبّت أدوات البناء (macOS: Xcode CLT + `npm install -g node-gyp`) أو استخدم متغير البيئة أعلاه.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ title: "التثبيت"
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         يتطلّب pnpm موافقة صريحة للحِزم التي تحتوي على نصوص بناء. بعد أن يُظهر التثبيت الأول تحذير «Ignored build scripts»، شغّل `pnpm approve-builds -g` واختر الحِزم المدرجة.
         </Note>
@@ -111,7 +111,7 @@ title: "التثبيت"
     <Steps>
       <Step title="الاستنساخ والبناء">
         استنسخ [مستودع OpenClaw](https://github.com/openclaw/openclaw) ثم ابنِ المشروع:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ title: "التثبيت"
       </Step>
       <Step title="ربط CLI">
         اجعل الأمر `openclaw` متاحًا بشكل عام:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         بديلًا عن ذلك، يمكنك تجاوز الربط وتشغيل الأوامر عبر `pnpm openclaw ...` من داخل المستودع.
       </Step>
       <Step title="تشغيل التهيئة الأولية">
@@ -135,7 +135,7 @@ title: "التثبيت"
         ```
       </Step>
     </Steps>
-    
+
     لمزيد من مسارات العمل التطويرية المتقدمة، راجع [الإعداد](/start/setup).
     ```
 

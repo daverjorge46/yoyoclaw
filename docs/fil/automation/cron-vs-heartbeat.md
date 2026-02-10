@@ -13,14 +13,14 @@ Both heartbeats and cron jobs let you run tasks on a schedule. This guide helps 
 
 ## Mabilis na Gabay sa Pagpapasya
 
-| Use Case                                           | Inirerekomenda                         | Bakit                                                 |
-| -------------------------------------------------- | -------------------------------------- | ----------------------------------------------------- |
-| I-check ang inbox bawat 30 min                     | Heartbeat                              | Na-ba-batch kasama ng ibang check, context-aware      |
+| Use Case                                           | Inirerekomenda      | Bakit                                                 |
+| -------------------------------------------------- | ------------------- | ----------------------------------------------------- |
+| I-check ang inbox bawat 30 min                     | Heartbeat           | Na-ba-batch kasama ng ibang check, context-aware      |
 | Magpadala ng arawang ulat eksaktong 9am            | Cron (isolated)     | Kailangan ng eksaktong oras                           |
-| I-monitor ang calendar para sa paparating na event | Heartbeat                              | Natural na akma para sa pana-panahong awareness       |
+| I-monitor ang calendar para sa paparating na event | Heartbeat           | Natural na akma para sa pana-panahong awareness       |
 | Magpatakbo ng lingguhang malalim na analysis       | Cron (isolated)     | Standalone na gawain, puwedeng gumamit ng ibang model |
 | Paalalahanan ako sa loob ng 20 minuto              | Cron (main, `--at`) | One-shot na may eksaktong timing                      |
-| Background na health check ng proyekto             | Heartbeat                              | Sumasabay sa umiiral na cycle                         |
+| Background na health check ng proyekto             | Heartbeat           | Sumasabay sa umiiral na cycle                         |
 
 ## Heartbeat: Pana-panahong Awareness
 
@@ -216,12 +216,12 @@ Tingnan ang [Lobster](/tools/lobster) para sa kumpletong paggamit at mga halimba
 Parehong puwedeng makipag-interact ang heartbeat at cron sa main session, pero magkaiba ang paraan:
 
 |         | Heartbeat                             | Cron (main)                           | Cron (isolated)                 |
-| ------- | ------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- |
-| Session | Main                                  | Main (sa pamamagitan ng system event) | `cron:<jobId>`                                     |
-| History | Shared                                | Shared                                                   | Bago sa bawat run                                  |
-| Context | Buo                                   | Buo                                                      | Wala (nagsisimula nang malinis) |
-| Model   | Model ng main session                 | Model ng main session                                    | Puwedeng i-override                                |
-| Output  | Ipinapadala kung hindi `HEARTBEAT_OK` | Heartbeat prompt + event                                 | Announce summary (default)      |
+| ------- | ------------------------------------- | ------------------------------------- | ------------------------------- |
+| Session | Main                                  | Main (sa pamamagitan ng system event) | `cron:<jobId>`                  |
+| History | Shared                                | Shared                                | Bago sa bawat run               |
+| Context | Buo                                   | Buo                                   | Wala (nagsisimula nang malinis) |
+| Model   | Model ng main session                 | Model ng main session                 | Puwedeng i-override             |
+| Output  | Ipinapadala kung hindi `HEARTBEAT_OK` | Heartbeat prompt + event              | Announce summary (default)      |
 
 ### Kailan gagamit ng main session cron
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Mga Pagsasaalang-alang sa Gastos
 
-| Mekanismo                          | Profile ng Gastos                                                                      |
-| ---------------------------------- | -------------------------------------------------------------------------------------- |
-| Heartbeat                          | Isang turn bawat N minuto; nag-i-scale ayon sa laki ng HEARTBEAT.md    |
+| Mekanismo       | Profile ng Gastos                                                   |
+| --------------- | ------------------------------------------------------------------- |
+| Heartbeat       | Isang turn bawat N minuto; nag-i-scale ayon sa laki ng HEARTBEAT.md |
 | Cron (main)     | Nagdaragdag ng event sa susunod na heartbeat (walang isolated turn) |
-| Cron (isolated) | Buong agent turn bawat job; puwedeng gumamit ng mas murang model                       |
+| Cron (isolated) | Buong agent turn bawat job; puwedeng gumamit ng mas murang model    |
 
 **Mga Tip**:
 

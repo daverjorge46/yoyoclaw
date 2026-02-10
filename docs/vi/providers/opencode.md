@@ -9,8 +9,7 @@ title: "OpenCode Zen"
 # OpenCode Zen
 
 OpenCode Zen is a **curated list of models** recommended by the OpenCode team for coding agents.
-It is an optional, hosted model access path that uses an API key and the `opencode` provider.
-24. Zen hiện đang ở giai đoạn beta.
+It is an optional, hosted model access path that uses an API key and the `opencode` provider. 24. Zen hiện đang ở giai đoạn beta.
 
 ## Thiết lập CLI
 

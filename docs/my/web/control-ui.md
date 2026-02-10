@@ -170,7 +170,7 @@ pnpm ui:dev # auto-installs UI deps on first run
 9. Control UI သည် static files ဖြစ်ပြီး WebSocket target ကို configure လုပ်နိုင်သဖြင့် HTTP origin နှင့် မတူနိုင်ပါသည်။ 10. Vite dev server ကို local တွင်အသုံးပြုပြီး Gateway ကို အခြားနေရာတွင် run လုပ်လိုသောအခါ အဆင်ပြေပါသည်။
 
 1. UI dev server ကို စတင်ပါ: `pnpm ui:dev`
-2. အောက်ပါကဲ့သို့ URL တစ်ခုကို ဖွင့်ပါ:
+1. အောက်ပါကဲ့သို့ URL တစ်ခုကို ဖွင့်ပါ:
 
 ```text
 http://localhost:5173/?gatewayUrl=ws://<gateway-host>:18789

@@ -38,13 +38,13 @@ Si cela affiche `v22.x.x` ou supérieur, vous êtes bien. Si Node n'est pas inst
     curl -fsSL https://deb.nodesource.com/setup_22. | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Ou utilisez un gestionnaire de versions (voir ci-dessous).
     ````
 
@@ -56,13 +56,13 @@ Si cela affiche `v22.x.x` ou supérieur, vous êtes bien. Si Node n'est pas inst
     ```powershell
     winget install OpenJS.NodeJS. TS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Ou téléchargez l'installateur Windows depuis [nodejs.org](https://nodejs.org/).
     ````
 

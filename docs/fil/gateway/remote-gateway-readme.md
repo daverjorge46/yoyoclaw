@@ -164,11 +164,11 @@ launchctl bootout gui/$UID/bot.molt.ssh-tunnel
 
 ## Paano Ito Gumagana
 
-| Component                            | Ano ang Ginagawa                                                                        |
-| ------------------------------------ | --------------------------------------------------------------------------------------- |
-| `LocalForward 18789 127.0.0.1:18789` | Ipinapasa ang lokal na port 18789 papunta sa remote port 18789                          |
+| Component                            | Ano ang Ginagawa                                                     |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| `LocalForward 18789 127.0.0.1:18789` | Ipinapasa ang lokal na port 18789 papunta sa remote port 18789       |
 | `ssh -N`                             | SSH nang hindi nagsasagawa ng remote commands (port forwarding lang) |
-| `KeepAlive`                          | Awtomatikong nire-restart ang tunnel kung mag-crash                                     |
-| `RunAtLoad`                          | Sinisimulan ang tunnel kapag nag-load ang agent                                         |
+| `KeepAlive`                          | Awtomatikong nire-restart ang tunnel kung mag-crash                  |
+| `RunAtLoad`                          | Sinisimulan ang tunnel kapag nag-load ang agent                      |
 
 OpenClaw.app connects to `ws://127.0.0.1:18789` on your client machine. The SSH tunnel forwards that connection to port 18789 on the remote machine where the Gateway is running.

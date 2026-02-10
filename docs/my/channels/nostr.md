@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Configuration reference
 
-| Key          | Type                                                         | Default                                     | Description                                   |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------------------- |
-| `privateKey` | string                                                       | required                                    | `nsec` သို့မဟုတ် hex ဖော်မတ်ရှိ Private key   |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay URL များ (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM ဝင်ရောက်ခွင့် မူဝါဒ                        |
-| `allowFrom`  | string[] | `[]`                                        | ခွင့်ပြုထားသော ပို့သူ pubkey များ             |
-| `enabled`    | boolean                                                      | `true`                                      | ချန်နယ်ကို ဖွင့်/ပိတ်                         |
-| `name`       | string                                                       | -                                           | ပြသမည့် အမည်                                  |
-| `profile`    | object                                                       | -                                           | NIP-01 ပရိုဖိုင် မီတာဒေတာ                     |
+| Key          | Type     | Default                                     | Description                                 |
+| ------------ | -------- | ------------------------------------------- | ------------------------------------------- |
+| `privateKey` | string   | required                                    | `nsec` သို့မဟုတ် hex ဖော်မတ်ရှိ Private key |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay URL များ (WebSocket)                  |
+| `dmPolicy`   | string   | `pairing`                                   | DM ဝင်ရောက်ခွင့် မူဝါဒ                      |
+| `allowFrom`  | string[] | `[]`                                        | ခွင့်ပြုထားသော ပို့သူ pubkey များ           |
+| `enabled`    | boolean  | `true`                                      | ချန်နယ်ကို ဖွင့်/ပိတ်                       |
+| `name`       | string   | -                                           | ပြသမည့် အမည်                                |
+| `profile`    | object   | -                                           | NIP-01 ပရိုဖိုင် မီတာဒေတာ                   |
 
 ## Profile metadata
 
@@ -166,12 +166,12 @@ Profile ဒေတာကို NIP-01 `kind:0` event အဖြစ် ထုတ်
 
 ## Protocol support
 
-| NIP    | Status    | Description                                        |
-| ------ | --------- | -------------------------------------------------- |
-| NIP-01 | Supported | အခြေခံ event ဖော်မတ် + ပရိုဖိုင် မီတာဒေတာ          |
-| NIP-04 | Supported | စာဝှက်ထားသော DM များ (`kind:4`) |
-| NIP-17 | Planned   | Gift-wrapped DM များ                               |
-| NIP-44 | Planned   | ဗားရှင်းပါသော စာဝှက်ခြင်း                          |
+| NIP    | Status    | Description                               |
+| ------ | --------- | ----------------------------------------- |
+| NIP-01 | Supported | အခြေခံ event ဖော်မတ် + ပရိုဖိုင် မီတာဒေတာ |
+| NIP-04 | Supported | စာဝှက်ထားသော DM များ (`kind:4`)           |
+| NIP-17 | Planned   | Gift-wrapped DM များ                      |
+| NIP-44 | Planned   | ဗားရှင်းပါသော စာဝှက်ခြင်း                 |
 
 ## Testing
 

@@ -528,34 +528,34 @@ Cấu hình đầy đủ: [Gateway configuration](/gateway/configuration)
 
 Các tùy chọn chính:
 
-| Thiết lập                                         | Mô tả                                                                    | Mặc định  |
-| ------------------------------------------------- | ------------------------------------------------------------------------ | --------- |
-| `channels.feishu.enabled`                         | Bật/tắt kênh                                                             | `true`    |
-| `channels.feishu.domain`                          | Miền API (`feishu` hoặc `lark`)                       | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                   | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                               | -         |
-| `channels.feishu.accounts.<id>.domain`            | Ghi đè miền API theo tài khoản                                           | `feishu`  |
-| `channels.feishu.dmPolicy`                        | Chính sách DM                                                            | `pairing` |
+| Thiết lập                                         | Mô tả                            | Mặc định  |
+| ------------------------------------------------- | -------------------------------- | --------- |
+| `channels.feishu.enabled`                         | Bật/tắt kênh                     | `true`    |
+| `channels.feishu.domain`                          | Miền API (`feishu` hoặc `lark`)  | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                           | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                       | -         |
+| `channels.feishu.accounts.<id>.domain`            | Ghi đè miền API theo tài khoản   | `feishu`  |
+| `channels.feishu.dmPolicy`                        | Chính sách DM                    | `pairing` |
 | `channels.feishu.allowFrom`                       | Allowlist DM (danh sách open_id) | -         |
-| `channels.feishu.groupPolicy`                     | Chính sách nhóm                                                          | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Allowlist nhóm                                                           | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | Yêu cầu @mention                                            | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Bật nhóm                                                                 | `true`    |
-| `channels.feishu.textChunkLimit`                  | Kích thước chia nhỏ tin nhắn                                             | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | Giới hạn kích thước media                                                | `30`      |
-| `channels.feishu.streaming`                       | Bật xuất thẻ streaming                                                   | `true`    |
-| `channels.feishu.blockStreaming`                  | Bật block streaming                                                      | `true`    |
+| `channels.feishu.groupPolicy`                     | Chính sách nhóm                  | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Allowlist nhóm                   | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | Yêu cầu @mention                 | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Bật nhóm                         | `true`    |
+| `channels.feishu.textChunkLimit`                  | Kích thước chia nhỏ tin nhắn     | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | Giới hạn kích thước media        | `30`      |
+| `channels.feishu.streaming`                       | Bật xuất thẻ streaming           | `true`    |
+| `channels.feishu.blockStreaming`                  | Bật block streaming              | `true`    |
 
 ---
 
 ## Tham chiếu dmPolicy
 
-| Giá trị       | Hành vi                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------ |
+| Giá trị       | Hành vi                                                                    |
+| ------------- | -------------------------------------------------------------------------- |
 | `"pairing"`   | **Mặc định.** Người dùng chưa biết sẽ nhận mã ghép cặp; cần được phê duyệt |
-| `"allowlist"` | Chỉ người dùng trong `allowFrom` mới có thể chat                                           |
-| `"open"`      | Cho phép tất cả người dùng (yêu cầu `"*"` trong allowFrom)              |
-| `"disabled"`  | Tắt DM                                                                                     |
+| `"allowlist"` | Chỉ người dùng trong `allowFrom` mới có thể chat                           |
+| `"open"`      | Cho phép tất cả người dùng (yêu cầu `"*"` trong allowFrom)                 |
+| `"disabled"`  | Tắt DM                                                                     |
 
 ---
 

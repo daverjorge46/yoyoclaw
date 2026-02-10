@@ -16,7 +16,7 @@ title: "はじめに"
 ブラウザーでチャットするか、 `openclaw dashboard`
 を実行してブラウザーでチャットするか、 `http://127.0.0.1:18789/` を開きます。
 <Tooltip headline="Gateway host" tip="The machine running the OpenClaw gateway service.">ゲートウェイ ホスト</Tooltip>.
- 上で
+上で
 `http://127.0.0.1:18789/` を開いてください。
 ドキュメント: [Dashboard](/web/dashboard) および [Control UI](/web/control-ui)。
 

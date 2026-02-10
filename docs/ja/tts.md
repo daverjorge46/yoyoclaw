@@ -67,8 +67,7 @@ OpenAI や ElevenLabs の API キーが利用できない場合に自動的に�
 ## 設定
 
 TTS の設定は、`openclaw.json` 内の `messages.tts` 配下にあります。
-完全なスキーマは [Gateway configuration](/gateway/configuration) を参照してください。
-28. 完全なスキーマは [Gateway configuration](/gateway/configuration) にあります。
+完全なスキーマは [Gateway configuration](/gateway/configuration) を参照してください。28. 完全なスキーマは [Gateway configuration](/gateway/configuration) にあります。
 
 ### 最小構成（有効化 + プロバイダー）
 

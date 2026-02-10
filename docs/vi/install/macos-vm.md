@@ -260,11 +260,11 @@ Giữ VM chạy bằng cách:
 
 ## Xử lý sự cố
 
-| Vấn đề                      | Giải pháp                                                                                                      |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Không SSH vào VM được       | Kiểm tra "Remote Login" đã được bật trong System Settings của VM                                               |
-| Không thấy IP của VM        | Chờ VM khởi động hoàn tất, chạy lại `lume get openclaw`                                                        |
-| Không tìm thấy lệnh Lume    | Thêm `~/.local/bin` vào PATH của bạn                                                                           |
+| Vấn đề                      | Giải pháp                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| Không SSH vào VM được       | Kiểm tra "Remote Login" đã được bật trong System Settings của VM                            |
+| Không thấy IP của VM        | Chờ VM khởi động hoàn tất, chạy lại `lume get openclaw`                                     |
+| Không tìm thấy lệnh Lume    | Thêm `~/.local/bin` vào PATH của bạn                                                        |
 | Không quét được QR WhatsApp | Đảm bảo bạn đang đăng nhập trong VM (không phải máy chủ) khi chạy `openclaw channels login` |
 
 ---

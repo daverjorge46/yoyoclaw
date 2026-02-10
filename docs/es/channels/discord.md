@@ -395,27 +395,27 @@ Notas de lista de permitidos (PK habilitado):
 
 ### Valores predeterminados de acciones de herramientas
 
-| Grupo de acciones | Predeterminado | Notas                                                        |
-| ----------------- | -------------- | ------------------------------------------------------------ |
-| reactions         | enabled        | Reaccionar + listar reacciones + emojiList                   |
-| stickers          | enabled        | Enviar stickers                                              |
-| emojiUploads      | enabled        | Subir emojis                                                 |
-| stickerUploads    | enabled        | Subir stickers                                               |
-| polls             | enabled        | Crear encuestas                                              |
-| permissions       | enabled        | Instantánea de permisos del canal                            |
-| messages          | enabled        | Leer/enviar/editar/eliminar                                  |
-| threads           | enabled        | Crear/listar/responder                                       |
-| pins              | enabled        | Fijar/desfijar/listar                                        |
-| search            | enabled        | Búsqueda de mensajes (función preliminar) |
-| memberInfo        | enabled        | Información de miembros                                      |
-| roleInfo          | enabled        | Lista de roles                                               |
-| channelInfo       | enabled        | Información + listado de canales                             |
-| channels          | enabled        | Gestión de canales/categorías                                |
-| voiceStatus       | enabled        | Consulta de estado de voz                                    |
-| events            | enabled        | Listar/crear eventos programados                             |
-| roles             | disabled       | Agregar/quitar roles                                         |
-| moderation        | disabled       | Timeout/expulsar/prohibir                                    |
-| presence          | disabled       | Estado/actividad del bot (setPresence)    |
+| Grupo de acciones | Predeterminado | Notas                                      |
+| ----------------- | -------------- | ------------------------------------------ |
+| reactions         | enabled        | Reaccionar + listar reacciones + emojiList |
+| stickers          | enabled        | Enviar stickers                            |
+| emojiUploads      | enabled        | Subir emojis                               |
+| stickerUploads    | enabled        | Subir stickers                             |
+| polls             | enabled        | Crear encuestas                            |
+| permissions       | enabled        | Instantánea de permisos del canal          |
+| messages          | enabled        | Leer/enviar/editar/eliminar                |
+| threads           | enabled        | Crear/listar/responder                     |
+| pins              | enabled        | Fijar/desfijar/listar                      |
+| search            | enabled        | Búsqueda de mensajes (función preliminar)  |
+| memberInfo        | enabled        | Información de miembros                    |
+| roleInfo          | enabled        | Lista de roles                             |
+| channelInfo       | enabled        | Información + listado de canales           |
+| channels          | enabled        | Gestión de canales/categorías              |
+| voiceStatus       | enabled        | Consulta de estado de voz                  |
+| events            | enabled        | Listar/crear eventos programados           |
+| roles             | disabled       | Agregar/quitar roles                       |
+| moderation        | disabled       | Timeout/expulsar/prohibir                  |
+| presence          | disabled       | Estado/actividad del bot (setPresence)     |
 
 - `replyToMode`: `off` (predeterminado), `first` o `all`. Aplica solo cuando el modelo incluye una etiqueta de respuesta.
 

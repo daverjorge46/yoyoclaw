@@ -273,12 +273,12 @@ channels:
 
 ### 一般的なパターン
 
-| 目的                          | 設定                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------- |
-| デフォルト動作（OK は非表示、アラート有効）     | _(設定不要)_                                                              |
+| 目的                                                   | 設定                                                                                     |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| デフォルト動作（OK は非表示、アラート有効）            | _(設定不要)_                                                                             |
 | 完全にサイレント（メッセージなし、インジケーターなし） | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
-| インジケーターのみ（メッセージなし）          | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| 特定の 1 チャンネルのみ OK を表示        | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| インジケーターのみ（メッセージなし）                   | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
+| 特定の 1 チャンネルのみ OK を表示                      | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md（任意）
 

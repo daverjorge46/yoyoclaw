@@ -933,7 +933,7 @@ SaaS.
 
 Höjdpunkter:
 
-- **Dina enheter, dina data:** kör Gateway var du än vill (Mac, Linux, VPS) och behåller arbetsytan* sessionshistorik lokalt.
+- **Dina enheter, dina data:** kör Gateway var du än vill (Mac, Linux, VPS) och behåller arbetsytan\* sessionshistorik lokalt.
 - **Verkliga kanaler, inte en webb-sandlåda:** WhatsApp/Telegram/Slack/Discord/Signal/iMessage/etc,
   plus mobil röst och Canvas på stödda plattformar.
 - **Modell-agnostik:** använd Anthropic, OpenAI, MiniMax, OpenRouter, etc., med per-agent routing
@@ -1258,16 +1258,16 @@ Relaterat: [Agent workspace](/concepts/agent-workspace), [Memory](/concepts/memo
 
 Allt lever under `$OPENCLAW_STATE_DIR` (standard: `~/.openclaw`):
 
-| Sökväg                                                          | Syfte                                                                                                             |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Huvudkonfigurationen (JSON5)                                                                   |
-| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Legacy OAuth import (kopieras till auth profiler vid första användning)                        |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profiler (OAuth + API-nycklar)                                                            |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Runtime auth cache (hanteras automatiskt)                                                      |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Leverantörens status (t.ex. `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                   | Per-agent stat (agentDir + sessioner)                                                          |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Konversationshistorik & tillstånd (per agent)                              |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (per agent)                                                                   |
+| Sökväg                                                          | Syfte                                                                   |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Huvudkonfigurationen (JSON5)                                            |
+| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Legacy OAuth import (kopieras till auth profiler vid första användning) |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profiler (OAuth + API-nycklar)                                     |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Runtime auth cache (hanteras automatiskt)                               |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Leverantörens status (t.ex. `whatsapp/<accountId>/creds.json`)          |
+| `$OPENCLAW_STATE_DIR/agents/`                                   | Per-agent stat (agentDir + sessioner)                                   |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Konversationshistorik & tillstånd (per agent)                           |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session metadata (per agent)                                            |
 
 Legacy singel-agent path: `~/.openclaw/agent/*` (migrerat av `openclaw doctor`).
 

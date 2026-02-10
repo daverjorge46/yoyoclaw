@@ -16,13 +16,13 @@ title: "DigitalOcean"
 
 ## 費用比較（2026）
 
-| 提供者          | 方案              | 規格                 | 每月價格                        | Notes            |
-| ------------ | --------------- | ------------------ | --------------------------- | ---------------- |
-| Oracle Cloud | Always Free ARM | 最多 4 OCPU、24GB RAM | $0                          | ARM、容量有限／註冊流程較繁瑣 |
-| Hetzner      | CX22            | 2 vCPU、4GB RAM     | €3.79（約 $4） | 最便宜的付費選項         |
-| DigitalOcean | Basic           | 1 vCPU、1GB RAM     | $6                          | UI 簡單、文件完善       |
-| Vultr        | Cloud Compute   | 1 vCPU、1GB RAM     | $6                          | Many locations   |
-| Linode       | Nanode          | 1 vCPU、1GB RAM     | $5                          | 現已隸屬於 Akamai     |
+| 提供者       | 方案            | 規格                  | 每月價格       | Notes                         |
+| ------------ | --------------- | --------------------- | -------------- | ----------------------------- |
+| Oracle Cloud | Always Free ARM | 最多 4 OCPU、24GB RAM | $0             | ARM、容量有限／註冊流程較繁瑣 |
+| Hetzner      | CX22            | 2 vCPU、4GB RAM       | €3.79（約 $4） | 最便宜的付費選項              |
+| DigitalOcean | Basic           | 1 vCPU、1GB RAM       | $6             | UI 簡單、文件完善             |
+| Vultr        | Cloud Compute   | 1 vCPU、1GB RAM       | $6             | Many locations                |
+| Linode       | Nanode          | 1 vCPU、1GB RAM       | $5             | 現已隸屬於 Akamai             |
 
 **選擇提供者：**
 
@@ -209,12 +209,12 @@ tar -czvf openclaw-backup.tar.gz ~/.openclaw ~/.openclaw/workspace
 
 Oracle Cloud 提供 **Always Free** 的 ARM 執行個體，其效能明顯優於此處任何付費選項，且費用為每月 $0。
 
-| 你可以獲得什麼        | 規格               |
-| -------------- | ---------------- |
-| **4 OCPU**     | ARM Ampere A1    |
-| **24GB RAM**   | More than enough |
-| **200GB 儲存空間** | 區塊儲存區            |
-| **永久免費**       | 不會收取信用卡費用        |
+| 你可以獲得什麼     | 規格               |
+| ------------------ | ------------------ |
+| **4 OCPU**         | ARM Ampere A1      |
+| **24GB RAM**       | More than enough   |
+| **200GB 儲存空間** | 區塊儲存區         |
+| **永久免費**       | 不會收取信用卡費用 |
 
 **注意事項：**
 

@@ -13,10 +13,10 @@ title: "Claude Max API Proxy"
 
 ## Warum dies verwenden?
 
-| Ansatz                | Kosten                                                                                                                                     | Am besten geeignet für                                |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Ansatz                | Kosten                                                                  | Am besten geeignet für                                |
+| --------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
 | Anthropic API         | Zahlung pro Token (~15 $ pro Mio. Input, 75 $ pro Mio. Output für Opus) | Produktionsanwendungen, hohes Volumen                 |
-| Claude-Max-Abonnement | 200 $/Monat pauschal                                                                                                                       | Persönliche Nutzung, Entwicklung, unbegrenzte Nutzung |
+| Claude-Max-Abonnement | 200 $/Monat pauschal                                                    | Persönliche Nutzung, Entwicklung, unbegrenzte Nutzung |
 
 Wenn Sie ein Claude-Max-Abonnement haben und es mit OpenAI-kompatiblen Tools verwenden möchten, kann Ihnen dieser Proxy erheblich Geld sparen.
 

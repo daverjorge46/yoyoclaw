@@ -61,7 +61,7 @@ Gmail summary ကို chat surface တစ်ခုသို့ ပို့ရ
 
 43. Fixed channel တစ်ခု လိုပါက `channel` + `to` ကို သတ်မှတ်ပါ။ 44. မဟုတ်ပါက `channel: "last"` သည် နောက်ဆုံး အသုံးပြုခဲ့သော delivery route ကို အသုံးပြုမည် (WhatsApp သို့ fallback ဖြစ်သည်)။
 
-45. Gmail run များအတွက် စျေးသက်သာသော model ကို အတင်းအသုံးပြုလိုပါက mapping ထဲတွင် `model` ကို သတ်မှတ်ပါ (`provider/model` သို့မဟုတ် alias)။ 46. `agents.defaults.models` ကို enforce လုပ်ထားပါက အဲဒီထဲတွင်လည်း ထည့်သွင်းပါ။
+44. Gmail run များအတွက် စျေးသက်သာသော model ကို အတင်းအသုံးပြုလိုပါက mapping ထဲတွင် `model` ကို သတ်မှတ်ပါ (`provider/model` သို့မဟုတ် alias)။ 46. `agents.defaults.models` ကို enforce လုပ်ထားပါက အဲဒီထဲတွင်လည်း ထည့်သွင်းပါ။
 
 Gmail hooks အတွက်သာ default model နှင့် thinking level ကို သတ်မှတ်လိုပါက
 config ထဲတွင် `hooks.gmail.model` / `hooks.gmail.thinking` ကို ထည့်ပါ:

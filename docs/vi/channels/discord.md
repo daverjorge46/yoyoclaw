@@ -393,26 +393,26 @@ Ghi chú allowlist (khi bật PK):
 
 ### Mặc định hành động công cụ
 
-| Nhóm hành động | Mặc định | Ghi chú                                                     |
-| -------------- | -------- | ----------------------------------------------------------- |
-| reactions      | enabled  | React + liệt kê phản ứng + emojiList                        |
-| stickers       | enabled  | Gửi sticker                                                 |
-| emojiUploads   | enabled  | Tải emoji lên                                               |
-| stickerUploads | enabled  | Tải sticker lên                                             |
-| polls          | enabled  | Tạo poll                                                    |
-| permissions    | enabled  | Ảnh chụp quyền kênh                                         |
-| messages       | enabled  | Đọc/gửi/sửa/xóa                                             |
-| threads        | enabled  | Tạo/liệt kê/trả lời                                         |
-| pins           | enabled  | Ghim/bỏ ghim/liệt kê                                        |
+| Nhóm hành động | Mặc định | Ghi chú                                  |
+| -------------- | -------- | ---------------------------------------- |
+| reactions      | enabled  | React + liệt kê phản ứng + emojiList     |
+| stickers       | enabled  | Gửi sticker                              |
+| emojiUploads   | enabled  | Tải emoji lên                            |
+| stickerUploads | enabled  | Tải sticker lên                          |
+| polls          | enabled  | Tạo poll                                 |
+| permissions    | enabled  | Ảnh chụp quyền kênh                      |
+| messages       | enabled  | Đọc/gửi/sửa/xóa                          |
+| threads        | enabled  | Tạo/liệt kê/trả lời                      |
+| pins           | enabled  | Ghim/bỏ ghim/liệt kê                     |
 | search         | enabled  | Tìm kiếm tin nhắn (tính năng thử nghiệm) |
-| memberInfo     | enabled  | Thông tin thành viên                                        |
-| roleInfo       | enabled  | Danh sách vai trò                                           |
-| channelInfo    | enabled  | Thông tin kênh + liệt kê                                    |
-| channels       | enabled  | Quản lý kênh/danh mục                                       |
-| voiceStatus    | enabled  | Tra cứu trạng thái voice                                    |
-| events         | enabled  | Liệt kê/tạo sự kiện đã lên lịch                             |
-| roles          | disabled | Thêm/xóa vai trò                                            |
-| moderation     | disabled | Timeout/kick/ban                                            |
+| memberInfo     | enabled  | Thông tin thành viên                     |
+| roleInfo       | enabled  | Danh sách vai trò                        |
+| channelInfo    | enabled  | Thông tin kênh + liệt kê                 |
+| channels       | enabled  | Quản lý kênh/danh mục                    |
+| voiceStatus    | enabled  | Tra cứu trạng thái voice                 |
+| events         | enabled  | Liệt kê/tạo sự kiện đã lên lịch          |
+| roles          | disabled | Thêm/xóa vai trò                         |
+| moderation     | disabled | Timeout/kick/ban                         |
 | presence       | disabled | Trạng thái/hoạt động bot (setPresence)   |
 
 - `replyToMode`: `off` (mặc định), `first`, hoặc `all`. Chỉ áp dụng khi mô hình bao gồm thẻ reply.

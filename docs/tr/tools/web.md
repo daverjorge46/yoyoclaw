@@ -29,10 +29,10 @@ Bunlar tarayıcı otomasyonu **değildir**. JS ağırlıklı siteler veya giriş
 
 ## Bir arama sağlayıcısı seçme
 
-| Sağlayıcı                                 | Pros                                             | Cons                                       | API Anahtarı                                   |
-| ----------------------------------------- | ------------------------------------------------ | ------------------------------------------ | ---------------------------------------------- |
+| Sağlayıcı              | Pros                                             | Cons                                       | API Anahtarı                                   |
+| ---------------------- | ------------------------------------------------ | ------------------------------------------ | ---------------------------------------------- |
 | **Brave** (varsayılan) | Hızlı, yapılandırılmış sonuçlar, ücretsiz katman | Geleneksel arama sonuçları                 | `BRAVE_API_KEY`                                |
-| **Perplexity**                            | AI-sentezli yanıtlar, alıntılar, gerçek zamanlı  | Perplexity veya OpenRouter erişimi gerekir | `OPENROUTER_API_KEY` veya `PERPLEXITY_API_KEY` |
+| **Perplexity**         | AI-sentezli yanıtlar, alıntılar, gerçek zamanlı  | Perplexity veya OpenRouter erişimi gerekir | `OPENROUTER_API_KEY` veya `PERPLEXITY_API_KEY` |
 
 Sağlayıcıya özgü ayrıntılar için [Brave Search kurulumu](/brave-search) ve [Perplexity Sonar](/perplexity) sayfalarına bakın.
 
@@ -130,11 +130,11 @@ Bir temel URL ayarlanmazsa, OpenClaw API anahtarı kaynağına göre bir varsay�
 
 ### Kullanılabilir Perplexity modelleri
 
-| Model                                                  | Açıklama                               | En uygun kullanım |
-| ------------------------------------------------------ | -------------------------------------- | ----------------- |
-| `perplexity/sonar`                                     | Web aramasıyla hızlı Soru-Cevap        | Hızlı bakışlar    |
+| Model                               | Açıklama                               | En uygun kullanım |
+| ----------------------------------- | -------------------------------------- | ----------------- |
+| `perplexity/sonar`                  | Web aramasıyla hızlı Soru-Cevap        | Hızlı bakışlar    |
 | `perplexity/sonar-pro` (varsayılan) | Web aramasıyla çok adımlı akıl yürütme | Karmaşık sorular  |
-| `perplexity/sonar-reasoning-pro`                       | Zincirleme düşünce analizi             | Derin araştırma   |
+| `perplexity/sonar-reasoning-pro`    | Zincirleme düşünce analizi             | Derin araştırma   |
 
 ## web_search
 

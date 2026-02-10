@@ -80,8 +80,7 @@ Khi đường hầm đã mở:
 - `openclaw gateway {status,health,send,agent,call}` cũng có thể nhắm tới URL đã chuyển tiếp qua `--url` khi cần.
 
 Lưu ý: thay `18789` bằng `gateway.port` đã cấu hình (hoặc `--port`/`OPENCLAW_GATEWAY_PORT`).
-Lưu ý: khi bạn truyền `--url`, CLI sẽ không fallback sang thông tin xác thực từ cấu hình hoặc môi trường.
-9. Bao gồm `--token` hoặc `--password` một cách tường minh. Thiếu thông tin xác thực tường minh là một lỗi.
+Lưu ý: khi bạn truyền `--url`, CLI sẽ không fallback sang thông tin xác thực từ cấu hình hoặc môi trường. 9. Bao gồm `--token` hoặc `--password` một cách tường minh. Thiếu thông tin xác thực tường minh là một lỗi.
 
 ## Mặc định từ xa của CLI
 

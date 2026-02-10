@@ -283,12 +283,12 @@ channels:
 
 ### Almindelige mønstre
 
-| Mål                                                              | Konfiguration                                                                            |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Standardadfærd (stille OK’er, alarmer)        | _(ingen konfiguration nødvendig)_                                     |
+| Mål                                           | Konfiguration                                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Standardadfærd (stille OK’er, alarmer)        | _(ingen konfiguration nødvendig)_                                                        |
 | Helt stille (ingen beskeder, ingen indikator) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Kun indikator (ingen beskeder)                | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK’er i kun én kanal                                             | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK’er i kun én kanal                          | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (valgfrit)
 

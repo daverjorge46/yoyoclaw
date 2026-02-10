@@ -564,8 +564,7 @@ openclaw hooks enable soul-evil
 
 ### boot-md
 
-gateway کے شروع ہونے پر (چینلز کے شروع ہونے کے بعد) `BOOT.md` چلاتا ہے۔
-31. اس کے چلنے کے لیے اندرونی hooks کو فعال ہونا ضروری ہے۔
+gateway کے شروع ہونے پر (چینلز کے شروع ہونے کے بعد) `BOOT.md` چلاتا ہے۔ 31. اس کے چلنے کے لیے اندرونی hooks کو فعال ہونا ضروری ہے۔
 
 **Events**: `gateway:startup`
 

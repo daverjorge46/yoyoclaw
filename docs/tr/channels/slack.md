@@ -370,11 +370,11 @@ ack tepkisini temizlemek için `messages.removeAckAfterReply` kullanın.
 
 Varsayılan olarak OpenClaw ana kanalda yanıtlar. Otomatik threading’i kontrol etmek için `channels.slack.replyToMode` kullanın:
 
-| Mod     | Davranış                                                                                                                                                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `off`   | **Varsayılan.** Ana kanalda yanıtla. Yalnızca tetikleyen mesaj zaten bir thread içindeyse thread’e gir.                                                            |
+| Mod     | Davranış                                                                                                                                                        |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Varsayılan.** Ana kanalda yanıtla. Yalnızca tetikleyen mesaj zaten bir thread içindeyse thread’e gir.                                                         |
 | `first` | İlk yanıt thread’e gider (tetikleyen mesajın altında), sonraki yanıtlar ana kanala gider. Bağlamı görünür tutarken thread karmaşasını azaltmak için yararlıdır. |
-| `all`   | Tüm yanıtlar thread’e gider. Konuşmaları sınırlı tutar ancak görünürlüğü azaltabilir.                                                                                              |
+| `all`   | Tüm yanıtlar thread’e gider. Konuşmaları sınırlı tutar ancak görünürlüğü azaltabilir.                                                                           |
 
 Bu mod hem otomatik yanıtlar hem de ajan araç çağrıları (`slack sendMessage`) için geçerlidir.
 

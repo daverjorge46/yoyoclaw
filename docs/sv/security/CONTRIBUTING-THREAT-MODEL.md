@@ -41,8 +41,8 @@ Typos, clarifications, outdated info, better examples - PRs welcome, no issue ne
 
 6. Varje hot får ett ID som `T-EXEC-003`. 7. Kategorierna är:
 
-| Kod                               | Kategori                                                                |
-| --------------------------------- | ----------------------------------------------------------------------- |
+| Kod        | Kategori                                         |
+| ---------- | ------------------------------------------------ |
 | 8. RECON   | 9. Rekognosering – informationsinsamling         |
 | 10. ACCESS | 11. Initial åtkomst – att få inträde             |
 | 12. EXEC   | 13. Exekvering – att köra skadliga handlingar    |
@@ -57,7 +57,7 @@ Typos, clarifications, outdated info, better examples - PRs welcome, no issue ne
 ### 26. Risknivåer
 
 | 27. Nivå        | 28. Betydelse                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| --------------- | ------------------------------------------------------------------------------- |
 | 29. **Kritisk** | 30. Fullständig systemkompromettering, eller hög sannolikhet + kritisk påverkan |
 | 31. **Hög**     | 32. Betydande skada sannolik, eller medelhög sannolikhet + kritisk påverkan     |
 | 33. **Medel**   | 34. Måttlig risk, eller låg sannolikhet + hög påverkan                          |

@@ -46,7 +46,7 @@ Be concise; concise review > grammar. Omit any non-applicable sections.
 - [ ] Perf: Magdagdag ng before/after na metrics, at paano sinukat.
 - [ ] UX/UI: Mga screenshot/video, banggitin ang epekto sa accessibility.
 - [ ] Infra/Build: Mga environment/beripikasyon.
-- [ ] Mga claim na may batayan lamang. _Iwasan ang mga lihim/detalye ng exploit sa publiko.
+- [ ] Mga claim na may batayan lamang. \_Iwasan ang mga lihim/detalye ng exploit sa publiko.
 
 ## Checklist
 

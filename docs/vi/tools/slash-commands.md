@@ -18,8 +18,7 @@ Có hai hệ thống liên quan:
   - Directives sẽ bị loại khỏi tin nhắn trước khi mô hình nhìn thấy.
   - Trong tin nhắn chat thông thường (không chỉ gồm directive), chúng được xem là “gợi ý nội tuyến” và **không** lưu trạng thái phiên.
   - Trong tin nhắn chỉ có directive (tin nhắn chỉ chứa directive), chúng được lưu vào phiên và trả về xác nhận.
-  - Directives are only applied for **authorized senders** (channel allowlists/pairing plus `commands.useAccessGroups`).
-    12. Người gửi không được ủy quyền sẽ thấy các directive được xử lý như văn bản thuần.
+  - Directives are only applied for **authorized senders** (channel allowlists/pairing plus `commands.useAccessGroups`). 12. Người gửi không được ủy quyền sẽ thấy các directive được xử lý như văn bản thuần.
 
 13. Cũng có một vài **phím tắt nội tuyến** (chỉ dành cho người gửi trong allowlist/được ủy quyền): `/help`, `/commands`, `/status`, `/whoami` (`/id`).
     They run immediately, are stripped before the model sees the message, and the remaining text continues through the normal flow.

@@ -167,15 +167,15 @@ Dies ist das Tool, das der Agent aufruft, um Sub-Agenten zu erstellen.
 
 ### Parameter
 
-| Parameter           | Typ                | Default                                    | Description                                                                                          |
-| ------------------- | ------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `task`              | string             | _(erforderlich)_        | Was der Sub-Agent tun soll                                                                           |
-| `label`             | string             | —                                          | Kurze Bezeichnung zur Identifikation                                                                 |
-| `agentId`           | string             | _(Agent des Aufrufers)_ | Unter einer anderen Agenten-ID starten (muss erlaubt sein)                        |
-| `modell`            | string             | _(optional)_            | Überschreiben des Modells für diesen Sub-Agenten                                                     |
+| Parameter           | Typ                | Default                 | Description                                                       |
+| ------------------- | ------------------ | ----------------------- | ----------------------------------------------------------------- |
+| `task`              | string             | _(erforderlich)_        | Was der Sub-Agent tun soll                                        |
+| `label`             | string             | —                       | Kurze Bezeichnung zur Identifikation                              |
+| `agentId`           | string             | _(Agent des Aufrufers)_ | Unter einer anderen Agenten-ID starten (muss erlaubt sein)        |
+| `modell`            | string             | _(optional)_            | Überschreiben des Modells für diesen Sub-Agenten                  |
 | `thinking`          | string             | _(optional)_            | Überschreiben der Denkstufe (`off`, `low`, `medium`, `high` usw.) |
-| `runTimeoutSeconds` | Zahl               | `0` (keine Begrenzung)  | Den Sub-Agenten nach N Sekunden abbrechen                                                            |
-| `aufräumen`         | "delete" \| "keep" | "keep"                                     | "delete" archiviert unmittelbar nach der Ankündigung                                                 |
+| `runTimeoutSeconds` | Zahl               | `0` (keine Begrenzung)  | Den Sub-Agenten nach N Sekunden abbrechen                         |
+| `aufräumen`         | "delete" \| "keep" | "keep"                  | "delete" archiviert unmittelbar nach der Ankündigung              |
 
 ### Modellauflösungsreihenfolge
 
@@ -214,20 +214,20 @@ Standardmäßig können Sub-Agenten nur unter ihrer eigenen Agenten-ID gestartet
 }
 ```
 
-<Tip>3. 
+<Tip>3.
 Verwenden Sie das Tool `agents_list`, um herauszufinden, welche Agenten-IDs derzeit für `sessions_spawn` erlaubt sind.</Tip>
 
 ## 4. Sub-Agenten verwalten (`/subagents`)
 
 5. Verwenden Sie den Slash-Befehl `/subagents`, um Sub-Agent-Läufe für die aktuelle Sitzung zu inspizieren und zu steuern:
 
-| Befehl                                     | Beschreibung                                                                                          |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `/subagents list`                          | 6. Alle Sub-Agent-Läufe auflisten (aktiv und abgeschlossen) |
-| `/subagents stop <id\\|#\\|all>`         | 7. Einen laufenden Sub-Agenten stoppen                                         |
-| `/subagents log <id\\|#> [limit] [tools]` | 8. Sub-Agent-Transkript anzeigen                                               |
-| `/subagents info <id\\|#>`                | 9. Detaillierte Lauf-Metadaten anzeigen                                        |
-| `/subagents send <id\\|#> <message>`      | 10. Eine Nachricht an einen laufenden Sub-Agenten senden                       |
+| Befehl                 | Beschreibung                                                |
+| ---------------------- | ----------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------- |
+| `/subagents list`      | 6. Alle Sub-Agent-Läufe auflisten (aktiv und abgeschlossen) |
+| `/subagents stop <id\\ | #\\                                                         | all>`                                                    | 7. Einen laufenden Sub-Agenten stoppen |
+| `/subagents log <id\\  | #> [limit] [tools]`                                         | 8. Sub-Agent-Transkript anzeigen                         |
+| `/subagents info <id\\ | #>`                                                         | 9. Detaillierte Lauf-Metadaten anzeigen                  |
+| `/subagents send <id\\ | #> <message>`                                               | 10. Eine Nachricht an einen laufenden Sub-Agenten senden |
 
 11. Sie können Sub-Agenten per Listenindex (`1`, `2`), Run-ID-Präfix, vollständigem Sitzungsschlüssel oder `last` referenzieren.
 
@@ -245,11 +245,11 @@ Verwenden Sie das Tool `agents_list`, um herauszufinden, welche Agenten-IDs derz
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stopp für deploy staging angefordert.
     ```
@@ -283,7 +283,7 @@ Verwenden Sie das Tool `agents_list`, um herauszufinden, welche Agenten-IDs derz
 
     ````
     17. Zeigt die letzten 10 Nachrichten aus dem Transkript des Sub-Agenten. Fügen Sie `tools` hinzu, um Tool-Call-Nachrichten einzuschließen:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -307,8 +307,8 @@ Verwenden Sie das Tool `agents_list`, um herauszufinden, welche Agenten-IDs derz
 21. Wenn ein Sub-Agent fertig ist, durchläuft er einen **announce**-Schritt:
 
 1. 22. Die finale Antwort des Sub-Agenten wird erfasst
-2. 23. Eine Zusammenfassungsnachricht mit Ergebnis, Status und Statistiken wird an die Sitzung des Hauptagenten gesendet
-3. 24. Der Hauptagent postet eine natürlichsprachliche Zusammenfassung in Ihren Chat
+1. 23. Eine Zusammenfassungsnachricht mit Ergebnis, Status und Statistiken wird an die Sitzung des Hauptagenten gesendet
+1. 24. Der Hauptagent postet eine natürlichsprachliche Zusammenfassung in Ihren Chat
 
 Announce-Antworten bewahren, sofern verfügbar, Thread-/Themen-Routing (Slack-Threads, Telegram-Themen, Matrix-Threads).
 

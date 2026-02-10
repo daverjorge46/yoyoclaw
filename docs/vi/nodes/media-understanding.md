@@ -173,11 +173,11 @@ If you omit `capabilities`, the entry is eligible for the list it appears in.
 
 ## Ma trận hỗ trợ nhà cung cấp (tích hợp OpenClaw)
 
-| Khả năng | Tích hợp nhà cung cấp                                  | Ghi chú                                                                                |
-| -------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Hình ảnh | OpenAI / Anthropic / Google / các bên khác qua `pi-ai` | Bất kỳ mô hình có khả năng hình ảnh trong registry đều hoạt động.      |
-| Âm thanh | OpenAI, Groq, Deepgram, Google                         | Chép lời từ nhà cung cấp (Whisper/Deepgram/Gemini). |
-| Video    | Google (Gemini API)                 | Hiểu video từ nhà cung cấp.                                            |
+| Khả năng | Tích hợp nhà cung cấp                                  | Ghi chú                                                           |
+| -------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| Hình ảnh | OpenAI / Anthropic / Google / các bên khác qua `pi-ai` | Bất kỳ mô hình có khả năng hình ảnh trong registry đều hoạt động. |
+| Âm thanh | OpenAI, Groq, Deepgram, Google                         | Chép lời từ nhà cung cấp (Whisper/Deepgram/Gemini).               |
+| Video    | Google (Gemini API)                                    | Hiểu video từ nhà cung cấp.                                       |
 
 ## Nhà cung cấp khuyến nghị
 

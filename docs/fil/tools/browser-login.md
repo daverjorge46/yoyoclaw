@@ -41,7 +41,7 @@ Kung mayroon kang maraming profile, ipasa ang `--browser-profile <name>` (ang de
 
 29. Ang mga sandboxed na browser session ay **mas malamang** na mag-trigger ng bot detection. 30. Para sa X/Twitter (at iba pang mahihigpit na site), mas mainam ang **host** browser.
 
-31. Kung naka-sandbox ang agent, ang browser tool ay default sa sandbox. 32. Para pahintulutan ang host control:
+30. Kung naka-sandbox ang agent, ang browser tool ay default sa sandbox. 32. Para pahintulutan ang host control:
 
 ```json5
 {

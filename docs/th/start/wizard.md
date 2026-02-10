@@ -24,7 +24,7 @@ openclaw onboard
 
 แชตแรกได้เร็วที่สุด: เปิด Control UI (ไม่ต้องตั้งค่าช่องทาง) รัน
 `openclaw dashboard` แล้วแชตในเบราว์เซอร์ เอกสาร: [Dashboard](/web/dashboard).
- เอกสาร: [Dashboard](/web/dashboard) สำหรับสคริปต์ ให้ใช้ `--non-interactive`
+เอกสาร: [Dashboard](/web/dashboard) สำหรับสคริปต์ ให้ใช้ `--non-interactive`
 </Info>
 
 หากต้องการกำหนดค่าใหม่ภายหลัง:
@@ -37,7 +37,7 @@ openclaw agents add <name>
 <Note>
 
 `--json` ไม่ได้หมายความว่าเป็นโหมดไม่โต้ตอบ สำหรับสคริปต์ ให้ใช้ `--non-interactive`.
- เส้นทางที่ง่ายที่สุด: `openclaw configure --section web`
+เส้นทางที่ง่ายที่สุด: `openclaw configure --section web`
 ซึ่งจะจัดเก็บค่า `tools.web.search.apiKey`
 </Note>
 
@@ -46,7 +46,7 @@ openclaw agents add <name>
 แนะนำ: ตั้งค่า Brave Search API key เพื่อให้เอเจนต์สามารถใช้ `web_search`
 (`web_fetch` ใช้งานได้โดยไม่ต้องมีคีย์) วิธีที่ง่ายที่สุด: `openclaw configure --section web`
 ซึ่งจะจัดเก็บ `tools.web.search.apiKey` เอกสาร: [Web tools](/tools/web).
- เอกสาร: [Web tools](/tools/web) เลือกโมเดลเริ่มต้น
+เอกสาร: [Web tools](/tools/web) เลือกโมเดลเริ่มต้น
 </Tip>
 
 ## QuickStart vs Advanced

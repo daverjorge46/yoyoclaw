@@ -398,7 +398,7 @@ Include လုပ်ထားသော ဖိုင်များတွင်�
 
 45. Defaults နှင့် UX အတွက် အသုံးပြုသည့် optional per-agent identity။ 46. ၎င်းကို macOS onboarding assistant မှ ရေးသားပါသည်။
 
-47. သတ်မှတ်ထားပါက (သင် ကိုယ်တိုင် အထူးသတ်မှတ်မထားသေးသောအခါတွင်သာ) OpenClaw သည် defaults များကို ဆင်းသက်တွက်ချက်ပါသည်။
+46. သတ်မှတ်ထားပါက (သင် ကိုယ်တိုင် အထူးသတ်မှတ်မထားသေးသောအခါတွင်သာ) OpenClaw သည် defaults များကို ဆင်းသက်တွက်ချက်ပါသည်။
 
 - 48. **active agent** ၏ `identity.emoji` မှ `messages.ackReaction` ကို ယူပါသည် (မရှိပါက 👀 သို့ fallback လုပ်ပါသည်)။
 - 49. Telegram/Slack/Discord/Google Chat/iMessage/WhatsApp တစ်လျှောက် group များတွင် “@Samantha” ကဲ့သို့ အလုပ်လုပ်စေရန် agent ၏ `identity.name`/`identity.emoji` မှ `agents.list[].groupChat.mentionPatterns` ကို ယူပါသည်။
@@ -1178,7 +1178,7 @@ Reaction notification mode များ:
 - `own`: ဘော့တ်၏ ကိုယ်ပိုင် မက်ဆေ့ချ်များပေါ်ရှိ reactions (default)။
 - `all`: မက်ဆေ့ချ်အားလုံးပေါ်ရှိ reactions အားလုံး။
 - `allowlist`: `guilds.<id>
-  .users` မှ reaction များကို message အားလုံးတွင် ခွင့်ပြုသည် (စာရင်းလွတ်လျှင် ပိတ်ထားသည်)။Outbound text ကို `channels.discord.textChunkLimit` (default 2000) အရ chunk ခွဲပို့ပါသည်။
+.users` မှ reaction များကို message အားလုံးတွင် ခွင့်ပြုသည် (စာရင်းလွတ်လျှင် ပိတ်ထားသည်)။Outbound text ကို `channels.discord.textChunkLimit` (default 2000) အရ chunk ခွဲပို့ပါသည်။
   `channels.discord.chunkMode="newline"` ကို သတ်မှတ်ပါက အရှည်အလိုက် chunk မခွဲမီ blank line (paragraph boundary) များအတိုင်း ခွဲပါသည်။ Discord client များတွင် အလွန်ရှည်သော message များကို clip လုပ်နိုင်သဖြင့် `channels.discord.maxLinesPerMessage` (default 17) သည် 2000 chars အောက်ဖြစ်သော်လည်း multi-line reply များကို ခွဲပို့ပါသည်။ Retry policy ၏ default တန်ဖိုးများနှင့် အပြုအမူများကို [Retry policy](/concepts/retry) တွင် မှတ်တမ်းတင်ထားသည်။
   `channels.googlechat` (Chat API webhook)
 
@@ -1528,12 +1528,12 @@ Override များသည် extension များအပါအဝင် chann
 
 `responsePrefix` string အတွင်းတွင် dynamic အဖြစ် ဖြေရှင်းပေးမည့် template variables များကို ထည့်သွင်းနိုင်သည်။
 
-| Variable          | Description                  | Example                                        |
-| ----------------- | ---------------------------- | ---------------------------------------------- |
-| `{model}`         | မော်ဒယ်အမည် အတိုကောက်        | `claude-opus-4-6`, `gpt-4o`                    |
-| `{modelFull}`     | မော်ဒယ် အပြည့်အစုံ အမှတ်အသား | `anthropic/claude-opus-4-6`                    |
-| `{provider}`      | Provider အမည်                | `anthropic`, `openai`                          |
-| `{thinkingLevel}` | လက်ရှိ thinking level        | `high`, `low`, `off`                           |
+| Variable          | Description                  | Example                     |
+| ----------------- | ---------------------------- | --------------------------- |
+| `{model}`         | မော်ဒယ်အမည် အတိုကောက်        | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | မော်ဒယ် အပြည့်အစုံ အမှတ်အသား | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider အမည်                | `anthropic`, `openai`       |
+| `{thinkingLevel}` | လက်ရှိ thinking level        | `high`, `low`, `off`        |
 | `{identity.name}` | Agent identity အမည်          | (`"auto"` mode နှင့် တူသည်) |
 
 Variable များသည် case-insensitive ဖြစ်သည် (`{MODEL}` = `{model}`)။ `{think}` သည် `{thinkingLevel}` အတွက် alias ဖြစ်သည်။
@@ -1828,8 +1828,7 @@ Z.AI GLM-4.x models automatically enable thinking mode unless you:
 - 31. နောက်ဆုံး `keepLastAssistants` assistant message များကို ကာကွယ်ထားသည် (ထိုအချက်အပြီးရှိ tool result များကို မဖြတ်တောက်ပါ)။
 - 32. bootstrap prefix ကို ကာကွယ်ထားသည် (ပထမ user message မတိုင်မီရှိ အရာအားလုံးကို မဖြတ်တောက်ပါ)။
 - 33. Modes-
-  - 34. `adaptive`- ခန့်မှန်းထားသော context ratio သည် `softTrimRatio` ကို ကျော်လွန်သည့်အခါ oversized tool result များကို soft-trim လုပ်သည် (head/tail ကို ထိန်းသိမ်းထားသည်)။
-        35. ထို့နောက် ခန့်မှန်းထားသော context ratio သည် `hardClearRatio` ကို ကျော်လွန်ပြီး **နှင့်** ဖြတ်တောက်နိုင်သော tool-result အစုအဝေး လုံလောက်ပါက (`minPrunableToolChars`) အဟောင်းဆုံး eligible tool result များကို hard-clear လုပ်သည်။
+  - 34. `adaptive`- ခန့်မှန်းထားသော context ratio သည် `softTrimRatio` ကို ကျော်လွန်သည့်အခါ oversized tool result များကို soft-trim လုပ်သည် (head/tail ကို ထိန်းသိမ်းထားသည်)။ 35. ထို့နောက် ခန့်မှန်းထားသော context ratio သည် `hardClearRatio` ကို ကျော်လွန်ပြီး **နှင့်** ဖြတ်တောက်နိုင်သော tool-result အစုအဝေး လုံလောက်ပါက (`minPrunableToolChars`) အဟောင်းဆုံး eligible tool result များကို hard-clear လုပ်သည်။
   - 36. `aggressive`- cutoff မတိုင်မီရှိ eligible tool result များကို ratio စစ်ဆေးခြင်းမရှိဘဲ `hardClear.placeholder` ဖြင့် အမြဲ အစားထိုးသည်။
 
 37. Soft vs hard pruning (LLM သို့ ပို့သော context ထဲတွင် ဘာတွေ ပြောင်းလဲသလဲ)-
@@ -3346,28 +3345,28 @@ openclaw dns setup --apply
 
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Full inbound message body                                                       |
-\| `{{RawBody}}`      | Raw inbound message body (no history/sender wrappers; best for command parsing) |
-\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents)                     |
-\| `{{From}}`         | Sender identifier (E.164 for WhatsApp; may differ per channel)                  |
-\| `{{To}}`           | Destination identifier                                                          |
-\| `{{MessageSid}}`   | Channel message id (when available)                                             |
-\| `{{SessionId}}`    | Current session UUID                                                            |
-\| `{{IsNewSession}}` | `"true"` when a new session was created                                         |
-\| `{{MediaUrl}}`     | Inbound media pseudo-URL (if present)                                           |
-\| `{{MediaPath}}`    | Local media path (if downloaded)                                                |
-\| `{{MediaType}}`    | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Full inbound message body |
+\| `{{RawBody}}` | Raw inbound message body (no history/sender wrappers; best for command parsing) |
+\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents) |
+\| `{{From}}` | Sender identifier (E.164 for WhatsApp; may differ per channel) |
+\| `{{To}}` | Destination identifier |
+\| `{{MessageSid}}` | Channel message id (when available) |
+\| `{{SessionId}}` | Current session UUID |
+\| `{{IsNewSession}}` | `"true"` when a new session was created |
+\| `{{MediaUrl}}` | Inbound media pseudo-URL (if present) |
+\| `{{MediaPath}}` | Local media path (if downloaded) |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

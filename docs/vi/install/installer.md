@@ -11,11 +11,11 @@ title: "Nội bộ trình cài đặt"
 
 OpenClaw cung cấp ba script cài đặt, được phân phối từ `openclaw.ai`.
 
-| Script                             | Nền tảng                                | Chức năng                                                                                                                          |
-| ---------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Cài Node nếu cần, cài OpenClaw qua npm (mặc định) hoặc git, và có thể chạy onboarding.          |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Installs Node + OpenClaw into a local prefix (`~/.openclaw`). No root required. |
-| [`install.ps1`](#installps1)       | Windows (PowerShell) | Cài Node nếu cần, cài OpenClaw qua npm (mặc định) hoặc git, và có thể chạy onboarding.          |
+| Script                             | Nền tảng             | Chức năng                                                                              |
+| ---------------------------------- | -------------------- | -------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Cài Node nếu cần, cài OpenClaw qua npm (mặc định) hoặc git, và có thể chạy onboarding. |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installs Node + OpenClaw into a local prefix (`~/.openclaw`). No root required.        |
+| [`install.ps1`](#installps1)       | Windows (PowerShell) | Cài Node nếu cần, cài OpenClaw qua npm (mặc định) hoặc git, và có thể chạy onboarding. |
 
 ## Lệnh nhanh
 
@@ -132,39 +132,39 @@ Script thoát với mã `2` khi chọn phương thức không hợp lệ hoặc 
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                              | Mô tả                                                                                                                                                                               |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | Choose install method (default: `npm`). Ứng dụng macOS kiểm tra phiên bản gateway so với phiên bản của chính nó. |
-| `--npm`                           | Lối tắt cho phương thức npm                                                                                                                                                         |
-| `--git`                           | Lối tắt cho phương thức git. Alias: `--github`                                                                                                      |
-| `--version <version\\|dist-tag>` | Phiên bản npm hoặc dist-tag (mặc định: `latest`)                                                                                                 |
-| `--beta`                          | Dùng dist-tag beta nếu có, nếu không thì quay về `latest`                                                                                                                           |
-| `--git-dir <path>`                | Checkout directory (default: `~/openclaw`). Alias: `--dir`                                                       |
-| `--no-git-update`                 | Bỏ qua `git pull` cho checkout hiện có                                                                                                                                              |
-| `--no-prompt`                     | Tắt lời nhắc                                                                                                                                                                        |
-| `--no-onboard`                    | Bỏ qua onboarding                                                                                                                                                                   |
-| `--onboard`                       | Bật onboarding                                                                                                                                                                      |
-| `--dry-run`                       | In các hành động mà không áp dụng thay đổi                                                                                                                                          |
-| `--verbose`                       | Bật đầu ra debug (`set -x`, log npm mức notice)                                                                                                                  |
-| `--help`                          | Hiển thị cách dùng (`-h`)                                                                                                                                        |
+| Flag                    | Mô tả                                                      |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                       | Choose install method (default: `npm`). Ứng dụng macOS kiểm tra phiên bản gateway so với phiên bản của chính nó. |
+| `--npm`                 | Lối tắt cho phương thức npm                                |
+| `--git`                 | Lối tắt cho phương thức git. Alias: `--github`             |
+| `--version <version\\   | dist-tag>`                                                 | Phiên bản npm hoặc dist-tag (mặc định: `latest`)                                                                 |
+| `--beta`                | Dùng dist-tag beta nếu có, nếu không thì quay về `latest`  |
+| `--git-dir <path>`      | Checkout directory (default: `~/openclaw`). Alias: `--dir` |
+| `--no-git-update`       | Bỏ qua `git pull` cho checkout hiện có                     |
+| `--no-prompt`           | Tắt lời nhắc                                               |
+| `--no-onboard`          | Bỏ qua onboarding                                          |
+| `--onboard`             | Bật onboarding                                             |
+| `--dry-run`             | In các hành động mà không áp dụng thay đổi                 |
+| `--verbose`             | Bật đầu ra debug (`set -x`, log npm mức notice)            |
+| `--help`                | Hiển thị cách dùng (`-h`)                                  |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                                        | Mô tả                                                                               |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | Phương thức cài                                                                     |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | Phiên bản npm hoặc dist-tag                                                         |
-| `OPENCLAW_BETA=0\\|1`                          | Dùng beta nếu có                                                                    |
-| `OPENCLAW_GIT_DIR=<path>`                       | Thư mục checkout                                                                    |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | Bật/tắt cập nhật git                                                                |
-| `OPENCLAW_NO_PROMPT=1`                          | Tắt lời nhắc                                                                        |
-| `OPENCLAW_NO_ONBOARD=1`                         | Bỏ qua onboarding                                                                   |
-| `OPENCLAW_DRY_RUN=1`                            | Chế độ chạy thử                                                                     |
-| `OPENCLAW_VERBOSE=1`                            | Chế độ debug                                                                        |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | Mức log npm                                                                         |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Điều khiển hành vi sharp/libvips (mặc định: `1`) |
+| Variable                         | Mô tả             |
+| -------------------------------- | ----------------- | ------------------------------------------------ | --------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`              | Phương thức cài                                  |
+| `OPENCLAW_VERSION=latest\\       | next\\            | <semver>`                                        | Phiên bản npm hoặc dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                | Dùng beta nếu có                                 |
+| `OPENCLAW_GIT_DIR=<path>`        | Thư mục checkout  |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                | Bật/tắt cập nhật git                             |
+| `OPENCLAW_NO_PROMPT=1`           | Tắt lời nhắc      |
+| `OPENCLAW_NO_ONBOARD=1`          | Bỏ qua onboarding |
+| `OPENCLAW_DRY_RUN=1`             | Chế độ chạy thử   |
+| `OPENCLAW_VERBOSE=1`             | Chế độ debug      |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\            | notice`                                          | Mức log npm                 |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                | Điều khiển hành vi sharp/libvips (mặc định: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -219,30 +219,30 @@ Script thoát với mã `2` khi chọn phương thức không hợp lệ hoặc 
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                   | Mô tả                                                                                    |
-| ---------------------- | ---------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Prefix cài đặt (mặc định: `~/.openclaw`)              |
-| `--version <ver>`      | Phiên bản OpenClaw hoặc dist-tag (mặc định: `latest`) |
-| `--node-version <ver>` | Phiên bản Node (mặc định: `22.22.0`)                  |
-| `--json`               | Phát sự kiện NDJSON                                                                      |
-| `--onboard`            | Chạy `openclaw onboard` sau khi cài                                                      |
-| `--no-onboard`         | Bỏ qua onboarding (mặc định)                                          |
-| `--set-npm-prefix`     | Trên Linux, ép prefix npm sang `~/.npm-global` nếu prefix hiện tại không ghi được        |
-| `--help`               | Hiển thị cách dùng (`-h`)                                             |
+| Flag                   | Mô tả                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `--prefix <path>`      | Prefix cài đặt (mặc định: `~/.openclaw`)                                          |
+| `--version <ver>`      | Phiên bản OpenClaw hoặc dist-tag (mặc định: `latest`)                             |
+| `--node-version <ver>` | Phiên bản Node (mặc định: `22.22.0`)                                              |
+| `--json`               | Phát sự kiện NDJSON                                                               |
+| `--onboard`            | Chạy `openclaw onboard` sau khi cài                                               |
+| `--no-onboard`         | Bỏ qua onboarding (mặc định)                                                      |
+| `--set-npm-prefix`     | Trên Linux, ép prefix npm sang `~/.npm-global` nếu prefix hiện tại không ghi được |
+| `--help`               | Hiển thị cách dùng (`-h`)                                                         |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                                        | Mô tả                                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | Prefix cài đặt                                                                                     |
-| `OPENCLAW_VERSION=<ver>`                        | Phiên bản OpenClaw hoặc dist-tag                                                                   |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Phiên bản Node                                                                                     |
-| `OPENCLAW_NO_ONBOARD=1`                         | Bỏ qua onboarding                                                                                  |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | Mức log npm                                                                                        |
-| `OPENCLAW_GIT_DIR=<path>`                       | Đường dẫn tra cứu dọn dẹp legacy (dùng khi gỡ checkout submodule `Peekaboo` cũ) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Điều khiển hành vi sharp/libvips (mặc định: `1`)                |
+| Variable                         | Mô tả                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ | ----------- |
+| `OPENCLAW_PREFIX=<path>`         | Prefix cài đặt                                                                  |
+| `OPENCLAW_VERSION=<ver>`         | Phiên bản OpenClaw hoặc dist-tag                                                |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Phiên bản Node                                                                  |
+| `OPENCLAW_NO_ONBOARD=1`          | Bỏ qua onboarding                                                               |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                          | notice`                                          | Mức log npm |
+| `OPENCLAW_GIT_DIR=<path>`        | Đường dẫn tra cứu dọn dẹp legacy (dùng khi gỡ checkout submodule `Peekaboo` cũ) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                              | Điều khiển hành vi sharp/libvips (mặc định: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ Script thoát với mã `2` khi chọn phương thức không hợp lệ hoặc 
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                        | Mô tả                                                                                     |
-| --------------------------- | ----------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | Phương thức cài (mặc định: `npm`)                      |
-| `-Tag <tag>`                | dist-tag npm (mặc định: `latest`)                      |
-| `-GitDir <path>`            | Thư mục checkout (mặc định: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | Bỏ qua onboarding                                                                         |
-| `-NoGitUpdate`              | Bỏ qua `git pull`                                                                         |
-| `-DryRun`                   | Chỉ in các hành động                                                                      |
+| Flag                  | Mô tả                                                 |
+| --------------------- | ----------------------------------------------------- | --------------------------------- |
+| `-InstallMethod npm\\ | git`                                                  | Phương thức cài (mặc định: `npm`) |
+| `-Tag <tag>`          | dist-tag npm (mặc định: `latest`)                     |
+| `-GitDir <path>`      | Thư mục checkout (mặc định: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | Bỏ qua onboarding                                     |
+| `-NoGitUpdate`        | Bỏ qua `git pull`                                     |
+| `-DryRun`             | Chỉ in các hành động                                  |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                             | Mô tả             |
-| ------------------------------------ | ----------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | Phương thức cài   |
-| `OPENCLAW_GIT_DIR=<path>`            | Thư mục checkout  |
-| `OPENCLAW_NO_ONBOARD=1`              | Bỏ qua onboarding |
-| `OPENCLAW_GIT_UPDATE=0`              | Tắt git pull      |
-| `OPENCLAW_DRY_RUN=1`                 | Chế độ chạy thử   |
+| Variable                       | Mô tả             |
+| ------------------------------ | ----------------- | --------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`              | Phương thức cài |
+| `OPENCLAW_GIT_DIR=<path>`      | Thư mục checkout  |
+| `OPENCLAW_NO_ONBOARD=1`        | Bỏ qua onboarding |
+| `OPENCLAW_GIT_UPDATE=0`        | Tắt git pull      |
+| `OPENCLAW_DRY_RUN=1`           | Chế độ chạy thử   |
 
   </Accordion>
 </AccordionGroup>

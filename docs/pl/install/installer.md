@@ -11,10 +11,10 @@ title: "Wewnętrzne mechanizmy instalatora"
 
 OpenClaw dostarcza trzy skrypty instalatora, udostępniane z `openclaw.ai`.
 
-| Skrypt                             | Platforma                               | Co robi                                                                                                                                          |
-| ---------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Instaluje Node, jeśli potrzeba, instaluje OpenClaw przez npm (domyślnie) lub git i może uruchomić onboarding. |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Instaluje Node + OpenClaw do lokalnego prefiksu (`~/.openclaw`). Nie wymaga uprawnień roota.  |
+| Skrypt                             | Platforma            | Co robi                                                                                                       |
+| ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Instaluje Node, jeśli potrzeba, instaluje OpenClaw przez npm (domyślnie) lub git i może uruchomić onboarding. |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Instaluje Node + OpenClaw do lokalnego prefiksu (`~/.openclaw`). Nie wymaga uprawnień roota.                  |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | Instaluje Node, jeśli potrzeba, instaluje OpenClaw przez npm (domyślnie) lub git i może uruchomić onboarding. |
 
 ## Szybkie polecenia
@@ -132,39 +132,39 @@ Skrypt kończy się kodem `2` przy nieprawidłowym wyborze metody lub nieprawid�
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flaga                             | Opis                                                                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | Wybór metody instalacji (domyślnie: `npm`). Alias: `--method` |
-| `--npm`                           | Skrót do metody npm                                                                                                              |
-| `--git`                           | Skrót do metody git. Alias: `--github`                                                           |
-| `--version <version\\|dist-tag>` | Wersja npm lub dist-tag (domyślnie: `latest`)                                                 |
-| `--beta`                          | Użyj dist-tag beta, jeśli dostępny, w przeciwnym razie fallback do `latest`                                                      |
-| `--git-dir <path>`                | Katalog checkoutu (domyślnie: `~/openclaw`). Alias: `--dir`   |
-| `--no-git-update`                 | Pomiń `git pull` dla istniejącego checkoutu                                                                                      |
-| `--no-prompt`                     | Wyłącz monity                                                                                                                    |
-| `--no-onboard`                    | Pomiń onboarding                                                                                                                 |
-| `--onboard`                       | Włącz onboarding                                                                                                                 |
-| `--dry-run`                       | Drukuj akcje bez stosowania zmian                                                                                                |
-| `--verbose`                       | Włącz wyjście debug (`set -x`, logi npm na poziomie notice)                                                   |
-| `--help`                          | Pokaż użycie (`-h`)                                                                                           |
+| Flaga                   | Opis                                                                        |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                                        | Wybór metody instalacji (domyślnie: `npm`). Alias: `--method` |
+| `--npm`                 | Skrót do metody npm                                                         |
+| `--git`                 | Skrót do metody git. Alias: `--github`                                      |
+| `--version <version\\   | dist-tag>`                                                                  | Wersja npm lub dist-tag (domyślnie: `latest`)                 |
+| `--beta`                | Użyj dist-tag beta, jeśli dostępny, w przeciwnym razie fallback do `latest` |
+| `--git-dir <path>`      | Katalog checkoutu (domyślnie: `~/openclaw`). Alias: `--dir`                 |
+| `--no-git-update`       | Pomiń `git pull` dla istniejącego checkoutu                                 |
+| `--no-prompt`           | Wyłącz monity                                                               |
+| `--no-onboard`          | Pomiń onboarding                                                            |
+| `--onboard`             | Włącz onboarding                                                            |
+| `--dry-run`             | Drukuj akcje bez stosowania zmian                                           |
+| `--verbose`             | Włącz wyjście debug (`set -x`, logi npm na poziomie notice)                 |
+| `--help`                | Pokaż użycie (`-h`)                                                         |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Zmienna                                         | Opis                                                                                  |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | Metoda instalacji                                                                     |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | Wersja npm lub dist-tag                                                               |
-| `OPENCLAW_BETA=0\\|1`                          | Użyj beta, jeśli dostępne                                                             |
-| `OPENCLAW_GIT_DIR=<path>`                       | Katalog checkoutu                                                                     |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | Przełącznik aktualizacji git                                                          |
-| `OPENCLAW_NO_PROMPT=1`                          | Wyłącz monity                                                                         |
-| `OPENCLAW_NO_ONBOARD=1`                         | Pomiń onboarding                                                                      |
-| `OPENCLAW_DRY_RUN=1`                            | Tryb dry run                                                                          |
-| `OPENCLAW_VERBOSE=1`                            | Tryb debug                                                                            |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | Poziom logów npm                                                                      |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Kontrola zachowania sharp/libvips (domyślnie: `1`) |
+| Zmienna                          | Opis              |
+| -------------------------------- | ----------------- | -------------------------------------------------- | ----------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`              | Metoda instalacji                                  |
+| `OPENCLAW_VERSION=latest\\       | next\\            | <semver>`                                          | Wersja npm lub dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                | Użyj beta, jeśli dostępne                          |
+| `OPENCLAW_GIT_DIR=<path>`        | Katalog checkoutu |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                | Przełącznik aktualizacji git                       |
+| `OPENCLAW_NO_PROMPT=1`           | Wyłącz monity     |
+| `OPENCLAW_NO_ONBOARD=1`          | Pomiń onboarding  |
+| `OPENCLAW_DRY_RUN=1`             | Tryb dry run      |
+| `OPENCLAW_VERBOSE=1`             | Tryb debug        |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\            | notice`                                            | Poziom logów npm        |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                | Kontrola zachowania sharp/libvips (domyślnie: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -221,28 +221,28 @@ Zaprojektowany dla środowisk, w których wszystko ma znajdować się pod lokaln
 
 | Flaga                  | Opis                                                                                      |
 | ---------------------- | ----------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Prefiks instalacji (domyślnie: `~/.openclaw`)          |
-| `--version <ver>`      | Wersja OpenClaw lub dist-tag (domyślnie: `latest`)     |
-| `--node-version <ver>` | Wersja Node (domyślnie: `22.22.0`)                     |
+| `--prefix <path>`      | Prefiks instalacji (domyślnie: `~/.openclaw`)                                             |
+| `--version <ver>`      | Wersja OpenClaw lub dist-tag (domyślnie: `latest`)                                        |
+| `--node-version <ver>` | Wersja Node (domyślnie: `22.22.0`)                                                        |
 | `--json`               | Emituj zdarzenia NDJSON                                                                   |
 | `--onboard`            | Uruchom `openclaw onboard` po instalacji                                                  |
-| `--no-onboard`         | Pomiń onboarding (domyślnie)                                           |
+| `--no-onboard`         | Pomiń onboarding (domyślnie)                                                              |
 | `--set-npm-prefix`     | Na Linux wymuś prefiks npm na `~/.npm-global`, jeśli bieżący prefiks nie jest zapisywalny |
-| `--help`               | Pokaż użycie (`-h`)                                                    |
+| `--help`               | Pokaż użycie (`-h`)                                                                       |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Zmienna                                         | Opis                                                                                                                         |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | Prefiks instalacji                                                                                                           |
-| `OPENCLAW_VERSION=<ver>`                        | Wersja OpenClaw lub dist-tag                                                                                                 |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Wersja węzła                                                                                                                 |
-| `OPENCLAW_NO_ONBOARD=1`                         | Pomiń onboarding                                                                                                             |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | Poziom logów npm                                                                                                             |
-| `OPENCLAW_GIT_DIR=<path>`                       | Ścieżka wyszukiwania do czyszczenia legacy (używana przy usuwaniu starego checkoutu submodułu `Peekaboo`) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Kontrola zachowania sharp/libvips (domyślnie: `1`)                                        |
+| Zmienna                          | Opis                                                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------- |
+| `OPENCLAW_PREFIX=<path>`         | Prefiks instalacji                                                                                        |
+| `OPENCLAW_VERSION=<ver>`         | Wersja OpenClaw lub dist-tag                                                                              |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Wersja węzła                                                                                              |
+| `OPENCLAW_NO_ONBOARD=1`          | Pomiń onboarding                                                                                          |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                                    | notice`                                            | Poziom logów npm |
+| `OPENCLAW_GIT_DIR=<path>`        | Ścieżka wyszukiwania do czyszczenia legacy (używana przy usuwaniu starego checkoutu submodułu `Peekaboo`) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                                        | Kontrola zachowania sharp/libvips (domyślnie: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ Zaprojektowany dla środowisk, w których wszystko ma znajdować się pod lokaln
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flaga                       | Opis                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | Metoda instalacji (domyślnie: `npm`)                     |
-| `-Tag <tag>`                | dist-tag npm (domyślnie: `latest`)                       |
-| `-GitDir <path>`            | Katalog checkoutu (domyślnie: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | Pomiń onboarding                                                                            |
-| `-NoGitUpdate`              | Pomiń `git pull`                                                                            |
-| `-DryRun`                   | Tylko akcje drukowania                                                                      |
+| Flaga                 | Opis                                                    |
+| --------------------- | ------------------------------------------------------- | ------------------------------------ |
+| `-InstallMethod npm\\ | git`                                                    | Metoda instalacji (domyślnie: `npm`) |
+| `-Tag <tag>`          | dist-tag npm (domyślnie: `latest`)                      |
+| `-GitDir <path>`      | Katalog checkoutu (domyślnie: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | Pomiń onboarding                                        |
+| `-NoGitUpdate`        | Pomiń `git pull`                                        |
+| `-DryRun`             | Tylko akcje drukowania                                  |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Zmienna                              | Opis              |
-| ------------------------------------ | ----------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | Metoda instalacji |
-| `OPENCLAW_GIT_DIR=<path>`            | Katalog checkoutu |
-| `OPENCLAW_NO_ONBOARD=1`              | Pomiń onboarding  |
-| `OPENCLAW_GIT_UPDATE=0`              | Wyłącz git pull   |
-| `OPENCLAW_DRY_RUN=1`                 | Tryb dry run      |
+| Zmienna                        | Opis              |
+| ------------------------------ | ----------------- | ----------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`              | Metoda instalacji |
+| `OPENCLAW_GIT_DIR=<path>`      | Katalog checkoutu |
+| `OPENCLAW_NO_ONBOARD=1`        | Pomiń onboarding  |
+| `OPENCLAW_GIT_UPDATE=0`        | Wyłącz git pull   |
+| `OPENCLAW_DRY_RUN=1`           | Tryb dry run      |
 
   </Accordion>
 </AccordionGroup>

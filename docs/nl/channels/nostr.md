@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Configuratie referentie
 
-| Sleutel      | Type                                                         | Standaard                                   | Beschrijving                               |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------ |
-| `privateKey` | string                                                       | vereist                                     | Privésleutel in `nsec`- of hex-indeling    |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL's (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM-toegangsbeleid                          |
-| `allowFrom`  | string[] | `[]`                                        | Toegestane afzender-pubkeys                |
-| `enabled`    | boolean                                                      | `true`                                      | Kanaal in-/uitschakelen                    |
-| `name`       | string                                                       | -                                           | Weergavenaam                               |
-| `profile`    | object                                                       | -                                           | NIP-01-profielmetadata                     |
+| Sleutel      | Type     | Standaard                                   | Beschrijving                            |
+| ------------ | -------- | ------------------------------------------- | --------------------------------------- |
+| `privateKey` | string   | vereist                                     | Privésleutel in `nsec`- of hex-indeling |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL's (WebSocket)                 |
+| `dmPolicy`   | string   | `pairing`                                   | DM-toegangsbeleid                       |
+| `allowFrom`  | string[] | `[]`                                        | Toegestane afzender-pubkeys             |
+| `enabled`    | boolean  | `true`                                      | Kanaal in-/uitschakelen                 |
+| `name`       | string   | -                                           | Weergavenaam                            |
+| `profile`    | object   | -                                           | NIP-01-profielmetadata                  |
 
 ## Profielmetadata
 
@@ -166,12 +166,12 @@ Tips:
 
 ## Protocolondersteuning
 
-| NIP    | Status      | Beschrijving                                    |
-| ------ | ----------- | ----------------------------------------------- |
-| NIP-01 | Ondersteund | Basis event-indeling + profielmetadata          |
-| NIP-04 | Ondersteund | Versleutelde DM's (`kind:4`) |
-| NIP-17 | Gepland     | Gift-wrapped DM's                               |
-| NIP-44 | Gepland     | Versiegebonden encryptie                        |
+| NIP    | Status      | Beschrijving                           |
+| ------ | ----------- | -------------------------------------- |
+| NIP-01 | Ondersteund | Basis event-indeling + profielmetadata |
+| NIP-04 | Ondersteund | Versleutelde DM's (`kind:4`)           |
+| NIP-17 | Gepland     | Gift-wrapped DM's                      |
+| NIP-44 | Gepland     | Versiegebonden encryptie               |
 
 ## Testen
 

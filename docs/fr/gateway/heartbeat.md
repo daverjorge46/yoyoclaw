@@ -284,12 +284,12 @@ channels:
 
 ### Modèles communs
 
-| Objectif                                                                    | Configuration                                                                            |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Comportement par défaut (OK silencieux, alertes actives) | _(aucune configuration nécessaire)_                                   |
+| Objectif                                                 | Configuration                                                                            |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Comportement par défaut (OK silencieux, alertes actives) | _(aucune configuration nécessaire)_                                                      |
 | Totalement silencieux (aucun message, aucun indicateur)  | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Indicateur uniquement (aucun message)                    | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK dans un seul canal                                                       | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK dans un seul canal                                    | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (facultatif)
 

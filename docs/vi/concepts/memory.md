@@ -81,10 +81,10 @@ Mặc định:
 - Theo dõi thay đổi của tệp bộ nhớ (debounce).
 - 23. Sử dụng embeddings từ xa theo mặc định. 24. Nếu `memorySearch.provider` không được đặt, OpenClaw tự động chọn:
   1. `local` nếu `memorySearch.local.modelPath` được cấu hình và tệp tồn tại.
-  2. `openai` nếu có thể phân giải khóa OpenAI.
-  3. `gemini` nếu có thể phân giải khóa Gemini.
-  4. `voyage` nếu có thể phân giải khóa Voyage.
-  5. Nếu không, tìm kiếm bộ nhớ sẽ bị vô hiệu cho đến khi được cấu hình.
+  1. `openai` nếu có thể phân giải khóa OpenAI.
+  1. `gemini` nếu có thể phân giải khóa Gemini.
+  1. `voyage` nếu có thể phân giải khóa Voyage.
+  1. Nếu không, tìm kiếm bộ nhớ sẽ bị vô hiệu cho đến khi được cấu hình.
 - Chế độ local dùng node-llama-cpp và có thể cần `pnpm approve-builds`.
 - Dùng sqlite-vec (khi có) để tăng tốc tìm kiếm vector trong SQLite.
 
@@ -129,7 +129,6 @@ Mặc định:
   - OpenClaw tự động đặt `XDG_CONFIG_HOME`/`XDG_CACHE_HOME` khi chạy QMD.
   - Nếu muốn tải sẵn model thủ công (và làm ấm cùng chỉ mục OpenClaw dùng),
     hãy chạy một truy vấn một lần với các XDG dir của tác tử.
-
     38. Trạng thái QMD của OpenClaw nằm dưới **thư mục state** của bạn (mặc định `~/.openclaw`).
         You can point `qmd` at the exact same index by exporting the same XDG vars
         OpenClaw uses:
@@ -166,8 +165,7 @@ Mặc định:
   `commandTimeoutMs`, `updateTimeoutMs`, `embedTimeoutMs`).
 - `limits`: giới hạn payload recall (`maxResults`, `maxSnippetChars`,
   `maxInjectedChars`, `timeoutMs`).
-- `scope`: same schema as [`session.sendPolicy`](/gateway/configuration#session).
-  41. Mặc định là chỉ DM (từ chối tất cả, cho phép chat trực tiếp); nới lỏng để hiển thị kết quả QMD trong nhóm/kênh.
+- `scope`: same schema as [`session.sendPolicy`](/gateway/configuration#session). 41. Mặc định là chỉ DM (từ chối tất cả, cho phép chat trực tiếp); nới lỏng để hiển thị kết quả QMD trong nhóm/kênh.
 - When `scope` denies a search, OpenClaw logs a warning with the derived
   `channel`/`chatType` so empty results are easier to debug.
 - Đoạn trích lấy từ ngoài workspace hiển thị là
@@ -363,8 +361,7 @@ Nhưng nó có thể yếu với token chính xác, tín hiệu cao:
 - ký hiệu code (`memorySearch.query.hybrid`)
 - chuỗi lỗi (“sqlite-vec unavailable”)
 
-BM25 (full-text) is the opposite: strong at exact tokens, weaker at paraphrases.
-50. Tìm kiếm lai là phương án trung dung thực dụng: **sử dụng cả hai tín hiệu truy xuất** để bạn có kết quả tốt cho cả truy vấn “ngôn ngữ tự nhiên” và truy vấn “kim đáy bể”.
+BM25 (full-text) is the opposite: strong at exact tokens, weaker at paraphrases. 50. Tìm kiếm lai là phương án trung dung thực dụng: **sử dụng cả hai tín hiệu truy xuất** để bạn có kết quả tốt cho cả truy vấn “ngôn ngữ tự nhiên” và truy vấn “kim đáy bể”.
 
 #### Cách chúng tôi gộp kết quả (thiết kế hiện tại)
 

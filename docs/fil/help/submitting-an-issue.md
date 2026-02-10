@@ -77,7 +77,7 @@ Validation (patakbuhin/ayusin bago PR):
 ### Evidence (redacted)
 ```
 
-Para sa mga sensitibong isyu, bawasan ang detalye at humiling ng pribadong pagsisiwalat._ Opsyonal ang issue bago ang PR.
+Para sa mga sensitibong isyu, bawasan ang detalye at humiling ng pribadong pagsisiwalat.\_ Opsyonal ang issue bago ang PR.
 
 #### Regression report
 

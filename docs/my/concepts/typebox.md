@@ -21,7 +21,7 @@ Gateway WS မက်ဆေ့ချ်တိုင်းသည် frame သု�
 - **Request**: `{ type: "req", id, method, params }`
 - **Response**: `{ type: "res", id, ok, payload | error }`
 - **Event**: `{ type: "event", event, payload, seq?, stateVersion?
-   }`
+ }`
 
 ပထမ frame သည် မဖြစ်မနေ `connect` request ဖြစ်ရပါမည်။ အပြီးတွင် client များသည် methods (ဥပမာ `health`, `send`, `chat.send`) ကို ခေါ်နိုင်ပြီး events (ဥပမာ `presence`, `tick`, `agent`) ကို subscribe လုပ်နိုင်ပါသည်။
 

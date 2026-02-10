@@ -47,7 +47,6 @@ Detaljer: [Plugins](/tools/plugin)
    - Eller host selv.
 
 3. Hent en adgangstoken til botkontoen:
-
    - Brug Matrix login-API’et med `curl` på din homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Når den er verificeret, kan botten dekryptere beskeder i krypterede rum.
 
 ## Funktioner
 
-| Funktion          | Status                                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------- |
-| Direkte beskeder  | ✅ Understøttet                                                                                                 |
-| Rum               | ✅ Understøttet                                                                                                 |
-| Tråde             | ✅ Understøttet                                                                                                 |
-| Medier            | ✅ Understøttet                                                                                                 |
+| Funktion          | Status                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| Direkte beskeder  | ✅ Understøttet                                                                              |
+| Rum               | ✅ Understøttet                                                                              |
+| Tråde             | ✅ Understøttet                                                                              |
+| Medier            | ✅ Understøttet                                                                              |
 | E2EE              | ✅ Understøttet (kryptomodul påkrævet)                                                       |
 | Reaktioner        | ✅ Understøttet (send/læs via værktøjer)                                                     |
 | Afstemninger      | ✅ Afsendelse understøttet; indgående poll-start konverteres til tekst (svar/slut ignoreres) |
 | Placering         | ✅ Understøttet (geo-URI; højde ignoreres)                                                   |
-| Native kommandoer | ✅ Understøttet                                                                                                 |
+| Native kommandoer | ✅ Understøttet                                                                              |
 
 ## Fejlfinding
 

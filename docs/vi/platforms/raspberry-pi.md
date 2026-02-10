@@ -21,13 +21,13 @@ Phù hợp cho:
 
 ## Yêu cầu phần cứng
 
-| Mẫu Pi          | RAM     | Hoạt động? | Ghi chú                            |
-| --------------- | ------- | ---------- | ---------------------------------- |
+| Mẫu Pi          | RAM     | Hoạt động?  | Ghi chú                            |
+| --------------- | ------- | ----------- | ---------------------------------- |
 | **Pi 5**        | 4GB/8GB | ✅ Tốt nhất | Nhanh nhất, khuyến nghị            |
 | **Pi 4**        | 4GB     | ✅ Tốt      | Điểm cân bằng cho đa số người dùng |
 | **Pi 4**        | 2GB     | ✅ Ổn       | Hoạt động, nên thêm swap           |
-| **Pi 4**        | 1GB     | ⚠️ Chật    | Có thể với swap, cấu hình tối giản |
-| **Pi 3B+**      | 1GB     | ⚠️ Chậm    | Chạy được nhưng ì ạch              |
+| **Pi 4**        | 1GB     | ⚠️ Chật     | Có thể với swap, cấu hình tối giản |
+| **Pi 3B+**      | 1GB     | ⚠️ Chậm     | Chạy được nhưng ì ạch              |
 | **Pi Zero 2 W** | 512MB   | ❌          | Không khuyến nghị                  |
 
 **Cấu hình tối thiểu:** 1GB RAM, 1 lõi, 500MB dung lượng  
@@ -223,13 +223,13 @@ htop
 
 Hầu hết tính năng OpenClaw hoạt động trên ARM64, nhưng một số nhị phân bên ngoài có thể cần bản build cho ARM:
 
-| Công cụ                               | Trạng thái ARM64 | Ghi chú                             |
-| ------------------------------------- | ---------------- | ----------------------------------- |
-| Node.js               | ✅                | Hoạt động rất tốt                   |
-| WhatsApp (Baileys) | ✅                | JS thuần, không vấn đề              |
-| Telegram                              | ✅                | JS thuần, không vấn đề              |
+| Công cụ            | Trạng thái ARM64 | Ghi chú                             |
+| ------------------ | ---------------- | ----------------------------------- |
+| Node.js            | ✅               | Hoạt động rất tốt                   |
+| WhatsApp (Baileys) | ✅               | JS thuần, không vấn đề              |
+| Telegram           | ✅               | JS thuần, không vấn đề              |
 | gog (Gmail CLI)    | ⚠️               | Kiểm tra bản phát hành cho ARM      |
-| Chromium (browser) | ✅                | `sudo apt install chromium-browser` |
+| Chromium (browser) | ✅               | `sudo apt install chromium-browser` |
 
 If a skill fails, check if its binary has an ARM build. Many Go/Rust tools do; some don't.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## So sánh chi phí
 
-| Thiết lập                         | Chi phí một lần      | Chi phí hàng tháng          | Ghi chú                                             |
-| --------------------------------- | -------------------- | --------------------------- | --------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                          | + điện (~$5/năm) |
-| **Pi 4 (4GB)** | ~$55 | $0                          | Khuyến nghị                                         |
-| **Pi 5 (4GB)** | ~$60 | $0                          | Hiệu năng tốt nhất                                  |
-| **Pi 5 (8GB)** | ~$80 | $0                          | Dư thừa nhưng bền lâu                               |
-| DigitalOcean                      | $0                   | $6/tháng                    | $72/năm                                             |
-| Hetzner                           | $0                   | €3.79/tháng | ~$50/năm                            |
+| Thiết lập      | Chi phí một lần | Chi phí hàng tháng | Ghi chú               |
+| -------------- | --------------- | ------------------ | --------------------- |
+| **Pi 4 (2GB)** | ~$45            | $0                 | + điện (~$5/năm)      |
+| **Pi 4 (4GB)** | ~$55            | $0                 | Khuyến nghị           |
+| **Pi 5 (4GB)** | ~$60            | $0                 | Hiệu năng tốt nhất    |
+| **Pi 5 (8GB)** | ~$80            | $0                 | Dư thừa nhưng bền lâu |
+| DigitalOcean   | $0              | $6/tháng           | $72/năm               |
+| Hetzner        | $0              | €3.79/tháng        | ~$50/năm              |
 
 **Điểm hòa vốn:** Một Pi tự hoàn vốn sau ~6-12 tháng so với VPS cloud.
 

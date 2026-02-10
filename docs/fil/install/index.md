@@ -44,11 +44,11 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
         ```
       </Tab>
     </Tabs>
-    
+
     Ayan na — pinapangasiwaan ng script ang pag-detect ng Node, pag-install, at onboarding.
-    
+
     Para laktawan ang onboarding at i-install lang ang binary:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
         ```
       </Tab>
     </Tabs>
-    
+
     Para sa lahat ng flag, env var, at mga opsyon para sa CI/automation, tingnan ang [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="may sharp build errors?">
           Kung may naka-install na libvips nang global (karaniwan sa macOS via Homebrew) at pumalya ang `sharp`, pilitin ang prebuilt binaries:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Kung makita mo ang `sharp: Please add node-gyp to your dependencies`, mag-install ng build tooling (macOS: Xcode CLT + `npm install -g node-gyp`) o gamitin ang env var sa itaas.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         Nangangailangan ang pnpm ng hayagang pag-apruba para sa mga package na may build scripts. Pagkatapos ipakita ng unang install ang babalang "Ignored build scripts", patakbuhin ang `pnpm approve-builds -g` at piliin ang mga nakalistang package.
         </Note>
@@ -111,7 +111,7 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
     <Steps>
       <Step title="I-clone at i-build">
         I-clone ang [OpenClaw repo](https://github.com/openclaw/openclaw) at mag-build:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
       </Step>
       <Step title="I-link ang CLI">
         Gawing available nang global ang command na `openclaw`:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Bilang alternatibo, laktawan ang pag-link at patakbuhin ang mga command sa pamamagitan ng `pnpm openclaw ...` mula sa loob ng repo.
       </Step>
       <Step title="Patakbuhin ang onboarding">
@@ -135,7 +135,7 @@ Sa Windows, mariin naming inirerekomenda na patakbuhin ang OpenClaw sa ilalim ng
         ```
       </Step>
     </Steps>
-    
+
     Para sa mas malalim na development workflows, tingnan ang [Setup](/start/setup).
     ```
 

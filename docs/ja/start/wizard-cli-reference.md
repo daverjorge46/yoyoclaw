@@ -123,7 +123,7 @@ GUIが検出されない場合、ウィザードはブラウザを開く代わ�
 - ディスカバリーヒント:
   - macOS: Bonjour (`dns-sd`)
   - Linux: Avahi (`avahi-browse`)
-</Note>
+    </Note>
 
 ## 認証とモデルのオプション
 

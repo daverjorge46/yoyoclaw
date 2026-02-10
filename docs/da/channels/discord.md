@@ -395,26 +395,26 @@ Tilladelsesliste-noter (PK-aktiveret):
 
 ### Standarder for værktøjshandlinger
 
-| Handlingsgruppe | Standard | Noter                                                 |
-| --------------- | -------- | ----------------------------------------------------- |
-| reactions       | enabled  | React + list reactions + emojiList                    |
-| stickers        | enabled  | Send stickers                                         |
-| emojiUploads    | enabled  | Upload emojis                                         |
-| stickerUploads  | enabled  | Upload stickers                                       |
-| polls           | enabled  | Opret afstemninger                                    |
-| permissions     | enabled  | Kanal-tilladelsessnapshot                             |
-| messages        | enabled  | Læs/send/redigér/slet                                 |
-| threads         | enabled  | Opret/list/svar                                       |
-| pins            | enabled  | Fastgør/ophæv/list                                    |
+| Handlingsgruppe | Standard | Noter                              |
+| --------------- | -------- | ---------------------------------- |
+| reactions       | enabled  | React + list reactions + emojiList |
+| stickers        | enabled  | Send stickers                      |
+| emojiUploads    | enabled  | Upload emojis                      |
+| stickerUploads  | enabled  | Upload stickers                    |
+| polls           | enabled  | Opret afstemninger                 |
+| permissions     | enabled  | Kanal-tilladelsessnapshot          |
+| messages        | enabled  | Læs/send/redigér/slet              |
+| threads         | enabled  | Opret/list/svar                    |
+| pins            | enabled  | Fastgør/ophæv/list                 |
 | search          | enabled  | Beskedsøgning (preview-funktion)   |
-| memberInfo      | enabled  | Medlemsinfo                                           |
-| roleInfo        | enabled  | Rolleliste                                            |
-| channelInfo     | enabled  | Kanalinfo + liste                                     |
-| channels        | enabled  | Kanal-/kategoristyring                                |
-| voiceStatus     | enabled  | Voice state-opslag                                    |
-| events          | enabled  | List/opret planlagte events                           |
-| roles           | disabled | Rolle tilføj/fjern                                    |
-| moderation      | disabled | Timeout/kick/ban                                      |
+| memberInfo      | enabled  | Medlemsinfo                        |
+| roleInfo        | enabled  | Rolleliste                         |
+| channelInfo     | enabled  | Kanalinfo + liste                  |
+| channels        | enabled  | Kanal-/kategoristyring             |
+| voiceStatus     | enabled  | Voice state-opslag                 |
+| events          | enabled  | List/opret planlagte events        |
+| roles           | disabled | Rolle tilføj/fjern                 |
+| moderation      | disabled | Timeout/kick/ban                   |
 | presence        | disabled | Bot-status/aktivitet (setPresence) |
 
 - `replyToMode`: `off` (standard), `first`, eller `all`. Gælder kun, når modellen indeholder et svarmærke.

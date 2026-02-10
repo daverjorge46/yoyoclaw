@@ -29,10 +29,10 @@ Estas **no** son automatización de navegador. Para sitios con mucho JavaScript 
 
 ## Elección de un proveedor de búsqueda
 
-| Proveedor                                     | Ventajas                                           | Desventajas                               | Clave de API                                |
-| --------------------------------------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------------------- |
+| Proveedor                  | Ventajas                                           | Desventajas                               | Clave de API                                |
+| -------------------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------------------- |
 | **Brave** (predeterminado) | Rápido, resultados estructurados, nivel gratuito   | Resultados de búsqueda tradicionales      | `BRAVE_API_KEY`                             |
-| **Perplexity**                                | Respuestas sintetizadas por IA, citas, tiempo real | Requiere acceso a Perplexity u OpenRouter | `OPENROUTER_API_KEY` o `PERPLEXITY_API_KEY` |
+| **Perplexity**             | Respuestas sintetizadas por IA, citas, tiempo real | Requiere acceso a Perplexity u OpenRouter | `OPENROUTER_API_KEY` o `PERPLEXITY_API_KEY` |
 
 Consulte [Configuración de Brave Search](/brave-search) y [Perplexity Sonar](/perplexity) para detalles específicos del proveedor.
 
@@ -131,11 +131,11 @@ Si no se establece una URL base, OpenClaw elige un valor predeterminado según l
 
 ### Modelos de Perplexity disponibles
 
-| Modelo                                                     | Descripción                                     | Ideal para             |
-| ---------------------------------------------------------- | ----------------------------------------------- | ---------------------- |
-| `perplexity/sonar`                                         | Preguntas y respuestas rápidas con búsqueda web | Consultas rápidas      |
+| Modelo                                  | Descripción                                     | Ideal para             |
+| --------------------------------------- | ----------------------------------------------- | ---------------------- |
+| `perplexity/sonar`                      | Preguntas y respuestas rápidas con búsqueda web | Consultas rápidas      |
 | `perplexity/sonar-pro` (predeterminado) | Razonamiento de varios pasos con búsqueda web   | Preguntas complejas    |
-| `perplexity/sonar-reasoning-pro`                           | Análisis de cadena de pensamiento               | Investigación profunda |
+| `perplexity/sonar-reasoning-pro`        | Análisis de cadena de pensamiento               | Investigación profunda |
 
 ## web_search
 

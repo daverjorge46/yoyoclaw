@@ -1540,13 +1540,13 @@ Nếu `messages.responsePrefix` không được đặt, sẽ không áp dụng t
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| Variable          | Description            | Example                                    |
-| ----------------- | ---------------------- | ------------------------------------------ |
-| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o`                |
-| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6`                |
-| `{provider}`      | Provider name          | `anthropic`, `openai`                      |
-| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`                       |
-| `{identity.name}` | Agent identity name    | (same as `"auto"` mode) |
+| Variable          | Description            | Example                     |
+| ----------------- | ---------------------- | --------------------------- |
+| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider name          | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`        |
+| `{identity.name}` | Agent identity name    | (same as `"auto"` mode)     |
 
 Các biến không phân biệt chữ hoa/thường (`{MODEL}` = `{model}`). `{think}` is an alias for `{thinkingLevel}`.
 Unresolved variables remain as literal text.
@@ -1645,8 +1645,7 @@ Notes:
 ### `talk`
 
 Defaults for Talk mode (macOS/iOS/Android). ID giọng nói sẽ fallback về `ELEVENLABS_VOICE_ID` hoặc `SAG_VOICE_ID` khi không được thiết lập.
-`apiKey` falls back to `ELEVENLABS_API_KEY` (or the gateway’s shell profile) when unset.
-4. `voiceAliases` cho phép các chỉ thị Talk dùng tên thân thiện (ví dụ: `"voice":"Clawd"`).
+`apiKey` falls back to `ELEVENLABS_API_KEY` (or the gateway’s shell profile) when unset. 4. `voiceAliases` cho phép các chỉ thị Talk dùng tên thân thiện (ví dụ: `"voice":"Clawd"`).
 
 ```json5
 {
@@ -1668,9 +1667,7 @@ Defaults for Talk mode (macOS/iOS/Android). ID giọng nói sẽ fallback về `
 
 Controls the embedded agent runtime (model/thinking/verbose/timeouts).
 `agents.defaults.models` defines the configured model catalog (and acts as the allowlist for `/model`).
-`agents.defaults.model.primary` sets the default model; `agents.defaults.model.fallbacks` are global failovers.
-5. `agents.defaults.imageModel` là tùy chọn và **chỉ được dùng nếu mô hình chính không hỗ trợ đầu vào hình ảnh**.
-6. Mỗi mục trong `agents.defaults.models` có thể bao gồm:
+`agents.defaults.model.primary` sets the default model; `agents.defaults.model.fallbacks` are global failovers. 5. `agents.defaults.imageModel` là tùy chọn và **chỉ được dùng nếu mô hình chính không hỗ trợ đầu vào hình ảnh**. 6. Mỗi mục trong `agents.defaults.models` có thể bao gồm:
 
 - `alias` (optional model shortcut, e.g. `/opus`).
 - `params` (optional provider-specific API params passed through to the model request).
@@ -2414,7 +2411,7 @@ scripts/sandbox-browser-setup.sh
    URL noVNC sẽ được chèn vào system prompt để agent có thể tham chiếu đến nó.
 5. Điều này không yêu cầu `browser.enabled` trong cấu hình chính; URL điều khiển sandbox được chèn theo từng phiên.
 
-7. `agents.defaults.sandbox.browser.allowHostControl` (mặc định: false) cho phép các phiên được sandbox nhắm mục tiêu rõ ràng tới máy chủ điều khiển trình duyệt **host** thông qua công cụ trình duyệt (`target: "host"`). 8. Hãy tắt tùy chọn này nếu bạn muốn cách ly sandbox nghiêm ngặt.
+6. `agents.defaults.sandbox.browser.allowHostControl` (mặc định: false) cho phép các phiên được sandbox nhắm mục tiêu rõ ràng tới máy chủ điều khiển trình duyệt **host** thông qua công cụ trình duyệt (`target: "host"`). 8. Hãy tắt tùy chọn này nếu bạn muốn cách ly sandbox nghiêm ngặt.
 
 Allowlists for remote control:
 
@@ -3329,19 +3326,19 @@ Controls LAN mDNS discovery broadcasts (`_openclaw-gw._tcp`).
 - `minimal` (default): omit `cliPath` + `sshPort` from TXT records
 - `full`: include `cliPath` + `sshPort` in TXT records
 - `off`: disable mDNS broadcasts entirely
-- Tên máy chủ: mặc định là `openclaw` (quảng bá `openclaw.local`). | Variable           | Description                                                                     |
+- Tên máy chủ: mặc định là `openclaw` (quảng bá `openclaw.local`). | Variable | Description |
   \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-  \| `{{Body}}`         | Toàn bộ nội dung thông điệp đến                                                  |
-  \| `{{RawBody}}`      | Nội dung thô của thông điệp đến (không có wrapper lịch sử/người gửi; tốt nhất cho phân tích lệnh) |
-  \| `{{BodyStripped}}` | Nội dung đã loại bỏ mention nhóm (mặc định tốt nhất cho agent)                  |
-  \| `{{From}}`         | Định danh người gửi (E.164 cho WhatsApp; có thể khác theo kênh)                 |
-  \| `{{To}}`           | Định danh đích                                                                  |
-  \| `{{MessageSid}}`   | ID thông điệp của kênh (khi có)                                                 |
-  \| `{{SessionId}}`    | UUID của phiên hiện tại                                                         |
-  \| `{{IsNewSession}}` | `"true"` khi một phiên mới được tạo                                            |
-  \| `{{MediaUrl}}`     | Pseudo-URL media đến (nếu có)                                                   |
-  \| `{{MediaPath}}`    | Đường dẫn media cục bộ (nếu đã tải xuống)                                      |
-  \| `{{MediaType}}`    | Loại media (image/audio/document/…)
+  \| `{{Body}}` | Toàn bộ nội dung thông điệp đến |
+  \| `{{RawBody}}` | Nội dung thô của thông điệp đến (không có wrapper lịch sử/người gửi; tốt nhất cho phân tích lệnh) |
+  \| `{{BodyStripped}}` | Nội dung đã loại bỏ mention nhóm (mặc định tốt nhất cho agent) |
+  \| `{{From}}` | Định danh người gửi (E.164 cho WhatsApp; có thể khác theo kênh) |
+  \| `{{To}}` | Định danh đích |
+  \| `{{MessageSid}}` | ID thông điệp của kênh (khi có) |
+  \| `{{SessionId}}` | UUID của phiên hiện tại |
+  \| `{{IsNewSession}}` | `"true"` khi một phiên mới được tạo |
+  \| `{{MediaUrl}}` | Pseudo-URL media đến (nếu có) |
+  \| `{{MediaPath}}` | Đường dẫn media cục bộ (nếu đã tải xuống) |
+  \| `{{MediaType}}` | Loại media (image/audio/document/…)
 
 ```json5
 {
@@ -3375,24 +3372,24 @@ openclaw dns setup --apply
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
 |
-\| `{{Transcript}}`   | Bản chép lời âm thanh (khi được bật)                                            |
-\| `{{Prompt}}`       | Prompt media đã được phân giải cho các mục CLI                                 |
-\| `{{MaxChars}}`     | Số ký tự đầu ra tối đa đã được phân giải cho các mục CLI                        |
-\| `{{ChatType}}`     | `"direct"` hoặc `"group"`                                                    |
-\| `{{GroupSubject}}` | Chủ đề nhóm (cố gắng hết mức)                                                   |
-\| `{{GroupMembers}}` | Xem trước thành viên nhóm (cố gắng hết mức)                                    |
-\| `{{SenderName}}`   | Tên hiển thị của người gửi (cố gắng hết mức)                                   |
-\| `{{SenderE164}}`   | Số điện thoại người gửi (cố gắng hết mức)                                      |
-\| `{{Provider}}`     | Gợi ý nhà cung cấp (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)                                             |
-\| `{{Transcript}}`   | Bản ghi âm thanh (khi được bật)                                                 |
-\| `{{Prompt}}`       | Prompt media đã được phân giải cho các mục CLI                                  |
-\| `{{MaxChars}}`     | Số ký tự đầu ra tối đa đã được phân giải cho các mục CLI                        |
-\| `{{ChatType}}`     | `"direct"` hoặc `"group"`                                                   |
-\| `{{GroupSubject}}` | Chủ đề nhóm (nỗ lực tốt nhất)                                                   |
-\| `{{GroupMembers}}` | Xem trước thành viên nhóm (nỗ lực tốt nhất)                                    |
-\| `{{SenderName}}`   | Tên hiển thị người gửi (nỗ lực tốt nhất)                                       |
-\| `{{SenderE164}}`   | Số điện thoại người gửi (nỗ lực tốt nhất)                                      |
-\| `{{Provider}}`     | Gợi ý nhà cung cấp (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  Cron là bộ lập lịch do Gateway sở hữu cho các tác vụ đánh thức và công việc theo lịch.
+\| `{{Transcript}}` | Bản chép lời âm thanh (khi được bật) |
+\| `{{Prompt}}` | Prompt media đã được phân giải cho các mục CLI |
+\| `{{MaxChars}}` | Số ký tự đầu ra tối đa đã được phân giải cho các mục CLI |
+\| `{{ChatType}}` | `"direct"` hoặc `"group"` |
+\| `{{GroupSubject}}` | Chủ đề nhóm (cố gắng hết mức) |
+\| `{{GroupMembers}}` | Xem trước thành viên nhóm (cố gắng hết mức) |
+\| `{{SenderName}}` | Tên hiển thị của người gửi (cố gắng hết mức) |
+\| `{{SenderE164}}` | Số điện thoại người gửi (cố gắng hết mức) |
+\| `{{Provider}}` | Gợi ý nhà cung cấp (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
+\| `{{Transcript}}` | Bản ghi âm thanh (khi được bật) |
+\| `{{Prompt}}` | Prompt media đã được phân giải cho các mục CLI |
+\| `{{MaxChars}}` | Số ký tự đầu ra tối đa đã được phân giải cho các mục CLI |
+\| `{{ChatType}}` | `"direct"` hoặc `"group"` |
+\| `{{GroupSubject}}` | Chủ đề nhóm (nỗ lực tốt nhất) |
+\| `{{GroupMembers}}` | Xem trước thành viên nhóm (nỗ lực tốt nhất) |
+\| `{{SenderName}}` | Tên hiển thị người gửi (nỗ lực tốt nhất) |
+\| `{{SenderE164}}` | Số điện thoại người gửi (nỗ lực tốt nhất) |
+\| `{{Provider}}` | Gợi ý nhà cung cấp (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) Cron là bộ lập lịch do Gateway sở hữu cho các tác vụ đánh thức và công việc theo lịch.
 
 ## Cron (Gateway scheduler)
 

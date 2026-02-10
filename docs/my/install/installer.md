@@ -11,10 +11,10 @@ title: "Installer အတွင်းပိုင်းလုပ်ဆောင�
 
 OpenClaw တွင် installer စခရစ် သုံးခု ပါဝင်ပြီး `openclaw.ai` မှ ပံ့ပိုးပေးထားပါသည်။
 
-| Script                             | Platform                                | လုပ်ဆောင်ပုံ                                                                                                                                 |
-| ---------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | လိုအပ်ပါက Node ကို ထည့်သွင်းပြီး npm (မူလ) သို့မဟုတ် git ဖြင့် OpenClaw ကို ထည့်သွင်းကာ onboarding ကို လုပ်ဆောင်နိုင်သည်။ |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Node + OpenClaw ကို local prefix (`~/.openclaw`) အတွင်း install လုပ်ပါသည်။ root မလိုအပ်ပါ။                                |
+| Script                             | Platform             | လုပ်ဆောင်ပုံ                                                                                                              |
+| ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | လိုအပ်ပါက Node ကို ထည့်သွင်းပြီး npm (မူလ) သို့မဟုတ် git ဖြင့် OpenClaw ကို ထည့်သွင်းကာ onboarding ကို လုပ်ဆောင်နိုင်သည်။ |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Node + OpenClaw ကို local prefix (`~/.openclaw`) အတွင်း install လုပ်ပါသည်။ root မလိုအပ်ပါ။                                |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | လိုအပ်ပါက Node ကို ထည့်သွင်းပြီး npm (မူလ) သို့မဟုတ် git ဖြင့် OpenClaw ကို ထည့်သွင်းကာ onboarding ကို လုပ်ဆောင်နိုင်သည်။ |
 
 ## Quick commands
@@ -132,39 +132,39 @@ TTY မရှိဘဲ install နည်းလမ်းကို မသတ်မ
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                              | ဖော်ပြချက်                                                                                                        |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | install နည်းလမ်းကို ရွေးပါ (default: `npm`)။ Alias: `--method` |
-| `--npm`                           | npm နည်းလမ်းအတွက် shortcut                                                                                        |
-| `--git`                           | git နည်းလမ်းအတွက် shortcut ဖြစ်ပါသည်။ Alias: `--github`                                           |
-| `--version <version\\|dist-tag>` | npm ဗားရှင်း သို့မဟုတ် dist-tag (မူလ: `latest`)                                |
-| `--beta`                          | ရရှိနိုင်ပါက beta dist-tag ကို အသုံးပြုပြီး မရှိပါက `latest` သို့ ပြန်လည် fallback                                |
-| `--git-dir <path>`                | Checkout directory (default: `~/openclaw`)။ Alias: `--dir`     |
-| `--no-git-update`                 | ရှိပြီးသား checkout အတွက် `git pull` ကို ကျော်လွှားရန်                                                            |
-| `--no-prompt`                     | prompts များကို ပိတ်ရန်                                                                                           |
-| `--no-onboard`                    | onboarding ကို ကျော်လွှားရန်                                                                                      |
-| `--onboard`                       | onboarding ကို ဖွင့်ရန်                                                                                           |
-| `--dry-run`                       | ပြောင်းလဲမှု မပြုလုပ်ဘဲ လုပ်ဆောင်ချက်များကိုသာ ပြရန်                                                              |
-| `--verbose`                       | debug output ကို ဖွင့်ရန် (`set -x`, npm notice-level logs)                                    |
-| `--help`                          | အသုံးပြုပုံကို ပြရန် (`-h`)                                                                    |
+| Flag                    | ဖော်ပြချက်                                                                         |
+| ----------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                                               | install နည်းလမ်းကို ရွေးပါ (default: `npm`)။ Alias: `--method` |
+| `--npm`                 | npm နည်းလမ်းအတွက် shortcut                                                         |
+| `--git`                 | git နည်းလမ်းအတွက် shortcut ဖြစ်ပါသည်။ Alias: `--github`                            |
+| `--version <version\\   | dist-tag>`                                                                         | npm ဗားရှင်း သို့မဟုတ် dist-tag (မူလ: `latest`)                |
+| `--beta`                | ရရှိနိုင်ပါက beta dist-tag ကို အသုံးပြုပြီး မရှိပါက `latest` သို့ ပြန်လည် fallback |
+| `--git-dir <path>`      | Checkout directory (default: `~/openclaw`)။ Alias: `--dir`                         |
+| `--no-git-update`       | ရှိပြီးသား checkout အတွက် `git pull` ကို ကျော်လွှားရန်                             |
+| `--no-prompt`           | prompts များကို ပိတ်ရန်                                                            |
+| `--no-onboard`          | onboarding ကို ကျော်လွှားရန်                                                       |
+| `--onboard`             | onboarding ကို ဖွင့်ရန်                                                            |
+| `--dry-run`             | ပြောင်းလဲမှု မပြုလုပ်ဘဲ လုပ်ဆောင်ချက်များကိုသာ ပြရန်                               |
+| `--verbose`             | debug output ကို ဖွင့်ရန် (`set -x`, npm notice-level logs)                        |
+| `--help`                | အသုံးပြုပုံကို ပြရန် (`-h`)                                                        |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                                        | ဖော်ပြချက်                                                                                |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | install နည်းလမ်း                                                                          |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm ဗားရှင်း သို့မဟုတ် dist-tag                                                           |
-| `OPENCLAW_BETA=0\\|1`                          | ရရှိနိုင်ပါက beta ကို အသုံးပြုရန်                                                         |
-| `OPENCLAW_GIT_DIR=<path>`                       | Checkout directory                                                                        |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | git updates ကို ဖွင့်/ပိတ်                                                                |
-| `OPENCLAW_NO_PROMPT=1`                          | prompts များကို ပိတ်ရန်                                                                   |
-| `OPENCLAW_NO_ONBOARD=1`                         | onboarding ကို ကျော်လွှားရန်                                                              |
-| `OPENCLAW_DRY_RUN=1`                            | Dry run mode                                                                              |
-| `OPENCLAW_VERBOSE=1`                            | Debug mode                                                                                |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm log level                                                                             |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | sharp/libvips လုပ်ဆောင်ပုံကို ထိန်းချုပ်ရန် (မူလ: `1`) |
+| Variable                         | ဖော်ပြချက်                   |
+| -------------------------------- | ---------------------------- | ------------------------------------------------------ | ------------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`                         | install နည်းလမ်း                                       |
+| `OPENCLAW_VERSION=latest\\       | next\\                       | <semver>`                                              | npm ဗားရှင်း သို့မဟုတ် dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                           | ရရှိနိုင်ပါက beta ကို အသုံးပြုရန်                      |
+| `OPENCLAW_GIT_DIR=<path>`        | Checkout directory           |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                           | git updates ကို ဖွင့်/ပိတ်                             |
+| `OPENCLAW_NO_PROMPT=1`           | prompts များကို ပိတ်ရန်      |
+| `OPENCLAW_NO_ONBOARD=1`          | onboarding ကို ကျော်လွှားရန် |
+| `OPENCLAW_DRY_RUN=1`             | Dry run mode                 |
+| `OPENCLAW_VERBOSE=1`             | Debug mode                   |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                       | notice`                                                | npm log level                   |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                           | sharp/libvips လုပ်ဆောင်ပုံကို ထိန်းချုပ်ရန် (မူလ: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -221,28 +221,28 @@ TTY မရှိဘဲ install နည်းလမ်းကို မသတ်မ
 
 | Flag                   | ဖော်ပြချက်                                                                                          |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Install prefix (မူလ: `~/.openclaw`)                              |
-| `--version <ver>`      | OpenClaw ဗားရှင်း သို့မဟုတ် dist-tag (မူလ: `latest`)             |
-| `--node-version <ver>` | Node ဗားရှင်း (မူလ: `22.22.0`)                                   |
+| `--prefix <path>`      | Install prefix (မူလ: `~/.openclaw`)                                                                 |
+| `--version <ver>`      | OpenClaw ဗားရှင်း သို့မဟုတ် dist-tag (မူလ: `latest`)                                                |
+| `--node-version <ver>` | Node ဗားရှင်း (မူလ: `22.22.0`)                                                                      |
 | `--json`               | NDJSON events ကို ထုတ်ပေးရန်                                                                        |
 | `--onboard`            | install ပြီးနောက် `openclaw onboard` ကို run လုပ်ရန်                                                |
-| `--no-onboard`         | onboarding ကို ကျော်လွှားရန် (မူလ)                                               |
+| `--no-onboard`         | onboarding ကို ကျော်လွှားရန် (မူလ)                                                                  |
 | `--set-npm-prefix`     | Linux တွင် လက်ရှိ prefix ကို မရေးနိုင်ပါက npm prefix ကို `~/.npm-global` သို့ အတင်းအကျပ် ပြောင်းရန် |
-| `--help`               | အသုံးပြုပုံကို ပြရန် (`-h`)                                                      |
+| `--help`               | အသုံးပြုပုံကို ပြရန် (`-h`)                                                                         |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                                        | ဖော်ပြချက်                                                                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `OPENCLAW_PREFIX=<path>`                        | Install prefix                                                                                                     |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw ဗားရှင်း သို့မဟုတ် dist-tag                                                                               |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node ဗားရှင်း                                                                                                      |
-| `OPENCLAW_NO_ONBOARD=1`                         | onboarding ကို ကျော်လွှားရန်                                                                                       |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm log level                                                                                                      |
-| `OPENCLAW_GIT_DIR=<path>`                       | Legacy cleanup lookup path (ဟောင်း `Peekaboo` submodule checkout ကို ဖယ်ရှားရာတွင် အသုံးပြုသည်) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | sharp/libvips လုပ်ဆောင်ပုံကို ထိန်းချုပ်ရန် (မူလ: `1`)                          |
+| Variable                         | ဖော်ပြချက်                                                                                      |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------- |
+| `OPENCLAW_PREFIX=<path>`         | Install prefix                                                                                  |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw ဗားရှင်း သို့မဟုတ် dist-tag                                                            |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node ဗားရှင်း                                                                                   |
+| `OPENCLAW_NO_ONBOARD=1`          | onboarding ကို ကျော်လွှားရန်                                                                    |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                          | notice`                                                | npm log level |
+| `OPENCLAW_GIT_DIR=<path>`        | Legacy cleanup lookup path (ဟောင်း `Peekaboo` submodule checkout ကို ဖယ်ရှားရာတွင် အသုံးပြုသည်) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                              | sharp/libvips လုပ်ဆောင်ပုံကို ထိန်းချုပ်ရန် (မူလ: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ TTY မရှိဘဲ install နည်းလမ်းကို မသတ်မ
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                        | ဖော်ပြချက်                                                                             |
-| --------------------------- | -------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | install နည်းလမ်း (မူလ: `npm`)                       |
-| `-Tag <tag>`                | npm dist-tag (မူလ: `latest`)                        |
-| `-GitDir <path>`            | Checkout directory (မူလ: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | onboarding ကို ကျော်လွှားရန်                                                           |
-| `-NoGitUpdate`              | `git pull` ကို ကျော်လွှားရန်                                                           |
-| `-DryRun`                   | လုပ်ဆောင်ချက်များကိုသာ ပြရန်                                                           |
+| Flag                  | ဖော်ပြချက်                                         |
+| --------------------- | -------------------------------------------------- | ----------------------------- |
+| `-InstallMethod npm\\ | git`                                               | install နည်းလမ်း (မူလ: `npm`) |
+| `-Tag <tag>`          | npm dist-tag (မူလ: `latest`)                       |
+| `-GitDir <path>`      | Checkout directory (မူလ: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | onboarding ကို ကျော်လွှားရန်                       |
+| `-NoGitUpdate`        | `git pull` ကို ကျော်လွှားရန်                       |
+| `-DryRun`             | လုပ်ဆောင်ချက်များကိုသာ ပြရန်                       |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variable                             | ဖော်ပြချက်                   |
-| ------------------------------------ | ---------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | install နည်းလမ်း             |
-| `OPENCLAW_GIT_DIR=<path>`            | Checkout directory           |
-| `OPENCLAW_NO_ONBOARD=1`              | onboarding ကို ကျော်လွှားရန် |
-| `OPENCLAW_GIT_UPDATE=0`              | git pull ကို ပိတ်ရန်         |
-| `OPENCLAW_DRY_RUN=1`                 | Dry run mode                 |
+| Variable                       | ဖော်ပြချက်                   |
+| ------------------------------ | ---------------------------- | ---------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`                         | install နည်းလမ်း |
+| `OPENCLAW_GIT_DIR=<path>`      | Checkout directory           |
+| `OPENCLAW_NO_ONBOARD=1`        | onboarding ကို ကျော်လွှားရန် |
+| `OPENCLAW_GIT_UPDATE=0`        | git pull ကို ပိတ်ရန်         |
+| `OPENCLAW_DRY_RUN=1`           | Dry run mode                 |
 
   </Accordion>
 </AccordionGroup>

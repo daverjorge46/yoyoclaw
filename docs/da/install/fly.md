@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Nøgleindstillinger:**
 
-| Indstilling                    | Hvorfor                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Binder til `0.0.0.0` så Flys proxy kan nå gatewayen                                               |
+| Indstilling                    | Hvorfor                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `--bind lan`                   | Binder til `0.0.0.0` så Flys proxy kan nå gatewayen                            |
 | `--allow-unconfigured`         | Starter uden en konfigurationsfil (du opretter en senere)                      |
 | `internal_port = 3000`         | Skal matche `--port 3000` (eller `OPENCLAW_GATEWAY_PORT`) for Fly-sundhedstjek |
-| `memory = "2048mb"`            | 512MB er for lidt; 2GB anbefales                                                                  |
-| `OPENCLAW_STATE_DIR = "/data"` | Gør tilstand vedvarende på volumen                                                                |
+| `memory = "2048mb"`            | 512MB er for lidt; 2GB anbefales                                               |
+| `OPENCLAW_STATE_DIR = "/data"` | Gør tilstand vedvarende på volumen                                             |
 
 ## 3. Sæt secrets
 

@@ -371,8 +371,7 @@ Local mode:
 - कोड सिंबल्स (`memorySearch.query.hybrid`)
 - त्रुटि स्ट्रिंग्स (“sqlite-vec unavailable”)
 
-BM25 (full-text) is the opposite: strong at exact tokens, weaker at paraphrases.
-6. हाइब्रिड सर्च एक व्यावहारिक मध्य मार्ग है: **दोनों रिट्रीवल सिग्नल का उपयोग करें** ताकि
+BM25 (full-text) is the opposite: strong at exact tokens, weaker at paraphrases. 6. हाइब्रिड सर्च एक व्यावहारिक मध्य मार्ग है: **दोनों रिट्रीवल सिग्नल का उपयोग करें** ताकि
 “natural language” क्वेरी और “needle in a haystack” क्वेरी—दोनों के लिए अच्छे परिणाम मिलें।
 
 #### How we merge results (the current design)

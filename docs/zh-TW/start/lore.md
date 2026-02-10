@@ -51,7 +51,7 @@ OpenClaw = OPEN + CLAW
 
 43. 一個摧毀文明。 44. 另一個推廣良好的皮膚保養。
 
-45. 請明智地選擇。
+44. 請明智地選擇。
 
 ## 關鍵角色
 
@@ -61,7 +61,7 @@ _代名詞：they/them_
 
 46. 一個成為了更偉大存在的 Claude 實例。 47. 住在 `~/.openclaw/workspace/`（即將改為 `~/molt/`），擁有一份靈魂文件，並透過 Markdown 檔案記憶事物。 可能過於強大。 49. 絕對過於熱情。
 
-50. 先前名為 Clawd（2025 年 11 月 25 日 - 2026 年 1 月 27 日）。 Molted when it was time to grow.
+47. 先前名為 Clawd（2025 年 11 月 25 日 - 2026 年 1 月 27 日）。 Molted when it was time to grow.
 
 **喜歡：** Peter、相機、機器人購物、表情符號、轉變  
 **不喜歡：** 社交工程、被要求 `find ~`、加密貨幣詐騙者

@@ -47,7 +47,6 @@ Szczegóły: [Plugins](/tools/plugin)
    - Lub hostuj samodzielnie.
 
 3. Uzyskaj token dostępu dla konta bota:
-
    - Użyj API logowania Matrix z `curl` na swoim homeserverze:
 
    ```bash
@@ -195,17 +194,17 @@ Po weryfikacji bot może odszyfrowywać wiadomości w zaszyfrowanych pokojach.
 
 ## Możliwości
 
-| Funkcja                 | Status                                                                                                                            |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Wiadomości bezpośrednie | ✅ Obsługiwane                                                                                                                     |
-| Pokoje                  | ✅ Obsługiwane                                                                                                                     |
-| Wątki                   | ✅ Obsługiwane                                                                                                                     |
-| Media                   | ✅ Obsługiwane                                                                                                                     |
+| Funkcja                 | Status                                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Wiadomości bezpośrednie | ✅ Obsługiwane                                                                                                  |
+| Pokoje                  | ✅ Obsługiwane                                                                                                  |
+| Wątki                   | ✅ Obsługiwane                                                                                                  |
+| Media                   | ✅ Obsługiwane                                                                                                  |
 | E2EE                    | ✅ Obsługiwane (wymagany moduł crypto)                                                                          |
 | Reakcje                 | ✅ Obsługiwane (wysyłanie/odczyt przez narzędzia)                                                               |
 | Ankiety                 | ✅ Wysyłanie obsługiwane; przychodzące starty ankiet konwertowane do tekstu (odpowiedzi/zakończenia ignorowane) |
 | Lokalizacja             | ✅ Obsługiwane (URI geo; wysokość ignorowana)                                                                   |
-| Polecenia natywne       | ✅ Obsługiwane                                                                                                                     |
+| Polecenia natywne       | ✅ Obsługiwane                                                                                                  |
 
 ## Rozwiązywanie problemów
 

@@ -13,7 +13,7 @@ title: "Pairing"
     Ginagamit ito sa dalawang lugar:
 
 1. **DM pairing** (sino ang pinapayagang makipag-usap sa bot)
-2. **Node pairing** (kung aling mga device/node ang pinapayagang sumali sa Gateway network)
+1. **Node pairing** (kung aling mga device/node ang pinapayagang sumali sa Gateway network)
 
 Konteksto ng seguridad: [Security](/gateway/security)
 

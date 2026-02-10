@@ -16,13 +16,13 @@ Si vous souhaitez une option à 0 $/mois et que l’ARM + une configuration sp�
 
 ## Comparaison des coûts (2026)
 
-| Fournisseur  | Forfait         | Specs                     | Prix/mo                                          | Notes                                             |
-| ------------ | --------------- | ------------------------- | ------------------------------------------------ | ------------------------------------------------- |
-| Oracle Cloud | Always Free ARM | jusqu’à 4 OCPU, 24 Go RAM | 0 $                                              | ARM, capacité limitée / contraintes d’inscription |
+| Fournisseur  | Forfait         | Specs                     | Prix/mo       | Notes                                             |
+| ------------ | --------------- | ------------------------- | ------------- | ------------------------------------------------- |
+| Oracle Cloud | Always Free ARM | jusqu’à 4 OCPU, 24 Go RAM | 0 $           | ARM, capacité limitée / contraintes d’inscription |
 | Hetzner      | CX22            | 2 vCPU, 4 Go RAM          | 3,79 € (~4 $) | Option payante la moins chère                     |
-| DigitalOcean | Basic           | 1 vCPU, 1 Go RAM          | 6 $                                              | Interface simple, bonne documentation             |
-| Vultr        | Cloud Compute   | 1 vCPU, 1 Go RAM          | 6 $                                              | Nombreux emplacements                             |
-| Linode       | Nanode          | 1 vCPU, 1 Go RAM          | 5 $                                              | Désormais intégré à Akamai                        |
+| DigitalOcean | Basic           | 1 vCPU, 1 Go RAM          | 6 $           | Interface simple, bonne documentation             |
+| Vultr        | Cloud Compute   | 1 vCPU, 1 Go RAM          | 6 $           | Nombreux emplacements                             |
+| Linode       | Nanode          | 1 vCPU, 1 Go RAM          | 5 $           | Désormais intégré à Akamai                        |
 
 **Choisir un fournisseur :**
 

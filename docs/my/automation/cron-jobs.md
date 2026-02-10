@@ -169,8 +169,7 @@ Isolated jobs များအတွက် `delivery` မသတ်မှတ်ထ
 
 #### Announce delivery flow
 
-When `delivery.mode = "announce"`, cron delivers directly via the outbound channel adapters.
-24. စာကို ဖန်တီးခြင်း သို့မဟုတ် လွှဲပြောင်းပို့ခြင်းအတွက် main agent ကို မဖွင့်ပေးပါ။
+When `delivery.mode = "announce"`, cron delivers directly via the outbound channel adapters. 24. စာကို ဖန်တီးခြင်း သို့မဟုတ် လွှဲပြောင်းပို့ခြင်းအတွက် main agent ကို မဖွင့်ပေးပါ။
 
 အပြုအမူ အသေးစိတ်—
 

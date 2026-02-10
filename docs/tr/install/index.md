@@ -45,11 +45,11 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
         ```
       </Tab>
     </Tabs>
-    
+
     Hepsi bu — betik Node algılama, kurulum ve ilk katılımı yönetir.
-    
+
     İlk katılımı atlayıp yalnızca ikiliyi kurmak için:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -62,7 +62,7 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
         ```
       </Tab>
     </Tabs>
-    
+
     Tüm bayraklar, ortam değişkenleri ve CI/otomasyon seçenekleri için [Yükleyici iç detayları](/install/installer) sayfasına bakın.
     ```
 
@@ -78,14 +78,14 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp derleme hataları mı?">
           libvips'i küresel olarak kuruluysa (macOS'ta Homebrew ile yaygındır) ve `sharp` başarısız oluyorsa, önceden derlenmiş ikilileri zorlayın:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           `sharp: Please add node-gyp to your dependencies` görürseniz, ya derleme araçlarını kurun (macOS: Xcode CLT + `npm install -g node-gyp`) ya da yukarıdaki ortam değişkenini kullanın.
         </Accordion>
       </Tab>
@@ -95,7 +95,7 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm, derleme betikleri olan paketler için açık onay gerektirir. İlk kurulumda "Ignored build scripts" uyarısı göründükten sonra `pnpm approve-builds -g` komutunu çalıştırın ve listelenen paketleri seçin.
         </Note>
@@ -112,7 +112,7 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
     <Steps>
       <Step title="Klonla ve derle">
         [OpenClaw deposunu](https://github.com/openclaw/openclaw) klonlayın ve derleyin:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -123,11 +123,11 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
       </Step>
       <Step title="CLI'yi bağla">
         `openclaw` komutunu küresel olarak kullanılabilir yapın:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Alternatif olarak, bağlantıyı atlayıp komutları depo içinden `pnpm openclaw ...` ile çalıştırabilirsiniz.
       </Step>
       <Step title="İlk katılımı çalıştır">
@@ -136,7 +136,7 @@ Windows'ta OpenClaw'ı [WSL2](https://learn.microsoft.com/en-us/windows/wsl/inst
         ```
       </Step>
     </Steps>
-    
+
     Daha derin geliştirme iş akışları için [Kurulum](/start/setup) sayfasına bakın.
     ```
 

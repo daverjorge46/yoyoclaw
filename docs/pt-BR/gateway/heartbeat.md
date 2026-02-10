@@ -283,12 +283,12 @@ channels:
 
 ### Padrões comuns
 
-| Objetivo                                                                  | Configuração                                                                             |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Comportamento padrão (OKs silenciosos, alertas ativos) | _(nenhuma configuração necessária)_                                   |
+| Objetivo                                               | Configuração                                                                             |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Comportamento padrão (OKs silenciosos, alertas ativos) | _(nenhuma configuração necessária)_                                                      |
 | Totalmente silencioso (sem mensagens, sem indicador)   | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Apenas indicador (sem mensagens)                       | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OKs em apenas um canal                                                    | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OKs em apenas um canal                                 | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (opcional)
 

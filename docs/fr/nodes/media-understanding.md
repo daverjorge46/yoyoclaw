@@ -174,11 +174,11 @@ Si vous omettez `capabilities`, l’entrée est éligible pour la liste dans laq
 
 ## Matrice de prise en charge des fournisseurs (intégrations OpenClaw)
 
-| Capacité | Intégration du fournisseur                       | Notes                                                                                   |
-| -------- | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Image    | OpenAI / Anthropic / Google / autres via `pi-ai` | Tout modèle capable d’images dans le registre fonctionne.               |
-| Audio    | OpenAI, Groq, Deepgram, Google                   | Transcription fournisseur (Whisper/Deepgram/Gemini). |
-| Vidéo    | Google (API Gemini)           | Compréhension vidéo du fournisseur.                                     |
+| Capacité | Intégration du fournisseur                       | Notes                                                     |
+| -------- | ------------------------------------------------ | --------------------------------------------------------- |
+| Image    | OpenAI / Anthropic / Google / autres via `pi-ai` | Tout modèle capable d’images dans le registre fonctionne. |
+| Audio    | OpenAI, Groq, Deepgram, Google                   | Transcription fournisseur (Whisper/Deepgram/Gemini).      |
+| Vidéo    | Google (API Gemini)                              | Compréhension vidéo du fournisseur.                       |
 
 ## Fournisseurs recommandés
 

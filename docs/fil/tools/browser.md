@@ -322,8 +322,7 @@ OpenClaw na may browser support.
 
 #### Docker Playwright install
 
-Kung ang iyong Gateway ay tumatakbo sa Docker, iwasan ang `npx playwright` (mga conflict sa npm override).
-25. Gamitin na lang ang bundled CLI:
+Kung ang iyong Gateway ay tumatakbo sa Docker, iwasan ang `npx playwright` (mga conflict sa npm override). 25. Gamitin na lang ang bundled CLI:
 
 ```bash
 docker compose run --rm openclaw-cli \

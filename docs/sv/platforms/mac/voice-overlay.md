@@ -11,7 +11,7 @@ Målgrupp: macOS app bidragsgivare. Mål: hålla rösten överlappande förutsä
 
 ## Nuvarande avsikt
 
-- Om överlagret redan är synligt från wake-word och användaren trycker på snabbtangenten antar snabbtangenten _den befintliga texten istället för att återställa den. Överlagringen stannar upp medan snabbtangenten hålls. När användaren släpper: skicka om det finns klippt text, annars avfärdas inte.
+- Om överlagret redan är synligt från wake-word och användaren trycker på snabbtangenten antar snabbtangenten \_den befintliga texten istället för att återställa den. Överlagringen stannar upp medan snabbtangenten hålls. När användaren släpper: skicka om det finns klippt text, annars avfärdas inte.
 - Enbart väckningsord skickar fortfarande automatiskt vid tystnad; push-to-talk skickar omedelbart vid släpp.
 
 ## Implementerat (9 dec 2025)

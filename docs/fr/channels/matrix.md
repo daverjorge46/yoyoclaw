@@ -47,7 +47,6 @@ Details : [Plugins](/plugin)
    - Ou hebergez-le vous-meme.
 
 3. Obtenez un jeton d’acces pour le compte du bot :
-
    - Utilisez l’API de connexion Matrix avec `curl` sur votre homeserver :
 
    ```bash
@@ -195,17 +194,17 @@ Une fois verifie, le bot peut dechiffrer les messages dans les salons chiffres.
 
 ## Capacites
 
-| Fonctionnalite    | Statut                                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Messages directs  | ✅ Pris en charge                                                                                                                |
-| Salons            | ✅ Pris en charge                                                                                                                |
-| Fil de discussion | ✅ Pris en charge                                                                                                                |
-| Media             | ✅ Pris en charge                                                                                                                |
+| Fonctionnalite    | Statut                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| Messages directs  | ✅ Pris en charge                                                                                             |
+| Salons            | ✅ Pris en charge                                                                                             |
+| Fil de discussion | ✅ Pris en charge                                                                                             |
+| Media             | ✅ Pris en charge                                                                                             |
 | E2EE              | ✅ Pris en charge (module crypto requis)                                                                      |
 | Reactions         | ✅ Pris en charge (envoi/lecture via des outils)                                                              |
 | Sondages          | ✅ Envoi pris en charge ; les demarrages de sondage entrants sont convertis en texte (reponses/fins ignorees) |
 | Localisation      | ✅ Pris en charge (URI geo ; altitude ignoree)                                                                |
-| Commandes natives | ✅ Pris en charge                                                                                                                |
+| Commandes natives | ✅ Pris en charge                                                                                             |
 
 ## Problemes courants
 

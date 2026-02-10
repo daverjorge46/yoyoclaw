@@ -116,7 +116,7 @@ openclaw sandbox recreate --agent alfred
 
 8. **Solution:** पुराने कंटेनरों को ज़बरदस्ती हटाने के लिए `openclaw sandbox recreate` का उपयोग करें। They'll be recreated automatically with current settings when next needed.
 
-10. टिप: मैनुअल `docker rm` की बजाय `openclaw sandbox recreate` को प्राथमिकता दें। 11. यह Gateway की कंटेनर नामकरण का उपयोग करता है और scope/session keys बदलने पर होने वाले मिसमैच से बचाता है।
+9. टिप: मैनुअल `docker rm` की बजाय `openclaw sandbox recreate` को प्राथमिकता दें। 11. यह Gateway की कंटेनर नामकरण का उपयोग करता है और scope/session keys बदलने पर होने वाले मिसमैच से बचाता है।
 
 ## विन्यास
 

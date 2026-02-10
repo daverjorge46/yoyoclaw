@@ -13,7 +13,8 @@ OpenClaw, `openclaw.ai` üzerinden sunulan üç yükleyici betikle birlikte geli
 
 | ```
 Git yoksa kurar.
-```           | Platform                                | Ne yapar                                                                                                                                |
+
+`````| Platform                                | Ne yapar                                                                                                                                |
 | ---------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Gerekirse Node’u kurar, OpenClaw’ı npm (varsayılan) veya git ile kurar ve onboarding çalıştırabilir. |
 | [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Node + OpenClaw’ı yerel bir önek altına kurar (`~/.openclaw`). Root gerekmez.        |
@@ -391,3 +392,4 @@ Her şeyin yerel bir önek altında olmasını (varsayılan `~/.openclaw`) ve si
     Genellikle bir PATH sorunudur. [Node.js sorun giderme](/install/node#troubleshooting) bölümüne bakın.
   </Accordion>
 </AccordionGroup>
+`````

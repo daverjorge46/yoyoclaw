@@ -76,19 +76,19 @@ Config string တန်ဖိုးများအတွင်း `${VAR_NAME}` 
 
 ## Path ဆိုင်ရာ env var များ
 
-| Variable               | Purpose                                                                                                                                                                                                                                        |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variable               | Purpose                                                                                                                                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OPENCLAW_HOME`        | Internal path resolution (`~/.openclaw/`, agent directories, sessions, credentials) အားလုံးတွင် အသုံးပြုမည့် home directory ကို override လုပ်ပါသည်။ OpenClaw ကို dedicated service user အဖြစ် run လုပ်သောအခါ အသုံးဝင်ပါသည်။ |
 | `OPENCLAW_STATE_DIR`   | State directory ကို override လုပ်ပါသည် (default `~/.openclaw`)။                                                                                                                                                             |
-| `OPENCLAW_CONFIG_PATH` | 1. config ဖိုင်လမ်းကြောင်းကို override လုပ်ရန် (မူလ `~/.openclaw/openclaw.json`)။                                                                                                                    |
+| `OPENCLAW_CONFIG_PATH` | 1. config ဖိုင်လမ်းကြောင်းကို override လုပ်ရန် (မူလ `~/.openclaw/openclaw.json`)။                                                                                                                                           |
 
 ### 2. `OPENCLAW_HOME`
 
 3. သတ်မှတ်ထားပါက `OPENCLAW_HOME` သည် အတွင်းပိုင်း path resolution အားလုံးအတွက် စနစ် home directory (`$HOME` / `os.homedir()`) ကို အစားထိုးပါသည်။ 4. ဤအရာသည် headless service account များအတွက် filesystem isolation အပြည့်အစုံကို ဖွင့်ပေးပါသည်။
 
-5. **Precedence:** `OPENCLAW_HOME` > `$HOME` > `USERPROFILE` > `os.homedir()`
+4. **Precedence:** `OPENCLAW_HOME` > `$HOME` > `USERPROFILE` > `os.homedir()`
 
-6. **ဥပမာ** (macOS LaunchDaemon):
+5. **ဥပမာ** (macOS LaunchDaemon):
 
 ```xml
 7. <key>EnvironmentVariables</key>

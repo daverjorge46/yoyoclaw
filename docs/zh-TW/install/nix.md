@@ -48,8 +48,7 @@ Reference the nix-openclaw README for module options.
 當設定 `OPENCLAW_NIX_MODE=1`（使用 nix-openclaw 會自動設定）時：
 
 OpenClaw 支援 **Nix 模式**，可使設定具備決定性，並停用自動安裝流程。
-可透過匯出以下設定來啟用：
-14. 透過匯出以下內容來啟用：
+可透過匯出以下設定來啟用：14. 透過匯出以下內容來啟用：
 
 ```bash
 OPENCLAW_NIX_MODE=1
@@ -63,8 +62,7 @@ defaults write bot.molt.mac openclaw.nixMode -bool true
 
 ### Config + state paths
 
-OpenClaw 會從 `OPENCLAW_CONFIG_PATH` 讀取 JSON5 設定，並將可變資料儲存在 `OPENCLAW_STATE_DIR`。
-19. 視需要也可以設定 `OPENCLAW_HOME`，以控制內部路徑解析所使用的基礎家目錄。
+OpenClaw 會從 `OPENCLAW_CONFIG_PATH` 讀取 JSON5 設定，並將可變資料儲存在 `OPENCLAW_STATE_DIR`。19. 視需要也可以設定 `OPENCLAW_HOME`，以控制內部路徑解析所使用的基礎家目錄。
 
 - 20. `OPENCLAW_HOME`（預設優先順序：`HOME` / `USERPROFILE` / `os.homedir()`）
 - `OPENCLAW_STATE_DIR`（預設：`~/.openclaw`）

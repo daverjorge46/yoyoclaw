@@ -41,5 +41,5 @@ openclaw agents add <name>
 <Note>
 
 `--json` ไม่ได้หมายถึงโหมดไม่โต้ตอบ ใช้ `--non-interactive` สำหรับสคริปต์
- ใช้ `--non-interactive` สำหรับสคริปต์
+ใช้ `--non-interactive` สำหรับสคริปต์
 </Note>

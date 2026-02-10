@@ -27,7 +27,7 @@ openclaw security audit --fix
 - `logging.redactSensitive="off"` を `"tools"` に戻します。
 - ローカル権限を厳格化します（`~/.openclaw` → `700`、設定ファイル → `600`、さらに `credentials/*.json`、`agents/*/agent/auth-profiles.json`、`agents/*/sessions/sessions.json` などの一般的な状態ファイル）。
 
-自分のマシン上でシェルアクセス付きの AI エージェントを動かすのは…… _spicy_(_P) ここでpwnedを取得しない方法です。
+自分のマシン上でシェルアクセス付きの AI エージェントを動かすのは…… _spicy_(\_P) ここでpwnedを取得しない方法です。
 
 OpenClawは製品と実験の両方です。あなたは実際のメッセージング表面と実際のツールへの配線フロンティアモデルの動作です。 **「完全に安全な」セットアップはありません。** 目標は次のようなものです。
 

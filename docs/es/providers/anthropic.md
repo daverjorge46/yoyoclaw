@@ -43,11 +43,11 @@ OpenClaw admite la función de caché de prompts de Anthropic. Esto es **solo pa
 
 Use el parámetro `cacheRetention` en la configuración de su modelo:
 
-| Valor   | Duración de caché | Descripción                                                |
-| ------- | ----------------- | ---------------------------------------------------------- |
-| `none`  | Sin caché         | Desactivar la caché de prompts                             |
-| `short` | 5 minutos         | Valor predeterminado para auth con clave de API            |
-| `long`  | 1 hora            | Caché extendida (requiere bandera beta) |
+| Valor   | Duración de caché | Descripción                                     |
+| ------- | ----------------- | ----------------------------------------------- |
+| `none`  | Sin caché         | Desactivar la caché de prompts                  |
+| `short` | 5 minutos         | Valor predeterminado para auth con clave de API |
+| `long`  | 1 hora            | Caché extendida (requiere bandera beta)         |
 
 ```json5
 {

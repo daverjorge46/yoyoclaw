@@ -395,27 +395,27 @@ ack 反應。 11. 使用 `messages.removeAckAfterReply` 在機器人回覆後清
 
 ### 工具動作預設值
 
-| 動作群組           | Default | 注意事項                                             |
-| -------------- | ------- | ------------------------------------------------ |
-| reactions      | 啟用      | 反應 + 列出反應 + emojiList                            |
-| stickers       | 啟用      | 24. 傳送貼圖                  |
-| emojiUploads   | 啟用      | 上傳表情符號                                           |
-| stickerUploads | 啟用      | 25. 上傳貼圖                  |
-| polls          | 啟用      | 建立投票                                             |
-| permissions    | 啟用      | 頻道權限快照                                           |
-| messages       | 啟用      | 讀取/傳送/編輯/刪除                                      |
-| threads        | 啟用      | 建立/列出/回覆                                         |
-| pins           | 啟用      | 釘選/取消釘選/列出                                       |
-| search         | 啟用      | 訊息搜尋（預覽功能）                                       |
-| memberInfo     | 啟用      | 成員資訊                                             |
-| roleInfo       | 啟用      | 角色清單                                             |
-| channelInfo    | 啟用      | 頻道資訊 + 清單                                        |
-| channels       | 啟用      | 頻道/類別管理                                          |
-| voiceStatus    | 啟用      | 語音狀態查詢                                           |
-| events         | 啟用      | 列出/建立排程活動                                        |
-| roles          | 停用      | 角色新增/移除                                          |
-| moderation     | 停用      | 禁言/踢出/封鎖                                         |
-| presence       | 停用      | 26. 機器人狀態/活動（setPresence） |
+| 動作群組       | Default | 注意事項                           |
+| -------------- | ------- | ---------------------------------- |
+| reactions      | 啟用    | 反應 + 列出反應 + emojiList        |
+| stickers       | 啟用    | 24. 傳送貼圖                       |
+| emojiUploads   | 啟用    | 上傳表情符號                       |
+| stickerUploads | 啟用    | 25. 上傳貼圖                       |
+| polls          | 啟用    | 建立投票                           |
+| permissions    | 啟用    | 頻道權限快照                       |
+| messages       | 啟用    | 讀取/傳送/編輯/刪除                |
+| threads        | 啟用    | 建立/列出/回覆                     |
+| pins           | 啟用    | 釘選/取消釘選/列出                 |
+| search         | 啟用    | 訊息搜尋（預覽功能）               |
+| memberInfo     | 啟用    | 成員資訊                           |
+| roleInfo       | 啟用    | 角色清單                           |
+| channelInfo    | 啟用    | 頻道資訊 + 清單                    |
+| channels       | 啟用    | 頻道/類別管理                      |
+| voiceStatus    | 啟用    | 語音狀態查詢                       |
+| events         | 啟用    | 列出/建立排程活動                  |
+| roles          | 停用    | 角色新增/移除                      |
+| moderation     | 停用    | 禁言/踢出/封鎖                     |
+| presence       | 停用    | 26. 機器人狀態/活動（setPresence） |
 
 - `replyToMode`：`off`（預設）、`first` 或 `all`。僅在模型包含回覆標籤時套用。 27. 僅在模型包含回覆標籤時套用。
 
@@ -425,8 +425,7 @@ ack 反應。 11. 使用 `messages.removeAckAfterReply` 在機器人回覆後清
 
 - `[[reply_to_current]]` — 回覆觸發的 Discord 訊息。
 - `[[reply_to:<id>]]` — 回覆情境/歷史中的特定訊息 id。
-  目前的訊息 id 會以 `[message_id: …]` 附加至提示；歷史項目已包含 id。
-  28. 目前的訊息 ID 會以 `[message_id: …]` 附加到提示中；歷史項目已包含 ID。
+  目前的訊息 id 會以 `[message_id: …]` 附加至提示；歷史項目已包含 id。28. 目前的訊息 ID 會以 `[message_id: …]` 附加到提示中；歷史項目已包含 ID。
 
 行為由 `channels.discord.replyToMode` 控制：
 

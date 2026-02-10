@@ -37,8 +37,7 @@ openclaw onboard --openai-api-key "$OPENAI_API_KEY"
 ## 選項 B：OpenAI Code（Codex）訂閱
 
 **最適合：** 使用 ChatGPT／Codex 訂閱存取而非 API 金鑰。
-Codex 雲端需要 ChatGPT 登入，而 Codex CLI 支援 ChatGPT 或 API 金鑰登入。
-49. Codex cloud 需要 ChatGPT 登入，而 Codex CLI 支援 ChatGPT 或 API 金鑰登入。
+Codex 雲端需要 ChatGPT 登入，而 Codex CLI 支援 ChatGPT 或 API 金鑰登入。49. Codex cloud 需要 ChatGPT 登入，而 Codex CLI 支援 ChatGPT 或 API 金鑰登入。
 
 ### CLI 設定（Codex OAuth）
 

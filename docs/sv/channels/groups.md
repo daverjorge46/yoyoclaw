@@ -40,12 +40,12 @@ otherwise -> reply
 
 Om du vill…
 
-| Mål                                                            | Vad som ska ställas in                                                       |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Tillåt alla grupper men svara bara på @-nämningar | `groups: { "*": { requireMention: true } }`                                  |
-| Inaktivera alla gruppsvar                                      | `groupPolicy: "disabled"`                                                    |
-| Endast specifika grupper                                       | `grupper: { "<group-id>": { ... } }` (ingen `"*"` nyckel) |
-| Endast du kan trigga i grupper                                 | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                   |
+| Mål                                               | Vad som ska ställas in                                     |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| Tillåt alla grupper men svara bara på @-nämningar | `groups: { "*": { requireMention: true } }`                |
+| Inaktivera alla gruppsvar                         | `groupPolicy: "disabled"`                                  |
+| Endast specifika grupper                          | `grupper: { "<group-id>": { ... } }` (ingen `"*"` nyckel)  |
+| Endast du kan trigga i grupper                    | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Sessionsnycklar
 
@@ -174,8 +174,8 @@ Styr hur grupp-/rumsmeddelanden hanteras per kanal:
 }
 ```
 
-| Policy        | Beteende                                                                                  |
-| ------------- | ----------------------------------------------------------------------------------------- |
+| Policy        | Beteende                                                                  |
+| ------------- | ------------------------------------------------------------------------- |
 | `"open"`      | Grupper kringgår tillåtelselistor; nämningsstyrning gäller fortfarande.   |
 | `"disabled"`  | Blockera alla gruppmeddelanden helt.                                      |
 | `"allowlist"` | Tillåt endast grupper/rum som matchar den konfigurerade tillåtelselistan. |

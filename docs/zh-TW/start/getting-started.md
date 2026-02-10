@@ -14,7 +14,7 @@ title: "入門指南"
 
 最快速的聊天方式：開啟 Control UI（不需要設定頻道）。執行 `openclaw dashboard`
 並在瀏覽器中聊天，或在
- Run `openclaw dashboard`
+Run `openclaw dashboard`
 and chat in the browser, or open `http://127.0.0.1:18789/` on the
 <Tooltip headline="Gateway host" tip="The machine running the OpenClaw gateway service.">gateway 主機</Tooltip>.
 

@@ -40,12 +40,12 @@ otherwise -> reply
 
 Hvis du vil...
 
-| Mål                                                        | Hvad der skal sættes                                                        |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Tillad alle grupper men svar kun på @mentions | `groups: { "*": { requireMention: true } }`                                 |
-| Deaktivér alle gruppesvar                                  | `groupPolicy: "disabled"`                                                   |
-| Kun specifikke grupper                                     | `grupper: { "<group-id>": { ... } }` (ingen `"*"` nøgle) |
-| Kun du kan udløse i grupper                                | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                  |
+| Mål                                           | Hvad der skal sættes                                       |
+| --------------------------------------------- | ---------------------------------------------------------- |
+| Tillad alle grupper men svar kun på @mentions | `groups: { "*": { requireMention: true } }`                |
+| Deaktivér alle gruppesvar                     | `groupPolicy: "disabled"`                                  |
+| Kun specifikke grupper                        | `grupper: { "<group-id>": { ... } }` (ingen `"*"` nøgle)   |
+| Kun du kan udløse i grupper                   | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Session-nøgler
 
@@ -174,8 +174,8 @@ Styr hvordan gruppe-/rumbeskeder håndteres pr. kanal:
 }
 ```
 
-| Politik       | Adfærd                                                                                  |
-| ------------- | --------------------------------------------------------------------------------------- |
+| Politik       | Adfærd                                                                  |
+| ------------- | ----------------------------------------------------------------------- |
 | `"open"`      | Grupper omgår tilladelseslister; mention-gating gælder stadig.          |
 | `"disabled"`  | Blokér alle gruppemeddelelser fuldstændigt.                             |
 | `"allowlist"` | Tillad kun grupper/rum, der matcher den konfigurerede tilladelsesliste. |

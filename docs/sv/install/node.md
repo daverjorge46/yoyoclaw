@@ -29,7 +29,7 @@ Om detta skriver ut `v22.x.x` eller högre, är du bra. Om noden inte är instal
     ```bash
     brew install node
     ```
-    
+
     Eller ladda ner macOS-installationsprogrammet från [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ Om detta skriver ut `v22.x.x` eller högre, är du bra. Om noden inte är instal
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     Eller använd en versionshanterare (se nedan).
     ````
 
@@ -60,13 +60,13 @@ Om detta skriver ut `v22.x.x` eller högre, är du bra. Om noden inte är instal
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     Eller ladda ner Windows-installationsprogrammet från [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ Detta betyder nästan alltid att npm:s globala bin-katalog inte finns på din PA
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             Öppna sedan en ny terminal (eller kör `rehash` i zsh / `hash -r` i bash).
           </Tab>
           <Tab title="Windows">

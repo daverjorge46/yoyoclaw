@@ -47,7 +47,6 @@ Mga detalye: [Plugins](/tools/plugin)
    - O i-host mo ito mismo.
 
 3. Kumuha ng access token para sa bot account:
-
    - Gamitin ang Matrix login API gamit ang `curl` sa iyong homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Kapag na-verify na, kayang i-decrypt ng bot ang mga mensahe sa mga encrypted roo
 
 ## Mga kakayahan
 
-| Feature         | Katayuan                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Direct messages | ✅ Supported                                                                                                                  |
-| Rooms           | ✅ Supported                                                                                                                  |
-| Threads         | ✅ Supported                                                                                                                  |
-| Media           | ✅ Supported                                                                                                                  |
+| Feature         | Katayuan                                                                                                   |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
+| Direct messages | ✅ Supported                                                                                               |
+| Rooms           | ✅ Supported                                                                                               |
+| Threads         | ✅ Supported                                                                                               |
+| Media           | ✅ Supported                                                                                               |
 | E2EE            | ✅ Supported (kinakailangan ang crypto module)                                                             |
 | Reactions       | ✅ Supported (send/read sa pamamagitan ng tools)                                                           |
 | Polls           | ✅ Suportado ang send; ang mga inbound poll start ay kino-convert sa text (binale-wala ang responses/ends) |
 | Location        | ✅ Supported (geo URI; binale-wala ang altitude)                                                           |
-| Native commands | ✅ Supported                                                                                                                  |
+| Native commands | ✅ Supported                                                                                               |
 
 ## Pag-troubleshoot
 

@@ -16,13 +16,13 @@ Nếu bạn muốn tùy chọn $0/tháng và không ngại ARM + thiết lập p
 
 ## So sánh chi phí (2026)
 
-| Nhà cung cấp | Gói             | Cấu hình                | Giá/tháng                                                      | Ghi chú                                   |
-| ------------ | --------------- | ----------------------- | -------------------------------------------------------------- | ----------------------------------------- |
-| Oracle Cloud | Always Free ARM | tối đa 4 OCPU, 24GB RAM | $0                                                             | ARM, dung lượng hạn chế / đăng ký rắc rối |
+| Nhà cung cấp | Gói             | Cấu hình                | Giá/tháng   | Ghi chú                                   |
+| ------------ | --------------- | ----------------------- | ----------- | ----------------------------------------- |
+| Oracle Cloud | Always Free ARM | tối đa 4 OCPU, 24GB RAM | $0          | ARM, dung lượng hạn chế / đăng ký rắc rối |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM         | €3.79 (~$4) | Tùy chọn trả phí rẻ nhất                  |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6                                                             | UI dễ dùng, tài liệu tốt                  |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6                                                             | Nhiều vị trí                              |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5                                                             | Hiện thuộc Akamai                         |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM         | $6          | UI dễ dùng, tài liệu tốt                  |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM         | $6          | Nhiều vị trí                              |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM         | $5          | Hiện thuộc Akamai                         |
 
 **Chọn nhà cung cấp:**
 

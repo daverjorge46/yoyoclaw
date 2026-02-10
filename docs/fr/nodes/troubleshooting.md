@@ -50,12 +50,12 @@ Si vous voyez `NODE_BACKGROUND_UNAVAILABLE`, ramenez l’app du nœud au premier
 
 ## Matrice des autorisations
 
-| Capacité                     | iOS                                                                  | Android                                                           | App de nœud macOS                                          | Code d’échec typique           |
-| ---------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Caméra (+ micro pour l’audio des clips)           | Caméra (+ micro pour l’audio des clips)        | Caméra (+ micro pour l’audio des clips) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Enregistrement de l’écran (+ micro facultatif)    | Invite de capture d’écran (+ micro facultatif) | Enregistrement de l’écran                                  | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Lors de l’utilisation ou Toujours (selon le mode) | Localisation au premier plan/en arrière-plan selon le mode        | Autorisation de localisation                               | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (chemin de l’hôte du nœud)                    | n/a (chemin de l’hôte du nœud)                 | Approbations exec requises                                 | `SYSTEM_RUN_DENIED`            |
+| Capacité                     | iOS                                               | Android                                                    | App de nœud macOS                       | Code d’échec typique           |
+| ---------------------------- | ------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | ------------------------------ |
+| `camera.snap`, `camera.clip` | Caméra (+ micro pour l’audio des clips)           | Caméra (+ micro pour l’audio des clips)                    | Caméra (+ micro pour l’audio des clips) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Enregistrement de l’écran (+ micro facultatif)    | Invite de capture d’écran (+ micro facultatif)             | Enregistrement de l’écran               | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Lors de l’utilisation ou Toujours (selon le mode) | Localisation au premier plan/en arrière-plan selon le mode | Autorisation de localisation            | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (chemin de l’hôte du nœud)                    | n/a (chemin de l’hôte du nœud)                             | Approbations exec requises              | `SYSTEM_RUN_DENIED`            |
 
 ## Appairage versus approbations
 

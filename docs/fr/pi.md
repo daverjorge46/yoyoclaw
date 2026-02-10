@@ -28,12 +28,12 @@ OpenClaw utilise le SDK pi pour intégrer un agent de codage IA dans son archite
 }
 ```
 
-| Package           | Objectif                                                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Package           | Objectif                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | `pi-ai`           | Abstractions LLM de base : `Model`, `streamSimple`, types de messages, API fournisseurs                      |
-| `pi-agent-core`   | Boucle d’agent, exécution d’outils, types `AgentMessage`                                                                     |
+| `pi-agent-core`   | Boucle d’agent, exécution d’outils, types `AgentMessage`                                                     |
 | `pi-coding-agent` | SDK de haut niveau : `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, outils intégrés |
-| `pi-tui`          | Composants d’interface terminal (utilisés dans le mode TUI local d’OpenClaw)                              |
+| `pi-tui`          | Composants d’interface terminal (utilisés dans le mode TUI local d’OpenClaw)                                 |
 
 ## Structure des fichiers
 
@@ -511,15 +511,15 @@ Cela fournit une expérience terminal interactive similaire au mode natif de pi.
 
 ## Principales différences avec la CLI Pi
 
-| Aspect                 | CLI Pi                              | OpenClaw intégré                                                                                                  |
-| ---------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Invocation             | Commande `pi` / RPC                 | SDK via `createAgentSession()`                                                                                    |
-| Outils                 | Outils de codage par défaut         | Suite d’outils OpenClaw personnalisée                                                                             |
-| Prompt système         | AGENTS.md + prompts | Dynamique par canal/contexte                                                                                      |
-| Stockage des sessions  | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (ou `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Authentification       | Identifiant unique                  | Multi-profils avec rotation                                                                                       |
-| Extensions             | Chargées depuis le disque           | Programmatiques + chemins disque                                                                                  |
-| Gestion des événements | Rendu TUI                           | Basée sur des callbacks (onBlockReply, etc.)                                   |
+| Aspect                 | CLI Pi                      | OpenClaw intégré                                                                               |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------------------------------------- |
+| Invocation             | Commande `pi` / RPC         | SDK via `createAgentSession()`                                                                 |
+| Outils                 | Outils de codage par défaut | Suite d’outils OpenClaw personnalisée                                                          |
+| Prompt système         | AGENTS.md + prompts         | Dynamique par canal/contexte                                                                   |
+| Stockage des sessions  | `~/.pi/agent/sessions/`     | `~/.openclaw/agents/<agentId>/sessions/` (ou `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Authentification       | Identifiant unique          | Multi-profils avec rotation                                                                    |
+| Extensions             | Chargées depuis le disque   | Programmatiques + chemins disque                                                               |
+| Gestion des événements | Rendu TUI                   | Basée sur des callbacks (onBlockReply, etc.)                                                   |
 
 ## Considérations futures
 

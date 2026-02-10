@@ -117,10 +117,10 @@ gcloud services enable compute.googleapis.com
 
 **ประเภทเครื่อง:**
 
-| Type     | Specs                                     | Cost                    | Notes              |
-| -------- | ----------------------------------------- | ----------------------- | ------------------ |
-| e2-small | 2 vCPU, 2GB RAM                           | ~$12/mo | แนะนำ              |
-| e2-micro | 2 vCPU(shared),1GB RAM | ใช้ฟรีเทียร์ได้         | อาจOOMเมื่อโหลดสูง |
+| Type     | Specs                  | Cost            | Notes              |
+| -------- | ---------------------- | --------------- | ------------------ |
+| e2-small | 2 vCPU, 2GB RAM        | ~$12/mo         | แนะนำ              |
+| e2-micro | 2 vCPU(shared),1GB RAM | ใช้ฟรีเทียร์ได้ | อาจOOMเมื่อโหลดสูง |
 
 **CLI:**
 

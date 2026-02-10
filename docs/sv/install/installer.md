@@ -11,10 +11,10 @@ title: "Installationsprogrammens internals"
 
 OpenClaw levereras med tre installationsskript som tillhandahålls från `openclaw.ai`.
 
-| Skript                             | Plattform                               | Vad det gör                                                                                                                                 |
-| ---------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Installerar Node vid behov, installerar OpenClaw via npm (standard) eller git och kan köra introduktion. |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Installerar Node + OpenClaw i ett lokalt prefix (`~/.openclaw`). Ingen rot krävs.        |
+| Skript                             | Plattform            | Vad det gör                                                                                              |
+| ---------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installerar Node vid behov, installerar OpenClaw via npm (standard) eller git och kan köra introduktion. |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installerar Node + OpenClaw i ett lokalt prefix (`~/.openclaw`). Ingen rot krävs.                        |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | Installerar Node vid behov, installerar OpenClaw via npm (standard) eller git och kan köra introduktion. |
 
 ## Snabba kommandon
@@ -132,39 +132,39 @@ Skriptet avslutas med kod `2` vid ogiltigt metodval eller ogiltiga värden för 
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flagga                            | Beskrivning                                                                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `--install-method npm\\|git`     | Välj installationsmetod (standard: `npm`). Alias: `--metod` |
-| `--npm`                           | Genväg för npm-metoden                                                                                                         |
-| `--git`                           | Genväg för git-metoden. Alias: `--github`                                                      |
-| `--version <version\\|dist-tag>` | npm-version eller dist-tag (standard: `latest`)                                             |
-| `--beta`                          | Använd beta dist-tag om tillgänglig, annars fallback till `latest`                                                             |
-| `--git-dir <path>`                | Kassakatalog (standard: `~/openclaw`). Alias: `--dir`       |
-| `--no-git-update`                 | Hoppa över `git pull` för befintlig checkout                                                                                   |
-| `--no-prompt`                     | Inaktivera frågor                                                                                                              |
-| `--no-onboard`                    | Hoppa över introduktion                                                                                                        |
-| `--onboard`                       | Aktivera introduktion                                                                                                          |
-| `--dry-run`                       | Skriv ut åtgärder utan att tillämpa ändringar                                                                                  |
-| `--verbose`                       | Aktivera debug-utdata (`set -x`, npm-logger på notice-nivå)                                                 |
-| `--help`                          | Visa användning (`-h`)                                                                                      |
+| Flagga                  | Beskrivning                                                        |
+| ----------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                               | Välj installationsmetod (standard: `npm`). Alias: `--metod` |
+| `--npm`                 | Genväg för npm-metoden                                             |
+| `--git`                 | Genväg för git-metoden. Alias: `--github`                          |
+| `--version <version\\   | dist-tag>`                                                         | npm-version eller dist-tag (standard: `latest`)             |
+| `--beta`                | Använd beta dist-tag om tillgänglig, annars fallback till `latest` |
+| `--git-dir <path>`      | Kassakatalog (standard: `~/openclaw`). Alias: `--dir`              |
+| `--no-git-update`       | Hoppa över `git pull` för befintlig checkout                       |
+| `--no-prompt`           | Inaktivera frågor                                                  |
+| `--no-onboard`          | Hoppa över introduktion                                            |
+| `--onboard`             | Aktivera introduktion                                              |
+| `--dry-run`             | Skriv ut åtgärder utan att tillämpa ändringar                      |
+| `--verbose`             | Aktivera debug-utdata (`set -x`, npm-logger på notice-nivå)        |
+| `--help`                | Visa användning (`-h`)                                             |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                                        | Beskrivning                                                                    |
-| ----------------------------------------------- | ------------------------------------------------------------------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | Installationsmetod                                                             |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm-version eller dist-tag                                                     |
-| `OPENCLAW_BETA=0\\|1`                          | Använd beta om tillgänglig                                                     |
-| `OPENCLAW_GIT_DIR=<path>`                       | Checkout-katalog                                                               |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | Växla git-uppdateringar                                                        |
-| `OPENCLAW_NO_PROMPT=1`                          | Inaktivera frågor                                                              |
-| `OPENCLAW_NO_ONBOARD=1`                         | Hoppa över introduktion                                                        |
-| `OPENCLAW_DRY_RUN=1`                            | Torrkörningsläge                                                               |
-| `OPENCLAW_VERBOSE=1`                            | Debug-läge                                                                     |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-loggnivå                                                                   |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Styr sharp/libvips-beteende (standard: `1`) |
+| Variabel                         | Beskrivning             |
+| -------------------------------- | ----------------------- | ------------------------------------------- | -------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`                    | Installationsmetod                          |
+| `OPENCLAW_VERSION=latest\\       | next\\                  | <semver>`                                   | npm-version eller dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                      | Använd beta om tillgänglig                  |
+| `OPENCLAW_GIT_DIR=<path>`        | Checkout-katalog        |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                      | Växla git-uppdateringar                     |
+| `OPENCLAW_NO_PROMPT=1`           | Inaktivera frågor       |
+| `OPENCLAW_NO_ONBOARD=1`          | Hoppa över introduktion |
+| `OPENCLAW_DRY_RUN=1`             | Torrkörningsläge        |
+| `OPENCLAW_VERBOSE=1`             | Debug-läge              |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                  | notice`                                     | npm-loggnivå               |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                      | Styr sharp/libvips-beteende (standard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -219,30 +219,30 @@ Utformad för miljöer där du vill ha allt under ett lokalt prefix (standard `~
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flagga                 | Beskrivning                                                                             |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Installationsprefix (standard: `~/.openclaw`)        |
-| `--version <ver>`      | OpenClaw-version eller dist-tag (standard: `latest`) |
-| `--node-version <ver>` | Node-version (standard: `22.22.0`)                   |
-| `--json`               | Emittera NDJSON-händelser                                                               |
-| `--onboard`            | Kör `openclaw onboard` efter installation                                               |
-| `--no-onboard`         | Hoppa över introduktion (standard)                                   |
-| `--set-npm-prefix`     | På Linux, tvinga npm-prefix till `~/.npm-global` om nuvarande prefix inte är skrivbart  |
-| `--help`               | Visa användning (`-h`)                                               |
+| Flagga                 | Beskrivning                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `--prefix <path>`      | Installationsprefix (standard: `~/.openclaw`)                                          |
+| `--version <ver>`      | OpenClaw-version eller dist-tag (standard: `latest`)                                   |
+| `--node-version <ver>` | Node-version (standard: `22.22.0`)                                                     |
+| `--json`               | Emittera NDJSON-händelser                                                              |
+| `--onboard`            | Kör `openclaw onboard` efter installation                                              |
+| `--no-onboard`         | Hoppa över introduktion (standard)                                                     |
+| `--set-npm-prefix`     | På Linux, tvinga npm-prefix till `~/.npm-global` om nuvarande prefix inte är skrivbart |
+| `--help`               | Visa användning (`-h`)                                                                 |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                                        | Beskrivning                                                                                                |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | Installationsprefix                                                                                        |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw-version eller dist-tag                                                                            |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node-version                                                                                               |
-| `OPENCLAW_NO_ONBOARD=1`                         | Hoppa över introduktion                                                                                    |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-loggnivå                                                                                               |
-| `OPENCLAW_GIT_DIR=<path>`                       | Äldre rensningssökväg (används vid borttagning av gammal `Peekaboo`-submodule-checkout) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Styr sharp/libvips-beteende (standard: `1`)                             |
+| Variabel                         | Beskrivning                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------- | ------------ |
+| `OPENCLAW_PREFIX=<path>`         | Installationsprefix                                                                     |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw-version eller dist-tag                                                         |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node-version                                                                            |
+| `OPENCLAW_NO_ONBOARD=1`          | Hoppa över introduktion                                                                 |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                  | notice`                                     | npm-loggnivå |
+| `OPENCLAW_GIT_DIR=<path>`        | Äldre rensningssökväg (används vid borttagning av gammal `Peekaboo`-submodule-checkout) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                      | Styr sharp/libvips-beteende (standard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ Utformad för miljöer där du vill ha allt under ett lokalt prefix (standard `~
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flagga                      | Beskrivning                                                                               |
-| --------------------------- | ----------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | Installationsmetod (standard: `npm`)                   |
-| `-Tag <tag>`                | npm dist-tag (standard: `latest`)                      |
-| `-GitDir <path>`            | Checkout-katalog (standard: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | Hoppa över introduktion                                                                   |
-| `-NoGitUpdate`              | Hoppa över `git pull`                                                                     |
-| `-DryRun`                   | Skriv endast ut åtgärder                                                                  |
+| Flagga                | Beskrivning                                           |
+| --------------------- | ----------------------------------------------------- | ------------------------------------ |
+| `-InstallMethod npm\\ | git`                                                  | Installationsmetod (standard: `npm`) |
+| `-Tag <tag>`          | npm dist-tag (standard: `latest`)                     |
+| `-GitDir <path>`      | Checkout-katalog (standard: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | Hoppa över introduktion                               |
+| `-NoGitUpdate`        | Hoppa över `git pull`                                 |
+| `-DryRun`             | Skriv endast ut åtgärder                              |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                             | Beskrivning             |
-| ------------------------------------ | ----------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | Installationsmetod      |
-| `OPENCLAW_GIT_DIR=<path>`            | Checkout-katalog        |
-| `OPENCLAW_NO_ONBOARD=1`              | Hoppa över introduktion |
-| `OPENCLAW_GIT_UPDATE=0`              | Inaktivera git pull     |
-| `OPENCLAW_DRY_RUN=1`                 | Torrkörningsläge        |
+| Variabel                       | Beskrivning             |
+| ------------------------------ | ----------------------- | ------------------ |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`                    | Installationsmetod |
+| `OPENCLAW_GIT_DIR=<path>`      | Checkout-katalog        |
+| `OPENCLAW_NO_ONBOARD=1`        | Hoppa över introduktion |
+| `OPENCLAW_GIT_UPDATE=0`        | Inaktivera git pull     |
+| `OPENCLAW_DRY_RUN=1`           | Torrkörningsläge        |
 
   </Accordion>
 </AccordionGroup>

@@ -395,27 +395,27 @@ Allowlist-Hinweise (PK aktiviert):
 
 ### Standardwerte für Tool-Aktionen
 
-| Aktionsgruppe  | Standard    | Hinweise                                               |
-| -------------- | ----------- | ------------------------------------------------------ |
-| reactions      | aktiviert   | Reagieren + Reaktionen auflisten + emojiList           |
-| stickers       | aktiviert   | Sticker senden                                         |
-| emojiUploads   | aktiviert   | Emojis hochladen                                       |
-| stickerUploads | aktiviert   | Sticker hochladen                                      |
-| polls          | aktiviert   | Umfragen erstellen                                     |
-| permissions    | aktiviert   | Kanal-Berechtigungssnapshot                            |
-| messages       | aktiviert   | Lesen/senden/bearbeiten/löschen                        |
-| threads        | aktiviert   | Erstellen/auflisten/antworten                          |
-| pins           | aktiviert   | Anpinnen/abpinnen/auflisten                            |
-| search         | aktiviert   | Nachrichtensuche (Vorschaufunktion) |
-| memberInfo     | aktiviert   | Mitgliederinformationen                                |
-| roleInfo       | aktiviert   | Rollenliste                                            |
-| channelInfo    | aktiviert   | Kanalinfo + Liste                                      |
-| channels       | aktiviert   | Kanal-/Kategorieverwaltung                             |
-| voiceStatus    | aktiviert   | Voice-Statusabfrage                                    |
-| events         | aktiviert   | Geplante Events auflisten/erstellen                    |
-| roles          | deaktiviert | Rollen hinzufügen/entfernen                            |
-| moderation     | deaktiviert | Timeout/Kick/Ban                                       |
-| presence       | deaktiviert | Bot-Status/Aktivität (setPresence)  |
+| Aktionsgruppe  | Standard    | Hinweise                                     |
+| -------------- | ----------- | -------------------------------------------- |
+| reactions      | aktiviert   | Reagieren + Reaktionen auflisten + emojiList |
+| stickers       | aktiviert   | Sticker senden                               |
+| emojiUploads   | aktiviert   | Emojis hochladen                             |
+| stickerUploads | aktiviert   | Sticker hochladen                            |
+| polls          | aktiviert   | Umfragen erstellen                           |
+| permissions    | aktiviert   | Kanal-Berechtigungssnapshot                  |
+| messages       | aktiviert   | Lesen/senden/bearbeiten/löschen              |
+| threads        | aktiviert   | Erstellen/auflisten/antworten                |
+| pins           | aktiviert   | Anpinnen/abpinnen/auflisten                  |
+| search         | aktiviert   | Nachrichtensuche (Vorschaufunktion)          |
+| memberInfo     | aktiviert   | Mitgliederinformationen                      |
+| roleInfo       | aktiviert   | Rollenliste                                  |
+| channelInfo    | aktiviert   | Kanalinfo + Liste                            |
+| channels       | aktiviert   | Kanal-/Kategorieverwaltung                   |
+| voiceStatus    | aktiviert   | Voice-Statusabfrage                          |
+| events         | aktiviert   | Geplante Events auflisten/erstellen          |
+| roles          | deaktiviert | Rollen hinzufügen/entfernen                  |
+| moderation     | deaktiviert | Timeout/Kick/Ban                             |
+| presence       | deaktiviert | Bot-Status/Aktivität (setPresence)           |
 
 - `replyToMode`: `off` (Standard), `first` oder `all`. Gilt nur, wenn das Modell ein Antwort-Tag enthält.
 

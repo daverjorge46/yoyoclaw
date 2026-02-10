@@ -23,10 +23,10 @@ Venice AI provides privacy-focused AI inference with support for uncensored mode
 
 Nag-aalok ang Venice ng dalawang antas ng privacy — mahalagang maunawaan ito para makapili ng tamang modelo:
 
-| Mode           | Paglalarawan                                                                                                                                                            | Mga Modelo                                                      |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Private**    | Fully private. Prompts/responses are **never stored or logged**. Ephemeral.                                             | Llama, Qwen, DeepSeek, Venice Uncensored, atbp. |
-| **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic) sees anonymized requests. | Claude, GPT, Gemini, Grok, Kimi, MiniMax                        |
+| Mode           | Paglalarawan                                                                                                         | Mga Modelo                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Private**    | Fully private. Prompts/responses are **never stored or logged**. Ephemeral.                                          | Llama, Qwen, DeepSeek, Venice Uncensored, atbp. |
+| **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic) sees anonymized requests. | Claude, GPT, Gemini, Grok, Kimi, MiniMax        |
 
 ## Mga Tampok
 
@@ -127,38 +127,38 @@ openclaw models list | grep venice
 
 ### Mga Private Model (15) — Ganap na Pribado, Walang Logging
 
-| Model ID                         | Pangalan                                   | Context (tokens) | Mga Tampok              |
-| -------------------------------- | ------------------------------------------ | ----------------------------------- | ----------------------- |
-| `llama-3.3-70b`                  | Llama 3.3 70B              | 131k                                | General                 |
-| `llama-3.2-3b`                   | Llama 3.2 3B               | 131k                                | Mabilis, magaang        |
-| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B    | 131k                                | Complex na gawain       |
-| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking                        | 131k                                | Reasoning               |
-| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct                        | 131k                                | General                 |
-| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B                           | 262k                                | Code                    |
-| `qwen3-next-80b`                 | Qwen3 Next 80B                             | 262k                                | General                 |
-| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B                              | 262k                                | Vision                  |
-| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k                                 | Mabilis, reasoning      |
-| `deepseek-v3.2`                  | DeepSeek V3.2              | 163k                                | Reasoning               |
-| `venice-uncensored`              | Venice Uncensored                          | 32k                                 | Uncensored              |
-| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k                                | Vision                  |
-| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct                       | 202k                                | Vision                  |
-| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B                        | 131k                                | General                 |
-| `zai-org-glm-4.7`                | GLM 4.7                    | 202k                                | Reasoning, multilingual |
+| Model ID                         | Pangalan                | Context (tokens) | Mga Tampok              |
+| -------------------------------- | ----------------------- | ---------------- | ----------------------- |
+| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k             | General                 |
+| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k             | Mabilis, magaang        |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k             | Complex na gawain       |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking     | 131k             | Reasoning               |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct     | 131k             | General                 |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B        | 262k             | Code                    |
+| `qwen3-next-80b`                 | Qwen3 Next 80B          | 262k             | General                 |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B           | 262k             | Vision                  |
+| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k              | Mabilis, reasoning      |
+| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k             | Reasoning               |
+| `venice-uncensored`              | Venice Uncensored       | 32k              | Uncensored              |
+| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k             | Vision                  |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct    | 202k             | Vision                  |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k             | General                 |
+| `zai-org-glm-4.7`                | GLM 4.7                 | 202k             | Reasoning, multilingual |
 
 ### Mga Anonymized Model (10) — Sa pamamagitan ng Venice Proxy
 
-| Model ID                 | Orihinal                          | Context (tokens) | Mga Tampok        |
-| ------------------------ | --------------------------------- | ----------------------------------- | ----------------- |
-| `claude-opus-45`         | Claude Opus 4.5   | 202k                                | Reasoning, vision |
-| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k                                | Reasoning, vision |
-| `openai-gpt-52`          | GPT-5.2           | 262k                                | Reasoning         |
-| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k                                | Reasoning, vision |
-| `gemini-3-pro-preview`   | Gemini 3 Pro                      | 202k                                | Reasoning, vision |
-| `gemini-3-flash-preview` | Gemini 3 Flash                    | 262k                                | Reasoning, vision |
-| `grok-41-fast`           | Grok 4.1 Fast     | 262k                                | Reasoning, vision |
-| `grok-code-fast-1`       | Grok Code Fast 1                  | 262k                                | Reasoning, code   |
-| `kimi-k2-thinking`       | Kimi K2 Thinking                  | 262k                                | Reasoning         |
-| `minimax-m21`            | MiniMax M2.1      | 202k                                | Reasoning         |
+| Model ID                 | Orihinal          | Context (tokens) | Mga Tampok        |
+| ------------------------ | ----------------- | ---------------- | ----------------- |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k             | Reasoning, vision |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k             | Reasoning, vision |
+| `openai-gpt-52`          | GPT-5.2           | 262k             | Reasoning         |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k             | Reasoning, vision |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k             | Reasoning, vision |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k             | Reasoning, vision |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k             | Reasoning, vision |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k             | Reasoning, code   |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k             | Reasoning         |
+| `minimax-m21`            | MiniMax M2.1      | 202k             | Reasoning         |
 
 ## Model Discovery
 
@@ -168,12 +168,12 @@ Ang endpoint na `/models` ay public (walang auth na kailangan para sa listing), 
 
 ## Streaming at Tool Support
 
-| Tampok               | Suporta                                                                                     |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| **Streaming**        | ✅ Lahat ng modelo                                                                           |
+| Tampok               | Suporta                                                                   |
+| -------------------- | ------------------------------------------------------------------------- |
+| **Streaming**        | ✅ Lahat ng modelo                                                        |
 | **Function calling** | ✅ Karamihan ng mga modelo (tingnan ang `supportsFunctionCalling` sa API) |
-| **Vision/Images**    | ✅ Mga modelong may markang "Vision" na tampok                                               |
-| **JSON mode**        | ✅ Supported sa pamamagitan ng `response_format`                                             |
+| **Vision/Images**    | ✅ Mga modelong may markang "Vision" na tampok                            |
+| **JSON mode**        | ✅ Supported sa pamamagitan ng `response_format`                          |
 
 ## Presyo
 
@@ -184,12 +184,12 @@ Ang endpoint na `/models` ay public (walang auth na kailangan para sa listing), 
 
 ## Paghahambing: Venice vs Direktang API
 
-| Aspeto       | Venice (Anonymized) | Direktang API              |
-| ------------ | -------------------------------------- | -------------------------- |
-| **Privacy**  | Tinanggal ang metadata, anonymized     | Nakakabit sa iyong account |
-| **Latency**  | +10-50ms (proxy)    | Direkta                    |
-| **Features** | Karamihan ng tampok ay supported       | Buong features             |
-| **Billing**  | Venice credits                         | Billing ng provider        |
+| Aspeto       | Venice (Anonymized)                | Direktang API              |
+| ------------ | ---------------------------------- | -------------------------- |
+| **Privacy**  | Tinanggal ang metadata, anonymized | Nakakabit sa iyong account |
+| **Latency**  | +10-50ms (proxy)                   | Direkta                    |
+| **Features** | Karamihan ng tampok ay supported   | Buong features             |
+| **Billing**  | Venice credits                     | Billing ng provider        |
 
 ## Mga Halimbawa ng Paggamit
 

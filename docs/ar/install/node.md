@@ -29,7 +29,7 @@ node -v
     ```bash
     brew install node
     ```
-    
+
     أو قم بتنزيل مُثبّت macOS من [nodejs.org](https://nodejs.org/).
     ````
 
@@ -42,13 +42,13 @@ node -v
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     أو استخدم مدير إصدارات (انظر أدناه).
     ````
 
@@ -60,13 +60,13 @@ node -v
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     أو قم بتنزيل مُثبّت Windows من [nodejs.org](https://nodejs.org/).
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             ثم افتح طرفية جديدة (أو شغّل `rehash` في zsh / `hash -r` في bash).
           </Tab>
           <Tab title="Windows">

@@ -127,16 +127,16 @@ Prise en charge multi-comptes : utilisez `channels.zalo.accounts` avec des jeto
 
 ## Capacites
 
-| Fonctionnalite                     | Statut                                                |
-| ---------------------------------- | ----------------------------------------------------- |
-| Messages directs                   | ✅ Pris en charge                                      |
-| Groupes                            | ❌ Bientot disponible (docs Zalo)   |
-| Medias (images) | ✅ Pris en charge                                      |
-| Reactions                          | ❌ Non pris en charge                                  |
-| Fil de discussion                  | ❌ Non pris en charge                                  |
-| Sondages                           | ❌ Non pris en charge                                  |
-| Commandes natives                  | ❌ Non pris en charge                                  |
-| Streaming                          | ⚠️ Bloque (limite 2000 caracteres) |
+| Fonctionnalite    | Statut                             |
+| ----------------- | ---------------------------------- |
+| Messages directs  | ✅ Pris en charge                  |
+| Groupes           | ❌ Bientot disponible (docs Zalo)  |
+| Medias (images)   | ✅ Pris en charge                  |
+| Reactions         | ❌ Non pris en charge              |
+| Fil de discussion | ❌ Non pris en charge              |
+| Sondages          | ❌ Non pris en charge              |
+| Commandes natives | ❌ Non pris en charge              |
+| Streaming         | ⚠️ Bloque (limite 2000 caracteres) |
 
 ## Cibles de livraison (CLI/cron)
 

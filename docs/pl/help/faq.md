@@ -933,7 +933,7 @@ SaaS.
 
 Wyróżnienia:
 
-- **Twoje urządzenia, Twoje dane:** uruchom bramę gdziekolwiek chcesz, (Mac, Linux, VPS) i utrzymuj obszar roboczy* historię sesji lokalnie.
+- **Twoje urządzenia, Twoje dane:** uruchom bramę gdziekolwiek chcesz, (Mac, Linux, VPS) i utrzymuj obszar roboczy\* historię sesji lokalnie.
 - **Kanały rzeczywiste, a nie piaskownica internetowa:** WhatsApp/Telegram/Slack/Discord/Signal/iMessage/etc,
   plus głos mobilny i płótno na obsługiwanych platformach.
 - **Model-agnostic:** używaj Antropii, OpenAI, MiniMax, OpenRouter, itp., z podziałem na agentów trasowania
@@ -1226,7 +1226,7 @@ preferuje `local`.
 Jeśli chcesz pozostać lokalnym, ustaw `memorySearch.provider = "local"` (i opcjonalnie
 `memorySearch.fallback = "none"`). Jeśli chcesz, aby Gemini embeddings, ustaw
 `memorySearch.provider = "gemini"` i wprowadź `GEMINI_API_KEY` (lub
-`memorySearch.remote.apiKey`). Wspieramy **OpenAI, Gemini, lub local** osadzanie modeli* zobacz [Memory](/concepts/memory), aby uzyskać szczegóły konfiguracji.
+`memorySearch.remote.apiKey`). Wspieramy **OpenAI, Gemini, lub local** osadzanie modeli\* zobacz [Memory](/concepts/memory), aby uzyskać szczegóły konfiguracji.
 
 ### Pamięć utrzymuje się na zawsze co to są limity
 
@@ -1257,13 +1257,13 @@ Powiązano: [Agent workspace](/concepts/agent-workspace), [Memory](/concepts/mem
 
 Wszystko żyje pod `$OPENCLAW_STATE_DIR` (domyślnie: `~/.openclaw`):
 
-| Ścieżka                                                         | Przeznaczenie                                                                                           |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Ścieżka                                                         | Przeznaczenie                                                                        |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Główna konfiguracja (JSON5)                                                          |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Dotychczasowy import OAuth (skopiowany do profili autoryzacji przy pierwszym użyciu) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Profile autoryzacji (OAuth + klucze API)                                             |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Pamięć podręczna autoryzacji (zarządzana automatycznie)                              |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Stan dostawcy (np. `whatsapp/<accountId>/creds.json`)                |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Stan dostawcy (np. `whatsapp/<accountId>/creds.json`)                                |
 | `$OPENCLAW_STATE_DIR/agents/`                                   | Stan agenta (agentDir + sesje)                                                       |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Historia konwersacji i stan (na agenta)                                              |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Metadane sesji (na agenta)                                                           |
@@ -1744,7 +1744,7 @@ Wyślij `/new` lub `/reset` jako samodzielną wiadomość. Zobacz [Zarządzanie 
 ### Zresetuj sesje automatycznie, jeśli nigdy nie wysyłam nowych
 
 Tak. Sesje wygasają po `session.idleMinutes` (domyślnie **60**). **Następna** wiadomość
-rozpoczyna nowe ID sesji dla tego klucza czatu. To nie usuwa transkryptów* po prostu rozpoczyna nową sesję.
+rozpoczyna nowe ID sesji dla tego klucza czatu. To nie usuwa transkryptów\* po prostu rozpoczyna nową sesję.
 
 ```json5
 {

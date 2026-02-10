@@ -1222,7 +1222,7 @@ prepara `local`.
 Si prefieres permanecer local, establece `memorySearch.provider = "local"` (y opcionalmente
 `memorySearch.fallback = "ninguno"`). Si quieres insertar Gemini, establece
 `memorySearch.provider = "gemini"` y proporciona `GEMINI_API_KEY` (o
-`memorySearch.remote.apiKey`). Soportamos **OpenAI, Gemini o local** incrustando modelos* vea [Memory](/concepts/memory) para los detalles de configuración.
+`memorySearch.remote.apiKey`). Soportamos **OpenAI, Gemini o local** incrustando modelos\* vea [Memory](/concepts/memory) para los detalles de configuración.
 
 ### ¿La memoria persiste para siempre cuáles son los límites
 
@@ -1252,8 +1252,8 @@ Relacionado: [Espacio de trabajo del agent](/concepts/agent-workspace), [Memory]
 
 Todo vive bajo `$OPENCLAW_STATE_DIR` (por defecto: `~/.openclaw`):
 
-| Ruta                                                            | Propósito                                                                                             |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Ruta                                                            | Propósito                                                                          |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Configuración principal (JSON5)                                                    |
 | `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Importación de OAuth heredada (copiada en perfiles de autenticación en primer uso) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Perfiles de autenticación (OAuth + claves API)                                     |
@@ -1734,7 +1734,7 @@ Envía `/new` o `/reset` como un mensaje independiente. Ver [Gestión de la sesi
 ### Reiniciar sesiones automáticamente si nunca envío nuevas
 
 Sí. Las sesiones expiran después de `session.idleMinutes` (por defecto **60**). El mensaje **siguiente**
-inicia un nuevo id de sesión para esa clave de chat. Esto no elimina transcripciones* solo inicia una nueva sesión.
+inicia un nuevo id de sesión para esa clave de chat. Esto no elimina transcripciones\* solo inicia una nueva sesión.
 
 ```json5
 {

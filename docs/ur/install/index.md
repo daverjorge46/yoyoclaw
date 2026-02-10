@@ -44,11 +44,11 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Tab>
     </Tabs>
-    
+
     بس اتنا ہی — اسکرپٹ Node کی شناخت، انسٹالیشن، اور آن بورڈنگ سب سنبھالتا ہے۔
-    
+
     آن بورڈنگ چھوڑ کر صرف بائنری انسٹال کرنے کے لیے:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Tab>
     </Tabs>
-    
+
     تمام فلیگز، env vars، اور CI/automation اختیارات کے لیے [Installer internals](/install/installer) دیکھیں۔
     ```
 
@@ -77,14 +77,14 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp بلڈ کی غلطیاں؟">
           اگر آپ کے سسٹم پر libvips عالمی طور پر انسٹال ہے (macOS پر Homebrew کے ذریعے یہ عام ہے) اور `sharp` ناکام ہو جاتا ہے، تو پہلے سے تیار شدہ بائنریز کو مجبور کریں:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           اگر آپ کو `sharp: Please add node-gyp to your dependencies` نظر آئے، تو یا تو بلڈ ٹولنگ انسٹال کریں (macOS: Xcode CLT + `npm install -g node-gyp`) یا اوپر دیا گیا env var استعمال کریں۔
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm اُن پیکیجز کے لیے جن میں build scripts ہوں، واضح منظوری کا تقاضا کرتا ہے۔ پہلی انسٹال کے بعد جب "Ignored build scripts" کی وارننگ دکھائی دے، تو `pnpm approve-builds -g` چلائیں اور فہرست میں موجود پیکیجز منتخب کریں۔
         </Note>
@@ -111,7 +111,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
     <Steps>
       <Step title="کلون اور بلڈ کریں">
         [OpenClaw repo](https://github.com/openclaw/openclaw) کو کلون کریں اور بلڈ کریں:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
       </Step>
       <Step title="CLI کو لنک کریں">
         `openclaw` کمانڈ کو عالمی طور پر دستیاب بنائیں:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         متبادل طور پر، لنک چھوڑ دیں اور ریپو کے اندر سے `pnpm openclaw ...` کے ذریعے کمانڈز چلائیں۔
       </Step>
       <Step title="آن بورڈنگ چلائیں">
@@ -135,7 +135,7 @@ The **installer script** is the recommended way to install OpenClaw. It handles 
         ```
       </Step>
     </Steps>
-    
+
     مزید گہرے ڈیولپمنٹ ورک فلو کے لیے [Setup](/start/setup) دیکھیں۔
     ```
 

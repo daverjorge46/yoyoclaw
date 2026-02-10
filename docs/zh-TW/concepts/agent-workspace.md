@@ -16,8 +16,7 @@ sessions.
 
 **Important:** the workspace is the **default cwd**, not a hard sandbox. 1. 工具
 會相對於工作區解析相對路徑，但除非啟用沙箱，否則絕對路徑仍可存取主機上的其他位置。 2. 若需要隔離，請使用
-[`agents.defaults.sandbox`](/gateway/sandboxing)（以及/或每個代理的沙箱設定）。
-3. 啟用沙箱且 `workspaceAccess` 不是 `"rw"` 時，工具會在 `~/.openclaw/sandboxes` 下的沙箱工作區中運作，而不是你的主機工作區。
+[`agents.defaults.sandbox`](/gateway/sandboxing)（以及/或每個代理的沙箱設定）。3. 啟用沙箱且 `workspaceAccess` 不是 `"rw"` 時，工具會在 `~/.openclaw/sandboxes` 下的沙箱工作區中運作，而不是你的主機工作區。
 
 ## 預設位置
 
@@ -46,7 +45,7 @@ sessions.
 
 5. 較舊的安裝可能建立了 `~/openclaw`。 6. 同時保留多個工作區目錄可能造成驗證或狀態漂移的混淆，因為一次只會有一個工作區處於啟用狀態。
 
-7. **建議：** 保持單一啟用中的工作區。 8. 若不再使用多餘的資料夾，請將其封存或移到垃圾桶（例如 `trash ~/openclaw`）。
+6. **建議：** 保持單一啟用中的工作區。 8. 若不再使用多餘的資料夾，請將其封存或移到垃圾桶（例如 `trash ~/openclaw`）。
    **建議：** 保留單一作用中的工作區。若不再使用額外資料夾，請將其封存或移至垃圾桶（例如 `trash ~/openclaw`）。若你刻意保留多個工作區，請確保 `agents.defaults.workspace` 指向目前作用中的那一個。
 
 `openclaw doctor` 會在偵測到額外工作區目錄時發出警告。
@@ -124,7 +123,7 @@ sessions.
 
 28. 將工作區視為私人記憶。 29. 將其放在**私人** git 儲存庫中，以便備份與復原。
 
-30. 請在執行 Gateway 的機器上執行以下步驟（工作區位於該處）。
+29. 請在執行 Gateway 的機器上執行以下步驟（工作區位於該處）。
 
 ### 1）初始化儲存庫
 

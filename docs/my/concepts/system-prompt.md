@@ -37,7 +37,7 @@ system prompt ထဲရှိ လုံခြုံရေး guardrails မျ�
 OpenClaw သည် sub-agent များအတွက် ပိုမိုသေးငယ်သော system prompt များကို ပြန်လည်တင်ဆက်နိုင်သည်။ runtime သည် run တစ်ခုစီအတွက် `promptMode` ကို သတ်မှတ်သည် (အသုံးပြုသူ မျက်နှာပြင်ဆိုင်ရာ config မဟုတ်ပါ):
 
 - `full` (default): အထက်ဖော်ပြပါ အပိုင်းများအားလုံး ပါဝင်သည်။
-- `minimal`: sub-agent များအတွက် အသုံးပြုသည်; **Skills**, **Memory Recall**, **OpenClaw  Self-Update**, **Model Aliases**, **User Identity**, **Reply Tags**,
+- `minimal`: sub-agent များအတွက် အသုံးပြုသည်; **Skills**, **Memory Recall**, **OpenClaw Self-Update**, **Model Aliases**, **User Identity**, **Reply Tags**,
   **Messaging**, **Silent Replies**, နှင့် **Heartbeats** များကို ဖယ်ရှားထားသည်။ ကိရိယာများ၊ **လုံခြုံရေး**၊
   အလုပ်နေရာ (Workspace)၊ Sandbox၊ လက်ရှိ ရက်စွဲနှင့် အချိန် (သိရှိပါက)၊ Runtime နှင့် ထည့်သွင်းထားသော
   context များကို ဆက်လက် အသုံးပြုနိုင်ပါသည်။

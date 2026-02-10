@@ -233,7 +233,7 @@ The wizard uses it to set your **allowlist/owner** so your own DMs are permitted
 - `/activation mention|always` 僅限擁有者，且必須作為單獨訊息送出。
 - 擁有者 = `channels.whatsapp.allowFrom`（或未設定時為自身 E.164）。
 - **歷史注入**（僅待處理）：
-  - 最近的_未處理_訊息（預設 50）插入於：
+  - 最近的*未處理*訊息（預設 50）插入於：
     `[Chat messages since your last reply - for context]`（已在工作階段中的訊息不會重新注入）
   - 目前訊息位於：
     `[Current message - respond to this]`

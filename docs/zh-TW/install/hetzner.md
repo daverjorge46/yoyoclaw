@@ -213,8 +213,7 @@ openssl rand -hex 32
 - 用於 Google Places 的 `goplaces`
 - 用於 WhatsApp 的 `wacli`
 
-以下僅為範例，並非完整清單。
-22. 你可以使用相同的模式安裝任意數量的二進位檔案。
+以下僅為範例，並非完整清單。22. 你可以使用相同的模式安裝任意數量的二進位檔案。
 
 若你之後新增依賴其他二進位檔的 Skills，必須：
 
@@ -317,18 +316,17 @@ ssh -N -L 18789:127.0.0.1:18789 root@YOUR_VPS_IP
 ## 26. 什麼資料持久化於何處（真實來源）
 
 OpenClaw 在 Docker 中執行，但 Docker 不是事實來源。
-所有長期存在的狀態，都必須能在重新啟動、重建與重新開機後存活。
-27. 所有長期存在的狀態都必須能在重新啟動、重建與重新開機後存活。
+所有長期存在的狀態，都必須能在重新啟動、重建與重新開機後存活。27. 所有長期存在的狀態都必須能在重新啟動、重建與重新開機後存活。
 
-| 元件            | 位置                                | 持久化機制          | 注意事項                      |
-| ------------- | --------------------------------- | -------------- | ------------------------- |
-| Gateway 設定    | `/home/node/.openclaw/`           | 主機磁碟區掛載        | 包含 `openclaw.json`、權杖     |
-| 模型身分驗證設定      | `/home/node/.openclaw/`           | 主機磁碟區掛載        | OAuth 權杖、API 金鑰           |
-| Skill 設定      | `/home/node/.openclaw/skills/`    | 主機磁碟區掛載        | Skill 層級狀態                |
-| 代理程式工作區       | `/home/node/.openclaw/workspace/` | 主機磁碟區掛載        | 程式碼與代理程式成品                |
-| WhatsApp 工作階段 | `/home/node/.openclaw/`           | 主機磁碟區掛載        | 保留 QR 登入狀態                |
-| Gmail 金鑰圈     | `/home/node/.openclaw/`           | 主機 Volume + 密碼 | 需要 `GOG_KEYRING_PASSWORD` |
-| 外部二進位檔        | `/usr/local/bin/`                 | Docker 映像檔     | 必須在建置時烘焙                  |
-| Node 執行環境     | 容器檔案系統                            | Docker 映像檔     | 每次映像檔建置都會重建               |
-| OS 套件         | 容器檔案系統                            | Docker 映像檔     | 請勿在執行期安裝                  |
-| Docker 容器     | 短暫                                | 可重新啟動          | 可安全銷毀                     |
+| 元件              | 位置                              | 持久化機制         | 注意事項                    |
+| ----------------- | --------------------------------- | ------------------ | --------------------------- |
+| Gateway 設定      | `/home/node/.openclaw/`           | 主機磁碟區掛載     | 包含 `openclaw.json`、權杖  |
+| 模型身分驗證設定  | `/home/node/.openclaw/`           | 主機磁碟區掛載     | OAuth 權杖、API 金鑰        |
+| Skill 設定        | `/home/node/.openclaw/skills/`    | 主機磁碟區掛載     | Skill 層級狀態              |
+| 代理程式工作區    | `/home/node/.openclaw/workspace/` | 主機磁碟區掛載     | 程式碼與代理程式成品        |
+| WhatsApp 工作階段 | `/home/node/.openclaw/`           | 主機磁碟區掛載     | 保留 QR 登入狀態            |
+| Gmail 金鑰圈      | `/home/node/.openclaw/`           | 主機 Volume + 密碼 | 需要 `GOG_KEYRING_PASSWORD` |
+| 外部二進位檔      | `/usr/local/bin/`                 | Docker 映像檔      | 必須在建置時烘焙            |
+| Node 執行環境     | 容器檔案系統                      | Docker 映像檔      | 每次映像檔建置都會重建      |
+| OS 套件           | 容器檔案系統                      | Docker 映像檔      | 請勿在執行期安裝            |
+| Docker 容器       | 短暫                              | 可重新啟動         | 可安全銷毀                  |

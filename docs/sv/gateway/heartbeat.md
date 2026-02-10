@@ -290,12 +290,12 @@ channels:
 
 ### Vanliga mönster
 
-| Mål                                                              | Konfig                                                                                   |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Standardbeteende (tysta OK, larm på)          | _(ingen konfig behövs)_                                               |
+| Mål                                           | Konfig                                                                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Standardbeteende (tysta OK, larm på)          | _(ingen konfig behövs)_                                                                  |
 | Helt tyst (inga meddelanden, ingen indikator) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Endast indikator (inga meddelanden)           | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OK i endast en kanal                                             | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OK i endast en kanal                          | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (valfritt)
 

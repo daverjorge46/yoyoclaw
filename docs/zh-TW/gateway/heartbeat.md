@@ -45,8 +45,7 @@ Heartbeat 會在主工作階段中執行 **週期性的代理程式回合**，�
 - 提示詞主體（可透過 `agents.defaults.heartbeat.prompt` 設定）：
   `Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`
 - 9. 心跳提示會**逐字**作為使用者訊息送出。 10. 系統提示包含「Heartbeat」章節，且此次執行會在內部被標記。
-- Active hours (`heartbeat.activeHours`) are checked in the configured timezone.
-  12. 在視窗之外，心跳會被略過，直到下一次進入視窗內的 tick。
+- Active hours (`heartbeat.activeHours`) are checked in the configured timezone. 12. 在視窗之外，心跳會被略過，直到下一次進入視窗內的 tick。
 
 ## Heartbeat 提示詞的用途
 
@@ -272,12 +271,12 @@ channels:
 
 ### 常見模式
 
-| 目標               | 設定                                                                                       |
-| ---------------- | ---------------------------------------------------------------------------------------- |
-| 預設行為（靜默 OK，警示開啟） | _(無需設定)_                                                              |
+| 目標                          | 設定                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| 預設行為（靜默 OK，警示開啟） | _(無需設定)_                                                                             |
 | 完全靜默（無訊息、無指示）    | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
-| 僅指示（無訊息）         | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| 僅在單一頻道顯示 OK      | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| 僅指示（無訊息）              | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
+| 僅在單一頻道顯示 OK           | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md（選用）
 

@@ -40,12 +40,12 @@ otherwise -> reply
 
 Si vous voulez…
 
-| Objectif                                                                       | Ce qu'il faut définir                                                   |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Autoriser tous les groupes mais répondre uniquement aux @mentions | `groups: { "*": { requireMention: true } }`                             |
-| Désactiver toutes les réponses de groupe                                       | `groupPolicy: "disabled"`                                               |
-| Uniquement des groupes spécifiques                                             | `groups: { "<group-id>": { ... } }` (sans clé `"*"`) |
-| Vous seul pouvez déclencher dans les groupes                                   | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`              |
+| Objectif                                                          | Ce qu'il faut définir                                      |
+| ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| Autoriser tous les groupes mais répondre uniquement aux @mentions | `groups: { "*": { requireMention: true } }`                |
+| Désactiver toutes les réponses de groupe                          | `groupPolicy: "disabled"`                                  |
+| Uniquement des groupes spécifiques                                | `groups: { "<group-id>": { ... } }` (sans clé `"*"`)       |
+| Vous seul pouvez déclencher dans les groupes                      | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Clés de session
 
@@ -174,8 +174,8 @@ Contrôlez la manière dont les messages de groupe/salle sont traités par canal
 }
 ```
 
-| Politique     | Comportement                                                                                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Politique     | Comportement                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------ |
 | `"open"`      | Les groupes contournent les listes d’autorisation ; le filtrage par mention s’applique toujours. |
 | `"disabled"`  | Bloquer entièrement tous les messages de groupe.                                                 |
 | `"allowlist"` | Autoriser uniquement les groupes/salles correspondant à la liste d’autorisation configurée.      |

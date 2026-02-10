@@ -377,11 +377,11 @@ ack reaction after the bot replies.
 
 Bilang default, sumasagot ang OpenClaw sa pangunahing channel. Gamitin ang `channels.slack.replyToMode` upang kontrolin ang awtomatikong threading:
 
-| Mode    | Behavior                                                                                                                                                                                                                                                                                        |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Default.** Reply in main channel. Mag-thread lamang kung ang nag-trigger na mensahe ay nasa isang thread na.                                                                                                                                  |
+| Mode    | Behavior                                                                                                                                                                                                                                     |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Default.** Reply in main channel. Mag-thread lamang kung ang nag-trigger na mensahe ay nasa isang thread na.                                                                                                                               |
 | `first` | Ang unang sagot ay papunta sa thread (sa ilalim ng nag-trigger na mensahe), ang mga kasunod na sagot ay papunta sa pangunahing channel. Kapaki-pakinabang para mapanatiling nakikita ang konteksto habang iniiwasan ang kalat ng mga thread. |
-| `all`   | Lahat ng sagot ay papunta sa thread. Keeps conversations contained but may reduce visibility.                                                                                                                                                                   |
+| `all`   | Lahat ng sagot ay papunta sa thread. Keeps conversations contained but may reduce visibility.                                                                                                                                                |
 
 Nalalapat ang mode sa parehong auto-replies at agent tool calls (`slack sendMessage`).
 

@@ -13,10 +13,10 @@ title: "Claude Max API Proxy"
 
 ## Vì sao nên dùng?
 
-| Cách tiếp cận  | Chi phí                                                                                 | Phù hợp nhất                                     |
-| -------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Cách tiếp cận  | Chi phí                                              | Phù hợp nhất                                     |
+| -------------- | ---------------------------------------------------- | ------------------------------------------------ |
 | Anthropic API  | Trả theo token (~$15/M input, $75/M output cho Opus) | Ứng dụng sản xuất, lưu lượng cao                 |
-| Gói Claude Max | $200/tháng cố định                                                                      | Dùng cá nhân, phát triển, sử dụng không giới hạn |
+| Gói Claude Max | $200/tháng cố định                                   | Dùng cá nhân, phát triển, sử dụng không giới hạn |
 
 Nếu bạn có gói Claude Max và muốn dùng với các công cụ tương thích OpenAI, proxy này có thể giúp bạn tiết kiệm đáng kể.
 

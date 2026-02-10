@@ -175,11 +175,11 @@ Kung aalisin mo ang `capabilities`, ang entry ay eligible para sa listahang kina
 
 ## Provider support matrix (mga integrasyon ng OpenClaw)
 
-| Capability | Integrasyon ng provider                                        | Mga tala                                                                             |
-| ---------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Image      | OpenAI / Anthropic / Google / iba pa sa pamamagitan ng `pi-ai` | Gumagana ang anumang image‑capable na model sa registry.             |
-| Audio      | OpenAI, Groq, Deepgram, Google                                 | Provider transcription (Whisper/Deepgram/Gemini). |
-| Video      | Google (Gemini API)                         | Provider video understanding.                                        |
+| Capability | Integrasyon ng provider                                        | Mga tala                                                 |
+| ---------- | -------------------------------------------------------------- | -------------------------------------------------------- |
+| Image      | OpenAI / Anthropic / Google / iba pa sa pamamagitan ng `pi-ai` | Gumagana ang anumang image‑capable na model sa registry. |
+| Audio      | OpenAI, Groq, Deepgram, Google                                 | Provider transcription (Whisper/Deepgram/Gemini).        |
+| Video      | Google (Gemini API)                                            | Provider video understanding.                            |
 
 ## Mga inirerekomendang provider
 

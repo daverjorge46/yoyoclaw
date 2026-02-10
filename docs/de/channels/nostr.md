@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Konfigurationsreferenz
 
-| Key          | Type                                                         | Default                                     | Description                                   |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------------------- |
-| `privateKey` | string                                                       | required                                    | Privater Schlüssel im `nsec`- oder Hex-Format |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URLs (WebSocket)     |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM-Zugriffsrichtlinie                         |
+| Key          | Type     | Default                                     | Description                                   |
+| ------------ | -------- | ------------------------------------------- | --------------------------------------------- |
+| `privateKey` | string   | required                                    | Privater Schlüssel im `nsec`- oder Hex-Format |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URLs (WebSocket)                        |
+| `dmPolicy`   | string   | `pairing`                                   | DM-Zugriffsrichtlinie                         |
 | `allowFrom`  | string[] | `[]`                                        | Erlaubte Absender-Pubkeys                     |
-| `enabled`    | boolean                                                      | `true`                                      | Kanal aktivieren/deaktivieren                 |
-| `name`       | string                                                       | -                                           | Anzeigename                                   |
-| `profile`    | object                                                       | -                                           | NIP-01-Profilmetadaten                        |
+| `enabled`    | boolean  | `true`                                      | Kanal aktivieren/deaktivieren                 |
+| `name`       | string   | -                                           | Anzeigename                                   |
+| `profile`    | object   | -                                           | NIP-01-Profilmetadaten                        |
 
 ## Profilmetadaten
 
@@ -166,12 +166,12 @@ Tipps:
 
 ## Protokollunterstützung
 
-| NIP    | Status      | Description                                      |
-| ------ | ----------- | ------------------------------------------------ |
-| NIP-01 | Unterstützt | Basis-Eventformat + Profilmetadaten              |
-| NIP-04 | Unterstützt | Verschlüsselte DMs (`kind:4`) |
-| NIP-17 | Geplant     | Gift-wrapped DMs                                 |
-| NIP-44 | Geplant     | Versionierte Verschlüsselung                     |
+| NIP    | Status      | Description                         |
+| ------ | ----------- | ----------------------------------- |
+| NIP-01 | Unterstützt | Basis-Eventformat + Profilmetadaten |
+| NIP-04 | Unterstützt | Verschlüsselte DMs (`kind:4`)       |
+| NIP-17 | Geplant     | Gift-wrapped DMs                    |
+| NIP-44 | Geplant     | Versionierte Verschlüsselung        |
 
 ## Tests
 

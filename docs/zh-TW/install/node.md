@@ -29,7 +29,7 @@ If this prints `v22.x.x` or higher, you're good. 常見選項：
     ```bash
     brew install node
     ```
-    
+
     或從 [nodejs.org](https://nodejs.org/) 下載 macOS 安裝程式。
     ````
 
@@ -42,13 +42,13 @@ If this prints `v22.x.x` or higher, you're good. 常見選項：
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL：**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     或使用版本管理工具（見下方）。
     ````
 
@@ -60,13 +60,13 @@ If this prints `v22.x.x` or higher, you're good. 常見選項：
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey：**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     或從 [nodejs.org](https://nodejs.org/) 下載 Windows 安裝程式。
     ````
 
@@ -126,7 +126,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             接著開啟新的終端機（或在 zsh 中執行 `rehash`／在 bash 中執行 `hash -r`）。
           </Tab>
           <Tab title="Windows">

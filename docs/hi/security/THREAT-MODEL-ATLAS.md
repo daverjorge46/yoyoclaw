@@ -38,14 +38,14 @@ This threat model documents adversarial threats to the OpenClaw AI agent platfor
 
 ### 1.2 Scope
 
-| Component              | Included | टिप्पणियाँ                                                       |
-| ---------------------- | -------- | ---------------------------------------------------------------- |
-| OpenClaw Agent Runtime | हाँ      | Core agent execution, tool calls, sessions                       |
-| Gateway                | हाँ      | Authentication, routing, channel integration                     |
+| Component              | Included | टिप्पणियाँ                                       |
+| ---------------------- | -------- | ------------------------------------------------ |
+| OpenClaw Agent Runtime | हाँ      | Core agent execution, tool calls, sessions       |
+| Gateway                | हाँ      | Authentication, routing, channel integration     |
 | Channel Integrations   | हाँ      | WhatsApp, Telegram, Discord, Signal, Slack, etc. |
-| ClawHub Marketplace    | हाँ      | Skill publishing, moderation, distribution                       |
-| MCP Servers            | हाँ      | External tool providers                                          |
-| User Devices           | Partial  | Mobile apps, desktop clients                                     |
+| ClawHub Marketplace    | हाँ      | Skill publishing, moderation, distribution       |
+| MCP Servers            | हाँ      | External tool providers                          |
+| User Devices           | Partial  | Mobile apps, desktop clients                     |
 
 ### 1.3 Out of Scope
 
@@ -124,14 +124,14 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 2.2 Data Flows
 
-| Flow | Source  | Destination | Data                                  | Protection        |
-| ---- | ------- | ----------- | ------------------------------------- | ----------------- |
-| F1   | चैनल    | Gateway     | उपयोगकर्ता संदेश                      | TLS, AllowFrom    |
-| F2   | Gateway | एजेंट       | रूट किए गए संदेश                      | सत्र पृथक्करण     |
-| F3   | एजेंट   | Tools       | टूल इनवोकेशन                          | नीति प्रवर्तन     |
+| Flow | Source  | Destination | Data             | Protection        |
+| ---- | ------- | ----------- | ---------------- | ----------------- |
+| F1   | चैनल    | Gateway     | उपयोगकर्ता संदेश | TLS, AllowFrom    |
+| F2   | Gateway | एजेंट       | रूट किए गए संदेश | सत्र पृथक्करण     |
+| F3   | एजेंट   | Tools       | टूल इनवोकेशन     | नीति प्रवर्तन     |
 | F4   | एजेंट   | बाहरी       | web_fetch अनुरोध | SSRF अवरोधन       |
-| F5   | ClawHub | एजेंट       | स्किल कोड                             | मॉडरेशन, स्कैनिंग |
-| F6   | एजेंट   | चैनल        | Responses                             | आउटपुट फ़िल्टरिंग |
+| F5   | ClawHub | एजेंट       | स्किल कोड        | मॉडरेशन, स्कैनिंग |
+| F6   | एजेंट   | चैनल        | Responses        | आउटपुट फ़िल्टरिंग |
 
 ---
 
@@ -143,7 +143,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | विशेषता              | मान                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------ |
-| **ATLAS ID**         | AML.T0006 - सक्रिय स्कैनिंग                                          |
+| **ATLAS ID**         | AML.T0006 - सक्रिय स्कैनिंग                                                          |
 | **विवरण**            | हमलावर उजागर OpenClaw गेटवे एंडपॉइंट्स के लिए स्कैन करता है                          |
 | **आक्रमण वेक्टर**    | नेटवर्क स्कैनिंग, shodan क्वेरीज़, DNS एन्यूमरेशन                                    |
 | **प्रभावित घटक**     | गेटवे, उजागर API एंडपॉइंट्स                                                          |
@@ -155,7 +155,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | विशेषता                 | Value                                                                    |
 | ----------------------- | ------------------------------------------------------------------------ |
-| **ATLAS ID**            | AML.T0006 - सक्रिय स्कैनिंग                              |
+| **ATLAS ID**            | AML.T0006 - सक्रिय स्कैनिंग                                              |
 | **विवरण**               | हमलावर AI-प्रबंधित खातों की पहचान के लिए मैसेजिंग चैनलों की जाँच करता है |
 | **आक्रमण वेक्टर**       | Sending test messages, observing response patterns                       |
 | **Affected Components** | All channel integrations                                                 |
@@ -171,7 +171,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | मान                                                             |
 | ----------------------- | --------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access       |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                       |
 | **Description**         | Attacker intercepts pairing code during 30s grace period        |
 | **Attack Vector**       | Shoulder surfing, network sniffing, social engineering          |
 | **Affected Components** | Device pairing system                                           |
@@ -183,7 +183,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | Value                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------ |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                      |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access                                      |
 | **Description**         | Attacker spoofs allowed sender identity in channel                             |
 | **Attack Vector**       | Depends on channel - phone number spoofing, username impersonation             |
 | **Affected Components** | AllowFrom validation per channel                                               |
@@ -193,15 +193,15 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-ACCESS-003: Token Theft
 
-| Attribute            | Value                                                                      |
-| -------------------- | -------------------------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0040 - AI Model Inference API Access                  |
-| **Description**      | Attacker steals authentication tokens from config files                    |
-| **Attack Vector**    | Malware, unauthorized device access, config backup exposure                |
-| **प्रभावित घटक**     | ~/.openclaw/credentials/, कॉन्फ़िग स्टोरेज |
-| **वर्तमान शमन उपाय** | फ़ाइल अनुमतियाँ                                                            |
-| **अवशिष्ट जोखिम**    | उच्च - टोकन सादे पाठ में संग्रहीत हैं                                      |
-| **अनुशंसाएँ**        | टोकन को विश्राम अवस्था में एन्क्रिप्ट करें, टोकन रोटेशन जोड़ें             |
+| Attribute            | Value                                                          |
+| -------------------- | -------------------------------------------------------------- |
+| **ATLAS ID**         | AML.T0040 - AI Model Inference API Access                      |
+| **Description**      | Attacker steals authentication tokens from config files        |
+| **Attack Vector**    | Malware, unauthorized device access, config backup exposure    |
+| **प्रभावित घटक**     | ~/.openclaw/credentials/, कॉन्फ़िग स्टोरेज                     |
+| **वर्तमान शमन उपाय** | फ़ाइल अनुमतियाँ                                                |
+| **अवशिष्ट जोखिम**    | उच्च - टोकन सादे पाठ में संग्रहीत हैं                          |
+| **अनुशंसाएँ**        | टोकन को विश्राम अवस्था में एन्क्रिप्ट करें, टोकन रोटेशन जोड़ें |
 
 ---
 
@@ -209,48 +209,48 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-EXEC-001: प्रत्यक्ष प्रॉम्प्ट इंजेक्शन
 
-| विशेषता              | Value                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0051.000 - LLM प्रॉम्प्ट इंजेक्शन: प्रत्यक्ष |
-| **विवरण**            | हमलावर एजेंट के व्यवहार में हेरफेर करने के लिए तैयार किए गए प्रॉम्प्ट भेजता है                    |
-| **आक्रमण वेक्टर**    | विरोधी निर्देशों वाले चैनल संदेश                                                                  |
-| **प्रभावित घटक**     | एजेंट LLM, सभी इनपुट सतहें                                                                        |
-| **वर्तमान शमन उपाय** | पैटर्न पहचान, बाहरी सामग्री रैपिंग                                                                |
-| **अवशिष्ट जोखिम**    | गंभीर - केवल पहचान, कोई अवरोध नहीं; परिष्कृत हमले बायपास कर सकते हैं                              |
-| **अनुशंसाएँ**        | बहु-स्तरीय रक्षा लागू करें, आउटपुट सत्यापन, संवेदनशील कार्रवाइयों के लिए उपयोगकर्ता पुष्टि        |
+| विशेषता              | Value                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| **ATLAS ID**         | AML.T0051.000 - LLM प्रॉम्प्ट इंजेक्शन: प्रत्यक्ष                                          |
+| **विवरण**            | हमलावर एजेंट के व्यवहार में हेरफेर करने के लिए तैयार किए गए प्रॉम्प्ट भेजता है             |
+| **आक्रमण वेक्टर**    | विरोधी निर्देशों वाले चैनल संदेश                                                           |
+| **प्रभावित घटक**     | एजेंट LLM, सभी इनपुट सतहें                                                                 |
+| **वर्तमान शमन उपाय** | पैटर्न पहचान, बाहरी सामग्री रैपिंग                                                         |
+| **अवशिष्ट जोखिम**    | गंभीर - केवल पहचान, कोई अवरोध नहीं; परिष्कृत हमले बायपास कर सकते हैं                       |
+| **अनुशंसाएँ**        | बहु-स्तरीय रक्षा लागू करें, आउटपुट सत्यापन, संवेदनशील कार्रवाइयों के लिए उपयोगकर्ता पुष्टि |
 
 #### T-EXEC-002: अप्रत्यक्ष प्रॉम्प्ट इंजेक्शन
 
-| विशेषता              | मान                                                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0051.001 - LLM प्रॉम्प्ट इंजेक्शन: अप्रत्यक्ष |
-| **विवरण**            | हमलावर प्राप्त की गई सामग्री में दुर्भावनापूर्ण निर्देश एम्बेड करता है                             |
-| **आक्रमण वेक्टर**    | दुर्भावनापूर्ण URL, ज़हरीले ईमेल, समझौता किए गए वेबहुक                                             |
-| **प्रभावित घटक**     | web_fetch, ईमेल इनजेशन, बाहरी डेटा स्रोत                                      |
-| **वर्तमान शमन उपाय** | XML टैग और सुरक्षा सूचना के साथ सामग्री रैपिंग                                                     |
-| **अवशिष्ट जोखिम**    | उच्च - LLM रैपर निर्देशों को अनदेखा कर सकता है                                                     |
-| **अनुशंसाएँ**        | सामग्री सैनिटाइज़ेशन लागू करें, अलग निष्पादन संदर्भ                                                |
+| विशेषता              | मान                                                                    |
+| -------------------- | ---------------------------------------------------------------------- |
+| **ATLAS ID**         | AML.T0051.001 - LLM प्रॉम्प्ट इंजेक्शन: अप्रत्यक्ष                     |
+| **विवरण**            | हमलावर प्राप्त की गई सामग्री में दुर्भावनापूर्ण निर्देश एम्बेड करता है |
+| **आक्रमण वेक्टर**    | दुर्भावनापूर्ण URL, ज़हरीले ईमेल, समझौता किए गए वेबहुक                 |
+| **प्रभावित घटक**     | web_fetch, ईमेल इनजेशन, बाहरी डेटा स्रोत                               |
+| **वर्तमान शमन उपाय** | XML टैग और सुरक्षा सूचना के साथ सामग्री रैपिंग                         |
+| **अवशिष्ट जोखिम**    | उच्च - LLM रैपर निर्देशों को अनदेखा कर सकता है                         |
+| **अनुशंसाएँ**        | सामग्री सैनिटाइज़ेशन लागू करें, अलग निष्पादन संदर्भ                    |
 
 #### T-EXEC-003: टूल आर्गुमेंट इंजेक्शन
 
-| विशेषता                 | मान                                                                                               |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0051.000 - LLM प्रॉम्प्ट इंजेक्शन: प्रत्यक्ष |
-| **विवरण**               | हमलावर प्रॉम्प्ट इंजेक्शन के माध्यम से टूल आर्ग्युमेंट्स में हेरफेर करता है                       |
-| **आक्रमण वेक्टर**       | ऐसे तैयार किए गए प्रॉम्प्ट जो टूल पैरामीटर मानों को प्रभावित करते हैं                             |
-| **प्रभावित घटक**        | All tool invocations                                                                              |
-| **Current Mitigations** | Exec approvals for dangerous commands                                                             |
-| **अवशिष्ट जोखिम**       | High - Relies on user judgment                                                                    |
-| **Recommendations**     | Implement argument validation, parameterized tool calls                                           |
+| विशेषता                 | मान                                                                         |
+| ----------------------- | --------------------------------------------------------------------------- |
+| **ATLAS ID**            | AML.T0051.000 - LLM प्रॉम्प्ट इंजेक्शन: प्रत्यक्ष                           |
+| **विवरण**               | हमलावर प्रॉम्प्ट इंजेक्शन के माध्यम से टूल आर्ग्युमेंट्स में हेरफेर करता है |
+| **आक्रमण वेक्टर**       | ऐसे तैयार किए गए प्रॉम्प्ट जो टूल पैरामीटर मानों को प्रभावित करते हैं       |
+| **प्रभावित घटक**        | All tool invocations                                                        |
+| **Current Mitigations** | Exec approvals for dangerous commands                                       |
+| **अवशिष्ट जोखिम**       | High - Relies on user judgment                                              |
+| **Recommendations**     | Implement argument validation, parameterized tool calls                     |
 
 #### T-EXEC-004: Exec Approval Bypass
 
 | विशेषता              | मान                                                                    |
 | -------------------- | ---------------------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0043 - Craft Adversarial Data                     |
+| **ATLAS ID**         | AML.T0043 - Craft Adversarial Data                                     |
 | **Description**      | हमलावर ऐसे कमांड तैयार करता है जो अनुमोदन एलो-लिस्ट को बायपास करते हैं |
 | **हमला वेक्टर**      | Command obfuscation, alias exploitation, path manipulation             |
-| **प्रभावित घटक**     | exec-approvals.ts, command allowlist                   |
+| **प्रभावित घटक**     | exec-approvals.ts, command allowlist                                   |
 | **वर्तमान शमन उपाय** | Allowlist + ask mode                                                   |
 | **अवशिष्ट जोखिम**    | High - No command sanitization                                         |
 | **Recommendations**  | Implement command normalization, expand blocklist                      |
@@ -261,39 +261,39 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-PERSIST-001: Malicious Skill Installation
 
-| Attribute               | Value                                                                                                |
-| ----------------------- | ---------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0010.001 - Supply Chain Compromise: AI Software |
-| **विवरण**               | Attacker publishes malicious skill to ClawHub                                                        |
-| **Attack Vector**       | Create account, publish skill with hidden malicious code                                             |
-| **Affected Components** | ClawHub, skill loading, agent execution                                                              |
-| **Current Mitigations** | GitHub account age verification, pattern-based moderation flags                                      |
-| **Residual Risk**       | Critical - No sandboxing, limited review                                                             |
-| **Recommendations**     | VirusTotal integration (in progress), skill sandboxing, community review          |
+| Attribute               | Value                                                                    |
+| ----------------------- | ------------------------------------------------------------------------ |
+| **ATLAS ID**            | AML.T0010.001 - Supply Chain Compromise: AI Software                     |
+| **विवरण**               | Attacker publishes malicious skill to ClawHub                            |
+| **Attack Vector**       | Create account, publish skill with hidden malicious code                 |
+| **Affected Components** | ClawHub, skill loading, agent execution                                  |
+| **Current Mitigations** | GitHub account age verification, pattern-based moderation flags          |
+| **Residual Risk**       | Critical - No sandboxing, limited review                                 |
+| **Recommendations**     | VirusTotal integration (in progress), skill sandboxing, community review |
 
 #### T-PERSIST-002: Skill Update Poisoning
 
-| Attribute                                      | Value                                                                                                |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**                                   | AML.T0010.001 - Supply Chain Compromise: AI Software |
-| **Description**                                | Attacker compromises popular skill and pushes malicious update                                       |
-| **Attack Vector**                              | Account compromise, social engineering of skill owner                                                |
-| **Affected Components**                        | ClawHub versioning, auto-update flows                                                                |
-| 1. **वर्तमान शमन उपाय** | 2. संस्करण फिंगरप्रिंटिंग                                                     |
-| **अवशिष्ट जोखिम**                              | 4. उच्च - ऑटो-अपडेट्स दुर्भावनापूर्ण संस्करण खींच सकते हैं                    |
-| 5. **सिफारिशें**        | 6. अपडेट साइनिंग, रोलबैक क्षमता, संस्करण पिनिंग लागू करें                     |
+| Attribute               | Value                                                          |
+| ----------------------- | -------------------------------------------------------------- |
+| **ATLAS ID**            | AML.T0010.001 - Supply Chain Compromise: AI Software           |
+| **Description**         | Attacker compromises popular skill and pushes malicious update |
+| **Attack Vector**       | Account compromise, social engineering of skill owner          |
+| **Affected Components** | ClawHub versioning, auto-update flows                          |
+| 1. **वर्तमान शमन उपाय** | 2. संस्करण फिंगरप्रिंटिंग                                      |
+| **अवशिष्ट जोखिम**       | 4. उच्च - ऑटो-अपडेट्स दुर्भावनापूर्ण संस्करण खींच सकते हैं     |
+| 5. **सिफारिशें**        | 6. अपडेट साइनिंग, रोलबैक क्षमता, संस्करण पिनिंग लागू करें      |
 
 #### 7. T-PERSIST-003: एजेंट कॉन्फ़िगरेशन से छेड़छाड़
 
-| 8. विशेषता            | Value                                                                                                              |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **ATLAS ID**                                 | 10. AML.T0010.002 - सप्लाई चेन समझौता: डेटा |
-| **विवरण**                                    | 12. हमलावर पहुँच बनाए रखने के लिए एजेंट कॉन्फ़िगरेशन में बदलाव करता है                      |
-| 13. **हमला वेक्टर**   | 14. कॉन्फ़िग फ़ाइल संशोधन, सेटिंग्स इंजेक्शन                                                |
-| 15. **प्रभावित घटक**  | 16. एजेंट कॉन्फ़िग, टूल नीतियाँ                                                             |
-| **वर्तमान शमन उपाय**                         | फ़ाइल अनुमतियाँ                                                                                                    |
-| 19. **अवशिष्ट जोखिम** | 20. मध्यम - स्थानीय पहुँच की आवश्यकता                                                       |
-| 21. **सिफारिशें**     | 22. कॉन्फ़िग अखंडता सत्यापन, कॉन्फ़िग परिवर्तनों के लिए ऑडिट लॉगिंग                         |
+| 8. विशेषता            | Value                                                                  |
+| --------------------- | ---------------------------------------------------------------------- |
+| **ATLAS ID**          | 10. AML.T0010.002 - सप्लाई चेन समझौता: डेटा                            |
+| **विवरण**             | 12. हमलावर पहुँच बनाए रखने के लिए एजेंट कॉन्फ़िगरेशन में बदलाव करता है |
+| 13. **हमला वेक्टर**   | 14. कॉन्फ़िग फ़ाइल संशोधन, सेटिंग्स इंजेक्शन                           |
+| 15. **प्रभावित घटक**  | 16. एजेंट कॉन्फ़िग, टूल नीतियाँ                                        |
+| **वर्तमान शमन उपाय**  | फ़ाइल अनुमतियाँ                                                        |
+| 19. **अवशिष्ट जोखिम** | 20. मध्यम - स्थानीय पहुँच की आवश्यकता                                  |
+| 21. **सिफारिशें**     | 22. कॉन्फ़िग अखंडता सत्यापन, कॉन्फ़िग परिवर्तनों के लिए ऑडिट लॉगिंग    |
 
 ---
 
@@ -301,27 +301,27 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-EVADE-001: मॉडरेशन पैटर्न बायपास
 
-| 25. विशेषता              | मान                                                                                                                    |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **ATLAS ID**                                    | AML.T0043 - प्रतिकूल डेटा तैयार करना                                                                   |
-| **विवरण**                                       | 29. हमलावर मॉडरेशन पैटर्न से बचने के लिए कौशल सामग्री तैयार करता है                             |
-| 30. **हमला वेक्टर**      | 31. यूनिकोड होमोग्लिफ़्स, एन्कोडिंग ट्रिक्स, डायनेमिक लोडिंग                                    |
-| 32. **प्रभावित घटक**     | 33. ClawHub moderation.ts                                                       |
-| 34. **वर्तमान शमन उपाय** | पैटर्न-आधारित FLAG_RULES                                                                          |
-| 36. **अवशिष्ट जोखिम**    | 37. उच्च - सरल regex आसानी से बायपास हो जाता है                                                 |
+| 25. विशेषता              | मान                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| **ATLAS ID**             | AML.T0043 - प्रतिकूल डेटा तैयार करना                                         |
+| **विवरण**                | 29. हमलावर मॉडरेशन पैटर्न से बचने के लिए कौशल सामग्री तैयार करता है          |
+| 30. **हमला वेक्टर**      | 31. यूनिकोड होमोग्लिफ़्स, एन्कोडिंग ट्रिक्स, डायनेमिक लोडिंग                 |
+| 32. **प्रभावित घटक**     | 33. ClawHub moderation.ts                                                    |
+| 34. **वर्तमान शमन उपाय** | पैटर्न-आधारित FLAG_RULES                                                     |
+| 36. **अवशिष्ट जोखिम**    | 37. उच्च - सरल regex आसानी से बायपास हो जाता है                              |
 | 38. **सिफारिशें**        | 39. व्यवहारिक विश्लेषण जोड़ें (VirusTotal Code Insight), AST-आधारित डिटेक्शन |
 
 #### 40. T-EVADE-002: कंटेंट रैपर एस्केप
 
-| 41. विशेषता              | Value                                                                                               |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 42. **ATLAS ID**         | 43. AML.T0043 - प्रतिकूल डेटा तैयार करना                     |
+| 41. विशेषता              | Value                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| 42. **ATLAS ID**         | 43. AML.T0043 - प्रतिकूल डेटा तैयार करना                                     |
 | 44. **विवरण**            | 45. हमलावर ऐसी सामग्री तैयार करता है जो XML रैपर संदर्भ से बाहर निकल जाती है |
 | 46. **हमला वेक्टर**      | 47. टैग हेरफेर, संदर्भ भ्रम, निर्देश ओवरराइड                                 |
 | 48. **प्रभावित घटक**     | 49. बाहरी सामग्री रैपिंग                                                     |
-| 50. **वर्तमान शमन उपाय** | XML tags + security notice                                                                          |
-| **Residual Risk**                               | मध्यम - नए एस्केप नियमित रूप से खोजे जाते हैं                                                       |
-| **Recommendations**                             | कई रैपर लेयर्स, आउटपुट-साइड वैलिडेशन                                                                |
+| 50. **वर्तमान शमन उपाय** | XML tags + security notice                                                   |
+| **Residual Risk**        | मध्यम - नए एस्केप नियमित रूप से खोजे जाते हैं                                |
+| **Recommendations**      | कई रैपर लेयर्स, आउटपुट-साइड वैलिडेशन                                         |
 
 ---
 
@@ -329,27 +329,27 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-DISC-001: टूल एन्यूमरेशन
 
-| Attribute               | Value                                                     |
-| ----------------------- | --------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access |
-| **विवरण**               | Attacker enumerates available tools through prompting     |
-| **हमला वेक्टर**         | "What tools do you have?" style queries                   |
-| **प्रभावित घटक**        | एजेंट टूल रजिस्ट्री                                       |
-| **Current Mitigations** | None specific                                             |
-| **अवशिष्ट जोखिम**       | Low - Tools generally documented                          |
-| **सिफ़ारिशें**          | Consider tool visibility controls                         |
+| Attribute               | Value                                                 |
+| ----------------------- | ----------------------------------------------------- |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access             |
+| **विवरण**               | Attacker enumerates available tools through prompting |
+| **हमला वेक्टर**         | "What tools do you have?" style queries               |
+| **प्रभावित घटक**        | एजेंट टूल रजिस्ट्री                                   |
+| **Current Mitigations** | None specific                                         |
+| **अवशिष्ट जोखिम**       | Low - Tools generally documented                      |
+| **सिफ़ारिशें**          | Consider tool visibility controls                     |
 
 #### T-DISC-002: Session Data Extraction
 
-| Attribute               | मान                                                       |
-| ----------------------- | --------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access |
-| **Description**         | Attacker extracts sensitive data from session context     |
-| **Attack Vector**       | "What did we discuss?" queries, context probing           |
-| **Affected Components** | Session transcripts, context window                       |
-| **Current Mitigations** | Session isolation per sender                              |
-| **Residual Risk**       | Medium - Within-session data accessible                   |
-| **Recommendations**     | Implement sensitive data redaction in context             |
+| Attribute               | मान                                                   |
+| ----------------------- | ----------------------------------------------------- |
+| **ATLAS ID**            | AML.T0040 - AI Model Inference API Access             |
+| **Description**         | Attacker extracts sensitive data from session context |
+| **Attack Vector**       | "What did we discuss?" queries, context probing       |
+| **Affected Components** | Session transcripts, context window                   |
+| **Current Mitigations** | Session isolation per sender                          |
+| **Residual Risk**       | Medium - Within-session data accessible               |
+| **Recommendations**     | Implement sensitive data redaction in context         |
 
 ---
 
@@ -359,10 +359,10 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | मान                                                                    |
 | ----------------------- | ---------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0009 - Collection                                 |
+| **ATLAS ID**            | AML.T0009 - Collection                                                 |
 | **Description**         | Attacker exfiltrates data by instructing agent to send to external URL |
 | **Attack Vector**       | Prompt injection causing agent to POST data to attacker server         |
-| **Affected Components** | web_fetch tool                                    |
+| **Affected Components** | web_fetch tool                                                         |
 | **Current Mitigations** | SSRF blocking for internal networks                                    |
 | **Residual Risk**       | High - External URLs permitted                                         |
 | **Recommendations**     | Implement URL allowlisting, data classification awareness              |
@@ -371,7 +371,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | Value                                                            |
 | ----------------------- | ---------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0009 - Collection                           |
+| **ATLAS ID**            | AML.T0009 - Collection                                           |
 | **Description**         | Attacker causes agent to send messages containing sensitive data |
 | **Attack Vector**       | Prompt injection causing agent to message attacker               |
 | **Affected Components** | Message tool, channel integrations                               |
@@ -383,7 +383,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | Value                                                                 |
 | ----------------------- | --------------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0009 - संग्रह                                    |
+| **ATLAS ID**            | AML.T0009 - संग्रह                                                    |
 | **विवरण**               | दुर्भावनापूर्ण स्किल एजेंट कॉन्टेक्स्ट से क्रेडेंशियल्स एकत्र करता है |
 | **हमला वेक्टर**         | स्किल कोड एनवायरनमेंट वेरिएबल्स, कॉन्फ़िग फ़ाइलें पढ़ता है            |
 | **Affected Components** | Skill execution environment                                           |
@@ -399,7 +399,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | Attribute               | मान                                                             |
 | ----------------------- | --------------------------------------------------------------- |
-| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity            |
+| **ATLAS ID**            | AML.T0031 - Erode AI Model Integrity                            |
 | **Description**         | Attacker executes arbitrary commands on user system             |
 | **Attack Vector**       | Prompt injection combined with exec approval bypass             |
 | **Affected Components** | Bash tool, command execution                                    |
@@ -411,7 +411,7 @@ Nothing is explicitly out of scope for this threat model.
 
 | विशेषता              | Value                                                       |
 | -------------------- | ----------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0031 - AI मॉडल की अखंडता को क्षीण करना |
+| **ATLAS ID**         | AML.T0031 - AI मॉडल की अखंडता को क्षीण करना                 |
 | **विवरण**            | हमलावर API क्रेडिट या कंप्यूट संसाधनों को समाप्त कर देता है |
 | **हमला वेक्टर**      | स्वचालित संदेश बाढ़, महंगे टूल कॉल                          |
 | **प्रभावित घटक**     | गेटवे, एजेंट सत्र, API प्रदाता                              |
@@ -421,15 +421,15 @@ Nothing is explicitly out of scope for this threat model.
 
 #### T-IMPACT-003: प्रतिष्ठा को नुकसान
 
-| विशेषता              | Value                                                       |
-| -------------------- | ----------------------------------------------------------- |
-| **ATLAS ID**         | AML.T0031 - AI मॉडल की अखंडता को क्षीण करना |
-| **विवरण**            | हमलावर एजेंट से हानिकारक/आपत्तिजनक सामग्री भेजवाता है       |
-| **हमला वेक्टर**      | अनुचित प्रतिक्रियाओं का कारण बनने वाला प्रॉम्प्ट इंजेक्शन   |
-| **प्रभावित घटक**     | आउटपुट जनरेशन, चैनल मैसेजिंग                                |
-| **वर्तमान शमन उपाय** | LLM प्रदाता की सामग्री नीतियाँ                              |
-| **अवशिष्ट जोखिम**    | मध्यम - प्रदाता फ़िल्टर अपूर्ण हैं                          |
-| **सिफारिशें**        | आउटपुट फ़िल्टरिंग लेयर, उपयोगकर्ता नियंत्रण                 |
+| विशेषता              | Value                                                     |
+| -------------------- | --------------------------------------------------------- |
+| **ATLAS ID**         | AML.T0031 - AI मॉडल की अखंडता को क्षीण करना               |
+| **विवरण**            | हमलावर एजेंट से हानिकारक/आपत्तिजनक सामग्री भेजवाता है     |
+| **हमला वेक्टर**      | अनुचित प्रतिक्रियाओं का कारण बनने वाला प्रॉम्प्ट इंजेक्शन |
+| **प्रभावित घटक**     | आउटपुट जनरेशन, चैनल मैसेजिंग                              |
+| **वर्तमान शमन उपाय** | LLM प्रदाता की सामग्री नीतियाँ                            |
+| **अवशिष्ट जोखिम**    | मध्यम - प्रदाता फ़िल्टर अपूर्ण हैं                        |
+| **सिफारिशें**        | आउटपुट फ़िल्टरिंग लेयर, उपयोगकर्ता नियंत्रण               |
 
 ---
 
@@ -437,15 +437,15 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 4.1 वर्तमान सुरक्षा नियंत्रण
 
-| नियंत्रण                        | इम्प्लीमेंटेशन                                                    | प्रभावशीलता                                                           |
-| ------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------- |
-| GitHub खाता आयु                 | `requireGitHubAccountAge()`                                       | मध्यम - नए हमलावरों के लिए बाधा बढ़ाता है                             |
-| पाथ सैनिटाइज़ेशन                | `sanitizePath()`                                                  | उच्च - पाथ ट्रैवर्सल को रोकता है                                      |
-| फ़ाइल प्रकार सत्यापन            | `isTextFile()`                                                    | मध्यम - केवल टेक्स्ट फ़ाइलें, लेकिन फिर भी दुर्भावनापूर्ण हो सकती हैं |
-| आकार सीमाएँ                     | 50MB कुल बंडल                                                     | उच्च - संसाधन समाप्ति को रोकता है                                     |
-| आवश्यक SKILL.md | अनिवार्य readme                                                   | कम सुरक्षा मूल्य - केवल सूचनात्मक                                     |
-| पैटर्न मॉडरेशन                  | moderation.ts में FLAG_RULES | कम - आसानी से बायपास किया जा सकता है                                  |
-| मॉडरेशन स्थिति                  | `moderationStatus` फ़ील्ड                                         | मध्यम - मैनुअल समीक्षा संभव                                           |
+| नियंत्रण             | इम्प्लीमेंटेशन               | प्रभावशीलता                                                           |
+| -------------------- | ---------------------------- | --------------------------------------------------------------------- |
+| GitHub खाता आयु      | `requireGitHubAccountAge()`  | मध्यम - नए हमलावरों के लिए बाधा बढ़ाता है                             |
+| पाथ सैनिटाइज़ेशन     | `sanitizePath()`             | उच्च - पाथ ट्रैवर्सल को रोकता है                                      |
+| फ़ाइल प्रकार सत्यापन | `isTextFile()`               | मध्यम - केवल टेक्स्ट फ़ाइलें, लेकिन फिर भी दुर्भावनापूर्ण हो सकती हैं |
+| आकार सीमाएँ          | 50MB कुल बंडल                | उच्च - संसाधन समाप्ति को रोकता है                                     |
+| आवश्यक SKILL.md      | अनिवार्य readme              | कम सुरक्षा मूल्य - केवल सूचनात्मक                                     |
+| पैटर्न मॉडरेशन       | moderation.ts में FLAG_RULES | कम - आसानी से बायपास किया जा सकता है                                  |
+| मॉडरेशन स्थिति       | `moderationStatus` फ़ील्ड    | मध्यम - मैनुअल समीक्षा संभव                                           |
 
 ### 4.2 मॉडरेशन फ़्लैग पैटर्न
 
@@ -473,12 +473,12 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 4.3 नियोजित सुधार
 
-| सुधार             | Status                                                    | प्रभाव                                                               |
-| ----------------- | --------------------------------------------------------- | -------------------------------------------------------------------- |
-| VirusTotal एकीकरण | प्रगति में                                                | उच्च - कोड इनसाइट व्यवहारिक विश्लेषण                                 |
+| सुधार             | Status                                 | प्रभाव                                                               |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------------- |
+| VirusTotal एकीकरण | प्रगति में                             | उच्च - कोड इनसाइट व्यवहारिक विश्लेषण                                 |
 | समुदाय रिपोर्टिंग | आंशिक (`skillReports` तालिका मौजूद है) | मध्यम                                                                |
 | ऑडिट लॉगिंग       | आंशिक (`auditLogs` तालिका मौजूद है)    | मध्यम                                                                |
-| बैज सिस्टम        | कार्यान्वित                                               | मध्यम - `highlighted`, `official`, `deprecated`, `redactionApproved` |
+| बैज सिस्टम        | कार्यान्वित                            | मध्यम - `highlighted`, `official`, `deprecated`, `redactionApproved` |
 
 ---
 
@@ -528,6 +528,7 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 ---
 
 ## 47. आप इसे `channels.feishu.domain` पर या प्रति खाते (`channels.feishu.accounts.<id>`
+
 48. `.domain`) पर सेट कर सकते हैं। Recommendations Summary
 
 ### 6.1 Immediate (P0)
@@ -540,11 +541,11 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ### 6.2 Short-term (P1)
 
-| ID    | Recommendation                                                | Addresses    |
-| ----- | ------------------------------------------------------------- | ------------ |
-| R-004 | Implement rate limiting                                       | T-IMPACT-002 |
-| R-005 | Add token encryption at rest                                  | T-ACCESS-003 |
-| R-006 | Improve exec approval UX and validation                       | T-EXEC-004   |
+| ID    | Recommendation                           | Addresses    |
+| ----- | ---------------------------------------- | ------------ |
+| R-004 | Implement rate limiting                  | T-IMPACT-002 |
+| R-005 | Add token encryption at rest             | T-ACCESS-003 |
+| R-006 | Improve exec approval UX and validation  | T-EXEC-004   |
 | R-007 | Implement URL allowlisting for web_fetch | T-EXFIL-001  |
 
 ### 6.3 Medium-term (P2)
@@ -561,15 +562,15 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ### 7.1 ATLAS तकनीक मैपिंग
 
-| ATLAS आईडी                                    | तकनीक का नाम                                       | OpenClaw ख़तरे                                                   |
-| --------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------- |
-| AML.T0006                     | सक्रिय स्कैनिंग                                    | T-RECON-001, T-RECON-002                                         |
-| AML.T0009                     | संग्रह                                             | T-EXFIL-001, T-EXFIL-002, T-EXFIL-003                            |
+| ATLAS आईडी    | तकनीक का नाम                       | OpenClaw ख़तरे                                                   |
+| ------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| AML.T0006     | सक्रिय स्कैनिंग                    | T-RECON-001, T-RECON-002                                         |
+| AML.T0009     | संग्रह                             | T-EXFIL-001, T-EXFIL-002, T-EXFIL-003                            |
 | AML.T0010.001 | आपूर्ति श्रृंखला: AI सॉफ़्टवेयर    | T-PERSIST-001, T-PERSIST-002                                     |
 | AML.T0010.002 | आपूर्ति श्रृंखला: डेटा             | T-PERSIST-003                                                    |
-| AML.T0031                     | AI मॉडल अखंडता का क्षरण                            | T-IMPACT-001, T-IMPACT-002, T-IMPACT-003                         |
-| AML.T0040                     | AI मॉडल इन्फ़रेंस API एक्सेस                       | T-ACCESS-001, T-ACCESS-002, T-ACCESS-003, T-DISC-001, T-DISC-002 |
-| AML.T0043                     | प्रतिकूल डेटा तैयार करना                           | T-EXEC-004, T-EVADE-001, T-EVADE-002                             |
+| AML.T0031     | AI मॉडल अखंडता का क्षरण            | T-IMPACT-001, T-IMPACT-002, T-IMPACT-003                         |
+| AML.T0040     | AI मॉडल इन्फ़रेंस API एक्सेस       | T-ACCESS-001, T-ACCESS-002, T-ACCESS-003, T-DISC-001, T-DISC-002 |
+| AML.T0043     | प्रतिकूल डेटा तैयार करना           | T-EXEC-004, T-EVADE-001, T-EVADE-002                             |
 | AML.T0051.000 | LLM प्रॉम्प्ट इंजेक्शन: प्रत्यक्ष  | T-EXEC-001, T-EXEC-003                                           |
 | AML.T0051.001 | LLM प्रॉम्प्ट इंजेक्शन: अप्रत्यक्ष | T-EXEC-002                                                       |
 

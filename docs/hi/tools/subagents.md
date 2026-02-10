@@ -157,15 +157,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### पैरामीटर
 
-| Parameter           | Type                     | Default                               | विवरण                                                                                             |
-| ------------------- | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `task`              | string                   | _(required)_       | What the sub-agent should do                                                                      |
-| `लेबल`              | string                   | —                                     | Short label for identification                                                                    |
-| `agentId`           | string                   | _(caller's agent)_ | Spawn under a different agent id (must be allowed)                             |
-| `मॉडल`              | string                   | _(optional)_       | Override the model for this sub-agent                                                             |
-| `thinking`          | string                   | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | number                   | `0` (no limit)     | Abort the sub-agent after N seconds                                                               |
-| `सफ़ाई`             | `"delete"` \\| `"keep"` | `"keep"`                              | `"delete"` archives immediately after announce                                                    |
+| Parameter           | Type          | Default            | विवरण                                                          |
+| ------------------- | ------------- | ------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
+| `task`              | string        | _(required)_       | What the sub-agent should do                                   |
+| `लेबल`              | string        | —                  | Short label for identification                                 |
+| `agentId`           | string        | _(caller's agent)_ | Spawn under a different agent id (must be allowed)             |
+| `मॉडल`              | string        | _(optional)_       | Override the model for this sub-agent                          |
+| `thinking`          | string        | _(optional)_       | Override thinking level (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | number        | `0` (no limit)     | Abort the sub-agent after N seconds                            |
+| `सफ़ाई`             | `"delete"` \\ | `"keep"`           | `"keep"`                                                       | `"delete"` archives immediately after announce |
 
 ### Model Resolution Order
 
@@ -214,13 +214,13 @@ Use the `agents_list` tool to discover which agent ids are currently allowed for
 
 Use the `/subagents` slash command to inspect and control sub-agent runs for the current session:
 
-| Command                                    | Description                                                       |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| `/subagents list`                          | List all sub-agent runs (active and completed) |
-| `/subagents stop <id\\|#\\|all>`         | Stop a running sub-agent                                          |
-| `/subagents log <id\\|#> [limit] [tools]` | View sub-agent transcript                                         |
-| `/subagents info <id\\|#>`                | Show detailed run metadata                                        |
-| `/subagents send <id\\|#> <message>`      | Send a message to a running sub-agent                             |
+| Command                | Description                                    |
+| ---------------------- | ---------------------------------------------- | ------------------------------------- | ------------------------ |
+| `/subagents list`      | List all sub-agent runs (active and completed) |
+| `/subagents stop <id\\ | #\\                                            | all>`                                 | Stop a running sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                            | View sub-agent transcript             |
+| `/subagents info <id\\ | #>`                                            | Show detailed run metadata            |
+| `/subagents send <id\\ | #> <message>`                                  | Send a message to a running sub-agent |
 
 You can reference sub-agents by list index (`1`, `2`), run id prefix, full session key, or `last`.
 
@@ -238,11 +238,11 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -276,7 +276,7 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
 
     ````
     Shows the last 10 messages from the sub-agent's transcript. Add `tools` to include tool call messages:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -350,19 +350,20 @@ Each announce includes a stats line with:
   </Accordion>
 </AccordionGroup>
 
-### | निषिद्ध टूल        | कारण                                                                           |
+### | निषिद्ध टूल | कारण |
+
 | ------------------ | ------------------------------------------------------------------------------ |
-| `sessions_list`    | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है                                      |
-| `sessions_history` | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है                                      |
-| `sessions_send`    | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है                                      |
-| `sessions_spawn`   | नेस्टेड फैन-आउट नहीं (सब-एजेंट सब-एजेंट स्पॉन नहीं कर सकते) |
-| `gateway`          | सिस्टम एडमिन — सब-एजेंट से खतरनाक                                              |
-| `agents_list`      | सिस्टम एडमिन                                                                   |
-| `whatsapp_login`   | इंटरैक्टिव सेटअप — कोई कार्य नहीं                                              |
-| `session_status`   | स्थिति/शेड्यूलिंग — मुख्य एजेंट समन्वय करता है                                 |
-| `cron`             | स्थिति/शेड्यूलिंग — मुख्य एजेंट समन्वय करता है                                 |
-| `memory_search`    | इसके बजाय प्रासंगिक जानकारी स्पॉन प्रॉम्प्ट में दें                            |
-| `memory_get`       | इसके बजाय प्रासंगिक जानकारी स्पॉन प्रॉम्प्ट में दें                            |
+| `sessions_list` | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है |
+| `sessions_history` | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है |
+| `sessions_send` | सेशन प्रबंधन — मुख्य एजेंट समन्वय करता है |
+| `sessions_spawn` | नेस्टेड फैन-आउट नहीं (सब-एजेंट सब-एजेंट स्पॉन नहीं कर सकते) |
+| `gateway` | सिस्टम एडमिन — सब-एजेंट से खतरनाक |
+| `agents_list` | सिस्टम एडमिन |
+| `whatsapp_login` | इंटरैक्टिव सेटअप — कोई कार्य नहीं |
+| `session_status` | स्थिति/शेड्यूलिंग — मुख्य एजेंट समन्वय करता है |
+| `cron` | स्थिति/शेड्यूलिंग — मुख्य एजेंट समन्वय करता है |
+| `memory_search` | इसके बजाय प्रासंगिक जानकारी स्पॉन प्रॉम्प्ट में दें |
+| `memory_get` | इसके बजाय प्रासंगिक जानकारी स्पॉन प्रॉम्प्ट में दें |
 
 सब-एजेंट टूल्स को अनुकूलित करना
 

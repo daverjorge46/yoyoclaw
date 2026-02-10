@@ -377,11 +377,11 @@ ack reaktion efter bot svar.
 
 Som standard besvarer OpenClaw i hovedkanalen. Brug `channels.slack.replyToMode` til at styre automatisk gevind:
 
-| Tilstand | Adfærd                                                                                                                                                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`    | **Standard.** Svar i hovedkanalen. Kun tråd hvis den udløsende besked allerede var i en tråd.                                                                          |
+| Tilstand | Adfærd                                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`    | **Standard.** Svar i hovedkanalen. Kun tråd hvis den udløsende besked allerede var i en tråd.                                                                       |
 | `first`  | Første svar går til tråd (under den udløsende meddelelse), efterfølgende svar gå til hovedkanalen. Nyttigt til at holde sammenhæng synlig, samtidig undgå tråd rod. |
-| `all`    | Alle svar går til tråd. Holder samtalerne indeholdt, men kan reducere synligheden.                                                                                                     |
+| `all`    | Alle svar går til tråd. Holder samtalerne indeholdt, men kan reducere synligheden.                                                                                  |
 
 Tilstanden gælder både autosvar og agent-værktøjskald (`slack sendMessage`).
 

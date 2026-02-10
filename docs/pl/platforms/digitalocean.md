@@ -16,13 +16,13 @@ Jeśli chcesz opcję za 0 USD/mies. i nie przeszkadza Ci ARM oraz konfiguracja s
 
 ## Porównanie kosztów (2026)
 
-| Dostawca     | Plan            | Specyfikacja         | Cena/m2                                            | Uwagi                                             |
-| ------------ | --------------- | -------------------- | -------------------------------------------------- | ------------------------------------------------- |
-| Oracle Cloud | Always Free ARM | do 4 OCPU, 24 GB RAM | 0 USD                                              | ARM, ograniczona dostępność / niuanse rejestracji |
+| Dostawca     | Plan            | Specyfikacja         | Cena/m2         | Uwagi                                             |
+| ------------ | --------------- | -------------------- | --------------- | ------------------------------------------------- |
+| Oracle Cloud | Always Free ARM | do 4 OCPU, 24 GB RAM | 0 USD           | ARM, ograniczona dostępność / niuanse rejestracji |
 | Hetzner      | CX22            | 2 vCPU, 4 GB RAM     | 3,79 € (~4 USD) | Najtańsza płatna opcja                            |
-| DigitalOcean | Basic           | 1 vCPU, 1 GB RAM     | 6 USD                                              | Prosty interfejs, dobra dokumentacja              |
-| Vultr        | Cloud Compute   | 1 vCPU, 1 GB RAM     | 6 USD                                              | Wiele lokalizacji                                 |
-| Linode       | Nanode          | 1 vCPU, 1 GB RAM     | 5 USD                                              | Obecnie część Akamai                              |
+| DigitalOcean | Basic           | 1 vCPU, 1 GB RAM     | 6 USD           | Prosty interfejs, dobra dokumentacja              |
+| Vultr        | Cloud Compute   | 1 vCPU, 1 GB RAM     | 6 USD           | Wiele lokalizacji                                 |
+| Linode       | Nanode          | 1 vCPU, 1 GB RAM     | 5 USD           | Obecnie część Akamai                              |
 
 **Wybór dostawcy:**
 

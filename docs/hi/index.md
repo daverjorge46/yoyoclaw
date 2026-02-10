@@ -22,8 +22,7 @@ title: "OpenClaw"
     />
 </p>
 
-> _"EXFOLIATE!
-> 14. EXFOLIATE!"_ — शायद एक स्पेस लॉब्स्टर EXFOLIATE!"_ — शायद एक space lobster
+> _"EXFOLIATE! 14. EXFOLIATE!"_ — शायद एक स्पेस लॉब्स्टर EXFOLIATE!"\_ — शायद एक space lobster
 
 <p align="center"><br />
   एक संदेश भेजें, अपनी जेब से ही एजेंट का जवाब पाएँ।Plugins Mattermost और अन्य जोड़ते हैं। OpenClaw एक **self-hosted gateway** है जो आपके पसंदीदा चैट ऐप्स — WhatsApp, Telegram, Discord, iMessage, और अन्य — को Pi जैसे AI कोडिंग एजेंट्स से जोड़ता है।

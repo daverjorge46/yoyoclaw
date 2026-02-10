@@ -377,11 +377,11 @@ ack-reaktionen efter att botten svarat.
 
 Som standard svarar OpenClaw i huvudkanalen. Använd `channels.slack.replyToMode` för att styra automatisk trådning:
 
-| Läge    | Beteende                                                                                                                                                                                                                                |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Standard.** Svara i huvudkanalen. Endast tråd om det utlösande meddelandet redan fanns i en tråd.                                                                                     |
+| Läge    | Beteende                                                                                                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `off`   | **Standard.** Svara i huvudkanalen. Endast tråd om det utlösande meddelandet redan fanns i en tråd.                                                                                  |
 | `first` | Första svaret går till tråden (under det utlösande meddelandet), följande svar går till huvudkanalen. Användbart för att hålla kontexten synlig samtidigt som trådens skräp undviks. |
-| `all`   | Alla svar går till tråden. Håller konversationer innehöll men kan minska synligheten.                                                                                                                   |
+| `all`   | Alla svar går till tråden. Håller konversationer innehöll men kan minska synligheten.                                                                                                |
 
 Läget gäller både autosvar och agentverktygsanrop (`slack sendMessage`).
 

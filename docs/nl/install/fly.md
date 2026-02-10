@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Belangrijke instellingen:**
 
-| Instelling                     | Waarom                                                                                                    |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Bindt aan `0.0.0.0` zodat de proxy van Fly de Gateway kan bereiken                                        |
+| Instelling                     | Waarom                                                                                 |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| `--bind lan`                   | Bindt aan `0.0.0.0` zodat de proxy van Fly de Gateway kan bereiken                     |
 | `--allow-unconfigured`         | Start zonder configbestand (je maakt er later een)                                     |
 | `internal_port = 3000`         | Moet overeenkomen met `--port 3000` (of `OPENCLAW_GATEWAY_PORT`) voor Fly-healthchecks |
-| `memory = "2048mb"`            | 512MB is te klein; 2GB aanbevolen                                                                         |
-| `OPENCLAW_STATE_DIR = "/data"` | Houdt status persistent op het volume                                                                     |
+| `memory = "2048mb"`            | 512MB is te klein; 2GB aanbevolen                                                      |
+| `OPENCLAW_STATE_DIR = "/data"` | Houdt status persistent op het volume                                                  |
 
 ## 3. Secrets instellen
 

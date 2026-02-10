@@ -47,7 +47,6 @@ Detalles: [Plugins](/tools/plugin)
    - O alójelo usted mismo.
 
 3. Obtenga un token de acceso para la cuenta del bot:
-
    - Use la API de inicio de sesión de Matrix con `curl` en su homeserver:
 
    ```bash
@@ -195,17 +194,17 @@ Una vez verificado, el bot puede descifrar mensajes en salas cifradas.
 
 ## Capacidades
 
-| Función           | Estado                                                                                                            |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Mensajes directos | ✅ Compatible                                                                                                      |
-| Salas             | ✅ Compatible                                                                                                      |
-| Hilos             | ✅ Compatible                                                                                                      |
-| Medios            | ✅ Compatible                                                                                                      |
+| Función           | Estado                                                                                          |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| Mensajes directos | ✅ Compatible                                                                                   |
+| Salas             | ✅ Compatible                                                                                   |
+| Hilos             | ✅ Compatible                                                                                   |
+| Medios            | ✅ Compatible                                                                                   |
 | E2EE              | ✅ Compatible (se requiere módulo criptográfico)                                                |
 | Reacciones        | ✅ Compatible (enviar/leer mediante herramientas)                                               |
 | Encuestas         | ✅ Envío compatible; los inicios entrantes se convierten a texto (respuestas/finales ignorados) |
 | Ubicación         | ✅ Compatible (URI geo; altitud ignorada)                                                       |
-| Comandos nativos  | ✅ Compatible                                                                                                      |
+| Comandos nativos  | ✅ Compatible                                                                                   |
 
 ## Solución de problemas
 

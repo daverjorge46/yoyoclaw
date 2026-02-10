@@ -265,12 +265,12 @@ channels:
 
 ### Common patterns
 
-| Goal                                                                  | Config                                                                                   |
-| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| ပုံမှန်အပြုအမူ (OK များကို တိတ်ဆိတ်၊ alerts ဖွင့်) | _(config မလိုအပ်)_                                                    |
+| Goal                                               | Config                                                                                   |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ပုံမှန်အပြုအမူ (OK များကို တိတ်ဆိတ်၊ alerts ဖွင့်) | _(config မလိုအပ်)_                                                                       |
 | လုံးဝ တိတ်ဆိတ် (မက်ဆေ့ချ်မရှိ၊ indicator မရှိ)     | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Indicator-only (မက်ဆေ့ချ်မရှိ)                     | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| ချန်နယ်တစ်ခုတွင်သာ OK များ                                            | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| ချန်နယ်တစ်ခုတွင်သာ OK များ                         | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (optional)
 

@@ -44,11 +44,11 @@ title: "Установка"
         ```
       </Tab>
     </Tabs>
-    
+
     Готово — скрипт выполняет обнаружение Node, установку и первичную настройку.
-    
+
     Чтобы пропустить первичную настройку и просто установить бинарный файл:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ title: "Установка"
         ```
       </Tab>
     </Tabs>
-    
+
     Все флаги, переменные окружения и варианты для CI/автоматизации см. в разделе [Внутреннее устройство установщика](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ title: "Установка"
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="Ошибки сборки sharp?">
           Если у вас глобально установлен libvips (часто на macOS через Homebrew) и `sharp` завершается с ошибкой, принудительно используйте предварительно собранные бинарные файлы:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Если вы видите `sharp: Please add node-gyp to your dependencies`, установите инструменты сборки (macOS: Xcode CLT + `npm install -g node-gyp`) или используйте указанную выше переменную окружения.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ title: "Установка"
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm требует явного подтверждения для пакетов со скриптами сборки. После того как первая установка покажет предупреждение «Ignored build scripts», выполните `pnpm approve-builds -g` и выберите перечисленные пакеты.
         </Note>
@@ -111,7 +111,7 @@ title: "Установка"
     <Steps>
       <Step title="Клонировать и собрать">
         Клонируйте [репозиторий OpenClaw](https://github.com/openclaw/openclaw) и выполните сборку:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ title: "Установка"
       </Step>
       <Step title="Подключить CLI">
         Сделайте команду `openclaw` доступной глобально:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Либо пропустите связывание и запускайте команды через `pnpm openclaw ...` изнутри репозитория.
       </Step>
       <Step title="Запустить первичную настройку">
@@ -135,7 +135,7 @@ title: "Установка"
         ```
       </Step>
     </Steps>
-    
+
     Для более глубоких рабочих процессов разработки см. раздел [Настройка](/start/setup).
     ```
 

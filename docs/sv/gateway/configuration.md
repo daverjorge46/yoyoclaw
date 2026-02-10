@@ -1546,13 +1546,13 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| Variable          | Description            | Example                                    |
-| ----------------- | ---------------------- | ------------------------------------------ |
-| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o`                |
-| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6`                |
-| `{provider}`      | Provider name          | `anthropic`, `openai`                      |
-| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`                       |
-| `{identity.name}` | Agent identity name    | (same as `"auto"` mode) |
+| Variable          | Description            | Example                     |
+| ----------------- | ---------------------- | --------------------------- |
+| `{model}`         | Short model name       | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Full model identifier  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Provider name          | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Current thinking level | `high`, `low`, `off`        |
+| `{identity.name}` | Agent identity name    | (same as `"auto"` mode)     |
 
 Variabler är skiftlägesokänsliga (`{MODEL}` = `{model}`). `{think}` är ett alias för `{thinkingLevel}`.
 Olösta variabler förblir som bokstavlig text.
@@ -3379,16 +3379,16 @@ openclaw dns setup --apply
 
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
-<unk> Variabel <unk> Beskrivning <unk> <unk> ------------------------------------------------------------------------------------------------------- <unk> -------- <unk> ------- <unk> ---------- <unk> ----- <unk> ------ <unk> -------- <unk> ------- <unk> --- <unk> <unk> `{{Body}}` <unk> Fullständig inkommande meddelandekropp <unk> <unk> `{{RawBody}}` <unk> Rå inkommande meddelandekropp (ingen historik/avsändaromslag; bäst för kommandot parsing) <unk> <unk> `{{BodyStripped}}` <unk> Body med gruppen omnämnanden borttagna (bästa standard för agenter) <unk> <unk> `{{From}}` <unk> Sender identifierare (E. 64 för WhatsApp kan skilja sig åt per kanal) <unk> <unk> `{{To}}` <unk> Destination identifierare <unk> <unk> `{{MessageSid}}` <unk> Channel meddelande id (när tillgängligt) <unk> <unk> `{{SessionId}}` <unk> Current session UUID <unk> <unk> `{{IsNewSession}}` <unk> `"true"` när en ny session skapades <unk> <unk> `{{MediaUrl}}` <unk> Inkommande media pseudo-URL (om närvarande) <unk> <unk> `{{MediaPath}}` <unk> Lokal mediakurs (om nedladdning) <unk> <unk> `{{MediaType}}` <unk> Mediatyp (bild/ljud/dokument/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+<unk> Variabel <unk> Beskrivning <unk> <unk> ------------------------------------------------------------------------------------------------------- <unk> -------- <unk> ------- <unk> ---------- <unk> ----- <unk> ------ <unk> -------- <unk> ------- <unk> --- <unk> <unk> `{{Body}}` <unk> Fullständig inkommande meddelandekropp <unk> <unk> `{{RawBody}}` <unk> Rå inkommande meddelandekropp (ingen historik/avsändaromslag; bäst för kommandot parsing) <unk> <unk> `{{BodyStripped}}` <unk> Body med gruppen omnämnanden borttagna (bästa standard för agenter) <unk> <unk> `{{From}}` <unk> Sender identifierare (E. 64 för WhatsApp kan skilja sig åt per kanal) <unk> <unk> `{{To}}` <unk> Destination identifierare <unk> <unk> `{{MessageSid}}` <unk> Channel meddelande id (när tillgängligt) <unk> <unk> `{{SessionId}}` <unk> Current session UUID <unk> <unk> `{{IsNewSession}}` <unk> `"true"` när en ny session skapades <unk> <unk> `{{MediaUrl}}` <unk> Inkommande media pseudo-URL (om närvarande) <unk> <unk> `{{MediaPath}}` <unk> Lokal mediakurs (om nedladdning) <unk> <unk> `{{MediaType}}` <unk> Mediatyp (bild/ljud/dokument/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

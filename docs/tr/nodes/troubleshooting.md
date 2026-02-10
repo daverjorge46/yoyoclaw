@@ -50,12 +50,12 @@ openclaw logs --follow
 
 ## İzinler matrisi
 
-| Yetenek                      | iOS                                                               | Android                                                            | macOS düğüm uygulaması                                | Tipik hata kodu                |
-| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------ |
+| Yetenek                      | iOS                                            | Android                                         | macOS düğüm uygulaması             | Tipik hata kodu                |
+| ---------------------------- | ---------------------------------------------- | ----------------------------------------------- | ---------------------------------- | ------------------------------ |
 | `camera.snap`, `camera.clip` | Kamera (+ klip sesi için mikrofon)             | Kamera (+ klip sesi için mikrofon)              | Kamera (+ klip sesi için mikrofon) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Ekran Kaydı (+ mikrofon isteğe bağlı)          | Ekran yakalama istemi (+ mikrofon isteğe bağlı) | Ekran Kaydı                                           | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Kullanım Sırasında veya Her Zaman (mode bağlı) | Moda bağlı olarak Ön Plan/Arka Plan konumu                         | Konum izni                                            | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (düğüm ana makinesi yolu)                  | n/a (düğüm ana makinesi yolu)                   | Exec onayları gerekli                                 | `SYSTEM_RUN_DENIED`            |
+| `screen.record`              | Ekran Kaydı (+ mikrofon isteğe bağlı)          | Ekran yakalama istemi (+ mikrofon isteğe bağlı) | Ekran Kaydı                        | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Kullanım Sırasında veya Her Zaman (mode bağlı) | Moda bağlı olarak Ön Plan/Arka Plan konumu      | Konum izni                         | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (düğüm ana makinesi yolu)                  | n/a (düğüm ana makinesi yolu)                   | Exec onayları gerekli              | `SYSTEM_RUN_DENIED`            |
 
 ## Pairing versus approvals
 

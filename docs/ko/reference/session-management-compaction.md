@@ -67,7 +67,7 @@ OpenClaw 는 `src/config/sessions.ts` 를 통해 이를 해석합니다.
 
 ## 세션 키 (`sessionKey`)
 
-`sessionKey` 는 _어떤 대화 버킷_에 있는지를 식별합니다(라우팅 + 격리).
+`sessionKey` 는 *어떤 대화 버킷*에 있는지를 식별합니다(라우팅 + 격리).
 
 일반적인 패턴:
 

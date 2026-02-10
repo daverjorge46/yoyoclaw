@@ -528,34 +528,34 @@ Fuld konfiguration: [Gateway-konfiguration](/gateway/configuration)
 
 Nøgleindstillinger:
 
-| Indstilling                                                                                                                                                      | Beskrivelse                                                                 | Standard  |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                                                                                                                                        | Aktivér/deaktivér kanal                                                     | `true`    |
-| `channels.feishu.domain`                                                                                                                                         | API-domæne (`feishu` eller `lark`)                       | `feishu`  |
-| \`channels.feishu.accounts.<id>.appId«                                                           | App ID                                                                      | -         |
-| `channels.feishu.accounts.<id>.appSecret`                                                                                                                        | App Secret                                                                  | -         |
-| \`channels.feishu.accounts.<id>.domæne«                                                          | Tilsidesættelse af API-domæne pr. konto                     | `feishu`  |
-| `channels.feishu.dmPolicy`                                                                                                                                       | DM-politik                                                                  | `pairing` |
-| `channels.feishu.allowFrom`                                                                                                                                      | DM-tilladelsesliste (open_id-liste) | -         |
-| `channels.feishu.groupPolicy`                                                                                                                                    | Gruppepolitik                                                               | `open`    |
-| `channels.feishu.groupAllowFrom`                                                                                                                                 | Gruppens tilladelsesliste                                                   | -         |
-| \`channels.feishu.groups.<chat_id>.requireMention« | Kræv @mention                                                  | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`                                                                                                                       | Aktivér gruppe                                                              | `true`    |
-| `channels.feishu.textChunkLimit`                                                                                                                                 | Besked-chunkstørrelse                                                       | `2000`    |
-| `channels.feishu.mediaMaxMb`                                                                                                                                     | Mediestørrelsesgrænse                                                       | `30`      |
-| `channels.feishu.streaming`                                                                                                                                      | Aktivér streaming-kortoutput                                                | `true`    |
-| `channels.feishu.blockStreaming`                                                                                                                                 | Aktivér blokstreaming                                                       | `true`    |
+| Indstilling                                        | Beskrivelse                             | Standard  |
+| -------------------------------------------------- | --------------------------------------- | --------- |
+| `channels.feishu.enabled`                          | Aktivér/deaktivér kanal                 | `true`    |
+| `channels.feishu.domain`                           | API-domæne (`feishu` eller `lark`)      | `feishu`  |
+| \`channels.feishu.accounts.<id>.appId«             | App ID                                  | -         |
+| `channels.feishu.accounts.<id>.appSecret`          | App Secret                              | -         |
+| \`channels.feishu.accounts.<id>.domæne«            | Tilsidesættelse af API-domæne pr. konto | `feishu`  |
+| `channels.feishu.dmPolicy`                         | DM-politik                              | `pairing` |
+| `channels.feishu.allowFrom`                        | DM-tilladelsesliste (open_id-liste)     | -         |
+| `channels.feishu.groupPolicy`                      | Gruppepolitik                           | `open`    |
+| `channels.feishu.groupAllowFrom`                   | Gruppens tilladelsesliste               | -         |
+| \`channels.feishu.groups.<chat_id>.requireMention« | Kræv @mention                           | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`         | Aktivér gruppe                          | `true`    |
+| `channels.feishu.textChunkLimit`                   | Besked-chunkstørrelse                   | `2000`    |
+| `channels.feishu.mediaMaxMb`                       | Mediestørrelsesgrænse                   | `30`      |
+| `channels.feishu.streaming`                        | Aktivér streaming-kortoutput            | `true`    |
+| `channels.feishu.blockStreaming`                   | Aktivér blokstreaming                   | `true`    |
 
 ---
 
 ## dmPolicy-reference
 
-| Værdi         | Adfærd                                                                            |
-| ------------- | --------------------------------------------------------------------------------- |
+| Værdi         | Adfærd                                                            |
+| ------------- | ----------------------------------------------------------------- |
 | `"pairing"`   | **Standard.** Ukendte brugere får en parringskode; skal godkendes |
-| `"allowlist"` | Kun brugere i `allowFrom` kan chatte                                              |
-| `"open"`      | Tillad alle brugere (kræver `"*"` i allowFrom)                 |
-| `"disabled"`  | Deaktivér DM’er                                                                   |
+| `"allowlist"` | Kun brugere i `allowFrom` kan chatte                              |
+| `"open"`      | Tillad alle brugere (kræver `"*"` i allowFrom)                    |
+| `"disabled"`  | Deaktivér DM’er                                                   |
 
 ---
 

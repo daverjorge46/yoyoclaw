@@ -922,7 +922,7 @@ OpenClaw n'est pas « un couvre-chef Claude ». C’est un **plan de contrôle l
 
 Points forts :
 
-- **Vos périphériques, vos données :** exécutez la passerelle où vous voulez (Mac, Linux, VPS) et gardez l'espace de travail* l'historique des sessions en local.
+- **Vos périphériques, vos données :** exécutez la passerelle où vous voulez (Mac, Linux, VPS) et gardez l'espace de travail\* l'historique des sessions en local.
 - **Les canaux réels, pas un bac à sable web :** WhatsApp/Telegram/Slack/Discord/Signal/iMessage/etc,
   plus la voix mobile et Canvas sur les plateformes prises en charge.
 - **Indépendant du modèle :** utilisez Anthropic, OpenAI, MiniMax, OpenRouter, etc., avec routage et bascule par agent.
@@ -1209,7 +1209,7 @@ préfère `local`.
 Si vous préférez rester local, définissez `memorySearch.provider = "local"` (et optionnellement
 `memorySearch.fallback = "none"`). Si vous voulez des embeddings Gemini, définissez
 `memorySearch.provider = "gemini"` et fournissez `GEMINI_API_KEY` (ou
-`memorySearch.remote.apiKey`). Nous prenons en charge les modèles **OpenAI, Gemini, ou local** incorporant* voir [Memory](/concepts/memory) pour les détails de l'installation.
+`memorySearch.remote.apiKey`). Nous prenons en charge les modèles **OpenAI, Gemini, ou local** incorporant\* voir [Memory](/concepts/memory) pour les détails de l'installation.
 
 ### Est-ce que la mémoire persiste pour toujours Quelles sont les limites
 
@@ -1240,8 +1240,8 @@ Relatif : [Espace de travail de l'agent](/concepts/agent-workspace), [Memory](/c
 
 Tout ce qui vit sous `$OPENCLAW_STATE_DIR` (par défaut: `~/.openclaw`):
 
-| Chemin d'accès                                                  | Objectif                                                                                                           |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Chemin d'accès                                                  | Objectif                                                                                        |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `$OPENCLAW_STATE_DIR/openclaw.json`                             | Configuration principale (JSON5)                                                                |
 | `$OPENCLAW_STATE_DIR/identifiants/oauth.json`                   | Import OAuth hérité (copié dans les profils d'authentification lors de la première utilisation) |
 | `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Profils d'authentification (OAuth + Clés API)                                                   |
@@ -1339,7 +1339,7 @@ Les liaisons non-boucle **requièrent l'auth**. Configurer `gateway.auth.mode` +
 
 ```json5
 {
-  passerelle : {
+  passerelle: {
     bind: "lan",
     auth: {
       mode: "token",
@@ -1380,10 +1380,10 @@ La passerelle surveille la configuration et prend en charge le rechargement à c
     web: {
       search: {
         activé: true,
-        apiKey : "BRAVE_API_KEY_ICI",
+        apiKey: "BRAVE_API_KEY_ICI",
         maxResults: 5,
       },
-      fetch : {
+      fetch: {
         enabled: true,
       },
     },

@@ -118,7 +118,7 @@ Large files are truncated per-file using `agents.defaults.bootstrapMaxChars` (de
 
 2. System prompt bao gồm một **danh sách kỹ năng** gọn nhẹ (tên + mô tả + vị trí). 3. Danh sách này có chi phí overhead thực sự.
 
-4. Hướng dẫn kỹ năng _không_ được bao gồm theo mặc định. 5. Mô hình được kỳ vọng sẽ `đọc` `SKILL.md` của kỹ năng **chỉ khi cần**.
+3. Hướng dẫn kỹ năng _không_ được bao gồm theo mặc định. 5. Mô hình được kỳ vọng sẽ `đọc` `SKILL.md` của kỹ năng **chỉ khi cần**.
 
 ## Công cụ: có hai loại chi phí
 

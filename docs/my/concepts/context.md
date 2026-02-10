@@ -118,7 +118,7 @@ Top tools (schema size):
 
 12. System prompt ထဲတွင် compact ဖြစ်သော **skills list** (name + description + location) ပါဝင်ပါသည်။ 13. ဤစာရင်းတွင် အမှန်တကယ် overhead ရှိပါသည်။
 
-14. Skill instructions များကို default အနေဖြင့် မထည့်သွင်းပါ။ 15. Model သည် လိုအပ်သည့်အချိန်တွင်သာ skill ၏ `SKILL.md` ကို **ဖတ်ရန် မျှော်လင့်ထားပါသည်**။
+13. Skill instructions များကို default အနေဖြင့် မထည့်သွင်းပါ။ 15. Model သည် လိုအပ်သည့်အချိန်တွင်သာ skill ၏ `SKILL.md` ကို **ဖတ်ရန် မျှော်လင့်ထားပါသည်**။
 
 ## Tools: ကုန်ကျစရိတ် နှစ်မျိုးရှိပါတယ်
 

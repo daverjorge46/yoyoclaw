@@ -109,7 +109,7 @@ OpenClaw သည် အောက်ပါအစဉ်အတိုင်း scan �
 
 33. Bundled plugins များကို `plugins.entries.<id>.enabled` သို့မဟုတ် `openclaw plugins enable <id>` ဖြင့် တိတိကျကျ enable လုပ်ရမည်။34. Installed plugins များသည် default အနေဖြင့် enable ဖြစ်သော်လည်း အတူတူသောနည်းလမ်းဖြင့် disable လုပ်နိုင်သည်။ 35. plugin တစ်ခုချင်းစီသည် ၎င်း၏ root တွင် `openclaw.plugin.json` ဖိုင် တစ်ခု ပါဝင်ရမည်။
 
-36. path တစ်ခုသည် ဖိုင်တစ်ခုကို ညွှန်ပြနေပါက plugin root သည် ထိုဖိုင်၏ directory ဖြစ်ပြီး manifest ပါဝင်ရမည်။ 37. entry တစ်ခုချင်းစီသည် plugin တစ်ခု ဖြစ်လာမည်။
+34. path တစ်ခုသည် ဖိုင်တစ်ခုကို ညွှန်ပြနေပါက plugin root သည် ထိုဖိုင်၏ directory ဖြစ်ပြီး manifest ပါဝင်ရမည်။ 37. entry တစ်ခုချင်းစီသည် plugin တစ်ခု ဖြစ်လာမည်။
 
 plugin id တူညီသည့် ပလပ်ဂင်များ အများအပြား ရှိပါက
 အထက်ပါအစဉ်အတိုင်း ပထမဆုံး တွေ့ရှိသော plugin သာ အသုံးပြုမည်ဖြစ်ပြီး

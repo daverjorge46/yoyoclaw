@@ -18,7 +18,7 @@ Tip: patakbuhin ang `openclaw cron --help` para sa buong saklaw ng mga command.
 
 50. Tandaan: ang mga isolated na `cron add` job ay default na may `--announce` delivery. 1. Gamitin ang `--no-deliver` upang panatilihing panloob ang output. 2. Ang `--deliver` ay nananatiling isang deprecated na alias para sa `--announce`.
 
-3. Paalala: ang mga one-shot (`--at`) na job ay awtomatikong nabubura pagkatapos ng matagumpay na pagtakbo. 4. Gamitin ang `--keep-after-run` upang panatilihin ang mga ito.
+51. Paalala: ang mga one-shot (`--at`) na job ay awtomatikong nabubura pagkatapos ng matagumpay na pagtakbo. 4. Gamitin ang `--keep-after-run` upang panatilihin ang mga ito.
 
 Note: ang mga recurring job ay gumagamit na ngayon ng exponential retry backoff matapos ang sunod-sunod na error (30s → 1m → 5m → 15m → 60m), at pagkatapos ay babalik sa normal na iskedyul matapos ang susunod na matagumpay na run.
 

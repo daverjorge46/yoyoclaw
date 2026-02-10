@@ -28,12 +28,12 @@ title: "Pi ပေါင်းစည်းမှု ဆောက်လုပ်�
 }
 ```
 
-| Package           | ရည်ရွယ်ချက်                                                                                                            |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Package           | ရည်ရွယ်ချက်                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
 | `pi-ai`           | အခြေခံ LLM abstraction များ: `Model`, `streamSimple`, message types, provider APIs                     |
-| `pi-agent-core`   | Agent loop, tool execution, `AgentMessage` အမျိုးအစားများ                                                              |
+| `pi-agent-core`   | Agent loop, tool execution, `AgentMessage` အမျိုးအစားများ                                              |
 | `pi-coding-agent` | အဆင့်မြင့် SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, built-in tools |
-| `pi-tui`          | Terminal UI အစိတ်အပိုင်းများ (OpenClaw ၏ local TUI mode တွင် အသုံးပြုသည်)                           |
+| `pi-tui`          | Terminal UI အစိတ်အပိုင်းများ (OpenClaw ၏ local TUI mode တွင် အသုံးပြုသည်)                              |
 
 ## File Structure
 
@@ -511,15 +511,15 @@ import { ... } from "@mariozechner/pi-tui";
 
 ## Pi CLI နှင့် ကွာခြားချက်များ
 
-| Aspect          | Pi CLI                              | OpenClaw Embedded                                                                                                        |
-| --------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Invocation      | `pi` command / RPC                  | `createAgentSession()` မှတစ်ဆင့် SDK                                                                                     |
-| Tools           | Default coding tools                | OpenClaw ၏ custom tool suite                                                                                             |
-| System prompt   | AGENTS.md + prompts | channel/context အလိုက် dynamic                                                                                           |
-| Session storage | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (သို့မဟုတ် `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth            | အထောက်အထားတစ်ခုတည်း                 | လှည့်လည်အသုံးပြုနိုင်သော multi-profile                                                                                   |
-| Extensions      | disk မှ load လုပ်သည်                | Programmatic + disk paths                                                                                                |
-| Event handling  | TUI rendering                       | Callback အခြေပြု (onBlockReply စသည်)                                                                  |
+| Aspect          | Pi CLI                  | OpenClaw Embedded                                                                                     |
+| --------------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| Invocation      | `pi` command / RPC      | `createAgentSession()` မှတစ်ဆင့် SDK                                                                  |
+| Tools           | Default coding tools    | OpenClaw ၏ custom tool suite                                                                          |
+| System prompt   | AGENTS.md + prompts     | channel/context အလိုက် dynamic                                                                        |
+| Session storage | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (သို့မဟုတ် `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth            | အထောက်အထားတစ်ခုတည်း     | လှည့်လည်အသုံးပြုနိုင်သော multi-profile                                                                |
+| Extensions      | disk မှ load လုပ်သည်    | Programmatic + disk paths                                                                             |
+| Event handling  | TUI rendering           | Callback အခြေပြု (onBlockReply စသည်)                                                                  |
 
 ## အနာဂတ် စဉ်းစားရန် အချက်များ
 

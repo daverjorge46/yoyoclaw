@@ -528,34 +528,34 @@ Vollständige Konfiguration: [Gateway-Konfiguration](/gateway/configuration)
 
 Schlüsseloptionen:
 
-| Einstellung                                       | Beschreibung                                                         | Standard  |
-| ------------------------------------------------- | -------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | Kanal aktivieren/deaktivieren                                        | `true`    |
-| `channels.feishu.domain`                          | API-Domain (`feishu` oder `lark`)                 | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                               | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                           | -         |
-| `channels.feishu.accounts.<id>.domain`            | API-Domain-Override pro Konto                                        | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM-Richtlinie                                                        | `pairing` |
-| `channels.feishu.allowFrom`                       | DM-Allowlist (open_id-Liste) | -         |
-| `channels.feishu.groupPolicy`                     | Gruppenrichtlinie                                                    | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Gruppen-Allowlist                                                    | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | @Erwähnung erforderlich                                 | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Gruppe aktivieren                                                    | `true`    |
-| `channels.feishu.textChunkLimit`                  | Nachrichtensegmentgröße                                              | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | Mediengrößenlimit                                                    | `30`      |
-| `channels.feishu.streaming`                       | Streaming-Kartenausgabe aktivieren                                   | `true`    |
-| `channels.feishu.blockStreaming`                  | Block-Streaming aktivieren                                           | `true`    |
+| Einstellung                                       | Beschreibung                       | Standard  |
+| ------------------------------------------------- | ---------------------------------- | --------- |
+| `channels.feishu.enabled`                         | Kanal aktivieren/deaktivieren      | `true`    |
+| `channels.feishu.domain`                          | API-Domain (`feishu` oder `lark`)  | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                             | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                         | -         |
+| `channels.feishu.accounts.<id>.domain`            | API-Domain-Override pro Konto      | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM-Richtlinie                      | `pairing` |
+| `channels.feishu.allowFrom`                       | DM-Allowlist (open_id-Liste)       | -         |
+| `channels.feishu.groupPolicy`                     | Gruppenrichtlinie                  | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Gruppen-Allowlist                  | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | @Erwähnung erforderlich            | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Gruppe aktivieren                  | `true`    |
+| `channels.feishu.textChunkLimit`                  | Nachrichtensegmentgröße            | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | Mediengrößenlimit                  | `30`      |
+| `channels.feishu.streaming`                       | Streaming-Kartenausgabe aktivieren | `true`    |
+| `channels.feishu.blockStreaming`                  | Block-Streaming aktivieren         | `true`    |
 
 ---
 
 ## dmPolicy-Referenz
 
-| Wert          | Verhalten                                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| Wert          | Verhalten                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------ |
 | `"pairing"`   | **Standard.** Unbekannte Benutzer erhalten einen Kopplungscode und müssen genehmigt werden |
-| `"allowlist"` | Nur Benutzer in `allowFrom` können chatten                                                                 |
-| `"open"`      | Alle Benutzer zulassen (erfordert `"*"` in allowFrom)                                   |
-| `"disabled"`  | DMs deaktivieren                                                                                           |
+| `"allowlist"` | Nur Benutzer in `allowFrom` können chatten                                                 |
+| `"open"`      | Alle Benutzer zulassen (erfordert `"*"` in allowFrom)                                      |
+| `"disabled"`  | DMs deaktivieren                                                                           |
 
 ---
 

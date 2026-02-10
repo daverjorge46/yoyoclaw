@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Configuraciones clave:**
 
-| Configuración                  | Por qué                                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Se vincula a `0.0.0.0` para que el proxy de Fly pueda alcanzar el gateway                                     |
+| Configuración                  | Por qué                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| `--bind lan`                   | Se vincula a `0.0.0.0` para que el proxy de Fly pueda alcanzar el gateway                  |
 | `--allow-unconfigured`         | Inicia sin un archivo de configuración (lo creará después)                                 |
 | `internal_port = 3000`         | Debe coincidir con `--port 3000` (o `OPENCLAW_GATEWAY_PORT`) para los health checks de Fly |
-| `memory = "2048mb"`            | 512MB es demasiado poco; se recomiendan 2GB                                                                   |
-| `OPENCLAW_STATE_DIR = "/data"` | Persiste el estado en el volumen                                                                              |
+| `memory = "2048mb"`            | 512MB es demasiado poco; se recomiendan 2GB                                                |
+| `OPENCLAW_STATE_DIR = "/data"` | Persiste el estado en el volumen                                                           |
 
 ## 3. Configurar secretos
 

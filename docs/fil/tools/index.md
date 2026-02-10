@@ -86,8 +86,7 @@ Halimbawa (global coding profile, messaging-only na support agent):
 31. Per-agent override: `agents.list[].tools.byProvider`.
 
 This is applied **after** the base tool profile and **before** allow/deny lists,
-so it can only narrow the tool set.
-32. Tumatanggap ang mga provider key ng alinman sa `provider` (hal. `google-antigravity`) o
+so it can only narrow the tool set. 32. Tumatanggap ang mga provider key ng alinman sa `provider` (hal. `google-antigravity`) o
 `provider/model` (hal. `openai/gpt-5.2`).
 
 Halimbawa (panatilihin ang global coding profile, pero minimal na mga tool para sa Google Antigravity):
@@ -137,8 +136,7 @@ Halimbawa (agent-specific na override para sa isang provider):
 
 ## Mga grupo ng tool (shorthands)
 
-Sinusuportahan ng mga tool policy (global, agent, sandbox) ang mga `group:*` na entry na lumalawak sa maraming tool.
-33. Gamitin ang mga ito sa `tools.allow` / `tools.deny`.
+Sinusuportahan ng mga tool policy (global, agent, sandbox) ang mga `group:*` na entry na lumalawak sa maraming tool. 33. Gamitin ang mga ito sa `tools.allow` / `tools.deny`.
 
 Mga available na grupo:
 

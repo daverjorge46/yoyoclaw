@@ -20,13 +20,13 @@ Maaaring maging magandang opsyon ang free tier ng Oracle para sa OpenClaw (lalo 
 
 ## Paghahambing ng Gastos (2026)
 
-| Provider     | Plan            | Specs                     | Presyo/buwan         | Mga tala                      |
-| ------------ | --------------- | ------------------------- | -------------------- | ----------------------------- |
-| Oracle Cloud | Always Free ARM | hanggang 4 OCPU, 24GB RAM | $0                   | ARM, limitadong capacity      |
-| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | ~ $4 | Pinakamurang paid option      |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6                   | Madaling UI, magagandang docs |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6                   | Maraming lokasyon             |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5                   | Bahagi na ng Akamai           |
+| Provider     | Plan            | Specs                     | Presyo/buwan | Mga tala                      |
+| ------------ | --------------- | ------------------------- | ------------ | ----------------------------- |
+| Oracle Cloud | Always Free ARM | hanggang 4 OCPU, 24GB RAM | $0           | ARM, limitadong capacity      |
+| Hetzner      | CX22            | 2 vCPU, 4GB RAM           | ~ $4         | Pinakamurang paid option      |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM           | $6           | Madaling UI, magagandang docs |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM           | $6           | Maraming lokasyon             |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM           | $5           | Bahagi na ng Akamai           |
 
 ---
 

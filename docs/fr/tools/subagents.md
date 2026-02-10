@@ -158,24 +158,24 @@ Les sessions des sous-agents sont automatiquement archivées après une période
 
 ### Parametres
 
-| 17. Paramètre           | Type                                              | Par défaut                                                        | Description                                                                                                                           |
-| ---------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 18. `task`              | string                                            | 19. _(obligatoire)_     | 20. Ce que le sous-agent doit faire                                                                            |
-| 21. `label`             | string                                            | 22. —                                      | 23. Libellé court pour l’identification                                                                        |
-| 24. `agentId`           | string                                            | 25. _(agent appelant)_  | 26. Créer sous un identifiant d’agent différent (doit être autorisé)                        |
-| `modèle`                                       | string                                            | 27. _(optionnel)_       | 28. Remplacer le modèle pour ce sous-agent                                                                     |
-| 29. `thinking`          | string                                            | 30. _(optionnel)_       | 31. Remplacer le niveau de réflexion (`off`, `low`, `medium`, `high`, etc.) |
-| 32. `runTimeoutSeconds` | 33. nombre                 | 34. `0` (aucune limite) | 35. Interrompre le sous-agent après N secondes                                                                 |
-| `nettoyage`                                    | 36. `"delete"` \| `"keep"` | 37. `"keep"`                               | 38. `"delete"` archive immédiatement après l’annonce                                                           |
+| 17. Paramètre           | Type                       | Par défaut              | Description                                                                 |
+| ----------------------- | -------------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| 18. `task`              | string                     | 19. _(obligatoire)_     | 20. Ce que le sous-agent doit faire                                         |
+| 21. `label`             | string                     | 22. —                   | 23. Libellé court pour l’identification                                     |
+| 24. `agentId`           | string                     | 25. _(agent appelant)_  | 26. Créer sous un identifiant d’agent différent (doit être autorisé)        |
+| `modèle`                | string                     | 27. _(optionnel)_       | 28. Remplacer le modèle pour ce sous-agent                                  |
+| 29. `thinking`          | string                     | 30. _(optionnel)_       | 31. Remplacer le niveau de réflexion (`off`, `low`, `medium`, `high`, etc.) |
+| 32. `runTimeoutSeconds` | 33. nombre                 | 34. `0` (aucune limite) | 35. Interrompre le sous-agent après N secondes                              |
+| `nettoyage`             | 36. `"delete"` \| `"keep"` | 37. `"keep"`            | 38. `"delete"` archive immédiatement après l’annonce                        |
 
 ### 39. Ordre de résolution du modèle
 
 40. Le modèle du sous-agent est résolu dans cet ordre (la première correspondance l’emporte) :
 
 1. 41. Paramètre `model` explicite dans l’appel `sessions_spawn`
-2. 42. Configuration par agent : `agents.list[].subagents.model`
-3. 43. Valeur par défaut globale : `agents.defaults.subagents.model`
-4. 44. Résolution normale du modèle de l’agent cible pour cette nouvelle session
+1. 42. Configuration par agent : `agents.list[].subagents.model`
+1. 43. Valeur par défaut globale : `agents.defaults.subagents.model`
+1. 44. Résolution normale du modèle de l’agent cible pour cette nouvelle session
 
 45) Le niveau de réflexion est résolu dans cet ordre :
 
@@ -213,13 +213,13 @@ Use the `agents_list` tool to discover which agent ids are currently allowed for
 
 Use the `/subagents` slash command to inspect and control sub-agent runs for the current session:
 
-| Commande                                   | Description                                                       |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| `/subagents list`                          | List all sub-agent runs (active and completed) |
-| `/subagents stop <id\\|#\\|all>`         | Stop a running sub-agent                                          |
-| `/subagents log <id\\|#> [limit] [tools]` | View sub-agent transcript                                         |
-| `/subagents info <id\\|#>`                | Show detailed run metadata                                        |
-| `/subagents send <id\\|#> <message>`      | Send a message to a running sub-agent                             |
+| Commande               | Description                                    |
+| ---------------------- | ---------------------------------------------- | ------------------------------------- | ------------------------ |
+| `/subagents list`      | List all sub-agent runs (active and completed) |
+| `/subagents stop <id\\ | #\\                                            | all>`                                 | Stop a running sub-agent |
+| `/subagents log <id\\  | #> [limit] [tools]`                            | View sub-agent transcript             |
+| `/subagents info <id\\ | #>`                                            | Show detailed run metadata            |
+| `/subagents send <id\\ | #> <message>`                                  | Send a message to a running sub-agent |
 
 You can reference sub-agents by list index (`1`, `2`), run id prefix, full session key, or `last`.
 
@@ -237,11 +237,11 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -275,7 +275,7 @@ You can reference sub-agents by list index (`1`, `2`), run id prefix, full sessi
 
     ````
     Shows the last 10 messages from the sub-agent's transcript. Add `tools` to include tool call messages:
-    
+
     ```
     /subagents log 1 10 tools
     ```

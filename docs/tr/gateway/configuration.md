@@ -1532,13 +1532,13 @@ Set it to `"auto"` to derive `[{identity.name}]` for the routed agent (when set)
 
 The `responsePrefix` string can include template variables that resolve dynamically:
 
-| Değişken          | Açıklama                 | Örnek                                     |
-| ----------------- | ------------------------ | ----------------------------------------- |
-| `{model}`         | Short model name         | `claude-opus-4-6`, `gpt-4o`               |
-| `{modelFull}`     | Tam model tanımlayıcısı  | `anthropic/claude-opus-4-6`               |
-| `{provider}`      | Sağlayıcı adı            | `anthropic`, `openai`                     |
-| `{thinkingLevel}` | Geçerli düşünme seviyesi | `high`, `low`, `off`                      |
-| `{identity.name}` | Ajan kimlik adı          | ("auto" modu ile aynı) |
+| Değişken          | Açıklama                 | Örnek                       |
+| ----------------- | ------------------------ | --------------------------- |
+| `{model}`         | Short model name         | `claude-opus-4-6`, `gpt-4o` |
+| `{modelFull}`     | Tam model tanımlayıcısı  | `anthropic/claude-opus-4-6` |
+| `{provider}`      | Sağlayıcı adı            | `anthropic`, `openai`       |
+| `{thinkingLevel}` | Geçerli düşünme seviyesi | `high`, `low`, `off`        |
+| `{identity.name}` | Ajan kimlik adı          | ("auto" modu ile aynı)      |
 
 Değişkenler büyük/küçük harfe duyarsızdır (`{MODEL}` = `{model}`). `{think}` , `{thinkingLevel}` için bir takma addır.
 Çözümlenmemiş değişkenler düz metin olarak kalır.
@@ -2871,7 +2871,7 @@ Alanlar:
 22. Profiller, `profiles.<name>` aracılığıyla **uzak** bir Chromium tabanlı tarayıcıyı işaret edebilir
 23. `.cdpUrl`.24. Uzak profiller yalnızca bağlanma modundadır (başlat/durdur/sıfırla devre dışıdır). 25. `browser.cdpUrl`, eski tek-profil yapılandırmaları için ve yalnızca `cdpPort` ayarlayan profiller için temel şema/ana makine olarak kalır.
 
-26. enabled: `true`
+24. enabled: `true`
 
 Varsayılanlar:
 
@@ -3344,28 +3344,28 @@ openclaw dns setup --apply
 
 Template placeholders are expanded in `tools.media.*.models[].args` and `tools.media.models[].args` (and any future templated argument fields).
 
-\| Variable           | Description                                                                     |
+\| Variable | Description |
 \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-\| `{{Body}}`         | Full inbound message body                                                       |
-\| `{{RawBody}}`      | Raw inbound message body (no history/sender wrappers; best for command parsing) |
-\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents)                     |
-\| `{{From}}`         | Sender identifier (E.164 for WhatsApp; may differ per channel)                  |
-\| `{{To}}`           | Destination identifier                                                          |
-\| `{{MessageSid}}`   | Channel message id (when available)                                             |
-\| `{{SessionId}}`    | Current session UUID                                                            |
-\| `{{IsNewSession}}` | `"true"` when a new session was created                                         |
-\| `{{MediaUrl}}`     | Inbound media pseudo-URL (if present)                                           |
-\| `{{MediaPath}}`    | Local media path (if downloaded)                                                |
-\| `{{MediaType}}`    | Media type (image/audio/document/…)                                             |
-\| `{{Transcript}}`   | Audio transcript (when enabled)                                                 |
-\| `{{Prompt}}`       | Resolved media prompt for CLI entries                                           |
-\| `{{MaxChars}}`     | Resolved max output chars for CLI entries                                       |
-\| `{{ChatType}}`     | `"direct"` or `"group"`                                                         |
-\| `{{GroupSubject}}` | Group subject (best effort)                                                     |
-\| `{{GroupMembers}}` | Group members preview (best effort)                                             |
-\| `{{SenderName}}`   | Sender display name (best effort)                                               |
-\| `{{SenderE164}}`   | Sender phone number (best effort)                                               |
-\| `{{Provider}}`     | Provider hint (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  |
+\| `{{Body}}` | Full inbound message body |
+\| `{{RawBody}}` | Raw inbound message body (no history/sender wrappers; best for command parsing) |
+\| `{{BodyStripped}}` | Body with group mentions stripped (best default for agents) |
+\| `{{From}}` | Sender identifier (E.164 for WhatsApp; may differ per channel) |
+\| `{{To}}` | Destination identifier |
+\| `{{MessageSid}}` | Channel message id (when available) |
+\| `{{SessionId}}` | Current session UUID |
+\| `{{IsNewSession}}` | `"true"` when a new session was created |
+\| `{{MediaUrl}}` | Inbound media pseudo-URL (if present) |
+\| `{{MediaPath}}` | Local media path (if downloaded) |
+\| `{{MediaType}}` | Media type (image/audio/document/…) |
+\| `{{Transcript}}` | Audio transcript (when enabled) |
+\| `{{Prompt}}` | Resolved media prompt for CLI entries |
+\| `{{MaxChars}}` | Resolved max output chars for CLI entries |
+\| `{{ChatType}}` | `"direct"` or `"group"` |
+\| `{{GroupSubject}}` | Group subject (best effort) |
+\| `{{GroupMembers}}` | Group members preview (best effort) |
+\| `{{SenderName}}` | Sender display name (best effort) |
+\| `{{SenderE164}}` | Sender phone number (best effort) |
+\| `{{Provider}}` | Provider hint (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) |
 
 ## Cron (Gateway scheduler)
 

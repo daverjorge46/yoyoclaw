@@ -112,14 +112,14 @@ curl -s http://127.0.0.1:18791/tabs
 
 ### Tham chiếu cấu hình
 
-| Tùy chọn                 | Mô tả                                                                                              | Mặc định                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `browser.enabled`        | Bật điều khiển trình duyệt                                                                         | `true`                                                                                |
+| Tùy chọn                 | Mô tả                                                                           | Mặc định                                                           |
+| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `browser.enabled`        | Bật điều khiển trình duyệt                                                      | `true`                                                             |
 | `browser.executablePath` | Đường dẫn tới binary trình duyệt dựa trên Chromium (Chrome/Brave/Edge/Chromium) | auto-detected (ưu tiên trình duyệt mặc định nếu dựa trên Chromium) |
-| `browser.headless`       | Chạy không có GUI                                                                                  | `false`                                                                               |
-| `browser.noSandbox`      | Thêm cờ `--no-sandbox` (cần cho một số thiết lập Linux)                         | `false`                                                                               |
-| `browser.attachOnly`     | Không khởi chạy trình duyệt, chỉ gắn vào phiên hiện có                                             | `false`                                                                               |
-| `browser.cdpPort`        | Cổng Chrome DevTools Protocol                                                                      | `18800`                                                                               |
+| `browser.headless`       | Chạy không có GUI                                                               | `false`                                                            |
+| `browser.noSandbox`      | Thêm cờ `--no-sandbox` (cần cho một số thiết lập Linux)                         | `false`                                                            |
+| `browser.attachOnly`     | Không khởi chạy trình duyệt, chỉ gắn vào phiên hiện có                          | `false`                                                            |
+| `browser.cdpPort`        | Cổng Chrome DevTools Protocol                                                   | `18800`                                                            |
 
 ### Vấn đề: "Chrome extension relay is running, but no tab is connected"
 

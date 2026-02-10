@@ -173,11 +173,11 @@ Als je `capabilities` weglaat, komt de vermelding in aanmerking voor de lijst wa
 
 ## Provider-ondersteuningsmatrix (OpenClaw-integraties)
 
-| Capability | Providerintegratie                                | Notities                                                                           |
-| ---------- | ------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Beeld      | OpenAI / Anthropic / Google / anderen via `pi-ai` | Elk beeldgeschikt model in het register werkt.                     |
+| Capability | Providerintegratie                                | Notities                                        |
+| ---------- | ------------------------------------------------- | ----------------------------------------------- |
+| Beeld      | OpenAI / Anthropic / Google / anderen via `pi-ai` | Elk beeldgeschikt model in het register werkt.  |
 | Audio      | OpenAI, Groq, Deepgram, Google                    | Providertranscriptie (Whisper/Deepgram/Gemini). |
-| Video      | Google (Gemini API)            | Provider videoverwerking.                                          |
+| Video      | Google (Gemini API)                               | Provider videoverwerking.                       |
 
 ## Aanbevolen providers
 

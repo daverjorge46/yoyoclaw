@@ -25,8 +25,7 @@ OpenClaw có hai “bề mặt” log:
 
 Định dạng tệp là mỗi dòng một đối tượng JSON.
 
-Tab Logs của Control UI theo dõi (tail) tệp này qua gateway (`logs.tail`).
-8. CLI cũng có thể làm điều tương tự:
+Tab Logs của Control UI theo dõi (tail) tệp này qua gateway (`logs.tail`). 8. CLI cũng có thể làm điều tương tự:
 
 ```bash
 openclaw logs --follow

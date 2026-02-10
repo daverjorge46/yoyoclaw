@@ -164,11 +164,11 @@ launchctl bootout gui/$UID/bot.molt.ssh-tunnel
 
 ## Funktionsweise
 
-| Komponente                           | Was es tut                                                                        |
-| ------------------------------------ | --------------------------------------------------------------------------------- |
-| `LocalForward 18789 127.0.0.1:18789` | Leitet den lokalen Port 18789 an den entfernten Port 18789 weiter                 |
-| `ssh -N`                             | SSH ohne Ausführung entfernter Befehle (nur Portweiterleitung) |
-| `KeepAlive`                          | Startet den Tunnel automatisch neu, falls er abstürzt                             |
-| `RunAtLoad`                          | Startet den Tunnel, wenn der Agent geladen wird                                   |
+| Komponente                           | Was es tut                                                        |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| `LocalForward 18789 127.0.0.1:18789` | Leitet den lokalen Port 18789 an den entfernten Port 18789 weiter |
+| `ssh -N`                             | SSH ohne Ausführung entfernter Befehle (nur Portweiterleitung)    |
+| `KeepAlive`                          | Startet den Tunnel automatisch neu, falls er abstürzt             |
+| `RunAtLoad`                          | Startet den Tunnel, wenn der Agent geladen wird                   |
 
 OpenClaw.app verbindet sich auf Ihrer Client-Maschine mit `ws://127.0.0.1:18789`. Der SSH-Tunnel leitet diese Verbindung an Port 18789 auf der entfernten Maschine weiter, auf der das Gateway ausgeführt wird.

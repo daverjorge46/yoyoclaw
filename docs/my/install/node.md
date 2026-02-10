@@ -29,7 +29,7 @@ If this prints `v22.x.x` or higher, you're good. If Node isn't installed or the 
     ```bash
     brew install node
     ```
-    
+
     သို့မဟုတ် [nodejs.org](https://nodejs.org/) မှ macOS installer ကို ဒေါင်းလုဒ်လုပ်နိုင်ပါသည်။
     ````
 
@@ -42,13 +42,13 @@ If this prints `v22.x.x` or higher, you're good. If Node isn't installed or the 
     curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt-get install -y nodejs
     ```
-    
+
     **Fedora / RHEL:**
-    
+
     ```bash
     sudo dnf install nodejs
     ```
-    
+
     သို့မဟုတ် version manager ကို အသုံးပြုနိုင်ပါသည် (အောက်တွင် ကြည့်ပါ)။
     ````
 
@@ -60,13 +60,13 @@ If this prints `v22.x.x` or higher, you're good. If Node isn't installed or the 
     ```powershell
     winget install OpenJS.NodeJS.LTS
     ```
-    
+
     **Chocolatey:**
-    
+
     ```powershell
     choco install nodejs-lts
     ```
-    
+
     သို့မဟုတ် [nodejs.org](https://nodejs.org/) မှ Windows installer ကို ဒေါင်းလုဒ်လုပ်နိုင်ပါသည်။
     ````
 
@@ -123,7 +123,7 @@ fnm use 22
             ```bash
             export PATH="$(npm prefix -g)/bin:$PATH"
             ```
-        
+
             ထို့နောက် terminal အသစ်တစ်ခုကို ဖွင့်ပါ (သို့မဟုတ် zsh တွင် `rehash` / bash တွင် `hash -r` ကို လည်ပတ်ပါ)။
           </Tab>
           <Tab title="Windows">

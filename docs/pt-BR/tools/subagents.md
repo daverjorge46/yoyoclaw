@@ -157,15 +157,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### Parâmetros
 
-| Parameter           | Tipo                     | Default                                   | Description                                                                                                |
-| ------------------- | ------------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `task`              | string                   | _(required)_           | What the sub-agent should do                                                                               |
-| `rótulo`            | string                   | —                                         | Short label for identification                                                                             |
-| `agentId`           | string                   | _(agente do chamador)_ | Criar sob um ID de agente diferente (deve ser permitido)                                |
-| `modelo`            | string                   | _(opcional)_           | Substituir o modelo para este subagente                                                                    |
-| `thinking`          | string                   | _(opcional)_           | Substituir o nível de raciocínio (`off`, `low`, `medium`, `high`, etc.) |
-| `runTimeoutSeconds` | número                   | `0` (sem limite)       | Abortar o subagente após N segundos                                                                        |
-| `limpeza`           | `"delete"` \\| `"keep"` | `"keep"`                                  | `"delete"` arquiva imediatamente após o anúncio                                                            |
+| Parameter           | Tipo          | Default                | Description                                                             |
+| ------------------- | ------------- | ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------- |
+| `task`              | string        | _(required)_           | What the sub-agent should do                                            |
+| `rótulo`            | string        | —                      | Short label for identification                                          |
+| `agentId`           | string        | _(agente do chamador)_ | Criar sob um ID de agente diferente (deve ser permitido)                |
+| `modelo`            | string        | _(opcional)_           | Substituir o modelo para este subagente                                 |
+| `thinking`          | string        | _(opcional)_           | Substituir o nível de raciocínio (`off`, `low`, `medium`, `high`, etc.) |
+| `runTimeoutSeconds` | número        | `0` (sem limite)       | Abortar o subagente após N segundos                                     |
+| `limpeza`           | `"delete"` \\ | `"keep"`               | `"keep"`                                                                | `"delete"` arquiva imediatamente após o anúncio |
 
 ### Ordem de Resolução do Modelo
 
@@ -214,13 +214,13 @@ Use a ferramenta `agents_list` para descobrir quais IDs de agente estão atualme
 
 Use o comando de barra `/subagents` para inspecionar e controlar execuções de subagentes para a sessão atual:
 
-| Comando                                    | Descrição                                                                        |
-| ------------------------------------------ | -------------------------------------------------------------------------------- |
-| `/subagents list`                          | Listar todas as execuções de subagentes (ativas e concluídas) |
-| `/subagents stop <id\\|#\\|all>`         | Parar um subagente em execução                                                   |
-| `/subagents log <id\\|#> [limit] [tools]` | Visualizar a transcrição do subagente                                            |
-| `/subagents info <id\\|#>`                | Mostrar metadados detalhados da execução                                         |
-| `/subagents send <id\\|#> <message>`      | Enviar uma mensagem para um subagente em execução                                |
+| Comando                | Descrição                                                     |
+| ---------------------- | ------------------------------------------------------------- | ------------------------------------------------- | ------------------------------ |
+| `/subagents list`      | Listar todas as execuções de subagentes (ativas e concluídas) |
+| `/subagents stop <id\\ | #\\                                                           | all>`                                             | Parar um subagente em execução |
+| `/subagents log <id\\  | #> [limit] [tools]`                                           | Visualizar a transcrição do subagente             |
+| `/subagents info <id\\ | #>`                                                           | Mostrar metadados detalhados da execução          |
+| `/subagents send <id\\ | #> <message>`                                                 | Enviar uma mensagem para um subagente em execução |
 
 Você pode referenciar subagentes pelo índice da lista (`1`, `2`), prefixo do ID da execução, chave completa da sessão ou `last`.
 
@@ -238,11 +238,11 @@ Você pode referenciar subagentes pelo índice da lista (`1`, `2`), prefixo do I
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -276,7 +276,7 @@ Você pode referenciar subagentes pelo índice da lista (`1`, `2`), prefixo do I
 
     ````
     Mostra as últimas 10 mensagens da transcrição do subagente. Adicione `tools` para incluir mensagens de chamadas de ferramentas:
-    
+
     ```
     /subagents log 1 10 tools
     ```

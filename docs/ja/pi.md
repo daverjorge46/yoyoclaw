@@ -28,12 +28,12 @@ OpenClaw は pi SDK を使用して、AI コーディングエージェントを
 }
 ```
 
-| Package           | Purpose                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| `pi-ai`           | コア LLM 抽象化：`Model`、`streamSimple`、メッセージ型、プロバイダー API                                  |
-| `pi-agent-core`   | エージェントループ、ツール実行、`AgentMessage` 型                                                     |
+| Package           | Purpose                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| `pi-ai`           | コア LLM 抽象化：`Model`、`streamSimple`、メッセージ型、プロバイダー API                             |
+| `pi-agent-core`   | エージェントループ、ツール実行、`AgentMessage` 型                                                    |
 | `pi-coding-agent` | 高レベル SDK：`createAgentSession`、`SessionManager`、`AuthStorage`、`ModelRegistry`、組み込みツール |
-| `pi-tui`          | ターミナル UI コンポーネント（OpenClaw のローカル TUI モードで使用）                                          |
+| `pi-tui`          | ターミナル UI コンポーネント（OpenClaw のローカル TUI モードで使用）                                 |
 
 ## File Structure
 
@@ -511,15 +511,15 @@ import { ... } from "@mariozechner/pi-tui";
 
 ## Key Differences from Pi CLI
 
-| Aspect          | Pi CLI                            | OpenClaw Embedded                                                                              |
-| --------------- | --------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` コマンド / RPC                   | `createAgentSession()` 経由の SDK                                                                 |
-| Tools           | 既定のコーディングツール                      | カスタム OpenClaw ツールスイート                                                                          |
-| System prompt   | AGENTS.md + プロンプト | チャンネル／コンテキストごとに動的                                                                              |
-| Session storage | `~/.pi/agent/sessions/`           | `~/.openclaw/agents/<agentId>/sessions/`（または `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`） |
-| Auth            | 単一クレデンシャル                         | ローテーション付きマルチプロファイル                                                                             |
-| Extensions      | ディスクからロード                         | プログラム的 + ディスクパス                                                                                |
-| Event handling  | TUI レンダリング                        | コールバックベース（onBlockReply など）                                                                     |
+| Aspect          | Pi CLI                   | OpenClaw Embedded                                                                                   |
+| --------------- | ------------------------ | --------------------------------------------------------------------------------------------------- |
+| Invocation      | `pi` コマンド / RPC      | `createAgentSession()` 経由の SDK                                                                   |
+| Tools           | 既定のコーディングツール | カスタム OpenClaw ツールスイート                                                                    |
+| System prompt   | AGENTS.md + プロンプト   | チャンネル／コンテキストごとに動的                                                                  |
+| Session storage | `~/.pi/agent/sessions/`  | `~/.openclaw/agents/<agentId>/sessions/`（または `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`） |
+| Auth            | 単一クレデンシャル       | ローテーション付きマルチプロファイル                                                                |
+| Extensions      | ディスクからロード       | プログラム的 + ディスクパス                                                                         |
+| Event handling  | TUI レンダリング         | コールバックベース（onBlockReply など）                                                             |
 
 ## Future Considerations
 

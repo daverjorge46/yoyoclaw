@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Konfigurationsreferens
 
-| Nyckel       | Typ                                                          | Standard                                    | Beskrivning                                                 |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------- |
-| `privateKey` | string                                                       | required                                    | Privat nyckel i `nsec`- eller hex-format                    |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL:er (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM-åtkomstpolicy                                            |
-| `allowFrom`  | string[] | `[]`                                        | Tillåtna avsändar-pubkeys                                   |
-| `enabled`    | boolean                                                      | `true`                                      | Aktivera/inaktivera kanal                                   |
-| `name`       | string                                                       | -                                           | Visningsnamn                                                |
-| `profile`    | object                                                       | -                                           | NIP-01-profilmetadata                                       |
+| Nyckel       | Typ      | Standard                                    | Beskrivning                              |
+| ------------ | -------- | ------------------------------------------- | ---------------------------------------- |
+| `privateKey` | string   | required                                    | Privat nyckel i `nsec`- eller hex-format |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay-URL:er (WebSocket)                 |
+| `dmPolicy`   | string   | `pairing`                                   | DM-åtkomstpolicy                         |
+| `allowFrom`  | string[] | `[]`                                        | Tillåtna avsändar-pubkeys                |
+| `enabled`    | boolean  | `true`                                      | Aktivera/inaktivera kanal                |
+| `name`       | string   | -                                           | Visningsnamn                             |
+| `profile`    | object   | -                                           | NIP-01-profilmetadata                    |
 
 ## Profilmetadata
 
@@ -166,12 +166,12 @@ Tips:
 
 ## Protokollstöd
 
-| NIP    | Status   | Beskrivning                                 |
-| ------ | -------- | ------------------------------------------- |
-| NIP-01 | Stöds    | Grundläggande eventformat + profilmetadata  |
-| NIP-04 | Stöds    | Krypterade DM (`kind:4`) |
-| NIP-17 | Planerad | Presentinslagna DM                          |
-| NIP-44 | Planerad | Versionshanterad kryptering                 |
+| NIP    | Status   | Beskrivning                                |
+| ------ | -------- | ------------------------------------------ |
+| NIP-01 | Stöds    | Grundläggande eventformat + profilmetadata |
+| NIP-04 | Stöds    | Krypterade DM (`kind:4`)                   |
+| NIP-17 | Planerad | Presentinslagna DM                         |
+| NIP-44 | Planerad | Versionshanterad kryptering                |
 
 ## Testning
 

@@ -32,8 +32,8 @@ Auth သည် per-agent ဖြစ်ပြီး အေးဂျင့်တစ
 9. Credentials များကို agents များအကြား **မမျှဝေပါ**။ 10. agents များအကြား `agentDir` ကို ဘယ်တော့မှ ပြန်လည်အသုံးမပြုပါနှင့်။
 10. creds များကို မျှဝေလိုပါက `auth-profiles.json` ကို အခြား agent ၏ `agentDir` ထဲသို့ ကူးထည့်ပါ။
 
-12. runtime တွင် sandboxing ဘယ်လိုအလုပ်လုပ်သည်ကို သိရန် [Sandboxing](/gateway/sandboxing) ကို ကြည့်ပါ။
-13. “ဘာကြောင့် ဒီဟာ blocked ဖြစ်နေတာလဲ?” ကို debug လုပ်ရန် [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) နှင့် `openclaw sandbox explain` ကို ကြည့်ပါ။
+11. runtime တွင် sandboxing ဘယ်လိုအလုပ်လုပ်သည်ကို သိရန် [Sandboxing](/gateway/sandboxing) ကို ကြည့်ပါ။
+12. “ဘာကြောင့် ဒီဟာ blocked ဖြစ်နေတာလဲ?” ကို debug လုပ်ရန် [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) နှင့် `openclaw sandbox explain` ကို ကြည့်ပါ။
 
 ---
 

@@ -28,12 +28,12 @@ OpenClaw gebruikt de pi SDK om een AI-coderingsagent in te bedden in zijn messag
 }
 ```
 
-| Pakket            | Doel                                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Pakket            | Doel                                                                                                      |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
 | `pi-ai`           | Kern-LLM-abstracties: `Model`, `streamSimple`, berichttypen, provider-API’s                               |
-| `pi-agent-core`   | Agent-loop, tooluitvoering, `AgentMessage`-typen                                                                          |
+| `pi-agent-core`   | Agent-loop, tooluitvoering, `AgentMessage`-typen                                                          |
 | `pi-coding-agent` | Hoog-niveau SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, ingebouwde tools |
-| `pi-tui`          | Terminal-UI-componenten (gebruikt in OpenClaw’s lokale TUI-modus)                                      |
+| `pi-tui`          | Terminal-UI-componenten (gebruikt in OpenClaw’s lokale TUI-modus)                                         |
 
 ## Bestandsstructuur
 
@@ -511,15 +511,15 @@ Dit biedt een interactieve terminalervaring vergelijkbaar met pi’s native modu
 
 ## Belangrijkste verschillen met Pi CLI
 
-| Aspect            | Pi CLI                              | OpenClaw Embedded                                                                                                 |
-| ----------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Aanroep           | `pi`-opdracht / RPC                 | SDK via `createAgentSession()`                                                                                    |
-| Tools             | Standaard coderings-tools           | Aangepaste OpenClaw-toolset                                                                                       |
-| Systeemprompt     | AGENTS.md + prompts | Dynamisch per kanaal/context                                                                                      |
-| Sessiestorage     | `~/.pi/agent/sessions/`             | `~/.openclaw/agents/<agentId>/sessions/` (of `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth              | Enkele inloggegevens                | Multi-profiel met rotatie                                                                                         |
-| Extensies         | Geladen vanaf schijf                | Programmatic + schijfpaden                                                                                        |
-| Event-afhandeling | TUI-rendering                       | Callback-gebaseerd (onBlockReply, enz.)                                        |
+| Aspect            | Pi CLI                    | OpenClaw Embedded                                                                              |
+| ----------------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
+| Aanroep           | `pi`-opdracht / RPC       | SDK via `createAgentSession()`                                                                 |
+| Tools             | Standaard coderings-tools | Aangepaste OpenClaw-toolset                                                                    |
+| Systeemprompt     | AGENTS.md + prompts       | Dynamisch per kanaal/context                                                                   |
+| Sessiestorage     | `~/.pi/agent/sessions/`   | `~/.openclaw/agents/<agentId>/sessions/` (of `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth              | Enkele inloggegevens      | Multi-profiel met rotatie                                                                      |
+| Extensies         | Geladen vanaf schijf      | Programmatic + schijfpaden                                                                     |
+| Event-afhandeling | TUI-rendering             | Callback-gebaseerd (onBlockReply, enz.)                                                        |
 
 ## Toekomstige overwegingen
 

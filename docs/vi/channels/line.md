@@ -13,7 +13,7 @@ title: LINE
     receiver trên gateway và sử dụng access token + channel secret của bạn cho
     xác thực.
 
-23. Trạng thái: được hỗ trợ thông qua plugin. 24. Hỗ trợ tin nhắn trực tiếp, trò chuyện nhóm, media, vị trí, Flex
+22. Trạng thái: được hỗ trợ thông qua plugin. 24. Hỗ trợ tin nhắn trực tiếp, trò chuyện nhóm, media, vị trí, Flex
     messages, template messages và quick replies. 25. Reactions và threads
     không được hỗ trợ.
 

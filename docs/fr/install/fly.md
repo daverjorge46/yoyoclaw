@@ -78,13 +78,13 @@ primary_region = "iad"
 
 **Paramètres clés :**
 
-| Paramètre                      | Pourquoi                                                                                              |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `--bind lan`                   | Se lie à `0.0.0.0` afin que le proxy Fly puisse atteindre la passerelle                               |
+| Paramètre                      | Pourquoi                                                                           |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `--bind lan`                   | Se lie à `0.0.0.0` afin que le proxy Fly puisse atteindre la passerelle            |
 | `--allow-unconfigured`         | Démarre sans fichier de configuration (vous en créerez un ensuite)                 |
 | `internal_port = 3000`         | Doit correspondre à `--port 3000` (ou `OPENCLAW_GATEWAY_PORT`) pour les checks Fly |
-| `memory = "2048mb"`            | 512 Mo est trop faible ; 2 Go recommandés                                                             |
-| `OPENCLAW_STATE_DIR = "/data"` | Persiste l’état sur le volume                                                                         |
+| `memory = "2048mb"`            | 512 Mo est trop faible ; 2 Go recommandés                                          |
+| `OPENCLAW_STATE_DIR = "/data"` | Persiste l’état sur le volume                                                      |
 
 ## 3. Définir les secrets
 

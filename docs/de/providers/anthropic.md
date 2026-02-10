@@ -43,10 +43,10 @@ OpenClaw unterstützt die Prompt-Caching-Funktion von Anthropic. Dies ist **nur 
 
 Verwenden Sie den Parameter `cacheRetention` in Ihrer Modellkonfiguration:
 
-| Wert    | Cache-Dauer  | Beschreibung                                               |
-| ------- | ------------ | ---------------------------------------------------------- |
-| `none`  | Kein Caching | Prompt-Caching deaktivieren                                |
-| `short` | 5 Minuten    | Standard für API-Schlüssel-Auth                            |
+| Wert    | Cache-Dauer  | Beschreibung                            |
+| ------- | ------------ | --------------------------------------- |
+| `none`  | Kein Caching | Prompt-Caching deaktivieren             |
+| `short` | 5 Minuten    | Standard für API-Schlüssel-Auth         |
 | `long`  | 1 Stunde     | Erweiterter Cache (erfordert Beta-Flag) |
 
 ```json5

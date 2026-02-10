@@ -12,7 +12,7 @@ title: LINE
 47. LINE, LINE Messaging API के माध्यम से OpenClaw से कनेक्ट होता है। 48. प्लगइन gateway पर एक webhook
     receiver के रूप में चलता है और authentication के लिए आपका channel access token + channel secret उपयोग करता है।
 
-49. स्थिति: प्लगइन के माध्यम से समर्थित। 50. Direct messages, group chats, media, locations, Flex
+48. स्थिति: प्लगइन के माध्यम से समर्थित। 50. Direct messages, group chats, media, locations, Flex
     messages, template messages, और quick replies समर्थित हैं। Reactions and threads
     are not supported.
 

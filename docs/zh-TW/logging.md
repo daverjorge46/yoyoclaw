@@ -141,7 +141,7 @@ entries to render structured output (time, level, subsystem, message).
 
 8. 診斷是結構化、機器可讀的事件，用於模型執行 **以及** 訊息流程遙測（Webhook、佇列、工作階段狀態）。 9. 它們 **不會** 取代日誌；其存在是為了提供度量、追蹤與其他匯出器。
 
-10. 診斷事件在程序內發出，但只有在啟用診斷 + 匯出器外掛時，匯出器才會附加。
+9. 診斷事件在程序內發出，但只有在啟用診斷 + 匯出器外掛時，匯出器才會附加。
 
 ### OpenTelemetry 與 OTLP 的差異
 
@@ -194,8 +194,7 @@ entries to render structured output (time, level, subsystem, message).
 ### 診斷旗標（目標式記錄）
 
 使用旗標即可在不提高 `logging.level` 的情況下，開啟額外且具針對性的除錯記錄。
-旗標不分大小寫，並支援萬用字元（例如 `telegram.*` 或 `*`）。
-17. 旗標不區分大小寫並支援萬用字元（例如 `telegram.*` 或 `*`）。
+旗標不分大小寫，並支援萬用字元（例如 `telegram.*` 或 `*`）。17. 旗標不區分大小寫並支援萬用字元（例如 `telegram.*` 或 `*`）。
 
 ```json
 {

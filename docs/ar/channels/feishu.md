@@ -528,34 +528,34 @@ openclaw pairing list feishu
 
 الخيارات الرئيسية:
 
-| الإعداد                                           | الوصف                                                                                 | الافتراضي |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | تفعيل/تعطيل القناة                                                                    | `true`    |
-| `channels.feishu.domain`                          | نطاق API ‏(`feishu` أو `lark`)                                     | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                                | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                                            | -         |
-| `channels.feishu.accounts.<id>.domain`            | تجاوز نطاق API لكل حساب                                                               | `feishu`  |
-| `channels.feishu.dmPolicy`                        | سياسة DM                                                                              | `pairing` |
+| الإعداد                                           | الوصف                                         | الافتراضي |
+| ------------------------------------------------- | --------------------------------------------- | --------- |
+| `channels.feishu.enabled`                         | تفعيل/تعطيل القناة                            | `true`    |
+| `channels.feishu.domain`                          | نطاق API ‏(`feishu` أو `lark`)                | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                                        | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                    | -         |
+| `channels.feishu.accounts.<id>.domain`            | تجاوز نطاق API لكل حساب                       | `feishu`  |
+| `channels.feishu.dmPolicy`                        | سياسة DM                                      | `pairing` |
 | `channels.feishu.allowFrom`                       | قائمة السماح للرسائل المباشرة (قائمة open_id) | -         |
-| `channels.feishu.groupPolicy`                     | سياسة المجموعات                                                                       | `open`    |
-| `channels.feishu.groupAllowFrom`                  | قائمة السماح للمجموعات                                                                | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | اشتراط @mention                                                          | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | تفعيل المجموعات                                                                       | `true`    |
-| `channels.feishu.textChunkLimit`                  | حجم مقطع الرسالة                                                                      | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | حد حجم الوسائط                                                                        | `30`      |
-| `channels.feishu.streaming`                       | تفعيل إخراج البطاقات المتدفقة                                                         | `true`    |
-| `channels.feishu.blockStreaming`                  | تفعيل بثّ الكتل                                                                       | `true`    |
+| `channels.feishu.groupPolicy`                     | سياسة المجموعات                               | `open`    |
+| `channels.feishu.groupAllowFrom`                  | قائمة السماح للمجموعات                        | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | اشتراط @mention                               | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | تفعيل المجموعات                               | `true`    |
+| `channels.feishu.textChunkLimit`                  | حجم مقطع الرسالة                              | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | حد حجم الوسائط                                | `30`      |
+| `channels.feishu.streaming`                       | تفعيل إخراج البطاقات المتدفقة                 | `true`    |
+| `channels.feishu.blockStreaming`                  | تفعيل بثّ الكتل                               | `true`    |
 
 ---
 
 ## مرجع dmPolicy
 
-| القيمة        | السلوك                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------- |
+| القيمة        | السلوك                                                                    |
+| ------------- | ------------------------------------------------------------------------- |
 | `"pairing"`   | **الافتراضي.** يحصل المستخدمون غير المعروفين على رمز اقتران؛ يجب الموافقة |
-| `"allowlist"` | يمكن فقط للمستخدمين الموجودين في `allowFrom` الدردشة                                      |
-| `"open"`      | السماح لجميع المستخدمين (يتطلب `"*"` في allowFrom)                     |
-| `"disabled"`  | تعطيل DMs                                                                                 |
+| `"allowlist"` | يمكن فقط للمستخدمين الموجودين في `allowFrom` الدردشة                      |
+| `"open"`      | السماح لجميع المستخدمين (يتطلب `"*"` في allowFrom)                        |
+| `"disabled"`  | تعطيل DMs                                                                 |
 
 ---
 

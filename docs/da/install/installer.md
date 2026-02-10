@@ -11,10 +11,10 @@ title: "Installerens indre"
 
 OpenClaw leveres med tre installationsscripts, der serveres fra `openclaw.ai`.
 
-| Script                             | Platform                                | Hvad det gør                                                                                                                                   |
-| ---------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL                     | Installerer Node om nødvendigt, installerer OpenClaw via npm (standard) eller git og kan køre introduktion. |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL                     | Installerer node + OpenClaw i et lokalt præfiks (`~/.openclaw`). Ingen rod påkrævet.        |
+| Script                             | Platform             | Hvad det gør                                                                                                |
+| ---------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installerer Node om nødvendigt, installerer OpenClaw via npm (standard) eller git og kan køre introduktion. |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installerer node + OpenClaw i et lokalt præfiks (`~/.openclaw`). Ingen rod påkrævet.                        |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | Installerer Node om nødvendigt, installerer OpenClaw via npm (standard) eller git og kan køre introduktion. |
 
 ## Hurtige kommandoer
@@ -132,39 +132,39 @@ Scriptet afslutter med kode `2` ved ugyldigt metodevalg eller ugyldige `--instal
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                              | Beskrivelse                                                                                                                      |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `--install-method npm\\|git`     | Vælg installationsmetode (standard: `npm`). Alias: `--method` |
-| `--npm`                           | Genvej til npm-metoden                                                                                                           |
-| `--git`                           | Genvej for git metode. Alias: `--github`                                                         |
-| `--version <version\\|dist-tag>` | npm-version eller dist-tag (standard: `latest`)                                               |
-| `--beta`                          | Brug beta-dist-tag hvis tilgængelig, ellers fallback til `latest`                                                                |
-| `--git-dir <path>`                | Checkout mappe (standard: `~/openclaw`). Alias: `--dir`       |
-| `--no-git-update`                 | Spring `git pull` over for eksisterende checkout                                                                                 |
-| `--no-prompt`                     | Deaktivér prompts                                                                                                                |
-| `--no-onboard`                    | Spring introduktion over                                                                                                         |
-| `--onboard`                       | Aktivér introduktion                                                                                                             |
-| `--dry-run`                       | Udskriv handlinger uden at anvende ændringer                                                                                     |
-| `--verbose`                       | Aktivér debug-output (`set -x`, npm-logs på notice-niveau)                                                    |
-| `--help`                          | Vis brug (`-h`)                                                                                               |
+| Flag                    | Beskrivelse                                                       |
+| ----------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| `--install-method npm\\ | git`                                                              | Vælg installationsmetode (standard: `npm`). Alias: `--method` |
+| `--npm`                 | Genvej til npm-metoden                                            |
+| `--git`                 | Genvej for git metode. Alias: `--github`                          |
+| `--version <version\\   | dist-tag>`                                                        | npm-version eller dist-tag (standard: `latest`)               |
+| `--beta`                | Brug beta-dist-tag hvis tilgængelig, ellers fallback til `latest` |
+| `--git-dir <path>`      | Checkout mappe (standard: `~/openclaw`). Alias: `--dir`           |
+| `--no-git-update`       | Spring `git pull` over for eksisterende checkout                  |
+| `--no-prompt`           | Deaktivér prompts                                                 |
+| `--no-onboard`          | Spring introduktion over                                          |
+| `--onboard`             | Aktivér introduktion                                              |
+| `--dry-run`             | Udskriv handlinger uden at anvende ændringer                      |
+| `--verbose`             | Aktivér debug-output (`set -x`, npm-logs på notice-niveau)        |
+| `--help`                | Vis brug (`-h`)                                                   |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                                        | Beskrivelse                                                                  |
-| ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm`            | Installationsmetode                                                          |
-| `OPENCLAW_VERSION=latest\\|next\\|<semver>`   | npm-version eller dist-tag                                                   |
-| `OPENCLAW_BETA=0\\|1`                          | Brug beta hvis tilgængelig                                                   |
-| `OPENCLAW_GIT_DIR=<path>`                       | Checkout-mappe                                                               |
-| `OPENCLAW_GIT_UPDATE=0\\|1`                    | Slå git-opdateringer til/fra                                                 |
-| `OPENCLAW_NO_PROMPT=1`                          | Deaktivér prompts                                                            |
-| `OPENCLAW_NO_ONBOARD=1`                         | Spring introduktion over                                                     |
-| `OPENCLAW_DRY_RUN=1`                            | Dry run-tilstand                                                             |
-| `OPENCLAW_VERBOSE=1`                            | Debug-tilstand                                                               |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-logniveau                                                                |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Styr sharp/libvips-adfærd (standard: `1`) |
+| Variabel                         | Beskrivelse              |
+| -------------------------------- | ------------------------ | ----------------------------------------- | -------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\   | npm`                     | Installationsmetode                       |
+| `OPENCLAW_VERSION=latest\\       | next\\                   | <semver>`                                 | npm-version eller dist-tag |
+| `OPENCLAW_BETA=0\\               | 1`                       | Brug beta hvis tilgængelig                |
+| `OPENCLAW_GIT_DIR=<path>`        | Checkout-mappe           |
+| `OPENCLAW_GIT_UPDATE=0\\         | 1`                       | Slå git-opdateringer til/fra              |
+| `OPENCLAW_NO_PROMPT=1`           | Deaktivér prompts        |
+| `OPENCLAW_NO_ONBOARD=1`          | Spring introduktion over |
+| `OPENCLAW_DRY_RUN=1`             | Dry run-tilstand         |
+| `OPENCLAW_VERBOSE=1`             | Debug-tilstand           |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                   | notice`                                   | npm-logniveau              |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                       | Styr sharp/libvips-adfærd (standard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -219,30 +219,30 @@ Designet til miljøer, hvor du vil have alt under et lokalt prefix (standard `~/
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                   | Beskrivelse                                                                                                 |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `--prefix <path>`      | Installationsprefix (standard: `~/.openclaw`)                            |
-| `--version <ver>`      | OpenClaw-version eller dist-tag (standard: `latest`)                     |
-| `--node-version <ver>` | Node-version (standard: `22.22.0`)                                       |
-| `--json`               | Udsend NDJSON-hændelser                                                                                     |
-| `--onboard`            | Kør `openclaw onboard` efter installation                                                                   |
-| `--no-onboard`         | Spring introduktion over (standard)                                                      |
+| Flag                   | Beskrivelse                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| `--prefix <path>`      | Installationsprefix (standard: `~/.openclaw`)                                               |
+| `--version <ver>`      | OpenClaw-version eller dist-tag (standard: `latest`)                                        |
+| `--node-version <ver>` | Node-version (standard: `22.22.0`)                                                          |
+| `--json`               | Udsend NDJSON-hændelser                                                                     |
+| `--onboard`            | Kør `openclaw onboard` efter installation                                                   |
+| `--no-onboard`         | Spring introduktion over (standard)                                                         |
 | `--set-npm-prefix`     | På Linux: tving npm-prefix til `~/.npm-global`, hvis det nuværende prefix ikke er skrivbart |
-| `--help`               | Vis brug (`-h`)                                                                          |
+| `--help`               | Vis brug (`-h`)                                                                             |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                                        | Beskrivelse                                                                                                |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_PREFIX=<path>`                        | Installationsprefix                                                                                        |
-| `OPENCLAW_VERSION=<ver>`                        | OpenClaw-version eller dist-tag                                                                            |
-| `OPENCLAW_NODE_VERSION=<ver>`                   | Node-version                                                                                               |
-| `OPENCLAW_NO_ONBOARD=1`                         | Spring introduktion over                                                                                   |
-| `OPENCLAW_NPM_LOGLEVEL=error\\|warn\\|notice` | npm-logniveau                                                                                              |
-| `OPENCLAW_GIT_DIR=<path>`                       | Ældre cleanup-opslagssti (bruges ved fjernelse af gammel `Peekaboo`-submodule-checkout) |
-| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\|1`            | Styr sharp/libvips-adfærd (standard: `1`)                               |
+| Variabel                         | Beskrivelse                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------- | ------------- |
+| `OPENCLAW_PREFIX=<path>`         | Installationsprefix                                                                     |
+| `OPENCLAW_VERSION=<ver>`         | OpenClaw-version eller dist-tag                                                         |
+| `OPENCLAW_NODE_VERSION=<ver>`    | Node-version                                                                            |
+| `OPENCLAW_NO_ONBOARD=1`          | Spring introduktion over                                                                |
+| `OPENCLAW_NPM_LOGLEVEL=error\\   | warn\\                                                                                  | notice`                                   | npm-logniveau |
+| `OPENCLAW_GIT_DIR=<path>`        | Ældre cleanup-opslagssti (bruges ved fjernelse af gammel `Peekaboo`-submodule-checkout) |
+| `SHARP_IGNORE_GLOBAL_LIBVIPS=0\\ | 1`                                                                                      | Styr sharp/libvips-adfærd (standard: `1`) |
 
   </Accordion>
 </AccordionGroup>
@@ -297,26 +297,26 @@ Designet til miljøer, hvor du vil have alt under et lokalt prefix (standard `~/
 <AccordionGroup>
   <Accordion title="Flags reference">
 
-| Flag                        | Beskrivelse                                                                             |
-| --------------------------- | --------------------------------------------------------------------------------------- |
-| `-InstallMethod npm\\|git` | Installationsmetode (standard: `npm`)                |
-| `-Tag <tag>`                | npm dist-tag (standard: `latest`)                    |
-| `-GitDir <path>`            | Checkout-mappe (standard: `%USERPROFILE%\openclaw`) |
-| `-NoOnboard`                | Spring introduktion over                                                                |
-| `-NoGitUpdate`              | Spring `git pull` over                                                                  |
-| `-DryRun`                   | Udskriv kun handlinger                                                                  |
+| Flag                  | Beskrivelse                                         |
+| --------------------- | --------------------------------------------------- | ------------------------------------- |
+| `-InstallMethod npm\\ | git`                                                | Installationsmetode (standard: `npm`) |
+| `-Tag <tag>`          | npm dist-tag (standard: `latest`)                   |
+| `-GitDir <path>`      | Checkout-mappe (standard: `%USERPROFILE%\openclaw`) |
+| `-NoOnboard`          | Spring introduktion over                            |
+| `-NoGitUpdate`        | Spring `git pull` over                              |
+| `-DryRun`             | Udskriv kun handlinger                              |
 
   </Accordion>
 
   <Accordion title="Environment variables reference">
 
-| Variabel                             | Beskrivelse              |
-| ------------------------------------ | ------------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\\|npm` | Installationsmetode      |
-| `OPENCLAW_GIT_DIR=<path>`            | Checkout-mappe           |
-| `OPENCLAW_NO_ONBOARD=1`              | Spring introduktion over |
-| `OPENCLAW_GIT_UPDATE=0`              | Deaktivér git pull       |
-| `OPENCLAW_DRY_RUN=1`                 | Dry run-tilstand         |
+| Variabel                       | Beskrivelse              |
+| ------------------------------ | ------------------------ | ------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\\ | npm`                     | Installationsmetode |
+| `OPENCLAW_GIT_DIR=<path>`      | Checkout-mappe           |
+| `OPENCLAW_NO_ONBOARD=1`        | Spring introduktion over |
+| `OPENCLAW_GIT_UPDATE=0`        | Deaktivér git pull       |
+| `OPENCLAW_DRY_RUN=1`           | Dry run-tilstand         |
 
   </Accordion>
 </AccordionGroup>

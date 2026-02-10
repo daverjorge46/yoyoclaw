@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **머신 유형:**
 
-| 유형       | 사양                                      | 비용                     | 참고 자료       |
-| -------- | --------------------------------------- | ---------------------- | ----------- |
-| e2-small | 2 vCPU, 2GB RAM                         | ~$12/월 | 권장          |
-| e2-micro | 2 vCPU (공유), 1GB RAM | 무료 티어 대상               | 부하 시 OOM 가능 |
+| 유형     | 사양                   | 비용           | 참고 자료        |
+| -------- | ---------------------- | -------------- | ---------------- |
+| e2-small | 2 vCPU, 2GB RAM        | ~$12/월        | 권장             |
+| e2-micro | 2 vCPU (공유), 1GB RAM | 무료 티어 대상 | 부하 시 OOM 가능 |
 
 **CLI:**
 
@@ -407,18 +407,18 @@ Gateway 토큰을 붙여넣으십시오.
 OpenClaw는 Docker에서 실행되지만, Docker는 소스 오브 트루스가 아닙니다.
 모든 장기 상태는 재시작, 재빌드, 재부팅 후에도 유지되어야 합니다.
 
-| 구성 요소       | 위치                                | 영속성 메커니즘      | 참고 자료                       |
-| ----------- | --------------------------------- | ------------- | --------------------------- |
-| Gateway 설정  | `/home/node/.openclaw/`           | 호스트 볼륨 마운트    | `openclaw.json`, 토큰 포함      |
-| 모델 인증 프로필   | `/home/node/.openclaw/`           | 호스트 볼륨 마운트    | OAuth 토큰, API 키             |
-| Skill 설정    | `/home/node/.openclaw/skills/`    | 호스트 볼륨 마운트    | Skill 수준 상태                 |
-| 에이전트 작업 공간  | `/home/node/.openclaw/workspace/` | 호스트 볼륨 마운트    | 코드 및 에이전트 아티팩트              |
-| WhatsApp 세션 | `/home/node/.openclaw/`           | 호스트 볼륨 마운트    | QR 로그인 유지                   |
-| Gmail 키링    | `/home/node/.openclaw/`           | 호스트 볼륨 + 비밀번호 | `GOG_KEYRING_PASSWORD` 필요   |
-| 외부 바이너리     | `/usr/local/bin/`                 | Docker 이미지    | Must be baked at build time |
-| Node 런타임    | 컨테이너 파일 시스템                       | Docker 이미지    | 매 이미지 빌드마다 재구성              |
-| OS 패키지      | 컨테이너 파일 시스템                       | Docker 이미지    | 런타임에 설치하지 말 것               |
-| Docker 컨테이너 | 일회성입니다                            | 재시작 가능        | 삭제해도 안전함                    |
+| 구성 요소          | 위치                              | 영속성 메커니즘        | 참고 자료                   |
+| ------------------ | --------------------------------- | ---------------------- | --------------------------- |
+| Gateway 설정       | `/home/node/.openclaw/`           | 호스트 볼륨 마운트     | `openclaw.json`, 토큰 포함  |
+| 모델 인증 프로필   | `/home/node/.openclaw/`           | 호스트 볼륨 마운트     | OAuth 토큰, API 키          |
+| Skill 설정         | `/home/node/.openclaw/skills/`    | 호스트 볼륨 마운트     | Skill 수준 상태             |
+| 에이전트 작업 공간 | `/home/node/.openclaw/workspace/` | 호스트 볼륨 마운트     | 코드 및 에이전트 아티팩트   |
+| WhatsApp 세션      | `/home/node/.openclaw/`           | 호스트 볼륨 마운트     | QR 로그인 유지              |
+| Gmail 키링         | `/home/node/.openclaw/`           | 호스트 볼륨 + 비밀번호 | `GOG_KEYRING_PASSWORD` 필요 |
+| 외부 바이너리      | `/usr/local/bin/`                 | Docker 이미지          | Must be baked at build time |
+| Node 런타임        | 컨테이너 파일 시스템              | Docker 이미지          | 매 이미지 빌드마다 재구성   |
+| OS 패키지          | 컨테이너 파일 시스템              | Docker 이미지          | 런타임에 설치하지 말 것     |
+| Docker 컨테이너    | 일회성입니다                      | 재시작 가능            | 삭제해도 안전함             |
 
 ---
 

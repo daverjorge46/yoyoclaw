@@ -21,13 +21,13 @@ Idealne dla:
 
 ## Wymagania sprzętowe
 
-| Model Pi        | RAM     | Działa?     | Uwagi                                       |
-| --------------- | ------- | ----------- | ------------------------------------------- |
+| Model Pi        | RAM     | Działa?      | Uwagi                                       |
+| --------------- | ------- | ------------ | ------------------------------------------- |
 | **Pi 5**        | 4GB/8GB | ✅ Najlepsze | Najszybszy, zalecany                        |
 | **Pi 4**        | 4GB     | ✅ Dobre     | Słodkie miejsce dla większości użytkowników |
 | **Pi 4**        | 2GB     | ✅ OK        | Działa, dodaj swap                          |
-| **Pi 4**        | 1GB     | ⚠️ Jasny    | Możliwe z swap, minimalna konfiguracja      |
-| **Pi 3B+**      | 1GB     | ⚠️ Wolny    | Działa, ale ociężałe                        |
+| **Pi 4**        | 1GB     | ⚠️ Jasny     | Możliwe z swap, minimalna konfiguracja      |
+| **Pi 3B+**      | 1GB     | ⚠️ Wolny     | Działa, ale ociężałe                        |
 | **Pi Zero 2 W** | 512MB   | ❌           | Niezalecane                                 |
 
 **Minimalne parametry:** 1GB RAM, 1 rdzeń, 500MB dysku  
@@ -223,13 +223,13 @@ htop
 
 Większość funkcji OpenClaw działa na ARM64, ale niektóre zewnętrzne binaria mogą wymagać wersji ARM:
 
-| Narzędzie                                  | Status ARM64 | Uwagi                               |
-| ------------------------------------------ | ------------ | ----------------------------------- |
-| Node.js                    | ✅            | Działa świetnie                     |
-| WhatsApp (Baileys)      | ✅            | Czysty JS, bez problemów            |
-| Telegram                                   | ✅            | Czysty JS, bez problemów            |
+| Narzędzie               | Status ARM64 | Uwagi                               |
+| ----------------------- | ------------ | ----------------------------------- |
+| Node.js                 | ✅           | Działa świetnie                     |
+| WhatsApp (Baileys)      | ✅           | Czysty JS, bez problemów            |
+| Telegram                | ✅           | Czysty JS, bez problemów            |
 | gog (Gmail CLI)         | ⚠️           | Sprawdź dostępność wersji ARM       |
-| Chromium (przeglądarka) | ✅            | `sudo apt install chromium-browser` |
+| Chromium (przeglądarka) | ✅           | `sudo apt install chromium-browser` |
 
 Jeśli Skill nie działa, sprawdź, czy jego binarium ma wersję ARM. Wiele narzędzi Go/Rust ją ma; niektóre nie.
 
@@ -336,14 +336,14 @@ echo 'wireless-power off' | sudo tee -a /etc/network/interfaces
 
 ## Porównanie kosztów
 
-| Konfiguracja                      | Koszt jednorazowy    | Koszt miesięczny            | Uwagi                                               |
-| --------------------------------- | -------------------- | --------------------------- | --------------------------------------------------- |
-| **Pi 4 (2GB)** | ~$45 | $0                          | + prąd (~$5/rok) |
-| **Pi 4 (4GB)** | ~$55 | $0                          | Zalecane                                            |
-| **Pi 5 (4GB)** | ~$60 | $0                          | Najlepsza wydajność                                 |
-| **Pi 5 (8GB)** | ~$80 | $0                          | Przesada, ale przyszłościowe                        |
-| DigitalOcean                      | $0                   | $6/mies.    | $72/rok                                             |
-| Hetzner                           | $0                   | €3,79/mies. | ~$50/rok                            |
+| Konfiguracja   | Koszt jednorazowy | Koszt miesięczny | Uwagi                        |
+| -------------- | ----------------- | ---------------- | ---------------------------- |
+| **Pi 4 (2GB)** | ~$45              | $0               | + prąd (~$5/rok)             |
+| **Pi 4 (4GB)** | ~$55              | $0               | Zalecane                     |
+| **Pi 5 (4GB)** | ~$60              | $0               | Najlepsza wydajność          |
+| **Pi 5 (8GB)** | ~$80              | $0               | Przesada, ale przyszłościowe |
+| DigitalOcean   | $0                | $6/mies.         | $72/rok                      |
+| Hetzner        | $0                | €3,79/mies.      | ~$50/rok                     |
 
 **Punkt równowagi:** Pi zwraca się po ~6–12 miesiącach w porównaniu z chmurowym VPS.
 

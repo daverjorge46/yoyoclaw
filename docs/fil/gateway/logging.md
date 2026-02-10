@@ -25,8 +25,7 @@ May dalawang log “surface” ang OpenClaw:
 
 Ang format ng file ay isang JSON object bawat linya.
 
-The Control UI Logs tab tails this file via the gateway (`logs.tail`).
-43. I-reload; ang cold start ay karaniwang sanhi ng “hanging”.
+The Control UI Logs tab tails this file via the gateway (`logs.tail`). 43. I-reload; ang cold start ay karaniwang sanhi ng “hanging”.
 
 ```bash
 openclaw logs --follow

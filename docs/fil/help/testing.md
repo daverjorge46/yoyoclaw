@@ -309,7 +309,7 @@ Kung gusto mong umasa sa env keys (hal. naka-export sa iyong `~/.profile`), magp
 ## Deepgram live (audio transcription)
 
 - Test: `src/media-understanding/providers/deepgram/audio.live.test.ts`
-- Enable: \`DEEPGRAM_API_KEY=... EXFOLIATE!"_ — Isang space lobster, marahil
+- Enable: \`DEEPGRAM*API_KEY=... EXFOLIATE!"* — Isang space lobster, marahil
 
 ## Docker runners (opsyonal na “gumagana sa Linux” checks)
 

@@ -420,7 +420,7 @@ openclaw doctor
     **메모리 + 부트스트랩 파일**은 백업되지만, 세션 기록이나 인증은 **백업되지 않습니다**. 29. 이는
     `~/.openclaw/` 아래에 있습니다(예: `~/.openclaw/agents/<agentId>/sessions/`).
 
-30. 관련: [Migrating](/install/migrating), [디스크에서 데이터가 저장되는 위치](/help/faq#where-does-openclaw-store-its-data),
+29. 관련: [Migrating](/install/migrating), [디스크에서 데이터가 저장되는 위치](/help/faq#where-does-openclaw-store-its-data),
     [Agent workspace](/concepts/agent-workspace), [Doctor](/gateway/doctor),
     [Remote mode](/gateway/remote).
 
@@ -884,7 +884,7 @@ OpenClaw is lightweight. For a basic Gateway + one chat channel:
 
 12. OS: **Ubuntu LTS**(또는 최신 Debian/Ubuntu)를 사용하세요. 13. Linux 설치 경로는 해당 환경에서 가장 잘 테스트되었습니다.
 
-14. 문서: [Linux](/platforms/linux), [VPS 호스팅](/vps).
+13. 문서: [Linux](/platforms/linux), [VPS 호스팅](/vps).
 
 ### Can I run OpenClaw in a VM and what are the requirements
 
@@ -1091,9 +1091,11 @@ Gateway 호스트가 macOS이기 때문에 스킬이 정상적으로 로드됩�
 ### 스킬 메타데이터(워크스페이스 또는 `~/.openclaw/skills`)를 재정의하여 Linux를 허용합니다:
 
 ---
+
 name: apple-notes
 description: Manage Apple Notes via the memo CLI on macOS.
 metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+
 ---
 
 옵션:
@@ -1219,16 +1221,16 @@ OpenAI 키가 해석되면 OpenAI를 우선하고, 그렇지 않으면 Gemini �
 
 모든 것은 `$OPENCLAW_STATE_DIR` 아래에 위치합니다 (기본값: `~/.openclaw`):
 
-| 경로                                                              | 목적                                                                                 |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                             | 메인 설정 (JSON5)                                                   |
-| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | 레거시 OAuth 가져오기 (첫 사용 시 인증 프로필로 복사됨)                             |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | 인증 프로필 (OAuth + API 키)                                          |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | 런타임 인증 캐시 (자동 관리)                                               |
+| 경로                                                            | 목적                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                             | 메인 설정 (JSON5)                                       |
+| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | 레거시 OAuth 가져오기 (첫 사용 시 인증 프로필로 복사됨) |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | 인증 프로필 (OAuth + API 키)                            |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | 런타임 인증 캐시 (자동 관리)                            |
 | `$OPENCLAW_STATE_DIR/credentials/`                              | 프로바이더 상태 (예: `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                   | 에이전트별 상태 (agentDir + 세션)                                        |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | 대화 기록 및 상태 (에이전트별)                                              |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | 세션 메타데이터 (에이전트별)                                                |
+| `$OPENCLAW_STATE_DIR/agents/`                                   | 에이전트별 상태 (agentDir + 세션)                       |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | 대화 기록 및 상태 (에이전트별)                          |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | 세션 메타데이터 (에이전트별)                            |
 
 레거시 단일 에이전트 경로: `~/.openclaw/agent/*` (`openclaw doctor`에 의해 마이그레이션됨).
 
@@ -1519,9 +1521,9 @@ openclaw agent --message "Hello from local bot" --deliver --channel telegram --r
 
 14. 두 번째 노트북에서 **로컬 도구**(screen/camera/exec)만 필요하다면 **노드**로 추가하세요. 15. 이렇게 하면 하나의 Gateway를 유지하면서 설정 중복을 피할 수 있습니다. 16. 로컬 노드 도구는 현재 macOS 전용이지만, 다른 OS로 확장할 계획입니다.
 
-17. **강력한 격리**가 필요하거나 완전히 분리된 두 개의 봇이 필요할 때만 두 번째 Gateway를 설치하세요.
+15. **강력한 격리**가 필요하거나 완전히 분리된 두 개의 봇이 필요할 때만 두 번째 Gateway를 설치하세요.
 
-18. 문서: [Nodes](/nodes), [Nodes CLI](/cli/nodes), [Multiple gateways](/gateway/multiple-gateways).
+16. 문서: [Nodes](/nodes), [Nodes CLI](/cli/nodes), [Multiple gateways](/gateway/multiple-gateways).
 
 ### 19. 노드는 게이트웨이 서비스를 실행하나요
 
@@ -1537,7 +1539,7 @@ openclaw agent --message "Hello from local bot" --deliver --channel telegram --r
 
 27. `config.apply`는 **전체 설정**을 교체합니다. 28. 부분 객체를 보내면 나머지는 모두 제거됩니다.
 
-29. 복구:
+28. 복구:
 
 - 30. 백업에서 복원하세요(git 또는 복사해 둔 `~/.openclaw/openclaw.json`).
 - 31. 백업이 없다면 `openclaw doctor`를 다시 실행하고 채널/모델을 재구성하세요.
@@ -1706,19 +1708,19 @@ openclaw models status
 
 18. 네, **멀티 에이전트 라우팅**과 **서브 에이전트**를 통해 가능합니다. 19. 하나의 코디네이터 에이전트와 각자 작업 공간과 모델을 가진 여러 워커 에이전트를 만들 수 있습니다.
 
-20. 다만 이는 **재미있는 실험**으로 보는 것이 가장 좋습니다. 21. 토큰 사용량이 많고 종종
+19. 다만 이는 **재미있는 실험**으로 보는 것이 가장 좋습니다. 21. 토큰 사용량이 많고 종종
     세션을 분리한 하나의 봇을 사용하는 것보다 효율이 떨어집니다. 22. 우리가 일반적으로 상정하는 모델은
     하나의 봇과, 병렬 작업을 위한 여러 세션입니다. 23. 그
     봇은 필요할 때 서브 에이전트를 생성할 수도 있습니다.
 
-24. 문서: [멀티 에이전트 라우팅](/concepts/multi-agent), [서브 에이전트](/tools/subagents), [Agents CLI](/cli/agents).
+20. 문서: [멀티 에이전트 라우팅](/concepts/multi-agent), [서브 에이전트](/tools/subagents), [Agents CLI](/cli/agents).
 
 ### 25. 작업 도중에 컨텍스트가 잘린 이유는 무엇이며 이를 어떻게 방지하나요
 
 26. 세션 컨텍스트는 모델의 컨텍스트 창 크기에 의해 제한됩니다. 27. 긴 대화, 큰 도구 출력, 또는 많은
     파일은 압축(compaction)이나 잘림(truncation)을 유발할 수 있습니다.
 
-28. 도움이 되는 방법:
+27. 도움이 되는 방법:
 
 - 29. 현재 상태를 요약해서 파일로 작성해 달라고 봇에게 요청하세요.
 - 30. 긴 작업 전에는 `/compact`를 사용하고, 주제를 전환할 때는 `/new`를 사용하세요.
@@ -1930,7 +1932,7 @@ MiniMax M2.1에는 자체 문서가 있습니다: [MiniMax](/providers/minimax) 
 1. 보안 참고: 더 작거나 심하게 양자화된 모델은 프롬프트 인젝션에 더 취약합니다. 2. 도구를 사용할 수 있는 모든 봇에는 **대형 모델**을 강력히 권장합니다.
 2. 그래도 소형 모델을 사용하려면 샌드박싱과 엄격한 도구 허용 목록을 활성화하세요.
 
-4. 문서: [Ollama](/providers/ollama), [로컬 모델](/gateway/local-models),
+3. 문서: [Ollama](/providers/ollama), [로컬 모델](/gateway/local-models),
    [모델 제공자](/concepts/model-providers), [보안](/gateway/security),
    [샌드박싱](/gateway/sandboxing).
 
@@ -1938,7 +1940,7 @@ MiniMax M2.1에는 자체 문서가 있습니다: [MiniMax](/providers/minimax) 
 
 6. **모델 명령어**를 사용하거나 **model** 필드만 편집하세요. 7. 전체 설정 덮어쓰기를 피하세요.
 
-8. 안전한 옵션:
+7. 안전한 옵션:
 
 - 9. 채팅에서 `/model` (빠름, 세션별)
 - 10. `openclaw models set ...` (모델 설정만 업데이트)
@@ -2517,9 +2519,9 @@ openclaw logs --follow
 27. 보통 UI가 WebSocket 연결을 잃었음을 의미합니다. 다음을 확인하십시오:
 
 1. 28. Gateway가 실행 중인가요? `openclaw gateway status`
-2. 29. Gateway 상태는 정상인가요? `openclaw status`
-3. 30. UI에 올바른 토큰이 있나요? `openclaw dashboard`
-4. 31. 원격이라면 터널/Tailscale 링크가 살아 있나요?
+1. 29. Gateway 상태는 정상인가요? `openclaw status`
+1. 30. UI에 올바른 토큰이 있나요? `openclaw dashboard`
+1. 31. 원격이라면 터널/Tailscale 링크가 살아 있나요?
 
 32) 그런 다음 로그를 추적하세요:
 

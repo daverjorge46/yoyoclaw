@@ -22,7 +22,7 @@ openclaw onboard
 
 最速で最初のチャットを始める方法：Control UI を開いてください（チャンネル設定は不要です）。  
 `openclaw dashboard` を実行し、ブラウザでチャットします。ドキュメント： [Dashboard](/web/dashboard)。
- 
+
 `openclawダッシュボード` を実行し、ブラウザーでチャットします。 ドキュメント: [Dashboard](/web/dashboard).
 </Info>
 
@@ -36,7 +36,7 @@ openclaw agents add <name>
 <Note>
 
 `--json` は非対話モードを意味するものではありません。スクリプトでは `--non-interactive` を使用してください。
- スクリプトの場合は `--non-interactive` を使用します。
+スクリプトの場合は `--non-interactive` を使用します。
 </Note>
 
 <Tip>
@@ -44,7 +44,7 @@ openclaw agents add <name>
 推奨：エージェントが `web_search` を利用できるように、Brave Search API キーを設定してください
 （`web_fetch` はキーなしでも動作します）。最も簡単な方法は `openclaw configure --section web` で、
 `tools.web.search.apiKey` を保存します。ドキュメント： [Web tools](/tools/web)。
- 最も簡単なパス: `openclaw configure --section web`
+最も簡単なパス: `openclaw configure --section web`
 で tools.web.search.apiKey` を格納します。 Docs: [Web tools](/tools/web).
 </Tip>
 

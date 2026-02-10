@@ -13,14 +13,14 @@ Zowel heartbeats als cron-jobs laten je taken volgens een schema uitvoeren. Deze
 
 ## Snelle beslisgids
 
-| Use case                                          | Aanbevolen                             | Waarom                                     |
-| ------------------------------------------------- | -------------------------------------- | ------------------------------------------ |
-| Inbox elke 30 min controleren                     | Heartbeat                              | Bundelt met andere checks, contextbewust   |
-| Dagelijks rapport om 9:00 precies | Cron (geïsoleerd)   | Exacte timing nodig                        |
-| Agenda monitoren op aankomende events             | Heartbeat                              | Natuurlijke fit voor periodiek bewustzijn  |
-| Wekelijkse diepgaande analyse                     | Cron (geïsoleerd)   | Losstaande taak, kan ander model gebruiken |
-| Herinner me over 20 minuten                       | Cron (main, `--at`) | Eenmalig met precieze timing               |
-| Achtergrond check projectgezondheid               | Heartbeat                              | Lift mee op bestaande cyclus               |
+| Use case                              | Aanbevolen          | Waarom                                     |
+| ------------------------------------- | ------------------- | ------------------------------------------ |
+| Inbox elke 30 min controleren         | Heartbeat           | Bundelt met andere checks, contextbewust   |
+| Dagelijks rapport om 9:00 precies     | Cron (geïsoleerd)   | Exacte timing nodig                        |
+| Agenda monitoren op aankomende events | Heartbeat           | Natuurlijke fit voor periodiek bewustzijn  |
+| Wekelijkse diepgaande analyse         | Cron (geïsoleerd)   | Losstaande taak, kan ander model gebruiken |
+| Herinner me over 20 minuten           | Cron (main, `--at`) | Eenmalig met precieze timing               |
+| Achtergrond check projectgezondheid   | Heartbeat           | Lift mee op bestaande cyclus               |
 
 ## Heartbeat: Periodiek bewustzijn
 
@@ -215,13 +215,13 @@ Zie [Lobster](/tools/lobster) voor volledig gebruik en voorbeelden.
 
 Zowel heartbeat als cron kunnen met de main sessie interageren, maar op verschillende manieren:
 
-|          | Heartbeat                          | Cron (main)             | Cron (geïsoleerd)                 |
-| -------- | ---------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
-| Sessie   | Main                               | Main (via system event) | `cron:<jobId>`                                       |
-| Historie | Gedeeld                            | Gedeeld                                    | Elke run fris                                        |
-| Context  | Volledig                           | Volledig                                   | Geen (start schoon)               |
-| Model    | Main-sessiemodel                   | Main-sessiemodel                           | Kan overriden                                        |
-| Uitvoer  | Afgeleverd als niet `HEARTBEAT_OK` | Heartbeat-prompt + event                   | Announce-samenvatting (standaard) |
+|          | Heartbeat                          | Cron (main)              | Cron (geïsoleerd)                 |
+| -------- | ---------------------------------- | ------------------------ | --------------------------------- |
+| Sessie   | Main                               | Main (via system event)  | `cron:<jobId>`                    |
+| Historie | Gedeeld                            | Gedeeld                  | Elke run fris                     |
+| Context  | Volledig                           | Volledig                 | Geen (start schoon)               |
+| Model    | Main-sessiemodel                   | Main-sessiemodel         | Kan overriden                     |
+| Uitvoer  | Afgeleverd als niet `HEARTBEAT_OK` | Heartbeat-prompt + event | Announce-samenvatting (standaard) |
 
 ### Wanneer cron in de main sessie gebruiken
 
@@ -262,11 +262,11 @@ openclaw cron add \
 
 ## Kostenoverwegingen
 
-| Mechanisme                           | Kostenprofiel                                                                      |
-| ------------------------------------ | ---------------------------------------------------------------------------------- |
-| Heartbeat                            | Eén beurt elke N minuten; schaalt met HEARTBEAT.md-grootte         |
+| Mechanisme        | Kostenprofiel                                                   |
+| ----------------- | --------------------------------------------------------------- |
+| Heartbeat         | Eén beurt elke N minuten; schaalt met HEARTBEAT.md-grootte      |
 | Cron (main)       | Voegt event toe aan volgende heartbeat (geen geïsoleerde beurt) |
-| Cron (geïsoleerd) | Volledige agent-beurt per job; kan goedkoper model gebruiken                       |
+| Cron (geïsoleerd) | Volledige agent-beurt per job; kan goedkoper model gebruiken    |
 
 **Tips**:
 

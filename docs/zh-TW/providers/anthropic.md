@@ -45,11 +45,11 @@ OpenClaw supports Anthropic's prompt caching feature. This is **API-only**; subs
 
 在你的模型設定中使用 `cacheRetention` 參數：
 
-| 值       | Cache Duration | Description            |
-| ------- | -------------- | ---------------------- |
-| `none`  | No caching     | Disable prompt caching |
-| `short` | 5 分鐘           | API 金鑰驗證的預設值           |
-| `long`  | 1 小時           | 延長快取（需要 beta 旗標）       |
+| 值      | Cache Duration | Description                |
+| ------- | -------------- | -------------------------- |
+| `none`  | No caching     | Disable prompt caching     |
+| `short` | 5 分鐘         | API 金鑰驗證的預設值       |
+| `long`  | 1 小時         | 延長快取（需要 beta 旗標） |
 
 ```json5
 {

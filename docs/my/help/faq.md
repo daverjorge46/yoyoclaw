@@ -321,7 +321,7 @@ openclaw onboard --install-daemon
 
 8. wizard က UI assets တွေကိုလည်း အလိုအလျောက် build လုပ်ပေးနိုင်ပါတယ်။ 9. onboarding ပြီးသွားပြီးနောက် သင်က Gateway ကို ပုံမှန်အားဖြင့် port **18789** ပေါ်မှာ run လုပ်ပါလိမ့်မယ်။
 
-10. Source မှ (contributors/dev များအတွက်):
+9. Source မှ (contributors/dev များအတွက်):
 
 ```bash
 11. git clone https://github.com/openclaw/openclaw.git
@@ -433,7 +433,7 @@ GitHub changelog ကို စစ်ဆေးပါ:
 20. Comcast/Xfinity connection တချို့က Xfinity Advanced Security ကြောင့် `docs.openclaw.ai` ကို မှားယွင်းစွာ block လုပ်ထားတတ်ပါတယ်။ 21. အဲဒါကို disable လုပ်ပါ ဒါမှမဟုတ် `docs.openclaw.ai` ကို allowlist ထဲထည့်ပြီး ပြန်ကြိုးစားပါ။ 22. အသေးစိတ်: [Troubleshooting](/help/troubleshooting#docsopenclawai-shows-an-ssl-error-comcastxfinity).
 21. ဒီကို report လုပ်ပေးပြီး unblock ဖြစ်အောင် ကူညီပေးပါ: [https://spa.xfinity.com/check_url_status](https://spa.xfinity.com/check_url_status).
 
-24. site ကို မရောက်သေးရင် docs တွေကို GitHub မှာ mirror လုပ်ထားပါတယ်:
+22. site ကို မရောက်သေးရင် docs တွေကို GitHub မှာ mirror လုပ်ထားပါတယ်:
     [https://github.com/openclaw/openclaw/tree/main/docs](https://github.com/openclaw/openclaw/tree/main/docs)
 
 ### 25. stable နဲ့ beta က ဘာကွာခြားလဲ
@@ -445,7 +445,7 @@ GitHub changelog ကို စစ်ဆေးပါ:
 
 29. build တွေကို **beta** ထဲ အရင်ထုတ်ပြီး စမ်းသပ်ပါတယ်၊ build က အဆင်ပြေရင် အဲဒီ version ကိုပဲ **`latest`** အဖြစ် promote လုပ်ပါတယ်။ 30. အဲ့ဒါကြောင့် beta နဲ့ stable က **တူညီတဲ့ version** ကို ညွှန်နေတာ ဖြစ်နိုင်ပါတယ်။
 
-31. ဘာပြောင်းလဲသွားလဲ ကြည့်ရန်:
+30. ဘာပြောင်းလဲသွားလဲ ကြည့်ရန်:
     [https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md](https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md)
 
 ### 32. beta version ကို ဘယ်လို install လုပ်ရမလဲ နဲ့ beta နဲ့ dev က ဘာကွာလဲ
@@ -490,7 +490,7 @@ One-liners (macOS/Linux):
 
 49. ဒါက `main` branch ကို ပြောင်းပြီး source ကနေ update လုပ်ပေးပါတယ်။
 
-2. 50. **Hackable install (installer site မှ):**
+50. 50. **Hackable install (installer site မှ):**
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git
@@ -608,7 +608,7 @@ Nodes: [Nodes](/nodes), [Nodes CLI](/cli/nodes).
 
 2. တိုတောင်းတဲ့ အဖြေ: **ဖြစ်နိုင်ပါတယ်၊ ဒါပေမယ့် မအကြံပြုပါ**။ 3. Update လုပ်တဲ့ လုပ်ငန်းစဉ်က Gateway ကို restart လုပ်နိုင်ပါတယ် (အလုပ်လုပ်နေတဲ့ session ပြတ်တောက်သွားနိုင်ပါတယ်)၊ clean git checkout လိုအပ်နိုင်ပြီး အတည်ပြုချက် တောင်းနိုင်ပါတယ်။ 4. ပိုပြီး လုံခြုံတာက operator အနေနဲ့ shell မှာတင် update လုပ်တာပါ။
 
-5. CLI ကို သုံးပါ:
+3. CLI ကို သုံးပါ:
 
 ```bash
 6. openclaw update
@@ -672,7 +672,7 @@ claude setup-token
 
 44. ဟုတ်ပါတယ် - **setup-token** နဲ့ပါ။ 45. OpenClaw က Claude Code CLI OAuth tokens ကို ပြန်မသုံးတော့ပါဘူး; setup-token သို့မဟုတ် Anthropic API key ကို သုံးပါ။ 46. Token ကို ဘယ်နေရာမှာမဆို generate လုပ်ပြီး gateway host ပေါ်မှာ paste လုပ်ပါ။ 47. [Anthropic](/providers/anthropic) နဲ့ [OAuth](/concepts/oauth) ကို ကြည့်ပါ။
 
-48. မှတ်ချက်: Claude subscription access ကို Anthropic ရဲ့ စည်းမျဉ်းများက ထိန်းချုပ်ထားပါတယ်။ 49. Production သို့မဟုတ် multi-user workloads အတွက်တော့ API keys ကို သုံးတာက ပိုပြီး လုံခြုံတတ်ပါတယ်။
+45. မှတ်ချက်: Claude subscription access ကို Anthropic ရဲ့ စည်းမျဉ်းများက ထိန်းချုပ်ထားပါတယ်။ 49. Production သို့မဟုတ် multi-user workloads အတွက်တော့ API keys ကို သုံးတာက ပိုပြီး လုံခြုံတတ်ပါတယ်။
 
 ### 50. Anthropic ကနေ HTTP 429 ratelimiterror ကို ဘာကြောင့် မြင်နေရတာလဲ
 
@@ -990,12 +990,12 @@ See [Cron jobs](/automation/cron-jobs), [Multi-Agent Routing](/concepts/multi-ag
 
 1. ရှည်လျားသော သို့မဟုတ် အပြိုင်လုပ်ဆောင်ရမည့် အလုပ်များအတွက် **sub-agents** ကို အသုံးပြုပါ။ 2. Sub-agents များသည် ကိုယ်ပိုင် session အတွင်း လည်ပတ်ပြီး၊ အကျဉ်းချုပ်ကို ပြန်ပေးကာ သင့် main chat ကို အမြန်တုံ့ပြန်နိုင်အောင် ထိန်းထားပေးသည်။
 
-3. သင့် bot ကို "spawn a sub-agent for this task" ဟု မေးမြန်းပါ သို့မဟုတ် `/subagents` ကို အသုံးပြုပါ။
-4. Gateway က ယခုအချိန်တွင် ဘာလုပ်နေသည် (အလုပ်များနေပါသလား) ကို ကြည့်ရန် chat ထဲတွင် `/status` ကို အသုံးပြုပါ။
+2. သင့် bot ကို "spawn a sub-agent for this task" ဟု မေးမြန်းပါ သို့မဟုတ် `/subagents` ကို အသုံးပြုပါ။
+3. Gateway က ယခုအချိန်တွင် ဘာလုပ်နေသည် (အလုပ်များနေပါသလား) ကို ကြည့်ရန် chat ထဲတွင် `/status` ကို အသုံးပြုပါ။
 
-5. Token အကြံပြုချက်: ရှည်လျားသော အလုပ်များနှင့် sub-agents နှစ်ခုစလုံးသည် tokens ကို အသုံးပြုသည်။ ကုန်ကျစရိတ်ကို စဉ်းစားရပါက `agents.defaults.subagents.model` မှတဆင့် sub-agents များအတွက် စျေးသက်သာသော model ကို သတ်မှတ်ပါ။
+4. Token အကြံပြုချက်: ရှည်လျားသော အလုပ်များနှင့် sub-agents နှစ်ခုစလုံးသည် tokens ကို အသုံးပြုသည်။ ကုန်ကျစရိတ်ကို စဉ်းစားရပါက `agents.defaults.subagents.model` မှတဆင့် sub-agents များအတွက် စျေးသက်သာသော model ကို သတ်မှတ်ပါ။
 
-7. စာရွက်စာတမ်းများ: [Sub-agents](/tools/subagents).
+5. စာရွက်စာတမ်းများ: [Sub-agents](/tools/subagents).
 
 ### 8. Cron သို့မဟုတ် reminders မဖွင့်သွားပါက ဘာကို စစ်ဆေးရမလဲ
 
@@ -1021,7 +1021,7 @@ openclaw cron runs --id <jobId> --limit 50
 18. **ClawHub** (CLI) ကို အသုံးပြုပါ သို့မဟုတ် skills များကို သင့် workspace ထဲသို့ ထည့်ပါ။ 19. macOS Skills UI ကို Linux တွင် မရနိုင်ပါ။
 19. skills များကို [https://clawhub.com](https://clawhub.com) တွင် ကြည့်ရှုနိုင်ပါသည်။
 
-21. ClawHub CLI ကို install လုပ်ပါ (package manager တစ်ခုကို ရွေးချယ်ပါ):
+20. ClawHub CLI ကို install လုပ်ပါ (package manager တစ်ခုကို ရွေးချယ်ပါ):
 
 ```bash
 npm i -g clawhub
@@ -1046,38 +1046,39 @@ Yes. 23. Gateway scheduler ကို အသုံးပြုပါ:
 
 29. တိုက်ရိုက် မလုပ်နိုင်ပါ။ 30. macOS skills များကို `metadata.openclaw.os` နှင့် လိုအပ်သော binaries များဖြင့် ကန့်သတ်ထားပြီး၊ skills များသည် **Gateway host** ပေါ်တွင် သင့်လျော်သည့်အခါမှသာ system prompt ထဲတွင် ပေါ်လာပါသည်။ 31. Linux တွင် `darwin`-only skills များ (`apple-notes`, `apple-reminders`, `things-mac` စသည်) ကို gating ကို override မလုပ်ပါက load မလုပ်နိုင်ပါ။
 
-32. ထောက်ခံထားသော ပုံစံ သုံးမျိုး ရှိပါသည်:
+30. ထောက်ခံထားသော ပုံစံ သုံးမျိုး ရှိပါသည်:
 
-33. **Option A - Gateway ကို Mac ပေါ်တွင် လည်ပတ်စေခြင်း (အလွယ်ဆုံး).**
+31. **Option A - Gateway ကို Mac ပေါ်တွင် လည်ပတ်စေခြင်း (အလွယ်ဆုံး).**
     macOS binaries များ ရှိသောနေရာတွင် Gateway ကို လည်ပတ်စေပြီး၊ Linux မှ [remote mode](#how-do-i-run-openclaw-in-remote-mode-client-connects-to-a-gateway-elsewhere) သို့မဟုတ် Tailscale ဖြင့် ချိတ်ဆက်ပါ။ 34. Gateway host သည် macOS ဖြစ်သောကြောင့် skills များသည် ပုံမှန်အတိုင်း load ဖြစ်ပါသည်။
 
-35. **Option B - macOS node ကို အသုံးပြုခြင်း (SSH မလို).**
+32. **Option B - macOS node ကို အသုံးပြုခြင်း (SSH မလို).**
     Gateway ကို Linux တွင် လည်ပတ်စေပြီး macOS node (menubar app) ကို pair လုပ်ကာ Mac ပေါ်တွင် **Node Run Commands** ကို "Always Ask" သို့မဟုတ် "Always Allow" အဖြစ် သတ်မှတ်ပါ။ 36. လိုအပ်သော binaries များ node ပေါ်တွင် ရှိပါက OpenClaw သည် macOS-only skills များကို သင့်လျော်သူအဖြစ် သတ်မှတ်နိုင်ပါသည်။ 37. agent သည် ထို skills များကို `nodes` tool မှတစ်ဆင့် လည်ပတ်စေပါသည်။ 38. "Always Ask" ကို ရွေးထားပါက prompt ထဲတွင် "Always Allow" ကို အတည်ပြုခြင်းဖြင့် ထို command ကို allowlist ထဲသို့ ထည့်ပေးပါသည်။
 
-39. **Option C - SSH ဖြင့် macOS binaries များကို proxy လုပ်ခြင်း (အဆင့်မြင့်).**
+33. **Option C - SSH ဖြင့် macOS binaries များကို proxy လုပ်ခြင်း (အဆင့်မြင့်).**
     Gateway ကို Linux ပေါ်တွင် ထားပြီး လိုအပ်သော CLI binaries များကို Mac ပေါ်တွင် လည်ပတ်စေသည့် SSH wrappers အဖြစ် ဖြေရှင်းစေပါ။ 40. ထို့နောက် skill ကို override လုပ်၍ Linux ကို ခွင့်ပြုသဖြင့် သင့်လျော်နေစေပါ။
 
-1. 41. binary အတွက် SSH wrapper တစ်ခု ဖန်တီးပါ (ဥပမာ: Apple Notes အတွက် `memo`):
+34. 41. binary အတွက် SSH wrapper တစ်ခု ဖန်တီးပါ (ဥပမာ: Apple Notes အတွက် `memo`):
 
-   ```bash
-   42. ```#!/usr/bin/env bash
-   set -euo pipefail
-   exec ssh -T user@mac-host /opt/homebrew/bin/memo "$@"```
-   ```
+    ````bash
+    42. ```#!/usr/bin/env bash
+    set -euo pipefail
+    exec ssh -T user@mac-host /opt/homebrew/bin/memo "$@"```
+    ````
 
-2. 43. wrapper ကို Linux host ၏ `PATH` ထဲသို့ ထည့်ပါ (ဥပမာ `~/bin/memo`)။
+35. 43. wrapper ကို Linux host ၏ `PATH` ထဲသို့ ထည့်ပါ (ဥပမာ `~/bin/memo`)။
 
-3. 44. skill metadata ကို (workspace သို့မဟုတ် `~/.openclaw/skills`) မှတစ်ဆင့် override လုပ်၍ Linux ကို ခွင့်ပြုပါ:
+36. 44. skill metadata ကို (workspace သို့မဟုတ် `~/.openclaw/skills`) မှတစ်ဆင့် override လုပ်၍ Linux ကို ခွင့်ပြုပါ:
 
-   ```markdown
-   45. ```---
-   name: apple-notes
-   description: Manage Apple Notes via the memo CLI on macOS.
-   metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
-   ---```
-   ```
+    ````markdown
+    45. ````---
+        name: apple-notes
+        description: Manage Apple Notes via the memo CLI on macOS.
+        metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+        ---```
+        ````
+    ````
 
-4. 46. skills snapshot ကို ပြန်လည် refresh ဖြစ်စေရန် session အသစ်တစ်ခု စတင်ပါ။
+37. 46. skills snapshot ကို ပြန်လည် refresh ဖြစ်စေရန် session အသစ်တစ်ခု စတင်ပါ။
 
 ### 47) Notion သို့မဟုတ် HeyGen integration ရှိပါသလား
 
@@ -1202,15 +1203,15 @@ Docs: [Memory](/concepts/memory), [Agent workspace](/concepts/agent-workspace).
 
 ၃၀. အရာအားလုံးက `$OPENCLAW_STATE_DIR` (default: `~/.openclaw`) အောက်မှာ ရှိပါတယ်။
 
-| ၃၁. Path                                                            | Purpose                                                                                                                     |
-| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| ၃၁. Path                                                            | Purpose                                                                                  |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | ၃၂. `$OPENCLAW_STATE_DIR/openclaw.json`                             | ၃၃. Main config (JSON5)                                                                  |
 | ၃၄. `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | ၃၅. Legacy OAuth import (ပထမဆုံး အသုံးပြုချိန်မှာ auth profiles ထဲကို copy လုပ်ထားပါတယ်) |
 | ၃၆. `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | ၃၇. Auth profiles (OAuth + API keys)                                                     |
 | ၃၈. `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | ၃၉. Runtime auth cache (အလိုအလျောက် စီမံခန့်ခွဲထားပါတယ်)                                 |
-| `$OPENCLAW_STATE_DIR/credentials/`                                                  | ၄၀. Provider state (ဥပမာ `whatsapp/<accountId>/creds.json`)                              |
-| `$OPENCLAW_STATE_DIR/agents/`                                                       | ၄၁. Per-agent state (agentDir + sessions)                                                |
-| ၄၂. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | ၄၃. Conversation history & state (agent တစ်ခုချင်းစီအလိုက်)          |
+| `$OPENCLAW_STATE_DIR/credentials/`                                  | ၄၀. Provider state (ဥပမာ `whatsapp/<accountId>/creds.json`)                              |
+| `$OPENCLAW_STATE_DIR/agents/`                                       | ၄၁. Per-agent state (agentDir + sessions)                                                |
+| ၄၂. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | ၄၃. Conversation history & state (agent တစ်ခုချင်းစီအလိုက်)                              |
 | ၄၄. `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | ၄၅. Session metadata (agent တစ်ခုချင်းစီအလိုက်)                                          |
 
 Legacy single-agent path: `~/.openclaw/agent/*` (`openclaw doctor` ဖြင့် migrate လုပ်ပေးသည်)။
@@ -1244,10 +1245,10 @@ Legacy single-agent path: `~/.openclaw/agent/*` (`openclaw doctor` ဖြင့�
 
 8. သင့် **agent workspace** ကို **private** git repo ထဲတွင် ထားပြီး private နေရာတစ်ခုသို့ backup လုပ်ပါ (ဥပမာ GitHub private)။ 9. ဒါဟာ memory + AGENTS/SOUL/USER ဖိုင်များကို သိမ်းဆည်းပေးပြီး၊ နောက်ပိုင်း assistant ရဲ့ "စိတ်" ကို ပြန်လည် restore လုပ်နိုင်စေသည်။
 
-10. `~/.openclaw` အောက်ရှိ မည်သည့်အရာကိုမျှ commit **မလုပ်ပါနှင့်** (credentials, sessions, tokens)။
-11. full restore လိုအပ်ပါက workspace နှင့် state directory ကို သီးခြားစီ backup လုပ်ပါ (အထက်ပါ migration မေးခွန်းကို ကြည့်ပါ)။
+9. `~/.openclaw` အောက်ရှိ မည်သည့်အရာကိုမျှ commit **မလုပ်ပါနှင့်** (credentials, sessions, tokens)။
+10. full restore လိုအပ်ပါက workspace နှင့် state directory ကို သီးခြားစီ backup လုပ်ပါ (အထက်ပါ migration မေးခွန်းကို ကြည့်ပါ)။
 
-12. Docs: [Agent workspace](/concepts/agent-workspace)။
+11. Docs: [Agent workspace](/concepts/agent-workspace)။
 
 ### 13. OpenClaw ကို အပြည့်အဝ uninstall ဘယ်လိုလုပ်မလဲ
 
@@ -1255,8 +1256,7 @@ Legacy single-agent path: `~/.openclaw/agent/*` (`openclaw doctor` ဖြင့�
 
 ### 15. agents များဟာ workspace အပြင်ဘက်မှာ အလုပ်လုပ်နိုင်ပါသလား
 
-Yes. 16. Workspace သည် **default cwd** နှင့် memory anchor ဖြစ်ပြီး hard sandbox မဟုတ်ပါ။
-17. Relative paths များသည် workspace အတွင်းတွင် resolve ဖြစ်သော်လည်း sandboxing မဖွင့်ထားပါက absolute paths များဖြင့် host ရဲ့ အခြားနေရာများကို ဝင်ရောက်နိုင်ပါသည်။ 18. isolation လိုအပ်ပါက [`agents.defaults.sandbox`](/gateway/sandboxing) သို့မဟုတ် agent တစ်ခုချင်းစီအတွက် sandbox settings ကို အသုံးပြုပါ။ 19. repo တစ်ခုကို default working directory အဖြစ် အသုံးပြုလိုပါက၊ ထို agent ၏ `workspace` ကို repo root သို့ ညွှန်ပြပါ။ 20. OpenClaw repo သည် source code သာဖြစ်သည် — agent ကို အတွင်းမှာ အလုပ်လုပ်စေချင်တာ မဟုတ်ပါက workspace ကို သီးခြားထားပါ။
+Yes. 16. Workspace သည် **default cwd** နှင့် memory anchor ဖြစ်ပြီး hard sandbox မဟုတ်ပါ။ 17. Relative paths များသည် workspace အတွင်းတွင် resolve ဖြစ်သော်လည်း sandboxing မဖွင့်ထားပါက absolute paths များဖြင့် host ရဲ့ အခြားနေရာများကို ဝင်ရောက်နိုင်ပါသည်။ 18. isolation လိုအပ်ပါက [`agents.defaults.sandbox`](/gateway/sandboxing) သို့မဟုတ် agent တစ်ခုချင်းစီအတွက် sandbox settings ကို အသုံးပြုပါ။ 19. repo တစ်ခုကို default working directory အဖြစ် အသုံးပြုလိုပါက၊ ထို agent ၏ `workspace` ကို repo root သို့ ညွှန်ပြပါ။ 20. OpenClaw repo သည် source code သာဖြစ်သည် — agent ကို အတွင်းမှာ အလုပ်လုပ်စေချင်တာ မဟုတ်ပါက workspace ကို သီးခြားထားပါ။
 
 21. Example (repo ကို default cwd အဖြစ်):
 
@@ -1297,23 +1297,28 @@ defaults: {       workspace: "~/Projects/my-repo",     },
 
 ### 33. Non-loopback bind များတွင် **auth လိုအပ်ပါသည်**။
 
-34. `gateway.auth.mode` + `gateway.auth.token` ကို ပြင်ဆင်ပါ (သို့) `OPENCLAW_GATEWAY_TOKEN` ကို အသုံးပြုပါ။ {   gateway: {
+34. `gateway.auth.mode` + `gateway.auth.token` ကို ပြင်ဆင်ပါ (သို့) `OPENCLAW_GATEWAY_TOKEN` ကို အသုံးပြုပါ။ { gateway: {
 
 ```
 bind: "lan",     auth: {
 ```
 
 ### ```
-  mode: "token",
+
+mode: "token",
+
 ```
 
 ```
-  token: "replace-me",
-```
+
+token: "replace-me",
+
+````
 
 - ```
   },
-  ```
+````
+
 - },
 
 ### }

@@ -105,8 +105,7 @@ openclaw browser create-profile \
 ### 遠端 Gateway（Gateway 在其他地方執行）— **執行節點主機**
 
 如果你的 Gateway 在另一台機器上執行，請在執行 Chrome 的機器上啟動節點主機。
-Gateway 會將瀏覽器操作代理到該節點；擴充功能與中繼仍留在瀏覽器所在的機器上。
-22. Gateway 會將瀏覽器動作代理到該節點；擴充功能與轉送保持在瀏覽器所在的本機。
+Gateway 會將瀏覽器操作代理到該節點；擴充功能與中繼仍留在瀏覽器所在的機器上。22. Gateway 會將瀏覽器動作代理到該節點；擴充功能與轉送保持在瀏覽器所在的本機。
 
 如果連接了多個節點，請使用 `gateway.nodes.browser.node` 將其中一個固定，或設定 `gateway.nodes.browser.mode`。
 

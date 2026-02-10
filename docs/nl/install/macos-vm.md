@@ -260,11 +260,11 @@ Voor echt altijd-aan, overweeg een dedicated Mac mini of een kleine VPS. Zie [VP
 
 ## Problemen oplossen
 
-| Probleem                    | Oplossing                                                                                                            |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Kan niet via SSH in VM      | Controleer of "Remote Login" is ingeschakeld in de Systeeminstellingen van de VM                                     |
-| VM-IP wordt niet getoond    | Wacht tot de VM volledig is opgestart, voer `lume get openclaw` opnieuw uit                                          |
-| Lume-commando niet gevonden | Voeg `~/.local/bin` toe aan je PATH                                                                                  |
+| Probleem                    | Oplossing                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| Kan niet via SSH in VM      | Controleer of "Remote Login" is ingeschakeld in de Systeeminstellingen van de VM                  |
+| VM-IP wordt niet getoond    | Wacht tot de VM volledig is opgestart, voer `lume get openclaw` opnieuw uit                       |
+| Lume-commando niet gevonden | Voeg `~/.local/bin` toe aan je PATH                                                               |
 | WhatsApp QR scant niet      | Zorg dat je bent ingelogd in de VM (niet de host) bij het uitvoeren van `openclaw channels login` |
 
 ---

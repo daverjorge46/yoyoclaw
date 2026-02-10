@@ -29,10 +29,10 @@ Dette er **ikke** browserautomatisering. For JS-tunge websteder eller logins, br
 
 ## Valg af søgeudbyder
 
-| Udbyder                                 | Fordele                                         | Ulemper                                    | API-nøgle                                       |
-| --------------------------------------- | ----------------------------------------------- | ------------------------------------------ | ----------------------------------------------- |
+| Udbyder              | Fordele                                         | Ulemper                                    | API-nøgle                                       |
+| -------------------- | ----------------------------------------------- | ------------------------------------------ | ----------------------------------------------- |
 | **Brave** (standard) | Hurtig, strukturerede resultater, gratis niveau | Traditionelle søgeresultater               | `BRAVE_API_KEY`                                 |
-| **Perplexity**                          | AI-syntetiserede svar, citater, realtid         | Kræver Perplexity- eller OpenRouter-adgang | `OPENROUTER_API_KEY` eller `PERPLEXITY_API_KEY` |
+| **Perplexity**       | AI-syntetiserede svar, citater, realtid         | Kræver Perplexity- eller OpenRouter-adgang | `OPENROUTER_API_KEY` eller `PERPLEXITY_API_KEY` |
 
 Se [Brave Search-opsætning](/brave-search) og [Perplexity Sonar](/perplexity) for udbyderspecifikke detaljer.
 
@@ -133,11 +133,11 @@ Hvis der ikke er sat en base-URL, vælger OpenClaw en standard baseret på API-n
 
 ### Tilgængelige Perplexity-modeller
 
-| Model                                                | Beskrivelse                                   | Bedst til            |
-| ---------------------------------------------------- | --------------------------------------------- | -------------------- |
-| `perplexity/sonar`                                   | Hurtig Q&A med websøgning | Hurtige opslag       |
-| `perplexity/sonar-pro` (standard) | Flertrinsræsonnement med websøgning           | Komplekse spørgsmål  |
-| `perplexity/sonar-reasoning-pro`                     | Chain-of-thought-analyse                      | Dybdegående research |
+| Model                             | Beskrivelse                         | Bedst til            |
+| --------------------------------- | ----------------------------------- | -------------------- |
+| `perplexity/sonar`                | Hurtig Q&A med websøgning           | Hurtige opslag       |
+| `perplexity/sonar-pro` (standard) | Flertrinsræsonnement med websøgning | Komplekse spørgsmål  |
+| `perplexity/sonar-reasoning-pro`  | Chain-of-thought-analyse            | Dybdegående research |
 
 ## web_search
 

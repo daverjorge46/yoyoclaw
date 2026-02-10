@@ -155,14 +155,14 @@ OpenClaw’ı yapılandırmadan önce bir Azure Bot kaynağı oluşturmanız ger
 1. [Azure Bot Oluştur](https://portal.azure.com/#create/Microsoft.AzureBot) sayfasına gidin
 2. **Basics** sekmesini doldurun:
 
-   | Field              | Değer                                                                                     |
-   | ------------------ | ----------------------------------------------------------------------------------------- |
+   | Field              | Değer                                                  |
+   | ------------------ | ------------------------------------------------------ |
    | **Bot handle**     | Bot adınız, örn. `openclaw-msteams` (benzersiz olmalı) |
-   | **Subscription**   | Azure aboneliğinizi seçin                                                                 |
-   | **Resource group** | Yeni oluşturun veya mevcut olanı kullanın                                                 |
-   | **Pricing tier**   | Geliştirme/test için **Free**                                                             |
-   | **Type of App**    | **Single Tenant** (önerilir - aşağıdaki nota bakın)                    |
-   | **Creation type**  | **Create new Microsoft App ID**                                                           |
+   | **Subscription**   | Azure aboneliğinizi seçin                              |
+   | **Resource group** | Yeni oluşturun veya mevcut olanı kullanın              |
+   | **Pricing tier**   | Geliştirme/test için **Free**                          |
+   | **Type of App**    | **Single Tenant** (önerilir - aşağıdaki nota bakın)    |
+   | **Creation type**  | **Create new Microsoft App ID**                        |
 
 > **Kullanımdan kaldırma bildirimi:** Yeni çok kiracılı botların oluşturulması 2025-07-31’den sonra kullanımdan kaldırıldı. Yeni botlar için **Single Tenant** kullanın.
 
@@ -271,7 +271,6 @@ Bu yöntem genellikle JSON manifestlerini elle düzenlemekten daha kolaydır.
    ```
 
    Yapılandırma anahtarları yerine ortam değişkenlerini de kullanabilirsiniz:
-
    - `MSTEAMS_APP_ID`
    - `MSTEAMS_APP_PASSWORD`
    - `MSTEAMS_TENANT_ID`
@@ -404,12 +403,12 @@ Ekler:
 
 ### RSC vs Graph API
 
-| Yetenek                     | RSC İzinleri                                | Graph API                                          |
-| --------------------------- | ------------------------------------------- | -------------------------------------------------- |
-| **Gerçek zamanlı mesajlar** | Evet (webhook ile)       | Hayır (yalnızca anketleme)      |
-| **Geçmiş mesajlar**         | Hayır                                       | Evet (geçmiş sorgulanabilir)    |
-| **Kurulum karmaşıklığı**    | Yalnızca uygulama manifesti                 | Yönetici onayı + belirteç akışı gerekir            |
-| **Çevrimdışı çalışır**      | Hayır (çalışıyor olmalı) | Evet (her zaman sorgulanabilir) |
+| Yetenek                     | RSC İzinleri                | Graph API                               |
+| --------------------------- | --------------------------- | --------------------------------------- |
+| **Gerçek zamanlı mesajlar** | Evet (webhook ile)          | Hayır (yalnızca anketleme)              |
+| **Geçmiş mesajlar**         | Hayır                       | Evet (geçmiş sorgulanabilir)            |
+| **Kurulum karmaşıklığı**    | Yalnızca uygulama manifesti | Yönetici onayı + belirteç akışı gerekir |
+| **Çevrimdışı çalışır**      | Hayır (çalışıyor olmalı)    | Evet (her zaman sorgulanabilir)         |
 
 **Özet:** RSC gerçek zamanlı dinleme içindir; Graph API geçmiş erişim içindir. Çevrimdışıyken kaçırılan mesajları yakalamak için `ChannelMessage.Read.All` ile Graph API gerekir (yönetici onayı gerektirir).
 
@@ -482,10 +481,10 @@ Temel ayarlar (paylaşılan kanal kalıpları için bkz. `/gateway/configuration
 
 Teams yakın zamanda aynı temel veri modeli üzerinde iki kanal UI stili tanıttı:
 
-| Stil                                              | Açıklama                                                         | Önerilen `replyStyle`                    |
-| ------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| Stil                           | Açıklama                                                         | Önerilen `replyStyle` |
+| ------------------------------ | ---------------------------------------------------------------- | --------------------- |
 | **Gönderiler** (klasik)        | Mesajlar, altında thread’li yanıtlar olan kartlar olarak görünür | `thread` (varsayılan) |
-| **Thread’ler** (Slack benzeri) | Mesajlar Slack’e daha benzer şekilde doğrusal akar               | `top-level`                              |
+| **Thread’ler** (Slack benzeri) | Mesajlar Slack’e daha benzer şekilde doğrusal akar               | `top-level`           |
 
 **Sorun:** Teams API, bir kanalın hangi UI stilini kullandığını açığa çıkarmaz. Yanlış `replyStyle` kullanırsanız:
 
@@ -526,11 +525,11 @@ Authorization başlıkları yalnızca `channels.msteams.mediaAuthAllowHosts` iç
 
 Botlar, yerleşik FileConsentCard akışıyla DM’lerde dosya gönderebilir. Ancak **grup sohbetlerinde/kanallarda dosya gönderme** ek kurulum gerektirir:
 
-| Context                                     | Dosyaların gönderilme şekli                         | Gerekli kurulum                                |
-| ------------------------------------------- | --------------------------------------------------- | ---------------------------------------------- |
-| **DM’ler**                                  | FileConsentCard → kullanıcı kabul eder → bot yükler | Kutudan çıktığı gibi çalışır                   |
-| **Grup sohbetleri/kanallar**                | SharePoint’e yükle → bağlantı paylaş                | `sharePointSiteId` + Graph izinleri gerektirir |
-| **Images (any context)** | Base64 kodlu satır içi                              | Kutudan çıktığı gibi çalışır                   |
+| Context                      | Dosyaların gönderilme şekli                         | Gerekli kurulum                                |
+| ---------------------------- | --------------------------------------------------- | ---------------------------------------------- |
+| **DM’ler**                   | FileConsentCard → kullanıcı kabul eder → bot yükler | Kutudan çıktığı gibi çalışır                   |
+| **Grup sohbetleri/kanallar** | SharePoint’e yükle → bağlantı paylaş                | `sharePointSiteId` + Graph izinleri gerektirir |
+| **Images (any context)**     | Base64 kodlu satır içi                              | Kutudan çıktığı gibi çalışır                   |
 
 ### Neden grup sohbetleri SharePoint gerektirir
 
@@ -573,8 +572,8 @@ Botların kişisel bir OneDrive sürücüsü yoktur (`/me/drive` Graph API uç n
 
 ### Paylaşım davranışı
 
-| Permission                              | Paylaşım davranışı                                                                           |
-| --------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Permission                              | Paylaşım davranışı                                                        |
+| --------------------------------------- | ------------------------------------------------------------------------- |
 | Yalnızca `Sites.ReadWrite.All`          | Kurum genelinde paylaşım bağlantısı (kurumdaki herkes erişebilir)         |
 | `Sites.ReadWrite.All` + `Chat.Read.All` | Kullanıcı başına paylaşım bağlantısı (yalnızca sohbet üyeleri erişebilir) |
 
@@ -582,9 +581,9 @@ Kullanıcı başına paylaşım daha güvenlidir; yalnızca sohbet katılımcıl
 
 ### Geri dönüş davranışı
 
-| Scenario                                                  | Sonuç                                                                                    |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Grup sohbeti + dosya + `sharePointSiteId` yapılandırılmış | SharePoint’e yükle, paylaşım bağlantısı gönder                                           |
+| Scenario                                                  | Sonuç                                                                 |
+| --------------------------------------------------------- | --------------------------------------------------------------------- |
+| Grup sohbeti + dosya + `sharePointSiteId` yapılandırılmış | SharePoint’e yükle, paylaşım bağlantısı gönder                        |
 | Grup sohbeti + dosya + `sharePointSiteId` yok             | OneDrive yüklemesini dene (başarısız olabilir), yalnızca metin gönder |
 | Kişisel sohbet + dosya                                    | FileConsentCard akışı (SharePoint olmadan çalışır)                    |
 | Herhangi bir bağlam + görsel                              | Base64 kodlu satır içi (SharePoint olmadan çalışır)                   |
@@ -637,11 +636,11 @@ Kart şeması ve örnekler için [Adaptive Cards belgelerine](https://adaptiveca
 
 MSTeams hedefleri, kullanıcılar ve konuşmalar arasında ayrım yapmak için önekler kullanır:
 
-| Hedef türü                            | Biçim                            | Örnek                                                                 |
-| ------------------------------------- | -------------------------------- | --------------------------------------------------------------------- |
-| Kullanıcı (ID ile) | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`                           |
+| Hedef türü         | Biçim                            | Örnek                                              |
+| ------------------ | -------------------------------- | -------------------------------------------------- |
+| Kullanıcı (ID ile) | `user:<aad-object-id>`           | `user:40a1a0ed-4ff2-4164-a219-55518990c197`        |
 | Kullanıcı (ad ile) | `user:<display-name>`            | `user:John Smith` (Graph API gerektirir)           |
-| Grup/kanal                            | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`                              |
+| Grup/kanal         | `conversation:<conversation-id>` | `conversation:19:abc123...@thread.tacv2`           |
 | Grup/kanal (ham)   | `<conversation-id>`              | `19:abc123...@thread.tacv2` (`@thread` içeriyorsa) |
 
 **CLI örnekleri:**
@@ -722,13 +721,13 @@ https://teams.microsoft.com/l/channel/19%3A15bc...%40thread.tacv2/ChannelName?gr
 
 Botların özel kanallarda desteği sınırlıdır:
 
-| Özellik                                              | Standart Kanallar | Özel Kanallar                       |
-| ---------------------------------------------------- | ----------------- | ----------------------------------- |
-| Bot kurulumu                                         | Evet              | Sınırlı                             |
-| Gerçek zamanlı mesajlar (webhook) | Evet              | Çalışmayabilir                      |
-| RSC izinleri                                         | Evet              | Farklı davranabilir                 |
-| @mention’lar                            | Evet              | Bot erişilebilirse                  |
-| Graph API geçmişi                                    | Evet              | Evet (izinlerle) |
+| Özellik                           | Standart Kanallar | Özel Kanallar       |
+| --------------------------------- | ----------------- | ------------------- |
+| Bot kurulumu                      | Evet              | Sınırlı             |
+| Gerçek zamanlı mesajlar (webhook) | Evet              | Çalışmayabilir      |
+| RSC izinleri                      | Evet              | Farklı davranabilir |
+| @mention’lar                      | Evet              | Bot erişilebilirse  |
+| Graph API geçmişi                 | Evet              | Evet (izinlerle)    |
 
 **Özel kanallar çalışmıyorsa geçici çözümler:**
 

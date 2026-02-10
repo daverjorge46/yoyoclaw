@@ -295,12 +295,12 @@ channels:
 
 ### Häufige Muster
 
-| Ziel                                                                     | Konfiguration                                                                            |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Standardverhalten (stille OKs, Alarme an)             | _(keine Konfiguration erforderlich)_                                  |
+| Ziel                                                  | Konfiguration                                                                            |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Standardverhalten (stille OKs, Alarme an)             | _(keine Konfiguration erforderlich)_                                                     |
 | Vollständig still (keine Nachrichten, kein Indikator) | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: false }` |
 | Nur Indikator (keine Nachrichten)                     | `channels.defaults.heartbeat: { showOk: false, showAlerts: false, useIndicator: true }`  |
-| OKs nur in einem Kanal                                                   | `channels.telegram.heartbeat: { showOk: true }`                                          |
+| OKs nur in einem Kanal                                | `channels.telegram.heartbeat: { showOk: true }`                                          |
 
 ## HEARTBEAT.md (optional)
 

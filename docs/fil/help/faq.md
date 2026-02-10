@@ -88,7 +88,7 @@ Mga mabilisang sagot kasama ang mas malalim na troubleshooting para sa mga real-
   - [Paano ko ibi-bind ang host folder papunta sa sandbox?](#how-do-i-bind-a-host-folder-into-the-sandbox)
   - [Paano gumagana ang memory?](#how-does-memory-work)
   - [Memory keeps forgetting things. Ano ngayon?](#i-started-the-gateway-via-the-service-and-my-env-vars-disappeared-what-now)
-  - Itinakda ko ang  **Naipa-paste na ulat (ligtas ibahagi)**
+  - Itinakda ko ang **Naipa-paste na ulat (ligtas ibahagi)**
   - [Kailangan ba ng OpenAI API key ang semantic memory search?](#does-semantic-memory-search-require-an-openai-api-key)
 - [Saan nakatira ang mga bagay sa disk](#where-things-live-on-disk)
   - [Lahat ba ng data na ginagamit ng OpenClaw ay naka-save locally?](#is-all-data-used-with-openclaw-saved-locally)
@@ -677,8 +677,7 @@ sa halip na API key. 40. Ito ang subscription path.
 
 Ang mga subscription na Claude Pro/Max ay **hindi kasama ang API key**, kaya ito ang
 tamang paraan para sa mga subscription account. Mahalaga: kailangan mong kumpirmahin sa
-Anthropic na pinapayagan ang paggamit na ito sa ilalim ng kanilang patakaran at mga tuntunin ng subscription.
-43. Kung gusto mo ang pinaka-tiyak at suportadong path, gumamit ng Anthropic API key.
+Anthropic na pinapayagan ang paggamit na ito sa ilalim ng kanilang patakaran at mga tuntunin ng subscription. 43. Kung gusto mo ang pinaka-tiyak at suportadong path, gumamit ng Anthropic API key.
 
 ### 44. Paano gumagana ang Anthropic setuptoken auth
 
@@ -1098,19 +1097,20 @@ Run the Gateway on Linux, pair a macOS node (menubar app), and set **Node Run Co
    exec ssh -T user@mac-host /opt/homebrew/bin/memo "$@"
    ```
 
-2. 7. Ilagay ang wrapper sa `PATH` sa Linux host (halimbawa `~/bin/memo`).
+1. 7. Ilagay ang wrapper sa `PATH` sa Linux host (halimbawa `~/bin/memo`).
 
-3. 8. I-override ang metadata ng skill (workspace o `~/.openclaw/skills`) upang payagan ang Linux:
+1. 8. I-override ang metadata ng skill (workspace o `~/.openclaw/skills`) upang payagan ang Linux:
 
    ```markdown
-   9. ---
-   name: apple-notes
-   description: Manage Apple Notes via the memo CLI on macOS.
-   metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+   9. ***
+      name: apple-notes
+      description: Manage Apple Notes via the memo CLI on macOS.
+      metadata: { "openclaw": { "os": ["darwin", "linux"], "requires": { "bins": ["memo"] } } }
+
    ---
    ```
 
-4. 10. Magsimula ng bagong session upang ma-refresh ang snapshot ng mga skill.
+1. 10. Magsimula ng bagong session upang ma-refresh ang snapshot ng mga skill.
 
 ### 11) Mayroon ka bang Notion o HeyGen integration
 
@@ -1245,16 +1245,16 @@ model - tingnan ang [Memory](/concepts/memory) para sa mga detalye ng setup.
 
 Ang mga memory file ay nasa disk at nananatili hanggang sa burahin mo ang mga ito.
 
-| Ang limitasyon ay ang iyong                                                                       | Layunin                                                                                       |
-| ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                                                               | Ang **session context** ay limitado pa rin ng model                                           |
-| context window, kaya ang mahahabang pag-uusap ay maaaring i-compact o i-truncate. | Iyan ang dahilan kung bakit umiiral ang                                                       |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json`                                   | Mga auth profile (OAuth + API keys)                                        |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`                                            | Runtime auth cache (awtomatikong pinamamahalaan)                           |
-| `$OPENCLAW_STATE_DIR/credentials/`                                                                | State ng provider (hal. `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                                                     | Per-agent na state (agentDir + mga session)                                |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                                                  | Kasaysayan at state ng usapan (per agent)                                  |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`                                     | Metadata ng session (per agent)                                            |
+| Ang limitasyon ay ang iyong                                                       | Layunin                                                    |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                                               | Ang **session context** ay limitado pa rin ng model        |
+| context window, kaya ang mahahabang pag-uusap ay maaaring i-compact o i-truncate. | Iyan ang dahilan kung bakit umiiral ang                    |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json`                   | Mga auth profile (OAuth + API keys)                        |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`                            | Runtime auth cache (awtomatikong pinamamahalaan)           |
+| `$OPENCLAW_STATE_DIR/credentials/`                                                | State ng provider (hal. `whatsapp/<accountId>/creds.json`) |
+| `$OPENCLAW_STATE_DIR/agents/`                                                     | Per-agent na state (agentDir + mga session)                |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                                  | Kasaysayan at state ng usapan (per agent)                  |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`                     | Metadata ng session (per agent)                            |
 
 Legacy na single-agent path: `~/.openclaw/agent/*` (minigrate ng `openclaw doctor`).
 
@@ -1674,7 +1674,7 @@ Tingnan ang [/environment](/help/environment) para sa buong precedence at mga so
 5. Dalawang karaniwang ayos:
 
 1. 6. Ilagay ang mga nawawalang key sa `~/.openclaw/.env` para makuha pa rin ang mga ito kahit hindi minamana ng service ang iyong shell env.
-2. I-enable ang shell import (opt-in na convenience):
+1. I-enable ang shell import (opt-in na convenience):
 
 ```json5
 {
@@ -1702,9 +1702,9 @@ Pinapatakbo nito ang iyong login shell at ini-import lamang ang mga nawawalang i
    16. COPILOT_GITHUB_TOKEN=...
    ```
 
-2. 17. O paganahin ang shell import (`env.shellEnv.enabled: true`).
+1. 17. O paganahin ang shell import (`env.shellEnv.enabled: true`).
 
-3. O idagdag ito sa iyong config na `env` block (naaangkop lamang kung wala pa).
+1. O idagdag ito sa iyong config na `env` block (naaangkop lamang kung wala pa).
 
 Pagkatapos ay i-restart ang gateway at muling suriin:
 
@@ -1746,7 +1746,7 @@ Docs: [Multi-agent routing](/concepts/multi-agent), [Sub-agents](/tools/subagent
 
 40. Ang session context ay limitado ng window ng model. 41. Ang mahahabang chat, malalaking output ng tool, o maraming file ay maaaring mag-trigger ng compaction o truncation.
 
-42. Ano ang nakakatulong:
+41. Ano ang nakakatulong:
 
 - Hilingin sa bot na ibuod ang kasalukuyang estado at isulat ito sa isang file.
 - 44. Gamitin ang `/compact` bago ang mahahabang gawain, at `/new` kapag nagpapalit ng paksa.
@@ -1956,7 +1956,7 @@ Oo. 38. Kung ang iyong lokal na server ay naglalantad ng OpenAI-compatible API, 
 40. Paalala sa seguridad: ang mas maliliit o mabigat na na-quantize na mga modelo ay mas madaling tamaan ng prompt injection. 41. Mariing inirerekomenda ang **malalaking modelo** para sa anumang bot na maaaring gumamit ng mga tool.
 41. Kung gusto mo pa rin ng maliliit na modelo, paganahin ang sandboxing at mahigpit na tool allowlists.
 
-43. Docs: [Ollama](/providers/ollama), [Local models](/gateway/local-models),
+42. Docs: [Ollama](/providers/ollama), [Local models](/gateway/local-models),
     [Model providers](/concepts/model-providers), [Security](/gateway/security),
     [Sandboxing](/gateway/sandboxing).
 
@@ -2342,7 +2342,7 @@ openclaw gateway install --force
 
 12. Ipinapatupad ng OpenClaw ang runtime lock sa pamamagitan ng agarang pag-bind ng WebSocket listener sa startup (default `ws://127.0.0.1:18789`). 13. Kapag nabigo ang bind na may `EADDRINUSE`, nagtatapon ito ng `GatewayLockError` na nagsasaad na may isa pang instance na nakikinig na.
 
-14. Ayusin: ihinto ang ibang instance, palayain ang port, o patakbuhin gamit ang `openclaw gateway --port <port>`.
+13. Ayusin: ihinto ang ibang instance, palayain ang port, o patakbuhin gamit ang `openclaw gateway --port <port>`.
 
 ### 15. Paano ko patatakbuhin ang OpenClaw sa remote mode kung saan kumokonekta ang client sa Gateway sa ibang lugar
 
@@ -2740,7 +2740,7 @@ openclaw pairing list whatsapp
 
 11. Kung maingay pa rin, tingnan ang mga setting ng session sa Control UI at itakda ang verbose sa **inherit**. 12. Kumpirmahin din na hindi ka gumagamit ng bot profile na may `verboseDefault` na nakatakda sa `on` sa config.
 
-13. Docs: [Thinking and verbose](/tools/thinking), [Security](/gateway/security#reasoning--verbose-output-in-groups).
+12. Docs: [Thinking and verbose](/tools/thinking), [Security](/gateway/security#reasoning--verbose-output-in-groups).
 
 ### 14. Paano ko ihihinto/kakanselahin ang isang tumatakbong gawain
 
@@ -2771,7 +2771,7 @@ interrupt
 
 23. Hinaharangan ng OpenClaw ang **cross-provider** messaging bilang default. 24. Kung ang isang tool call ay naka-bind sa Telegram, hindi ito magpapadala sa Discord maliban kung tahasan mo itong pahihintulutan.
 
-25. Paganahin ang cross-provider messaging para sa agent:
+24. Paganahin ang cross-provider messaging para sa agent:
 
 ```json5
 26. {

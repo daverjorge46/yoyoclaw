@@ -11,8 +11,7 @@ sidebarTitle: "Wizard Reference"
 # reference/wizard.md
 
 นี่คือเอกสารอ้างอิงฉบับสมบูรณ์สำหรับวิซาร์ด CLI `openclaw onboard`  
-สำหรับภาพรวมระดับสูง โปรดดู [Onboarding Wizard](/start/wizard)
-44. สำหรับภาพรวมระดับสูง ดู [Onboarding Wizard](/start/wizard)
+สำหรับภาพรวมระดับสูง โปรดดู [Onboarding Wizard](/start/wizard) 44. สำหรับภาพรวมระดับสูง ดู [Onboarding Wizard](/start/wizard)
 
 ## รายละเอียดโฟลว์(โหมดภายในเครื่อง)
 
@@ -131,6 +130,7 @@ sidebarTitle: "Wizard Reference"
       - Wizard attempts to enable lingering via `loginctl enable-linger <user>` so the Gateway stays up after logout.
       - May prompt for sudo (writes `/var/lib/systemd/linger`); it tries without sudo first.
     - **Runtime selection:** Node (recommended; required for WhatsApp/Telegram). Bun is **not recommended**.
+
   </Step>
   <Step title="Health check">
     - Starts the Gateway (if needed) and runs `openclaw health`.
@@ -175,7 +175,7 @@ openclaw onboard --non-interactive \
 <Note>
 
 `--json` **ไม่ได้** หมายถึงโหมดไม่โต้ตอบ ใช้ `--non-interactive`(และ `--workspace`) สำหรับสคริปต์
- Use `--non-interactive` (and `--workspace`) for scripts.
+Use `--non-interactive` (and `--workspace`) for scripts.
 </Note>
 
 <AccordionGroup>

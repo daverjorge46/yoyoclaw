@@ -16,13 +16,13 @@ Se você quer uma opção de US$ 0/mês e não se importa com ARM + configuraç�
 
 ## Comparação de custos (2026)
 
-| Provedor     | Plano           | Especificações       | Preço/mês                                         | Notas                                                 |
-| ------------ | --------------- | -------------------- | ------------------------------------------------- | ----------------------------------------------------- |
-| Oracle Cloud | Always Free ARM | até 4 OCPU, 24GB RAM | US$ 0                                             | ARM, capacidade limitada / peculiaridades de cadastro |
+| Provedor     | Plano           | Especificações       | Preço/mês      | Notas                                                 |
+| ------------ | --------------- | -------------------- | -------------- | ----------------------------------------------------- |
+| Oracle Cloud | Always Free ARM | até 4 OCPU, 24GB RAM | US$ 0          | ARM, capacidade limitada / peculiaridades de cadastro |
 | Hetzner      | CX22            | 2 vCPU, 4GB RAM      | €3,79 (~US$ 4) | Opção paga mais barata                                |
-| DigitalOcean | Basic           | 1 vCPU, 1GB RAM      | US$ 6                                             | UI fácil, boa documentação                            |
-| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM      | US$ 6                                             | Muitas localizações                                   |
-| Linode       | Nanode          | 1 vCPU, 1GB RAM      | US$ 5                                             | Agora parte da Akamai                                 |
+| DigitalOcean | Basic           | 1 vCPU, 1GB RAM      | US$ 6          | UI fácil, boa documentação                            |
+| Vultr        | Cloud Compute   | 1 vCPU, 1GB RAM      | US$ 6          | Muitas localizações                                   |
+| Linode       | Nanode          | 1 vCPU, 1GB RAM      | US$ 5          | Agora parte da Akamai                                 |
 
 **Escolhendo um provedor:**
 

@@ -528,34 +528,34 @@ Routing အကွက်များ—
 
 အဓိက ရွေးချယ်စရာများ—
 
-| Setting                                           | ဖော်ပြချက်                                                            | ပုံမှန်   |
-| ------------------------------------------------- | --------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | ချန်နယ်ကို ဖွင့်/ပိတ်                                                 | `true`    |
-| `channels.feishu.domain`                          | API domain (`feishu` သို့မဟုတ် `lark`)             | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                            | -         |
-| `channels.feishu.accounts.<id>.domain`            | အကောင့်တစ်ခုချင်းစီအလိုက် API domain override                         | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM မူဝါဒ                                                              | `pairing` |
-| `channels.feishu.allowFrom`                       | DM allowlist (open_id စာရင်း) | -         |
-| `channels.feishu.groupPolicy`                     | Group မူဝါဒ                                                           | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Group allowlist                                                       | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | @mention လိုအပ်ချက်                                      | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Group ကို ဖွင့်                                                       | `true`    |
-| `channels.feishu.textChunkLimit`                  | မက်ဆေ့ချ် အပိုင်း အရွယ်အစား                                           | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | မီဒီယာ အရွယ်အစား ကန့်သတ်ချက်                                          | `30`      |
-| `channels.feishu.streaming`                       | Streaming card output ကို ဖွင့်                                       | `true`    |
-| `channels.feishu.blockStreaming`                  | Block streaming ကို ဖွင့်                                             | `true`    |
+| Setting                                           | ဖော်ပြချက်                                    | ပုံမှန်   |
+| ------------------------------------------------- | --------------------------------------------- | --------- |
+| `channels.feishu.enabled`                         | ချန်နယ်ကို ဖွင့်/ပိတ်                         | `true`    |
+| `channels.feishu.domain`                          | API domain (`feishu` သို့မဟုတ် `lark`)        | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                                        | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                    | -         |
+| `channels.feishu.accounts.<id>.domain`            | အကောင့်တစ်ခုချင်းစီအလိုက် API domain override | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM မူဝါဒ                                      | `pairing` |
+| `channels.feishu.allowFrom`                       | DM allowlist (open_id စာရင်း)                 | -         |
+| `channels.feishu.groupPolicy`                     | Group မူဝါဒ                                   | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Group allowlist                               | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | @mention လိုအပ်ချက်                           | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Group ကို ဖွင့်                               | `true`    |
+| `channels.feishu.textChunkLimit`                  | မက်ဆေ့ချ် အပိုင်း အရွယ်အစား                   | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | မီဒီယာ အရွယ်အစား ကန့်သတ်ချက်                  | `30`      |
+| `channels.feishu.streaming`                       | Streaming card output ကို ဖွင့်               | `true`    |
+| `channels.feishu.blockStreaming`                  | Block streaming ကို ဖွင့်                     | `true`    |
 
 ---
 
 ## dmPolicy reference
 
-| Value         | အပြုအမူ                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------- |
-| `"pairing"`   | **ပုံမှန်။** မသိသူများသည် pairing code ကို ရရှိပြီး အတည်ပြုရမည်                          |
-| `"allowlist"` | `allowFrom` ထဲရှိ အသုံးပြုသူများသာ ချတ်လုပ်နိုင်သည်                                      |
+| Value         | အပြုအမူ                                                               |
+| ------------- | --------------------------------------------------------------------- |
+| `"pairing"`   | **ပုံမှန်။** မသိသူများသည် pairing code ကို ရရှိပြီး အတည်ပြုရမည်       |
+| `"allowlist"` | `allowFrom` ထဲရှိ အသုံးပြုသူများသာ ချတ်လုပ်နိုင်သည်                   |
 | `"open"`      | အသုံးပြုသူအားလုံးကို ခွင့်ပြုသည် (`"*"` ကို allowFrom တွင် လိုအပ်သည်) |
-| `"disabled"`  | DM များကို ပိတ်ပါ                                                                        |
+| `"disabled"`  | DM များကို ပိတ်ပါ                                                     |
 
 ---
 

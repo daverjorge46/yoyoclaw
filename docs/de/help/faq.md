@@ -933,7 +933,7 @@ SaaS zu übergeben.
 
 Highlights:
 
-- **Deine Geräte, deine Daten:** Führe das Gateway aus, wo immer du willst (Mac, Linux, VPS) und behalte den Arbeitsbereich* Sitzungsverlauf lokal.
+- **Deine Geräte, deine Daten:** Führe das Gateway aus, wo immer du willst (Mac, Linux, VPS) und behalte den Arbeitsbereich\* Sitzungsverlauf lokal.
 - **Echte Kanäle, keine Web-Sandbox:** WhatsApp/Telegram/Slack/Discord/Signal/iMessage/etc,
   plus mobile Stimme und Leinwand auf unterstützten Plattformen.
 - **Model-agnostic:** verwenden Sie Anthropic, OpenAI, MiniMax, OpenRouter, etc., mit per-agent Routing
@@ -1255,16 +1255,16 @@ Verwandt: [Agent-Arbeitsbereich](/concepts/agent-workspace), [Memory](/concepts/
 
 Alles lebt unter `$OPENCLAW_STATE_DIR` (Standard: `~/.openclaw`):
 
-| Pfad                                                            | Zweck                                                                                                       |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Hauptkonfiguration (JSON5)                                                               |
-| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Legaler OAuth-Import (bei der ersten Verwendung in Auth-Profile kopiert)                 |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth Profile (OAuth + API-Schlüssel)                                                     |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Laufzeitauth-Cache (automatisch verwaltet)                                               |
-| `$OPENCLAW_STATE_DIR/credentials/`                              | Provider-Status (z.B. `whatsapp/<accountId>/creds.json`) |
-| `$OPENCLAW_STATE_DIR/agents/`                                   | Per-Agenten-Status (agentDir + Sitzungen)                                                |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Gesprächsverlauf & -status (pro Agent)                               |
-| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session-Metadaten (pro Agent)                                                            |
+| Pfad                                                            | Zweck                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `$OPENCLAW_STATE_DIR/openclaw.json`                             | Hauptkonfiguration (JSON5)                                               |
+| `$OPENCLAW_STATE_DIR/credentials/oauth.json`                    | Legaler OAuth-Import (bei der ersten Verwendung in Auth-Profile kopiert) |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth Profile (OAuth + API-Schlüssel)                                     |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/agent/auth.json`          | Laufzeitauth-Cache (automatisch verwaltet)                               |
+| `$OPENCLAW_STATE_DIR/credentials/`                              | Provider-Status (z.B. `whatsapp/<accountId>/creds.json`)                 |
+| `$OPENCLAW_STATE_DIR/agents/`                                   | Per-Agenten-Status (agentDir + Sitzungen)                                |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`                | Gesprächsverlauf & -status (pro Agent)                                   |
+| `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/sessions.json`   | Session-Metadaten (pro Agent)                                            |
 
 Legacy single agent path: `~/.openclaw/agent/*` (migriert von `openclaw doctor`).
 

@@ -221,8 +221,7 @@ Các trường điển hình trong `~/.openclaw/openclaw.json`:
 
 `openclaw agents add` ghi `agents.list[]` và tùy chọn `bindings`.
 
-WhatsApp credentials go under `~/.openclaw/credentials/whatsapp/<accountId>/`.
-31. Các phiên được lưu tại `~/.openclaw/agents/<agentId>/sessions/`.
+WhatsApp credentials go under `~/.openclaw/credentials/whatsapp/<accountId>/`. 31. Các phiên được lưu tại `~/.openclaw/agents/<agentId>/sessions/`.
 
 <Note>
 Some channels are delivered as plugins. When selected during onboarding, the wizard

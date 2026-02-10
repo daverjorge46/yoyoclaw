@@ -50,12 +50,12 @@ Om du ser `NODE_BACKGROUND_UNAVAILABLE`, ta fram nodappen i förgrunden och för
 
 ## Behörighetsmatris
 
-| Kapacitet                    | iOS                                                            | Android                                                       | macOS-nodapp                                         | Typisk felkod                  |
-| ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------ |
+| Kapacitet                    | iOS                                         | Android                                    | macOS-nodapp                      | Typisk felkod                  |
+| ---------------------------- | ------------------------------------------- | ------------------------------------------ | --------------------------------- | ------------------------------ |
 | `camera.snap`, `camera.clip` | Kamera (+ mikrofon för klippljud)           | Kamera (+ mikrofon för klippljud)          | Kamera (+ mikrofon för klippljud) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Skärminspelning (+ mikrofon valfri)         | Skärminspelningsprompt (+ mikrofon valfri) | Skärminspelning                                      | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | Vid användning eller Alltid (beror på läge) | Förgrunds-/bakgrundsplats baserat på läge                     | Platsbehörighet                                      | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (nodvärdsökväg)                         | n/a (nodvärdsökväg)                        | Exec-godkännanden krävs                              | `SYSTEM_RUN_DENIED`            |
+| `screen.record`              | Skärminspelning (+ mikrofon valfri)         | Skärminspelningsprompt (+ mikrofon valfri) | Skärminspelning                   | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | Vid användning eller Alltid (beror på läge) | Förgrunds-/bakgrundsplats baserat på läge  | Platsbehörighet                   | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (nodvärdsökväg)                         | n/a (nodvärdsökväg)                        | Exec-godkännanden krävs           | `SYSTEM_RUN_DENIED`            |
 
 ## Parning kontra godkännanden
 

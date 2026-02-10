@@ -50,12 +50,12 @@ Kung makita mo ang `NODE_BACKGROUND_UNAVAILABLE`, dalhin ang node app sa foregro
 
 ## Matrix ng mga pahintulot
 
-| Capability                   | iOS                                                       | Android                                                   | macOS node app                                          | Karaniwang failure code        |
-| ---------------------------- | --------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- | ------------------------------ |
-| `camera.snap`, `camera.clip` | Camera (+ mic para sa audio ng clip)   | Camera (+ mic para sa audio ng clip)   | Camera (+ mic para sa audio ng clip) | `*_PERMISSION_REQUIRED`        |
-| `screen.record`              | Screen Recording (+ mic optional)      | Screen capture prompt (+ mic optional) | Screen Recording                                        | `*_PERMISSION_REQUIRED`        |
-| `location.get`               | While Using o Always (depende sa mode) | Foreground/Background na lokasyon batay sa mode           | Pahintulot sa lokasyon                                  | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                 | n/a (path ng host ng node)             | n/a (path ng host ng node)             | Kinakailangan ang exec approvals                        | `SYSTEM_RUN_DENIED`            |
+| Capability                   | iOS                                    | Android                                         | macOS node app                       | Karaniwang failure code        |
+| ---------------------------- | -------------------------------------- | ----------------------------------------------- | ------------------------------------ | ------------------------------ |
+| `camera.snap`, `camera.clip` | Camera (+ mic para sa audio ng clip)   | Camera (+ mic para sa audio ng clip)            | Camera (+ mic para sa audio ng clip) | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | Screen Recording (+ mic optional)      | Screen capture prompt (+ mic optional)          | Screen Recording                     | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | While Using o Always (depende sa mode) | Foreground/Background na lokasyon batay sa mode | Pahintulot sa lokasyon               | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (path ng host ng node)             | n/a (path ng host ng node)                      | Kinakailangan ang exec approvals     | `SYSTEM_RUN_DENIED`            |
 
 ## Pagpapares kumpara sa mga approval
 

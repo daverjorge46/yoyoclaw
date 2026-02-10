@@ -175,11 +175,11 @@ Se você omitir `capabilities`, a entrada é elegível para a lista em que apare
 
 ## Matriz de suporte de provedores (integrações OpenClaw)
 
-| Capacidade | Integração de provedor                           | Notas                                                                                  |
-| ---------- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Imagem     | OpenAI / Anthropic / Google / outros via `pi-ai` | Qualquer modelo com suporte a imagem no registry funciona.             |
-| Áudio      | OpenAI, Groq, Deepgram, Google                   | Transcrição por provedor (Whisper/Deepgram/Gemini). |
-| Vídeo      | Google (API Gemini)           | Compreensão de vídeo pelo provedor.                                    |
+| Capacidade | Integração de provedor                           | Notas                                                      |
+| ---------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| Imagem     | OpenAI / Anthropic / Google / outros via `pi-ai` | Qualquer modelo com suporte a imagem no registry funciona. |
+| Áudio      | OpenAI, Groq, Deepgram, Google                   | Transcrição por provedor (Whisper/Deepgram/Gemini).        |
+| Vídeo      | Google (API Gemini)                              | Compreensão de vídeo pelo provedor.                        |
 
 ## Provedores recomendados
 

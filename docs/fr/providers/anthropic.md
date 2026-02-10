@@ -43,11 +43,11 @@ OpenClaw prend en charge la fonctionnalite de mise en cache des prompts d’Anth
 
 Utilisez le parametre `cacheRetention` dans la configuration de votre modele :
 
-| Valeur  | Duree du cache | Description                                                 |
-| ------- | -------------- | ----------------------------------------------------------- |
-| `none`  | Pas de cache   | Desactiver la mise en cache des prompts                     |
-| `short` | 5 minutes      | Valeur par defaut pour l’authentification par cle API       |
-| `long`  | 1 heure        | Cache etendu (necessite le drapeau beta) |
+| Valeur  | Duree du cache | Description                                           |
+| ------- | -------------- | ----------------------------------------------------- |
+| `none`  | Pas de cache   | Desactiver la mise en cache des prompts               |
+| `short` | 5 minutes      | Valeur par defaut pour l’authentification par cle API |
+| `long`  | 1 heure        | Cache etendu (necessite le drapeau beta)              |
 
 ```json5
 {

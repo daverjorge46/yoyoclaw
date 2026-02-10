@@ -377,11 +377,11 @@ Ack-Reaktion zu entfernen, nachdem der Bot geantwortet hat.
 
 Standardmäßig antwortet OpenClaw im Hauptkanal. Verwenden Sie `channels.slack.replyToMode`, um automatisches Threading zu steuern:
 
-| Modus   | Verhalten                                                                                                                                                                                                                                       |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`   | **Standard.** Antwort im Hauptkanal. Thread nur, wenn die auslösende Nachricht bereits in einem Thread war.                                                                                     |
+| Modus   | Verhalten                                                                                                                                                                                    |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`   | **Standard.** Antwort im Hauptkanal. Thread nur, wenn die auslösende Nachricht bereits in einem Thread war.                                                                                  |
 | `first` | Erste Antwort geht in den Thread (unter der auslösenden Nachricht), nachfolgende Antworten gehen in den Hauptkanal. Nützlich, um Kontext sichtbar zu halten und Thread-Clutter zu vermeiden. |
-| `all`   | Alle Antworten gehen in den Thread. Hält Unterhaltungen zusammen, kann aber die Sichtbarkeit reduzieren.                                                                                                        |
+| `all`   | Alle Antworten gehen in den Thread. Hält Unterhaltungen zusammen, kann aber die Sichtbarkeit reduzieren.                                                                                     |
 
 Der Modus gilt sowohl für Auto-Antworten als auch für Agenten-Werkzeugaufrufe (`slack sendMessage`).
 

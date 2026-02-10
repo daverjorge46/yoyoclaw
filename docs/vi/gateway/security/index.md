@@ -104,8 +104,7 @@ Nếu cùng một người liên hệ với bạn trên nhiều kênh, hãy dùn
 
 ## Log phiên cục bộ nằm trên đĩa
 
-OpenClaw stores session transcripts on disk under `~/.openclaw/agents/<agentId>/sessions/*.jsonl`.
-14. Điều này là bắt buộc để duy trì phiên và (tùy chọn) lập chỉ mục bộ nhớ phiên, nhưng đồng thời cũng có nghĩa là
+OpenClaw stores session transcripts on disk under `~/.openclaw/agents/<agentId>/sessions/*.jsonl`. 14. Điều này là bắt buộc để duy trì phiên và (tùy chọn) lập chỉ mục bộ nhớ phiên, nhưng đồng thời cũng có nghĩa là
 **bất kỳ tiến trình/người dùng nào có quyền truy cập hệ thống tệp đều có thể đọc các log đó**. 6. Hãy coi quyền truy cập đĩa là ranh giới tin cậy
 và khóa chặt quyền trên `~/.openclaw` (xem phần audit bên dưới). 7. Nếu bạn cần
 cách ly mạnh hơn giữa các agent, hãy chạy chúng dưới các người dùng hệ điều hành riêng biệt hoặc trên các host riêng biệt.
@@ -832,8 +831,8 @@ flowchart TB
 49. Phát hiện lỗ hổng trong OpenClaw? 50. Vui lòng báo cáo một cách có trách nhiệm:
 
 1. Email: [security@openclaw.ai](mailto:security@openclaw.ai)
-2. Đừng đăng công khai cho đến khi được sửa
-3. Chúng tôi sẽ ghi công bạn (trừ khi bạn muốn ẩn danh)
+1. Đừng đăng công khai cho đến khi được sửa
+1. Chúng tôi sẽ ghi công bạn (trừ khi bạn muốn ẩn danh)
 
 ---
 

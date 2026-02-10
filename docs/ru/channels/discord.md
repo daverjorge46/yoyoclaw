@@ -394,27 +394,27 @@ Discord везде использует числовые id; конфиг OpenCl
 
 ### Значения по умолчанию для действий инструментов
 
-| Группа действий | По умолчанию | Примечания                                              |
-| --------------- | ------------ | ------------------------------------------------------- |
-| reactions       | enabled      | Реакции + список реакций + emojiList                    |
-| stickers        | enabled      | Отправка стикеров                                       |
-| emojiUploads    | enabled      | Загрузить эмодзи                                        |
-| stickerUploads  | enabled      | Загрузка стикеров                                       |
-| polls           | enabled      | Создание опросов                                        |
-| permissions     | enabled      | Снимок прав канала                                      |
-| messages        | enabled      | Чтение/отправка/редактирование/удаление                 |
-| threads         | enabled      | Создание/список/ответ                                   |
-| pins            | enabled      | Закрепить/открепить/список                              |
-| search          | enabled      | Поиск сообщений (preview-функция)    |
-| memberInfo      | enabled      | Информация об участнике                                 |
-| roleInfo        | enabled      | Список ролей                                            |
-| channelInfo     | enabled      | Информация о канале + список                            |
-| channels        | enabled      | Управление каналами/категориями                         |
-| voiceStatus     | enabled      | Просмотр состояния голоса                               |
-| events          | enabled      | Список/создание запланированных событий                 |
-| roles           | disabled     | Добавление/удаление ролей                               |
-| moderation      | disabled     | Таймаут/кик/бан                                         |
-| presence        | disabled     | Статус/активность бота (setPresence) |
+| Группа действий | По умолчанию | Примечания                              |
+| --------------- | ------------ | --------------------------------------- |
+| reactions       | enabled      | Реакции + список реакций + emojiList    |
+| stickers        | enabled      | Отправка стикеров                       |
+| emojiUploads    | enabled      | Загрузить эмодзи                        |
+| stickerUploads  | enabled      | Загрузка стикеров                       |
+| polls           | enabled      | Создание опросов                        |
+| permissions     | enabled      | Снимок прав канала                      |
+| messages        | enabled      | Чтение/отправка/редактирование/удаление |
+| threads         | enabled      | Создание/список/ответ                   |
+| pins            | enabled      | Закрепить/открепить/список              |
+| search          | enabled      | Поиск сообщений (preview-функция)       |
+| memberInfo      | enabled      | Информация об участнике                 |
+| roleInfo        | enabled      | Список ролей                            |
+| channelInfo     | enabled      | Информация о канале + список            |
+| channels        | enabled      | Управление каналами/категориями         |
+| voiceStatus     | enabled      | Просмотр состояния голоса               |
+| events          | enabled      | Список/создание запланированных событий |
+| roles           | disabled     | Добавление/удаление ролей               |
+| moderation      | disabled     | Таймаут/кик/бан                         |
+| presence        | disabled     | Статус/активность бота (setPresence)    |
 
 - `replyToMode`: `off` (по умолчанию), `first` или `all`. Применяется только когда модель включает тег ответа.
 

@@ -14,8 +14,7 @@ title: "Hetzner"
 
 Magpatakbo ng persistent na OpenClaw Gateway sa isang Hetzner VPS gamit ang Docker, na may durable na state, baked-in na mga binary, at ligtas na behavior sa restart.
 
-Kung gusto mo ng “OpenClaw 24/7 sa halagang ~$5”, ito ang pinakasimple at maaasahang setup.
-23. Nagbabago ang pagpepresyo ng Hetzner; piliin ang pinakamaliit na Debian/Ubuntu VPS at mag-scale up kung makaranas ka ng OOMs.
+Kung gusto mo ng “OpenClaw 24/7 sa halagang ~$5”, ito ang pinakasimple at maaasahang setup. 23. Nagbabago ang pagpepresyo ng Hetzner; piliin ang pinakamaliit na Debian/Ubuntu VPS at mag-scale up kung makaranas ka ng OOMs.
 
 ## Ano ang ginagawa natin (sa simpleng paliwanag)?
 
@@ -109,8 +108,7 @@ Ipinapalagay ng gabay na ito na magbu-build ka ng custom na image para masiguron
 
 ## 4. Gumawa ng persistent na mga directory sa host
 
-Ang mga Docker container ay panandalian.
-30. Lahat ng pangmatagalang estado ay dapat manatili sa host.
+Ang mga Docker container ay panandalian. 30. Lahat ng pangmatagalang estado ay dapat manatili sa host.
 
 ```bash
 mkdir -p /root/.openclaw/workspace
@@ -314,8 +312,7 @@ I-paste ang iyong gateway token.
 
 ## Ano ang persistent at saan (pinagmumulan ng katotohanan)
 
-Tumatakbo ang OpenClaw sa Docker, ngunit ang Docker ay hindi ang source of truth.
-36. Lahat ng pangmatagalang estado ay dapat makaligtas sa mga restart, rebuild, at reboot.
+Tumatakbo ang OpenClaw sa Docker, ngunit ang Docker ay hindi ang source of truth. 36. Lahat ng pangmatagalang estado ay dapat makaligtas sa mga restart, rebuild, at reboot.
 
 | Component           | Lokasyon                          | Mekanismo ng persistence | Mga tala                                  |
 | ------------------- | --------------------------------- | ------------------------ | ----------------------------------------- |

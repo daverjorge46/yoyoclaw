@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Yapılandırma referansı
 
-| Anahtar      | Type                                                         | Varsayılan                                  | Açıklama                                      |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------------------- |
-| `privateKey` | string                                                       | gerekli                                     | `nsec` veya hex formatında özel anahtar       |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay URL’leri (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM erişim politikası                          |
-| `allowFrom`  | string[] | `[]`                                        | İzin verilen gönderen pubkey’leri             |
-| `enabled`    | boolean                                                      | `true`                                      | Kanalı etkinleştir/devre dışı bırak           |
-| `name`       | string                                                       | -                                           | Display name                                  |
-| `profile`    | object                                                       | -                                           | NIP-01 profil meta verileri                   |
+| Anahtar      | Type     | Varsayılan                                  | Açıklama                                |
+| ------------ | -------- | ------------------------------------------- | --------------------------------------- |
+| `privateKey` | string   | gerekli                                     | `nsec` veya hex formatında özel anahtar |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | Relay URL’leri (WebSocket)              |
+| `dmPolicy`   | string   | `pairing`                                   | DM erişim politikası                    |
+| `allowFrom`  | string[] | `[]`                                        | İzin verilen gönderen pubkey’leri       |
+| `enabled`    | boolean  | `true`                                      | Kanalı etkinleştir/devre dışı bırak     |
+| `name`       | string   | -                                           | Display name                            |
+| `profile`    | object   | -                                           | NIP-01 profil meta verileri             |
 
 ## Profil meta verileri
 
@@ -166,12 +166,12 @@ Varsayılanlar: `relay.damus.io` ve `nos.lol`.
 
 ## Protokol desteği
 
-| NIP    | Status        | Açıklama                                     |
-| ------ | ------------- | -------------------------------------------- |
-| NIP-01 | Destekleniyor | Temel olay formatı + profil meta verileri    |
-| NIP-04 | Destekleniyor | Şifreli DM’ler (`kind:4`) |
-| NIP-17 | Planlanıyor   | Hediye sarmalı DM’ler                        |
-| NIP-44 | Planlanıyor   | Versioned encryption                         |
+| NIP    | Status        | Açıklama                                  |
+| ------ | ------------- | ----------------------------------------- |
+| NIP-01 | Destekleniyor | Temel olay formatı + profil meta verileri |
+| NIP-04 | Destekleniyor | Şifreli DM’ler (`kind:4`)                 |
+| NIP-17 | Planlanıyor   | Hediye sarmalı DM’ler                     |
+| NIP-44 | Planlanıyor   | Versioned encryption                      |
 
 ## Test
 

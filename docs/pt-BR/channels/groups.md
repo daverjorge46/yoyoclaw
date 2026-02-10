@@ -40,12 +40,12 @@ otherwise -> reply
 
 Se você quiser...
 
-| Objetivo                                                            | O que configurar                                                           |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Permitir todos os grupos, mas responder só em @menções | `groups: { "*": { requireMention: true } }`                                |
-| Desativar todas as respostas em grupos                              | `groupPolicy: "disabled"`                                                  |
-| Apenas grupos específicos                                           | `groups: { "<group-id>": { ... } }` (sem a chave `"*"`) |
-| Apenas você pode acionar em grupos                                  | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                 |
+| Objetivo                                               | O que configurar                                           |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| Permitir todos os grupos, mas responder só em @menções | `groups: { "*": { requireMention: true } }`                |
+| Desativar todas as respostas em grupos                 | `groupPolicy: "disabled"`                                  |
+| Apenas grupos específicos                              | `groups: { "<group-id>": { ... } }` (sem a chave `"*"`)    |
+| Apenas você pode acionar em grupos                     | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Chaves de sessão
 
@@ -174,8 +174,8 @@ Controle como mensagens de grupo/sala são tratadas por canal:
 }
 ```
 
-| Política      | Comportamento                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------ |
+| Política      | Comportamento                                                                    |
+| ------------- | -------------------------------------------------------------------------------- |
 | `"open"`      | Grupos ignoram listas de permissões; controle por menções ainda se aplica.       |
 | `"disabled"`  | Bloquear todas as mensagens de grupo por completo.                               |
 | `"allowlist"` | Permitir apenas grupos/salas que correspondam à lista de permissões configurada. |

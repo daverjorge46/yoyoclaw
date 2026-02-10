@@ -156,15 +156,15 @@ This is the tool the agent calls to create sub-agents.
 
 ### Parameters
 
-| Parameter           | Type                 | Standaard                                     | Beschrijving                                                                                       |
-| ------------------- | -------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `task`              | string               | _(required)_               | Wat de sub-agent moet doen                                                                         |
-| `label`             | string               | —                                             | Korte label voor identificatie                                                                     |
-| `agentId`           | string               | _(agent van de aanroeper)_ | Starten onder een andere agent-id (moet zijn toegestaan)                        |
-| `model`             | string               | _(optioneel)_              | Het model voor deze sub-agent overschrijven                                                        |
-| `thinking`          | string               | _(optioneel)_              | Denkniveau overschrijven (`off`, `low`, `medium`, `high`, enz.) |
-| `runTimeoutSeconds` | getal                | `0` (geen limiet)          | De sub-agent afbreken na N seconden                                                                |
-| `opschonen`         | "delete" \\| "keep" | "keep"                                        | "delete" archiveert onmiddellijk na aankondiging                                                   |
+| Parameter           | Type        | Standaard                  | Beschrijving                                                    |
+| ------------------- | ----------- | -------------------------- | --------------------------------------------------------------- | ------------------------------------------------ |
+| `task`              | string      | _(required)_               | Wat de sub-agent moet doen                                      |
+| `label`             | string      | —                          | Korte label voor identificatie                                  |
+| `agentId`           | string      | _(agent van de aanroeper)_ | Starten onder een andere agent-id (moet zijn toegestaan)        |
+| `model`             | string      | _(optioneel)_              | Het model voor deze sub-agent overschrijven                     |
+| `thinking`          | string      | _(optioneel)_              | Denkniveau overschrijven (`off`, `low`, `medium`, `high`, enz.) |
+| `runTimeoutSeconds` | getal       | `0` (geen limiet)          | De sub-agent afbreken na N seconden                             |
+| `opschonen`         | "delete" \\ | "keep"                     | "keep"                                                          | "delete" archiveert onmiddellijk na aankondiging |
 
 ### Volgorde voor modelresolutie
 
@@ -211,13 +211,13 @@ Gebruik de `agents_list`-tool om te ontdekken welke agent-id's momenteel zijn to
 
 Gebruik de slash-opdracht `/subagents` om subagent-runs voor de huidige sessie te inspecteren en te beheren:
 
-| Opdracht                                   | Beschrijving                                                         |
-| ------------------------------------------ | -------------------------------------------------------------------- |
-| `/subagents list`                          | Alle subagent-runs weergeven (actief en voltooid) |
-| `/subagents stop <id\\|#\\|all>`         | Een draaiende subagent stoppen                                       |
-| `/subagents log <id\\|#> [limit] [tools]` | View sub-agent transcript                                            |
-| `/subagents info <id\\|#>`                | Gedetailleerde run-metadata tonen                                    |
-| `/subagents send <id\\|#> <message>`      | Een bericht naar een draaiende subagent sturen                       |
+| Opdracht               | Beschrijving                                      |
+| ---------------------- | ------------------------------------------------- | ---------------------------------------------- | ------------------------------ |
+| `/subagents list`      | Alle subagent-runs weergeven (actief en voltooid) |
+| `/subagents stop <id\\ | #\\                                               | all>`                                          | Een draaiende subagent stoppen |
+| `/subagents log <id\\  | #> [limit] [tools]`                               | View sub-agent transcript                      |
+| `/subagents info <id\\ | #>`                                               | Gedetailleerde run-metadata tonen              |
+| `/subagents send <id\\ | #> <message>`                                     | Een bericht naar een draaiende subagent sturen |
 
 Je kunt subagents refereren via lijstindex (`1`, `2`), run-id-prefix, volledige sessiesleutel of `last`.
 
@@ -234,11 +234,11 @@ Je kunt subagents refereren via lijstindex (`1`, `2`), run-id-prefix, volledige 
     2) ✅ · check deps · 45s · run e5f6g7h8 · agent:main:subagent:...
     3) 🔄 · deploy staging · 1m12s · run i9j0k1l2 · agent:main:subagent:...
     ```
-    
+
     ```
     /subagents stop 3
     ```
-    
+
     ```
     ⚙️ Stop requested for deploy staging.
     ```
@@ -270,7 +270,7 @@ Je kunt subagents refereren via lijstindex (`1`, `2`), run-id-prefix, volledige 
 
     ````
     Toont de laatste 10 berichten uit het transcript van de subagent. Voeg `tools` toe om tool-aanroepberichten op te nemen:
-    
+
     ```
     /subagents log 1 10 tools
     ```
@@ -414,40 +414,41 @@ De sub-agent ontvangt ook een taakgerichte systeemprompt die hem instrueert zich
 
 <Accordion title="Complete sub-agent configuration">```json5
 {
-  agents: {
-    defaults: {
-      model: { primary: "anthropic/claude-sonnet-4" },
-      subagents: {
-        model: "minimax/MiniMax-M2.1",
-        thinking: "low",
-        maxConcurrent: 4,
-        archiveAfterMinutes: 30,
-      },
-    },
-    list: [
-      {
-        id: "main",
-        default: true,
-        name: "Personal Assistant",
-      },
-      {
-        id: "ops",
-        name: "Ops Agent",
-        subagents: {
-          model: "anthropic/claude-sonnet-4",
-          allowAgents: ["main"], // ops can spawn sub-agents under "main"
-        },
-      },
-    ],
-  },
-  tools: {
-    subagents: {
-      tools: {
-        deny: ["browser"], // sub-agents can't use the browser
-      },
-    },
-  },
+agents: {
+defaults: {
+model: { primary: "anthropic/claude-sonnet-4" },
+subagents: {
+model: "minimax/MiniMax-M2.1",
+thinking: "low",
+maxConcurrent: 4,
+archiveAfterMinutes: 30,
+},
+},
+list: [
+{
+id: "main",
+default: true,
+name: "Personal Assistant",
+},
+{
+id: "ops",
+name: "Ops Agent",
+subagents: {
+model: "anthropic/claude-sonnet-4",
+allowAgents: ["main"], // ops can spawn sub-agents under "main"
+},
+},
+],
+},
+tools: {
+subagents: {
+tools: {
+deny: ["browser"], // sub-agents can't use the browser
+},
+},
+},
 }
+
 ```</Accordion>
 
 ## Beperkingen
@@ -465,3 +466,4 @@ De sub-agent ontvangt ook een taakgerichte systeemprompt die hem instrueert zich
 - [Multi-agent-sandbox en tools](/tools/multi-agent-sandbox-tools) — per-agent toolbeperkingen en sandboxing
 - [Configuratie](/gateway/configuration) — referentie voor `agents.defaults.subagents`
 - [Wachtrij](/concepts/queue) — hoe de `subagent`-lane werkt
+```

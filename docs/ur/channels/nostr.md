@@ -71,15 +71,15 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Configuration reference
 
-| Key          | Type                                                         | Default                                     | Description                              |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
-| `privateKey` | string                                                       | required                                    | نجی کلید `nsec` یا hex فارمیٹ میں        |
-| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | ریلے URLs (WebSocket) |
-| `dmPolicy`   | string                                                       | `pairing`                                   | DM رسائی پالیسی                          |
-| `allowFrom`  | string[] | `[]`                                        | مجاز ارسال کنندگان کے pubkeys            |
-| `enabled`    | boolean                                                      | `true`                                      | چینل فعال/غیرفعال کریں                   |
-| `name`       | string                                                       | -                                           | ڈسپلے نام                                |
-| `profile`    | object                                                       | -                                           | NIP-01 پروفائل میٹا ڈیٹا                 |
+| Key          | Type     | Default                                     | Description                       |
+| ------------ | -------- | ------------------------------------------- | --------------------------------- |
+| `privateKey` | string   | required                                    | نجی کلید `nsec` یا hex فارمیٹ میں |
+| `relays`     | string[] | `['wss://relay.damus.io', 'wss://nos.lol']` | ریلے URLs (WebSocket)             |
+| `dmPolicy`   | string   | `pairing`                                   | DM رسائی پالیسی                   |
+| `allowFrom`  | string[] | `[]`                                        | مجاز ارسال کنندگان کے pubkeys     |
+| `enabled`    | boolean  | `true`                                      | چینل فعال/غیرفعال کریں            |
+| `name`       | string   | -                                           | ڈسپلے نام                         |
+| `profile`    | object   | -                                           | NIP-01 پروفائل میٹا ڈیٹا          |
 
 ## Profile metadata
 
@@ -169,7 +169,7 @@ Profile data is published as a NIP-01 `kind:0` event. You can manage it from the
 | NIP    | Status    | Description                             |
 | ------ | --------- | --------------------------------------- |
 | NIP-01 | Supported | بنیادی ایونٹ فارمیٹ + پروفائل میٹا ڈیٹا |
-| NIP-04 | Supported | خفیہ DMs (`kind:4`)  |
+| NIP-04 | Supported | خفیہ DMs (`kind:4`)                     |
 | NIP-17 | Planned   | گفٹ-ریپڈ DMs                            |
 | NIP-44 | Planned   | ورژن شدہ خفیہ کاری                      |
 

@@ -1016,7 +1016,7 @@ and uses the most recent message for reply threading/IDs.
 - `commands.bashForegroundMs` ควบคุมเวลารอของ bash 4. ขณะงาน bash กำลังทำงาน คำขอ `! 5. <cmd>` ใหม่จะถูกปฏิเสธ (ครั้งละหนึ่งงาน) <cmd>\` requests are rejected (one at a time).
 - `commands.config: true` เปิด `/config`
 - 7. .configWrites`ใช้ควบคุมการเปลี่ยนแปลงคอนฟิกที่เริ่มจากช่องนั้น (ค่าเริ่มต้น: true)8. ใช้กับ`/config set|unset`รวมถึงการย้ายอัตโนมัติเฉพาะผู้ให้บริการ (การเปลี่ยน ID ซูเปอร์กรุ๊ปของ Telegram, การเปลี่ยน ID ช่องของ Slack) 9. การอนุญาตถูกกำหนดจาก
-       allowlist/การจับคู่ของช่อง รวมถึง`commands.useAccessGroups\`
+ allowlist/การจับคู่ของช่อง รวมถึง`commands.useAccessGroups\`
 - `commands.debug: true` เปิด `/debug`
 - `commands.restart: true` เปิด `/restart`
 - `commands.useAccessGroups: false` อนุญาตคำสั่งข้าม allowlist/นโยบายกลุ่ม
@@ -1199,9 +1199,7 @@ and uses the most recent message for reply threading/IDs.
 - `off`: ไม่มีอีเวนต์รีแอคชัน
 - `own`: รีแอคชันบนข้อความของบอตเอง (ค่าเริ่มต้น)
 - `all`: รีแอคชันทั้งหมดบนทุกข้อความ
-- `allowlist`: รีแอคชันจาก `guilds.<id>.users` บนทุกข้อความ (รายการว่างจะปิดใช้งาน)
-  36. ตั้งค่า `channels.discord.chunkMode="newline"` เพื่อแยกตามบรรทัดว่าง (ขอบเขตย่อหน้า) ก่อนการแบ่งตามความยาว 37. ไคลเอนต์ Discord อาจตัดข้อความที่ยาวมาก ดังนั้น `channels.discord.maxLinesPerMessage` (ค่าเริ่มต้น 17) จะตัดแบ่งคำตอบหลายบรรทัดที่ยาว แม้จะต่ำกว่า 2000 ตัวอักษร 38. ค่าเริ่มต้นและพฤติกรรมของนโยบายการลองใหม่ถูกอธิบายไว้ใน [Retry policy](/concepts/retry)
-  39. `channels.googlechat` (เว็บฮุค Chat API)
+- `allowlist`: รีแอคชันจาก `guilds.<id>.users` บนทุกข้อความ (รายการว่างจะปิดใช้งาน) 36. ตั้งค่า `channels.discord.chunkMode="newline"` เพื่อแยกตามบรรทัดว่าง (ขอบเขตย่อหน้า) ก่อนการแบ่งตามความยาว 37. ไคลเอนต์ Discord อาจตัดข้อความที่ยาวมาก ดังนั้น `channels.discord.maxLinesPerMessage` (ค่าเริ่มต้น 17) จะตัดแบ่งคำตอบหลายบรรทัดที่ยาว แม้จะต่ำกว่า 2000 ตัวอักษร 38. ค่าเริ่มต้นและพฤติกรรมของนโยบายการลองใหม่ถูกอธิบายไว้ใน [Retry policy](/concepts/retry) 39. `channels.googlechat` (เว็บฮุค Chat API)
 
 ### 40. Google Chat ทำงานผ่านเว็บฮุค HTTP พร้อมการยืนยันตัวตนระดับแอป (service account)
 
@@ -1354,12 +1352,12 @@ and uses the most recent message for reply threading/IDs.
 
 1. การรองรับหลายบัญชีอยู่ภายใต้ `channels.slack.accounts` (ดูส่วน multi-account ด้านบน) 2. โทเคนจากตัวแปรสภาพแวดล้อม (Env) ใช้ได้เฉพาะกับบัญชีค่าเริ่มต้นเท่านั้น
 
-3. OpenClaw จะเริ่ม Slack เมื่อเปิดใช้งานผู้ให้บริการและตั้งค่าโทเคนทั้งสองแล้ว (ผ่านคอนฟิกหรือ `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN`) 4. ใช้ `user:<id>` (DM) หรือ `channel:<id>` เมื่อระบุเป้าหมายการส่งสำหรับคำสั่ง cron/CLI
-4. ตั้งค่า `channels.slack.configWrites: false` เพื่อบล็อกการเขียนคอนฟิกที่เริ่มจาก Slack (รวมถึงการย้าย channel ID และ `/config set|unset`)
+2. OpenClaw จะเริ่ม Slack เมื่อเปิดใช้งานผู้ให้บริการและตั้งค่าโทเคนทั้งสองแล้ว (ผ่านคอนฟิกหรือ `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN`) 4. ใช้ `user:<id>` (DM) หรือ `channel:<id>` เมื่อระบุเป้าหมายการส่งสำหรับคำสั่ง cron/CLI
+3. ตั้งค่า `channels.slack.configWrites: false` เพื่อบล็อกการเขียนคอนฟิกที่เริ่มจาก Slack (รวมถึงการย้าย channel ID และ `/config set|unset`)
 
-6. ข้อความที่บอทเป็นผู้เขียนจะถูกละเว้นโดยค่าเริ่มต้น 7. เปิดใช้งานด้วย `channels.slack.allowBots` หรือ `channels.slack.channels.<id>.allowBots`
+4. ข้อความที่บอทเป็นผู้เขียนจะถูกละเว้นโดยค่าเริ่มต้น 7. เปิดใช้งานด้วย `channels.slack.allowBots` หรือ `channels.slack.channels.<id>.allowBots`
 
-8. โหมดการแจ้งเตือนรีแอคชัน:
+5. โหมดการแจ้งเตือนรีแอคชัน:
 
 - `off`: ไม่มีอีเวนต์รีแอคชัน
 - `own`: รีแอคชันบนข้อความของบอตเอง (ค่าเริ่มต้น)
@@ -1373,18 +1371,17 @@ and uses the most recent message for reply threading/IDs.
 
 13. กลุ่มแอ็กชันของ Slack (ปิด/เปิดการทำงานของเครื่องมือ `slack`):
 
-| Action group | Default | Notes                                                 |
-| ------------ | ------- | ----------------------------------------------------- |
+| Action group | Default | Notes                          |
+| ------------ | ------- | ------------------------------ |
 | reactions    | enabled | 14. React + แสดงรายการรีแอคชัน |
-| messages     | enabled | อ่าน/ส่ง/แก้ไข/ลบ                                     |
-| pins         | enabled | ปักหมุด/ยกเลิก/แสดงรายการ                             |
-| memberInfo   | enabled | ข้อมูลสมาชิก                                          |
-| emojiList    | enabled | รายการอีโมจิแบบกำหนดเอง                               |
+| messages     | enabled | อ่าน/ส่ง/แก้ไข/ลบ              |
+| pins         | enabled | ปักหมุด/ยกเลิก/แสดงรายการ      |
+| memberInfo   | enabled | ข้อมูลสมาชิก                   |
+| emojiList    | enabled | รายการอีโมจิแบบกำหนดเอง        |
 
 ### 15. `channels.mattermost` (โทเคนบอท)
 
-Mattermost ทำงานในรูปแบบปลั๊กอินและไม่ได้รวมมากับการติดตั้งแกนหลัก
-16. ติดตั้งก่อน: `openclaw plugins install @openclaw/mattermost` (หรือ `./extensions/mattermost` จาก git checkout)
+Mattermost ทำงานในรูปแบบปลั๊กอินและไม่ได้รวมมากับการติดตั้งแกนหลัก 16. ติดตั้งก่อน: `openclaw plugins install @openclaw/mattermost` (หรือ `./extensions/mattermost` จาก git checkout)
 
 17. Mattermost ต้องใช้โทเคนบอทพร้อมกับ base URL ของเซิร์ฟเวอร์ของคุณ:
 
@@ -1407,7 +1404,7 @@ Mattermost ทำงานในรูปแบบปลั๊กอินแล
 
 19. OpenClaw จะเริ่ม Mattermost เมื่อบัญชีถูกตั้งค่า (โทเคนบอท + base URL) และเปิดใช้งานแล้ว 20. โทเคน + base URL จะถูกแก้ไขค่าจาก `channels.mattermost.botToken` + `channels.mattermost.baseUrl` หรือ `MATTERMOST_BOT_TOKEN` + `MATTERMOST_URL` สำหรับบัญชีค่าเริ่มต้น (เว้นแต่ `channels.mattermost.enabled` จะเป็น `false`)
 
-21. โหมดแชต:
+20. โหมดแชต:
 
 - 22. `oncall` (ค่าเริ่มต้น): ตอบข้อความในแชนเนลเฉพาะเมื่อถูก @mention
 - `onmessage`: ตอบทุกข้อความในช่องทาง
@@ -1603,13 +1600,13 @@ exec ssh -T gateway-host imsg "$@"
 
 33. สตริง `responsePrefix` สามารถรวมตัวแปรเทมเพลตที่แก้ค่าแบบไดนามิกได้:
 
-| ตัวแปร                                       | Description                                        | Example                                                                |
-| -------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------- |
-| 34. `{model}`         | 35. ชื่อโมเดลแบบสั้น        | 36. `claude-opus-4-6`, `gpt-4o`                 |
-| 37. `{modelFull}`     | Full model identifier                              | 39. `anthropic/claude-opus-4-6`                 |
-| 40. `{provider}`      | 41. ชื่อผู้ให้บริการ        | 42. `anthropic`, `openai`                       |
-| 43. `{thinkingLevel}` | 44. ระดับการคิดปัจจุบัน     | `high`, `low`, `off`                                                   |
-| 46. `{identity.name}` | 47. ชื่ออัตลักษณ์ของเอเจนต์ | 48. (เหมือนกับโหมด `"auto"`) |
+| ตัวแปร                | Description                 | Example                         |
+| --------------------- | --------------------------- | ------------------------------- |
+| 34. `{model}`         | 35. ชื่อโมเดลแบบสั้น        | 36. `claude-opus-4-6`, `gpt-4o` |
+| 37. `{modelFull}`     | Full model identifier       | 39. `anthropic/claude-opus-4-6` |
+| 40. `{provider}`      | 41. ชื่อผู้ให้บริการ        | 42. `anthropic`, `openai`       |
+| 43. `{thinkingLevel}` | 44. ระดับการคิดปัจจุบัน     | `high`, `low`, `off`            |
+| 46. `{identity.name}` | 47. ชื่ออัตลักษณ์ของเอเจนต์ | 48. (เหมือนกับโหมด `"auto"`)    |
 
 49. ตัวแปรไม่สนใจตัวพิมพ์เล็ก/ใหญ่ (`{MODEL}` = `{model}`) 50. `{think}` เป็นชื่อแฝงของ `{thinkingLevel}`
     Unresolved variables remain as literal text.
@@ -2349,9 +2346,9 @@ Tool groups (shorthands) work in **global** and **per-agent** tool policies:
 13. **Docker sandboxing** แบบเลือกได้สำหรับเอเจนต์แบบฝัง 14. ออกแบบมาสำหรับเซสชันที่ไม่ใช่ main
     เพื่อไม่ให้เข้าถึงระบบโฮสต์ของคุณ
 
-15. รายละเอียด: [Sandboxing](/gateway/sandboxing)
+14. รายละเอียด: [Sandboxing](/gateway/sandboxing)
 
-16. ค่าเริ่มต้น (เมื่อเปิดใช้งาน):
+15. ค่าเริ่มต้น (เมื่อเปิดใช้งาน):
 
 - 17. scope: `"agent"` (หนึ่งคอนเทนเนอร์ + เวิร์กสเปซต่อเอเจนต์)
 - 18. อิมเมจพื้นฐาน Debian bookworm-slim
@@ -2369,11 +2366,11 @@ Tool groups (shorthands) work in **global** and **per-agent** tool policies:
 28. คำเตือน: `scope: "shared"` หมายถึงคอนเทนเนอร์และเวิร์กสเปซที่ใช้ร่วมกัน 29. ไม่มี
     การแยกข้ามเซสชัน 30. ใช้ `scope: "session"` เพื่อการแยกต่อเซสชัน
 
-31. แบบเดิม: `perSession` ยังรองรับ (`true` → `scope: "session"`,
+29. แบบเดิม: `perSession` ยังรองรับ (`true` → `scope: "session"`,
     `false` → `scope: "shared"`)
 
-32. `setupCommand` จะรัน **ครั้งเดียว** หลังจากสร้างคอนเทนเนอร์ (ภายในคอนเทนเนอร์ผ่าน `sh -lc`)
-33. สำหรับการติดตั้งแพ็กเกจ ตรวจสอบให้มี network egress, root FS ที่เขียนได้ และผู้ใช้ root
+30. `setupCommand` จะรัน **ครั้งเดียว** หลังจากสร้างคอนเทนเนอร์ (ภายในคอนเทนเนอร์ผ่าน `sh -lc`)
+31. สำหรับการติดตั้งแพ็กเกจ ตรวจสอบให้มี network egress, root FS ที่เขียนได้ และผู้ใช้ root
 
 ```json5
 34. {
@@ -2467,9 +2464,9 @@ scripts/sandbox-setup.sh
 
 37. หมายเหตุ: ไฟล์แนบขาเข้าจะถูกจัดเตรียมไว้ในเวิร์กสเปซที่ใช้งานอยู่ที่ `media/inbound/*` 38. เมื่อใช้ `workspaceAccess: "rw"` หมายความว่าไฟล์จะถูกเขียนลงในเวิร์กสเปซของเอเจนต์
 
-39. หมายเหตุ: `docker.binds` จะเมานต์ไดเรกทอรีโฮสต์เพิ่มเติม; การ bind แบบ global และต่อเอเจนต์จะถูกรวมกัน
+38. หมายเหตุ: `docker.binds` จะเมานต์ไดเรกทอรีโฮสต์เพิ่มเติม; การ bind แบบ global และต่อเอเจนต์จะถูกรวมกัน
 
-40. สร้างอิมเมจเบราว์เซอร์เสริมด้วย:
+39. สร้างอิมเมจเบราว์เซอร์เสริมด้วย:
 
 ```bash
 scripts/sandbox-browser-setup.sh
@@ -2481,12 +2478,12 @@ scripts/sandbox-browser-setup.sh
 42. สิ่งนี้ไม่จำเป็นต้องตั้งค่า `browser.enabled` ในคอนฟิกหลัก; URL ควบคุม sandbox
     จะถูกแทรกต่อเซสชัน
 
-44. `agents.defaults.sandbox.browser.allowHostControl` (ค่าเริ่มต้น: false) อนุญาตให้
+43. `agents.defaults.sandbox.browser.allowHostControl` (ค่าเริ่มต้น: false) อนุญาตให้
     เซสชันที่ถูก sandbox ระบุเป้าหมายไปยังเซิร์ฟเวอร์ควบคุมเบราว์เซอร์ของ **โฮสต์**
     ผ่านเครื่องมือเบราว์เซอร์ (`target: "host"`) 45. ปิดตัวเลือกนี้ไว้หากต้องการ
     การแยก sandbox อย่างเคร่งครัด
 
-46. รายการอนุญาต (allowlist) สำหรับการควบคุมระยะไกล:
+44. รายการอนุญาต (allowlist) สำหรับการควบคุมระยะไกล:
 
 - 47. `allowedControlUrls`: URL ควบคุมที่อนุญาตแบบตรงตัวสำหรับ `target: "custom"`
 - 48. `allowedControlHosts`: ชื่อโฮสต์ที่อนุญาต (เฉพาะ hostname ไม่มีพอร์ต)
@@ -2954,7 +2951,7 @@ See [/gateway/local-models](/gateway/local-models) for the current local guidanc
 14. OpenClaw สามารถเริ่มอินสแตนซ์ Chrome/Brave/Edge/Chromium แบบ **เฉพาะและแยกส่วน** สำหรับ openclaw และเปิดบริการควบคุมแบบ loopback ขนาดเล็ก
 15. โปรไฟล์สามารถชี้ไปยังเบราว์เซอร์ที่ใช้ Chromium แบบ **ระยะไกล** ผ่าน `profiles.<name>`16. `.cdpUrl` 17. โปรไฟล์ระยะไกลเป็นแบบแนบอย่างเดียว (ปิดการเริ่ม/หยุด/รีเซ็ต)
 
-18. `browser.cdpUrl` ยังคงมีไว้สำหรับการตั้งค่าโปรไฟล์เดียวแบบเดิม และใช้เป็น scheme/host พื้นฐานสำหรับโปรไฟล์ที่ตั้งค่าเฉพาะ `cdpPort`
+16. `browser.cdpUrl` ยังคงมีไว้สำหรับการตั้งค่าโปรไฟล์เดียวแบบเดิม และใช้เป็น scheme/host พื้นฐานสำหรับโปรไฟล์ที่ตั้งค่าเฉพาะ `cdpPort`
 
 ค่าเริ่มต้น:
 
@@ -3430,28 +3427,28 @@ openclaw dns setup --apply
 
 12. ตัวแทนที่คั่นในเทมเพลตจะถูกขยายใน `tools.media.*.models[].args` และ `tools.media.models[].args` (และฟิลด์อาร์กิวเมนต์แบบเทมเพลตอื่น ๆ ในอนาคต).
 
-13. \| ตัวแปร           | คำอธิบาย                                                                     |
+13. \| ตัวแปร | คำอธิบาย |
     \| ------------------ | ------------------------------------------------------------------------------- | -------- | ------- | ---------- | ----- | ------ | -------- | ------- | ------- | --- |
-    \| `{{Body}}`         | เนื้อหาข้อความขาเข้าทั้งหมด                                                   |
-    \| `{{RawBody}}`      | เนื้อหาข้อความขาเข้าแบบดิบ (ไม่มี wrapper ประวัติ/ผู้ส่ง; เหมาะที่สุดสำหรับการพาร์สคำสั่ง) |
-    \| `{{BodyStripped}}` | เนื้อหาที่ตัดการกล่าวถึงกลุ่มออกแล้ว (ค่าเริ่มต้นที่เหมาะสำหรับเอเจนต์)                     |
-    \| `{{From}}`         | ตัวระบุผู้ส่ง (E.164 สำหรับ WhatsApp; อาจแตกต่างตามช่องทาง)                  |
-    \| `{{To}}`           | ตัวระบุปลายทาง                                                              |
-    \| `{{MessageSid}}`   | ID ข้อความของช่องทาง (เมื่อมี)                                               |
-    \| `{{SessionId}}`    | UUID ของเซสชันปัจจุบัน                                                       |
-    \| `{{IsNewSession}}` | "true" เมื่อมีการสร้างเซสชันใหม่                                         |
-    \| `{{MediaUrl}}`     | pseudo-URL ของสื่อขาเข้า (ถ้ามี)                                              |
-    \| `{{MediaPath}}`    | พาธสื่อภายในเครื่อง (ถ้าดาวน์โหลดแล้ว)                                      |
-    \| `{{MediaType}}`    | ประเภทสื่อ (image/audio/document/…)                                             14. |
-    \| `{{Transcript}}`   | ถอดเสียงเสียง (เมื่อเปิดใช้งาน)                                             |
-    \| `{{Prompt}}`       | พรอมป์สื่อที่ถูก resolve สำหรับรายการ CLI                                   |
-    \| `{{MaxChars}}`     | จำนวนอักขระเอาต์พุตสูงสุดที่ถูก resolve สำหรับรายการ CLI                     |
-    \| `{{ChatType}}`     | "direct" หรือ "group"                                                   |
-    \| `{{GroupSubject}}` | หัวข้อกลุ่ม (พยายามให้ได้ดีที่สุด)                                           |
-    \| `{{GroupMembers}}` | ตัวอย่างสมาชิกกลุ่ม (พยายามให้ได้ดีที่สุด)                                  |
-    \| `{{SenderName}}`   | ชื่อแสดงของผู้ส่ง (พยายามให้ได้ดีที่สุด)                                     |
-    \| `{{SenderE164}}`   | หมายเลขโทรศัพท์ผู้ส่ง (พยายามให้ได้ดีที่สุด)                                 |
-    \| `{{Provider}}`     | คำใบ้ผู้ให้บริการ (whatsapp                                                         | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …)  15. |
+    \| `{{Body}}` | เนื้อหาข้อความขาเข้าทั้งหมด |
+    \| `{{RawBody}}` | เนื้อหาข้อความขาเข้าแบบดิบ (ไม่มี wrapper ประวัติ/ผู้ส่ง; เหมาะที่สุดสำหรับการพาร์สคำสั่ง) |
+    \| `{{BodyStripped}}` | เนื้อหาที่ตัดการกล่าวถึงกลุ่มออกแล้ว (ค่าเริ่มต้นที่เหมาะสำหรับเอเจนต์) |
+    \| `{{From}}` | ตัวระบุผู้ส่ง (E.164 สำหรับ WhatsApp; อาจแตกต่างตามช่องทาง) |
+    \| `{{To}}` | ตัวระบุปลายทาง |
+    \| `{{MessageSid}}` | ID ข้อความของช่องทาง (เมื่อมี) |
+    \| `{{SessionId}}` | UUID ของเซสชันปัจจุบัน |
+    \| `{{IsNewSession}}` | "true" เมื่อมีการสร้างเซสชันใหม่ |
+    \| `{{MediaUrl}}` | pseudo-URL ของสื่อขาเข้า (ถ้ามี) |
+    \| `{{MediaPath}}` | พาธสื่อภายในเครื่อง (ถ้าดาวน์โหลดแล้ว) |
+    \| `{{MediaType}}` | ประเภทสื่อ (image/audio/document/…) 14. |
+    \| `{{Transcript}}` | ถอดเสียงเสียง (เมื่อเปิดใช้งาน) |
+    \| `{{Prompt}}` | พรอมป์สื่อที่ถูก resolve สำหรับรายการ CLI |
+    \| `{{MaxChars}}` | จำนวนอักขระเอาต์พุตสูงสุดที่ถูก resolve สำหรับรายการ CLI |
+    \| `{{ChatType}}` | "direct" หรือ "group" |
+    \| `{{GroupSubject}}` | หัวข้อกลุ่ม (พยายามให้ได้ดีที่สุด) |
+    \| `{{GroupMembers}}` | ตัวอย่างสมาชิกกลุ่ม (พยายามให้ได้ดีที่สุด) |
+    \| `{{SenderName}}` | ชื่อแสดงของผู้ส่ง (พยายามให้ได้ดีที่สุด) |
+    \| `{{SenderE164}}` | หมายเลขโทรศัพท์ผู้ส่ง (พยายามให้ได้ดีที่สุด) |
+    \| `{{Provider}}` | คำใบ้ผู้ให้บริการ (whatsapp | telegram | discord | googlechat | slack | signal | imessage | msteams | webchat | …) 15. |
 
 ## 16. Cron (ตัวตั้งเวลาของ Gateway)
 

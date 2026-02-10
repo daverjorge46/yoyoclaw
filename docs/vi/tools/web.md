@@ -29,10 +29,10 @@ These are **not** browser automation. For JS-heavy sites or logins, use the
 
 ## Chọn nhà cung cấp tìm kiếm
 
-| Nhà cung cấp                            | Ưu điểm                                               | Nhược điểm                                    | Khóa API                                       |
-| --------------------------------------- | ----------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
+| Nhà cung cấp         | Ưu điểm                                               | Nhược điểm                                    | Khóa API                                       |
+| -------------------- | ----------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
 | **Brave** (mặc định) | Nhanh, kết quả có cấu trúc, có gói miễn phí           | Kết quả tìm kiếm truyền thống                 | `BRAVE_API_KEY`                                |
-| **Perplexity**                          | Câu trả lời AI tổng hợp, có trích dẫn, thời gian thực | Cần quyền truy cập Perplexity hoặc OpenRouter | `OPENROUTER_API_KEY` hoặc `PERPLEXITY_API_KEY` |
+| **Perplexity**       | Câu trả lời AI tổng hợp, có trích dẫn, thời gian thực | Cần quyền truy cập Perplexity hoặc OpenRouter | `OPENROUTER_API_KEY` hoặc `PERPLEXITY_API_KEY` |
 
 Xem [Thiết lập Brave Search](/brave-search) và [Perplexity Sonar](/perplexity) để biết chi tiết theo từng nhà cung cấp.
 
@@ -133,11 +133,11 @@ Nếu không đặt base URL, OpenClaw sẽ chọn mặc định dựa trên ngu
 
 ### Các mô hình Perplexity khả dụng
 
-| Mô hình                                              | Mô tả                                | Phù hợp nhất     |
-| ---------------------------------------------------- | ------------------------------------ | ---------------- |
-| `perplexity/sonar`                                   | Hỏi–đáp nhanh với tìm kiếm web       | Tra cứu nhanh    |
+| Mô hình                           | Mô tả                                | Phù hợp nhất     |
+| --------------------------------- | ------------------------------------ | ---------------- |
+| `perplexity/sonar`                | Hỏi–đáp nhanh với tìm kiếm web       | Tra cứu nhanh    |
 | `perplexity/sonar-pro` (mặc định) | Lập luận nhiều bước với tìm kiếm web | Câu hỏi phức tạp |
-| `perplexity/sonar-reasoning-pro`                     | Phân tích chain-of-thought           | Nghiên cứu sâu   |
+| `perplexity/sonar-reasoning-pro`  | Phân tích chain-of-thought           | Nghiên cứu sâu   |
 
 ## web_search
 

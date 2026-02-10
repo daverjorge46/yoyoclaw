@@ -88,8 +88,7 @@ Luồng đặt lại (khởi đầu mới):
 pnpm gateway:dev:reset
 ```
 
-Note: `--dev` is a **global** profile flag and gets eaten by some runners.
-42. Nếu bạn cần viết rõ ràng, hãy dùng dạng biến môi trường:
+Note: `--dev` is a **global** profile flag and gets eaten by some runners. 42. Nếu bạn cần viết rõ ràng, hãy dùng dạng biến môi trường:
 
 ```bash
 OPENCLAW_PROFILE=dev openclaw gateway --dev --reset

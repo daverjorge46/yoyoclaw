@@ -20,13 +20,13 @@ Oracle 的免費層非常適合 OpenClaw（尤其是你已經有 OCI 帳戶時�
 
 ## 成本比較（2026）
 
-| 供應商          | 方案              | 規格                 | 每月價格                 | 注意事項           |
-| ------------ | --------------- | ------------------ | -------------------- | -------------- |
-| Oracle Cloud | Always Free ARM | 最多 4 OCPU、24GB RAM | $0                   | ARM，容量有限       |
-| Hetzner      | CX22            | 2 vCPU、4GB RAM     | ~ $4 | 最便宜的付費選項       |
-| DigitalOcean | Basic           | 1 vCPU、1GB RAM     | $6                   | UI 簡單、文件完善     |
-| Vultr        | Cloud Compute   | 1 vCPU、1GB RAM     | $6                   | Many locations |
-| Linode       | Nanode          | 1 vCPU、1GB RAM     | $5                   | 現為 Akamai 旗下   |
+| 供應商       | 方案            | 規格                  | 每月價格 | 注意事項          |
+| ------------ | --------------- | --------------------- | -------- | ----------------- |
+| Oracle Cloud | Always Free ARM | 最多 4 OCPU、24GB RAM | $0       | ARM，容量有限     |
+| Hetzner      | CX22            | 2 vCPU、4GB RAM       | ~ $4     | 最便宜的付費選項  |
+| DigitalOcean | Basic           | 1 vCPU、1GB RAM       | $6       | UI 簡單、文件完善 |
+| Vultr        | Cloud Compute   | 1 vCPU、1GB RAM       | $6       | Many locations    |
+| Linode       | Nanode          | 1 vCPU、1GB RAM       | $5       | 現為 Akamai 旗下  |
 
 ---
 
@@ -182,14 +182,14 @@ https://openclaw.<tailnet-name>.ts.net/
 
 ### 已經受到保護的項目
 
-| 傳統步驟         | 需要嗎？        | 原因                                |
-| ------------ | ----------- | --------------------------------- |
-| UFW 防火牆      | 否           | VCN 在流量到達執行個體前即會阻擋                |
-| fail2ban     | 否           | 若在 VCN 層封鎖 22 埠，就不存在暴力破解          |
-| sshd 強化      | 否           | Tailscale SSH 不使用 sshd            |
-| 停用 root 登入   | 否           | Tailscale 使用 Tailscale 身分，而非系統使用者 |
-| 僅允許 SSH 金鑰驗證 | 否           | Tailscale 透過你的 tailnet 進行驗證       |
-| IPv6 強化      | Usually not | 取決於你的 VCN／子網設定；請確認實際指派與暴露的內容      |
+| 傳統步驟            | 需要嗎？    | 原因                                                 |
+| ------------------- | ----------- | ---------------------------------------------------- |
+| UFW 防火牆          | 否          | VCN 在流量到達執行個體前即會阻擋                     |
+| fail2ban            | 否          | 若在 VCN 層封鎖 22 埠，就不存在暴力破解              |
+| sshd 強化           | 否          | Tailscale SSH 不使用 sshd                            |
+| 停用 root 登入      | 否          | Tailscale 使用 Tailscale 身分，而非系統使用者        |
+| 僅允許 SSH 金鑰驗證 | 否          | Tailscale 透過你的 tailnet 進行驗證                  |
+| IPv6 強化           | Usually not | 取決於你的 VCN／子網設定；請確認實際指派與暴露的內容 |
 
 ### 仍建議的事項
 

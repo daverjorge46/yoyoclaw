@@ -14,7 +14,7 @@ title: "Exec 核准"
    Exec approvals are **in addition** to tool policy and elevated gating (unless elevated is set to `full`, which skips approvals).
 3. 實際生效的政策是 `tools.exec.*` 與核准預設值中**較嚴格**者；如果省略某個核准欄位，則使用 `tools.exec` 的值。
 
-6. 如果**伴生應用程式 UI 無法使用**，任何需要提示的請求都會由 **ask 後備機制** 處理（預設：拒絕）。
+4. 如果**伴生應用程式 UI 無法使用**，任何需要提示的請求都會由 **ask 後備機制** 處理（預設：拒絕）。
 
 ## 7. 適用範圍
 
@@ -119,8 +119,8 @@ macOS 分流：
 18. `tools.exec.safeBins` 定義了一小組**僅 stdin** 的二進位檔（例如 `jq`），可在允許清單模式下**不需**明確的允許清單項目即可執行。 19. Safe bins 會拒絕位置式檔案參數與類似路徑的權杖，因此它們只能操作傳入的串流。
 19. 在允許清單模式下，不會自動允許 shell 串接與重新導向。
 
-21. 當每個頂層區段都符合允許清單（包含 safe bins 或技能自動允許）時，才允許 shell 串接（`&&`、`||`、`;`）。 22. 在允許清單模式下仍不支援重新導向。
-22. 在允許清單解析期間會拒絕指令替換（`$()` / 反引號），即使在雙引號內也是如此；若需要字面上的 `$()` 文字，請使用單引號。
+20. 當每個頂層區段都符合允許清單（包含 safe bins 或技能自動允許）時，才允許 shell 串接（`&&`、`||`、`;`）。 22. 在允許清單模式下仍不支援重新導向。
+21. 在允許清單解析期間會拒絕指令替換（`$()` / 反引號），即使在雙引號內也是如此；若需要字面上的 `$()` 文字，請使用單引號。
 
 預設安全 bin：`jq`、`grep`、`cut`、`sort`、`uniq`、`head`、`tail`、`tr`、`wc`。
 
@@ -128,8 +128,8 @@ macOS 分流：
 
 24. 使用 **Control UI → Nodes → Exec approvals** 卡片來編輯預設值、每代理覆寫與允許清單。 25. 選擇一個範圍（預設值或某個代理），調整政策，新增/移除允許清單模式，然後按 **Save**。 26. UI 會顯示每個模式的**最近使用**中繼資料，方便你保持清單整潔。
 
-27. 目標選擇器可選擇 **Gateway**（本機核准）或 **Node**。 28. 節點必須宣告 `system.execApprovals.get/set`（macOS 應用程式或無頭節點主機）。
-28. 如果節點尚未宣告 exec 核准，請直接編輯其本機的 `~/.openclaw/exec-approvals.json`。
+25. 目標選擇器可選擇 **Gateway**（本機核准）或 **Node**。 28. 節點必須宣告 `system.execApprovals.get/set`（macOS 應用程式或無頭節點主機）。
+26. 如果節點尚未宣告 exec 核准，請直接編輯其本機的 `~/.openclaw/exec-approvals.json`。
 
 CLI：`openclaw approvals` 支援 Gateway 或 Node 的編輯（請參閱 [Approvals CLI](/cli/approvals)）。
 
@@ -137,8 +137,7 @@ CLI：`openclaw approvals` 支援 Gateway 或 Node 的編輯（請參閱 [Approv
 
 當需要提示時，Gateway 會向操作員用戶端廣播 `exec.approval.requested`。
 Control UI 與 macOS 應用程式會透過 `exec.approval.resolve` 進行處理，接著 Gateway 會將
-已核准的請求轉送至節點主機。
-31. Control UI 與 macOS 應用程式會透過 `exec.approval.resolve` 進行處理，然後 gateway 會將已核准的請求轉送至節點主機。
+已核准的請求轉送至節點主機。31. Control UI 與 macOS 應用程式會透過 `exec.approval.resolve` 進行處理，然後 gateway 會將已核准的請求轉送至節點主機。
 
 32. 當需要核准時，exec 工具會立即回傳一個核准 id。 33. 使用該 id 來關聯後續的系統事件（`Exec finished` / `Exec denied`）。 34. 如果在逾時前沒有收到決策，該請求會被視為核准逾時，並以拒絕原因呈現。
 

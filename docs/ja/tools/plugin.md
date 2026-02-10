@@ -63,8 +63,7 @@ validationはプラグインコードを実行しません**; プラグインマ
 - **Skills**（プラグインマニフェストに `skills` ディレクトリを列挙）
 - **自動返信コマンド**（AI エージェントを呼び出さずに実行）
 
-プラグインは Gateway と同一プロセスで実行されます。信頼できるコードとして扱ってください：
-23. ツール作成ガイド: [Plugin agent tools](/plugins/agent-tools)。
+プラグインは Gateway と同一プロセスで実行されます。信頼できるコードとして扱ってください：23. ツール作成ガイド: [Plugin agent tools](/plugins/agent-tools)。
 
 ## ランタイムヘルパー
 

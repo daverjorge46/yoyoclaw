@@ -528,34 +528,34 @@ Volledige configuratie: [Gateway-configuratie](/gateway/configuration)
 
 Belangrijke opties:
 
-| Instelling                                        | Beschrijving                                                                | Standaard |
-| ------------------------------------------------- | --------------------------------------------------------------------------- | --------- |
-| `channels.feishu.enabled`                         | Kanaal in-/uitschakelen                                                     | `true`    |
-| `channels.feishu.domain`                          | API-domein (`feishu` of `lark`)                          | `feishu`  |
-| `channels.feishu.accounts.<id>.appId`             | App ID                                                                      | -         |
-| `channels.feishu.accounts.<id>.appSecret`         | App Secret                                                                  | -         |
-| `channels.feishu.accounts.<id>.domain`            | Per-account API-domeinoverschrijving                                        | `feishu`  |
-| `channels.feishu.dmPolicy`                        | DM-beleid                                                                   | `pairing` |
-| `channels.feishu.allowFrom`                       | DM-toegestane lijst (open_id-lijst) | -         |
-| `channels.feishu.groupPolicy`                     | Groepsbeleid                                                                | `open`    |
-| `channels.feishu.groupAllowFrom`                  | Groepstoegestane lijst                                                      | -         |
-| `channels.feishu.groups.<chat_id>.requireMention` | @vermelding vereist                                            | `true`    |
-| `channels.feishu.groups.<chat_id>.enabled`        | Groep inschakelen                                                           | `true`    |
-| `channels.feishu.textChunkLimit`                  | Berichtblokgrootte                                                          | `2000`    |
-| `channels.feishu.mediaMaxMb`                      | Medialimiet                                                                 | `30`      |
-| `channels.feishu.streaming`                       | Streamingkaart-uitvoer inschakelen                                          | `true`    |
-| `channels.feishu.blockStreaming`                  | Blokstreaming inschakelen                                                   | `true`    |
+| Instelling                                        | Beschrijving                         | Standaard |
+| ------------------------------------------------- | ------------------------------------ | --------- |
+| `channels.feishu.enabled`                         | Kanaal in-/uitschakelen              | `true`    |
+| `channels.feishu.domain`                          | API-domein (`feishu` of `lark`)      | `feishu`  |
+| `channels.feishu.accounts.<id>.appId`             | App ID                               | -         |
+| `channels.feishu.accounts.<id>.appSecret`         | App Secret                           | -         |
+| `channels.feishu.accounts.<id>.domain`            | Per-account API-domeinoverschrijving | `feishu`  |
+| `channels.feishu.dmPolicy`                        | DM-beleid                            | `pairing` |
+| `channels.feishu.allowFrom`                       | DM-toegestane lijst (open_id-lijst)  | -         |
+| `channels.feishu.groupPolicy`                     | Groepsbeleid                         | `open`    |
+| `channels.feishu.groupAllowFrom`                  | Groepstoegestane lijst               | -         |
+| `channels.feishu.groups.<chat_id>.requireMention` | @vermelding vereist                  | `true`    |
+| `channels.feishu.groups.<chat_id>.enabled`        | Groep inschakelen                    | `true`    |
+| `channels.feishu.textChunkLimit`                  | Berichtblokgrootte                   | `2000`    |
+| `channels.feishu.mediaMaxMb`                      | Medialimiet                          | `30`      |
+| `channels.feishu.streaming`                       | Streamingkaart-uitvoer inschakelen   | `true`    |
+| `channels.feishu.blockStreaming`                  | Blokstreaming inschakelen            | `true`    |
 
 ---
 
 ## dmPolicy-referentie
 
-| Waarde        | Gedrag                                                                                                    |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Waarde        | Gedrag                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------- |
 | `"pairing"`   | **Standaard.** Onbekende gebruikers krijgen een koppelingscode; moeten worden goedgekeurd |
-| `"allowlist"` | Alleen gebruikers in `allowFrom` kunnen chatten                                                           |
-| `"open"`      | Alle gebruikers toestaan (vereist `"*"` in allowFrom)                                  |
-| `"disabled"`  | DM's uitschakelen                                                                                         |
+| `"allowlist"` | Alleen gebruikers in `allowFrom` kunnen chatten                                           |
+| `"open"`      | Alle gebruikers toestaan (vereist `"*"` in allowFrom)                                     |
+| `"disabled"`  | DM's uitschakelen                                                                         |
 
 ---
 

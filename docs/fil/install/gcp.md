@@ -114,10 +114,10 @@ gcloud services enable compute.googleapis.com
 
 **Mga uri ng makina:**
 
-| Uri      | Specs                                       | Gastos                     | Mga tala                           |
-| -------- | ------------------------------------------- | -------------------------- | ---------------------------------- |
-| e2-small | 2 vCPU, 2GB RAM                             | ~$12/buwan | Inirerekomenda                     |
-| e2-micro | 2 vCPU (shared), 1GB RAM | Eligible sa free tier      | Maaaring mag-OOM sa ilalim ng load |
+| Uri      | Specs                    | Gastos                | Mga tala                           |
+| -------- | ------------------------ | --------------------- | ---------------------------------- |
+| e2-small | 2 vCPU, 2GB RAM          | ~$12/buwan            | Inirerekomenda                     |
+| e2-micro | 2 vCPU (shared), 1GB RAM | Eligible sa free tier | Maaaring mag-OOM sa ilalim ng load |
 
 **CLI:**
 

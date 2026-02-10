@@ -40,12 +40,12 @@ otherwise -> reply
 
 Als je wilt...
 
-| Doel                                                                 | Wat instellen                                                               |
-| -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Alle groepen toestaan maar alleen reageren op @mentions | `groups: { "*": { requireMention: true } }`                                 |
-| Alle groepsreacties uitschakelen                                     | `groupPolicy: "disabled"`                                                   |
-| Alleen specifieke groepen                                            | `groups: { "<group-id>": { ... } }` (geen sleutel `"*"`) |
-| Alleen jij kunt in groepen triggeren                                 | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]`                  |
+| Doel                                                    | Wat instellen                                              |
+| ------------------------------------------------------- | ---------------------------------------------------------- |
+| Alle groepen toestaan maar alleen reageren op @mentions | `groups: { "*": { requireMention: true } }`                |
+| Alle groepsreacties uitschakelen                        | `groupPolicy: "disabled"`                                  |
+| Alleen specifieke groepen                               | `groups: { "<group-id>": { ... } }` (geen sleutel `"*"`)   |
+| Alleen jij kunt in groepen triggeren                    | `groupPolicy: "allowlist"`, `groupAllowFrom: ["+1555..."]` |
 
 ## Sessie­sleutels
 
@@ -174,8 +174,8 @@ Beheer hoe groeps-/roomberichten per kanaal worden afgehandeld:
 }
 ```
 
-| Beleid        | Gedrag                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
+| Beleid        | Gedrag                                                                                 |
+| ------------- | -------------------------------------------------------------------------------------- |
 | `"open"`      | Groepen omzeilen toegestane lijsten; mention-gating blijft van toepassing.             |
 | `"disabled"`  | Blokkeer alle groepsberichten volledig.                                                |
 | `"allowlist"` | Sta alleen groepen/rooms toe die overeenkomen met de geconfigureerde toegestane lijst. |

@@ -29,10 +29,10 @@ OpenClaw 는 두 가지 경량 웹 도구를 제공합니다:
 
 ## 검색 프로바이더 선택
 
-| Provider                           | 장점                 | 단점                             | API 키                                        |
-| ---------------------------------- | ------------------ | ------------------------------ | -------------------------------------------- |
-| **Brave** (기본값) | 빠름, 구조화된 결과, 무료 티어 | 전통적인 검색 결과                     | `BRAVE_API_KEY`                              |
-| **Perplexity**                     | AI 합성 답변, 인용, 실시간  | Perplexity 또는 OpenRouter 접근 필요 | `OPENROUTER_API_KEY` 또는 `PERPLEXITY_API_KEY` |
+| Provider           | 장점                           | 단점                                 | API 키                                         |
+| ------------------ | ------------------------------ | ------------------------------------ | ---------------------------------------------- |
+| **Brave** (기본값) | 빠름, 구조화된 결과, 무료 티어 | 전통적인 검색 결과                   | `BRAVE_API_KEY`                                |
+| **Perplexity**     | AI 합성 답변, 인용, 실시간     | Perplexity 또는 OpenRouter 접근 필요 | `OPENROUTER_API_KEY` 또는 `PERPLEXITY_API_KEY` |
 
 프로바이더별 자세한 내용은 [Brave Search 설정](/brave-search) 과 [Perplexity Sonar](/perplexity) 를 참고하십시오.
 
@@ -129,11 +129,11 @@ Perplexity Sonar 모델은 내장 웹 검색 기능을 제공하며 인용이 �
 
 ### 사용 가능한 Perplexity 모델
 
-| Model                                           | 설명                                   | 적합한 용도 |
-| ----------------------------------------------- | ------------------------------------ | ------ |
-| `perplexity/sonar`                              | 웹 검색이 포함된 빠른 Q&A | 빠른 조회  |
-| `perplexity/sonar-pro` (기본값) | 웹 검색을 포함한 다단계 추론                     | 복잡한 질문 |
-| `perplexity/sonar-reasoning-pro`                | 체인-오브-소트 분석                          | 심층 연구  |
+| Model                            | 설명                         | 적합한 용도 |
+| -------------------------------- | ---------------------------- | ----------- |
+| `perplexity/sonar`               | 웹 검색이 포함된 빠른 Q&A    | 빠른 조회   |
+| `perplexity/sonar-pro` (기본값)  | 웹 검색을 포함한 다단계 추론 | 복잡한 질문 |
+| `perplexity/sonar-reasoning-pro` | 체인-오브-소트 분석          | 심층 연구   |
 
 ## web_search
 

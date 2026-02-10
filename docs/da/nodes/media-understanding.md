@@ -175,11 +175,11 @@ Hvis du udelader 'kapaciteter', er posten berettiget til den liste, den vises i.
 
 ## Understøttelsesmatrix for udbydere (OpenClaw-integrationer)
 
-| Kapabilitet | Udbyderintegration                              | Noter                                                                               |
-| ----------- | ----------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Billede     | OpenAI / Anthropic / Google / andre via `pi-ai` | Enhver billed-kompatibel model i registreret virker.                |
-| Lyd         | OpenAI, Groq, Deepgram, Google                  | Udbydertransskription (Whisper/Deepgram/Gemini). |
-| Video       | Google (Gemini API)          | Udbyderbaseret videoforståelse.                                     |
+| Kapabilitet | Udbyderintegration                              | Noter                                                |
+| ----------- | ----------------------------------------------- | ---------------------------------------------------- |
+| Billede     | OpenAI / Anthropic / Google / andre via `pi-ai` | Enhver billed-kompatibel model i registreret virker. |
+| Lyd         | OpenAI, Groq, Deepgram, Google                  | Udbydertransskription (Whisper/Deepgram/Gemini).     |
+| Video       | Google (Gemini API)                             | Udbyderbaseret videoforståelse.                      |
 
 ## Anbefalede udbydere
 

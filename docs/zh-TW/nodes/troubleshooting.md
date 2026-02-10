@@ -50,12 +50,12 @@ openclaw logs --follow
 
 ## 權限矩陣
 
-| 能力                          | iOS                                     | Android                                                   | macOS 節點 App | 常見失敗代碼                         |
-| --------------------------- | --------------------------------------- | --------------------------------------------------------- | ------------ | ------------------------------ |
-| `camera.snap`、`camera.clip` | 相機（剪輯音訊需麥克風）                            | 相機（剪輯音訊需麥克風）                                              | 相機（剪輯音訊需麥克風） | `*_PERMISSION_REQUIRED`        |
-| `screen.record`             | 螢幕錄製（麥克風選用）                             | Screen capture prompt (+ mic optional) | 螢幕錄製         | `*_PERMISSION_REQUIRED`        |
-| `location.get`              | 使用期間或永遠（依模式而定）                          | 依模式為前景／背景位置                                               | 位置權限         | `LOCATION_PERMISSION_REQUIRED` |
-| `system.run`                | n/a (node host path) | n/a (node host path)                   | 需要 Exec 核准   | `SYSTEM_RUN_DENIED`            |
+| 能力                         | iOS                          | Android                                | macOS 節點 App           | 常見失敗代碼                   |
+| ---------------------------- | ---------------------------- | -------------------------------------- | ------------------------ | ------------------------------ |
+| `camera.snap`、`camera.clip` | 相機（剪輯音訊需麥克風）     | 相機（剪輯音訊需麥克風）               | 相機（剪輯音訊需麥克風） | `*_PERMISSION_REQUIRED`        |
+| `screen.record`              | 螢幕錄製（麥克風選用）       | Screen capture prompt (+ mic optional) | 螢幕錄製                 | `*_PERMISSION_REQUIRED`        |
+| `location.get`               | 使用期間或永遠（依模式而定） | 依模式為前景／背景位置                 | 位置權限                 | `LOCATION_PERMISSION_REQUIRED` |
+| `system.run`                 | n/a (node host path)         | n/a (node host path)                   | 需要 Exec 核准           | `SYSTEM_RUN_DENIED`            |
 
 ## Pairing versus approvals
 

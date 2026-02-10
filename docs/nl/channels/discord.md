@@ -395,27 +395,27 @@ Notities bij toegestane lijsten (PK ingeschakeld):
 
 ### Standaarden voor toolacties
 
-| Actiegroep     | Standaard     | Notities                                               |
-| -------------- | ------------- | ------------------------------------------------------ |
-| reactions      | ingeschakeld  | Reageren + reacties tonen + emojiList                  |
-| stickers       | ingeschakeld  | Stickers verzenden                                     |
-| emojiUploads   | ingeschakeld  | Emoji’s uploaden                                       |
-| stickerUploads | ingeschakeld  | Stickers uploaden                                      |
-| polls          | ingeschakeld  | Polls maken                                            |
-| permissions    | ingeschakeld  | Snapshot van kanaalrechten                             |
-| messages       | ingeschakeld  | Lezen/verzenden/bewerken/verwijderen                   |
-| threads        | ingeschakeld  | Maken/lijsten/antwoorden                               |
-| pins           | ingeschakeld  | Vastzetten/losmaken/lijsten                            |
-| search         | ingeschakeld  | Berichten zoeken (previewfunctie)   |
-| memberInfo     | ingeschakeld  | Lid informatie                                         |
-| roleInfo       | ingeschakeld  | Rollenlijst                                            |
-| channelInfo    | ingeschakeld  | Kanaalinformatie + lijst                               |
-| channels       | ingeschakeld  | Kanaal-/categoriebeheer                                |
-| voiceStatus    | ingeschakeld  | Voice-status opzoeken                                  |
-| events         | ingeschakeld  | Geplande events tonen/maken                            |
-| roles          | uitgeschakeld | Rollen toevoegen/verwijderen                           |
-| moderation     | uitgeschakeld | Timeout/kick/ban                                       |
-| presence       | uitgeschakeld | Botstatus/-activiteit (setPresence) |
+| Actiegroep     | Standaard     | Notities                              |
+| -------------- | ------------- | ------------------------------------- |
+| reactions      | ingeschakeld  | Reageren + reacties tonen + emojiList |
+| stickers       | ingeschakeld  | Stickers verzenden                    |
+| emojiUploads   | ingeschakeld  | Emoji’s uploaden                      |
+| stickerUploads | ingeschakeld  | Stickers uploaden                     |
+| polls          | ingeschakeld  | Polls maken                           |
+| permissions    | ingeschakeld  | Snapshot van kanaalrechten            |
+| messages       | ingeschakeld  | Lezen/verzenden/bewerken/verwijderen  |
+| threads        | ingeschakeld  | Maken/lijsten/antwoorden              |
+| pins           | ingeschakeld  | Vastzetten/losmaken/lijsten           |
+| search         | ingeschakeld  | Berichten zoeken (previewfunctie)     |
+| memberInfo     | ingeschakeld  | Lid informatie                        |
+| roleInfo       | ingeschakeld  | Rollenlijst                           |
+| channelInfo    | ingeschakeld  | Kanaalinformatie + lijst              |
+| channels       | ingeschakeld  | Kanaal-/categoriebeheer               |
+| voiceStatus    | ingeschakeld  | Voice-status opzoeken                 |
+| events         | ingeschakeld  | Geplande events tonen/maken           |
+| roles          | uitgeschakeld | Rollen toevoegen/verwijderen          |
+| moderation     | uitgeschakeld | Timeout/kick/ban                      |
+| presence       | uitgeschakeld | Botstatus/-activiteit (setPresence)   |
 
 - `replyToMode`: `off` (standaard), `first` of `all`. Geldt alleen wanneer het model een reply-tag bevat.
 

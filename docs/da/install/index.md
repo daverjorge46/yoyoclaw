@@ -44,11 +44,11 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
         ```
       </Tab>
     </Tabs>
-    
+
     Det er det — scriptet håndterer Node-detektion, installation og introduktion.
-    
+
     For at springe introduktionen over og kun installere binæren:
-    
+
     <Tabs>
       <Tab title="macOS / Linux / WSL2">
         ```bash
@@ -61,7 +61,7 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
         ```
       </Tab>
     </Tabs>
-    
+
     For alle flag, miljøvariabler og CI/automationsmuligheder, se [Installer internals](/install/installer).
     ```
 
@@ -77,14 +77,14 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
         npm install -g openclaw@latest
         openclaw onboard --install-daemon
         ```
-    
+
         <Accordion title="sharp build-fejl?">
           Hvis du har libvips installeret globalt (almindeligt på macOS via Homebrew) og `sharp` fejler, så gennemtving forbyggede binærer:
-    
+
           ```bash
           SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
           ```
-    
+
           Hvis du ser `sharp: Please add node-gyp to your dependencies`, skal du enten installere build-værktøjer (macOS: Xcode CLT + `npm install -g node-gyp`) eller bruge miljøvariablen ovenfor.
         </Accordion>
       </Tab>
@@ -94,7 +94,7 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
         pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
         openclaw onboard --install-daemon
         ```
-    
+
         <Note>
         pnpm kræver eksplicit godkendelse af pakker med build-scripts. Når den første installation viser advarslen "Ignored build scripts", kør `pnpm approve-builds -g` og vælg de listede pakker.
         </Note>
@@ -111,7 +111,7 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
     <Steps>
       <Step title="Klon og byg">
         Klon [OpenClaw-repoet](https://github.com/openclaw/openclaw) og byg:
-    
+
         ```bash
         git clone https://github.com/openclaw/openclaw.git
         cd openclaw
@@ -122,11 +122,11 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
       </Step>
       <Step title="Link CLI’en">
         Gør `openclaw`-kommandoen tilgængelig globalt:
-    
+
         ```bash
         pnpm link --global
         ```
-    
+
         Alternativt kan du springe linket over og køre kommandoer via `pnpm openclaw ...` inde fra repoet.
       </Step>
       <Step title="Kør introduktion">
@@ -135,7 +135,7 @@ The **installer script** is the recommended way to install OpenClaw. (Automatic 
         ```
       </Step>
     </Steps>
-    
+
     For dybere udviklingsarbejdsgange, se [Opsætning](/start/setup).
     ```
 

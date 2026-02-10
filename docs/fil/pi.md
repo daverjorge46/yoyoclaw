@@ -28,12 +28,12 @@ Gumagamit ang OpenClaw ng pi SDK upang i‑embed ang isang AI coding agent sa ar
 }
 ```
 
-| Package           | Layunin                                                                                                                      |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Package           | Layunin                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | `pi-ai`           | Mga core na abstraction ng LLM: `Model`, `streamSimple`, mga uri ng mensahe, provider APIs                   |
-| `pi-agent-core`   | Agent loop, pagpapatupad ng tool, mga uri ng `AgentMessage`                                                                  |
+| `pi-agent-core`   | Agent loop, pagpapatupad ng tool, mga uri ng `AgentMessage`                                                  |
 | `pi-coding-agent` | High-level SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, mga built-in na tool |
-| `pi-tui`          | Mga component ng terminal UI (ginagamit sa lokal na TUI mode ng OpenClaw)                                 |
+| `pi-tui`          | Mga component ng terminal UI (ginagamit sa lokal na TUI mode ng OpenClaw)                                    |
 
 ## Istruktura ng File
 
@@ -511,15 +511,15 @@ Nagbibigay ito ng interactive na karanasan sa terminal na katulad ng native mode
 
 ## Mga Pangunahing Pagkakaiba mula sa Pi CLI
 
-| Aspeto          | Pi CLI                                 | OpenClaw Embedded                                                                                                |
-| --------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` command / RPC                     | SDK sa pamamagitan ng `createAgentSession()`                                                                     |
-| Mga Tool        | Default na coding tools                | Custom na tool suite ng OpenClaw                                                                                 |
-| System prompt   | AGENTS.md + mga prompt | Dynamic kada channel/konteksto                                                                                   |
-| Session storage | `~/.pi/agent/sessions/`                | `~/.openclaw/agents/<agentId>/sessions/` (o `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth            | Isang credential                       | Multi-profile na may rotation                                                                                    |
-| Mga Extension   | Niloload mula sa disk                  | Programmatic + mga disk path                                                                                     |
-| Event handling  | TUI rendering                          | Callback-based (onBlockReply, atbp.)                                          |
+| Aspeto          | Pi CLI                  | OpenClaw Embedded                                                                             |
+| --------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| Invocation      | `pi` command / RPC      | SDK sa pamamagitan ng `createAgentSession()`                                                  |
+| Mga Tool        | Default na coding tools | Custom na tool suite ng OpenClaw                                                              |
+| System prompt   | AGENTS.md + mga prompt  | Dynamic kada channel/konteksto                                                                |
+| Session storage | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (o `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth            | Isang credential        | Multi-profile na may rotation                                                                 |
+| Mga Extension   | Niloload mula sa disk   | Programmatic + mga disk path                                                                  |
+| Event handling  | TUI rendering           | Callback-based (onBlockReply, atbp.)                                                          |
 
 ## Mga Konsiderasyon sa Hinaharap
 
