@@ -293,7 +293,7 @@ function registerLazyCommand(program: Command, entry: SubCliEntry) {
 export async function registerSubCliCommands(program: Command, argv: string[] = process.argv) {
   if (await shouldEagerRegisterSubcommands(argv)) {
     for (const entry of entries) {
-      void entry.register(program);
+      await entry.register(program);
     }
     return;
   }

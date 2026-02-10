@@ -45,7 +45,7 @@ function ensureExperimentalWarningSuppressed(): boolean {
   // Skip respawn for --help and --version: these produce well-known output and
   // do not trigger experimental APIs, so the warning suppression is unnecessary.
   // Avoiding the respawn saves a full Node.js startup cycle (~400-600ms).
-  const helpVersionFlags = new Set(["--help", "-h", "--version", "-V", "-v"]);
+  const helpVersionFlags = new Set(["--help", "-h", "--version", "-V"]);
   if (process.argv.some((arg) => helpVersionFlags.has(arg))) {
     return false;
   }

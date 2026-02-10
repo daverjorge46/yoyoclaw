@@ -14,20 +14,28 @@ import { formatErrorMessage, withManager } from "./cli-utils.js";
 // Heavy deps are lazy-loaded on first action to avoid importing agents,
 // config barrel (Zod/validation), memory subsystem, and progress at module
 // load time. Module-level refs are populated by ensureDeps() before first use.
-let resolveDefaultAgentId: Awaited<typeof import("../agents/agent-scope.js")>["resolveDefaultAgentId"];
+let resolveDefaultAgentId: Awaited<
+  typeof import("../agents/agent-scope.js")
+>["resolveDefaultAgentId"];
 let loadConfig: Awaited<typeof import("../config/config.js")>["loadConfig"];
 let resolveStateDir: Awaited<typeof import("../config/paths.js")>["resolveStateDir"];
-let resolveSessionTranscriptsDirForAgent: Awaited<typeof import("../config/sessions/paths.js")>["resolveSessionTranscriptsDirForAgent"];
+let resolveSessionTranscriptsDirForAgent: Awaited<
+  typeof import("../config/sessions/paths.js")
+>["resolveSessionTranscriptsDirForAgent"];
 let getMemorySearchManager: Awaited<typeof import("../memory/index.js")>["getMemorySearchManager"];
 let listMemoryFiles: Awaited<typeof import("../memory/internal.js")>["listMemoryFiles"];
-let normalizeExtraMemoryPaths: Awaited<typeof import("../memory/internal.js")>["normalizeExtraMemoryPaths"];
+let normalizeExtraMemoryPaths: Awaited<
+  typeof import("../memory/internal.js")
+>["normalizeExtraMemoryPaths"];
 let setVerbose: Awaited<typeof import("../globals.js")>["setVerbose"];
 let withProgress: Awaited<typeof import("./progress.js")>["withProgress"];
 let withProgressTotals: Awaited<typeof import("./progress.js")>["withProgressTotals"];
 
 let _depsLoaded = false;
 async function ensureDeps() {
-  if (_depsLoaded) return;
+  if (_depsLoaded) {
+    return;
+  }
   const [agentScope, configMod, configPaths, sessionPaths, memIdx, memInternal, globals, progress] =
     await Promise.all([
       import("../agents/agent-scope.js"),

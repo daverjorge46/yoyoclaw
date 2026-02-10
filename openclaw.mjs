@@ -36,7 +36,7 @@ await installProcessWarningFilter();
 
 // Ultra-fast path for --version: resolve version from package.json without
 // loading the full CLI (avoids respawn, command registration, etc.).
-const versionArgs = new Set(["--version", "-V", "-v"]);
+const versionArgs = new Set(["--version", "-V"]);
 const helpArgs = new Set(["--help", "-h"]);
 const hasVersion = process.argv.some((a) => versionArgs.has(a));
 const hasHelp = process.argv.some((a) => helpArgs.has(a));

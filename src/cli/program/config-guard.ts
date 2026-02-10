@@ -29,9 +29,8 @@ export async function ensureConfigReady(params: {
 }): Promise<void> {
   if (!didRunDoctorConfigFlow) {
     didRunDoctorConfigFlow = true;
-    const { loadAndMaybeMigrateDoctorConfig } = await import(
-      "../../commands/doctor-config-flow.js"
-    );
+    const { loadAndMaybeMigrateDoctorConfig } =
+      await import("../../commands/doctor-config-flow.js");
     await loadAndMaybeMigrateDoctorConfig({
       options: { nonInteractive: true },
       confirm: async () => false,

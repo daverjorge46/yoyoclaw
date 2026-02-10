@@ -174,9 +174,8 @@ export const commandRegistry: CommandRegistration[] = [
   {
     id: "status-health-sessions",
     register: async ({ program }) => {
-      const { registerStatusHealthSessionsCommands } = await import(
-        "./register.status-health-sessions.js"
-      );
+      const { registerStatusHealthSessionsCommands } =
+        await import("./register.status-health-sessions.js");
       registerStatusHealthSessionsCommands(program);
     },
     routes: [routeHealth, routeStatus, routeSessions],

@@ -22,12 +22,8 @@ export async function runCli(argv: string[] = process.argv) {
   const normalizedArgv = stripWindowsNodeExec(argv);
 
   // Fast path for --version: resolve version without loading any command modules.
-  const isVersionOnly =
-    normalizedArgv.includes("--version") ||
-    normalizedArgv.includes("-V") ||
-    normalizedArgv.includes("-v");
-  const isHelpFlag =
-    normalizedArgv.includes("--help") || normalizedArgv.includes("-h");
+  const isVersionOnly = normalizedArgv.includes("--version") || normalizedArgv.includes("-V");
+  const isHelpFlag = normalizedArgv.includes("--help") || normalizedArgv.includes("-h");
   if (isVersionOnly && !isHelpFlag) {
     const { VERSION } = await import("../version.js");
     console.log(VERSION);
@@ -48,6 +44,24 @@ export async function runCli(argv: string[] = process.argv) {
     assertSupportedRuntime();
   }
 
+  // Global error handlers — install early so routed commands and program
+  // build are covered by the safety net.
+  const { installUnhandledRejectionHandler } = await import("../infra/unhandled-rejections.js");
+  installUnhandledRejectionHandler();
+
+  process.on("uncaughtException", (error) => {
+    import("../infra/errors.js")
+      .then(({ formatUncaughtError }) => {
+        console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
+      })
+      .catch(() => {
+        console.error("[openclaw] Uncaught exception:", error);
+      })
+      .finally(() => {
+        process.exit(1);
+      });
+  });
+
   if (await tryRouteCli(normalizedArgv)) {
     return;
   }
@@ -58,28 +72,12 @@ export async function runCli(argv: string[] = process.argv) {
   const { enableConsoleCapture } = await import("../logging.js");
   enableConsoleCapture();
 
-  // For any --help invocation, use a lightweight program that stubs out
+  // For bare --help (no subcommand), use a lightweight program that stubs out
   // message/browser registrations (each loads 10+ sub-modules: ~2s).
-  const buildFn = isHelpOnly ? "buildMinimalHelpProgram" : "buildProgram";
+  // Subcommand help (e.g. `openclaw message --help`) loads the full tree.
+  const buildFn = isHelpOnly && !primary ? "buildMinimalHelpProgram" : "buildProgram";
   const mod = await import("./program.js");
   const program = await mod[buildFn]();
-
-  // Global error handlers to prevent silent crashes from unhandled rejections/exceptions.
-  // These log the error and exit gracefully instead of crashing without trace.
-  const { installUnhandledRejectionHandler } = await import(
-    "../infra/unhandled-rejections.js"
-  );
-  installUnhandledRejectionHandler();
-
-  process.on("uncaughtException", (error) => {
-    import("../infra/errors.js").then(({ formatUncaughtError }) => {
-      console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
-    }).catch(() => {
-      console.error("[openclaw] Uncaught exception:", error);
-    }).finally(() => {
-      process.exit(1);
-    });
-  });
 
   const parseArgv = rewriteUpdateFlagArgv(normalizedArgv);
   // Register the primary subcommand if one exists (for lazy-loading)

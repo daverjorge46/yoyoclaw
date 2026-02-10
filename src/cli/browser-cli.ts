@@ -9,9 +9,7 @@ import { addGatewayClientOptions } from "./gateway-rpc.js";
 import { formatHelpExamples } from "./help-format.js";
 
 export async function registerBrowserCli(program: Command) {
-  const { browserActionExamples, browserCoreExamples } = await import(
-    "./browser-cli-examples.js"
-  );
+  const { browserActionExamples, browserCoreExamples } = await import("./browser-cli-examples.js");
 
   const browser = program
     .command("browser")
