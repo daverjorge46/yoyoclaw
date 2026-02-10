@@ -14,6 +14,7 @@ import {
   isValidOpenAIModel,
   isValidOpenAIVoice,
   getOpenAITtsBaseUrl,
+  requireInRange,
 } from "./tts-directives.js";
 
 // ── Provider-specific constants ──────────────────────────────────────────────
@@ -64,12 +65,6 @@ export function normalizeElevenLabsBaseUrl(baseUrl: string): string {
     return DEFAULT_ELEVENLABS_BASE_URL;
   }
   return trimmed.replace(/\/+$/, "");
-}
-
-function requireInRange(value: number, min: number, max: number, label: string): void {
-  if (!Number.isFinite(value) || value < min || value > max) {
-    throw new Error(`${label} must be between ${min} and ${max}`);
-  }
 }
 
 export function assertElevenLabsVoiceSettings(

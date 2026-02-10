@@ -14,7 +14,7 @@ RUN apt-get update \
     python3-venv \
     ripgrep \
   && rm -rf /var/lib/apt/lists/* \
-  && rm -f /usr/lib/python*/EXTERNALLY-MANAGED
+  && find /usr/lib /usr/local/lib -name EXTERNALLY-MANAGED -delete 2>/dev/null || true
 
 RUN useradd --create-home --shell /bin/bash sandbox
 USER sandbox

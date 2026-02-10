@@ -34,6 +34,8 @@ import {
   type ResolvedTtsModelOverrides,
   type TtsDirectiveOverrides,
 } from "./tts-directives.js";
+
+export { OPENAI_TTS_MODELS, OPENAI_TTS_VOICES };
 import {
   DEFAULT_ELEVENLABS_BASE_URL,
   DEFAULT_ELEVENLABS_VOICE_ID,
