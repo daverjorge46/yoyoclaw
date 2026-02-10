@@ -3,7 +3,54 @@ import type { VoiceCallConfig } from "../../config.js";
 import type { MediaGraph } from "./ari-media.js";
 
 type AriConfigInner = NonNullable<VoiceCallConfig["asteriskAri"]>;
-export type AriConfig = AriConfigInner;
+
+export type AriConfig = {
+  baseUrl: string;
+  username: string;
+  password: string;
+  app: string;
+  trunk?: string;
+  rtpHost: string;
+  rtpPort: number;
+  codec: "ulaw" | "alaw";
+};
+
+export function requireAriConfig(cfg: AriConfigInner): AriConfig {
+  const baseUrl = cfg.baseUrl;
+  const username = cfg.username;
+  const password = cfg.password;
+  const app = cfg.app;
+  const rtpHost = cfg.rtpHost;
+  const rtpPort = cfg.rtpPort;
+  const codec = cfg.codec;
+
+  const missing: string[] = [];
+  if (!baseUrl) missing.push("baseUrl");
+  if (!username) missing.push("username");
+  if (!password) missing.push("password");
+  if (!app) missing.push("app");
+  if (!rtpHost) missing.push("rtpHost");
+  if (!rtpPort) missing.push("rtpPort");
+  if (!codec) missing.push("codec");
+  if (missing.length) {
+    throw new Error(`asteriskAri config missing: ${missing.join(", ")}`);
+  }
+
+  if (codec !== "ulaw" && codec !== "alaw") {
+    throw new Error(`asteriskAri codec must be ulaw|alaw (got ${String(codec)})`);
+  }
+
+  return {
+    baseUrl,
+    username,
+    password,
+    app,
+    trunk: cfg.trunk,
+    rtpHost,
+    rtpPort,
+    codec,
+  };
+}
 
 // Minimal ARI REST types we use
 export type AriChannel = {

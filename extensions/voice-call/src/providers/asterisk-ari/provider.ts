@@ -18,7 +18,6 @@ import type {
   NormalizedEvent,
 } from "../../types.js";
 import type { VoiceCallProvider } from "../base.js";
-import type { AriConfig, CallState, CoreSttSession } from "./types.js";
 import { loadCoreAgentDeps } from "../../core-bridge.js";
 import { chunkAudio } from "../../telephony-audio.js";
 import { TerminalStates } from "../../types.js";
@@ -32,6 +31,7 @@ import {
   pcmDurationMsFromBytes,
 } from "./audio-utils.js";
 import { reconcileLingeringCalls } from "./reconcile.js";
+import { requireAriConfig, type AriConfig, type CallState, type CoreSttSession } from "./types.js";
 import { buildEndpoint, makeEvent, nowMs } from "./utils.js";
 
 export class AsteriskAriProvider implements VoiceCallProvider {
@@ -60,7 +60,7 @@ export class AsteriskAriProvider implements VoiceCallProvider {
     const a = params.config.asteriskAri;
     if (!a) throw new Error("asteriskAri config missing");
     this.voiceConfig = params.config;
-    this.cfg = a;
+    this.cfg = requireAriConfig(a);
     this.manager = params.manager;
     this.coreConfig = params.coreConfig ?? null;
     this.client = new AriClient(this.cfg);

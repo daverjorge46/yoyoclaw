@@ -457,7 +457,7 @@ export function resolveVoiceCallConfig(config: VoiceCallConfig): VoiceCallConfig
 
   // Asterisk ARI
   if (resolved.provider === "asterisk-ari") {
-    resolved.asteriskAri = resolved.asteriskAri ?? {};
+    resolved.asteriskAri = resolved.asteriskAri ?? { rtpPort: 12000, codec: "ulaw" };
     resolved.asteriskAri.rtpPort = resolved.asteriskAri.rtpPort ?? 12000;
     resolved.asteriskAri.codec = resolved.asteriskAri.codec ?? "ulaw";
 
