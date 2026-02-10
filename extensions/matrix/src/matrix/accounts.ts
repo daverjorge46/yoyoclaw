@@ -20,12 +20,10 @@ function listConfiguredAccountIds(cfg: CoreConfig): string[] {
       ? Object.keys(base.accounts).filter(Boolean)
       : [];
 
-  // If base config has credentials (homeserver + accessToken/userId), include "default"
-  const hasBaseCredentials = Boolean(base.homeserver && (base.accessToken || base.userId));
+  // Always include "default" to support env-var-only configs.
+  // Let resolveMatrixAccount decide if it's actually configured.
   const ids = new Set(named);
-  if (hasBaseCredentials) {
-    ids.add(DEFAULT_ACCOUNT_ID);
-  }
+  ids.add(DEFAULT_ACCOUNT_ID);
   return [...ids];
 }
 
@@ -34,7 +32,7 @@ export function listMatrixAccountIds(cfg: CoreConfig): string[] {
   if (ids.length === 0) {
     return [DEFAULT_ACCOUNT_ID];
   }
-  return ids.toSorted((a, b) => a.localeCompare(b));
+  return [...ids].sort((a, b) => a.localeCompare(b));
 }
 
 export function resolveDefaultMatrixAccountId(cfg: CoreConfig): string {

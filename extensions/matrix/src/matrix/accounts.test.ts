@@ -131,7 +131,7 @@ describe("listMatrixAccountIds", () => {
         },
       },
     };
-    expect(listMatrixAccountIds(cfg)).toEqual(["argos", "poly"]);
+    expect(listMatrixAccountIds(cfg)).toEqual(["argos", "default", "poly"]);
   });
 
   it("returns [default] when channels.matrix is undefined", () => {
@@ -150,7 +150,7 @@ describe("listMatrixAccountIds", () => {
         },
       },
     };
-    expect(listMatrixAccountIds(cfg)).toEqual(["poly"]);
+    expect(listMatrixAccountIds(cfg)).toEqual(["default", "poly"]);
   });
 });
 
@@ -166,7 +166,7 @@ describe("resolveDefaultMatrixAccountId", () => {
     expect(resolveDefaultMatrixAccountId(cfg)).toBe("default");
   });
 
-  it("returns first alphabetical account when default is not in the list", () => {
+  it("returns default when it's in the list", () => {
     const cfg: CoreConfig = {
       channels: {
         matrix: {
@@ -177,7 +177,7 @@ describe("resolveDefaultMatrixAccountId", () => {
         },
       },
     };
-    expect(resolveDefaultMatrixAccountId(cfg)).toBe("alpha");
+    expect(resolveDefaultMatrixAccountId(cfg)).toBe("default");
   });
 
   it("returns default when default is explicitly in accounts", () => {

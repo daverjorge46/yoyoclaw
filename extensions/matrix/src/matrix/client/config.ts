@@ -24,6 +24,17 @@ export function resolveMatrixConfig(
   accountId?: string | null,
 ): MatrixResolvedConfig {
   const matrix = cfg.channels?.matrix ?? {};
+
+  // Fail fast if a non-default accountId is requested but not configured
+  if (accountId && accountId !== "default") {
+    if (!matrix.accounts?.[accountId]) {
+      throw new Error(
+        `Matrix account "${accountId}" not found in config.channels.matrix.accounts. ` +
+          `Available accounts: ${Object.keys(matrix.accounts ?? {}).join(", ") || "none"}`,
+      );
+    }
+  }
+
   const isNamedAccount = accountId && accountId !== "default" && matrix.accounts?.[accountId];
 
   if (isNamedAccount) {
