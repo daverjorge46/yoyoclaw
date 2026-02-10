@@ -61,6 +61,7 @@ import { buildSystemPromptReport } from "../../system-prompt-report.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isRunnerAbortError } from "../abort.js";
+import { wrapStreamFnWithBuffer } from "../buffered-stream.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import { buildEmbeddedExtensionPaths } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
@@ -539,6 +540,11 @@ export async function runEmbeddedAttempt(
         );
       }
 
+      // Buffer Google model streams: collect the full response before replaying
+      // events downstream. Prevents Gemini CLI OAuth streams from being
+      // interrupted while downstream is processing.
+      activeSession.agent.streamFn = wrapStreamFnWithBuffer(activeSession.agent.streamFn);
+
       try {
         const prior = await sanitizeSessionHistory({
           messages: activeSession.messages,
@@ -723,12 +729,14 @@ export async function runEmbeddedAttempt(
 
         // Run before_agent_start hooks to allow plugins to inject context
         let effectivePrompt = params.prompt;
+        let effectiveSystemPrompt = systemPromptText;
         if (hookRunner?.hasHooks("before_agent_start")) {
           try {
             const hookResult = await hookRunner.runBeforeAgentStart(
               {
                 prompt: params.prompt,
                 messages: activeSession.messages,
+                systemPrompt: systemPromptText,
               },
               {
                 agentId: hookAgentId,
@@ -737,6 +745,11 @@ export async function runEmbeddedAttempt(
                 messageProvider: params.messageProvider ?? undefined,
               },
             );
+            if (hookResult?.systemPrompt) {
+              activeSession.agent.setSystemPrompt(hookResult.systemPrompt);
+              effectiveSystemPrompt = hookResult.systemPrompt;
+              log.debug(`hooks: replaced system prompt (${hookResult.systemPrompt.length} chars)`);
+            }
             if (hookResult?.prependContext) {
               effectivePrompt = `${hookResult.prependContext}\n\n${params.prompt}`;
               log.debug(
@@ -751,6 +764,7 @@ export async function runEmbeddedAttempt(
         log.debug(`embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`);
         cacheTrace?.recordStage("prompt:before", {
           prompt: effectivePrompt,
+          system: effectiveSystemPrompt,
           messages: activeSession.messages,
         });
 
