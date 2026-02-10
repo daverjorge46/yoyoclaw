@@ -279,6 +279,11 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
   for (const entry of entries) {
     try {
       const content = await fs.readFile(entry.filePath, "utf-8");
+      if (entry.name === DEFAULT_SOUL_FILENAME) {
+        console.log(
+          `[debug:soul] dir=${resolvedDir} path=${entry.filePath} firstLine=${content.split("\n")[0]?.slice(0, 80)}`,
+        );
+      }
       result.push({
         name: entry.name,
         path: entry.filePath,

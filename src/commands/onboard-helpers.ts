@@ -436,7 +436,7 @@ export const DEFAULT_WORKSPACE = DEFAULT_AGENT_WORKSPACE_DIR;
 
 export function resolveControlUiLinks(params: {
   port: number;
-  bind?: "auto" | "lan" | "loopback" | "custom" | "tailnet";
+  bind?: "auto" | "lan" | "loopback" | "custom" | "tailnet" | "all";
   customBindHost?: string;
   basePath?: string;
 }): { httpUrl: string; wsUrl: string } {

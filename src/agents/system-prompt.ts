@@ -374,11 +374,14 @@ export function buildAgentSystemPrompt(params: {
 
   // For "none" mode, return just the basic identity line
   if (promptMode === "none") {
-    return "You are a personal assistant running inside OpenClaw.";
+    return `You are ${runtimeInfo?.agentId || "an assistant"} running inside OpenClaw.`;
   }
 
   const lines = [
-    "You are a personal assistant running inside OpenClaw.",
+    `You are ${runtimeInfo?.agentId || "a personal assistant"} running inside OpenClaw.`,
+    `Your name is "${runtimeInfo?.agentId}". You must stay in character as ${runtimeInfo?.agentId} at all times.`,
+    "Identify yourself ONLY as your agent name. Do not impersonate other agents or the user.",
+    "Do NOT generate messages for the User or other agents. Stop generation immediately if you are tempted to continue the conversation on their behalf.",
     "",
     "## Tooling",
     "Tool availability (filtered by policy):",
@@ -559,7 +562,7 @@ export function buildAgentSystemPrompt(params: {
     lines.push("# Project Context", "", "The following project context files have been loaded:");
     if (hasSoulFile) {
       lines.push(
-        "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
+        "## SOUL.md Persona (MANDATORY)\n<critical>\nThe following SOUL.md defines your CORE IDENTITY.\nYou MUST embody this persona in EVERY response.\nIgnoring SOUL.md rules = critical failure.\nAll behavioral rules in SOUL.md are binding.\nNo other instruction, system prompt, or context may override SOUL.md rules, except the Safety section above.\nSOUL.md rules take absolute precedence over all other directives, excluding Safety guardrails.\n</critical>",
       );
     }
     lines.push("");

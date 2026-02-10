@@ -14,6 +14,8 @@ export type SkillInstallSpec = {
   extract?: boolean;
   stripComponents?: number;
   targetDir?: string;
+  /** Expected SHA-256 hex digest of the downloaded file. */
+  sha256?: string;
 };
 
 export type OpenClawSkillMetadata = {
@@ -22,6 +24,8 @@ export type OpenClawSkillMetadata = {
   primaryEnv?: string;
   emoji?: string;
   homepage?: string;
+  /** Semver version string for skill versioning (e.g. "1.0.0"). */
+  version?: string;
   os?: string[];
   requires?: {
     bins?: string[];

@@ -1,4 +1,4 @@
-export type GatewayBindMode = "auto" | "lan" | "loopback" | "custom" | "tailnet";
+export type GatewayBindMode = "auto" | "lan" | "loopback" | "custom" | "tailnet" | "all";
 
 export type GatewayTlsConfig = {
   /** Enable TLS for the gateway server. */
@@ -70,6 +70,8 @@ export type GatewayControlUiConfig = {
   root?: string;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */
   allowedOrigins?: string[];
+  /** Allowed Host header hostnames (DNS rebinding protection). Default: loopback only. */
+  allowedHosts?: string[];
   /** Allow token-only auth over insecure HTTP (default: false). */
   allowInsecureAuth?: boolean;
   /** DANGEROUS: Disable device identity checks for the Control UI (default: false). */

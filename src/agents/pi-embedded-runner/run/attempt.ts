@@ -44,6 +44,7 @@ import {
 } from "../../pi-settings.js";
 import { toClientToolDefinitions } from "../../pi-tool-definition-adapter.js";
 import { createOpenClawCodingTools } from "../../pi-tools.js";
+import { searchProactiveMemory, buildProactiveContextSection } from "../../proactive-memory.js";
 import { resolveSandboxContext } from "../../sandbox.js";
 import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
@@ -745,6 +746,38 @@ export async function runEmbeddedAttempt(
             }
           } catch (hookErr) {
             log.warn(`before_agent_start hook failed: ${String(hookErr)}`);
+          }
+        }
+
+        // Proactive memory injection: search for relevant memories and prepend to prompt
+        if (params.config) {
+          try {
+            const proactiveCfg = params.config.agents?.defaults?.memorySearch?.proactive;
+            const proactiveEnabled = proactiveCfg?.enabled ?? false;
+
+            const memories = await searchProactiveMemory({
+              query: params.prompt,
+              cfg: params.config,
+              agentId: sessionAgentId,
+              maxResults: proactiveCfg?.maxResults,
+              minScore: proactiveCfg?.minScore,
+              timeoutMs: proactiveCfg?.timeoutMs,
+            });
+
+            // Build context section with memories and reminder (if proactive enabled)
+            const contextSection = buildProactiveContextSection({
+              memories,
+              includeReminder: proactiveEnabled,
+            });
+
+            if (contextSection) {
+              effectivePrompt = `${contextSection}\n\n${effectivePrompt}`;
+              log.debug(
+                `proactive-memory: injected context (${memories.length} memories, reminder=${proactiveEnabled}, ${contextSection.length} chars)`,
+              );
+            }
+          } catch (memErr) {
+            log.warn(`proactive-memory: search failed: ${String(memErr)}`);
           }
         }
 

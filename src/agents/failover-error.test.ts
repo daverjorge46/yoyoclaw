@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   coerceToFailoverError,
   describeFailoverError,
+  parseRetryAfter,
+  parseRetryAfterFromMessage,
   resolveFailoverReasonFromError,
 } from "./failover-error.js";
 
@@ -52,5 +54,66 @@ describe("failover-error", () => {
     const described = describeFailoverError(123);
     expect(described.message).toBe("123");
     expect(described.reason).toBeUndefined();
+  });
+
+  describe("parseRetryAfterFromMessage", () => {
+    it("parses Gemini retryDelay JSON pattern", () => {
+      expect(parseRetryAfterFromMessage('"retryDelay": "15s"')).toBe(15);
+      expect(parseRetryAfterFromMessage('"retryDelay":  "60s"')).toBe(60);
+    });
+
+    it("parses Gemini 'retry in Ns' pattern", () => {
+      expect(parseRetryAfterFromMessage("Please retry in 49.733425304s.")).toBe(50);
+      expect(parseRetryAfterFromMessage("retry in 30s")).toBe(30);
+    });
+
+    it("prefers retryDelay over retry-in when both present", () => {
+      const msg = '"retryDelay": "15s" Please retry in 49s.';
+      expect(parseRetryAfterFromMessage(msg)).toBe(15);
+    });
+
+    it("returns undefined for unrelated messages", () => {
+      expect(parseRetryAfterFromMessage("something went wrong")).toBeUndefined();
+      expect(parseRetryAfterFromMessage("")).toBeUndefined();
+    });
+  });
+
+  describe("parseRetryAfter", () => {
+    it("parses HTTP Retry-After header (numeric)", () => {
+      expect(parseRetryAfter({ headers: { "retry-after": "30" } })).toBe(30);
+    });
+
+    it("falls back to Gemini retryDelay in error message", () => {
+      const err = { message: 'Resource exhausted. "retryDelay": "45s"' };
+      expect(parseRetryAfter(err)).toBe(45);
+    });
+
+    it("falls back to retry-in pattern in error message", () => {
+      const err = new Error("Please retry in 49.7s.");
+      expect(parseRetryAfter(err)).toBe(50);
+    });
+
+    it("prefers HTTP header over message body", () => {
+      const err = {
+        headers: { "retry-after": "10" },
+        message: "Please retry in 49s.",
+      };
+      expect(parseRetryAfter(err)).toBe(10);
+    });
+
+    it("returns undefined for non-object input", () => {
+      expect(parseRetryAfter(null)).toBeUndefined();
+      expect(parseRetryAfter("string")).toBeUndefined();
+    });
+  });
+
+  it("coerceToFailoverError preserves Gemini retryAfter", () => {
+    const err = {
+      status: 429,
+      message: 'Resource exhausted. "retryDelay": "45s"',
+    };
+    const failover = coerceToFailoverError(err);
+    expect(failover?.reason).toBe("rate_limit");
+    expect(failover?.retryAfter).toBe(45);
   });
 });

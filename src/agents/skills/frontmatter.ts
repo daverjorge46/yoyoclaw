@@ -86,6 +86,15 @@ function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
     spec.targetDir = raw.targetDir;
   }
 
+  // SHA-256 hash verification (64-char hex string)
+  if (typeof raw.sha256 === "string") {
+    const sha256 = raw.sha256.trim().toLowerCase();
+    if (/^[a-f0-9]{64}$/.test(sha256)) {
+      spec.sha256 = sha256;
+    }
+    // Invalid format silently ignored (skill still loads, just no verification)
+  }
+
   return spec;
 }
 
@@ -137,6 +146,7 @@ export function resolveOpenClawMetadata(
       always: typeof metadataObj.always === "boolean" ? metadataObj.always : undefined,
       emoji: typeof metadataObj.emoji === "string" ? metadataObj.emoji : undefined,
       homepage: typeof metadataObj.homepage === "string" ? metadataObj.homepage : undefined,
+      version: typeof metadataObj.version === "string" ? metadataObj.version : undefined,
       skillKey: typeof metadataObj.skillKey === "string" ? metadataObj.skillKey : undefined,
       primaryEnv: typeof metadataObj.primaryEnv === "string" ? metadataObj.primaryEnv : undefined,
       os: osRaw.length > 0 ? osRaw : undefined,
