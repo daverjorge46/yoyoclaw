@@ -132,10 +132,17 @@ type PerplexitySearchResponse = {
 type PerplexityBaseUrlHint = "direct" | "openrouter";
 
 function extractGrokContent(data: GrokSearchResponse): string | undefined {
-  // xAI Responses API format: output[0].content[0].text
-  const fromResponses = data.output?.[0]?.content?.[0]?.text;
-  if (typeof fromResponses === "string" && fromResponses) {
-    return fromResponses;
+  // xAI Responses API: output[] contains web_search_call + message items.
+  // Find the "message" output item (not the web_search_call).
+  const msgItem = data.output?.find((o) => o.type === "message");
+  const fromMessage = msgItem?.content?.[0]?.text;
+  if (typeof fromMessage === "string" && fromMessage) {
+    return fromMessage;
+  }
+  // Fallback: try first output item's content (non-search responses)
+  const firstText = data.output?.[0]?.content?.[0]?.text;
+  if (typeof firstText === "string" && firstText) {
+    return firstText;
   }
   return typeof data.output_text === "string" ? data.output_text : undefined;
 }
