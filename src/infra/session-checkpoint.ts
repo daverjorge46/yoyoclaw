@@ -7,13 +7,31 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-export type SessionCheckpoint = {
+/**
+ * Session checkpoint data structure for state persistence
+ */
+export interface SessionCheckpoint {
+  /** Unique identifier for the session */
   sessionKey: string;
+  /** Unix timestamp when checkpoint was created */
   timestamp: number;
+  /** Name of the operation being checkpointed */
   operation: string;
-  state: Record<string, any>;
+  /** Arbitrary state data to persist - should be JSON serializable */
+  state: Record<string, unknown>;
+  /** Optional breadcrumb trail for debugging complex operations */
   breadcrumbs?: string[];
-};
+}
+
+/**
+ * Options for checkpoint cleanup operations
+ */
+export interface CheckpointCleanupOptions {
+  /** Maximum age in milliseconds (default: 7 days) */
+  maxAgeMs?: number;
+  /** Dry run mode - don't actually delete files */
+  dryRun?: boolean;
+}
 
 // Checkpoint directory: ~/.openclaw/checkpoints/
 function getCheckpointDir(): string {
@@ -34,7 +52,25 @@ function getCheckpointPath(sessionKey: string): string {
 }
 
 /**
+ * Validates checkpoint data structure
+ * @param data Raw checkpoint data from file
+ * @returns True if valid checkpoint structure
+ */
+function isValidCheckpoint(data: unknown): data is SessionCheckpoint {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    typeof (data as any).sessionKey === "string" &&
+    typeof (data as any).timestamp === "number" &&
+    typeof (data as any).operation === "string" &&
+    typeof (data as any).state === "object" &&
+    (data as any).state !== null
+  );
+}
+
+/**
  * Save a checkpoint for a session
+ * @param checkpoint Checkpoint data to save
  */
 export function saveCheckpoint(checkpoint: SessionCheckpoint): void {
   try {
@@ -60,15 +96,15 @@ export function restoreCheckpoint(sessionKey: string): SessionCheckpoint | null 
     }
 
     const data = fs.readFileSync(filepath, "utf8");
-    const checkpoint = JSON.parse(data) as SessionCheckpoint;
+    const parsedData = JSON.parse(data);
 
-    // Verify checkpoint integrity
-    if (!checkpoint.sessionKey || !checkpoint.timestamp || !checkpoint.state) {
-      console.warn(`[session-checkpoint] Invalid checkpoint for ${sessionKey}`);
+    // Validate checkpoint structure
+    if (!isValidCheckpoint(parsedData)) {
+      console.warn(`[session-checkpoint] Invalid checkpoint structure for ${sessionKey}`);
       return null;
     }
 
-    return checkpoint;
+    return parsedData;
   } catch (err) {
     console.error(
       `[session-checkpoint] Failed to restore checkpoint for ${sessionKey}:`,
@@ -111,10 +147,14 @@ export function listCheckpoints(): SessionCheckpoint[] {
     for (const file of files) {
       try {
         const data = fs.readFileSync(path.join(dir, file), "utf8");
-        const checkpoint = JSON.parse(data) as SessionCheckpoint;
-        checkpoints.push(checkpoint);
+        const parsedData = JSON.parse(data);
+        if (isValidCheckpoint(parsedData)) {
+          checkpoints.push(parsedData);
+        } else {
+          console.warn(`[session-checkpoint] Skipping invalid checkpoint file: ${file}`);
+        }
       } catch (err) {
-        console.warn(`[session-checkpoint] Skipping invalid checkpoint file: ${file}`);
+        console.warn(`[session-checkpoint] Skipping unreadable checkpoint file: ${file}`);
       }
     }
 
@@ -131,9 +171,11 @@ export function listCheckpoints(): SessionCheckpoint[] {
 }
 
 /**
- * Clean up old checkpoints (older than maxAgeMs)
+ * Clean up old checkpoints
+ * @param options Cleanup configuration options
  */
-export function cleanupOldCheckpoints(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): void {
+export function cleanupOldCheckpoints(options: CheckpointCleanupOptions = {}): void {
+  const { maxAgeMs = 7 * 24 * 60 * 60 * 1000, dryRun = false } = options;
   try {
     const dir = getCheckpointDir();
     if (!fs.existsSync(dir)) {
@@ -148,10 +190,12 @@ export function cleanupOldCheckpoints(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000
       try {
         const stat = fs.statSync(filepath);
         if (now - stat.mtimeMs > maxAgeMs) {
-          fs.unlinkSync(filepath);
+          if (!dryRun) {
+            fs.unlinkSync(filepath);
+          }
         }
       } catch (err) {
-        // Ignore cleanup errors
+        // Ignore cleanup errors for individual files
       }
     }
   } catch (err) {
@@ -164,11 +208,16 @@ export function cleanupOldCheckpoints(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000
 
 /**
  * Create a checkpoint for the current operation
+ * @param sessionKey Unique identifier for the session
+ * @param operation Name of the operation being checkpointed
+ * @param state Arbitrary state data to persist - must be JSON serializable
+ * @param breadcrumbs Optional breadcrumb trail for debugging complex operations
+ * @returns New checkpoint object with current timestamp
  */
 export function createCheckpoint(
   sessionKey: string,
   operation: string,
-  state: Record<string, any>,
+  state: Record<string, unknown>,
   breadcrumbs?: string[],
 ): SessionCheckpoint {
   return {
@@ -182,8 +231,10 @@ export function createCheckpoint(
 
 /**
  * Update state in an existing checkpoint
+ * @param sessionKey Session identifier to update
+ * @param updates State updates to merge into existing checkpoint state
  */
-export function updateCheckpointState(sessionKey: string, updates: Record<string, any>): void {
+export function updateCheckpointState(sessionKey: string, updates: Record<string, unknown>): void {
   try {
     const checkpoint = restoreCheckpoint(sessionKey);
     if (!checkpoint) {
