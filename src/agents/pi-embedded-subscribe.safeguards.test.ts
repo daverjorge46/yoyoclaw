@@ -13,7 +13,7 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
     const onAbort = vi.fn();
     const onToolResult = vi.fn();
 
-    const subscription = subscribeEmbeddedPiSession({
+    subscribeEmbeddedPiSession({
       session,
       runId: "test-run",
       onToolResult,
@@ -21,20 +21,36 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
       safeguards: { maxTurns: 2, loopDetection: false },
     });
 
-    const handler = (session.subscribe as any).mock.calls[0][0];
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const handler = vi.mocked(session.subscribe).mock.calls[0][0];
 
     // Turn 1
-    handler({ type: "tool_execution_start", toolName: "tool1", toolCallId: "1", args: {} });
+    handler({
+      type: "tool_execution_start" as const,
+      toolName: "tool1",
+      toolCallId: "1",
+      args: {},
+    });
     await new Promise((r) => setTimeout(r, 0));
     expect(onAbort).not.toHaveBeenCalled();
 
     // Turn 2
-    handler({ type: "tool_execution_start", toolName: "tool2", toolCallId: "2", args: {} });
+    handler({
+      type: "tool_execution_start" as const,
+      toolName: "tool2",
+      toolCallId: "2",
+      args: {},
+    });
     await new Promise((r) => setTimeout(r, 0));
     expect(onAbort).not.toHaveBeenCalled();
 
     // Turn 3 (Exceeds maxTurns 2)
-    handler({ type: "tool_execution_start", toolName: "tool3", toolCallId: "3", args: {} });
+    handler({
+      type: "tool_execution_start" as const,
+      toolName: "tool3",
+      toolCallId: "3",
+      args: {},
+    });
     await new Promise((r) => setTimeout(r, 0));
     expect(onAbort).toHaveBeenCalledWith(expect.stringContaining("Exceeded maximum of 2 turns"));
   });
@@ -44,7 +60,7 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
     const onAbort = vi.fn();
     const onToolResult = vi.fn();
 
-    const subscription = subscribeEmbeddedPiSession({
+    subscribeEmbeddedPiSession({
       session,
       runId: "test-run",
       onToolResult,
@@ -52,10 +68,11 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
       safeguards: { maxTurns: 10, loopDetection: true },
     });
 
-    const handler = (session.subscribe as any).mock.calls[0][0];
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const handler = vi.mocked(session.subscribe).mock.calls[0][0];
 
     // Repeated tool usage
-    const toolCall = { type: "tool_execution_start", toolName: "ls", args: { path: "." } };
+    const toolCall = { type: "tool_execution_start" as const, toolName: "ls", args: { path: "." } };
 
     handler({ ...toolCall, toolCallId: "1" });
     await new Promise((r) => setTimeout(r, 0));
@@ -72,7 +89,7 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
     const onAbort = vi.fn();
     const onToolResult = vi.fn(); // Needed for emitToolSummary to be called
 
-    const subscription = subscribeEmbeddedPiSession({
+    subscribeEmbeddedPiSession({
       session,
       runId: "test-run",
       onToolResult,
@@ -80,22 +97,23 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
       safeguards: { maxTurns: 10, loopDetection: true },
     });
 
-    const handler = (session.subscribe as any).mock.calls[0][0];
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const handler = vi.mocked(session.subscribe).mock.calls[0][0];
 
     handler({
-      type: "tool_execution_start",
+      type: "tool_execution_start" as const,
       toolName: "ls",
       toolCallId: "1",
       args: { path: "dir1" },
     });
     handler({
-      type: "tool_execution_start",
+      type: "tool_execution_start" as const,
       toolName: "ls",
       toolCallId: "2",
       args: { path: "dir2" },
     });
     handler({
-      type: "tool_execution_start",
+      type: "tool_execution_start" as const,
       toolName: "ls",
       toolCallId: "3",
       args: { path: "dir1" },
@@ -111,7 +129,7 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
 
     // Simulate 5 repeated read calls that fail
     // We must manually trigger the subscription handler logic
-    const subscription = subscribeEmbeddedPiSession({
+    subscribeEmbeddedPiSession({
       session,
       runId: "test-run",
       onToolResult,
@@ -120,11 +138,12 @@ describe("subscribeEmbeddedPiSession safeguards", () => {
     });
 
     // Re-fetch handler as subscribing creates a new one
-    const actualHandler = (session.subscribe as any).mock.calls[0][0];
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const actualHandler = vi.mocked(session.subscribe).mock.calls[0][0];
 
     for (let i = 0; i < 5; i++) {
       actualHandler({
-        type: "tool_execution_start",
+        type: "tool_execution_start" as const,
         toolName: "read",
         toolCallId: `call-${i}`,
         args: { path: "/non-existent.txt" },
