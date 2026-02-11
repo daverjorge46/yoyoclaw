@@ -823,6 +823,22 @@ export async function runEmbeddedAttempt(
           }
         } catch (err) {
           promptError = err;
+          // Log provider HTTP errors immediately at the source before they propagate
+          // to ensure gateway logs capture full error context for debugging.
+          const errorMessage = describeUnknownError(err);
+          const httpStatusMatch = errorMessage.match(/^(?:http\s*)?(\d{3})\b/i);
+          const httpStatus = httpStatusMatch ? Number(httpStatusMatch[1]) : undefined;
+          if (httpStatus && httpStatus >= 400) {
+            log.error(`Provider API error`, {
+              provider: params.provider,
+              model: params.modelId,
+              sessionId: params.sessionId,
+              runId: params.runId,
+              httpStatus,
+              errorMessage: errorMessage.slice(0, 2000),
+              errorType: err instanceof Error ? err.name : typeof err,
+            });
+          }
         } finally {
           log.debug(
             `embedded run prompt end: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - promptStartedAt}`,
