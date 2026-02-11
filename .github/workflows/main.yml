@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy nanobot
+    name: Deploy oppenclaw-padilla
     runs-on: ubuntu-latest
     # Only deploy on push to main, not PRs
     if: github.event_name == 'push'
