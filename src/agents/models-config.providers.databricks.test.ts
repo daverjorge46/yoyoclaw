@@ -119,25 +119,28 @@ describe("buildDatabricksProvider", () => {
 
     expect(provider.baseUrl).toBe(baseUrl);
     expect(provider.api).toBe("openai-completions");
-    expect(provider.models).toHaveLength(3);
+    expect(provider.models).toHaveLength(4);
   });
 
   it("should include default model IDs", () => {
     const provider = buildDatabricksProvider("https://test.cloud.databricks.com/serving-endpoints");
 
     const modelIds = provider.models.map((m) => m.id);
+    expect(modelIds).toContain("databricks-claude-opus-4-6");
     expect(modelIds).toContain(DATABRICKS_DEFAULT_MODEL_ID);
     expect(modelIds).toContain("databricks-dbrx-instruct");
     expect(modelIds).toContain("databricks-mixtral-8x7b-instruct");
   });
 
-  it("should set all models to text input only", () => {
+  it("should mark claude-opus-4-6 as reasoning with image input", () => {
     const provider = buildDatabricksProvider("https://test.cloud.databricks.com/serving-endpoints");
+    const claude = provider.models.find((m) => m.id === "databricks-claude-opus-4-6");
 
-    for (const model of provider.models) {
-      expect(model.input).toEqual(["text"]);
-      expect(model.reasoning).toBe(false);
-    }
+    expect(claude).toBeDefined();
+    expect(claude!.reasoning).toBe(true);
+    expect(claude!.input).toEqual(["text", "image"]);
+    expect(claude!.contextWindow).toBe(200000);
+    expect(claude!.maxTokens).toBe(16384);
   });
 
   it("should set zero costs (pay-per-use via Databricks billing)", () => {

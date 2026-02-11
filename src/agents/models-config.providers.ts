@@ -480,6 +480,15 @@ export function buildDatabricksProvider(baseUrl: string): ProviderConfig {
     api: "openai-completions",
     models: [
       {
+        id: "databricks-claude-opus-4-6",
+        name: "Claude Opus 4 (via Databricks)",
+        reasoning: true,
+        input: ["text", "image"],
+        cost: DATABRICKS_DEFAULT_COST,
+        contextWindow: 200000,
+        maxTokens: 16384,
+      },
+      {
         id: DATABRICKS_DEFAULT_MODEL_ID,
         name: "Llama 3.3 70B Instruct",
         reasoning: false,
