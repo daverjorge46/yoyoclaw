@@ -394,6 +394,20 @@ export function resolveAllowedModelRef(params: {
     defaultModel: params.defaultModel,
   });
   if (!status.allowed) {
+    // Try to find a matching model under a different provider to suggest the correct prefix
+    const modelName = resolved.ref.model;
+    const allowed = buildAllowedModelSet({
+      cfg: params.cfg,
+      catalog: params.catalog,
+      defaultProvider: params.defaultProvider,
+      defaultModel: params.defaultModel,
+    });
+    const suggestion = [...allowed.allowedKeys].find((key) => key.endsWith(`/${modelName}`));
+    if (suggestion) {
+      return {
+        error: `model not allowed: ${status.key}. Did you mean "${suggestion}"?`,
+      };
+    }
     return { error: `model not allowed: ${status.key}` };
   }
 
