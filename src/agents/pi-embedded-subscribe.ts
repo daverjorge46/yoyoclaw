@@ -298,15 +298,15 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
   };
   const checkSafeguards = (toolName: string, meta?: string) => {
     state.turnCount++;
-    const maxTurns = params.safeguards?.maxTurns ?? 30;
-    if (state.turnCount > maxTurns) {
+    const maxTurns = params.safeguards?.maxTurns;
+    if (maxTurns != null && state.turnCount > maxTurns) {
       const msg = `Agent terminated: Exceeded maximum of ${maxTurns} turns.`;
       log.warn(msg);
       params.onAbort?.(msg);
       return false;
     }
 
-    if (params.safeguards?.loopDetection !== false) {
+    if (params.safeguards?.loopDetection === true) {
       const fingerprint = `${toolName}:${meta || ""}`;
       const hash = createHash("sha256").update(fingerprint).digest("hex");
       state.toolLoopHashes.push(hash);
@@ -314,17 +314,18 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
         state.toolLoopHashes.shift();
       }
 
-      // Check for 3 consecutive identical hashes
+      // Check for N consecutive identical hashes (configurable, default 3)
+      const threshold = params.safeguards?.loopThreshold ?? 3;
       const len = state.toolLoopHashes.length;
-      if (
-        len >= 3 &&
-        state.toolLoopHashes[len - 1] === state.toolLoopHashes[len - 2] &&
-        state.toolLoopHashes[len - 2] === state.toolLoopHashes[len - 3]
-      ) {
-        const msg = `Agent terminated: Loop detected (repeated tool usage: ${toolName}).`;
-        log.warn(msg);
-        params.onAbort?.(msg);
-        return false;
+      if (len >= threshold) {
+        const lastHash = state.toolLoopHashes[len - 1];
+        const isLoop = state.toolLoopHashes.slice(len - threshold).every((h) => h === lastHash);
+        if (isLoop) {
+          const msg = `Agent terminated: Loop detected (repeated tool usage: ${toolName}).`;
+          log.warn(msg);
+          params.onAbort?.(msg);
+          return false;
+        }
       }
     }
     return true;

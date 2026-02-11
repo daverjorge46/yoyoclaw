@@ -92,6 +92,7 @@ export const AgentDefaultsSchema = z
       .object({
         maxTurns: z.number().int().positive().optional(),
         loopDetection: z.boolean().optional(),
+        loopThreshold: z.number().int().min(2).optional(),
       })
       .strict()
       .optional(),

@@ -49,10 +49,12 @@ export type AgentContextPruningConfig = {
 };
 
 export type AgentSafeguardsConfig = {
-  /** Max conversational turns before forced termination (default: 30). */
+  /** Max tool-call turns before forced termination. Disabled when omitted. */
   maxTurns?: number;
-  /** Enable infinite loop detection (default: true). */
+  /** Enable repeated-tool-call loop detection. Disabled when omitted or false. */
   loopDetection?: boolean;
+  /** Number of consecutive identical tool calls to trigger loop abort (default: 3). */
+  loopThreshold?: number;
 };
 
 export type CliBackendConfig = {
