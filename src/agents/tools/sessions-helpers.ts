@@ -390,9 +390,12 @@ export function extractAssistantText(message: unknown): string | undefined {
   }
   const joined = chunks.join("").trim();
   const stopReason = (message as { stopReason?: unknown }).stopReason;
-  const errorMessage = (message as { errorMessage?: unknown }).errorMessage;
-  const errorContext =
-    stopReason === "error" || (typeof errorMessage === "string" && Boolean(errorMessage.trim()));
+  // Only treat text as error context when the model explicitly failed.
+  // Previously, a non-empty errorMessage (e.g. provider warnings) on a
+  // successful completion (stopReason: "stop") would trigger error-pattern
+  // rewrites, causing false positives like billing-related assistant text
+  // being replaced with a billing error message.  See #13434.
+  const errorContext = stopReason === "error";
 
   return joined ? sanitizeUserFacingText(joined, { errorContext }) : undefined;
 }
