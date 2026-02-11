@@ -30,7 +30,9 @@ Returns: title, plain text content, block statistics. Check `hint` field - if pr
 
 Replaces entire document with markdown content. Supports: headings, lists, code blocks, quotes, links, images (`![](url)` auto-uploaded), bold/italic/strikethrough.
 
-**Limitation:** Markdown tables are NOT supported.
+**Limitations:**
+- Markdown tables are NOT supported.
+- **Feishu API batch insert limit:** when writing/appending, the implementation calls `docx.documentBlockChildren.create` to insert converted blocks. The API enforces `children` **max len = 50 per request** (error: `field validation failed`, violation: `children: the max len is 50`). For large markdown, you must **insert in batches of <= 50 blocks**.
 
 ### Append Content
 

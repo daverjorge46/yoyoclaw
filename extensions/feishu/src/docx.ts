@@ -107,14 +107,21 @@ async function insertBlocks(
     return { children: [], skipped };
   }
 
-  const res = await client.docx.documentBlockChildren.create({
-    path: { document_id: docToken, block_id: blockId },
-    data: { children: cleaned },
-  });
-  if (res.code !== 0) {
-    throw new Error(res.msg);
+  // Feishu API limitation: docx.documentBlockChildren.create supports max 50 children per request.
+  // When markdown converts into many blocks, we must batch inserts.
+  const allChildren: any[] = [];
+  for (let i = 0; i < cleaned.length; i += 50) {
+    const batch = cleaned.slice(i, i + 50);
+    const res = await client.docx.documentBlockChildren.create({
+      path: { document_id: docToken, block_id: blockId },
+      data: { children: batch },
+    });
+    if (res.code !== 0) {
+      throw new Error(res.msg);
+    }
+    allChildren.push(...(res.data?.children ?? []));
   }
-  return { children: res.data?.children ?? [], skipped };
+  return { children: allChildren, skipped };
 }
 
 async function clearDocumentContent(client: Lark.Client, docToken: string) {
