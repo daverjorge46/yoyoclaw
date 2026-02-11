@@ -70,7 +70,7 @@ export function readDockerGatewayIp(): string | undefined {
       const cols = line.trim().split(/\s+/);
       if (cols[1] === "00000000" && cols[2]) {
         const hex = cols[2];
-        if (hex.length === 8) {
+        if (/^[0-9a-fA-F]{8}$/.test(hex)) {
           const ip = [
             parseInt(hex.slice(6, 8), 16),
             parseInt(hex.slice(4, 6), 16),

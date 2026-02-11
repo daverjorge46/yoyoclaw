@@ -177,7 +177,7 @@ describe("readDockerGatewayIp", () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue(
       [
         "Iface\tDestination\tGateway\tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\tWindow\tIRTT",
-        "eth0\t00000000\tBAD\t0003\t0\t0\t0\t00000000\t0\t0\t0",
+        "eth0\t00000000\tGGGGGGGG\t0003\t0\t0\t0\t00000000\t0\t0\t0",
       ].join("\n"),
     );
     expect(readDockerGatewayIp()).toBeUndefined();
