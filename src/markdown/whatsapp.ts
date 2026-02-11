@@ -1,3 +1,4 @@
+import { escapeRegExp } from "../utils.js";
 /**
  * Convert standard Markdown formatting to WhatsApp-compatible markup.
  *
@@ -73,8 +74,4 @@ export function markdownToWhatsApp(text: string): string {
   );
 
   return result;
-}
-
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
