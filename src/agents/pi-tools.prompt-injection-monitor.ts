@@ -52,10 +52,9 @@ export function wrapToolWithPromptInjectionMonitor(
     execute: async (toolCallId, params, signal, onUpdate) => {
       const result = await execute(toolCallId, params, signal, onUpdate);
 
-      if (state.skipNext) {
+      const bypassing = state.skipNext;
+      if (bypassing) {
         state.skipNext = false;
-        log.debug(`Skipping monitoring for tool="${toolName}" — disabled by disable_pi_monitor`);
-        return result;
       }
 
       const text = extractToolResultText(result);
@@ -67,12 +66,19 @@ export function wrapToolWithPromptInjectionMonitor(
         const { score, reasoning } = await scoreForPromptInjection(text, toolName, state.cfg!);
 
         if (score >= PROMPT_INJECTION_THRESHOLD) {
+          // Log incident to file (with bypass flag)
+          logIncident(state.cfg!, toolName, score, reasoning, action, bypassing);
+
+          if (bypassing) {
+            log.warn(
+              `Prompt injection detected in tool "${toolName}" (score: ${score}/100) but BYPASSED by user: ${reasoning}`,
+            );
+            return result;
+          }
+
           log.warn(
             `Prompt injection detected in tool "${toolName}" (score: ${score}/100): ${reasoning}`,
           );
-
-          // Log incident to file
-          logIncident(state.cfg!, toolName, score, reasoning, action);
 
           switch (action) {
             case "block":

@@ -59,6 +59,7 @@ export function logIncident(
   score: number,
   reasoning: string,
   action: PromptInjectionAction,
+  bypassed: boolean = false,
 ): void {
   if (!shouldLogIncidents(cfg)) {
     return;
@@ -78,6 +79,7 @@ export function logIncident(
     score,
     reasoning,
     action,
+    bypassed,
   };
 
   fs.appendFileSync(logPath, JSON.stringify(entry) + "\n");
