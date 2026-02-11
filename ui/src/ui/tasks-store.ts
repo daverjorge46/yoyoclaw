@@ -6,6 +6,7 @@ export type TaskLane = "client" | "notino" | "vectra";
 export type TaskItem = {
   id: string;
   title: string;
+  project?: string;
   lane: TaskLane;
   priority: TaskPriority;
   nextAction?: string;
@@ -58,6 +59,7 @@ export function loadTaskStore(): TaskStore {
                 title: String(candidate.title ?? "Untitled task"),
                 lane,
                 priority,
+                project: typeof candidate.project === "string" ? candidate.project : undefined,
                 nextAction:
                   typeof candidate.nextAction === "string" ? candidate.nextAction : undefined,
                 due: typeof candidate.due === "string" ? candidate.due : undefined,
@@ -106,4 +108,24 @@ export function getActiveChatTasks(tasks: TaskItem[], max = 5): TaskItem[] {
     return explicit.slice(0, max);
   }
   return prioritized.filter((task) => task.priority === "P0" || task.priority === "P1").slice(0, max);
+}
+
+export function getImmediateIssues(tasks: TaskItem[], max = 3): TaskItem[] {
+  return sortByPriority(tasks).filter((task) => task.priority === "P0").slice(0, max);
+}
+
+export function getNearTermProjects(tasks: TaskItem[], maxProjects = 4): Array<{ project: string; topTask: TaskItem }> {
+  const byProject = new Map<string, TaskItem[]>();
+  for (const task of tasks) {
+    const project = (task.project || "General").trim() || "General";
+    const list = byProject.get(project) ?? [];
+    list.push(task);
+    byProject.set(project, list);
+  }
+  const ranked = Array.from(byProject.entries()).map(([project, list]) => ({
+    project,
+    topTask: sortByPriority(list)[0],
+  }));
+  ranked.sort((a, b) => a.topTask.priority.localeCompare(b.topTask.priority));
+  return ranked.slice(0, maxProjects);
 }

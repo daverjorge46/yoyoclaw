@@ -21,6 +21,7 @@ function renderTaskList(tasks: TaskItem[]) {
           <tr>
             <th>Priority</th>
             <th>Task</th>
+            <th>Project</th>
             <th>Lane</th>
             <th>Agent</th>
             <th>Next Action</th>
@@ -33,6 +34,7 @@ function renderTaskList(tasks: TaskItem[]) {
               <tr>
                 <td><span class="mono">${task.priority}</span></td>
                 <td>${task.title}</td>
+                <td>${task.project || "General"}</td>
                 <td>${laneLabel(task.lane)}</td>
                 <td><span class="mono">${task.assignedAgent || "unassigned"}</span></td>
                 <td>${task.nextAction || "—"}</td>
@@ -51,6 +53,7 @@ function promptNewTask(): TaskItem | null {
   if (!title) {
     return null;
   }
+  const project = (window.prompt("Project (e.g. Mentem / ISOTRA / Pooltechnika / Notino / Vectra)") || "").trim();
   const laneRaw = (window.prompt("Lane: client | notino | vectra", "client") || "client").trim();
   const lane: TaskLane =
     laneRaw === "notino" || laneRaw === "vectra" || laneRaw === "client" ? laneRaw : "client";
@@ -70,6 +73,7 @@ function promptNewTask(): TaskItem | null {
   return {
     id: `task-${Date.now()}`,
     title,
+    project: project || undefined,
     lane,
     priority,
     assignedAgent: assignedAgent || undefined,
@@ -112,7 +116,7 @@ export function renderTasks() {
         <div style="margin-top: 10px;">
           ${store.currentEndeavor
             ? html`<strong>${store.currentEndeavor}</strong>`
-            : html`<span class="muted">No current endeavor set.</span>`}
+            : html`<span class="muted">No current endeavor set. Suggestion: "Rook + Martin: AI-first task system"</span>`}
         </div>
       </div>
 

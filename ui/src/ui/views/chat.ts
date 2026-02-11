@@ -12,7 +12,13 @@ import {
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { icons } from "../icons.ts";
 import { detectTextDirection } from "../text-direction.ts";
-import { getActiveChatTasks, laneLabel, loadTaskStore } from "../tasks-store.ts";
+import {
+  getActiveChatTasks,
+  getImmediateIssues,
+  getNearTermProjects,
+  laneLabel,
+  loadTaskStore,
+} from "../tasks-store.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
 
@@ -266,6 +272,8 @@ export function renderChat(props: ChatProps) {
 
   const taskStore = loadTaskStore();
   const activeTasks = getActiveChatTasks(taskStore.tasks, 5);
+  const immediateIssues = getImmediateIssues(taskStore.tasks, 3);
+  const nearTermProjects = getNearTermProjects(taskStore.tasks, 4);
 
   return html`
     <section class="card chat">
@@ -303,18 +311,40 @@ export function renderChat(props: ChatProps) {
 
         ${!sidebarOpen ? html`
           <aside class="chat-tasks-rail">
-            <div class="chat-tasks-rail__title">Active Tasks</div>
-            ${
-              activeTasks.length === 0
-                ? html`<div class="muted">No active tasks yet.</div>`
-                : html`
-                    <ul class="chat-tasks-rail__list">
-                      ${activeTasks.map(
-                        (task) =>
-                          html`<li><span class="mono">${task.priority}</span> ${task.title} <span class="muted">(${laneLabel(task.lane)} / ${task.assignedAgent || "unassigned"})</span></li>`,
-                      )}
-                    </ul>`
-            }
+            <div class="chat-tasks-rail__title">Current Main Activity</div>
+            ${taskStore.currentEndeavor
+              ? html`<div style="margin-bottom: 12px;"><strong>${taskStore.currentEndeavor}</strong></div>`
+              : html`<div class="muted" style="margin-bottom: 12px;">Set current endeavor in Task Management tab.</div>`}
+
+            <div class="chat-tasks-rail__title">Immediate Issues</div>
+            ${immediateIssues.length === 0
+              ? html`<div class="muted" style="margin-bottom: 12px;">No P0 issues.</div>`
+              : html`<ul class="chat-tasks-rail__list" style="margin-bottom: 12px;">
+                  ${immediateIssues.map(
+                    (task) =>
+                      html`<li><span class="mono">${task.priority}</span> ${task.title} <span class="muted">(${task.project || laneLabel(task.lane)} / ${task.assignedAgent || "unassigned"})</span></li>`,
+                  )}
+                </ul>`}
+
+            <div class="chat-tasks-rail__title">Near-Term Projects</div>
+            ${nearTermProjects.length === 0
+              ? html`<div class="muted">No projects yet.</div>`
+              : html`<ul class="chat-tasks-rail__list">
+                  ${nearTermProjects.map(
+                    (entry) =>
+                      html`<li><strong>${entry.project}</strong><br /><span class="mono">${entry.topTask.priority}</span> ${entry.topTask.title}</li>`,
+                  )}
+                </ul>`}
+
+            <div class="chat-tasks-rail__title" style="margin-top: 12px;">Active Tasks</div>
+            ${activeTasks.length === 0
+              ? html`<div class="muted">No active tasks yet.</div>`
+              : html`<ul class="chat-tasks-rail__list">
+                  ${activeTasks.map(
+                    (task) =>
+                      html`<li><span class="mono">${task.priority}</span> ${task.title} <span class="muted">(${task.project || laneLabel(task.lane)} / ${task.assignedAgent || "unassigned"})</span></li>`,
+                  )}
+                </ul>`}
           </aside>
         ` : nothing}
 
