@@ -371,13 +371,15 @@ export const handleAllowlistCommand: CommandHandler = async (params, allowTextCo
       dmPolicy = account.config.dmPolicy;
       groupPolicy = account.config.groupPolicy;
       const groups = account.config.groups ?? {};
-      for (const [groupId, groupCfg] of Object.entries(groups)) {
+      for (const [groupId, groupCfgRaw] of Object.entries(groups)) {
+        const groupCfg = groupCfgRaw as any;
         const entries = (groupCfg?.allowFrom ?? []).map(String).filter(Boolean);
         if (entries.length > 0) {
           groupOverrides.push({ label: groupId, entries });
         }
         const topics = groupCfg?.topics ?? {};
-        for (const [topicId, topicCfg] of Object.entries(topics)) {
+        for (const [topicId, topicCfgRaw] of Object.entries(topics)) {
+          const topicCfg = topicCfgRaw as any;
           const topicEntries = (topicCfg?.allowFrom ?? []).map(String).filter(Boolean);
           if (topicEntries.length > 0) {
             groupOverrides.push({ label: `${groupId} topic ${topicId}`, entries: topicEntries });
@@ -418,13 +420,15 @@ export const handleAllowlistCommand: CommandHandler = async (params, allowTextCo
       dmAllowFrom = (account.config.dm?.allowFrom ?? []).map(String);
       groupPolicy = account.config.groupPolicy;
       const guilds = account.config.guilds ?? {};
-      for (const [guildKey, guildCfg] of Object.entries(guilds)) {
+      for (const [guildKey, guildCfgRaw] of Object.entries(guilds)) {
+        const guildCfg = guildCfgRaw as any;
         const entries = (guildCfg?.users ?? []).map(String).filter(Boolean);
         if (entries.length > 0) {
           groupOverrides.push({ label: `guild ${guildKey}`, entries });
         }
         const channels = guildCfg?.channels ?? {};
-        for (const [channelKey, channelCfg] of Object.entries(channels)) {
+        for (const [channelKey, channelCfgRaw] of Object.entries(channels)) {
+          const channelCfg = channelCfgRaw as any;
           const channelEntries = (channelCfg?.users ?? []).map(String).filter(Boolean);
           if (channelEntries.length > 0) {
             groupOverrides.push({

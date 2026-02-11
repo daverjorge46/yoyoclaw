@@ -97,14 +97,16 @@ export async function listDiscordDirectoryPeersFromConfig(
       ids.add(trimmed);
     }
   }
-  for (const guild of Object.values(account.config.guilds ?? {})) {
+  for (const guildRaw of Object.values(account.config.guilds ?? {})) {
+    const guild = guildRaw as any;
     for (const entry of guild.users ?? []) {
       const raw = String(entry).trim();
       if (raw) {
         ids.add(raw);
       }
     }
-    for (const channel of Object.values(guild.channels ?? {})) {
+    for (const channelRaw of Object.values(guild.channels ?? {})) {
+      const channel = channelRaw as any;
       for (const user of channel.users ?? []) {
         const raw = String(user).trim();
         if (raw) {
@@ -137,7 +139,8 @@ export async function listDiscordDirectoryGroupsFromConfig(
   const account = resolveDiscordAccount({ cfg: params.cfg, accountId: params.accountId });
   const q = params.query?.trim().toLowerCase() || "";
   const ids = new Set<string>();
-  for (const guild of Object.values(account.config.guilds ?? {})) {
+  for (const guildRaw of Object.values(account.config.guilds ?? {})) {
+    const guild = guildRaw as any;
     for (const channelId of Object.keys(guild.channels ?? {})) {
       const trimmed = channelId.trim();
       if (trimmed) {
@@ -169,7 +172,7 @@ export async function listTelegramDirectoryPeersFromConfig(
   const account = resolveTelegramAccount({ cfg: params.cfg, accountId: params.accountId });
   const q = params.query?.trim().toLowerCase() || "";
   const raw = [
-    ...(account.config.allowFrom ?? []).map((entry) => String(entry)),
+    ...(account.config.allowFrom ?? []).map((entry: any) => String(entry)),
     ...Object.keys(account.config.dms ?? {}),
   ];
   return Array.from(

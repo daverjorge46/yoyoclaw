@@ -306,7 +306,7 @@ export async function handleTelegramAction(
     return jsonResult({
       ok: true,
       count: results.length,
-      stickers: results.map((s) => ({
+      stickers: results.map((s: any) => ({
         fileId: s.fileId,
         emoji: s.emoji,
         description: s.description,

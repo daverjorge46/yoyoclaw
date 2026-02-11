@@ -44,14 +44,14 @@ export const signalMessageActions: ChannelMessageActionAdapter = {
     if (accounts.length === 0) {
       return [];
     }
-    const configuredAccounts = accounts.filter((account) => account.configured);
+    const configuredAccounts = accounts.filter((account: any) => account.configured);
     if (configuredAccounts.length === 0) {
       return [];
     }
 
     const actions = new Set<ChannelMessageActionName>(["send"]);
 
-    const reactionsEnabled = configuredAccounts.some((account) =>
+    const reactionsEnabled = configuredAccounts.some((account: any) =>
       createActionGate(account.config.actions)("reactions"),
     );
     if (reactionsEnabled) {

@@ -40,7 +40,7 @@ function readTelegramSendParams(params: Record<string, unknown>) {
 export const telegramMessageActions: ChannelMessageActionAdapter = {
   listActions: ({ cfg }) => {
     const accounts = listEnabledTelegramAccounts(cfg).filter(
-      (account) => account.tokenSource !== "none",
+      (account: any) => account.tokenSource !== "none",
     );
     if (accounts.length === 0) {
       return [];
@@ -64,12 +64,12 @@ export const telegramMessageActions: ChannelMessageActionAdapter = {
   },
   supportsButtons: ({ cfg }) => {
     const accounts = listEnabledTelegramAccounts(cfg).filter(
-      (account) => account.tokenSource !== "none",
+      (account: any) => account.tokenSource !== "none",
     );
     if (accounts.length === 0) {
       return false;
     }
-    return accounts.some((account) =>
+    return accounts.some((account: any) =>
       isTelegramInlineButtonsEnabled({ cfg, accountId: account.accountId }),
     );
   },

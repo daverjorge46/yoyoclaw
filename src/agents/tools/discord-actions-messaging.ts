@@ -220,7 +220,7 @@ export async function handleDiscordMessagingAction(
         : await readMessagesDiscord(channelId, query);
       return jsonResult({
         ok: true,
-        messages: messages.map((message) => normalizeMessage(message)),
+        messages: messages.map((message: any) => normalizeMessage(message)),
       });
     }
     case "sendMessage": {
@@ -386,7 +386,7 @@ export async function handleDiscordMessagingAction(
       const pins = accountId
         ? await listPinsDiscord(channelId, { accountId })
         : await listPinsDiscord(channelId);
-      return jsonResult({ ok: true, pins: pins.map((pin) => normalizeMessage(pin)) });
+      return jsonResult({ ok: true, pins: pins.map((pin: any) => normalizeMessage(pin)) });
     }
     case "searchMessages": {
       if (!isActionEnabled("search")) {

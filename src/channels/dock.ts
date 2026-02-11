@@ -100,7 +100,7 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
     outbound: { textChunkLimit: 4000 },
     config: {
       resolveAllowFrom: ({ cfg, accountId }) =>
-        (resolveTelegramAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry) =>
+        (resolveTelegramAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry: any) =>
           String(entry),
         ),
       formatAllowFrom: ({ allowFrom }) =>
@@ -195,7 +195,7 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
     },
     config: {
       resolveAllowFrom: ({ cfg, accountId }) =>
-        (resolveDiscordAccount({ cfg, accountId }).config.dm?.allowFrom ?? []).map((entry) =>
+        (resolveDiscordAccount({ cfg, accountId }).config.dm?.allowFrom ?? []).map((entry: any) =>
           String(entry),
         ),
       formatAllowFrom: ({ allowFrom }) => formatLower(allowFrom),
@@ -386,7 +386,7 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
     },
     config: {
       resolveAllowFrom: ({ cfg, accountId }) =>
-        (resolveSignalAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry) =>
+        (resolveSignalAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry: any) =>
           String(entry),
         ),
       formatAllowFrom: ({ allowFrom }) =>
@@ -419,7 +419,7 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
     outbound: { textChunkLimit: 4000 },
     config: {
       resolveAllowFrom: ({ cfg, accountId }) =>
-        (resolveIMessageAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry) =>
+        (resolveIMessageAccount({ cfg, accountId }).config.allowFrom ?? []).map((entry: any) =>
           String(entry),
         ),
       formatAllowFrom: ({ allowFrom }) =>

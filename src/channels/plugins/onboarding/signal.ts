@@ -164,7 +164,7 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
   channel,
   getStatus: async ({ cfg }) => {
     const configured = listSignalAccountIds(cfg).some(
-      (accountId) => resolveSignalAccount({ cfg, accountId }).configured,
+      (accountId: any) => resolveSignalAccount({ cfg, accountId }).configured,
     );
     const signalCliPath = cfg.channels?.signal?.cliPath ?? "signal-cli";
     const signalCliDetected = await detectBinary(signalCliPath);

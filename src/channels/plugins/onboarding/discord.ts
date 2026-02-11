@@ -246,15 +246,15 @@ async function promptDiscordAllowFrom(params: {
       await params.prompter.note("Failed to resolve usernames. Try again.", "Discord allowlist");
       continue;
     }
-    const unresolved = results.filter((res) => !res.resolved || !res.id);
+    const unresolved = results.filter((res: any) => !res.resolved || !res.id);
     if (unresolved.length > 0) {
       await params.prompter.note(
-        `Could not resolve: ${unresolved.map((res) => res.input).join(", ")}`,
+        `Could not resolve: ${unresolved.map((res: any) => res.input).join(", ")}`,
         "Discord allowlist",
       );
       continue;
     }
-    const ids = results.map((res) => res.id as string);
+    const ids = results.map((res: any) => res.id as string);
     const unique = [...new Set([...existing.map((v) => String(v).trim()).filter(Boolean), ...ids])];
     return setDiscordAllowFrom(params.cfg, unique);
   }
@@ -273,7 +273,7 @@ const dmPolicy: ChannelOnboardingDmPolicy = {
 export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
   channel,
   getStatus: async ({ cfg }) => {
-    const configured = listDiscordAccountIds(cfg).some((accountId) =>
+    const configured = listDiscordAccountIds(cfg).some((accountId: any) =>
       Boolean(resolveDiscordAccount({ cfg, accountId }).token),
     );
     return {
@@ -391,7 +391,8 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
 
     const currentEntries = Object.entries(resolvedAccount.config.guilds ?? {}).flatMap(
       ([guildKey, value]) => {
-        const channels = value?.channels ?? {};
+        const guild = value as any;
+        const channels = guild?.channels ?? {};
         const channelKeys = Object.keys(channels);
         if (channelKeys.length === 0) {
           return [guildKey];

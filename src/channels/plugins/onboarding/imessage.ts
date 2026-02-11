@@ -155,7 +155,7 @@ const dmPolicy: ChannelOnboardingDmPolicy = {
 export const imessageOnboardingAdapter: ChannelOnboardingAdapter = {
   channel,
   getStatus: async ({ cfg }) => {
-    const configured = listIMessageAccountIds(cfg).some((accountId) => {
+    const configured = listIMessageAccountIds(cfg).some((accountId: any) => {
       const account = resolveIMessageAccount({ cfg, accountId });
       return Boolean(
         account.config.cliPath ||

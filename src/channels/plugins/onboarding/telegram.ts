@@ -134,7 +134,7 @@ async function promptTelegramAllowFrom(params: {
   }
 
   const merged = [
-    ...existingAllowFrom.map((item) => String(item).trim()).filter(Boolean),
+    ...existingAllowFrom.map((item: any) => String(item).trim()).filter(Boolean),
     ...resolvedIds,
   ];
   const unique = [...new Set(merged)];
@@ -204,7 +204,7 @@ const dmPolicy: ChannelOnboardingDmPolicy = {
 export const telegramOnboardingAdapter: ChannelOnboardingAdapter = {
   channel,
   getStatus: async ({ cfg }) => {
-    const configured = listTelegramAccountIds(cfg).some((accountId) =>
+    const configured = listTelegramAccountIds(cfg).some((accountId: any) =>
       Boolean(resolveTelegramAccount({ cfg, accountId }).token),
     );
     return {
