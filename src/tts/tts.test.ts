@@ -200,6 +200,14 @@ describe("tts", () => {
       expect(result.overrides.provider).toBe("edge");
     });
 
+    it("accepts sarvam as provider override", () => {
+      const policy = resolveModelOverridePolicy({ enabled: true });
+      const input = "Hello [[tts:provider=sarvam]] world";
+      const result = parseTtsDirectives(input, policy);
+
+      expect(result.overrides.provider).toBe("sarvam");
+    });
+
     it("keeps text intact when overrides are disabled", () => {
       const policy = resolveModelOverridePolicy({ enabled: false });
       const input = "Hello [[tts:voice=alloy]] world";
@@ -357,7 +365,12 @@ describe("tts", () => {
     };
 
     const restoreEnv = (snapshot: Record<string, string | undefined>) => {
-      const keys = ["OPENAI_API_KEY", "ELEVENLABS_API_KEY", "XI_API_KEY"] as const;
+      const keys = [
+        "OPENAI_API_KEY",
+        "ELEVENLABS_API_KEY",
+        "XI_API_KEY",
+        "SARVAM_API_KEY",
+      ] as const;
       for (const key of keys) {
         const value = snapshot[key];
         if (value === undefined) {
@@ -373,6 +386,7 @@ describe("tts", () => {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY,
         ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
         XI_API_KEY: process.env.XI_API_KEY,
+        SARVAM_API_KEY: process.env.SARVAM_API_KEY,
       };
       try {
         for (const [key, value] of Object.entries(env)) {
@@ -424,11 +438,28 @@ describe("tts", () => {
           OPENAI_API_KEY: undefined,
           ELEVENLABS_API_KEY: undefined,
           XI_API_KEY: undefined,
+          SARVAM_API_KEY: undefined,
         },
         () => {
           const config = resolveTtsConfig(baseCfg);
           const provider = getTtsProvider(config, "/tmp/tts-prefs-edge.json");
           expect(provider).toBe("edge");
+        },
+      );
+    });
+
+    it("prefers Sarvam when OpenAI and ElevenLabs are missing", () => {
+      withEnv(
+        {
+          OPENAI_API_KEY: undefined,
+          ELEVENLABS_API_KEY: undefined,
+          XI_API_KEY: undefined,
+          SARVAM_API_KEY: "test-sarvam-key",
+        },
+        () => {
+          const config = resolveTtsConfig(baseCfg);
+          const provider = getTtsProvider(config, "/tmp/tts-prefs-sarvam.json");
+          expect(provider).toBe("sarvam");
         },
       );
     });
