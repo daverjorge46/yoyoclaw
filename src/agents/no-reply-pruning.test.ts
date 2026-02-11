@@ -1,6 +1,6 @@
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { describe, expect, it } from "vitest";
 import { countNoReplies, pruneConsecutiveNoReplies } from "./no-reply-pruning.js";
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
 
 function makeUserMessage(text: string): AgentMessage {
   return { role: "user", content: text };
@@ -34,11 +34,7 @@ describe("pruneConsecutiveNoReplies", () => {
       makeUserMessage("hello"),
     ];
     const result = pruneConsecutiveNoReplies(messages);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeNoReply(),
-      makeUserMessage("hello"),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeNoReply(), makeUserMessage("hello")]);
   });
 
   it("keeps multiple separate NO_REPLY runs", () => {
@@ -69,25 +65,13 @@ describe("pruneConsecutiveNoReplies", () => {
       makeNoReply(),
     ];
     const result = pruneConsecutiveNoReplies(messages, 2);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeNoReply(),
-      makeNoReply(),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeNoReply(), makeNoReply()]);
   });
 
   it("handles maxConsecutive=0 (prune all NO_REPLYs)", () => {
-    const messages = [
-      makeUserMessage("hi"),
-      makeNoReply(),
-      makeNoReply(),
-      makeUserMessage("bye"),
-    ];
+    const messages = [makeUserMessage("hi"), makeNoReply(), makeNoReply(), makeUserMessage("bye")];
     const result = pruneConsecutiveNoReplies(messages, 0);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeUserMessage("bye"),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeUserMessage("bye")]);
   });
 
   it("preserves normal assistant messages", () => {
@@ -115,10 +99,7 @@ describe("pruneConsecutiveNoReplies", () => {
       makeAssistantMessage("No_Reply"),
     ];
     const result = pruneConsecutiveNoReplies(messages);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeAssistantMessage("no_reply"),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeAssistantMessage("no_reply")]);
   });
 
   it("handles NO_REPLY with whitespace", () => {
@@ -128,10 +109,7 @@ describe("pruneConsecutiveNoReplies", () => {
       makeAssistantMessage("NO_REPLY"),
     ];
     const result = pruneConsecutiveNoReplies(messages);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeAssistantMessage("  NO_REPLY  "),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeAssistantMessage("  NO_REPLY  ")]);
   });
 
   it("handles multi-block assistant messages (Gemini-style merged turns)", () => {
@@ -175,10 +153,7 @@ describe("pruneConsecutiveNoReplies", () => {
       makeAssistantMessage("NO_REPLY"),
     ];
     const result = pruneConsecutiveNoReplies(messages);
-    expect(result).toEqual([
-      makeUserMessage("hi"),
-      makeAssistantMessage("Silent: NO_REPLY"),
-    ]);
+    expect(result).toEqual([makeUserMessage("hi"), makeAssistantMessage("Silent: NO_REPLY")]);
   });
 });
 
