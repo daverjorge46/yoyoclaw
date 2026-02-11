@@ -146,7 +146,15 @@ function rewriteToolResultIds(params: {
   const toolUseId = (params.message as { toolUseId?: unknown }).toolUseId;
   const toolUseIdStr = typeof toolUseId === "string" && toolUseId ? toolUseId : undefined;
 
-  const nextToolCallId = toolCallId ? params.resolve(toolCallId) : undefined;
+  // When toolCallId is an empty string, resolve a placeholder so providers
+  // that reject empty tool_call_id values receive a valid fallback.
+  const hasEmptyToolCallId =
+    typeof params.message.toolCallId === "string" && !params.message.toolCallId;
+  const nextToolCallId = toolCallId
+    ? params.resolve(toolCallId)
+    : hasEmptyToolCallId
+      ? params.resolve("empty")
+      : undefined;
   const nextToolUseId = toolUseIdStr ? params.resolve(toolUseIdStr) : undefined;
 
   if (nextToolCallId === toolCallId && nextToolUseId === toolUseIdStr) {
@@ -155,8 +163,8 @@ function rewriteToolResultIds(params: {
 
   return {
     ...params.message,
-    ...(nextToolCallId && { toolCallId: nextToolCallId }),
-    ...(nextToolUseId && { toolUseId: nextToolUseId }),
+    ...(nextToolCallId != null ? { toolCallId: nextToolCallId } : {}),
+    ...(nextToolUseId != null ? { toolUseId: nextToolUseId } : {}),
   } as Extract<AgentMessage, { role: "toolResult" }>;
 }
 

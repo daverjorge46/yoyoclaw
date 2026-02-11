@@ -219,6 +219,53 @@ describe("sanitizeToolCallIdsForCloudCodeAssist", () => {
     });
   });
 
+  describe("empty toolCallId handling", () => {
+    it("replaces empty-string toolCallId with a valid fallback", () => {
+      const input = [
+        {
+          role: "assistant",
+          content: [{ type: "toolCall", id: "call1", name: "read", arguments: {} }],
+        },
+        {
+          role: "toolResult",
+          toolCallId: "",
+          toolName: "read",
+          content: [{ type: "text", text: "error: gog not found" }],
+          isError: true,
+        },
+      ] satisfies AgentMessage[];
+
+      const out = sanitizeToolCallIdsForCloudCodeAssist(input);
+      const result = out[1] as Extract<AgentMessage, { role: "toolResult" }>;
+      expect(result.toolCallId).toBeTruthy();
+      expect(result.toolCallId).not.toBe("");
+      expect(isValidCloudCodeAssistToolId(result.toolCallId, "strict")).toBe(true);
+    });
+
+    it("replaces empty-string toolCallId in strict9 mode", () => {
+      const input = [
+        {
+          role: "assistant",
+          content: [{ type: "toolCall", id: "call1", name: "read", arguments: {} }],
+        },
+        {
+          role: "toolResult",
+          toolCallId: "",
+          toolName: "read",
+          content: [{ type: "text", text: "error" }],
+          isError: true,
+        },
+      ] satisfies AgentMessage[];
+
+      const out = sanitizeToolCallIdsForCloudCodeAssist(input, "strict9");
+      const result = out[1] as Extract<AgentMessage, { role: "toolResult" }>;
+      expect(result.toolCallId).toBeTruthy();
+      expect(result.toolCallId).not.toBe("");
+      expect(result.toolCallId?.length).toBe(9);
+      expect(isValidCloudCodeAssistToolId(result.toolCallId, "strict9")).toBe(true);
+    });
+  });
+
   describe("strict9 mode (Mistral tool call IDs)", () => {
     it("enforces alphanumeric IDs with length 9", () => {
       const input = [
