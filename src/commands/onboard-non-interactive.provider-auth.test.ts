@@ -368,39 +368,44 @@ describe("onboard (non-interactive): provider auth", () => {
   }, 60_000);
 
   it("infers custom provider auth choice from custom flags", async () => {
-    await withOnboardEnv("openclaw-onboard-custom-provider-infer-", async ({ configPath, runtime }) => {
-      await runNonInteractive(
-        {
-          nonInteractive: true,
-          customBaseUrl: "https://models.custom.local/v1",
-          customModelId: "local-large",
-          customApiKey: "custom-test-key",
-          skipHealth: true,
-          skipChannels: true,
-          skipSkills: true,
-          json: true,
-        },
-        runtime,
-      );
+    await withOnboardEnv(
+      "openclaw-onboard-custom-provider-infer-",
+      async ({ configPath, runtime }) => {
+        await runNonInteractive(
+          {
+            nonInteractive: true,
+            customBaseUrl: "https://models.custom.local/v1",
+            customModelId: "local-large",
+            customApiKey: "custom-test-key",
+            skipHealth: true,
+            skipChannels: true,
+            skipSkills: true,
+            json: true,
+          },
+          runtime,
+        );
 
-      const cfg = await readJsonFile<{
-        models?: {
-          providers?: Record<
-            string,
-            {
-              baseUrl?: string;
-              api?: string;
-            }
-          >;
-        };
-        agents?: { defaults?: { model?: { primary?: string } } };
-      }>(configPath);
+        const cfg = await readJsonFile<{
+          models?: {
+            providers?: Record<
+              string,
+              {
+                baseUrl?: string;
+                api?: string;
+              }
+            >;
+          };
+          agents?: { defaults?: { model?: { primary?: string } } };
+        }>(configPath);
 
-      expect(cfg.models?.providers?.["custom-models-custom-local"]?.baseUrl).toBe(
-        "https://models.custom.local/v1",
-      );
-      expect(cfg.models?.providers?.["custom-models-custom-local"]?.api).toBe("openai-completions");
-      expect(cfg.agents?.defaults?.model?.primary).toBe("custom-models-custom-local/local-large");
-    });
+        expect(cfg.models?.providers?.["custom-models-custom-local"]?.baseUrl).toBe(
+          "https://models.custom.local/v1",
+        );
+        expect(cfg.models?.providers?.["custom-models-custom-local"]?.api).toBe(
+          "openai-completions",
+        );
+        expect(cfg.agents?.defaults?.model?.primary).toBe("custom-models-custom-local/local-large");
+      },
+    );
   }, 60_000);
 });
