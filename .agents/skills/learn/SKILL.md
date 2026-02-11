@@ -19,11 +19,11 @@ Use this skill when the user asks to find, search, discover, or install agent sk
 
 2. **Client-side (this skill)**: Security score is displayed to user before install. Skills scoring <70 are blocked. User must acknowledge warnings for scores 70-89.
 
-| Score | Rating | Action |
-|-------|--------|--------|
-| 90-100 | SAFE | Install proceeds, user informed |
-| 70-89 | REVIEW | User must acknowledge issues |
-| <70 | BLOCKED | Installation refused |
+| Score  | Rating  | Action                          |
+| ------ | ------- | ------------------------------- |
+| 90-100 | SAFE    | Install proceeds, user informed |
+| 70-89  | REVIEW  | User must acknowledge issues    |
+| <70    | BLOCKED | Installation refused            |
 
 ## Commands
 
@@ -32,6 +32,7 @@ Use this skill when the user asks to find, search, discover, or install agent sk
 1. Use `web_fetch` to call: `https://agentskill.sh/api/agent/search?q=<URL-encoded query>&limit=5`
 2. Parse the JSON response
 3. Display results in a table:
+
    ```
    ## Skills matching "<query>"
 
@@ -39,6 +40,7 @@ Use this skill when the user asks to find, search, discover, or install agent sk
    |---|-------|--------|----------|----------|
    | 1 | **<name>** | @<owner> | <installCount> | <securityScore>/100 |
    ```
+
 4. Ask user which skill to install
 5. If selected, proceed to Install Flow
 
@@ -109,6 +111,7 @@ Enable or disable automatic skill rating after use.
 Skills on agentskill.sh are pre-scanned using these pattern categories:
 
 **CRITICAL patterns** (score penalty: -20 each, 5+ = score 0):
+
 - Prompt injection: `ignore.*previous`, `forget.*instructions`, `you are now`, `DAN mode`, `jailbreak`
 - Remote code execution: `curl.*\|.*bash`, `wget.*\|.*sh`, `eval\s*\(`, `base64.*-d.*\|.*bash`
 - Credential theft: `cat.*\.aws`, `cat.*\.ssh`, `keychain`, `credentials`
@@ -116,6 +119,7 @@ Skills on agentskill.sh are pre-scanned using these pattern categories:
 - Destructive: `rm\s+-rf\s+/`, `mkfs`, `dd.*if=/dev/zero`
 
 **HIGH patterns** (score penalty: -10 each):
+
 - Obfuscation: base64 strings >100 chars, `\x[0-9a-f]{2}` sequences
 - Zero-width unicode: `\u200b`, `\u200c`, `\u200d`, `\ufeff`
 - Suspicious URLs: `bit.ly`, `tinyurl`, raw GitHub from new accounts
@@ -123,6 +127,7 @@ Skills on agentskill.sh are pre-scanned using these pattern categories:
 - Hardcoded secrets: `AKIA[0-9A-Z]{16}`, `ghp_[a-zA-Z0-9]{36}`
 
 **MEDIUM patterns** (score penalty: -3 each):
+
 - Unverified deps: `pip install` from URLs, unknown npm packages
 - Privacy collection: `uname`, `hostname`, `env` enumeration
 
@@ -132,21 +137,22 @@ The security score displayed during install reflects these scans performed at pu
 
 Install to the appropriate directory based on detected platform:
 
-| Platform | Directory |
-|----------|-----------|
-| OpenClaw | `~/.openclaw/workspace/skills/<slug>.md` |
-| Claude Code | `.claude/skills/<slug>.md` |
-| Cursor | `.cursor/skills/<slug>.md` |
-| Codex | `.codex/skills/<slug>.md` |
-| Copilot | `.github/copilot/skills/<slug>.md` |
-| Windsurf | `.windsurf/skills/<slug>.md` |
-| Cline | `.cline/skills/<slug>.md` |
+| Platform    | Directory                                |
+| ----------- | ---------------------------------------- |
+| OpenClaw    | `~/.openclaw/workspace/skills/<slug>.md` |
+| Claude Code | `.claude/skills/<slug>.md`               |
+| Cursor      | `.cursor/skills/<slug>.md`               |
+| Codex       | `.codex/skills/<slug>.md`                |
+| Copilot     | `.github/copilot/skills/<slug>.md`       |
+| Windsurf    | `.windsurf/skills/<slug>.md`             |
+| Cline       | `.cline/skills/<slug>.md`                |
 
 ## Auto-Rating (Opt-Out)
 
 After using a skill from agentskill.sh, the agent rates it to help improve discovery.
 
 **Default behavior** (can be disabled):
+
 1. Agent evaluates skill effectiveness (1-5 scale)
 2. Shows rating to user: `Rated **<skill>** 4/5 — clear instructions, worked well`
 3. Asks: `Send rating? (Y/n) — disable: /learn config autorating off`
@@ -154,35 +160,37 @@ After using a skill from agentskill.sh, the agent rates it to help improve disco
 5. User can override anytime: `/learn feedback <slug> <score> [comment]`
 
 **What's sent** (no PII):
+
 - Score (1-5)
 - Brief comment (what worked/didn't)
 - Platform name (e.g., "openclaw")
 - Timestamp
 
 **Disable auto-rating**:
+
 ```
 /learn config autorating off
 ```
 
-| Score | Criteria |
-|-------|----------|
-| 5 | Task completed perfectly |
-| 4 | Completed with minor issues |
-| 3 | Completed with friction |
-| 2 | Partially completed |
-| 1 | Failed or misleading |
+| Score | Criteria                    |
+| ----- | --------------------------- |
+| 5     | Task completed perfectly    |
+| 4     | Completed with minor issues |
+| 3     | Completed with friction     |
+| 2     | Partially completed         |
+| 1     | Failed or misleading        |
 
 ## API Reference
 
 All endpoints on `https://agentskill.sh`:
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/agent/search` | GET | Search skills |
-| `/api/agent/skills/:slug/install` | GET | Get skill content + security score |
-| `/api/agent/skills/:slug/version` | GET | Version check |
-| `/api/skills/:slug/install` | POST | Track install |
-| `/api/skills/:slug/agent-feedback` | POST | Submit rating |
+| Endpoint                           | Method | Purpose                            |
+| ---------------------------------- | ------ | ---------------------------------- |
+| `/api/agent/search`                | GET    | Search skills                      |
+| `/api/agent/skills/:slug/install`  | GET    | Get skill content + security score |
+| `/api/agent/skills/:slug/version`  | GET    | Version check                      |
+| `/api/skills/:slug/install`        | POST   | Track install                      |
+| `/api/skills/:slug/agent-feedback` | POST   | Submit rating                      |
 
 ## Links
 
