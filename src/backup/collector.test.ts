@@ -56,20 +56,14 @@ async function buildStateDir(baseDir: string): Promise<string> {
   await fs.writeFile(path.join(agentDir, "memory", "facts.json"), "[]");
 
   // Sessions
-  await fs.writeFile(
-    path.join(agentDir, "sessions.json"),
-    JSON.stringify({ sessions: [] }),
-  );
+  await fs.writeFile(path.join(agentDir, "sessions.json"), JSON.stringify({ sessions: [] }));
 
   // Skills
   await fs.mkdir(path.join(stateDir, "skills", "my-skill"), { recursive: true });
   await fs.writeFile(path.join(stateDir, "skills", "my-skill", "index.ts"), "export default {};");
 
   // Approvals
-  await fs.writeFile(
-    path.join(stateDir, "exec-approvals.json"),
-    JSON.stringify({ approvals: [] }),
-  );
+  await fs.writeFile(path.join(stateDir, "exec-approvals.json"), JSON.stringify({ approvals: [] }));
 
   // Pairing
   await fs.mkdir(path.join(stateDir, "pairing"), { recursive: true });

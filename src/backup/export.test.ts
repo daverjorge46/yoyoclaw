@@ -127,10 +127,7 @@ describe("backup/export", () => {
     expect(manifest.components).toEqual(["config", "workspace", "skills"]);
 
     // Config should be present with secrets redacted
-    const configRaw = await fs.readFile(
-      path.join(extractDir, "config", "openclaw.json"),
-      "utf-8",
-    );
+    const configRaw = await fs.readFile(path.join(extractDir, "config", "openclaw.json"), "utf-8");
     const config = JSON.parse(configRaw);
     expect(config.gateway.auth.token).toBe("***REDACTED***");
     expect(config.models.primary).toBe("anthropic/claude-4");
@@ -276,7 +273,13 @@ describe("backup/export", () => {
     });
 
     expect(result.manifest.components).toEqual([
-      "config", "workspace", "cron", "skills", "sessions", "approvals", "pairing",
+      "config",
+      "workspace",
+      "cron",
+      "skills",
+      "sessions",
+      "approvals",
+      "pairing",
     ]);
 
     // Extract and verify all component dirs present

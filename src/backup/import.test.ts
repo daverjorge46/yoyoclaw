@@ -304,9 +304,7 @@ describe("backup/import", () => {
 
       const { importBackup } = await setupImport("/nonexistent");
 
-      await expect(
-        importBackup({ input: encryptedPath, decrypt: "wrong-pass" }),
-      ).rejects.toThrow();
+      await expect(importBackup({ input: encryptedPath, decrypt: "wrong-pass" })).rejects.toThrow();
     });
   });
 
@@ -376,9 +374,7 @@ describe("backup/import", () => {
 
       const { importBackup } = await setupImport(targetStateDir);
 
-      await expect(importBackup({ input: archivePath })).rejects.toThrow(
-        "Integrity check failed",
-      );
+      await expect(importBackup({ input: archivePath })).rejects.toThrow("Integrity check failed");
     });
   });
 
@@ -581,8 +577,7 @@ describe("backup/import", () => {
       // Verify no orphaned extract dirs in tmp (best-effort)
       const tmpContents = await fs.readdir(os.tmpdir());
       const orphaned = tmpContents.filter(
-        (name) =>
-          name.startsWith("openclaw-restore-") && name.includes(String(process.pid)),
+        (name) => name.startsWith("openclaw-restore-") && name.includes(String(process.pid)),
       );
       expect(orphaned.length).toBeLessThanOrEqual(1);
     });
@@ -743,9 +738,7 @@ describe("backup/import", () => {
 
       // sessions are restored to the agent dir
       const agentDir = path.join(targetStateDir, "agents", "default", "agent");
-      const restored = JSON.parse(
-        await fs.readFile(path.join(agentDir, "sessions.json"), "utf-8"),
-      );
+      const restored = JSON.parse(await fs.readFile(path.join(agentDir, "sessions.json"), "utf-8"));
       expect(restored.sessions).toHaveLength(2);
       expect(restored.sessions[0].id).toBe("s1");
     });
