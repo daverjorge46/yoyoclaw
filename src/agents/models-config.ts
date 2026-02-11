@@ -119,7 +119,17 @@ export async function ensureOpenClawModelsJson(
         string,
         NonNullable<ModelsConfig["providers"]>[string]
       >;
-      mergedProviders = { ...existingProviders, ...providers };
+      const nextProviders = { ...existingProviders };
+      for (const [key, provider] of Object.entries(providers)) {
+        const existingProvider = existingProviders[key];
+        // Preserve per-agent apiKey if it exists, even if global config has one.
+        if (existingProvider?.apiKey) {
+          nextProviders[key] = { ...provider, apiKey: existingProvider.apiKey };
+        } else {
+          nextProviders[key] = provider;
+        }
+      }
+      mergedProviders = nextProviders;
     }
   }
 
