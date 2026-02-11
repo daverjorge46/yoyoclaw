@@ -10,7 +10,6 @@ import type * as LanceDB from "@lancedb/lancedb";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
-import OpenAI from "openai";
 import { stringEnum } from "openclaw/plugin-sdk";
 import {
   MEMORY_CATEGORIES,
@@ -161,17 +160,27 @@ class MemoryDB {
 // ============================================================================
 
 class Embeddings {
-  private client: OpenAI;
+  private client: import("openai").default | null = null;
+  private readonly apiKey: string;
 
   constructor(
     apiKey: string,
     private model: string,
   ) {
-    this.client = new OpenAI({ apiKey });
+    this.apiKey = apiKey;
+  }
+
+  private async getClient() {
+    if (!this.client) {
+      const { default: OpenAI } = await import("openai");
+      this.client = new OpenAI({ apiKey: this.apiKey });
+    }
+    return this.client;
   }
 
   async embed(text: string): Promise<number[]> {
-    const response = await this.client.embeddings.create({
+    const client = await this.getClient();
+    const response = await client.embeddings.create({
       model: this.model,
       input: text,
     });

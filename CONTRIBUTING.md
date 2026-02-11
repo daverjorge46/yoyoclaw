@@ -41,6 +41,8 @@ Welcome to the lobster tank! 🦞
 
 - Test locally with your OpenClaw instance
 - Run tests: `pnpm build && pnpm check && pnpm test`
+- Core-only (no optional extension deps): `pnpm test:core`
+- Full suite incl. extensions: `OPENCLAW_TEST_EXTENSIONS=1 pnpm test`
 - Ensure CI checks pass
 - Keep PRs focused (one thing per PR)
 - Describe what & why
