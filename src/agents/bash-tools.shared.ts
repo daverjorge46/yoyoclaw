@@ -340,6 +340,23 @@ export function validateSandboxEnv(env: Record<string, string>): void {
   }
 }
 
+/** Surface security warnings into warnings array and throw on hard-blocked commands. */
+export function enforceSecurityBlock(
+  analysis: { securityWarnings: string[]; securityBlocked: boolean },
+  warnings: string[],
+): void {
+  for (const sw of analysis.securityWarnings) {
+    warnings.push(`Security: ${sw}`);
+  }
+  if (analysis.securityBlocked) {
+    const reasons = analysis.securityWarnings.filter((w) => w.startsWith("[BLOCKED]")).join("; ");
+    throw new Error(
+      `Command blocked by security policy: ${reasons}. ` +
+        `This command contains patterns that are never allowed for automated execution.`,
+    );
+  }
+}
+
 export function pad(str: string, width: number) {
   if (str.length >= width) {
     return str;

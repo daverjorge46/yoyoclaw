@@ -1,4 +1,4 @@
-import type { ExecCommandSegment } from "./exec-approvals.js";
+import type { ExecAllowlistEntry, ExecCommandSegment } from "./exec-approvals.js";
 
 // Patterns that indicate potentially dangerous command semantics.
 // These are checked even when a command passes allowlist evaluation.
@@ -52,3 +52,27 @@ export function detectSuspiciousPatterns(
 
   return { warnings, blocked };
 }
+
+/** Map suspicious pattern result to the fields used in ExecAllowlistAnalysis. */
+export function evaluateSuspiciousPatterns(command: string, segments: ExecCommandSegment[]) {
+  const s = detectSuspiciousPatterns(command, segments);
+  return { securityWarnings: s.warnings, securityBlocked: s.blocked };
+}
+
+export type ExecAllowlistAnalysis = {
+  analysisOk: boolean;
+  allowlistSatisfied: boolean;
+  allowlistMatches: ExecAllowlistEntry[];
+  segments: ExecCommandSegment[];
+  securityWarnings: string[];
+  securityBlocked: boolean;
+};
+
+export const ANALYSIS_FAILED: ExecAllowlistAnalysis = {
+  analysisOk: false,
+  allowlistSatisfied: false,
+  allowlistMatches: [],
+  segments: [],
+  securityWarnings: [],
+  securityBlocked: false,
+};

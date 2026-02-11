@@ -50,6 +50,7 @@ import {
   resolveSandboxWorkdir,
   resolveWorkdir,
   truncateMiddle,
+  enforceSecurityBlock,
   validateHostEnv,
   validateSandboxEnv,
 } from "./bash-tools.shared.js";
@@ -1042,22 +1043,7 @@ export function createExecTool(
               });
               allowlistSatisfied = allowlistEval.allowlistSatisfied;
               analysisOk = allowlistEval.analysisOk;
-              // Surface security warnings from pattern analysis.
-              if (allowlistEval.securityWarnings.length > 0) {
-                for (const sw of allowlistEval.securityWarnings) {
-                  warnings.push(`Security: ${sw}`);
-                }
-              }
-              // Hard-block commands with critical security patterns.
-              if (allowlistEval.securityBlocked) {
-                const blockedReasons = allowlistEval.securityWarnings
-                  .filter((w) => w.startsWith("[BLOCKED]"))
-                  .join("; ");
-                throw new Error(
-                  `Command blocked by security policy: ${blockedReasons}. ` +
-                    `This command contains patterns that are never allowed for automated execution.`,
-                );
-              }
+              enforceSecurityBlock(allowlistEval, warnings);
             }
           } catch (err) {
             // Re-throw security blocks; fall back for other errors.
@@ -1068,15 +1054,7 @@ export function createExecTool(
           }
         }
         // Hard-block from base analysis (no node approvals fetched).
-        if (baseAllowlistEval.securityBlocked) {
-          const blockedReasons = baseAllowlistEval.securityWarnings
-            .filter((w) => w.startsWith("[BLOCKED]"))
-            .join("; ");
-          throw new Error(
-            `Command blocked by security policy: ${blockedReasons}. ` +
-              `This command contains patterns that are never allowed for automated execution.`,
-          );
-        }
+        enforceSecurityBlock(baseAllowlistEval, warnings);
         const requiresAsk = requiresExecApproval({
           ask: hostAsk,
           security: hostSecurity,
@@ -1285,23 +1263,7 @@ export function createExecTool(
         const allowlistSatisfied =
           hostSecurity === "allowlist" && analysisOk ? allowlistEval.allowlistSatisfied : false;
 
-        // Surface security warnings from pattern analysis.
-        if (allowlistEval.securityWarnings.length > 0) {
-          for (const sw of allowlistEval.securityWarnings) {
-            warnings.push(`Security: ${sw}`);
-          }
-        }
-
-        // Hard-block commands with critical security patterns.
-        if (allowlistEval.securityBlocked) {
-          const blockedReasons = allowlistEval.securityWarnings
-            .filter((w) => w.startsWith("[BLOCKED]"))
-            .join("; ");
-          throw new Error(
-            `Command blocked by security policy: ${blockedReasons}. ` +
-              `This command contains patterns that are never allowed for automated execution.`,
-          );
-        }
+        enforceSecurityBlock(allowlistEval, warnings);
 
         const requiresAsk = requiresExecApproval({
           ask: hostAsk,

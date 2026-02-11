@@ -4,7 +4,12 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
-import { detectSuspiciousPatterns } from "./exec-suspicious-patterns.js";
+import {
+  ANALYSIS_FAILED,
+  evaluateSuspiciousPatterns,
+  type ExecAllowlistAnalysis,
+} from "./exec-suspicious-patterns.js";
+export type { ExecAllowlistAnalysis } from "./exec-suspicious-patterns.js";
 
 export type ExecHost = "sandbox" | "gateway" | "node";
 export type ExecSecurity = "deny" | "allowlist" | "full";
@@ -1302,17 +1307,6 @@ function splitCommandChain(command: string): string[] | null {
   return parts.length > 0 ? parts : null;
 }
 
-export type ExecAllowlistAnalysis = {
-  analysisOk: boolean;
-  allowlistSatisfied: boolean;
-  allowlistMatches: ExecAllowlistEntry[];
-  segments: ExecCommandSegment[];
-  /** Warnings about suspicious command patterns (e.g. remote code execution, eval). */
-  securityWarnings: string[];
-  /** When true, the command contains patterns that must be hard-blocked before approval. */
-  securityBlocked: boolean;
-};
-
 /**
  * Evaluates allowlist for shell commands (including &&, ||, ;) and returns analysis metadata.
  */
@@ -1335,14 +1329,7 @@ export function evaluateShellAllowlist(params: {
       platform: params.platform,
     });
     if (!analysis.ok) {
-      return {
-        analysisOk: false,
-        allowlistSatisfied: false,
-        allowlistMatches: [],
-        segments: [],
-        securityWarnings: [],
-        securityBlocked: false,
-      };
+      return ANALYSIS_FAILED;
     }
     const evaluation = evaluateExecAllowlist({
       analysis,
@@ -1352,14 +1339,12 @@ export function evaluateShellAllowlist(params: {
       skillBins: params.skillBins,
       autoAllowSkills: params.autoAllowSkills,
     });
-    const suspicious = detectSuspiciousPatterns(params.command, analysis.segments);
     return {
       analysisOk: true,
       allowlistSatisfied: evaluation.allowlistSatisfied,
       allowlistMatches: evaluation.allowlistMatches,
       segments: analysis.segments,
-      securityWarnings: suspicious.warnings,
-      securityBlocked: suspicious.blocked,
+      ...evaluateSuspiciousPatterns(params.command, analysis.segments),
     };
   }
 
@@ -1374,14 +1359,7 @@ export function evaluateShellAllowlist(params: {
       platform: params.platform,
     });
     if (!analysis.ok) {
-      return {
-        analysisOk: false,
-        allowlistSatisfied: false,
-        allowlistMatches: [],
-        segments: [],
-        securityWarnings: [],
-        securityBlocked: false,
-      };
+      return ANALYSIS_FAILED;
     }
 
     segments.push(...analysis.segments);
@@ -1395,26 +1373,22 @@ export function evaluateShellAllowlist(params: {
     });
     allowlistMatches.push(...evaluation.allowlistMatches);
     if (!evaluation.allowlistSatisfied) {
-      const suspicious = detectSuspiciousPatterns(params.command, segments);
       return {
         analysisOk: true,
         allowlistSatisfied: false,
         allowlistMatches,
         segments,
-        securityWarnings: suspicious.warnings,
-        securityBlocked: suspicious.blocked,
+        ...evaluateSuspiciousPatterns(params.command, segments),
       };
     }
   }
 
-  const suspicious = detectSuspiciousPatterns(params.command, segments);
   return {
     analysisOk: true,
     allowlistSatisfied: true,
     allowlistMatches,
     segments,
-    securityWarnings: suspicious.warnings,
-    securityBlocked: suspicious.blocked,
+    ...evaluateSuspiciousPatterns(params.command, segments),
   };
 }
 
