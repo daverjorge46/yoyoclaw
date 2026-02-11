@@ -242,7 +242,7 @@ describe("backup/import", () => {
       const base = await makeTempDir("enc");
 
       // Build a plain archive first, then encrypt it
-      const { archivePath: plainArchive, manifest } = await buildTestArchive({
+      const { archivePath: plainArchive } = await buildTestArchive({
         baseDir: base,
         files: [
           {
@@ -649,7 +649,7 @@ describe("backup/import", () => {
       const result2 = await import2({ input: archivePath });
 
       // Both results should match
-      expect(result1.restoredFiles.sort()).toEqual(result2.restoredFiles.sort());
+      expect(result1.restoredFiles.toSorted()).toEqual(result2.restoredFiles.toSorted());
       expect(result1.integrityErrors).toEqual([]);
       expect(result2.integrityErrors).toEqual([]);
 

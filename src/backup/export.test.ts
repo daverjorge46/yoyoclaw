@@ -356,7 +356,9 @@ describe("backup/export", () => {
 
     const { sha256File } = await import("./manifest.js");
     for (const entry of result.manifest.entries) {
-      if (entry.path === "manifest.json") continue;
+      if (entry.path === "manifest.json") {
+        continue;
+      }
       const filePath = path.join(extractDir, entry.path);
       const actualHash = await sha256File(filePath);
       expect(actualHash).toBe(entry.sha256);
