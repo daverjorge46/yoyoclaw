@@ -309,8 +309,8 @@ export function formatToolSummary(display: ToolDisplay): string {
 const MAX_DISCORD_CMD_LENGTH = 120;
 
 /**
- * Format a tool call for Discord using code blocks and
- * human-friendly verbs instead of raw tool names with colons.
+ * Format a tool call for Discord as an italic status line.
+ * No emojis, no colons. Uses ellipses and inline code.
  */
 export function formatToolFeedbackDiscord(display: ToolDisplay): string {
   const key = display.name.toLowerCase();
@@ -325,66 +325,66 @@ export function formatToolFeedbackDiscord(display: ToolDisplay): string {
       cmd = cmd.replace(/^echo\s+"[^"]*"\s*&&\s*/g, "").trim();
       // Strip stderr/stdout redirections (2>/dev/null, >/dev/null)
       cmd = cmd.replace(/\s*[12]?>\s*\/dev\/null/g, "").trim();
-      // Strip trailing pipe chains that are just filtering (| head, | tail)
+      // Strip trailing pipe chains that are just filtering
       cmd = cmd.replace(/\s*\|\s*(?:head|tail)\s+.*$/g, "").trim();
       const truncated =
         cmd.length > MAX_DISCORD_CMD_LENGTH
           ? `${cmd.slice(0, MAX_DISCORD_CMD_LENGTH - 3)}...`
           : cmd;
-      return `${display.emoji} Running \`${truncated}\``;
+      return `*Running \`${truncated}\`...*`;
     }
-    return `${display.emoji} Running a command`;
+    return "*Running a command...*";
   }
 
   // Read: show file path in inline code
   if (key === "read") {
     if (display.detail) {
-      return `${display.emoji} Reading \`${display.detail}\``;
+      return `*Reading \`${display.detail}\`...*`;
     }
-    return `${display.emoji} Reading a file`;
+    return "*Reading a file...*";
   }
 
   // Write/Edit: show file path in inline code
   if (key === "write" || key === "edit") {
     const verb = key === "write" ? "Writing" : "Editing";
     if (display.detail) {
-      return `${display.emoji} ${verb} \`${display.detail}\``;
+      return `*${verb} \`${display.detail}\`...*`;
     }
-    return `${display.emoji} ${verb} a file`;
+    return `*${verb} a file...*`;
   }
 
   // Search tools: show query/pattern in inline code
   if (key === "web_search" || key === "grep" || key === "glob") {
     if (display.detail) {
-      return `${display.emoji} Searching \`${display.detail}\``;
+      return `*Searching \`${display.detail}\`...*`;
     }
-    return `${display.emoji} Searching`;
+    return "*Searching...*";
   }
 
   // Web fetch: show URL in inline code
   if (key === "web_fetch") {
     if (display.detail) {
-      return `${display.emoji} Fetching \`${display.detail}\``;
+      return `*Fetching \`${display.detail}\`...*`;
     }
-    return `${display.emoji} Fetching a page`;
+    return "*Fetching a page...*";
   }
 
   // Sub-agent / Task: show description
   if (key === "task" || key === "sessions_spawn") {
     if (display.detail) {
-      return `${display.emoji} ${display.detail}`;
+      return `*${display.detail}...*`;
     }
-    return `${display.emoji} Running a sub-agent`;
+    return "*Running a sub-agent...*";
   }
 
   // detailOnly tools (claude_code wrapper)
   if (display.detailOnly && display.detail) {
-    return `${display.emoji} ${display.detail}`;
+    return `*${display.detail}...*`;
   }
 
-  // Default: emoji + label + optional detail in inline code
+  // Default: label + optional detail in inline code
   if (display.detail) {
-    return `${display.emoji} ${display.label} \`${display.detail}\``;
+    return `*${display.label} \`${display.detail}\`...*`;
   }
-  return `${display.emoji} ${display.label}`;
+  return `*${display.label}...*`;
 }

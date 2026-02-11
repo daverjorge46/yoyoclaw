@@ -116,14 +116,14 @@ describe("formatToolFeedbackDiscord", () => {
       args: { command: "git status" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toBe("🛠️ Running `git status`");
+    expect(result).toBe("*Running `git status`...*");
     expect(result).not.toContain(":");
   });
 
   it("formats Bash without command as generic message", () => {
     const display = resolveToolDisplay({ name: "Bash" });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toBe("🛠️ Running a command");
+    expect(result).toBe("*Running a command...*");
   });
 
   it("formats Read with file path in inline code", () => {
@@ -132,7 +132,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { file_path: "/home/user/project/src/index.ts" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("📖 Reading `");
+    expect(result).toContain("*Reading `");
     expect(result).toContain("index.ts");
     expect(result).not.toContain(":");
   });
@@ -143,7 +143,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { path: "/tmp/output.txt" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("✍️ Writing `");
+    expect(result).toContain("*Writing `");
     expect(result).toContain("output.txt");
   });
 
@@ -153,7 +153,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { path: "/src/main.ts" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("📝 Editing `");
+    expect(result).toContain("*Editing `");
     expect(result).toContain("main.ts");
   });
 
@@ -163,7 +163,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { query: "vitest fake timers" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("🔎 Searching `vitest fake timers`");
+    expect(result).toContain("*Searching `vitest fake timers`...*");
   });
 
   it("formats WebFetch with URL in inline code", () => {
@@ -172,7 +172,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { url: "https://example.com" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("📄 Fetching `https://example.com`");
+    expect(result).toContain("*Fetching `https://example.com`...*");
   });
 
   it("truncates long Bash commands at 120 chars", () => {
@@ -192,7 +192,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { command: "todoist list 2>/dev/null | head -30" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toBe("🛠️ Running `todoist list`");
+    expect(result).toBe("*Running `todoist list`...*");
     expect(result).not.toContain("2>/dev/null");
     expect(result).not.toContain("head");
   });
@@ -213,7 +213,7 @@ describe("formatToolFeedbackDiscord", () => {
       args: { prompt: "list files in /tmp" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toBe("🔧 list files in /tmp");
+    expect(result).toBe("*list files in /tmp...*");
   });
 
   it("formats unknown tools with label and detail in code", () => {
@@ -222,7 +222,6 @@ describe("formatToolFeedbackDiscord", () => {
       args: { path: "/some/path" },
     });
     const result = formatToolFeedbackDiscord(display);
-    expect(result).toContain("Custom Tool");
-    expect(result).toContain("`/some/path`");
+    expect(result).toBe("*Custom Tool `/some/path`...*");
   });
 });

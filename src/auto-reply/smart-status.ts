@@ -1,5 +1,5 @@
 import type { AgentStreamEvent } from "./types.js";
-import { formatToolSummary, resolveToolDisplay } from "../agents/tool-display.js";
+import { formatToolFeedbackDiscord, resolveToolDisplay } from "../agents/tool-display.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("auto-reply/smart-status");
@@ -90,7 +90,7 @@ export function createSmartStatus(params: {
           name: event.toolName,
           args: event.input,
         });
-        const summary = formatToolSummary(display);
+        const summary = formatToolFeedbackDiscord(display);
         scheduleOrEmit(summary);
         break;
       }
@@ -101,7 +101,7 @@ export function createSmartStatus(params: {
           const maxExcerpt = maxStatusLength - 3;
           const excerpt =
             trimmed.length > maxExcerpt ? `${trimmed.slice(0, maxExcerpt)}...` : trimmed;
-          scheduleOrEmit(`💭 ${excerpt}`);
+          scheduleOrEmit(`*${excerpt}...*`);
         }
         break;
       }

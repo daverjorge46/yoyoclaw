@@ -141,17 +141,18 @@ function formatGroupedFeedback(groups: GroupedTool[]): string {
         const cmd = group.firstInput?.command;
         if (typeof cmd === "string") {
           const base = extractBaseCommand(cmd);
-          lines.push(`${display.emoji} Running \`${base}\` (x${group.count})`);
+          lines.push(`*Running \`${base}\` (x${group.count})...*`);
           continue;
         }
       }
       // Other homogeneous groups: use standard format + count
       const formatted = formatToolFeedbackDiscord(display);
-      lines.push(`${formatted} (x${group.count})`);
+      // Insert count before the trailing ...*
+      lines.push(formatted.replace(/\.\.\.\*$/, ` (x${group.count})...*`));
     } else if (group.count > 1) {
       // Heterogeneous group: just show tool name + count
       const formatted = formatToolFeedbackDiscord(display);
-      lines.push(`${formatted} (x${group.count})`);
+      lines.push(formatted.replace(/\.\.\.\*$/, ` (x${group.count})...*`));
     } else {
       // Single tool: full format
       lines.push(formatToolFeedbackDiscord(display));

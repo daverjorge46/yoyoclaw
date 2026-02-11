@@ -472,15 +472,13 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     });
   }
 
-  // Status messages: a single message is sent on the first update. Subsequent
-  // updates are silently dropped. Messages are never edited or deleted on
-  // Discord so the user never sees content disappear or flicker.
-  let statusMessageSent = false;
+  // Status messages: each update sends a new message that persists in
+  // the channel. Messages are never edited or deleted so tool usage
+  // history remains visible.
   let statusSending = false;
 
-  const updateStatusMessage = async (text: string) => {
-    // Only send the first status message. Never edit or delete.
-    if (statusMessageSent || statusSending) {
+  const sendStatusMessage = async (text: string) => {
+    if (statusSending) {
       return;
     }
     statusSending = true;
@@ -490,7 +488,6 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
         accountId,
         rest: client.rest,
       });
-      statusMessageSent = true;
       // Reinforce typing after sending. Sending clears Discord's
       // typing indicator.
       typingGuard.reinforce();
@@ -507,7 +504,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
   const unifiedToolFeedback = toolFeedbackEnabled
     ? createUnifiedToolFeedback({
         onUpdate: (feedbackText) => {
-          void updateStatusMessage(feedbackText);
+          void sendStatusMessage(feedbackText);
         },
       })
     : null;
@@ -519,7 +516,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     ? createSmartStatus({
         userMessage: text,
         onUpdate: (statusText) => {
-          void updateStatusMessage(statusText);
+          void sendStatusMessage(statusText);
         },
       })
     : null;
@@ -607,6 +604,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
       if (smartStatusFilter) {
         smartStatusFilter.dispose();
       }
+
       markDispatchIdle();
 
       // Cancel job classification if still running.
@@ -661,7 +659,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     if (triageResult?.text) {
       unifiedToolFeedback?.suppress(10000);
       smartStatusFilter?.suppress(10000);
-      void updateStatusMessage(triageResult.text);
+      void sendStatusMessage(triageResult.text);
     }
   }
 
@@ -692,6 +690,38 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
         logVerbose(`discord: failed to append job event: ${String(err)}`);
       });
     }
+  }
+
+  // ACK case: set up delayed sending for interim feedback if the main model takes too long.
+  const ackDelayMs = DEFAULT_ACK_DELAY_MS;
+  let _smartAckMessageId: string | undefined;
+  let _smartAckChannelId: string | undefined;
+  let smartAckCancelled = false;
+  let _smartAckDelayTimer: ReturnType<typeof setTimeout> | undefined;
+  if (triageResult && !triageResult.isFull) {
+    const ackText = triageResult.text;
+    _smartAckDelayTimer = setTimeout(async () => {
+      if (smartAckCancelled) {
+        return;
+      }
+      try {
+        // Suppress updates briefly so the ack isn't immediately overwritten.
+        unifiedToolFeedback?.suppress(10000);
+        smartStatusFilter?.suppress(10000);
+
+        const result = await sendMessageDiscord(deliverTarget, ackText, {
+          token,
+          accountId,
+          rest: client.rest,
+        });
+        if (!smartAckCancelled) {
+          _smartAckMessageId = result.messageId !== "unknown" ? result.messageId : undefined;
+          _smartAckChannelId = result.channelId;
+        }
+      } catch (err) {
+        logVerbose(`discord: smart ack delivery failed: ${String(err)}`);
+      }
+    }, ackDelayMs);
   }
 
   const { queuedFinal, counts } = await dispatchInboundMessage({

@@ -57,7 +57,7 @@ describe("createSmartStatus", () => {
     status.dispose();
 
     expect(updates.length).toBe(1);
-    expect(updates[0]).toContain("💭");
+    expect(updates[0]).toMatch(/^\*/);
     expect(updates[0]).toContain("check the calendar");
   });
 
