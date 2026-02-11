@@ -88,7 +88,7 @@ export async function exportBackup(
     );
 
     // 5. Optionally encrypt
-    let finalData = await fs.readFile(archivePath);
+    let finalData: Uint8Array = await fs.readFile(archivePath);
     if (opts.encrypt) {
       finalData = encrypt(finalData, opts.encrypt);
     }
@@ -101,7 +101,7 @@ export async function exportBackup(
       // Also store sidecar manifest for quick listing
       await storage.put(
         `${key}.manifest.json`,
-        Buffer.from(JSON.stringify(manifest, null, 2), "utf-8"),
+        new TextEncoder().encode(JSON.stringify(manifest, null, 2)),
       );
       destination = key;
     } else {

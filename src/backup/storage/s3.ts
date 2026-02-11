@@ -12,7 +12,10 @@ import type { BackupEntry, BackupManifest, BackupStorageConfig, StorageBackend }
 /** Lazy-load the AWS SDK to keep it optional. */
 async function loadS3SDK() {
   try {
-    return await import("@aws-sdk/client-s3");
+    // Use indirect import to prevent tsc from resolving the optional module
+    const moduleName = "@aws-sdk/client-s3";
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return await import(/* webpackIgnore: true */ moduleName);
   } catch {
     throw new Error(
       "S3 storage requires @aws-sdk/client-s3. Install it with: pnpm add @aws-sdk/client-s3",
