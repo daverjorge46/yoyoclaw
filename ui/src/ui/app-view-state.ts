@@ -16,7 +16,6 @@ import type {
   ChannelsStatusSnapshot,
   ConfigUiHints,
   ConfigSnapshot,
-  ConfigUiHints,
   CronJob,
   CronRunLogEntry,
   CronStatus,
