@@ -71,17 +71,22 @@ function resolveAllowedAgentIds(raw: string[] | undefined): Set<string> | undefi
     return undefined;
   }
   const allowed = new Set<string>();
+  let hasWildcard = false;
   for (const entry of raw) {
     const trimmed = entry.trim();
     if (!trimmed) {
       continue;
     }
     if (trimmed === "*") {
-      return undefined;
+      hasWildcard = true;
+      break;
     }
     allowed.add(normalizeAgentId(trimmed));
   }
-  return allowed.size > 0 ? allowed : undefined;
+  if (hasWildcard) {
+    return undefined;
+  }
+  return allowed;
 }
 
 export function extractHookToken(req: IncomingMessage): string | undefined {
@@ -240,7 +245,7 @@ export function isHookAgentAllowed(
     return true;
   }
   const allowed = hooksConfig.agentPolicy.allowedAgentIds;
-  if (!allowed) {
+  if (allowed === undefined) {
     return true;
   }
   const resolved = resolveHookTargetAgentId(hooksConfig, raw);

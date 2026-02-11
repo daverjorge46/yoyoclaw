@@ -289,4 +289,33 @@ describe("gateway server hooks", () => {
       await server.close();
     }
   });
+
+  test("denies explicit agentId when hooks.allowedAgentIds is empty", async () => {
+    testState.hooksConfig = {
+      enabled: true,
+      token: "hook-secret",
+      allowedAgentIds: [],
+    };
+    testState.agentsConfig = {
+      list: [{ id: "main", default: true }, { id: "hooks" }],
+    };
+    const port = await getFreePort();
+    const server = await startGatewayServer(port);
+    try {
+      const resDenied = await fetch(`http://127.0.0.1:${port}/hooks/agent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer hook-secret",
+        },
+        body: JSON.stringify({ message: "Denied", agentId: "hooks" }),
+      });
+      expect(resDenied.status).toBe(400);
+      const deniedBody = (await resDenied.json()) as { error?: string };
+      expect(deniedBody.error).toContain("hooks.allowedAgentIds");
+      expect(peekSystemEvents(resolveMainKey()).length).toBe(0);
+    } finally {
+      await server.close();
+    }
+  });
 });

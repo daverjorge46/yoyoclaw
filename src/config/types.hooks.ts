@@ -119,7 +119,7 @@ export type HooksConfig = {
   token?: string;
   /**
    * Restrict explicit hook `agentId` routing to these agent ids.
-   * Omit or include `*` to allow any agent.
+   * Omit or include `*` to allow any agent. Set `[]` to deny all explicit `agentId` routing.
    */
   allowedAgentIds?: string[];
   maxBodyBytes?: number;

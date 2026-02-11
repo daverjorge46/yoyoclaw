@@ -183,6 +183,48 @@ describe("gateway hooks helpers", () => {
     expect(isHookAgentAllowed(resolved, "hooks")).toBe(true);
     expect(isHookAgentAllowed(resolved, "missing-agent")).toBe(false);
   });
+
+  test("isHookAgentAllowed treats empty allowlist as deny-all for explicit agentId", () => {
+    const cfg = {
+      hooks: {
+        enabled: true,
+        token: "secret",
+        allowedAgentIds: [],
+      },
+      agents: {
+        list: [{ id: "main", default: true }, { id: "hooks" }],
+      },
+    } as OpenClawConfig;
+    const resolved = resolveHooksConfig(cfg);
+    expect(resolved).not.toBeNull();
+    if (!resolved) {
+      return;
+    }
+    expect(isHookAgentAllowed(resolved, undefined)).toBe(true);
+    expect(isHookAgentAllowed(resolved, "hooks")).toBe(false);
+    expect(isHookAgentAllowed(resolved, "main")).toBe(false);
+  });
+
+  test("isHookAgentAllowed treats wildcard allowlist as allow-all", () => {
+    const cfg = {
+      hooks: {
+        enabled: true,
+        token: "secret",
+        allowedAgentIds: ["*"],
+      },
+      agents: {
+        list: [{ id: "main", default: true }, { id: "hooks" }],
+      },
+    } as OpenClawConfig;
+    const resolved = resolveHooksConfig(cfg);
+    expect(resolved).not.toBeNull();
+    if (!resolved) {
+      return;
+    }
+    expect(isHookAgentAllowed(resolved, undefined)).toBe(true);
+    expect(isHookAgentAllowed(resolved, "hooks")).toBe(true);
+    expect(isHookAgentAllowed(resolved, "missing-agent")).toBe(true);
+  });
 });
 
 const emptyRegistry = createTestRegistry([]);

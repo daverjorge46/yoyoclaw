@@ -20,6 +20,7 @@ Gateway can expose a small HTTP webhook endpoint for external triggers.
     path: "/hooks",
     // Optional: restrict explicit `agentId` routing to this allowlist.
     // Omit or include "*" to allow any agent.
+    // Set [] to deny all explicit `agentId` routing.
     allowedAgentIds: ["hooks", "main"],
   },
 }
@@ -110,7 +111,7 @@ Mapping options (summary):
 - Set `deliver: true` + `channel`/`to` on mappings to route replies to a chat surface
   (`channel` defaults to `last` and falls back to WhatsApp).
 - `agentId` routes the hook to a specific agent; unknown IDs fall back to the default agent.
-- `hooks.allowedAgentIds` restricts explicit `agentId` routing. Omit it (or include `*`) to allow any agent.
+- `hooks.allowedAgentIds` restricts explicit `agentId` routing. Omit it (or include `*`) to allow any agent. Set `[]` to deny explicit `agentId` routing.
 - `allowUnsafeExternalContent: true` disables the external content safety wrapper for that hook
   (dangerous; only for trusted internal sources).
 - `openclaw webhooks gmail setup` writes `hooks.gmail` config for `openclaw webhooks gmail run`.

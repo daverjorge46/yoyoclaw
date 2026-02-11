@@ -3178,6 +3178,7 @@ Defaults:
     path: "/hooks",
     // Optional: restrict explicit `agentId` routing.
     // Omit or include "*" to allow any agent.
+    // Set [] to deny all explicit `agentId` routing.
     allowedAgentIds: ["hooks", "main"],
     presets: ["gmail"],
     transformsDir: "~/.openclaw/hooks",
@@ -3219,7 +3220,7 @@ Mapping notes:
 - Templates like `{{messages[0].subject}}` read from the payload.
 - `transform` can point to a JS/TS module that returns a hook action.
 - `agentId` can route to a specific agent; unknown IDs fall back to the default agent.
-- `hooks.allowedAgentIds` restricts explicit `agentId` routing (`*` or omitted means allow all).
+- `hooks.allowedAgentIds` restricts explicit `agentId` routing (`*` or omitted means allow all, `[]` denies all explicit routing).
 - `deliver: true` sends the final reply to a channel; `channel` defaults to `last` (falls back to WhatsApp).
 - If there is no prior delivery route, set `channel` + `to` explicitly (required for Telegram/Discord/Google Chat/Slack/Signal/iMessage/MS Teams).
 - `model` overrides the LLM for this hook run (`provider/model` or alias; must be allowed if `agents.defaults.models` is set).
