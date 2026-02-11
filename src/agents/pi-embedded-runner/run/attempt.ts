@@ -825,9 +825,24 @@ export async function runEmbeddedAttempt(
           promptError = err;
           // Log provider HTTP errors immediately at the source before they propagate
           // to ensure gateway logs capture full error context for debugging.
+          // Extract HTTP status from structured fields first, then fall back to parsing the message
           const errorMessage = describeUnknownError(err);
-          const httpStatusMatch = errorMessage.match(/^(?:http\s*)?(\d{3})\b/i);
-          const httpStatus = httpStatusMatch ? Number(httpStatusMatch[1]) : undefined;
+          let httpStatus: number | undefined;
+          if (err && typeof err === "object") {
+            const statusCandidate =
+              (err as { status?: unknown; statusCode?: unknown }).status ??
+              (err as { statusCode?: unknown }).statusCode;
+            if (typeof statusCandidate === "number") {
+              httpStatus = statusCandidate;
+            } else if (typeof statusCandidate === "string" && /^\d+$/.test(statusCandidate)) {
+              httpStatus = Number(statusCandidate);
+            }
+          }
+          // Fall back to parsing HTTP status from error message
+          if (!httpStatus) {
+            const httpStatusMatch = errorMessage.match(/\b(\d{3})\b/);
+            httpStatus = httpStatusMatch ? Number(httpStatusMatch[1]) : undefined;
+          }
           if (httpStatus && httpStatus >= 400) {
             log.error(`Provider API error`, {
               provider: params.provider,
