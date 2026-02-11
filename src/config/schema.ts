@@ -1,19 +1,10 @@
+import type { ConfigUiHint, ConfigUiHints } from "./schema.hints.js";
 import { CHANNEL_IDS } from "../channels/registry.js";
 import { VERSION } from "../version.js";
+import { applySensitiveHints, buildBaseHints } from "./schema.hints.js";
 import { OpenClawSchema } from "./zod-schema.js";
 
-export type ConfigUiHint = {
-  label?: string;
-  help?: string;
-  group?: string;
-  order?: number;
-  advanced?: boolean;
-  sensitive?: boolean;
-  placeholder?: string;
-  itemTemplate?: unknown;
-};
-
-export type ConfigUiHints = Record<string, ConfigUiHint>;
+export type { ConfigUiHint, ConfigUiHints } from "./schema.hints.js";
 
 export type ConfigSchema = ReturnType<typeof OpenClawSchema.toJSONSchema>;
 
@@ -847,40 +838,6 @@ function mergeObjectSchema(base: JsonSchemaObject, extension: JsonSchemaObject):
     merged.additionalProperties = additional;
   }
   return merged;
-}
-
-function buildBaseHints(): ConfigUiHints {
-  const hints: ConfigUiHints = {};
-  for (const [group, label] of Object.entries(GROUP_LABELS)) {
-    hints[group] = {
-      label,
-      group: label,
-      order: GROUP_ORDER[group],
-    };
-  }
-  for (const [path, label] of Object.entries(FIELD_LABELS)) {
-    const current = hints[path];
-    hints[path] = current ? { ...current, label } : { label };
-  }
-  for (const [path, help] of Object.entries(FIELD_HELP)) {
-    const current = hints[path];
-    hints[path] = current ? { ...current, help } : { help };
-  }
-  for (const [path, placeholder] of Object.entries(FIELD_PLACEHOLDERS)) {
-    const current = hints[path];
-    hints[path] = current ? { ...current, placeholder } : { placeholder };
-  }
-  return hints;
-}
-
-function applySensitiveHints(hints: ConfigUiHints): ConfigUiHints {
-  const next = { ...hints };
-  for (const key of Object.keys(next)) {
-    if (isSensitivePath(key)) {
-      next[key] = { ...next[key], sensitive: true };
-    }
-  }
-  return next;
 }
 
 function applyPluginHints(hints: ConfigUiHints, plugins: PluginUiMetadata[]): ConfigUiHints {
