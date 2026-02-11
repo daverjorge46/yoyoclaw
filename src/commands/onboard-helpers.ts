@@ -15,6 +15,7 @@ import { pickPrimaryLanIPv4, isValidIPv4 } from "../gateway/net.js";
 import { isSafeExecutableValue } from "../infra/exec-safety.js";
 import { pickPrimaryTailnetIPv4 } from "../infra/tailnet.js";
 import { isWSL } from "../infra/wsl.js";
+import { movePathToTrash } from "../browser/trash.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { stylePromptTitle } from "../terminal/prompt-style.js";
 import {
@@ -300,7 +301,7 @@ export async function moveToTrash(pathname: string, runtime: RuntimeEnv): Promis
     return;
   }
   try {
-    await runCommandWithTimeout(["trash", pathname], { timeoutMs: 5000 });
+    await movePathToTrash(pathname);
     runtime.log(`Moved to Trash: ${shortenHomePath(pathname)}`);
   } catch {
     runtime.log(`Failed to move to Trash (manual delete): ${shortenHomePath(pathname)}`);
