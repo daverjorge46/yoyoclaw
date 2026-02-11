@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -72,6 +73,26 @@ def _build_args_summary(tool_name: str, args: dict) -> str:
 
 
 
+_HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
+
+
+def _read_pubkey_hex(path: str) -> str:
+    """Read a public key file and return its content as a lowercase hex string.
+
+    If the file already contains ASCII hex text (even length, hex-only chars),
+    return it directly (lowercased).  Otherwise treat as raw binary and
+    hex-encode once.
+    """
+    raw = Path(path).read_bytes()
+    try:
+        text = raw.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return raw.hex()
+    if len(text) > 0 and len(text) % 2 == 0 and _HEX_RE.match(text):
+        return text.lower()
+    return raw.hex()
+
+
 def evaluate(
     tool_name: str,
     args: dict,
@@ -104,7 +125,7 @@ def evaluate(
 
     # Load keys and policy
     key_bytes = Path(key_path).read_bytes()
-    pub_hex = Path(pubkey_path).read_bytes().hex()
+    pub_hex = _read_pubkey_hex(pubkey_path)
     if policy_file:
         policy_path = Path(policy_file)
     else:
