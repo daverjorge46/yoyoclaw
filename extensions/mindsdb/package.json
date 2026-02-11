@@ -1,0 +1,19 @@
+{
+  "name": "@openclaw/mindsdb",
+  "version": "2026.2.10",
+  "description": "OpenClaw MindsDB federated query plugin",
+  "type": "module",
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "install": {
+      "npmSpec": "@openclaw/mindsdb",
+      "localPath": "extensions/mindsdb",
+      "defaultChoice": "npm"
+    }
+  }
+}
