@@ -476,3 +476,50 @@ describe("prependSystemEvents", () => {
     vi.useRealTimers();
   });
 });
+
+describe("initSessionState preserves label on /new reset", () => {
+  async function createStorePath(prefix: string): Promise<string> {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
+    return path.join(root, "sessions.json");
+  }
+
+  it("retains session label after /new reset", async () => {
+    const storePath = await createStorePath("openclaw-label-reset-");
+    const sessionKey = "agent:main:telegram:dm:123456";
+    const existingSessionId = "existing-session-label";
+
+    const { saveSessionStore } = await import("../../config/sessions.js");
+    await saveSessionStore(storePath, {
+      [sessionKey]: {
+        sessionId: existingSessionId,
+        updatedAt: Date.now(),
+        label: "my-project",
+      },
+    });
+
+    const cfg = {
+      session: { store: storePath, idleMinutes: 999 },
+      channels: {},
+    } as OpenClawConfig;
+
+    const result = await initSessionState({
+      ctx: {
+        Body: "/new",
+        RawBody: "/new",
+        CommandBody: "/new",
+        From: "123456",
+        To: "bot",
+        ChatType: "direct",
+        SessionKey: sessionKey,
+        Provider: "telegram",
+        Surface: "telegram",
+      },
+      cfg,
+      commandAuthorized: true,
+    });
+
+    expect(result.isNewSession).toBe(true);
+    expect(result.sessionId).not.toBe(existingSessionId);
+    expect(result.sessionEntry.label).toBe("my-project");
+  });
+});

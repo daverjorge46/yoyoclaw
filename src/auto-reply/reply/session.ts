@@ -276,6 +276,7 @@ export async function initSessionState(params: {
     queueDebounceMs: baseEntry?.queueDebounceMs,
     queueCap: baseEntry?.queueCap,
     queueDrop: baseEntry?.queueDrop,
+    label: baseEntry?.label ?? entry?.label,
     displayName: baseEntry?.displayName,
     chatType: baseEntry?.chatType,
     channel: baseEntry?.channel,
