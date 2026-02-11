@@ -193,7 +193,6 @@ export function attachGatewayWsMessageHandler(params: {
   } = params;
 
   const configSnapshot = loadConfig();
-  const gatewayIdentity = resolveGatewayInstanceIdentity({ cfg: configSnapshot, env: process.env });
   const trustedProxies = configSnapshot.gateway?.trustedProxies ?? [];
   const clientIp = resolveGatewayClientIp({ remoteAddr, forwardedFor, realIp, trustedProxies });
 
@@ -854,7 +853,10 @@ export function attachGatewayWsMessageHandler(params: {
             commit: process.env.GIT_COMMIT,
             host: os.hostname(),
             connId,
-            identity: gatewayIdentity,
+            identity: resolveGatewayInstanceIdentity({
+              cfg: loadConfig(),
+              env: process.env,
+            }),
           },
           features: { methods: gatewayMethods, events },
           snapshot,

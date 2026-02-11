@@ -85,7 +85,7 @@ Gateway → Client:
     "version": "…",
     "connId": "…",
     "identity": {
-      "kind": "fork",
+      "kind": "upstream",
       "mode": "auto",
       "source": "default"
     }

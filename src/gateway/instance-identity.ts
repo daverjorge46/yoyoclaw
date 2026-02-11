@@ -3,9 +3,9 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 export const GATEWAY_IDENTITY_MODE_ENV = "OPENCLAW_GATEWAY_IDENTITY_MODE";
 
-// This fork reports itself as "fork" by default.
-// Compatibility testing can override this to "upstream".
-export const DEFAULT_GATEWAY_IDENTITY_KIND: GatewayIdentityKind = "fork";
+// Upstream reports itself as "upstream" by default.
+// Forks can override via config/env (or patch this constant in distribution builds).
+export const DEFAULT_GATEWAY_IDENTITY_KIND: GatewayIdentityKind = "upstream";
 
 type GatewayIdentitySource = "default" | "config" | "env";
 

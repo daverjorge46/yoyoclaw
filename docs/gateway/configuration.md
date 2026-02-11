@@ -3050,7 +3050,7 @@ Auth and Tailscale:
 Gateway identity metadata:
 
 - `gateway.identity.mode` controls the identity emitted in `hello-ok.server.identity`.
-  - `auto` (default): report the build default (`fork` in this distribution)
+  - `auto` (default): report the build default (`upstream` in core; forks may override)
   - `upstream`: force `upstream` identity (compatibility testing)
   - `fork`: force `fork` identity
 - `OPENCLAW_GATEWAY_IDENTITY_MODE` can override config at runtime (`auto|upstream|fork`).

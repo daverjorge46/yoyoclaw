@@ -217,7 +217,7 @@ export type GatewayIdentityMode = "auto" | GatewayIdentityKind;
 export type GatewayIdentityConfig = {
   /**
    * Identity mode exposed in gateway metadata.
-   * - auto: reports this build's default identity (fork in this distribution)
+   * - auto: reports this build's default identity (upstream in core; forks may override)
    * - upstream: force upstream identity (compatibility testing)
    * - fork: force fork identity
    */
