@@ -120,13 +120,13 @@ describe("resolveMemoryFilePath", () => {
   it("generates date-based path", () => {
     const date = new Date(2025, 0, 15);
     const filePath = resolveMemoryFilePath("/memory", date);
-    expect(filePath).toBe("/memory/2025-01-15.md");
+    expect(filePath).toBe(path.join("/memory", "2025-01-15.md"));
   });
 
   it("pads month and day", () => {
     const date = new Date(2025, 2, 5);
     const filePath = resolveMemoryFilePath("/memory", date);
-    expect(filePath).toBe("/memory/2025-03-05.md");
+    expect(filePath).toBe(path.join("/memory", "2025-03-05.md"));
   });
 });
 
