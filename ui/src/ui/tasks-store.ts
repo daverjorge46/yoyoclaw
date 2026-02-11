@@ -17,22 +17,34 @@ export type TaskItem = {
 
 export type TaskStore = {
   currentEndeavor?: string;
+  currentEndeavorStatus?: string;
+  currentEndeavorEta?: string;
   topOutcomes: string[];
   tasks: TaskItem[];
 };
 
 export function loadTaskStore(): TaskStore {
   if (typeof window === "undefined") {
-    return { currentEndeavor: "", topOutcomes: [], tasks: [] };
+    return {
+      currentEndeavor: "",
+      currentEndeavorStatus: "",
+      currentEndeavorEta: "",
+      topOutcomes: [],
+      tasks: [],
+    };
   }
   try {
     const raw = window.localStorage.getItem(TASK_STORE_KEY);
     if (!raw) {
-      return { currentEndeavor: "", topOutcomes: [], tasks: [] };
+      return { currentEndeavor: "", currentEndeavorStatus: "", currentEndeavorEta: "", topOutcomes: [], tasks: [] };
     }
     const parsed = JSON.parse(raw) as Partial<TaskStore>;
     return {
       currentEndeavor: typeof parsed.currentEndeavor === "string" ? parsed.currentEndeavor : "",
+      currentEndeavorStatus:
+        typeof parsed.currentEndeavorStatus === "string" ? parsed.currentEndeavorStatus : "",
+      currentEndeavorEta:
+        typeof parsed.currentEndeavorEta === "string" ? parsed.currentEndeavorEta : "",
       topOutcomes: Array.isArray(parsed.topOutcomes)
         ? parsed.topOutcomes.filter((entry) => typeof entry === "string")
         : [],
@@ -76,7 +88,13 @@ export function loadTaskStore(): TaskStore {
         : [],
     };
   } catch {
-    return { currentEndeavor: "", topOutcomes: [], tasks: [] };
+    return {
+      currentEndeavor: "",
+      currentEndeavorStatus: "",
+      currentEndeavorEta: "",
+      topOutcomes: [],
+      tasks: [],
+    };
   }
 }
 

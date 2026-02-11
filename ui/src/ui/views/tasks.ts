@@ -105,7 +105,16 @@ export function renderTasks() {
             class="btn btn--sm"
             @click=${() => {
               const next = (window.prompt("Set current endeavor", store.currentEndeavor || "") || "").trim();
-              const updated = { ...store, currentEndeavor: next };
+              const status =
+                (window.prompt("Set endeavor status (e.g. In Progress / Blocked / Review)", store.currentEndeavorStatus || "") || "").trim();
+              const eta =
+                (window.prompt("Set estimated delivery (e.g. 2d / Friday EOD / 2026-02-14)", store.currentEndeavorEta || "") || "").trim();
+              const updated = {
+                ...store,
+                currentEndeavor: next,
+                currentEndeavorStatus: status,
+                currentEndeavorEta: eta,
+              };
               saveTaskStore(updated);
               window.location.reload();
             }}
@@ -113,10 +122,16 @@ export function renderTasks() {
             Set Endeavor
           </button>
         </div>
-        <div style="margin-top: 10px;">
+
+        <div class="callout" style="margin-top: 12px;">
+          <div style="font-weight: 600; margin-bottom: 6px;">Main Activity</div>
           ${store.currentEndeavor
-            ? html`<strong>${store.currentEndeavor}</strong>`
-            : html`<span class="muted">No current endeavor set. Suggestion: "Rook + Martin: AI-first task system"</span>`}
+            ? html`<div style="margin-bottom: 8px;"><strong>${store.currentEndeavor}</strong></div>`
+            : html`<div class="muted" style="margin-bottom: 8px;">No current endeavor set. Suggestion: "Rook + Martin: AI-first task system"</div>`}
+          <div class="row" style="gap: 10px; flex-wrap: wrap;">
+            <span class="pill"><span>Status</span><span class="mono">${store.currentEndeavorStatus || "n/a"}</span></span>
+            <span class="pill"><span>ETA</span><span class="mono">${store.currentEndeavorEta || "n/a"}</span></span>
+          </div>
         </div>
       </div>
 
