@@ -178,3 +178,12 @@ openclaw channels status
 进入企微客户端，选择「工作台」，找到 Openclaw 的 Agent 应用，进行对话测试
 ![agent test](../images/wecom-step4-agent-test.png)
 ![agent talk](../images/wecom-step4-agent-talk.png)
+
+## 5. 双模式测试
+
+同时启用 Bot 和 Agent 后，插件采用「Bot 优先 + Agent 兜底」策略，自动选择最优通道。
+
+将 Bot 拉入群聊，在群聊中 @Bot 对话即可体验全部双模式能力（流式回复 + 文件发送 + 超时接力）。
+
+![dual mode launch](../images/wecom-step4-dual-mode-launch.png)
+![dual mode test](../images/wecom-step4-dual-model-test.png)
