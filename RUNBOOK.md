@@ -330,4 +330,63 @@ For the default "main" agent: `~/clawd/memory/ingest/`
 
 ---
 
+## 11) File Listing (`list_local_files`)
+
+### 11.1 Overview
+
+Sophie can list files in allowlisted local directories via the `list_local_files` tool. Only directories under the agent workspace or `SOPHIE_INGEST_ROOT` are permitted.
+
+### 11.2 Usage
+
+- **Tool:** `list_local_files`
+- **Parameters:**
+  - `root` (required) -- absolute path to the directory to list
+  - `glob` (optional) -- extension filter (e.g., `*.md`, `*.txt`)
+  - `max_results` (optional) -- maximum files to return (default: 100, max: 1000)
+- **Allowlisted roots:** `{workspaceDir}` and `SOPHIE_INGEST_ROOT` (default: `~/Documents/SOPHIE_INGEST/`)
+
+### 11.3 Output
+
+Returns `{ root, files: [{ path, size, modifiedAt }], count, truncated, errors }`. File paths are relative to the requested root. Symlinks appear in `errors[]` as `symlink_skipped`.
+
+---
+
+## 12) Fail-Closed Rule
+
+All local file tools (`ingest_local_file`, `list_local_files`, `memory_search`) follow fail-closed behavior:
+
+- **Tool failure => state error and stop.** No inferred file inventories.
+- Directory not found => throw (not empty result)
+- Directory unreadable => throw
+- Path outside allowlist => throw
+- If a tool cannot confirm a listing, index, or search result, it throws. It never returns fabricated data.
+- Per-entry errors (e.g., unreadable files, symlinks) are recorded in `errors[]` -- not silently dropped.
+
+---
+
+## 13) Tool Setup Checklist
+
+### 13.1 Prerequisites
+
+| Tool | Required Config | Required Env | Default |
+|------|----------------|--------------|---------|
+| `memory_search` | `agents.defaults.memorySearch.provider = "local"` | -- | provider disabled without config |
+| `ingest_local_file` | `workspaceDir` resolved | `SOPHIE_INGEST_ROOT` (optional) | `~/Documents/SOPHIE_INGEST/` |
+| `list_local_files` | `workspaceDir` resolved | `SOPHIE_INGEST_ROOT` (optional) | `~/Documents/SOPHIE_INGEST/` |
+
+### 13.2 Local Embeddings (memory_search)
+
+Set in `~/.clawdbot-dev/moltbot.json`:
+```json
+"agents": { "defaults": { "memorySearch": { "provider": "local" } } }
+```
+
+Model: `embeddinggemma-300M-Q8_0.gguf` (328MB, auto-downloaded to `~/.node-llama-cpp/models/`). Zero API keys needed.
+
+### 13.3 Verify Tool Availability
+
+After `pnpm dev:up`, tools should appear in the agent's tool list. If a tool returns `null` from its factory, it will not be registered. Common cause: missing `workspaceDir` or `config`.
+
+---
+
 **End of runbook.**

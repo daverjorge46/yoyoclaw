@@ -89,6 +89,17 @@
 - **Branch:** main
 - **Completed:** 2026-02-10
 
+### TOOLS-002: Add list_local_files tool with allowlist enforcement
+- **Status:** COMPLETED
+- **Type:** feature
+- **Prerequisites:** INGEST-001 (completed)
+- **Definition of Done:** New tool `list_local_files` at `src/agents/tools/list-files-tool.ts`. Registered in `moltbot-tools.ts`. Tests pass: factory null, allowlist rejection (/etc, /Users), workspace listing, ingest root listing, glob filter, max_results cap, nonexistent dir throws, symlink in errors[], subdirectory walk. RUNBOOK.md updated with sections 11-13 (fail-closed rule, tool setup checklist). `pnpm lint && pnpm test && pnpm build` all pass.
+- **Max Diff:** ~250 lines (2 new files, 3 minimal edits)
+- **Notes:** Manual directory walk (readdir + withFileTypes + stack). No new dependencies. Per-entry errors in errors[] (not silent skip). Symlinks recorded as symlink_skipped. 10 tests, all pass.
+- **Assigned:** claude-code
+- **Branch:** main
+- **Completed:** 2026-02-11
+
 ---
 
 ## 2) Example Tasks (FOR REFERENCE ONLY -- DO NOT EXECUTE)
