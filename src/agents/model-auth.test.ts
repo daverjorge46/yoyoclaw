@@ -545,10 +545,16 @@ describe("getApiKeyForModel", () => {
       expect(resolved?.apiKey).toBe("hf_hub_xyz");
       expect(resolved?.source).toContain("HUGGINGFACE_HUB_TOKEN");
     } finally {
-      if (prevHub === undefined) delete process.env.HUGGINGFACE_HUB_TOKEN;
-      else process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
-      if (prevHf === undefined) delete process.env.HF_TOKEN;
-      else process.env.HF_TOKEN = prevHf;
+      if (prevHub === undefined) {
+        delete process.env.HUGGINGFACE_HUB_TOKEN;
+      } else {
+        process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
+      }
+      if (prevHf === undefined) {
+        delete process.env.HF_TOKEN;
+      } else {
+        process.env.HF_TOKEN = prevHf;
+      }
     }
   });
 
@@ -564,10 +570,16 @@ describe("getApiKeyForModel", () => {
       expect(resolved?.apiKey).toBe("hf_hub_first");
       expect(resolved?.source).toContain("HUGGINGFACE_HUB_TOKEN");
     } finally {
-      if (prevHub === undefined) delete process.env.HUGGINGFACE_HUB_TOKEN;
-      else process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
-      if (prevHf === undefined) delete process.env.HF_TOKEN;
-      else process.env.HF_TOKEN = prevHf;
+      if (prevHub === undefined) {
+        delete process.env.HUGGINGFACE_HUB_TOKEN;
+      } else {
+        process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
+      }
+      if (prevHf === undefined) {
+        delete process.env.HF_TOKEN;
+      } else {
+        process.env.HF_TOKEN = prevHf;
+      }
     }
   });
 
@@ -583,10 +595,16 @@ describe("getApiKeyForModel", () => {
       expect(resolved?.apiKey).toBe("hf_abc123");
       expect(resolved?.source).toContain("HF_TOKEN");
     } finally {
-      if (prevHub === undefined) delete process.env.HUGGINGFACE_HUB_TOKEN;
-      else process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
-      if (prevHf === undefined) delete process.env.HF_TOKEN;
-      else process.env.HF_TOKEN = prevHf;
+      if (prevHub === undefined) {
+        delete process.env.HUGGINGFACE_HUB_TOKEN;
+      } else {
+        process.env.HUGGINGFACE_HUB_TOKEN = prevHub;
+      }
+      if (prevHf === undefined) {
+        delete process.env.HF_TOKEN;
+      } else {
+        process.env.HF_TOKEN = prevHf;
+      }
     }
   });
 });
