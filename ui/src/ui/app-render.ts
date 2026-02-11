@@ -3,8 +3,8 @@ import type { AppViewState } from "./app-view-state.ts";
 import { refreshChatAvatar } from "./app-chat.ts";
 import {
   debouncedLoadUsage,
+  resolveDashboardAssistantAvatarUrl,
   renderConfigTopbarMeta,
-  resolveAssistantAvatarUrl,
   warmConfigRender,
 } from "./app-render.config.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
@@ -82,7 +82,7 @@ export function renderApp(state: AppViewState) {
   const isConfig = state.tab === "config";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
-  const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
+  const assistantAvatarUrl = resolveDashboardAssistantAvatarUrl(state);
   const chatAvatarUrl = state.chatAvatarUrl ?? assistantAvatarUrl ?? null;
   const configValue =
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);

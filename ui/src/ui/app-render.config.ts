@@ -81,7 +81,7 @@ export function warmConfigRender(state: AppViewState, reset = false) {
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
-export function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
+export function resolveDashboardAssistantAvatarUrl(state: AppViewState): string | undefined {
   const list = state.agentsList?.agents ?? [];
   const parsed = parseAgentSessionKey(state.sessionKey);
   const agentId = parsed?.agentId ?? state.agentsList?.defaultId ?? "main";
