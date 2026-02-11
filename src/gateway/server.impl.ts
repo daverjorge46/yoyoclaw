@@ -407,39 +407,18 @@ export async function startGatewayServer(
       function hasSpixiChannel(obj: unknown): obj is {
         channel: { spixi: { sendMessage: (to: string, text: string) => Promise<void> } };
       } {
+        if (typeof obj !== "object" || obj === null || !("channel" in obj)) {
+          return false;
+        }
+        const channel = (obj as { channel?: unknown }).channel;
+        if (typeof channel !== "object" || channel === null || !("spixi" in channel)) {
+          return false;
+        }
+        const spixi = (channel as { spixi?: unknown }).spixi;
         return (
-          typeof obj === "object" &&
-          obj !== null &&
-          "channel" in obj &&
-          typeof (obj as unknown as { channel?: unknown }).channel === "object" &&
-          (obj as unknown as { channel?: unknown }).channel !== null &&
-          (() => {
-            const channel = (obj as unknown as { channel?: unknown }).channel;
-            if (typeof channel === "object" && channel !== null) {
-              return "spixi" in channel;
-            }
-            return false;
-          })() &&
-          (() => {
-            const channel = (obj as unknown as { channel?: unknown }).channel;
-            if (typeof channel === "object" && channel !== null && "spixi" in channel) {
-              const spixi = (channel as { spixi?: unknown }).spixi;
-              return typeof spixi === "object" && spixi !== null;
-            }
-            return false;
-          })() &&
-          (() => {
-            const channel = (obj as unknown as { channel?: unknown }).channel;
-            if (typeof channel === "object" && channel !== null && "spixi" in channel) {
-              const spixi = (channel as { spixi?: unknown }).spixi;
-              return (
-                typeof spixi === "object" &&
-                spixi !== null &&
-                typeof (spixi as { sendMessage?: unknown }).sendMessage === "function"
-              );
-            }
-            return false;
-          })()
+          typeof spixi === "object" &&
+          spixi !== null &&
+          typeof (spixi as { sendMessage?: unknown }).sendMessage === "function"
         );
       }
       if (hasSpixiChannel(runtime)) {
