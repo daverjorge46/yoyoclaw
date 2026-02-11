@@ -6,20 +6,6 @@ Add DashScope API Key authentication for Qwen provider in OpenClaw.
 
 This PR enables users to authenticate with Qwen using DashScope API keys, complementing the existing OAuth flow. Supports both International (Singapore) and China regions with 9 verified models.
 
-## Quick Start
-
-```bash
-# Interactive setup
-openclaw models auth login --provider qwen-portal
-# Select "Qwen API Key (DashScope)"
-# Choose region: International or China
-# Enter API key: sk-...
-
-# Or use environment variable
-export QWEN_API_KEY="sk-your-key"
-openclaw restart
-```
-
 ## Changes
 
 ### Modified Files (5)
@@ -32,191 +18,108 @@ openclaw restart
 
 **Total**: ~185 lines changed (163 added, 16 removed)
 
-### New Features
+## New Features
 
-- API Key authentication (paid tier)
+- API Key authentication for paid DashScope tier
 - Region selection: International (Singapore) / China
 - Auto-configuration of correct endpoint based on region
 - 9 verified models (tested against live APIs)
-- Environment variable support
+- Environment variable support: `QWEN_API_KEY`
 - Onboard wizard integration
 
-### Supported Models
+## Supported Models
 
 All models verified in both International and China regions:
 
-**Coding**: qwen3-coder-plus, qwen-coder-plus, qwen3-coder-flash  
-**General**: qwen3-max, qwen-max, qwen-plus, qwen-turbo  
-**Vision**: qwen3-vl-plus, qwen-vl-plus
+**Coding Models**
+
+- qwen3-coder-plus (alias: qwen3-coder)
+- qwen-coder-plus (alias: qwen-coder)
+- qwen3-coder-flash
+
+**General Models**
+
+- qwen3-max
+- qwen-max
+- qwen-plus (alias: qwen)
+- qwen-turbo
+
+**Vision Models**
+
+- qwen3-vl-plus
+- qwen-vl-plus
 
 ## Region Configuration
 
 ### International (Singapore)
 
-- **Endpoint**: `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`
-- **Get API Key**: https://www.alibabacloud.com/help/en/model-studio/
+- Endpoint: `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`
+- For users outside mainland China
+- Documentation: https://www.alibabacloud.com/help/en/model-studio/
 
 ### China
 
-- **Endpoint**: `https://dashscope.aliyuncs.com/compatible-mode/v1`
-- **Get API Key**: https://dashscope.aliyuncs.com/
+- Endpoint: `https://dashscope.aliyuncs.com/compatible-mode/v1`
+- For users in mainland China
+- Documentation: https://dashscope.aliyuncs.com/
 
-**Note**: API keys are region-specific and not interchangeable.
-
-## Usage Examples
-
-```bash
-# Use default model
-openclaw chat "Hello, write a quicksort algorithm"
-
-# Specify model
-openclaw chat --model qwen3-coder "Implement binary search"
-openclaw chat --model qwen3-max "Explain quantum computing"
-
-# Use model alias
-openclaw chat --model qwen3-coder "Debug this code"  # alias for qwen3-coder-plus
-```
+Note: API keys are region-specific and not interchangeable between endpoints.
 
 ## Testing
 
 ### Automated Test
 
-```bash
-./test-qwen-apikey.sh
-```
+Test script verifies all code changes and runs build.
 
-### Verification Done
+### Verification Completed
 
 - International region tested with real API key
 - China region tested with real API key
-- All 9 models verified via API
-- OAuth flow still works (no regression)
-- Build passes without errors
+- All 9 models verified against live APIs
+- OAuth flow unchanged (no regression)
+- TypeScript compilation successful
 
-## Configuration Example
+## Implementation Details
 
-After setup, your `~/.openclaw/openclaw.json` will contain:
+### Authentication Flow
 
-```json
-{
-  "models": {
-    "providers": {
-      "qwen-portal": {
-        "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-        "apiKey": "profile:qwen-portal:default",
-        "api": "openai-completions",
-        "models": [
-          {"id": "qwen-plus", "name": "Qwen Plus", ...},
-          {"id": "qwen3-coder-plus", "name": "Qwen3 Coder Plus", ...}
-        ]
-      }
-    }
-  },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "qwen-portal/qwen3-coder-plus"
-      }
-    }
-  }
-}
-```
+User selects API Key → Choose region → Enter key → Validate format → Auto-configure endpoint → Save to profile
 
-And `~/.openclaw/agents/main/agent/auth-profiles.json`:
+### Plugin Pattern
 
-```json
-{
-  "profiles": {
-    "qwen-portal:default": {
-      "type": "api_key",
-      "provider": "qwen-portal",
-      "key": "sk-your-key"
-    }
-  }
-}
-```
+Follows existing OpenClaw plugin authentication patterns:
+
+- Region selection via `ctx.prompter.select`
+- API key input via `ctx.prompter.text` with format validation
+- Returns standard `AuthResult` structure
+- Integrates with auth profile system
 
 ## Backwards Compatibility
 
 - No breaking changes
 - Existing OAuth users unaffected
-- All existing tests pass
-- Configurations remain valid
+- All configurations remain valid
+- Existing tests pass
 
 ## Security
 
-- API keys stored securely in auth-profiles.json
-- Input validation (checks for `sk-` prefix)
-- No secrets committed
-- Environment variable support for CI/CD
+- API keys stored in auth-profiles.json with restricted file permissions
+- Input validation enforces `sk-` prefix format
+- No secrets committed to repository
+- Supports environment variables for automation
 
-## Troubleshooting
-
-**Invalid API Key**: Verify key format and expiration  
-**Wrong Region**: International keys don't work with China endpoint  
-**Model Not Found**: Use correct model IDs (see supported models above)
-
-## OAuth vs API Key
+## OAuth vs API Key Comparison
 
 | Feature  | OAuth (Free)   | API Key (Paid)                 |
 | -------- | -------------- | ------------------------------ |
-| Setup    | Browser login  | Copy API key                   |
+| Setup    | Browser login  | Direct API key                 |
 | Cost     | Free tier      | Pay per use                    |
 | Endpoint | portal.qwen.ai | dashscope-intl/cn.aliyuncs.com |
-| Models   | 2 models       | 9+ models                      |
-| Best For | Testing        | Production                     |
-
-## Technical Details
-
-### Authentication Flow
-
-```
-User selects API Key → Choose region → Enter key → Validate format →
-Auto-configure endpoint → Save to profile → Ready
-```
-
-### Implementation Pattern
-
-Follows existing plugin authentication patterns:
-
-- Uses `ctx.prompter.select` for region
-- Uses `ctx.prompter.text` with validation for API key
-- Returns standard `AuthResult` with profiles and configPatch
-- Integrates with existing auth profile system
-
-## Files Structure
-
-```
-src/
-├── agents/model-auth.ts                      (env variable)
-└── commands/
-    ├── onboard-types.ts                      (type def)
-    ├── auth-choice-options.ts                (wizard option)
-    └── auth-choice.apply.qwen-portal.ts      (routing)
-extensions/
-└── qwen-portal-auth/
-    └── index.ts                              (main implementation)
-test-qwen-apikey.sh                           (automated test)
-README_QWEN_API_KEY.md                        (this file)
-```
-
-## Contributing
-
-To test this feature:
-
-1. Run `./test-qwen-apikey.sh` to verify build
-2. Get a DashScope API key (International or China)
-3. Run `openclaw models auth login --provider qwen-portal`
-4. Select "Qwen API Key" and follow prompts
-5. Test with `openclaw chat "test message"`
-
-## License
-
-Same as OpenClaw project license.
+| Models   | 2              | 9+                             |
+| Use Case | Testing        | Production                     |
 
 ---
 
 **Status**: Ready for review  
-**Version**: 1.0  
 **Last Updated**: 2026-02-11  
-**Tested Regions**: International (SG), China
+**Tested**: International (SG) + China regions with real API keys
