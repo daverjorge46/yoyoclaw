@@ -417,6 +417,10 @@ importers:
         version: link:../..
 
   extensions/mindsdb:
+    dependencies:
+      '@sinclair/typebox':
+        specifier: 0.34.48
+        version: 0.34.48
     devDependencies:
       openclaw:
         specifier: workspace:*

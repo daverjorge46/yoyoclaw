@@ -3,6 +3,9 @@
   "version": "2026.2.10",
   "description": "OpenClaw MindsDB federated query plugin",
   "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48"
+  },
   "devDependencies": {
     "openclaw": "workspace:*"
   },
