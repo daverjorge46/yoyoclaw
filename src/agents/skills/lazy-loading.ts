@@ -1,4 +1,5 @@
 import type { Skill } from "@mariozechner/pi-coding-agent";
+import fs from "node:fs";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { SkillEntry, SkillSnapshot } from "./types.js";
 
@@ -79,7 +80,12 @@ export function resolveSkillContent(
     };
   }
 
-  return { content: match.content ?? `Skill "${match.name}" has no content.`, found: true };
+  try {
+    const raw = fs.readFileSync(match.filePath, "utf-8");
+    return { content: raw || `Skill "${match.name}" has no content.`, found: true };
+  } catch {
+    return { content: `Skill "${match.name}" could not be loaded.`, found: false };
+  }
 }
 
 /**

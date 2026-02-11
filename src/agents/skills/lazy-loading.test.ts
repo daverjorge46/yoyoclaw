@@ -1,5 +1,5 @@
 import type { Skill } from "@mariozechner/pi-coding-agent";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SkillEntry } from "./types.js";
 import {
   buildCompactSkillIndex,
@@ -8,20 +8,40 @@ import {
   resolveSkillContent,
 } from "./lazy-loading.js";
 
+/** Map from filePath → content, used by the fs mock. */
+const fileContents = new Map<string, string>();
+
+vi.mock("node:fs", () => ({
+  default: {
+    readFileSync: (path: string) => {
+      const content = fileContents.get(path);
+      if (content === undefined) throw new Error(`ENOENT: no such file ${path}`);
+      return content;
+    },
+  },
+}));
+
 function makeSkillEntry(name: string, description: string, content = ""): SkillEntry {
+  const filePath = `/skills/${name}/SKILL.md`;
+  fileContents.set(filePath, content);
   return {
     skill: {
       name,
       description,
-      content,
-      filePath: `/skills/${name}/SKILL.md`,
+      filePath,
       baseDir: `/skills/${name}`,
-    } as Skill,
+      source: "test",
+      disableModelInvocation: false,
+    },
     frontmatter: {},
     metadata: {},
     invocation: {},
   };
 }
+
+beforeEach(() => {
+  fileContents.clear();
+});
 
 describe("resolveLazySkillLoadingConfig", () => {
   it("defaults to disabled", () => {
@@ -62,41 +82,42 @@ describe("buildCompactSkillIndex", () => {
       makeSkillEntry("skill3", "Third skill", longContent),
     ];
     const compactIndex = buildCompactSkillIndex(entries);
-    const fullContent = entries.map((e) => e.skill.content).join("\n");
-    expect(compactIndex.length).toBeLessThan(fullContent.length * 0.1);
+    const fullContentLength = longContent.length * 3;
+    expect(compactIndex.length).toBeLessThan(fullContentLength * 0.1);
   });
 });
 
 describe("resolveSkillContent", () => {
-  const skills: Skill[] = [
-    {
-      name: "weather",
-      description: "Get weather",
-      content: "Full weather skill content here...",
-      filePath: "/skills/weather/SKILL.md",
-      baseDir: "/skills/weather",
-    } as Skill,
-    {
-      name: "github",
-      description: "GitHub integration",
-      content: "Full GitHub skill content here...",
-      filePath: "/skills/github/SKILL.md",
-      baseDir: "/skills/github",
-    } as Skill,
-  ];
-
   it("returns full content for matching skill", () => {
+    const entries = [
+      makeSkillEntry("weather", "Get weather"),
+      makeSkillEntry("github", "GitHub integration"),
+    ];
+    fileContents.set("/skills/weather/SKILL.md", "Full weather skill content here...");
+    fileContents.set("/skills/github/SKILL.md", "Full GitHub skill content here...");
+    const skills = entries.map((e) => e.skill);
+
     const result = resolveSkillContent("weather", skills);
     expect(result.found).toBe(true);
     expect(result.content).toBe("Full weather skill content here...");
   });
 
   it("is case-insensitive", () => {
+    const entries = [makeSkillEntry("weather", "Get weather")];
+    fileContents.set("/skills/weather/SKILL.md", "weather content");
+    const skills = entries.map((e) => e.skill);
+
     const result = resolveSkillContent("Weather", skills);
     expect(result.found).toBe(true);
   });
 
   it("returns error for unknown skill", () => {
+    const entries = [
+      makeSkillEntry("weather", "Get weather"),
+      makeSkillEntry("github", "GitHub integration"),
+    ];
+    const skills = entries.map((e) => e.skill);
+
     const result = resolveSkillContent("unknown", skills);
     expect(result.found).toBe(false);
     expect(result.content).toContain("not found");
