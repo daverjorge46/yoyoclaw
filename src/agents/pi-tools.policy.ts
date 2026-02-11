@@ -97,11 +97,19 @@ const DEFAULT_SUBAGENT_TOOL_DENY = [
   "memory_get",
 ];
 
-function isNestedSpawnEnabledForSession(cfg?: OpenClawConfig, sessionKey?: string): boolean {
-  if (!cfg || !isSubagentSessionKey(sessionKey)) {
+function isNestedSpawnEnabledForSession(
+  cfg?: OpenClawConfig,
+  opts?: { sessionKey?: string; agentId?: string; forceSubagent?: boolean },
+): boolean {
+  if (!cfg) {
     return false;
   }
-  const agentId = resolveAgentIdFromSessionKey(sessionKey);
+  const sessionKey = opts?.sessionKey;
+  const isSubagent = opts?.forceSubagent ?? isSubagentSessionKey(sessionKey);
+  if (!isSubagent) {
+    return false;
+  }
+  const agentId = opts?.agentId ? opts.agentId : resolveAgentIdFromSessionKey(sessionKey);
   const agentConfig = resolveAgentConfig(cfg, agentId);
   return (
     agentConfig?.subagents?.allowNestedSpawns ??
@@ -112,10 +120,10 @@ function isNestedSpawnEnabledForSession(cfg?: OpenClawConfig, sessionKey?: strin
 
 export function resolveSubagentToolPolicy(
   cfg?: OpenClawConfig,
-  opts?: { sessionKey?: string },
+  opts?: { sessionKey?: string; agentId?: string; forceSubagent?: boolean },
 ): SandboxToolPolicy {
   const configured = cfg?.tools?.subagents?.tools;
-  const nestedSpawnEnabled = isNestedSpawnEnabledForSession(cfg, opts?.sessionKey);
+  const nestedSpawnEnabled = isNestedSpawnEnabledForSession(cfg, opts);
   const deny = [
     ...DEFAULT_SUBAGENT_TOOL_DENY,
     ...(nestedSpawnEnabled ? [] : ["sessions_spawn"]),

@@ -349,6 +349,28 @@ describe("createOpenClawCodingTools", () => {
     expect(names.has("sessions_send")).toBe(false);
   });
 
+  it("keeps sessions_spawn for alias-like sub-agent sessions when nested spawning is enabled", () => {
+    const tools = createOpenClawCodingTools({
+      sessionKey: "main",
+      spawnedBy: "agent:jobs:main",
+      agentDir: "/tmp/.openclaw/agents/jobs/agent",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "jobs",
+              subagents: {
+                allowNestedSpawns: true,
+              },
+            },
+          ],
+        },
+      },
+    });
+    const names = new Set(tools.map((tool) => tool.name));
+    expect(names.has("sessions_spawn")).toBe(true);
+  });
+
   it("supports allow-only sub-agent tool policy", () => {
     const tools = createOpenClawCodingTools({
       sessionKey: "agent:main:subagent:test",
