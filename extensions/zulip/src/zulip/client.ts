@@ -278,16 +278,23 @@ export async function registerZulipQueue(
   const eventTypes = params.eventTypes ?? ["message"];
   body.set("event_types", JSON.stringify(eventTypes));
   body.set("event_queue_longpoll_timeout_seconds", "90");
-  if (params.streams && params.streams.length > 0 && !params.streams.includes("*")) {
-    // Zulip /register expects the "narrow" parameter in the legacy format:
-    //   [["stream", "general"], ["topic", "foo"], ...]
-    // Some deployments reject the newer object format ({operator, operand}) with:
-    //   "narrow[0] is not a list".
-    const narrow = params.streams.map((stream) => ["stream", stream]);
-    body.set("narrow", JSON.stringify(narrow));
-  }
   if (params.streams?.includes("*")) {
     body.set("all_public_streams", "true");
+  } else if (params.streams && params.streams.length > 0) {
+    // IMPORTANT: Zulip narrow filters are ANDed.
+    // A narrow like [["stream","a"],["stream","b"]] matches nothing.
+    // So:
+    // - if exactly one stream is requested, use a stream narrow
+    // - if multiple streams are requested, register a broad queue and filter client-side
+    //   (we already drop messages outside account.streams in monitor.ts).
+    if (params.streams.length === 1) {
+      // Zulip /register expects the "narrow" parameter in the legacy format:
+      //   [["stream", "general"], ["topic", "foo"], ...]
+      // Some deployments reject the newer object format ({operator, operand}) with:
+      //   "narrow[0] is not a list".
+      const narrow = [["stream", params.streams[0]]];
+      body.set("narrow", JSON.stringify(narrow));
+    }
   }
 
   const payload = await client.request<
