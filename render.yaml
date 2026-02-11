@@ -5,6 +5,8 @@ services:
     plan: starter
     healthCheckPath: /health
     envVars:
+      - key: PORT
+        value: "8080"
       - key: OPENCLAW_GATEWAY_PORT
         value: "8080"
       - key: SETUP_PASSWORD
