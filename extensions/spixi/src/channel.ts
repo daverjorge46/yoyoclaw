@@ -146,17 +146,18 @@ export const spixiPlugin: ChannelPlugin<ResolvedSpixiAccount> = {
       client.on("connect", () => {
         log?.info(`[${account.accountId}] Spixi MQTT Connected`);
         client.subscribe("Chat");
-        client.subscribe("RequestAdd2");
-        client.subscribe("AcceptAdd2");
-      });
-
-      client.on("message", async (topic: string, message: mqtt.Packet) => {
-        const msgStr = message;
+      client.on("message", async (topic: string, message: Buffer) => {
+        let msgStr: string;
+        try {
+          msgStr = message.toString("utf-8");
+        } catch {
+          log?.warn(`[${account.accountId}] Failed to decode message on ${topic}`);
+          return;
+        }
         let data: unknown;
         try {
           data = JSON.parse(msgStr);
         } catch {
-          log?.warn(`[${account.accountId}] Received invalid JSON on ${topic}`);
           return;
         }
 
