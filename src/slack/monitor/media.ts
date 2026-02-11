@@ -226,12 +226,14 @@ export async function resolveSlackThreadReplies(params: {
   /** Maximum number of replies to fetch (default: 10). */
   limit?: number;
 }): Promise<SlackThreadReply[]> {
-  const limit = params.limit ?? 10;
+  // Clamp limit to valid range (Slack API max: 1000, default: 10).
+  const rawLimit = params.limit ?? 10;
+  const limit = Math.max(1, Math.min(rawLimit, 998));
   try {
     const response = (await params.client.conversations.replies({
       channel: params.channelId,
       ts: params.threadTs,
-      // Fetch more than limit to account for exclusions.
+      // Fetch more than limit to account for exclusions (starter + current message).
       limit: limit + 2,
       inclusive: true,
     })) as { messages?: Array<{ text?: string; user?: string; ts?: string }> };
