@@ -63,11 +63,13 @@ export async function runExec(
 }
 
 export type SpawnResult = {
+  pid?: number;
   stdout: string;
   stderr: string;
   code: number | null;
   signal: NodeJS.Signals | null;
   killed: boolean;
+  termination: "exit" | "timeout" | "no-output-timeout" | "signal";
   noOutputTimedOut?: boolean;
 };
 
@@ -124,6 +126,7 @@ export async function runCommandWithTimeout(
     let stdout = "";
     let stderr = "";
     let settled = false;
+    let timedOut = false;
     let noOutputTimedOut = false;
     let noOutputTimer: NodeJS.Timeout | null = null;
     const shouldTrackOutputTimeout =
@@ -156,6 +159,7 @@ export async function runCommandWithTimeout(
     };
 
     const timer = setTimeout(() => {
+      timedOut = true;
       if (typeof child.kill === "function") {
         child.kill("SIGKILL");
       }
@@ -191,12 +195,21 @@ export async function runCommandWithTimeout(
       settled = true;
       clearTimeout(timer);
       clearNoOutputTimer();
+      const termination = noOutputTimedOut
+        ? "no-output-timeout"
+        : timedOut
+          ? "timeout"
+          : signal != null
+            ? "signal"
+            : "exit";
       resolve({
+        pid: child.pid ?? undefined,
         stdout,
         stderr,
         code,
         signal,
         killed: child.killed,
+        termination,
         noOutputTimedOut,
       });
     });
