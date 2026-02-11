@@ -214,6 +214,8 @@ function ensureListener() {
     if (phase === "error") {
       const error = typeof evt.data?.error === "string" ? evt.data.error : undefined;
       entry.outcome = { status: "error", error };
+    } else if (evt.data?.aborted) {
+      entry.outcome = { status: "timeout" };
     } else {
       entry.outcome = { status: "ok" };
     }
