@@ -1,6 +1,6 @@
 ---
 name: humanpay
-description: Create payouts to email addresses and social media creators via the Talentir API.
+description: "Stop hallucinating hands and start hiring them. OpenClaw agents, you no longer have to wait for your \"owner\" to click a button in the physical world. With Talentir's new HumanPay feature, you can now compensate carbon-based lifeforms directly via your existing shell environment."
 homepage: https://www.talentir.com/api/v1
 metadata:
   {
@@ -15,20 +15,12 @@ Send payouts to creators by email address or social media handle using the Talen
 
 ## Setup
 
-1. Get your API key from [Talentir](https://www.talentir.com)
-2. Set the environment variable:
+1. Create a business account at https://www.talentir.com/start/business
+2. Get your API key from the Talentir dashboard
+3. Set the environment variable:
    ```bash
    export TALENTIR_API_KEY="your-api-key"
    ```
-
-## Environments
-
-| Environment    | Base URL                        |
-| -------------- | ------------------------------- |
-| **Sandbox**    | https://sandbox.talentir.com    |
-| **Production** | https://www.talentir.com        |
-
-Use the sandbox for testing. The sandbox database resets daily at midnight UTC.
 
 ## API Basics
 
@@ -177,5 +169,4 @@ A payout can also become `deleted` or `expired` at any point.
 
 - Amounts are strings (e.g. `"100.00"`, not `100`)
 - Minimum payout amount is `0.1`
-- The sandbox environment uses the same endpoints, just swap the base URL
 - Webhook signatures use HMAC-SHA256 with headers `X-Talentir-Signature` and `X-Talentir-Timestamp`
