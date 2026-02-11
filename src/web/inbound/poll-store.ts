@@ -4,6 +4,7 @@ export type StoredPoll = {
   question: string;
   options: string[];
   createdAt: number;
+  reportedVotes: Set<string>;
 };
 
 const POLL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -21,8 +22,8 @@ export function createPollStore() {
   };
 
   return {
-    store: (poll: StoredPoll) => {
-      polls.set(poll.messageId, poll);
+    store: (poll: Omit<StoredPoll, "reportedVotes">) => {
+      polls.set(poll.messageId, { ...poll, reportedVotes: new Set() });
       if (polls.size > 100) {
         cleanup();
       }
@@ -30,6 +31,16 @@ export function createPollStore() {
     get: (messageId: string): StoredPoll | undefined => {
       cleanup();
       return polls.get(messageId);
+    },
+    isVoteReported: (messageId: string, voterJid: string): boolean => {
+      const poll = polls.get(messageId);
+      return poll?.reportedVotes.has(voterJid) ?? false;
+    },
+    markVoteReported: (messageId: string, voterJid: string): void => {
+      const poll = polls.get(messageId);
+      if (poll) {
+        poll.reportedVotes.add(voterJid);
+      }
     },
   };
 }

@@ -402,6 +402,11 @@ export async function monitorWebInbox(options: {
       }
 
       for (const [voterJid, selectedOptions] of allVoters) {
+        if (pollStore.isVoteReported(pollMessageId, voterJid)) {
+          continue;
+        }
+        pollStore.markVoteReported(pollMessageId, voterJid);
+
         const voterE164 = await resolveInboundJid(voterJid);
         const voter = voterE164 ?? voterJid;
         const optionsText = selectedOptions.map((o) => `'${o}'`).join(", ");
