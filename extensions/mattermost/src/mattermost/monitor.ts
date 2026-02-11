@@ -427,7 +427,8 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
     const rawText = post.message?.trim() || "";
     const dmPolicy = account.config.dmPolicy ?? "pairing";
     const defaultGroupPolicy = cfg.channels?.defaults?.groupPolicy;
-    const groupPolicy = account.config.groupPolicy ?? defaultGroupPolicy ?? "allowlist";
+    const defaultGroupPolicyForMode = account.chatmode === "onmessage" ? "open" : "allowlist";
+    const groupPolicy = account.config.groupPolicy ?? defaultGroupPolicy ?? defaultGroupPolicyForMode;
     const configAllowFrom = normalizeAllowList(account.config.allowFrom ?? []);
     const configGroupAllowFrom = normalizeAllowList(account.config.groupAllowFrom ?? []);
     const storeAllowFrom = normalizeAllowList(
@@ -605,6 +606,7 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
         channel: "mattermost",
         accountId: account.accountId,
         groupId: channelId,
+        requireMentionOverride: account.requireMention,
       });
     const shouldBypassMention =
       isControlCommand && shouldRequireMention && !wasMentioned && commandAuthorized;
