@@ -1,5 +1,5 @@
 import type { AudioTranscriptionRequest, AudioTranscriptionResult } from "../../types.js";
-import { normalizeGoogleModelId } from "../../../agents/models-config.providers.js";
+import { normalizeGoogleModelId } from "../../../agents/provider-ids.js";
 import { fetchWithTimeoutGuarded, normalizeBaseUrl, readErrorResponse } from "../shared.js";
 
 export const DEFAULT_GOOGLE_AUDIO_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
