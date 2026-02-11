@@ -27,6 +27,7 @@ import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
+import { summarizeAgedToolResults } from "../../context-decay/summarizer.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
@@ -445,14 +446,17 @@ export async function runEmbeddedAttempt(
         minReserveTokens: resolveCompactionReserveTokensFloor(params.config),
       });
 
-      // Call for side effects (sets compaction/pruning runtime state)
-      buildEmbeddedExtensionPaths({
+      // Call for side effects (sets compaction/pruning/decay runtime state)
+      const extensionResult = buildEmbeddedExtensionPaths({
         cfg: params.config,
         sessionManager,
         provider: params.provider,
         modelId: params.modelId,
         model: params.model,
+        sessionKey: params.sessionKey,
+        sessionFile: params.sessionFile,
       });
+      const contextDecayConfig = extensionResult.contextDecayConfig;
 
       const { builtInTools, customTools } = splitSdkTools({
         tools,
@@ -877,6 +881,20 @@ export async function runEmbeddedAttempt(
             .catch((err) => {
               log.warn(`agent_end hook failed: ${err}`);
             });
+        }
+
+        // Fire-and-forget: summarize aged tool results for context decay
+        if (contextDecayConfig?.summarizeToolResultsAfterTurns && params.model) {
+          void summarizeAgedToolResults({
+            sessionFilePath: params.sessionFile,
+            messages: messagesSnapshot,
+            config: contextDecayConfig,
+            model: params.model,
+            authStorage: params.authStorage,
+            abortSignal: params.abortSignal,
+          }).catch((err) => {
+            log.warn(`context-decay summarization failed: ${err}`);
+          });
         }
       } finally {
         clearTimeout(abortTimer);
