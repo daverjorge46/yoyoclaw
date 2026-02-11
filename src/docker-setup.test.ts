@@ -73,6 +73,17 @@ function createEnv(
   };
 }
 
+function resolveBashForCompatCheck(): string | null {
+  for (const candidate of ["/bin/bash", "bash"]) {
+    const probe = spawnSync(candidate, ["-c", "exit 0"], { encoding: "utf8" });
+    if (!probe.error && probe.status === 0) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 describe("docker-setup.sh", () => {
   it("handles unset optional env vars under strict mode", async () => {
     const sandbox = await createDockerSetupSandbox();
@@ -121,15 +132,15 @@ describe("docker-setup.sh", () => {
     const script = await readFile(join(repoRoot, "docker-setup.sh"), "utf8");
     expect(script).not.toMatch(/^\s*declare -A\b/m);
 
-    // On macOS /bin/bash is the ancient Bash 3.2; on Windows the path doesn't
-    // exist, so fall back to the PATH-resolved "bash".
-    const systemBash = process.platform === "win32" ? "bash" : "/bin/bash";
+    const systemBash = resolveBashForCompatCheck();
+    if (!systemBash) {
+      return;
+    }
+
     const assocCheck = spawnSync(systemBash, ["-c", "declare -A _t=()"], {
       encoding: "utf8",
     });
-    if (assocCheck.error || assocCheck.status === 0) {
-      // Bash is not available or already supports associative arrays — the
-      // static source check above is sufficient.
+    if (assocCheck.status === null || assocCheck.status === 0) {
       return;
     }
 
