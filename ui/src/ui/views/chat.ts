@@ -12,6 +12,7 @@ import {
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { icons } from "../icons.ts";
 import { detectTextDirection } from "../text-direction.ts";
+import { getActiveChatTasks, laneLabel, loadTaskStore } from "../tasks-store.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
 
@@ -263,11 +264,29 @@ export function renderChat(props: ChatProps) {
     </div>
   `;
 
+  const taskStore = loadTaskStore();
+  const activeTasks = getActiveChatTasks(taskStore.tasks, 5);
+
   return html`
     <section class="card chat">
       ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
 
       ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
+
+      <div class="callout" style="margin-bottom: 12px;">
+        <strong>Active Tasks</strong>
+        ${
+          activeTasks.length === 0
+            ? html`<div class="muted" style="margin-top: 6px;">No active tasks yet. Assign P0/P1 tasks in Task Management.</div>`
+            : html`
+                <ul style="margin: 8px 0 0 18px; padding: 0;">
+                  ${activeTasks.map(
+                    (task) => html`<li style="margin-bottom: 6px;"><span class="mono">${task.priority}</span> ${task.title} <span class="muted">(${laneLabel(task.lane)} · ${task.assignedAgent || "unassigned"})</span></li>`,
+                  )}
+                </ul>
+              `
+        }
+      </div>
 
       ${
         props.focusMode

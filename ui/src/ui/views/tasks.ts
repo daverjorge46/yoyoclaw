@@ -1,53 +1,5 @@
 import { html } from "lit";
-
-const TASK_STORE_KEY = "openclaw.tasks.v1";
-
-type TaskItem = {
-  id: string;
-  title: string;
-  lane: "client" | "notino" | "vectra";
-  priority: "P0" | "P1" | "P2" | "P3";
-  nextAction?: string;
-  due?: string;
-};
-
-type TaskStore = {
-  topOutcomes: string[];
-  tasks: TaskItem[];
-};
-
-function loadStore(): TaskStore {
-  if (typeof window === "undefined") {
-    return { topOutcomes: [], tasks: [] };
-  }
-  try {
-    const raw = window.localStorage.getItem(TASK_STORE_KEY);
-    if (!raw) {
-      return { topOutcomes: [], tasks: [] };
-    }
-    const parsed = JSON.parse(raw) as Partial<TaskStore>;
-    return {
-      topOutcomes: Array.isArray(parsed.topOutcomes)
-        ? parsed.topOutcomes.filter((entry) => typeof entry === "string")
-        : [],
-      tasks: Array.isArray(parsed.tasks)
-        ? parsed.tasks.filter((task) => task && typeof task === "object") as TaskItem[]
-        : [],
-    };
-  } catch {
-    return { topOutcomes: [], tasks: [] };
-  }
-}
-
-function laneLabel(lane: TaskItem["lane"]): string {
-  if (lane === "client") {
-    return "Client Delivery";
-  }
-  if (lane === "notino") {
-    return "Notino";
-  }
-  return "Vectra / Algovectra";
-}
+import { TASK_STORE_KEY, laneLabel, loadTaskStore, sortByPriority, type TaskItem } from "../tasks-store.ts";
 
 function renderTaskList(tasks: TaskItem[]) {
   if (tasks.length === 0) {
@@ -61,6 +13,7 @@ function renderTaskList(tasks: TaskItem[]) {
             <th>Priority</th>
             <th>Task</th>
             <th>Lane</th>
+            <th>Agent</th>
             <th>Next Action</th>
             <th>Due</th>
           </tr>
@@ -72,6 +25,7 @@ function renderTaskList(tasks: TaskItem[]) {
                 <td><span class="mono">${task.priority}</span></td>
                 <td>${task.title}</td>
                 <td>${laneLabel(task.lane)}</td>
+                <td><span class="mono">${task.assignedAgent || "unassigned"}</span></td>
                 <td>${task.nextAction || "—"}</td>
                 <td>${task.due || "—"}</td>
               </tr>
@@ -84,9 +38,9 @@ function renderTaskList(tasks: TaskItem[]) {
 }
 
 export function renderTasks() {
-  const store = loadStore();
+  const store = loadTaskStore();
   const topOutcomes = store.topOutcomes.slice(0, 3);
-  const prioritized = [...store.tasks].sort((a, b) => a.priority.localeCompare(b.priority));
+  const prioritized = sortByPriority(store.tasks);
   const byLane = {
     client: prioritized.filter((task) => task.lane === "client"),
     notino: prioritized.filter((task) => task.lane === "notino"),
