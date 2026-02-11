@@ -868,3 +868,33 @@ jobs:
       - name: Run Android ${{ matrix.task }}
         working-directory: apps/android
         run: ${{ matrix.command }}
+
+  # Deploy to Fly.io after all critical checks pass (main branch only).
+  deploy-fly:
+    needs: [checks, checks-lint, build-artifacts, secrets]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Pre-deploy backup of Larry's workspace
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl ssh console --app openclaw-jhs -C "bash -c '
+            STAMP=\$(date -u +%Y%m%d-%H%M%S)
+            tar czf /data/backup-pre-deploy-\$STAMP.tar.gz \
+              -C /data .openclaw/ config/ identity/ agents/ 2>/dev/null || true
+            # Keep only the 5 most recent backups
+            ls -t /data/backup-pre-deploy-*.tar.gz 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
+            echo \"Backup created: backup-pre-deploy-\$STAMP.tar.gz\"
+          '"
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only --app openclaw-jhs
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
