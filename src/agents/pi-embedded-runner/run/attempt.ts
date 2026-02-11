@@ -626,6 +626,17 @@ export async function runEmbeddedAttempt(
         const err = new Error(reason);
         err.name = "SafeguardAbortError";
 
+        const safeguardMessage = `[Safeguard] Aborted: ${reason}`;
+
+        // Emit an assistant event first so the text is buffered in chatRunState.buffers.
+        // When the lifecycle:end event follows, emitChatFinal reads this buffer and
+        // sends it as the final chat message — preventing the "(no output)" display.
+        emitAgentEvent({
+          runId: params.runId,
+          stream: "assistant" as const,
+          data: { text: safeguardMessage },
+        });
+
         const endEvent = {
           stream: "lifecycle" as const,
           data: {
