@@ -172,7 +172,7 @@ function parseSsOutput(output: string, port: number): PortListener[] {
     const usersMatch = line.match(/users:\(\("([^"]*)",pid=(\d+)/);
     if (usersMatch) {
       listener.command = usersMatch[1];
-      const pid = Number.parseInt(usersMatch[2]!, 10);
+      const pid = Number.parseInt(usersMatch[2], 10);
       if (Number.isFinite(pid)) {
         listener.pid = pid;
       }
