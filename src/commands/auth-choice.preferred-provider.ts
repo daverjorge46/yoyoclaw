@@ -36,6 +36,7 @@ const PREFERRED_PROVIDER_BY_AUTH_CHOICE: Partial<Record<AuthChoice, string>> = {
   "aliyun-bailian-api-key": "aliyun-bailian",
   "minimax-portal": "minimax-portal",
   "qianfan-api-key": "qianfan",
+  "custom-api-key": "custom",
 };
 
 export function resolvePreferredProviderForAuthChoice(choice: AuthChoice): string | undefined {
