@@ -2,6 +2,7 @@
   "id": "mindsdb",
   "name": "MindsDB",
   "description": "MindsDB Federated Query Engine tool for querying connected databases.",
+  "skills": ["./skills"],
   "uiHints": {
     "baseUrl": {
       "label": "Base URL",

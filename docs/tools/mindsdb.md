@@ -62,6 +62,11 @@ openclaw plugins enable mindsdb
 
 Restart the Gateway after config changes.
 
+## Agent discovery
+
+This plugin ships a bundled `mindsdb` skill (loaded when the plugin is enabled)
+so agents can recognize when MindsDB is the right path for cross-database SQL.
+
 ## Auth modes
 
 Use one of:
