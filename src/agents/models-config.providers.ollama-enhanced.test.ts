@@ -21,7 +21,21 @@ describe("Ollama provider enhanced", () => {
   });
 
   afterEach(() => {
-    process.env = { ...originalEnv };
+    // Restore modified environment variables individually
+    const keysToRestore = [
+      "OLLAMA_API_KEY",
+      "OLLAMA_API_BASE_URL",
+      "OLLAMA_BASE_URL",
+      "VITEST",
+      "NODE_ENV",
+    ];
+    for (const key of keysToRestore) {
+      if (key in originalEnv) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
     vi.unstubAllGlobals();
   });
 
