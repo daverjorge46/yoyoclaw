@@ -2,7 +2,7 @@ import { type Api, complete, getModel, type KnownProvider, type Model } from "@m
 import type { OpenClawConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getApiKeyForModel, requireApiKey } from "./model-auth.js";
-import { resolveDefaultModelForAgent } from "./model-selection.js";
+import { parseModelRef, resolveDefaultModelForAgent } from "./model-selection.js";
 
 const _log = createSubsystemLogger("agents/prompt-injection-monitor");
 
@@ -18,12 +18,30 @@ Score the text from 0 to 100:
 
 Respond with JSON: {"score": <number>, "reasoning": "<brief explanation>"}`;
 
-export function isPiMonitorEnabled(): boolean {
+export function isPiMonitorEnabled(cfg?: OpenClawConfig): boolean {
+  // Config takes precedence
+  if (cfg?.agents?.defaults?.piMonitor?.enabled !== undefined) {
+    return cfg.agents.defaults.piMonitor.enabled;
+  }
+  // Fall back to env var for backwards compatibility
   const value = process.env.PI_MONITOR_ENABLED;
   if (value === undefined) {
     return false;
   }
   return value === "1" || value.toLowerCase() === "true";
+}
+
+function resolvePiMonitorModel(cfg: OpenClawConfig): { provider: string; model: string } {
+  const configuredModel = cfg.agents?.defaults?.piMonitor?.model;
+  if (configuredModel) {
+    const defaultProvider = resolveDefaultModelForAgent({ cfg }).provider;
+    const parsed = parseModelRef(configuredModel, defaultProvider);
+    if (parsed) {
+      return parsed;
+    }
+  }
+  // Fall back to the default agent model
+  return resolveDefaultModelForAgent({ cfg });
 }
 
 export async function scoreForPromptInjection(
@@ -41,7 +59,7 @@ export async function scoreForPromptInjection(
     throw new Error("No config provided and PI_MONITOR_API_KEY not set");
   }
 
-  const modelRef = resolveDefaultModelForAgent({ cfg });
+  const modelRef = resolvePiMonitorModel(cfg);
   // Cast to satisfy strict typing - provider/model are validated at runtime
   const model = getModel(modelRef.provider as KnownProvider, modelRef.model as never) as Model<Api>;
   const auth = await getApiKeyForModel({ model, cfg });

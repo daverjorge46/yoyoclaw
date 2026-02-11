@@ -43,8 +43,8 @@ export function wrapToolWithPromptInjectionMonitor(
   if (tool.name === "disable_pi_monitor") {
     return tool;
   }
-  if (!isPiMonitorEnabled()) {
-    debugLog(`SKIP wrapping tool "${tool.name}" — PI_MONITOR_ENABLED=false`);
+  if (!isPiMonitorEnabled(state.cfg)) {
+    debugLog(`SKIP wrapping tool "${tool.name}" — PI monitor not enabled`);
     return tool;
   }
   // Need either explicit API key or config to resolve from
