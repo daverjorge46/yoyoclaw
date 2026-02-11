@@ -177,9 +177,11 @@ export async function runAgentTurnWithFallback(params: {
             });
             const cliSessionId = getCliSessionId(params.getActiveSessionEntry(), provider);
             return (async () => {
-              // CLI providers don't emit streaming events, so start typing immediately.
-              // Use signalToolStart() instead of signalMessageStart() because the latter
-              // requires hasRenderableText (set by text deltas) which never arrives for CLI.
+              // Start typing immediately as a fallback. When streaming
+              // callbacks (onStreamEvent/onToolStatus) are provided, the
+              // CLI runner switches to stream-json mode and will emit
+              // real-time events; but we still need the typing loop for
+              // the initial period before the first event arrives.
               // signalToolStart() unconditionally starts the typing loop.
               await params.typingSignals.signalToolStart();
               let lifecycleTerminalEmitted = false;

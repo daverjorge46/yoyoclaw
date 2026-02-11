@@ -527,7 +527,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
   const smartAckConfig = discordConfig?.smartAck;
   const smartAckEnabled =
     smartAckConfig === true ||
-    (typeof smartAckConfig === "object" && smartAckConfig?.enabled !== false);
+    (typeof smartAckConfig === "object" && smartAckConfig?.enabled === true);
 
   // Build rich context for the triage model.
   let triageContext: SmartAckContext | undefined;
