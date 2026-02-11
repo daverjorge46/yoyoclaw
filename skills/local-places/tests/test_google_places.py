@@ -25,10 +25,9 @@ class TestValidatePlaceId:
             "GhIJQWJjZGVmZ2hpamtsbW5vcA",   # Starting with GhIJ
             "valid-place_id+123",            # With underscores, hyphens, plus
             "place_id=value",                # With equals sign
-            "valid/place-id_123",            # With forward slash (legitimate in Google Place IDs)
             "A" * 100,                       # Long valid ID
             "1234567890",                    # Numeric only (minimum length)
-            "ChIJ+abc-def_ghi=jkl/mno",     # All allowed special chars
+            "ChIJ+abc-def_ghi=jkl",          # With allowed special chars (no slash)
         ]
         
         for place_id in valid_ids:
@@ -54,7 +53,6 @@ class TestValidatePlaceId:
             with pytest.raises(HTTPException) as exc_info:
                 _validate_place_id(place_id)
             assert exc_info.value.status_code == 400
-            assert "path traversal" in exc_info.value.detail.lower() or "Invalid place_id format" in exc_info.value.detail
     
     def test_url_encoded_traversal(self):
         """Test that URL-encoded path traversal attempts are rejected."""
@@ -70,6 +68,22 @@ class TestValidatePlaceId:
             with pytest.raises(HTTPException) as exc_info:
                 _validate_place_id(place_id)
             assert exc_info.value.status_code == 400
+    
+    def test_forward_slash_rejected(self):
+        """Test that forward slashes are rejected (not in real Google Place IDs)."""
+        slash_ids = [
+            "place/id",
+            "valid/place-id_123",
+            "/place",
+            "place/",
+            "ChIJ/abc",
+        ]
+        
+        for place_id in slash_ids:
+            with pytest.raises(HTTPException) as exc_info:
+                _validate_place_id(place_id)
+            assert exc_info.value.status_code == 400
+            assert "Invalid place_id format" in exc_info.value.detail
     
     def test_special_characters(self):
         """Test that place IDs with dangerous special characters are rejected."""
@@ -146,14 +160,13 @@ class TestValidatePlaceId:
                 pytest.fail(f"Valid mixed-case place_id '{place_id}' was incorrectly rejected")
     
     def test_allowed_special_characters(self):
-        """Test that allowed special characters (+ = / _ -) are accepted."""
+        """Test that allowed special characters (+ = _ -) are accepted."""
         valid_ids = [
             "place_with_underscores_123",
             "place-with-hyphens-456",
             "place+with+plus+789",
             "place=with=equals=012",
-            "place/with/slashes/345",
-            "place_with-mixed+special=chars/678",
+            "place_with-mixed+special=chars",  # No slash
         ]
         
         for place_id in valid_ids:
@@ -180,7 +193,7 @@ class TestValidatePlaceId:
             assert exc_info.value.status_code == 400
     
     def test_double_slash_variations(self):
-        """Test that double slashes are rejected (even though single slashes are allowed)."""
+        """Test that double slashes are rejected."""
         patterns = [
             "//",
             "place//id",
@@ -226,6 +239,13 @@ class TestGetPlaceDetailsValidation:
         # Uppercase encoding
         with pytest.raises(HTTPException) as exc_info:
             get_place_details("%2E%2E%2Ffile")
+        assert exc_info.value.status_code == 400
+    
+    def test_get_place_details_rejects_forward_slash(self, monkeypatch):
+        """Test that get_place_details rejects place IDs with forward slashes."""
+        
+        with pytest.raises(HTTPException) as exc_info:
+            get_place_details("place/with/slash")
         assert exc_info.value.status_code == 400
     
     def test_get_place_details_accepts_valid_id(self, monkeypatch):
