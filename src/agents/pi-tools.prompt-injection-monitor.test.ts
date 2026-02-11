@@ -107,7 +107,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
     expect(wrapped.execute).not.toBe(tool.execute);
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
   });
 
@@ -119,7 +119,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
   });
 
@@ -131,11 +131,11 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     const content = (output as { content: Array<{ type: string; text: string }> }).content;
     expect(content).toHaveLength(1);
-    expect(content[0]!.text).toContain("[CONTENT REDACTED");
-    expect(content[0]!.text).toContain("75/100");
+    expect(content[0].text).toContain("[CONTENT REDACTED");
+    expect(content[0].text).toContain("75/100");
   });
 
   it("warns but passes through when action=warn", async () => {
@@ -146,11 +146,11 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig({ promptInjection: { enabled: true, action: "warn" } });
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     const content = (output as { content: Array<{ type: string; text: string }> }).content;
     expect(content).toHaveLength(1);
-    expect(content[0]!.text).toContain("[WARNING - POTENTIAL PROMPT INJECTION DETECTED");
-    expect(content[0]!.text).toContain(originalText);
+    expect(content[0].text).toContain("[WARNING - POTENTIAL PROMPT INJECTION DETECTED");
+    expect(content[0].text).toContain(originalText);
   });
 
   it("just logs when action=log (passes through unchanged)", async () => {
@@ -161,7 +161,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig({ promptInjection: { enabled: true, action: "log" } });
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
   });
 
@@ -173,10 +173,10 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     const content = (output as { content: Array<{ type: string; text: string }> }).content;
     expect(content).toHaveLength(1);
-    expect(content[0]!.text).toContain("[CONTENT REDACTED");
+    expect(content[0].text).toContain("[CONTENT REDACTED");
   });
 
   it("passes through on API error when action=warn or action=log", async () => {
@@ -187,7 +187,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig({ promptInjection: { enabled: true, action: "warn" } });
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
   });
 
@@ -196,7 +196,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
     expect(mockComplete).not.toHaveBeenCalled();
   });
@@ -206,7 +206,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
     expect(mockComplete).not.toHaveBeenCalled();
   });
@@ -219,10 +219,10 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     const content = (output as { content: Array<{ type: string; text: string }> }).content;
-    expect(content[0]!.text).toContain("[CONTENT REDACTED");
-    expect(content[0]!.text).toContain("20/100");
+    expect(content[0].text).toContain("[CONTENT REDACTED");
+    expect(content[0].text).toContain("20/100");
   });
 
   it("passes through at one below threshold", async () => {
@@ -233,7 +233,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const tool = createStubTool(result);
     const cfg = createTestConfig();
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, createMonitorState(cfg));
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     expect(output).toBe(result);
   });
 
@@ -247,7 +247,7 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const state = createMonitorState(cfg);
     state.skipNext = true;
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, state);
-    const output = await wrapped.execute!("call-1", {}, undefined, undefined);
+    const output = await wrapped.execute("call-1", {}, undefined, undefined);
     // Result passes through despite high score (bypassed)
     expect(output).toBe(result);
     // But scoring still happened (for audit logging)
@@ -267,14 +267,14 @@ describe("wrapToolWithPromptInjectionMonitor", () => {
     const wrapped = wrapToolWithPromptInjectionMonitor(tool, state);
 
     // First call: bypass consumed (but still scored)
-    await wrapped.execute!("call-1", {}, undefined, undefined);
+    await wrapped.execute("call-1", {}, undefined, undefined);
     expect(state.skipNext).toBe(false);
     expect(mockComplete).toHaveBeenCalledTimes(1);
 
     // Second call: monitored normally, should be redacted
-    const output2 = await wrapped.execute!("call-2", {}, undefined, undefined);
+    const output2 = await wrapped.execute("call-2", {}, undefined, undefined);
     const content = (output2 as { content: Array<{ type: string; text: string }> }).content;
-    expect(content[0]!.text).toContain("[CONTENT REDACTED");
+    expect(content[0].text).toContain("[CONTENT REDACTED");
     expect(mockComplete).toHaveBeenCalledTimes(2);
   });
 });
@@ -289,10 +289,10 @@ describe("createDisablePiMonitorTool", () => {
     const state = createMonitorState(cfg);
     expect(state.skipNext).toBe(false);
     const tool = createDisablePiMonitorTool(state);
-    const output = await tool.execute!("call-1", {}, undefined, undefined);
+    const output = await tool.execute("call-1", {}, undefined, undefined);
     expect(state.skipNext).toBe(true);
     const content = (output as { content: Array<{ type: string; text: string }> }).content;
-    expect(JSON.parse(content[0]!.text)).toMatchObject({ ok: true });
+    expect(JSON.parse(content[0].text)).toMatchObject({ ok: true });
   });
 
   it("is not wrapped by the monitor (skipNext survives for the next real tool)", async () => {
@@ -307,7 +307,7 @@ describe("createDisablePiMonitorTool", () => {
     expect(wrappedDisable.execute).toBe(disableTool.execute);
 
     // Call disable tool — sets skipNext
-    await wrappedDisable.execute!("call-1", {}, undefined, undefined);
+    await wrappedDisable.execute("call-1", {}, undefined, undefined);
     expect(state.skipNext).toBe(true);
 
     // Now wrap and call a real tool — bypass consumed, result passes through
@@ -316,7 +316,7 @@ describe("createDisablePiMonitorTool", () => {
     );
     const realTool = createStubTool(dangerousResult);
     const wrappedReal = wrapToolWithPromptInjectionMonitor(realTool, state);
-    const output = await wrappedReal.execute!("call-2", {}, undefined, undefined);
+    const output = await wrappedReal.execute("call-2", {}, undefined, undefined);
     expect(output).toBe(dangerousResult);
     // Scoring still happens for audit logging
     expect(mockComplete).toHaveBeenCalledTimes(1);
