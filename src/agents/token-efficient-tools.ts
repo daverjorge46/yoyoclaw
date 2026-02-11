@@ -1,6 +1,6 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { Api, Model } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isAnthropicProvider } from "./anthropic-provider-check.js";
 
 const log = createSubsystemLogger("agent/token-efficient-tools");
 
@@ -12,13 +12,6 @@ const log = createSubsystemLogger("agent/token-efficient-tools");
  * Reference: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
  */
 export const TOKEN_EFFICIENT_TOOLS_BETA = "token-efficient-tools-2025-02-19";
-
-function isAnthropicProvider(model: Model<Api> | undefined): boolean {
-  if (!model) {
-    return false;
-  }
-  return (model as { api?: unknown }).api === "anthropic-messages";
-}
 
 type ContextLike = {
   tools?: unknown[];

@@ -126,7 +126,7 @@ export async function writeMemoryFlush(params: {
     log.info(`memory flushed to ${filePath} (${trimmed.length} chars)`);
     return { filePath, written: true };
   } catch (err) {
-    log.warn(`failed to write memory flush: ${err instanceof Error ? err.message : err}`);
+    log.warn(`failed to write memory flush: ${err instanceof Error ? err.message : String(err)}`);
     return { filePath, written: false };
   }
 }
@@ -142,7 +142,7 @@ export function isNoFlushResponse(response: string): boolean {
 /**
  * List memory files in the memory directory.
  */
-export async function listMemoryFiles(
+export async function listFlushMemoryFiles(
   memoryDir: string,
 ): Promise<Array<{ name: string; path: string; size: number }>> {
   try {
@@ -209,7 +209,7 @@ export async function loadRecentMemories(params: {
   maxChars?: number;
 }): Promise<string> {
   const { memoryDir, maxDays = 7, maxChars = 4000 } = params;
-  const files = await listMemoryFiles(memoryDir);
+  const files = await listFlushMemoryFiles(memoryDir);
 
   if (files.length === 0) {
     return "";

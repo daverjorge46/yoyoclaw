@@ -99,11 +99,7 @@ export function buildHeartbeatAnnouncement(params: {
   heartbeatResponse: string;
   sessionKey: string;
 }): string {
-  return (
-    `[Heartbeat action needed]\n` +
-    `Session: ${params.sessionKey}\n\n` +
-    `${params.heartbeatResponse}`
-  );
+  return `[Heartbeat action needed]\nSession: ${params.sessionKey}\n\n${params.heartbeatResponse}`;
 }
 
 /**

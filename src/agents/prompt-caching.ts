@@ -1,7 +1,7 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { Api, Model } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isAnthropicProvider } from "./anthropic-provider-check.js";
 
 const log = createSubsystemLogger("agent/prompt-caching");
 
@@ -32,13 +32,6 @@ export function resolvePromptCachingConfig(cfg?: OpenClawConfig): PromptCachingC
   return {
     enabled: raw?.enabled ?? true,
   };
-}
-
-function isAnthropicProvider(model: Model<Api> | undefined): boolean {
-  if (!model) {
-    return false;
-  }
-  return (model as { api?: unknown }).api === "anthropic-messages";
 }
 
 /**

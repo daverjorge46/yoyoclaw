@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   DEFAULT_FLUSH_PROMPT,
   isNoFlushResponse,
-  listMemoryFiles,
+  listFlushMemoryFiles,
   loadRecentMemories,
   readMemoryFile,
   resolveMemoryFilePath,
@@ -177,7 +177,7 @@ describe("writeMemoryFlush", () => {
   });
 });
 
-describe("listMemoryFiles", () => {
+describe("listFlushMemoryFiles", () => {
   it("lists memory files sorted by date (newest first)", async () => {
     const memoryDir = path.join(tmpDir, "list-test");
     await fs.mkdir(memoryDir, { recursive: true });
@@ -185,14 +185,14 @@ describe("listMemoryFiles", () => {
     await fs.writeFile(path.join(memoryDir, "2025-03-15.md"), "new");
     await fs.writeFile(path.join(memoryDir, "not-a-memory.txt"), "ignore");
 
-    const files = await listMemoryFiles(memoryDir);
+    const files = await listFlushMemoryFiles(memoryDir);
     expect(files).toHaveLength(2);
     expect(files[0].name).toBe("2025-03-15.md");
     expect(files[1].name).toBe("2025-01-01.md");
   });
 
   it("returns empty for non-existent directory", async () => {
-    const files = await listMemoryFiles("/nonexistent/path");
+    const files = await listFlushMemoryFiles("/nonexistent/path");
     expect(files).toEqual([]);
   });
 });

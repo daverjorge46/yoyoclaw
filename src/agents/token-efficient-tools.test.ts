@@ -19,7 +19,7 @@ describe("createTokenEfficientToolsWrapper", () => {
     const innerFn = vi.fn().mockReturnValue({ on: vi.fn() });
     const wrapped = createTokenEfficientToolsWrapper(innerFn as unknown as StreamFn);
 
-    wrapped(makeAnthropicModel(), { tools: [{ name: "read_file" }] }, {});
+    void wrapped(makeAnthropicModel(), { tools: [{ name: "read_file" }] }, {});
 
     expect(innerFn).toHaveBeenCalledOnce();
     const options = innerFn.mock.calls[0][2];
@@ -30,7 +30,7 @@ describe("createTokenEfficientToolsWrapper", () => {
     const innerFn = vi.fn().mockReturnValue({ on: vi.fn() });
     const wrapped = createTokenEfficientToolsWrapper(innerFn as unknown as StreamFn);
 
-    wrapped(
+    void wrapped(
       makeAnthropicModel(),
       { tools: [{ name: "read_file" }] },
       { betas: ["existing-beta-1"] },
@@ -45,7 +45,7 @@ describe("createTokenEfficientToolsWrapper", () => {
     const innerFn = vi.fn().mockReturnValue({ on: vi.fn() });
     const wrapped = createTokenEfficientToolsWrapper(innerFn as unknown as StreamFn);
 
-    wrapped(makeOpenAIModel(), { tools: [{ name: "read_file" }] }, {});
+    void wrapped(makeOpenAIModel(), { tools: [{ name: "read_file" }] }, {});
 
     const options = innerFn.mock.calls[0][2];
     expect(options.betas).toBeUndefined();
@@ -55,7 +55,7 @@ describe("createTokenEfficientToolsWrapper", () => {
     const innerFn = vi.fn().mockReturnValue({ on: vi.fn() });
     const wrapped = createTokenEfficientToolsWrapper(innerFn as unknown as StreamFn);
 
-    wrapped(makeAnthropicModel(), { messages: [{ role: "user", content: "hello" }] }, {});
+    void wrapped(makeAnthropicModel(), { messages: [{ role: "user", content: "hello" }] }, {});
 
     const options = innerFn.mock.calls[0][2];
     expect(options.betas).toBeUndefined();
@@ -65,7 +65,7 @@ describe("createTokenEfficientToolsWrapper", () => {
     const innerFn = vi.fn().mockReturnValue({ on: vi.fn() });
     const wrapped = createTokenEfficientToolsWrapper(innerFn as unknown as StreamFn);
 
-    wrapped(makeAnthropicModel(), { tools: [] }, {});
+    void wrapped(makeAnthropicModel(), { tools: [] }, {});
 
     const options = innerFn.mock.calls[0][2];
     expect(options.betas).toBeUndefined();

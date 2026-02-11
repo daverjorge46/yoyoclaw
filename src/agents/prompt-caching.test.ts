@@ -85,8 +85,8 @@ describe("injectCacheBreakpoints", () => {
       ],
     };
     const result = injectCacheBreakpoints(context);
-    expect((result.tools![0] as Record<string, unknown>).cache_control).toBeUndefined();
-    expect((result.tools![1] as Record<string, unknown>).cache_control).toEqual({
+    expect(result.tools![0].cache_control).toBeUndefined();
+    expect(result.tools![1].cache_control).toEqual({
       type: "ephemeral",
     });
   });
@@ -133,7 +133,7 @@ describe("injectCacheBreakpoints", () => {
       }
       if (Array.isArray(msg.content)) {
         for (const block of msg.content) {
-          expect((block as Record<string, unknown>).cache_control).toBeUndefined();
+          expect(block.cache_control).toBeUndefined();
         }
       }
     }
@@ -147,7 +147,7 @@ describe("injectCacheBreakpoints", () => {
     };
     injectCacheBreakpoints(context);
     expect(typeof context.system).toBe("string");
-    expect((context.tools[0] as Record<string, unknown>).cache_control).toBeUndefined();
+    expect(context.tools[0].cache_control).toBeUndefined();
   });
 
   it("handles empty context gracefully", () => {
