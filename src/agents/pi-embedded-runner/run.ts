@@ -46,6 +46,7 @@ import {
 } from "../pi-embedded-helpers.js";
 import { normalizeUsage, type UsageLike } from "../usage.js";
 import { redactRunIdentifier, resolveRunWorkspaceDir } from "../workspace-run.js";
+import { shouldProactivelyCompact, estimateMessagesTokens } from "../compaction.js";
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
@@ -388,6 +389,72 @@ export async function runEmbeddedPiAgent(
       let toolResultTruncationAttempted = false;
       const usageAccumulator = createUsageAccumulator();
       let autoCompactionCount = 0;
+
+      // ── Proactive compaction: estimate session size and compact BEFORE
+      // ── attempting a prompt that would overflow, saving a wasted API call.
+      if (!isProbeSession) {
+        try {
+          const sessionFile = params.sessionFile;
+          if (sessionFile) {
+            const SessionManager = (await import("@mariozechner/pi-coding-agent")).SessionManager;
+            const tempSm = new SessionManager(sessionFile);
+            await tempSm.load();
+            const history = tempSm.getMessages();
+            if (history.length > 0) {
+              const historyTokens = estimateMessagesTokens(history);
+              // Fixed estimate for system prompt + tool schemas overhead.
+              // Typical system prompt ≈ 6-10K chars + tool schemas ≈ 2-5K chars
+              // ≈ 2000-3750 tokens at ~4 chars/token. Use 5000 as safe upper bound.
+              const SYSTEM_OVERHEAD_TOKENS_ESTIMATE = 5_000;
+              const systemPromptEstimate = SYSTEM_OVERHEAD_TOKENS_ESTIMATE;
+              if (
+                shouldProactivelyCompact({
+                  estimatedHistoryTokens: historyTokens,
+                  contextWindowTokens: ctxInfo.tokens,
+                  systemPromptTokens: systemPromptEstimate,
+                })
+              ) {
+                log.info(
+                  `[proactive-compaction] session history (${historyTokens} tokens) near limit ` +
+                    `(ctx=${ctxInfo.tokens}), compacting before run`,
+                );
+                const compactResult = await compactEmbeddedPiSessionDirect({
+                  sessionId: params.sessionId,
+                  sessionKey: params.sessionKey,
+                  messageChannel: params.messageChannel,
+                  messageProvider: params.messageProvider,
+                  agentAccountId: params.agentAccountId,
+                  authProfileId: lastProfileId,
+                  sessionFile,
+                  workspaceDir: resolvedWorkspace,
+                  agentDir,
+                  config: params.config,
+                  skillsSnapshot: params.skillsSnapshot,
+                  senderIsOwner: params.senderIsOwner,
+                  provider,
+                  model: modelId,
+                  thinkLevel,
+                  reasoningLevel: params.reasoningLevel,
+                  bashElevated: params.bashElevated,
+                  extraSystemPrompt: params.extraSystemPrompt,
+                  ownerNumbers: params.ownerNumbers,
+                });
+                if (compactResult.compacted) {
+                  autoCompactionCount += 1;
+                  log.info(
+                    `[proactive-compaction] success: ${historyTokens} → ${compactResult.tokensAfter ?? "?"} tokens`,
+                  );
+                }
+              }
+            }
+          }
+        } catch (err) {
+          log.warn(
+            `[proactive-compaction] failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
+
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
