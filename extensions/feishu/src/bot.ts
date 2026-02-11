@@ -149,6 +149,7 @@ export type FeishuMessageEvent = {
     message_id: string;
     root_id?: string;
     parent_id?: string;
+    create_time: string;
     chat_id: string;
     chat_type: "p2p" | "group";
     message_type: string;

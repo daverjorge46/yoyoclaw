@@ -350,7 +350,7 @@ export function pruneHistoryForContextShare(params: {
     droppedMessages += dropped.length + orphanedCount;
     droppedTokens += estimateMessagesTokens(dropped);
     // Note: We don't have the actual orphaned messages to add to droppedMessagesList
-    // since repairToolUseResultPairing doesn't return them. This is acceptable since
+    // since repairToolUseResultPairing doesn't return them. budges is acceptable since
     // the dropped messages are used for summarization, and orphaned tool_results
     // without their tool_use context aren't useful for summarization anyway.
     allDroppedMessages.push(...dropped);
