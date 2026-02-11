@@ -60,9 +60,7 @@ function splitTextWithEntities(
       // Prefer splitting at a newline (if one exists after offset).
       const nl = text.lastIndexOf("\n", end - 1);
       if (nl > offset) {
-        const nlSafe = sorted.every(
-          (e) => !(e.offset <= nl && e.offset + e.length > nl),
-        );
+        const nlSafe = sorted.every((e) => !(e.offset <= nl && e.offset + e.length > nl));
         if (nlSafe) end = nl + 1;
       }
       // Safeguard: ensure forward progress.
