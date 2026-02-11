@@ -1,0 +1,185 @@
+$ tsc --project . --noEmit
+src/agents/pi-embedded-runner/compact.ts(18,44): error TS2307: Cannot find module '../../signal/reaction-level.js' or its corresponding type declarations.
+src/agents/pi-embedded-runner/compact.ts(19,51): error TS2307: Cannot find module '../../telegram/inline-buttons.js' or its corresponding type declarations.
+src/agents/pi-embedded-runner/compact.ts(20,46): error TS2307: Cannot find module '../../telegram/reaction-level.js' or its corresponding type declarations.
+src/agents/pi-embedded-runner/run/attempt.ts(14,44): error TS2307: Cannot find module '../../../signal/reaction-level.js' or its corresponding type declarations.
+src/agents/pi-embedded-runner/run/attempt.ts(15,51): error TS2307: Cannot find module '../../../telegram/inline-buttons.js' or its corresponding type declarations.
+src/agents/pi-embedded-runner/run/attempt.ts(16,46): error TS2307: Cannot find module '../../../telegram/reaction-level.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-guild.ts(3,29): error TS2307: Cannot find module '../../discord/monitor/presence-cache.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-guild.ts(23,8): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-messaging.ts(22,8): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-messaging.ts(23,41): error TS2307: Cannot find module '../../discord/targets.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-messaging.ts(223,33): error TS7006: Parameter 'message' implicitly has an 'any' type.
+src/agents/tools/discord-actions-messaging.ts(389,53): error TS7006: Parameter 'pin' implicitly has an 'any' type.
+src/agents/tools/discord-actions-moderation.ts(3,75): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/agents/tools/discord-actions-presence.ts(4,28): error TS2307: Cannot find module '../../discord/monitor/gateway-registry.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(6,8): error TS2307: Cannot find module '../../telegram/inline-buttons.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(7,46): error TS2307: Cannot find module '../../telegram/reaction-level.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(14,8): error TS2307: Cannot find module '../../telegram/send.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(15,47): error TS2307: Cannot find module '../../telegram/sticker-cache.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(16,38): error TS2307: Cannot find module '../../telegram/token.js' or its corresponding type declarations.
+src/agents/tools/telegram-actions.ts(309,30): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/auto-reply/reply/commands-allowlist.ts(13,39): error TS2307: Cannot find module '../../discord/accounts.js' or its corresponding type declarations.
+src/auto-reply/reply/commands-allowlist.ts(14,45): error TS2307: Cannot find module '../../discord/resolve-users.js' or its corresponding type declarations.
+src/auto-reply/reply/commands-allowlist.ts(16,40): error TS2307: Cannot find module '../../imessage/accounts.js' or its corresponding type declarations.
+src/auto-reply/reply/commands-allowlist.ts(23,38): error TS2307: Cannot find module '../../signal/accounts.js' or its corresponding type declarations.
+src/auto-reply/reply/commands-allowlist.ts(26,40): error TS2307: Cannot find module '../../telegram/accounts.js' or its corresponding type declarations.
+src/auto-reply/reply/commands-allowlist.ts(375,36): error TS2339: Property 'allowFrom' does not exist on type '{}'.
+src/auto-reply/reply/commands-allowlist.ts(379,34): error TS2339: Property 'topics' does not exist on type '{}'.
+src/auto-reply/reply/commands-allowlist.ts(381,43): error TS2339: Property 'allowFrom' does not exist on type '{}'.
+src/auto-reply/reply/commands-allowlist.ts(422,36): error TS2339: Property 'users' does not exist on type '{}'.
+src/auto-reply/reply/commands-allowlist.ts(426,36): error TS2339: Property 'channels' does not exist on type '{}'.
+src/auto-reply/reply/commands-allowlist.ts(428,47): error TS2339: Property 'users' does not exist on type '{}'.
+src/auto-reply/reply/commands-models.ts(19,8): error TS2307: Cannot find module '../../telegram/model-buttons.js' or its corresponding type declarations.
+src/auto-reply/reply/directive-handling.model.ts(12,44): error TS2307: Cannot find module '../../telegram/model-buttons.js' or its corresponding type declarations.
+src/auto-reply/reply/line-directives.ts(1,38): error TS2307: Cannot find module '../../line/types.js' or its corresponding type declarations.
+src/auto-reply/reply/line-directives.ts(9,8): error TS2307: Cannot find module '../../line/flex-templates.js' or its corresponding type declarations.
+src/auto-reply/templating.ts(6,38): error TS2307: Cannot find module '../telegram/bot/types.js' or its corresponding type declarations.
+src/channels/dock.ts(17,39): error TS2307: Cannot find module '../discord/accounts.js' or its corresponding type declarations.
+src/channels/dock.ts(18,40): error TS2307: Cannot find module '../imessage/accounts.js' or its corresponding type declarations.
+src/channels/dock.ts(21,38): error TS2307: Cannot find module '../signal/accounts.js' or its corresponding type declarations.
+src/channels/dock.ts(24,40): error TS2307: Cannot find module '../telegram/accounts.js' or its corresponding type declarations.
+src/channels/dock.ts(27,41): error TS2307: Cannot find module '../whatsapp/normalize.js' or its corresponding type declarations.
+src/channels/dock.ts(103,82): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/channels/dock.ts(198,85): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/channels/dock.ts(389,80): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/channels/dock.ts(422,82): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/channels/plugins/actions/discord.ts(3,44): error TS2307: Cannot find module '../../../discord/accounts.js' or its corresponding type declarations.
+src/channels/plugins/actions/discord.ts(9,8): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/actions/discord/handle-action.ts(9,41): error TS2307: Cannot find module '../../../../discord/targets.js' or its corresponding type declarations.
+src/channels/plugins/actions/signal.ts(3,65): error TS2307: Cannot find module '../../../signal/accounts.js' or its corresponding type declarations.
+src/channels/plugins/actions/signal.ts(4,44): error TS2307: Cannot find module '../../../signal/reaction-level.js' or its corresponding type declarations.
+src/channels/plugins/actions/signal.ts(5,58): error TS2307: Cannot find module '../../../signal/send-reactions.js' or its corresponding type declarations.
+src/channels/plugins/actions/signal.ts(47,49): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/actions/signal.ts(54,55): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/actions/telegram.ts(10,45): error TS2307: Cannot find module '../../../telegram/accounts.js' or its corresponding type declarations.
+src/channels/plugins/actions/telegram.ts(11,48): error TS2307: Cannot find module '../../../telegram/inline-buttons.js' or its corresponding type declarations.
+src/channels/plugins/actions/telegram.ts(43,8): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/actions/telegram.ts(67,8): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/actions/telegram.ts(72,27): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/channels/plugins/directory-config.ts(3,39): error TS2307: Cannot find module '../../discord/accounts.js' or its corresponding type declarations.
+src/channels/plugins/directory-config.ts(5,40): error TS2307: Cannot find module '../../telegram/accounts.js' or its corresponding type declarations.
+src/channels/plugins/directory-config.ts(7,61): error TS2307: Cannot find module '../../whatsapp/normalize.js' or its corresponding type declarations.
+src/channels/plugins/directory-config.ts(101,25): error TS18046: 'guild' is of type 'unknown'.
+src/channels/plugins/directory-config.ts(107,41): error TS18046: 'guild' is of type 'unknown'.
+src/channels/plugins/directory-config.ts(108,26): error TS18046: 'channel' is of type 'unknown'.
+src/channels/plugins/directory-config.ts(141,41): error TS18046: 'guild' is of type 'unknown'.
+src/channels/plugins/directory-config.ts(172,46): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/channels/plugins/normalize/discord.ts(1,36): error TS2307: Cannot find module '../../../discord/targets.js' or its corresponding type declarations.
+src/channels/plugins/normalize/imessage.ts(1,41): error TS2307: Cannot find module '../../../imessage/targets.js' or its corresponding type declarations.
+src/channels/plugins/normalize/whatsapp.ts(1,41): error TS2307: Cannot find module '../../../whatsapp/normalize.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/discord.ts(10,8): error TS2307: Cannot find module '../../../discord/accounts.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/discord.ts(11,38): error TS2307: Cannot find module '../../../discord/monitor/allow-list.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/discord.ts(15,8): error TS2307: Cannot find module '../../../discord/resolve-channels.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/discord.ts(16,45): error TS2307: Cannot find module '../../../discord/resolve-users.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/discord.ts(249,40): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/channels/plugins/onboarding/discord.ts(252,47): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/channels/plugins/onboarding/discord.ts(257,30): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/channels/plugins/onboarding/discord.ts(276,57): error TS7006: Parameter 'accountId' implicitly has an 'any' type.
+src/channels/plugins/onboarding/discord.ts(394,33): error TS2339: Property 'channels' does not exist on type '{}'.
+src/channels/plugins/onboarding/imessage.ts(10,8): error TS2307: Cannot find module '../../../imessage/accounts.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/imessage.ts(11,41): error TS2307: Cannot find module '../../../imessage/targets.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/imessage.ts(158,58): error TS7006: Parameter 'accountId' implicitly has an 'any' type.
+src/channels/plugins/onboarding/signal.ts(13,8): error TS2307: Cannot find module '../../../signal/accounts.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/signal.ts(167,8): error TS7006: Parameter 'accountId' implicitly has an 'any' type.
+src/channels/plugins/onboarding/telegram.ts(11,8): error TS2307: Cannot find module '../../../telegram/accounts.js' or its corresponding type declarations.
+src/channels/plugins/onboarding/telegram.ts(137,31): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/channels/plugins/onboarding/telegram.ts(207,58): error TS7006: Parameter 'accountId' implicitly has an 'any' type.
+src/channels/plugins/outbound/discord.ts(2,53): error TS2307: Cannot find module '../../../discord/send.js' or its corresponding type declarations.
+src/channels/plugins/outbound/imessage.ts(3,37): error TS2307: Cannot find module '../../../imessage/send.js' or its corresponding type declarations.
+src/channels/plugins/outbound/signal.ts(3,35): error TS2307: Cannot find module '../../../signal/send.js' or its corresponding type declarations.
+src/channels/plugins/outbound/telegram.ts(2,46): error TS2307: Cannot find module '../../../telegram/format.js' or its corresponding type declarations.
+src/channels/plugins/outbound/telegram.ts(3,37): error TS2307: Cannot find module '../../../telegram/send.js' or its corresponding type declarations.
+src/channels/plugins/outbound/whatsapp.ts(6,61): error TS2307: Cannot find module '../../../whatsapp/normalize.js' or its corresponding type declarations.
+src/cli/deps.ts(3,36): error TS2307: Cannot find module '../discord/send.js' or its corresponding type declarations.
+src/cli/deps.ts(4,37): error TS2307: Cannot find module '../imessage/send.js' or its corresponding type declarations.
+src/cli/deps.ts(5,35): error TS2307: Cannot find module '../signal/send.js' or its corresponding type declarations.
+src/cli/deps.ts(7,37): error TS2307: Cannot find module '../telegram/send.js' or its corresponding type declarations.
+src/commands/channels/capabilities.ts(5,48): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/commands/channels/capabilities.ts(6,36): error TS2307: Cannot find module '../../discord/targets.js' or its corresponding type declarations.
+src/config/types.discord.ts(1,45): error TS2307: Cannot find module '../discord/pluralkit.js' or its corresponding type declarations.
+src/infra/outbound/deliver.ts(4,41): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/infra/outbound/deliver.ts(5,42): error TS2307: Cannot find module '../../imessage/send.js' or its corresponding type declarations.
+src/infra/outbound/deliver.ts(7,42): error TS2307: Cannot find module '../../telegram/send.js' or its corresponding type declarations.
+src/infra/outbound/deliver.ts(24,71): error TS2307: Cannot find module '../../signal/format.js' or its corresponding type declarations.
+src/infra/outbound/deliver.ts(25,35): error TS2307: Cannot find module '../../signal/send.js' or its corresponding type declarations.
+src/infra/outbound/message-action-runner.ts(23,37): error TS2307: Cannot find module '../../telegram/targets.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(8,36): error TS2307: Cannot find module '../../discord/targets.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(9,62): error TS2307: Cannot find module '../../imessage/targets.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(16,8): error TS2307: Cannot find module '../../signal/identity.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(21,42): error TS2307: Cannot find module '../../telegram/bot/helpers.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(22,47): error TS2307: Cannot find module '../../telegram/inline-buttons.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(23,37): error TS2307: Cannot find module '../../telegram/targets.js' or its corresponding type declarations.
+src/infra/outbound/outbound-session.ts(24,61): error TS2307: Cannot find module '../../whatsapp/normalize.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(275,8): error TS2307: Cannot find module '../discord/accounts.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(276,47): error TS2307: Cannot find module '../discord/audit.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(290,8): error TS2307: Cannot find module '../imessage/accounts.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(319,8): error TS2307: Cannot find module '../telegram/accounts.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(326,36): error TS2307: Cannot find module '../telegram/probe.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(334,8): error TS2307: Cannot find module '../signal/accounts.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(348,61): error TS2307: Cannot find module '../whatsapp/normalize.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(366,8): error TS2307: Cannot find module '../line/accounts.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(367,34): error TS2307: Cannot find module '../line/config-schema.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(373,8): error TS2307: Cannot find module '../line/types.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(382,8): error TS2307: Cannot find module '../line/flex-templates.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(387,8): error TS2307: Cannot find module '../line/markdown-to-line.js' or its corresponding type declarations.
+src/plugin-sdk/index.ts(388,43): error TS2307: Cannot find module '../line/markdown-to-line.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(62,48): error TS2307: Cannot find module '../../discord/audit.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(66,8): error TS2307: Cannot find module '../../discord/directory-live.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(67,40): error TS2307: Cannot find module '../../discord/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(68,30): error TS2307: Cannot find module '../../discord/probe.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(69,48): error TS2307: Cannot find module '../../discord/resolve-channels.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(70,45): error TS2307: Cannot find module '../../discord/resolve-users.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(71,53): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(73,41): error TS2307: Cannot find module '../../imessage/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(74,31): error TS2307: Cannot find module '../../imessage/probe.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(75,37): error TS2307: Cannot find module '../../imessage/send.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(83,8): error TS2307: Cannot find module '../../line/accounts.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(84,37): error TS2307: Cannot find module '../../line/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(85,30): error TS2307: Cannot find module '../../line/probe.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(95,8): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(96,49): error TS2307: Cannot find module '../../line/template-messages.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(113,39): error TS2307: Cannot find module '../../signal/index.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(114,29): error TS2307: Cannot find module '../../signal/probe.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(115,35): error TS2307: Cannot find module '../../signal/send.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(128,8): error TS2307: Cannot find module '../../telegram/audit.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(129,41): error TS2307: Cannot find module '../../telegram/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(130,31): error TS2307: Cannot find module '../../telegram/probe.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(131,37): error TS2307: Cannot find module '../../telegram/send.js' or its corresponding type declarations.
+src/plugins/runtime/index.ts(132,38): error TS2307: Cannot find module '../../telegram/token.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(91,17): error TS2307: Cannot find module '../../discord/audit.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(93,17): error TS2307: Cannot find module '../../discord/directory-live.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(95,17): error TS2307: Cannot find module '../../discord/directory-live.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(96,35): error TS2307: Cannot find module '../../discord/probe.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(98,17): error TS2307: Cannot find module '../../discord/resolve-channels.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(100,17): error TS2307: Cannot find module '../../discord/resolve-users.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(101,41): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(102,38): error TS2307: Cannot find module '../../discord/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(103,45): error TS2307: Cannot find module '../../discord/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(117,17): error TS2307: Cannot find module '../../telegram/audit.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(119,17): error TS2307: Cannot find module '../../telegram/audit.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(120,36): error TS2307: Cannot find module '../../telegram/probe.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(121,43): error TS2307: Cannot find module '../../telegram/token.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(122,42): error TS2307: Cannot find module '../../telegram/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(123,46): error TS2307: Cannot find module '../../telegram/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(126,34): error TS2307: Cannot find module '../../signal/probe.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(127,40): error TS2307: Cannot find module '../../signal/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(128,44): error TS2307: Cannot find module '../../signal/index.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(131,46): error TS2307: Cannot find module '../../imessage/monitor.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(132,36): error TS2307: Cannot find module '../../imessage/probe.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(133,42): error TS2307: Cannot find module '../../imessage/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(152,41): error TS2307: Cannot find module '../../line/accounts.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(154,17): error TS2307: Cannot find module '../../line/accounts.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(155,41): error TS2307: Cannot find module '../../line/accounts.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(156,45): error TS2307: Cannot find module '../../line/accounts.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(157,35): error TS2307: Cannot find module '../../line/probe.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(158,38): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(159,38): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(160,39): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(161,38): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(162,42): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(163,42): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(165,17): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(166,44): error TS2307: Cannot find module '../../line/send.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(168,17): error TS2307: Cannot find module '../../line/template-messages.js' or its corresponding type declarations.
+src/plugins/runtime/types.ts(169,42): error TS2307: Cannot find module '../../line/monitor.js' or its corresponding type declarations.

@@ -22,6 +22,14 @@
       "openclaw/plugin-sdk": ["./src/plugin-sdk/index.ts"]
     }
   },
-  "include": ["src/**/*", "ui/**/*", "extensions/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "extensions/**/*.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "extensions/**/*.test.ts",
+    "src/**/test-helpers.ts",
+    "src/test-helpers/**",
+    "src/test-utils/**"
+  ]
 }

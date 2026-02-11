@@ -136,9 +136,9 @@ if (!shouldBuild()) {
   runNode();
 } else {
   logRunner("Building TypeScript (dist is stale).");
-  const buildCmd = process.platform === "win32" ? "cmd.exe" : "pnpm";
+  const buildCmd = process.platform === "win32" ? "cmd.exe" : "bun";
   const buildArgs =
-    process.platform === "win32" ? ["/d", "/s", "/c", "pnpm", ...compilerArgs] : compilerArgs;
+    process.platform === "win32" ? ["/d", "/s", "/c", "bun", ...compilerArgs] : compilerArgs;
   const build = spawn(buildCmd, buildArgs, {
     cwd,
     env,

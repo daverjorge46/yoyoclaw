@@ -1,0 +1,8 @@
+{
+  "watch": ["src", "extensions", "scripts", "openclaw.mjs", "tsdown.config.ts", "package.json"],
+  "ext": "ts,json,mjs",
+  "ignore": ["**/*.spec.ts", "**/*.test.ts", "dist/**"],
+  "exec": "bun run build && node openclaw.mjs gateway --allow-unconfigured --bind lan --port 18789",
+  "signal": "SIGTERM",
+  "delay": "500"
+}
