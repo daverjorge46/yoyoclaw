@@ -1430,9 +1430,6 @@ export function createExecTool(
 
             try {
               const outcome = await run.promise;
-              if (runningTimer) {
-                clearTimeout(runningTimer);
-              }
               const output = normalizeNotifyOutput(
                 tail(outcome.aggregated || "", DEFAULT_NOTIFY_TAIL_CHARS),
               );
