@@ -5,9 +5,6 @@ import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 import { routeLogsToStderr } from "../logging/console.js";
 import { pathExists } from "../utils.js";
-import { registerProgramCommands } from "./program/command-registry.js";
-import { getProgramContext } from "./program/program-context.js";
-import { getSubCliEntries, registerSubCliByName } from "./program/register.subclis.js";
 
 const COMPLETION_SHELLS = ["zsh", "bash", "powershell", "fish"] as const;
 type CompletionShell = (typeof COMPLETION_SHELLS)[number];
@@ -241,6 +238,11 @@ export function registerCompletionCli(program: Command) {
       // Route logs to stderr so plugin loading messages do not corrupt
       // the completion script written to stdout.
       routeLogsToStderr();
+      const { registerProgramCommands } =
+        await import("./program/command-registry.js");
+      const { getProgramContext } = await import("./program/program-context.js");
+      const { getSubCliEntries, registerSubCliByName } =
+        await import("./program/register.subclis.js");
       const shell = options.shell ?? "zsh";
 
       // Completion needs the full Commander command tree (including nested subcommands).
@@ -371,7 +373,7 @@ function generateZshCompletion(program: Command): string {
 _${rootCmd}_root_completion() {
   local -a commands
   local -a options
-  
+
   _arguments -C \\
     ${generateZshArgs(program)} \\
     ${generateZshSubcmdList(program)} \\
@@ -443,7 +445,7 @@ function generateZshSubcommands(program: Command, prefix: string): string {
 ${funcName}() {
   local -a commands
   local -a options
-  
+
   _arguments -C \\
     ${generateZshArgs(cmd)} \\
     ${generateZshSubcmdList(cmd)} \\
@@ -483,10 +485,10 @@ _${rootCmd}_completion() {
     COMPREPLY=()
     cur="\${COMP_WORDS[COMP_CWORD]}"
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
-    
+
     # Simple top-level completion for now
     opts="${program.commands.map((c) => c.name()).join(" ")} ${program.options.map((o) => o.flags.split(" ")[0]).join(" ")}"
-    
+
     case "\${prev}" in
       ${program.commands.map((cmd) => generateBashSubcommand(cmd)).join("\n      ")}
     esac
@@ -495,7 +497,7 @@ _${rootCmd}_completion() {
         COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
         return 0
     fi
-    
+
     COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
 }
 
@@ -551,10 +553,10 @@ function generatePowerShellCompletion(program: Command): string {
   return `
 Register-ArgumentCompleter -Native -CommandName ${rootCmd} -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    
+
     $commandElements = $commandAst.CommandElements
     $commandPath = ""
-    
+
     # Reconstruct command path (simple approximation)
     # Skip the executable name
     for ($i = 1; $i -lt $commandElements.Count; $i++) {
@@ -564,15 +566,15 @@ Register-ArgumentCompleter -Native -CommandName ${rootCmd} -ScriptBlock {
         $commandPath += "$element "
     }
     $commandPath = $commandPath.Trim()
-    
+
     # Root command
     if ($commandPath -eq "") {
-         $completions = @(${program.commands.map((c) => `'${c.name()}'`).join(",")}, ${program.options.map((o) => `'${o.flags.split(" ")[0]}'`).join(",")}) 
+         $completions = @(${program.commands.map((c) => `'${c.name()}'`).join(",")}, ${program.options.map((o) => `'${o.flags.split(" ")[0]}'`).join(",")})
          $completions | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
             [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterName', $_)
          }
     }
-    
+
     ${rootBody}
 }
 `;
