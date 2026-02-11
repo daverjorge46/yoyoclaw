@@ -117,35 +117,44 @@ jobs:
           test -f dist/entry.js || (echo "ERROR: dist/entry.js not found" && exit 1)
           echo "Build verification complete"
 
-      - name: Deploy production bundle with pnpm
+      - name: Create production bundle with npm
         shell: bash
         run: |
-          mkdir -p ./deploy-temp
           VERSION=$(node -p "require('./package.json').version")
           TARBALL_NAME="openclaw-${VERSION}.tgz"
 
-          echo "Deploying production bundle with pnpm deploy..."
-          echo "This resolves all symlinks and creates a standalone package"
+          echo "Removing pnpm node_modules to avoid workspace symlinks..."
+          rm -rf node_modules
 
-          # Use pnpm deploy to create a standalone directory with all deps resolved
-          # --legacy flag is required for pnpm v10+
-          # Deploy from root (.) since openclaw is the root package
-          pnpm --filter=. deploy --prod --legacy ./deploy-temp
+          echo "Installing production dependencies with npm..."
+          echo "npm creates real files, not pnpm workspace symlinks"
+          npm install --omit=dev --legacy-peer-deps
 
-          echo "Deploy complete. Creating tarball..."
+          echo "Creating tarball with bundled dependencies..."
           mkdir -p ./artifacts
 
-          # Create tarball from deployed directory
-          cd deploy-temp
-          tar -czf "../artifacts/${TARBALL_NAME}" .
-          cd ..
+          # Create tarball directly with all necessary files
+          tar -czf "./artifacts/${TARBALL_NAME}" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules/.cache' \
+            --exclude='node_modules/.pnpm' \
+            dist/ \
+            node_modules/ \
+            extensions/ \
+            skills/ \
+            assets/ \
+            docs/ \
+            package.json \
+            openclaw.mjs \
+            README.md \
+            LICENSE \
+            CHANGELOG.md \
+            2>/dev/null || true
 
           echo "Tarball created successfully"
           ls -lh ./artifacts/
           echo "Tarball size: $(du -h ./artifacts/${TARBALL_NAME} | cut -f1)"
-
-          # Cleanup
-          rm -rf ./deploy-temp
 
       - name: Set artifact name
         id: artifact
