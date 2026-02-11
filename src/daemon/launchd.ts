@@ -460,5 +460,10 @@ export async function restartLaunchAgent({
   if (res.code !== 0) {
     throw new Error(`launchctl kickstart failed: ${res.stderr || res.stdout}`.trim());
   }
-  stdout.write(`${formatLine("Restarted LaunchAgent", `${domain}/${label}`)}\n`);
+  try {
+    stdout.write(`${formatLine("Restarted LaunchAgent", `${domain}/${label}`)}\n`);
+  } catch {
+    // EPIPE is expected: `launchctl kickstart -k` kills the current process,
+    // so stdout may already be closed by the time we try to write.
+  }
 }
