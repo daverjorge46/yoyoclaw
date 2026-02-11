@@ -77,11 +77,23 @@ function resolveOpenClawDirFromMemoryDir(memoryDir) {
     return normalized.slice(0, idx + marker.length - 1).replace(/\//g, path.sep);
 }
 function resolveWorkspaceDirFromMemoryDir(memoryDir) {
-    const openclawDir = resolveOpenClawDirFromMemoryDir(memoryDir);
-    if (!openclawDir) {
-        return null;
+  const envWorkspace = process.env.OPENCLAW_WORKSPACE;
+  if (envWorkspace) {
+    const resolvedEnv = path.resolve(envWorkspace);
+    if (fs.existsSync(resolvedEnv)) {
+      return resolvedEnv;
     }
+    console.warn(`CoreMemories: OPENCLAW_WORKSPACE points to non-existent path: ${envWorkspace}`);
+  }
+  if (memoryDir) {
+    const resolvedMemoryDir = path.resolve(memoryDir);
+    return path.dirname(resolvedMemoryDir);
+  }
+  const openclawDir = resolveOpenClawDirFromMemoryDir(memoryDir);
+  if (openclawDir) {
     return path.dirname(openclawDir);
+  }
+  return process.cwd();
 }
 function resolveCoreMemoriesConfigPath(memoryDir) {
     const openclawDir = resolveOpenClawDirFromMemoryDir(memoryDir);
@@ -102,6 +114,12 @@ function resolveTipStatePath(memoryDir) {
         return path.join(path.resolve(memoryDir), ".tip-state.json");
     }
     return path.join(".openclaw", "memory", ".tip-state.json");
+}
+function resolveProposalsPendingPath(memoryDir) {
+    if (memoryDir) {
+        return path.join(path.resolve(memoryDir), "proposals-pending.json");
+    }
+    return path.join(".openclaw", "memory", "proposals-pending.json");
 }
 function sleepSync(ms) {
     if (ms <= 0) {
@@ -591,9 +609,31 @@ class AutoCompression {
 // MEMORY.md Integration
 class MemoryMdIntegration {
     constructor(memoryDir) {
-        this.pendingUpdates = [];
-        this.memoryDir = memoryDir;
+    this.memoryDir = memoryDir;
+    this.pendingUpdates = this.loadPendingUpdates();
+  }
+
+  loadPendingUpdates() {
+    const pendingPath = resolveProposalsPendingPath(this.memoryDir);
+    if (!fs.existsSync(pendingPath)) {
+      return [];
     }
+    try {
+      const data = JSON.parse(fs.readFileSync(pendingPath, 'utf-8'));
+      if (Array.isArray(data)) {
+        return data;
+      }
+    } catch {
+      // Corrupted, start fresh
+    }
+    return [];
+  }
+
+  savePendingUpdates() {
+    const pendingPath = resolveProposalsPendingPath(this.memoryDir);
+    ensureDir(path.dirname(pendingPath));
+    writeJsonAtomicSync(pendingPath, this.pendingUpdates);
+  }
     // Check if entry qualifies for MEMORY.md
     shouldProposeForMemoryMd(entry) {
         if (!CONFIG?.memoryMd?.enabled) {
@@ -667,7 +707,7 @@ class MemoryMdIntegration {
             type: entry.type,
             keywords: entry.keywords,
         };
-        this.pendingUpdates.push(proposal);
+        this.pendingUpdates.push(proposal);this.savePendingUpdates();
         // Note: Proposals are returned via the API; callers decide how to surface them (UI/tooling).
         return proposal;
     }
@@ -678,9 +718,15 @@ class MemoryMdIntegration {
             ? path.join(workspaceDir, "MEMORY.md")
             : path.resolve("MEMORY.md");
         if (!fs.existsSync(memoryMdPath)) {
-            console.warn(`MEMORY.md not found at ${memoryMdPath}, cannot update`);
-            return false;
-        }
+      const skeleton = "# Memory\n\nCurated memories and important moments.\n\n";
+      try {
+        fs.writeFileSync(memoryMdPath, skeleton);
+        console.log(`CoreMemories: Created MEMORY.md skeleton at ${memoryMdPath}`);
+      } catch (err) {
+        console.warn(`CoreMemories: Failed to create MEMORY.md: ${err.message}`);
+        return false;
+      }
+    }
         let content = fs.readFileSync(memoryMdPath, "utf-8");
         // Find or create section
         const sectionHeader = proposal.section;
@@ -710,8 +756,9 @@ class MemoryMdIntegration {
     }
     // Clear pending after processing
     clearPending() {
-        this.pendingUpdates = [];
-    }
+    this.pendingUpdates = [];
+    this.savePendingUpdates();
+  }
 }
 // Main CoreMemories class
 export class CoreMemories {
