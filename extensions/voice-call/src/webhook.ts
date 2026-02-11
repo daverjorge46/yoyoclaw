@@ -9,6 +9,7 @@ import type { VoiceCallProvider } from "./providers/base.js";
 import type { TwilioProvider } from "./providers/twilio.js";
 import type { NormalizedEvent, WebhookContext } from "./types.js";
 import { MediaStreamHandler } from "./media-stream.js";
+import { ElevenLabsScribeSTTProvider } from "./providers/stt-elevenlabs-scribe.js";
 import { OpenAIRealtimeSTTProvider } from "./providers/stt-openai-realtime.js";
 import { SilenceFiller } from "./silence-filler.js";
 
@@ -59,22 +60,53 @@ export class VoiceCallWebhookServer {
   }
 
   /**
-   * Initialize media streaming with OpenAI Realtime STT.
+   * Initialize media streaming with configurable STT provider.
    */
   private initializeMediaStreaming(): void {
-    const apiKey = this.config.streaming?.openaiApiKey || process.env.OPENAI_API_KEY;
+    const sttProviderType = this.config.streaming?.sttProvider ?? "openai-realtime";
 
-    if (!apiKey) {
-      console.warn("[voice-call] Streaming enabled but no OpenAI API key found");
-      return;
+    let sttProvider: OpenAIRealtimeSTTProvider | ElevenLabsScribeSTTProvider;
+
+    if (sttProviderType === "elevenlabs-scribe") {
+      const apiKey =
+        this.config.streaming?.elevenlabsApiKey ||
+        this.config.tts?.elevenlabs?.apiKey ||
+        process.env.ELEVENLABS_API_KEY;
+
+      if (!apiKey) {
+        console.warn(
+          "[voice-call] Streaming enabled but no ElevenLabs API key found for Scribe STT",
+        );
+        return;
+      }
+
+      sttProvider = new ElevenLabsScribeSTTProvider({
+        apiKey,
+        languageCode: this.config.streaming?.elevenlabsLanguageCode,
+        vadSilenceThresholdSecs: this.config.streaming?.silenceDurationMs
+          ? this.config.streaming.silenceDurationMs / 1000
+          : undefined,
+        vadThreshold: this.config.streaming?.vadThreshold,
+      });
+
+      console.log("[voice-call] Using ElevenLabs Scribe v2 for STT");
+    } else {
+      const apiKey = this.config.streaming?.openaiApiKey || process.env.OPENAI_API_KEY;
+
+      if (!apiKey) {
+        console.warn("[voice-call] Streaming enabled but no OpenAI API key found");
+        return;
+      }
+
+      sttProvider = new OpenAIRealtimeSTTProvider({
+        apiKey,
+        model: this.config.streaming?.sttModel,
+        silenceDurationMs: this.config.streaming?.silenceDurationMs,
+        vadThreshold: this.config.streaming?.vadThreshold,
+      });
+
+      console.log("[voice-call] Using OpenAI Realtime for STT");
     }
-
-    const sttProvider = new OpenAIRealtimeSTTProvider({
-      apiKey,
-      model: this.config.streaming?.sttModel,
-      silenceDurationMs: this.config.streaming?.silenceDurationMs,
-      vadThreshold: this.config.streaming?.vadThreshold,
-    });
 
     const streamConfig: MediaStreamConfig = {
       sttProvider,
