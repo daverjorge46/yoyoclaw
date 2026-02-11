@@ -61,6 +61,8 @@ import { resolveDiscordAutoThreadReplyPlan, resolveDiscordThreadStarter } from "
 import { createTypingGuard } from "./typing-guard.js";
 import { sendTyping } from "./typing.js";
 
+const DEFAULT_ACK_DELAY_MS = 5000;
+
 export async function processDiscordMessage(ctx: DiscordMessagePreflightContext) {
   const {
     cfg,
