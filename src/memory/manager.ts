@@ -27,6 +27,8 @@ import {
   runOpenAiEmbeddingBatches,
 } from "./batch-openai.js";
 import { type VoyageBatchRequest, runVoyageEmbeddingBatches } from "./batch-voyage.js";
+import { enforceEmbeddingMaxInputTokens } from "./embedding-chunk-limits.js";
+import { estimateUtf8Bytes } from "./embedding-input-limits.js";
 import { DEFAULT_GEMINI_EMBEDDING_MODEL } from "./embeddings-gemini.js";
 import { DEFAULT_OPENAI_EMBEDDING_MODEL } from "./embeddings-openai.js";
 import { DEFAULT_VOYAGE_EMBEDDING_MODEL } from "./embeddings-voyage.js";
@@ -87,16 +89,6 @@ const FTS_TABLE = "chunks_fts";
 const EMBEDDING_CACHE_TABLE = "embedding_cache";
 const SESSION_DIRTY_DEBOUNCE_MS = 5000;
 const EMBEDDING_BATCH_MAX_TOKENS = 8000;
-const DEFAULT_EMBEDDING_MAX_INPUT_TOKENS = 8192;
-const KNOWN_EMBEDDING_MAX_INPUT_TOKENS: Record<string, number> = {
-  "openai:text-embedding-3-small": 8192,
-  "openai:text-embedding-3-large": 8192,
-  "openai:text-embedding-ada-002": 8191,
-  "gemini:text-embedding-004": 2048,
-  "voyage:voyage-3": 32000,
-  "voyage:voyage-3-lite": 16000,
-  "voyage:voyage-code-3": 32000,
-};
 const EMBEDDING_INDEX_CONCURRENCY = 4;
 const EMBEDDING_RETRY_MAX_ATTEMPTS = 3;
 const EMBEDDING_RETRY_BASE_DELAY_MS = 500;
@@ -1552,87 +1544,13 @@ export class MemoryIndexManager implements MemorySearchManager {
       .run(META_KEY, value);
   }
 
-  private estimateEmbeddingTokens(text: string): number {
-    if (!text) {
-      return 0;
-    }
-    // UTF-8 byte length is a safe upper bound for tokenizer output length.
-    return Buffer.byteLength(text, "utf8");
-  }
-
-  private getMaxInputTokens(): number {
-    if (typeof this.provider.maxInputTokens === "number") {
-      return this.provider.maxInputTokens;
-    }
-    const key = `${this.provider.id}:${this.provider.model}`.toLowerCase();
-    return KNOWN_EMBEDDING_MAX_INPUT_TOKENS[key] ?? DEFAULT_EMBEDDING_MAX_INPUT_TOKENS;
-  }
-
-  private splitChunkToTokenLimit(chunk: MemoryChunk): MemoryChunk[] {
-    const maxInputTokens = this.getMaxInputTokens();
-    if (this.estimateEmbeddingTokens(chunk.text) <= maxInputTokens) {
-      return [chunk];
-    }
-    const parts: MemoryChunk[] = [];
-    let cursor = 0;
-    while (cursor < chunk.text.length) {
-      let low = cursor + 1;
-      let high = Math.min(chunk.text.length, cursor + maxInputTokens);
-      let best = cursor;
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        const bytes = this.estimateEmbeddingTokens(chunk.text.slice(cursor, mid));
-        if (bytes <= maxInputTokens) {
-          best = mid;
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      }
-      if (best <= cursor) {
-        best = Math.min(chunk.text.length, cursor + 1);
-      }
-      // Avoid splitting inside a surrogate pair.
-      if (
-        best < chunk.text.length &&
-        best > cursor &&
-        chunk.text.charCodeAt(best - 1) >= 0xd800 &&
-        chunk.text.charCodeAt(best - 1) <= 0xdbff &&
-        chunk.text.charCodeAt(best) >= 0xdc00 &&
-        chunk.text.charCodeAt(best) <= 0xdfff
-      ) {
-        best -= 1;
-      }
-      const text = chunk.text.slice(cursor, best);
-      if (!text) {
-        break;
-      }
-      parts.push({
-        startLine: chunk.startLine,
-        endLine: chunk.endLine,
-        text,
-        hash: hashText(text),
-      });
-      cursor = best;
-    }
-    return parts;
-  }
-
-  private enforceChunkTokenLimit(chunks: MemoryChunk[]): MemoryChunk[] {
-    const out: MemoryChunk[] = [];
-    for (const chunk of chunks) {
-      out.push(...this.splitChunkToTokenLimit(chunk));
-    }
-    return out;
-  }
-
   private buildEmbeddingBatches(chunks: MemoryChunk[]): MemoryChunk[][] {
     const batches: MemoryChunk[][] = [];
     let current: MemoryChunk[] = [];
     let currentTokens = 0;
 
     for (const chunk of chunks) {
-      const estimate = this.estimateEmbeddingTokens(chunk.text);
+      const estimate = estimateUtf8Bytes(chunk.text);
       const wouldExceed =
         current.length > 0 && currentTokens + estimate > EMBEDDING_BATCH_MAX_TOKENS;
       if (wouldExceed) {
@@ -2282,7 +2200,8 @@ export class MemoryIndexManager implements MemorySearchManager {
     options: { source: MemorySource; content?: string },
   ) {
     const content = options.content ?? (await fs.readFile(entry.absPath, "utf-8"));
-    const chunks = this.enforceChunkTokenLimit(
+    const chunks = enforceEmbeddingMaxInputTokens(
+      this.provider,
       chunkMarkdown(content, this.settings.chunking).filter(
         (chunk) => chunk.text.trim().length > 0,
       ),
