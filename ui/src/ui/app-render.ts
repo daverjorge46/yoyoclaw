@@ -82,26 +82,45 @@ const debouncedLoadUsage = (state: UsageState) => {
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
-function formatApiQuotaBadge(summary: UsageSummary | null): string {
+function buildApiQuotaPreview(summary: UsageSummary | null): { label: string; hover: string } {
   if (!summary || !Array.isArray(summary.providers) || summary.providers.length === 0) {
-    return "API n/a";
+    return { label: "n/a", hover: "No provider usage data available yet." };
   }
-  const candidates = summary.providers
+
+  const rows = summary.providers
     .filter((p) => !p.error && Array.isArray(p.windows) && p.windows.length > 0)
     .map((p) => {
       const peak = p.windows.reduce((best, w) =>
         typeof w.usedPercent === "number" && w.usedPercent > best ? w.usedPercent : best,
       0);
-      return { displayName: p.displayName || p.provider, used: peak };
+      const topWindow = [...p.windows].sort((a, b) => (b.usedPercent ?? 0) - (a.usedPercent ?? 0))[0];
+      const left = Math.max(0, 100 - Math.round(peak));
+      const reset =
+        typeof topWindow?.resetAt === "number" && Number.isFinite(topWindow.resetAt)
+          ? Math.max(0, Math.round((topWindow.resetAt - Date.now()) / 60000))
+          : null;
+      return {
+        provider: p.displayName || p.provider,
+        left,
+        window: topWindow?.label || "window",
+        reset,
+      };
     })
-    .sort((a, b) => b.used - a.used);
+    .sort((a, b) => a.left - b.left);
 
-  if (candidates.length === 0) {
-    return "API n/a";
+  if (rows.length === 0) {
+    return { label: "n/a", hover: "No provider usage data available yet." };
   }
-  const top = candidates[0];
-  const left = Math.max(0, 100 - Math.round(top.used));
-  return `${top.displayName}: ${left}% left`;
+
+  const top = rows[0];
+  const hover = rows
+    .map((r) => {
+      const resetText = r.reset == null ? "" : r.reset <= 0 ? " · resets now" : ` · resets in ${r.reset}m`;
+      return `${r.provider}: ${r.left}% left (${r.window})${resetText}`;
+    })
+    .join("\n");
+
+  return { label: `${top.left}%`, hover };
 }
 
 function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
@@ -132,7 +151,7 @@ export function renderApp(state: AppViewState) {
   const chatAvatarUrl = state.chatAvatarUrl ?? assistantAvatarUrl ?? null;
   const configValue =
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);
-  const apiQuotaLabel = formatApiQuotaBadge(state.usageStatusSummary ?? null);
+  const apiQuota = buildApiQuotaPreview(state.usageStatusSummary ?? null);
   const basePath = normalizeBasePath(state.basePath ?? "");
   const resolvedAgentId =
     state.agentsSelectedId ??
@@ -172,9 +191,9 @@ export function renderApp(state: AppViewState) {
             <span>Health</span>
             <span class="mono">${state.connected ? "OK" : "Offline"}</span>
           </div>
-          <div class="pill" title="Highest-pressure provider quota window">
+          <div class="pill" title=${apiQuota.hover}>
             <span>API</span>
-            <span class="mono">${apiQuotaLabel}</span>
+            <span class="mono">${apiQuota.label}</span>
           </div>
           ${renderThemeToggle(state)}
         </div>
