@@ -1,6 +1,6 @@
 # Angel OS alignment and strategy
 
-This document describes how **Angel OS** relates to OpenClaw and provides enough context for contributors and downstream forks. No change to OpenClaw runtime behavior is implied.
+This document describes how **Angel OS** relates to OpenClaw and provides enough context for contributors and downstream forks. No change to OpenClaw runtime behavior is implied. It is intended as a testable blueprint for the foundation of **AngelClaw**’s future platform on Clearwater.
 
 ## What is Angel OS?
 
@@ -9,7 +9,7 @@ This document describes how **Angel OS** relates to OpenClaw and provides enough
 **Canonical Constitution:** [Angel OS Constitution](https://github.com/The-Angel-OS/angels-os/blob/main/docs/Angel_OS_Constitution.md) (Angel OS repo).  
 A minimal **Seed**—the set of principles OpenClaw commits to when running as Angel OS—is summarized in [ANGEL_OS_CONSTITUTION_SEED](/ANGEL_OS_CONSTITUTION_SEED) in this repo.
 
-An important longer-term goal is eventual adoption of an **immutable seed prompt**: a stable constitutional core that orients behavior in line with Answer 53. Its content and governance are open for extensive discussion and modification, in adherence to Answer 53 (the whole point of existence is to learn to love). The Core Platform is owned by the community and its best practices; what isn’t built yet will get built by many hands.
+A longer-term goal is an **immutable seed prompt**—a stable constitutional core—with content and governance open for discussion and refinement (in line with Answer 53).
 
 ## Strategy summary
 
