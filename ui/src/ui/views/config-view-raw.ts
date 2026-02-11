@@ -1,5 +1,5 @@
 import JSON5 from "json5";
-import { html } from "lit";
+import { html, type TemplateResult } from "lit";
 
 type RawParseState = {
   raw: string;
@@ -108,7 +108,7 @@ export function setRawTreeExpanded(target: EventTarget | null, expand: boolean):
   });
 }
 
-function renderRawToken(value: unknown) {
+function renderRawToken(value: unknown): TemplateResult {
   if (typeof value === "string") {
     return html`<span class="config-raw-token config-raw-token--string">${JSON.stringify(value)}</span>`;
   }
@@ -133,7 +133,7 @@ function renderRawToken(value: unknown) {
   return html`<span class="config-raw-token config-raw-token--unknown">${String(value)}</span>`;
 }
 
-function renderRawKey(label: string, indexed = false) {
+function renderRawKey(label: string, indexed = false): TemplateResult {
   const keyText = indexed ? `[${label}]` : JSON.stringify(label);
   const keyClass = indexed ? "config-raw-token--index" : "config-raw-token--key";
   return html`
@@ -147,7 +147,7 @@ export function renderRawTreeNode(params: {
   depth: number;
   label?: string;
   indexed?: boolean;
-}) {
+}): TemplateResult {
   const { value, depth, label, indexed = false } = params;
   const keyTemplate =
     label !== undefined
@@ -167,13 +167,14 @@ export function renderRawTreeNode(params: {
         <div class="config-raw-node__children">
           ${
             value.length > 0
-              ? value.map((entry, index) =>
-                  renderRawTreeNode({
-                    value: entry,
-                    depth: depth + 1,
-                    label: String(index),
-                    indexed: true,
-                  }),
+              ? value.map(
+                  (entry, index): TemplateResult =>
+                    renderRawTreeNode({
+                      value: entry,
+                      depth: depth + 1,
+                      label: String(index),
+                      indexed: true,
+                    }),
                 )
               : html`
                   <div class="config-raw-node__empty">empty array</div>
@@ -199,8 +200,9 @@ export function renderRawTreeNode(params: {
         <div class="config-raw-node__children">
           ${
             entries.length > 0
-              ? entries.map(([entryKey, entryValue]) =>
-                  renderRawTreeNode({ value: entryValue, depth: depth + 1, label: entryKey }),
+              ? entries.map(
+                  ([entryKey, entryValue]): TemplateResult =>
+                    renderRawTreeNode({ value: entryValue, depth: depth + 1, label: entryKey }),
                 )
               : html`
                   <div class="config-raw-node__empty">empty object</div>
