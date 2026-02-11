@@ -274,6 +274,19 @@ export function renderChat(props: ChatProps) {
   const activeTasks = getActiveChatTasks(taskStore.tasks, 5);
   const immediateIssues = getImmediateIssues(taskStore.tasks, 3);
   const nearTermProjects = getNearTermProjects(taskStore.tasks, 4);
+  const currentEndeavorTask = activeTasks[0] ?? null;
+  const majorEndeavors = [
+    "Mentem",
+    "ISOTRA Designer",
+    "Pooltechnika 3D Pool",
+    "Notino",
+    "Vectra / Algovectra",
+  ].map((name) => {
+    const match = taskStore.tasks
+      .filter((task) => (task.project || "").toLowerCase().includes(name.toLowerCase()))
+      .sort((a, b) => a.priority.localeCompare(b.priority))[0];
+    return { name, task: match ?? null };
+  });
 
   return html`
     <section class="card chat">
@@ -313,8 +326,34 @@ export function renderChat(props: ChatProps) {
           <aside class="chat-tasks-rail">
             <div class="chat-tasks-rail__title">Current Main Activity</div>
             ${taskStore.currentEndeavor
-              ? html`<div style="margin-bottom: 12px;"><strong>${taskStore.currentEndeavor}</strong></div>`
+              ? html`
+                  <div style="margin-bottom: 8px;"><strong>${taskStore.currentEndeavor}</strong></div>
+                  <div class="muted" style="margin-bottom: 8px;">
+                    status ${taskStore.currentEndeavorStatus || "n/a"} · ETA ${taskStore.currentEndeavorEta || "n/a"}
+                  </div>
+                  ${
+                    currentEndeavorTask
+                      ? html`<div style="margin-bottom: 12px;"><span class="mono">${currentEndeavorTask.priority}</span> ${currentEndeavorTask.title}</div>`
+                      : html`<div class="muted" style="margin-bottom: 12px;">No linked task yet.</div>`
+                  }
+                `
               : html`<div class="muted" style="margin-bottom: 12px;">Set current endeavor in Task Management tab.</div>`}
+
+            <div class="chat-tasks-rail__title">Major Endeavors</div>
+            <ul class="chat-tasks-rail__list" style="margin-bottom: 12px;">
+              ${majorEndeavors.map(
+                (entry) => html`
+                  <li>
+                    <strong>${entry.name}</strong><br />
+                    ${
+                      entry.task
+                        ? html`<span class="mono">${entry.task.priority}</span> ${entry.task.title}`
+                        : html`<span class="muted">No task yet</span>`
+                    }
+                  </li>
+                `,
+              )}
+            </ul>
 
             <div class="chat-tasks-rail__title">Immediate Issues</div>
             ${immediateIssues.length === 0
