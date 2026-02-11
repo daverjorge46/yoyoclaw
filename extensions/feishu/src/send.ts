@@ -300,11 +300,41 @@ function extractMarkdownImages(text: string): Array<{ full: string; alt: string;
  * Download an image from a URL and upload it to Feishu to get an image_key.
  * Returns the image_key on success, or null on failure.
  */
+/**
+ * Check if a URL is safe to fetch (block private/internal IPs to prevent SSRF).
+ */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      /^127\./.test(host) ||
+      /^10\./.test(host) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+      /^192\.168\./.test(host) ||
+      host === "0.0.0.0" ||
+      host.startsWith("[") ||
+      host === "metadata.google.internal" ||
+      host === "169.254.169.254"
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function uploadImageFromUrl(params: {
   cfg: ClawdbotConfig;
   url: string;
   accountId?: string;
 }): Promise<string | null> {
+  if (!isSafeUrl(params.url)) return null;
   const { uploadImageFeishu } = await import("./media.js");
   try {
     const response = await fetch(params.url, { signal: AbortSignal.timeout(15000) });
@@ -352,16 +382,16 @@ export async function processMarkdownImages(params: {
   for (const { full, alt, url, imageKey } of uploadResults) {
     if (imageKey) {
       // Replace URL with image_key (Feishu card markdown supports ![hover](image_key))
-      result = result.replace(full, `![${alt || "image"}](${imageKey})`);
+      result = result.split(full).join(`![${alt || "image"}](${imageKey})`);
     } else {
       // Fallback: convert to link
-      result = result.replace(full, `[\u{1F5BC} ${alt || "\u56FE\u7247"}](${url})`);
+      result = result.split(full).join(`[\u{1F5BC} ${alt || "\u56FE\u7247"}](${url})`);
     }
   }
 
   // Any remaining images beyond the first 5: convert to links
   for (const img of images.slice(5)) {
-    result = result.replace(img.full, `[\u{1F5BC} ${img.alt || "\u56FE\u7247"}](${img.url})`);
+    result = result.split(img.full).join(`[\u{1F5BC} ${img.alt || "\u56FE\u7247"}](${img.url})`);
   }
 
   return result;
