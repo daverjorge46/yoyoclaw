@@ -1213,6 +1213,15 @@
 
 .chat-line.user {
   justify-content: flex-end;
+  position: sticky;
+  top: 10px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.chat-line.user .chat-msg,
+.chat-line.user .chat-bubble {
+  pointer-events: auto;
 }
 
 .chat-line.assistant,
