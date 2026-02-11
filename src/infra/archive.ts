@@ -116,7 +116,7 @@ export async function extractArchive(params: {
         filter: (entryPath) => {
           const resolved = path.resolve(destDir, entryPath);
           if (!resolved.startsWith(destDir + path.sep) && resolved !== destDir) {
-            throw new Error(`tar entry escapes destination: ${entryPath}`);
+            return false;
           }
           return true;
         },

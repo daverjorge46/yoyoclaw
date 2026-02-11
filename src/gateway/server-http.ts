@@ -1,5 +1,6 @@
 import type { TlsOptions } from "node:tls";
 import type { WebSocketServer } from "ws";
+import { timingSafeEqual } from "node:crypto";
 import {
   createServer as createHttpServer,
   type Server as HttpServer,
@@ -19,12 +20,7 @@ import {
 } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
-import {
-  authorizeGatewayConnect,
-  isLocalDirectRequest,
-  type ResolvedGatewayAuth,
-} from "./auth.js";
-import { timingSafeEqual } from "node:crypto";
+import { authorizeGatewayConnect, isLocalDirectRequest, type ResolvedGatewayAuth } from "./auth.js";
 import {
   handleControlUiAvatarRequest,
   handleControlUiHttpRequest,

@@ -339,7 +339,8 @@ function resolvePath(baseDir: string, target: string): string {
   const resolved = path.isAbsolute(target) ? target : path.join(baseDir, target);
   const normalized = path.resolve(resolved);
   const normalizedBase = path.resolve(baseDir);
-  if (!normalized.startsWith(normalizedBase + path.sep) && normalized !== normalizedBase) {
+  const rel = path.relative(normalizedBase, normalized);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
     throw new Error(
       `hook transform path escapes base directory: ${target} (resolved to ${normalized})`,
     );
