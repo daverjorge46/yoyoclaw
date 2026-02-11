@@ -2,6 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import { resolveImplicitProviders } from "./models-config.providers.js";
 
 describe("Ollama provider enhanced", () => {
@@ -14,7 +15,7 @@ describe("Ollama provider enhanced", () => {
     delete process.env.OLLAMA_API_KEY;
     delete process.env.OLLAMA_API_BASE_URL;
     delete process.env.OLLAMA_BASE_URL;
-    
+
     // We need to bypass the VITEST check in discoverOllamaModels if we want to test discovery
     vi.stubGlobal("fetch", vi.fn());
   });
@@ -41,7 +42,10 @@ describe("Ollama provider enhanced", () => {
 
     try {
       const providers = await resolveImplicitProviders({ agentDir });
-      expect(mockFetch).toHaveBeenCalledWith("http://custom-ollama:11434/api/tags", expect.anything());
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://custom-ollama:11434/api/tags",
+        expect.anything(),
+      );
       expect(providers?.ollama?.baseUrl).toBe("http://custom-ollama:11434/v1");
     } finally {
       process.env.VITEST = originalVitest;
@@ -56,9 +60,9 @@ describe("Ollama provider enhanced", () => {
         providers: {
           ollama: {
             baseUrl: "http://config-ollama:11434/v1",
-          }
-        }
-      }
+          },
+        },
+      },
     };
     const mockFetch = vi.mocked(fetch);
     mockFetch.mockResolvedValue({
@@ -72,8 +76,14 @@ describe("Ollama provider enhanced", () => {
     process.env.NODE_ENV = "development";
 
     try {
-      const providers = await resolveImplicitProviders({ agentDir, config: config as any });
-      expect(mockFetch).toHaveBeenCalledWith("http://config-ollama:11434/api/tags", expect.anything());
+      const providers = await resolveImplicitProviders({
+        agentDir,
+        config: config as unknown as OpenClawConfig,
+      });
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://config-ollama:11434/api/tags",
+        expect.anything(),
+      );
       expect(providers?.ollama?.baseUrl).toBe("http://config-ollama:11434/v1");
     } finally {
       process.env.VITEST = originalVitest;
@@ -88,14 +98,17 @@ describe("Ollama provider enhanced", () => {
         providers: {
           ollama: {
             baseUrl: "http://config-ollama:11434/v1",
-            models: [{ id: "manual-model", name: "Manual" }]
-          }
-        }
-      }
+            models: [{ id: "manual-model", name: "Manual" }],
+          },
+        },
+      },
     };
     const mockFetch = vi.mocked(fetch);
 
-    const providers = await resolveImplicitProviders({ agentDir, config: config as any });
+    const providers = await resolveImplicitProviders({
+      agentDir,
+      config: config as unknown as OpenClawConfig,
+    });
     expect(mockFetch).not.toHaveBeenCalled();
     expect(providers?.ollama).toBeUndefined();
   });

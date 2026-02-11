@@ -45,10 +45,7 @@ const hasAuthForProvider = (provider: string, cfg: OpenClawConfig, authStore: Au
   return false;
 };
 
-export async function loadModelRegistry(
-  cfg: OpenClawConfig,
-  options: { discover?: boolean } = {},
-) {
+export async function loadModelRegistry(cfg: OpenClawConfig, options: { discover?: boolean } = {}) {
   await ensureOpenClawModelsJson(cfg, undefined, options);
   const agentDir = resolveOpenClawAgentDir();
   const authStorage = discoverAuthStorage(agentDir);
