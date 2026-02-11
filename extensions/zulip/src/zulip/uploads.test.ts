@@ -1,26 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { extractZulipUploadUrls, normalizeEmojiName } from "./uploads.js";
+import { extractZulipUploadUrls, normalizeZulipEmojiName } from "./uploads.js";
 
-describe("normalizeEmojiName", () => {
+describe("normalizeZulipEmojiName", () => {
   it("returns plain names unchanged", () => {
-    expect(normalizeEmojiName("eyes")).toBe("eyes");
-    expect(normalizeEmojiName("check_mark")).toBe("check_mark");
+    expect(normalizeZulipEmojiName("eyes")).toBe("eyes");
+    expect(normalizeZulipEmojiName("check_mark")).toBe("check_mark");
   });
 
   it("strips leading and trailing colons", () => {
-    expect(normalizeEmojiName(":eyes:")).toBe("eyes");
-    expect(normalizeEmojiName(":warning:")).toBe("warning");
+    expect(normalizeZulipEmojiName(":eyes:")).toBe("eyes");
+    expect(normalizeZulipEmojiName(":warning:")).toBe("warning");
   });
 
   it("handles double colons", () => {
-    expect(normalizeEmojiName("::eyes::")).toBe("eyes");
+    expect(normalizeZulipEmojiName("::eyes::")).toBe("eyes");
   });
 
   it("returns empty string for null/undefined/empty", () => {
-    expect(normalizeEmojiName(null)).toBe("");
-    expect(normalizeEmojiName(undefined)).toBe("");
-    expect(normalizeEmojiName("")).toBe("");
-    expect(normalizeEmojiName("  ")).toBe("");
+    expect(normalizeZulipEmojiName(null)).toBe("");
+    expect(normalizeZulipEmojiName(undefined)).toBe("");
+    expect(normalizeZulipEmojiName("")).toBe("");
+    expect(normalizeZulipEmojiName("  ")).toBe("");
   });
 });
 
