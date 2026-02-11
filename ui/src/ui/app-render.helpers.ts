@@ -11,6 +11,149 @@ import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { icons } from "./icons.ts";
 import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 
+type LoopSpeed = "slow" | "normal" | "fast";
+
+const LOOP_SPEED_KEY = "openclaw.loop.speed.v1";
+const LOOP_BASE_EVERY_MS_KEY = "openclaw.loop.baseEveryMs.v1";
+
+function readLoopSpeed(): LoopSpeed {
+  if (typeof window === "undefined") {
+    return "normal";
+  }
+  const raw = window.localStorage.getItem(LOOP_SPEED_KEY);
+  return raw === "slow" || raw === "fast" || raw === "normal" ? raw : "normal";
+}
+
+function writeLoopSpeed(speed: LoopSpeed) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(LOOP_SPEED_KEY, speed);
+}
+
+function readBaseEveryMs(): Record<string, number> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+  try {
+    const raw = window.localStorage.getItem(LOOP_BASE_EVERY_MS_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const out: Record<string, number> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+        out[key] = value;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function writeBaseEveryMs(map: Record<string, number>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(LOOP_BASE_EVERY_MS_KEY, JSON.stringify(map));
+}
+
+async function applyLoopSpeed(state: AppViewState, speed: LoopSpeed) {
+  if (!state.client) {
+    return;
+  }
+  const factor = speed === "slow" ? 2 : speed === "fast" ? 0.5 : 1;
+  const baseEveryMsByJobId = readBaseEveryMs();
+  const list = (await state.client.request("cron.list", {
+    includeDisabled: true,
+  })) as { jobs?: Array<Record<string, unknown>> };
+  const jobs = Array.isArray(list.jobs) ? list.jobs : [];
+
+  for (const job of jobs) {
+    const id = typeof job.id === "string" ? job.id : null;
+    const schedule = (job.schedule as Record<string, unknown> | undefined) ?? null;
+    if (!id || !schedule || schedule.kind !== "every") {
+      continue;
+    }
+    const everyMs = typeof schedule.everyMs === "number" ? schedule.everyMs : null;
+    if (!everyMs || !Number.isFinite(everyMs) || everyMs <= 0) {
+      continue;
+    }
+    if (!baseEveryMsByJobId[id]) {
+      baseEveryMsByJobId[id] = everyMs;
+    }
+    const base = baseEveryMsByJobId[id];
+    const nextEveryMs = Math.max(60_000, Math.round(base * factor));
+    if (nextEveryMs === everyMs) {
+      continue;
+    }
+    await state.client.request("cron.update", {
+      id,
+      patch: {
+        schedule: {
+          ...schedule,
+          everyMs: nextEveryMs,
+        },
+      },
+    });
+  }
+
+  writeBaseEveryMs(baseEveryMsByJobId);
+  writeLoopSpeed(speed);
+  await state.loadCron();
+}
+
+async function pauseAllAgentLoops(state: AppViewState) {
+  if (!state.client) {
+    return;
+  }
+  const list = (await state.client.request("cron.list", {
+    includeDisabled: true,
+  })) as { jobs?: Array<Record<string, unknown>> };
+  const jobs = Array.isArray(list.jobs) ? list.jobs : [];
+  for (const job of jobs) {
+    const id = typeof job.id === "string" ? job.id : null;
+    if (!id) {
+      continue;
+    }
+    const enabled = job.enabled !== false;
+    if (!enabled) {
+      continue;
+    }
+    await state.client.request("cron.update", { id, patch: { enabled: false } });
+  }
+  await state.loadCron();
+}
+
+async function haltAllAgents(state: AppViewState) {
+  if (!state.client) {
+    return;
+  }
+  await pauseAllAgentLoops(state);
+  if (state.chatRunId) {
+    await state.handleAbortChat();
+  }
+  const res = (await state.client.request("sessions.list", {
+    includeUnknown: true,
+    includeGlobal: true,
+    limit: 500,
+  })) as { sessions?: Array<{ key?: string; kind?: string }> };
+  const rows = Array.isArray(res.sessions) ? res.sessions : [];
+  const protectedKeys = new Set(["main", state.sessionKey]);
+  for (const row of rows) {
+    const key = typeof row.key === "string" ? row.key : "";
+    if (!key || protectedKeys.has(key)) {
+      continue;
+    }
+    if (row.kind === "session" || row.kind === "isolated") {
+      await state.client.request("sessions.delete", { key, deleteTranscript: false });
+    }
+  }
+  await state.handleSessionsLoad();
+}
+
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
   return html`
@@ -50,6 +193,7 @@ export function renderChatControls(state: AppViewState) {
   const disableFocusToggle = state.onboarding;
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
+  const loopSpeed = readLoopSpeed();
   // Refresh icon
   const refreshIcon = html`
     <svg
@@ -190,6 +334,62 @@ export function renderChatControls(state: AppViewState) {
         }
       >
         ${focusIcon}
+      </button>
+      <span class="chat-controls__separator">|</span>
+      <label class="field chat-controls__session" title="Automation speed for recurring loops">
+        <select
+          .value=${loopSpeed}
+          ?disabled=${!state.connected}
+          @change=${async (e: Event) => {
+            const next = (e.target as HTMLSelectElement).value as LoopSpeed;
+            if (next !== "slow" && next !== "normal" && next !== "fast") {
+              return;
+            }
+            try {
+              await applyLoopSpeed(state, next);
+            } catch (err) {
+              state.lastError = `Failed to apply speed: ${String(err)}`;
+            }
+          }}
+        >
+          <option value="slow">Speed: Slow</option>
+          <option value="normal">Speed: Normal</option>
+          <option value="fast">Speed: Fast</option>
+        </select>
+      </label>
+      <button
+        class="btn btn--sm"
+        ?disabled=${!state.connected}
+        title="Emergency pause: disables cron-based agent loops"
+        @click=${async () => {
+          if (!window.confirm("Pause all agent loops? This will disable cron jobs until resumed manually.")) {
+            return;
+          }
+          try {
+            await pauseAllAgentLoops(state);
+          } catch (err) {
+            state.lastError = `Pause failed: ${String(err)}`;
+          }
+        }}
+      >
+        Pause
+      </button>
+      <button
+        class="btn btn--sm"
+        ?disabled=${!state.connected}
+        title="Emergency halt: pause loops + terminate active non-main sessions"
+        @click=${async () => {
+          if (!window.confirm("HALT all agents? This pauses loops and terminates active non-main sessions.")) {
+            return;
+          }
+          try {
+            await haltAllAgents(state);
+          } catch (err) {
+            state.lastError = `Halt failed: ${String(err)}`;
+          }
+        }}
+      >
+        Halt
       </button>
     </div>
   `;
