@@ -6,6 +6,15 @@ import { formatSandboxToolPolicyBlockedMessage } from "../sandbox.js";
 export const BILLING_ERROR_USER_MESSAGE =
   "⚠️ API provider returned a billing error — your API key has run out of credits or has an insufficient balance. Check your provider's billing dashboard and top up or switch to a different API key.";
 
+const JSON_PARSE_CONTROL_CHAR_RE = /bad control character in string literal in json/i;
+
+export function isJsonParseControlCharError(raw?: string): boolean {
+  if (!raw) {
+    return false;
+  }
+  return JSON_PARSE_CONTROL_CHAR_RE.test(raw);
+}
+
 export function isContextOverflowError(errorMessage?: string): boolean {
   if (!errorMessage) {
     return false;
@@ -413,6 +422,10 @@ export function formatAssistantErrorText(
     }
   }
 
+  if (isJsonParseControlCharError(raw)) {
+    return "Response interrupted by a stream encoding error. Please try again.";
+  }
+
   if (isContextOverflowError(raw)) {
     return (
       "Context overflow: prompt too large for the model. " +
@@ -478,6 +491,10 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
   // Only apply error-pattern rewrites when the caller knows this text is an error payload.
   // Otherwise we risk swallowing legitimate assistant text that merely *mentions* these errors.
   if (errorContext) {
+    if (isJsonParseControlCharError(trimmed)) {
+      return "Response interrupted by a stream encoding error. Please try again.";
+    }
+
     if (/incorrect role information|roles must alternate/i.test(trimmed)) {
       return (
         "Message ordering conflict - please try again. " +

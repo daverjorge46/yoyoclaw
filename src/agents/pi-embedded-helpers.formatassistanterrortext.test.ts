@@ -68,4 +68,11 @@ describe("formatAssistantErrorText", () => {
     const result = formatAssistantErrorText(msg);
     expect(result).toBe(BILLING_ERROR_USER_MESSAGE);
   });
+  it("returns a friendly message for JSON parse control character errors", () => {
+    const msg = makeAssistantError(
+      "Bad control character in string literal in JSON at position 134 (line 1 column 135)",
+    );
+    const result = formatAssistantErrorText(msg);
+    expect(result).toBe("Response interrupted by a stream encoding error. Please try again.");
+  });
 });
