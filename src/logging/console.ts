@@ -139,13 +139,14 @@ function formatConsoleTimestamp(style: ConsoleStyle): string {
   const now = new Date();
 
   if (style === "pretty") {
-    return now.toLocaleTimeString('en-GB', { 
+    return now.toLocaleTimeString("en-GB", {
       hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   }
+
   return now.toISOString();
 }
 
