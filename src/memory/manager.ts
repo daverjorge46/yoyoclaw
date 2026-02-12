@@ -6,6 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { ResolvedMemorySearchConfig } from "../agents/memory-search.js";
 import type { OpenClawConfig } from "../config/config.js";
+import type { MemoryIndexMeta, MemorySyncProgressState } from "./manager-config.js";
 import type {
   MemoryEmbeddingProbeResult,
   MemoryProviderStatus,
@@ -55,6 +56,26 @@ import {
   remapChunkLines,
   runWithConcurrency,
 } from "./internal.js";
+import {
+  BATCH_FAILURE_LIMIT,
+  EMBEDDING_BATCH_MAX_TOKENS,
+  EMBEDDING_BATCH_TIMEOUT_LOCAL_MS,
+  EMBEDDING_BATCH_TIMEOUT_REMOTE_MS,
+  EMBEDDING_CACHE_TABLE,
+  EMBEDDING_INDEX_CONCURRENCY,
+  EMBEDDING_QUERY_TIMEOUT_LOCAL_MS,
+  EMBEDDING_QUERY_TIMEOUT_REMOTE_MS,
+  EMBEDDING_RETRY_BASE_DELAY_MS,
+  EMBEDDING_RETRY_MAX_ATTEMPTS,
+  EMBEDDING_RETRY_MAX_DELAY_MS,
+  FTS_TABLE,
+  META_KEY,
+  SESSION_DELTA_READ_CHUNK_BYTES,
+  SESSION_DIRTY_DEBOUNCE_MS,
+  SNIPPET_MAX_CHARS,
+  VECTOR_LOAD_TIMEOUT_MS,
+  VECTOR_TABLE,
+} from "./manager-config.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import { ensureMemoryIndexSchema } from "./memory-schema.js";
 import {
@@ -65,41 +86,6 @@ import {
 } from "./session-files.js";
 import { loadSqliteVecExtension } from "./sqlite-vec.js";
 import { requireNodeSqlite } from "./sqlite.js";
-
-type MemoryIndexMeta = {
-  model: string;
-  provider: string;
-  providerKey?: string;
-  chunkTokens: number;
-  chunkOverlap: number;
-  vectorDims?: number;
-};
-
-type MemorySyncProgressState = {
-  completed: number;
-  total: number;
-  label?: string;
-  report: (update: MemorySyncProgressUpdate) => void;
-};
-
-const META_KEY = "memory_index_meta_v1";
-const SNIPPET_MAX_CHARS = 700;
-const VECTOR_TABLE = "chunks_vec";
-const FTS_TABLE = "chunks_fts";
-const EMBEDDING_CACHE_TABLE = "embedding_cache";
-const SESSION_DIRTY_DEBOUNCE_MS = 5000;
-const EMBEDDING_BATCH_MAX_TOKENS = 8000;
-const EMBEDDING_INDEX_CONCURRENCY = 4;
-const EMBEDDING_RETRY_MAX_ATTEMPTS = 3;
-const EMBEDDING_RETRY_BASE_DELAY_MS = 500;
-const EMBEDDING_RETRY_MAX_DELAY_MS = 8000;
-const BATCH_FAILURE_LIMIT = 2;
-const SESSION_DELTA_READ_CHUNK_BYTES = 64 * 1024;
-const VECTOR_LOAD_TIMEOUT_MS = 30_000;
-const EMBEDDING_QUERY_TIMEOUT_REMOTE_MS = 60_000;
-const EMBEDDING_QUERY_TIMEOUT_LOCAL_MS = 5 * 60_000;
-const EMBEDDING_BATCH_TIMEOUT_REMOTE_MS = 2 * 60_000;
-const EMBEDDING_BATCH_TIMEOUT_LOCAL_MS = 10 * 60_000;
 
 const log = createSubsystemLogger("memory");
 
