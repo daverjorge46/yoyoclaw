@@ -15,7 +15,7 @@ import {
   normalizeRequiredName,
 } from "./normalize.js";
 
-const STUCK_RUN_MS = 30 * 60 * 1000;
+const STUCK_RUN_MS = 5 * 60 * 1000;
 
 export { STUCK_RUN_MS };
 

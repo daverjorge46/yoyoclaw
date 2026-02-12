@@ -38,8 +38,8 @@ describe("CronService stuck job detection", () => {
     vi.useRealTimers();
   });
 
-  it("has a stuck timeout of 30 minutes", () => {
-    expect(STUCK_RUN_MS).toBe(30 * 60 * 1000);
+  it("has a stuck timeout of 5 minutes", () => {
+    expect(STUCK_RUN_MS).toBe(5 * 60 * 1000);
   });
 
   it("clears stuck running marker and records error after timeout", async () => {
@@ -75,7 +75,7 @@ describe("CronService stuck job detection", () => {
     await fs.mkdir(path.dirname(store.storePath), { recursive: true });
     await fs.writeFile(store.storePath, JSON.stringify(storeData), "utf8");
 
-    vi.setSystemTime(new Date("2025-12-13T00:32:00.000Z"));
+    vi.setSystemTime(new Date("2025-12-13T00:07:00.000Z"));
 
     const cron = new CronService({
       storePath: store.storePath,
@@ -135,7 +135,7 @@ describe("CronService stuck job detection", () => {
     await fs.mkdir(path.dirname(store.storePath), { recursive: true });
     await fs.writeFile(store.storePath, JSON.stringify(storeData), "utf8");
 
-    vi.setSystemTime(new Date("2025-12-13T00:20:00.000Z"));
+    vi.setSystemTime(new Date("2025-12-13T00:04:00.000Z"));
 
     const cron = new CronService({
       storePath: store.storePath,
@@ -190,7 +190,7 @@ describe("CronService stuck job detection", () => {
     await fs.mkdir(path.dirname(store.storePath), { recursive: true });
     await fs.writeFile(store.storePath, JSON.stringify(storeData), "utf8");
 
-    vi.setSystemTime(new Date("2025-12-13T00:45:00.000Z"));
+    vi.setSystemTime(new Date("2025-12-13T00:10:00.000Z"));
 
     const cron = new CronService({
       storePath: store.storePath,
@@ -203,8 +203,8 @@ describe("CronService stuck job detection", () => {
     await cron.start();
 
     const jobsAfter = await cron.list();
-    expect(jobsAfter[0].state.lastError).toContain("45 minutes");
-    expect(jobsAfter[0].state.lastDurationMs).toBe(45 * 60 * 1000);
+    expect(jobsAfter[0].state.lastError).toContain("10 minutes");
+    expect(jobsAfter[0].state.lastDurationMs).toBe(10 * 60 * 1000);
 
     cron.stop();
     await store.cleanup();
