@@ -1,0 +1,13 @@
+diff --git a/dist/providers/openai-completions.js b/dist/providers/openai-completions.js
+index 3b57cd261f37b7075445866a2b7b68a77c0b09e6..fa658e7cfa3e57c57ec475960dd9528fdd545fed 100644
+--- a/dist/providers/openai-completions.js
++++ b/dist/providers/openai-completions.js
+@@ -127,7 +127,7 @@ export const streamOpenAICompletions = (model, context, options) => {
+                     };
+                     calculateCost(model, output.usage);
+                 }
+-                const choice = chunk.choices[0];
++                const choice = chunk.choices?.[0];
+                 if (!choice)
+                     continue;
+                 if (choice.finish_reason) {
