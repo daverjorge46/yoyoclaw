@@ -4,6 +4,27 @@ import type { GoogleChatReaction } from "./types.js";
 import { getGoogleChatAccessToken } from "./auth.js";
 
 const CHAT_API_BASE = "https://chat.googleapis.com/v1";
+
+/**
+ * Convert standard Markdown formatting to Google Chat markup syntax.
+ *
+ * Google Chat uses different markup:
+ * - `*bold*` (single asterisk) instead of `**bold**`
+ * - `~strikethrough~` (single tilde) instead of `~~strikethrough~~`
+ * - `_italic_` (same as Markdown)
+ *
+ * This function converts Markdown formatting to Google Chat format.
+ */
+export function convertMarkdownToGoogleChat(text: string): string {
+  // Convert **bold** to *bold*
+  // Match **text** but not within code blocks
+  let result = text.replace(/\*\*([^*]+)\*\*/g, "*$1*");
+
+  // Convert ~~strikethrough~~ to ~strikethrough~
+  result = result.replace(/~~([^~]+)~~/g, "~$1~");
+
+  return result;
+}
 const CHAT_UPLOAD_BASE = "https://chat.googleapis.com/upload/v1";
 
 const headersToObject = (headers?: HeadersInit): Record<string, string> =>
@@ -117,7 +138,7 @@ export async function sendGoogleChatMessage(params: {
   const { account, space, text, thread, attachments } = params;
   const body: Record<string, unknown> = {};
   if (text) {
-    body.text = text;
+    body.text = convertMarkdownToGoogleChat(text);
   }
   if (thread) {
     body.thread = { name: thread };
@@ -145,7 +166,7 @@ export async function updateGoogleChatMessage(params: {
   const url = `${CHAT_API_BASE}/${messageName}?updateMask=text`;
   const result = await fetchJson<{ name?: string }>(account, url, {
     method: "PATCH",
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text: convertMarkdownToGoogleChat(text) }),
   });
   return { messageName: result.name };
 }
