@@ -716,7 +716,7 @@ async function withSessionStoreLock<T>(
 ): Promise<T> {
   if (!storePath || typeof storePath !== "string") {
     throw new Error(
-      `withSessionStoreLock: storePath must be a non-empty string, got ${typeof storePath}`,
+      `withSessionStoreLock: storePath must be a non-empty string, got ${JSON.stringify(storePath)}`,
     );
   }
   const timeoutMs = opts.timeoutMs ?? 10_000;
