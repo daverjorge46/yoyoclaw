@@ -144,6 +144,22 @@ function findInstallSpec(entry: SkillEntry, installId: string): SkillInstallSpec
   return undefined;
 }
 
+function detectSystemPackageManager(): "apt" | "brew" | undefined {
+  if (process.platform === "darwin") {
+    return "brew";
+  }
+  if (process.platform === "linux") {
+    if (hasBinary("apt-get")) {
+      return "apt";
+    }
+  }
+  return undefined;
+}
+
+function buildAptInstallCommand(packageName: string): string[] {
+  return ["sudo", "apt-get", "install", "-y", packageName];
+}
+
 function buildNodeInstallCommand(packageName: string, prefs: SkillsInstallPreferences): string[] {
   switch (prefs.nodeManager) {
     case "pnpm":
@@ -170,6 +186,12 @@ function buildInstallCommand(
         return { argv: null, error: "missing brew formula" };
       }
       return { argv: ["brew", "install", spec.formula] };
+    }
+    case "apt": {
+      if (!spec.aptPackage) {
+        return { argv: null, error: "missing apt package" };
+      }
+      return { argv: buildAptInstallCommand(spec.aptPackage) };
     }
     case "node": {
       if (!spec.package) {
@@ -444,10 +466,43 @@ export async function installSkill(params: SkillInstallRequest): Promise<SkillIn
 
   const brewExe = hasBinary("brew") ? "brew" : resolveBrewExecutable();
   if (spec.kind === "brew" && !brewExe) {
+    // On Linux, fall back to apt-get when brew is unavailable
+    const sysPkgManager = detectSystemPackageManager();
+    if (sysPkgManager === "apt" && spec.aptPackage) {
+      const aptArgv = buildAptInstallCommand(spec.aptPackage);
+      try {
+        const aptResult = await runCommandWithTimeout(aptArgv, { timeoutMs });
+        const aptSuccess = aptResult.code === 0;
+        return withWarnings(
+          {
+            ok: aptSuccess,
+            message: aptSuccess ? "Installed (via apt)" : formatInstallFailureMessage(aptResult),
+            stdout: aptResult.stdout.trim(),
+            stderr: aptResult.stderr.trim(),
+            code: aptResult.code,
+          },
+          warnings,
+        );
+      } catch (err) {
+        const stderr = err instanceof Error ? err.message : String(err);
+        return withWarnings(
+          {
+            ok: false,
+            message: `Install failed (apt): ${stderr}`,
+            stdout: "",
+            stderr,
+            code: null,
+          },
+          warnings,
+        );
+      }
+    }
     return withWarnings(
       {
         ok: false,
-        message: "brew not installed",
+        message: spec.aptPackage
+          ? "brew not installed (apt-get not available for fallback)"
+          : "brew not installed (no apt package defined for this skill)",
         stdout: "",
         stderr: "",
         code: null,
@@ -472,11 +527,27 @@ export async function installSkill(params: SkillInstallRequest): Promise<SkillIn
           warnings,
         );
       }
+    } else if (detectSystemPackageManager() === "apt") {
+      const aptResult = await runCommandWithTimeout(["sudo", "apt-get", "install", "-y", "uv"], {
+        timeoutMs,
+      });
+      if (aptResult.code !== 0) {
+        return withWarnings(
+          {
+            ok: false,
+            message: "Failed to install uv (apt)",
+            stdout: aptResult.stdout.trim(),
+            stderr: aptResult.stderr.trim(),
+            code: aptResult.code,
+          },
+          warnings,
+        );
+      }
     } else {
       return withWarnings(
         {
           ok: false,
-          message: "uv not installed (install via brew)",
+          message: "uv not installed (install via brew or your system package manager)",
           stdout: "",
           stderr: "",
           code: null,
@@ -519,11 +590,28 @@ export async function installSkill(params: SkillInstallRequest): Promise<SkillIn
           warnings,
         );
       }
+    } else if (detectSystemPackageManager() === "apt") {
+      const aptResult = await runCommandWithTimeout(
+        ["sudo", "apt-get", "install", "-y", "golang"],
+        { timeoutMs },
+      );
+      if (aptResult.code !== 0) {
+        return withWarnings(
+          {
+            ok: false,
+            message: "Failed to install go (apt)",
+            stdout: aptResult.stdout.trim(),
+            stderr: aptResult.stderr.trim(),
+            code: aptResult.code,
+          },
+          warnings,
+        );
+      }
     } else {
       return withWarnings(
         {
           ok: false,
-          message: "go not installed (install via brew)",
+          message: "go not installed (install via brew or your system package manager)",
           stdout: "",
           stderr: "",
           code: null,

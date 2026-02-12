@@ -2,11 +2,12 @@ import type { Skill } from "@mariozechner/pi-coding-agent";
 
 export type SkillInstallSpec = {
   id?: string;
-  kind: "brew" | "node" | "go" | "uv" | "download";
+  kind: "brew" | "apt" | "node" | "go" | "uv" | "download";
   label?: string;
   bins?: string[];
   os?: string[];
   formula?: string;
+  aptPackage?: string;
   package?: string;
   module?: string;
   url?: string;

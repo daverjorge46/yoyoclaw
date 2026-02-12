@@ -112,3 +112,102 @@ describe("installSkill code safety scanning", () => {
     }
   });
 });
+
+async function writeBrewOnlySkill(workspaceDir: string, name: string): Promise<string> {
+  const skillDir = path.join(workspaceDir, "skills", name);
+  await fs.mkdir(skillDir, { recursive: true });
+  await fs.writeFile(
+    path.join(skillDir, "SKILL.md"),
+    `---
+name: ${name}
+description: brew-only skill
+metadata: {"openclaw":{"install":[{"id":"deps","kind":"brew","formula":"example-formula"}]}}
+---
+
+# ${name}
+`,
+    "utf-8",
+  );
+  await fs.writeFile(path.join(skillDir, "runner.js"), "export {};\n", "utf-8");
+  return skillDir;
+}
+
+async function writeAptSkill(workspaceDir: string, name: string): Promise<string> {
+  const skillDir = path.join(workspaceDir, "skills", name);
+  await fs.mkdir(skillDir, { recursive: true });
+  await fs.writeFile(
+    path.join(skillDir, "SKILL.md"),
+    `---
+name: ${name}
+description: apt-only skill
+metadata: {"openclaw":{"install":[{"id":"deps","kind":"apt","aptPackage":"example-apt-pkg"}]}}
+---
+
+# ${name}
+`,
+    "utf-8",
+  );
+  await fs.writeFile(path.join(skillDir, "runner.js"), "export {};\n", "utf-8");
+  return skillDir;
+}
+
+describe("installSkill apt package manager support", () => {
+  beforeEach(() => {
+    runCommandWithTimeoutMock.mockReset();
+    scanDirectoryWithSummaryMock.mockReset();
+    scanDirectoryWithSummaryMock.mockResolvedValue({
+      scannedFiles: 0,
+      critical: 0,
+      warn: 0,
+      info: 0,
+      findings: [],
+    });
+    runCommandWithTimeoutMock.mockResolvedValue({
+      code: 0,
+      stdout: "ok",
+      stderr: "",
+      signal: null,
+      killed: false,
+    });
+  });
+
+  it("installs apt kind skill using apt-get", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-skills-apt-"));
+    try {
+      await writeAptSkill(workspaceDir, "apt-skill");
+
+      const result = await installSkill({
+        workspaceDir,
+        skillName: "apt-skill",
+        installId: "deps",
+      });
+
+      expect(result.ok).toBe(true);
+      expect(runCommandWithTimeoutMock).toHaveBeenCalledWith(
+        ["sudo", "apt-get", "install", "-y", "example-apt-pkg"],
+        expect.objectContaining({ timeoutMs: expect.any(Number) }),
+      );
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true }).catch(() => undefined);
+    }
+  });
+
+  it("returns descriptive error when brew skill has no aptPackage and brew is unavailable", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-skills-apt-"));
+    try {
+      await writeBrewOnlySkill(workspaceDir, "brew-only-skill");
+
+      const result = await installSkill({
+        workspaceDir,
+        skillName: "brew-only-skill",
+        installId: "deps",
+      });
+
+      // On this test system brew won't be found; the error message should be descriptive
+      expect(result.ok).toBe(false);
+      expect(result.message).toContain("brew not installed");
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true }).catch(() => undefined);
+    }
+  });
+});

@@ -114,25 +114,37 @@ export async function setupSkills(
       !(await detectBinary("brew"));
 
     if (needsBrewPrompt) {
-      await prompter.note(
-        [
-          "Many skill dependencies are shipped via Homebrew.",
-          "Without brew, you'll need to build from source or download releases manually.",
-        ].join("\n"),
-        "Homebrew recommended",
-      );
-      const showBrewInstall = await prompter.confirm({
-        message: "Show Homebrew install command?",
-        initialValue: true,
-      });
-      if (showBrewInstall) {
+      const hasApt = process.platform === "linux" && (await detectBinary("apt-get"));
+      if (hasApt) {
         await prompter.note(
           [
-            "Run:",
-            '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+            "Some skill dependencies are shipped via Homebrew, but apt-get was detected.",
+            "Skills with apt package mappings will be installed via apt-get automatically.",
+            "For others, you may need to install Homebrew or install dependencies manually.",
           ].join("\n"),
-          "Homebrew install",
+          "Package manager: apt-get",
         );
+      } else {
+        await prompter.note(
+          [
+            "Many skill dependencies are shipped via Homebrew.",
+            "Without brew, you'll need to build from source or download releases manually.",
+          ].join("\n"),
+          "Homebrew recommended",
+        );
+        const showBrewInstall = await prompter.confirm({
+          message: "Show Homebrew install command?",
+          initialValue: true,
+        });
+        if (showBrewInstall) {
+          await prompter.note(
+            [
+              "Run:",
+              '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+            ].join("\n"),
+            "Homebrew install",
+          );
+        }
       }
     }
 

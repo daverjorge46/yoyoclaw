@@ -39,7 +39,14 @@ function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
   const kindRaw =
     typeof raw.kind === "string" ? raw.kind : typeof raw.type === "string" ? raw.type : "";
   const kind = kindRaw.trim().toLowerCase();
-  if (kind !== "brew" && kind !== "node" && kind !== "go" && kind !== "uv" && kind !== "download") {
+  if (
+    kind !== "brew" &&
+    kind !== "apt" &&
+    kind !== "node" &&
+    kind !== "go" &&
+    kind !== "uv" &&
+    kind !== "download"
+  ) {
     return undefined;
   }
 
@@ -63,6 +70,9 @@ function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
   }
   if (typeof raw.formula === "string") {
     spec.formula = raw.formula;
+  }
+  if (typeof raw.aptPackage === "string") {
+    spec.aptPackage = raw.aptPackage;
   }
   if (typeof raw.package === "string") {
     spec.package = raw.package;
