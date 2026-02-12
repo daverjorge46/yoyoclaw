@@ -443,4 +443,154 @@ describe("Cron issue regressions", () => {
 
     await store.cleanup();
   });
+
+  it("#14605: isolated cron job does not leak status as system event to main session", async () => {
+    const store = await makeStorePath();
+    const dueAt = Date.parse("2026-02-06T10:05:01.000Z");
+    // Create an isolated job with delivery requested (announce mode).
+    const job: CronJob = {
+      id: "isolated-announce",
+      name: "status-leak-test",
+      enabled: true,
+      deleteAfterRun: false,
+      createdAtMs: dueAt - 60_000,
+      updatedAtMs: dueAt - 60_000,
+      schedule: { kind: "at", at: new Date(dueAt).toISOString() },
+      sessionTarget: "isolated",
+      wakeMode: "now",
+      payload: { kind: "agentTurn", message: "do something" },
+      delivery: { mode: "announce", channel: "telegram", to: "12345" },
+      state: { nextRunAtMs: dueAt },
+    };
+    await fs.writeFile(
+      store.storePath,
+      JSON.stringify({ version: 1, jobs: [job] }, null, 2),
+      "utf-8",
+    );
+
+    const enqueueSystemEvent = vi.fn();
+    const requestHeartbeatNow = vi.fn();
+    let now = dueAt;
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => now,
+      enqueueSystemEvent,
+      requestHeartbeatNow,
+      onEvent: vi.fn(),
+      runIsolatedAgentJob: vi.fn(async () => {
+        now += 100;
+        return { status: "ok" as const, summary: "Here is the cron result" };
+      }),
+    });
+
+    await onTimer(state);
+
+    // The isolated job's summary must NOT be posted as a system event to the
+    // main session. Delivery is handled inside runIsolatedAgentJob via the
+    // announce flow.  Posting a duplicate system event causes the message to
+    // appear twice in the user's chat, often out of order (#14605).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+    // Similarly, requestHeartbeatNow should not be called to avoid triggering
+    // the main agent to process a phantom system event.
+    expect(requestHeartbeatNow).not.toHaveBeenCalled();
+
+    await store.cleanup();
+  });
+
+  it("#14605: isolated cron job with delivery=none still does not leak system events", async () => {
+    const store = await makeStorePath();
+    const dueAt = Date.parse("2026-02-06T10:05:01.000Z");
+    const job: CronJob = {
+      id: "isolated-no-deliver",
+      name: "silent-job",
+      enabled: true,
+      deleteAfterRun: false,
+      createdAtMs: dueAt - 60_000,
+      updatedAtMs: dueAt - 60_000,
+      schedule: { kind: "at", at: new Date(dueAt).toISOString() },
+      sessionTarget: "isolated",
+      wakeMode: "now",
+      payload: { kind: "agentTurn", message: "background task" },
+      delivery: { mode: "none" },
+      state: { nextRunAtMs: dueAt },
+    };
+    await fs.writeFile(
+      store.storePath,
+      JSON.stringify({ version: 1, jobs: [job] }, null, 2),
+      "utf-8",
+    );
+
+    const enqueueSystemEvent = vi.fn();
+    let now = dueAt;
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => now,
+      enqueueSystemEvent,
+      requestHeartbeatNow: vi.fn(),
+      onEvent: vi.fn(),
+      runIsolatedAgentJob: vi.fn(async () => {
+        now += 50;
+        return { status: "ok" as const, summary: "Done quietly" };
+      }),
+    });
+
+    await onTimer(state);
+
+    // Jobs with delivery=none should definitely not leak into the main session.
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+
+    await store.cleanup();
+  });
+
+  it("#14605: isolated cron job error does not leak as system event", async () => {
+    const store = await makeStorePath();
+    const dueAt = Date.parse("2026-02-06T10:05:01.000Z");
+    const job: CronJob = {
+      id: "isolated-error",
+      name: "error-leak-test",
+      enabled: true,
+      deleteAfterRun: false,
+      createdAtMs: dueAt - 60_000,
+      updatedAtMs: dueAt - 60_000,
+      schedule: { kind: "every", everyMs: 300_000 },
+      sessionTarget: "isolated",
+      wakeMode: "now",
+      payload: { kind: "agentTurn", message: "fail" },
+      delivery: { mode: "announce", channel: "telegram", to: "12345" },
+      state: { nextRunAtMs: dueAt },
+    };
+    await fs.writeFile(
+      store.storePath,
+      JSON.stringify({ version: 1, jobs: [job] }, null, 2),
+      "utf-8",
+    );
+
+    const enqueueSystemEvent = vi.fn();
+    let now = dueAt;
+    const state = createCronServiceState({
+      cronEnabled: true,
+      storePath: store.storePath,
+      log: noopLogger,
+      nowMs: () => now,
+      enqueueSystemEvent,
+      requestHeartbeatNow: vi.fn(),
+      onEvent: vi.fn(),
+      runIsolatedAgentJob: vi.fn(async () => {
+        now += 30;
+        return { status: "error" as const, summary: "API timeout", error: "API timeout" };
+      }),
+    });
+
+    await onTimer(state);
+
+    // Error summaries from isolated jobs must not leak to the user's chat.
+    // The cron event system (onEvent) records errors for the dashboard/CLI.
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+
+    await store.cleanup();
+  });
 });

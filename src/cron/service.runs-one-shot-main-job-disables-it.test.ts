@@ -321,10 +321,10 @@ describe("CronService", () => {
 
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "ok"));
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", {
-      agentId: undefined,
-    });
-    expect(requestHeartbeatNow).toHaveBeenCalled();
+    // Isolated job delivery is handled inside runIsolatedAgentJob (via the
+    // announce flow).  The summary must NOT be re-posted as a system event
+    // to the main session — that caused duplicate/out-of-order messages (#14605).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
     cron.stop();
     await store.cleanup();
   });
@@ -469,10 +469,9 @@ describe("CronService", () => {
     await vi.runOnlyPendingTimersAsync();
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "error"));
 
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron (error): last output", {
-      agentId: undefined,
-    });
-    expect(requestHeartbeatNow).toHaveBeenCalled();
+    // Isolated job errors are recorded via the cron event system (onEvent).
+    // They must NOT leak into the main session as system events (#14605).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
     cron.stop();
     await store.cleanup();
   });

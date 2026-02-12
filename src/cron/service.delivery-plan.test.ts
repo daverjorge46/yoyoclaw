@@ -84,7 +84,9 @@ describe("CronService delivery plan consistency", () => {
 
     const result = await cron.run(job.id, "force");
     expect(result).toEqual({ ok: true, ran: true });
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", { agentId: undefined });
+    // Delivery is handled inside runIsolatedAgentJob (via the announce flow).
+    // The summary must NOT be re-posted as a system event (#14605).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
 
     cron.stop();
     await store.cleanup();
