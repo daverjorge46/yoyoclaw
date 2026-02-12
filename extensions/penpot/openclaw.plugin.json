@@ -1,29 +1,19 @@
 {
   "id": "penpot",
-  "uiHints": {
-    "accessToken": {
-      "label": "PenPot Access Token",
-      "sensitive": true,
-      "placeholder": "your-access-token",
-      "help": "Access token from PenPot Settings > Access Tokens (or use ${PENPOT_ACCESS_TOKEN})"
-    },
-    "baseUrl": {
-      "label": "PenPot Base URL",
-      "placeholder": "https://design.penpot.app",
-      "help": "PenPot instance URL. Default: https://design.penpot.app"
-    }
-  },
+  "name": "PenPot Design Bridge",
+  "description": "Direct PenPot backend integration for headless design operations",
   "configSchema": {
     "type": "object",
-    "additionalProperties": false,
+    "required": ["accessToken"],
     "properties": {
       "accessToken": {
-        "type": "string"
+        "type": "string",
+        "description": "PenPot API access token (supports ${ENV_VAR} syntax)"
       },
       "baseUrl": {
-        "type": "string"
+        "type": "string",
+        "description": "PenPot instance URL (default: https://design.penpot.app)"
       }
-    },
-    "required": ["accessToken"]
+    }
   }
 }
