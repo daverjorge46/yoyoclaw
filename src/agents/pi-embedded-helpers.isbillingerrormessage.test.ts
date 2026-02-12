@@ -38,6 +38,9 @@ describe("isBillingErrorMessage", () => {
       "processed 402 records",
       "402 items found in the database",
       "port 402 is open",
+      "Use a 402 stainless bolt",
+      "Book a 402 room",
+      "There is a 402 near me",
     ];
     for (const sample of falsePositives) {
       expect(isBillingErrorMessage(sample)).toBe(false);
@@ -53,6 +56,9 @@ describe("isBillingErrorMessage", () => {
       "got a 402 from the API",
       "returned 402",
       "received a 402 response",
+      '{"status":402,"type":"error"}',
+      '{"code":402,"message":"payment required"}',
+      '{"error":{"code":402,"message":"billing hard limit reached"}}',
     ];
     for (const sample of realErrors) {
       expect(isBillingErrorMessage(sample)).toBe(true);
