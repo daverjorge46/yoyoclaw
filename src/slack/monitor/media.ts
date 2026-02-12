@@ -171,7 +171,7 @@ export async function resolveSlackMedia(params: {
       const label = fetched.fileName ?? file.name;
       return {
         path: saved.path,
-        contentType: saved.contentType,
+        contentType: effectiveMime ?? saved.contentType,
         placeholder: label ? `[Slack file: ${label}]` : "[Slack file]",
       };
     } catch {

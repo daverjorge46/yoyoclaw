@@ -239,9 +239,12 @@ describe("resolveSlackMedia", () => {
   });
 
   it("overrides video/* MIME to audio/* for slack_audio voice messages", async () => {
+    // saveMediaBuffer re-detects MIME from buffer bytes, so it may return
+    // video/mp4 for MP4 containers.  Verify resolveSlackMedia preserves
+    // the overridden audio/* type in its return value despite this.
     const saveMediaBufferMock = vi.fn().mockResolvedValue({
       path: "/tmp/voice.mp4",
-      contentType: "audio/mp4",
+      contentType: "video/mp4",
     });
     vi.doMock("../../media/store.js", () => ({
       saveMediaBuffer: saveMediaBufferMock,
@@ -269,12 +272,16 @@ describe("resolveSlackMedia", () => {
     });
 
     expect(result).not.toBeNull();
+    // saveMediaBuffer should receive the overridden audio/mp4
     expect(saveMediaBufferMock).toHaveBeenCalledWith(
       expect.any(Buffer),
       "audio/mp4",
       "inbound",
       16 * 1024 * 1024,
     );
+    // Returned contentType must be the overridden value, not the
+    // re-detected video/mp4 from saveMediaBuffer
+    expect(result!.contentType).toBe("audio/mp4");
   });
 
   it("preserves original MIME for non-voice Slack files", async () => {
