@@ -140,13 +140,13 @@ function matchesPeer(
   if (!m) {
     return false;
   }
-  // Backward compat: normalize "dm" to "direct" in config match rules
+  // Normalize both sides: "dm" → "direct", etc.
   const kind = normalizeChatType(m.kind);
   const id = normalizeId(m.id);
   if (!kind || !id) {
     return false;
   }
-  return kind === peer.kind && id === peer.id;
+  return kind === normalizeChatType(peer.kind) && id === peer.id;
 }
 
 function matchesGuild(

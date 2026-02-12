@@ -435,3 +435,72 @@ describe("backward compatibility: peer.kind dm → direct", () => {
     expect(route.matchedBy).toBe("binding.peer");
   });
 });
+
+describe("peer.kind normalization", () => {
+  test("matches when plugin passes 'dm' and config uses 'direct'", () => {
+    const cfg = {
+      agents: { list: [{ id: "agent-a" }, { id: "fallback", default: true }] },
+      bindings: [
+        {
+          agentId: "agent-a",
+          match: {
+            channel: "dingtalk",
+            peer: { kind: "direct", id: "user-001" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "dingtalk",
+      peer: { kind: "dm", id: "user-001" },
+    });
+    expect(route.agentId).toBe("agent-a");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+
+  test("matches when config uses 'dm' and plugin passes 'direct'", () => {
+    const cfg = {
+      agents: { list: [{ id: "agent-b" }, { id: "fallback", default: true }] },
+      bindings: [
+        {
+          agentId: "agent-b",
+          match: {
+            channel: "dingtalk",
+            peer: { kind: "dm", id: "user-002" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "dingtalk",
+      peer: { kind: "direct", id: "user-002" },
+    });
+    expect(route.agentId).toBe("agent-b");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+
+  test("matches parentPeer with 'dm' alias", () => {
+    const cfg = {
+      agents: { list: [{ id: "agent-c" }, { id: "fallback", default: true }] },
+      bindings: [
+        {
+          agentId: "agent-c",
+          match: {
+            channel: "telegram",
+            peer: { kind: "direct", id: "parent-123" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "telegram",
+      peer: { kind: "group", id: "thread-456" },
+      parentPeer: { kind: "dm", id: "parent-123" },
+    });
+    expect(route.agentId).toBe("agent-c");
+    expect(route.matchedBy).toBe("binding.peer.parent");
+  });
+});
