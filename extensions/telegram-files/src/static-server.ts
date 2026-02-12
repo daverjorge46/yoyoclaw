@@ -30,7 +30,7 @@ export async function serveStaticAsset(
 
   // Prevent directory traversal
   const resolved = path.resolve(distRoot, safePath.replace(/^\//, ""));
-  if (!resolved.startsWith(distRoot)) {
+  if (!resolved.startsWith(distRoot.endsWith(path.sep) ? distRoot : distRoot + path.sep)) {
     res.statusCode = 403;
     res.end("Forbidden");
     return true;
@@ -62,7 +62,9 @@ export async function serveStaticAsset(
     return true;
   }
 
-  if (!realPath.startsWith(distRootReal)) {
+  if (
+    !realPath.startsWith(distRootReal.endsWith(path.sep) ? distRootReal : distRootReal + path.sep)
+  ) {
     res.statusCode = 403;
     res.end("Forbidden");
     return true;
