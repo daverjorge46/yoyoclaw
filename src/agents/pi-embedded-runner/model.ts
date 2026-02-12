@@ -24,6 +24,14 @@ const OPENAI_CODEX_GPT_53_SPARK_MODEL_ID = "gpt-5.3-codex-spark";
 
 const OPENAI_CODEX_TEMPLATE_MODEL_IDS = ["gpt-5.2-codex"] as const;
 
+// Well-known providers with sensible defaults for baseUrl and api type.
+// Allows explicit model IDs like "openrouter/qwen/qwen3-14b" to resolve
+// even without explicit models.providers.openrouter configuration.
+const WELL_KNOWN_PROVIDER_DEFAULTS: Record<string, { baseUrl: string; api: string }> = {
+  openrouter: { baseUrl: "https://openrouter.ai/api/v1", api: "openai-responses" },
+  opencode: { baseUrl: "https://opencode.dev/v1", api: "openai-responses" },
+};
+
 // pi-ai's built-in Anthropic catalog can lag behind OpenClaw's defaults/docs.
 // Add forward-compat fallbacks for known-new IDs by cloning an older template model.
 const ANTHROPIC_OPUS_46_MODEL_ID = "claude-opus-4-6";
@@ -299,13 +307,14 @@ export function resolveModel(
       return { model: zaiForwardCompat, authStorage, modelRegistry };
     }
     const providerCfg = providers[provider];
-    if (providerCfg || modelId.startsWith("mock-")) {
+    const wellKnownDefaults = WELL_KNOWN_PROVIDER_DEFAULTS[normalizedProvider];
+    if (providerCfg || wellKnownDefaults || modelId.startsWith("mock-")) {
       const fallbackModel: Model<Api> = normalizeModelCompat({
         id: modelId,
         name: modelId,
-        api: providerCfg?.api ?? "openai-responses",
+        api: providerCfg?.api ?? wellKnownDefaults?.api ?? "openai-responses",
         provider,
-        baseUrl: providerCfg?.baseUrl,
+        baseUrl: providerCfg?.baseUrl ?? wellKnownDefaults?.baseUrl,
         reasoning: false,
         input: ["text"],
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
