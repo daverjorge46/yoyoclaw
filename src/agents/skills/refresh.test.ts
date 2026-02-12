@@ -1,19 +1,37 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } from "./refresh.js";
+
+const { watchMock } = vi.hoisted(() => ({
+  watchMock: vi.fn(() => ({
+    on: vi.fn(),
+    close: vi.fn(async () => undefined),
+  })),
+}));
+
+vi.mock("chokidar", () => {
+  return {
+    default: { watch: watchMock },
+  };
+});
 
 describe("skills watcher ignore patterns", () => {
   describe("resolveWatchIgnoredPatterns", () => {
-    it("returns defaults when no custom patterns provided", () => {
+    it("returns defaults when no custom patterns provided", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       const patterns = resolveWatchIgnoredPatterns(undefined);
       expect(patterns).toEqual(DEFAULT_SKILLS_WATCH_IGNORED);
     });
 
-    it("returns defaults when custom patterns is empty array", () => {
+    it("returns defaults when custom patterns is empty array", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       const patterns = resolveWatchIgnoredPatterns([]);
       expect(patterns).toEqual(DEFAULT_SKILLS_WATCH_IGNORED);
     });
 
-    it("merges custom patterns with defaults", () => {
+    it("merges custom patterns with defaults", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       const customPatterns = ["/\\.env$/", "/\\.secret$/"];
       const patterns = resolveWatchIgnoredPatterns(customPatterns);
 
@@ -26,7 +44,9 @@ describe("skills watcher ignore patterns", () => {
       expect(patternStrings).toContain("/\\.secret$/");
     });
 
-    it("handles invalid regex patterns gracefully", () => {
+    it("handles invalid regex patterns gracefully", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       // Suppress the log warning during test
       vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -43,7 +63,9 @@ describe("skills watcher ignore patterns", () => {
       vi.restoreAllMocks();
     });
 
-    it("filters out empty and whitespace-only patterns", () => {
+    it("filters out empty and whitespace-only patterns", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       const customPatterns = ["valid-pattern", "", "  ", "\t"];
       const patterns = resolveWatchIgnoredPatterns(customPatterns);
 
@@ -51,7 +73,9 @@ describe("skills watcher ignore patterns", () => {
       expect(patterns.length).toBe(DEFAULT_SKILLS_WATCH_IGNORED.length + 1);
     });
 
-    it("parses regex patterns with flags", () => {
+    it("parses regex patterns with flags", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       const customPatterns = ["/test/i", "/another/gi"];
       const patterns = resolveWatchIgnoredPatterns(customPatterns);
 
@@ -68,12 +92,57 @@ describe("skills watcher ignore patterns", () => {
       expect(anotherPattern?.flags).toBe("gi");
     });
 
-    it("handles non-string values gracefully", () => {
+    it("handles non-string values gracefully", async () => {
+      const { DEFAULT_SKILLS_WATCH_IGNORED, resolveWatchIgnoredPatterns } =
+        await import("./refresh.js");
       // @ts-expect-error Testing invalid input
       const patterns = resolveWatchIgnoredPatterns([123, null, undefined, "valid"]);
 
       // Should have defaults + 1 valid pattern
       expect(patterns.length).toBe(DEFAULT_SKILLS_WATCH_IGNORED.length + 1);
     });
+  });
+});
+
+describe("ensureSkillsWatcher", () => {
+  it("ignores node_modules, dist, .git, and Python venvs by default", async () => {
+    const mod = await import("./refresh.js");
+    mod.ensureSkillsWatcher({ workspaceDir: "/tmp/workspace" });
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+    const opts = watchMock.mock.calls[0]?.[1] as { ignored?: unknown };
+
+    expect(opts.ignored).toEqual(mod.DEFAULT_SKILLS_WATCH_IGNORED);
+    const ignored = mod.DEFAULT_SKILLS_WATCH_IGNORED;
+
+    // Node/JS paths
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/node_modules/pkg/index.js"))).toBe(
+      true,
+    );
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/dist/index.js"))).toBe(true);
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/.git/config"))).toBe(true);
+
+    // Python virtual environments and caches
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/scripts/.venv/bin/python"))).toBe(
+      true,
+    );
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/venv/lib/python3.10/site.py"))).toBe(
+      true,
+    );
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/__pycache__/module.pyc"))).toBe(
+      true,
+    );
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/.mypy_cache/3.10/foo.json"))).toBe(
+      true,
+    );
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/.pytest_cache/v/cache"))).toBe(true);
+
+    // Build artifacts and caches
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/build/output.js"))).toBe(true);
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/.cache/data.json"))).toBe(true);
+
+    // Should NOT ignore normal skill files
+    expect(ignored.some((re) => re.test("/tmp/.hidden/skills/index.md"))).toBe(false);
+    expect(ignored.some((re) => re.test("/tmp/workspace/skills/my-skill/SKILL.md"))).toBe(false);
   });
 });

@@ -29,6 +29,15 @@ export const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[] = [
   /(^|[\\/])\.git([\\/]|$)/,
   /(^|[\\/])node_modules([\\/]|$)/,
   /(^|[\\/])dist([\\/]|$)/,
+  // Python virtual environments and caches
+  /(^|[\\/])\.venv([\\/]|$)/,
+  /(^|[\\/])venv([\\/]|$)/,
+  /(^|[\\/])__pycache__([\\/]|$)/,
+  /(^|[\\/])\.mypy_cache([\\/]|$)/,
+  /(^|[\\/])\.pytest_cache([\\/]|$)/,
+  // Build artifacts and caches
+  /(^|[\\/])build([\\/]|$)/,
+  /(^|[\\/])\.cache([\\/]|$)/,
   // Ignore common binary/data files to prevent FD exhaustion.
   // A skills directory with thousands of .wav/.bin files can exhaust
   // the process file-descriptor limit and break all exec calls.
