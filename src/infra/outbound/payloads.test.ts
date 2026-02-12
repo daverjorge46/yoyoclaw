@@ -75,3 +75,41 @@ describe("formatOutboundPayloadLog", () => {
     ).toBe("MEDIA:https://x.test/a.png");
   });
 });
+
+describe("normalizeOutboundPayloads — NO_REPLY suppression (#14759)", () => {
+  it("suppresses payloads with exact NO_REPLY text", () => {
+    const result = normalizeOutboundPayloads([{ text: "NO_REPLY" }]);
+    expect(result).toEqual([]);
+  });
+
+  it("suppresses payloads with whitespace-padded NO_REPLY", () => {
+    expect(normalizeOutboundPayloads([{ text: "  NO_REPLY  " }])).toEqual([]);
+    expect(normalizeOutboundPayloads([{ text: "\nNO_REPLY\n" }])).toEqual([]);
+    expect(normalizeOutboundPayloads([{ text: "\t NO_REPLY " }])).toEqual([]);
+  });
+
+  it("keeps NO_REPLY payload when media is attached", () => {
+    const result = normalizeOutboundPayloads([
+      { text: "NO_REPLY", mediaUrl: "https://example.com/img.png" },
+    ]);
+    expect(result.length).toBe(1);
+    expect(result[0].mediaUrls).toEqual(["https://example.com/img.png"]);
+  });
+
+  it("keeps normal text payloads", () => {
+    const result = normalizeOutboundPayloads([{ text: "Hello world" }]);
+    expect(result).toEqual([{ text: "Hello world", mediaUrls: [] }]);
+  });
+
+  it("suppresses NO_REPLY among mixed payloads", () => {
+    const result = normalizeOutboundPayloads([
+      { text: "Hello" },
+      { text: "NO_REPLY" },
+      { text: "World" },
+    ]);
+    expect(result).toEqual([
+      { text: "Hello", mediaUrls: [] },
+      { text: "World", mediaUrls: [] },
+    ]);
+  });
+});

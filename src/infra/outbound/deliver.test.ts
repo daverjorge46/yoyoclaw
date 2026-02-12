@@ -422,6 +422,84 @@ describe("deliverOutboundPayloads", () => {
       expect.objectContaining({ text: "report.pdf" }),
     );
   });
+
+  it("suppresses NO_REPLY sentinel from reaching channel plugins (#14759)", async () => {
+    const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
+    const cfg: OpenClawConfig = {
+      channels: { telegram: { botToken: "tok-1" } },
+    };
+
+    const results = await deliverOutboundPayloads({
+      cfg,
+      channel: "telegram",
+      to: "123",
+      payloads: [{ text: "NO_REPLY" }],
+      deps: { sendTelegram },
+    });
+
+    expect(sendTelegram).not.toHaveBeenCalled();
+    expect(results).toEqual([]);
+  });
+
+  it("suppresses whitespace-padded NO_REPLY sentinel (#14759)", async () => {
+    const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
+    const cfg: OpenClawConfig = {
+      channels: { telegram: { botToken: "tok-1" } },
+    };
+
+    const results = await deliverOutboundPayloads({
+      cfg,
+      channel: "telegram",
+      to: "123",
+      payloads: [{ text: "  NO_REPLY  " }],
+      deps: { sendTelegram },
+    });
+
+    expect(sendTelegram).not.toHaveBeenCalled();
+    expect(results).toEqual([]);
+  });
+
+  it("delivers normal text but suppresses NO_REPLY in mixed payloads (#14759)", async () => {
+    const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
+    const cfg: OpenClawConfig = {
+      channels: { telegram: { botToken: "tok-1" } },
+    };
+
+    const results = await deliverOutboundPayloads({
+      cfg,
+      channel: "telegram",
+      to: "123",
+      payloads: [{ text: "Hello" }, { text: "NO_REPLY" }],
+      deps: { sendTelegram },
+    });
+
+    expect(sendTelegram).toHaveBeenCalledTimes(1);
+    expect(sendTelegram).toHaveBeenCalledWith(
+      "123",
+      "Hello",
+      expect.objectContaining({ verbose: false }),
+    );
+    expect(results).toHaveLength(1);
+  });
+
+  it("keeps NO_REPLY payload when media is present (#14759)", async () => {
+    const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
+    const cfg: OpenClawConfig = {
+      channels: { telegram: { botToken: "tok-1" } },
+    };
+
+    const results = await deliverOutboundPayloads({
+      cfg,
+      channel: "telegram",
+      to: "123",
+      payloads: [{ text: "NO_REPLY", mediaUrl: "https://example.com/img.png" }],
+      deps: { sendTelegram },
+    });
+
+    // Media payloads should still be delivered even if text is NO_REPLY
+    expect(sendTelegram).toHaveBeenCalledTimes(1);
+    expect(results).toHaveLength(1);
+  });
 });
 
 const emptyRegistry = createTestRegistry([]);

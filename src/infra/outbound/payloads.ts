@@ -1,6 +1,7 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
 import { isRenderablePayload } from "../../auto-reply/reply/reply-payloads.js";
+import { isSilentReplyText } from "../../auto-reply/tokens.js";
 
 export type NormalizedOutboundPayload = {
   text: string;
@@ -86,7 +87,18 @@ export function normalizeOutboundPayloads(payloads: ReplyPayload[]): NormalizedO
         payload.text ||
         payload.mediaUrls.length > 0 ||
         Boolean(payload.channelData && Object.keys(payload.channelData).length > 0),
-    );
+    )
+    .filter((payload) => {
+      // Suppress NO_REPLY sentinel leaking to outbound channels (#14759).
+      if (
+        isSilentReplyText(payload.text) &&
+        payload.mediaUrls.length === 0 &&
+        !payload.channelData
+      ) {
+        return false;
+      }
+      return true;
+    });
 }
 
 export function normalizeOutboundPayloadsForJson(payloads: ReplyPayload[]): OutboundPayloadJson[] {

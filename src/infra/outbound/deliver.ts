@@ -14,6 +14,7 @@ import {
   resolveChunkMode,
   resolveTextChunkLimit,
 } from "../../auto-reply/chunk.js";
+import { isSilentReplyText } from "../../auto-reply/tokens.js";
 import { resolveChannelMediaMaxBytes } from "../../channels/plugins/media-limits.js";
 import { loadChannelOutboundAdapter } from "../../channels/plugins/outbound/load.js";
 import { resolveMarkdownTableMode } from "../../config/markdown-tables.js";
@@ -330,13 +331,26 @@ export async function deliverOutboundPayloads(params: {
       text: normalizedText,
     };
   };
-  const normalizedPayloads = normalizeReplyPayloadsForDelivery(payloads).flatMap((payload) => {
-    if (channel !== "whatsapp") {
-      return [payload];
-    }
-    const normalized = normalizeWhatsAppPayload(payload);
-    return normalized ? [normalized] : [];
-  });
+  const normalizedPayloads = normalizeReplyPayloadsForDelivery(payloads)
+    .flatMap((payload) => {
+      if (channel !== "whatsapp") {
+        return [payload];
+      }
+      const normalized = normalizeWhatsAppPayload(payload);
+      return normalized ? [normalized] : [];
+    })
+    .filter((payload) => {
+      // Safety net: suppress NO_REPLY sentinel from reaching channel plugins.
+      // Upstream normalizers (parseReplyDirectives, buildEmbeddedRunPayloads) should
+      // already strip this, but queued/announce flows can bypass those checks.
+      // See: https://github.com/openclaw/openclaw/issues/14759
+      const text = payload.text ?? "";
+      const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
+      if (!hasMedia && isSilentReplyText(text)) {
+        return false;
+      }
+      return true;
+    });
   for (const payload of normalizedPayloads) {
     const payloadSummary: NormalizedOutboundPayload = {
       text: payload.text ?? "",
