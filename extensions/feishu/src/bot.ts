@@ -905,11 +905,8 @@ export async function handleFeishuMessage(params: {
       Timestamp: Date.now(),
       WasMentioned: ctx.mentionedBot,
       CommandAuthorized: resolveControlCommandGate({
-        useAccessGroups: cfg.accessGroups?.enabled ?? false,
-        authorizers:
-          senderAllowFrom.length > 0
-            ? [{ configured: true, allowed: true }] // already passed allowlist check above
-            : [],
+        useAccessGroups: cfg.commands?.useAccessGroups !== false,
+        authorizers: [{ configured: true, allowed: true }], // sender already passed allowlist check above
         allowTextCommands: true,
         hasControlCommand: false,
       }).commandAuthorized,
