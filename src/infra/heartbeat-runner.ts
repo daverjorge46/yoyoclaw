@@ -981,8 +981,20 @@ export function startHeartbeatRunner(opts: {
     const now = startedAt;
     let ran = false;
 
+    // For event-driven (non-interval) triggers, make the default agent
+    // immediately due so it can process pending system events (exec results,
+    // cron summaries, hook payloads) without waiting for its next interval.
+    // Other agents still respect their own configured intervals (#14986).
+    if (!isInterval) {
+      const defaultId = resolveDefaultAgentId(state.cfg);
+      const defaultAgent = state.agents.get(defaultId);
+      if (defaultAgent && now < defaultAgent.nextDueMs) {
+        defaultAgent.nextDueMs = now;
+      }
+    }
+
     for (const agent of state.agents.values()) {
-      if (isInterval && now < agent.nextDueMs) {
+      if (now < agent.nextDueMs) {
         continue;
       }
 
