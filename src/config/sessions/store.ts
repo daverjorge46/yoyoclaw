@@ -569,6 +569,11 @@ export async function updateSessionStore<T>(
   mutator: (store: Record<string, SessionEntry>) => Promise<T> | T,
   opts?: SaveSessionStoreOptions,
 ): Promise<T> {
+  if (!storePath || typeof storePath !== "string") {
+    throw new TypeError(
+      `updateSessionStore: storePath must be a non-empty string, got ${typeof storePath}`,
+    );
+  }
   return await withSessionStoreLock(storePath, async () => {
     // Always re-read inside the lock to avoid clobbering concurrent writers.
     const store = loadSessionStore(storePath, { skipCache: true });
