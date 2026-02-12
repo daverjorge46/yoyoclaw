@@ -3,7 +3,7 @@ import { retryAsync } from "../../../infra/retry.js";
 import { log } from "../logger.js";
 
 const DEFAULT_RETRY_CONFIG: OutboundRetryConfig = {
-  attempts: 3,
+  attempts: 10,
   minDelayMs: 1000,
   maxDelayMs: 60000,
   jitter: 0.2,
