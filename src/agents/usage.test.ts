@@ -72,6 +72,6 @@ describe("normalizeUsage", () => {
         },
         contextTokens: 200_000,
       }),
-    ).toBe(1_550);
+    ).toBe(1_500);
   });
 });

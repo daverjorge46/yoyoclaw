@@ -99,8 +99,7 @@ export function derivePromptTokens(usage?: {
   }
   const input = usage.input ?? 0;
   const cacheRead = usage.cacheRead ?? 0;
-  const cacheWrite = usage.cacheWrite ?? 0;
-  const sum = input + cacheRead + cacheWrite;
+  const sum = input + cacheRead;
   return sum > 0 ? sum : undefined;
 }
 

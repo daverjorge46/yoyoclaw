@@ -297,6 +297,7 @@ export async function runCliAgent(params: {
           provider: params.provider,
           model: modelId,
           usage: output.usage,
+          promptUsage: output.usage,
         },
       },
     };

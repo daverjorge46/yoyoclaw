@@ -15,6 +15,7 @@ export async function persistSessionUsageUpdate(params: {
   storePath?: string;
   sessionKey?: string;
   usage?: NormalizedUsage;
+  promptUsage?: NormalizedUsage;
   modelUsed?: string;
   providerUsed?: string;
   contextTokensUsed?: number;
@@ -28,23 +29,28 @@ export async function persistSessionUsageUpdate(params: {
   }
 
   const label = params.logLabel ? `${params.logLabel} ` : "";
-  if (hasNonzeroUsage(params.usage)) {
+  const usageHasNonzero = hasNonzeroUsage(params.usage);
+  const promptUsageHasNonzero = hasNonzeroUsage(params.promptUsage);
+  if (usageHasNonzero || promptUsageHasNonzero) {
     try {
       await updateSessionStoreEntry({
         storePath,
         sessionKey,
         update: async (entry) => {
-          const input = params.usage?.input ?? 0;
-          const output = params.usage?.output ?? 0;
+          const resolvedUsage = usageHasNonzero ? params.usage : params.promptUsage;
+          const input = resolvedUsage?.input ?? 0;
+          const output = resolvedUsage?.output ?? 0;
           const resolvedContextTokens = params.contextTokensUsed ?? entry.contextTokens;
+          const totalTokens =
+            deriveSessionTotalTokens({
+              usage: promptUsageHasNonzero ? params.promptUsage : params.usage,
+              contextTokens: resolvedContextTokens,
+            }) ?? input;
+          logVerbose(`persisting ${label}usage update: totalTokens=${totalTokens}`);
           const patch: Partial<SessionEntry> = {
             inputTokens: input,
             outputTokens: output,
-            totalTokens:
-              deriveSessionTotalTokens({
-                usage: params.usage,
-                contextTokens: resolvedContextTokens,
-              }) ?? input,
+            totalTokens,
             modelProvider: params.providerUsed ?? entry.modelProvider,
             model: params.modelUsed ?? entry.model,
             contextTokens: resolvedContextTokens,
