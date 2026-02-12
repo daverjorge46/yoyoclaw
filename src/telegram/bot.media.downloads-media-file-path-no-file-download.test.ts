@@ -11,7 +11,9 @@ const sendChatActionSpy = vi.fn();
 const cacheStickerSpy = vi.fn();
 const getCachedStickerSpy = vi.fn();
 const describeStickerImageSpy = vi.fn();
-const ssrfResolveSpy = vi.spyOn(ssrf, "resolvePinnedHostname");
+const resolvePinnedHostname = ssrf.resolvePinnedHostname;
+const lookupMock = vi.fn();
+let resolvePinnedHostnameSpy: ReturnType<typeof vi.spyOn> = null;
 
 type ApiStub = {
   config: { use: (arg: unknown) => void };
@@ -28,15 +30,16 @@ const apiStub: ApiStub = {
 beforeEach(() => {
   vi.useRealTimers();
   resetInboundDedupe();
-  ssrfResolveSpy.mockImplementation(async (hostname) => {
-    const normalized = hostname.trim().toLowerCase().replace(/\.$/, "");
-    const addresses = ["93.184.216.34"];
-    return {
-      hostname: normalized,
-      addresses,
-      lookup: ssrf.createPinnedLookup({ hostname: normalized, addresses }),
-    };
-  });
+  lookupMock.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
+  resolvePinnedHostnameSpy = vi
+    .spyOn(ssrf, "resolvePinnedHostname")
+    .mockImplementation((hostname) => resolvePinnedHostname(hostname, lookupMock));
+});
+
+afterEach(() => {
+  lookupMock.mockReset();
+  resolvePinnedHostnameSpy?.mockRestore();
+  resolvePinnedHostnameSpy = null;
 });
 
 vi.mock("grammy", () => ({
@@ -117,7 +120,7 @@ vi.mock("../auto-reply/reply.js", () => {
 
 describe("telegram inbound media", () => {
   // Parallel vitest shards can make this suite slower than the standalone run.
-  const INBOUND_MEDIA_TEST_TIMEOUT_MS = process.platform === "win32" ? 60_000 : 45_000;
+  const INBOUND_MEDIA_TEST_TIMEOUT_MS = process.platform === "win32" ? 120_000 : 90_000;
 
   it(
     "downloads media via file_path (no file.download)",
@@ -169,7 +172,7 @@ describe("telegram inbound media", () => {
       expect(runtimeError).not.toHaveBeenCalled();
       expect(fetchSpy).toHaveBeenCalledWith(
         "https://api.telegram.org/file/bottok/photos/1.jpg",
-        expect.any(Object),
+        expect.objectContaining({ redirect: "manual" }),
       );
       expect(replySpy).toHaveBeenCalledTimes(1);
       const payload = replySpy.mock.calls[0][0];
@@ -227,7 +230,7 @@ describe("telegram inbound media", () => {
     expect(runtimeError).not.toHaveBeenCalled();
     expect(proxyFetch).toHaveBeenCalledWith(
       "https://api.telegram.org/file/bottok/photos/2.jpg",
-      expect.any(Object),
+      expect.objectContaining({ redirect: "manual" }),
     );
 
     globalFetchSpy.mockRestore();
@@ -501,7 +504,7 @@ describe("telegram stickers", () => {
       expect(runtimeError).not.toHaveBeenCalled();
       expect(fetchSpy).toHaveBeenCalledWith(
         "https://api.telegram.org/file/bottok/stickers/sticker.webp",
-        expect.any(Object),
+        expect.objectContaining({ redirect: "manual" }),
       );
       expect(replySpy).toHaveBeenCalledTimes(1);
       const payload = replySpy.mock.calls[0][0];
