@@ -91,6 +91,14 @@ export function registerOnboardCommand(program: Command) {
     .option("--xai-api-key <key>", "xAI API key")
     .option("--litellm-api-key <key>", "LiteLLM API key")
     .option("--qianfan-api-key <key>", "QIANFAN API key")
+    .option("--custom-base-url <url>", "Custom provider base URL")
+    .option("--custom-api-key <key>", "Custom provider API key (optional)")
+    .option("--custom-model-id <id>", "Custom provider model ID")
+    .option("--custom-provider-id <id>", "Custom provider ID (optional; auto-derived by default)")
+    .option(
+      "--custom-compatibility <mode>",
+      "Custom provider API compatibility: openai|anthropic (default: openai)",
+    )
     .option("--gateway-port <port>", "Gateway port")
     .option("--gateway-bind <mode>", "Gateway bind: loopback|tailnet|lan|auto|custom")
     .option("--gateway-auth <mode>", "Gateway auth: token|password")
@@ -150,6 +158,11 @@ export function registerOnboardCommand(program: Command) {
             opencodeZenApiKey: opts.opencodeZenApiKey as string | undefined,
             xaiApiKey: opts.xaiApiKey as string | undefined,
             litellmApiKey: opts.litellmApiKey as string | undefined,
+            customBaseUrl: opts.customBaseUrl as string | undefined,
+            customApiKey: opts.customApiKey as string | undefined,
+            customModelId: opts.customModelId as string | undefined,
+            customProviderId: opts.customProviderId as string | undefined,
+            customCompatibility: opts.customCompatibility as "openai" | "anthropic" | undefined,
             gatewayPort:
               typeof gatewayPort === "number" && Number.isFinite(gatewayPort)
                 ? gatewayPort
