@@ -291,30 +291,30 @@ describe("mergeDecayConfig — new group fields", () => {
     expect(result?.summarizeToolResultsAfterTurns).toBe(5);
   });
 
-  it("auto-clamps stripToolResultsAfterTurns when <= summarizeWindowAfterTurns", () => {
+  it("does not clamp strip vs summarizeWindowAfterTurns (group summarizer reads raw transcript)", () => {
     const config = makeConfig({
       defaults: {
         summarizeWindowAfterTurns: 8,
-        stripToolResultsAfterTurns: 5, // strip < groupSummarize — misconfigured
+        stripToolResultsAfterTurns: 5, // strip < groupSummarize — intentional, group reads raw
       },
     });
     const result = resolveContextDecayConfig(undefined, config);
-    // Should be auto-clamped to groupSummarize + 1 = 9
-    expect(result?.stripToolResultsAfterTurns).toBe(9);
+    // NOT clamped — group summarizer reads raw snapshot, not the decayed view
+    expect(result?.stripToolResultsAfterTurns).toBe(5);
     expect(result?.summarizeWindowAfterTurns).toBe(8);
   });
 
-  it("auto-clamps strip to max of both summarization thresholds + 1", () => {
+  it("only clamps strip against individual summarize, not group", () => {
     const config = makeConfig({
       defaults: {
         summarizeToolResultsAfterTurns: 4,
         summarizeWindowAfterTurns: 7,
-        stripToolResultsAfterTurns: 3, // below both
+        stripToolResultsAfterTurns: 3, // below both, but only individual matters
       },
     });
     const result = resolveContextDecayConfig(undefined, config);
-    // Should be clamped to max(4, 7) + 1 = 8
-    expect(result?.stripToolResultsAfterTurns).toBe(8);
+    // Clamped to individual summarize + 1 = 5, NOT max(4, 7) + 1 = 8
+    expect(result?.stripToolResultsAfterTurns).toBe(5);
   });
 
   it("does not clamp stripToolResultsAfterTurns when already above summarization thresholds", () => {
