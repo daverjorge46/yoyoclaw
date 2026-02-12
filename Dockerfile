@@ -31,6 +31,12 @@ RUN pnpm ui:build
 
 ENV NODE_ENV=production
 
+# Install Python for financial calculations (Bea uses Python via exec tool)
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip && pip3 install --break-system-packages requests && rm -rf /var/lib/apt/lists/*
+
+# Copy workspace defaults into the image (NOT the live workspace)
+COPY workspace-defaults/ /opt/openbea/workspace-defaults/
+
 # Allow non-root user to write temp files during runtime/tests.
 RUN chown -R node:node /app
 RUN chmod +x /app/scripts/docker-entrypoint.sh

@@ -3,10 +3,40 @@
     "port": 8080,
     "auth": {
       "mode": "token",
-      "token": "supersecret123"
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "skipBootstrap": true,
+      "model": { "primary": "anthropic/claude-sonnet-4-6" },
+      "workspace": "/home/node/.openclaw/workspace"
     },
-    "controlUi": {
-      "dangerouslyDisableDeviceAuth": true
+    "list": [{
+      "id": "bea",
+      "default": true,
+      "identity": { "name": "Bea" }
+    }]
+  },
+  "channels": {
+    "slack": {
+      "enabled": true,
+      "mode": "http",
+      "signingSecret": "${SLACK_SIGNING_SECRET}",
+      "botToken": "${SLACK_BOT_TOKEN}",
+      "webhookPath": "/slack/events",
+      "groupPolicy": "open"
+    }
+  },
+  "skills": {
+    "entries": {
+      "e-conomic": {
+        "enabled": true,
+        "env": {
+          "ECONOMIC_APP_SECRET_TOKEN": "${ECONOMIC_APP_SECRET_TOKEN}",
+          "ECONOMIC_AGREEMENT_GRANT_TOKEN": "${ECONOMIC_AGREEMENT_GRANT_TOKEN}"
+        }
+      }
     }
   }
 }
