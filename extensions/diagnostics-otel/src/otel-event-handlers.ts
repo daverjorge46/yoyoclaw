@@ -50,8 +50,14 @@ export interface OtelHandlerCtx {
     attributes?: Record<string, string | number | string[]>;
   }) => Span | null;
   TRACE_ATTRS: {
+    PROMPT: string;
+    COMPLETION: string;
     SESSION_ID: string;
     USER_ID: string;
+    MLFLOW_SPAN_INPUTS: string;
+    MLFLOW_SPAN_OUTPUTS: string;
+    MLFLOW_TRACE_SESSION: string;
+    MLFLOW_TRACE_USER: string;
   };
   getTraceHeadersRegistry: () => Map<string, { traceparent: string; tracestate?: string }>;
 }
@@ -113,7 +119,29 @@ export function recordRunCompleted(
   }
 
   // Check for active trace (root message span created by message.queued)
-  const activeTrace = evt.sessionKey ? hctx.activeTraces.get(evt.sessionKey) : null;
+  const sessionKey = evt.sessionKey;
+  const activeTrace = sessionKey ? hctx.activeTraces.get(sessionKey) : null;
+  if (activeTrace && sessionKey) {
+    // CRITICAL: MLflow UI populates Request/Response columns from ROOT SPAN attributes
+    // Set prompt/completion on root span for MLflow compatibility
+    if (evt.prompt) {
+      activeTrace.span.setAttribute(hctx.TRACE_ATTRS.PROMPT, evt.prompt);
+      activeTrace.span.setAttribute(
+        hctx.TRACE_ATTRS.MLFLOW_SPAN_INPUTS,
+        JSON.stringify({ role: "user", content: evt.prompt }),
+      );
+    }
+    if (evt.completion) {
+      activeTrace.span.setAttribute(hctx.TRACE_ATTRS.COMPLETION, evt.completion);
+      activeTrace.span.setAttribute(
+        hctx.TRACE_ATTRS.MLFLOW_SPAN_OUTPUTS,
+        JSON.stringify({ role: "assistant", content: evt.completion }),
+      );
+    }
+    activeTrace.span.setAttribute(hctx.TRACE_ATTRS.MLFLOW_TRACE_SESSION, sessionKey);
+    const agentId = sessionKey.split(":")[1] || "unknown";
+    activeTrace.span.setAttribute(hctx.TRACE_ATTRS.MLFLOW_TRACE_USER, agentId);
+  }
 
   // Only put lightweight envelope attributes on the agent.turn span.
   // gen_ai.* inference attributes (model, messages, tokens, etc.) belong
@@ -170,6 +198,32 @@ export function recordRunCompleted(
   const finalRunSpan =
     runSpan ??
     hctx.spanWithDuration(fallbackSpanName, turnAttrs, evt.durationMs, SpanKind.INTERNAL);
+
+  // If there's no activeTrace (no parent openclaw.message span), this invoke_agent span is the root.
+  // Set MLflow attributes on it so Request/Response/Session columns populate in MLflow UI.
+  if (!activeTrace) {
+    if (evt.prompt) {
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.PROMPT, evt.prompt);
+      finalRunSpan.setAttribute(
+        hctx.TRACE_ATTRS.MLFLOW_SPAN_INPUTS,
+        JSON.stringify({ role: "user", content: evt.prompt }),
+      );
+    }
+    if (evt.completion) {
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.COMPLETION, evt.completion);
+      finalRunSpan.setAttribute(
+        hctx.TRACE_ATTRS.MLFLOW_SPAN_OUTPUTS,
+        JSON.stringify({ role: "assistant", content: evt.completion }),
+      );
+    }
+    if (evt.sessionKey) {
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.MLFLOW_TRACE_SESSION, evt.sessionKey);
+      const agentId = evt.sessionKey.split(":")[1] || "unknown";
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.MLFLOW_TRACE_USER, agentId);
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.SESSION_ID, evt.sessionKey);
+      finalRunSpan.setAttribute(hctx.TRACE_ATTRS.USER_ID, agentId);
+    }
+  }
 
   if (evt.error) {
     finalRunSpan.setStatus({ code: SpanStatusCode.ERROR, message: evt.error });
@@ -523,6 +577,9 @@ export function recordMessageQueued(
         // OTEL semantic conventions for session/user identification
         [hctx.TRACE_ATTRS.SESSION_ID]: evt.sessionKey,
         [hctx.TRACE_ATTRS.USER_ID]: agentId,
+        // CRITICAL: MLflow UI reads these for Session/User columns
+        [hctx.TRACE_ATTRS.MLFLOW_TRACE_SESSION]: evt.sessionKey,
+        [hctx.TRACE_ATTRS.MLFLOW_TRACE_USER]: agentId,
       },
     });
 

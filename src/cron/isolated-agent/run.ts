@@ -450,6 +450,8 @@ export async function runCronIsolatedAgentTurn(params: {
       channel: messageChannel,
       provider: fallbackProvider,
       model: fallbackModel,
+      prompt: commandBody,
+      completion: "",
       usage: {
         input: 0,
         output: 0,
@@ -497,7 +499,12 @@ export async function runCronIsolatedAgentTurn(params: {
   }
   await persistSessionEntry();
 
-  // Emit run.completed diagnostic event for span lifecycle
+  // Emit run.completed diagnostic event for MLflow trace attributes
+  const completion = payloads
+    .map((p) => p.text?.trim())
+    .filter(Boolean)
+    .join("\n");
+
   emitDiagnosticEvent({
     type: "run.completed",
     runId: cronSession.sessionEntry.sessionId,
@@ -506,6 +513,8 @@ export async function runCronIsolatedAgentTurn(params: {
     channel: messageChannel,
     provider: providerUsed,
     model: modelUsed,
+    prompt: commandBody,
+    completion,
     usage: {
       input: usage?.input ?? 0,
       output: usage?.output ?? 0,

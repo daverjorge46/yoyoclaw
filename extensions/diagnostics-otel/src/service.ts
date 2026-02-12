@@ -167,8 +167,17 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
 
       // Trace attribute constants for observability platforms
       const TRACE_ATTRS = {
+        // GenAI semantic conventions (OpenTelemetry standard)
+        PROMPT: "gen_ai.prompt",
+        COMPLETION: "gen_ai.completion",
         SESSION_ID: "session.id", // OTEL semconv for session identification
         USER_ID: "enduser.id", // OTEL semconv for user identification
+
+        // MLflow vendor-specific attributes (required for MLflow UI compatibility)
+        MLFLOW_SPAN_INPUTS: "mlflow.spanInputs",
+        MLFLOW_SPAN_OUTPUTS: "mlflow.spanOutputs",
+        MLFLOW_TRACE_SESSION: "mlflow.trace.session",
+        MLFLOW_TRACE_USER: "mlflow.trace.user",
       } as const;
 
       // Global trace context registry for W3C Trace Context propagation
@@ -438,8 +447,10 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
           spanAttrs["openclaw.sessionKey"] = params.sessionKey;
           spanAttrs["gen_ai.conversation.id"] = params.sessionKey;
           spanAttrs[TRACE_ATTRS.SESSION_ID] = params.sessionKey;
+          spanAttrs[TRACE_ATTRS.MLFLOW_TRACE_SESSION] = params.sessionKey;
           const agentId = params.sessionKey.split(":")[1] || "unknown";
           spanAttrs[TRACE_ATTRS.USER_ID] = agentId;
+          spanAttrs[TRACE_ATTRS.MLFLOW_TRACE_USER] = agentId;
         }
         if (params.sessionId) {
           spanAttrs["openclaw.sessionId"] = params.sessionId;
