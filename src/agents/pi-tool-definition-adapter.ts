@@ -37,12 +37,6 @@ function isAbortSignal(value: unknown): value is AbortSignal {
   return typeof value === "object" && value !== null && "aborted" in value;
 }
 
-function isLegacyToolExecuteArgs(args: ToolExecuteArgsAny): args is ToolExecuteArgsLegacy {
-  const third = args[2];
-  const fourth = args[3];
-  return isAbortSignal(third) || typeof fourth === "function";
-}
-
 function describeToolExecutionError(err: unknown): {
   message: string;
   stack?: string;
@@ -60,21 +54,18 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   onUpdate: AgentToolUpdateCallback<unknown> | undefined;
   signal: AbortSignal | undefined;
 } {
-  if (isLegacyToolExecuteArgs(args)) {
-    const [toolCallId, params, signal, onUpdate] = args;
-    return {
-      toolCallId,
-      params,
-      onUpdate,
-      signal,
-    };
-  }
-  const [toolCallId, params, onUpdate, _ctx, signal] = args;
+  // Both the ToolDefinition format (toolCallId, params, signal, onUpdate, ctx)
+  // and the legacy AgentTool format (toolCallId, params, signal, onUpdate)
+  // place signal at position 2 and onUpdate at position 3.
+  // Extract by type to be resilient against position mismatches
+  // (e.g. when the 5th arg — ExtensionContext — leaks into the wrong slot).
+  const [toolCallId, params, third, fourth] = args;
   return {
     toolCallId,
     params,
-    onUpdate,
-    signal,
+    signal: isAbortSignal(third) ? third : undefined,
+    onUpdate:
+      typeof fourth === "function" ? (fourth as AgentToolUpdateCallback<unknown>) : undefined,
   };
 }
 
