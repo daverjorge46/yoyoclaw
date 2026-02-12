@@ -404,10 +404,10 @@ export type PluginHookAfterToolCallEvent = {
 };
 
 // before_context_send hook
-export type PluginHookBeforeContextSendContext = {
-  agentId?: string;
-  sessionKey?: string;
-};
+// Note: this hook runs inside pi-agent-core's synchronous `context` event,
+// which does not expose agent/session metadata. The context is intentionally
+// empty; fields may be added in the future if pi-agent-core provides them.
+export type PluginHookBeforeContextSendContext = Record<string, never>;
 
 export type PluginHookBeforeContextSendEvent = {
   /**

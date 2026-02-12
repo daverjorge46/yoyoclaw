@@ -3,7 +3,6 @@ import type { SessionManager } from "@mariozechner/pi-coding-agent";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { OpenClawConfig } from "../../config/config.js";
-import { hasGlobalHooks } from "../../plugins/hook-runner-global.js";
 import { resolveContextWindowInfo } from "../context-window-guard.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
 import { setCompactionSafeguardRuntime } from "../pi-extensions/compaction-safeguard-runtime.js";
@@ -56,21 +55,15 @@ function buildContextPruningExtension(params: {
         isToolPrunable: makeToolPrunablePredicate(settings.tools),
         lastCacheTouchAt: readLastCacheTtlTimestamp(params.sessionManager),
       });
-      return {
-        additionalExtensionPaths: [resolvePiExtensionPath("context-pruning")],
-      };
     }
   }
 
-  // Even without pruning, load the extension when before_context_send hooks
-  // are registered so plugins can still intercept messages before the LLM call.
-  if (hasGlobalHooks("before_context_send")) {
-    return {
-      additionalExtensionPaths: [resolvePiExtensionPath("context-pruning")],
-    };
-  }
-
-  return {};
+  // Always load the extension so that before_context_send plugin hooks can
+  // intercept messages even when pruning is disabled. When no pruning runtime
+  // is set and no hooks are registered, the handler returns undefined (no-op).
+  return {
+    additionalExtensionPaths: [resolvePiExtensionPath("context-pruning")],
+  };
 }
 
 function resolveCompactionMode(cfg?: OpenClawConfig): "default" | "safeguard" {
