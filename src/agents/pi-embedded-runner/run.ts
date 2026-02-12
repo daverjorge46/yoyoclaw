@@ -409,6 +409,7 @@ export async function runEmbeddedPiAgent(
       let toolResultTruncationAttempted = false;
       const usageAccumulator = createUsageAccumulator();
       let autoCompactionCount = 0;
+      let lastCompactionTokensAfter: number | undefined;
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
@@ -552,6 +553,9 @@ export async function runEmbeddedPiAgent(
               });
               if (compactResult.compacted) {
                 autoCompactionCount += 1;
+                if (compactResult.result?.tokensAfter != null) {
+                  lastCompactionTokensAfter = compactResult.result.tokensAfter;
+                }
                 log.info(`auto-compaction succeeded for ${provider}/${modelId}; retrying prompt`);
                 continue;
               }
@@ -826,6 +830,7 @@ export async function runEmbeddedPiAgent(
             model: lastAssistant?.model ?? model.id,
             usage,
             compactionCount: autoCompactionCount > 0 ? autoCompactionCount : undefined,
+            compactionTokensAfter: autoCompactionCount > 0 ? lastCompactionTokensAfter : undefined,
           };
 
           const payloads = buildEmbeddedRunPayloads({

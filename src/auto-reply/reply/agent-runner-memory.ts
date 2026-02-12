@@ -96,7 +96,7 @@ export async function runMemoryFlushIfNeeded(params: {
     .filter(Boolean)
     .join("\n\n");
   try {
-    await runWithModelFallback({
+    const memoryFlushFallbackResult = await runWithModelFallback({
       cfg: params.followupRun.run.config,
       provider: params.followupRun.run.provider,
       model: params.followupRun.run.model,
@@ -172,6 +172,7 @@ export async function runMemoryFlushIfNeeded(params: {
         sessionStore: activeSessionStore,
         sessionKey: params.sessionKey,
         storePath: params.storePath,
+        tokensAfter: memoryFlushFallbackResult.result.meta.agentMeta?.compactionTokensAfter,
       });
       if (typeof nextCount === "number") {
         memoryFlushCompactionCount = nextCount;

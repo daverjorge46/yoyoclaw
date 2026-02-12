@@ -6,6 +6,8 @@ export type EmbeddedPiAgentMeta = {
   provider: string;
   model: string;
   compactionCount?: number;
+  /** Post-compaction token count (set when auto-compaction occurred during the run). */
+  compactionTokensAfter?: number;
   usage?: {
     input?: number;
     output?: number;

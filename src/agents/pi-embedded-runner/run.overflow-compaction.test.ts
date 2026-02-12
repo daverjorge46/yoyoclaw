@@ -417,6 +417,75 @@ describe("overflow compaction in run loop", () => {
     expect(result.meta.error).toBeUndefined();
   });
 
+  it("propagates compactionTokensAfter in agentMeta after successful compaction", async () => {
+    const overflowError = new Error("request_too_large: Request size exceeds model context window");
+
+    mockedRunEmbeddedAttempt
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+
+    mockedCompactDirect.mockResolvedValueOnce({
+      ok: true,
+      compacted: true,
+      result: {
+        summary: "Compacted session",
+        firstKeptEntryId: "entry-5",
+        tokensBefore: 150000,
+        tokensAfter: 12000,
+      },
+    });
+
+    const result = await runEmbeddedPiAgent(baseParams);
+
+    expect(result.meta.agentMeta?.compactionCount).toBe(1);
+    expect(result.meta.agentMeta?.compactionTokensAfter).toBe(12000);
+  });
+
+  it("uses last compactionTokensAfter when multiple compactions occur", async () => {
+    const overflowError = new Error("request_too_large: Request size exceeds model context window");
+
+    mockedRunEmbeddedAttempt
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+
+    mockedCompactDirect
+      .mockResolvedValueOnce({
+        ok: true,
+        compacted: true,
+        result: {
+          summary: "Compacted 1",
+          firstKeptEntryId: "entry-3",
+          tokensBefore: 180000,
+          tokensAfter: 50000,
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        compacted: true,
+        result: {
+          summary: "Compacted 2",
+          firstKeptEntryId: "entry-5",
+          tokensBefore: 160000,
+          tokensAfter: 8000,
+        },
+      });
+
+    const result = await runEmbeddedPiAgent(baseParams);
+
+    expect(result.meta.agentMeta?.compactionCount).toBe(2);
+    expect(result.meta.agentMeta?.compactionTokensAfter).toBe(8000);
+  });
+
+  it("does not set compactionTokensAfter when no compaction occurs", async () => {
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+
+    const result = await runEmbeddedPiAgent(baseParams);
+
+    expect(result.meta.agentMeta?.compactionCount).toBeUndefined();
+    expect(result.meta.agentMeta?.compactionTokensAfter).toBeUndefined();
+  });
+
   it("does not treat stale assistant overflow as current-attempt overflow when promptError is non-overflow", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValue(
       makeAttemptResult({

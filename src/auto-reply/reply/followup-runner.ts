@@ -268,6 +268,7 @@ export function createFollowupRunner(params: {
           sessionStore,
           sessionKey,
           storePath,
+          tokensAfter: runResult.meta.agentMeta?.compactionTokensAfter,
         });
         if (queued.run.verboseLevel && queued.run.verboseLevel !== "off") {
           const suffix = typeof count === "number" ? ` (count ${count})` : "";
