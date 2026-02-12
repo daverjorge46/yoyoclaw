@@ -13,6 +13,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Gateway: raise WS payload/buffer limits so 5,000,000-byte image attachments work reliably. (#14486) Thanks @0xRaini.
 - Cron: use requested `agentId` for isolated job auth resolution. (#13983) Thanks @0xRaini.
 - Cron: prevent cron jobs from skipping execution when `nextRunAtMs` advances. (#14068) Thanks @WalterSumbon.
 - Cron: pass `agentId` to `runHeartbeatOnce` for main-session jobs. (#14140) Thanks @ishikawa-pro.
@@ -28,6 +29,7 @@ Docs: https://docs.openclaw.ai
 - Discord tests: use a partial @buape/carbon mock in slash command coverage. (#13262) Thanks @arosstale.
 - CLI/Wizard: exit with code 1 when `configure`, `agents add`, or interactive `onboard` wizards are canceled, so `set -e` automation stops correctly. (#14156) Thanks @0xRaini.
 - Onboarding/Providers: add Z.AI endpoint-specific auth choices (`zai-coding-global`, `zai-coding-cn`, `zai-global`, `zai-cn`) and expand default Z.AI model wiring. (#13456) Thanks @tomsun28.
+- Onboarding/Providers: auto-detect the correct Z.AI endpoint for your API key (prefer general API + `zai/glm-5`; fall back to Coding Plan + `zai/glm-4.7`) and add GLM-5 forward-compat resolution when provider catalogs lag. (#14786) Thanks @steipete.
 - Feishu: pass `Buffer` directly to the Feishu SDK upload APIs instead of `Readable.from(...)` to avoid form-data upload failures. (#10345) Thanks @youngerstyle.
 - Feishu: trigger mention-gated group handling only when the bot itself is mentioned (not just any mention). (#11088) Thanks @openperf.
 - Feishu: probe status uses the resolved account context for multi-account credential checks. (#11233) Thanks @onevcat.
