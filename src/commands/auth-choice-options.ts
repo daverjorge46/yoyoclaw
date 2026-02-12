@@ -14,6 +14,7 @@ export type AuthChoiceGroupId =
   | "copilot"
   | "openrouter"
   | "litellm"
+  | "aimlapi"
   | "ai-gateway"
   | "cloudflare-ai-gateway"
   | "moonshot"
@@ -83,6 +84,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     label: "OpenRouter",
     hint: "API key",
     choices: ["openrouter-api-key"],
+  },
+  {
+    value: "aimlapi",
+    label: "AI/ML API",
+    hint: "Supports 300+ models via 1 API key",
+    choices: ["aimlapi-api-key"],
   },
   {
     value: "qwen",
@@ -194,6 +201,7 @@ export function buildAuthChoiceOptions(params: {
     label: "LiteLLM API key",
     hint: "Unified gateway for 100+ LLM providers",
   });
+  options.push({ value: "aimlapi-api-key", label: "AI/ML API key" });
   options.push({
     value: "ai-gateway-api-key",
     label: "Vercel AI Gateway API key",

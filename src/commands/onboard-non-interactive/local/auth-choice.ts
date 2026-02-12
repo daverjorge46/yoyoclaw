@@ -9,6 +9,7 @@ import { shortenHomePath } from "../../../utils.js";
 import { normalizeSecretInput } from "../../../utils/normalize-secret-input.js";
 import { buildTokenProfileId, validateAnthropicSetupToken } from "../../auth-token.js";
 import { applyGoogleGeminiModelDefault } from "../../google-gemini-model-default.js";
+import { setAimlapiApiKey } from "../../onboard-auth.credentials.js";
 import {
   applyAuthProfileConfig,
   applyCloudflareAiGatewayConfig,
@@ -20,6 +21,7 @@ import {
   applyMoonshotConfigCn,
   applyOpencodeZenConfig,
   applyOpenrouterConfig,
+  applyAimlapiConfig,
   applySyntheticConfig,
   applyVeniceConfig,
   applyTogetherConfig,
@@ -363,6 +365,29 @@ export async function applyNonInteractiveAuthChoice(params: {
       mode: "api_key",
     });
     return applyLitellmConfig(nextConfig);
+  }
+
+  if (authChoice === "aimlapi-api-key") {
+    const resolved = await resolveNonInteractiveApiKey({
+      provider: "aimlapi",
+      cfg: baseConfig,
+      flagValue: opts.aimlapiApiKey,
+      flagName: "--aimlapi-api-key",
+      envVar: "AIMLAPI_API_KEY",
+      runtime,
+    });
+    if (!resolved) {
+      return null;
+    }
+    if (resolved.source !== "profile") {
+      await setAimlapiApiKey(resolved.key);
+    }
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "aimlapi:default",
+      provider: "aimlapi",
+      mode: "api_key",
+    });
+    return applyAimlapiConfig(nextConfig);
   }
 
   if (authChoice === "ai-gateway-api-key") {
