@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import type { ChatType } from "../channels/chat-type.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveAgentRoute } from "./resolve-route.js";
 
@@ -432,6 +433,105 @@ describe("backward compatibility: peer.kind dm → direct", () => {
       peer: { kind: "direct", id: "+15551234567" },
     });
     expect(route.agentId).toBe("alex");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+});
+
+describe("symmetric normalization: plugin passes dm alias (#14612)", () => {
+  test("runtime dm peer matches config direct binding", () => {
+    const cfg: OpenClawConfig = {
+      bindings: [
+        {
+          agentId: "agent-a",
+          match: {
+            channel: "dingtalk",
+            peer: { kind: "direct", id: "user-001" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "dingtalk",
+      accountId: null,
+      // Plugin passes "dm" alias instead of canonical "direct"
+      peer: { kind: "dm" as ChatType, id: "user-001" },
+    });
+    expect(route.agentId).toBe("agent-a");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+
+  test("runtime dm peer matches config dm binding", () => {
+    const cfg: OpenClawConfig = {
+      bindings: [
+        {
+          agentId: "agent-b",
+          match: {
+            channel: "dingtalk",
+            peer: { kind: "dm", id: "user-002" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "dingtalk",
+      accountId: null,
+      peer: { kind: "dm" as ChatType, id: "user-002" },
+    });
+    expect(route.agentId).toBe("agent-b");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+
+  test("parentPeer dm alias is normalized for thread inheritance", () => {
+    const cfg: OpenClawConfig = {
+      bindings: [
+        {
+          agentId: "parent-agent",
+          match: {
+            channel: "discord",
+            peer: { kind: "direct", id: "parent-dm-123" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "discord",
+      peer: { kind: "channel", id: "thread-456" },
+      // parentPeer uses "dm" alias
+      parentPeer: { kind: "dm" as ChatType, id: "parent-dm-123" },
+    });
+    expect(route.agentId).toBe("parent-agent");
+    expect(route.matchedBy).toBe("binding.peer.parent");
+  });
+
+  test("does not fall through to default when dm alias should match", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "agent-a", workspace: "~/a" },
+          { id: "public", default: true, workspace: "~/pub" },
+        ],
+      },
+      bindings: [
+        {
+          agentId: "agent-a",
+          match: {
+            channel: "dingtalk",
+            peer: { kind: "direct", id: "user-001" },
+          },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "dingtalk",
+      accountId: null,
+      peer: { kind: "dm" as ChatType, id: "user-001" },
+    });
+    // Should NOT fall through to "public" default agent
+    expect(route.agentId).toBe("agent-a");
     expect(route.matchedBy).toBe("binding.peer");
   });
 });
