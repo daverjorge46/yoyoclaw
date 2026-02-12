@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { ResolvedGoogleChatAccount } from "./accounts.js";
 import type { GoogleChatReaction } from "./types.js";
 import { getGoogleChatAccessToken } from "./auth.js";
+import { convertMarkdownToGoogleChat } from "./markup.js";
 
 const CHAT_API_BASE = "https://chat.googleapis.com/v1";
 const CHAT_UPLOAD_BASE = "https://chat.googleapis.com/upload/v1";
@@ -117,7 +118,7 @@ export async function sendGoogleChatMessage(params: {
   const { account, space, text, thread, attachments } = params;
   const body: Record<string, unknown> = {};
   if (text) {
-    body.text = text;
+    body.text = convertMarkdownToGoogleChat(text);
   }
   if (thread) {
     body.thread = { name: thread };
@@ -145,7 +146,7 @@ export async function updateGoogleChatMessage(params: {
   const url = `${CHAT_API_BASE}/${messageName}?updateMask=text`;
   const result = await fetchJson<{ name?: string }>(account, url, {
     method: "PATCH",
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text: convertMarkdownToGoogleChat(text) }),
   });
   return { messageName: result.name };
 }
