@@ -26,7 +26,7 @@ declare module "openclaw/plugin-sdk" {
   // Handler type - uses 'any' since each hook has specific event/ctx shapes
   export type PluginHookHandler = (
     event: any,
-    ctx: Record<string, unknown>
+    ctx: Record<string, unknown>,
   ) => unknown | Promise<unknown>;
 
   export interface OpenClawPluginApi {
@@ -42,14 +42,14 @@ declare module "openclaw/plugin-sdk" {
     on<K extends PluginHookName>(
       hookName: K,
       handler: PluginHookHandler,
-      opts?: { priority?: number }
+      opts?: { priority?: number },
     ): void;
 
     /** Register an internal hook - DO NOT USE for lifecycle hooks */
     registerHook(
       events: string | string[],
       handler: PluginHookHandler,
-      opts?: { name?: string; priority?: number }
+      opts?: { name?: string; priority?: number },
     ): void;
 
     resolvePath(input: string): string;

@@ -1,58 +1,58 @@
 {
-    "name": "pic-guard",
-    "version": "0.5.3",
-    "description": "PIC Standard governance plugin for OpenClaw",
-    "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "scripts": {
-        "build": "tsc",
-        "clean": "rm -rf dist",
-        "test": "vitest run",
-        "test:watch": "vitest",
-        "prepublishOnly": "npm run build"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "files": [
-        "dist",
-        "hooks",
-        "config",
-        "openclaw.plugin.json"
-    ],
-    "openclaw": {
-        "extensions": [
-            "./dist/index.js"
-        ]
-    },
-    "keywords": [
-        "pic",
-        "provenance",
-        "intent",
-        "contracts",
-        "openclaw",
-        "plugin",
-        "ai-safety",
-        "tool-governance"
-    ],
-    "author": "Fabio Marcello Salvadori",
-    "license": "Apache-2.0",
-    "homepage": "https://github.com/madeinplutofabio/pic-standard/tree/main/integrations/openclaw",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/madeinplutofabio/pic-standard.git",
-        "directory": "integrations/openclaw"
-    },
-    "bugs": {
-        "url": "https://github.com/madeinplutofabio/pic-standard/issues"
-    },
-    "peerDependencies": {
-        "openclaw": ">=2026.2.1"
-    },
-    "devDependencies": {
-        "@types/node": "^20.19.32",
-        "typescript": "^5.9.3",
-        "vitest": "^1.6.1"
-    }
+  "name": "pic-guard",
+  "version": "0.5.3",
+  "description": "PIC Standard governance plugin for OpenClaw",
+  "keywords": [
+    "ai-safety",
+    "contracts",
+    "intent",
+    "openclaw",
+    "pic",
+    "plugin",
+    "provenance",
+    "tool-governance"
+  ],
+  "homepage": "https://github.com/madeinplutofabio/pic-standard/tree/main/integrations/openclaw",
+  "bugs": {
+    "url": "https://github.com/madeinplutofabio/pic-standard/issues"
+  },
+  "license": "Apache-2.0",
+  "author": "Fabio Marcello Salvadori",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/madeinplutofabio/pic-standard.git",
+    "directory": "integrations/openclaw"
+  },
+  "files": [
+    "dist",
+    "hooks",
+    "config",
+    "openclaw.plugin.json"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.32",
+    "typescript": "^5.9.3",
+    "vitest": "^1.6.1"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  }
 }

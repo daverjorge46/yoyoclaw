@@ -15,16 +15,16 @@
  * Mirrors PICErrorCode enum in sdk-python/pic_standard/errors.py.
  */
 export type PICErrorCode =
-    | "PIC_INVALID_REQUEST"
-    | "PIC_LIMIT_EXCEEDED"
-    | "PIC_SCHEMA_INVALID"
-    | "PIC_VERIFIER_FAILED"
-    | "PIC_TOOL_BINDING_MISMATCH"
-    | "PIC_EVIDENCE_REQUIRED"
-    | "PIC_EVIDENCE_FAILED"
-    | "PIC_POLICY_VIOLATION"
-    | "PIC_INTERNAL_ERROR"
-    | "PIC_BRIDGE_UNREACHABLE"; // Client-side error (not from Python)
+  | "PIC_INVALID_REQUEST"
+  | "PIC_LIMIT_EXCEEDED"
+  | "PIC_SCHEMA_INVALID"
+  | "PIC_VERIFIER_FAILED"
+  | "PIC_TOOL_BINDING_MISMATCH"
+  | "PIC_EVIDENCE_REQUIRED"
+  | "PIC_EVIDENCE_FAILED"
+  | "PIC_POLICY_VIOLATION"
+  | "PIC_INTERNAL_ERROR"
+  | "PIC_BRIDGE_UNREACHABLE"; // Client-side error (not from Python)
 
 // -----------------------------------------------------------------
 // Bridge request / response
@@ -32,15 +32,15 @@ export type PICErrorCode =
 
 /** Body sent to POST /verify on the PIC HTTP bridge. */
 export interface PICVerifyRequest {
-    tool_name: string;
-    tool_args: Record<string, unknown>;
+  tool_name: string;
+  tool_args: Record<string, unknown>;
 }
 
 /** Structured error returned when allowed === false. */
 export interface PICError {
-    code: PICErrorCode;
-    message: string;
-    details?: Record<string, unknown>; // only present when PIC_DEBUG=1
+  code: PICErrorCode;
+  message: string;
+  details?: Record<string, unknown>; // only present when PIC_DEBUG=1
 }
 
 /**
@@ -51,8 +51,8 @@ export interface PICError {
  * - allowed: false → error: PICError
  */
 export type PICVerifyResponse =
-    | { allowed: true; error: null; eval_ms: number }
-    | { allowed: false; error: PICError; eval_ms: number };
+  | { allowed: true; error: null; eval_ms: number }
+  | { allowed: false; error: PICError; eval_ms: number };
 
 // -----------------------------------------------------------------
 // Plugin configuration
@@ -60,19 +60,19 @@ export type PICVerifyResponse =
 
 /** Configuration for the pic-guard OpenClaw plugin. */
 export interface PICPluginConfig {
-    /** URL of the PIC HTTP bridge (default: "http://127.0.0.1:7580"). */
-    bridge_url: string;
+  /** URL of the PIC HTTP bridge (default: "http://127.0.0.1:7580"). */
+  bridge_url: string;
 
-    /** HTTP timeout in milliseconds (default: 500). */
-    bridge_timeout_ms: number;
+  /** HTTP timeout in milliseconds (default: 500). */
+  bridge_timeout_ms: number;
 
-    /** Log level: "debug" | "info" | "warn" (default: "info"). */
-    log_level: "debug" | "info" | "warn";
+  /** Log level: "debug" | "info" | "warn" (default: "info"). */
+  log_level: "debug" | "info" | "warn";
 }
 
 /** Sensible defaults matching PICEvaluateLimits on the Python side. */
 export const DEFAULT_CONFIG: PICPluginConfig = {
-    bridge_url: "http://127.0.0.1:7580",
-    bridge_timeout_ms: 500,
-    log_level: "info",
+  bridge_url: "http://127.0.0.1:7580",
+  bridge_timeout_ms: 500,
+  log_level: "info",
 };
