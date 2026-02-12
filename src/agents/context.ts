@@ -36,5 +36,20 @@ export function lookupContextTokens(modelId?: string): number | undefined {
   }
   // Best-effort: kick off loading, but don't block.
   void loadPromise;
-  return MODEL_CACHE.get(modelId);
+
+  // Try exact match first (e.g. "claude-opus-4-6").
+  const exact = MODEL_CACHE.get(modelId);
+  if (exact !== undefined) {
+    return exact;
+  }
+
+  // MODEL_CACHE keys are bare model IDs (e.g. "eu.anthropic.claude-opus-4-6-v1"),
+  // but callers may pass provider-prefixed refs (e.g. "amazon-bedrock/eu.anthropic.claude-opus-4-6-v1").
+  // Strip the provider prefix and retry. Fixes #14332.
+  const slashIdx = modelId.indexOf("/");
+  if (slashIdx !== -1) {
+    return MODEL_CACHE.get(modelId.slice(slashIdx + 1));
+  }
+
+  return undefined;
 }
