@@ -148,6 +148,96 @@ export function normalizeToolParams(params: unknown): Record<string, unknown> | 
   return normalized;
 }
 
+/**
+ * Unescape literal escape sequences (`\n`, `\t`, `\\`) in text content.
+ *
+ * Some models (e.g. XAI/Grok) emit tool-call arguments where string values
+ * contain the two-character sequence backslash+n instead of a real 0x0a newline.
+ * After JSON.parse the string still holds the literal characters `\` `n`.
+ *
+ * This helper detects that pattern and converts the common C-style escapes to
+ * their real byte equivalents, which fixes file-write corruption (see #14452).
+ *
+ * It is intentionally conservative:
+ *  - Only acts when the text contains literal backslash escape sequences.
+ *  - If the text already contains real newlines alongside literal `\n`, it
+ *    assumes the backslash-n is intentional (e.g. code/regex) and skips.
+ */
+export function unescapeLiteralEscapes(text: string): string {
+  // Fast-path: nothing to do if there are no backslashes.
+  if (!text.includes("\\")) {
+    return text;
+  }
+
+  // Only unescape when the text contains literal \n but no real newlines.
+  // If real newlines are present alongside \n, the model likely intended the
+  // backslash-n literally (e.g. a code snippet with escape sequences).
+  const hasLiteralNewline = text.includes("\\n");
+  if (!hasLiteralNewline) {
+    return text;
+  }
+
+  const hasRealNewline = text.includes("\n");
+  if (hasRealNewline) {
+    return text;
+  }
+
+  // Replace common C-style escape sequences using a single regex pass
+  // to correctly handle \\n (escaped backslash + n) vs \n (newline).
+  return text.replace(/\\(\\|n|t|r|")/g, (_match, ch) => {
+    switch (ch) {
+      case "n":
+        return "\n";
+      case "t":
+        return "\t";
+      case "r":
+        return "\r";
+      case "\\":
+        return "\\";
+      case '"':
+        return '"';
+      default:
+        return _match;
+    }
+  });
+}
+
+/**
+ * Normalize write-tool parameters: unescape literal escape sequences in the
+ * `content` field so that files are written with real newlines.
+ */
+export function normalizeWriteContent(params: Record<string, unknown>): Record<string, unknown> {
+  const content = params.content;
+  if (typeof content !== "string") {
+    return params;
+  }
+  const fixed = unescapeLiteralEscapes(content);
+  if (fixed === content) {
+    return params;
+  }
+  return { ...params, content: fixed };
+}
+
+/**
+ * Normalize edit-tool parameters: unescape literal escape sequences in the
+ * `oldText` and `newText` fields so that edits match/produce real newlines.
+ */
+export function normalizeEditContent(params: Record<string, unknown>): Record<string, unknown> {
+  let changed = false;
+  const result = { ...params };
+  for (const key of ["oldText", "newText"] as const) {
+    const value = result[key];
+    if (typeof value === "string") {
+      const fixed = unescapeLiteralEscapes(value);
+      if (fixed !== value) {
+        result[key] = fixed;
+        changed = true;
+      }
+    }
+  }
+  return changed ? result : params;
+}
+
 export function patchToolSchemaForClaudeCompatibility(tool: AnyAgentTool): AnyAgentTool {
   const schema =
     tool.parameters && typeof tool.parameters === "object"
@@ -234,19 +324,24 @@ export function assertRequiredParams(
 export function wrapToolParamNormalization(
   tool: AnyAgentTool,
   requiredParamGroups?: readonly RequiredParamGroup[],
+  contentNormalizer?: (params: Record<string, unknown>) => Record<string, unknown>,
 ): AnyAgentTool {
   const patched = patchToolSchemaForClaudeCompatibility(tool);
   return {
     ...patched,
     execute: async (toolCallId, params, signal, onUpdate) => {
       const normalized = normalizeToolParams(params);
-      const record =
+      let record =
         normalized ??
         (params && typeof params === "object" ? (params as Record<string, unknown>) : undefined);
       if (requiredParamGroups?.length) {
         assertRequiredParams(record, requiredParamGroups, tool.name);
       }
-      return tool.execute(toolCallId, normalized ?? params, signal, onUpdate);
+      // Apply content-level normalization (e.g. unescape literal \n → real newlines).
+      if (contentNormalizer && record) {
+        record = contentNormalizer(record);
+      }
+      return tool.execute(toolCallId, record ?? normalized ?? params, signal, onUpdate);
     },
   };
 }
@@ -275,12 +370,18 @@ export function createSandboxedReadTool(root: string) {
 
 export function createSandboxedWriteTool(root: string) {
   const base = createWriteTool(root) as unknown as AnyAgentTool;
-  return wrapSandboxPathGuard(wrapToolParamNormalization(base, CLAUDE_PARAM_GROUPS.write), root);
+  return wrapSandboxPathGuard(
+    wrapToolParamNormalization(base, CLAUDE_PARAM_GROUPS.write, normalizeWriteContent),
+    root,
+  );
 }
 
 export function createSandboxedEditTool(root: string) {
   const base = createEditTool(root) as unknown as AnyAgentTool;
-  return wrapSandboxPathGuard(wrapToolParamNormalization(base, CLAUDE_PARAM_GROUPS.edit), root);
+  return wrapSandboxPathGuard(
+    wrapToolParamNormalization(base, CLAUDE_PARAM_GROUPS.edit, normalizeEditContent),
+    root,
+  );
 }
 
 export function createOpenClawReadTool(base: AnyAgentTool): AnyAgentTool {
