@@ -431,6 +431,7 @@ export async function runHeartbeatOnce(opts: {
   // to process regardless of HEARTBEAT.md content.
   const isExecEventReason = opts.reason === "exec-event";
   const isCronEventReason = Boolean(opts.reason?.startsWith("cron:"));
+  const isWakeReason = opts.reason === "wake";
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
@@ -438,7 +439,8 @@ export async function runHeartbeatOnce(opts: {
     if (
       isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) &&
       !isExecEventReason &&
-      !isCronEventReason
+      !isCronEventReason &&
+      !isWakeReason
     ) {
       emitHeartbeatEvent({
         status: "skipped",
