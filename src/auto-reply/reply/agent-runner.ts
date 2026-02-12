@@ -336,7 +336,7 @@ export async function runReplyAgent(params: {
     }
 
     const { runResult, fallbackProvider, fallbackModel, directlySentBlockKeys } = runOutcome;
-    let { didLogHeartbeatStrip, autoCompactionCompleted } = runOutcome;
+    let { didLogHeartbeatStrip, autoCompactionCompleted, compactionStats } = runOutcome;
 
     if (
       shouldInjectGroupIntro &&
@@ -507,7 +507,16 @@ export async function runReplyAgent(params: {
         contextTokensUsed,
       });
       if (shouldEmitCompactionNotice({ cfg: followupRun.run.config, verboseEnabled })) {
-        finalPayloads = [{ text: formatCompactionNotice(count) }, ...finalPayloads];
+        finalPayloads = [
+          {
+            text: formatCompactionNotice(count, {
+              tokensBefore: compactionStats?.tokensBefore,
+              tokensAfter: compactionStats?.tokensAfter,
+              contextTokens: contextTokensUsed,
+            }),
+          },
+          ...finalPayloads,
+        ];
       }
     }
     if (verboseEnabled && activeIsNewSession) {
