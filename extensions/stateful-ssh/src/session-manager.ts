@@ -378,10 +378,26 @@ export class SSHSessionManager {
     return new Promise((resolve, reject) => {
       let checkInterval: NodeJS.Timeout | undefined;
 
+      const errorHandler = (err: Error) => {
+        cleanup();
+        reject(new Error(`Shell stream error during command execution: ${err.message}`));
+      };
+
+      const closeHandler = () => {
+        cleanup();
+        reject(
+          new Error(
+            "Shell stream closed unexpectedly during command execution. The SSH server may have an idle timeout.",
+          ),
+        );
+      };
+
       const cleanup = () => {
         if (checkInterval) clearInterval(checkInterval);
         clearTimeout(timeout);
         session.shell.removeListener("data", dataHandler);
+        session.shell.removeListener("error", errorHandler);
+        session.shell.removeListener("close", closeHandler);
       };
 
       const timeout = setTimeout(() => {
@@ -393,8 +409,11 @@ export class SSHSessionManager {
       const dataHandler = (data: Buffer) => {
         session.buffer += data.toString();
       };
-
       session.shell.on("data", dataHandler);
+
+      // Listen for errors or premature close
+      session.shell.once("error", errorHandler);
+      session.shell.once("close", closeHandler);
 
       // Send command
       session.shell.write(`${command}\n`);
