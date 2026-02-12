@@ -66,6 +66,10 @@ export function applyHardenedConfigOverrides(
   hardened.tools = {
     ...hardened.tools,
     profile: "minimal",
+    // Explicitly clear allow list - defense in depth
+    // Even though deny list blocks dangerous tools, clearing allow prevents
+    // user-configured allow lists from enabling tools outside the minimal profile
+    allow: [],
     // Explicitly deny dangerous tools
     deny: [
       ...(hardened.tools?.deny ?? []),
@@ -91,7 +95,7 @@ export function applyHardenedConfigOverrides(
       enabled: false,
     },
   };
-  log.info("harden: tool profile set to minimal with restricted permissions");
+  log.info("harden: tool profile set to minimal with cleared allow list");
 
   // 4. Block dangerous commands
   const existingDenyCommands = hardened.gateway?.nodes?.denyCommands ?? [];

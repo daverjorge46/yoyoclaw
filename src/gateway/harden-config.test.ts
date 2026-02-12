@@ -197,14 +197,49 @@ describe("applyHardenedConfigOverrides", () => {
       expect(result.tools?.agentToAgent?.enabled).toBe(false);
     });
 
-    it("logs tool restriction message", () => {
+    it("clears the allow list for defense in depth", () => {
+      const cfg: OpenClawConfig = {
+        tools: {
+          allow: ["exec", "process", "dangerous_tool", "custom_tool"],
+        },
+      };
+      const log = createMockLogger();
+
+      const result = applyHardenedConfigOverrides(cfg, log);
+
+      expect(result.tools?.allow).toEqual([]);
+    });
+
+    it("clears allow list even when empty", () => {
+      const cfg: OpenClawConfig = {
+        tools: {
+          allow: [],
+        },
+      };
+      const log = createMockLogger();
+
+      const result = applyHardenedConfigOverrides(cfg, log);
+
+      expect(result.tools?.allow).toEqual([]);
+    });
+
+    it("clears allow list when not configured", () => {
+      const cfg: OpenClawConfig = {};
+      const log = createMockLogger();
+
+      const result = applyHardenedConfigOverrides(cfg, log);
+
+      expect(result.tools?.allow).toEqual([]);
+    });
+
+    it("logs tool restriction message with cleared allow list", () => {
       const cfg: OpenClawConfig = {};
       const log = createMockLogger();
 
       applyHardenedConfigOverrides(cfg, log);
 
       expect(log.info).toHaveBeenCalledWith(
-        "harden: tool profile set to minimal with restricted permissions",
+        "harden: tool profile set to minimal with cleared allow list",
       );
     });
   });
@@ -511,7 +546,7 @@ describe("applyHardenedConfigOverrides", () => {
       expect(log.info).toHaveBeenCalledWith("harden: TLS forced enabled");
       expect(log.info).toHaveBeenCalledWith("harden: dangerous Control UI overrides disabled");
       expect(log.info).toHaveBeenCalledWith(
-        "harden: tool profile set to minimal with restricted permissions",
+        "harden: tool profile set to minimal with cleared allow list",
       );
       expect(log.info).toHaveBeenCalledWith(
         expect.stringMatching(/harden: \d+ dangerous commands blocked/),
