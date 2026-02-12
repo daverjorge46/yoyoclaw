@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
+git_lock="$ROOT_DIR/.git/index.lock"
+if [[ -f "$git_lock" ]]; then
+  echo "[pre-commit] detected existing index.lock; skipping formatting hook to avoid loop"
+  exit 0
+fi
 
 if [[ $# -eq 0 ]]; then
   exit 0
