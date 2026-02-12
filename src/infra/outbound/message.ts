@@ -204,8 +204,6 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
       mediaUrls: mirrorMediaUrls.length ? mirrorMediaUrls : params.mediaUrls,
       gifPlayback: params.gifPlayback,
       accountId: params.accountId,
-      replyToId: params.replyToId,
-      threadId: params.threadId,
       channel,
       sessionKey: params.mirror?.sessionKey,
       idempotencyKey: params.idempotencyKey ?? randomIdempotencyKey(),
