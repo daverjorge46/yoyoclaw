@@ -842,7 +842,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
             // Skip malformed lines
           }
         }
-        parsed.sort((a, b) => (Number(a.id) ?? 0) - (Number(b.id) ?? 0));
+        parsed.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
         const lastSeen = pollWatermark.get(cid) ?? 0;
         for (const message of parsed) {
           const mid = Number(message.id);
@@ -855,7 +855,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
           await handleMessage({ message });
         }
         if (parsed.length > 0) {
-          const maxId = Math.max(...parsed.map((m) => Number(m.id) ?? 0));
+          const maxId = Math.max(...parsed.map((m) => Number(m.id) || 0));
           pollWatermark.set(cid, Math.max(pollWatermark.get(cid) ?? 0, maxId));
         }
       } catch {
