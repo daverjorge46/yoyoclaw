@@ -278,10 +278,11 @@ describe("CronService", () => {
 
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "ok"));
     expect(runIsolatedAgentJob).toHaveBeenCalledTimes(1);
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", {
-      agentId: undefined,
-    });
-    expect(requestHeartbeatNow).toHaveBeenCalled();
+    // Delivery for isolated jobs is handled inside runIsolatedAgentJob (via
+    // announce flow).  No redundant system event or heartbeat should be
+    // enqueued — doing so causes heartbeat prompt leakage (#14947).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+    expect(requestHeartbeatNow).not.toHaveBeenCalled();
     cron.stop();
     await store.cleanup();
   });
@@ -426,10 +427,10 @@ describe("CronService", () => {
     await vi.runOnlyPendingTimersAsync();
     await waitForJobs(cron, (items) => items.some((item) => item.state.lastStatus === "error"));
 
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron (error): last output", {
-      agentId: undefined,
-    });
-    expect(requestHeartbeatNow).toHaveBeenCalled();
+    // Delivery for isolated jobs is handled inside runIsolatedAgentJob.
+    // No redundant system event or heartbeat — see #14947.
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+    expect(requestHeartbeatNow).not.toHaveBeenCalled();
     cron.stop();
     await store.cleanup();
   });

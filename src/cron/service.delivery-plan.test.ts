@@ -54,15 +54,16 @@ describe("CronService delivery plan consistency", () => {
     await store.cleanup();
   });
 
-  it("treats delivery object without mode as announce", async () => {
+  it("does not enqueue system event for isolated announce jobs (#14947)", async () => {
     const store = await makeStorePath();
     const enqueueSystemEvent = vi.fn();
+    const requestHeartbeatNow = vi.fn();
     const cron = new CronService({
       cronEnabled: true,
       storePath: store.storePath,
       log: noopLogger,
       enqueueSystemEvent,
-      requestHeartbeatNow: vi.fn(),
+      requestHeartbeatNow,
       runIsolatedAgentJob: vi.fn(async () => ({ status: "ok", summary: "done" })),
     });
     await cron.start();
@@ -84,7 +85,12 @@ describe("CronService delivery plan consistency", () => {
 
     const result = await cron.run(job.id, "force");
     expect(result).toEqual({ ok: true, ran: true });
-    expect(enqueueSystemEvent).toHaveBeenCalledWith("Cron: done", { agentId: undefined });
+    // Delivery is handled inside runIsolatedAgentJob (via announce flow).
+    // No system event or heartbeat should be enqueued here — doing so would
+    // cause the next regular heartbeat to append its prompt to the cron
+    // summary, making the agent treat it as a heartbeat poll (#14947).
+    expect(enqueueSystemEvent).not.toHaveBeenCalled();
+    expect(requestHeartbeatNow).not.toHaveBeenCalled();
 
     cron.stop();
     await store.cleanup();

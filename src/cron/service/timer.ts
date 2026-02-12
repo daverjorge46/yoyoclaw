@@ -2,7 +2,6 @@ import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
 import type { CronJob } from "../types.js";
 import type { CronEvent, CronServiceState } from "./state.js";
 import { DEFAULT_AGENT_ID } from "../../routing/session-key.js";
-import { resolveCronDeliveryPlan } from "../delivery.js";
 import { sweepCronRunSessions } from "../session-reaper.js";
 import {
   computeJobNextRunAtMs,
@@ -456,18 +455,14 @@ async function executeJobCore(
     message: job.payload.message,
   });
 
-  // Post a short summary back to the main session.
-  const summaryText = res.summary?.trim();
-  const deliveryPlan = resolveCronDeliveryPlan(job);
-  if (summaryText && deliveryPlan.requested) {
-    const prefix = "Cron";
-    const label =
-      res.status === "error" ? `${prefix} (error): ${summaryText}` : `${prefix}: ${summaryText}`;
-    state.deps.enqueueSystemEvent(label, { agentId: job.agentId });
-    if (job.wakeMode === "now") {
-      state.deps.requestHeartbeatNow({ reason: `cron:${job.id}` });
-    }
-  }
+  // Delivery for isolated cron jobs is handled inside runIsolatedAgentJob
+  // (via runSubagentAnnounceFlow for text or deliverOutboundPayloads for
+  // media).  Do NOT enqueue a redundant system-event + heartbeat here —
+  // the announce flow already sent the result to the main session.  If we
+  // did enqueue, the next regular heartbeat (reason "interval") would
+  // drain the event via prependSystemEvents and append the standard
+  // heartbeat prompt to it, causing the agent to treat every cron
+  // announcement as a heartbeat poll.  See: #14947
 
   return {
     status: res.status,
