@@ -232,7 +232,7 @@ export async function setTogetherApiKey(key: string, agentDir?: string) {
   });
 }
 
-export function setQianfanApiKey(key: string, agentDir?: string) {
+export async function setQianfanApiKey(key: string, agentDir?: string) {
   upsertAuthProfile({
     profileId: "qianfan:default",
     credential: {
@@ -244,7 +244,7 @@ export function setQianfanApiKey(key: string, agentDir?: string) {
   });
 }
 
-export function setXaiApiKey(key: string, agentDir?: string) {
+export async function setXaiApiKey(key: string, agentDir?: string) {
   upsertAuthProfile({
     profileId: "xai:default",
     credential: {
@@ -256,7 +256,7 @@ export function setXaiApiKey(key: string, agentDir?: string) {
   });
 }
 
-export function setMistralApiKey(key: string, agentDir?: string) {
+export async function setMistralApiKey(key: string, agentDir?: string) {
   upsertAuthProfile({
     profileId: "mistral:default",
     credential: {

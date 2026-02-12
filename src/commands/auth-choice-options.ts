@@ -26,6 +26,7 @@ export type AuthChoiceGroupId =
   | "qwen"
   | "together"
   | "qianfan"
+  | "mistral"
   | "xai"
   | "custom";
 
