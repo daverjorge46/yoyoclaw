@@ -566,6 +566,15 @@ const ERROR_PATTERNS = {
     "messages.1.content.1.tool_use.id",
     "invalid request format",
   ],
+  modelNotFound: [
+    /\b404\b/,
+    "not found for api version",
+    "model not found",
+    "does not exist",
+    "model is not available",
+    "is not supported for",
+    "not_found",
+  ],
 } as const;
 
 const TOOL_CALL_INPUT_MISSING_RE =
@@ -625,6 +634,10 @@ export function isAuthErrorMessage(raw: string): boolean {
 
 export function isOverloadedErrorMessage(raw: string): boolean {
   return matchesErrorPatterns(raw, ERROR_PATTERNS.overloaded);
+}
+
+export function isModelNotFoundErrorMessage(raw: string): boolean {
+  return matchesErrorPatterns(raw, ERROR_PATTERNS.modelNotFound);
 }
 
 export function parseImageDimensionError(raw: string): {
@@ -718,6 +731,9 @@ export function classifyFailoverReason(raw: string): FailoverReason | null {
   }
   if (isAuthErrorMessage(raw)) {
     return "auth";
+  }
+  if (isModelNotFoundErrorMessage(raw)) {
+    return "model_not_found";
   }
   return null;
 }
