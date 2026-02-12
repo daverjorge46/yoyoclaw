@@ -638,7 +638,6 @@ export async function reactMessageTelegram(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     if (/REACTION_INVALID/i.test(msg)) {
-      logHttpError("reaction", err);
       return { ok: false as const, warning: `Reaction unavailable: ${trimmedEmoji}` };
     }
     throw err;
