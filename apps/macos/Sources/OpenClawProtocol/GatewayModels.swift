@@ -1126,19 +1126,22 @@ public struct SessionsUsageParams: Codable, Sendable {
     public let enddate: String?
     public let limit: Int?
     public let includecontextweight: Bool?
+    public let tzoffsetminutes: Double?
 
     public init(
         key: String?,
         startdate: String?,
         enddate: String?,
         limit: Int?,
-        includecontextweight: Bool?
+        includecontextweight: Bool?,
+        tzoffsetminutes: Double?
     ) {
         self.key = key
         self.startdate = startdate
         self.enddate = enddate
         self.limit = limit
         self.includecontextweight = includecontextweight
+        self.tzoffsetminutes = tzoffsetminutes
     }
     private enum CodingKeys: String, CodingKey {
         case key
@@ -1146,6 +1149,7 @@ public struct SessionsUsageParams: Codable, Sendable {
         case enddate = "endDate"
         case limit
         case includecontextweight = "includeContextWeight"
+        case tzoffsetminutes = "tzOffsetMinutes"
     }
 }
 

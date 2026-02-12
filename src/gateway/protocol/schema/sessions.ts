@@ -114,6 +114,8 @@ export const SessionsUsageParamsSchema = Type.Object(
     limit: Type.Optional(Type.Integer({ minimum: 1 })),
     /** Include context weight breakdown (systemPromptReport). */
     includeContextWeight: Type.Optional(Type.Boolean()),
+    /** Timezone offset in minutes (same as Date.getTimezoneOffset(), e.g. -480 for UTC+8). */
+    tzOffsetMinutes: Type.Optional(Type.Number()),
   },
   { additionalProperties: false },
 );

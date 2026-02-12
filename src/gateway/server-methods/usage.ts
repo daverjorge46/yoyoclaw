@@ -67,6 +67,25 @@ const parseDateToMs = (raw: unknown): number | undefined => {
   return ms;
 };
 
+/**
+ * Parse timezone offset in minutes. Returns milliseconds to add to UTC boundaries.
+ * Follows Date.getTimezoneOffset() convention: UTC+8 → -480 → shifts boundaries back 8h.
+ */
+const parseTzOffset = (raw: unknown): number => {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    const clamped = Math.max(-840, Math.min(840, Math.round(raw)));
+    return clamped * 60 * 1000;
+  }
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+      const clamped = Math.max(-840, Math.min(840, Math.round(parsed)));
+      return clamped * 60 * 1000;
+    }
+  }
+  return 0;
+};
+
 const parseDays = (raw: unknown): number | undefined => {
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return Math.floor(raw);
@@ -88,18 +107,23 @@ const parseDateRange = (params: {
   startDate?: unknown;
   endDate?: unknown;
   days?: unknown;
+  /** Timezone offset in minutes (e.g. -480 for UTC+8). Same sign as Date.getTimezoneOffset(). */
+  tzOffsetMinutes?: unknown;
 }): DateRange => {
   const now = new Date();
-  // Use UTC for consistent date handling
-  const todayStartMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  // Apply timezone offset so date boundaries align with the user's local day.
+  // tzOffsetMinutes follows Date.getTimezoneOffset() convention: UTC+8 = -480.
+  const offsetMs = parseTzOffset(params.tzOffsetMinutes);
+  const todayStartMs =
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) + offsetMs;
   const todayEndMs = todayStartMs + 24 * 60 * 60 * 1000 - 1;
 
   const startMs = parseDateToMs(params.startDate);
   const endMs = parseDateToMs(params.endDate);
 
   if (startMs !== undefined && endMs !== undefined) {
-    // endMs should be end of day
-    return { startMs, endMs: endMs + 24 * 60 * 60 * 1000 - 1 };
+    // Apply offset to explicit date boundaries too
+    return { startMs: startMs + offsetMs, endMs: endMs + offsetMs + 24 * 60 * 60 * 1000 - 1 };
   }
 
   const days = parseDays(params.days);
@@ -191,6 +215,7 @@ async function loadCostUsageSummaryCached(params: {
 export const __test = {
   parseDateToMs,
   parseDays,
+  parseTzOffset,
   parseDateRange,
   discoverAllSessionsForUsage,
   loadCostUsageSummaryCached,
@@ -263,6 +288,7 @@ export const usageHandlers: GatewayRequestHandlers = {
       startDate: params?.startDate,
       endDate: params?.endDate,
       days: params?.days,
+      tzOffsetMinutes: params?.tzOffsetMinutes,
     });
     const summary = await loadCostUsageSummaryCached({ startMs, endMs, config });
     respond(true, summary, undefined);
@@ -285,6 +311,7 @@ export const usageHandlers: GatewayRequestHandlers = {
     const { startMs, endMs } = parseDateRange({
       startDate: p.startDate,
       endDate: p.endDate,
+      tzOffsetMinutes: p.tzOffsetMinutes,
     });
     const limit = typeof p.limit === "number" && Number.isFinite(p.limit) ? p.limit : 50;
     const includeContextWeight = p.includeContextWeight ?? false;
