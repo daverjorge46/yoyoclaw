@@ -107,6 +107,7 @@ export type ResolvedTtsConfig = {
   };
   openai: {
     apiKey?: string;
+    baseUrl?: string;
     model: string;
     voice: string;
   };
@@ -281,6 +282,7 @@ export function resolveTtsConfig(cfg: OpenClawConfig): ResolvedTtsConfig {
     },
     openai: {
       apiKey: raw.openai?.apiKey,
+      baseUrl: raw.openai?.baseUrl?.trim(),
       model: raw.openai?.model ?? DEFAULT_OPENAI_MODEL,
       voice: raw.openai?.voice ?? DEFAULT_OPENAI_VOICE,
     },
@@ -497,7 +499,11 @@ export function resolveTtsApiKey(
     return config.elevenlabs.apiKey || process.env.ELEVENLABS_API_KEY || process.env.XI_API_KEY;
   }
   if (provider === "openai") {
-    return config.openai.apiKey || process.env.OPENAI_API_KEY;
+    return (
+      config.openai.apiKey ||
+      process.env.OPENAI_API_KEY ||
+      (config.openai.baseUrl ? "local" : undefined)
+    );
   }
   return undefined;
 }
@@ -511,6 +517,9 @@ export function resolveTtsProviderOrder(primary: TtsProvider): TtsProvider[] {
 export function isTtsProviderConfigured(config: ResolvedTtsConfig, provider: TtsProvider): boolean {
   if (provider === "edge") {
     return config.edge.enabled;
+  }
+  if (provider === "openai") {
+    return Boolean(resolveTtsApiKey(config, provider)) || Boolean(config.openai.baseUrl);
   }
   return Boolean(resolveTtsApiKey(config, provider));
 }
@@ -594,6 +603,7 @@ function parseNumberValue(value: string): number | undefined {
 function parseTtsDirectives(
   text: string,
   policy: ResolvedTtsModelOverrides,
+  openaiBaseUrl?: string,
 ): TtsDirectiveParseResult {
   if (!policy.enabled) {
     return { cleanedText: text, overrides: {}, warnings: [], hasDirective: false };
@@ -646,7 +656,7 @@ function parseTtsDirectives(
             if (!policy.allowVoice) {
               break;
             }
-            if (isValidOpenAIVoice(rawValue)) {
+            if (isValidOpenAIVoice(rawValue, openaiBaseUrl)) {
               overrides.openai = { ...overrides.openai, voice: rawValue };
             } else {
               warnings.push(`invalid OpenAI voice "${rawValue}"`);
@@ -675,7 +685,7 @@ function parseTtsDirectives(
             if (!policy.allowModelId) {
               break;
             }
-            if (isValidOpenAIModel(rawValue)) {
+            if (isValidOpenAIModel(rawValue, openaiBaseUrl)) {
               overrides.openai = { ...overrides.openai, model: rawValue };
             } else {
               overrides.elevenlabs = { ...overrides.elevenlabs, modelId: rawValue };
@@ -836,7 +846,10 @@ function getOpenAITtsBaseUrl(): string {
   );
 }
 
-function isCustomOpenAIEndpoint(): boolean {
+function isCustomOpenAIEndpoint(configBaseUrl?: string): boolean {
+  if (configBaseUrl?.trim()) {
+    return true;
+  }
   return getOpenAITtsBaseUrl() !== "https://api.openai.com/v1";
 }
 export const OPENAI_TTS_VOICES = [
@@ -853,17 +866,17 @@ export const OPENAI_TTS_VOICES = [
 
 type OpenAiTtsVoice = (typeof OPENAI_TTS_VOICES)[number];
 
-function isValidOpenAIModel(model: string): boolean {
+function isValidOpenAIModel(model: string, configBaseUrl?: string): boolean {
   // Allow any model when using custom endpoint (e.g., Kokoro, LocalAI)
-  if (isCustomOpenAIEndpoint()) {
+  if (isCustomOpenAIEndpoint(configBaseUrl)) {
     return true;
   }
   return OPENAI_TTS_MODELS.includes(model as (typeof OPENAI_TTS_MODELS)[number]);
 }
 
-function isValidOpenAIVoice(voice: string): voice is OpenAiTtsVoice {
+function isValidOpenAIVoice(voice: string, configBaseUrl?: string): voice is OpenAiTtsVoice {
   // Allow any voice when using custom endpoint (e.g., Kokoro Chinese voices)
-  if (isCustomOpenAIEndpoint()) {
+  if (isCustomOpenAIEndpoint(configBaseUrl)) {
     return true;
   }
   return OPENAI_TTS_VOICES.includes(voice as OpenAiTtsVoice);
@@ -1078,28 +1091,31 @@ async function elevenLabsTTS(params: {
 async function openaiTTS(params: {
   text: string;
   apiKey: string;
+  baseUrl?: string;
   model: string;
   voice: string;
   responseFormat: "mp3" | "opus" | "pcm";
   timeoutMs: number;
 }): Promise<Buffer> {
-  const { text, apiKey, model, voice, responseFormat, timeoutMs } = params;
+  const { text, apiKey, baseUrl, model, voice, responseFormat, timeoutMs } = params;
 
-  if (!isValidOpenAIModel(model)) {
+  if (!isValidOpenAIModel(model, baseUrl)) {
     throw new Error(`Invalid model: ${model}`);
   }
-  if (!isValidOpenAIVoice(voice)) {
+  if (!isValidOpenAIVoice(voice, baseUrl)) {
     throw new Error(`Invalid voice: ${voice}`);
   }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
+  const ttsBaseUrl = (baseUrl?.trim() || getOpenAITtsBaseUrl()).replace(/\/+$/, "");
+
   try {
-    const response = await fetch(`${getOpenAITtsBaseUrl()}/audio/speech`, {
+    const response = await fetch(`${ttsBaseUrl}/audio/speech`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        ...(apiKey && apiKey !== "local" ? { Authorization: `Bearer ${apiKey}` } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -1292,6 +1308,7 @@ export async function textToSpeech(params: {
         audioBuffer = await openaiTTS({
           text: params.text,
           apiKey,
+          baseUrl: config.openai.baseUrl,
           model: openaiModelOverride ?? config.openai.model,
           voice: openaiVoiceOverride ?? config.openai.voice,
           responseFormat: output.openai,
@@ -1394,6 +1411,7 @@ export async function textToSpeechTelephony(params: {
       const audioBuffer = await openaiTTS({
         text: params.text,
         apiKey,
+        baseUrl: config.openai.baseUrl,
         model: config.openai.model,
         voice: config.openai.voice,
         responseFormat: output.format,
@@ -1444,7 +1462,7 @@ export async function maybeApplyTtsToPayload(params: {
   }
 
   const text = params.payload.text ?? "";
-  const directives = parseTtsDirectives(text, config.modelOverrides);
+  const directives = parseTtsDirectives(text, config.modelOverrides, config.openai.baseUrl);
   if (directives.warnings.length > 0) {
     logVerbose(`TTS: ignored directive overrides (${directives.warnings.join("; ")})`);
   }
@@ -1573,6 +1591,7 @@ export const _test = {
   isValidVoiceId,
   isValidOpenAIVoice,
   isValidOpenAIModel,
+  isCustomOpenAIEndpoint,
   OPENAI_TTS_MODELS,
   OPENAI_TTS_VOICES,
   parseTtsDirectives,
