@@ -120,6 +120,8 @@ export class PenpotClient {
     "session-id": string;
     changes: Record<string, unknown>[];
   }) {
-    return this.rpc("update-file", params);
+    // PenPot 2.13+ requires vern; default to 0 if not provided
+    const withVern = { vern: 0, ...params };
+    return this.rpc("update-file", withVern);
   }
 }

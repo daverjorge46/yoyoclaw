@@ -249,12 +249,15 @@ export type AddTypographyChange = {
   typography: {
     id: string;
     name: string;
+    "font-id": string;
     "font-family": string;
+    "font-variant-id": string;
     "font-size": string;
     "font-weight": string;
-    "font-style"?: string;
-    "line-height"?: string;
-    "letter-spacing"?: string;
+    "font-style": string;
+    "line-height": string;
+    "letter-spacing": string;
+    "text-transform": string;
   };
 };
 

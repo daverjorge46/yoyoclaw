@@ -89,7 +89,7 @@ function prepareForTransit(value: unknown): unknown {
 export function transitDecode(data: string): unknown {
   const r = transit.reader("json", {
     handlers: {
-      u: { fromRep: (rep: unknown) => String(rep) },
+      u: (rep: unknown) => String(rep),
     },
   });
   const parsed = r.read(data);

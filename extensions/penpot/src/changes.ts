@@ -212,11 +212,12 @@ export class ChangesBuilder {
       y,
       width,
       height,
+      rotation: input.rotation ?? 0,
       selrect: computeSelrect(x, y, width, height),
       points: computePoints(x, y, width, height),
       transform: IDENTITY_TRANSFORM,
       "transform-inverse": IDENTITY_TRANSFORM,
-      ...(input.rotation !== undefined ? { rotation: input.rotation } : {}),
+      "proportion-lock": false,
       ...(input.opacity !== undefined ? { opacity: input.opacity } : {}),
       ...(input.hidden !== undefined ? { hidden: input.hidden } : {}),
       ...(input.fills ? { fills: input.fills } : {}),
@@ -238,6 +239,8 @@ export class ChangesBuilder {
     if (input.r4 !== undefined) extra.r4 = input.r4;
 
     const obj = this.buildShapeObj(input, "rect", extra);
+    obj["frame-id"] = frameId;
+    obj["parent-id"] = parentId;
     const id = obj.id as string;
 
     const change: AddObjChange = {
@@ -258,6 +261,8 @@ export class ChangesBuilder {
     frameId: string = ROOT_FRAME_ID,
   ): string {
     const obj = this.buildShapeObj(input, "circle");
+    obj["frame-id"] = frameId;
+    obj["parent-id"] = parentId;
     const id = obj.id as string;
 
     const change: AddObjChange = {
@@ -287,6 +292,8 @@ export class ChangesBuilder {
     }
 
     const obj = this.buildShapeObj(input, "text", extra);
+    obj["frame-id"] = frameId;
+    obj["parent-id"] = parentId;
     const id = obj.id as string;
 
     const change: AddObjChange = {
@@ -329,6 +336,8 @@ export class ChangesBuilder {
     }
 
     const obj = this.buildShapeObj(input, "frame", extra);
+    obj["frame-id"] = frameId;
+    obj["parent-id"] = parentId;
     const id = obj.id as string;
 
     const change: AddObjChange = {
@@ -358,6 +367,8 @@ export class ChangesBuilder {
   ): string {
     const extra: Record<string, unknown> = { shapes: [] };
     const obj = this.buildShapeObj(input, "group", extra);
+    obj["frame-id"] = frameId;
+    obj["parent-id"] = parentId;
     const id = obj.id as string;
 
     const change: AddObjChange = {
@@ -462,9 +473,12 @@ export class ChangesBuilder {
     fontSize: string,
     fontWeight: string = "400",
     opts: {
+      fontId?: string;
+      fontVariantId?: string;
       fontStyle?: string;
       lineHeight?: string;
       letterSpacing?: string;
+      textTransform?: string;
     } = {},
   ): void {
     const change: AddTypographyChange = {
@@ -472,12 +486,15 @@ export class ChangesBuilder {
       typography: {
         id,
         name,
+        "font-id": opts.fontId ?? fontFamily.toLowerCase().replace(/\s+/g, "-"),
         "font-family": fontFamily,
+        "font-variant-id": opts.fontVariantId ?? "regular",
         "font-size": fontSize,
         "font-weight": fontWeight,
-        ...(opts.fontStyle ? { "font-style": opts.fontStyle } : {}),
-        ...(opts.lineHeight ? { "line-height": opts.lineHeight } : {}),
-        ...(opts.letterSpacing ? { "letter-spacing": opts.letterSpacing } : {}),
+        "font-style": opts.fontStyle ?? "normal",
+        "line-height": opts.lineHeight ?? "1.2",
+        "letter-spacing": opts.letterSpacing ?? "0",
+        "text-transform": opts.textTransform ?? "none",
       },
     };
     this.changes.push(change);

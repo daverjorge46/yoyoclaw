@@ -10,17 +10,16 @@ declare module "transit-js" {
     stringRep?(v: T): string;
   }
 
-  export interface ReadHandler<T> {
-    fromRep(rep: unknown): T;
-  }
+  /** Read handlers are plain functions: (rep) => value */
+  export type ReadHandler = (rep: unknown) => unknown;
 
   export interface WriterOptions {
     handlers?: Map<new (...args: unknown[]) => unknown, WriteHandler<unknown>>;
   }
 
   export interface ReaderOptions {
-    handlers?: Record<string, ReadHandler<unknown>>;
-    defaultHandler?: ReadHandler<unknown>;
+    handlers?: Record<string, ReadHandler>;
+    defaultHandler?: ReadHandler;
   }
 
   export interface Writer {
