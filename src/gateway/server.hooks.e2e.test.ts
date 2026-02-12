@@ -57,6 +57,8 @@ describe("gateway server hooks", () => {
         body: JSON.stringify({ message: "Do it", name: "Email" }),
       });
       expect(resAgent.status).toBe(202);
+      const agentBody = (await resAgent.json()) as { ok?: boolean; agentId?: string };
+      expect(agentBody.agentId).toBeUndefined();
       const agentEvents = await waitForSystemEvent();
       expect(agentEvents.some((e) => e.includes("Hook Email: done"))).toBe(true);
       drainSystemEvents(resolveMainKey());
@@ -100,6 +102,8 @@ describe("gateway server hooks", () => {
         body: JSON.stringify({ message: "Do it", name: "Email", agentId: "hooks" }),
       });
       expect(resAgentWithId.status).toBe(202);
+      const agentWithIdBody = (await resAgentWithId.json()) as { ok?: boolean; agentId?: string };
+      expect(agentWithIdBody.agentId).toBe("hooks");
       await waitForSystemEvent();
       const routedCall = cronIsolatedRun.mock.calls[0]?.[0] as {
         job?: { agentId?: string };
@@ -121,6 +125,8 @@ describe("gateway server hooks", () => {
         body: JSON.stringify({ message: "Do it", name: "Email", agentId: "missing-agent" }),
       });
       expect(resAgentUnknown.status).toBe(202);
+      const unknownBody = (await resAgentUnknown.json()) as { ok?: boolean; agentId?: string };
+      expect(unknownBody.agentId).toBe("main");
       await waitForSystemEvent();
       const fallbackCall = cronIsolatedRun.mock.calls[0]?.[0] as {
         job?: { agentId?: string };
@@ -254,6 +260,8 @@ describe("gateway server hooks", () => {
         body: JSON.stringify({ message: "Allowed", agentId: "hooks" }),
       });
       expect(resAllowed.status).toBe(202);
+      const allowedBody = (await resAllowed.json()) as { ok?: boolean; agentId?: string };
+      expect(allowedBody.agentId).toBe("hooks");
       await waitForSystemEvent();
       const allowedCall = cronIsolatedRun.mock.calls[0]?.[0] as {
         job?: { agentId?: string };

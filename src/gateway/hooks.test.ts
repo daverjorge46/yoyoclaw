@@ -225,6 +225,79 @@ describe("gateway hooks helpers", () => {
     expect(isHookAgentAllowed(resolved, "hooks")).toBe(true);
     expect(isHookAgentAllowed(resolved, "missing-agent")).toBe(true);
   });
+
+  test("resolveHooksConfig populates agentPolicy with knownAgentIds and allowedAgentIds", () => {
+    const cfg = {
+      hooks: {
+        enabled: true,
+        token: "secret",
+        allowedAgentIds: ["hooks"],
+      },
+      agents: {
+        list: [{ id: "main", default: true }, { id: "hooks" }, { id: "extra" }],
+      },
+    } as OpenClawConfig;
+    const resolved = resolveHooksConfig(cfg);
+    expect(resolved).not.toBeNull();
+    if (!resolved) {
+      return;
+    }
+    expect(resolved.agentPolicy.defaultAgentId).toBe("main");
+    expect(resolved.agentPolicy.knownAgentIds.has("main")).toBe(true);
+    expect(resolved.agentPolicy.knownAgentIds.has("hooks")).toBe(true);
+    expect(resolved.agentPolicy.knownAgentIds.has("extra")).toBe(true);
+    expect(resolved.agentPolicy.allowedAgentIds).toBeDefined();
+    expect(resolved.agentPolicy.allowedAgentIds!.has("hooks")).toBe(true);
+    expect(resolved.agentPolicy.allowedAgentIds!.has("main")).toBe(false);
+  });
+
+  test("resolveHooksConfig without allowedAgentIds leaves it undefined (allow-all)", () => {
+    const cfg = {
+      hooks: { enabled: true, token: "secret" },
+      agents: {
+        list: [{ id: "main", default: true }],
+      },
+    } as OpenClawConfig;
+    const resolved = resolveHooksConfig(cfg);
+    expect(resolved).not.toBeNull();
+    if (!resolved) {
+      return;
+    }
+    expect(resolved.agentPolicy.allowedAgentIds).toBeUndefined();
+  });
+
+  test("normalizeAgentPayload preserves thinking and timeoutSeconds", () => {
+    const result = normalizeAgentPayload(
+      {
+        message: "Do work",
+        agentId: "hooks",
+        thinking: "high",
+        timeoutSeconds: 120,
+      },
+      { idFactory: () => "fixed" },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.agentId).toBe("hooks");
+      expect(result.value.thinking).toBe("high");
+      expect(result.value.timeoutSeconds).toBe(120);
+    }
+  });
+
+  test("resolveHookTargetAgentId normalizes agent ids", () => {
+    const cfg = {
+      hooks: { enabled: true, token: "secret" },
+      agents: {
+        list: [{ id: "main", default: true }, { id: "My-Agent" }],
+      },
+    } as OpenClawConfig;
+    const resolved = resolveHooksConfig(cfg);
+    expect(resolved).not.toBeNull();
+    if (!resolved) {
+      return;
+    }
+    expect(resolveHookTargetAgentId(resolved, "My-Agent")).toBe("my-agent");
+  });
 });
 
 const emptyRegistry = createTestRegistry([]);

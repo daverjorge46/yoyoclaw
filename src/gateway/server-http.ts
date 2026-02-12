@@ -215,11 +215,16 @@ export function createHooksRequestHandler(
         sendJson(res, 400, { ok: false, error: getHookAgentPolicyError() });
         return true;
       }
+      const resolvedAgentId = resolveHookTargetAgentId(hooksConfig, normalized.value.agentId);
       const runId = dispatchAgentHook({
         ...normalized.value,
-        agentId: resolveHookTargetAgentId(hooksConfig, normalized.value.agentId),
+        agentId: resolvedAgentId,
       });
-      sendJson(res, 202, { ok: true, runId });
+      sendJson(res, 202, {
+        ok: true,
+        runId,
+        ...(resolvedAgentId !== undefined ? { agentId: resolvedAgentId } : {}),
+      });
       return true;
     }
 
@@ -258,10 +263,11 @@ export function createHooksRequestHandler(
             sendJson(res, 400, { ok: false, error: getHookAgentPolicyError() });
             return true;
           }
+          const mappedAgentId = resolveHookTargetAgentId(hooksConfig, mapped.action.agentId);
           const runId = dispatchAgentHook({
             message: mapped.action.message,
             name: mapped.action.name ?? "Hook",
-            agentId: resolveHookTargetAgentId(hooksConfig, mapped.action.agentId),
+            agentId: mappedAgentId,
             wakeMode: mapped.action.wakeMode,
             sessionKey: mapped.action.sessionKey ?? "",
             deliver: resolveHookDeliver(mapped.action.deliver),
@@ -272,7 +278,11 @@ export function createHooksRequestHandler(
             timeoutSeconds: mapped.action.timeoutSeconds,
             allowUnsafeExternalContent: mapped.action.allowUnsafeExternalContent,
           });
-          sendJson(res, 202, { ok: true, runId });
+          sendJson(res, 202, {
+            ok: true,
+            runId,
+            ...(mappedAgentId !== undefined ? { agentId: mappedAgentId } : {}),
+          });
           return true;
         }
       } catch (err) {
