@@ -79,6 +79,11 @@ const MINIMAX_MODEL_CATALOG = {
     name: "MiniMax M2.1 Lightning",
     reasoning: false,
   },
+  "MiniMax-M2.5": { name: "MiniMax M2.5", reasoning: false },
+  "MiniMax-M2.5-lightning": {
+    name: "MiniMax M2.5 Lightning",
+    reasoning: false,
+  },
 } as const;
 
 type MinimaxCatalogId = keyof typeof MINIMAX_MODEL_CATALOG;

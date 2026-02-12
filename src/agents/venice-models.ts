@@ -280,6 +280,15 @@ export const VENICE_MODEL_CATALOG = [
     maxTokens: 8192,
     privacy: "anonymized",
   },
+  {
+    id: "minimax-m25",
+    name: "MiniMax M2.5 (via Venice)",
+    reasoning: true,
+    input: ["text"],
+    contextWindow: 202752,
+    maxTokens: 8192,
+    privacy: "anonymized",
+  },
 ] as const;
 
 export type VeniceCatalogEntry = (typeof VENICE_MODEL_CATALOG)[number];

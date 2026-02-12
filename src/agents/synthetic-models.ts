@@ -20,6 +20,14 @@ export const SYNTHETIC_MODEL_CATALOG = [
     maxTokens: 65536,
   },
   {
+    id: "hf:MiniMaxAI/MiniMax-M2.5",
+    name: "MiniMax M2.5",
+    reasoning: false,
+    input: ["text"],
+    contextWindow: 192000,
+    maxTokens: 65536,
+  },
+  {
     id: "hf:moonshotai/Kimi-K2-Thinking",
     name: "Kimi K2 Thinking",
     reasoning: true,
