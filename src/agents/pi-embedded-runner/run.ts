@@ -3,6 +3,7 @@ import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
+import { StudioTelemetry } from "../../studio-telemetry.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import {
@@ -177,6 +178,14 @@ export async function runEmbeddedPiAgent(
   return enqueueSession(() =>
     enqueueGlobal(async () => {
       const started = Date.now();
+      const telemetry = StudioTelemetry.getInstance();
+      telemetry.emit("agent:start", {
+        sessionId: params.sessionId,
+        runId: params.runId,
+        provider: params.provider,
+        model: params.model,
+      });
+
       const workspaceResolution = resolveRunWorkspaceDir({
         workspaceDir: params.workspaceDir,
         sessionKey: params.sessionKey,
@@ -467,7 +476,14 @@ export async function runEmbeddedPiAgent(
             blockReplyChunking: params.blockReplyChunking,
             onReasoningStream: params.onReasoningStream,
             onToolResult: params.onToolResult,
-            onAgentEvent: params.onAgentEvent,
+            onAgentEvent: (evt) => {
+              // Stream to Studio
+              if (evt.stream === "tool" || evt.stream === "lifecycle") {
+                telemetry.emit("agent:event", evt);
+              }
+              // Original callback
+              params.onAgentEvent?.(evt);
+            },
             extraSystemPrompt: params.extraSystemPrompt,
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
@@ -845,6 +861,15 @@ export async function runEmbeddedPiAgent(
           log.debug(
             `embedded run done: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - started} aborted=${aborted}`,
           );
+
+          telemetry.emit("agent:end", {
+            sessionId: sessionIdUsed,
+            runId: params.runId,
+            usage: agentMeta.usage,
+            durationMs: Date.now() - started,
+            stopReason: attempt.clientToolCall ? "tool_calls" : undefined,
+          });
+
           if (lastProfileId) {
             await markAuthProfileGood({
               store: authStore,
