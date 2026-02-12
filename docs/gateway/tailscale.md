@@ -45,8 +45,9 @@ integrated Tailscale automation, run:
 tailscale serve --bg http://127.0.0.1:18789
 ```
 
-Then open `https://<your-machine>.<tailnet>.ts.net/` — you get a valid HTTPS
-certificate, tailnet-only access, and no need for `allowInsecureAuth`.
+Then open `https://<your-machine>.<tailnet>.ts.net/` (append your
+`gateway.controlUi.basePath` if configured) — you get a valid HTTPS certificate,
+tailnet-only access, and no need for `allowInsecureAuth`.
 
 To stop serving: `tailscale serve --bg off`.
 

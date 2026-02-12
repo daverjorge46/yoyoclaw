@@ -147,7 +147,8 @@ If you already have Tailscale installed, one command gives you HTTPS access with
 tailscale serve --bg http://127.0.0.1:18789
 ```
 
-Then open `https://<your-machine>.<tailnet>.ts.net/` in your browser. This provides:
+Then open `https://<your-machine>.<tailnet>.ts.net/` (or `https://…/<basePath>/` if
+`gateway.controlUi.basePath` is set) in your browser. This provides:
 
 - Automatic HTTPS certificate (no manual TLS setup)
 - Tailnet-only access (secure by default)
