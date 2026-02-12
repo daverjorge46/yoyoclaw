@@ -24,7 +24,11 @@ function stripProviderPrefixFromModelId(model: Model<Api>): Model<Api> {
   const modelId = model.id;
   const prefix = `${provider}/`;
   if (modelId.toLowerCase().startsWith(prefix)) {
-    return { ...model, id: modelId.slice(prefix.length) };
+    const strippedId = modelId.slice(prefix.length);
+    if (!strippedId) {
+      return model;
+    }
+    return { ...model, id: strippedId };
   }
 
   return model;

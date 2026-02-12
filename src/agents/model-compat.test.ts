@@ -108,5 +108,16 @@ describe("normalizeModelCompat", () => {
       const normalized = normalizeModelCompat(model);
       expect(normalized.id).toBe("claude-opus-4-5");
     });
+
+    it("does not strip when result would be empty", () => {
+      const model = {
+        ...baseModel(),
+        id: "anthropic/",
+        provider: "anthropic",
+        baseUrl: "https://api.anthropic.com",
+      };
+      const normalized = normalizeModelCompat(model);
+      expect(normalized.id).toBe("anthropic/");
+    });
   });
 });
