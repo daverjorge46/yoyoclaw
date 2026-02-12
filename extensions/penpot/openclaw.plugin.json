@@ -1,0 +1,29 @@
+{
+  "id": "penpot",
+  "uiHints": {
+    "accessToken": {
+      "label": "PenPot Access Token",
+      "sensitive": true,
+      "placeholder": "your-access-token",
+      "help": "Access token from PenPot Settings > Access Tokens (or use ${PENPOT_ACCESS_TOKEN})"
+    },
+    "baseUrl": {
+      "label": "PenPot Base URL",
+      "placeholder": "https://design.penpot.app",
+      "help": "PenPot instance URL. Default: https://design.penpot.app"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "accessToken": {
+        "type": "string"
+      },
+      "baseUrl": {
+        "type": "string"
+      }
+    },
+    "required": ["accessToken"]
+  }
+}
