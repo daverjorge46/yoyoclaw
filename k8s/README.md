@@ -1,12 +1,12 @@
 # OpenClaw Kubernetes Deployment
 
-This directory contains standard Kubernetes manifests for deploying OpenClaw Gateway.
+Standard Kubernetes manifests for deploying OpenClaw Gateway on k3s/k8s.
 
 ## Prerequisites
 
-- A running Kubernetes cluster (k8s or k3s).
+- A running Kubernetes cluster (k3s or k8s) with Traefik ingress controller.
 - `kubectl` configured to communicate with your cluster.
-- An OpenClaw Docker image (either pulled from a registry or built locally and imported).
+- [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) configured with Cloudflare (for automatic DNS record creation).
 
 ## Community Helm Charts
 
@@ -15,77 +15,53 @@ If you prefer using Helm, there are community-maintained charts available:
 - **[Chrisbattarbee/openclaw-helm](https://github.com/Chrisbattarbee/openclaw-helm)**: A comprehensive chart with support for configuration injection, persistence, and ingress.
 - **[serhanekicii/openclaw-helm](https://github.com/serhanekicii/openclaw-helm)**: Another popular community chart.
 
-## Setup Instructions
-
-### 1. Configure Secrets
-
-Edit `secret.yaml` to set your secure gateway token.
+## Quick Start
 
 ```bash
-# Generate a token
-openssl rand -hex 32
+# 1. Configure your gateway token
+export TOKEN=$(openssl rand -hex 32)
+kubectl create secret generic openclaw-secret \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN="$TOKEN"
 
-# Update the file
-nano secret.yaml
-```
+# 2. Deploy everything
+kubectl apply -f pvc.yaml -f deployment.yaml -f service.yaml -f ingress.yaml
 
-### 2. Apply Manifests
-
-Apply the configuration in the following order:
-
-```bash
-kubectl apply -f secret.yaml
-kubectl apply -f pvc.yaml
-kubectl apply -f deployment.yaml
-kubectl apply -f service.yaml
-```
-
-### 3. Verify Deployment
-
-Check the status of the pods:
-
-```bash
-kubectl get pods
+# 3. Verify
+kubectl get pods -l app=openclaw
 kubectl logs -f deployment/openclaw-gateway
 ```
 
+## Manifests
+
+| File              | Purpose                                       |
+| ----------------- | --------------------------------------------- |
+| `secret.yaml`     | Gateway token secret (template)               |
+| `pvc.yaml`        | Persistent storage for config/sessions (10Gi) |
+| `deployment.yaml` | Gateway deployment (1 replica)                |
+| `service.yaml`    | ClusterIP service (ports 18789, 18790)        |
+| `ingress.yaml`    | Traefik IngressRoute for HTTPS access         |
+
+## DNS and TLS
+
+The `ingress.yaml` uses a Traefik IngressRoute with:
+
+- `Host(\`openclaw.vibebrowser.app\`)` match rule (ExternalDNS picks this up automatically).
+- `external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"` annotation to enable Cloudflare proxy (handles TLS termination).
+- `entryPoints: [web, websecure]` for both HTTP and HTTPS.
+
+ExternalDNS creates the Cloudflare A record automatically. With `--default-targets` configured in ExternalDNS, the record points to the cluster public IP. Cloudflare proxy provides edge TLS.
+
+**Customization:** Update the `Host()` match rule in `ingress.yaml` to use your own domain.
+
 ## Accessing the Gateway
 
-By default, the service is of type `ClusterIP`. To access it:
+Once deployed, the gateway is accessible at:
 
-- **Port Forwarding:**
-
-  ```bash
-  kubectl port-forward service/openclaw-service 18789:18789
-  ```
-
-- **NodePort / LoadBalancer:**
-  Edit `service.yaml` and change `type: ClusterIP` to `NodePort` or `LoadBalancer`.
-
-### Ingress with TLS (Traefik + cert-manager)
-
-For HTTPS access with automatic Let's Encrypt certificates, apply the ingress manifest:
-
-```bash
-kubectl apply -f ingress.yaml
-```
-
-This creates an Ingress resource that:
-
-- Routes traffic from `openclaw.vibebrowser.app` to the gateway service.
-- Uses Traefik as the ingress controller.
-- Provisions a TLS certificate via cert-manager and the `letsencrypt-prod` ClusterIssuer.
-
-**Prerequisites:**
-
-- Traefik ingress controller running (default on k3s).
-- cert-manager installed with a `letsencrypt-prod` ClusterIssuer.
-- DNS A record for `openclaw.vibebrowser.app` pointing to your cluster's public IP.
-
-**Customization:** Update the `host` field in `ingress.yaml` to use your own domain.
+- **HTTPS:** `https://openclaw.vibebrowser.app` (via Cloudflare proxy)
+- **Port Forwarding:** `kubectl port-forward service/openclaw-service 18789:18789`
 
 ## Customization
 
-- **Image:** Update `deployment.yaml` to point to your specific Docker image tag.
+- **Image:** Update `deployment.yaml` to point to a specific Docker image tag.
 - **Resources:** Adjust CPU and memory limits in `deployment.yaml` based on your cluster capacity.
-- **Storage:** Check `pvc.yaml` to adjust the storage size (default 10Gi).
+- **Storage:** Edit `pvc.yaml` to adjust the storage size (default 10Gi).

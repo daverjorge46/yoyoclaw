@@ -1,27 +1,18 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: openclaw-ingress
+  name: openclaw-gateway
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    external-dns.alpha.kubernetes.io/target: "4.246.58.241"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
   labels:
-    app: openclaw-gateway
+    app: openclaw
 spec:
-  ingressClassName: traefik
-  rules:
-    - host: openclaw.vibebrowser.app
-      http:
-        paths:
-          - backend:
-              service:
-                name: openclaw-service
-                port:
-                  number: 18789
-            path: /
-            pathType: Prefix
-  tls:
-    - hosts:
-        - openclaw.vibebrowser.app
-      secretName: openclaw-tls
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`openclaw.vibebrowser.app`)
+      kind: Rule
+      services:
+        - name: openclaw-service
+          port: 18789
