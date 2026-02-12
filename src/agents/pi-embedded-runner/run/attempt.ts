@@ -917,8 +917,13 @@ export async function runEmbeddedAttempt(
       };
     } finally {
       // Always tear down the session (and release the lock) before we leave this attempt.
-      sessionManager?.flushPendingToolResults?.();
-      session?.dispose();
+      // Wrap cleanup in try/catch so that a failing dispose() cannot prevent lock release.
+      try {
+        sessionManager?.flushPendingToolResults?.();
+        session?.dispose();
+      } catch {
+        // Best-effort session cleanup — lock release below must always run.
+      }
       await sessionLock.release();
     }
   } finally {

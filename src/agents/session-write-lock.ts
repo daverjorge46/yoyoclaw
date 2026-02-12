@@ -145,7 +145,11 @@ export async function acquireSessionWriteLock(params: {
           return;
         }
         HELD_LOCKS.delete(normalizedSessionFile);
-        await current.handle.close();
+        try {
+          await current.handle.close();
+        } catch {
+          // Ignore close errors — always proceed to remove the lock file.
+        }
         await fs.rm(current.lockPath, { force: true });
       },
     };
@@ -157,10 +161,21 @@ export async function acquireSessionWriteLock(params: {
     attempt += 1;
     try {
       const handle = await fs.open(lockPath, "wx");
-      await handle.writeFile(
-        JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString() }, null, 2),
-        "utf8",
-      );
+      try {
+        await handle.writeFile(
+          JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString() }, null, 2),
+          "utf8",
+        );
+      } catch (writeErr) {
+        // Lock file was created by open() but write failed — clean up before re-throwing.
+        try {
+          await handle.close();
+        } catch {
+          // best-effort close
+        }
+        await fs.rm(lockPath, { force: true });
+        throw writeErr;
+      }
       HELD_LOCKS.set(normalizedSessionFile, { count: 1, handle, lockPath });
       return {
         release: async () => {
@@ -173,7 +188,11 @@ export async function acquireSessionWriteLock(params: {
             return;
           }
           HELD_LOCKS.delete(normalizedSessionFile);
-          await current.handle.close();
+          try {
+            await current.handle.close();
+          } catch {
+            // Ignore close errors — always proceed to remove the lock file.
+          }
           await fs.rm(current.lockPath, { force: true });
         },
       };
