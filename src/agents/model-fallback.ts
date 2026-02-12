@@ -1,10 +1,4 @@
 import type { OpenClawConfig } from "../config/config.js";
-import type { FailoverReason } from "./pi-embedded-helpers.js";
-import {
-  ensureAuthProfileStore,
-  isProfileInCooldown,
-  resolveAuthProfileOrder,
-} from "./auth-profiles.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
 import {
   coerceToFailoverError,
@@ -13,12 +7,18 @@ import {
   isTimeoutError,
 } from "./failover-error.js";
 import {
-  buildConfiguredAllowlistKeys,
   buildModelAliasIndex,
   modelKey,
+  parseModelRef,
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "./model-selection.js";
+import type { FailoverReason } from "./pi-embedded-helpers.js";
+import {
+  ensureAuthProfileStore,
+  isProfileInCooldown,
+  resolveAuthProfileOrder,
+} from "./auth-profiles.js";
 
 type ModelCandidate = {
   provider: string;
@@ -34,11 +34,7 @@ type FallbackAttempt = {
   code?: string;
 };
 
-/**
- * Fallback abort check. Only treats explicit AbortError names as user aborts.
- * Message-based checks (e.g., "aborted") can mask timeouts and skip fallback.
- */
-function isFallbackAbortError(err: unknown): boolean {
+function isAbortError(err: unknown): boolean {
   if (!err || typeof err !== "object") {
     return false;
   }
@@ -46,11 +42,35 @@ function isFallbackAbortError(err: unknown): boolean {
     return false;
   }
   const name = "name" in err ? String(err.name) : "";
+  // Only treat explicit AbortError names as user aborts.
+  // Message-based checks (e.g., "aborted") can mask timeouts and skip fallback.
   return name === "AbortError";
 }
 
 function shouldRethrowAbort(err: unknown): boolean {
-  return isFallbackAbortError(err) && !isTimeoutError(err);
+  return isAbortError(err) && !isTimeoutError(err);
+}
+
+function buildAllowedModelKeys(
+  cfg: OpenClawConfig | undefined,
+  defaultProvider: string,
+): Set<string> | null {
+  const rawAllowlist = (() => {
+    const modelMap = cfg?.agents?.defaults?.models ?? {};
+    return Object.keys(modelMap);
+  })();
+  if (rawAllowlist.length === 0) {
+    return null;
+  }
+  const keys = new Set<string>();
+  for (const raw of rawAllowlist) {
+    const parsed = parseModelRef(String(raw ?? ""), defaultProvider);
+    if (!parsed) {
+      continue;
+    }
+    keys.add(modelKey(parsed.provider, parsed.model));
+  }
+  return keys.size > 0 ? keys : null;
 }
 
 function resolveImageFallbackCandidates(params: {
@@ -62,10 +82,7 @@ function resolveImageFallbackCandidates(params: {
     cfg: params.cfg ?? {},
     defaultProvider: params.defaultProvider,
   });
-  const allowlist = buildConfiguredAllowlistKeys({
-    cfg: params.cfg,
-    defaultProvider: params.defaultProvider,
-  });
+  const allowlist = buildAllowedModelKeys(params.cfg, params.defaultProvider);
   const seen = new Set<string>();
   const candidates: ModelCandidate[] = [];
 
@@ -149,10 +166,7 @@ function resolveFallbackCandidates(params: {
     cfg: params.cfg ?? {},
     defaultProvider,
   });
-  const allowlist = buildConfiguredAllowlistKeys({
-    cfg: params.cfg,
-    defaultProvider,
-  });
+  const allowlist = buildAllowedModelKeys(params.cfg, defaultProvider);
   const seen = new Set<string>();
   const candidates: ModelCandidate[] = [];
 
@@ -199,7 +213,13 @@ function resolveFallbackCandidates(params: {
     addCandidate(resolved.ref, true);
   }
 
-  if (params.fallbacksOverride === undefined && primary?.provider && primary.model) {
+  // Only add primary as fallback if the user hasn't explicitly configured model fallbacks.
+  // When model is configured as an object with fallbacks property (even if empty), respect that choice.
+  const hasExplicitModelConfig = (() => {
+    const model = params.cfg?.agents?.defaults?.model;
+    return model && typeof model === "object" && "fallbacks" in model;
+  })();
+  if (params.fallbacksOverride === undefined && !hasExplicitModelConfig && primary?.provider && primary.model) {
     addCandidate({ provider: primary.provider, model: primary.model }, false);
   }
 

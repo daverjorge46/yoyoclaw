@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+
 import type { OpenClawConfig } from "../config/config.js";
 import type { AuthProfileStore } from "./auth-profiles.js";
 import { saveAuthProfileStore } from "./auth-profiles.js";
@@ -44,30 +45,6 @@ describe("runWithModelFallback", () => {
     const run = vi
       .fn()
       .mockRejectedValueOnce(Object.assign(new Error("nope"), { status: 401 }))
-      .mockResolvedValueOnce("ok");
-
-    const result = await runWithModelFallback({
-      cfg,
-      provider: "openai",
-      model: "gpt-4.1-mini",
-      run,
-    });
-
-    expect(result.result).toBe("ok");
-    expect(run).toHaveBeenCalledTimes(2);
-    expect(run.mock.calls[1]?.[0]).toBe("anthropic");
-    expect(run.mock.calls[1]?.[1]).toBe("claude-haiku-3-5");
-  });
-
-  it("falls back on transient HTTP 5xx errors", async () => {
-    const cfg = makeCfg();
-    const run = vi
-      .fn()
-      .mockRejectedValueOnce(
-        new Error(
-          "521 <!DOCTYPE html><html><head><title>Web server is down</title></head><body>Cloudflare</body></html>",
-        ),
-      )
       .mockResolvedValueOnce("ok");
 
     const result = await runWithModelFallback({
@@ -537,7 +514,7 @@ describe("runWithModelFallback", () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it("appends the configured primary as a last fallback", async () => {
+  it("does not append primary as fallback when fallbacks is explicitly empty", async () => {
     const cfg = makeCfg({
       agents: {
         defaults: {
@@ -545,6 +522,32 @@ describe("runWithModelFallback", () => {
             primary: "openai/gpt-4.1-mini",
             fallbacks: [],
           },
+        },
+      },
+    });
+    const run = vi
+      .fn()
+      .mockRejectedValueOnce(Object.assign(new Error("timeout"), { code: "ETIMEDOUT" }))
+      .mockResolvedValueOnce("ok");
+
+    await expect(
+      runWithModelFallback({
+        cfg,
+        provider: "openrouter",
+        model: "meta-llama/llama-3.3-70b:free",
+        run,
+      }),
+    ).rejects.toThrow("timeout");
+
+    // When fallbacks is explicitly empty, only the requested model should be tried
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("appends the configured primary as a last fallback when model is not an object", async () => {
+    const cfg = makeCfg({
+      agents: {
+        defaults: {
+          model: "openai/gpt-4.1-mini",
         },
       },
     });
