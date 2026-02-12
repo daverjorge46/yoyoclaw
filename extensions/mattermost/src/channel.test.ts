@@ -68,6 +68,23 @@ describe("mattermostPlugin", () => {
       expect(actions).toEqual([]);
     });
 
+    it("hides react when actions.reactions is false", () => {
+      const cfg: OpenClawConfig = {
+        channels: {
+          mattermost: {
+            enabled: true,
+            botToken: "test-token",
+            baseUrl: "https://chat.example.com",
+            actions: { reactions: false },
+          },
+        },
+      };
+
+      const actions = mattermostPlugin.actions?.listActions?.({ cfg }) ?? [];
+      expect(actions).toContain("send");
+      expect(actions).not.toContain("react");
+    });
+
     it("handles react by calling Mattermost reactions API", async () => {
       const cfg: OpenClawConfig = {
         channels: {

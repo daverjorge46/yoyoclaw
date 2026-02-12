@@ -4,6 +4,26 @@ import { createMattermostClient, fetchMattermostMe, type MattermostClient } from
 
 type Result = { ok: true } | { ok: false; error: string };
 
+const BOT_USER_CACHE_TTL_MS = 10 * 60_000;
+const botUserIdCache = new Map<string, { userId: string; expiresAt: number }>();
+
+async function resolveBotUserId(
+  client: MattermostClient,
+  cacheKey: string,
+): Promise<string | null> {
+  const cached = botUserIdCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.userId;
+  }
+  const me = await fetchMattermostMe(client);
+  const userId = me?.id?.trim();
+  if (!userId) {
+    return null;
+  }
+  botUserIdCache.set(cacheKey, { userId, expiresAt: Date.now() + BOT_USER_CACHE_TTL_MS });
+  return userId;
+}
+
 export async function addMattermostReaction(params: {
   cfg: OpenClawConfig;
   postId: string;
@@ -24,8 +44,8 @@ export async function addMattermostReaction(params: {
     fetchImpl: params.fetchImpl,
   });
 
-  const me = await fetchMattermostMe(client);
-  const userId = me?.id?.trim();
+  const cacheKey = `${baseUrl}:${botToken.slice(0, 8)}`;
+  const userId = await resolveBotUserId(client, cacheKey);
   if (!userId) {
     return { ok: false, error: "Mattermost reactions failed: could not resolve bot user id." };
   }
@@ -59,8 +79,8 @@ export async function removeMattermostReaction(params: {
     fetchImpl: params.fetchImpl,
   });
 
-  const me = await fetchMattermostMe(client);
-  const userId = me?.id?.trim();
+  const cacheKey = `${baseUrl}:${botToken.slice(0, 8)}`;
+  const userId = await resolveBotUserId(client, cacheKey);
   if (!userId) {
     return { ok: false, error: "Mattermost reactions failed: could not resolve bot user id." };
   }

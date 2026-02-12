@@ -39,7 +39,12 @@ const mattermostMessageActions: ChannelMessageActionAdapter = {
       return [];
     }
 
-    const actions = new Set<ChannelMessageActionName>(["send", "react"]);
+    const actions = new Set<ChannelMessageActionName>(["send"]);
+    const actionsConfig = cfg.channels?.mattermost?.actions as { reactions?: boolean } | undefined;
+    const reactionsEnabled = actionsConfig?.reactions !== false;
+    if (reactionsEnabled) {
+      actions.add("react");
+    }
     return Array.from(actions);
   },
   supportsAction: ({ action }) => {

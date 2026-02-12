@@ -63,12 +63,20 @@ type MattermostEventPayload = {
     channel_type?: string;
     sender_name?: string;
     team_id?: string;
+    reaction?: string;
   };
   broadcast?: {
     channel_id?: string;
     team_id?: string;
     user_id?: string;
   };
+};
+
+type MattermostReaction = {
+  user_id?: string;
+  post_id?: string;
+  emoji_name?: string;
+  create_at?: number;
 };
 
 const RECENT_MATTERMOST_MESSAGE_TTL_MS = 5 * 60_000;
@@ -853,6 +861,61 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
     }
   };
 
+  const handleReactionEvent = async (payload: MattermostEventPayload) => {
+    const reactionData = payload.data?.reaction;
+    if (!reactionData) {
+      return;
+    }
+    let reaction: MattermostReaction | null = null;
+    if (typeof reactionData === "string") {
+      try {
+        reaction = JSON.parse(reactionData) as MattermostReaction;
+      } catch {
+        return;
+      }
+    } else if (typeof reactionData === "object") {
+      reaction = reactionData as MattermostReaction;
+    }
+    if (!reaction) {
+      return;
+    }
+
+    const userId = reaction.user_id?.trim();
+    const postId = reaction.post_id?.trim();
+    const emojiName = reaction.emoji_name?.trim();
+    if (!userId || !postId || !emojiName) {
+      return;
+    }
+
+    // Skip reactions from the bot itself
+    if (userId === botUserId) {
+      return;
+    }
+
+    const isRemoved = payload.event === "reaction_removed";
+    const action = isRemoved ? "removed" : "added";
+
+    const senderInfo = await resolveUserInfo(userId);
+    const senderName = senderInfo?.username?.trim() || userId;
+
+    // Try to resolve the channel from the post (broadcast may have channel_id)
+    const channelId = payload.broadcast?.channel_id;
+
+    const eventText = `Mattermost reaction ${action}: :${emojiName}: by @${senderName} on post ${postId}${channelId ? ` in channel ${channelId}` : ""}`;
+    const sessionKey = channelId
+      ? `agent:main:mattermost:channel:${channelId}`
+      : `agent:main:mattermost:reaction:${postId}`;
+
+    core.system.enqueueSystemEvent(eventText, {
+      sessionKey,
+      contextKey: `mattermost:reaction:${postId}:${emojiName}:${userId}:${action}`,
+    });
+
+    logVerboseMessage(
+      `mattermost reaction: ${action} :${emojiName}: by ${senderName} on ${postId}`,
+    );
+  };
+
   const inboundDebounceMs = core.channel.debounce.resolveInboundDebounceMs({
     cfg,
     channel: "mattermost",
@@ -940,6 +1003,14 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
         try {
           payload = JSON.parse(raw) as MattermostEventPayload;
         } catch {
+          return;
+        }
+        if (payload.event === "reaction_added" || payload.event === "reaction_removed") {
+          try {
+            await handleReactionEvent(payload);
+          } catch (err) {
+            runtime.error?.(`mattermost reaction handler failed: ${String(err)}`);
+          }
           return;
         }
         if (payload.event !== "posted") {
