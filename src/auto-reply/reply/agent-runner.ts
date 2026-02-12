@@ -39,7 +39,11 @@ import { createFollowupRunner } from "./followup-runner.js";
 import { enqueueFollowupRun, type FollowupRun, type QueueSettings } from "./queue.js";
 import { createReplyToModeFilterForChannel, resolveReplyToMode } from "./reply-threading.js";
 import { incrementRunCompactionCount, persistRunSessionUsage } from "./session-run-accounting.js";
-import { formatCompactionNotice, shouldEmitCompactionNotice } from "./session-updates.js";
+import {
+  formatCompactionNotice,
+  formatCompactionVerboseSummary,
+  shouldEmitCompactionNotice,
+} from "./session-updates.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
 const BLOCK_REPLY_SEND_TIMEOUT_MS = 15_000;
@@ -506,17 +510,23 @@ export async function runReplyAgent(params: {
         lastCallUsage: runResult.meta.agentMeta?.lastCallUsage,
         contextTokensUsed,
       });
+      const compactionNoticeStats = {
+        tokensBefore: compactionStats?.tokensBefore,
+        tokensAfter: compactionStats?.tokensAfter,
+        contextTokens: contextTokensUsed,
+      };
+      const prependPayloads: { text: string }[] = [];
       if (shouldEmitCompactionNotice({ cfg: followupRun.run.config, verboseEnabled })) {
-        finalPayloads = [
-          {
-            text: formatCompactionNotice(count, {
-              tokensBefore: compactionStats?.tokensBefore,
-              tokensAfter: compactionStats?.tokensAfter,
-              contextTokens: contextTokensUsed,
-            }),
-          },
-          ...finalPayloads,
-        ];
+        prependPayloads.push({ text: formatCompactionNotice(count, compactionNoticeStats) });
+      }
+      if (resolvedVerboseLevel === "full") {
+        const verboseSummary = formatCompactionVerboseSummary(compactionNoticeStats);
+        if (verboseSummary) {
+          prependPayloads.push({ text: verboseSummary });
+        }
+      }
+      if (prependPayloads.length > 0) {
+        finalPayloads = [...prependPayloads, ...finalPayloads];
       }
     }
     if (verboseEnabled && activeIsNewSession) {
