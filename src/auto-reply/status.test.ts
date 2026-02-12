@@ -87,6 +87,32 @@ describe("buildStatusMessage", () => {
     expect(normalized).toContain("Queue: collect");
   });
 
+  it("prefers runtime agent contextTokens over persisted session value", () => {
+    const text = buildStatusMessage({
+      agent: {
+        model: "anthropic/pi:opus",
+        contextTokens: 1_000_000,
+      },
+      sessionEntry: {
+        sessionId: "stale",
+        updatedAt: 0,
+        inputTokens: 500,
+        outputTokens: 300,
+        totalTokens: 10_000,
+        contextTokens: 200_000,
+      },
+      sessionKey: "agent:main:main",
+      sessionScope: "per-sender",
+      queue: { mode: "collect", depth: 0 },
+      now: 60_000,
+    });
+    const normalized = normalizeTestText(text);
+
+    // Should show 1M context (from agent config), not 200k (from session store)
+    expect(normalized).toContain("Context: 10k/1.0m (1%)");
+    expect(normalized).not.toContain("200k");
+  });
+
   it("uses per-agent sandbox config when config and session key are provided", () => {
     const text = buildStatusMessage({
       config: {
