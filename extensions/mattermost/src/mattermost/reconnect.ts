@@ -23,6 +23,9 @@ export async function runWithReconnect(
       await connectFn();
       retryDelay = initialDelayMs;
     } catch (err) {
+      if (opts.abortSignal?.aborted) {
+        return;
+      }
       opts.onError?.(err);
       retryDelay = Math.min(retryDelay * 2, maxDelayMs);
     }
