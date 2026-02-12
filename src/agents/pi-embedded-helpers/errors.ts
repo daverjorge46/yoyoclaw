@@ -59,6 +59,28 @@ export function isLikelyContextOverflowError(errorMessage?: string): boolean {
   return CONTEXT_OVERFLOW_HINT_RE.test(errorMessage);
 }
 
+/**
+ * Detect role ordering / alternation errors from various LLM providers.
+ *
+ * Providers format this error differently:
+ *   - Anthropic: "roles must alternate between …"
+ *   - Google:    "incorrect role information" / JSON-wrapped variants
+ *   - Generic:   "400 …role…" prefix patterns
+ *
+ * The regex intentionally casts a wide net so that the auto-recovery path
+ * (session reset) triggers for all known variants instead of falling through
+ * to a dead-end "please try again" message.
+ */
+const ROLE_ORDERING_RE =
+  /incorrect role information|roles must alternate|400.*role|"message".*role.*information/i;
+
+export function isRoleOrderingError(errorMessage?: string): boolean {
+  if (!errorMessage) {
+    return false;
+  }
+  return ROLE_ORDERING_RE.test(errorMessage);
+}
+
 export function isCompactionFailureError(errorMessage?: string): boolean {
   if (!errorMessage) {
     return false;
@@ -428,11 +450,7 @@ export function formatAssistantErrorText(
   }
 
   // Catch role ordering errors - including JSON-wrapped and "400" prefix variants
-  if (
-    /incorrect role information|roles must alternate|400.*role|"message".*role.*information/i.test(
-      raw,
-    )
-  ) {
+  if (isRoleOrderingError(raw)) {
     return (
       "Message ordering conflict - please try again. " +
       "If this persists, use /new to start a fresh session."
@@ -485,7 +503,7 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
   // Only apply error-pattern rewrites when the caller knows this text is an error payload.
   // Otherwise we risk swallowing legitimate assistant text that merely *mentions* these errors.
   if (errorContext) {
-    if (/incorrect role information|roles must alternate/i.test(trimmed)) {
+    if (isRoleOrderingError(trimmed)) {
       return (
         "Message ordering conflict - please try again. " +
         "If this persists, use /new to start a fresh session."

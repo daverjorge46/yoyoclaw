@@ -35,6 +35,7 @@ import {
   isBillingAssistantError,
   isCompactionFailureError,
   isContextOverflowError,
+  isRoleOrderingError,
   isFailoverAssistantError,
   isFailoverErrorMessage,
   parseImageSizeError,
@@ -622,7 +623,7 @@ export async function runEmbeddedPiAgent(
           if (promptError && !aborted) {
             const errorText = describeUnknownError(promptError);
             // Handle role ordering errors with a user-friendly message
-            if (/incorrect role information|roles must alternate/i.test(errorText)) {
+            if (isRoleOrderingError(errorText)) {
               return {
                 payloads: [
                   {

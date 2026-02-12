@@ -14,6 +14,7 @@ import {
   isCompactionFailureError,
   isContextOverflowError,
   isLikelyContextOverflowError,
+  isRoleOrderingError,
   isTransientHttpError,
   sanitizeUserFacingText,
 } from "../../agents/pi-embedded-helpers.js";
@@ -500,6 +501,14 @@ export async function runAgentTurnWithFallback(params: {
             },
           };
         }
+        // Reset failed (no session context available) — still return a final
+        // error so we don't fall through and return a broken "success" result.
+        return {
+          kind: "final",
+          payload: {
+            text: "⚠️ Message ordering conflict - please try again. If this persists, use /new to start a fresh session.",
+          },
+        };
       }
 
       break;
@@ -508,7 +517,7 @@ export async function runAgentTurnWithFallback(params: {
       const isContextOverflow = isLikelyContextOverflowError(message);
       const isCompactionFailure = isCompactionFailureError(message);
       const isSessionCorruption = /function call turn comes immediately after/i.test(message);
-      const isRoleOrderingError = /incorrect role information|roles must alternate/i.test(message);
+      const isRoleOrdering = isRoleOrderingError(message);
       const isTransientHttp = isTransientHttpError(message);
 
       if (
@@ -524,7 +533,7 @@ export async function runAgentTurnWithFallback(params: {
           },
         };
       }
-      if (isRoleOrderingError) {
+      if (isRoleOrdering) {
         const didReset = await params.resetSessionAfterRoleOrderingConflict(message);
         if (didReset) {
           return {
@@ -603,7 +612,7 @@ export async function runAgentTurnWithFallback(params: {
       const trimmedMessage = safeMessage.replace(/\.\s*$/, "");
       const fallbackText = isContextOverflow
         ? "⚠️ Context overflow — prompt too large for this model. Try a shorter message or a larger-context model."
-        : isRoleOrderingError
+        : isRoleOrdering
           ? "⚠️ Message ordering conflict - please try again. If this persists, use /new to start a fresh session."
           : `⚠️ Agent failed before reply: ${trimmedMessage}.\nLogs: openclaw logs --follow`;
 
