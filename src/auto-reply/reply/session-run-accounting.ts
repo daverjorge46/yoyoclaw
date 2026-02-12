@@ -1,5 +1,5 @@
-import { deriveSessionTotalTokens, type NormalizedUsage } from "../../agents/usage.js";
 import type { SessionEntry, SessionSystemPromptReport } from "../../config/sessions.js";
+import { deriveSessionTotalTokens, type NormalizedUsage } from "../../agents/usage.js";
 import { incrementCompactionCount } from "./session-updates.js";
 import { persistSessionUsageUpdate } from "./session-usage.js";
 
