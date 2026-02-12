@@ -37,10 +37,20 @@ describe("zai implicit provider (#14766)", () => {
 });
 
 describe("zai forward-compat fallback (#14766)", () => {
+  // These tests are deterministic: the forward-compat fallback clones from
+  // pi's built-in glm-4.7 template which is always present in the embedded
+  // model registry, regardless of env vars or user config.
+
   it("resolveModel finds zai/glm-5 via forward-compat even without API key", () => {
     const result = resolveModel("zai", "glm-5");
     expect(result.model).toBeDefined();
     expect(result.model?.id).toBe("glm-5");
     expect(result.error).toBeUndefined();
+  });
+
+  it("forward-compat does not activate for non-zai providers", () => {
+    const result = resolveModel("openai", "glm-5");
+    // openai/glm-5 should not resolve via zai forward-compat
+    expect(result.model?.id).not.toBe("glm-5");
   });
 });
