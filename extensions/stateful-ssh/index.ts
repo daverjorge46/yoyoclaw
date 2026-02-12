@@ -15,6 +15,11 @@ const statefulSSHPlugin = {
     // Register all SSH tools with explicit names
     api.registerTool(
       (ctx) => {
+        // Disable SSH tools in sandboxed contexts for security
+        if (ctx.sandboxed) {
+          return null;
+        }
+
         const tools = [
           createOpenSSHSessionTool(api),
           createExecuteSSHCommandTool(api),
