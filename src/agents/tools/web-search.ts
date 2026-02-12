@@ -151,6 +151,7 @@ type NimbleSearchResult = {
   title?: string;
   url?: string;
   description?: string;
+  content?: string;
 };
 
 type NimbleSearchResponse = {
@@ -702,11 +703,13 @@ async function runWebSearch(params: {
       const description = entry.description ?? "";
       const title = entry.title ?? "";
       const url = entry.url ?? "";
+      const content = entry.content ?? "";
       const rawSiteName = resolveSiteName(url);
       return {
         title: title ? wrapWebContent(title, "web_search") : "",
         url,
         description: description ? wrapWebContent(description, "web_search") : "",
+        content: content ? wrapWebContent(content, "web_search") : undefined,
         siteName: rawSiteName || undefined,
       };
     });
