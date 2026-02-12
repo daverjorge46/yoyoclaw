@@ -9,7 +9,7 @@ from typing import Any, Dict
 @dataclass(frozen=True)
 class SieRuntimeConfig:
     enabled: bool
-    mode: str  # warn|strict
+    mode: str # warn|strict
     verify_script: Path
     trusted_issuers: Path
     envelope_suffix: str
@@ -30,17 +30,19 @@ def parse_sie_runtime_config(config: Dict[str, Any], *, base_dir: Path = Path(".
     enabled = bool(sie.get("enabled", False))
     strict = bool(sie.get("strict", False))
     mode = "strict" if strict else "warn"
-
-    verify_script = Path(sie.get("verifyScript", "sie_verify.py"))
-    trusted_issuers = Path(sie.get("trustedIssuers", "trusted_issuers.json"))
+    
     envelope_suffix = str(sie.get("envelopeSuffix", ".sie.json"))
-
+    
+    verify_script = Path(sie.get("verifyScript") or "sie_verify.py")
+    trusted_issuers = Path(sie.get("trustedIssuers") or "trusted_issuers.json")
+    
     if not verify_script.is_absolute():
         verify_script = base_dir / verify_script
+
     if not trusted_issuers.is_absolute():
         trusted_issuers = base_dir / trusted_issuers
 
-    return SieRuntimeConfig(
+    return SieRuntimeConfig(    
         enabled=enabled,
         mode=mode,
         verify_script=verify_script,
