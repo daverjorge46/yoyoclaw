@@ -258,6 +258,11 @@ export async function incrementCompactionCount(params: {
     // Clear input/output breakdown since we only have the total estimate after compaction
     updates.inputTokens = undefined;
     updates.outputTokens = undefined;
+  } else {
+    // Reset to prevent stale pre-compaction value from triggering false memory flush
+    updates.totalTokens = 0;
+    updates.inputTokens = 0;
+    updates.outputTokens = 0;
   }
   sessionStore[sessionKey] = {
     ...entry,
