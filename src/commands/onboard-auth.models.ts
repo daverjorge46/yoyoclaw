@@ -154,6 +154,9 @@ export function buildMistralModelDefinition(): ModelDefinitionConfig {
     cost: MISTRAL_DEFAULT_COST,
     contextWindow: MISTRAL_DEFAULT_CONTEXT_WINDOW,
     maxTokens: MISTRAL_DEFAULT_MAX_TOKENS,
+  };
+}
+
 export function buildZaiModelDefinition(params: {
   id: string;
   name?: string;
