@@ -187,7 +187,7 @@ describe("memory manager DB lifecycle", () => {
     // Make subsequent embeddings fail
     embedDelay = -1; // We'll use a different flag
     const origModule = await import("./embeddings.js");
-    const origCreate = origModule.createEmbeddingProvider;
+    const _origCreate = origModule.createEmbeddingProvider;
 
     // Force a reindex that will fail by removing the workspace files
     await fs.rm(path.join(workspaceDir, "MEMORY.md"));
