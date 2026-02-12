@@ -6,6 +6,8 @@ import { installSkill } from "./skills-install.js";
 
 const runCommandWithTimeoutMock = vi.fn();
 const scanDirectoryWithSummaryMock = vi.fn();
+const hasBinaryMock = vi.fn();
+const resolveBrewExecutableMock = vi.fn();
 
 vi.mock("../process/exec.js", () => ({
   runCommandWithTimeout: (...args: unknown[]) => runCommandWithTimeoutMock(...args),
@@ -18,6 +20,18 @@ vi.mock("../security/skill-scanner.js", async (importOriginal) => {
     scanDirectoryWithSummary: (...args: unknown[]) => scanDirectoryWithSummaryMock(...args),
   };
 });
+
+vi.mock("./skills.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./skills.js")>();
+  return {
+    ...actual,
+    hasBinary: (...args: unknown[]) => hasBinaryMock(...args),
+  };
+});
+
+vi.mock("../infra/brew.js", () => ({
+  resolveBrewExecutable: (...args: unknown[]) => resolveBrewExecutableMock(...args),
+}));
 
 async function writeInstallableSkill(workspaceDir: string, name: string): Promise<string> {
   const skillDir = path.join(workspaceDir, "skills", name);
@@ -42,6 +56,10 @@ describe("installSkill code safety scanning", () => {
   beforeEach(() => {
     runCommandWithTimeoutMock.mockReset();
     scanDirectoryWithSummaryMock.mockReset();
+    hasBinaryMock.mockReset();
+    resolveBrewExecutableMock.mockReset();
+    hasBinaryMock.mockReturnValue(true);
+    resolveBrewExecutableMock.mockReturnValue(undefined);
     runCommandWithTimeoutMock.mockResolvedValue({
       code: 0,
       stdout: "ok",
@@ -164,9 +182,14 @@ describe("installSkill brew fallback on Linux", () => {
   beforeEach(() => {
     runCommandWithTimeoutMock.mockReset();
     scanDirectoryWithSummaryMock.mockReset();
+    hasBinaryMock.mockReset();
+    resolveBrewExecutableMock.mockReset();
     detectLinuxPackageManagerMock.mockReset();
     resolveLinuxPackageNameMock.mockReset();
     buildLinuxInstallCommandMock.mockReset();
+    // Simulate brew being unavailable
+    hasBinaryMock.mockImplementation((bin: string) => bin !== "brew");
+    resolveBrewExecutableMock.mockReturnValue(undefined);
     scanDirectoryWithSummaryMock.mockResolvedValue({
       scannedFiles: 0,
       critical: 0,
