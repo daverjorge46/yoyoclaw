@@ -659,16 +659,6 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
 
       return; // Skip Opus dispatch entirely.
     }
-
-    // Complex path: suppress tool feedback briefly so the first status
-    // update doesn't arrive before Opus has started working. The ack
-    // text is not sent as a separate message because it would duplicate
-    // the opening of the main response (status messages are permanent
-    // and cannot be deleted).
-    if (triageResult?.text) {
-      unifiedToolFeedback?.suppress(10000);
-      smartStatusFilter?.suppress(10000);
-    }
   }
 
   // Await job classification and create/update job entry.
