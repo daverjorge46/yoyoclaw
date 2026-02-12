@@ -1,4 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
+
+// Hoist mock before all imports so the static `import { callGateway }` in the
+// source module receives the mock instead of the real implementation.
+vi.mock("../../gateway/call.js", () => ({
+  callGateway: vi.fn().mockResolvedValue({}),
+}));
+
 import { createSubagentProgressTool } from "./subagent-progress-tool";
 
 function parseResult(result: unknown): Record<string, unknown> {
@@ -66,11 +73,6 @@ describe("createSubagentProgressTool", () => {
         throttleMs: 30000,
       });
 
-      // Mock the gateway call to avoid actual network calls in tests
-      const _originalCallGateway = (await import("../../gateway/call.js")).callGateway;
-      const mockCallGateway = vi.fn().mockResolvedValue({});
-      vi.doMock("../../gateway/call.js", () => ({ callGateway: mockCallGateway }));
-
       const result = parseResult(
         await tool.execute("call1", { message: "First update", percent: 25 }),
       );
@@ -86,8 +88,6 @@ describe("createSubagentProgressTool", () => {
       });
 
       // First call should succeed (but we'll mock it to avoid network)
-      const mockCallGateway = vi.fn().mockResolvedValue({});
-      vi.doMock("../../gateway/call.js", () => ({ callGateway: mockCallGateway }));
 
       await tool.execute("call1", { message: "First update" });
 
@@ -106,9 +106,6 @@ describe("createSubagentProgressTool", () => {
         agentSessionKey: "agent:test:subagent:throttle-test-3",
         throttleMs: 100, // Short throttle for test
       });
-
-      const mockCallGateway = vi.fn().mockResolvedValue({});
-      vi.doMock("../../gateway/call.js", () => ({ callGateway: mockCallGateway }));
 
       // First call
       await tool.execute("call1", { message: "First update" });
@@ -131,9 +128,6 @@ describe("createSubagentProgressTool", () => {
         throttleMs: 5000, // 5 seconds
       });
 
-      const mockCallGateway = vi.fn().mockResolvedValue({});
-      vi.doMock("../../gateway/call.js", () => ({ callGateway: mockCallGateway }));
-
       await tool.execute("call1", { message: "First update" });
 
       // Should be throttled within 5 seconds
@@ -154,9 +148,6 @@ describe("createSubagentProgressTool", () => {
         agentSessionKey: "agent:test:subagent:config-test-1",
         // No throttleMs in opts - should use config or fallback
       });
-
-      const mockCallGateway = vi.fn().mockResolvedValue({});
-      vi.doMock("../../gateway/call.js", () => ({ callGateway: mockCallGateway }));
 
       // First call should succeed
       await tool.execute("call1", { message: "First update" });
