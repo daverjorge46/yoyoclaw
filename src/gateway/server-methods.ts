@@ -78,6 +78,7 @@ const READ_METHODS = new Set([
   "agenthq.history.stats",
   "agenthq.file.at",
   "agenthq.agents.list",
+  "agenthq.summary.generate",
 ]);
 const WRITE_METHODS = new Set([
   "send",

@@ -117,7 +117,7 @@ export async function loadAgentHQHistory(
       agentId: state.agenthqSelectedAgentId,
       limit: options?.limit ?? 100,
       offset: options?.offset ?? 0,
-      fileFilter: options?.fileFilter ?? state.agenthqFileFilter,
+      files: options?.fileFilter ?? state.agenthqFileFilter,
     });
     if (res) {
       state.agenthqHistory = res;
@@ -144,6 +144,7 @@ export async function loadAgentHQStats(state: AgentHQState) {
   try {
     const res = await state.client.request<AgentHQStatsResult>("agenthq.history.stats", {
       agentId: state.agenthqSelectedAgentId,
+      files: state.agenthqFileFilter,
     });
     if (res) {
       state.agenthqStats = res;

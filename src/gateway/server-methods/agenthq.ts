@@ -33,7 +33,9 @@ const TRACKED_FILES = [
 type AgentHQHistoryParams = {
   agentId?: string;
   files?: string[];
+  fileFilter?: string[];
   limit?: number;
+  offset?: number;
   since?: string;
   until?: string;
 };
@@ -47,6 +49,7 @@ type AgentHQDiffParams = {
 type AgentHQStatsParams = {
   agentId?: string;
   files?: string[];
+  fileFilter?: string[];
   since?: string;
   until?: string;
 };
@@ -55,6 +58,13 @@ type AgentHQFileParams = {
   agentId: string;
   sha: string;
   fileName: string;
+};
+
+type AgentHQSummaryParams = {
+  agentId?: string;
+  sha?: string;
+  model?: string;
+  provider?: string;
 };
 
 function validateAgentId(agentIdRaw: string | undefined): {
@@ -95,7 +105,15 @@ export const agenthqHandlers: GatewayRequestHandlers = {
    */
   "agenthq.history.list": async ({ params, respond }) => {
     const typedParams = params as AgentHQHistoryParams;
-    const { agentId: agentIdRaw, files, limit = 50, since, until } = typedParams;
+    const {
+      agentId: agentIdRaw,
+      files,
+      fileFilter,
+      limit = 50,
+      offset = 0,
+      since,
+      until,
+    } = typedParams;
 
     const validation = validateAgentId(agentIdRaw);
     if (!validation.valid || !validation.agentId) {
@@ -127,11 +145,14 @@ export const agenthqHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const fileFilter = files && files.length > 0 ? files : TRACKED_FILES;
+    const requestedFiles = files && files.length > 0 ? files : fileFilter;
+    const resolvedFilter =
+      requestedFiles && requestedFiles.length > 0 ? requestedFiles : TRACKED_FILES;
     const history = await getGitHistory({
       workspacePath,
-      fileFilter,
+      fileFilter: resolvedFilter,
       limit,
+      offset,
       since,
       until,
     });
@@ -191,7 +212,7 @@ export const agenthqHandlers: GatewayRequestHandlers = {
    */
   "agenthq.history.stats": async ({ params, respond }) => {
     const typedParams = params as AgentHQStatsParams;
-    const { agentId: agentIdRaw, files, since, until } = typedParams;
+    const { agentId: agentIdRaw, files, fileFilter, since, until } = typedParams;
 
     const validation = validateAgentId(agentIdRaw);
     if (!validation.valid || !validation.agentId) {
@@ -223,10 +244,12 @@ export const agenthqHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const fileFilter = files && files.length > 0 ? files : TRACKED_FILES;
+    const requestedFiles = files && files.length > 0 ? files : fileFilter;
+    const resolvedFilter =
+      requestedFiles && requestedFiles.length > 0 ? requestedFiles : TRACKED_FILES;
     const stats = await getGitStats({
       workspacePath,
-      fileFilter,
+      fileFilter: resolvedFilter,
       since,
       until,
     });
@@ -276,6 +299,63 @@ export const agenthqHandlers: GatewayRequestHandlers = {
       sha,
       fileName,
       content,
+    });
+  },
+
+  /**
+   * Generate a lightweight summary for a commit.
+   * Note: this is currently deterministic metadata synthesis, not an LLM call.
+   */
+  "agenthq.summary.generate": async ({ params, respond }) => {
+    const typedParams = params as AgentHQSummaryParams;
+    const { agentId: agentIdRaw, sha, model, provider } = typedParams;
+    if (!sha) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "sha is required"));
+      return;
+    }
+    const validation = validateAgentId(agentIdRaw);
+    if (!validation.valid || !validation.agentId) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, validation.error ?? "invalid agent"),
+      );
+      return;
+    }
+    const workspacePath = await resolveWorkspacePath(validation.agentId);
+    if (!workspacePath) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "workspace not found"));
+      return;
+    }
+    const history = await getGitHistory({
+      workspacePath,
+      fileFilter: TRACKED_FILES,
+      limit: 1000,
+    });
+    const commit = history.commits.find((entry) => entry.sha === sha);
+    if (!commit) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "commit not found"));
+      return;
+    }
+    const changedFiles = commit.files.map((file) => file.name.replace(".md", ""));
+    const totalDelta = commit.files.reduce((sum, file) => sum + file.additions + file.deletions, 0);
+    respond(true, {
+      sha: commit.sha,
+      agentId: validation.agentId,
+      generatedAt: Date.now(),
+      model: model ?? "agenthq-deterministic-v1",
+      changes:
+        changedFiles.length > 0
+          ? changedFiles.map((name) => `Updated ${name} configuration`)
+          : ["No tracked workspace file changes detected"],
+      impact:
+        totalDelta > 120
+          ? "High-impact change touching multiple configuration areas."
+          : totalDelta > 30
+            ? "Moderate update with meaningful behavior adjustments."
+            : "Small targeted refinement.",
+      evolutionScore: Math.max(1, Math.min(10, Math.round(Math.log10(totalDelta + 1) * 4))),
+      provider: provider ?? null,
     });
   },
 

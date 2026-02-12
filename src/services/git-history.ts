@@ -29,6 +29,7 @@ export type GitHistoryOptions = {
   workspacePath: string;
   fileFilter?: string[];
   limit?: number;
+  offset?: number;
   since?: string;
   until?: string;
 };
@@ -175,7 +176,7 @@ function parseGitLogOutput(output: string): GitCommitEntry[] {
  * Get git history for a workspace directory
  */
 export async function getGitHistory(options: GitHistoryOptions): Promise<GitHistoryResult> {
-  const { workspacePath, fileFilter, limit = 100, since, until } = options;
+  const { workspacePath, fileFilter, limit = 100, offset = 0, since, until } = options;
 
   const gitRoot = await getGitRoot(workspacePath);
   if (!gitRoot) {
@@ -195,6 +196,9 @@ export async function getGitHistory(options: GitHistoryOptions): Promise<GitHist
     `-n`,
     String(limit + 1), // Get one extra to check if there are more
   ];
+  if (offset > 0) {
+    args.push(`--skip=${offset}`);
+  }
 
   if (since) {
     args.push(`--since=${since}`);
