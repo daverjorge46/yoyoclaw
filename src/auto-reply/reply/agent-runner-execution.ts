@@ -405,14 +405,14 @@ export async function runAgentTurnWithFallback(params: {
                     return;
                   }
 
-                  const blockPayload: ReplyPayload = params.applyReplyToMode({
+                  const rawBlockPayload: ReplyPayload = {
                     ...taggedPayload,
                     text: cleaned,
                     audioAsVoice: Boolean(parsed.audioAsVoice || payload.audioAsVoice),
                     replyToId: taggedPayload.replyToId ?? parsed.replyToId,
                     replyToTag: taggedPayload.replyToTag || parsed.replyToTag,
                     replyToCurrent: taggedPayload.replyToCurrent || parsed.replyToCurrent,
-                  });
+                  };
 
                   void params.typingSignals
                     .signalTextDelta(cleaned ?? taggedPayload.text)
@@ -420,12 +420,15 @@ export async function runAgentTurnWithFallback(params: {
                       logVerbose(`block reply typing signal failed: ${String(err)}`);
                     });
 
-                  // Use pipeline if available (block streaming enabled), otherwise send directly
+                  // Use pipeline if available (block streaming enabled), otherwise send directly.
+                  // Defer applyReplyToMode to the pipeline output so coalescing sees
+                  // consistent replyToId values and can merge payloads correctly.
                   if (params.blockStreamingEnabled && params.blockReplyPipeline) {
-                    params.blockReplyPipeline.enqueue(blockPayload);
+                    params.blockReplyPipeline.enqueue(rawBlockPayload);
                   } else if (params.blockStreamingEnabled) {
                     // Send directly when flushing before tool execution (no pipeline but streaming enabled).
                     // Track sent key to avoid duplicate in final payloads.
+                    const blockPayload = params.applyReplyToMode(rawBlockPayload);
                     directlySentBlockKeys.add(createBlockReplyPayloadKey(blockPayload));
                     await params.opts?.onBlockReply?.(blockPayload);
                   }

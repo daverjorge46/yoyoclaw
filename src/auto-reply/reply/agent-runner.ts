@@ -149,10 +149,16 @@ export async function runReplyAgent(params: {
           blockReplyChunking,
         )
       : undefined;
+  // Wrap block reply callback with applyReplyToMode so threading filters
+  // are applied after coalescing (ensures consistent replyToId during merge).
+  const pipelineBlockReply = opts?.onBlockReply
+    ? async (payload: ReplyPayload, options?: { abortSignal?: AbortSignal; timeoutMs?: number }) =>
+        opts.onBlockReply!(applyReplyToMode(payload), options)
+    : undefined;
   const blockReplyPipeline =
-    blockStreamingEnabled && opts?.onBlockReply
+    blockStreamingEnabled && pipelineBlockReply
       ? createBlockReplyPipeline({
-          onBlockReply: opts.onBlockReply,
+          onBlockReply: pipelineBlockReply,
           timeoutMs: blockReplyTimeoutMs,
           coalescing: blockReplyCoalescing,
           buffer: createAudioAsVoiceBuffer({ isAudioPayload }),
