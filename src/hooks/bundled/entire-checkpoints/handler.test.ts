@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, it, vi } from "vitest";
 import type { HookHandler } from "../../hooks.js";
 import { makeTempWorkspace } from "../../../test-helpers/workspace.js";
 import { createHookEvent } from "../../hooks.js";
@@ -13,13 +13,13 @@ vi.mock("node:child_process", () => ({
 
 // Mock node:util promisify to return our mock
 vi.mock("node:util", async (importOriginal) => {
-  const orig = (await importOriginal()) as Record<string, unknown>;
+  const orig = await importOriginal();
   return {
     ...orig,
     promisify: (fn: unknown) => {
       // If it's the mocked execFile, return a promisified version
       if (fn === mockExecFile) {
-        return (...args: unknown[]) => {
+        return (..._args: unknown[]) => {
           const mockStdin = {
             write: vi.fn(),
             end: vi.fn(),

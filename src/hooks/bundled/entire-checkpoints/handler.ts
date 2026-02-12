@@ -31,7 +31,9 @@ async function findEntireBin(): Promise<string | null> {
  * Check if the workspace has Entire enabled (.entire/settings.json exists).
  */
 function isEntireEnabled(workspaceDir: string | undefined): boolean {
-  if (!workspaceDir) return false;
+  if (!workspaceDir) {
+    return false;
+  }
   try {
     return fs.existsSync(path.join(workspaceDir, ".entire", "settings.json"));
   } catch {
