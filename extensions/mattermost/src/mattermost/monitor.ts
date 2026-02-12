@@ -39,6 +39,7 @@ import {
   resolveThreadSessionKeys,
 } from "./monitor-helpers.js";
 import { resolveOncharPrefixes, stripOncharPrefix } from "./monitor-onchar.js";
+import { runWithReconnect } from "./reconnect.js";
 import { sendMessageMattermost } from "./send.js";
 
 export type MonitorMattermostOpts = {
@@ -968,11 +969,14 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
     });
   };
 
-  while (!opts.abortSignal?.aborted) {
-    await connectOnce();
-    if (opts.abortSignal?.aborted) {
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-  }
+  await runWithReconnect(connectOnce, {
+    abortSignal: opts.abortSignal,
+    onError: (err) => {
+      runtime.error?.(`mattermost connection failed: ${String(err)}`);
+      opts.statusSink?.({ lastError: String(err), connected: false });
+    },
+    onReconnect: (delayMs) => {
+      runtime.log?.(`mattermost reconnecting in ${Math.round(delayMs / 1000)}s`);
+    },
+  });
 }
