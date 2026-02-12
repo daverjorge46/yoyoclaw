@@ -52,9 +52,10 @@ describe("normalizeUsage", () => {
       deriveSessionTotalTokens({
         usage: {
           input: 27,
+          output: 2_400_000,
           cacheRead: 2_400_000,
           cacheWrite: 0,
-          total: 2_402_300,
+          total: 4_800_300,
         },
         contextTokens: 200_000,
       }),
@@ -66,6 +67,7 @@ describe("normalizeUsage", () => {
       deriveSessionTotalTokens({
         usage: {
           input: 1_200,
+          output: 300,
           cacheRead: 300,
           cacheWrite: 50,
           total: 2_000,

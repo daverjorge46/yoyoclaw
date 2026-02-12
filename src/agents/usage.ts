@@ -91,6 +91,7 @@ export function normalizeUsage(raw?: UsageLike | null): NormalizedUsage | undefi
 
 export function derivePromptTokens(usage?: {
   input?: number;
+  output?: number;
   cacheRead?: number;
   cacheWrite?: number;
 }): number | undefined {
@@ -98,14 +99,15 @@ export function derivePromptTokens(usage?: {
     return undefined;
   }
   const input = usage.input ?? 0;
-  const cacheRead = usage.cacheRead ?? 0;
-  const sum = input + cacheRead;
+  const output = usage.output ?? 0;
+  const sum = input + output;
   return sum > 0 ? sum : undefined;
 }
 
 export function deriveSessionTotalTokens(params: {
   usage?: {
     input?: number;
+    output?: number;
     total?: number;
     cacheRead?: number;
     cacheWrite?: number;
@@ -119,6 +121,7 @@ export function deriveSessionTotalTokens(params: {
   const input = usage.input ?? 0;
   const promptTokens = derivePromptTokens({
     input: usage.input,
+    output: usage.output,
     cacheRead: usage.cacheRead,
     cacheWrite: usage.cacheWrite,
   });
