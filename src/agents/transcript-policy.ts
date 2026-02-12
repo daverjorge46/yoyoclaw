@@ -98,9 +98,11 @@ export function resolveTranscriptPolicy(params: {
   const sanitizeToolCallIds = isGoogle || isMistral || isAnthropic;
   const toolCallIdMode: ToolCallIdMode | undefined = isMistral
     ? "strict9"
-    : sanitizeToolCallIds
-      ? "strict"
-      : undefined;
+    : isAnthropic
+      ? "anthropic"
+      : sanitizeToolCallIds
+        ? "strict"
+        : undefined;
   const repairToolUseResultPairing = isGoogle || isAnthropic;
   const sanitizeThoughtSignatures = isOpenRouterGemini
     ? { allowBase64Only: true, includeCamelCase: true }
