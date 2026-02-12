@@ -28,7 +28,7 @@ export const ModelProviderSchema = z
   .object({
     baseUrl: z.string().min(1),
     apiKey: z.string().optional(),
-    auth: z.union([...]).optional(),
+    auth: z.union([]).optional(),
     api: ModelApiSchema.optional(),
     headers: z.record(z.string(), z.string()).optional(),
     authHeader: z.boolean().optional(),
@@ -67,7 +67,11 @@ export type ModelProviderConfig = {
 
 In `~/.openclaw/openclaw.json`:
 
-        "timeout": 600000,
+```jsonc
+{
+  "models": {
+    "providers": {
+      "zai": {
         "baseUrl": "https://open.bigmodel.cn/api/coding/paas/v4",
         "apiKey": "your-api-key",
         "api": "openai-completions",
@@ -77,19 +81,19 @@ In `~/.openclaw/openclaw.json`:
             "id": "glm-4.7",
             "name": "GLM 4.7",
             "contextWindow": 204800,
-            "maxTokens": 131072
-          }
-        ]
+            "maxTokens": 131072,
+          },
+        ],
       },
       "openai": {
         "baseUrl": "https://api.openai.com/v1",
         "apiKey": "sk-...",
         "timeoutMs": 600000,
         "timeout": 600000,
-        "models": [...]
-      }
-    }
-  }
+        "models": [],
+      },
+    },
+  },
 }
 ```
 
@@ -133,17 +137,19 @@ Example combined configuration:
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 3,
-      "maxConcurrent": 2
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 3,
+        "maxConcurrent": 2
+      }
     }
   },
   "models": {
     "providers": {
       "zai": {
         "timeoutMs": 1200000,
-        "models": [...]
+        "models": []
       }
     }
   }

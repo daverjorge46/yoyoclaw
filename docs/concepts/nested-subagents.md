@@ -85,16 +85,18 @@ In `~/.openclaw/openclaw.json`:
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 3,
-      "maxConcurrent": 2,
-      "archiveAfterMinutes": 120,
-      "model": {
-        "primary": "anthropic/claude-sonnet-4-5",
-        "fallbacks": ["openai/gpt-4.5", "openai/gpt-4"]
-      },
-      "thinking": "low"
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 3,
+        "maxConcurrent": 2,
+        "archiveAfterMinutes": 120,
+        "model": {
+          "primary": "anthropic/claude-sonnet-4-5",
+          "fallbacks": ["openai/gpt-4.5", "openai/gpt-4"]
+        },
+        "thinking": "low"
+      }
     }
   }
 }
@@ -161,9 +163,11 @@ When using deep sub-agent hierarchies, consider increasing provider timeout:
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 4
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 4
+      }
     }
   },
   "models": {
@@ -182,11 +186,13 @@ Monitor system resources when using high `maxConcurrent` values:
 
 ```json
 {
-  "agentDefaults": {
-    "maxConcurrent": 3,
-    "subagents": {
-      "maxConcurrent": 2,
-      "maxSpawnDepth": 3
+  "agents": {
+    "defaults": {
+      "maxConcurrent": 3,
+      "subagents": {
+        "maxConcurrent": 2,
+        "maxSpawnDepth": 3
+      }
     }
   }
 }
@@ -235,10 +241,12 @@ tail -f ~/.openclaw/logs/gateway.log | grep -i "depth\|spawn"
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 3,
-      "maxConcurrent": 3
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 3,
+        "maxConcurrent": 3
+      }
     }
   }
 }
@@ -250,10 +258,12 @@ Use when tasks naturally decompose into 2-3 levels of specialization.
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 1,
-      "maxConcurrent": 5
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 1,
+        "maxConcurrent": 5
+      }
     }
   }
 }
@@ -265,11 +275,13 @@ Use when you need many parallel sub-tasks but no further nesting.
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 4,
-      "maxConcurrent": 2,
-      "archiveAfterMinutes": 30
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 4,
+        "maxConcurrent": 2,
+        "archiveAfterMinutes": 30
+      }
     }
   }
 }
@@ -319,15 +331,17 @@ Deep sub-agent workflows often require longer timeouts:
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 4
-    }
-  },
-  "models": {
-    "providers": {
-      "anthropic": {
-        "timeoutMs": 1200000
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 4
+      },
+      "models": {
+        "providers": {
+          "anthropic": {
+            "timeoutMs": 1200000
+          }
+        }
       }
     }
   }
@@ -340,13 +354,15 @@ For enhanced security with nested sub-agents:
 
 ```json
 {
-  "agentDefaults": {
-    "subagents": {
-      "maxSpawnDepth": 3
-    },
-    "sandbox": {
-      "mode": "all",
-      "scope": "session"
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "maxSpawnDepth": 3
+      },
+      "sandbox": {
+        "mode": "all",
+        "scope": "session"
+      }
     }
   }
 }
