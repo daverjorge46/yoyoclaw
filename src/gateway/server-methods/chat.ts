@@ -19,7 +19,6 @@ import {
 } from "../chat-abort.js";
 import { type ChatImageContent, parseMessageWithAttachments } from "../chat-attachments.js";
 import { stripEnvelopeFromMessages } from "../chat-sanitize.js";
-import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
 import {
   ErrorCodes,
   errorShape,
@@ -164,10 +163,11 @@ function nextChatSeq(context: { agentRunSeq: Map<string, number> }, runId: strin
 }
 
 function broadcastChatFinal(params: {
-  context: Pick<GatewayRequestContext, "broadcast" | "nodeSendToSession" | "agentRunSeq">;
+  context: Pick<GatewayRequestContext, "broadcast" | "broadcastToConnIds" | "nodeSendToSession" | "agentRunSeq">;
   runId: string;
   sessionKey: string;
   message?: Record<string, unknown>;
+  connIds?: ReadonlySet<string>;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
   const payload = {
@@ -177,15 +177,20 @@ function broadcastChatFinal(params: {
     state: "final" as const,
     message: params.message,
   };
-  params.context.broadcast("chat", payload);
+  if (params.connIds && params.connIds.size > 0) {
+    params.context.broadcastToConnIds("chat", payload, params.connIds);
+  } else {
+    params.context.broadcast("chat", payload);
+  }
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
 }
 
 function broadcastChatError(params: {
-  context: Pick<GatewayRequestContext, "broadcast" | "nodeSendToSession" | "agentRunSeq">;
+  context: Pick<GatewayRequestContext, "broadcast" | "broadcastToConnIds" | "nodeSendToSession" | "agentRunSeq">;
   runId: string;
   sessionKey: string;
   errorMessage?: string;
+  connIds?: ReadonlySet<string>;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
   const payload = {
@@ -195,7 +200,11 @@ function broadcastChatError(params: {
     state: "error" as const,
     errorMessage: params.errorMessage,
   };
-  params.context.broadcast("chat", payload);
+  if (params.connIds && params.connIds.size > 0) {
+    params.context.broadcastToConnIds("chat", payload, params.connIds);
+  } else {
+    params.context.broadcast("chat", payload);
+  }
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
 }
 
@@ -279,6 +288,8 @@ export const chatHandlers: GatewayRequestHandlers = {
       agentRunSeq: context.agentRunSeq,
       broadcast: context.broadcast,
       nodeSendToSession: context.nodeSendToSession,
+      broadcastToConnIds: context.broadcastToConnIds,
+      getRunRecipients: context.getRunRecipients,
     };
 
     if (!runId) {
@@ -516,6 +527,10 @@ export const chatHandlers: GatewayRequestHandlers = {
         },
       });
 
+      const senderConnId = typeof client?.connId === "string" ? client.connId : undefined;
+      const senderConnIds: ReadonlySet<string> | undefined = senderConnId
+        ? (new Set([senderConnId]) as ReadonlySet<string>)
+        : undefined;
       let agentRunStarted = false;
       void dispatchInboundMessage({
         ctx,
@@ -529,11 +544,7 @@ export const chatHandlers: GatewayRequestHandlers = {
           onAgentRunStart: (runId) => {
             agentRunStarted = true;
             const connId = typeof client?.connId === "string" ? client.connId : undefined;
-            const wantsToolEvents = hasGatewayClientCap(
-              client?.connect?.caps,
-              GATEWAY_CLIENT_CAPS.TOOL_EVENTS,
-            );
-            if (connId && wantsToolEvents) {
+            if (connId) {
               context.registerToolEventRecipient(runId, connId);
               // Register for any other active runs *in the same session* so
               // late-joining clients (e.g. page refresh mid-response) receive
@@ -590,6 +601,7 @@ export const chatHandlers: GatewayRequestHandlers = {
               runId: clientRunId,
               sessionKey: rawSessionKey,
               message,
+              connIds: senderConnIds,
             });
           }
           context.dedupe.set(`chat:${clientRunId}`, {
@@ -615,6 +627,7 @@ export const chatHandlers: GatewayRequestHandlers = {
             runId: clientRunId,
             sessionKey: rawSessionKey,
             errorMessage: String(err),
+            connIds: senderConnIds,
           });
         })
         .finally(() => {
