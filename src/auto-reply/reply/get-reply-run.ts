@@ -219,9 +219,7 @@ export async function runPreparedReply(
   );
   const baseBodyForPrompt = isBareSessionReset
     ? baseBodyFinal
-    : [inboundUserContext, baseBodyFinal].filter(Boolean).join("
-
-");
+    : [inboundUserContext, baseBodyFinal].filter(Boolean).join("\n\n");
   const baseBodyTrimmed = baseBodyForPrompt.trim();
   const hasMediaAttachment = Boolean(
     sessionCtx.MediaPath || (sessionCtx.MediaPaths && sessionCtx.MediaPaths.length > 0),
@@ -236,7 +234,9 @@ export async function runPreparedReply(
   }
   // When the user sends media without text, provide a minimal body so the agent
   // run proceeds and the image/document is injected by the embedded runner.
-  const effectiveBaseBody = baseBodyTrimmed ? baseBodyForPrompt : "[User sent media without caption]";
+  const effectiveBaseBody = baseBodyTrimmed
+    ? baseBodyForPrompt
+    : "[User sent media without caption]";
   let prefixedBodyBase = await applySessionHints({
     baseBody: effectiveBaseBody,
     abortedLastRun,
@@ -345,7 +345,7 @@ export async function runPreparedReply(
     sessionEntry,
     resolveSessionFilePathOptions({ agentId, storePath }),
   );
-  const queueBodyBase = [threadContextNote, baseBodyForPrompt].filter(Boolean).join("\n\n");
+  const queueBodyBase = effectiveBaseBody;
   const queuedBody = mediaNote
     ? [mediaNote, mediaReplyHint, queueBodyBase].filter(Boolean).join("\n").trim()
     : queueBodyBase;
