@@ -15,6 +15,7 @@ import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { defaultRuntime } from "../../runtime.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
+import { emitCompactionHook } from "./hook-helpers.js";
 import {
   applyReplyThreading,
   filterMessagingToolDuplicates,
@@ -269,6 +270,19 @@ export function createFollowupRunner(params: {
           sessionKey,
           storePath,
         });
+
+        // Lifecycle hook: Session Compaction
+        const compactionMessages = await emitCompactionHook({
+          sessionKey,
+          sessionId: queued.run.sessionId,
+          trigger: "auto_compaction",
+          compactionCount: typeof count === "number" ? count : undefined,
+          contextTokensUsed: sessionEntry?.totalTokens,
+        });
+        for (let i = compactionMessages.length - 1; i >= 0; i--) {
+          finalPayloads.unshift({ text: compactionMessages[i] });
+        }
+
         if (queued.run.verboseLevel && queued.run.verboseLevel !== "off") {
           const suffix = typeof count === "number" ? ` (count ${count})` : "";
           finalPayloads.unshift({

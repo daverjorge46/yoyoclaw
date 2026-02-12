@@ -19,7 +19,9 @@ import { resolveDefaultModel } from "./directive-handling.js";
 import { resolveReplyDirectives } from "./get-reply-directives.js";
 import { handleInlineActions } from "./get-reply-inline-actions.js";
 import { runPreparedReply } from "./get-reply-run.js";
+import { emitSessionEndAndReset } from "./hook-helpers.js";
 import { finalizeInboundContext } from "./inbound-context.js";
+import { routeReply } from "./route-reply.js";
 import { applyResetModelOverride } from "./session-reset-model.js";
 import { initSessionState } from "./session.js";
 import { stageSandboxMedia } from "./stage-sandbox-media.js";
@@ -162,6 +164,8 @@ export async function getReplyFromConfig(
     isGroup,
     triggerBodyNormalized,
     bodyStripped,
+    resetReason,
+    resetDetails,
   } = sessionState;
 
   await applyResetModelOverride({
@@ -284,6 +288,40 @@ export async function getReplyFromConfig(
   }
   directives = inlineActionResult.directives;
   abortedLastRun = inlineActionResult.abortedLastRun ?? abortedLastRun;
+
+  // Fire session lifecycle hooks AFTER commands execute (commands run on the old session)
+  if (isNewSession && previousSessionEntry && sessionEntry && sessionKey && resetReason) {
+    const hookMessages = await emitSessionEndAndReset({
+      sessionKey,
+      oldEntry: previousSessionEntry,
+      newEntry: sessionEntry,
+      newSessionId: sessionId,
+      reason: resetReason,
+      reasonDetails: resetDetails,
+    });
+
+    // Send hook messages immediately if present
+    if (hookMessages.length > 0) {
+      const channel = finalized.OriginatingChannel || finalized.Surface || finalized.Provider;
+      const to = finalized.OriginatingTo || finalized.To || finalized.From;
+      if (channel && to) {
+        try {
+          const hookReply = { text: hookMessages.join("\n\n") };
+          await routeReply({
+            payload: hookReply,
+            channel,
+            to,
+            sessionKey,
+            accountId: finalized.AccountId,
+            threadId: finalized.MessageThreadId,
+            cfg,
+          });
+        } catch (err) {
+          defaultRuntime.error(`Failed to deliver session lifecycle hook messages: ${String(err)}`);
+        }
+      }
+    }
+  }
 
   await stageSandboxMedia({
     ctx,
