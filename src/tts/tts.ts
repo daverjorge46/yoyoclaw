@@ -1297,12 +1297,18 @@ export async function textToSpeech(params: {
       writeFileSync(audioPath, audioBuffer);
       scheduleCleanup(tempDir);
 
+      const outputFormatMap: Record<string, string> = {
+        openai: output.openai,
+        elevenlabs: output.elevenlabs,
+        typecast: output.typecast,
+      };
+
       return {
         success: true,
         audioPath,
         latencyMs,
         provider,
-        outputFormat: (output as unknown as Record<string, string>)[provider] ?? output.openai,
+        outputFormat: outputFormatMap[provider] ?? output.openai,
         voiceCompatible: output.voiceCompatible,
       };
     } catch (err) {
