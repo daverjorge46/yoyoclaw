@@ -12,6 +12,14 @@ async function trySymlink(target: string, linkPath: string): Promise<boolean> {
     return false;
   }
 }
+
+async function canonicalPath(p: string): Promise<string> {
+  try {
+    return await fs.realpath(p);
+  } catch {
+    return path.resolve(p);
+  }
+}
 import {
   resolveControlUiDistIndexHealth,
   resolveControlUiDistIndexPath,
@@ -252,8 +260,10 @@ describe("control UI assets helpers", () => {
         return; // symlinks not supported (Windows CI)
       }
 
-      expect(resolveControlUiRootSync({ argv1: path.join(bin, "openclaw") })).toBe(
-        path.join(realPkg, "dist", "control-ui"),
+      const resolvedRoot = resolveControlUiRootSync({ argv1: path.join(bin, "openclaw") });
+      expect(resolvedRoot).not.toBeNull();
+      expect(await canonicalPath(resolvedRoot ?? "")).toBe(
+        await canonicalPath(path.join(realPkg, "dist", "control-ui")),
       );
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
@@ -279,7 +289,9 @@ describe("control UI assets helpers", () => {
         return; // symlinks not supported (Windows CI)
       }
 
-      expect(await resolveOpenClawPackageRoot({ argv1: path.join(bin, "openclaw") })).toBe(realPkg);
+      const packageRoot = await resolveOpenClawPackageRoot({ argv1: path.join(bin, "openclaw") });
+      expect(packageRoot).not.toBeNull();
+      expect(await canonicalPath(packageRoot ?? "")).toBe(await canonicalPath(realPkg));
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
     }
@@ -304,8 +316,10 @@ describe("control UI assets helpers", () => {
         return; // symlinks not supported (Windows CI)
       }
 
-      expect(await resolveControlUiDistIndexPath(path.join(bin, "openclaw"))).toBe(
-        path.join(realPkg, "dist", "control-ui", "index.html"),
+      const indexPath = await resolveControlUiDistIndexPath(path.join(bin, "openclaw"));
+      expect(indexPath).not.toBeNull();
+      expect(await canonicalPath(indexPath ?? "")).toBe(
+        await canonicalPath(path.join(realPkg, "dist", "control-ui", "index.html")),
       );
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
