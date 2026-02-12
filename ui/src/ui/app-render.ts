@@ -349,16 +349,16 @@ export function renderApp(state: AppViewState) {
                   state.usageSelectedDays = [];
                   state.usageSelectedHours = [];
                   state.usageSelectedSessions = [];
-                  loadUsage(state);
+                  void loadUsage(state);
                 },
                 onEndDateChange: (date) => {
                   state.usageEndDate = date;
                   state.usageSelectedDays = [];
                   state.usageSelectedHours = [];
                   state.usageSelectedSessions = [];
-                  loadUsage(state);
+                  void loadUsage(state);
                 },
-                onRefresh: () => loadUsage(state),
+                onRefresh: () => void loadUsage(state),
                 onTimeZoneChange: (zone) => {
                   state.usageTimeZone = zone;
                 },
