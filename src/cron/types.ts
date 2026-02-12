@@ -1,3 +1,4 @@
+import type { FailoverReason } from "../agents/pi-embedded-helpers.js";
 import type { ChannelId } from "../channels/plugins/types.js";
 
 export type CronSchedule =
@@ -51,8 +52,6 @@ export type CronPayloadPatch =
       to?: string;
       bestEffortDeliver?: boolean;
     };
-
-import type { FailoverReason } from "../agents/pi-embedded-helpers.js";
 
 export type CronJobState = {
   nextRunAtMs?: number;
