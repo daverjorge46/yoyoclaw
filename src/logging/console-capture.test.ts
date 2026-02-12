@@ -86,7 +86,7 @@ describe("enableConsoleCapture", () => {
     console.warn("[EventQueue] Slow listener detected");
     expect(warn).toHaveBeenCalledTimes(1);
     const firstArg = String(warn.mock.calls[0]?.[0] ?? "");
-    expect(firstArg.startsWith("2026-01-17T18:01:02.000Z [EventQueue]")).toBe(true);
+    expect(firstArg.startsWith("2026-01-17T18:01:02.000 [EventQueue]")).toBe(true);
     vi.useRealTimers();
   });
 

@@ -136,11 +136,12 @@ function isEpipeError(err: unknown): boolean {
 }
 
 function formatConsoleTimestamp(style: ConsoleStyle): string {
-  const now = new Date().toISOString();
+  const now = new Date();
   if (style === "pretty") {
-    return now.slice(11, 19);
+    return now.toLocaleTimeString("en-GB", { hour12: false });
   }
-  return now;
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, -1);
 }
 
 function hasTimestampPrefix(value: string): boolean {
