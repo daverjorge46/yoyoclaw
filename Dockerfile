@@ -1,48 +1,54 @@
-FROM node:22-bookworm
-
-# Install Bun (required for build scripts)
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:${PATH}"
-
-RUN corepack enable
+# Dockerfile for OpenClaw Agent (Node.js)
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-ARG OPENCLAW_DOCKER_APT_PACKAGES=""
-RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
-      apt-get update && \
-      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES && \
-      apt-get clean && \
-      rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
-    fi
+# Install pnpm
+RUN npm install -g pnpm
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY ui/package.json ./ui/package.json
-COPY patches ./patches
-COPY scripts ./scripts
+# Copy workspace config
+COPY pnpm-workspace.yaml package.json ./
 
+# Copy packages config (assuming monorepo structure, but we copy root for now)
+# If there are local packages, we need to copy them too. 
+# Based on file list, we have 'packages/' and 'extensions/'.
+COPY packages/ packages/
+COPY extensions/ extensions/
+COPY apps/ apps/
+COPY scripts/ scripts/
+COPY patches/ patches/
+COPY tsconfig.json .
+COPY tsconfig.*.json .
+COPY .npmrc .
+
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-COPY . .
+# Copy source
+COPY src/ src/
+COPY openclaw.mjs .
+COPY .swc* .
+
+# Build (if necessary, or just run tsx/node)
+# The project seems to use 'tsdown' or just run via 'scripts/run-node.mjs'.
+# We will use the 'build' script if it produces 'dist/', otherwise we run from source with tsx/loader.
+# package.json says "main": "dist/index.js".
 RUN pnpm build
-# Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
-ENV OPENCLAW_PREFER_PNPM=1
-RUN pnpm ui:build
 
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+# We might need other assets or local packages if they are referenced at runtime
+COPY --from=builder /app/assets ./assets
+COPY --from=builder /app/docs ./docs
+
+# Env vars
 ENV NODE_ENV=production
+# STUDIO_URL will be injected by the Studio
 
-# Allow non-root user to write temp files during runtime/tests.
-RUN chown -R node:node /app
-
-# Security hardening: Run as non-root user
-# The node:22-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
-USER node
-
-# Start gateway server with default config.
-# Binds to loopback (127.0.0.1) by default for security.
-#
-# For container platforms requiring external health checks:
-#   1. Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD env var
-#   2. Override CMD: ["node","openclaw.mjs","gateway","--allow-unconfigured","--bind","lan"]
-CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
+# Entry point
+CMD ["node", "dist/index.js"]

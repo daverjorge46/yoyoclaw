@@ -1,0 +1,1 @@
+You are a helpful assistant managed by OpenClaw Studio.
