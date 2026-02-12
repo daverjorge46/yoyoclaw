@@ -6,11 +6,16 @@ import type {
   ChannelMessageActionName,
   ChannelThreadingToolContext,
 } from "../../channels/plugins/types.js";
+import type { SandboxWorkspaceInfo } from "../../agents/sandbox/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { OutboundSendDeps } from "./deliver.js";
 import type { MessagePollResult, MessageSendResult } from "./message.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { assertMediaNotDataUrl, resolveSandboxedMediaSource } from "../../agents/sandbox-paths.js";
+import {
+  getSandboxContextForSession,
+  resolveFilePathsInParams,
+} from "./sandbox-path-resolver.js";
 import {
   readNumberParam,
   readStringArrayParam,
@@ -627,6 +632,7 @@ type ResolvedActionContext = {
   agentId?: string;
   resolvedTarget?: ResolvedMessagingTarget;
   abortSignal?: AbortSignal;
+  sandboxWorkspace?: SandboxWorkspaceInfo | null;
 };
 function resolveGateway(input: RunMessageActionParams): MessageActionRunnerGateway | undefined {
   if (!input.gateway) {
@@ -1073,6 +1079,22 @@ export async function runMessageAction(
     params.accountId = accountId;
   }
   const dryRun = Boolean(input.dryRun ?? readBooleanParam(params, "dryRun"));
+
+  // ✅ Get sandbox context for path resolution
+  const sandboxWorkspace = await getSandboxContextForSession({
+    cfg,
+    sessionKey: input.sessionKey,
+  });
+
+  // ✅ Resolve sandbox file paths in all relevant parameters
+  // This handles filePath, path, media parameters across all actions
+  const resolvedParams = resolveFilePathsInParams(params, sandboxWorkspace, [
+    "filePath",
+    "path",
+    "media",
+  ]);
+  // Update params with resolved paths
+  Object.assign(params, resolvedParams);
 
   await normalizeSandboxMediaParams({
     args: params,
