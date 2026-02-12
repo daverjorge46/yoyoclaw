@@ -412,22 +412,17 @@ export async function runEmbeddedPiAgent(
                       const storePath = resolveStorePath(sessionCfg?.store, {
                         agentId: params.sessionKey.split(":")[0] || "main",
                       });
-                      const store = loadSessionStore(storePath);
-                      const sessionEntry = store[params.sessionKey];
-                      if (sessionEntry) {
-                        const newCompactionCount = (sessionEntry.compactionCount ?? 0) + 1;
-                        await import("../../config/sessions/store.js").then(
-                          ({ updateSessionStoreEntry }) =>
-                            updateSessionStoreEntry({
-                              storePath,
-                              sessionKey: params.sessionKey!,
-                              update: async () => ({
-                                compactionCount: newCompactionCount,
-                                updatedAt: Date.now(),
-                              }),
+                      await import("../../config/sessions/store.js").then(
+                        ({ updateSessionStoreEntry }) =>
+                          updateSessionStoreEntry({
+                            storePath,
+                            sessionKey: params.sessionKey!,
+                            update: async (entry) => ({
+                              compactionCount: (entry.compactionCount ?? 0) + 1,
+                              updatedAt: Date.now(),
                             }),
-                        );
-                      }
+                          }),
+                      );
                     } catch (err) {
                       log.warn(
                         `[memory-flush] Failed to track reactive compaction: ${String(err)}`,
