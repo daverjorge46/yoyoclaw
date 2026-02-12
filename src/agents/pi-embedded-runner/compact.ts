@@ -385,7 +385,7 @@ export async function compactEmbeddedPiSessionDirect(
       const settingsManager = SettingsManager.create(effectiveWorkspace, agentDir);
       ensurePiCompactionReserveTokens({
         settingsManager,
-        minReserveTokens: resolveCompactionReserveTokensFloor(params.config),
+        minReserveTokens: resolveCompactionReserveTokensFloor(params.config, sessionAgentId),
       });
       // Call for side effects (sets compaction/pruning runtime state)
       buildEmbeddedExtensionPaths({
@@ -394,6 +394,7 @@ export async function compactEmbeddedPiSessionDirect(
         provider,
         modelId,
         model,
+        agentId: sessionAgentId,
       });
 
       const { builtInTools, customTools } = splitSdkTools({
