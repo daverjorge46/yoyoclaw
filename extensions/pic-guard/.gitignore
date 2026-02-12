@@ -1,0 +1,5 @@
+# Override parent's dist ignore - we need built plugin code for distribution as third party plugin
+!dist/
+
+# But still ignore node_modules
+node_modules/
