@@ -714,6 +714,7 @@ export async function runEmbeddedAttempt(
               {
                 prompt: params.prompt,
                 messages: activeSession.messages,
+                modelId: `${params.model.provider}/${params.modelId}`,
               },
               {
                 agentId: params.sessionKey?.split(":")[0] ?? "main",

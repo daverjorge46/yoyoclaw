@@ -153,6 +153,7 @@ export async function runAgentTurnWithFallback(params: {
           const hookResult = await hookRunner.runBeforeAgentStart(
             {
               prompt: params.commandBody,
+              messages: params.followupRun.run.messages,
               modelId: `${routedProvider}/${routedModel}`,
             },
             {
@@ -163,20 +164,24 @@ export async function runAgentTurnWithFallback(params: {
             },
           );
           if (hookResult?.modelId) {
+            const originalModelId = `${params.followupRun.run.provider}/${params.followupRun.run.model}`;
             const parts = hookResult.modelId.trim().split("/");
+            let routingApplied = false;
+
             if (parts.length === 2) {
               routedProvider = parts[0];
               routedModel = parts[1];
+              routingApplied = true;
             } else if (parts.length === 1) {
               // If only model name provided, keep the same provider
               routedModel = parts[0];
+              routingApplied = true;
             }
-            if (
-              hookResult.modelId !==
-              `${params.followupRun.run.provider}/${params.followupRun.run.model}`
-            ) {
+            // If parts.length > 2, ignore (invalid format)
+
+            if (routingApplied && hookResult.modelId !== originalModelId) {
               logVerbose(
-                `before_agent_start hook routed model: ${params.followupRun.run.provider}/${params.followupRun.run.model} → ${routedProvider}/${routedModel}`,
+                `before_agent_start hook routed model: ${originalModelId} → ${routedProvider}/${routedModel}`,
               );
             }
           }
