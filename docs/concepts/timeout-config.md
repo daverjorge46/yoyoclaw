@@ -67,11 +67,7 @@ export type ModelProviderConfig = {
 
 In `~/.openclaw/openclaw.json`:
 
-```json
-{
-  "models": {
-    "providers": {
-      "zai": {
+        "timeout": 600000,
         "baseUrl": "https://open.bigmodel.cn/api/coding/paas/v4",
         "apiKey": "your-api-key",
         "api": "openai-completions",
