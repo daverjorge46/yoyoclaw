@@ -1,4 +1,3 @@
-import { appendEventLogEntry, type EventLogEntry } from "./app-events.ts";
 import type { OpenClawApp } from "./app.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { GatewayEventFrame, GatewayHelloOk } from "./gateway.ts";
@@ -6,6 +5,7 @@ import type { Tab } from "./navigation.ts";
 import type { UiSettings } from "./storage.ts";
 import type { AgentsListResult, PresenceEntry, HealthSnapshot, StatusSummary } from "./types.ts";
 import { CHAT_SESSIONS_ACTIVE_MINUTES, flushChatQueueForEvent } from "./app-chat.ts";
+import { appendEventLogEntry, type EventLogEntry } from "./app-events.ts";
 import {
   applySettings,
   loadCron,
