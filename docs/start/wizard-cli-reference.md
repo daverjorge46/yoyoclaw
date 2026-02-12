@@ -176,8 +176,20 @@ What you set:
     More detail: [Moonshot AI (Kimi + Kimi Coding)](/providers/moonshot).
   </Accordion>
   <Accordion title="StepFun (Step 3.5 Flash)">
-    Prompts for `STEPFUN_API_KEY` (or use `--stepfun-api-key` in non-interactive mode), then writes provider config and default model.
+    Prompts for `STEPFUN_API_KEY`.
     More detail: [StepFun](/providers/stepfun).
+  </Accordion>
+  <Accordion title="Custom provider">
+    Works with OpenAI-compatible and Anthropic-compatible endpoints.
+
+    Non-interactive flags:
+    - `--auth-choice custom-api-key`
+    - `--custom-base-url`
+    - `--custom-model-id`
+    - `--custom-api-key` (optional; falls back to `CUSTOM_API_KEY`)
+    - `--custom-provider-id` (optional)
+    - `--custom-compatibility <openai|anthropic>` (optional; default `openai`)
+
   </Accordion>
   <Accordion title="Skip">
     Leaves auth unconfigured.
