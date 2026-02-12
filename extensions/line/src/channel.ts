@@ -40,12 +40,11 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
     notifyApproval: async ({ cfg, id }) => {
       const line = getLineRuntime().channel.line;
       const account = line.resolveLineAccount({ cfg });
-      const token = account.channelAccessToken || account.config.channelAccessToken;
-      if (!token) {
+      if (!account.channelAccessToken) {
         throw new Error("LINE channel access token not configured");
       }
       await line.pushMessageLine(id, "OpenClaw: your access has been approved.", {
-        channelAccessToken: token,
+        channelAccessToken: account.channelAccessToken,
       });
     },
   },
@@ -616,6 +615,22 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
             accountId,
             kind: "config",
             message: "LINE channel access token not configured",
+          });
+        }
+
+        // Also check if secret is configured (when not using env/file source for token,
+        // or explicitly if we want to be safe, but here we assume tokenSource implies secret availability
+        // unless it's direct config).
+        // Actually, to address the feedback: check if secret is present OR implied by source.
+        const hasSecret =
+          account.channelSecret?.trim() || (account.tokenSource && account.tokenSource !== "none");
+
+        if (!hasSecret) {
+          issues.push({
+            channel: "line",
+            accountId,
+            kind: "config",
+            message: "LINE channel secret not configured",
           });
         }
       }
