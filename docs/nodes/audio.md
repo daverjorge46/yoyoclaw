@@ -116,7 +116,7 @@ When `requireMention: true` is set for a group chat, OpenClaw now transcribes au
 1. If a voice message has no text body and the group requires mentions, OpenClaw performs a "preflight" transcription.
 2. The transcript is checked for mention patterns (e.g., `@BotName`, emoji triggers).
 3. If a mention is found, the message proceeds through the full reply pipeline.
-4. The transcript is cached to avoid double-transcription during the main media understanding phase.
+4. The transcript is used for mention detection so voice notes can pass the mention gate.
 
 **Fallback behavior:**
 

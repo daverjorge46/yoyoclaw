@@ -386,6 +386,7 @@ export const buildTelegramMessageContext = async ({
   const locationText = locationData ? formatLocationText(locationData) : undefined;
   const rawTextSource = msg.text ?? msg.caption ?? "";
   const rawText = expandTextLinks(rawTextSource, msg.entities ?? msg.caption_entities).trim();
+  const hasUserText = Boolean(rawText || locationText);
   let rawBody = [rawText, locationText].filter(Boolean).join("\n").trim();
   if (!rawBody) {
     rawBody = placeholder;
@@ -408,15 +409,18 @@ export const buildTelegramMessageContext = async ({
   let preflightTranscript: string | undefined;
   const hasAudio = allMedia.some((media) => media.contentType?.startsWith("audio/"));
   const needsPreflightTranscription =
-    isGroup && requireMention && hasAudio && !rawBody && mentionRegexes.length > 0;
+    isGroup && requireMention && hasAudio && !hasUserText && mentionRegexes.length > 0;
 
   if (needsPreflightTranscription) {
     try {
       const { transcribeFirstAudio } = await import("../media-understanding/audio-preflight.js");
       // Build a minimal context for transcription
       const tempCtx: MsgContext = {
-        MediaPaths: allMedia.map((m) => m.path).filter((p): p is string => Boolean(p)),
-        MediaTypes: allMedia.map((m) => m.contentType).filter((t): t is string => Boolean(t)),
+        MediaPaths: allMedia.length > 0 ? allMedia.map((m) => m.path) : undefined,
+        MediaTypes:
+          allMedia.length > 0
+            ? (allMedia.map((m) => m.contentType).filter(Boolean) as string[])
+            : undefined,
       };
       preflightTranscript = await transcribeFirstAudio({
         ctx: tempCtx,
