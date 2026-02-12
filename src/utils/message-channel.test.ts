@@ -86,7 +86,31 @@ describe("message-channel", () => {
   });
 
   it("skips disabled channel plugins when resolving gateway channels", () => {
-    setActivePluginRegistry(createRegistry([], [createPluginRecord("whatsapp", false)]));
+    // Register whatsapp as a known channel so it would normally resolve,
+    // but mark the plugin record as disabled — it should be skipped.
+    const whatsappPlugin = {
+      id: "whatsapp",
+      meta: {
+        id: "whatsapp",
+        label: "WhatsApp",
+        selectionLabel: "WhatsApp",
+        docsPath: "/channels/whatsapp",
+        blurb: "WhatsApp messaging.",
+        aliases: [],
+      },
+      capabilities: { chatTypes: ["direct"] },
+      config: {
+        listAccountIds: () => [],
+        resolveAccount: () => ({}),
+      },
+    } satisfies ChannelPlugin;
+    setActivePluginRegistry(
+      createRegistry(
+        [{ pluginId: "whatsapp", plugin: whatsappPlugin, source: "test" }],
+        [createPluginRecord("whatsapp", false)],
+      ),
+    );
+    // Without the fix, this resolves to "whatsapp". With the fix, disabled plugins are skipped.
     expect(resolveGatewayMessageChannel("whatsapp")).toBeUndefined();
   });
 });
