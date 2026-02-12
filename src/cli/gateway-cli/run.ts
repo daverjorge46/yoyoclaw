@@ -100,19 +100,19 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     // Force loopback bind (warn if user tried to override)
     if (opts.bind && opts.bind !== "loopback") {
       gatewayLog.warn(
-        `harden: ignoring --bind ${opts.bind}; hardened mode forces loopback binding`,
+        `harden: ignoring --bind ${String(opts.bind)}; hardened mode forces loopback binding`,
       );
     }
     // Force token auth mode
     if (opts.auth && opts.auth !== "token") {
       gatewayLog.warn(
-        `harden: ignoring --auth ${opts.auth}; hardened mode forces token authentication`,
+        `harden: ignoring --auth ${String(opts.auth)}; hardened mode forces token authentication`,
       );
     }
     // Warn about tailscale in hardened mode
     if (opts.tailscale && opts.tailscale !== "off") {
       gatewayLog.warn(
-        `harden: ignoring --tailscale ${opts.tailscale}; hardened mode disables external exposure`,
+        `harden: ignoring --tailscale ${String(opts.tailscale)}; hardened mode disables external exposure`,
       );
     }
   }
