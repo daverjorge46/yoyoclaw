@@ -81,4 +81,5 @@ USER.md
 /memory/
 .agent/*.json
 !.agent/workflows/
+package-lock.json
 local/
