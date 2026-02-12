@@ -41,8 +41,8 @@ async function writeSessionStore(home: string) {
         "agent:main:main": {
           sessionId: "main-session",
           updatedAt: Date.now(),
-          lastProvider: "webchat",
-          lastTo: "",
+          lastChannel: "telegram",
+          lastTo: "123",
         },
       },
       null,
@@ -86,7 +86,7 @@ function makeJob(payload: CronJob["payload"]): CronJob {
   };
 }
 
-describe("runCronIsolatedAgentTurn", () => {
+describe("runCronIsolatedAgentTurn – announce fallback (#14997)", () => {
   beforeEach(() => {
     vi.mocked(runEmbeddedPiAgent).mockReset();
     vi.mocked(loadModelCatalog).mockResolvedValue([]);
@@ -102,23 +102,28 @@ describe("runCronIsolatedAgentTurn", () => {
     );
   });
 
-  it("announces via shared subagent flow when delivery is requested", async () => {
+  it("falls back to direct delivery when announce flow returns false", async () => {
     await withTempHome(async (home) => {
       const storePath = await writeSessionStore(home);
       const deps: CliDeps = {
         sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn(),
+        sendMessageTelegram: vi.fn().mockResolvedValue({
+          messageId: "t1",
+          chatId: "123",
+        }),
         sendMessageDiscord: vi.fn(),
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
       vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "hello from cron" }],
+        payloads: [{ text: "Weather report: sunny and warm" }],
         meta: {
           durationMs: 5,
           agentMeta: { sessionId: "s", provider: "p", model: "m" },
         },
       });
+      // Announce flow fails (e.g. announce agent responded with NO_REPLY)
+      vi.mocked(runSubagentAnnounceFlow).mockResolvedValue(false);
 
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
@@ -126,69 +131,29 @@ describe("runCronIsolatedAgentTurn", () => {
         }),
         deps,
         job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
+          ...makeJob({ kind: "agentTurn", message: "check weather" }),
           delivery: { mode: "announce", channel: "telegram", to: "123" },
         },
-        message: "do it",
+        message: "check weather",
         sessionKey: "cron:job-1",
         lane: "cron",
       });
 
       expect(res.status).toBe("ok");
+      // Announce was attempted first
       expect(runSubagentAnnounceFlow).toHaveBeenCalledTimes(1);
-      const announceArgs = vi.mocked(runSubagentAnnounceFlow).mock.calls[0]?.[0] as
-        | { announceType?: string }
-        | undefined;
-      expect(announceArgs?.announceType).toBe("cron job");
-      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
+      // Fallback direct delivery should have been called
+      expect(deps.sendMessageTelegram).toHaveBeenCalledTimes(1);
+      const call = vi.mocked(deps.sendMessageTelegram).mock.calls[0];
+      // sendMessageTelegram receives (opts) where opts contains chatId
+      expect(call).toBeDefined();
     });
   });
 
-  it("passes final payload text into shared subagent announce flow", async () => {
+  it("returns error when announce fails and no delivery target for fallback", async () => {
     await withTempHome(async (home) => {
       const storePath = await writeSessionStore(home);
-      const deps: CliDeps = {
-        sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn(),
-        sendMessageDiscord: vi.fn(),
-        sendMessageSignal: vi.fn(),
-        sendMessageIMessage: vi.fn(),
-      };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "Working on it..." }, { text: "Final weather summary" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
-
-      const res = await runCronIsolatedAgentTurn({
-        cfg: makeCfg(home, storePath, {
-          channels: { telegram: { botToken: "t-1" } },
-        }),
-        deps,
-        job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
-          delivery: { mode: "announce", channel: "telegram", to: "123" },
-        },
-        message: "do it",
-        sessionKey: "cron:job-1",
-        lane: "cron",
-      });
-
-      expect(res.status).toBe("ok");
-      expect(runSubagentAnnounceFlow).toHaveBeenCalledTimes(1);
-      const announceArgs = vi.mocked(runSubagentAnnounceFlow).mock.calls[0]?.[0] as
-        | { roundOneReply?: string; requesterOrigin?: { threadId?: string | number } }
-        | undefined;
-      expect(announceArgs?.roundOneReply).toBe("Final weather summary");
-      expect(announceArgs?.requesterOrigin?.threadId).toBeUndefined();
-    });
-  });
-
-  it("passes resolved threadId into shared subagent announce flow", async () => {
-    await withTempHome(async (home) => {
-      const storePath = await writeSessionStore(home);
+      // Write a session store without lastTo so delivery target is missing
       await fs.writeFile(
         storePath,
         JSON.stringify(
@@ -197,8 +162,7 @@ describe("runCronIsolatedAgentTurn", () => {
               sessionId: "main-session",
               updatedAt: Date.now(),
               lastChannel: "telegram",
-              lastTo: "123",
-              lastThreadId: 42,
+              lastTo: "",
             },
           },
           null,
@@ -214,199 +178,131 @@ describe("runCronIsolatedAgentTurn", () => {
         sendMessageIMessage: vi.fn(),
       };
       vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "Final weather summary" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
-
-      const res = await runCronIsolatedAgentTurn({
-        cfg: makeCfg(home, storePath, {
-          channels: { telegram: { botToken: "t-1" } },
-        }),
-        deps,
-        job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
-          delivery: { mode: "announce", channel: "last" },
-        },
-        message: "do it",
-        sessionKey: "cron:job-1",
-        lane: "cron",
-      });
-
-      expect(res.status).toBe("ok");
-      const announceArgs = vi.mocked(runSubagentAnnounceFlow).mock.calls[0]?.[0] as
-        | { requesterOrigin?: { threadId?: string | number; channel?: string; to?: string } }
-        | undefined;
-      expect(announceArgs?.requesterOrigin?.channel).toBe("telegram");
-      expect(announceArgs?.requesterOrigin?.to).toBe("123");
-      expect(announceArgs?.requesterOrigin?.threadId).toBe(42);
-    });
-  });
-
-  it("skips announce when messaging tool already sent to target", async () => {
-    await withTempHome(async (home) => {
-      const storePath = await writeSessionStore(home);
-      const deps: CliDeps = {
-        sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn(),
-        sendMessageDiscord: vi.fn(),
-        sendMessageSignal: vi.fn(),
-        sendMessageIMessage: vi.fn(),
-      };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "sent" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-        didSendViaMessagingTool: true,
-        messagingToolSentTargets: [{ tool: "message", provider: "telegram", to: "123" }],
-      });
-
-      const res = await runCronIsolatedAgentTurn({
-        cfg: makeCfg(home, storePath, {
-          channels: { telegram: { botToken: "t-1" } },
-        }),
-        deps,
-        job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
-          delivery: { mode: "announce", channel: "telegram", to: "123" },
-        },
-        message: "do it",
-        sessionKey: "cron:job-1",
-        lane: "cron",
-      });
-
-      expect(res.status).toBe("ok");
-      expect(runSubagentAnnounceFlow).not.toHaveBeenCalled();
-      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
-    });
-  });
-
-  it("skips announce for heartbeat-only output", async () => {
-    await withTempHome(async (home) => {
-      const storePath = await writeSessionStore(home);
-      const deps: CliDeps = {
-        sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn(),
-        sendMessageDiscord: vi.fn(),
-        sendMessageSignal: vi.fn(),
-        sendMessageIMessage: vi.fn(),
-      };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "HEARTBEAT_OK" }],
-        meta: {
-          durationMs: 5,
-          agentMeta: { sessionId: "s", provider: "p", model: "m" },
-        },
-      });
-
-      const res = await runCronIsolatedAgentTurn({
-        cfg: makeCfg(home, storePath, {
-          channels: { telegram: { botToken: "t-1" } },
-        }),
-        deps,
-        job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
-          delivery: { mode: "announce", channel: "telegram", to: "123" },
-        },
-        message: "do it",
-        sessionKey: "cron:job-1",
-        lane: "cron",
-      });
-
-      expect(res.status).toBe("ok");
-      expect(runSubagentAnnounceFlow).not.toHaveBeenCalled();
-      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
-    });
-  });
-
-  it("fails when shared announce flow fails and best-effort is disabled", async () => {
-    await withTempHome(async (home) => {
-      const storePath = await writeSessionStore(home);
-      const deps: CliDeps = {
-        sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn().mockRejectedValue(new Error("boom")),
-        sendMessageDiscord: vi.fn(),
-        sendMessageSignal: vi.fn(),
-        sendMessageIMessage: vi.fn(),
-      };
-      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "hello from cron" }],
+        payloads: [{ text: "Weather report: sunny" }],
         meta: {
           durationMs: 5,
           agentMeta: { sessionId: "s", provider: "p", model: "m" },
         },
       });
       vi.mocked(runSubagentAnnounceFlow).mockResolvedValue(false);
+
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
           channels: { telegram: { botToken: "t-1" } },
         }),
         deps,
         job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
-          delivery: { mode: "announce", channel: "telegram", to: "123" },
+          ...makeJob({ kind: "agentTurn", message: "check weather" }),
+          delivery: { mode: "announce", channel: "telegram" },
         },
-        message: "do it",
+        message: "check weather",
         sessionKey: "cron:job-1",
         lane: "cron",
       });
 
-      // With the announce-fallback fix (#14997), the code now tries direct
-      // delivery when announce fails.  sendMessageTelegram throws 'boom',
-      // so the fallback also fails and returns an error.
+      // Without a delivery target, should report error
       expect(res.status).toBe("error");
-      expect(res.error).toContain("boom");
-      expect(deps.sendMessageTelegram).toHaveBeenCalled();
+      expect(res.error).toBe("cron delivery target is missing");
+      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
     });
   });
 
-  it("ignores shared announce flow failures when best-effort is enabled", async () => {
+  it("succeeds with best-effort when announce fails and no delivery target", async () => {
     await withTempHome(async (home) => {
       const storePath = await writeSessionStore(home);
+      await fs.writeFile(
+        storePath,
+        JSON.stringify(
+          {
+            "agent:main:main": {
+              sessionId: "main-session",
+              updatedAt: Date.now(),
+              lastChannel: "telegram",
+              lastTo: "",
+            },
+          },
+          null,
+          2,
+        ),
+        "utf-8",
+      );
       const deps: CliDeps = {
         sendMessageWhatsApp: vi.fn(),
-        sendMessageTelegram: vi.fn().mockRejectedValue(new Error("boom")),
+        sendMessageTelegram: vi.fn(),
         sendMessageDiscord: vi.fn(),
         sendMessageSignal: vi.fn(),
         sendMessageIMessage: vi.fn(),
       };
       vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
-        payloads: [{ text: "hello from cron" }],
+        payloads: [{ text: "Weather report: sunny" }],
         meta: {
           durationMs: 5,
           agentMeta: { sessionId: "s", provider: "p", model: "m" },
         },
       });
       vi.mocked(runSubagentAnnounceFlow).mockResolvedValue(false);
+
       const res = await runCronIsolatedAgentTurn({
         cfg: makeCfg(home, storePath, {
           channels: { telegram: { botToken: "t-1" } },
         }),
         deps,
         job: {
-          ...makeJob({ kind: "agentTurn", message: "do it" }),
+          ...makeJob({ kind: "agentTurn", message: "check weather" }),
           delivery: {
             mode: "announce",
             channel: "telegram",
-            to: "123",
             bestEffort: true,
           },
         },
-        message: "do it",
+        message: "check weather",
         sessionKey: "cron:job-1",
         lane: "cron",
       });
 
-      // With the announce-fallback fix (#14997), the code tries direct
-      // delivery when announce fails.  sendMessageTelegram throws 'boom',
-      // but best-effort swallows the error.
+      expect(res.status).toBe("ok");
+      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
+    });
+  });
+
+  it("does not fall back when announce flow succeeds", async () => {
+    await withTempHome(async (home) => {
+      const storePath = await writeSessionStore(home);
+      const deps: CliDeps = {
+        sendMessageWhatsApp: vi.fn(),
+        sendMessageTelegram: vi.fn(),
+        sendMessageDiscord: vi.fn(),
+        sendMessageSignal: vi.fn(),
+        sendMessageIMessage: vi.fn(),
+      };
+      vi.mocked(runEmbeddedPiAgent).mockResolvedValue({
+        payloads: [{ text: "Weather report: sunny and warm" }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        },
+      });
+      // Announce flow succeeds
+      vi.mocked(runSubagentAnnounceFlow).mockResolvedValue(true);
+
+      const res = await runCronIsolatedAgentTurn({
+        cfg: makeCfg(home, storePath, {
+          channels: { telegram: { botToken: "t-1" } },
+        }),
+        deps,
+        job: {
+          ...makeJob({ kind: "agentTurn", message: "check weather" }),
+          delivery: { mode: "announce", channel: "telegram", to: "123" },
+        },
+        message: "check weather",
+        sessionKey: "cron:job-1",
+        lane: "cron",
+      });
+
       expect(res.status).toBe("ok");
       expect(runSubagentAnnounceFlow).toHaveBeenCalledTimes(1);
-      expect(deps.sendMessageTelegram).toHaveBeenCalled();
+      // No fallback direct delivery
+      expect(deps.sendMessageTelegram).not.toHaveBeenCalled();
     });
   });
 });

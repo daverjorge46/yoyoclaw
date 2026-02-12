@@ -520,7 +520,9 @@ export async function runSubagentAnnounceFlow(params: {
       const { entry } = loadRequesterSessionEntry(params.requesterSessionKey);
       directOrigin = deliveryContextFromSession(entry);
     }
-    await callGateway({
+    const announceResponse = await callGateway<{
+      result?: { payloads?: Array<{ text?: string }> };
+    }>({
       method: "agent",
       params: {
         sessionKey: params.requesterSessionKey,
@@ -539,7 +541,16 @@ export async function runSubagentAnnounceFlow(params: {
       timeoutMs: 60_000,
     });
 
-    didAnnounce = true;
+    // Check if the announce agent actually produced deliverable output.
+    // The agent may respond with NO_REPLY (filtered as silent), leaving
+    // payloads empty.  In that case the message was never sent, so report
+    // the announce as failed so callers can fall back to direct delivery.
+    const announcePayloads = announceResponse?.result?.payloads;
+    if (Array.isArray(announcePayloads) && announcePayloads.length === 0) {
+      didAnnounce = false;
+    } else {
+      didAnnounce = true;
+    }
   } catch (err) {
     defaultRuntime.error?.(`Subagent announce failed: ${String(err)}`);
     // Best-effort follow-ups; ignore failures to avoid breaking the caller response.

@@ -564,16 +564,39 @@ export async function runCronIsolatedAgentTurn(params: {
           announceType: "cron job",
         });
         if (!didAnnounce) {
-          const message = "cron announce delivery failed";
-          if (!deliveryBestEffort) {
-            return withRunSession({
-              status: "error",
-              summary,
-              outputText,
-              error: message,
-            });
+          // Announce agent produced no deliverable output (e.g. responded
+          // with NO_REPLY).  Fall back to delivering the original text
+          // directly so the cron output is not silently lost.
+          if (resolvedDelivery.to && deliveryPayloads.length > 0) {
+            try {
+              await deliverOutboundPayloads({
+                cfg: cfgWithAgentDefaults,
+                channel: resolvedDelivery.channel,
+                to: resolvedDelivery.to,
+                accountId: resolvedDelivery.accountId,
+                threadId: resolvedDelivery.threadId,
+                payloads: deliveryPayloads,
+                bestEffort: deliveryBestEffort,
+                deps: createOutboundSendDeps(params.deps),
+              });
+            } catch (err) {
+              if (!deliveryBestEffort) {
+                return withRunSession({ status: "error", summary, outputText, error: String(err) });
+              }
+              logWarn(`[cron:${params.job.id}] announce fallback delivery failed: ${String(err)}`);
+            }
+          } else {
+            const message = "cron announce delivery failed";
+            if (!deliveryBestEffort) {
+              return withRunSession({
+                status: "error",
+                summary,
+                outputText,
+                error: message,
+              });
+            }
+            logWarn(`[cron:${params.job.id}] ${message}`);
           }
-          logWarn(`[cron:${params.job.id}] ${message}`);
         }
       } catch (err) {
         if (!deliveryBestEffort) {
