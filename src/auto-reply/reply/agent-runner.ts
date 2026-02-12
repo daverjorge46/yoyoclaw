@@ -39,6 +39,7 @@ import { createFollowupRunner } from "./followup-runner.js";
 import { enqueueFollowupRun, type FollowupRun, type QueueSettings } from "./queue.js";
 import { createReplyToModeFilterForChannel, resolveReplyToMode } from "./reply-threading.js";
 import { incrementRunCompactionCount, persistRunSessionUsage } from "./session-run-accounting.js";
+import { formatCompactionNotice, shouldEmitCompactionNotice } from "./session-updates.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
 const BLOCK_REPLY_SEND_TIMEOUT_MS = 15_000;
@@ -505,9 +506,8 @@ export async function runReplyAgent(params: {
         lastCallUsage: runResult.meta.agentMeta?.lastCallUsage,
         contextTokensUsed,
       });
-      if (verboseEnabled) {
-        const suffix = typeof count === "number" ? ` (count ${count})` : "";
-        finalPayloads = [{ text: `🧹 Auto-compaction complete${suffix}.` }, ...finalPayloads];
+      if (shouldEmitCompactionNotice({ cfg: followupRun.run.config, verboseEnabled })) {
+        finalPayloads = [{ text: formatCompactionNotice(count) }, ...finalPayloads];
       }
     }
     if (verboseEnabled && activeIsNewSession) {
