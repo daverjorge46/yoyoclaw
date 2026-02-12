@@ -99,9 +99,11 @@ const entireCheckpoints: HookHandler = async (event) => {
   let verbs: string[];
 
   if (event.type === "gateway" && event.action === "startup") {
-    verbs = ["session-start"];
+    // Initialize session fully on startup so every subsequent commit gets checkpointed
+    verbs = ["session-start", "user-prompt-submit"];
   } else if (event.type === "command" && (event.action === "new" || event.action === "reset")) {
-    verbs = ["stop", "session-end"];
+    // Save checkpoint, end old session, start fresh
+    verbs = ["stop", "session-end", "session-start", "user-prompt-submit"];
   } else if (event.type === "command" && event.action === "stop") {
     verbs = ["stop"];
   } else {
