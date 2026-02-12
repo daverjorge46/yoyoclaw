@@ -5,6 +5,7 @@ import {
   computeJobNextRunAtMs,
   createJob,
   findJobOrThrow,
+  getStuckRunThresholdMs,
   isJobDue,
   nextWakeAtMs,
   recomputeNextRuns,
@@ -32,19 +33,22 @@ export async function start(state: CronServiceState) {
     const jobs = state.store?.jobs ?? [];
     const now = state.deps.nowMs();
     for (const job of jobs) {
-      if (typeof job.state.runningAtMs === "number") {
-        const runningAtMs = job.state.runningAtMs;
-        // Only clear obviously stale running markers on startup to avoid
-        // double-executing jobs that were legitimately in-flight when the
-        // process restarted. Fresh markers are left intact and will be
-        // handled by the normal stuck-run recovery logic.
-        if (now - runningAtMs >= 2 * 10 * 60_000) {
-          state.deps.log.warn(
-            { jobId: job.id, runningAtMs, staleAfterMs: 2 * 10 * 60_000 },
-            "cron: clearing stale running marker on startup",
-          );
-          job.state.runningAtMs = undefined;
-        }
+      const runningAtMs = job.state.runningAtMs;
+      if (typeof runningAtMs !== "number") {
+        continue;
+      }
+
+      const thresholdMs = getStuckRunThresholdMs(job);
+      // Only clear markers that are clearly older than a normal stuck run
+      // threshold so we avoid double-executing jobs that were legitimately
+      // in-flight when the process restarted. Fresh markers are left intact
+      // and will be handled by the normal stuck-run recovery logic.
+      if (now - runningAtMs >= thresholdMs) {
+        state.deps.log.warn(
+          { jobId: job.id, runningAtMs, staleAfterMs: thresholdMs },
+          "cron: clearing stale running marker on startup",
+        );
+        job.state.runningAtMs = undefined;
       }
     }
     await runMissedJobs(state);

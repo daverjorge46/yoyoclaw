@@ -24,7 +24,7 @@ const DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000;
 /** Minimum threshold for clearing stuck runningAtMs; avoids false positives for short jobs. */
 const MIN_STUCK_RUN_MS = 15 * 60 * 1000;
 
-function stuckRunThresholdMs(job: CronJob): number {
+export function getStuckRunThresholdMs(job: CronJob): number {
   const jobMaxMs =
     job.payload.kind === "agentTurn" && typeof job.payload.timeoutSeconds === "number"
       ? job.payload.timeoutSeconds * 1_000
@@ -122,7 +122,7 @@ export function recomputeNextRuns(state: CronServiceState): boolean {
       continue;
     }
     const runningAt = job.state.runningAtMs;
-    const thresholdMs = stuckRunThresholdMs(job);
+    const thresholdMs = getStuckRunThresholdMs(job);
     if (typeof runningAt === "number" && now - runningAt > thresholdMs) {
       state.deps.log.warn(
         { jobId: job.id, runningAtMs: runningAt, thresholdMs },

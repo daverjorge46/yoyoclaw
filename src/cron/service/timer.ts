@@ -668,7 +668,12 @@ export function startAntiZombieWatchdog(state: CronServiceState) {
     return;
   }
   state.antiZombieTimer = setInterval(async () => {
+    if (state.antiZombieInProgress) {
+      return;
+    }
+    state.antiZombieInProgress = true;
     if (!state.deps.cronEnabled || state.store === null) {
+      state.antiZombieInProgress = false;
       return;
     }
     if (nextWakeAtMs(state) == null) {
@@ -680,6 +685,7 @@ export function startAntiZombieWatchdog(state: CronServiceState) {
     const now = state.deps.nowMs();
     const lastTick = state.lastTimerTickAtMs ?? 0;
     if (now - lastTick <= ANTI_ZOMBIE_IDLE_MS) {
+      state.antiZombieInProgress = false;
       return;
     }
     state.deps.log.warn(
@@ -728,6 +734,8 @@ export function startAntiZombieWatchdog(state: CronServiceState) {
         { err: String(err) },
         "cron: anti-zombie: failed to recover stale-running jobs",
       );
+    } finally {
+      state.antiZombieInProgress = false;
     }
 
     if (state.timer) {
