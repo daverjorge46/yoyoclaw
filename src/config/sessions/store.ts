@@ -143,10 +143,19 @@ export function loadSessionStore(
   let store: Record<string, SessionEntry> = {};
   let mtimeMs = getFileMtimeMs(storePath);
   try {
+    const t0 = Date.now();
     const raw = fs.readFileSync(storePath, "utf-8");
     const parsed = JSON5.parse(raw);
+    const parseMs = Date.now() - t0;
     if (isSessionStoreRecord(parsed)) {
       store = parsed;
+    }
+    const entryCount = Object.keys(store).length;
+    const sizeMB = raw.length / 1_048_576;
+    if (sizeMB > 1 || parseMs > 500) {
+      log.warn(
+        `sessions.json is large (${sizeMB.toFixed(1)} MB, ${entryCount} entries, parsed in ${parseMs}ms) — consider pruning completed isolated sessions or enabling maintenance mode=enforce`,
+      );
     }
     mtimeMs = getFileMtimeMs(storePath) ?? mtimeMs;
   } catch {
