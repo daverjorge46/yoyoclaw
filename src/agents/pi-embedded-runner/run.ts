@@ -595,6 +595,11 @@ export async function runEmbeddedPiAgent(
                   );
                   // Session is now smaller; allow compaction retries again.
                   overflowCompactionAttempts = 0;
+                  // Clear the notification dedupe so a fresh compaction cycle can notify again.
+                  params.onAgentEvent?.({
+                    stream: "compaction",
+                    data: { phase: "end", willRetry: false },
+                  });
                   continue;
                 }
                 log.warn(
@@ -602,6 +607,12 @@ export async function runEmbeddedPiAgent(
                 );
               }
             }
+            // Terminal failure — emit a final compaction end event so the per-session
+            // dedupe in agent-runner-execution.ts gets cleared for future runs.
+            params.onAgentEvent?.({
+              stream: "compaction",
+              data: { phase: "end", willRetry: false },
+            });
             const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
             return {
               payloads: [
