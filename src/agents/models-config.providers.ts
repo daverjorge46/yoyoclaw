@@ -85,6 +85,16 @@ const OLLAMA_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+const BAILIAN_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+const BAILIAN_DEFAULT_CONTEXT_WINDOW = 128000;
+const BAILIAN_DEFAULT_MAX_TOKENS = 8192;
+const BAILIAN_DEFAULT_COST = {
+  input: 0,
+  output: 0,
+  cacheRead: 0,
+  cacheWrite: 0,
+};
+
 export const QIANFAN_BASE_URL = "https://qianfan.baidubce.com/v2";
 export const QIANFAN_DEFAULT_MODEL_ID = "deepseek-v3.2";
 const QIANFAN_DEFAULT_CONTEXT_WINDOW = 98304;
@@ -96,6 +106,13 @@ const QIANFAN_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+interface AliyunBailianModel {
+  id: string;
+}
+
+interface AliyunBailianModelsResponse {
+  data: AliyunBailianModel[];
+}
 interface OllamaModel {
   name: string;
   modified_at: string;
@@ -172,6 +189,48 @@ async function discoverOllamaModels(baseUrl?: string): Promise<ModelDefinitionCo
   }
 }
 
+async function discoverBailianModels(apiKey: string): Promise<ModelDefinitionConfig[]> {
+  try {
+    const response = await fetch(`${BAILIAN_BASE_URL}/models`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) {
+      console.warn(`Failed to discover Aliyun Bailian models: ${response.status}`);
+      return [];
+    }
+    const data = (await response.json()) as AliyunBailianModelsResponse;
+    if (!data.data || data.data.length === 0) {
+      return [];
+    }
+
+    return data.data.map((model) => {
+      const modelId = model.id;
+      const isReasoning =
+        modelId.toLowerCase().includes("qwq") ||
+        modelId.toLowerCase().includes("reasoning") ||
+        modelId.toLowerCase().includes("-r1");
+      const hasVision =
+        modelId.toLowerCase().includes("vl") || modelId.toLowerCase().includes("vision");
+
+      return {
+        id: modelId,
+        name: modelId,
+        reasoning: isReasoning,
+        input: hasVision ? ["text", "image"] : ["text"],
+        cost: BAILIAN_DEFAULT_COST,
+        contextWindow: BAILIAN_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: BAILIAN_DEFAULT_MAX_TOKENS,
+      };
+    });
+  } catch (error) {
+    console.warn(`Failed to discover Aliyun Bailian models: ${String(error)}`);
+    return [];
+  }
+}
+
 function normalizeApiKeyConfig(value: string): string {
   const trimmed = value.trim();
   const match = /^\$\{([A-Z0-9_]+)\}$/.exec(trimmed);
@@ -183,8 +242,8 @@ function resolveEnvApiKeyVarName(provider: string): string | undefined {
   if (!resolved) {
     return undefined;
   }
-  const match = /^(?:env: |shell env: )([A-Z0-9_]+)$/.exec(resolved.source);
-  return match ? match[1] : undefined;
+  const match = /: ([A-Z0-9_]+)$/.exec(resolved.source);
+  return match?.[1] ?? resolved.source;
 }
 
 function resolveAwsSdkApiKeyVarName(): string {
@@ -437,6 +496,15 @@ async function buildOllamaProvider(configuredBaseUrl?: string): Promise<Provider
   };
 }
 
+async function buildBailianProvider(apiKey: string): Promise<ProviderConfig> {
+  const models = await discoverBailianModels(apiKey);
+  return {
+    baseUrl: BAILIAN_BASE_URL,
+    api: "openai-completions",
+    models,
+  };
+}
+
 function buildTogetherProvider(): ProviderConfig {
   return {
     baseUrl: TOGETHER_BASE_URL,
@@ -481,11 +549,15 @@ export async function resolveImplicitProviders(params: {
     allowKeychainPrompt: false,
   });
 
-  const minimaxKey =
-    resolveEnvApiKeyVarName("minimax") ??
-    resolveApiKeyFromProfiles({ provider: "minimax", store: authStore });
-  if (minimaxKey) {
-    providers.minimax = { ...buildMinimaxProvider(), apiKey: minimaxKey };
+  const minimaxResolved = resolveEnvApiKey("minimax");
+  if (minimaxResolved) {
+    const apiKey = resolveEnvApiKeyVarName("minimax") ?? minimaxResolved.apiKey;
+    providers.minimax = { ...buildMinimaxProvider(), apiKey };
+  } else {
+    const minimaxKey = resolveApiKeyFromProfiles({ provider: "minimax", store: authStore });
+    if (minimaxKey) {
+      providers.minimax = { ...buildMinimaxProvider(), apiKey: minimaxKey };
+    }
   }
 
   const minimaxOauthProfile = listProfilesForProvider(authStore, "minimax-portal");
@@ -496,25 +568,37 @@ export async function resolveImplicitProviders(params: {
     };
   }
 
-  const moonshotKey =
-    resolveEnvApiKeyVarName("moonshot") ??
-    resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
-  if (moonshotKey) {
-    providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
+  const moonshotResolved = resolveEnvApiKey("moonshot");
+  if (moonshotResolved) {
+    const apiKey = resolveEnvApiKeyVarName("moonshot") ?? moonshotResolved.apiKey;
+    providers.moonshot = { ...buildMoonshotProvider(), apiKey };
+  } else {
+    const moonshotKey = resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
+    if (moonshotKey) {
+      providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
+    }
   }
 
-  const syntheticKey =
-    resolveEnvApiKeyVarName("synthetic") ??
-    resolveApiKeyFromProfiles({ provider: "synthetic", store: authStore });
-  if (syntheticKey) {
-    providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
+  const syntheticResolved = resolveEnvApiKey("synthetic");
+  if (syntheticResolved) {
+    const apiKey = resolveEnvApiKeyVarName("synthetic") ?? syntheticResolved.apiKey;
+    providers.synthetic = { ...buildSyntheticProvider(), apiKey };
+  } else {
+    const syntheticKey = resolveApiKeyFromProfiles({ provider: "synthetic", store: authStore });
+    if (syntheticKey) {
+      providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
+    }
   }
 
-  const veniceKey =
-    resolveEnvApiKeyVarName("venice") ??
-    resolveApiKeyFromProfiles({ provider: "venice", store: authStore });
-  if (veniceKey) {
-    providers.venice = { ...(await buildVeniceProvider()), apiKey: veniceKey };
+  const veniceResolved = resolveEnvApiKey("venice");
+  if (veniceResolved) {
+    const apiKey = resolveEnvApiKeyVarName("venice") ?? veniceResolved.apiKey;
+    providers.venice = { ...(await buildVeniceProvider()), apiKey };
+  } else {
+    const veniceKey = resolveApiKeyFromProfiles({ provider: "venice", store: authStore });
+    if (veniceKey) {
+      providers.venice = { ...(await buildVeniceProvider()), apiKey: veniceKey };
+    }
   }
 
   const qwenProfiles = listProfilesForProvider(authStore, "qwen-portal");
@@ -525,11 +609,15 @@ export async function resolveImplicitProviders(params: {
     };
   }
 
-  const xiaomiKey =
-    resolveEnvApiKeyVarName("xiaomi") ??
-    resolveApiKeyFromProfiles({ provider: "xiaomi", store: authStore });
-  if (xiaomiKey) {
-    providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
+  const xiaomiResolved = resolveEnvApiKey("xiaomi");
+  if (xiaomiResolved) {
+    const apiKey = resolveEnvApiKeyVarName("xiaomi") ?? xiaomiResolved.apiKey;
+    providers.xiaomi = { ...buildXiaomiProvider(), apiKey };
+  } else {
+    const xiaomiKey = resolveApiKeyFromProfiles({ provider: "xiaomi", store: authStore });
+    if (xiaomiKey) {
+      providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
+    }
   }
 
   const cloudflareProfiles = listProfilesForProvider(authStore, "cloudflare-ai-gateway");
@@ -547,7 +635,8 @@ export async function resolveImplicitProviders(params: {
     if (!baseUrl) {
       continue;
     }
-    const apiKey = resolveEnvApiKeyVarName("cloudflare-ai-gateway") ?? cred.key?.trim() ?? "";
+    const cloudflareResolved = resolveEnvApiKey("cloudflare-ai-gateway");
+    const apiKey = cloudflareResolved?.apiKey ?? cred.key?.trim() ?? "";
     if (!apiKey) {
       continue;
     }
@@ -569,6 +658,19 @@ export async function resolveImplicitProviders(params: {
   if (ollamaKey) {
     const ollamaBaseUrl = params.explicitProviders?.ollama?.baseUrl;
     providers.ollama = { ...(await buildOllamaProvider(ollamaBaseUrl)), apiKey: ollamaKey };
+  }
+
+  const bailianResolved = resolveEnvApiKey("aliyun-bailian");
+  if (bailianResolved) {
+    const apiKey = resolveEnvApiKeyVarName("aliyun-bailian") ?? bailianResolved.apiKey;
+    providers["aliyun-bailian"] = await buildBailianProvider(bailianResolved.apiKey);
+    providers["aliyun-bailian"].apiKey = apiKey;
+  } else {
+    const bailianKey = resolveApiKeyFromProfiles({ provider: "aliyun-bailian", store: authStore });
+    if (bailianKey) {
+      providers["aliyun-bailian"] = await buildBailianProvider(bailianKey);
+      providers["aliyun-bailian"].apiKey = bailianKey;
+    }
   }
 
   const togetherKey =

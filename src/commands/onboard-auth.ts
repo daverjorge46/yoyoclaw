@@ -5,6 +5,8 @@ export {
 export { VENICE_DEFAULT_MODEL_ID, VENICE_DEFAULT_MODEL_REF } from "../agents/venice-models.js";
 export {
   applyAuthProfileConfig,
+  applyAliyunBailianConfig,
+  applyAliyunBailianProviderConfig,
   applyCloudflareAiGatewayConfig,
   applyCloudflareAiGatewayProviderConfig,
   applyQianfanConfig,
@@ -51,6 +53,7 @@ export {
   LITELLM_DEFAULT_MODEL_REF,
   OPENROUTER_DEFAULT_MODEL_REF,
   setAnthropicApiKey,
+  setAliyunBailianApiKey,
   setCloudflareAiGatewayConfig,
   setQianfanApiKey,
   setGeminiApiKey,
@@ -70,6 +73,7 @@ export {
   writeOAuthCredentials,
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
+  ALIYUN_BAILIAN_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
   TOGETHER_DEFAULT_MODEL_REF,
   XAI_DEFAULT_MODEL_REF,
