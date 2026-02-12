@@ -62,8 +62,14 @@ export function applyReplyThreading(params: {
 }): ReplyPayload[] {
   const { payloads, replyToMode, replyToChannel, currentMessageId } = params;
   const applyReplyToMode = createReplyToModeFilterForChannel(replyToMode, replyToChannel);
+  const shouldAutoThread = replyToMode !== "off";
   return payloads
-    .map((payload) => applyReplyTagsToPayload(payload, currentMessageId))
+    .map((payload) =>
+      applyReplyTagsToPayload(
+        shouldAutoThread ? { ...payload, replyToCurrent: true } : payload,
+        currentMessageId,
+      ),
+    )
     .filter(isRenderablePayload)
     .map(applyReplyToMode);
 }

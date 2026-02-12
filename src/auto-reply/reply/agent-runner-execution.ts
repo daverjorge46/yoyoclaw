@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import type { ReplyToMode } from "../../config/types.js";
 import type { TemplateContext } from "../templating.js";
 import type { VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
@@ -66,6 +67,7 @@ export async function runAgentTurnWithFallback(params: {
     flushOnParagraph?: boolean;
   };
   resolvedBlockStreamingBreak: "text_end" | "message_end";
+  replyToMode: ReplyToMode;
   applyReplyToMode: (payload: ReplyPayload) => ReplyPayload;
   shouldEmitToolResult: () => boolean;
   shouldEmitToolOutput: () => boolean;
@@ -375,7 +377,7 @@ export async function runAgentTurnWithFallback(params: {
                       mediaUrl: payload.mediaUrls?.[0],
                       replyToId: payload.replyToId,
                       replyToTag: payload.replyToTag,
-                      replyToCurrent: payload.replyToCurrent,
+                      replyToCurrent: payload.replyToCurrent || params.replyToMode !== "off",
                     },
                     currentMessageId,
                   );

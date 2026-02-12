@@ -317,6 +317,7 @@ export async function runReplyAgent(params: {
       blockStreamingEnabled,
       blockReplyChunking,
       resolvedBlockStreamingBreak,
+      replyToMode,
       applyReplyToMode,
       shouldEmitToolResult,
       shouldEmitToolOutput,
