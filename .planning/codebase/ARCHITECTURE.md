@@ -7,6 +7,7 @@
 **Overall:** Event-driven microservices with plugin architecture
 
 **Key Characteristics:**
+
 - CLI-first design with comprehensive command interface
 - Plugin-based channel architecture for multiple messaging platforms
 - Agent-based message processing with AI integration
@@ -16,6 +17,7 @@
 ## Layers
 
 **CLI Layer:**
+
 - Purpose: Command interface and user interaction
 - Location: `src/cli/`
 - Contains: Command registry, program building, argument parsing
@@ -23,6 +25,7 @@
 - Used by: Direct user invocation, shell scripts
 
 **Command Layer:**
+
 - Purpose: Business logic for each CLI command
 - Location: `src/commands/`
 - Contains: Individual command implementations
@@ -30,6 +33,7 @@
 - Used by: CLI layer
 
 **Agent Layer:**
+
 - Purpose: AI agent management and execution
 - Location: `src/agents/`
 - Contains: Agent lifecycle, authentication, CLI runners, model management
@@ -37,6 +41,7 @@
 - Used by: Command layer, Message routing
 
 **Configuration Layer:**
+
 - Purpose: Configuration management and validation
 - Location: `src/config/`
 - Contains: Schema validation, file I/O, migration, session management
@@ -44,6 +49,7 @@
 - Used by: All layers
 
 **Channel Layer:**
+
 - Purpose: Platform-specific message handling
 - Location: `src/[channel-name]/` (e.g., `src/telegram/`, `src/slack/`)
 - Contains: Platform-specific implementations, message handling, routing
@@ -51,6 +57,7 @@
 - Used by: Gateway, Message routing
 
 **Gateway Layer:**
+
 - Purpose: Connection management and runtime orchestration
 - Location: `src/gateway/`
 - Contains: Connection providers, runtime management, status monitoring
@@ -58,6 +65,7 @@
 - Used by: Agent layer, CLI commands
 
 **Message Routing:**
+
 - Purpose: Intelligent message routing and agent assignment
 - Location: `src/routing/`
 - Contains: Route resolution, binding management, session key generation
@@ -65,6 +73,7 @@
 - Used by: Message flow, Agent assignment
 
 **Session Management:**
+
 - Purpose: Conversation state and persistence
 - Location: `src/sessions/`, `src/config/sessions/`
 - Contains: Session storage, compaction, memory management
@@ -72,6 +81,7 @@
 - Used by: Agent layer, Message flow
 
 **Infrastructure:**
+
 - Purpose: Common utilities and system integration
 - Location: `src/infra/`
 - Contains: Binary management, environment handling, ports, runtime guard
@@ -110,26 +120,31 @@
 ## Key Abstractions
 
 **Agent Abstraction:**
+
 - Purpose: Represents AI agent instance with configuration and capabilities
 - Examples: `src/agents/agent-scope.ts`, `src/agents/cli-runner.ts`
 - Pattern: Command pattern with async execution
 
 **Channel Abstraction:**
+
 - Purpose: Platform-independent messaging interface
 - Examples: `src/telegram/index.ts`, `src/slack/index.ts`
 - Pattern: Plugin architecture with common interface
 
 **Session Abstraction:**
+
 - Purpose: Conversation state and memory management
 - Examples: `src/sessions/session.ts`, `src/config/sessions.ts`
 - Pattern: Repository pattern with persistence
 
 **Route Abstraction:**
+
 - Purpose: Intelligent message routing and agent assignment
 - Examples: `src/routing/resolve-route.ts`, `src/routing/bindings.ts`
 - Pattern: Strategy pattern with binding hierarchy
 
 **Configuration Abstraction:**
+
 - Purpose: Centralized configuration management
 - Examples: `src/config/types.ts`, `src/config/validation.ts`
 - Pattern: Schema validation with migration support
@@ -137,26 +152,31 @@
 ## Entry Points
 
 **Main CLI Entry:**
+
 - Location: `src/index.ts`
 - Triggers: Command line arguments via Node.js
 - Responsibilities: Environment setup, global error handling, CLI program execution
 
 **Command Registration:**
+
 - Location: `src/cli/program/command-registry.ts`
 - Triggers: CLI command parsing
 - Responsibilities: Route command to appropriate handler
 
 **Agent Execution:**
+
 - Location: `src/agents/cli-runner.ts`
 - Triggers: Agent commands or message processing
 - Responsibilities: Agent lifecycle management, CLI tool execution
 
 **Channel Runtime:**
+
 - Location: `src/gateway/runtime.ts`
 - Triggers: Channel provider start/stop
 - Responsibilities: Connection management, message dispatch, status monitoring
 
 **Plugin Runtime:**
+
 - Location: `src/plugins/registry.ts`
 - Triggers: Plugin loading/configuration
 - Responsibilities: Plugin lifecycle, capability registration
@@ -166,6 +186,7 @@
 **Strategy:** Centralized error handling with graceful degradation
 
 **Patterns:**
+
 - Global error handlers in `src/index.ts`
 - Structured error logging throughout
 - Retry mechanisms for transient failures
@@ -183,4 +204,4 @@
 
 ---
 
-*Architecture analysis: 2026-02-02*
+_Architecture analysis: 2026-02-02_
