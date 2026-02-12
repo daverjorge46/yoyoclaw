@@ -3,7 +3,7 @@ import type { EmbeddedPiSubscribeContext } from "./pi-embedded-subscribe.handler
 import { parseReplyDirectives } from "../auto-reply/reply/reply-directives.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
 import { createInlineCodeState } from "../markdown/code-spans.js";
-import { promoteHistoricalContextToBlocks } from "./historical-context-repair.js";
+import { promoteCallTagsToBlocks, promoteHistoricalContextToBlocks } from "./custom-context-to-blocks.js";
 import {
   isMessagingToolDuplicateNormalized,
   normalizeTextForComparison,
@@ -200,6 +200,7 @@ export function handleMessageEnd(
 
   const assistantMessage = msg;
   ctx.recordAssistantUsage((assistantMessage as { usage?: unknown }).usage);
+  promoteCallTagsToBlocks(assistantMessage);
   promoteHistoricalContextToBlocks(assistantMessage);
   promoteThinkingTagsToBlocks(assistantMessage);
 
