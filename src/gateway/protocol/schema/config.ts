@@ -1,7 +1,12 @@
 import { Type } from "@sinclair/typebox";
 import { NonEmptyString } from "./primitives.js";
 
-export const ConfigGetParamsSchema = Type.Object({}, { additionalProperties: false });
+export const ConfigGetParamsSchema = Type.Object(
+  {
+    includeSecrets: Type.Optional(Type.Boolean()),
+  },
+  { additionalProperties: false },
+);
 
 export const ConfigSetParamsSchema = Type.Object(
   {

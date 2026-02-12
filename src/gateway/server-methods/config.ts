@@ -92,7 +92,7 @@ function requireConfigBaseHash(
 }
 
 export const configHandlers: GatewayRequestHandlers = {
-  "config.get": async ({ params, respond }) => {
+  "config.get": async ({ params, respond, client, isWebchatConnect }) => {
     if (!validateConfigGetParams(params)) {
       respond(
         false,
@@ -105,7 +105,17 @@ export const configHandlers: GatewayRequestHandlers = {
       return;
     }
     const snapshot = await readConfigFileSnapshot();
-    respond(true, redactConfigSnapshot(snapshot), undefined);
+
+    // When includeSecrets is requested by a non-webchat (trusted) client,
+    // return the unredacted config so companion apps (macOS, iOS, CLI, etc.)
+    // can use real credentials for upstream services like ElevenLabs.
+    const wantsSecrets = !!(params as { includeSecrets?: boolean }).includeSecrets;
+    const isTrustedClient = !!client && !isWebchatConnect(client.connect);
+    if (wantsSecrets && isTrustedClient) {
+      respond(true, snapshot, undefined);
+    } else {
+      respond(true, redactConfigSnapshot(snapshot), undefined);
+    }
   },
   "config.schema": ({ params, respond }) => {
     if (!validateConfigSchemaParams(params)) {
