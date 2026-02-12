@@ -22,6 +22,17 @@ const PROVIDER_HINTS: ReadonlyArray<{ pattern: RegExp; name: string }> = [
   { pattern: /\bdeepseek\b/i, name: "DeepSeek" },
 ];
 
+const PROVIDER_DISPLAY_NAMES: ReadonlyMap<string, string> = new Map(
+  PROVIDER_HINTS.map(({ name }) => [name.toLowerCase(), name]),
+);
+
+function resolveProviderDisplayName(provider?: string): string | undefined {
+  if (!provider) {
+    return undefined;
+  }
+  return PROVIDER_DISPLAY_NAMES.get(provider.toLowerCase()) ?? provider;
+}
+
 function extractProviderHint(raw?: string): string | undefined {
   if (!raw) {
     return undefined;
@@ -35,7 +46,7 @@ function extractProviderHint(raw?: string): string | undefined {
 }
 
 export function formatBillingErrorMessage(raw?: string, provider?: string): string {
-  const hint = provider || extractProviderHint(raw);
+  const hint = resolveProviderDisplayName(provider) || extractProviderHint(raw);
   if (hint) {
     return `⚠️ API billing error from **${hint}** — your API key has run out of credits or has an insufficient balance. Check your ${hint} billing dashboard and top up or switch to a different API key.`;
   }

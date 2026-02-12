@@ -88,6 +88,11 @@ describe("formatBillingErrorMessage", () => {
     expect(result).toContain("OpenAI");
     expect(result).not.toContain("Anthropic");
   });
+  it("capitalizes normalized provider id (e.g. 'anthropic' → 'Anthropic')", () => {
+    const result = formatBillingErrorMessage(undefined, "anthropic");
+    expect(result).toContain("Anthropic");
+    expect(result).not.toContain("anthropic —");
+  });
   it("falls back to generic message when no provider hint", () => {
     const result = formatBillingErrorMessage("insufficient credits");
     expect(result).toBe(BILLING_ERROR_USER_MESSAGE);
