@@ -7,19 +7,19 @@
  * whether to relay the update to the user.
  *
  * Only functional in sub-agent sessions (returns error otherwise).
- * 
+ *
  * Rate limiting: By default, progress updates are throttled to max 1 per 30 seconds
  * per session. If called too soon, returns success without sending to parent.
  */
 
 import { Type } from "@sinclair/typebox";
 import crypto from "node:crypto";
-import { isSubagentSessionKey } from "../../routing/session-key.js";
-import { callGateway } from "../../gateway/call.js";
+import type { AnyAgentTool } from "./common.js";
 import { loadConfig } from "../../config/config.js";
 import { resolveMainSessionKey } from "../../config/sessions.js";
+import { callGateway } from "../../gateway/call.js";
+import { isSubagentSessionKey } from "../../routing/session-key.js";
 import { findSubagentRunByChildKey } from "../subagent-registry.js";
-import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readStringParam } from "./common.js";
 
 // Rate limiting: Track last-sent timestamps per session key
@@ -72,11 +72,12 @@ export function createSubagentProgressTool(opts?: {
 
       // Rate limiting: Check if enough time has passed since last update
       const cfg = loadConfig();
-      const throttleMs = opts?.throttleMs ?? cfg.tools?.subagentProgress?.throttleMs ?? FALLBACK_THROTTLE_MS;
+      const throttleMs =
+        opts?.throttleMs ?? cfg.tools?.subagentProgress?.throttleMs ?? FALLBACK_THROTTLE_MS;
       const now = Date.now();
       const lastSent = lastProgressTimestamps.get(sessionKey);
-      
-      if (lastSent && (now - lastSent) < throttleMs) {
+
+      if (lastSent && now - lastSent < throttleMs) {
         // Called too soon - return success without sending to parent
         const progressText = percent !== undefined ? `[${percent}%] ${message}` : message;
         return jsonResult({
