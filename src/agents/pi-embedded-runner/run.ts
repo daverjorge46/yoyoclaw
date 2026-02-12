@@ -528,6 +528,8 @@ export async function runEmbeddedPiAgent(
               log.warn(
                 `context overflow detected (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); attempting auto-compaction for ${provider}/${modelId}`,
               );
+              // Emit compaction start event so the channel notification fires.
+              params.onAgentEvent?.({ stream: "compaction", data: { phase: "start" } });
               const compactResult = await compactEmbeddedPiSessionDirect({
                 sessionId: params.sessionId,
                 sessionKey: params.sessionKey,

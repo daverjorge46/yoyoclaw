@@ -350,10 +350,25 @@ export async function runAgentTurnWithFallback(params: {
                   await params.typingSignals.signalToolStart();
                 }
               }
-              // Track auto-compaction completion
+              // Track auto-compaction and notify the user's channel.
               if (evt.stream === "compaction") {
                 const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
                 const willRetry = Boolean(evt.data.willRetry);
+                if (phase === "start") {
+                  // Best-effort notification — mirrors typing indicators as core UX.
+                  const entry = params.getActiveSessionEntry();
+                  if (entry && params.sessionKey) {
+                    import("../../infra/compaction-notification.js")
+                      .then((m) =>
+                        m.deliverCompactionNotification({
+                          cfg: params.followupRun.run.config,
+                          sessionKey: params.sessionKey!,
+                          entry,
+                        }),
+                      )
+                      .catch(() => {});
+                  }
+                }
                 if (phase === "end" && !willRetry) {
                   autoCompactionCompleted = true;
                 }
