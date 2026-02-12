@@ -32,7 +32,7 @@ curl -fsSL https://api.carolinacloud.io/static/cli/install.sh | bash
 
 # Ensure $ANTHROPIC_API_KEY and $CCLOUD_API_KEY are set
 # (you can get your Carolina Cloud API key from the console)
-ccloud new openclaw --name jarvis  # Pick any name
+ccloud new openclaw --name my-assistant  # Pick any name
 ```
 
 ## Updating
