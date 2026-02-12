@@ -1,6 +1,6 @@
+import picAuditHandler from "./hooks/pic-audit/handler.js";
 import picGateHandler from "./hooks/pic-gate/handler.js";
 import picInitHandler from "./hooks/pic-init/handler.js";
-import picAuditHandler from "./hooks/pic-audit/handler.js";
 export default function register(api) {
     // pic-init: Inject PIC awareness at session start
     api.on("before_agent_start", picInitHandler, { priority: 50 });

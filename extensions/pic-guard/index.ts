@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import type { OpenClawPluginApi } from "./types/plugin-types.js";
 import picAuditHandler from "./hooks/pic-audit/handler.js";
 import picGateHandler from "./hooks/pic-gate/handler.js";
 import picInitHandler from "./hooks/pic-init/handler.js";
