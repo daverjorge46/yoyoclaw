@@ -44,6 +44,7 @@ import {
   pickFallbackThinkingLevel,
   type FailoverReason,
 } from "../pi-embedded-helpers.js";
+import { resolveCompactionReserveTokensFloor } from "../pi-settings.js";
 import { normalizeUsage, type UsageLike } from "../usage.js";
 import { redactRunIdentifier, resolveRunWorkspaceDir } from "../workspace-run.js";
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
@@ -814,6 +815,77 @@ export async function runEmbeddedPiAgent(
                 profileId: lastProfileId,
                 status,
               });
+            }
+          }
+
+          // ── Threshold compaction safety net ──────────────────────────────
+          // The SDK's internal auto-compaction fires asynchronously inside
+          // _handleAgentEvent (agent_end).  Because the handler is async and
+          // the agent core's emit() does not await it, there is a race where
+          // the compaction window can be missed — the session grows past the
+          // threshold without any compaction ever triggering.
+          //
+          // As a safety net, check here whether the turn's token usage
+          // exceeds the compaction threshold.  If the SDK already compacted
+          // (attempt.compactionCount > 0) we skip this; otherwise we trigger
+          // compaction ourselves, mirroring the existing overflow-compaction
+          // path above.
+          // See: https://github.com/openclaw/openclaw/issues/14702
+          if (
+            !aborted &&
+            !promptError &&
+            (attempt.compactionCount ?? 0) === 0 &&
+            overflowCompactionAttempts === 0
+          ) {
+            const attemptUsage =
+              attempt.attemptUsage ?? normalizeUsage(lastAssistant?.usage as UsageLike);
+            const contextTokens = attemptUsage
+              ? (attemptUsage.total ??
+                (attemptUsage.input ?? 0) +
+                  (attemptUsage.output ?? 0) +
+                  (attemptUsage.cacheRead ?? 0) +
+                  (attemptUsage.cacheWrite ?? 0))
+              : 0;
+            const reserveTokens = resolveCompactionReserveTokensFloor(params.config);
+            const compactionThreshold = ctxInfo.tokens - reserveTokens;
+
+            if (contextTokens > compactionThreshold && compactionThreshold > 0) {
+              log.info(
+                `[threshold-compaction] context ${contextTokens} exceeds threshold ${compactionThreshold} ` +
+                  `(window=${ctxInfo.tokens} reserve=${reserveTokens}); triggering safety-net compaction ` +
+                  `for ${provider}/${modelId}`,
+              );
+              const compactResult = await compactEmbeddedPiSessionDirect({
+                sessionId: params.sessionId,
+                sessionKey: params.sessionKey,
+                messageChannel: params.messageChannel,
+                messageProvider: params.messageProvider,
+                agentAccountId: params.agentAccountId,
+                authProfileId: lastProfileId,
+                sessionFile: params.sessionFile,
+                workspaceDir: resolvedWorkspace,
+                agentDir,
+                config: params.config,
+                skillsSnapshot: params.skillsSnapshot,
+                senderIsOwner: params.senderIsOwner,
+                provider,
+                model: modelId,
+                thinkLevel,
+                reasoningLevel: params.reasoningLevel,
+                bashElevated: params.bashElevated,
+                extraSystemPrompt: params.extraSystemPrompt,
+                ownerNumbers: params.ownerNumbers,
+              });
+              if (compactResult.compacted) {
+                autoCompactionCount += 1;
+                log.info(
+                  `[threshold-compaction] safety-net compaction succeeded for ${provider}/${modelId}`,
+                );
+              } else {
+                log.warn(
+                  `[threshold-compaction] safety-net compaction skipped: ${compactResult.reason ?? "nothing to compact"}`,
+                );
+              }
             }
           }
 

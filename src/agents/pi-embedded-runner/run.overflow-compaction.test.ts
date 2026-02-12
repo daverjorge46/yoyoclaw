@@ -91,6 +91,10 @@ vi.mock("../usage.js", () => ({
   hasNonzeroUsage: vi.fn(() => false),
 }));
 
+vi.mock("../pi-settings.js", () => ({
+  resolveCompactionReserveTokensFloor: vi.fn(() => 20000),
+}));
+
 vi.mock("./lanes.js", () => ({
   resolveSessionLane: vi.fn(() => "session-lane"),
   resolveGlobalLane: vi.fn(() => "global-lane"),
