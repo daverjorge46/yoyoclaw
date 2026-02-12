@@ -343,6 +343,7 @@ describe("agent event handler", () => {
     // Both blocks must be present in the accumulated text
     expect(text).toContain("First block content");
     expect(text).toContain("Second block content");
+    resetAgentRunContextForTest();
     nowSpy.mockRestore();
   });
 
@@ -412,6 +413,7 @@ describe("agent event handler", () => {
     const text = finalPayload?.message?.content?.[0]?.text ?? "";
     expect(text).toContain("First block");
     expect(text).toContain("Second block");
+    resetAgentRunContextForTest();
     nowSpy.mockRestore();
   });
 
@@ -469,6 +471,7 @@ describe("agent event handler", () => {
       message?: { content?: Array<{ text?: string }> };
     };
     expect(finalPayload?.message?.content?.[0]?.text).toBe("Only block");
+    resetAgentRunContextForTest();
     nowSpy.mockRestore();
   });
 });
