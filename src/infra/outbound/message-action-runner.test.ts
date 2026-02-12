@@ -9,7 +9,11 @@ import { telegramPlugin } from "../../../extensions/telegram/src/channel.js";
 import { whatsappPlugin } from "../../../extensions/whatsapp/src/channel.js";
 import { jsonResult } from "../../agents/tools/common.js";
 import { setActivePluginRegistry } from "../../plugins/runtime.js";
-import { createIMessageTestPlugin, createTestRegistry } from "../../test-utils/channel-plugins.js";
+import {
+  createIMessageTestPlugin,
+  createOutboundTestPlugin,
+  createTestRegistry,
+} from "../../test-utils/channel-plugins.js";
 import { loadWebMedia } from "../../web/media.js";
 import { runMessageAction } from "./message-action-runner.js";
 
@@ -606,6 +610,67 @@ describe("runMessageAction sandboxed media validation", () => {
         dryRun: true,
       }),
     ).rejects.toThrow(/data:/i);
+  });
+});
+
+describe("runMessageAction media caption behavior", () => {
+  afterEach(() => {
+    setActivePluginRegistry(createTestRegistry([]));
+  });
+
+  it("promotes caption to message for media sends when message is empty", async () => {
+    const sendMedia = vi.fn().mockResolvedValue({
+      channel: "testchat",
+      messageId: "m1",
+      chatId: "c1",
+    });
+    setActivePluginRegistry(
+      createTestRegistry([
+        {
+          pluginId: "testchat",
+          source: "test",
+          plugin: createOutboundTestPlugin({
+            id: "testchat",
+            outbound: {
+              deliveryMode: "direct",
+              sendText: vi.fn().mockResolvedValue({
+                channel: "testchat",
+                messageId: "t1",
+                chatId: "c1",
+              }),
+              sendMedia,
+            },
+          }),
+        },
+      ]),
+    );
+    const cfg = {
+      channels: {
+        testchat: {
+          enabled: true,
+        },
+      },
+    } as OpenClawConfig;
+
+    const result = await runMessageAction({
+      cfg,
+      action: "send",
+      params: {
+        channel: "testchat",
+        target: "channel:abc",
+        media: "https://example.com/cat.png",
+        caption: "caption-only text",
+      },
+      dryRun: false,
+    });
+
+    expect(result.kind).toBe("send");
+    expect(sendMedia).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: "caption-only text",
+        mediaUrl: "https://example.com/cat.png",
+      }),
+    );
   });
 });
 
