@@ -67,6 +67,12 @@ const WebSearchSchema = Type.Object({
         "Filter results by discovery time (Brave only). Values: 'pd' (past 24h), 'pw' (past week), 'pm' (past month), 'py' (past year), or date range 'YYYY-MM-DDtoYYYY-MM-DD'.",
     }),
   ),
+  engine: Type.Optional(
+    Type.String({
+      description:
+        "Search engine/vertical (SerpApi only). Values: 'google' (default), 'news', 'scholar', 'images', 'shopping', 'maps', 'jobs', 'finance', 'patents', 'youtube', 'bing', 'baidu', 'yandex'.",
+    }),
+  ),
 });
 
 type WebSearchConfig = NonNullable<OpenClawConfig["tools"]>["web"] extends infer Web
@@ -546,6 +552,7 @@ export function createWebSearchTool(options?: {
       const search_lang = readStringParam(params, "search_lang");
       const ui_lang = readStringParam(params, "ui_lang");
       const freshness = readStringParam(params, "freshness");
+      const engine = readStringParam(params, "engine");
 
       try {
         // Use pluginId if available (set during registration), otherwise fall back to provider id
@@ -558,6 +565,7 @@ export function createWebSearchTool(options?: {
             search_lang,
             ui_lang,
             freshness,
+            engine,
             providerConfig: search,
           },
           {

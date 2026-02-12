@@ -266,6 +266,7 @@ export type SearchProviderPlugin = {
       search_lang?: string;
       ui_lang?: string;
       freshness?: string;
+      engine?: string;
       providerConfig?: Record<string, unknown>;
     },
     ctx: SearchProviderContext,
