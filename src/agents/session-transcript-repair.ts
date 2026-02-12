@@ -209,7 +209,7 @@ export function splitParallelToolCalls(messages: AgentMessage[]): AgentMessage[]
       if (!next || typeof next !== "object" || next.role !== "toolResult") {
         break;
       }
-      const id = extractToolResultId(next as Extract<AgentMessage, { role: "toolResult" }>);
+      const id = extractToolResultId(next);
       if (id) {
         followingResults.set(id, next);
       }
