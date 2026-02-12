@@ -100,6 +100,15 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
       log(`[telegram] Suppressed network error: ${formatErrorMessage(err)}`);
       return true; // handled - don't crash
     }
+    // Raw fetch() TypeError rejections escape grammY's HttpError wrapper
+    // but are still recoverable network errors (e.g. DNS failure, socket reset).
+    if (
+      err instanceof TypeError &&
+      isRecoverableTelegramNetworkError(err, { context: "polling" })
+    ) {
+      log(`[telegram] Suppressed fetch rejection: ${formatErrorMessage(err)}`);
+      return true;
+    }
     return false;
   });
 
