@@ -260,8 +260,27 @@ function looksLikeLegacyTextBytes(buffer: Buffer): boolean {
   return printableRatio > 0.95 && wordishRatio > 0.3;
 }
 
+function hasHighNullDensity(buffer: Buffer): boolean {
+  if (buffer.length === 0) {
+    return false;
+  }
+  let nullCount = 0;
+  const len = Math.min(buffer.length, 4096);
+  for (let i = 0; i < len; i += 1) {
+    if (buffer[i] === 0) {
+      nullCount += 1;
+    }
+  }
+  // Text files rarely contain null bytes; binary formats (ZIP, executables, etc.) often do.
+  return nullCount / len > 0.01;
+}
+
 function looksLikeUtf8Text(buffer?: Buffer): boolean {
   if (!buffer || buffer.length === 0) {
+    return false;
+  }
+  // Quick rejection: binary files commonly contain null bytes that text files do not.
+  if (hasHighNullDensity(buffer)) {
     return false;
   }
   const sample = buffer.subarray(0, Math.min(buffer.length, 4096));
@@ -317,11 +336,54 @@ function resolveTextMimeFromName(name?: string): string | undefined {
   return TEXT_EXT_MIME.get(ext);
 }
 
+/**
+ * Known binary MIME prefixes/types that should never be treated as extractable text.
+ * Covers media types as well as common binary document/archive formats whose raw bytes
+ * would produce garbage if injected into the session as text.
+ */
+const BINARY_MIME_PREFIXES = ["image/", "audio/", "video/", "font/"];
+const BINARY_MIME_EXACT = new Set([
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/gzip",
+  "application/x-gzip",
+  "application/x-tar",
+  "application/x-bzip2",
+  "application/x-7z-compressed",
+  "application/x-rar-compressed",
+  "application/vnd.rar",
+  "application/java-archive",
+  "application/wasm",
+  "application/octet-stream",
+  "application/x-executable",
+  "application/x-mach-binary",
+  "application/x-elf",
+  "application/x-sharedlib",
+  "application/x-msdos-program",
+  "application/vnd.ms-excel",
+  "application/vnd.ms-powerpoint",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.spreadsheet",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/x-sqlite3",
+  "application/vnd.sqlite3",
+  "application/protobuf",
+  "application/x-protobuf",
+  "application/x-google-protobuf",
+]);
+
 function isBinaryMediaMime(mime?: string): boolean {
   if (!mime) {
     return false;
   }
-  return mime.startsWith("image/") || mime.startsWith("audio/") || mime.startsWith("video/");
+  if (BINARY_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) {
+    return true;
+  }
+  return BINARY_MIME_EXACT.has(mime);
 }
 
 async function extractFileBlocks(params: {

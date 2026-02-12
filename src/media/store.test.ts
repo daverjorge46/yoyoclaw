@@ -92,6 +92,24 @@ describe("media store", () => {
     });
   });
 
+  it("rejects any buffer when maxBytes is 0 (mediaMaxMb=0)", async () => {
+    await withTempStore(async (store) => {
+      const small = Buffer.from("hello");
+      await expect(store.saveMediaBuffer(small, "text/plain", "inbound", 0)).rejects.toThrow(
+        "Media is disabled",
+      );
+    });
+  });
+
+  it("rejects buffer exceeding custom maxBytes limit", async () => {
+    await withTempStore(async (store) => {
+      const buf = Buffer.alloc(2 * 1024 * 1024); // 2MB
+      await expect(
+        store.saveMediaBuffer(buf, "text/plain", "inbound", 1 * 1024 * 1024),
+      ).rejects.toThrow("Media exceeds 1MB limit");
+    });
+  });
+
   it("copies local files and cleans old media", async () => {
     await withTempStore(async (store, home) => {
       const srcFile = path.join(home, "tmp-src.txt");

@@ -215,8 +215,12 @@ export async function saveMediaBuffer(
   maxBytes = MAX_BYTES,
   originalFilename?: string,
 ): Promise<SavedMedia> {
-  if (buffer.byteLength > maxBytes) {
-    throw new Error(`Media exceeds ${(maxBytes / (1024 * 1024)).toFixed(0)}MB limit`);
+  if (maxBytes <= 0 || buffer.byteLength > maxBytes) {
+    const limitLabel =
+      maxBytes <= 0
+        ? "Media is disabled (mediaMaxMb=0)"
+        : `Media exceeds ${(maxBytes / (1024 * 1024)).toFixed(0)}MB limit`;
+    throw new Error(limitLabel);
   }
   const dir = path.join(resolveMediaDir(), subdir);
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });

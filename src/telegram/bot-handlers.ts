@@ -205,14 +205,34 @@ export const registerTelegramHandlers = ({
       const primaryEntry = captionMsg ?? entry.messages[0];
 
       const allMedia: TelegramMediaRef[] = [];
-      for (const { ctx } of entry.messages) {
-        const media = await resolveMedia(ctx, mediaMaxBytes, opts.token, opts.proxyFetch);
-        if (media) {
-          allMedia.push({
-            path: media.path,
-            contentType: media.contentType,
-            stickerMetadata: media.stickerMetadata,
-          });
+      for (const { ctx: mediaCtx } of entry.messages) {
+        try {
+          const media = await resolveMedia(mediaCtx, mediaMaxBytes, opts.token, opts.proxyFetch);
+          if (media) {
+            allMedia.push({
+              path: media.path,
+              contentType: media.contentType,
+              stickerMetadata: media.stickerMetadata,
+            });
+          }
+        } catch (mediaErr) {
+          const errMsg = String(mediaErr);
+          const isMediaDisabled = errMsg.includes("Media is disabled");
+          const isSizeExceeded = errMsg.includes("exceeds") && errMsg.includes("MB limit");
+          if (isMediaDisabled || isSizeExceeded) {
+            const chatId = String(primaryEntry.ctx.message.chat.id);
+            const userMessage = isMediaDisabled
+              ? "⚠️ Media attachments are disabled."
+              : `⚠️ File too large. Maximum size is ${Math.round(mediaMaxBytes / (1024 * 1024))}MB.`;
+            await withTelegramApiErrorLogging({
+              operation: "sendMessage",
+              runtime,
+              fn: () => bot.api.sendMessage(chatId, userMessage),
+            }).catch(() => {});
+            logger.warn({ chatId, error: errMsg }, "media group item rejected");
+            continue;
+          }
+          throw mediaErr;
         }
       }
 
@@ -883,17 +903,21 @@ export const registerTelegramHandlers = ({
         media = await resolveMedia(ctx, mediaMaxBytes, opts.token, opts.proxyFetch);
       } catch (mediaErr) {
         const errMsg = String(mediaErr);
-        if (errMsg.includes("exceeds") && errMsg.includes("MB limit")) {
-          const limitMb = Math.round(mediaMaxBytes / (1024 * 1024));
+        const isMediaDisabled = errMsg.includes("Media is disabled");
+        const isSizeExceeded = errMsg.includes("exceeds") && errMsg.includes("MB limit");
+        if (isMediaDisabled || isSizeExceeded) {
+          const userMessage = isMediaDisabled
+            ? "⚠️ Media attachments are disabled."
+            : `⚠️ File too large. Maximum size is ${Math.round(mediaMaxBytes / (1024 * 1024))}MB.`;
           await withTelegramApiErrorLogging({
             operation: "sendMessage",
             runtime,
             fn: () =>
-              bot.api.sendMessage(chatId, `⚠️ File too large. Maximum size is ${limitMb}MB.`, {
+              bot.api.sendMessage(chatId, userMessage, {
                 reply_to_message_id: msg.message_id,
               }),
           }).catch(() => {});
-          logger.warn({ chatId, error: errMsg }, "media exceeds size limit");
+          logger.warn({ chatId, error: errMsg }, "media rejected");
           return;
         }
         throw mediaErr;
