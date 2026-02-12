@@ -81,8 +81,9 @@ describe("models-config", () => {
         const parsed = JSON.parse(raw) as {
           providers: Record<string, { apiKey?: string; models?: Array<{ id: string }> }>;
         };
-        // apiKey must NOT be written to the cache file (security: #14808)
-        expect(parsed.providers.minimax?.apiKey).toBeUndefined();
+        // Env-var NAME is safe to persist (reference, not secret).
+        // The ModelRegistry requires apiKey for providers with custom models.
+        expect(parsed.providers.minimax?.apiKey).toBe("MINIMAX_API_KEY");
         const ids = parsed.providers.minimax?.models?.map((model) => model.id);
         expect(ids).toContain("MiniMax-VL-01");
       } finally {

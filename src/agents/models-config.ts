@@ -86,6 +86,12 @@ async function readJson(pathname: string): Promise<unknown> {
  * via env vars, auth profiles, or the in-memory config.  Writing them to a
  * cache file on disk is a security risk (see #14808).
  */
+/**
+ * Env-var-name pattern: all-caps identifiers like MINIMAX_API_KEY, OPENAI_API_KEY.
+ * These are safe to persist — they are references, not secrets.
+ */
+const ENV_VAR_NAME_RE = /^[A-Z][A-Z0-9_]*$/;
+
 function stripApiKeysFromProviders(
   providers: ModelsConfig["providers"],
 ): ModelsConfig["providers"] {
@@ -95,8 +101,16 @@ function stripApiKeysFromProviders(
   const stripped: Record<string, ProviderConfig> = {};
   for (const [key, provider] of Object.entries(providers)) {
     if (provider.apiKey !== undefined) {
-      const { apiKey: _apiKey, ...rest } = provider;
-      stripped[key] = rest as ProviderConfig;
+      if (ENV_VAR_NAME_RE.test(provider.apiKey)) {
+        // Keep env-var references — they are not secrets, just names like
+        // "MINIMAX_API_KEY".  The ModelRegistry needs *some* apiKey value
+        // for providers that declare custom models.
+        stripped[key] = provider;
+      } else {
+        // Actual plaintext secret / resolved value → remove it.
+        const { apiKey: _apiKey, ...rest } = provider;
+        stripped[key] = rest as ProviderConfig;
+      }
     } else {
       stripped[key] = provider;
     }

@@ -168,8 +168,9 @@ describe("models-config", () => {
           >;
         };
         expect(parsed.providers.minimax?.baseUrl).toBe("https://api.minimax.chat/v1");
-        // apiKey must NOT be written to the cache file (security: #14808)
-        expect(parsed.providers.minimax?.apiKey).toBeUndefined();
+        // Env-var NAME is safe to persist (reference, not secret).
+        // The ModelRegistry requires apiKey for providers with custom models.
+        expect(parsed.providers.minimax?.apiKey).toBe("MINIMAX_API_KEY");
         const ids = parsed.providers.minimax?.models?.map((model) => model.id);
         expect(ids).toContain("MiniMax-M2.1");
         expect(ids).toContain("MiniMax-VL-01");
@@ -206,8 +207,9 @@ describe("models-config", () => {
           >;
         };
         expect(parsed.providers.synthetic?.baseUrl).toBe("https://api.synthetic.new/anthropic");
-        // apiKey must NOT be written to the cache file (security: #14808)
-        expect(parsed.providers.synthetic?.apiKey).toBeUndefined();
+        // Env-var NAME is safe to persist (reference, not secret).
+        // The ModelRegistry requires apiKey for providers with custom models.
+        expect(parsed.providers.synthetic?.apiKey).toBe("SYNTHETIC_API_KEY");
         const ids = parsed.providers.synthetic?.models?.map((model) => model.id);
         expect(ids).toContain("hf:MiniMaxAI/MiniMax-M2.1");
       } finally {

@@ -82,11 +82,12 @@ describe("models-config apiKey stripping (#14808)", () => {
 
         // The secret value must never appear in the cache file
         expect(raw).not.toContain("sk-minimax-secret-value");
-        // The env var name must not appear either (apiKey stripped entirely)
+        // The env var NAME is safe to persist (it's a reference, not a secret).
+        // The ModelRegistry requires apiKey for providers that declare custom models.
         const parsed = JSON.parse(raw) as {
           providers: Record<string, { apiKey?: string }>;
         };
-        expect(parsed.providers.minimax?.apiKey).toBeUndefined();
+        expect(parsed.providers.minimax?.apiKey).toBe("MINIMAX_API_KEY");
       } finally {
         if (prevKey === undefined) {
           delete process.env.MINIMAX_API_KEY;
