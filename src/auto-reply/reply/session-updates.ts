@@ -1,4 +1,6 @@
+import { estimateTokens, SessionManager } from "@mariozechner/pi-coding-agent";
 import crypto from "node:crypto";
+import fs from "node:fs";
 import type { OpenClawConfig } from "../../config/config.js";
 import { resolveUserTimezone } from "../../agents/date-time.js";
 import { buildWorkspaceSkillSnapshot } from "../../agents/skills.js";
@@ -220,6 +222,39 @@ export async function ensureSkillSnapshot(params: {
   }
 
   return { sessionEntry: nextEntry, skillsSnapshot, systemSent };
+}
+
+export function estimateCompactionTokensAfter(params: {
+  sessionFile?: string;
+  tokensBefore?: number;
+}): number | undefined {
+  const { sessionFile, tokensBefore } = params;
+  if (!sessionFile) {
+    return undefined;
+  }
+  if (!fs.existsSync(sessionFile)) {
+    return undefined;
+  }
+  try {
+    const manager = SessionManager.open(sessionFile);
+    const { messages } = manager.buildSessionContext();
+    if (!messages.length) {
+      return undefined;
+    }
+    let tokensAfter = 0;
+    for (const message of messages) {
+      tokensAfter += estimateTokens(message);
+    }
+    if (!Number.isFinite(tokensAfter) || tokensAfter <= 0) {
+      return undefined;
+    }
+    if (typeof tokensBefore === "number" && tokensBefore > 0 && tokensAfter > tokensBefore) {
+      return undefined;
+    }
+    return tokensAfter;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function incrementCompactionCount(params: {

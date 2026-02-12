@@ -43,7 +43,7 @@ import {
   type QueueSettings,
 } from "./queue.js";
 import { createReplyToModeFilterForChannel, resolveReplyToMode } from "./reply-threading.js";
-import { incrementCompactionCount } from "./session-updates.js";
+import { estimateCompactionTokensAfter, incrementCompactionCount } from "./session-updates.js";
 import { persistSessionUsageUpdate } from "./session-usage.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
@@ -502,11 +502,16 @@ export async function runReplyAgent(params: {
     let finalPayloads = replyPayloads;
     const verboseEnabled = resolvedVerboseLevel !== "off";
     if (autoCompactionCompleted) {
+      const tokensAfter = estimateCompactionTokensAfter({
+        sessionFile: followupRun.run.sessionFile ?? activeSessionEntry?.sessionFile,
+        tokensBefore: activeSessionEntry?.totalTokens,
+      });
       const count = await incrementCompactionCount({
         sessionEntry: activeSessionEntry,
         sessionStore: activeSessionStore,
         sessionKey,
         storePath,
+        tokensAfter,
       });
       if (verboseEnabled) {
         const suffix = typeof count === "number" ? ` (count ${count})` : "";

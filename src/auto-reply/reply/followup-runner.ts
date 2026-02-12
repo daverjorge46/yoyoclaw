@@ -22,7 +22,7 @@ import {
 } from "./reply-payloads.js";
 import { resolveReplyToMode } from "./reply-threading.js";
 import { isRoutableChannel, routeReply } from "./route-reply.js";
-import { incrementCompactionCount } from "./session-updates.js";
+import { estimateCompactionTokensAfter, incrementCompactionCount } from "./session-updates.js";
 import { persistSessionUsageUpdate } from "./session-usage.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
@@ -265,11 +265,16 @@ export function createFollowupRunner(params: {
       }
 
       if (autoCompactionCompleted) {
+        const tokensAfter = estimateCompactionTokensAfter({
+          sessionFile: queued.run.sessionFile ?? sessionEntry?.sessionFile,
+          tokensBefore: sessionEntry?.totalTokens,
+        });
         const count = await incrementCompactionCount({
           sessionEntry,
           sessionStore,
           sessionKey,
           storePath,
+          tokensAfter,
         });
         if (queued.run.verboseLevel && queued.run.verboseLevel !== "off") {
           const suffix = typeof count === "number" ? ` (count ${count})` : "";

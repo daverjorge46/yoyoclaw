@@ -22,7 +22,7 @@ import {
   resolveMemoryFlushSettings,
   shouldRunMemoryFlush,
 } from "./memory-flush.js";
-import { incrementCompactionCount } from "./session-updates.js";
+import { estimateCompactionTokensAfter, incrementCompactionCount } from "./session-updates.js";
 
 export async function runMemoryFlushIfNeeded(params: {
   cfg: OpenClawConfig;
@@ -167,11 +167,16 @@ export async function runMemoryFlushIfNeeded(params: {
       (params.sessionKey ? activeSessionStore?.[params.sessionKey]?.compactionCount : 0) ??
       0;
     if (memoryCompactionCompleted) {
+      const tokensAfter = estimateCompactionTokensAfter({
+        sessionFile: params.followupRun.run.sessionFile ?? activeSessionEntry?.sessionFile,
+        tokensBefore: activeSessionEntry?.totalTokens,
+      });
       const nextCount = await incrementCompactionCount({
         sessionEntry: activeSessionEntry,
         sessionStore: activeSessionStore,
         sessionKey: params.sessionKey,
         storePath: params.storePath,
+        tokensAfter,
       });
       if (typeof nextCount === "number") {
         memoryFlushCompactionCount = nextCount;
