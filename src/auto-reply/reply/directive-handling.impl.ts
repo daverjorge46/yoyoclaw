@@ -9,6 +9,8 @@ import {
   resolveAgentDir,
   resolveSessionAgentId,
 } from "../../agents/agent-scope.js";
+import { lookupContextTokens } from "../../agents/context.js";
+import { DEFAULT_CONTEXT_TOKENS } from "../../agents/defaults.js";
 import { resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
 import { type SessionEntry, updateSessionStore } from "../../config/sessions.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
@@ -354,6 +356,16 @@ export async function handleDirectiveOnly(params: {
       selection: modelSelection,
       profileOverride,
     });
+    // Update contextTokens to reflect the new model's context window
+    // so /status shows the correct limit immediately after switching.
+    const agentDefaults = params.cfg.agents?.defaults;
+    const newContextTokens =
+      agentDefaults?.contextTokens ??
+      lookupContextTokens(modelSelection.model) ??
+      DEFAULT_CONTEXT_TOKENS;
+    if (sessionEntry.contextTokens !== newContextTokens) {
+      sessionEntry.contextTokens = newContextTokens;
+    }
   }
   if (directives.hasQueueDirective && directives.queueReset) {
     delete sessionEntry.queueMode;

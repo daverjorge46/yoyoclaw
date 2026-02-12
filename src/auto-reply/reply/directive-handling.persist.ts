@@ -179,6 +179,13 @@ export async function persistInlineDirectives(params: {
               contextKey: `model:${nextLabel}`,
             });
           }
+          // Update contextTokens to reflect the new model's context window
+          // so /status shows the correct limit immediately after switching.
+          const newContextTokens =
+            agentCfg?.contextTokens ?? lookupContextTokens(model) ?? DEFAULT_CONTEXT_TOKENS;
+          if (sessionEntry.contextTokens !== newContextTokens) {
+            sessionEntry.contextTokens = newContextTokens;
+          }
           updated = updated || modelUpdated;
         }
       }

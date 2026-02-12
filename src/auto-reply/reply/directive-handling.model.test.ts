@@ -16,6 +16,21 @@ vi.mock("../../agents/agent-scope.js", () => ({
   resolveSessionAgentId: vi.fn(() => "main"),
 }));
 
+vi.mock("../../agents/context.js", () => ({
+  lookupContextTokens: vi.fn((modelId: string) => {
+    const map: Record<string, number> = {
+      "claude-opus-4-5": 200000,
+      "gpt-4o": 128000,
+      "gemini-2.5-flash": 1048576,
+    };
+    return map[modelId];
+  }),
+}));
+
+vi.mock("../../agents/defaults.js", () => ({
+  DEFAULT_CONTEXT_TOKENS: 128000,
+}));
+
 vi.mock("../../agents/sandbox.js", () => ({
   resolveSandboxRuntimeStatus: vi.fn(() => ({ sandboxed: false })),
 }));
@@ -195,5 +210,125 @@ describe("handleDirectiveOnly model persist behavior (fixes #1435)", () => {
     expect(result?.text ?? "").not.toContain("failed");
     expect(sessionEntry.thinkingLevel).toBe("off");
     expect(sessionStore["agent:main:dm:1"]?.thinkingLevel).toBe("off");
+  });
+});
+
+describe("handleDirectiveOnly updates contextTokens on model switch (#14969)", () => {
+  const allowedModelKeys = new Set([
+    "anthropic/claude-opus-4-5",
+    "openai/gpt-4o",
+    "google/gemini-2.5-flash",
+  ]);
+  const allowedModelCatalog = [
+    { provider: "anthropic", id: "claude-opus-4-5" },
+    { provider: "openai", id: "gpt-4o" },
+    { provider: "google", id: "gemini-2.5-flash" },
+  ];
+
+  it("updates contextTokens when switching from Opus to GPT-4o", async () => {
+    const directives = parseInlineDirectives("/model openai/gpt-4o");
+    const sessionEntry: SessionEntry = {
+      sessionId: "s1",
+      updatedAt: Date.now(),
+      contextTokens: 200000, // Opus context window
+    };
+    const sessionStore = { "agent:main:dm:1": sessionEntry };
+
+    const result = await handleDirectiveOnly({
+      cfg: baseConfig(),
+      directives,
+      sessionEntry,
+      sessionStore,
+      sessionKey: "agent:main:dm:1",
+      storePath: "/tmp/sessions.json",
+      elevatedEnabled: false,
+      elevatedAllowed: false,
+      defaultProvider: "anthropic",
+      defaultModel: "claude-opus-4-5",
+      aliasIndex: baseAliasIndex(),
+      allowedModelKeys,
+      allowedModelCatalog,
+      resetModelOverride: false,
+      provider: "anthropic",
+      model: "claude-opus-4-5",
+      initialModelLabel: "anthropic/claude-opus-4-5",
+      formatModelSwitchEvent: (label) => `Switched to ${label}`,
+    });
+
+    expect(result?.text).toContain("Model set to");
+    expect(result?.text).toContain("openai/gpt-4o");
+    // contextTokens should be updated to GPT-4o's 128k context
+    expect(sessionEntry.contextTokens).toBe(128000);
+    expect(sessionStore["agent:main:dm:1"]?.contextTokens).toBe(128000);
+  });
+
+  it("updates contextTokens when switching to a model with larger context", async () => {
+    const directives = parseInlineDirectives("/model google/gemini-2.5-flash");
+    const sessionEntry: SessionEntry = {
+      sessionId: "s1",
+      updatedAt: Date.now(),
+      contextTokens: 200000, // Opus context window
+    };
+    const sessionStore = { "agent:main:dm:1": sessionEntry };
+
+    const result = await handleDirectiveOnly({
+      cfg: baseConfig(),
+      directives,
+      sessionEntry,
+      sessionStore,
+      sessionKey: "agent:main:dm:1",
+      storePath: "/tmp/sessions.json",
+      elevatedEnabled: false,
+      elevatedAllowed: false,
+      defaultProvider: "anthropic",
+      defaultModel: "claude-opus-4-5",
+      aliasIndex: baseAliasIndex(),
+      allowedModelKeys,
+      allowedModelCatalog,
+      resetModelOverride: false,
+      provider: "anthropic",
+      model: "claude-opus-4-5",
+      initialModelLabel: "anthropic/claude-opus-4-5",
+      formatModelSwitchEvent: (label) => `Switched to ${label}`,
+    });
+
+    expect(result?.text).toContain("Model set to");
+    // contextTokens should be updated to Gemini's 1M+ context
+    expect(sessionEntry.contextTokens).toBe(1048576);
+    expect(sessionStore["agent:main:dm:1"]?.contextTokens).toBe(1048576);
+  });
+
+  it("does not change contextTokens when model stays the same", async () => {
+    const directives = parseInlineDirectives("/model anthropic/claude-opus-4-5");
+    const sessionEntry: SessionEntry = {
+      sessionId: "s1",
+      updatedAt: Date.now(),
+      contextTokens: 200000,
+    };
+    const sessionStore = { "agent:main:dm:1": sessionEntry };
+
+    await handleDirectiveOnly({
+      cfg: baseConfig(),
+      directives,
+      sessionEntry,
+      sessionStore,
+      sessionKey: "agent:main:dm:1",
+      storePath: "/tmp/sessions.json",
+      elevatedEnabled: false,
+      elevatedAllowed: false,
+      defaultProvider: "anthropic",
+      defaultModel: "claude-opus-4-5",
+      aliasIndex: baseAliasIndex(),
+      allowedModelKeys,
+      allowedModelCatalog,
+      resetModelOverride: false,
+      provider: "anthropic",
+      model: "claude-opus-4-5",
+      initialModelLabel: "anthropic/claude-opus-4-5",
+      formatModelSwitchEvent: (label) => `Switched to ${label}`,
+    });
+
+    // contextTokens should remain the same
+    expect(sessionEntry.contextTokens).toBe(200000);
   });
 });
