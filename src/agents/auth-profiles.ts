@@ -38,3 +38,4 @@ export {
   markAuthProfileUsed,
   resolveProfileUnusableUntilForDisplay,
 } from "./auth-profiles/usage.js";
+export { classifyTokenKind, type TokenKind } from "./auth-profiles/token-classify.js";

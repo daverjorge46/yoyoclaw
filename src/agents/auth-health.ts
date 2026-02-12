@@ -2,7 +2,9 @@ import type { OpenClawConfig } from "../config/config.js";
 import {
   type AuthProfileCredential,
   type AuthProfileStore,
+  classifyTokenKind,
   resolveAuthProfileDisplayLabel,
+  type TokenKind,
 } from "./auth-profiles.js";
 
 export type AuthProfileSource = "store";
@@ -13,6 +15,14 @@ export type AuthProfileHealth = {
   profileId: string;
   provider: string;
   type: "oauth" | "token" | "api_key";
+  /**
+   * Refined token classification based on prefix analysis.
+   * Only set when `type === "token"`:
+   * - `"oauth"` — Anthropic OAuth token (`sk-ant-oat01-`), subscription billing
+   * - `"api_key"` — Anthropic API key (`sk-ant-api03-`), credits billing
+   * - `"token"` — Unknown/unrecognised prefix
+   */
+  tokenKind?: TokenKind;
   status: AuthProfileHealthStatus;
   expiresAt?: number;
   remainingMs?: number;
@@ -113,6 +123,7 @@ function buildProfileHealth(params: {
         profileId,
         provider: credential.provider,
         type: "token",
+        tokenKind: classifyTokenKind(credential.token),
         status: "static",
         source,
         label,
@@ -123,6 +134,7 @@ function buildProfileHealth(params: {
       profileId,
       provider: credential.provider,
       type: "token",
+      tokenKind: classifyTokenKind(credential.token),
       status,
       expiresAt,
       remainingMs,

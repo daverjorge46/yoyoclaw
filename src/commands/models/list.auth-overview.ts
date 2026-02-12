@@ -3,6 +3,7 @@ import type { ProviderAuthOverview } from "./list.types.js";
 import { formatRemainingShort } from "../../agents/auth-health.js";
 import {
   type AuthProfileStore,
+  classifyTokenKind,
   listProfilesForProvider,
   resolveAuthProfileDisplayLabel,
   resolveAuthStorePathForDisplay,
@@ -43,7 +44,12 @@ export function resolveProviderAuthOverview(params: {
       return withUnusableSuffix(`${profileId}=${maskApiKey(profile.key ?? "")}`, profileId);
     }
     if (profile.type === "token") {
-      return withUnusableSuffix(`${profileId}=token:${maskApiKey(profile.token)}`, profileId);
+      const kind = classifyTokenKind(profile.token);
+      const kindLabel = kind === "oauth" ? "oauth_token" : kind === "api_key" ? "api_key" : "token";
+      return withUnusableSuffix(
+        `${profileId}=${kindLabel}:${maskApiKey(profile.token)}`,
+        profileId,
+      );
     }
     const display = resolveAuthProfileDisplayLabel({ cfg, store, profileId });
     const suffix =
@@ -55,9 +61,24 @@ export function resolveProviderAuthOverview(params: {
     const base = `${profileId}=OAuth${suffix ? ` ${suffix}` : ""}`;
     return withUnusableSuffix(base, profileId);
   });
-  const oauthCount = profiles.filter((id) => store.profiles[id]?.type === "oauth").length;
-  const tokenCount = profiles.filter((id) => store.profiles[id]?.type === "token").length;
-  const apiKeyCount = profiles.filter((id) => store.profiles[id]?.type === "api_key").length;
+  // Reclassify "token" credentials by prefix into oauth / api_key / token
+  let oauthCount = profiles.filter((id) => store.profiles[id]?.type === "oauth").length;
+  let tokenCount = 0;
+  let apiKeyCount = profiles.filter((id) => store.profiles[id]?.type === "api_key").length;
+  for (const id of profiles) {
+    const cred = store.profiles[id];
+    if (cred?.type !== "token") {
+      continue;
+    }
+    const kind = classifyTokenKind(cred.token);
+    if (kind === "oauth") {
+      oauthCount++;
+    } else if (kind === "api_key") {
+      apiKeyCount++;
+    } else {
+      tokenCount++;
+    }
+  }
 
   const envKey = resolveEnvApiKey(provider);
   const customKey = getCustomProviderApiKey(cfg, provider);

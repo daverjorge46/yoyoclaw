@@ -618,13 +618,21 @@ export async function modelsStatusCommand(
         const labelText = profile.label || profile.profileId;
         const label = colorize(rich, theme.accent, labelText);
         const status = formatStatus(profile.status);
+        const kindSuffix =
+          profile.tokenKind && profile.tokenKind !== "token"
+            ? colorize(
+                rich,
+                theme.muted,
+                profile.tokenKind === "oauth" ? " (oauth_token)" : " (api_key)",
+              )
+            : "";
         const expiry =
           profile.status === "static"
             ? ""
             : profile.expiresAt
               ? ` expires in ${formatRemainingShort(profile.remainingMs)}`
               : " expires unknown";
-        runtime.log(`  - ${label} ${status}${expiry}`);
+        runtime.log(`  - ${label} ${status}${kindSuffix}${expiry}`);
       }
     }
   }
