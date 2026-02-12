@@ -26,6 +26,7 @@ import {
   resolveStorePath,
 } from "../../../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
+import { enqueueSystemEvent } from "../../../infra/system-events.js";
 import { readChannelAllowFromStore } from "../../../pairing/pairing-store.js";
 import { jidToE164, normalizeE164 } from "../../../utils.js";
 import { newConnectionId } from "../../reconnect.js";
@@ -400,8 +401,17 @@ export async function processMessage(params: {
             : info.kind === "block"
               ? "block update"
               : "auto-reply";
-        whatsappOutboundLog.error(
-          `Failed sending web ${label} to ${params.msg.from ?? conversationId}: ${formatError(err)}`,
+        const recipient = params.msg.from ?? conversationId;
+        const errorDetail = formatError(err);
+        whatsappOutboundLog.error(`Failed sending web ${label} to ${recipient}: ${errorDetail}`);
+        // Surface delivery failures as system events so the agent is aware
+        // the message was not delivered (fixes #14827).
+        enqueueSystemEvent(
+          `⚠️ WhatsApp delivery failure: could not send ${label} to ${recipient}. Error: ${errorDetail}`,
+          {
+            sessionKey: params.route.sessionKey,
+            contextKey: "whatsapp:delivery-failure",
+          },
         );
       },
       onReplyStart: params.msg.sendComposing,
