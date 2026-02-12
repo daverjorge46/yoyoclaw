@@ -40,15 +40,18 @@ beforeEach(() => {
 describe("before_agent_start run-scoped model/provider override", () => {
   it("applies override before resolving model (fail-closed)", async () => {
     // resolveModel is called twice when override is present: probe + actual.
-    resolveModelMock.mockImplementation((provider: string, modelId: string) => {
+    resolveModelMock.mockImplementation((_provider: string, _modelId: string) => {
       return {
         model: {
+          provider: "openai",
           api: "openai-responses",
           contextWindow: 128000,
           input: ["text"],
         },
         error: undefined,
-        authStorage: {},
+        authStorage: {
+          setRuntimeApiKey: vi.fn(),
+        },
         modelRegistry: {},
       };
     });
@@ -81,7 +84,7 @@ describe("before_agent_start run-scoped model/provider override", () => {
       agentDir: "./tmp/test-agent",
       runId: "run:test",
       timeoutMs: 1000,
-    } as any);
+    } as unknown as Parameters<typeof runEmbeddedPiAgent>[0]);
 
     // Called once for probe + once for actual resolve
     expect(resolveModelMock).toHaveBeenCalled();
