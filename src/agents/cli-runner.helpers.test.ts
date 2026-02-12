@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { parseCliJson, parseCliJsonl } from "./cli-runner/helpers.js";
 
 describe("cli runner usage parsing", () => {
