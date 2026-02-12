@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { handleChatEvent, type ChatEventPayload, type ChatState } from "./chat.ts";
+import { describe, expect, it, vi } from "vitest";
+import {
+  handleChatEvent,
+  loadChatModels,
+  switchChatModel,
+  type ChatEventPayload,
+  type ChatState,
+} from "./chat.ts";
 
 function createState(overrides: Partial<ChatState> = {}): ChatState {
   return {
@@ -12,6 +18,11 @@ function createState(overrides: Partial<ChatState> = {}): ChatState {
     chatStream: null,
     chatStreamStartedAt: null,
     chatThinkingLevel: null,
+    chatModelOptions: [],
+    chatModelLoading: false,
+    chatModelError: null,
+    chatSelectedModel: null,
+    chatSwitchingModel: false,
     client: null,
     connected: true,
     lastError: null,
@@ -91,5 +102,41 @@ describe("handleChatEvent", () => {
     expect(state.chatRunId).toBe(null);
     expect(state.chatStream).toBe(null);
     expect(state.chatStreamStartedAt).toBe(null);
+  });
+});
+
+describe("model selector helpers", () => {
+  it("loads and normalizes model list", async () => {
+    const request = vi.fn(async () => ({
+      models: [
+        { provider: "google-antigravity", model: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro" },
+        { provider: "github-copilot", model: "gpt-5.2", label: "GPT-5.2" },
+      ],
+    }));
+    const state = createState({ client: { request } as unknown as ChatState["client"] });
+    await loadChatModels(state);
+    expect(state.chatModelOptions.map((m) => m.value)).toEqual([
+      "github-copilot/gpt-5.2",
+      "google-antigravity/gemini-2.5-pro",
+    ]);
+    expect(state.chatModelLoading).toBe(false);
+    expect(state.chatModelError).toBe(null);
+  });
+
+  it("switches model by sending /model command", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method === "chat.history") {
+        return { messages: [] };
+      }
+      return { ok: true };
+    });
+    const state = createState({ client: { request } as unknown as ChatState["client"] });
+    const ok = await switchChatModel(state, "google-antigravity/gemini-2.5-pro");
+    expect(ok).toBe(true);
+    expect(request).toHaveBeenCalledWith(
+      "chat.send",
+      expect.objectContaining({ message: "/model google-antigravity/gemini-2.5-pro" }),
+    );
+    expect(state.chatSelectedModel).toBe("google-antigravity/gemini-2.5-pro");
   });
 });

@@ -3,6 +3,14 @@ import type { ChatAttachment } from "../ui-types.ts";
 import { extractText } from "../chat/message-extract.ts";
 import { generateUUID } from "../uuid.ts";
 
+export type ChatModelOption = {
+  value: string;
+  provider: string;
+  providerLabel: string;
+  model: string;
+  label: string;
+};
+
 export type ChatState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
@@ -10,6 +18,11 @@ export type ChatState = {
   chatLoading: boolean;
   chatMessages: unknown[];
   chatThinkingLevel: string | null;
+  chatModelOptions: ChatModelOption[];
+  chatModelLoading: boolean;
+  chatModelError: string | null;
+  chatSelectedModel: string | null;
+  chatSwitchingModel: boolean;
   chatSending: boolean;
   chatMessage: string;
   chatAttachments: ChatAttachment[];
@@ -26,6 +39,92 @@ export type ChatEventPayload = {
   message?: unknown;
   errorMessage?: string;
 };
+
+type ModelListEntry = {
+  id?: string;
+  provider?: string;
+  model?: string;
+  label?: string;
+  name?: string;
+  displayName?: string;
+  providerLabel?: string;
+};
+
+function normalizeModelOptions(raw: unknown): ChatModelOption[] {
+  const payload = raw as { models?: unknown[] } | undefined;
+  const rows = Array.isArray(payload?.models) ? payload.models : [];
+  const out: ChatModelOption[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (!row || typeof row !== "object") {
+      continue;
+    }
+    const r = row as ModelListEntry;
+    const provider = (r.provider ?? "").trim();
+    const model = (r.model ?? r.id ?? "").trim();
+    if (!provider || !model) {
+      continue;
+    }
+    const value = `${provider}/${model}`;
+    if (seen.has(value)) {
+      continue;
+    }
+    seen.add(value);
+    const label = (r.displayName ?? r.label ?? r.name ?? value).trim() || value;
+    const providerLabel = (r.providerLabel ?? provider).trim() || provider;
+    out.push({ value, provider, providerLabel, model, label });
+  }
+  return out.sort((a, b) =>
+    a.providerLabel === b.providerLabel
+      ? a.label.localeCompare(b.label)
+      : a.providerLabel.localeCompare(b.providerLabel),
+  );
+}
+
+export async function loadChatModels(state: ChatState) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  state.chatModelLoading = true;
+  state.chatModelError = null;
+  try {
+    const raw = await state.client.request("models.list", {});
+    state.chatModelOptions = normalizeModelOptions(raw);
+  } catch (err) {
+    state.chatModelOptions = [];
+    state.chatModelError = String(err);
+  } finally {
+    state.chatModelLoading = false;
+  }
+}
+
+export async function switchChatModel(state: ChatState, modelRef: string): Promise<boolean> {
+  if (!state.client || !state.connected) {
+    return false;
+  }
+  const next = modelRef.trim();
+  if (!next) {
+    return false;
+  }
+  state.chatSwitchingModel = true;
+  state.chatModelError = null;
+  try {
+    await state.client.request("chat.send", {
+      sessionKey: state.sessionKey,
+      message: `/model ${next}`,
+      deliver: false,
+      idempotencyKey: generateUUID(),
+    });
+    state.chatSelectedModel = next;
+    await loadChatHistory(state);
+    return true;
+  } catch (err) {
+    state.chatModelError = String(err);
+    return false;
+  } finally {
+    state.chatSwitchingModel = false;
+  }
+}
 
 export async function loadChatHistory(state: ChatState) {
   if (!state.client || !state.connected) {

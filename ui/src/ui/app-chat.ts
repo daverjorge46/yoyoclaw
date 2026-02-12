@@ -5,7 +5,7 @@ import { parseAgentSessionKey } from "../../../src/sessions/session-key-utils.js
 import { scheduleChatScroll } from "./app-scroll.ts";
 import { setLastActiveSessionKey } from "./app-settings.ts";
 import { resetToolStream } from "./app-tool-stream.ts";
-import { abortChatRun, loadChatHistory, sendChatMessage } from "./controllers/chat.ts";
+import { abortChatRun, loadChatHistory, sendChatMessage, switchChatModel } from "./controllers/chat.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { normalizeBasePath } from "./navigation.ts";
 import { generateUUID } from "./uuid.ts";
@@ -17,6 +17,7 @@ export type ChatHost = {
   chatQueue: ChatQueueItem[];
   chatRunId: string | null;
   chatSending: boolean;
+  chatSwitchingModel: boolean;
   sessionKey: string;
   basePath: string;
   hello: GatewayHelloOk | null;
@@ -27,7 +28,7 @@ export type ChatHost = {
 export const CHAT_SESSIONS_ACTIVE_MINUTES = 120;
 
 export function isChatBusy(host: ChatHost) {
-  return host.chatSending || Boolean(host.chatRunId);
+  return host.chatSending || host.chatSwitchingModel || Boolean(host.chatRunId);
 }
 
 export function isChatStopCommand(text: string) {
@@ -200,6 +201,20 @@ export async function handleSendChat(
     restoreAttachments: Boolean(messageOverride && opts?.restoreDraft),
     refreshSessions,
   });
+}
+
+export async function handleSwitchChatModel(host: ChatHost, modelRef: string) {
+  if (!host.connected || isChatBusy(host)) {
+    return false;
+  }
+  const ok = await switchChatModel(host as unknown as OpenClawApp, modelRef);
+  if (!ok) {
+    return false;
+  }
+  await loadSessions(host as unknown as OpenClawApp, {
+    activeMinutes: CHAT_SESSIONS_ACTIVE_MINUTES,
+  });
+  return true;
 }
 
 export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: boolean }) {
