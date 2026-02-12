@@ -4,6 +4,7 @@ import type { ResolvedLineAccount } from "./types.js";
 import { formatInboundEnvelope, resolveEnvelopeFormatOptions } from "../auto-reply/envelope.js";
 import { finalizeInboundContext } from "../auto-reply/reply/inbound-context.js";
 import { formatLocationText, toLocationContext } from "../channels/location.js";
+import { loadConfig } from "../config/config.js";
 import {
   readSessionUpdatedAt,
   recordSessionMetaFromInbound,
@@ -149,8 +150,9 @@ export async function buildLineMessageContext(params: BuildLineMessageContextPar
   const { userId, groupId, roomId, isGroup } = getSourceInfo(source);
   const peerId = buildPeerId(source);
 
+  // Fresh config for bindings lookup; other routing inputs are payload-derived.
   const route = resolveAgentRoute({
-    cfg,
+    cfg: loadConfig(),
     channel: "line",
     accountId: account.accountId,
     peer: {
@@ -324,8 +326,9 @@ export async function buildLinePostbackContext(params: {
   const { userId, groupId, roomId, isGroup } = getSourceInfo(source);
   const peerId = buildPeerId(source);
 
+  // Fresh config for bindings lookup; other routing inputs are payload-derived.
   const route = resolveAgentRoute({
-    cfg,
+    cfg: loadConfig(),
     channel: "line",
     accountId: account.accountId,
     peer: {
