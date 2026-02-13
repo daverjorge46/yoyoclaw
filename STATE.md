@@ -1,7 +1,7 @@
 # 迁移状态
 
 ## 当前批次
-batch: 9
+batch: 10
 status: not_started
 
 ## 批次进度
@@ -15,7 +15,7 @@ status: not_started
 | 6 | Gateway WebSocket | ✅ | 2026-02-13 | b5c5e27 |
 | 7 | Agent 模型调用 | ✅ | 2026-02-13 | 5c247af |
 | 8 | Agent 上下文 + 用量 | ✅ | 2026-02-13 | 30290a1 |
-| 9 | Agent 工具 + Skills | ⬜ | - | - |
+| 9 | Agent 工具 + Skills | ✅ | 2026-02-13 | cd1ca40 |
 | 10 | Telegram 核心 Bot | ⬜ | - | - |
 | 11 | Telegram 媒体/Webhook/群组 | ⬜ | - | - |
 | 12 | 用户管理 + 权限 | ⬜ | - | - |
@@ -35,7 +35,17 @@ status: not_started
 - openclaw_py/agents/providers/litellm_provider.py
 - openclaw_py/agents/providers/openai_provider.py
 - openclaw_py/agents/runtime.py
+- openclaw_py/agents/skills/types.py
+- openclaw_py/agents/skills/workspace.py
 - openclaw_py/agents/token_estimation.py
+- openclaw_py/agents/tools/bash_exec.py
+- openclaw_py/agents/tools/bash_shared.py
+- openclaw_py/agents/tools/common.py
+- openclaw_py/agents/tools/create_tools.py
+- openclaw_py/agents/tools/policy.py
+- openclaw_py/agents/tools/types.py
+- openclaw_py/agents/tools/web_fetch.py
+- openclaw_py/agents/tools/web_search.py
 - openclaw_py/agents/transcript_repair.py
 - openclaw_py/agents/types.py
 - openclaw_py/agents/usage.py

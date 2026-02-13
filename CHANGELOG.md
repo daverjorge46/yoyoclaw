@@ -366,3 +366,64 @@
 - 无
 
 **测试结果**：108 passed（75 new + 33 from batch 7）
+
+---
+
+## 批次 9：Agent 工具 + Skills（2026-02-13）
+
+**新增文件**：
+- openclaw_py/agents/tools/types.py - 工具系统类型定义（AgentTool, ToolContext, ToolResult, ToolPolicy 等）
+- openclaw_py/agents/tools/common.py - 工具通用函数（参数读取、结果格式化）
+- openclaw_py/agents/tools/policy.py - 工具策略系统（allow/deny lists, tool groups, profiles）
+- openclaw_py/agents/tools/bash_shared.py - Bash 工具共享函数（环境变量验证、路径解析）
+- openclaw_py/agents/tools/bash_exec.py - Bash 命令执行工具（exec）
+- openclaw_py/agents/tools/web_fetch.py - Web URL 获取工具（web_fetch）
+- openclaw_py/agents/tools/web_search.py - Web 搜索工具（web_search）
+- openclaw_py/agents/tools/create_tools.py - 工具集成器（create_openclaw_tools, create_coding_tools）
+- openclaw_py/agents/skills/types.py - Skills 系统类型定义（Skill, SkillEntry, SkillSnapshot 等）
+- openclaw_py/agents/skills/workspace.py - Workspace Skills 管理（加载、快照、prompt 构建）
+- openclaw_py/agents/tools/__init__.py - 工具模块导出
+- openclaw_py/agents/skills/__init__.py - Skills 模块导出
+- tests/agents/tools/test_common.py - 工具通用函数测试（24 个测试）
+- tests/agents/tools/test_policy.py - 工具策略测试（13 个测试）
+- tests/agents/tools/test_bash_exec.py - Bash 工具测试（4 个测试）
+- tests/agents/tools/test_create_tools.py - 工具集成器测试（5 个测试）
+
+**核心变更**：
+- 实现了完整的 Agent 工具系统架构：
+  - 工具类型系统（AgentTool, ToolContext, ToolResult）- 参数读取工具（read_string_param, read_number_param, read_bool_param 等）
+  - 结果格式化（text_result, json_result, error_result）
+  - 工具策略系统（allow/deny lists, tool groups, tool profiles）
+  - 工具组定义（group:fs, group:runtime, group:web, group:sessions 等）
+  - 预设配置文件（minimal, coding, messaging, full）
+- 实现了 Bash 工具（exec）：
+  - 使用 asyncio.create_subprocess_shell 执行命令
+  - 支持超时保护（默认 120 秒）
+  - 输出限制和截断（默认 200K 字符）
+  - 环境变量安全检查（阻止危险变量如 LD_PRELOAD）
+  - 非沙箱环境不允许自定义 PATH
+- 实现了 Web 工具（简化版）：
+  - web_fetch: 使用 httpx 获取 URL 内容
+  - web_search: 搜索引擎集成（占位符实现）
+- 实现了 Skills 系统核心：
+  - Skills 类型定义（Skill, SkillEntry, SkillSnapshot）
+  - Skill 元数据（依赖要求、安装规范、调用策略）
+  - Workspace Skills 加载（扫描 .claude/skills/ 目录）
+  - Skills prompt 构建
+- 实现了工具集成器：
+  - create_openclaw_tools: 创建完整工具集（exec, web_search, web_fetch）
+  - create_coding_tools: 创建编码工具集
+  - get_tool_context: 创建工具执行上下文
+- 更新 openclaw_py/agents/__init__.py 导出工具和 Skills 相关模块
+- 所有工具使用 Pydantic v2 数据模型，类型安全
+- 所有工具执行函数均为 async/await 异步模式
+- 完整的单元测试覆盖（46 个测试，100% 通过）
+
+**依赖的已有模块**：
+- openclaw_py.config.types - OpenClawConfig 配置模型
+- openclaw_py.logging - log_debug, log_warn, log_error 日志函数
+
+**已知问题**：
+- 无
+
+**测试结果**：42 passed（批次 9 新增测试）

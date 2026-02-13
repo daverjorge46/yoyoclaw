@@ -2278,15 +2278,491 @@ def derive_session_total_tokens(
 ```python
 class AgentMessage(BaseModel):
     """对话消息（批次 8 增强：支持结构化内容）"""
-    
+
     # 批次 8：新增 "toolResult" 角色
     role: Literal["system", "user", "assistant", "toolResult"]
-    
+
     # 批次 8：content 支持 list（用于 tool_use blocks）
     content: str | list[Any]
-    
+
     name: str | None = None
     metadata: dict[str, Any] | None = None
+```
+
+---
+
+## 批次 9：Agent 工具 + Skills (2026-02-13)
+
+---
+
+## openclaw_py.agents.tools.types
+路径: openclaw_py/agents/tools/types.py
+
+```python
+from openclaw_py.agents.tools.types import (
+    AnyAgentTool,
+    AgentTool,
+    ToolContext,
+    ToolExecuteFunc,
+    ToolParameter,
+    ToolPolicy,
+    ToolProfile,
+    ToolResult,
+)
+```
+
+### 数据模型
+
+**ToolParameter** (Pydantic):
+```python
+class ToolParameter(BaseModel):
+    """工具参数定义"""
+    type: Literal["string", "number", "boolean", "array", "object"]
+    description: str | None = None
+    required: bool = False
+    default: Any = None
+    items: dict[str, Any] | None = None  # array 类型
+    properties: dict[str, Any] | None = None  # object 类型
+    enum: list[str] | None = None  # string 枚举
+    minimum: float | None = None
+    maximum: float | None = None
+```
+
+**ToolResult** (Pydantic):
+```python
+class ToolResult(BaseModel):
+    """工具执行结果"""
+    content: str  # 文本内容（必需）
+    is_error: bool = False  # 是否为错误
+    images: list[dict[str, Any]] = []  # 图片列表
+    metadata: dict[str, Any] | None = None  # 额外元数据
+```
+
+**ToolContext** (Pydantic):
+```python
+class ToolContext(BaseModel):
+    """工具执行上下文"""
+    cwd: str | None = None  # 工作目录
+    sandbox_root: str | None = None  # Sandbox 根目录
+    sandboxed: bool = False  # 是否为沙箱环境
+    agent_session_key: str | None = None  # Agent 会话密钥
+    agent_channel: str | None = None  # Agent 频道
+    agent_account_id: str | None = None  # Agent 账号 ID
+    config: Any = None  # 配置（避免循环导入）
+```
+
+**AgentTool** (Pydantic):
+```python
+class AgentTool(BaseModel):
+    """Agent 工具定义（与 Anthropic SDK 兼容）"""
+    name: str  # 工具名称（唯一标识符）
+    description: str  # 工具描述
+    input_schema: dict[str, Any] = {}  # 参数 schema（JSON Schema）
+    execute: ToolExecuteFunc | None = None  # 执行函数
+```
+
+**ToolPolicy** (Pydantic):
+```python
+class ToolPolicy(BaseModel):
+    """工具策略配置"""
+    allow: list[str] = []  # 允许的工具列表（工具名或 group:name）
+    deny: list[str] = []  # 拒绝的工具列表
+```
+
+**ToolProfile** (Pydantic):
+```python
+class ToolProfile(BaseModel):
+    """工具配置文件（预设策略）"""
+    id: Literal["minimal", "coding", "messaging", "full"]
+    policy: ToolPolicy
+```
+
+### 类型别名
+
+```python
+ToolExecuteFunc = Callable[[dict[str, Any], ToolContext | None], Awaitable[ToolResult]]
+AnyAgentTool = AgentTool
+```
+
+---
+
+## openclaw_py.agents.tools.common
+路径: openclaw_py/agents/tools/common.py
+
+```python
+from openclaw_py.agents.tools.common import (
+    # 参数读取
+    read_string_param,
+    read_string_or_number_param,
+    read_number_param,
+    read_int_param,
+    read_bool_param,
+    read_list_param,
+    read_dict_param,
+    # 结果格式化
+    text_result,
+    json_result,
+    error_result,
+    success_result,
+)
+```
+
+### 参数读取函数
+
+```python
+def read_string_param(
+    params: dict[str, Any],
+    key: str,
+    *,
+    required: bool = False,
+    trim: bool = True,
+    label: str | None = None,
+    allow_empty: bool = False,
+) -> str | None:
+    """从参数中读取字符串"""
+
+def read_number_param(
+    params: dict[str, Any],
+    key: str,
+    *,
+    required: bool = False,
+    label: str | None = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
+) -> float | None:
+    """从参数中读取数字"""
+
+def read_int_param(...) -> int | None:
+    """从参数中读取整数"""
+
+def read_bool_param(
+    params: dict[str, Any],
+    key: str,
+    *,
+    default: bool | None = None,
+) -> bool | None:
+    """从参数中读取布尔值"""
+```
+
+### 结果格式化函数
+
+```python
+def text_result(content: str, is_error: bool = False) -> ToolResult:
+    """创建纯文本工具结果"""
+
+def json_result(
+    data: Any,
+    *,
+    is_error: bool = False,
+    pretty: bool = False,
+) -> ToolResult:
+    """创建 JSON 工具结果"""
+
+def error_result(message: str, details: dict[str, Any] | None = None) -> ToolResult:
+    """创建错误工具结果"""
+
+def success_result(message: str, data: dict[str, Any] | None = None) -> ToolResult:
+    """创建成功工具结果"""
+```
+
+---
+
+## openclaw_py.agents.tools.policy
+路径: openclaw_py/agents/tools/policy.py
+
+```python
+from openclaw_py.agents.tools.policy import (
+    normalize_tool_name,
+    is_owner_only_tool_name,
+    expand_tool_groups,
+    is_tool_allowed_by_policy,
+    filter_tools_by_policy,
+    apply_owner_only_tool_policy,
+    resolve_tool_profile_policy,
+    get_tool_profile,
+    TOOL_GROUPS,
+    TOOL_PROFILES,
+)
+```
+
+### 常量
+
+```python
+TOOL_GROUPS: dict[str, list[str]] = {
+    "group:memory": ["memory_search", "memory_get"],
+    "group:web": ["web_search", "web_fetch"],
+    "group:fs": ["read", "write", "edit", "apply_patch"],
+    "group:runtime": ["exec", "process"],
+    "group:sessions": ["sessions_list", "sessions_history", ...],
+    "group:ui": ["browser", "canvas"],
+    "group:automation": ["cron", "gateway"],
+    "group:messaging": ["message"],
+    "group:openclaw": [...]  # 所有 OpenClaw 原生工具
+}
+
+TOOL_PROFILES: dict[str, ToolPolicy] = {
+    "minimal": ToolPolicy(allow=["session_status"]),
+    "coding": ToolPolicy(allow=["group:fs", "group:runtime", ...]),
+    "messaging": ToolPolicy(allow=["group:messaging", ...]),
+    "full": ToolPolicy(allow=[], deny=[]),
+}
+```
+
+### 函数
+
+```python
+def normalize_tool_name(name: str) -> str:
+    """规范化工具名称（小写，应用别名）"""
+
+def expand_tool_groups(names: list[str]) -> set[str]:
+    """展开工具组为具体工具名称"""
+
+def is_tool_allowed_by_policy(tool_name: str, policy: ToolPolicy) -> bool:
+    """检查工具是否被策略允许"""
+
+def filter_tools_by_policy(
+    tools: list[AnyAgentTool],
+    policy: ToolPolicy,
+) -> list[AnyAgentTool]:
+    """根据策略过滤工具列表"""
+
+def apply_owner_only_tool_policy(
+    tools: list[AnyAgentTool],
+    sender_is_owner: bool,
+) -> list[AnyAgentTool]:
+    """应用 owner-only 工具策略"""
+
+def resolve_tool_profile_policy(
+    profile_id: Literal["minimal", "coding", "messaging", "full"] | None,
+) -> ToolPolicy:
+    """解析工具配置文件策略"""
+```
+
+---
+
+## openclaw_py.agents.tools.bash_exec
+路径: openclaw_py/agents/tools/bash_exec.py
+
+```python
+from openclaw_py.agents.tools.bash_exec import create_exec_tool
+```
+
+### 函数
+
+```python
+def create_exec_tool() -> AgentTool:
+    """创建 exec 工具（Bash 命令执行）
+
+    工具参数：
+    - command: str - 要执行的 bash 命令
+    - timeout_seconds: number - 超时（默认 120）
+    - max_output_chars: number - 最大输出字符数（默认 200000）
+
+    安全特性：
+    - 非沙箱环境阻止危险环境变量
+    - 不允许自定义 PATH
+    - 超时保护
+    """
+```
+
+---
+
+## openclaw_py.agents.tools.web_fetch
+路径: openclaw_py/agents/tools/web_fetch.py
+
+```python
+from openclaw_py.agents.tools.web_fetch import create_web_fetch_tool
+```
+
+### 函数
+
+```python
+def create_web_fetch_tool() -> AgentTool:
+    """创建 web_fetch 工具（URL 获取）
+
+    工具参数：
+    - url: str - HTTP/HTTPS URL
+    - max_chars: number - 最大字符数（默认 50000）
+
+    功能：
+    - 使用 httpx 获取 URL 内容
+    - 自动跟随重定向
+    - 内容截断
+    """
+```
+
+---
+
+## openclaw_py.agents.tools.web_search
+路径: openclaw_py/agents/tools/web_search.py
+
+```python
+from openclaw_py.agents.tools.web_search import create_web_search_tool
+```
+
+### 函数
+
+```python
+def create_web_search_tool() -> AgentTool:
+    """创建 web_search 工具（搜索引擎）
+
+    工具参数：
+    - query: str - 搜索查询
+
+    注：当前为占位符实现，需要集成搜索 API
+    """
+```
+
+---
+
+## openclaw_py.agents.tools.create_tools
+路径: openclaw_py/agents/tools/create_tools.py
+
+```python
+from openclaw_py.agents.tools.create_tools import (
+    create_openclaw_tools,
+    create_coding_tools,
+    get_tool_context,
+)
+```
+
+### 函数
+
+```python
+def create_openclaw_tools(
+    *,
+    config: OpenClawConfig | None = None,
+    sandboxed: bool = False,
+    agent_session_key: str | None = None,
+    agent_channel: str | None = None,
+    agent_account_id: str | None = None,
+    cwd: str | None = None,
+    sandbox_root: str | None = None,
+) -> list[AnyAgentTool]:
+    """创建 OpenClaw 工具集
+
+    Returns:
+        工具列表（exec, web_search, web_fetch 等）
+    """
+
+def create_coding_tools(
+    *,
+    config: OpenClawConfig | None = None,
+    cwd: str | None = None,
+    sandbox_root: str | None = None,
+) -> list[AnyAgentTool]:
+    """创建编码工具集（Bash + File 操作）"""
+
+def get_tool_context(
+    *,
+    config: OpenClawConfig | None = None,
+    sandboxed: bool = False,
+    cwd: str | None = None,
+    sandbox_root: str | None = None,
+    agent_session_key: str | None = None,
+    agent_channel: str | None = None,
+    agent_account_id: str | None = None,
+) -> ToolContext:
+    """创建工具执行上下文"""
+```
+
+---
+
+## openclaw_py.agents.skills.types
+路径: openclaw_py/agents/skills/types.py
+
+```python
+from openclaw_py.agents.skills.types import (
+    Skill,
+    SkillEntry,
+    SkillSnapshot,
+    SkillInstallSpec,
+    SkillCommandSpec,
+    SkillsInstallPreferences,
+    OpenClawSkillMetadata,
+    SkillInvocationPolicy,
+)
+```
+
+### 数据模型
+
+**Skill** (Pydantic):
+```python
+class Skill(BaseModel):
+    """Skill 定义"""
+    name: str  # Skill 名称
+    description: str  # Skill 描述
+    content: str  # Skill 内容（Markdown）
+    meta: OpenClawSkillMetadata = {}
+```
+
+**SkillEntry** (Pydantic):
+```python
+class SkillEntry(BaseModel):
+    """Skill 条目"""
+    skill: Skill
+    frontmatter: dict[str, str] = {}  # YAML frontmatter
+    metadata: OpenClawSkillMetadata | None = None
+    invocation: SkillInvocationPolicy | None = None
+```
+
+**SkillSnapshot** (Pydantic):
+```python
+class SkillSnapshot(BaseModel):
+    """Skill 快照"""
+    prompt: str  # Skills prompt 文本
+    skills: list[dict[str, Any]] = []  # Skill 列表
+    resolved_skills: list[Skill] | None = None
+    version: int | None = None
+```
+
+**OpenClawSkillMetadata** (Pydantic):
+```python
+class OpenClawSkillMetadata(BaseModel):
+    """Skill 元数据"""
+    always: bool = False  # 是否总是加载
+    skill_key: str | None = None
+    primary_env: str | None = None
+    emoji: str | None = None
+    homepage: str | None = None
+    os: list[str] = []  # 支持的操作系统
+    requires: dict[str, Any] = {}  # 依赖要求
+    install: list[SkillInstallSpec] = []  # 安装规范
+```
+
+---
+
+## openclaw_py.agents.skills.workspace
+路径: openclaw_py/agents/skills/workspace.py
+
+```python
+from openclaw_py.agents.skills.workspace import (
+    load_workspace_skill_entries,
+    build_workspace_skill_snapshot,
+    build_workspace_skills_prompt,
+)
+```
+
+### 函数
+
+```python
+async def load_workspace_skill_entries(
+    workspace_dir: str | Path,
+) -> list[SkillEntry]:
+    """从工作区加载 Skill 条目
+
+    扫描 .claude/skills/ 目录中的 .md 文件
+    """
+
+async def build_workspace_skill_snapshot(
+    workspace_dir: str | Path,
+) -> SkillSnapshot:
+    """构建工作区 Skill 快照"""
+
+def build_workspace_skills_prompt(
+    snapshot: SkillSnapshot,
+) -> str:
+    """构建工作区 Skills prompt"""
 ```
 
 ---
