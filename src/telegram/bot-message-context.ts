@@ -599,6 +599,12 @@ export const buildTelegramMessageContext = async ({
     combinedBody = `${crossChannelCtx}\n\n${combinedBody}`;
   }
 
+  // Session State: inject task context for diagnostic continuity
+  const sessionStateCtx = await injectSessionStateContext(sessionKey, storePath);
+  if (sessionStateCtx) {
+    combinedBody = `${sessionStateCtx}\n\n${combinedBody}`;
+  }
+
   const skillFilter = firstDefined(topicConfig?.skills, groupConfig?.skills);
   const systemPromptParts = [
     groupConfig?.systemPrompt?.trim() || null,
@@ -732,3 +738,160 @@ export const buildTelegramMessageContext = async ({
     accountId: account.accountId,
   };
 };
+
+// Session State: Inject task context for diagnostic continuity
+// Reads state markers from session history and injects active task context
+async function injectSessionStateContext(
+  sessionKey: string,
+  storePath: string,
+): Promise<string | null> {
+  try {
+    // Only inject for telegram sessions (Wuji's main use case)
+    if (!sessionKey.startsWith("telegram:")) {
+      return null;
+    }
+
+    // Build session file path
+    const sessionFileName = sessionKey.replace(/:/g, "_") + ".jsonl";
+    const sessionFilePath = `${storePath}/${sessionFileName}`;
+
+    // Check if file exists (we'll read it synchronously for performance)
+    const fs = await import("node:fs");
+    if (!fs.existsSync(sessionFilePath)) {
+      return null;
+    }
+
+    // Read and parse session file
+    const content = fs.readFileSync(sessionFilePath, "utf-8");
+    const lines = content.split("\n").filter((line) => line.trim());
+
+    // Parse state markers
+    const STATE_MARKER = "[INTERNAL_STATE]";
+    const TASK_START_MARKER = "[TASK_START]";
+    const TASK_STEP_MARKER = "[TASK_STEP]";
+    const TASK_WAIT_MARKER = "[TASK_WAIT]";
+    const TASK_END_MARKER = "[TASK_END]";
+
+    interface Task {
+      id: string;
+      title: string;
+      service: string;
+      steps: Array<{ step: string; result: string }>;
+      waitingFor: string | null;
+      context: Record<string, string>;
+      ended: boolean;
+    }
+
+    const tasks = new Map<string, Task>();
+
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        if (entry.type !== "message" || entry.role !== "assistant") continue;
+        if (!entry.content?.startsWith(STATE_MARKER)) continue;
+
+        const content: string = entry.content;
+
+        // Extract task ID from ID line or task line
+        const idMatch = content.match(/ID[:：]\s*(\S+)/);
+        const taskIdFromId = idMatch?.[1];
+        const taskIdFromTask = content.match(/任务[:：]\s*(\S+)/)?.[1];
+        const taskId = taskIdFromId || taskIdFromTask;
+
+        if (!taskId) continue;
+
+        if (content.includes(TASK_START_MARKER)) {
+          const titleMatch = content.match(/任务[:：]\s*(.+?)(?:\n|$)/);
+          const serviceMatch = content.match(/服务[:：]\s*(\S+)/);
+          tasks.set(taskId, {
+            id: taskId,
+            title: titleMatch?.[1]?.trim() || taskId,
+            service: serviceMatch?.[1] || "unknown",
+            steps: [],
+            waitingFor: null,
+            context: {},
+            ended: false,
+          });
+        } else if (tasks.has(taskId)) {
+          const task = tasks.get(taskId)!;
+
+          if (content.includes(TASK_STEP_MARKER)) {
+            const stepMatch = content.match(/步骤[:：]\s*(.+?)(?:\n|$)/);
+            const resultMatch = content.match(/结果[:：]\s*(.+)/s);
+            if (stepMatch) {
+              task.steps.push({
+                step: stepMatch[1].trim(),
+                result: resultMatch?.[1]?.trim() || "",
+              });
+            }
+          } else if (content.includes(TASK_WAIT_MARKER)) {
+            const waitMatch = content.match(/等待[:：]\s*(.+)/);
+            if (waitMatch) {
+              task.waitingFor = waitMatch[1].trim();
+            }
+            // Extract context
+            const contextLines = content.split("\n").slice(3); // Skip header lines
+            for (const ctxLine of contextLines) {
+              const colonIndex = ctxLine.indexOf(":");
+              if (colonIndex > 0) {
+                const key = ctxLine.slice(0, colonIndex).trim();
+                const value = ctxLine.slice(colonIndex + 1).trim();
+                if (key && value && !key.includes("[INTERNAL_STATE]")) {
+                  task.context[key] = value;
+                }
+              }
+            }
+          } else if (content.includes(TASK_END_MARKER)) {
+            task.ended = true;
+          }
+        }
+      } catch {
+        // Skip malformed lines
+        continue;
+      }
+    }
+
+    // Filter to active tasks only
+    const activeTasks = Array.from(tasks.values()).filter((t) => !t.ended);
+    if (activeTasks.length === 0) {
+      return null;
+    }
+
+    // Build context message
+    const contextLines: string[] = ["📋 当前活跃任务状态："];
+
+    for (const task of activeTasks) {
+      contextLines.push(`\n【${task.title}】`);
+      contextLines.push(`服务: ${task.service} | ID: ${task.id}`);
+
+      if (task.steps.length > 0) {
+        contextLines.push("已执行步骤：");
+        for (let i = Math.max(0, task.steps.length - 3); i < task.steps.length; i++) {
+          const step = task.steps[i];
+          const resultPreview = step.result.slice(0, 50) + (step.result.length > 50 ? "..." : "");
+          contextLines.push(`  ${i + 1}. ${step.step} → ${resultPreview}`);
+        }
+      }
+
+      if (task.waitingFor) {
+        contextLines.push(`⏸️ 等待中: ${task.waitingFor}`);
+      }
+
+      if (Object.keys(task.context).length > 0) {
+        contextLines.push("上下文：");
+        for (const [key, value] of Object.entries(task.context)) {
+          const valuePreview = value.slice(0, 100) + (value.length > 100 ? "..." : "");
+          contextLines.push(`  ${key}: ${valuePreview}`);
+        }
+      }
+    }
+
+    contextLines.push("\n[INTERNAL_STATE] 如需继续这些任务，请基于以上状态行动。");
+
+    return contextLines.join("\n");
+  } catch (err) {
+    // Fail silently - don't block message processing
+    logVerbose(`session-state: failed to inject context: ${String(err)}`);
+    return null;
+  }
+}
