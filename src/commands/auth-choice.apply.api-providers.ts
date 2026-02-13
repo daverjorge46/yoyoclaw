@@ -7,6 +7,7 @@ import {
   validateApiKeyInput,
 } from "./auth-choice.api-key.js";
 import { applyDefaultModelChoice } from "./auth-choice.default-model.js";
+import { applyDigitalOceanGradientAuthChoice } from "./digitalocean-gradient-config.js";
 import {
   applyGoogleGeminiModelDefault,
   GOOGLE_GEMINI_DEFAULT_MODEL,
@@ -1047,6 +1048,10 @@ export async function applyAuthChoiceApiProviders(
       agentModelOverride = applied.agentModelOverride ?? agentModelOverride;
     }
     return { config: nextConfig, agentModelOverride };
+  }
+
+  if (authChoice === "digitalocean-gradient-api-key") {
+    return applyDigitalOceanGradientAuthChoice(params);
   }
 
   return null;

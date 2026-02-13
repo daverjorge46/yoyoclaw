@@ -43,6 +43,7 @@ export type AuthChoice =
   | "qwen-portal"
   | "xai-api-key"
   | "qianfan-api-key"
+  | "digitalocean-gradient-api-key"
   | "custom-api-key"
   | "skip";
 export type AuthChoiceGroupId =
@@ -111,6 +112,7 @@ export type OnboardOptions = {
   opencodeZenApiKey?: string;
   xaiApiKey?: string;
   qianfanApiKey?: string;
+  digitaloceanApiKey?: string;
   customBaseUrl?: string;
   customApiKey?: string;
   customModelId?: string;
