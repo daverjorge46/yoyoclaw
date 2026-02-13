@@ -33,8 +33,8 @@ export default function register(api: OpenClawPluginApi) {
       [],
   );
 
-  const agentId = api.config.agent?.id ?? api.id ?? "unknown";
-  const agentName = api.config.agent?.name ?? api.name ?? "";
+  const agentId = api.id ?? "unknown";
+  const agentName = api.name ?? "";
   const botUserId = process.env.SLACK_BOT_USER_ID ?? "";
 
   // ---------------------------------------------------------------------------

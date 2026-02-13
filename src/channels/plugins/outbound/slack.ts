@@ -20,7 +20,12 @@ export const slackOutbound: ChannelOutboundAdapter = {
         { channelId: "slack", accountId: accountId ?? undefined },
       );
       if (hookResult?.cancel) {
-        return { channel: "slack", ts: undefined as unknown as string };
+        return {
+          channel: "slack",
+          messageId: "cancelled-by-hook",
+          channelId: to,
+          meta: { cancelled: true },
+        };
       }
       if (hookResult?.content) {
         finalText = hookResult.content;
@@ -47,7 +52,12 @@ export const slackOutbound: ChannelOutboundAdapter = {
         { channelId: "slack", accountId: accountId ?? undefined },
       );
       if (hookResult?.cancel) {
-        return { channel: "slack", ts: undefined as unknown as string };
+        return {
+          channel: "slack",
+          messageId: "cancelled-by-hook",
+          channelId: to,
+          meta: { cancelled: true },
+        };
       }
       if (hookResult?.content) {
         finalText = hookResult.content;
