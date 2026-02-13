@@ -20,6 +20,14 @@ import { formatContextUsageShort, formatTokenCount } from "../status.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 import { incrementCompactionCount } from "./session-updates.js";
 
+function isAbortError(err: unknown): boolean {
+  if (!err || typeof err !== "object") {
+    return false;
+  }
+  const name = "name" in err ? String(err.name) : "";
+  return name === "AbortError";
+}
+
 function extractCompactInstructions(params: {
   rawBody?: string;
   ctx: import("../templating.js").MsgContext;
@@ -133,6 +141,9 @@ export const handleCompactCommand: CommandHandler = async (params) => {
       result = fallbackResult.result;
       break;
     } catch (err) {
+      if (isAbortError(err)) {
+        throw err;
+      }
       const message = err instanceof Error ? err.message : String(err);
       if (!didRetryTransientHttpError && isTransientHttpError(message)) {
         didRetryTransientHttpError = true;
