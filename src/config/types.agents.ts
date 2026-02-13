@@ -64,6 +64,10 @@ export type AgentConfig = {
   };
   /** Per-agent compaction overrides (mode, reserveTokensFloor, maxHistoryShare, memoryFlush). */
   compaction?: AgentCompactionConfig;
+  /** Per-agent context pruning overrides (mode: off | cache-ttl). */
+  contextPruning?: {
+    mode?: "off" | "cache-ttl";
+  };
   tools?: AgentToolsConfig;
 };
 

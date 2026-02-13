@@ -47,7 +47,7 @@ function buildContextPruningExtension(params: {
   // Per-agent contextPruning.mode overrides the global default.
   const effectiveMode = params.cfg
     ? resolveAgentContextPruningMode(params.cfg, params.agentId)
-    : params.cfg?.agents?.defaults?.contextPruning?.mode;
+    : undefined;
   if (effectiveMode !== "cache-ttl") {
     return {};
   }
