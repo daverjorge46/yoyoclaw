@@ -215,13 +215,25 @@ export type SlackThreadMessage = {
   files?: SlackFile[];
 };
 
+type SlackRepliesPageMessage = {
+  text?: string;
+  user?: string;
+  bot_id?: string;
+  ts?: string;
+  files?: SlackFile[];
+};
+
+type SlackRepliesPage = {
+  messages?: SlackRepliesPageMessage[];
+  response_metadata?: { next_cursor?: string };
+};
+
 /**
  * Fetches the most recent messages in a Slack thread (excluding the current message).
  * Used to populate thread context when a new thread session starts.
  *
- * We fetch up to 200 messages (Slack recommends no more than 200 per request for pagination)
- * and return the most recent N. This ensures we get relevant recent context even in long threads,
- * without needing cursor-based pagination for most real-world use cases.
+ * Uses cursor pagination and keeps only the latest N retained messages so long threads
+ * still produce up-to-date context without unbounded memory growth.
  */
 export async function resolveSlackThreadHistory(params: {
   channelId: string;
@@ -231,48 +243,53 @@ export async function resolveSlackThreadHistory(params: {
   limit?: number;
 }): Promise<SlackThreadMessage[]> {
   const maxMessages = params.limit ?? 20;
-  // Fetch more than needed to ensure we can get the most recent messages after filtering.
-  // 200 is the recommended max per Slack docs; exceeding this rarely happens in practice.
-  const fetchLimit = 200;
-  try {
-    const response = (await params.client.conversations.replies({
-      channel: params.channelId,
-      ts: params.threadTs,
-      limit: fetchLimit,
-      inclusive: true,
-    })) as {
-      messages?: Array<{
-        text?: string;
-        user?: string;
-        bot_id?: string;
-        ts?: string;
-        files?: SlackFile[];
-      }>;
-    };
+  if (!Number.isFinite(maxMessages) || maxMessages <= 0) {
+    return [];
+  }
 
-    const messages = response?.messages ?? [];
-    return messages
-      .filter((msg) => {
+  // Slack recommends no more than 200 per page.
+  const fetchLimit = 200;
+  const retained: SlackRepliesPageMessage[] = [];
+  let cursor: string | undefined;
+
+  try {
+    do {
+      const response = (await params.client.conversations.replies({
+        channel: params.channelId,
+        ts: params.threadTs,
+        limit: fetchLimit,
+        inclusive: true,
+        ...(cursor ? { cursor } : {}),
+      })) as SlackRepliesPage;
+
+      for (const msg of response.messages ?? []) {
         // Keep messages with text OR file attachments
         if (!msg.text?.trim() && !msg.files?.length) {
-          return false;
+          continue;
         }
         if (params.currentMessageTs && msg.ts === params.currentMessageTs) {
-          return false;
+          continue;
         }
-        return true;
-      })
-      .slice(-maxMessages) // Take the most recent N messages
-      .map((msg) => ({
-        // For file-only messages, create a placeholder showing attached filenames
-        text: msg.text?.trim()
-          ? msg.text
-          : `[attached: ${msg.files?.map((f) => f.name ?? "file").join(", ")}]`,
-        userId: msg.user,
-        botId: msg.bot_id,
-        ts: msg.ts,
-        files: msg.files,
-      }));
+        retained.push(msg);
+        if (retained.length > maxMessages) {
+          retained.shift();
+        }
+      }
+
+      const next = response.response_metadata?.next_cursor;
+      cursor = typeof next === "string" && next.trim().length > 0 ? next.trim() : undefined;
+    } while (cursor);
+
+    return retained.map((msg) => ({
+      // For file-only messages, create a placeholder showing attached filenames
+      text: msg.text?.trim()
+        ? msg.text
+        : `[attached: ${msg.files?.map((f) => f.name ?? "file").join(", ")}]`,
+      userId: msg.user,
+      botId: msg.bot_id,
+      ts: msg.ts,
+      files: msg.files,
+    }));
   } catch {
     return [];
   }
