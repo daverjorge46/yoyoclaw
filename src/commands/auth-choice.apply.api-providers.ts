@@ -16,8 +16,6 @@ import {
 } from "./google-gemini-model-default.js";
 import {
   applyAuthProfileConfig,
-  applyEdgeeConfig,
-  applyEdgeeProviderConfig,
   applyCloudflareAiGatewayConfig,
   applyCloudflareAiGatewayProviderConfig,
   applyQianfanConfig,
@@ -45,7 +43,6 @@ import {
   applyZaiConfig,
   applyZaiProviderConfig,
   CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF,
-  EDGEE_DEFAULT_MODEL_REF,
   LITELLM_DEFAULT_MODEL_REF,
   QIANFAN_DEFAULT_MODEL_REF,
   KIMI_CODING_MODEL_REF,
@@ -56,7 +53,6 @@ import {
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
   setCloudflareAiGatewayConfig,
-  setEdgeeApiKey,
   setQianfanApiKey,
   setGeminiApiKey,
   setLitellmApiKey,
