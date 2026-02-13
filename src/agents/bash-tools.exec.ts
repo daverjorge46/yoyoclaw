@@ -20,6 +20,7 @@ import {
   resolveExecApprovalsFromFile,
 } from "../infra/exec-approvals.js";
 import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
+import { createExecCompletionEvent, triggerInternalHook } from "../hooks/internal-hooks.js";
 import { buildNodeShellCommand } from "../infra/node-shell.js";
 import {
   getShellPathFromLoginShell,
@@ -395,6 +396,36 @@ function maybeNotifyOnExit(session: ProcessSession, status: "completed" | "faile
   requestHeartbeatNow({ reason: `exec:${session.id}:exit` });
 }
 
+/**
+ * Fire exec:completed or exec:failed hook event whenever a process exits.
+ * Unlike maybeNotifyOnExit, this fires for ALL exec completions (not just
+ * backgrounded ones with notifyOnExit), giving hooks full visibility.
+ */
+/**
+ * Fire exec:completed or exec:failed hook event whenever a process exits.
+ * Unlike maybeNotifyOnExit, this fires for ALL exec completions (not just
+ * backgrounded ones with notifyOnExit), giving hooks full visibility.
+ */
+function fireExecCompletionHook(session: ProcessSession, status: "completed" | "failed") {
+  const sessionKey = session.sessionKey?.trim();
+  if (!sessionKey) {
+    return;
+  }
+  const event = createExecCompletionEvent(status, sessionKey, {
+    sessionId: session.id,
+    exitCode: session.exitCode ?? null,
+    exitSignal: session.exitSignal ?? null,
+    timedOut: false,
+    durationMs: Date.now() - session.startedAt,
+    tailOutput: normalizeNotifyOutput(
+      tail(session.tail || session.aggregated || "", DEFAULT_NOTIFY_TAIL_CHARS),
+    ),
+    backgrounded: session.backgrounded ?? false,
+  });
+  // Fire-and-forget; errors are caught inside triggerInternalHook
+  void triggerInternalHook(event);
+}
+
 function createApprovalSlug(id: string) {
   return id.slice(0, APPROVAL_SLUG_LENGTH);
 }
@@ -619,6 +650,7 @@ async function runExecProcess(opts: {
     }
     markExited(session, null, "SIGKILL", "failed");
     maybeNotifyOnExit(session, "failed");
+    fireExecCompletionHook(session, "failed");
     const aggregated = session.aggregated.trim();
     const reason = `Command timed out after ${opts.timeoutSec} seconds`;
     settle({
@@ -715,6 +747,7 @@ async function runExecProcess(opts: {
       const status: "completed" | "failed" = isSuccess ? "completed" : "failed";
       markExited(session, code, exitSignal, status);
       maybeNotifyOnExit(session, status);
+      fireExecCompletionHook(session, status);
       if (!session.child && session.stdin) {
         session.stdin.destroyed = true;
       }
@@ -773,6 +806,7 @@ async function runExecProcess(opts: {
         }
         markExited(session, null, null, "failed");
         maybeNotifyOnExit(session, "failed");
+        fireExecCompletionHook(session, "failed");
         const aggregated = session.aggregated.trim();
         const message = aggregated ? `${aggregated}\n\n${String(err)}` : String(err);
         settle({
@@ -1258,6 +1292,27 @@ export function createExecTool(
         const errorText = typeof payloadObj.error === "string" ? payloadObj.error : "";
         const success = typeof payloadObj.success === "boolean" ? payloadObj.success : false;
         const exitCode = typeof payloadObj.exitCode === "number" ? payloadObj.exitCode : null;
+        const nodeExecDurationMs = Date.now() - startedAt;
+        const nodeExecStatus: "completed" | "failed" = success ? "completed" : "failed";
+        const nodeExecOutput = [stdout, stderr, errorText].filter(Boolean).join("\n");
+
+        // Fire exec completion hook for node exec
+        if (sessionKey) {
+          const hookEvent = createExecCompletionEvent(nodeExecStatus, sessionKey, {
+            sessionId: approvalId ?? crypto.randomUUID(),
+            exitCode,
+            exitSignal: null,
+            timedOut: false,
+            durationMs: nodeExecDurationMs,
+            tailOutput: normalizeNotifyOutput(
+              tail(nodeExecOutput, DEFAULT_NOTIFY_TAIL_CHARS),
+            ),
+            backgrounded: false,
+            nodeId,
+          });
+          void triggerInternalHook(hookEvent);
+        }
+
         return {
           content: [
             {
@@ -1266,10 +1321,10 @@ export function createExecTool(
             },
           ],
           details: {
-            status: success ? "completed" : "failed",
+            status: nodeExecStatus,
             exitCode,
-            durationMs: Date.now() - startedAt,
-            aggregated: [stdout, stderr, errorText].filter(Boolean).join("\n"),
+            durationMs: nodeExecDurationMs,
+            aggregated: nodeExecOutput,
             cwd: workdir,
           } satisfies ExecToolDetails,
         };
@@ -1459,6 +1514,22 @@ export function createExecTool(
               ? `Exec finished (gateway id=${approvalId}, session=${run.session.id}, ${exitLabel})\n${output}`
               : `Exec finished (gateway id=${approvalId}, session=${run.session.id}, ${exitLabel})`;
             emitExecSystemEvent(summary, { sessionKey: notifySessionKey, contextKey });
+
+            // Fire exec completion hook for gateway-approved exec
+            if (notifySessionKey) {
+              const gwStatus: "completed" | "failed" = outcome.status === "completed" ? "completed" : "failed";
+              const gwHookEvent = createExecCompletionEvent(gwStatus, notifySessionKey, {
+                sessionId: run.session.id,
+                slug: run.session.slug ?? undefined,
+                exitCode: outcome.exitCode ?? null,
+                exitSignal: outcome.exitSignal ?? null,
+                timedOut: outcome.timedOut ?? false,
+                durationMs: outcome.durationMs ?? 0,
+                tailOutput: output,
+                backgrounded: true,
+              });
+              void triggerInternalHook(gwHookEvent);
+            }
           })();
 
           return {
