@@ -345,8 +345,11 @@ export async function loadExtraBootstrapFiles(
         continue;
       }
       const content = await fs.readFile(realFilePath, "utf-8");
+      // Use basename so "projects/quaid/TOOLS.md" maps to the known "TOOLS.md" name.
+      // Non-standard basenames still get cast but the common case is type-correct.
+      const baseName = path.basename(relPath) as WorkspaceBootstrapFileName;
       result.push({
-        name: relPath as WorkspaceBootstrapFileName,
+        name: baseName,
         path: filePath,
         content,
         missing: false,

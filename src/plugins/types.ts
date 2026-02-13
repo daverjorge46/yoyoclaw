@@ -342,7 +342,10 @@ export type PluginHookAgentEndEvent = {
 
 // Compaction hooks
 export type PluginHookBeforeCompactionEvent = {
+  /** Total messages in the session before any truncation or compaction */
   messageCount: number;
+  /** Messages being fed to the compaction LLM (after history-limit truncation) */
+  compactingCount?: number;
   tokenCount?: number;
   messages?: unknown[];
 };

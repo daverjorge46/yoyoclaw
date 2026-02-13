@@ -457,9 +457,14 @@ export async function compactEmbeddedPiSessionDirect(
         };
         if (hookRunner?.hasHooks("before_compaction")) {
           try {
+            // messageCount is the full pre-compaction history length.
+            // The compaction itself runs on `limited` (truncated transcript),
+            // but plugins receive the complete pre-compaction messages for
+            // fact extraction before any history is discarded.
             await hookRunner.runBeforeCompaction(
               {
                 messageCount: preCompactionMessages.length,
+                compactingCount: limited.length,
                 messages: preCompactionMessages,
               },
               hookCtx,

@@ -108,16 +108,16 @@ export async function handleCommands(params: HandleCommandsParams): Promise<Comm
     }
 
     // Fire before_reset plugin hook — extract memories before session history is lost
-    const prevEntry = params.previousSessionEntry;
-    if (prevEntry?.sessionFile) {
-      const hookRunner = getGlobalHookRunner();
-      if (hookRunner?.hasHooks("before_reset")) {
-        const sessionFile = prevEntry.sessionFile;
-        // Fire-and-forget: read old session messages and run hook
-        void (async () => {
-          try {
+    const hookRunner = getGlobalHookRunner();
+    if (hookRunner?.hasHooks("before_reset")) {
+      const prevEntry = params.previousSessionEntry;
+      const sessionFile = prevEntry?.sessionFile;
+      // Fire-and-forget: read old session messages and run hook
+      void (async () => {
+        try {
+          const messages: unknown[] = [];
+          if (sessionFile) {
             const content = await fs.readFile(sessionFile, "utf-8");
-            const messages: unknown[] = [];
             for (const line of content.split("\n")) {
               if (!line.trim()) {
                 continue;
@@ -131,22 +131,22 @@ export async function handleCommands(params: HandleCommandsParams): Promise<Comm
                 // skip malformed lines
               }
             }
-            if (messages.length > 0) {
-              await hookRunner.runBeforeReset(
-                { sessionFile, messages, reason: commandAction },
-                {
-                  agentId: params.sessionKey?.split(":")[0] ?? "main",
-                  sessionKey: params.sessionKey,
-                  sessionId: prevEntry.sessionId,
-                  workspaceDir: params.workspaceDir,
-                },
-              );
-            }
-          } catch (err: unknown) {
-            logVerbose(`before_reset hook failed: ${String(err)}`);
+          } else {
+            logVerbose("before_reset: no session file available, firing hook with empty messages");
           }
-        })();
-      }
+          await hookRunner.runBeforeReset(
+            { sessionFile, messages, reason: commandAction },
+            {
+              agentId: params.sessionKey?.split(":")[0] ?? "main",
+              sessionKey: params.sessionKey,
+              sessionId: prevEntry?.sessionId,
+              workspaceDir: params.workspaceDir,
+            },
+          );
+        } catch (err: unknown) {
+          logVerbose(`before_reset hook failed: ${String(err)}`);
+        }
+      })();
     }
   }
 
