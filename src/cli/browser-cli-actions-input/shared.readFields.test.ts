@@ -110,9 +110,9 @@ describe("readFields", () => {
   });
 
   it("throws when ref is missing", async () => {
-    await expect(
-      readFields({ fields: JSON.stringify([{ value: "hello" }]) }),
-    ).rejects.toThrow("fields[0] must include ref");
+    await expect(readFields({ fields: JSON.stringify([{ value: "hello" }]) })).rejects.toThrow(
+      "fields[0] must include ref",
+    );
   });
 
   it("throws when ref is empty string", async () => {

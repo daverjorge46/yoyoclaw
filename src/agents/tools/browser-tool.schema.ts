@@ -66,11 +66,18 @@ const BrowserActSchema = Type.Object({
   // select
   values: Type.Optional(Type.Array(Type.String())),
   // fill
-  fields: Type.Optional(Type.Array(Type.Object({
-    ref: Type.String(),
-    type: Type.Optional(Type.String()),
-    value: Type.Optional(Type.String()),
-  }, { additionalProperties: true }))),
+  fields: Type.Optional(
+    Type.Array(
+      Type.Object(
+        {
+          ref: Type.String(),
+          type: Type.Optional(Type.String()),
+          value: Type.Optional(Type.String()),
+        },
+        { additionalProperties: true },
+      ),
+    ),
+  ),
   // resize
   width: Type.Optional(Type.Number()),
   height: Type.Optional(Type.Number()),
