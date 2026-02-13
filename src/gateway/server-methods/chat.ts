@@ -1,6 +1,7 @@
 import { CURRENT_SESSION_VERSION, SessionManager } from "@mariozechner/pi-coding-agent";
 import fs from "node:fs";
 import path from "node:path";
+import { inlineAudioInMessage } from "../chat-audio-inline.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
@@ -177,12 +178,14 @@ function broadcastChatFinal(params: {
   message?: Record<string, unknown>;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
+  // Inline audio files for webchat playback
+  const message = params.message ? inlineAudioInMessage(params.message) : params.message;
   const payload = {
     runId: params.runId,
     sessionKey: params.sessionKey,
     seq,
     state: "final" as const,
-    message: params.message,
+    message,
   };
   params.context.broadcast("chat", payload);
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
@@ -252,10 +255,17 @@ export const chatHandlers: GatewayRequestHandlers = {
       }
     }
     const verboseLevel = entry?.verboseLevel ?? cfg.agents?.defaults?.verboseDefault;
+    // Inline audio files for webchat playback
+    const processed = capped.map((msg) => {
+      if (typeof msg === "object" && msg !== null) {
+        return inlineAudioInMessage(msg as Record<string, unknown>);
+      }
+      return msg;
+    });
     respond(true, {
       sessionKey,
       sessionId,
-      messages: capped,
+      messages: processed,
       thinkingLevel,
       verboseLevel,
     });
