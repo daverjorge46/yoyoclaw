@@ -149,7 +149,9 @@ function matchesPeer(
   if (!kind || !id) {
     return false;
   }
-  return kind === peer.kind && id === peer.id;
+  // Fix #14612: Normalize incoming peer.kind to handle "dm" vs "direct" mismatch
+  const normalizedPeerKind = normalizeChatType(peer.kind);
+  return kind === normalizedPeerKind && id === peer.id;
 }
 
 function matchesGuild(
@@ -185,7 +187,10 @@ function matchesRoles(
 export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentRoute {
   const channel = normalizeToken(input.channel);
   const accountId = normalizeAccountId(input.accountId);
-  const peer = input.peer ? { kind: input.peer.kind, id: normalizeId(input.peer.id) } : null;
+  // Fix #14612: Normalize peer.kind to handle "dm" vs "direct" consistently
+  const peer = input.peer
+    ? { kind: normalizeChatType(input.peer.kind) ?? input.peer.kind, id: normalizeId(input.peer.id) }
+    : null;
   const guildId = normalizeId(input.guildId);
   const teamId = normalizeId(input.teamId);
   const memberRoleIds = input.memberRoleIds ?? [];
@@ -235,8 +240,12 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   }
 
   // Thread parent inheritance: if peer (thread) didn't match, check parent peer binding
+  // Fix #14612: Normalize parentPeer.kind to handle "dm" vs "direct" consistently
   const parentPeer = input.parentPeer
-    ? { kind: input.parentPeer.kind, id: normalizeId(input.parentPeer.id) }
+    ? {
+        kind: normalizeChatType(input.parentPeer.kind) ?? input.parentPeer.kind,
+        id: normalizeId(input.parentPeer.id),
+      }
     : null;
   if (parentPeer && parentPeer.id) {
     const parentPeerMatch = bindings.find((b) => matchesPeer(b.match, parentPeer));
