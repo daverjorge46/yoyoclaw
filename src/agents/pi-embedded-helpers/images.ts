@@ -77,11 +77,66 @@ export async function sanitizeSessionMessagesImages(
       const userMsg = msg as Extract<AgentMessage, { role: "user" }>;
       const content = userMsg.content;
       if (Array.isArray(content)) {
+        // Sanitize images first
         const nextContent = (await sanitizeContentBlocksImages(
           content as unknown as ContentBlock[],
           label,
-        )) as unknown as typeof userMsg.content;
-        out.push({ ...userMsg, content: nextContent });
+        )) as unknown as ContentBlock[];
+
+        if (!Array.isArray(nextContent)) {
+          out.push({ ...userMsg, content: nextContent });
+          continue;
+        }
+
+        // NEW: Sanitize inbound metadata artifacts from text blocks
+        const metadataRegex =
+          /(?:Conversation info|Sender|Thread starter|Replied message|Forwarded message context|Chat history since last reply) \(untrusted(?: metadata|,\s+for\s+context)\):\n```json\n[\s\S]*?\n```\n*/g;
+
+        const cleanedContent = nextContent
+          .map((block: ContentBlock) => {
+            if (
+              !block ||
+              typeof block !== "object" ||
+              (block as { type?: unknown }).type !== "text"
+            ) {
+              return block;
+            }
+            const rec = block as { text?: unknown };
+            if (typeof rec.text !== "string") {
+              return block;
+            }
+            // Only strip if it matches the start of the block (it's a prefix)
+            // or if it's clearly a metadata block insertion.
+            // Using replaceAll to catch multiple blocks if they stacked up.
+            const cleanedText = rec.text.replace(metadataRegex, "").trim();
+            // If the text became empty after stripping but wasn't empty before,
+            // it means it was PURE metadata. We keep it as a placeholder or empty string
+            // rather than letting the filter drop the entire turn.
+            return { ...block, text: cleanedText };
+          })
+          .filter((block: ContentBlock) => {
+            if (!block || typeof block !== "object") {
+              return true;
+            }
+            const rec = block as { type?: unknown; text?: unknown };
+            // We only filter out blocks that were ALREADY empty before sanitization,
+            // or if they are just artifactual empty strings.
+            if (
+              rec.type === "text" &&
+              rec.text === "" &&
+              content.length > 1 // Only filter if there are other blocks (like images)
+            ) {
+              return false;
+            }
+            return true;
+          });
+
+        if (cleanedContent.length > 0) {
+          out.push({ ...userMsg, content: cleanedContent });
+        }
+        // If content became empty (e.g. pure metadata + no user text), drop the message?
+        // No, might have been an image-only message where images were also sanitized away (unlikely).
+        // Safest is to not push if empty, effectively dropping it.
         continue;
       }
     }
