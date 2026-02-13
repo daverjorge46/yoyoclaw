@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
       thinkingLevel: "low",
       inputTokens: 2_000,
       outputTokens: 3_000,
+      totalTokens: 5_000,
       contextTokens: 10_000,
       model: "pi:opus",
       sessionId: "abc123",
@@ -311,6 +312,30 @@ describe("statusCommand", () => {
     expect(payload.nodeService.label).toBe("LaunchAgent");
   });
 
+  it("surfaces unknown usage when totalTokens is missing", async () => {
+    const originalLoadSessionStore = mocks.loadSessionStore.getMockImplementation();
+    mocks.loadSessionStore.mockReturnValue({
+      "+1000": {
+        updatedAt: Date.now() - 60_000,
+        inputTokens: 2_000,
+        outputTokens: 3_000,
+        contextTokens: 10_000,
+        model: "pi:opus",
+      },
+    });
+
+    (runtime.log as vi.Mock).mockClear();
+    await statusCommand({ json: true }, runtime as never);
+    const payload = JSON.parse((runtime.log as vi.Mock).mock.calls.at(-1)?.[0]);
+    expect(payload.sessions.recent[0].totalTokens).toBeNull();
+    expect(payload.sessions.recent[0].percentUsed).toBeNull();
+    expect(payload.sessions.recent[0].remainingTokens).toBeNull();
+
+    if (originalLoadSessionStore) {
+      mocks.loadSessionStore.mockImplementation(originalLoadSessionStore);
+    }
+  });
+
   it("prints formatted lines otherwise", async () => {
     (runtime.log as vi.Mock).mockClear();
     await statusCommand({}, runtime as never);
@@ -439,6 +464,7 @@ describe("statusCommand", () => {
             updatedAt: Date.now() - 120_000,
             inputTokens: 1_000,
             outputTokens: 1_000,
+            totalTokens: 2_000,
             contextTokens: 10_000,
             model: "pi:opus",
           },
@@ -451,6 +477,7 @@ describe("statusCommand", () => {
           thinkingLevel: "low",
           inputTokens: 2_000,
           outputTokens: 3_000,
+          totalTokens: 5_000,
           contextTokens: 10_000,
           model: "pi:opus",
           sessionId: "abc123",

@@ -120,12 +120,11 @@ export async function getStatusSummary(): Promise<StatusSummary> {
         const model = entry?.model ?? configModel ?? null;
         const contextTokens =
           entry?.contextTokens ?? lookupContextTokens(model) ?? configContextTokens ?? null;
-        const input = entry?.inputTokens ?? 0;
-        const output = entry?.outputTokens ?? 0;
-        const total = entry?.totalTokens ?? input + output;
-        const remaining = contextTokens != null ? Math.max(0, contextTokens - total) : null;
+        const total = typeof entry?.totalTokens === "number" ? entry.totalTokens : null;
+        const remaining =
+          contextTokens != null && total != null ? Math.max(0, contextTokens - total) : null;
         const pct =
-          contextTokens && contextTokens > 0
+          contextTokens && contextTokens > 0 && total != null
             ? Math.min(999, Math.round((total / contextTokens) * 100))
             : null;
         const parsedAgentId = parseAgentSessionKey(key)?.agentId;
