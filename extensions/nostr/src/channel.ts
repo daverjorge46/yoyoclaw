@@ -246,7 +246,7 @@ export const nostrPlugin: ChannelPlugin<ResolvedNostrAccount> = {
           });
 
           const fromLabel = senderPubkey;
-          const body = core.channel.reply.formatAgentEnvelope({
+          const body = runtime.channel.reply.formatAgentEnvelope({
             channel: "Nostr",
             from: fromLabel,
             timestamp: Date.now(),
