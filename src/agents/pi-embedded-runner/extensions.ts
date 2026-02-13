@@ -164,12 +164,23 @@ export function buildEmbeddedExtensionPaths(params: {
 
     const sessionId =
       (params.sessionManager as unknown as { sessionId?: string }).sessionId ?? "default";
+    // Resolve subagent model for knowledge extraction (faster than main model).
+    const subagentModelCfg = params.cfg?.agents?.defaults?.subagents?.model;
+    const subagentPrimary =
+      typeof subagentModelCfg === "string" ? subagentModelCfg : subagentModelCfg?.primary;
+    let extractionModel: { provider: string; modelId: string } | undefined;
+    if (subagentPrimary && subagentPrimary.includes("/")) {
+      const [provider, ...rest] = subagentPrimary.split("/");
+      extractionModel = { provider, modelId: rest.join("/") };
+    }
+
     setGlobalMemoryRuntime(sessionId, {
       config,
       rawStore,
       knowledgeStore,
       contextWindowTokens,
       maxHistoryShare: compactionCfg?.maxHistoryShare ?? 0.5,
+      extractionModel,
     });
     console.info(`[memory-context] global runtime set for session=${sessionId}`);
 

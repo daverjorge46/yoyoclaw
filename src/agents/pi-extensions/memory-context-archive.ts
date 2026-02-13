@@ -62,47 +62,66 @@ export default function memoryContextArchiveExtension(api: ExtensionAPI): void {
 
       // Async knowledge extraction (non-blocking)
       if (runtime.config.knowledgeExtraction) {
-        // Create llmCall from Pi context if model/apiKey available
-        // Build llmCall from Pi context (model + apiKey).
-        // Uses the provider's chat completion call (not generateSummary).
+        // Prefer subagent model for extraction (faster, cheaper) with fallback to main model.
         let llmCall: ((prompt: string) => Promise<string>) | undefined;
-        const model = ctx.model;
-        if (model) {
-          const apiKey = await ctx.modelRegistry.getApiKey(model);
-          if (apiKey) {
-            llmCall = async (prompt: string) => {
-              try {
-                const res = await completeSimple(
-                  model,
-                  {
-                    messages: [
-                      {
-                        role: "user",
-                        content: prompt,
-                        timestamp: Date.now(),
-                      },
-                    ],
-                  },
-                  {
-                    apiKey,
-                    maxTokens: 2000,
-                    reasoning: "low",
-                  },
-                );
 
-                if (res.stopReason === "error") {
-                  return "";
-                }
+        // Try subagent model first
+        let resolvedModel = ctx.model;
+        let resolvedApiKey: string | undefined;
+        if (runtime.extractionModel) {
+          const { provider, modelId } = runtime.extractionModel;
+          const allModels = ctx.modelRegistry.getAll() as Array<{ id?: string; provider?: string }>;
+          const match = allModels.find((m) => m.id === modelId && m.provider === provider) as
+            | typeof resolvedModel
+            | undefined;
+          if (match) {
+            const key = await ctx.modelRegistry.getApiKey(match);
+            if (key) {
+              resolvedModel = match;
+              resolvedApiKey = key;
+            }
+          }
+        }
+        // Fallback to main model
+        if (!resolvedApiKey && resolvedModel) {
+          resolvedApiKey = await ctx.modelRegistry.getApiKey(resolvedModel);
+        }
 
-                return res.content
-                  .filter((b) => b.type === "text")
-                  .map((b) => b.text)
-                  .join("\n");
-              } catch {
+        if (resolvedModel && resolvedApiKey) {
+          const model = resolvedModel;
+          const apiKey = resolvedApiKey;
+          llmCall = async (prompt: string) => {
+            try {
+              const res = await completeSimple(
+                model,
+                {
+                  messages: [
+                    {
+                      role: "user",
+                      content: prompt,
+                      timestamp: Date.now(),
+                    },
+                  ],
+                },
+                {
+                  apiKey,
+                  maxTokens: 2000,
+                  reasoning: "low",
+                },
+              );
+
+              if (res.stopReason === "error") {
                 return "";
               }
-            };
-          }
+
+              return res.content
+                .filter((b) => b.type === "text")
+                .map((b) => b.text)
+                .join("\n");
+            } catch {
+              return "";
+            }
+          };
         }
 
         scheduleKnowledgeExtraction(messages, runtime.knowledgeStore, llmCall, {

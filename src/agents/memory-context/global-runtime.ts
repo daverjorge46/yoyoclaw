@@ -24,12 +24,19 @@ export type MemoryContextConfig = {
   evictionDays: number;
 };
 
+export type SubagentModelRef = {
+  provider: string;
+  modelId: string;
+};
+
 export type MemoryContextRuntime = {
   config: MemoryContextConfig;
   rawStore: WarmStore;
   knowledgeStore: KnowledgeStore;
   contextWindowTokens: number;
   maxHistoryShare: number;
+  /** Model to use for knowledge extraction (defaults to subagent model for speed). */
+  extractionModel?: SubagentModelRef;
 };
 
 const GLOBAL_KEY = "__openclaw_memory_context_runtime__";
