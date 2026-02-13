@@ -157,7 +157,10 @@ export function repairToolCallInputs(messages: AgentMessage[]): ToolCallInputRep
         droppedAssistantMessages += 1;
         continue;
       }
-      out.push({ ...msg, content: nextContent as any });
+      out.push({
+        ...msg,
+        content: nextContent as unknown as Extract<AgentMessage, { role: "assistant" }>["content"],
+      });
       continue;
     }
 
