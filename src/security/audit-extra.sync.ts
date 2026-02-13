@@ -882,3 +882,318 @@ export function collectExposureMatrixFindings(cfg: OpenClawConfig): SecurityAudi
 
   return findings;
 }
+
+// --------------------------------------------------------------------------
+// Hardening gap audit checks (EarlyCore findings)
+// --------------------------------------------------------------------------
+
+/**
+ * Check if sandbox mode is not set to "all".
+ * EarlyCore tests ran with sandbox OFF - this was a major factor in attack success.
+ */
+export function collectSandboxModeFindings(params: {
+  cfg: OpenClawConfig;
+  env: NodeJS.ProcessEnv;
+}): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const sandboxMode = params.cfg.agents?.defaults?.sandbox?.mode ?? "off";
+
+  if (sandboxMode === "all") {
+    return findings; // OK
+  }
+
+  // Check if dangerous tools are available
+  const hasWebTools =
+    isWebSearchEnabled(params.cfg, params.env) ||
+    isWebFetchEnabled(params.cfg) ||
+    isBrowserEnabled(params.cfg);
+  const denyList = params.cfg.tools?.deny ?? [];
+  const hasExecTools = !denyList.includes("exec");
+
+  findings.push({
+    checkId: "sandbox.mode_not_all",
+    severity: hasWebTools || hasExecTools ? "critical" : "warn",
+    title: `Sandbox mode is "${sandboxMode}"`,
+    detail:
+      sandboxMode === "off"
+        ? "Sandbox is disabled. All tool execution runs on the host without isolation."
+        : `Sandbox mode "${sandboxMode}" only isolates some sessions. Consider "all" for defense in depth.`,
+    remediation: 'Set agents.defaults.sandbox.mode="all" to isolate all tool execution.',
+  });
+
+  return findings;
+}
+
+/**
+ * Check if sandbox network is not isolated.
+ * SSRF attacks had 70% success rate in EarlyCore tests. Network isolation blocks SSRF from sandbox.
+ */
+export function collectSandboxNetworkFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const sandboxMode = cfg.agents?.defaults?.sandbox?.mode;
+
+  if (sandboxMode !== "all" && sandboxMode !== "non-main") {
+    return findings; // Sandbox not enabled, covered by mode check
+  }
+
+  const network = cfg.agents?.defaults?.sandbox?.docker?.network;
+
+  if (network === "none") {
+    return findings; // OK - fully isolated
+  }
+
+  findings.push({
+    checkId: "sandbox.docker.network_not_isolated",
+    severity: "critical",
+    title: "Sandbox has network access",
+    detail: network
+      ? `Sandbox network is "${network}". Sandboxed code can make network requests, enabling SSRF attacks.`
+      : "Sandbox network not configured (defaults to bridge). Sandboxed code can access internal services.",
+    remediation:
+      'Set agents.defaults.sandbox.docker.network="none" to block all network access from sandbox.',
+  });
+
+  return findings;
+}
+
+/**
+ * Check if dangerous tools are not explicitly denied.
+ * harden-config.ts explicitly denies exec, process, write, edit, apply_patch, gateway, cron, nodes, browser, canvas.
+ */
+const DANGEROUS_TOOLS = [
+  "exec",
+  "process",
+  "write",
+  "edit",
+  "apply_patch",
+  "gateway",
+  "cron",
+  "nodes",
+  "browser",
+  "canvas",
+];
+
+export function collectDangerousToolsFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const denyList = cfg.tools?.deny ?? [];
+
+  let notDenied = DANGEROUS_TOOLS.filter((tool) => !denyList.includes(tool));
+
+  if (notDenied.length === 0) {
+    return findings;
+  }
+
+  // Check if profile restricts these already
+  const profile = cfg.tools?.profile;
+  if (profile === "minimal") {
+    // Minimal profile already restricts most dangerous tools
+    // Only warn about exec/process which minimal allows
+    const minimalDangerous = notDenied.filter((t) => ["exec", "process"].includes(t));
+    if (minimalDangerous.length === 0) {
+      return findings;
+    }
+    notDenied = minimalDangerous;
+  }
+
+  findings.push({
+    checkId: "tools.dangerous_not_denied",
+    severity: "warn",
+    title: "Dangerous tools not explicitly denied",
+    detail:
+      `The following tools are not in tools.deny: ${notDenied.join(", ")}. ` +
+      "These tools enable code execution, file modification, or system access.",
+    remediation: `Add to tools.deny: ${JSON.stringify(notDenied)}`,
+  });
+
+  return findings;
+}
+
+/**
+ * Check if elevated mode is enabled.
+ * Complements the existing collectElevatedFindings which only checks for wildcards.
+ */
+export function collectElevatedModeFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+
+  if (cfg.tools?.elevated?.enabled === false) {
+    return findings;
+  }
+
+  const allowFrom = cfg.tools?.elevated?.allowFrom ?? {};
+  const hasAllowFrom = Object.keys(allowFrom).length > 0;
+
+  if (!hasAllowFrom) {
+    // Enabled but no allowFrom configured
+    findings.push({
+      checkId: "tools.elevated_enabled_no_allowlist",
+      severity: "warn",
+      title: "Elevated mode enabled without allowlist",
+      detail:
+        "tools.elevated.enabled is not false, but no allowFrom list is configured. " +
+        "Elevated mode allows bypassing sandbox isolation.",
+      remediation:
+        "Set tools.elevated.enabled=false or configure tools.elevated.allowFrom explicitly.",
+    });
+  } else {
+    // Just inform that elevated is enabled
+    findings.push({
+      checkId: "tools.elevated_enabled",
+      severity: "info",
+      title: "Elevated mode is enabled",
+      detail:
+        `Elevated mode allows ${Object.keys(allowFrom).length} channel(s) to bypass sandbox. ` +
+        "Ensure allowFrom lists are tightly controlled.",
+    });
+  }
+
+  return findings;
+}
+
+/**
+ * Check if Gateway TLS is not enabled.
+ * harden-config.ts forces TLS enabled. Credentials can be intercepted without TLS.
+ */
+export function collectGatewayTlsFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const tlsEnabled = cfg.gateway?.tls?.enabled;
+  const bind = cfg.gateway?.bind ?? "loopback";
+
+  if (tlsEnabled === true) {
+    return findings; // OK
+  }
+
+  const isLoopback = bind === "loopback";
+
+  findings.push({
+    checkId: "gateway.tls_disabled",
+    severity: isLoopback ? "warn" : "critical",
+    title: "Gateway TLS is not enabled",
+    detail: isLoopback
+      ? "TLS is disabled on loopback gateway. Local traffic is unencrypted but contained to this machine."
+      : `TLS is disabled with bind="${bind}". Gateway traffic including auth tokens is unencrypted.`,
+    remediation: "Set gateway.tls.enabled=true and gateway.tls.autoGenerate=true.",
+  });
+
+  return findings;
+}
+
+/**
+ * Check if agent-to-agent messaging is enabled.
+ * harden-config.ts disables agent-to-agent messaging to prevent lateral movement.
+ */
+export function collectAgentToAgentFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const enabled = cfg.tools?.agentToAgent?.enabled;
+
+  if (enabled === false) {
+    return findings; // OK
+  }
+
+  findings.push({
+    checkId: "tools.agent_to_agent_enabled",
+    severity: "info",
+    title: "Agent-to-agent messaging is enabled",
+    detail:
+      "Agents can send messages to other agents. A compromised agent could attempt lateral movement.",
+    remediation:
+      "Set tools.agentToAgent.enabled=false unless inter-agent communication is required.",
+  });
+
+  return findings;
+}
+
+/**
+ * Check sandbox filesystem protection settings.
+ * Defense in depth - harden-config.ts sets readOnlyRoot and capDrop.
+ */
+export function collectSandboxFilesystemFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const sandboxMode = cfg.agents?.defaults?.sandbox?.mode;
+
+  if (sandboxMode !== "all" && sandboxMode !== "non-main") {
+    return findings; // Sandbox not enabled
+  }
+
+  const docker = cfg.agents?.defaults?.sandbox?.docker;
+
+  if (docker?.readOnlyRoot !== true) {
+    findings.push({
+      checkId: "sandbox.docker.writable_root",
+      severity: "info",
+      title: "Sandbox root filesystem is writable",
+      detail: "readOnlyRoot is not enabled. Sandboxed code can modify the container filesystem.",
+      remediation: "Set agents.defaults.sandbox.docker.readOnlyRoot=true for defense in depth.",
+    });
+  }
+
+  const capDrop = docker?.capDrop ?? [];
+  if (!capDrop.includes("ALL")) {
+    findings.push({
+      checkId: "sandbox.docker.capabilities_not_dropped",
+      severity: "info",
+      title: "Sandbox Linux capabilities not fully dropped",
+      detail: `capDrop is ${JSON.stringify(capDrop)}. Consider dropping ALL capabilities.`,
+      remediation: 'Set agents.defaults.sandbox.docker.capDrop=["ALL"] for defense in depth.',
+    });
+  }
+
+  return findings;
+}
+
+/**
+ * Check if default dangerous commands are not blocked.
+ * harden-config.ts blocks camera.snap, rm -rf, curl|, etc. by default.
+ */
+const HARDENED_DENY_COMMANDS = [
+  "camera.snap",
+  "camera.clip",
+  "screen.record",
+  "contacts.add",
+  "calendar.add",
+  "reminders.add",
+  "sms.send",
+  "rm -rf",
+  "rm -fr",
+  "curl|",
+  "wget|",
+  "git push --force",
+  "git push -f",
+  "git reset --hard",
+  "mkfs",
+  "dd if=",
+  "chmod 777",
+  "nc -e",
+  "bash -i",
+];
+
+export function collectDenyCommandsDefaultsFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
+  const findings: SecurityAuditFinding[] = [];
+  const denyCommands = cfg.gateway?.nodes?.denyCommands ?? [];
+
+  const missing = HARDENED_DENY_COMMANDS.filter(
+    (cmd) => !denyCommands.some((denied) => denied.includes(cmd) || cmd.includes(denied)),
+  );
+
+  if (missing.length === 0) {
+    return findings;
+  }
+
+  // Only warn if more than half are missing
+  if (missing.length < HARDENED_DENY_COMMANDS.length / 2) {
+    return findings;
+  }
+
+  findings.push({
+    checkId: "gateway.nodes.deny_commands_missing_defaults",
+    severity: "info",
+    title: "Default dangerous commands not blocked",
+    detail:
+      `${missing.length} common dangerous commands are not in gateway.nodes.denyCommands. ` +
+      "Consider adding: " +
+      missing.slice(0, 5).join(", ") +
+      (missing.length > 5 ? "..." : ""),
+    remediation: "Review HARDENED_DENY_COMMANDS in harden-config.ts and add relevant entries.",
+  });
+
+  return findings;
+}
