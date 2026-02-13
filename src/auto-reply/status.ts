@@ -13,6 +13,7 @@ import { derivePromptTokens, normalizeUsage, type UsageLike } from "../agents/us
 import {
   resolveMainSessionKey,
   resolveSessionFilePath,
+  resolveSessionFilePathOptions,
   type SessionEntry,
   type SessionScope,
 } from "../config/sessions.js";
@@ -60,6 +61,7 @@ type StatusArgs = {
   sessionEntry?: SessionEntry;
   sessionKey?: string;
   sessionScope?: SessionScope;
+  sessionStorePath?: string;
   groupActivation?: "mention" | "always";
   resolvedThink?: ThinkLevel;
   resolvedVerbose?: VerboseLevel;
@@ -167,6 +169,7 @@ const readUsageFromSessionLog = (
   sessionId?: string,
   sessionEntry?: SessionEntry,
   sessionKey?: string,
+  storePath?: string,
 ):
   | {
       input: number;
@@ -183,7 +186,11 @@ const readUsageFromSessionLog = (
   let logPath: string;
   try {
     const agentId = sessionKey ? resolveAgentIdFromSessionKey(sessionKey) : undefined;
-    logPath = resolveSessionFilePath(sessionId, sessionEntry, agentId ? { agentId } : undefined);
+    logPath = resolveSessionFilePath(
+      sessionId,
+      sessionEntry,
+      resolveSessionFilePathOptions({ agentId, storePath }),
+    );
   } catch {
     return undefined;
   }
@@ -341,7 +348,12 @@ export function buildStatusMessage(args: StatusArgs): string {
   // Prefer prompt-size tokens from the session transcript when it looks larger
   // (cached prompt tokens are often missing from agent meta/store).
   if (args.includeTranscriptUsage) {
-    const logUsage = readUsageFromSessionLog(entry?.sessionId, entry, args.sessionKey);
+    const logUsage = readUsageFromSessionLog(
+      entry?.sessionId,
+      entry,
+      args.sessionKey,
+      args.sessionStorePath,
+    );
     if (logUsage) {
       const candidate = logUsage.promptTokens || logUsage.total;
       if (!totalTokens || totalTokens === 0 || candidate > totalTokens) {

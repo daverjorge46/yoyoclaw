@@ -43,7 +43,7 @@ describe("RawBody directive parsing", () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("/model, /think, /verbose directives detected from RawBody even when Body has structural wrapper", async () => {
