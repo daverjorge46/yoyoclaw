@@ -106,6 +106,7 @@ type GrokSearchResponse = {
   output?: Array<{
     type?: string;
     role?: string;
+    text?: string; // present when type === "output_text" (top-level output_text block)
     content?: Array<{
       type?: string;
       text?: string;
@@ -115,6 +116,12 @@ type GrokSearchResponse = {
         start_index?: number;
         end_index?: number;
       }>;
+    }>;
+    annotations?: Array<{
+      type?: string;
+      url?: string;
+      start_index?: number;
+      end_index?: number;
     }>;
   }>;
   output_text?: string; // deprecated field - kept for backwards compatibility
