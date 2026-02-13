@@ -18,6 +18,7 @@ import {
   handleA2uiHttpRequest,
 } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
+import { handleTenantApiRequest } from "../multitenant/tenant-http.js";
 import { safeEqualSecret } from "../security/secret-equal.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
 import { authorizeGatewayConnect, isLocalDirectRequest, type ResolvedGatewayAuth } from "./auth.js";
@@ -439,6 +440,10 @@ export function createGatewayHttpServer(opts: {
         if (await handlePluginRequest(req, res)) {
           return;
         }
+      }
+      // Multi-tenant API (self-contained auth, /api/v1/* routes)
+      if (await handleTenantApiRequest(req, res)) {
+        return;
       }
       if (openResponsesEnabled) {
         if (
