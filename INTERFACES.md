@@ -2,7 +2,7 @@
 
 > 每个批次完成后由 /done 命令自动更新。
 > 新批次开始时由 /start 命令自动读取。
-> 最后更新：批次 3（2026-02-13）
+> 最后更新：批次 4（2026-02-13）
 
 ---
 
@@ -374,6 +374,311 @@ def is_plain_object(value: Any) -> bool:
 
 def is_record(value: Any) -> bool:
     """检查是否为 dict-like 对象（比 is_plain_object 宽松）"""
+```
+
+---
+
+## openclaw_py.sessions
+
+### openclaw_py.sessions.types
+路径: openclaw_py/sessions/types.py
+
+```python
+from openclaw_py.sessions import (
+    SessionEntry,
+    SessionOrigin,
+    merge_session_entry,
+)
+```
+
+**SessionOrigin** (Pydantic BaseModel):
+```python
+class SessionOrigin(BaseModel):
+    label: str | None = None
+    provider: str | None = None
+    surface: str | None = None
+    chat_type: ChatType | None = None
+    from_: str | None = Field(None, alias="from")
+    to: str | None = None
+    account_id: str | None = None
+    thread_id: str | int | None = None
+```
+
+**SessionEntry** (Pydantic BaseModel):
+```python
+class SessionEntry(BaseModel):
+    # 核心标识
+    session_id: str
+    updated_at: int  # 毫秒时间戳
+
+    # 会话元数据
+    session_file: str | None = None
+    spawned_by: str | None = None
+    label: str | None = None
+    display_name: str | None = None
+
+    # 聊天上下文
+    chat_type: ChatType | None = None
+    channel: str | None = None
+    group_id: str | None = None
+    origin: SessionOrigin | None = None
+
+    # 最后路由
+    last_channel: str | None = None
+    last_to: str | None = None
+    last_account_id: str | None = None
+    last_thread_id: str | int | None = None
+
+    # Agent 执行状态
+    aborted_last_run: bool = False
+    system_sent: bool = False
+
+    # 模型追踪
+    model_provider: str | None = None
+    model: str | None = None
+    context_tokens: int | None = None
+
+    # 用量追踪
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+    compaction_count: int = 0
+
+    # 覆盖设置
+    provider_override: str | None = None
+    model_override: str | None = None
+    auth_profile_override: str | None = None
+    send_policy: str | None = None
+    group_activation: str | None = None
+
+    # 扩展元数据
+    extra: dict[str, Any] | None = None
+```
+
+**函数**：
+```python
+def merge_session_entry(
+    existing: SessionEntry | None,
+    patch: dict[str, Any],
+) -> SessionEntry:
+    """合并部分更新到现有会话条目"""
+```
+
+### openclaw_py.sessions.key_utils
+路径: openclaw_py/sessions/key_utils.py
+
+```python
+from openclaw_py.sessions import (
+    ParsedAgentSessionKey,
+    parse_agent_session_key,
+    is_cron_run_session_key,
+    is_subagent_session_key,
+    is_acp_session_key,
+    resolve_thread_parent_session_key,
+)
+```
+
+**ParsedAgentSessionKey** (NamedTuple):
+```python
+class ParsedAgentSessionKey(NamedTuple):
+    agent_id: str
+    rest: str
+```
+
+**函数**：
+```python
+def parse_agent_session_key(session_key: str | None) -> ParsedAgentSessionKey | None:
+    """解析 agent:id:rest 格式的会话密钥"""
+
+def is_cron_run_session_key(session_key: str | None) -> bool:
+    """检查是否为 cron 运行会话（agent:id:cron:name:run:id）"""
+
+def is_subagent_session_key(session_key: str | None) -> bool:
+    """检查是否为 subagent 会话"""
+
+def is_acp_session_key(session_key: str | None) -> bool:
+    """检查是否为 ACP (Agent Communication Protocol) 会话"""
+
+def resolve_thread_parent_session_key(session_key: str | None) -> str | None:
+    """解析线程会话的父会话密钥（:thread: 或 :topic: 分隔符）"""
+```
+
+**常量**：
+```python
+THREAD_SESSION_MARKERS = [":thread:", ":topic:"]
+```
+
+### openclaw_py.sessions.label
+路径: openclaw_py/sessions/label.py
+
+```python
+from openclaw_py.sessions import (
+    SESSION_LABEL_MAX_LENGTH,
+    ParsedSessionLabel,
+    parse_session_label,
+)
+```
+
+**常量**：
+```python
+SESSION_LABEL_MAX_LENGTH = 64
+```
+
+**ParsedSessionLabel** (NamedTuple):
+```python
+class ParsedSessionLabel(NamedTuple):
+    ok: bool
+    label: str | None = None
+    error: str | None = None
+```
+
+**函数**：
+```python
+def parse_session_label(raw: Any) -> ParsedSessionLabel:
+    """解析和验证会话标签（最大 64 字符）"""
+```
+
+### openclaw_py.sessions.store
+路径: openclaw_py/sessions/store.py
+
+```python
+from openclaw_py.sessions import (
+    load_session_store,
+    save_session_store,
+    update_session_store,
+    read_session_updated_at,
+    prune_stale_entries,
+    cap_entry_count,
+    rotate_session_file,
+    clear_session_store_cache_for_test,
+)
+```
+
+**异步函数**：
+```python
+async def load_session_store(
+    store_path: str | Path,
+    skip_cache: bool = False,
+) -> dict[str, SessionEntry]:
+    """从 JSON 文件加载会话存储（支持缓存，TTL 45秒）"""
+
+async def save_session_store(
+    store_path: str | Path,
+    store: dict[str, SessionEntry],
+    skip_maintenance: bool = False,
+) -> None:
+    """保存会话存储到 JSON 文件（原子写入，带文件锁）"""
+
+async def update_session_store(
+    store_path: str | Path,
+    mutator: Callable[[dict[str, SessionEntry]], T],
+    skip_maintenance: bool = False,
+) -> T:
+    """原子更新会话存储"""
+
+async def read_session_updated_at(
+    store_path: str | Path,
+    session_key: str,
+) -> int | None:
+    """读取会话的 updated_at 时间戳"""
+
+async def rotate_session_file(
+    store_path: str | Path,
+    max_bytes: int | None = None,
+) -> bool:
+    """文件轮转（默认 10MB，保留 3 个备份）"""
+```
+
+**同步函数**：
+```python
+def prune_stale_entries(
+    store: dict[str, SessionEntry],
+    max_age_ms: int | None = None,
+    log: bool = True,
+) -> int:
+    """清理过期会话（默认 30 天）"""
+
+def cap_entry_count(
+    store: dict[str, SessionEntry],
+    max_entries: int | None = None,
+    log: bool = True,
+) -> int:
+    """限制会话数量（默认 500）"""
+
+def clear_session_store_cache_for_test() -> None:
+    """清除会话存储缓存（测试用）"""
+```
+
+**常量**：
+```python
+DEFAULT_SESSION_STORE_TTL_MS = 45_000  # 45 秒缓存
+DEFAULT_SESSION_PRUNE_AFTER_MS = 30 * 24 * 60 * 60 * 1000  # 30 天
+DEFAULT_SESSION_MAX_ENTRIES = 500
+DEFAULT_SESSION_ROTATE_BYTES = 10 * 1024 * 1024  # 10 MB
+```
+
+### openclaw_py.sessions.memory_store
+路径: openclaw_py/sessions/memory_store.py
+
+```python
+from openclaw_py.sessions import (
+    AcpSession,
+    InMemorySessionStore,
+    default_acp_session_store,
+)
+```
+
+**AcpSession** (NamedTuple):
+```python
+class AcpSession(NamedTuple):
+    session_id: str
+    session_key: str
+    cwd: str
+    created_at: int  # 毫秒时间戳
+    active_run_id: str | None
+    abort_event: asyncio.Event | None
+```
+
+**InMemorySessionStore** (类):
+```python
+class InMemorySessionStore:
+    """内存会话存储（用于 ACP/subagent 会话）"""
+
+    async def create_session(
+        self,
+        session_key: str,
+        cwd: str,
+        session_id: str | None = None,
+    ) -> AcpSession:
+        """创建新会话"""
+
+    async def get_session(self, session_id: str) -> AcpSession | None:
+        """通过 ID 获取会话"""
+
+    async def get_session_by_run_id(self, run_id: str) -> AcpSession | None:
+        """通过运行 ID 获取会话"""
+
+    async def set_active_run(
+        self,
+        session_id: str,
+        run_id: str,
+        abort_event: asyncio.Event,
+    ) -> None:
+        """设置活动运行"""
+
+    async def clear_active_run(self, session_id: str) -> None:
+        """清除活动运行"""
+
+    async def cancel_active_run(self, session_id: str) -> bool:
+        """取消活动运行"""
+
+    async def clear_all_sessions_for_test() -> None:
+        """清除所有会话（测试用）"""
+```
+
+**全局实例**：
+```python
+default_acp_session_store: InMemorySessionStore
 ```
 
 ---

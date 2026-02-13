@@ -95,3 +95,50 @@
 **测试结果**：153 passed（51 new + 102 from previous batches）
 
 ---
+
+## 批次 4：会话管理 + 持久化（2026-02-13）
+
+**新增文件**：
+- openclaw_py/sessions/types.py - 会话数据模型（SessionEntry, SessionOrigin）
+- openclaw_py/sessions/key_utils.py - 会话密钥解析工具
+- openclaw_py/sessions/label.py - 会话标签验证
+- openclaw_py/sessions/store.py - 会话持久化存储（JSON 文件，缓存，锁，轮转）
+- openclaw_py/sessions/memory_store.py - 内存会话存储（ACP/subagent）
+- openclaw_py/sessions/__init__.py - 会话模块导出
+- tests/sessions/test_types.py - 会话类型测试（12 个测试）
+- tests/sessions/test_key_utils.py - 密钥工具测试（29 个测试）
+- tests/sessions/test_label.py - 标签验证测试（11 个测试）
+- tests/sessions/test_memory_store.py - 内存存储测试（13 个测试）
+- tests/sessions/test_store.py - 持久化存储测试（24 个测试）
+
+**核心变更**：
+- 实现了完整的会话管理系统
+- JSON 文件持久化存储（~/.openclaw/sessions.json）
+- 会话密钥系统（支持 agent:id:rest, subagent:, acp:, cron: 格式）
+- 线程会话支持（:thread:, :topic: 分隔符）
+- 会话存储缓存（TTL 45秒）
+- 文件锁机制（防止并发写入冲突）
+- 原子写入（临时文件 + rename，Windows/Unix 兼容）
+- 自动会话维护：
+  - 清理过期会话（默认 30 天）
+  - 限制最大会话数（默认 500）
+  - 文件轮转（默认 10MB，保留 3 个备份）
+- 内存会话存储（用于 ACP/subagent，支持运行跟踪和取消）
+- SessionEntry 简化版（核心字段，完整字段留待后续批次）
+
+**依赖的已有模块**：
+- openclaw_py.types - ChatType 等核心类型
+- openclaw_py.config - SessionConfig 配置模型
+- openclaw_py.logging - 日志系统
+- openclaw_py.utils - 文件系统工具（ensure_dir, safe_parse_json）
+
+**已知问题**：
+- 无
+
+**测试结果**：242 passed（89 new + 153 from previous batches）
+
+**里程碑**：批次 4 是第一个里程碑 (v0.1-foundation)
+- 完成了基础设施层：类型、配置、日志、工具、会话
+- 为后续 Gateway 和 Agent 层提供了坚实基础
+
+---
