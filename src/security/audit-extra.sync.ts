@@ -891,35 +891,12 @@ export function collectExposureMatrixFindings(cfg: OpenClawConfig): SecurityAudi
 // --------------------------------------------------------------------------
 
 /**
- * Build a combined tool policy from profile + config allow/deny.
- * Uses the existing tool-policy resolution to get profile defaults.
- */
-function buildAuditToolPolicy(cfg: OpenClawConfig): SandboxToolPolicy | undefined {
-  const profilePolicy = resolveToolProfilePolicy(cfg.tools?.profile);
-  const configAllow = cfg.tools?.allow;
-  const configDeny = cfg.tools?.deny;
-
-  // Merge profile policy with config overrides
-  // Config allow extends profile allow; config deny extends profile deny
-  const allow = configAllow?.length
-    ? [...(profilePolicy?.allow ?? []), ...configAllow]
-    : profilePolicy?.allow;
-  const deny = configDeny?.length
-    ? [...(profilePolicy?.deny ?? []), ...configDeny]
-    : profilePolicy?.deny;
-
-  if (!allow && !deny) {
-    return undefined;
-  }
-  return { allow, deny };
-}
-
-/**
  * Check if a tool is available using the proper tool-policy resolution.
+ * Uses the same pickToolPolicy/resolveToolPolicies logic as runtime.
  */
 function isToolAvailable(cfg: OpenClawConfig, toolName: string): boolean {
-  const policy = buildAuditToolPolicy(cfg);
-  return isToolAllowedByPolicyName(toolName, policy);
+  const policies = resolveToolPolicies({ cfg });
+  return isToolAllowedByPolicies(toolName, policies);
 }
 
 /**
