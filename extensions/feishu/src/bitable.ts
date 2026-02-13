@@ -310,13 +310,44 @@ const UpdateRecordSchema = Type.Object({
 // ============ Tool Registration ============
 
 export function registerFeishuBitableTools(api: OpenClawPluginApi) {
-  const feishuCfg = api.config?.channels?.feishu as FeishuConfig | undefined;
-  if (!feishuCfg?.appId || !feishuCfg?.appSecret) {
-    api.logger.debug?.("feishu_bitable: Feishu credentials not configured, skipping bitable tools");
+  if (!api.config) {
+    api.logger.debug?.("feishu_bitable: No config available, skipping bitable tools");
     return;
   }
 
-  const getClient = () => createFeishuClient(feishuCfg);
+  let validCfg: FeishuConfig;
+
+  const feishuCfg = api.config?.channels?.feishu as FeishuConfig | undefined;
+  
+  // Try single account config first (backward compatible)
+  if (feishuCfg?.appId && feishuCfg?.appSecret) {
+    // Single account mode - use top-level config
+    validCfg = feishuCfg;
+  } else {
+    // Multiple account mode - check accounts
+    const accounts = listEnabledFeishuAccounts(api.config);
+    if (accounts.length === 0) {
+      api.logger.debug?.("feishu_bitable: No Feishu accounts with credentials configured, skipping bitable tools");
+      return;
+    }
+    // Filter accounts that have both appId and appSecret
+    const accountsWithCreds = accounts.filter(
+      (acc) => acc.config.appId && acc.config.appSecret
+    );
+    // Warn if not all accounts are well-configured
+    const misconfigured = accounts.filter(
+      (acc) => !acc.config.appId || !acc.config.appSecret
+    );
+    if (misconfigured.length > 0) {
+      api.logger.warn?.(
+        `feishu_bitable: ${misconfigured.length} account(s) missing appId/appSecret: ${misconfigured.map((a) => a.accountId).join(", ")}`
+      );
+    }
+    // Use the first account with credentials
+    validCfg = accountsWithCreds[0].config;
+  }
+
+  const getClient = () => createFeishuClient(validCfg);
 
   // Tool 0: feishu_bitable_get_meta (helper to parse URLs)
   api.registerTool(
