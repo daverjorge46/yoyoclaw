@@ -80,9 +80,7 @@ export function createGatewayCloseHandler(params: {
     // Plugin hook (fire-and-forget)
     const hookRunner = getGlobalHookRunner();
     if (hookRunner) {
-      hookRunner.runGatewayStop({ reason }, { port: params.port }).catch((err) => {
-        params.logHooks.warn(`gateway_stop hook failed: ${String(err)}`);
-      });
+      void hookRunner.runGatewayStop({ reason }, { port: params.port });
     }
 
     // Internal hook (fire-and-forget, respects config flag)

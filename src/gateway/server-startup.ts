@@ -155,9 +155,7 @@ export async function startGatewaySidecars(params: {
 
   const hookRunner = getGlobalHookRunner();
   if (hookRunner) {
-    hookRunner.runGatewayStart({ port: params.port }, { port: params.port }).catch((err) => {
-      params.logHooks.warn(`gateway_start hook failed: ${String(err)}`);
-    });
+    void hookRunner.runGatewayStart({ port: params.port }, { port: params.port });
   }
 
   void startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }).catch((err) => {

@@ -133,21 +133,6 @@ describe("createGatewayCloseHandler", () => {
     expect(triggerInternalHookMock).not.toHaveBeenCalled();
   });
 
-  it("completes shutdown even when gateway_stop hook rejects", async () => {
-    const runGatewayStop = vi.fn().mockRejectedValue(new Error("hook boom"));
-    getGlobalHookRunnerMock.mockReturnValue({ runGatewayStop });
-
-    const params = createMockParams();
-    const close = createGatewayCloseHandler(params);
-    await close();
-
-    expect(params.cron.stop).toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(params.logHooks.warn).toHaveBeenCalledWith(
-      expect.stringContaining("gateway_stop hook failed"),
-    );
-  });
-
   it("completes shutdown when hook runner is null", async () => {
     getGlobalHookRunnerMock.mockReturnValue(null);
 
@@ -173,21 +158,6 @@ describe("createGatewayCloseHandler", () => {
       "shutdown",
       "gateway:shutdown",
       expect.objectContaining({ reason: "gateway restarting" }),
-    );
-  });
-
-  it("completes shutdown even when internal hook rejects", async () => {
-    getGlobalHookRunnerMock.mockReturnValue(null);
-    triggerInternalHookMock.mockRejectedValue(new Error("internal boom"));
-
-    const params = createMockParams();
-    const close = createGatewayCloseHandler(params);
-    await close();
-
-    expect(params.cron.stop).toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(params.logHooks.warn).toHaveBeenCalledWith(
-      expect.stringContaining("gateway:shutdown internal hook failed"),
     );
   });
 

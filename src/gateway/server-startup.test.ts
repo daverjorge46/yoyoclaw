@@ -104,21 +104,4 @@ describe("startGatewaySidecars", () => {
 
     await expect(startGatewaySidecars(createMockParams())).resolves.not.toThrow();
   });
-
-  it("completes startup when gateway_start hook rejects", async () => {
-    vi.useFakeTimers();
-    const runGatewayStart = vi.fn().mockRejectedValue(new Error("hook boom"));
-    getGlobalHookRunnerMock.mockReturnValue({ runGatewayStart });
-
-    const params = createMockParams();
-    const result = await startGatewaySidecars(params);
-
-    expect(result).toHaveProperty("browserControl");
-    expect(result).toHaveProperty("pluginServices");
-    await vi.advanceTimersByTimeAsync(0);
-    expect(params.logHooks.warn).toHaveBeenCalledWith(
-      expect.stringContaining("gateway_start hook failed"),
-    );
-    vi.useRealTimers();
-  });
 });
