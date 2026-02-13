@@ -494,33 +494,32 @@ describe("local embedding ensureContext concurrency", () => {
     const loadModelSpy = vi.fn();
     const createContextSpy = vi.fn();
 
-    vi.doMock("./node-llama.js", () => ({
-      importNodeLlamaCpp: async () => ({
-        getLlama: async (...args: unknown[]) => {
-          getLlamaSpy(...args);
-          // Simulate real async delay so concurrent callers can interleave
-          await new Promise((r) => setTimeout(r, 50));
-          return {
-            loadModel: async (...modelArgs: unknown[]) => {
-              loadModelSpy(...modelArgs);
-              await new Promise((r) => setTimeout(r, 50));
-              return {
-                createEmbeddingContext: async () => {
-                  createContextSpy();
-                  return {
-                    getEmbeddingFor: vi.fn().mockResolvedValue({
-                      vector: new Float32Array([1, 0, 0, 0]),
-                    }),
-                  };
-                },
-              };
-            },
-          };
-        },
-        resolveModelFile: async () => "/fake/model.gguf",
-        LlamaLogLevel: { error: 0 },
-      }),
-    }));
+    const nodeLlamaModule = await import("./node-llama.js");
+    vi.spyOn(nodeLlamaModule, "importNodeLlamaCpp").mockResolvedValue({
+      getLlama: async (...args: unknown[]) => {
+        getLlamaSpy(...args);
+        // Simulate real async delay so concurrent callers can interleave
+        await new Promise((r) => setTimeout(r, 50));
+        return {
+          loadModel: async (...modelArgs: unknown[]) => {
+            loadModelSpy(...modelArgs);
+            await new Promise((r) => setTimeout(r, 50));
+            return {
+              createEmbeddingContext: async () => {
+                createContextSpy();
+                return {
+                  getEmbeddingFor: vi.fn().mockResolvedValue({
+                    vector: new Float32Array([1, 0, 0, 0]),
+                  }),
+                };
+              },
+            };
+          },
+        };
+      },
+      resolveModelFile: async () => "/fake/model.gguf",
+      LlamaLogLevel: { error: 0 },
+    } as never);
 
     const { createEmbeddingProvider } = await import("./embeddings.js");
 
