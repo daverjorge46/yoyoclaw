@@ -383,10 +383,7 @@ export const googlechatPlugin: ChannelPlugin<ResolvedGoogleChatAccount> = {
         if (!normalized) {
           return {
             ok: false,
-            error: missingTargetError(
-              "Google Chat",
-              "<spaces/{space}|users/{user}> or channels.googlechat.dm.allowFrom[0]",
-            ),
+            error: missingTargetError("Google Chat", "<spaces/{space}|users/{user}>"),
           };
         }
         return { ok: true, to: normalized };
@@ -394,10 +391,7 @@ export const googlechatPlugin: ChannelPlugin<ResolvedGoogleChatAccount> = {
 
       return {
         ok: false,
-        error: missingTargetError(
-          "Google Chat",
-          "<spaces/{space}|users/{user}> or channels.googlechat.dm.allowFrom[0]",
-        ),
+        error: missingTargetError("Google Chat", "<spaces/{space}|users/{user}>"),
       };
     },
     sendText: async ({ cfg, to, text, accountId, replyToId, threadId }) => {

@@ -57,10 +57,7 @@ export const twitchOutbound: ChannelOutboundAdapter = {
       if (!normalizedTo) {
         return {
           ok: false,
-          error: missingTargetError(
-            "Twitch",
-            "<channel-name> or channels.twitch.accounts.<account>.allowFrom[0]",
-          ),
+          error: missingTargetError("Twitch", "<channel-name>"),
         };
       }
 
@@ -74,10 +71,7 @@ export const twitchOutbound: ChannelOutboundAdapter = {
         }
         return {
           ok: false,
-          error: missingTargetError(
-            "Twitch",
-            "<channel-name> or channels.twitch.accounts.<account>.allowFrom[0]",
-          ),
+          error: missingTargetError("Twitch", "<channel-name>"),
         };
       }
 
@@ -90,10 +84,7 @@ export const twitchOutbound: ChannelOutboundAdapter = {
     // No target and no allowFrom - error
     return {
       ok: false,
-      error: missingTargetError(
-        "Twitch",
-        "<channel-name> or channels.twitch.accounts.<account>.allowFrom[0]",
-      ),
+      error: missingTargetError("Twitch", "<channel-name>"),
     };
   },
 

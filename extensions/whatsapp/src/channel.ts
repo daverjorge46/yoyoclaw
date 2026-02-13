@@ -303,10 +303,7 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> = {
         if (!normalizedTo) {
           return {
             ok: false,
-            error: missingTargetError(
-              "WhatsApp",
-              "<E.164|group JID> or channels.whatsapp.allowFrom[0]",
-            ),
+            error: missingTargetError("WhatsApp", "<E.164|group JID>"),
           };
         }
         if (isWhatsAppGroupJid(normalizedTo)) {
@@ -321,20 +318,14 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> = {
           }
           return {
             ok: false,
-            error: missingTargetError(
-              "WhatsApp",
-              "<E.164|group JID> or channels.whatsapp.allowFrom[0]",
-            ),
+            error: missingTargetError("WhatsApp", "<E.164|group JID>"),
           };
         }
         return { ok: true, to: normalizedTo };
       }
       return {
         ok: false,
-        error: missingTargetError(
-          "WhatsApp",
-          "<E.164|group JID> or channels.whatsapp.allowFrom[0]",
-        ),
+        error: missingTargetError("WhatsApp", "<E.164|group JID>"),
       };
     },
     sendText: async ({ to, text, accountId, deps, gifPlayback }) => {
