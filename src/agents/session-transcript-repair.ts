@@ -215,6 +215,10 @@ export function repairToolUseResultPairing(messages: AgentMessage[]): ToolUseRep
     if (id) {
       seenToolResultIds.add(id);
     }
+    if (!msg.toolName || !msg.toolName.trim()) {
+      msg = { ...msg, toolName: "unknown" };
+      changed = true;
+    }
     out.push(msg);
   };
 
