@@ -33,6 +33,16 @@ describe("session path safety", () => {
     expect(validateSessionId("ABC_123.hello")).toBe("ABC_123.hello");
   });
 
+  it("validates session IDs with channel routing characters", () => {
+    expect(validateSessionId("imessage:direct:+17189153805")).toBe("imessage:direct:+17189153805");
+    expect(validateSessionId("imessage:direct:cathryn@littlemight.com")).toBe(
+      "imessage:direct:cathryn@littlemight.com",
+    );
+    expect(validateSessionId("slack:direct:u06g8spt4bx:thread:1770948912.577419")).toBe(
+      "slack:direct:u06g8spt4bx:thread:1770948912.577419",
+    );
+  });
+
   it("rejects unsafe session IDs", () => {
     expect(() => validateSessionId("../etc/passwd")).toThrow(/Invalid session ID/);
     expect(() => validateSessionId("a/b")).toThrow(/Invalid session ID/);
@@ -57,6 +67,22 @@ describe("session path safety", () => {
     expect(() =>
       resolveSessionFilePath("sess-1", { sessionFile: "/etc/passwd" }, { sessionsDir }),
     ).toThrow(/within sessions directory/);
+
+    expect(() =>
+      resolveSessionFilePath("sess-1", { sessionFile: "/tmp/outside/file.jsonl" }, { sessionsDir }),
+    ).toThrow(/within sessions directory/);
+  });
+
+  it("accepts cross-agent absolute paths within the agents root", () => {
+    const sessionsDir = "/tmp/openclaw/agents/default/sessions";
+
+    const resolved = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "/tmp/openclaw/agents/knox/sessions/uuid-1234.jsonl" },
+      { sessionsDir },
+    );
+
+    expect(resolved).toBe(path.resolve("/tmp/openclaw/agents/knox/sessions/uuid-1234.jsonl"));
   });
 
   it("accepts sessionFile candidates within the sessions dir", () => {
