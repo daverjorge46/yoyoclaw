@@ -41,6 +41,14 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "check",
+    description: "Check OpenClaw installation status",
+    register: async (program) => {
+      const mod = await import("../check-cli.js");
+      mod.registerCheckCli(program);
+    },
+  },
+  {
     name: "gateway",
     description: "Gateway control",
     register: async (program) => {

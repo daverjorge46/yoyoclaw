@@ -1,0 +1,128 @@
+# Progress Log
+Run: 086452bc-1faa-446f-8487-6745143092fd
+Task: TEST: installatie check
+Started: Thursday, February 12th, 2026 — 5:32 PM
+
+## Codebase Patterns
+- Commands are in `src/commands/` directory
+- Tests use vitest with `describe`, `it`, `expect` patterns
+- Tests are co-located with source files (e.g., `check.ts` has `check.test.ts`)
+- Build uses `pnpm build` (tsdown/rolldown bundler)
+- Tests run with `pnpm test <path>` (parallel test runner)
+- Use `@clack/prompts` for CLI UX
+- Runtime abstraction for logging: `RuntimeEnv` with `log`, `error`, `warn`, `debug`, `exit`
+- Skills directory is resolved via `resolveBundledSkillsDir()` from `agents/skills/bundled-dir.js`
+- Can override skills dir with `OPENCLAW_BUNDLED_SKILLS_DIR` env var in tests
+- When mutating `process.env` in tests, restore by `delete process.env.VAR` (not assignment) when the previous value was undefined; assigning `undefined` sets the literal string "undefined".
+
+---
+
+## 2026-02-12 - US-002: Implement Node.js and pnpm version checks
+- Implemented version checking functions: `parseVersion`, `compareVersions`, `checkNodeVersion`, `checkPnpmVersion`
+- Added `node-version` and `pnpm-version` checks to the installation check command
+- Added comprehensive unit tests for version parsing and comparison
+- Build passes, all tests pass
+
+**Files changed:**
+- `src/commands/check.ts` - Added version check functions and integrated into runInstallationChecks
+- `src/commands/check.test.ts` - Added tests for version parsing, comparison, and version checks
+
+**Learnings:**
+- parseVersion needs to handle empty strings explicitly (returns null for `''` since `Number('') === 0`)
+- pnpm check uses `execSync` with timeout, graceful error handling for missing pnpm
+- Version comparison uses numeric array comparison with padded zeros for different lengths
+
+---
+
+## 2026-02-12 - US-003: Implement environment file validation
+- Added parseEnvExample() to extract variable names from .env.example
+- Added parseEnvFile() to extract variable names with values from .env
+- Added checkEnvFileExists() and checkEnvExampleExists() functions
+- Added validateEnvFile() to validate .env against .env.example
+- Integrated env-exists and env-valid checks into runInstallationChecks
+- Added comprehensive unit tests for all new functions (9 new test cases)
+- Build passes, all 29 tests pass
+
+**Files changed:**
+- `src/commands/check.ts` - Added env validation functions and checks
+- `src/commands/check.test.ts` - Added tests for env validation functions
+
+**Learnings:**
+- parseEnvFile only considers variables with non-empty values as "present"
+- Environment validation handles missing .env.example gracefully (returns ok=true)
+- When .env is missing but .env.example exists, all required vars are reported as missing
+
+---
+
+## 2026-02-12 - US-004: Implement database connectivity check
+- Added database check functions: `getDefaultDatabasePath`, `checkDatabaseExists`, `checkDatabasePermissions`, `checkDatabaseConnection`, `checkDatabaseConnectivity`
+- Check reports database file location and existence via `checkDatabaseExists`
+- Check verifies database is readable and writable via `checkDatabasePermissions` using `fs.accessSync`
+- Check validates SQLite file integrity by checking magic header "SQLite format 3"
+- Added `database` check to `runInstallationChecks` with helpful error messages
+- Added comprehensive unit tests (7 new test cases covering all database check functions)
+- Build passes, all 40 tests pass, typecheck passes
+
+**Files changed:**
+- `src/commands/check.ts` - Added database check functions and integrated database check
+- `src/commands/check.test.ts` - Added 7 new test cases for database connectivity checks
+
+**Learnings:**
+- Database path defaults to `${STATE_DIR}/memory.sqlite` via `STATE_DIR` import from config/paths
+- SQLite validation checks for magic header "SQLite format 3\0" at offset 0
+- `fs.accessSync` with `R_OK`/`W_OK` flags tests permissions without opening the file
+- Small files (<16 bytes) fail with "too small" error before header validation
+
+---
+
+## 2026-02-12 - US-005: Implement skills directory validation
+- Implemented skills validation functions: `checkSkillsDirExists()`, `getSkillsList()`, `checkSkillHasMetadata()`, `validateSkills()`
+- Added `skills-dir` check to `runInstallationChecks` with detailed error messages for missing metadata
+- Added 7 new comprehensive unit tests covering all skills validation functions
+- Build passes, all 47 tests pass
+
+**Files changed:**
+- `src/commands/check.ts` - Added skills validation functions and integrated skills-dir check
+- `src/commands/check.test.ts` - Added 7 new test cases for skills validation
+
+**Learnings:**
+- Skills directory resolution uses `resolveBundledSkillsDir()` which checks env var, exec path, and package root
+- For testing, can override skills dir location via `OPENCLAW_BUNDLED_SKILLS_DIR` environment variable
+- Skills are validated by checking each subdirectory has a SKILL.md file
+- The `ok` field in validation result is only true when ALL skills have valid metadata
+
+---
+
+## 2026-02-13 - US-007: Create summary report formatter
+- Added a structured formatter for installation check output (`formatInstallationCheckSummary`)
+- Added optional `fix` instructions per check to help users resolve failures quickly
+- Added rich output support: uses ✓/✗ icons and colors them when terminal styling is enabled
+- Updated `checkCommand` to use the new formatter and route fix instructions through `note(..., "Fix")`
+- Stabilized test suite by fixing skills CLI integration test env restore and increasing media-group flush headroom
+
+**Files changed:**
+- `src/commands/check.ts`
+- `src/commands/check.test.ts`
+- `src/cli/skills-cli.test.ts`
+- `src/telegram/bot.media.downloads-media-file-path-no-file-download.test.ts`
+
+**Learnings:**
+- Avoid assigning `process.env.FOO = undefined` in tests; it becomes the string "undefined" and can break other tests.
+
+---
+
+## 2026-02-13 - US-008: Add verbose and JSON output modes
+- Added `--verbose` flag to `openclaw check all` to show per-check `details` lines in terminal output
+- Improved `--json` output shape to include `status` (pass/fail), `message`, and `details` for each check
+- Plumbed detailed `details` objects into all check results (node/pnpm/env/config/gateway/db/skills)
+- Extended gateway status check to expose lock file location metadata for verbose/JSON output
+- Added unit tests for verbose detail formatting and JSON output fields
+
+**Files changed:**
+- `src/commands/check.ts`
+- `src/cli/check-cli.ts`
+- `src/commands/check.test.ts`
+
+**Learnings:**
+- `pnpm check` in this repo runs broad linting that includes vendored docs build artifacts; for typecheck use `pnpm exec tsc -p tsconfig.json --noEmit`.
+---
