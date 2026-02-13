@@ -443,10 +443,22 @@ export async function sanitizeSessionHistory(params: {
       provider: params.provider,
       modelId: params.modelId,
     });
-<<<<<<< HEAD
+  // First annotate inter-session user messages
   const withInterSessionMarkers = annotateInterSessionUserMessages(params.messages);
+
+  // Then filter orphaned tool results for provider compatibility
+  const { filtered: compatibleMessages, removedCount } =
+    filterOrphanedToolResults(withInterSessionMarkers);
+
+  if (removedCount > 0) {
+    log.info(
+      `Filtered ${removedCount} orphaned tool results for provider compatibility ` +
+        `(${params.provider}/${params.modelId})`,
+    );
+  }
+
   const sanitizedImages = await sanitizeSessionMessagesImages(
-    withInterSessionMarkers,
+    compatibleMessages,
     "session:history",
     {
       sanitizeMode: policy.sanitizeMode,
@@ -456,25 +468,6 @@ export async function sanitizeSessionHistory(params: {
       sanitizeThoughtSignatures: policy.sanitizeThoughtSignatures,
     },
   );
-=======
-
-  const { filtered: compatibleMessages, removedCount } = filterOrphanedToolResults(params.messages);
-  
-  if (removedCount > 0) {
-    log.info(
-      `Filtered ${removedCount} orphaned tool results for provider compatibility ` +
-      `(${params.provider}/${params.modelId})`
-    );
-  }
-
-  const sanitizedImages = await sanitizeSessionMessagesImages(compatibleMessages, "session:history", {
-    sanitizeMode: policy.sanitizeMode,
-    sanitizeToolCallIds: policy.sanitizeToolCallIds,
-    toolCallIdMode: policy.toolCallIdMode,
-    preserveSignatures: policy.preserveSignatures,
-    sanitizeThoughtSignatures: policy.sanitizeThoughtSignatures,
-  });
->>>>>>> 6afbbafa4 (fix: prevent context loss during provider switching (AI-assisted))
   const sanitizedThinking = policy.normalizeAntigravityThinkingBlocks
     ? sanitizeAntigravityThinkingBlocks(sanitizedImages)
     : sanitizedImages;
