@@ -12,6 +12,7 @@ import { resolveGatewayAuth } from "../gateway/auth.js";
 import { buildGatewayConnectionDetails } from "../gateway/call.js";
 import { probeGateway } from "../gateway/probe.js";
 import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
+import { buildTrustedPlugins } from "../plugins/enable.js";
 import {
   collectAttackSurfaceSummaryFindings,
   collectExposureMatrixFindings,
@@ -997,7 +998,12 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
     );
     findings.push(...(await collectPluginsTrustFindings({ cfg, stateDir })));
     if (opts.deep === true) {
-      findings.push(...(await collectPluginsCodeSafetyFindings({ stateDir })));
+      findings.push(
+        ...(await collectPluginsCodeSafetyFindings({
+          stateDir,
+          trustedPlugins: buildTrustedPlugins(cfg),
+        })),
+      );
       findings.push(...(await collectInstalledSkillsCodeSafetyFindings({ cfg, stateDir })));
     }
   }
