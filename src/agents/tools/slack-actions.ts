@@ -282,9 +282,7 @@ export async function handleSlackAction(
       }
       return jsonResult({ ok: true });
     }
-    const pins = writeOpts
-      ? await listSlackPins(channelId, readOpts)
-      : await listSlackPins(channelId);
+    const pins = readOpts ? await listSlackPins(channelId, readOpts) : await listSlackPins(channelId);
     const normalizedPins = pins.map((pin) => {
       const message = pin.message
         ? withNormalizedTimestamp(
@@ -318,9 +316,7 @@ export async function handleSlackAction(
       throw new Error("Slack member info is disabled.");
     }
     const userId = readStringParam(params, "userId", { required: true });
-    const info = writeOpts
-      ? await getSlackMemberInfo(userId, readOpts)
-      : await getSlackMemberInfo(userId);
+    const info = readOpts ? await getSlackMemberInfo(userId, readOpts) : await getSlackMemberInfo(userId);
     return jsonResult({ ok: true, info });
   }
 
