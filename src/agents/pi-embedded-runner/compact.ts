@@ -446,8 +446,10 @@ export async function compactEmbeddedPiSessionDirect(
         if (limited.length > 0) {
           session.agent.replaceMessages(limited);
         }
-        // Run before_compaction hooks — awaited so plugins can extract data
-        // before messages are discarded, but with a timeout to prevent stalls.
+        // Run before_compaction hooks (fire-and-forget).
+        // Plugins that need the full conversation should persist it themselves
+        // (e.g. write to a temp file) and return quickly. For heavier processing,
+        // use after_compaction which provides the sessionFile path for async reads.
         const hookRunner = getGlobalHookRunner();
         const hookCtx = {
           agentId: params.sessionKey?.split(":")[0] ?? "main",
@@ -457,24 +459,18 @@ export async function compactEmbeddedPiSessionDirect(
           messageProvider: params.messageChannel ?? params.messageProvider,
         };
         if (hookRunner?.hasHooks("before_compaction")) {
-          try {
-            // messageCount is the full pre-compaction history length.
-            // compactingCount is the truncated count fed to the compaction LLM.
-            // Plugins receive the complete pre-compaction messages for fact
-            // extraction before any history is discarded.
-            const hookPromise = hookRunner.runBeforeCompaction(
+          hookRunner
+            .runBeforeCompaction(
               {
                 messageCount: preCompactionMessages.length,
                 compactingCount: limited.length,
                 messages: preCompactionMessages,
               },
               hookCtx,
-            );
-            const timeout = new Promise<void>((resolve) => setTimeout(resolve, 30_000));
-            await Promise.race([hookPromise, timeout]);
-          } catch (hookErr: unknown) {
-            log.warn(`before_compaction hook failed: ${String(hookErr)}`);
-          }
+            )
+            .catch((hookErr: unknown) => {
+              log.warn(`before_compaction hook failed: ${String(hookErr)}`);
+            });
         }
 
         const result = await session.compact(params.customInstructions);
@@ -493,7 +489,9 @@ export async function compactEmbeddedPiSessionDirect(
           // If estimation fails, leave tokensAfter undefined
           tokensAfter = undefined;
         }
-        // Run after_compaction hooks (fire-and-forget)
+        // Run after_compaction hooks (fire-and-forget).
+        // Includes sessionFile so plugins can read the full JSONL transcript
+        // asynchronously — all pre-compaction messages are preserved on disk.
         if (hookRunner?.hasHooks("after_compaction")) {
           hookRunner
             .runAfterCompaction(
@@ -501,6 +499,7 @@ export async function compactEmbeddedPiSessionDirect(
                 messageCount: session.messages.length,
                 tokenCount: tokensAfter,
                 compactedCount: limited.length - session.messages.length,
+                sessionFile: params.sessionFile,
               },
               hookCtx,
             )
