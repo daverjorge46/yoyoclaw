@@ -1388,7 +1388,7 @@ describe("BlueBubbles webhook monitor", () => {
         expect(mockDispatchReplyWithBufferedBlockDispatcher).not.toHaveBeenCalled();
 
         // After the debounce window, the combined message should be processed exactly once.
-        await vi.advanceTimersByTimeAsync(1600);
+        await vi.advanceTimersByTimeAsync(1100);
 
         expect(mockDispatchReplyWithBufferedBlockDispatcher).toHaveBeenCalledTimes(1);
         const callArgs = mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[0][0];
@@ -1525,6 +1525,133 @@ describe("BlueBubbles webhook monitor", () => {
         // Combined text should contain both the text and the URL
         expect(callArgs.ctx.Body).toContain("openclaw");
         expect(callArgs.ctx.Body).toContain("youtu.be");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("dispatches separate inbound messages independently when outside debounce window", async () => {
+      vi.useFakeTimers();
+      try {
+        const account = createMockAccount({ dmPolicy: "open" });
+        const config: OpenClawConfig = {};
+        const core = createMockRuntime();
+
+        // oxlint-disable-next-line typescript/no-explicit-any
+        core.channel.debounce.createInboundDebouncer = vi.fn((params: any) => {
+          // oxlint-disable-next-line typescript/no-explicit-any
+          type Item = any;
+          const buckets = new Map<
+            string,
+            { items: Item[]; timer: ReturnType<typeof setTimeout> | null }
+          >();
+
+          const flush = async (key: string) => {
+            const bucket = buckets.get(key);
+            if (!bucket) {
+              return;
+            }
+            if (bucket.timer) {
+              clearTimeout(bucket.timer);
+              bucket.timer = null;
+            }
+            const items = bucket.items;
+            buckets.delete(key);
+            if (items.length > 0) {
+              try {
+                await params.onFlush(items);
+              } catch (err) {
+                params.onError?.(err);
+                throw err;
+              }
+            }
+          };
+
+          return {
+            enqueue: async (item: Item) => {
+              if (params.shouldDebounce && !params.shouldDebounce(item)) {
+                await params.onFlush([item]);
+                return;
+              }
+
+              const key = params.buildKey(item);
+              const existing = buckets.get(key);
+              const bucket = existing ?? { items: [], timer: null };
+              bucket.items.push(item);
+              if (bucket.timer) {
+                clearTimeout(bucket.timer);
+              }
+              bucket.timer = setTimeout(async () => {
+                await flush(key);
+              }, params.debounceMs);
+              buckets.set(key, bucket);
+            },
+            flushKey: vi.fn(async (key: string) => {
+              await flush(key);
+            }),
+          };
+        }) as unknown as PluginRuntime["channel"]["debounce"]["createInboundDebouncer"];
+
+        setBlueBubblesRuntime(core);
+
+        unregister = registerBlueBubblesWebhookTarget({
+          account,
+          config,
+          runtime: { log: vi.fn(), error: vi.fn() },
+          core,
+          path: "/bluebubbles-webhook",
+        });
+
+        const chatGuid = "iMessage;-;+15551234567";
+
+        // First message
+        await handleBlueBubblesWebhookRequest(
+          createMockRequest("POST", "/bluebubbles-webhook", {
+            type: "new-message",
+            data: {
+              text: "first message",
+              handle: { address: "+15551234567" },
+              isGroup: false,
+              isFromMe: false,
+              guid: "MSG-FIRST",
+              chatGuid,
+              date: Date.now(),
+            },
+          }),
+          createMockResponse(),
+        );
+
+        // Wait for debounce window to flush the first message
+        await vi.advanceTimersByTimeAsync(1100);
+
+        expect(mockDispatchReplyWithBufferedBlockDispatcher).toHaveBeenCalledTimes(1);
+        const firstCall = mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[0][0];
+        expect(firstCall.ctx.Body).toContain("first message");
+
+        // Second message arrives well after the window
+        await handleBlueBubblesWebhookRequest(
+          createMockRequest("POST", "/bluebubbles-webhook", {
+            type: "new-message",
+            data: {
+              text: "second message",
+              handle: { address: "+15551234567" },
+              isGroup: false,
+              isFromMe: false,
+              guid: "MSG-SECOND",
+              chatGuid,
+              date: Date.now() + 3000,
+            },
+          }),
+          createMockResponse(),
+        );
+
+        await vi.advanceTimersByTimeAsync(1100);
+
+        // Second message dispatched separately
+        expect(mockDispatchReplyWithBufferedBlockDispatcher).toHaveBeenCalledTimes(2);
+        const secondCall = mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[1][0];
+        expect(secondCall.ctx.Body).toContain("second message");
+        expect(secondCall.ctx.Body).not.toContain("first message");
       } finally {
         vi.useRealTimers();
       }
