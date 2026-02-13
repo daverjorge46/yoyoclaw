@@ -88,6 +88,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["qianfan-api-key"],
   },
   {
+    value: "edgee",
+    label: "Edgee",
+    hint: "AI Gateway (200+ models, token compression)",
+    choices: ["edgee-api-key"],
+  },
+  {
     value: "copilot",
     label: "Copilot",
     hint: "GitHub + local proxy",
@@ -226,6 +232,11 @@ export function buildAuthChoiceOptions(params: {
     value: "huggingface-api-key",
     label: "Hugging Face API key (HF token)",
     hint: "Inference Providers — OpenAI-compatible chat",
+  });
+  options.push({
+    value: "edgee-api-key",
+    label: "Edgee API key",
+    hint: "AI Gateway with 200+ models and token compression",
   });
   options.push({
     value: "github-copilot",

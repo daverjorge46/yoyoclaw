@@ -6,6 +6,7 @@ import {
   normalizeApiKeyInput,
   validateApiKeyInput,
 } from "./auth-choice.api-key.js";
+import { applyAuthChoiceEdgee } from "./auth-choice.apply.edgee.js";
 import { applyAuthChoiceHuggingface } from "./auth-choice.apply.huggingface.js";
 import { applyAuthChoiceOpenRouter } from "./auth-choice.apply.openrouter.js";
 import { applyDefaultModelChoice } from "./auth-choice.default-model.js";
@@ -15,6 +16,8 @@ import {
 } from "./google-gemini-model-default.js";
 import {
   applyAuthProfileConfig,
+  applyEdgeeConfig,
+  applyEdgeeProviderConfig,
   applyCloudflareAiGatewayConfig,
   applyCloudflareAiGatewayProviderConfig,
   applyQianfanConfig,
@@ -42,6 +45,7 @@ import {
   applyZaiConfig,
   applyZaiProviderConfig,
   CLOUDFLARE_AI_GATEWAY_DEFAULT_MODEL_REF,
+  EDGEE_DEFAULT_MODEL_REF,
   LITELLM_DEFAULT_MODEL_REF,
   QIANFAN_DEFAULT_MODEL_REF,
   KIMI_CODING_MODEL_REF,
@@ -52,6 +56,7 @@ import {
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
   setCloudflareAiGatewayConfig,
+  setEdgeeApiKey,
   setQianfanApiKey,
   setGeminiApiKey,
   setLitellmApiKey,
@@ -124,6 +129,8 @@ export async function applyAuthChoiceApiProviders(
       authChoice = "opencode-zen";
     } else if (params.opts.tokenProvider === "qianfan") {
       authChoice = "qianfan-api-key";
+    } else if (params.opts.tokenProvider === "edgee") {
+      authChoice = "edgee-api-key";
     }
   }
 
@@ -921,6 +928,10 @@ export async function applyAuthChoiceApiProviders(
 
   if (authChoice === "huggingface-api-key") {
     return applyAuthChoiceHuggingface({ ...params, authChoice });
+  }
+
+  if (authChoice === "edgee-api-key") {
+    return applyAuthChoiceEdgee(params);
   }
 
   if (authChoice === "qianfan-api-key") {

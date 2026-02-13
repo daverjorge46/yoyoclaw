@@ -29,6 +29,7 @@ import {
   VENICE_MODEL_CATALOG,
 } from "../agents/venice-models.js";
 import {
+  EDGEE_DEFAULT_MODEL_REF,
   HUGGINGFACE_DEFAULT_MODEL_REF,
   OPENROUTER_DEFAULT_MODEL_REF,
   TOGETHER_DEFAULT_MODEL_REF,
@@ -156,6 +157,47 @@ export function applyZaiConfig(
               }
             : undefined),
           primary: modelRef,
+        },
+      },
+    },
+  };
+}
+
+export function applyEdgeeProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[EDGEE_DEFAULT_MODEL_REF] = {
+    ...models[EDGEE_DEFAULT_MODEL_REF],
+    alias: models[EDGEE_DEFAULT_MODEL_REF]?.alias ?? "Edgee",
+  };
+
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        models,
+      },
+    },
+  };
+}
+
+export function applyEdgeeConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const next = applyEdgeeProviderConfig(cfg);
+  const existingModel = next.agents?.defaults?.model;
+  return {
+    ...next,
+    agents: {
+      ...next.agents,
+      defaults: {
+        ...next.agents?.defaults,
+        model: {
+          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+            ? {
+                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+              }
+            : undefined),
+          primary: EDGEE_DEFAULT_MODEL_REF,
         },
       },
     },
