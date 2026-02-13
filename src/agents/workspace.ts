@@ -75,6 +75,19 @@ export type WorkspaceBootstrapFile = {
   missing: boolean;
 };
 
+/** Set of recognized bootstrap filenames for runtime validation */
+const VALID_BOOTSTRAP_NAMES: ReadonlySet<string> = new Set([
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_SOUL_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+  DEFAULT_IDENTITY_FILENAME,
+  DEFAULT_USER_FILENAME,
+  DEFAULT_HEARTBEAT_FILENAME,
+  DEFAULT_BOOTSTRAP_FILENAME,
+  DEFAULT_MEMORY_FILENAME,
+  DEFAULT_MEMORY_ALT_FILENAME,
+]);
+
 async function writeFileIfMissing(filePath: string, content: string) {
   try {
     await fs.writeFile(filePath, content, {
@@ -344,12 +357,14 @@ export async function loadExtraBootstrapFiles(
       if (!realFilePath.startsWith(resolvedDir + path.sep) && realFilePath !== resolvedDir) {
         continue;
       }
+      // Only load files whose basename is a recognized bootstrap filename
+      const baseName = path.basename(relPath);
+      if (!VALID_BOOTSTRAP_NAMES.has(baseName)) {
+        continue;
+      }
       const content = await fs.readFile(realFilePath, "utf-8");
-      // Use basename so "projects/quaid/TOOLS.md" maps to the known "TOOLS.md" name.
-      // Non-standard basenames still get cast but the common case is type-correct.
-      const baseName = path.basename(relPath) as WorkspaceBootstrapFileName;
       result.push({
-        name: baseName,
+        name: baseName as WorkspaceBootstrapFileName,
         path: filePath,
         content,
         missing: false,

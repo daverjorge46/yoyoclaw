@@ -446,7 +446,8 @@ export async function compactEmbeddedPiSessionDirect(
         if (limited.length > 0) {
           session.agent.replaceMessages(limited);
         }
-        // Run before_compaction hooks (fire-and-forget)
+        // Run before_compaction hooks — awaited so plugins can extract data
+        // before messages are discarded, but with a timeout to prevent stalls.
         const hookRunner = getGlobalHookRunner();
         const hookCtx = {
           agentId: params.sessionKey?.split(":")[0] ?? "main",
@@ -458,10 +459,10 @@ export async function compactEmbeddedPiSessionDirect(
         if (hookRunner?.hasHooks("before_compaction")) {
           try {
             // messageCount is the full pre-compaction history length.
-            // The compaction itself runs on `limited` (truncated transcript),
-            // but plugins receive the complete pre-compaction messages for
-            // fact extraction before any history is discarded.
-            await hookRunner.runBeforeCompaction(
+            // compactingCount is the truncated count fed to the compaction LLM.
+            // Plugins receive the complete pre-compaction messages for fact
+            // extraction before any history is discarded.
+            const hookPromise = hookRunner.runBeforeCompaction(
               {
                 messageCount: preCompactionMessages.length,
                 compactingCount: limited.length,
@@ -469,6 +470,8 @@ export async function compactEmbeddedPiSessionDirect(
               },
               hookCtx,
             );
+            const timeout = new Promise<void>((resolve) => setTimeout(resolve, 30_000));
+            await Promise.race([hookPromise, timeout]);
           } catch (hookErr: unknown) {
             log.warn(`before_compaction hook failed: ${String(hookErr)}`);
           }
