@@ -2,11 +2,14 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import {
   createReplyPrefixOptions,
+  isRequestBodyLimitError,
   logAckFailure,
   logInboundDrop,
   logTypingFailure,
+  readRequestBodyWithLimit,
   resolveAckReaction,
   resolveControlCommandGate,
+  requestBodyErrorToText,
 } from "openclaw/plugin-sdk";
 import type { ResolvedBlueBubblesAccount } from "./accounts.js";
 import type { BlueBubblesAccountConfig, BlueBubblesAttachment } from "./types.js";
@@ -361,14 +364,16 @@ function combineDebounceEntries(entries: BlueBubblesDebounceEntry[]): Normalized
 
 const webhookTargets = new Map<string, WebhookTarget[]>();
 
+type BlueBubblesDebouncer = {
+  enqueue: (item: BlueBubblesDebounceEntry) => Promise<void>;
+  flushKey: (key: string) => Promise<void>;
+};
+
 /**
  * Maps webhook targets to their inbound debouncers.
  * Each target gets its own debouncer keyed by a unique identifier.
  */
-const targetDebouncers = new Map<
-  WebhookTarget,
-  ReturnType<BlueBubblesCoreRuntime["channel"]["debounce"]["createInboundDebouncer"]>
->();
+const targetDebouncers = new Map<WebhookTarget, BlueBubblesDebouncer>();
 
 function resolveBlueBubblesDebounceMs(
   config: OpenClawConfig,
@@ -508,46 +513,41 @@ export function registerBlueBubblesWebhookTarget(target: WebhookTarget): () => v
   };
 }
 
-async function readJsonBody(req: IncomingMessage, maxBytes: number) {
-  const chunks: Buffer[] = [];
-  let total = 0;
-  return await new Promise<{ ok: boolean; value?: unknown; error?: string }>((resolve) => {
-    req.on("data", (chunk: Buffer) => {
-      total += chunk.length;
-      if (total > maxBytes) {
-        resolve({ ok: false, error: "payload too large" });
-        req.destroy();
-        return;
+async function readJsonBody(req: IncomingMessage, maxBytes: number, timeoutMs = 30_000) {
+  let rawBody = "";
+  try {
+    rawBody = await readRequestBodyWithLimit(req, { maxBytes, timeoutMs });
+  } catch (error) {
+    if (isRequestBodyLimitError(error, "PAYLOAD_TOO_LARGE")) {
+      return { ok: false, error: "payload too large" };
+    }
+    if (isRequestBodyLimitError(error, "REQUEST_BODY_TIMEOUT")) {
+      return { ok: false, error: requestBodyErrorToText("REQUEST_BODY_TIMEOUT") };
+    }
+    if (isRequestBodyLimitError(error, "CONNECTION_CLOSED")) {
+      return { ok: false, error: requestBodyErrorToText("CONNECTION_CLOSED") };
+    }
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+
+  try {
+    const raw = rawBody.toString();
+    if (!raw.trim()) {
+      return { ok: false, error: "empty payload" };
+    }
+    try {
+      return { ok: true, value: JSON.parse(raw) as unknown };
+    } catch {
+      const params = new URLSearchParams(raw);
+      const payload = params.get("payload") ?? params.get("data") ?? params.get("message");
+      if (payload) {
+        return { ok: true, value: JSON.parse(payload) as unknown };
       }
-      chunks.push(chunk);
-    });
-    req.on("end", () => {
-      try {
-        const raw = Buffer.concat(chunks).toString("utf8");
-        if (!raw.trim()) {
-          resolve({ ok: false, error: "empty payload" });
-          return;
-        }
-        try {
-          resolve({ ok: true, value: JSON.parse(raw) as unknown });
-          return;
-        } catch {
-          const params = new URLSearchParams(raw);
-          const payload = params.get("payload") ?? params.get("data") ?? params.get("message");
-          if (payload) {
-            resolve({ ok: true, value: JSON.parse(payload) as unknown });
-            return;
-          }
-          throw new Error("invalid json");
-        }
-      } catch (err) {
-        resolve({ ok: false, error: err instanceof Error ? err.message : String(err) });
-      }
-    });
-    req.on("error", (err) => {
-      resolve({ ok: false, error: err instanceof Error ? err.message : String(err) });
-    });
-  });
+      throw new Error("invalid json");
+    }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -1441,7 +1441,12 @@ export async function handleBlueBubblesWebhookRequest(
 
   const body = await readJsonBody(req, 1024 * 1024);
   if (!body.ok) {
-    res.statusCode = body.error === "payload too large" ? 413 : 400;
+    res.statusCode =
+      body.error === "payload too large"
+        ? 413
+        : body.error === requestBodyErrorToText("REQUEST_BODY_TIMEOUT")
+          ? 408
+          : 400;
     res.end(body.error ?? "invalid payload");
     console.warn(`[bluebubbles] webhook rejected: ${body.error ?? "invalid payload"}`);
     return true;
@@ -1511,10 +1516,6 @@ export async function handleBlueBubblesWebhookRequest(
       req.headers["authorization"];
     const guid = (Array.isArray(headerToken) ? headerToken[0] : headerToken) ?? guidParam ?? "";
     if (guid && guid.trim() === token) {
-      return true;
-    }
-    const remote = req.socket?.remoteAddress ?? "";
-    if (remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1") {
       return true;
     }
     return false;
@@ -1786,7 +1787,7 @@ async function processMessage(
     channel: "bluebubbles",
     accountId: account.accountId,
     peer: {
-      kind: isGroup ? "group" : "dm",
+      kind: isGroup ? "group" : "direct",
       id: peerId,
     },
   });
@@ -1899,7 +1900,7 @@ async function processMessage(
             maxBytes,
           });
           const saved = await core.channel.media.saveMediaBuffer(
-            downloaded.buffer,
+            Buffer.from(downloaded.buffer),
             downloaded.contentType,
             "inbound",
             maxBytes,
@@ -2331,7 +2332,7 @@ async function processMessage(
         },
       });
     }
-    if (shouldStopTyping) {
+    if (shouldStopTyping && chatGuidForActions) {
       // Stop typing after streaming completes to avoid a stuck indicator.
       sendBlueBubblesTyping(chatGuidForActions, false, {
         cfg: config,
@@ -2424,7 +2425,7 @@ async function processReaction(
     channel: "bluebubbles",
     accountId: account.accountId,
     peer: {
-      kind: reaction.isGroup ? "group" : "dm",
+      kind: reaction.isGroup ? "group" : "direct",
       id: peerId,
     },
   });
