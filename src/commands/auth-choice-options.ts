@@ -72,8 +72,8 @@ const AUTH_CHOICE_GROUP_DEFS: {
   {
     value: "qwen",
     label: "Qwen",
-    hint: "OAuth",
-    choices: ["qwen-portal"],
+    hint: "OAuth + API key",
+    choices: ["qwen-portal", "qwen-api-key"],
   },
   {
     value: "zai",
@@ -273,7 +273,12 @@ export function buildAuthChoiceOptions(params: {
     label: "MiniMax OAuth",
     hint: "Oauth plugin for MiniMax",
   });
-  options.push({ value: "qwen-portal", label: "Qwen OAuth" });
+  options.push({ value: "qwen-portal", label: "Qwen OAuth (Free)" });
+  options.push({
+    value: "qwen-api-key",
+    label: "Qwen API Key (DashScope)",
+    hint: "International (Singapore) or China",
+  });
   options.push({
     value: "copilot-proxy",
     label: "Copilot Proxy (local)",
