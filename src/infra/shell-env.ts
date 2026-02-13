@@ -22,17 +22,42 @@ function resolveShell(env: NodeJS.ProcessEnv): string {
 export function buildEnvDumpCommand(shell: string): string {
   const base = path.basename(shell);
 
-  if (base === "zsh") {
-    return '{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0';
+  switch (base) {
+    case "zsh":
+      return '{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0';
+    case "bash":
+      return '{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0';
+    case "fish":
+      return 'set -q XDG_CONFIG_HOME; or set -l XDG_CONFIG_HOME "$HOME/.config"; source "$XDG_CONFIG_HOME/fish/config.fish" 2>/dev/null; env -0';
+    case "ksh":
+    case "ksh93":
+    case "mksh":
+      return '{ . "$HOME/.kshrc"; } >/dev/null 2>&1 || true; env -0';
+    case "tcsh":
+      // tcsh reads ~/.tcshrc first, falls back to ~/.cshrc
+      return "source ~/.tcshrc >& /dev/null; source ~/.cshrc >& /dev/null; env -0";
+    case "csh":
+      return "source ~/.cshrc >& /dev/null; env -0";
+    case "dash":
+    case "ash":
+      // POSIX minimal shells use $ENV for interactive RC
+      return '{ [ -n "$ENV" ] && . "$ENV"; } >/dev/null 2>&1 || true; env -0';
+    case "nu":
+      // nushell: -l already sources env.nu (where PATH goes); config.nu
+      // cannot be conditionally sourced (parser directive). ^env calls
+      // the external env binary.
+      return "^env -0";
+    case "elvish":
+      return "try { eval (slurp < ~/.config/elvish/rc.elv) } catch e { nop }; env -0";
+    case "xonsh":
+      // xonsh -l already sources ~/.xonshrc for both login and interactive
+      return "env -0";
+    case "pwsh":
+    case "powershell":
+      return "try { . $PROFILE } catch {}; & env -0";
+    default:
+      return 'for f in "$HOME/.bashrc" "$HOME/.zshrc"; do [ -f "$f" ] && . "$f" >/dev/null 2>&1 || true; done; env -0';
   }
-  if (base === "bash") {
-    return '{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0';
-  }
-  if (base === "fish") {
-    return "env -0";
-  }
-  // Unknown shell: try both common RC files
-  return 'for f in "$HOME/.bashrc" "$HOME/.zshrc"; do [ -f "$f" ] && . "$f" >/dev/null 2>&1 || true; done; env -0';
 }
 
 function parseShellEnv(stdout: Buffer): Map<string, string> {
