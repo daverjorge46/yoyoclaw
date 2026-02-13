@@ -2,6 +2,8 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import { createAgentSession, SessionManager, SettingsManager } from "@mariozechner/pi-coding-agent";
+import { needsProactiveCompaction } from "./proactive-compaction.js";
+import { lookupContextTokens } from "../../context.js";
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
@@ -813,6 +815,36 @@ export async function runEmbeddedAttempt(
             messages: activeSession.messages,
             note: `images: prompt=${imageResult.images.length} history=${imageResult.historyImagesByIndex.size}`,
           });
+
+          // PROACTIVE COMPACTION CHECK
+          // Prevent sessions from exceeding contextTokens * maxHistoryShare before hitting model limit.
+          // Issue: https://github.com/openclaw/openclaw/issues/11224
+          const needsCompaction = needsProactiveCompaction({
+            messages: activeSession.messages,
+            contextTokens: lookupContextTokens(params.modelId),
+            maxHistoryShare: params.config?.agents?.defaults?.compaction?.maxHistoryShare,
+            settingsManager,
+          });
+
+          if (needsCompaction) {
+            log.info(
+              `[proactive-compaction] compacting session before prompt: ` +
+                `runId=${params.runId} sessionId=${params.sessionId}`
+            );
+            try {
+              const summary = await activeSession.agent.compact();
+              log.info(
+                `[proactive-compaction] compaction complete: ` +
+                  `summary length=${summary.summary.length}`
+              );
+            } catch (compactError) {
+              log.warn(
+                `[proactive-compaction] compaction failed, continuing with prompt: ` +
+                  `${String(compactError)}`
+              );
+              // Continue with prompt even if compaction fails
+            }
+          }
 
           // Only pass images option if there are actually images to pass
           // This avoids potential issues with models that don't expect the images parameter
