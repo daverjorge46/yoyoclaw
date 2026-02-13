@@ -33,7 +33,7 @@ export function resolveDefaultSessionStorePath(agentId?: string): string {
   return path.join(resolveAgentSessionsDir(agentId), "sessions.json");
 }
 
-export const SAFE_SESSION_ID_RE = /^[a-z0-9][a-z0-9._-]{0,127}$/i;
+export const SAFE_SESSION_ID_RE = /^[a-z0-9][a-z0-9._:+@-]{0,255}$/i;
 
 export function validateSessionId(sessionId: string): string {
   const trimmed = sessionId.trim();
@@ -58,11 +58,27 @@ function resolvePathWithinSessionsDir(sessionsDir: string, candidate: string): s
   }
   const resolvedBase = path.resolve(sessionsDir);
   const resolvedCandidate = path.resolve(resolvedBase, trimmed);
+
+  // Check if candidate is within the requested sessions dir.
   const relative = path.relative(resolvedBase, resolvedCandidate);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error("Session file path must be within sessions directory");
+  if (!relative.startsWith("..") && !path.isAbsolute(relative)) {
+    return resolvedCandidate;
   }
-  return resolvedCandidate;
+
+  // For absolute paths stored by bound-agent sessions, accept if within
+  // the parent agents directory. This handles cross-agent session files
+  // in multi-agent setups where channel bindings route messages to a
+  // specific agent but the handler resolves a different agent's dir.
+  // Structure: <state>/agents/<id>/sessions — go up two levels to agents/.
+  if (path.isAbsolute(trimmed)) {
+    const agentsRoot = path.resolve(resolvedBase, "..", "..");
+    const relToAgents = path.relative(agentsRoot, resolvedCandidate);
+    if (!relToAgents.startsWith("..") && !path.isAbsolute(relToAgents)) {
+      return resolvedCandidate;
+    }
+  }
+
+  throw new Error("Session file path must be within sessions directory");
 }
 
 export function resolveSessionTranscriptPathInDir(
