@@ -30,7 +30,7 @@ metadata:
 
 # GitHub Skill
 
-Use the `gh` CLI to interact with GitHub. Always specify `--repo owner/repo` when not in a git directory, or use URLs directly.
+Use the `gh` CLI to interact with GitHub. For commands like `gh issue`, `gh pr`, and `gh run`, always specify `--repo owner/repo` when not in a git directory. For `gh api`, include the owner/repo in the URL path or query body.
 
 ## Pull Requests
 
