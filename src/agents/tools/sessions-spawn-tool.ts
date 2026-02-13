@@ -12,6 +12,7 @@ import {
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../../routing/session-key.js";
+import { defaultRuntime } from "../../runtime.js";
 import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
 import { resolveAgentConfig } from "../agent-scope.js";
 import { AGENT_LANE_SUBAGENT } from "../lanes.js";
@@ -349,25 +350,6 @@ export function createSessionsSpawnTool(opts?: {
             });
           }
         }
-
-        // Persist the binding in the session store + registry
-        if (resolvedThreadBinding) {
-          try {
-            const storePath = resolveStorePath(undefined, { agentId: targetAgentId });
-            await bindSessionToThread({
-              storePath,
-              sessionKey: childSessionKey,
-              binding: resolvedThreadBinding,
-            });
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return jsonResult({
-              status: "error",
-              error: `Failed to persist thread binding: ${msg}`,
-              childSessionKey,
-            });
-          }
-        }
       }
 
       // If a thread binding was established, override requester origin to route
@@ -442,6 +424,26 @@ export function createSessionsSpawnTool(opts?: {
         label: label || threadBindingParams?.label || undefined,
         runTimeoutSeconds,
       });
+
+      // Persist the thread binding AFTER the agent session is created by callGateway.
+      // This ensures the session entry already exists so mergeSessionEntry preserves
+      // the threadBinding field (writing before callGateway would be overwritten).
+      if (resolvedThreadBinding) {
+        // Small delay to let the agent handler create its session entry first
+        await new Promise((r) => setTimeout(r, 500));
+        try {
+          const storePath = resolveStorePath(undefined, { agentId: targetAgentId });
+          await bindSessionToThread({
+            storePath,
+            sessionKey: childSessionKey,
+            binding: resolvedThreadBinding,
+          });
+        } catch (err) {
+          // Non-fatal: agent is already running, binding just won't auto-route
+          const msg = err instanceof Error ? err.message : String(err);
+          defaultRuntime.error?.(`Failed to persist thread binding (non-fatal): ${msg}`);
+        }
+      }
 
       return jsonResult({
         status: "accepted",
