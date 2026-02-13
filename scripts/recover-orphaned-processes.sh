@@ -83,13 +83,31 @@ function resolveCwd(pid) {
 }
 
 // Pre-filter candidate PIDs using pgrep to avoid scanning all processes.
-// Falls back to a user-scoped ps scan if pgrep is unavailable.
-const candidatePids = runFile(
-  "pgrep",
-  username.length > 0
-    ? ["-u", username, "-f", "codex|claude"]
-    : ["-f", "codex|claude"],
-)
+// Only falls back to a full ps scan when pgrep is genuinely unavailable
+// (ENOENT), not when it simply finds no matches (exit code 1).
+let pgrepUnavailable = false;
+const pgrepResult = (() => {
+  const args =
+    username.length > 0
+      ? ["-u", username, "-f", "codex|claude"]
+      : ["-f", "codex|claude"];
+  try {
+    return execFileSync("pgrep", args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch (err) {
+    if (err && err.code === "ENOENT") {
+      pgrepUnavailable = true;
+      return "";
+    }
+    // pgrep exit code 1 = no matches — return stdout (empty)
+    if (err && typeof err.stdout === "string") return err.stdout;
+    return "";
+  }
+})();
+
+const candidatePids = pgrepResult
   .split("\n")
   .map((s) => s.trim())
   .filter((s) => s.length > 0 && /^\d+$/.test(s));
@@ -97,13 +115,16 @@ const candidatePids = runFile(
 let lines;
 if (candidatePids.length > 0) {
   // Fetch command info only for candidate PIDs.
-  lines = runFile("ps", ["-o", "pid=,command=", "-p", candidatePids.join(",")]).split(
-    "\n",
-  );
-} else if (username.length > 0) {
+  lines = runFile("ps", ["-o", "pid=,command=", "-p", candidatePids.join(",")]).split("\n");
+} else if (pgrepUnavailable && username.length > 0) {
+  // pgrep not installed — fall back to user-scoped ps scan.
   lines = runFile("ps", ["-U", username, "-o", "pid=,command="]).split("\n");
-} else {
+} else if (pgrepUnavailable) {
+  // pgrep not installed and no username — full scan as last resort.
   lines = runFile("ps", ["-axo", "pid=,command="]).split("\n");
+} else {
+  // pgrep ran successfully but found no matches — no orphans.
+  lines = [];
 }
 
 const includePattern = /codex|claude/i;
