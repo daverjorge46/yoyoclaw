@@ -294,16 +294,12 @@ export function createFollowupRunner(params: {
           sessionStore,
           sessionKey,
           storePath,
+          tokensAfter: compactionStats?.tokensAfter,
           lastCallUsage: runResult.meta.agentMeta?.lastCallUsage,
           contextTokensUsed,
         });
         const verboseEnabled =
           queued.run.verboseLevel !== undefined && queued.run.verboseLevel !== "off";
-        const contextTokensUsed =
-          agentCfgContextTokens ??
-          lookupContextTokens(fallbackModel ?? defaultModel) ??
-          sessionEntry?.contextTokens ??
-          DEFAULT_CONTEXT_TOKENS;
         const compactionNoticeStats = {
           tokensBefore: compactionStats?.tokensBefore,
           tokensAfter: compactionStats?.tokensAfter,

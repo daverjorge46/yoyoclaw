@@ -507,6 +507,7 @@ export async function runReplyAgent(params: {
         sessionStore: activeSessionStore,
         sessionKey,
         storePath,
+        tokensAfter: compactionStats?.tokensAfter,
         lastCallUsage: runResult.meta.agentMeta?.lastCallUsage,
         contextTokensUsed,
       });
