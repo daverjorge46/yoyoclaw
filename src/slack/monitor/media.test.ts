@@ -242,15 +242,10 @@ describe("resolveSlackMedia", () => {
     // saveMediaBuffer re-detects MIME from buffer bytes, so it may return
     // video/mp4 for MP4 containers.  Verify resolveSlackMedia preserves
     // the overridden audio/* type in its return value despite this.
-    const saveMediaBufferMock = vi.fn().mockResolvedValue({
+    const saveMediaBufferMock = vi.spyOn(mediaStore, "saveMediaBuffer").mockResolvedValue({
       path: "/tmp/voice.mp4",
       contentType: "video/mp4",
     });
-    vi.doMock("../../media/store.js", () => ({
-      saveMediaBuffer: saveMediaBufferMock,
-    }));
-
-    const { resolveSlackMedia } = await import("./media.js");
 
     const mockResponse = new Response(Buffer.from("audio data"), {
       status: 200,
@@ -285,15 +280,10 @@ describe("resolveSlackMedia", () => {
   });
 
   it("preserves original MIME for non-voice Slack files", async () => {
-    const saveMediaBufferMock = vi.fn().mockResolvedValue({
+    const saveMediaBufferMock = vi.spyOn(mediaStore, "saveMediaBuffer").mockResolvedValue({
       path: "/tmp/video.mp4",
       contentType: "video/mp4",
     });
-    vi.doMock("../../media/store.js", () => ({
-      saveMediaBuffer: saveMediaBufferMock,
-    }));
-
-    const { resolveSlackMedia } = await import("./media.js");
 
     const mockResponse = new Response(Buffer.from("video data"), {
       status: 200,
