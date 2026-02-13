@@ -318,7 +318,11 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
   return result;
 }
 
-const SUBAGENT_BOOTSTRAP_ALLOWLIST = new Set([DEFAULT_AGENTS_FILENAME, DEFAULT_TOOLS_FILENAME]);
+const SUBAGENT_BOOTSTRAP_ALLOWLIST = new Set([
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+  DEFAULT_SOUL_FILENAME,
+]);
 
 export function filterBootstrapFilesForSession(
   files: WorkspaceBootstrapFile[],

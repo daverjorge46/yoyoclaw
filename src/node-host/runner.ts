@@ -394,7 +394,8 @@ async function runCommand(
       env,
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
-    });
+      // closeOnExec removed - causes EBADF when closing stdio fds
+    } as any);
 
     const onChunk = (chunk: Buffer, target: "stdout" | "stderr") => {
       if (outputLen >= OUTPUT_CAP) {

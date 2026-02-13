@@ -92,6 +92,13 @@ const MemorySchema = z
   .strict()
   .optional();
 
+const PathMapSchema = z
+  .object({
+    roots: z.record(z.string(), z.string()).optional(),
+  })
+  .strict()
+  .optional();
+
 export const OpenClawSchema = z
   .object({
     meta: z
@@ -528,6 +535,7 @@ export const OpenClawSchema = z
       .strict()
       .optional(),
     memory: MemorySchema,
+    pathMap: PathMapSchema,
     skills: z
       .object({
         allowBundled: z.array(z.string()).optional(),
