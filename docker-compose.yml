@@ -56,6 +56,8 @@ services:
       - ${OPENCLAW_CONFIG_DIR}/op_config:/home/node/.config/op # 1Password CLI settings
       - ${OPENCLAW_CONFIG_DIR}/ssh:/home/node/.ssh:ro # Read-only SSH keys for Git pushes
       - /var/run/docker.sock:/var/run/docker.sock # to fix spawn docker error
+    group_add:
+      - "988"  # Docker group ID - check yours with: getent group docker | cut -d: -f3
     init: true
     restart: unless-stopped
     command:
