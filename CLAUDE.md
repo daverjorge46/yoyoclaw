@@ -5,7 +5,7 @@ OpenClaw 个人 AI 助手。后端从 TypeScript 转 Python，前端 UI 保留�
 只保留 Telegram 频道，其他频道删除。全功能保留。
 
 ## 当前进度
-**批次 9 / 15：Agent 工具 + Skills** ✅ 已完成
+**批次 10 / 15：Telegram 核心 Bot** ✅ 已完成
 
 ## 已完成的 Python 文件
 - openclaw_py/types/base.py - 核心基础类型（14 个 Literal 类型 + normalize_chat_type 函数）
@@ -18,6 +18,7 @@ OpenClaw 个人 AI 助手。后端从 TypeScript 转 Python，前端 UI 保留�
 - openclaw_py/agents/providers/*.py - AI 提供商（base, anthropic_provider, openai_provider, litellm_provider）
 - openclaw_py/agents/tools/*.py - Agent 工具系统（types, common, policy, bash_exec, bash_shared, web_fetch, web_search, create_tools）
 - openclaw_py/agents/skills/*.py - Skills 系统（types, workspace）
+- openclaw_py/channels/telegram/*.py - Telegram Bot（types, helpers, token, accounts, access, api_logging, updates, message_context, bot, monitor）
 
 ## 环境
 - Python 3.13（Conda 环境：marui）
@@ -87,7 +88,7 @@ extensions/、Swabble/、apps/
 7.  ✅ Agent 运行时 - 模型调用
 8.  ✅ Agent 上下文 + 用量
 9.  ✅ Agent 工具 + Skills 🎯 v0.2-engine
-10. ⬜ Telegram - 核心 Bot
+10. ✅ Telegram - 核心 Bot
 11. ⬜ Telegram - 媒体/Webhook/群组
 12. ⬜ 用户管理 + 权限
 13. ⬜ 消息路由（全链路）

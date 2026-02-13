@@ -2766,3 +2766,105 @@ def build_workspace_skills_prompt(
 ```
 
 ---
+
+## 批次 10：Telegram 核心 Bot (2026-02-13)
+
+---
+
+## openclaw_py.channels.telegram.types
+路径: openclaw_py/channels/telegram/types.py
+
+```python
+from openclaw_py.channels.telegram.types import (
+    TelegramStreamMode,
+    TelegramMediaRef,
+    TelegramBotOptions,
+    TelegramMessageContext,
+    StickerMetadata,
+)
+```
+
+**TelegramStreamMode**: str - Draft streaming 模式 ("off" | "partial" | "block")
+
+**TelegramMediaRef, TelegramBotOptions, TelegramMessageContext, StickerMetadata** - Pydantic 模型（完整定义见源码）
+
+---
+
+## openclaw_py.channels.telegram
+路径: openclaw_py/channels/telegram/
+
+```python
+from openclaw_py.channels.telegram import (
+    # Types
+    TelegramBotOptions,
+    TelegramMediaRef,
+    TelegramMessageContext,
+    # Bot
+    TelegramBotInstance,
+    create_telegram_bot,
+    start_telegram_bot,
+    # Accounts
+    ResolvedTelegramAccount,
+    resolve_telegram_account,
+    list_telegram_account_ids,
+    # Token
+    resolve_telegram_token,
+    # Helpers
+    build_telegram_group_peer_id,
+    normalize_telegram_chat_type,
+    # Context
+    build_telegram_message_context,
+    # Updates
+    TelegramUpdateDedupe,
+    create_telegram_update_dedupe,
+    MediaGroupBuffer,
+    # Monitoring
+    monitor_telegram_provider,
+    get_telegram_bot_info,
+)
+```
+
+### 核心功能
+
+**Bot 创建**:
+```python
+async def create_telegram_bot(
+    token: str | None = None,
+    account_id: str = "default",
+    config: OpenClawConfig | None = None,
+    **options,
+) -> TelegramBotInstance:
+    """创建 Telegram bot（aiogram 3.x）"""
+```
+
+**账户管理**:
+```python
+def resolve_telegram_account(
+    config: OpenClawConfig,
+    account_id: str | None = None,
+) -> ResolvedTelegramAccount:
+    """解析 Telegram 账户（支持多账户）"""
+```
+
+**消息上下文**:
+```python
+def build_telegram_message_context(
+    message: dict,
+    account_id: str,
+    config: OpenClawConfig,
+    account_config: TelegramAccountConfig,
+) -> TelegramMessageContext | None:
+    """构建消息上下文（会话密钥、权限、媒体）"""
+```
+
+**监控**:
+```python
+async def monitor_telegram_provider(
+    config: OpenClawConfig,
+    interval_seconds: int = 60,
+) -> None:
+    """周期性健康检查"""
+```
+
+---
+

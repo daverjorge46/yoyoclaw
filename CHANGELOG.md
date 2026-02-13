@@ -427,3 +427,55 @@
 - 无
 
 **测试结果**：42 passed（批次 9 新增测试）
+
+---
+
+## 批次 10：Telegram 核心 Bot（2026-02-13）
+
+**新增文件**：
+- openclaw_py/channels/__init__.py - 频道模块根导出
+- openclaw_py/channels/telegram/__init__.py - Telegram 模块导出
+- openclaw_py/channels/telegram/types.py - Telegram 数据模型（TelegramBotOptions, TelegramMessageContext, TelegramMediaRef, StickerMetadata）
+- openclaw_py/channels/telegram/helpers.py - 辅助函数（peer ID, thread ID, chat type 规范化）
+- openclaw_py/channels/telegram/token.py - Bot token 解析（环境变量、配置文件、token 文件）
+- openclaw_py/channels/telegram/accounts.py - 多账户管理（账户解析、列表、启用检查）
+- openclaw_py/channels/telegram/access.py - 访问控制（allowFrom 列表、权限验证）
+- openclaw_py/channels/telegram/api_logging.py - API 错误日志包装
+- openclaw_py/channels/telegram/updates.py - 更新去重、媒体组处理、更新键生成
+- openclaw_py/channels/telegram/message_context.py - 消息上下文构建（会话密钥、权限、媒体提取）
+- openclaw_py/channels/telegram/bot.py - Telegram bot 创建（aiogram 3.x 集成，基础命令）
+- openclaw_py/channels/telegram/monitor.py - Bot 监控和健康检查
+- tests/channels/telegram/test_types.py - 类型测试（7 个测试）
+- tests/channels/telegram/test_helpers.py - 辅助函数测试（17 个测试）
+- tests/channels/telegram/test_token.py - Token 解析测试（9 个测试）
+- tests/channels/telegram/test_updates.py - 更新处理测试（14 个测试）
+
+**核心变更**：
+- 使用 aiogram 3.x 实现 Telegram bot 集成（替代 Node.js Grammy）
+- 实现多账户支持（每个账户独立配置和 token 管理）
+- 实现 Token 解析系统（优先级：环境变量 > token 文件 > 配置文件）
+- 实现消息上下文构建（会话密钥生成、权限检查、媒体引用提取）
+- 实现更新去重机制（防止重复处理更新）
+- 实现媒体组处理（Telegram 相册支持，带超时缓冲）
+- 实现访问控制（allowFrom 列表、DM policy、Group policy）
+- 实现基础命令处理器（/start, /help, /reset）
+- 实现 Bot 健康监控（周期性心跳检查）
+- 支持论坛主题（thread_id 支持）
+- 支持群组和频道（chat_type 规范化）
+- 所有模块使用 Pydantic v2 数据模型，类型安全
+- 所有 API 调用均为 async/await 异步模式
+
+**依赖的已有模块**：
+- openclaw_py.config - OpenClawConfig, TelegramConfig, TelegramAccountConfig 配置模型
+- openclaw_py.logging - log_info, log_error, log_debug, log_warn 日志函数
+- openclaw_py.sessions - SessionEntry, load_session_store, save_session_store 会话管理
+- openclaw_py.types - ChatType, DmPolicy, GroupPolicy 核心类型
+- openclaw_py.agents.runtime - create_agent_message（将在后续完善 message dispatch 时使用）
+
+**已知问题**：
+- 消息分发到 Agent 的完整实现（message_dispatch.py）留待后续完善
+- 完整的事件处理器（handlers.py）留待后续完善
+- 完整的原生命令（native_commands.py）留待后续完善
+- 当前 bot.py 中包含基础命令处理器，足以启动和测试 bot
+
+**测试结果**：47 passed（批次 10 新增测试）
