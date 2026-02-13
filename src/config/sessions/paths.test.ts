@@ -1,5 +1,5 @@
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   resolveSessionFilePath,
   resolveSessionFilePathOptions,
@@ -29,9 +29,23 @@ describe("resolveStorePath", () => {
 });
 
 describe("session path safety", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("validates safe session IDs", () => {
     expect(validateSessionId("sess-1")).toBe("sess-1");
     expect(validateSessionId("ABC_123.hello")).toBe("ABC_123.hello");
+  });
+
+  it("validates session IDs with channel routing characters", () => {
+    expect(validateSessionId("imessage:direct:+17189153805")).toBe("imessage:direct:+17189153805");
+    expect(validateSessionId("imessage:direct:cathryn@littlemight.com")).toBe(
+      "imessage:direct:cathryn@littlemight.com",
+    );
+    expect(validateSessionId("slack:direct:u06g8spt4bx:thread:1770948912.577419")).toBe(
+      "slack:direct:u06g8spt4bx:thread:1770948912.577419",
+    );
   });
 
   it("rejects unsafe session IDs", () => {
@@ -44,17 +58,14 @@ describe("session path safety", () => {
   it("resolves transcript path inside an explicit sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
     const resolved = resolveSessionTranscriptPathInDir("sess-1", sessionsDir, "topic/a+b");
-
     expect(resolved).toBe(path.resolve(sessionsDir, "sess-1-topic-topic%2Fa%2Bb.jsonl"));
   });
 
   it("rejects unsafe sessionFile candidates that escape the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
-
     expect(() =>
       resolveSessionFilePath("sess-1", { sessionFile: "../../etc/passwd" }, { sessionsDir }),
     ).toThrow(/within sessions directory/);
-
     expect(() =>
       resolveSessionFilePath("sess-1", { sessionFile: "/etc/passwd" }, { sessionsDir }),
     ).toThrow(/within sessions directory/);
@@ -62,50 +73,83 @@ describe("session path safety", () => {
 
   it("accepts sessionFile candidates within the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
-
     const resolved = resolveSessionFilePath(
       "sess-1",
       { sessionFile: "subdir/threaded-session.jsonl" },
       { sessionsDir },
     );
-
     expect(resolved).toBe(path.resolve(sessionsDir, "subdir/threaded-session.jsonl"));
   });
 
   it("accepts absolute sessionFile paths that resolve within the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
-
     const resolved = resolveSessionFilePath(
       "sess-1",
       { sessionFile: "/tmp/openclaw/agents/main/sessions/abc-123.jsonl" },
       { sessionsDir },
     );
-
     expect(resolved).toBe(path.resolve(sessionsDir, "abc-123.jsonl"));
   });
 
   it("accepts absolute sessionFile with topic suffix within the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
-
     const resolved = resolveSessionFilePath(
       "sess-1",
       { sessionFile: "/tmp/openclaw/agents/main/sessions/abc-123-topic-42.jsonl" },
       { sessionsDir },
     );
-
     expect(resolved).toBe(path.resolve(sessionsDir, "abc-123-topic-42.jsonl"));
   });
 
-  it("rejects absolute sessionFile paths outside the sessions dir", () => {
-    const sessionsDir = "/tmp/openclaw/agents/main/sessions";
+  // New and improved tests for cross-agent paths
+  describe("cross-agent session paths", () => {
+    beforeEach(() => {
+      // Stub state dir to make tests deterministic
+      vi.stubEnv("OPENCLAW_STATE_DIR", "/tmp/openclaw");
+    });
 
-    expect(() =>
-      resolveSessionFilePath(
+    it("accepts cross-agent absolute paths within another agent sessions dir", () => {
+      const sessionsDir = "/tmp/openclaw/agents/default/sessions";
+      const resolved = resolveSessionFilePath(
         "sess-1",
-        { sessionFile: "/tmp/openclaw/agents/work/sessions/abc-123.jsonl" },
+        { sessionFile: "/tmp/openclaw/agents/knox/sessions/uuid-1234.jsonl" },
         { sessionsDir },
-      ),
-    ).toThrow(/within sessions directory/);
+      );
+      expect(resolved).toBe(path.resolve("/tmp/openclaw/agents/knox/sessions/uuid-1234.jsonl"));
+    });
+
+    it("rejects absolute paths under agents root that are not in a sessions dir", () => {
+      const sessionsDir = "/tmp/openclaw/agents/default/sessions";
+      expect(() =>
+        resolveSessionFilePath(
+          "sess-1",
+          { sessionFile: "/tmp/openclaw/agents/knox/not-sessions/uuid-1234.jsonl" },
+          { sessionsDir },
+        ),
+      ).toThrow(/within sessions directory/);
+    });
+
+    it("rejects absolute paths to agent config files under <agent>/agent/*", () => {
+      const sessionsDir = "/tmp/openclaw/agents/default/sessions";
+      expect(() =>
+        resolveSessionFilePath(
+          "sess-1",
+          { sessionFile: "/tmp/openclaw/agents/knox/agent/auth-profiles.json" },
+          { sessionsDir },
+        ),
+      ).toThrow(/within sessions directory/);
+    });
+
+    it("rejects absolute paths to the state root itself", () => {
+      const sessionsDir = "/tmp/openclaw/agents/default/sessions";
+      expect(() =>
+        resolveSessionFilePath(
+          "sess-1",
+          { sessionFile: "/tmp/openclaw/config.json" },
+          { sessionsDir },
+        ),
+      ).toThrow(/within sessions directory/);
+    });
   });
 
   it("uses agent sessions dir fallback for transcript path", () => {

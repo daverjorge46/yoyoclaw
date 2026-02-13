@@ -53,7 +53,7 @@ export function resolveSessionFilePathOptions(params: {
   return undefined;
 }
 
-export const SAFE_SESSION_ID_RE = /^[a-z0-9][a-z0-9._-]{0,127}$/i;
+export const SAFE_SESSION_ID_RE = /^[a-z0-9][a-z0-9._:+@-]{0,255}$/i;
 
 export function validateSessionId(sessionId: string): string {
   const trimmed = sessionId.trim();
@@ -76,15 +76,34 @@ function resolvePathWithinSessionsDir(sessionsDir: string, candidate: string): s
   if (!trimmed) {
     throw new Error("Session file path must not be empty");
   }
+
   const resolvedBase = path.resolve(sessionsDir);
-  // Normalize absolute paths that are within the sessions directory.
-  // Older versions stored absolute sessionFile paths in sessions.json;
-  // convert them to relative so the containment check passes.
-  const normalized = path.isAbsolute(trimmed) ? path.relative(resolvedBase, trimmed) : trimmed;
-  if (!normalized || normalized.startsWith("..") || path.isAbsolute(normalized)) {
-    throw new Error("Session file path must be within sessions directory");
+  const resolvedCandidate = path.resolve(resolvedBase, trimmed);
+
+  // Fast path: candidate resolves inside the sessionsDir — always safe.
+  const relative = path.relative(resolvedBase, resolvedCandidate);
+  if (!relative.startsWith("..") && !path.isAbsolute(relative)) {
+    return resolvedCandidate;
   }
-  return path.resolve(resolvedBase, normalized);
+
+  // Cross-agent fallback: only for absolute candidates, verify the resolved
+  // path matches the pattern <stateRoot>/agents/<id>/sessions/<...>.
+  // This is the tightest boundary that still allows cross-agent session references.
+  if (path.isAbsolute(trimmed)) {
+    const stateRoot = path.resolve(resolveStateDir());
+    const relToState = path.relative(stateRoot, resolvedCandidate);
+
+    // Must be inside state root (no ".." prefix, not absolute).
+    if (!relToState.startsWith("..") && !path.isAbsolute(relToState)) {
+      // Split normalized relative path: expect agents/<id>/sessions/<file...>
+      const segments = relToState.split(path.sep).filter(Boolean);
+      if (segments.length >= 4 && segments[0] === "agents" && segments[2] === "sessions") {
+        return resolvedCandidate;
+      }
+    }
+  }
+
+  throw new Error("Session file path must be within sessions directory");
 }
 
 export function resolveSessionTranscriptPathInDir(
