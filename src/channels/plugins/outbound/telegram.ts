@@ -62,13 +62,15 @@ export const telegramOutbound: ChannelOutboundAdapter = {
     const replyToMessageId = parseReplyToMessageId(replyToId);
     const messageThreadId = parseThreadId(threadId);
     const telegramData = payload.channelData?.telegram as
-      | { 
-          buttons?: Array<Array<{ 
-            text: string; 
-            callback_data: string; 
-            style?: "primary" | "success" | "danger";
-            icon_custom_emoji_id?: string;
-          }>>; 
+      | {
+          buttons?: Array<
+            Array<{
+              text: string;
+              callback_data: string;
+              style?: "primary" | "success" | "danger";
+              icon_custom_emoji_id?: string;
+            }>
+          >;
           quoteText?: string;
         }
       | undefined;

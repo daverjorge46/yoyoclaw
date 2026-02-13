@@ -53,12 +53,14 @@ type TelegramSendOpts = {
   /** Forum topic thread ID (for forum supergroups) */
   messageThreadId?: number;
   /** Inline keyboard buttons (reply markup). */
-  buttons?: Array<Array<{ 
-    text: string; 
-    callback_data: string; 
-    style?: "primary" | "success" | "danger";
-    icon_custom_emoji_id?: string;
-  }>>;
+  buttons?: Array<
+    Array<{
+      text: string;
+      callback_data: string;
+      style?: "primary" | "success" | "danger";
+      icon_custom_emoji_id?: string;
+    }>
+  >;
 };
 
 type TelegramSendResult = {
@@ -225,7 +227,9 @@ export function buildInlineKeyboard(
             text: button.text,
             callback_data: button.callback_data,
             ...(button.style && { style: button.style }),
-            ...(button.icon_custom_emoji_id && { icon_custom_emoji_id: button.icon_custom_emoji_id }),
+            ...(button.icon_custom_emoji_id && {
+              icon_custom_emoji_id: button.icon_custom_emoji_id,
+            }),
           }),
         ),
     )
@@ -703,12 +707,14 @@ type TelegramEditOpts = {
   retry?: RetryConfig;
   textMode?: "markdown" | "html";
   /** Inline keyboard buttons (reply markup). Pass empty array to remove buttons. */
-  buttons?: Array<Array<{ 
-    text: string; 
-    callback_data: string; 
-    style?: "primary" | "success" | "danger";
-    icon_custom_emoji_id?: string;
-  }>>;
+  buttons?: Array<
+    Array<{
+      text: string;
+      callback_data: string;
+      style?: "primary" | "success" | "danger";
+      icon_custom_emoji_id?: string;
+    }>
+  >;
   /** Optional config injection to avoid global loadConfig() (improves testability). */
   cfg?: ReturnType<typeof loadConfig>;
 };
