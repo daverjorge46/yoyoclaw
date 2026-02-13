@@ -250,6 +250,8 @@ export async function runEmbeddedAttempt(
     logToolSchemasForGoogle({ tools, provider: params.provider });
 
     const machineName = await getMachineDisplayName();
+    const gatewayInstanceId =
+      process.env.OPENCLAW_GATEWAY_INSTANCE_ID?.trim() || `${machineName}:${process.pid}`;
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
     let runtimeCapabilities = runtimeChannel
       ? (resolveChannelCapabilities({
@@ -741,8 +743,11 @@ export async function runEmbeddedAttempt(
               {
                 agentId: hookAgentId,
                 sessionKey: params.sessionKey,
+                sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
+                hostId: machineName,
+                gatewayInstanceId,
               },
             );
             if (hookResult?.prependContext) {
@@ -865,8 +870,8 @@ export async function runEmbeddedAttempt(
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
 
-        // Run agent_end hooks to allow plugins to analyze the conversation
-        // This is fire-and-forget, so we don't await
+        // Run agent_end hooks to allow plugins to analyze the conversation.
+        // This is fire-and-forget, so we don't await.
         if (hookRunner?.hasHooks("agent_end")) {
           hookRunner
             .runAgentEnd(
@@ -875,12 +880,17 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                systemPrompt: systemPromptText,
+                runId: params.runId,
               },
               {
                 agentId: hookAgentId,
                 sessionKey: params.sessionKey,
+                sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
+                hostId: machineName,
+                gatewayInstanceId,
               },
             )
             .catch((err) => {
