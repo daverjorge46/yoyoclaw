@@ -29,6 +29,7 @@ import {
 } from "./auth.js";
 import {
   handleControlUiAvatarRequest,
+  handleControlUiAvatarUploadRequest,
   handleControlUiHttpRequest,
   type ControlUiRootState,
 } from "./control-ui.js";
@@ -539,6 +540,16 @@ export function createGatewayHttpServer(opts: {
         }
       }
       if (controlUiEnabled) {
+        if (
+          await handleControlUiAvatarUploadRequest(req, res, {
+            basePath: controlUiBasePath,
+            config: configSnapshot,
+            auth: resolvedAuth,
+            trustedProxies,
+          })
+        ) {
+          return;
+        }
         if (
           handleControlUiAvatarRequest(req, res, {
             basePath: controlUiBasePath,
