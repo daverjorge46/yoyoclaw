@@ -212,7 +212,7 @@ export function createFollowupRunner(params: {
           lastCallUsage: runResult.meta.agentMeta?.lastCallUsage,
           promptTokens,
           modelUsed,
-          providerUsed: fallbackProvider,
+          providerUsed,
           contextTokensUsed,
           logLabel: "followup",
         });
