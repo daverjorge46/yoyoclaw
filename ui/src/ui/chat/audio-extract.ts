@@ -9,7 +9,7 @@ export type AudioBlock = {
   mimeType: string;
 };
 
-const AUDIO_DATA_RE = /<audio-data:(data:audio\/[^;]+;base64,[A-Za-z0-9+/=]+)>/g;
+const AUDIO_DATA_RE = /<audio-data:(data:audio\/[^;]+;base64,[A-Za-z0-9+/=\s]+)>/g;
 
 export function extractAudioBlocks(text: string): { text: string; audioBlocks: AudioBlock[] } {
   const audioBlocks: AudioBlock[] = [];
@@ -18,7 +18,8 @@ export function extractAudioBlocks(text: string): { text: string; audioBlocks: A
     return { text, audioBlocks };
   }
 
-  const cleaned = text.replace(AUDIO_DATA_RE, (_match, dataUri: string) => {
+  const cleaned = text.replace(AUDIO_DATA_RE, (_match, rawDataUri: string) => {
+    const dataUri = rawDataUri.replace(/\s/g, "");
     const mimeMatch = dataUri.match(/^data:(audio\/[^;]+);/);
     const mimeType = mimeMatch?.[1] ?? "audio/mpeg";
     audioBlocks.push({ dataUri, mimeType });
