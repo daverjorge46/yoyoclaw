@@ -181,17 +181,18 @@ describe("sendMessageDiscord", () => {
     expect(res.channelId).toBe("chan1");
   });
 
-  it("rejects bare numeric IDs as ambiguous", async () => {
-    const { rest } = makeRest();
-    await expect(
-      sendMessageDiscord("273512430271856640", "hello", { rest, token: "t" }),
-    ).rejects.toThrow(/Ambiguous Discord recipient/);
-    await expect(
-      sendMessageDiscord("273512430271856640", "hello", { rest, token: "t" }),
-    ).rejects.toThrow(/user:273512430271856640/);
-    await expect(
-      sendMessageDiscord("273512430271856640", "hello", { rest, token: "t" }),
-    ).rejects.toThrow(/channel:273512430271856640/);
+  it("treats bare numeric IDs as channels by default", async () => {
+    const { rest, postMock, getMock } = makeRest();
+    // Message send path calls GET channel() to detect forum types.
+    getMock.mockResolvedValueOnce({ type: ChannelType.GuildText });
+    postMock.mockResolvedValueOnce({ id: "msg1", channel_id: "273512430271856640" });
+
+    const res = await sendMessageDiscord("273512430271856640", "hello", { rest, token: "t" });
+    expect(postMock).toHaveBeenCalledWith(
+      Routes.channelMessages("273512430271856640"),
+      expect.objectContaining({ body: { content: "hello" } }),
+    );
+    expect(res.channelId).toBe("273512430271856640");
   });
 
   it("adds missing permission hints on 50013", async () => {

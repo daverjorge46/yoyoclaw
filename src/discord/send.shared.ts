@@ -93,7 +93,10 @@ function normalizeReactionEmoji(raw: string) {
 }
 
 function parseRecipient(raw: string): DiscordRecipient {
+  // Default numeric IDs to channels for compatibility.
+  // Users can still send DMs explicitly via user:<id> or <@id>.
   const target = parseDiscordTarget(raw, {
+    defaultKind: "channel",
     ambiguousMessage: `Ambiguous Discord recipient "${raw.trim()}". Use "user:${raw.trim()}" for DMs or "channel:${raw.trim()}" for channel messages.`,
   });
   if (!target) {
@@ -121,6 +124,8 @@ export async function parseAndResolveRecipient(
   // First try to resolve using directory lookup (handles usernames)
   const trimmed = raw.trim();
   const parseOptions = {
+    // Default numeric IDs to channels for compatibility.
+    defaultKind: "channel" as const,
     ambiguousMessage: `Ambiguous Discord recipient "${trimmed}". Use "user:${trimmed}" for DMs or "channel:${trimmed}" for channel messages.`,
   };
 
