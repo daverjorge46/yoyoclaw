@@ -142,7 +142,7 @@ export function readBooleanParam(
     }
   }
   if (required) {
-    throw new Error(`${label} required`);
+    throw new ToolInputError(`${label} required`);
   }
   return undefined;
 }
