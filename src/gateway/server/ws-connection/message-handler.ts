@@ -317,6 +317,9 @@ export function attachGatewayWsMessageHandler(params: {
         }
 
         const frame = parsed;
+        // A syntactically valid connect request has arrived. Clear the handshake
+        // timeout now so slow auth/pairing checks do not trigger false disconnects.
+        clearHandshakeTimer();
         const connectParams = frame.params as ConnectParams;
         const clientLabel = connectParams.client.displayName ?? connectParams.client.id;
 

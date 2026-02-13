@@ -86,6 +86,39 @@ describe("gateway server auth/connect", () => {
       }
     });
 
+    test("keeps valid connect handshake alive while auth is still in-flight", async () => {
+      vi.useRealTimers();
+      const prevHandshakeTimeout = process.env.OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS;
+      process.env.OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS = "50";
+      const authModule = await import("./auth.js");
+      const originalAuthorize = authModule.authorizeGatewayConnect;
+      const authorizeSpy = vi
+        .spyOn(authModule, "authorizeGatewayConnect")
+        .mockImplementation(async (params) => {
+          await new Promise((resolve) => setTimeout(resolve, 120));
+          return await originalAuthorize(params);
+        });
+
+      try {
+        const ws = await openWs(port);
+        const connectPromise = connectReq(ws);
+        const handshakeTimeoutMs = getHandshakeTimeoutMs();
+        await new Promise((resolve) => setTimeout(resolve, handshakeTimeoutMs + 25));
+        expect(ws.readyState).toBe(WebSocket.OPEN);
+        const res = await connectPromise;
+        expect(res.ok).toBe(true);
+        expect((res.payload as { type?: unknown } | undefined)?.type).toBe("hello-ok");
+        ws.close();
+      } finally {
+        authorizeSpy.mockRestore();
+        if (prevHandshakeTimeout === undefined) {
+          delete process.env.OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS;
+        } else {
+          process.env.OPENCLAW_TEST_HANDSHAKE_TIMEOUT_MS = prevHandshakeTimeout;
+        }
+      }
+    });
+
     test("connect (req) handshake returns hello-ok payload", async () => {
       const { CONFIG_PATH, STATE_DIR } = await import("../config/config.js");
       const ws = await openWs(port);
