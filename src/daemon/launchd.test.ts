@@ -241,7 +241,10 @@ describe("launchd install", () => {
       await fs.mkdir(homeDir, { recursive: true });
 
       // Create a failing launchctl stub (fails on bootstrap command)
-      const stubPath = path.join(binDir, "launchctl");
+      const stubPath = path.join(
+        binDir,
+        process.platform === "win32" ? "launchctl.cmd" : "launchctl",
+      );
       const stubScript =
         process.platform === "win32"
           ? [
