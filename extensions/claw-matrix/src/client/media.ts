@@ -200,14 +200,31 @@ export async function downloadMedia(mxcUrl: string, maxSize: number = 52_428_800
       throw new Error(`Download failed: HTTP ${response.status}`);
     }
 
-    const arrayBuf = await response.arrayBuffer();
-    const buf = Buffer.from(arrayBuf);
-
-    if (buf.length > maxSize) {
-      throw new Error(`File too large: ${buf.length} bytes (max ${maxSize})`);
+    // Early reject if Content-Length exceeds limit
+    const contentLength = parseInt(response.headers.get("content-length") ?? "", 10);
+    if (contentLength > maxSize) {
+      throw new Error(`File too large: ${contentLength} bytes (max ${maxSize})`);
     }
 
-    return buf;
+    // Stream with byte counter to enforce limit even without Content-Length
+    const body = response.body;
+    if (!body) {
+      throw new Error("Download failed: no response body");
+    }
+
+    const chunks: Buffer[] = [];
+    let totalBytes = 0;
+    for await (const chunk of body) {
+      totalBytes += chunk.byteLength;
+      if (totalBytes > maxSize) {
+        // Cancel the stream to stop downloading
+        body.cancel?.();
+        throw new Error(`File too large: exceeded ${maxSize} bytes during download`);
+      }
+      chunks.push(Buffer.from(chunk));
+    }
+
+    return Buffer.concat(chunks);
   } finally {
     clearTimeout(timer);
   }

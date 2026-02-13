@@ -137,6 +137,8 @@ export async function activateRecoveryKey(
   } catch (err: any) {
     log?.error?.(`[recovery] Failed to derive BackupDecryptionKey: ${err.message}`);
     return undefined;
+  } finally {
+    rawKey.fill(0);
   }
 
   // Step 3: Fetch current backup version
@@ -235,12 +237,14 @@ export async function decryptSessionFromBackup(
     // Parse decrypted session data — contains session_key, sender_key, etc.
     const sessionData = JSON.parse(decrypted);
 
-    // Feed the session key back into OlmMachine as a forwarded_room_key to-device event.
-    // This is the mechanism the SDK uses to ingest room keys from key forwards.
+    // Feed the session key back into OlmMachine as a synthetic m.room_key to-device event.
+    // IMPORTANT: m.forwarded_room_key is silently rejected by the Rust SDK (v0.4.x)
+    // unless the sender is in the known device list with a pending key request.
+    // m.room_key is accepted unconditionally via receiveSyncChanges().
     const machine = getMachine();
     const syntheticToDevice = [
       {
-        type: "m.forwarded_room_key",
+        type: "m.room_key",
         sender: machine.userId.toString(),
         content: {
           algorithm: sessionData.algorithm ?? "m.megolm.v1.aes-sha2",
@@ -248,8 +252,6 @@ export async function decryptSessionFromBackup(
           sender_key: sessionData.sender_key ?? "",
           session_id: sessionId,
           session_key: sessionData.session_key,
-          sender_claimed_ed25519_key: sessionData.sender_claimed_keys?.ed25519 ?? "",
-          forwarding_curve25519_key_chain: sessionData.forwarding_curve25519_key_chain ?? [],
         },
       },
     ];

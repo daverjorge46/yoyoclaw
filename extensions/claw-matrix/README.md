@@ -14,6 +14,7 @@ Lets your OpenClaw agents chat over Matrix — encrypted rooms, media, reactions
 | Reactions (send/list/remove)                 | Working |
 | Edit + delete messages                       | Working |
 | Reply threading                              | Working |
+| Thread-aware sessions                        | Working |
 | Typing indicators                            | Working |
 | Auto-join invited rooms                      | Working |
 | Cross-signing verification                   | Working |
@@ -51,6 +52,8 @@ Lets your OpenClaw agents chat over Matrix — encrypted rooms, media, reactions
    ```
 
 Crypto keys bootstrap automatically on first start. If you already have a cross-signing identity, set `recoveryKey` to restore it instead of creating a new one. The recovery key is also used to decrypt the backup decryption key from SSSS (`m.megolm_backup.v1`), enabling automatic room key recovery from server-side backup.
+
+> **Security note:** The config file contains your access token and recovery key. Ensure `openclaw.json` has restrictive permissions (`chmod 600`). Sensitive crypto keys (recovery key, cross-signing seeds) are zeroed from memory after use.
 
 ## DM access control
 
@@ -192,17 +195,20 @@ Steps:
 After presenting the options, guide the user step-by-step through their chosen option. Ask for each required value interactively (domain, tokens, user IDs). Validate inputs where possible (e.g., homeserver URL must start with https://, userId must match @user:domain format). After installation, help verify the setup is working by checking gateway logs.
 ````
 
+## Bot behavior
+
+- **Reply fallback stripping:** When a user replies to a message, the Matrix spec includes quoted fallback text (`> @user:server ...`). This is automatically stripped before dispatching to the agent — the AI only sees the actual reply text.
+- **m.notice filtering:** Messages with `msgtype: m.notice` (typically from other bots) are silently dropped, preventing bot-to-bot conversation loops.
+- **Thread sessions:** Messages in Matrix threads get their own agent session, so threaded and main-timeline conversations don't cross-contaminate.
+
 ## Running tests
 
 ```bash
-# All vitest tests (integration + outbound encryption)
+# All vitest tests (12 files, 161 tests)
 npx vitest run
 
-# Node:test unit tests
-npx tsx --test tests/*.test.ts
-
 # Single file
-npx vitest run tests/integration/outbound-encrypt.test.ts
+npx vitest run tests/bugfix-round.test.ts
 ```
 
 Requires Node >= 22.12 and OpenClaw >= 2026.2.9.

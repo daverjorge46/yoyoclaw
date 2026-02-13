@@ -39,7 +39,7 @@ export const matrixChannelPlugin = {
     polls: false,
     effects: false,
     groupManagement: false,
-    threads: false,
+    threads: true,
     media: true,
     typing: true,
     nativeCommands: false,

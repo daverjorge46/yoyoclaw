@@ -89,7 +89,7 @@ export async function processOutgoingRequests(log?: {
   info?: (msg: string) => void;
   warn?: (msg: string) => void;
   error?: (msg: string) => void;
-}): Promise<void> {
+}): Promise<number> {
   const machine = getMachine();
   const requests = await withCryptoTimeout(
     machine.outgoingRequests(),
@@ -117,4 +117,6 @@ export async function processOutgoingRequests(log?: {
       // Do NOT mark as sent — OlmMachine will retry next cycle
     }
   }
+
+  return requests.length;
 }

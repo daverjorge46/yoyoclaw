@@ -15,6 +15,7 @@ src/openclaw-types.ts       → TypeScript interfaces for OpenClaw plugin SDK co
 src/util/
   rate-limit.ts             → token bucket rate limiter
   logger.ts                 → structured logging wrapper (key=value fields)
+  reply-fallback.ts         → strip Matrix reply fallback (plain text + HTML)
 src/client/
   http.ts                   → matrixFetch() — auth, rate limiting, 429 retry
   sync.ts                   → runSyncLoop() — long-poll, decrypt, dedup, auto-join
@@ -38,6 +39,7 @@ tests/
     media-roundtrip.test.ts  → AES-256-CTR encrypt/decrypt + SHA-256 tamper detection
     recovery-roundtrip.test.ts → recovery key decode/encode round-trip
     http-client.test.ts      → matrixFetch against mock homeserver
+  bugfix-round.test.ts       → reply fallback, key zeroing, alreadySigned, HTTPS enforcement
 ```
 
 ## Plugin loading
@@ -60,7 +62,9 @@ Derived from `z.infer<MatrixConfigSchema> & { accountId: string }`. Zod schema i
 ### MsgContext fields (set by monitor.ts)
 
 ```typescript
-{ Body, RawBody, CommandBody,
+{ Body,              // reply fallback stripped (clean text for agent)
+  RawBody,             // original body including fallback (for debugging)
+  CommandBody,         // same as Body
   From: "matrix:${sender}" | "matrix:room:${roomId}",
   To: "matrix:${roomId}", SessionKey, AccountId,
   ChatType: "direct"|"group", GroupSubject?, SenderName, SenderId,
@@ -84,11 +88,12 @@ MUST return `{ content: [{ type: "text", text: JSON.stringify(payload) }], detai
 5. Timeline events: dedup check → encrypted → `decryptRoomEvent()` → plaintext
 6. Media messages: download + decrypt → save to workspace
 7. `onMessage(event, roomId)` fires in `monitor.ts`
-8. Monitor: skip own → access control (allowlist, prefix-normalized) → empty body
-9. Display name resolved (cache → profile API → raw userId)
-10. Thread ID extracted if present → session key adjusted
-11. `enqueueForRoom()` → serialized per-room dispatch via OpenClaw pipeline
-12. Agent reply delivered via `deliver` callback → `sendMatrixMessage()`
+8. Monitor: skip own → skip m.notice (bot loop prevention) → access control (allowlist, prefix-normalized) → empty body
+9. Reply fallback stripped from body (plain `> ` lines + HTML `<mx-reply>`)
+10. Display name resolved (cache → profile API → raw userId)
+11. Thread ID extracted if present → session key adjusted
+12. `enqueueForRoom()` → serialized per-room dispatch via OpenClaw pipeline
+13. Agent reply delivered via `deliver` callback → `sendMatrixMessage()`
 
 ### Outbound (Agent → Matrix)
 
@@ -135,15 +140,17 @@ MUST return `{ content: [{ type: "text", text: JSON.stringify(payload) }], detai
 - **Library:** `@matrix-org/matrix-sdk-crypto-nodejs` ^0.4.0 (Rust FFI via NAPI)
 - **Store:** SQLite at `~/.openclaw/claw-matrix/accounts/default/{server}__{user}/{tokenHash}/crypto` — path is hardcoded per plugin ID in `machine.ts`. Upgrading from `matrix-rust` creates a new store (old keys at `~/.openclaw/matrix-rust/accounts/` are NOT migrated). Configure a `recoveryKey` to recover old room keys from server-side backup.
 - **Trust:** TOFU mode (configurable to strict)
-- **Cross-signing:** On startup, SSSS secrets are decrypted using the recovery key (HKDF-SHA-256 + AES-256-CTR + HMAC-SHA-256), then the device is self-signed with the self-signing key (ed25519) and the signature uploaded to the homeserver. Already-signed devices are detected and skipped. This bypasses the SDK's `crossSigningStatus()` limitation (which checks an internal MessagePack blob, not the secrets table).
+- **Cross-signing:** On startup, SSSS secrets are decrypted using the recovery key (HKDF-SHA-256 + AES-256-CTR + HMAC-SHA-256), then the device is self-signed with the self-signing key (ed25519) and the signature uploaded to the homeserver. Already-signed devices are detected by checking for the _current_ SSK's key ID specifically (not just any ed25519 signature). This bypasses the SDK's `crossSigningStatus()` limitation (which checks an internal MessagePack blob, not the secrets table).
 - **OTK type safety:** `otkCounts` wrapped as `Map<string, number>` for FFI compatibility with `receiveSyncChanges()`
 - **Key sharing:** `ensureRoomKeysShared()` — track users → query keys → claim OTKs → share Megolm session
 - **Encryption config caching:** `m.room.encryption` state events store algorithm, `rotation_period_ms`, `rotation_period_msgs` (not just a boolean flag)
-- **UTD queue:** max 200 entries, 5min retry window, 1hr expiry, FIFO eviction, backup fallback after 2+ retries
+- **UTD queue:** max 200 entries, 10 processed per sync cycle, 5min retry window, 1hr expiry, FIFO eviction, backup fallback after 2+ retries (each session attempted once only)
 - **Recovery key:** base58 decode → 0x8B01 prefix validation → parity check → 32-byte SSSS master key
 - **Backup key derivation:** The recovery key is the SSSS master key, NOT the backup decryption key. `activateRecoveryKey()` fetches `m.megolm_backup.v1` from SSSS account data, decrypts it with the recovery key via HKDF-SHA-256 + AES-256-CTR + HMAC-SHA-256, and uses the result as `BackupDecryptionKey`. Falls back to raw recovery key if `m.megolm_backup.v1` is absent from SSSS.
-- **Backup UTD fallback:** per-session fetch from server backup, decryptV1, inject via synthetic forwarded_room_key
+- **Backup UTD fallback:** per-session fetch from server backup, decryptV1, inject via synthetic `m.room_key` to-device event (NOT `m.forwarded_room_key` — SDK v0.4.x silently rejects forwarded keys from untrusted senders)
+- **Key zeroing:** Recovery key, SSK seed, and derived AES/HMAC keys are zeroed (`.fill(0)`) immediately after use to minimize memory exposure window
 - **Media encryption:** AES-256-CTR with SHA-256 hash-before-decrypt (malleability protection)
+- **Media download:** Streaming with byte counter — checks `Content-Length` header for early reject, then enforces `maxSize` during download (prevents OOM from oversized responses)
 - **MXC URI validation:** Strict regex — server*name `[a-zA-Z0-9.*:-]`, media_id `[a-zA-Z0-9._-]` (prevents path traversal)
 - **SSSS key verification:** Recovery key verified against key metadata (HKDF info="") before decrypting secrets (HKDF info=secretName)
 - **Startup diagnostics:** Logs device keys + cross-signing status
@@ -163,7 +170,7 @@ Critical discoveries from testing — these are NOT documented upstream:
 - Salt for both: `Buffer.alloc(32, 0)` (32 zero bytes)
 - `CrossSigningStatus` has prototype getters (hasMaster/hasSelfSigning/hasUserSigning), `JSON.stringify()` returns `{}`
 - Self-signing approach: bypass SDK entirely — sign device keys with Node.js `crypto.sign()` ed25519
-- SDK limitation (v0.4.0): No `importRoomKeys()` — synthetic to-device injection workaround
+- SDK limitation (v0.4.0): No `importRoomKeys()` — synthetic `m.room_key` to-device injection workaround (`m.forwarded_room_key` is silently rejected)
 - `receiveSyncChanges` OTK parameter: FFI `.d.ts` declares `Record<string, number>`, not `Map`
 
 ## Singleton state
@@ -212,18 +219,21 @@ The following modules hold module-level singleton state, marked with `// SINGLET
 - **Per-event error boundary:** One bad event in sync doesn't break the entire cycle
 - **Pre-send + post-encryption size check:** 65KB limit for all event types
 - **Soft logout:** Re-authenticates with stored password, preserves crypto store
-- **Config validation:** Zod schema with fallback logging (field-level error messages)
+- **Config validation:** Zod schema with fallback logging (field-level error messages); fallback path enforces HTTPS
 - **Timeout protection:** Typed MatrixTimeoutError/MatrixNetworkError; 30s crypto FFI timeouts
 - **Graceful shutdown:** Sync loop drains per-room dispatch queues before crypto teardown; closeMachine() is idempotent
 - **Double-start guard:** Prevents hot-reload from launching duplicate sync loops
 - **DM detection:** Uses m.direct account data (authoritative) with member-count fallback
 - **Health metrics:** Sync failures, UTD queue depth, room counts + 12 operational counters
 - **Structured logging:** Key=value fields on all monitor log lines
+- **Reply fallback stripping:** Matrix reply `> ` prefixes and `<mx-reply>` HTML removed before agent dispatch
+- **Bot loop prevention:** `m.notice` messages silently filtered (per Matrix spec, bots should not reply to notices)
+- **Crypto outgoing:** `processOutgoingRequests()` returns processed count; no redundant FFI calls per cycle
 
 ## ChannelPlugin adapters
 
 - **meta** — id, label, blurb
-- **capabilities** — text, media, reactions, edit, unsend, reply, typing, dm+group, blockStreaming
+- **capabilities** — text, media, reactions, edit, unsend, reply, threads, typing, dm+group, blockStreaming
 - **config** — listAccountIds, resolveAccount, isEnabled, isConfigured, resolveAllowFrom
 - **gateway** — startAccount (launches monitor), stopAccount (abortSignal)
 - **outbound** — deliveryMode: "direct", sendText, sendPayload, sendMedia, resolveTarget
@@ -249,7 +259,7 @@ See [tests/README.md](tests/README.md) for test runner details.
 
 ### Coverage gaps
 
-High-priority untested paths: `monitor.ts` (inbound dispatch), `channel.ts` (ChannelPlugin contract), `actions.ts` (action handlers), `sync.ts` (sync loop). These require significant mocking infrastructure.
+Partially covered (via `bugfix-round.test.ts`): reply fallback stripping, HTTPS enforcement, alreadySigned logic. Still untested: `monitor.ts` (full inbound dispatch), `channel.ts` (ChannelPlugin contract), `actions.ts` (action handlers), `sync.ts` (sync loop). These require significant mocking infrastructure.
 
 ## Dependencies
 
