@@ -326,8 +326,6 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
     validCfg = feishuCfg;
   } else {
     // Multiple account mode - check accounts
-  } else {
-    // Multiple account mode - check accounts
     const accounts = listEnabledFeishuAccounts(api.config);
     if (accounts.length === 0) {
       api.logger.debug?.("feishu_bitable: No Feishu accounts with credentials configured, skipping bitable tools");
