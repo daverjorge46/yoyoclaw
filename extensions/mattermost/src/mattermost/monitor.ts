@@ -892,7 +892,7 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
 
   const connectOnce = async (): Promise<void> => {
     const ws = new WebSocket(wsUrl);
-    const onAbort = () => ws.close();
+    const onAbort = () => ws.terminate();
     opts.abortSignal?.addEventListener("abort", onAbort, { once: true });
 
     try {
