@@ -248,7 +248,7 @@ export function createOpenClawCodingTools(options?: {
   const base = (codingTools as unknown as AnyAgentTool[]).flatMap((tool) => {
     if (tool.name === readTool.name) {
       if (sandboxRoot) {
-        return [createSandboxedReadTool(sandboxRoot)];
+        return [createSandboxedReadTool(sandboxRoot, sandbox?.containerWorkdir)];
       }
       const freshReadTool = createReadTool(workspaceRoot);
       return [createOpenClawReadTool(freshReadTool)];
@@ -318,7 +318,10 @@ export function createOpenClawCodingTools(options?: {
     ...base,
     ...(sandboxRoot
       ? allowWorkspaceWrites
-        ? [createSandboxedEditTool(sandboxRoot), createSandboxedWriteTool(sandboxRoot)]
+        ? [
+            createSandboxedEditTool(sandboxRoot, sandbox?.containerWorkdir),
+            createSandboxedWriteTool(sandboxRoot, sandbox?.containerWorkdir),
+          ]
         : []
       : []),
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
