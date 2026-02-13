@@ -381,7 +381,7 @@ function resolveModelPrimary(model?: unknown): string | null {
   return null;
 }
 
-function resolveModelFallbacks(model?: unknown): string[] | null {
+export function resolveModelFallbacks(model?: unknown): string[] | null {
   if (!model || typeof model === "string") {
     return null;
   }
@@ -820,7 +820,8 @@ function renderAgentOverview(params: {
     resolveModelPrimary(config.defaults?.model) ||
     (defaultModel !== "-" ? normalizeModelValue(defaultModel) : null);
   const effectivePrimary = modelPrimary ?? defaultPrimary ?? null;
-  const modelFallbacks = resolveModelFallbacks(config.entry?.model);
+  const modelFallbacks =
+    resolveModelFallbacks(config.entry?.model) ?? resolveModelFallbacks(config.defaults?.model);
   const fallbackText = modelFallbacks ? modelFallbacks.join(", ") : "";
   const identityName =
     agentIdentity?.name?.trim() ||
