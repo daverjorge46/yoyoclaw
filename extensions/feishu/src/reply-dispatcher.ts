@@ -6,9 +6,9 @@ import {
   type ReplyPayload,
   type RuntimeEnv,
 } from "openclaw/plugin-sdk";
+import type { MentionTarget } from "./mention.js";
 import { resolveFeishuAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
-import type { MentionTarget } from "./mention.js";
 import { buildMentionedCardContent } from "./mention.js";
 import { getFeishuRuntime } from "./runtime.js";
 import { sendMarkdownCardFeishu, sendMessageFeishu } from "./send.js";
@@ -161,7 +161,11 @@ export function createFeishuReplyDispatcher(params: CreateFeishuReplyDispatcherP
 
         let first = true;
         if (useCard) {
-          for (const chunk of core.channel.text.chunkTextWithMode(text, textChunkLimit, chunkMode)) {
+          for (const chunk of core.channel.text.chunkTextWithMode(
+            text,
+            textChunkLimit,
+            chunkMode,
+          )) {
             await sendMarkdownCardFeishu({
               cfg,
               to: chatId,
