@@ -125,11 +125,11 @@ describe("splitSdkTools", () => {
     });
     expect(builtInTools).toEqual([]);
     expect(customTools.map((tool) => tool.name)).toEqual([
-      "read",
-      "exec",
-      "edit",
-      "write",
       "browser",
+      "edit",
+      "exec",
+      "read",
+      "write",
     ]);
   });
   it("routes all tools to customTools even when not sandboxed", () => {
@@ -139,11 +139,41 @@ describe("splitSdkTools", () => {
     });
     expect(builtInTools).toEqual([]);
     expect(customTools.map((tool) => tool.name)).toEqual([
-      "read",
-      "exec",
-      "edit",
-      "write",
       "browser",
+      "edit",
+      "exec",
+      "read",
+      "write",
     ]);
+  });
+
+  it("returns the same ordered tool names for identical sets regardless of input order", () => {
+    const firstInputOrder = [
+      createStubTool("read"),
+      createStubTool("exec"),
+      createStubTool("edit"),
+      createStubTool("write"),
+      createStubTool("browser"),
+    ];
+    const secondInputOrder = [
+      createStubTool("write"),
+      createStubTool("browser"),
+      createStubTool("read"),
+      createStubTool("edit"),
+      createStubTool("exec"),
+    ];
+
+    const firstNames = splitSdkTools({
+      tools: firstInputOrder,
+      sandboxEnabled: true,
+    }).customTools.map((tool) => tool.name);
+
+    const secondNames = splitSdkTools({
+      tools: secondInputOrder,
+      sandboxEnabled: true,
+    }).customTools.map((tool) => tool.name);
+
+    expect(firstNames).toEqual(["browser", "edit", "exec", "read", "write"]);
+    expect(secondNames).toEqual(firstNames);
   });
 });

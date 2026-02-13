@@ -9,6 +9,9 @@ export const MIN_CHUNK_RATIO = 0.15;
 export const SAFETY_MARGIN = 1.2; // 20% buffer for estimateTokens() inaccuracy
 const DEFAULT_SUMMARY_FALLBACK = "No prior history.";
 const DEFAULT_PARTS = 2;
+const DEFAULT_MAX_HISTORY_SHARE = 0.5;
+const MIN_MAX_HISTORY_SHARE = 0.1;
+const MAX_MAX_HISTORY_SHARE = 0.9;
 const MERGE_SUMMARIES_INSTRUCTIONS =
   "Merge these partial summaries into a single cohesive summary. Preserve decisions," +
   " TODOs, open questions, and any constraints.";
@@ -43,6 +46,13 @@ function normalizeParts(parts: number, messageCount: number): number {
     return 1;
   }
   return Math.min(Math.max(1, Math.floor(parts)), Math.max(1, messageCount));
+}
+
+function normalizeMaxHistoryShare(maxHistoryShare: unknown): number {
+  if (typeof maxHistoryShare !== "number" || !Number.isFinite(maxHistoryShare)) {
+    return DEFAULT_MAX_HISTORY_SHARE;
+  }
+  return Math.min(MAX_MAX_HISTORY_SHARE, Math.max(MIN_MAX_HISTORY_SHARE, maxHistoryShare));
 }
 
 export function splitMessagesByTokenShare(
@@ -341,7 +351,7 @@ export function pruneHistoryForContextShare(params: {
   keptTokens: number;
   budgetTokens: number;
 } {
-  const maxHistoryShare = params.maxHistoryShare ?? 0.5;
+  const maxHistoryShare = normalizeMaxHistoryShare(params.maxHistoryShare);
   const budgetTokens = Math.max(1, Math.floor(params.maxContextTokens * maxHistoryShare));
   let keptMessages = params.messages;
   const allDroppedMessages: AgentMessage[] = [];

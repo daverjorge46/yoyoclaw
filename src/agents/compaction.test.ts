@@ -290,4 +290,40 @@ describe("pruneHistoryForContextShare", () => {
     // droppedMessagesList only has the assistant message
     expect(pruned.droppedMessages).toBe(pruned.droppedMessagesList.length + 2);
   });
+
+  it("clamps maxHistoryShare to schema bounds for stable pruning thresholds", () => {
+    const messages: AgentMessage[] = [makeMessage(1, 4000), makeMessage(2, 4000)];
+    const low = pruneHistoryForContextShare({
+      messages,
+      maxContextTokens: 1000,
+      maxHistoryShare: 0,
+    });
+    const high = pruneHistoryForContextShare({
+      messages,
+      maxContextTokens: 1000,
+      maxHistoryShare: 2,
+    });
+
+    expect(low.budgetTokens).toBe(100); // 0.1 floor
+    expect(high.budgetTokens).toBe(900); // 0.9 cap
+  });
+
+  it("does not prune when history usage is exactly at threshold", () => {
+    const messages: AgentMessage[] = [makeMessage(1, 4000), makeMessage(2, 4000)];
+    const totalTokens = estimateMessagesTokens(messages);
+    const maxHistoryShare = 0.9;
+    const maxContextTokens = Math.ceil(totalTokens / maxHistoryShare);
+
+    const pruned = pruneHistoryForContextShare({
+      messages,
+      maxContextTokens,
+      maxHistoryShare,
+      parts: 2,
+    });
+
+    expect(pruned.budgetTokens).toBeGreaterThanOrEqual(totalTokens);
+    expect(pruned.keptTokens).toBe(totalTokens);
+    expect(pruned.droppedChunks).toBe(0);
+    expect(pruned.messages).toHaveLength(messages.length);
+  });
 });
