@@ -677,7 +677,12 @@ export async function runEmbeddedPiAgent(
               };
             }
             const promptFailoverReason = classifyFailoverReason(errorText);
-            if (promptFailoverReason && promptFailoverReason !== "timeout" && lastProfileId) {
+            if (
+              !isProbeSession &&
+              promptFailoverReason &&
+              promptFailoverReason !== "timeout" &&
+              lastProfileId
+            ) {
               await markAuthProfileFailure({
                 store: authStore,
                 profileId: lastProfileId,
@@ -761,7 +766,7 @@ export async function runEmbeddedPiAgent(
           const shouldRotate = (!aborted && failoverFailure) || timedOut;
 
           if (shouldRotate) {
-            if (lastProfileId) {
+            if (lastProfileId && !isProbeSession) {
               const reason =
                 timedOut || assistantFailoverReason === "timeout"
                   ? "timeout"
@@ -773,7 +778,7 @@ export async function runEmbeddedPiAgent(
                 cfg: params.config,
                 agentDir: params.agentDir,
               });
-              if (timedOut && !isProbeSession) {
+              if (timedOut) {
                 log.warn(
                   `Profile ${lastProfileId} timed out (possible rate limit). Trying next account...`,
                 );

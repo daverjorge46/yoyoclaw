@@ -438,6 +438,66 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
     }
   });
 
+  it("does not mark profile cooldown on probe session failures", async () => {
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));
+    try {
+      const authPath = path.join(agentDir, "auth-profiles.json");
+      await fs.writeFile(
+        authPath,
+        JSON.stringify({
+          version: 1,
+          profiles: {
+            "openai:p1": { type: "api_key", provider: "openai", key: "sk-one" },
+          },
+          usageStats: {
+            "openai:p1": { lastUsed: 1 },
+          },
+        }),
+      );
+
+      runEmbeddedAttemptMock.mockResolvedValueOnce(
+        makeAttempt({
+          timedOut: true,
+          assistantTexts: [],
+          lastAssistant: buildAssistant({
+            stopReason: "error",
+            errorMessage: "LLM request timed out.",
+          }),
+        }),
+      );
+
+      await expect(
+        runEmbeddedPiAgent({
+          sessionId: "probe-openai-timeout",
+          sessionKey: "agent:test:probe-timeout",
+          sessionFile: path.join(workspaceDir, "session.jsonl"),
+          workspaceDir,
+          agentDir,
+          config: makeConfig({ fallbacks: ["openai/mock-2"] }),
+          prompt: "hello",
+          provider: "openai",
+          model: "mock-1",
+          authProfileId: "openai:p1",
+          authProfileIdSource: "auto",
+          timeoutMs: 5_000,
+          runId: "run:probe-timeout",
+        }),
+      ).rejects.toMatchObject({
+        name: "FailoverError",
+      });
+
+      const stored = JSON.parse(await fs.readFile(authPath, "utf-8")) as {
+        usageStats?: Record<string, { cooldownUntil?: number; lastFailureAt?: number }>;
+      };
+      expect(stored.usageStats?.["openai:p1"]?.cooldownUntil).toBeUndefined();
+      expect(stored.usageStats?.["openai:p1"]?.lastFailureAt).toBeUndefined();
+    } finally {
+      await fs.rm(agentDir, { recursive: true, force: true });
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
   it("fails over when auth is unavailable and fallbacks are configured", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-agent-"));
     const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-workspace-"));

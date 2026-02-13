@@ -32,6 +32,7 @@ type FallbackAttempt = {
   reason?: FailoverReason;
   status?: number;
   code?: string;
+  skip?: "provider_cooldown";
 };
 
 /**
@@ -256,6 +257,7 @@ export async function runWithModelFallback<T>(params: {
           model: candidate.model,
           error: `Provider ${candidate.provider} is in cooldown (all profiles unavailable)`,
           reason: "rate_limit",
+          skip: "provider_cooldown",
         });
         continue;
       }
@@ -306,14 +308,35 @@ export async function runWithModelFallback<T>(params: {
   }
   const summary =
     attempts.length > 0
-      ? attempts
-          .map(
-            (attempt) =>
+      ? (() => {
+          const entries: string[] = [];
+          const cooldownSkipsByProvider = new Map<string, string[]>();
+
+          for (const attempt of attempts) {
+            if (attempt.skip === "provider_cooldown") {
+              const models = cooldownSkipsByProvider.get(attempt.provider) ?? [];
+              if (!models.includes(attempt.model)) {
+                models.push(attempt.model);
+              }
+              cooldownSkipsByProvider.set(attempt.provider, models);
+              continue;
+            }
+            entries.push(
               `${attempt.provider}/${attempt.model}: ${attempt.error}${
                 attempt.reason ? ` (${attempt.reason})` : ""
               }`,
-          )
-          .join(" | ")
+            );
+          }
+
+          for (const [provider, models] of cooldownSkipsByProvider.entries()) {
+            const plural = models.length === 1 ? "" : "s";
+            entries.push(
+              `${provider}: skipped ${models.length} model${plural} (${models.join(", ")}) because all auth profiles are in cooldown (rate_limit)`,
+            );
+          }
+
+          return entries.join(" | ");
+        })()
       : "unknown";
   throw new Error(`All models failed (${attempts.length || candidates.length}): ${summary}`, {
     cause: lastError instanceof Error ? lastError : undefined,
