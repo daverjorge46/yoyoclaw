@@ -393,12 +393,12 @@ function buildChatKey(msg: {
   if (guid) {
     return `chat_guid:${guid}`;
   }
+  if (typeof msg.chatId === "number" && Number.isFinite(msg.chatId)) {
+    return `chat_id:${msg.chatId}`;
+  }
   const identifier = msg.chatIdentifier?.trim();
   if (identifier) {
     return `chat_identifier:${identifier}`;
-  }
-  if (msg.chatId != null) {
-    return `chat_id:${msg.chatId}`;
   }
   return "dm";
 }
