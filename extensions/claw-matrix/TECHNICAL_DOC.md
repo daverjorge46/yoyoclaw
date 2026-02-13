@@ -140,7 +140,8 @@ MUST return `{ content: [{ type: "text", text: JSON.stringify(payload) }], detai
 - **Key sharing:** `ensureRoomKeysShared()` — track users → query keys → claim OTKs → share Megolm session
 - **Encryption config caching:** `m.room.encryption` state events store algorithm, `rotation_period_ms`, `rotation_period_msgs` (not just a boolean flag)
 - **UTD queue:** max 200 entries, 5min retry window, 1hr expiry, FIFO eviction, backup fallback after 2+ retries
-- **Recovery key:** base58 decode → 0x8B01 prefix validation → parity check → BackupDecryptionKey → server backup activation
+- **Recovery key:** base58 decode → 0x8B01 prefix validation → parity check → 32-byte SSSS master key
+- **Backup key derivation:** The recovery key is the SSSS master key, NOT the backup decryption key. `activateRecoveryKey()` fetches `m.megolm_backup.v1` from SSSS account data, decrypts it with the recovery key via HKDF-SHA-256 + AES-256-CTR + HMAC-SHA-256, and uses the result as `BackupDecryptionKey`. Falls back to raw recovery key if `m.megolm_backup.v1` is absent from SSSS.
 - **Backup UTD fallback:** per-session fetch from server backup, decryptV1, inject via synthetic forwarded_room_key
 - **Media encryption:** AES-256-CTR with SHA-256 hash-before-decrypt (malleability protection)
 - **MXC URI validation:** Strict regex — server*name `[a-zA-Z0-9.*:-]`, media_id `[a-zA-Z0-9._-]` (prevents path traversal)

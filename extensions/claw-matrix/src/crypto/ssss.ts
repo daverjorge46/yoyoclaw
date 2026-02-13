@@ -13,6 +13,7 @@
  */
 
 import * as crypto from "node:crypto";
+import * as fs from "node:fs";
 import * as path from "node:path";
 import type { PluginLogger } from "../openclaw-types.js";
 import { matrixFetch } from "../client/http.js";
@@ -44,7 +45,7 @@ export interface SsssRestoreResult {
 
 // ── SSSS Decryption ─────────────────────────────────────────────────────
 
-interface EncryptedData {
+export interface EncryptedData {
   ciphertext: string;
   iv: string;
   mac: string;
@@ -64,7 +65,11 @@ interface KeyMetadata {
  * @param encrypted  {ciphertext, iv, mac} from the encrypted block
  * @returns Decrypted plaintext (base64-encoded ed25519 seed for cross-signing)
  */
-function decryptSecret(rawKey: Uint8Array, secretName: string, encrypted: EncryptedData): string {
+export function decryptSecret(
+  rawKey: Uint8Array,
+  secretName: string,
+  encrypted: EncryptedData,
+): string {
   // HKDF-SHA-256: derive AES key (32B) + HMAC key (32B)
   const salt = Buffer.alloc(32, 0);
   const derived = crypto.hkdfSync("sha256", rawKey, salt, secretName, 64);
@@ -258,6 +263,15 @@ export async function restoreCrossSigningFromSSSSIfNeeded(
   const { storePath, recoveryKey, userId, log } = opts;
   const slog = createLogger("matrix", log);
   const fail: SsssRestoreResult = { restored: false };
+
+  // Guard: on fresh installs (no DB file), skip SSSS restore entirely.
+  // The Rust SDK must create the DB schema first via initCryptoMachine().
+  // SSSS restore will succeed on the next restart when the DB exists.
+  const dbFile = path.join(storePath, "matrix-sdk-crypto.sqlite3");
+  if (!fs.existsSync(dbFile)) {
+    slog.info("Crypto DB does not exist yet — skipping SSSS restore (will retry next startup)");
+    return fail;
+  }
 
   // 1. Check server — always query so the guard flag is set for monitor.ts
   const serverHas = await serverCrossSigningKeysExist(userId);

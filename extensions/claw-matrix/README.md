@@ -50,7 +50,7 @@ Lets your OpenClaw agents chat over Matrix — encrypted rooms, media, reactions
    openclaw gateway restart
    ```
 
-Crypto keys bootstrap automatically on first start. If you already have a cross-signing identity, set `recoveryKey` to restore it instead of creating a new one.
+Crypto keys bootstrap automatically on first start. If you already have a cross-signing identity, set `recoveryKey` to restore it instead of creating a new one. The recovery key is also used to decrypt the backup decryption key from SSSS (`m.megolm_backup.v1`), enabling automatic room key recovery from server-side backup.
 
 ## DM access control
 

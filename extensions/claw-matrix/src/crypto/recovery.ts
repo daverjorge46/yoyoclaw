@@ -13,6 +13,7 @@
 import { BackupDecryptionKey } from "@matrix-org/matrix-sdk-crypto-nodejs";
 import { matrixFetch } from "../client/http.js";
 import { getMachine } from "./machine.js";
+import { decryptSecret } from "./ssss.js";
 
 // ── Recovery Key Decoding ────────────────────────────────────────────────
 
@@ -95,14 +96,46 @@ export async function activateRecoveryKey(
     return undefined;
   }
 
-  // Step 2: Create BackupDecryptionKey
+  // Step 2: Derive BackupDecryptionKey from SSSS
+  // The recovery key is the SSSS master key. The actual backup decryption key
+  // is a separate secret stored in SSSS as "m.megolm_backup.v1".
   let decryptionKey: BackupDecryptionKey;
   try {
-    // The SDK expects base64-encoded key bytes
-    const keyBase64 = Buffer.from(rawKey).toString("base64");
-    decryptionKey = BackupDecryptionKey.fromBase64(keyBase64);
+    const machine = getMachine();
+    const userId = machine.userId.toString();
+
+    // Find SSSS default key ID
+    const defaultKey = await matrixFetch<{ key: string }>(
+      "GET",
+      `/_matrix/client/v3/user/${encodeURIComponent(userId)}/account_data/m.secret_storage.default_key`,
+    );
+    const keyId = defaultKey?.key;
+    if (!keyId) {
+      throw new Error("No SSSS default key found");
+    }
+
+    // Fetch m.megolm_backup.v1 from SSSS
+    const backupSecret = await matrixFetch<{
+      encrypted?: Record<string, { ciphertext: string; iv: string; mac: string }>;
+    }>(
+      "GET",
+      `/_matrix/client/v3/user/${encodeURIComponent(userId)}/account_data/m.megolm_backup.v1`,
+    );
+
+    const encBlock = backupSecret?.encrypted?.[keyId];
+    if (!encBlock) {
+      // Fallback: no SSSS backup key, try raw recovery key directly
+      log?.warn?.("[recovery] No m.megolm_backup.v1 in SSSS, falling back to raw recovery key");
+      const keyBase64 = Buffer.from(rawKey).toString("base64");
+      decryptionKey = BackupDecryptionKey.fromBase64(keyBase64);
+    } else {
+      // Decrypt the actual backup key from SSSS
+      const backupKeyBase64 = decryptSecret(rawKey, "m.megolm_backup.v1", encBlock);
+      decryptionKey = BackupDecryptionKey.fromBase64(backupKeyBase64);
+      log?.info?.("[recovery] Decrypted backup key from SSSS (m.megolm_backup.v1)");
+    }
   } catch (err: any) {
-    log?.error?.(`[recovery] Failed to create BackupDecryptionKey: ${err.message}`);
+    log?.error?.(`[recovery] Failed to derive BackupDecryptionKey: ${err.message}`);
     return undefined;
   }
 
