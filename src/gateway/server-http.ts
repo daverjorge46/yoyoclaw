@@ -143,10 +143,6 @@ async function authorizeCanvasRequest(params: {
   if (!clientIp) {
     return lastAuthFailure ?? { ok: false, reason: "unauthorized" };
   }
-  if (hasAuthorizedWsClientForIp(clients, clientIp)) {
-    return { ok: true };
-  }
-  return lastAuthFailure ?? { ok: false, reason: "unauthorized" };
 
   // IP-based fallback is only safe for machine-scoped addresses.
   // Only allow IP-based fallback for private/loopback addresses to prevent
