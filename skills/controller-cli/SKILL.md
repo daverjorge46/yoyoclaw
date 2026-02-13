@@ -27,6 +27,7 @@ Use this skill when you need to run the Cartridge Controller CLI (`controller-cl
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cartridge-gg/controller-cli/main/install.sh -o /tmp/controller-cli-install.sh
 # Review the script before running it (it installs the `controller` binary).
+# For reproducibility, consider pinning to a tag/commit SHA instead of `main`.
 bash /tmp/controller-cli-install.sh
 export PATH="$PATH:$HOME/.local/bin"
 controller --version
@@ -201,7 +202,9 @@ Common recoveries:
 ## Input Validation
 
 Addresses must be `0x`-prefixed hex (up to 64 hex chars after `0x`; leading zeros may be omitted).
+If you require a canonical `0x` + 64-hex format, use `--strict-64`.
 
 ```bash
 python3 {baseDir}/scripts/validate_hex_address.py 0xabc...
+python3 {baseDir}/scripts/validate_hex_address.py --strict-64 0x00...01
 ```
