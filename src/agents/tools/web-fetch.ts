@@ -409,7 +409,9 @@ async function runWebFetch(params: {
       timeoutMs: params.timeoutSeconds * 1000,
       init: {
         headers: {
-          Accept: "*/*",
+          // Prefer markdown (Cloudflare Markdown for Agents), fallback to HTML then anything
+          // https://blog.cloudflare.com/markdown-for-agents/
+          Accept: "text/markdown, text/html;q=0.9, */*;q=0.8",
           "User-Agent": params.userAgent,
           "Accept-Language": "en-US,en;q=0.9",
         },
@@ -522,7 +524,13 @@ async function runWebFetch(params: {
     let title: string | undefined;
     let extractor = "raw";
     let text = body;
-    if (contentType.includes("text/html")) {
+
+    // Cloudflare Markdown for Agents: if server returns text/markdown, use directly
+    // This can reduce token consumption by ~80% vs HTML extraction
+    if (contentType.includes("text/markdown")) {
+      extractor = "markdown-native";
+      // text is already markdown, no extraction needed
+    } else if (contentType.includes("text/html")) {
       if (params.readabilityEnabled) {
         const readable = await extractReadableContent({
           html: body,
