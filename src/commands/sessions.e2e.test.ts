@@ -81,7 +81,7 @@ describe("sessionsCommand", () => {
     expect(tableHeader).toBeTruthy();
 
     const row = logs.find((line) => line.includes("+15555550123")) ?? "";
-    expect(row).toContain("2.0k/32k (6%)");
+    expect(row).toContain("2.0k/200k (1%)");
     expect(row).toContain("45m ago");
     expect(row).toContain("pi:opus");
   });
@@ -101,7 +101,7 @@ describe("sessionsCommand", () => {
     fs.rmSync(store);
 
     const row = logs.find((line) => line.includes("discord:group:demo")) ?? "";
-    expect(row).toContain("unknown/32k (?%)");
+    expect(row).toContain("unknown/200k (?%)");
     expect(row).toContain("think:high");
     expect(row).toContain("5m ago");
   });
@@ -144,5 +144,30 @@ describe("sessionsCommand", () => {
     expect(main?.totalTokensFresh).toBe(true);
     expect(group?.totalTokens).toBeNull();
     expect(group?.totalTokensFresh).toBe(false);
+  });
+
+  it("does not use agents.defaults.contextTokens for display (#15705)", async () => {
+    const store = writeStore({
+      main: {
+        sessionId: "ctx-test",
+        updatedAt: Date.now() - 10 * 60_000,
+        totalTokens: 60_000,
+        totalTokensFresh: true,
+        model: "unknown-custom-model",
+      },
+    });
+
+    const { runtime, logs } = makeRuntime();
+    await sessionsCommand({ store, json: true }, runtime);
+
+    fs.rmSync(store);
+
+    const payload = JSON.parse(logs[0] ?? "{}") as {
+      sessions?: Array<{ key: string; contextTokens: number | null }>;
+    };
+    const main = payload.sessions?.find((row) => row.key === "main");
+    // agents.defaults.contextTokens (32000 in mock) must NOT leak into display.
+    // Should fall back to DEFAULT_CONTEXT_TOKENS (200_000).
+    expect(main?.contextTokens).toBe(200_000);
   });
 });
