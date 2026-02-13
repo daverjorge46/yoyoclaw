@@ -129,3 +129,61 @@ OpenAI and local models produce vectors with different dimensions (1536 vs
 768). If you change providers on an existing database, the plugin will detect
 the mismatch and refuse to start until you run `openclaw ltm reindex` to
 re-embed all stored memories with the new provider.
+
+Reindex preserves all memory content, categories, and importance scores — only
+the vector embeddings are regenerated. If any individual memories fail during
+reindex, they are listed at the end with their IDs so you can investigate and
+retry.
+
+## Troubleshooting
+
+### Vector dimension mismatch
+
+**Error:** `Vector dimension mismatch: database has 1536-dim vectors but current config expects 768-dim`
+
+This happens when the embedding provider in your config doesn't match the
+vectors already stored in the database (e.g. you switched from OpenAI to
+local). Run reindex to fix it:
+
+```bash
+openclaw ltm reindex
+```
+
+### OpenAI: invalid API key
+
+**Error:** `OpenAI embedding failed: invalid API key`
+
+Your `embedding.apiKey` is missing or incorrect. Check that the environment
+variable is set:
+
+```bash
+echo $OPENAI_API_KEY
+```
+
+If using `${OPENAI_API_KEY}` syntax in config, make sure the variable is
+exported in your shell profile.
+
+### OpenAI: rate limit exceeded
+
+**Error:** `OpenAI embedding failed: rate limit exceeded`
+
+You've hit the OpenAI API rate limit. Wait a moment and try again, or
+switch to the `local` provider for unlimited offline embeddings.
+
+### Local: model not found
+
+**Error:** `Failed to initialize local embedding model`
+
+Common causes:
+
+- `node-llama-cpp` is not installed — run `npm install node-llama-cpp`
+- The model path is incorrect or the file doesn't exist
+- For `hf:` references, the download may have failed — check your network
+  connection and try again
+
+### Memory tools fail silently
+
+If `memory_recall` or `memory_store` return errors during a conversation, the
+error message will indicate whether the issue is with the embedding provider
+(OpenAI API / local model) or the database. Check the error details for the
+specific cause and refer to the sections above.

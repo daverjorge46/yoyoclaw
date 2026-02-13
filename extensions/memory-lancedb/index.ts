@@ -365,6 +365,40 @@ function createEmbeddingProvider(cfg: MemoryConfig): EmbeddingProvider {
   return new OpenAIEmbeddingProvider(cfg.embedding.apiKey!, model);
 }
 
+/** Wrap an embed() call with a provider-aware error message. */
+async function embedWithContext(
+  provider: EmbeddingProvider,
+  text: string,
+  cfg: MemoryConfig,
+): Promise<number[]> {
+  try {
+    return await provider.embed(text);
+  } catch (err) {
+    const model = resolveEffectiveModel(cfg);
+    if (cfg.embedding.provider === "local") {
+      throw new Error(
+        `Local embedding failed (model: ${model}): ${String(err)}. ` +
+          `Check that node-llama-cpp is installed and the model path is correct.`,
+        { cause: err },
+      );
+    }
+    const message = String(err);
+    if (message.includes("401") || message.includes("Unauthorized")) {
+      throw new Error(
+        `OpenAI embedding failed: invalid API key. Check your embedding.apiKey config.`,
+        { cause: err },
+      );
+    }
+    if (message.includes("429") || message.includes("rate")) {
+      throw new Error(
+        `OpenAI embedding failed: rate limit exceeded. Try again shortly or switch to a local provider.`,
+        { cause: err },
+      );
+    }
+    throw new Error(`OpenAI embedding failed (model: ${model}): ${String(err)}`, { cause: err });
+  }
+}
+
 // ============================================================================
 // Rule-based capture filter
 // ============================================================================
@@ -459,7 +493,7 @@ const memoryPlugin = {
         async execute(_toolCallId, params) {
           const { query, limit = 5 } = params as { query: string; limit?: number };
 
-          const vector = await embeddings.embed(query);
+          const vector = await embedWithContext(embeddings, query, cfg);
           const results = await db.search(vector, limit, 0.1);
 
           if (results.length === 0) {
@@ -521,7 +555,7 @@ const memoryPlugin = {
             category?: MemoryEntry["category"];
           };
 
-          const vector = await embeddings.embed(text);
+          const vector = await embedWithContext(embeddings, text, cfg);
 
           // Check for duplicates
           const existing = await db.search(vector, 1, 0.95);
@@ -578,7 +612,7 @@ const memoryPlugin = {
           }
 
           if (query) {
-            const vector = await embeddings.embed(query);
+            const vector = await embedWithContext(embeddings, query, cfg);
             const results = await db.search(vector, 5, 0.7);
 
             if (results.length === 0) {
@@ -702,6 +736,7 @@ const memoryPlugin = {
 
             let success = 0;
             let failed = 0;
+            const failedEntries: { id: string; text: string; error: string }[] = [];
             for (const entry of entries) {
               try {
                 const vector = await currentEmbeddings.embed(entry.text);
@@ -717,13 +752,27 @@ const memoryPlugin = {
                 }
               } catch (err) {
                 failed++;
+                failedEntries.push({
+                  id: entry.id,
+                  text: entry.text.slice(0, 80),
+                  error: String(err),
+                });
                 console.error(
                   `  Failed to re-embed: ${entry.text.slice(0, 60)}... (${String(err)})`,
                 );
               }
             }
 
-            console.log(`Reindex complete: ${success} succeeded, ${failed} failed.`);
+            console.log(`\nReindex complete: ${success} succeeded, ${failed} failed.`);
+            if (failedEntries.length > 0) {
+              console.error(`\nFailed memories:`);
+              for (const f of failedEntries) {
+                console.error(`  [${f.id}] "${f.text}..." — ${f.error}`);
+              }
+              console.error(
+                `\nRe-run \`openclaw ltm reindex\` to retry. Failed memories were not deleted.`,
+              );
+            }
           });
       },
       { commands: ["ltm"] },
