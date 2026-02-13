@@ -19,6 +19,7 @@ import { attachGatewayWsMessageHandler } from "./ws-connection/message-handler.j
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const LOG_HEADER_MAX_LEN = 300;
+// eslint-disable-next-line no-control-regex -- Intentionally matching control characters for sanitization
 const LOG_HEADER_CONTROL_REGEX = /[\u0000-\u001f\u007f-\u009f]/g;
 const LOG_HEADER_FORMAT_REGEX = /\p{Cf}/gu;
 
