@@ -1,7 +1,7 @@
 import type { ZodIssue } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/config.js";
+import type { ConfigValidationIssue, OpenClawConfig } from "../config/config.js";
 import type { DoctorOptions } from "./doctor-prompter.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import {
@@ -21,12 +21,60 @@ type UnrecognizedKeysIssue = ZodIssue & {
   keys: PropertyKey[];
 };
 
+const DOCTOR_FORWARD_COMPAT_UNKNOWN_KEYS = [
+  {
+    path: ["agents", "defaults", "contextPruning"] as const,
+    key: "toolContext",
+  },
+] as const;
+
 function normalizeIssuePath(path: PropertyKey[]): Array<string | number> {
   return path.filter((part): part is string | number => typeof part !== "symbol");
 }
 
 function isUnrecognizedKeysIssue(issue: ZodIssue): issue is UnrecognizedKeysIssue {
   return issue.code === "unrecognized_keys";
+}
+
+function hasUnknownKeyMessage(message: string, key: string): boolean {
+  if (!message.toLowerCase().includes("unrecognized key")) {
+    return false;
+  }
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const patterns = [new RegExp(`"${escaped}"`, "i"), new RegExp(`'${escaped}'`, "i")];
+  return patterns.some((pattern) => pattern.test(message));
+}
+
+function pathMatches(parts: Array<string | number>, expected: ReadonlyArray<string>): boolean {
+  if (parts.length !== expected.length) {
+    return false;
+  }
+  return parts.every((part, index) => typeof part === "string" && part === expected[index]);
+}
+
+function isDoctorForwardCompatUnknownKey(path: Array<string | number>, key: string): boolean {
+  return DOCTOR_FORWARD_COMPAT_UNKNOWN_KEYS.some(
+    (entry) => entry.key === key && pathMatches(path, entry.path),
+  );
+}
+
+export function partitionDoctorConfigIssues(issues: ConfigValidationIssue[]): {
+  tolerated: ConfigValidationIssue[];
+  blocking: ConfigValidationIssue[];
+} {
+  const tolerated: ConfigValidationIssue[] = [];
+  const blocking: ConfigValidationIssue[] = [];
+  for (const issue of issues) {
+    if (
+      issue.path === "agents.defaults.contextPruning" &&
+      hasUnknownKeyMessage(issue.message, "toolContext")
+    ) {
+      tolerated.push(issue);
+      continue;
+    }
+    blocking.push(issue);
+  }
+  return { tolerated, blocking };
 }
 
 function formatPath(parts: Array<string | number>): string {
@@ -92,6 +140,9 @@ function stripUnknownConfigKeys(config: OpenClawConfig): {
     const record = target as Record<string, unknown>;
     for (const key of issue.keys) {
       if (typeof key !== "string") {
+        continue;
+      }
+      if (isDoctorForwardCompatUnknownKey(path, key)) {
         continue;
       }
       if (!(key in record)) {
@@ -214,8 +265,13 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
   let pendingChanges = false;
   let shouldWriteConfig = false;
   const fixHints: string[] = [];
+  const issueGroups = partitionDoctorConfigIssues(snapshot.issues ?? []);
   if (snapshot.exists && !snapshot.valid && snapshot.legacyIssues.length === 0) {
-    note("Config invalid; doctor will run with best-effort config.", "Config");
+    if (issueGroups.blocking.length === 0 && issueGroups.tolerated.length > 0) {
+      note("Config uses forward-compatible keys; doctor will continue with best-effort config.", "Config");
+    } else {
+      note("Config invalid; doctor will run with best-effort config.", "Config");
+    }
   }
   const warnings = snapshot.warnings ?? [];
   if (warnings.length > 0) {

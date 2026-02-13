@@ -27,7 +27,7 @@ import {
   noteAuthProfileHealth,
 } from "./doctor-auth.js";
 import { doctorShellCompletion } from "./doctor-completion.js";
-import { loadAndMaybeMigrateDoctorConfig } from "./doctor-config-flow.js";
+import { loadAndMaybeMigrateDoctorConfig, partitionDoctorConfigIssues } from "./doctor-config-flow.js";
 import { maybeRepairGatewayDaemon } from "./doctor-gateway-daemon-flow.js";
 import { checkGatewayHealth } from "./doctor-gateway-health.js";
 import {
@@ -302,10 +302,21 @@ export async function doctorCommand(
 
   const finalSnapshot = await readConfigFileSnapshot();
   if (finalSnapshot.exists && !finalSnapshot.valid) {
-    runtime.error("Invalid config:");
-    for (const issue of finalSnapshot.issues) {
+    const groupedIssues = partitionDoctorConfigIssues(finalSnapshot.issues);
+    if (groupedIssues.blocking.length > 0) {
+      runtime.error("Invalid config:");
+    }
+    for (const issue of groupedIssues.blocking) {
       const path = issue.path || "<root>";
       runtime.error(`- ${path}: ${issue.message}`);
+    }
+    if (groupedIssues.blocking.length === 0 && groupedIssues.tolerated.length > 0) {
+      note(
+        groupedIssues.tolerated
+          .map((issue) => `- ${issue.path || "<root>"}: ${issue.message}`)
+          .join("\n"),
+        "Config (forward-compatible keys tolerated by doctor)",
+      );
     }
   }
 

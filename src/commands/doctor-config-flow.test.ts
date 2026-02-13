@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { withTempHome } from "../../test/helpers/temp-home.js";
-import { loadAndMaybeMigrateDoctorConfig } from "./doctor-config-flow.js";
+import { loadAndMaybeMigrateDoctorConfig, partitionDoctorConfigIssues } from "./doctor-config-flow.js";
 
 describe("doctor config flow", () => {
   it("preserves invalid config for doctor repairs", async () => {
@@ -63,5 +63,33 @@ describe("doctor config flow", () => {
         token: "ok",
       });
     });
+  });
+
+  it("tolerates contextPruning.toolContext unknown-key issues", () => {
+    const grouped = partitionDoctorConfigIssues([
+      {
+        path: "agents.defaults.contextPruning",
+        message: 'Unrecognized key: "toolContext"',
+      },
+    ]);
+
+    expect(grouped.tolerated).toHaveLength(1);
+    expect(grouped.blocking).toHaveLength(0);
+  });
+
+  it("keeps non-matching issues as blocking", () => {
+    const grouped = partitionDoctorConfigIssues([
+      {
+        path: "agents.defaults.contextPruning",
+        message: 'Unrecognized key: "unexpected"',
+      },
+      {
+        path: "gateway.auth",
+        message: "Required",
+      },
+    ]);
+
+    expect(grouped.tolerated).toHaveLength(0);
+    expect(grouped.blocking).toHaveLength(2);
   });
 });
