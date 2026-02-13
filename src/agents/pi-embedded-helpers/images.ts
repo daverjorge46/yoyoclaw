@@ -1,5 +1,6 @@
 import type { AgentMessage, AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { ToolCallIdMode } from "../tool-call-id.js";
+import { INBOUND_METADATA_BLOCK_REGEX } from "../inbound-metadata.js";
 import { sanitizeToolCallIdsForCloudCodeAssist } from "../tool-call-id.js";
 import { sanitizeContentBlocksImages } from "../tool-images.js";
 import { stripThoughtSignatures } from "./bootstrap.js";
@@ -89,10 +90,7 @@ export async function sanitizeSessionMessagesImages(
           continue;
         }
 
-        // NEW: Sanitize inbound metadata artifacts from text blocks
-        const metadataRegex =
-          /(?:Conversation info|Sender|Thread starter|Replied message|Forwarded message context|Chat history since last reply) \(untrusted(?: metadata|,\s+for\s+context)\):\n```json\n[\s\S]*?\n```\n*/g;
-
+        // Sanitize inbound metadata artifacts from text blocks.
         const cleanedContent = nextContent
           .map((block: ContentBlock) => {
             if (
@@ -106,13 +104,8 @@ export async function sanitizeSessionMessagesImages(
             if (typeof rec.text !== "string") {
               return block;
             }
-            // Only strip if it matches the start of the block (it's a prefix)
-            // or if it's clearly a metadata block insertion.
-            // Using replaceAll to catch multiple blocks if they stacked up.
-            const cleanedText = rec.text.replace(metadataRegex, "").trim();
-            // If the text became empty after stripping but wasn't empty before,
-            // it means it was PURE metadata. We keep it as a placeholder or empty string
-            // rather than letting the filter drop the entire turn.
+            // Strip matching untrusted metadata blocks (including stacked blocks).
+            const cleanedText = rec.text.replace(INBOUND_METADATA_BLOCK_REGEX, "").trim();
             return { ...block, text: cleanedText };
           })
           .filter((block: ContentBlock) => {
@@ -134,10 +127,14 @@ export async function sanitizeSessionMessagesImages(
 
         if (cleanedContent.length > 0) {
           out.push({ ...userMsg, content: cleanedContent });
+        } else {
+          // Preserve transcript semantics: keep the user turn even when metadata stripping
+          // removes all text/image content.
+          out.push({
+            ...userMsg,
+            content: [{ type: "text", text: "" }],
+          });
         }
-        // If content became empty (e.g. pure metadata + no user text), drop the message?
-        // No, might have been an image-only message where images were also sanitized away (unlikely).
-        // Safest is to not push if empty, effectively dropping it.
         continue;
       }
     }

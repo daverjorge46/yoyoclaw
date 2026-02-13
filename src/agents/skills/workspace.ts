@@ -270,6 +270,24 @@ export function buildWorkspaceSkillsPrompt(
     .join("\n");
 }
 
+function xmlEscape(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function truncateWithEllipsis(value: string, maxChars: number): string {
+  if (value.length <= maxChars) {
+    return value;
+  }
+  const limit = Math.max(0, maxChars - 3);
+  const points = Array.from(value);
+  return `${points.slice(0, limit).join("")}...`;
+}
+
 function formatSkillsCompact(skills: Skill[]): string {
   if (skills.length === 0) {
     return "";
@@ -279,13 +297,13 @@ function formatSkillsCompact(skills: Skill[]): string {
     // Truncate description to save tokens while keeping context
     const rawDesc = skill.description?.trim() ?? "";
     const cleanDesc = rawDesc.replace(/\s+/g, " ");
-    const description = cleanDesc.length > 150 ? `${cleanDesc.slice(0, 147)}...` : cleanDesc;
+    const description = truncateWithEllipsis(cleanDesc, 150);
 
     lines.push(
       "  <skill>",
-      `    <name>${skill.name}</name>`,
-      `    <description>${description}</description>`,
-      `    <location>${skill.filePath}</location>`,
+      `    <name>${xmlEscape(skill.name)}</name>`,
+      `    <description>${xmlEscape(description)}</description>`,
+      `    <location>${xmlEscape(skill.filePath)}</location>`,
       "  </skill>",
     );
   }

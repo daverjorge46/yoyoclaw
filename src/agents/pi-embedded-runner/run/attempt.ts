@@ -30,6 +30,7 @@ import {
 } from "../../channel-tools.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
+import { INBOUND_METADATA_BLOCK_REGEX } from "../../inbound-metadata.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import {
@@ -926,12 +927,8 @@ export async function runEmbeddedAttempt(
           .toReversed()
           .find((m) => m.role === "user");
 
-        // Regex to strip metadata blocks from user messages
-        const metadataRegex =
-          /(?:Conversation info|Sender|Thread starter|Replied message|Forwarded message context|Chat history since last reply) \(untrusted(?: metadata|,\s+for\s+context)\):\n```json\n[\s\S]*?\n```\n*/g;
-
         if (lastUserMsg && typeof lastUserMsg.content === "string") {
-          const cleanText = lastUserMsg.content.replace(metadataRegex, "").trim();
+          const cleanText = lastUserMsg.content.replace(INBOUND_METADATA_BLOCK_REGEX, "").trim();
           if (cleanText) {
             logEntry += `\n## [${timestamp}] User\n${cleanText}\n`;
           }
@@ -941,7 +938,7 @@ export async function runEmbeddedAttempt(
             .map((c) => c.text)
             .join("\n");
           if (textParts) {
-            const cleanText = textParts.replace(metadataRegex, "").trim();
+            const cleanText = textParts.replace(INBOUND_METADATA_BLOCK_REGEX, "").trim();
             if (cleanText) {
               logEntry += `\n## [${timestamp}] User\n${cleanText}\n`;
             }

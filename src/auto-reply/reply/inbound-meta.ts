@@ -11,7 +11,7 @@ function safeTrim(value: unknown): string | undefined {
 }
 
 /**
- * Checks if two strings are "effectively" the same (case/punctuation insensitive)
+ * Checks if two strings are "effectively" the same (case/whitespace insensitive)
  */
 function isEffectivelySame(a: string | undefined, b: string | undefined): boolean {
   if (!a || !b) {
@@ -20,17 +20,10 @@ function isEffectivelySame(a: string | undefined, b: string | undefined): boolea
   const normalize = (s: string) =>
     s
       .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
-  const normA = normalize(a);
-  const normB = normalize(b);
-  // Debug log to trace inconsistent deduplication
-  if (a.includes("#chat")) {
-    console.log(
-      `[Dedupe Debug] Comparing: '${a}' (raw) -> '${normA}' (norm) vs '${b}' (raw) -> '${normB}' (norm). Result: ${normA === normB}`,
-    );
-  }
-  return normA === normB;
+      .replace(/\s+/g, " ");
+  return normalize(a) === normalize(b);
 }
 
 export function buildInboundMetaSystemPrompt(ctx: TemplateContext): string {
@@ -115,7 +108,12 @@ export function buildInboundUserContextPrefix(ctx: TemplateContext): string {
       if (username && !isEffectivelySame(username, label) && !isEffectivelySame(username, name)) {
         senderInfo.username = username;
       }
-      if (tag && !isEffectivelySame(tag, label) && !isEffectivelySame(tag, username)) {
+      if (
+        tag &&
+        !isEffectivelySame(tag, label) &&
+        !isEffectivelySame(tag, username) &&
+        !isEffectivelySame(tag, name)
+      ) {
         senderInfo.tag = tag;
       }
       if (e164) {
