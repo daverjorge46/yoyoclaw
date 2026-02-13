@@ -15,7 +15,10 @@ import { resolveToolProfilePolicy } from "../agents/tool-policy.js";
 import { resolveBrowserConfig } from "../browser/config.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { resolveGatewayAuth } from "../gateway/auth.js";
-import { resolveNodeCommandAllowlist } from "../gateway/node-command-policy.js";
+import {
+  DEFAULT_DANGEROUS_NODE_COMMANDS,
+  resolveNodeCommandAllowlist,
+} from "../gateway/node-command-policy.js";
 
 export type SecurityAuditFinding = {
   checkId: string;
@@ -1161,56 +1164,34 @@ export function collectSandboxFilesystemFindings(cfg: OpenClawConfig): SecurityA
 }
 
 /**
- * Check if default dangerous commands are not blocked.
- * harden-config.ts blocks camera.snap, rm -rf, curl|, etc. by default.
+ * Check if dangerous node commands are explicitly allowed.
+ * DEFAULT_DANGEROUS_NODE_COMMANDS are not in the default allowlist, but can be
+ * enabled via gateway.nodes.allowCommands. Warn if any are explicitly enabled.
  */
-const HARDENED_DENY_COMMANDS = [
-  "camera.snap",
-  "camera.clip",
-  "screen.record",
-  "contacts.add",
-  "calendar.add",
-  "reminders.add",
-  "sms.send",
-  "rm -rf",
-  "rm -fr",
-  "curl|",
-  "wget|",
-  "git push --force",
-  "git push -f",
-  "git reset --hard",
-  "mkfs",
-  "dd if=",
-  "chmod 777",
-  "nc -e",
-  "bash -i",
-];
-
 export function collectDenyCommandsDefaultsFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
-  const denyCommands = cfg.gateway?.nodes?.denyCommands ?? [];
+  const allowCommands = cfg.gateway?.nodes?.allowCommands ?? [];
+  const denyCommands = new Set(cfg.gateway?.nodes?.denyCommands ?? []);
 
-  const missing = HARDENED_DENY_COMMANDS.filter((cmd) => !denyCommands.includes(cmd));
+  // Check if any dangerous commands are explicitly allowed without being denied
+  const explicitlyAllowed = DEFAULT_DANGEROUS_NODE_COMMANDS.filter(
+    (cmd) => allowCommands.includes(cmd) && !denyCommands.has(cmd),
+  );
 
-  if (missing.length === 0) {
-    return findings;
-  }
-
-  // Only warn if more than half are missing
-  if (missing.length < HARDENED_DENY_COMMANDS.length / 2) {
-    return findings;
+  if (explicitlyAllowed.length === 0) {
+    return findings; // OK - no dangerous commands explicitly enabled
   }
 
   findings.push({
-    checkId: "gateway.nodes.deny_commands_missing_defaults",
-    severity: "info",
-    title: "Default dangerous commands not blocked",
+    checkId: "gateway.nodes.dangerous_commands_allowed",
+    severity: "warn",
+    title: "Dangerous node commands explicitly allowed",
     detail:
-      `${missing.length} common dangerous commands are not in gateway.nodes.denyCommands. ` +
-      "Consider adding: " +
-      missing.slice(0, 5).join(", ") +
-      (missing.length > 5 ? "..." : ""),
-    remediation: "Review HARDENED_DENY_COMMANDS in harden-config.ts and add relevant entries.",
+      `${explicitlyAllowed.length} dangerous node command(s) are in gateway.nodes.allowCommands: ` +
+      explicitlyAllowed.join(", ") +
+      ". These commands have privacy/security implications.",
+    remediation:
+      "Remove dangerous commands from gateway.nodes.allowCommands, or add them to gateway.nodes.denyCommands if needed elsewhere.",
   });
 
   return findings;

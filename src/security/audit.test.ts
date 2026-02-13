@@ -1987,9 +1987,9 @@ description: test skill
     );
   });
 
-  it("flags missing default deny commands when most are missing", async () => {
+  it("flags explicitly allowed dangerous node commands", async () => {
     const cfg: OpenClawConfig = {
-      gateway: { nodes: { denyCommands: [] } },
+      gateway: { nodes: { allowCommands: ["camera.snap", "sms.send"] } },
     };
 
     const res = await runSecurityAudit({
@@ -2001,10 +2001,31 @@ description: test skill
     expect(res.findings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          checkId: "gateway.nodes.deny_commands_missing_defaults",
-          severity: "info",
+          checkId: "gateway.nodes.dangerous_commands_allowed",
+          severity: "warn",
         }),
       ]),
+    );
+  });
+
+  it("does not flag dangerous commands when they are denied", async () => {
+    const cfg: OpenClawConfig = {
+      gateway: {
+        nodes: {
+          allowCommands: ["camera.snap"],
+          denyCommands: ["camera.snap"],
+        },
+      },
+    };
+
+    const res = await runSecurityAudit({
+      config: cfg,
+      includeFilesystem: false,
+      includeChannelSecurity: false,
+    });
+
+    expect(res.findings.some((f) => f.checkId === "gateway.nodes.dangerous_commands_allowed")).toBe(
+      false,
     );
   });
 
