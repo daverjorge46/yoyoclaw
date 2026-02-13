@@ -52,4 +52,27 @@ describe("resolveDiscordChannelAllowlist", () => {
     expect(res[0]?.guildId).toBe("g1");
     expect(res[0]?.channelId).toBe("123");
   });
+
+  it("resolves numeric guildId/channelId pair via REST lookup (#15532)", async () => {
+    const fetcher = async (url: string) => {
+      if (url.endsWith("/users/@me/guilds")) {
+        return jsonResponse([{ id: "111", name: "Test Guild" }]);
+      }
+      if (url.endsWith("/channels/222")) {
+        return jsonResponse({ id: "222", name: "content-pipeline", guild_id: "111", type: 0 });
+      }
+      return new Response("not found", { status: 404 });
+    };
+
+    const res = await resolveDiscordChannelAllowlist({
+      token: "test",
+      entries: ["111/222"],
+      fetcher,
+    });
+
+    expect(res[0]?.resolved).toBe(true);
+    expect(res[0]?.guildId).toBe("111");
+    expect(res[0]?.channelId).toBe("222");
+    expect(res[0]?.channelName).toBe("content-pipeline");
+  });
 });

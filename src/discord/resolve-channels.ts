@@ -66,6 +66,12 @@ function parseDiscordChannelInput(raw: string): {
       return guild ? { guild: guild.trim(), guildOnly: true } : {};
     }
     if (guild && /^\d+$/.test(guild)) {
+      // When both parts are numeric (e.g. "guildId/channelId"), treat
+      // the second part as a channel ID so it resolves via REST lookup
+      // instead of name-based matching (fixes #15532).
+      if (/^\d+$/.test(channel)) {
+        return { guildId: guild, channelId: channel };
+      }
       return { guildId: guild, channel };
     }
     return { guild, channel };
