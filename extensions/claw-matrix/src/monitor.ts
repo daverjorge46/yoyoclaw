@@ -432,7 +432,7 @@ export async function monitorMatrixProvider(opts: MonitorMatrixOpts): Promise<vo
         updateLastRoute:
           chatType === "dm"
             ? {
-                sessionKey: route.mainSessionKey ?? `agent:${route.agentId}:main`,
+                sessionKey: route.sessionKey ?? `agent:${route.agentId}:main`,
                 channel: "matrix",
                 to: `user:${event.sender}`,
                 accountId,

@@ -237,7 +237,7 @@ export async function runSyncLoop(opts: SyncLoopOpts): Promise<void> {
         machine.receiveSyncChanges(
           JSON.stringify(toDeviceEvents),
           deviceListsObj,
-          new Map(Object.entries(otkCounts)),
+          Object.fromEntries(Object.entries(otkCounts)),
           unusedFallbackKeys,
         ),
         CRYPTO_TIMEOUT_MS,
