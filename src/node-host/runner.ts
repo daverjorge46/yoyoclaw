@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { resolveAgentConfig } from "../agents/agent-scope.js";
 import { resolveBrowserConfig } from "../browser/config.js";
@@ -373,6 +374,33 @@ function requireExecApprovalsBaseHash(
   if (baseHash !== snapshot.hash) {
     throw new Error("INVALID_REQUEST: exec approvals changed; reload and retry");
   }
+}
+/**
+ * Validate that a CWD path exists and is a directory; fall back to
+ * process.cwd() or $HOME when it does not.  Mirrors the gateway-side
+ * resolveWorkdir / safeCwd pattern in bash-tools.shared.ts.
+ */
+function safeCwdOrFallback(cwd: string | undefined | null): string | undefined {
+  const trimmed = cwd?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  try {
+    if (fs.statSync(trimmed).isDirectory()) {
+      return trimmed;
+    }
+  } catch {
+    // path does not exist or is inaccessible
+  }
+  try {
+    const current = process.cwd();
+    if (fs.statSync(current).isDirectory()) {
+      return current;
+    }
+  } catch {
+    // process.cwd() is also invalid
+  }
+  return os.homedir();
 }
 
 async function runCommand(
@@ -1142,7 +1170,7 @@ async function handleInvoke(
 
   const result = await runCommand(
     execArgv,
-    params.cwd?.trim() || undefined,
+    safeCwdOrFallback(params.cwd),
     env,
     params.timeoutMs ?? undefined,
   );
