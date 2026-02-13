@@ -450,10 +450,13 @@ describe("createTelegramBot", () => {
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
 
-  it("blocks group messages from untrusted sender even when groupPolicy is 'members'", async () => {
+  it("blocks group messages via membership check when sender is not in trusted list", async () => {
     onSpy.mockReset();
     const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
+    // 3 members in the group (trusted user + bot + untrusted sender) but only 2 trusted IDs
+    getChatMemberCountSpy.mockResolvedValue(3);
+    getChatMemberSpy.mockResolvedValue({ status: "member" });
     loadConfig.mockReturnValue({
       channels: {
         telegram: {
@@ -479,8 +482,8 @@ describe("createTelegramBot", () => {
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
-    // Should not even reach membership check
+    // Membership check should run and detect untrusted members
     expect(replySpy).not.toHaveBeenCalled();
-    expect(getChatMemberCountSpy).not.toHaveBeenCalled();
+    expect(getChatMemberCountSpy).toHaveBeenCalled();
   });
 });

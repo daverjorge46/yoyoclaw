@@ -398,20 +398,6 @@ export const registerTelegramHandlers = ({
           }
         }
         if (groupPolicy === "members") {
-          if (!senderId) {
-            logVerbose(`Blocked telegram group message (no sender ID, groupPolicy: members)`);
-            return;
-          }
-          if (
-            !isSenderAllowed({
-              allow: effectiveGroupAllow,
-              senderId,
-              senderUsername,
-            })
-          ) {
-            logVerbose(`Blocked telegram group message from ${senderId} (groupPolicy: members)`);
-            return;
-          }
           const memberCheck = await verifyGroupMembership({
             chatId,
             api: ctx.api,
@@ -808,22 +794,6 @@ export const registerTelegramHandlers = ({
           }
         }
         if (groupPolicy === "members") {
-          const senderId = msg.from?.id;
-          if (senderId == null) {
-            logVerbose(`Blocked telegram group message (no sender ID, groupPolicy: members)`);
-            return;
-          }
-          const senderUsername = msg.from?.username ?? "";
-          if (
-            !isSenderAllowed({
-              allow: effectiveGroupAllow,
-              senderId: String(senderId),
-              senderUsername,
-            })
-          ) {
-            logVerbose(`Blocked telegram group message from ${senderId} (groupPolicy: members)`);
-            return;
-          }
           const memberCheck = await verifyGroupMembership({
             chatId,
             api: ctx.api,
