@@ -183,9 +183,9 @@ describe("command queue", () => {
       await blocker;
     });
 
-    // Give it a tick to start
-    await new Promise((r) => setTimeout(r, 5));
-    expect(getActiveTaskCount()).toBeGreaterThanOrEqual(1);
+    await vi.waitFor(() => {
+      expect(getActiveTaskCount()).toBeGreaterThanOrEqual(1);
+    });
 
     // Enqueue another task — it should be stuck behind the blocker
     let task2Ran = false;
@@ -193,7 +193,9 @@ describe("command queue", () => {
       task2Ran = true;
     });
 
-    await new Promise((r) => setTimeout(r, 5));
+    await vi.waitFor(() => {
+      expect(getQueueSize(lane)).toBeGreaterThanOrEqual(2);
+    });
     expect(task2Ran).toBe(false);
 
     // Simulate SIGUSR1: reset all lanes. Queued work (task2) should be
