@@ -85,6 +85,9 @@ const OLLAMA_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
+const GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW = 1048576;
+const GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS = 8192;
+const GOOGLE_GEMINI_CLI_DEFAULT_COST = {
 export const QIANFAN_BASE_URL = "https://qianfan.baidubce.com/v2";
 export const QIANFAN_DEFAULT_MODEL_ID = "deepseek-v3.2";
 const QIANFAN_DEFAULT_CONTEXT_WINDOW = 98304;
@@ -473,6 +476,55 @@ async function buildOllamaProvider(configuredBaseUrl?: string): Promise<Provider
   };
 }
 
+function buildGoogleGeminiCliProvider(): ProviderConfig {
+  return {
+    api: "google-gemini-cli",
+    baseUrl: "https://generativelanguage.googleapis.com",
+    models: [
+      {
+        id: "gemini-2.5-flash-lite",
+        name: "Gemini 2.5 Flash Lite",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: GOOGLE_GEMINI_CLI_DEFAULT_COST,
+        contextWindow: GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "gemini-2.5-flash",
+        name: "Gemini 2.5 Flash",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: GOOGLE_GEMINI_CLI_DEFAULT_COST,
+        contextWindow: GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "gemini-2.5-pro",
+        name: "Gemini 2.5 Pro",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: GOOGLE_GEMINI_CLI_DEFAULT_COST,
+        contextWindow: GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "gemini-3-flash-preview",
+        name: "Gemini 3 Flash Preview",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: GOOGLE_GEMINI_CLI_DEFAULT_COST,
+        contextWindow: GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS,
+      },
+      {
+        id: "gemini-3-pro-preview",
+        name: "Gemini 3 Pro Preview",
+        reasoning: false,
+        input: ["text", "image"],
+        cost: GOOGLE_GEMINI_CLI_DEFAULT_COST,
+        contextWindow: GOOGLE_GEMINI_CLI_DEFAULT_CONTEXT_WINDOW,
+        maxTokens: GOOGLE_GEMINI_CLI_DEFAULT_MAX_TOKENS,
 function buildTogetherProvider(): ProviderConfig {
   return {
     baseUrl: TOGETHER_BASE_URL,
@@ -622,6 +674,11 @@ export async function resolveImplicitProviders(params: {
     resolveApiKeyFromProfiles({ provider: "qianfan", store: authStore });
   if (qianfanKey) {
     providers.qianfan = { ...buildQianfanProvider(), apiKey: qianfanKey };
+  }
+
+  const googleGeminiProfiles = listProfilesForProvider(authStore, "google-gemini-cli");
+  if (googleGeminiProfiles.length > 0) {
+    providers["google-gemini-cli"] = buildGoogleGeminiCliProvider();
   }
 
   return providers;
