@@ -983,8 +983,7 @@ export function startHeartbeatRunner(opts: {
       }
       if (res.status === "skipped" && res.reason === "requests-in-flight") {
         advanceAgentSchedule(agent, now);
-        scheduleNext();
-        return res;
+        continue;
       }
       if (res.status !== "skipped" || res.reason !== "disabled") {
         advanceAgentSchedule(agent, now);
