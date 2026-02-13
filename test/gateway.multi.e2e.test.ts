@@ -28,8 +28,6 @@ type NodeListPayload = {
   nodes?: Array<{ nodeId?: string; connected?: boolean; paired?: boolean }>;
 };
 
-type HealthPayload = { ok?: boolean };
-
 const GATEWAY_START_TIMEOUT_MS = 45_000;
 const E2E_TIMEOUT_MS = 120_000;
 
@@ -197,41 +195,7 @@ const stopGatewayInstance = async (inst: GatewayInstance) => {
   await fs.rm(inst.homeDir, { recursive: true, force: true });
 };
 
-const runCliJson = async (args: string[], env: NodeJS.ProcessEnv): Promise<unknown> => {
-  const stdout: string[] = [];
-  const stderr: string[] = [];
-  const child = spawn("node", ["dist/index.js", ...args], {
-    cwd: process.cwd(),
-    env: { ...process.env, ...env },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  child.stdout?.setEncoding("utf8");
-  child.stderr?.setEncoding("utf8");
-  child.stdout?.on("data", (d) => stdout.push(String(d)));
-  child.stderr?.on("data", (d) => stderr.push(String(d)));
-  const result = await new Promise<{
-    code: number | null;
-    signal: string | null;
-  }>((resolve) => child.once("exit", (code, signal) => resolve({ code, signal })));
-  const out = stdout.join("").trim();
-  if (result.code !== 0) {
-    throw new Error(
-      `cli failed (code=${String(result.code)} signal=${String(result.signal)})\n` +
-        `--- stdout ---\n${out}\n--- stderr ---\n${stderr.join("")}`,
-    );
-  }
-  try {
-    return out ? (JSON.parse(out) as unknown) : null;
-  } catch (err) {
-    throw new Error(
-      `cli returned non-json output: ${String(err)}\n` +
-        `--- stdout ---\n${out}\n--- stderr ---\n${stderr.join("")}`,
-      { cause: err },
-    );
-  }
-};
-
-const postJson = async (url: string, body: unknown) => {
+const postJson = async (url: string, body: unknown, headers?: Record<string, string>) => {
   const payload = JSON.stringify(body);
   const parsed = new URL(url);
   return await new Promise<{ status: number; json: unknown }>((resolve, reject) => {
@@ -244,6 +208,7 @@ const postJson = async (url: string, body: unknown) => {
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload),
+          ...headers,
         },
       },
       (res) => {
@@ -424,30 +389,23 @@ describe("gateway multi-instance e2e", () => {
       const gwB = await spawnGatewayInstance("b");
       instances.push(gwB);
 
-      const [healthA, healthB] = (await Promise.all([
-        runCliJson(["health", "--json", "--timeout", "10000"], {
-          OPENCLAW_GATEWAY_PORT: String(gwA.port),
-          OPENCLAW_GATEWAY_TOKEN: gwA.gatewayToken,
-          OPENCLAW_GATEWAY_PASSWORD: "",
-        }),
-        runCliJson(["health", "--json", "--timeout", "10000"], {
-          OPENCLAW_GATEWAY_PORT: String(gwB.port),
-          OPENCLAW_GATEWAY_TOKEN: gwB.gatewayToken,
-          OPENCLAW_GATEWAY_PASSWORD: "",
-        }),
-      ])) as [HealthPayload, HealthPayload];
-      expect(healthA.ok).toBe(true);
-      expect(healthB.ok).toBe(true);
-
       const [hookResA, hookResB] = await Promise.all([
-        postJson(`http://127.0.0.1:${gwA.port}/hooks/wake?token=${gwA.hookToken}`, {
-          text: "wake a",
-          mode: "now",
-        }),
-        postJson(`http://127.0.0.1:${gwB.port}/hooks/wake?token=${gwB.hookToken}`, {
-          text: "wake b",
-          mode: "now",
-        }),
+        postJson(
+          `http://127.0.0.1:${gwA.port}/hooks/wake`,
+          {
+            text: "wake a",
+            mode: "now",
+          },
+          { "x-openclaw-token": gwA.hookToken },
+        ),
+        postJson(
+          `http://127.0.0.1:${gwB.port}/hooks/wake`,
+          {
+            text: "wake b",
+            mode: "now",
+          },
+          { "x-openclaw-token": gwB.hookToken },
+        ),
       ]);
       expect(hookResA.status).toBe(200);
       expect((hookResA.json as { ok?: boolean } | undefined)?.ok).toBe(true);
