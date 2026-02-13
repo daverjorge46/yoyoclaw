@@ -1,6 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { DispatchFromConfigResult } from "./reply/dispatch-from-config.js";
-import type { FinalizedMsgContext, MsgContext } from "./types.js";
+import type { FinalizedMsgContext, MsgContext } from "./templating.js";
 import type { GetReplyOptions } from "./types.js";
 import { triggerMessageReceived } from "../hooks/message-hooks.js";
 import { dispatchReplyFromConfig } from "./reply/dispatch-from-config.js";
@@ -41,7 +41,8 @@ export async function dispatchInboundMessageWithBufferedDispatcher(params: {
   cfg: OpenClawConfig;
   dispatcherOptions: ReplyDispatcherWithTypingOptions;
   replyOptions?: Omit<GetReplyOptions, "onToolResult" | "onBlockReply">;
-}): Promise<{ result: DispatchInboundResult; idle: Promise<void> }> {
+  replyResolver?: typeof import("./reply.js").getReplyFromConfig;
+}): Promise<DispatchInboundResult> {
   const { dispatcher, replyOptions, markDispatchIdle } = createReplyDispatcherWithTyping(
     params.dispatcherOptions,
   );
@@ -50,15 +51,34 @@ export async function dispatchInboundMessageWithBufferedDispatcher(params: {
     ctx: params.ctx,
     cfg: params.cfg,
     dispatcher,
+    replyResolver: params.replyResolver,
     replyOptions: {
       ...params.replyOptions,
       ...replyOptions,
     },
   });
 
-  const idle = markDispatchIdle();
+  markDispatchIdle();
+  return result;
+}
 
-  return { result, idle };
+export async function dispatchInboundMessageWithDispatcher(params: {
+  ctx: MsgContext | FinalizedMsgContext;
+  cfg: OpenClawConfig;
+  dispatcherOptions: ReplyDispatcherOptions;
+  replyOptions?: Omit<GetReplyOptions, "onToolResult" | "onBlockReply">;
+  replyResolver?: typeof import("./reply.js").getReplyFromConfig;
+}): Promise<DispatchInboundResult> {
+  const dispatcher = createReplyDispatcher(params.dispatcherOptions);
+  const result = await dispatchInboundMessage({
+    ctx: params.ctx,
+    cfg: params.cfg,
+    dispatcher,
+    replyResolver: params.replyResolver,
+    replyOptions: params.replyOptions,
+  });
+  await dispatcher.waitForIdle();
+  return result;
 }
 
 export { createReplyDispatcher, createReplyDispatcherWithTyping };
