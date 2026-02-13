@@ -139,8 +139,9 @@ export async function getReplyFromConfig(
     // Fire message:preprocessed hooks (after media + link understanding, before agent)
     {
       const preprocessedHookRunner = getGlobalHookRunner();
-      const processedContent = finalized.Body ?? finalized.RawBody ?? "";
-      const rawContent = ctx.Body ?? ctx.RawBody ?? "";
+      const processedContent =
+        finalized.BodyForCommands ?? finalized.Body ?? finalized.RawBody ?? "";
+      const rawContent = ctx.RawBody ?? ctx.Body ?? "";
       const channelId = (
         finalized.OriginatingChannel ??
         finalized.Surface ??
@@ -155,7 +156,10 @@ export async function getReplyFromConfig(
               from: finalized.From ?? "",
               content: processedContent,
               rawContent,
-              timestamp: finalized.Timestamp ? new Date(finalized.Timestamp).getTime() : Date.now(),
+              timestamp: (() => {
+                const t = new Date(finalized.Timestamp).getTime();
+                return Number.isFinite(t) ? t : Date.now();
+              })(),
               metadata: {
                 to: finalized.To,
                 provider: finalized.Provider,
