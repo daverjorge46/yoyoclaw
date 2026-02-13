@@ -260,3 +260,66 @@
 
 ---
 
+## 批次 7：Agent 运行时 - 模型调用（2026-02-13）
+
+**新增文件**：
+- openclaw_py/agents/types.py - Agent 核心数据模型（ModelRef, UsageInfo, AgentMessage, AgentResponse, StreamChunk, ModelInfo, ProviderConfig）
+- openclaw_py/agents/defaults.py - Agent 默认配置常量（DEFAULT_PROVIDER, DEFAULT_MODEL, DEFAULT_CONTEXT_TOKENS 等）
+- openclaw_py/agents/usage.py - Token 用量规范化和合并工具（normalize_usage, merge_usage, derive_prompt_tokens）
+- openclaw_py/agents/model_selection.py - 模型引用解析和规范化（parse_model_ref, normalize_provider_id, normalize_model_id）
+- openclaw_py/agents/model_catalog.py - 模型目录管理（load_model_catalog, get_model_info, list_models, get_model_context_window）
+- openclaw_py/agents/providers/base.py - AI 提供商抽象基类（BaseProvider, create_message, create_message_stream, supports_streaming）
+- openclaw_py/agents/providers/anthropic_provider.py - Anthropic Claude API 提供商（支持流式和非流式调用）
+- openclaw_py/agents/providers/openai_provider.py - OpenAI API 提供商（支持流式和非流式调用）
+- openclaw_py/agents/providers/litellm_provider.py - LiteLLM 统一 API 提供商（支持 Google Gemini 等多种模型）
+- openclaw_py/agents/runtime.py - Agent 运行时主入口（get_provider_from_config, create_agent_message）
+- openclaw_py/agents/__init__.py - Agent 模块导出
+- openclaw_py/agents/providers/__init__.py - Provider 模块导出
+- tests/agents/test_types.py - Agent 类型测试（11 个测试）
+- tests/agents/test_defaults.py - 默认配置测试（5 个测试）
+- tests/agents/test_usage.py - 用量规范化测试（8 个测试）
+- tests/agents/test_model_selection.py - 模型选择测试（12 个测试）
+- tests/agents/test_model_catalog.py - 模型目录测试（5 个测试）
+- tests/agents/providers/test_base.py - 基础提供商测试（3 个测试）
+
+**核心变更**：
+- 实现了 AI 模型调用的基础运行时系统
+- 支持三大 AI 提供商：
+  - Anthropic Claude（anthropic SDK >=0.40.0）- claude-opus-4-6, claude-sonnet-4-5, claude-haiku-4-5
+  - OpenAI（openai SDK >=1.50.0）- gpt-4-turbo, gpt-4o, gpt-3.5-turbo
+  - LiteLLM（litellm >=1.50.0）- 统一访问 Google Gemini 等多种模型
+- 实现了提供商抽象模式（BaseProvider）：
+  - create_message: 非流式消息创建
+  - create_message_stream: 流式消息创建（AsyncGenerator）
+  - supports_streaming: 检查流式支持
+- 实现了 Token 用量规范化：
+  - 统一 Anthropic（input_tokens, output_tokens）和 OpenAI（prompt_tokens, completion_tokens）格式
+  - 自动计算 total_tokens
+  - 支持缓存 token 追踪（cache_read_tokens, cache_creation_tokens）
+- 实现了模型选择系统：
+  - 支持 "provider/model" 格式解析（如 "anthropic/claude-opus-4-6"）
+  - 支持模型别名（"opus-4.6" → "claude-opus-4-6", "gpt-4" → "gpt-4-turbo"）
+  - 提供商 ID 规范化（"Z.AI" → "zai", "opencode-zen" → "opencode"）
+- 实现了模型目录系统：
+  - 从 OpenClawConfig.models.providers 加载模型定义
+  - 支持查询模型元数据（context_window, max_tokens, temperature, cost）
+  - 支持按提供商筛选模型列表
+- 实现了统一的运行时入口 create_agent_message：
+  - 自动从配置获取提供商实例
+  - 支持流式和非流式调用
+  - 参数传递（max_tokens, temperature, system）
+- 数据模型使用 Pydantic v2（类型安全，自动验证）
+- 所有 API 调用均为 async/await 异步模式
+- 完整的单元测试覆盖（41 个测试，100% 通过）
+
+**依赖的已有模块**：
+- openclaw_py.config.types - OpenClawConfig, ModelsConfig, ModelProviderConfig, ModelDefinitionConfig 配置模型
+- openclaw_py.agents.defaults - DEFAULT_PROVIDER, DEFAULT_MODEL 等常量
+
+**已知问题**：
+- 无
+
+**测试结果**：41 passed（批次 7 独立测试）
+
+---
+

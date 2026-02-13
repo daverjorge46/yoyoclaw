@@ -2,7 +2,7 @@
 
 > 每个批次完成后由 /done 命令自动更新。
 > 新批次开始时由 /start 命令自动读取。
-> 最后更新：批次 4（2026-02-13）
+> 最后更新：批次 7（2026-02-13）
 
 ---
 
@@ -1360,5 +1360,606 @@ async def broadcast_to_all(event_name: str, params: dict | None = None) -> int:
 - 提供连接/断开/Ping/获取状态按钮
 - 支持发送自定义请求
 - 实时显示发送/接收的消息
+
+---
+
+## 批次 7：Agent 运行时 - 模型调用 (2026-02-13)
+
+---
+
+## openclaw_py.agents.types
+路径: openclaw_py/agents/types.py
+
+```python
+from openclaw_py.agents.types import (
+    ModelRef,
+    UsageInfo,
+    AgentMessage,
+    AgentResponse,
+    StreamChunk,
+    ModelInfo,
+    ProviderConfig,
+    validate_message_role,
+)
+```
+
+### 数据模型
+
+**ModelRef** (Pydantic):
+```python
+class ModelRef(BaseModel):
+    """AI 模型引用（provider/model 格式）"""
+    provider: str  # 提供商 ID（如 "anthropic", "openai"）
+    model: str  # 模型 ID（如 "claude-opus-4-6", "gpt-4-turbo"）
+
+    def __str__(self) -> str:
+        """返回 'provider/model' 格式"""
+```
+
+**UsageInfo** (Pydantic):
+```python
+class UsageInfo(BaseModel):
+    """AI 模型 token 用量信息"""
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cache_read_tokens: int | None = None
+    cache_creation_tokens: int | None = None
+    total_tokens: int | None = None
+
+    def has_usage(self) -> bool:
+        """检查是否有任何 token 使用记录"""
+```
+
+**AgentMessage** (Pydantic):
+```python
+class AgentMessage(BaseModel):
+    """Agent 对话消息"""
+    role: Literal["system", "user", "assistant"]
+    content: str
+```
+
+**AgentResponse** (Pydantic):
+```python
+class AgentResponse(BaseModel):
+    """Agent 响应（非流式）"""
+    content: str
+    usage: UsageInfo | None = None
+    model: str | None = None
+    finish_reason: str | None = None
+```
+
+**StreamChunk** (Pydantic):
+```python
+class StreamChunk(BaseModel):
+    """流式响应块"""
+    delta: str  # 增量文本内容
+```
+
+**ModelInfo** (Pydantic):
+```python
+class ModelInfo(BaseModel):
+    """模型元数据"""
+    id: str  # 模型 ID
+    name: str | None = None  # 显示名称
+    provider: str  # 提供商
+    api: str | None = None  # API 类型
+    context_window: int | None = None  # 上下文窗口大小
+    max_tokens: int | None = None  # 最大输出 token
+    temperature: float | None = None  # 默认温度
+    cost_per_mtok_input: float | None = None  # 输入成本（每百万 token）
+    cost_per_mtok_output: float | None = None  # 输出成本（每百万 token）
+    cost_per_mtok_cache_read: float | None = None  # 缓存读取成本
+    cost_per_mtok_cache_write: float | None = None  # 缓存写入成本
+```
+
+**ProviderConfig** (Pydantic):
+```python
+class ProviderConfig(BaseModel):
+    """AI 提供商配置"""
+    name: str  # 提供商名称
+    api_key: str | None = None  # API 密钥
+    base_url: str | None = None  # 自定义 API 端点
+    timeout: float | None = None  # 请求超时（秒）
+    max_retries: int | None = None  # 最大重试次数
+```
+
+### 函数
+
+```python
+def validate_message_role(role: str) -> bool:
+    """验证消息角色是否有效"""
+```
+
+---
+
+## openclaw_py.agents.defaults
+路径: openclaw_py/agents/defaults.py
+
+```python
+from openclaw_py.agents.defaults import (
+    DEFAULT_PROVIDER,
+    DEFAULT_MODEL,
+    DEFAULT_CONTEXT_TOKENS,
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_TEMPERATURE,
+)
+```
+
+### 常量
+
+```python
+DEFAULT_PROVIDER = "anthropic"
+DEFAULT_MODEL = "claude-sonnet-4-5"
+DEFAULT_CONTEXT_TOKENS = 200_000
+DEFAULT_MAX_TOKENS = 4096
+DEFAULT_TEMPERATURE = 1.0
+```
+
+---
+
+## openclaw_py.agents.usage
+路径: openclaw_py/agents/usage.py
+
+```python
+from openclaw_py.agents.usage import (
+    normalize_usage,
+    derive_prompt_tokens,
+    merge_usage,
+)
+```
+
+### 函数
+
+```python
+def normalize_usage(raw: dict[str, Any] | Any | None) -> UsageInfo | None:
+    """规范化不同提供商的 token 用量格式
+
+    支持格式：
+    - Anthropic: input_tokens, output_tokens, cache_*
+    - OpenAI: prompt_tokens, completion_tokens
+    - litellm: inputTokens, outputTokens
+
+    自动计算 total_tokens 如果未提供。
+    """
+
+def derive_prompt_tokens(total: int | None, completion: int | None) -> int | None:
+    """从 total 和 completion 推导 prompt tokens（OpenAI 格式）"""
+
+def merge_usage(usage1: UsageInfo | None, usage2: UsageInfo | None) -> UsageInfo | None:
+    """合并两个 UsageInfo 对象（累加所有 token 计数）"""
+```
+
+---
+
+## openclaw_py.agents.model_selection
+路径: openclaw_py/agents/model_selection.py
+
+```python
+from openclaw_py.agents.model_selection import (
+    normalize_provider_id,
+    normalize_model_id,
+    parse_model_ref,
+    model_key,
+    ANTHROPIC_MODEL_ALIASES,
+    OPENAI_MODEL_ALIASES,
+)
+```
+
+### 常量
+
+```python
+ANTHROPIC_MODEL_ALIASES = {
+    "opus-4.6": "claude-opus-4-6",
+    "sonnet-4.5": "claude-sonnet-4-5",
+    "haiku-4.5": "claude-haiku-4-5",
+}
+
+OPENAI_MODEL_ALIASES = {
+    "gpt-4": "gpt-4-turbo",
+}
+```
+
+### 函数
+
+```python
+def normalize_provider_id(provider: str) -> str:
+    """规范化提供商 ID
+
+    - 转小写，去除空白
+    - "Z.AI" → "zai"
+    - "opencode-zen" → "opencode"
+    - "qwen" → "qwen-portal"
+    """
+
+def normalize_model_id(provider: str, model: str) -> str:
+    """规范化模型 ID
+
+    - 转小写，去除空白
+    - 处理提供商特定别名（如 "opus-4.6" → "claude-opus-4-6"）
+    - 替换 "." 为 "-"
+    - Anthropic: 自动添加 "claude-" 前缀
+    """
+
+def parse_model_ref(
+    raw: str,
+    default_provider: str = DEFAULT_PROVIDER,
+) -> ModelRef | None:
+    """解析模型引用字符串
+
+    支持格式：
+    - "provider/model" - 显式提供商
+    - "model" - 使用默认提供商
+
+    示例：
+    - "anthropic/opus-4.6" → ModelRef(provider="anthropic", model="claude-opus-4-6")
+    - "gpt-4" → ModelRef(provider="openai", model="gpt-4-turbo")
+    """
+
+def model_key(provider: str, model: str) -> str:
+    """生成模型键（provider/model 格式）"""
+```
+
+---
+
+## openclaw_py.agents.model_catalog
+路径: openclaw_py/agents/model_catalog.py
+
+```python
+from openclaw_py.agents.model_catalog import (
+    load_model_catalog,
+    get_model_info,
+    list_models,
+    get_model_context_window,
+    get_model_max_tokens,
+    get_model_temperature,
+)
+```
+
+### 函数
+
+```python
+def load_model_catalog(config: OpenClawConfig | None = None) -> dict[str, ModelInfo]:
+    """从配置加载模型目录
+
+    从 config.models.providers 中加载所有模型定义。
+
+    Returns:
+        字典映射 "provider/model" → ModelInfo
+    """
+
+def get_model_info(
+    provider: str,
+    model: str,
+    catalog: dict[str, ModelInfo] | None = None,
+    config: OpenClawConfig | None = None,
+) -> ModelInfo | None:
+    """获取模型元数据信息
+
+    Args:
+        provider: 提供商 ID
+        model: 模型 ID
+        catalog: 预加载的模型目录（可选）
+        config: OpenClaw 配置（如果 catalog 为 None 则使用）
+
+    Returns:
+        ModelInfo 如果找到，否则 None
+    """
+
+def list_models(
+    provider: str | None = None,
+    catalog: dict[str, ModelInfo] | None = None,
+    config: OpenClawConfig | None = None,
+) -> list[ModelInfo]:
+    """列出可用模型
+
+    Args:
+        provider: 仅列出该提供商的模型（可选，None 表示全部）
+        catalog: 预加载的模型目录（可选）
+        config: OpenClaw 配置（如果 catalog 为 None 则使用）
+
+    Returns:
+        ModelInfo 列表
+    """
+
+def get_model_context_window(
+    provider: str,
+    model: str,
+    catalog: dict[str, ModelInfo] | None = None,
+    config: OpenClawConfig | None = None,
+) -> int:
+    """获取模型上下文窗口大小
+
+    Returns:
+        上下文窗口大小（如果未知则返回 DEFAULT_CONTEXT_TOKENS）
+    """
+
+def get_model_max_tokens(
+    provider: str,
+    model: str,
+    catalog: dict[str, ModelInfo] | None = None,
+    config: OpenClawConfig | None = None,
+) -> int:
+    """获取模型最大输出 token 数
+
+    Returns:
+        最大输出 token（如果未知则返回 DEFAULT_MAX_TOKENS）
+    """
+
+def get_model_temperature(
+    provider: str,
+    model: str,
+    catalog: dict[str, ModelInfo] | None = None,
+    config: OpenClawConfig | None = None,
+) -> float:
+    """获取模型默认温度
+
+    Returns:
+        默认温度（如果未知则返回 DEFAULT_TEMPERATURE）
+    """
+```
+
+---
+
+## openclaw_py.agents.providers.base
+路径: openclaw_py/agents/providers/base.py
+
+```python
+from openclaw_py.agents.providers.base import BaseProvider
+```
+
+### 基础提供商类
+
+**BaseProvider** (抽象类):
+```python
+class BaseProvider(ABC):
+    """AI 模型提供商抽象基类
+
+    所有提供商必须实现 create_message()，
+    可选实现 create_message_stream() 支持流式响应。
+    """
+
+    def __init__(self, config: ProviderConfig):
+        """初始化提供商
+
+        Args:
+            config: 提供商配置
+        """
+
+    @abstractmethod
+    async def create_message(
+        self,
+        messages: list[AgentMessage],
+        model: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        system: str | None = None,
+        **kwargs,
+    ) -> AgentResponse:
+        """创建消息（非流式）
+
+        Args:
+            messages: 对话消息列表
+            model: 模型标识符
+            max_tokens: 最大生成 token 数
+            temperature: 采样温度 (0.0-2.0)
+            system: 系统提示词
+            **kwargs: 提供商特定参数
+
+        Returns:
+            AgentResponse 包含生成内容和用量
+
+        Raises:
+            Exception: API 调用失败
+        """
+
+    async def create_message_stream(
+        self,
+        messages: list[AgentMessage],
+        model: str,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        system: str | None = None,
+        **kwargs,
+    ) -> AsyncGenerator[StreamChunk, None]:
+        """创建流式消息（可选）
+
+        Args:
+            messages: 对话消息列表
+            model: 模型标识符
+            max_tokens: 最大生成 token 数
+            temperature: 采样温度 (0.0-2.0)
+            system: 系统提示词
+            **kwargs: 提供商特定参数
+
+        Yields:
+            StreamChunk 对象（包含增量内容）
+
+        Raises:
+            NotImplementedError: 如果不支持流式
+            Exception: API 调用失败
+        """
+
+    def supports_streaming(self) -> bool:
+        """检查提供商是否支持流式
+
+        Returns:
+            True 如果支持流式
+        """
+```
+
+---
+
+## openclaw_py.agents.providers.anthropic_provider
+路径: openclaw_py/agents/providers/anthropic_provider.py
+
+```python
+from openclaw_py.agents.providers.anthropic_provider import AnthropicProvider
+```
+
+### Anthropic Claude 提供商
+
+**AnthropicProvider** (BaseProvider):
+```python
+class AnthropicProvider(BaseProvider):
+    """Anthropic Claude API 提供商
+
+    支持：
+    - Claude 3/4 系列模型
+    - 流式和非流式响应
+    - 系统提示词
+    - Prompt caching（缓存）
+    """
+
+    def __init__(self, config: ProviderConfig):
+        """初始化 Anthropic 提供商
+
+        Args:
+            config: 提供商配置（包含 api_key, base_url 等）
+        """
+
+    async def create_message(...) -> AgentResponse:
+        """实现非流式消息创建"""
+
+    async def create_message_stream(...) -> AsyncGenerator[StreamChunk, None]:
+        """实现流式消息创建"""
+```
+
+---
+
+## openclaw_py.agents.providers.openai_provider
+路径: openclaw_py/agents/providers/openai_provider.py
+
+```python
+from openclaw_py.agents.providers.openai_provider import OpenAIProvider
+```
+
+### OpenAI 提供商
+
+**OpenAIProvider** (BaseProvider):
+```python
+class OpenAIProvider(BaseProvider):
+    """OpenAI API 提供商
+
+    支持：
+    - GPT-4/3.5 系列模型
+    - 流式和非流式响应
+    - 系统消息（作为消息列表第一条）
+    """
+
+    def __init__(self, config: ProviderConfig):
+        """初始化 OpenAI 提供商
+
+        Args:
+            config: 提供商配置（包含 api_key, base_url 等）
+        """
+
+    async def create_message(...) -> AgentResponse:
+        """实现非流式消息创建"""
+
+    async def create_message_stream(...) -> AsyncGenerator[StreamChunk, None]:
+        """实现流式消息创建"""
+```
+
+---
+
+## openclaw_py.agents.providers.litellm_provider
+路径: openclaw_py/agents/providers/litellm_provider.py
+
+```python
+from openclaw_py.agents.providers.litellm_provider import LiteLLMProvider
+```
+
+### LiteLLM 多模型提供商
+
+**LiteLLMProvider** (BaseProvider):
+```python
+class LiteLLMProvider(BaseProvider):
+    """LiteLLM 统一 API 提供商
+
+    支持：
+    - 多种模型提供商（Google Gemini, Azure OpenAI 等）
+    - 统一接口
+    - 流式和非流式响应
+    """
+
+    def __init__(self, config: ProviderConfig):
+        """初始化 LiteLLM 提供商
+
+        Args:
+            config: 提供商配置
+        """
+
+    async def create_message(...) -> AgentResponse:
+        """实现非流式消息创建"""
+
+    async def create_message_stream(...) -> AsyncGenerator[StreamChunk, None]:
+        """实现流式消息创建"""
+```
+
+---
+
+## openclaw_py.agents.runtime
+路径: openclaw_py/agents/runtime.py
+
+```python
+from openclaw_py.agents.runtime import (
+    get_provider_from_config,
+    create_agent_message,
+)
+```
+
+### Agent 运行时函数
+
+```python
+def get_provider_from_config(
+    provider_name: str,
+    config: OpenClawConfig | None = None,
+) -> BaseProvider | None:
+    """从配置获取提供商实例
+
+    Args:
+        provider_name: 提供商名称（"anthropic", "openai" 等）
+        config: OpenClaw 配置
+
+    Returns:
+        提供商实例，如果未配置则返回 None
+
+    支持的提供商：
+    - anthropic → AnthropicProvider
+    - openai → OpenAIProvider
+    - 其他 → LiteLLMProvider（通用）
+    """
+
+async def create_agent_message(
+    messages: list[AgentMessage],
+    model_ref: ModelRef | str,
+    config: OpenClawConfig | None = None,
+    stream: bool = False,
+    max_tokens: int | None = None,
+    temperature: float | None = None,
+    system: str | None = None,
+    **kwargs,
+) -> AgentResponse | AsyncGenerator[StreamChunk, None]:
+    """创建 Agent 消息（主入口）
+
+    Args:
+        messages: 对话消息列表
+        model_ref: 模型引用（ModelRef 对象或 "provider/model" 字符串）
+        config: OpenClaw 配置
+        stream: 是否使用流式响应
+        max_tokens: 最大生成 token 数
+        temperature: 采样温度
+        system: 系统提示词
+        **kwargs: 提供商特定参数
+
+    Returns:
+        如果 stream=False，返回 AgentResponse
+        如果 stream=True，返回 AsyncGenerator[StreamChunk, None]
+
+    Raises:
+        ValueError: 模型引用无效或提供商未配置
+        Exception: API 调用失败
+    """
+```
 
 ---

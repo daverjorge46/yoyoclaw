@@ -1,7 +1,7 @@
 # 迁移状态
 
 ## 当前批次
-batch: 7
+batch: 8
 status: not_started
 
 ## 批次进度
@@ -13,7 +13,7 @@ status: not_started
 | 4 | 会话管理 + 持久化 | ✅ | 2026-02-13 | 3dfebb5 |
 | 5 | Gateway HTTP | ✅ | 2026-02-13 | 2d8d42d |
 | 6 | Gateway WebSocket | ✅ | 2026-02-13 | b5c5e27 |
-| 7 | Agent 模型调用 | ⬜ | - | - |
+| 7 | Agent 模型调用 | ✅ | 2026-02-13 | pending |
 | 8 | Agent 上下文 + 用量 | ⬜ | - | - |
 | 9 | Agent 工具 + Skills | ⬜ | - | - |
 | 10 | Telegram 核心 Bot | ⬜ | - | - |
@@ -24,6 +24,16 @@ status: not_started
 | 15 | 集成测试 + 联调 | ⬜ | - | - |
 
 ## 已生成的 Python 文件
+- openclaw_py/agents/defaults.py
+- openclaw_py/agents/model_catalog.py
+- openclaw_py/agents/model_selection.py
+- openclaw_py/agents/providers/anthropic_provider.py
+- openclaw_py/agents/providers/base.py
+- openclaw_py/agents/providers/litellm_provider.py
+- openclaw_py/agents/providers/openai_provider.py
+- openclaw_py/agents/runtime.py
+- openclaw_py/agents/types.py
+- openclaw_py/agents/usage.py
 - openclaw_py/config/defaults.py
 - openclaw_py/config/env_substitution.py
 - openclaw_py/config/loader.py
