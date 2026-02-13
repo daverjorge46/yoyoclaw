@@ -2,19 +2,16 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../infra/net/ssrf.js";
 import { optimizeImageToPng } from "../media/image-ops.js";
 import { loadWebMedia, loadWebMediaRaw, optimizeImageToJpeg } from "./media.js";
 
-const tmpFiles: string[] = [];
+let fixtureRoot = "";
+let fixtureFileCount = 0;
 
 async function writeTempFile(buffer: Buffer, ext: string): Promise<string> {
-  const file = path.join(
-    os.tmpdir(),
-    `openclaw-media-${Date.now()}-${Math.random().toString(16).slice(2)}${ext}`,
-  );
-  tmpFiles.push(file);
+  const file = path.join(fixtureRoot, `media-${fixtureFileCount++}${ext}`);
   await fs.writeFile(file, buffer);
   return file;
 }
@@ -29,9 +26,31 @@ function buildDeterministicBytes(length: number): Buffer {
   return buffer;
 }
 
-afterEach(async () => {
-  await Promise.all(tmpFiles.map((file) => fs.rm(file, { force: true })));
-  tmpFiles.length = 0;
+async function createLargeTestJpeg(): Promise<{ buffer: Buffer; file: string }> {
+  const buffer = await sharp({
+    create: {
+      width: 1600,
+      height: 1600,
+      channels: 3,
+      background: "#ff0000",
+    },
+  })
+    .jpeg({ quality: 95 })
+    .toBuffer();
+
+  const file = await writeTempFile(buffer, ".jpg");
+  return { buffer, file };
+}
+
+beforeAll(async () => {
+  fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-media-test-"));
+});
+
+afterAll(async () => {
+  await fs.rm(fixtureRoot, { recursive: true, force: true });
+});
+
+afterEach(() => {
   vi.restoreAllMocks();
 });
 
@@ -51,8 +70,8 @@ describe("web media loading", () => {
   it("compresses large local images under the provided cap", async () => {
     const buffer = await sharp({
       create: {
-        width: 1600,
-        height: 1600,
+        width: 1200,
+        height: 1200,
         channels: 3,
         background: "#ff0000",
       },
@@ -68,6 +87,25 @@ describe("web media loading", () => {
     expect(result.kind).toBe("image");
     expect(result.buffer.length).toBeLessThanOrEqual(cap);
     expect(result.buffer.length).toBeLessThan(buffer.length);
+  });
+
+  it("optimizes images when options object omits optimizeImages", async () => {
+    const { buffer, file } = await createLargeTestJpeg();
+    const cap = Math.max(1, Math.floor(buffer.length * 0.8));
+
+    const result = await loadWebMedia(file, { maxBytes: cap });
+
+    expect(result.buffer.length).toBeLessThanOrEqual(cap);
+    expect(result.buffer.length).toBeLessThan(buffer.length);
+  });
+
+  it("allows callers to disable optimization via options object", async () => {
+    const { buffer, file } = await createLargeTestJpeg();
+    const cap = Math.max(1, Math.floor(buffer.length * 0.8));
+
+    await expect(loadWebMedia(file, { maxBytes: cap, optimizeImages: false })).rejects.toThrow(
+      /Media exceeds/i,
+    );
   });
 
   it("sniffs mime before extension when loading local files", async () => {
@@ -254,7 +292,7 @@ describe("web media loading", () => {
   });
 
   it("falls back to JPEG when PNG alpha cannot fit under cap", async () => {
-    const sizes = [512, 768, 1024];
+    const sizes = [320, 448, 640];
     let pngBuffer: Buffer | null = null;
     let smallestPng: Awaited<ReturnType<typeof optimizeImageToPng>> | null = null;
     let jpegOptimized: Awaited<ReturnType<typeof optimizeImageToJpeg>> | null = null;
@@ -290,5 +328,45 @@ describe("web media loading", () => {
     expect(result.kind).toBe("image");
     expect(result.contentType).toBe("image/jpeg");
     expect(result.buffer.length).toBeLessThanOrEqual(cap);
+  });
+});
+
+describe("local media root guard", () => {
+  it("rejects local paths outside allowed roots", async () => {
+    const pngBuffer = await sharp({
+      create: { width: 10, height: 10, channels: 3, background: "#00ff00" },
+    })
+      .png()
+      .toBuffer();
+    const file = await writeTempFile(pngBuffer, ".png");
+
+    // Explicit roots that don't contain the temp file.
+    await expect(
+      loadWebMedia(file, 1024 * 1024, { localRoots: ["/nonexistent-root"] }),
+    ).rejects.toThrow(/not under an allowed directory/i);
+  });
+
+  it("allows local paths under an explicit root", async () => {
+    const pngBuffer = await sharp({
+      create: { width: 10, height: 10, channels: 3, background: "#00ff00" },
+    })
+      .png()
+      .toBuffer();
+    const file = await writeTempFile(pngBuffer, ".png");
+
+    const result = await loadWebMedia(file, 1024 * 1024, { localRoots: [os.tmpdir()] });
+    expect(result.kind).toBe("image");
+  });
+
+  it("allows any path when localRoots is 'any'", async () => {
+    const pngBuffer = await sharp({
+      create: { width: 10, height: 10, channels: 3, background: "#00ff00" },
+    })
+      .png()
+      .toBuffer();
+    const file = await writeTempFile(pngBuffer, ".png");
+
+    const result = await loadWebMedia(file, 1024 * 1024, { localRoots: "any" });
+    expect(result.kind).toBe("image");
   });
 });
