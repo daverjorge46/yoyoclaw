@@ -14,7 +14,6 @@ import {
   resolveChunkMode,
   resolveTextChunkLimit,
 } from "../../auto-reply/chunk.js";
-import { toCanonicalAddress } from "../../auto-reply/reply/dispatch-from-config.js";
 import { resolveChannelMediaMaxBytes } from "../../channels/plugins/media-limits.js";
 import { loadChannelOutboundAdapter } from "../../channels/plugins/outbound/load.js";
 import { resolveMarkdownTableMode } from "../../config/markdown-tables.js";
@@ -454,6 +453,7 @@ async function deliverOutboundPayloadsCore(params: {
           {
             channelId: channel,
             accountId: accountId ?? undefined,
+            conversationId: to,
           },
         )
         .catch(() => {});
@@ -535,36 +535,6 @@ async function deliverOutboundPayloadsCore(params: {
         sessionKey: params.mirror.sessionKey,
         text: mirrorText,
       });
-    }
-  }
-
-  // Fire message_sent hook only for successfully delivered payloads.
-  // When bestEffort is enabled, some payloads may fail — only report
-  // text from payloads that produced delivery results.
-  const hookRunner = getGlobalHookRunner();
-  if (hookRunner && results.length > 0) {
-    const deliveredText = deliveredPayloadIndices
-      .map((i) => normalizedPayloads[i]?.text ?? "")
-      .filter(Boolean)
-      .join("\n");
-    if (deliveredText) {
-      const ctx = {
-        channelId: channel,
-        accountId: accountId ?? undefined,
-        conversationId: toCanonicalAddress(to, { source: channel }) ?? to,
-      };
-      void hookRunner
-        .runMessageSent(
-          {
-            to: toCanonicalAddress(to, { source: channel }) ?? to,
-            content: deliveredText,
-            success: true,
-          },
-          ctx,
-        )
-        .catch(() => {
-          // Fire-and-forget — don't break delivery on hook errors
-        });
     }
   }
 
