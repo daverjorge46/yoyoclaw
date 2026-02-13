@@ -192,6 +192,33 @@ describe("resolveAgentRoute", () => {
     expect(otherRoute.agentId).toBe("main");
   });
 
+  test("missing accountId in binding matches channel default account when default is non-literal", () => {
+    const cfg: OpenClawConfig = {
+      channels: {
+        whatsapp: {
+          accounts: {
+            biz: {},
+          },
+        },
+      },
+      bindings: [
+        {
+          agentId: "bizPeer",
+          match: { channel: "whatsapp", peer: { kind: "direct", id: "+1000" } },
+        },
+      ],
+    };
+
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: "biz",
+      peer: { kind: "direct", id: "+1000" },
+    });
+    expect(route.agentId).toBe("bizpeer");
+    expect(route.matchedBy).toBe("binding.peer");
+  });
+
   test("accountId=* matches any account as a channel fallback", () => {
     const cfg: OpenClawConfig = {
       bindings: [

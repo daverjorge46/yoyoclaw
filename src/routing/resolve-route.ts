@@ -2,6 +2,8 @@ import type { ChatType } from "../channels/chat-type.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { normalizeChatType } from "../channels/chat-type.js";
+import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
+import { getChannelPlugin } from "../channels/plugins/index.js";
 import { listBindings } from "./bindings.js";
 import {
   buildAgentMainSessionKey,
@@ -9,6 +11,7 @@ import {
   DEFAULT_ACCOUNT_ID,
   DEFAULT_MAIN_KEY,
   normalizeAgentId,
+  normalizeAccountId as normalizeAccountIdFromSessionKey,
   sanitizeAgentId,
 } from "./session-key.js";
 
@@ -68,15 +71,27 @@ function normalizeAccountId(value: string | undefined | null): string {
   return trimmed ? trimmed : DEFAULT_ACCOUNT_ID;
 }
 
-function matchesAccountId(match: string | undefined, actual: string): boolean {
+function resolveChannelDefaultAccountIdForRoute(cfg: OpenClawConfig, channel: string): string {
+  const plugin = getChannelPlugin(channel);
+  if (!plugin) {
+    return DEFAULT_ACCOUNT_ID;
+  }
+  return normalizeAccountIdFromSessionKey(resolveChannelDefaultAccountId({ plugin, cfg }));
+}
+
+function matchesAccountId(
+  match: string | undefined,
+  actual: string,
+  channelDefaultAccountId: string,
+): boolean {
   const trimmed = (match ?? "").trim();
   if (!trimmed) {
-    return actual === DEFAULT_ACCOUNT_ID;
+    return actual === channelDefaultAccountId;
   }
   if (trimmed === "*") {
     return true;
   }
-  return trimmed === actual;
+  return normalizeAccountIdFromSessionKey(trimmed) === actual;
 }
 
 export function buildAgentSessionKey(params: {
@@ -185,6 +200,7 @@ function matchesRoles(
 export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentRoute {
   const channel = normalizeToken(input.channel);
   const accountId = normalizeAccountId(input.accountId);
+  const channelDefaultAccountId = resolveChannelDefaultAccountIdForRoute(input.cfg, channel);
   const peer = input.peer ? { kind: input.peer.kind, id: normalizeId(input.peer.id) } : null;
   const guildId = normalizeId(input.guildId);
   const teamId = normalizeId(input.teamId);
@@ -197,7 +213,7 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
     if (!matchesChannel(binding.match, channel)) {
       return false;
     }
-    return matchesAccountId(binding.match?.accountId, accountId);
+    return matchesAccountId(binding.match?.accountId, accountId, channelDefaultAccountId);
   });
 
   const dmScope = input.cfg.session?.dmScope ?? "main";
