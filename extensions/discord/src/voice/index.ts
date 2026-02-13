@@ -28,6 +28,7 @@ export {
 export { wrapPcmInWav } from "./wav.js";
 export { transcribeVoiceAudio } from "./transcription-service.js";
 export { summarizeVoiceSession } from "./summarization-service.js";
+export { loadCoreAgentDeps } from "./core-bridge.js";
 export { VoiceThreadManager } from "./thread-manager.js";
 export { DiscordVoiceStateListener } from "./voice-state-listener.js";
 export { VoiceSessionOrchestrator } from "./session-orchestrator.js";

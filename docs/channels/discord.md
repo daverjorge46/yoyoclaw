@@ -373,7 +373,7 @@ See [Slash commands](/tools/slash-commands) for command catalog and behavior.
 
 ## Voice transcription
 
-OpenClaw can auto-join Discord voice channels, transcribe speech via Groq Whisper, and produce a session summary when everyone leaves.
+OpenClaw can auto-join Discord voice channels, transcribe speech via Groq Whisper, and produce a session summary (using the agent's configured LLM) when everyone leaves.
 
 ### How it works
 
@@ -398,7 +398,6 @@ OpenClaw can auto-join Discord voice channels, transcribe speech via Groq Whispe
             transcriptionChannelId: "987654321098765432",
             groqApiKey: "gsk_...", // or use GROQ_API_KEY env var
             whisperModel: "whisper-large-v3-turbo",
-            summarizationModel: "llama-3.3-70b-versatile",
           },
         },
       },
@@ -416,7 +415,7 @@ OpenClaw can auto-join Discord voice channels, transcribe speech via Groq Whispe
 
 ### Requirements
 
-- **Groq API key**: Set via `voice.groqApiKey` config or `GROQ_API_KEY` environment variable. Required for both transcription (Whisper) and summarization (LLM).
+- **Groq API key**: Set via `voice.groqApiKey` config or `GROQ_API_KEY` environment variable. Required for Whisper speech-to-text transcription. Summarization uses the agent's configured LLM.
 - **Transcription channel**: A text channel ID where threads and summaries will be posted.
 - **Voice States intent**: Must be enabled so the gateway receives `VOICE_STATE_UPDATE` events.
 - **Bot permissions**: Connect and Speak in voice channels; Send Messages and Create Public Threads in the transcription channel.

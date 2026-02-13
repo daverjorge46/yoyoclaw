@@ -22,6 +22,7 @@ export interface SessionOrchestratorConfig {
   voiceStateListener: DiscordVoiceStateListener;
   accountId?: string;
   botUserId?: string;
+  coreConfig?: Record<string, unknown>;
 }
 
 /** Session key: "guildId:channelId" */
@@ -38,6 +39,7 @@ export class VoiceSessionOrchestrator {
   private accountId: string | undefined;
   private botUserId: string | undefined;
   private groqApiKey: string | undefined;
+  private coreConfig: Record<string, unknown> | undefined;
 
   constructor(params: SessionOrchestratorConfig) {
     this.config = params.voiceConfig;
@@ -46,6 +48,7 @@ export class VoiceSessionOrchestrator {
     this.accountId = params.accountId;
     this.botUserId = params.botUserId;
     this.groqApiKey = resolveGroqApiKey(this.config);
+    this.coreConfig = params.coreConfig;
 
     this.setupEventHandlers();
   }
@@ -246,19 +249,16 @@ export class VoiceSessionOrchestrator {
       `[orchestrator] session ended: ${session.transcriptions.length} transcription(s), duration=${Math.round(durationMs / 1000)}s`,
     );
 
-    // Summarize if we have transcriptions
-    if (this.groqApiKey && session.transcriptions.length > 0 && threadManager) {
+    // Summarize if we have transcriptions and core config is available
+    if (this.coreConfig && session.transcriptions.length > 0 && threadManager) {
       const summaryResult = await summarizeVoiceSession({
         transcriptions: session.transcriptions,
-        apiKey: this.groqApiKey,
-        model: this.config.summarizationModel,
+        coreConfig: this.coreConfig,
       });
 
       if (summaryResult) {
-        await threadManager.postSummary(summaryResult.formatted);
+        await threadManager.postSummary(summaryResult.formatted, durationMs);
       }
-
-      await threadManager.postSessionEnd(durationMs);
     }
 
     // Leave the voice channel

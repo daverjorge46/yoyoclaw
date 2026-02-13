@@ -128,6 +128,7 @@ const plugin = {
           voiceConfig,
           provider: voiceProvider,
           voiceStateListener,
+          coreConfig: api.config as Record<string, unknown> | undefined,
         });
 
         // Store the listener so src/discord/monitor/provider.ts can register

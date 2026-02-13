@@ -104,32 +104,24 @@ export class VoiceThreadManager {
   }
 
   /**
-   * Post the final session summary to the parent channel (not the thread).
+   * Post the final session summary with duration to the parent channel (not the thread).
    */
-  async postSummary(markdownText: string): Promise<void> {
+  async postSummary(markdownText: string, durationMs?: number): Promise<void> {
     try {
-      await sendMessageDiscord(
-        `channel:${this.channelId}`,
-        `---\n# Voice Session Summary\n\n${markdownText}`,
-        this.restOpts,
-      );
-    } catch {
-      // Errors are caught internally, never thrown
-    }
-  }
+      let durationStr = "";
+      if (durationMs != null) {
+        const minutes = Math.floor(durationMs / 60000);
+        const seconds = Math.floor((durationMs % 60000) / 1000);
+        durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+      }
 
-  /**
-   * Post a session-end message with duration info to the parent channel.
-   */
-  async postSessionEnd(durationMs: number): Promise<void> {
-    try {
-      const minutes = Math.floor(durationMs / 60000);
-      const seconds = Math.floor((durationMs % 60000) / 1000);
-      const durationStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+      const header = durationStr
+        ? `**Voice Session Summary** *(${durationStr})*`
+        : `**Voice Session Summary**`;
 
       await sendMessageDiscord(
         `channel:${this.channelId}`,
-        `---\n*Voice session ended. Duration: ${durationStr}*`,
+        `${header}\n\n${markdownText}`,
         this.restOpts,
       );
     } catch {

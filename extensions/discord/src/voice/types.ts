@@ -99,8 +99,6 @@ export interface DiscordVoiceConfig {
   transcriptionChannelId?: string;
   /** Whisper model to use for transcription. Default: whisper-large-v3-turbo */
   whisperModel?: string;
-  /** LLM model for session summarization. Default: llama-3.3-70b-versatile */
-  summarizationModel?: string;
   /** Auto-join voice channels when a user enters. Default: false */
   autoJoin?: boolean;
   /** Restrict auto-join to these guild IDs. Omit = all guilds. */

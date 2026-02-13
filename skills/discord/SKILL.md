@@ -422,7 +422,7 @@ OpenClaw can automatically join Discord voice channels, transcribe speech in rea
 1. **Auto-join**: When a user enters a monitored voice channel, the bot joins automatically.
 2. **Transcribe**: Incoming audio is decoded from Opus, buffered, and sent to Groq Whisper for speech-to-text.
 3. **Thread posting**: Each transcription is posted to a thread (created lazily) in the configured transcription channel.
-4. **Summarize**: When all humans leave, the bot generates a summary (via Groq LLM), posts it to the transcription channel, and leaves.
+4. **Summarize**: When all humans leave, the bot generates a summary using the agent's configured LLM, posts it to the transcription channel, and leaves.
 
 ### Configuration
 
@@ -436,7 +436,6 @@ Voice settings live under `plugins.entries.discord.config.voice`:
   "transcriptionChannelId": "987654321098765432",
   "groqApiKey": "gsk_...",
   "whisperModel": "whisper-large-v3-turbo",
-  "summarizationModel": "llama-3.3-70b-versatile",
   "silenceTimeoutMs": 2000,
   "transcriptionEnabled": true
 }
@@ -445,14 +444,13 @@ Voice settings live under `plugins.entries.discord.config.voice`:
 - **`autoJoin`**: `true` to auto-join when a user enters a voice channel.
 - **`autoJoinGuilds`**: Optional list of guild IDs to restrict auto-join.
 - **`transcriptionChannelId`**: Text channel where transcription threads and summaries are posted.
-- **`groqApiKey`**: Groq API key for Whisper transcription and LLM summarization. Falls back to `GROQ_API_KEY` env var.
+- **`groqApiKey`**: Groq API key for Whisper speech-to-text transcription. Falls back to `GROQ_API_KEY` env var.
 - **`whisperModel`**: Whisper model for transcription (default `whisper-large-v3-turbo`).
-- **`summarizationModel`**: LLM model for session summarization (default `llama-3.3-70b-versatile`).
 - **`silenceTimeoutMs`**: Silence duration before flushing audio buffer (default `2000`).
 
 ### Required setup
 
-1. **Groq API key**: Set `groqApiKey` in the voice config or `GROQ_API_KEY` environment variable.
+1. **Groq API key**: Set `groqApiKey` in the voice config or `GROQ_API_KEY` environment variable (required for Whisper transcription; summarization uses the agent's configured LLM).
 2. **Transcription channel**: Set `transcriptionChannelId` to a text channel the bot can post in.
 3. **Voice States intent**: Enable `voiceStates` in `channels.discord.intents` so the bot receives voice state updates.
 4. **Bot permissions**: The bot needs Connect + Speak permissions in the voice channel, and Send Messages + Create Public Threads in the transcription channel.

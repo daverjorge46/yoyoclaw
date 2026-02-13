@@ -17,7 +17,6 @@
           "transcriptionChannelId": { "type": "string" },
           "groqApiKey": { "type": "string" },
           "whisperModel": { "type": "string" },
-          "summarizationModel": { "type": "string" },
           "silenceTimeoutMs": { "type": "number" },
           "maxRecordingDurationMs": { "type": "number" },
           "transcriptionEnabled": { "type": "boolean" },

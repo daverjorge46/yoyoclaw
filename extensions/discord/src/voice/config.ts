@@ -17,7 +17,6 @@ export const DiscordVoiceConfigSchema = z.object({
   groqApiKey: z.string().optional(),
   transcriptionChannelId: z.string().optional(),
   whisperModel: z.string().default("whisper-large-v3-turbo"),
-  summarizationModel: z.string().default("llama-3.3-70b-versatile"),
   autoJoin: z.boolean().default(false),
   autoJoinGuilds: z.array(z.string()).optional(),
 });
@@ -30,7 +29,6 @@ export const DEFAULT_DISCORD_VOICE_CONFIG: DiscordVoiceConfig = {
   ttsEnabled: true,
   silenceTimeoutMs: 2000,
   whisperModel: "whisper-large-v3-turbo",
-  summarizationModel: "llama-3.3-70b-versatile",
   autoJoin: false,
 };
 
