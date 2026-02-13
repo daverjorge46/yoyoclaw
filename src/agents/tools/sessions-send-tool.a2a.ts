@@ -23,27 +23,29 @@ async function shouldDeliverAnnounce(params: { announceReply: string; targetSess
 
   // Guard against eventual-consistency lag in chat.history:
   // if the announce step truly returned ANNOUNCE_SKIP, avoid posting stale text.
+  let matched = false;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const latest = await readLatestAssistantReply({
       sessionKey: params.targetSessionKey,
       limit: 20,
     });
     if (!latest) {
-      break;
+      continue;
     }
     const normalizedLatest = latest.trim();
     if (!normalizedLatest) {
-      break;
+      continue;
     }
     if (isAnnounceSkip(normalizedLatest)) {
       return false;
     }
     if (normalizedLatest === candidate) {
+      matched = true;
       break;
     }
   }
 
-  return true;
+  return matched;
 }
 
 export async function runSessionsSendA2AFlow(params: {

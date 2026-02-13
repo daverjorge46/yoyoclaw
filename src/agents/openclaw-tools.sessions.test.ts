@@ -515,12 +515,15 @@ describe("sessions tools", () => {
     const calls: Array<{ method?: string; params?: unknown }> = [];
     let agentCallCount = 0;
     let sendCallCount = 0;
-    let lastWaitedRunId: string | undefined;
-    let announceRunId: string | undefined;
-    const replyByRunId = new Map<string, string>();
-    const historyReadsByRunId = new Map<string, number>();
     const requesterKey = "discord:group:req";
     const targetKey = "discord:group:target";
+    const historyBySession = new Map<string, string[]>([
+      // 1) Initial send result for target session
+      // 2) Stale read during announce step
+      // 3) Re-read in delivery guard resolves to ANNOUNCE_SKIP
+      [targetKey, ["initial", "stale previous reply", "ANNOUNCE_SKIP"]],
+      [requesterKey, ["REPLY_SKIP"]],
+    ]);
 
     callGatewayMock.mockImplementation(async (opts: unknown) => {
       const request = opts as { method?: string; params?: unknown };
@@ -528,42 +531,23 @@ describe("sessions tools", () => {
 
       if (request.method === "agent") {
         agentCallCount += 1;
-        const runId = `run-${agentCallCount}`;
-        const params = request.params as
-          | {
-              message?: string;
-              sessionKey?: string;
-              extraSystemPrompt?: string;
-            }
-          | undefined;
-        let reply = "initial";
-        if (params?.extraSystemPrompt?.includes("Agent-to-agent reply step")) {
-          reply = "REPLY_SKIP";
-        } else if (params?.extraSystemPrompt?.includes("Agent-to-agent announce step")) {
-          reply = "ANNOUNCE_SKIP";
-          announceRunId = runId;
-        }
-        replyByRunId.set(runId, reply);
-        return { runId, status: "accepted", acceptedAt: 1000 + agentCallCount };
+        return {
+          runId: `run-${agentCallCount}`,
+          status: "accepted",
+          acceptedAt: 1000 + agentCallCount,
+        };
       }
 
       if (request.method === "agent.wait") {
         const params = request.params as { runId?: string } | undefined;
-        lastWaitedRunId = params?.runId;
         return { runId: params?.runId ?? "run-1", status: "ok" };
       }
 
       if (request.method === "chat.history") {
-        const runId = lastWaitedRunId ?? "";
-        const reads = historyReadsByRunId.get(runId) ?? 0;
-        historyReadsByRunId.set(runId, reads + 1);
-        let text = replyByRunId.get(runId) ?? "";
-
-        // Reproduce eventual-consistency lag: announce run has already produced
-        // ANNOUNCE_SKIP, but first history read still returns prior non-skip text.
-        if (runId === announceRunId && reads === 0) {
-          text = "stale previous reply";
-        }
+        const params = request.params as { sessionKey?: string } | undefined;
+        const sessionKey = params?.sessionKey ?? "";
+        const queue = historyBySession.get(sessionKey) ?? [];
+        const text = queue.length > 0 ? (queue.shift() ?? "") : "";
 
         return {
           messages: [
@@ -605,9 +589,8 @@ describe("sessions tools", () => {
 
     await waitForCalls(() => calls.filter((call) => call.method === "agent").length, 3);
     await waitForCalls(() => calls.filter((call) => call.method === "agent.wait").length, 3);
-    await waitForCalls(() => calls.filter((call) => call.method === "chat.history").length, 3);
+    await waitForCalls(() => calls.filter((call) => call.method === "chat.history").length, 4);
 
-    expect(announceRunId).toBeDefined();
     expect(sendCallCount).toBe(0);
   });
 
@@ -616,10 +599,12 @@ describe("sessions tools", () => {
     const calls: Array<{ method?: string; params?: unknown }> = [];
     let agentCallCount = 0;
     let sendCallCount = 0;
-    let lastWaitedRunId: string | undefined;
-    const replyByRunId = new Map<string, string>();
     const requesterKey = "discord:group:req";
     const targetKey = "discord:group:target";
+    const historyBySession = new Map<string, string[]>([
+      [targetKey, ["initial", "ANNOUNCE_SKIP"]],
+      [requesterKey, ["REPLY_SKIP"]],
+    ]);
 
     callGatewayMock.mockImplementation(async (opts: unknown) => {
       const request = opts as { method?: string; params?: unknown };
@@ -627,30 +612,23 @@ describe("sessions tools", () => {
 
       if (request.method === "agent") {
         agentCallCount += 1;
-        const runId = `run-${agentCallCount}`;
-        const params = request.params as
-          | {
-              extraSystemPrompt?: string;
-            }
-          | undefined;
-        let reply = "initial";
-        if (params?.extraSystemPrompt?.includes("Agent-to-agent reply step")) {
-          reply = "REPLY_SKIP";
-        } else if (params?.extraSystemPrompt?.includes("Agent-to-agent announce step")) {
-          reply = "ANNOUNCE_SKIP";
-        }
-        replyByRunId.set(runId, reply);
-        return { runId, status: "accepted", acceptedAt: 1000 + agentCallCount };
+        return {
+          runId: `run-${agentCallCount}`,
+          status: "accepted",
+          acceptedAt: 1000 + agentCallCount,
+        };
       }
 
       if (request.method === "agent.wait") {
         const params = request.params as { runId?: string } | undefined;
-        lastWaitedRunId = params?.runId;
         return { runId: params?.runId ?? "run-1", status: "ok" };
       }
 
       if (request.method === "chat.history") {
-        const text = (lastWaitedRunId && replyByRunId.get(lastWaitedRunId)) ?? "";
+        const params = request.params as { sessionKey?: string } | undefined;
+        const sessionKey = params?.sessionKey ?? "";
+        const queue = historyBySession.get(sessionKey) ?? [];
+        const text = queue.length > 0 ? (queue.shift() ?? "") : "";
         return {
           messages: [
             {
