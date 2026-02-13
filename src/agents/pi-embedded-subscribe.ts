@@ -625,6 +625,9 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (state.unsubscribed) {
       return;
     }
+    // Mark as unsubscribed FIRST to prevent waitForCompactionRetry from creating
+    // new un-resolvable promises during teardown.
+    state.unsubscribed = true;
     // Reject pending compaction wait to unblock awaiting code.
     // Don't resolve, as that would incorrectly signal "compaction complete" when it's still in-flight.
     if (state.compactionRetryPromise) {
@@ -638,8 +641,6 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       abortErr.name = "AbortError";
       reject?.(abortErr);
     }
-    // Mark as unsubscribed to prevent waitForCompactionRetry from creating new un-resolvable promises
-    state.unsubscribed = true;
     // Cancel any in-flight compaction to prevent resource leaks when unsubscribing.
     // Only abort if compaction is actually running to avoid unnecessary work.
     if (params.session.isCompacting) {
