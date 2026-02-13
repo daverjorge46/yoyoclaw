@@ -97,6 +97,8 @@ export class ThreadBindingRegistry {
   private threadToSessions = new Map<string, Set<string>>();
   /** sessionKey → threadKey */
   private sessionToThread = new Map<string, string>();
+  /** storePath → Set<sessionKey> — tracks which session keys were indexed from each store */
+  private storeSessionKeys = new Map<string, Set<string>>();
 
   // -- mutations ------------------------------------------------------------
 
@@ -160,14 +162,14 @@ export class ThreadBindingRegistry {
   // -- bulk operations ------------------------------------------------------
 
   /**
-   * Rebuild the registry from a session store snapshot.
-   *
-   * Clears all existing mappings and re-indexes every entry that carries a
-   * `threadBinding`.
+   * @deprecated Use {@link mergeFromSessions} instead. This method clears ALL
+   * bindings before re-indexing, which evicts other agents' bindings when
+   * per-agent session stores are used.
    */
   rebuildFromSessions(sessions: Record<string, { threadBinding?: ThreadBinding }>): void {
     this.threadToSessions.clear();
     this.sessionToThread.clear();
+    this.storeSessionKeys.clear();
 
     for (const [sessionKey, entry] of Object.entries(sessions)) {
       if (entry?.threadBinding) {
@@ -178,6 +180,47 @@ export class ThreadBindingRegistry {
         });
         this.bind(sessionKey, threadKey);
       }
+    }
+  }
+
+  /**
+   * Merge bindings from a single session store into the registry.
+   *
+   * Only clears bindings previously owned by the given `storePath`, then
+   * re-indexes that store's sessions.  Bindings from other stores are left
+   * intact.
+   */
+  mergeFromSessions(
+    storePath: string,
+    sessions: Record<string, { threadBinding?: ThreadBinding }>,
+  ): void {
+    // 1. Remove bindings previously owned by this store path.
+    const previousKeys = this.storeSessionKeys.get(storePath);
+    if (previousKeys) {
+      for (const sessionKey of previousKeys) {
+        this.unbind(sessionKey);
+      }
+    }
+
+    // 2. Re-index sessions from this store and track ownership.
+    const newKeys = new Set<string>();
+    for (const [sessionKey, entry] of Object.entries(sessions)) {
+      if (entry?.threadBinding) {
+        const threadKey = buildThreadKey({
+          channel: entry.threadBinding.channel,
+          accountId: entry.threadBinding.accountId,
+          threadId: entry.threadBinding.threadId,
+        });
+        this.bind(sessionKey, threadKey);
+        newKeys.add(sessionKey);
+      }
+    }
+
+    // 3. Update ownership tracking.
+    if (newKeys.size > 0) {
+      this.storeSessionKeys.set(storePath, newKeys);
+    } else {
+      this.storeSessionKeys.delete(storePath);
     }
   }
 }

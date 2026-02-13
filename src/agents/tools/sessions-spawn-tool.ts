@@ -353,7 +353,9 @@ export function createSessionsSpawnTool(opts?: {
         // Persist the binding in the session store + registry
         if (resolvedThreadBinding) {
           try {
-            const storePath = resolveStorePath(undefined, { agentId: targetAgentId });
+            const storePath = resolveStorePath(loadConfig().session?.store, {
+              agentId: targetAgentId,
+            });
             await bindSessionToThread({
               storePath,
               sessionKey: childSessionKey,
