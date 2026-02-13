@@ -29,6 +29,10 @@ orjson = ">=3.10.0"
 # 异步与文件
 aiofiles = ">=24.1.0"
 aiohttp = ">=3.11.0"
+httpx = ">=0.27.0"
+
+# 媒体处理
+filetype = ">=1.2.0"
 
 # 工具
 python-dotenv = ">=1.0.0"

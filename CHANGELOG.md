@@ -479,3 +479,77 @@
 - 当前 bot.py 中包含基础命令处理器，足以启动和测试 bot
 
 **测试结果**：47 passed（批次 10 新增测试）
+
+---
+
+## 批次 11：Telegram 媒体/Webhook/群组（2026-02-13）
+
+**新增文件**：
+- openclaw_py/channels/telegram/caption.py - Telegram 标题分割（1024 字符限制）
+- openclaw_py/channels/telegram/format.py - Markdown 到 Telegram HTML 转换（支持粗体、斜体、代码、链接、删除线）
+- openclaw_py/channels/telegram/download.py - 文件下载工具（从 Telegram 服务器下载文件，MIME 检测）
+- openclaw_py/channels/telegram/media.py - 媒体类型检测和 URL 加载（photo/video/audio/document 等）
+- openclaw_py/channels/telegram/draft_chunking.py - Draft 流式分块配置（最小/最大字符数、断点偏好）
+- openclaw_py/channels/telegram/draft_stream.py - Draft 消息流式更新（节流、去重、4096 字符限制）
+- openclaw_py/channels/telegram/group_migration.py - 群组迁移处理（群组升级到超级群组时的 chat ID 迁移）
+- openclaw_py/channels/telegram/send.py - 消息发送和媒体上传（文本、图片、文档、内联键盘、重试机制）
+- openclaw_py/channels/telegram/webhook.py - Webhook 服务器（aiohttp，接收 Telegram 更新）
+- openclaw_py/channels/telegram/__init__.py - 更新（导出批次 11 新增模块）
+- tests/channels/telegram/test_caption.py - 标题分割测试（8 个测试）
+- tests/channels/telegram/test_format.py - Markdown 格式化测试（25 个测试）
+- tests/channels/telegram/test_media.py - 媒体处理测试（18 个测试）
+- tests/channels/telegram/test_send.py - 消息发送测试（28 个测试）
+- tests/channels/telegram/test_draft_chunking.py - Draft 分块测试（13 个测试）
+
+**核心变更**：
+- 实现了完整的 Telegram 消息发送系统：
+  - 支持文本消息、图片、文档、音频、视频等多种媒体类型
+  - 自动处理 Telegram 1024 字符标题限制（超出部分发送为后续消息）
+  - 支持内联键盘（InlineKeyboardMarkup）
+  - 智能错误处理和重试机制（解析错误、线程未找到、聊天未找到）
+  - Chat ID 规范化（支持 @username、数字 ID、t.me 链接、内部前缀）
+- 实现了 Markdown 到 Telegram HTML 转换：
+  - 支持粗体（**text**）、斜体（*text*）、代码（`code`）
+  - 支持代码块（```code```）、删除线（~~text~~）
+  - 支持链接（[text](url)）
+  - HTML 实体转义和属性转义
+  - 长消息自动分块（按换行符智能分割）
+- 实现了媒体处理系统：
+  - MIME 类型检测（使用 filetype 库）
+  - 从 URL 加载媒体（httpx 异步下载）
+  - 自动确定媒体类型（photo/video/audio/document/animation）
+  - 支持 GIF 动画检测
+  - 文件大小限制和超时保护
+- 实现了文件下载工具：
+  - 从 Telegram 服务器下载文件
+  - MIME 类型自动检测
+  - 文件扩展名自动推断
+  - 支持文件大小限制
+- 实现了 Draft 流式更新系统：
+  - 节流机制（默认 300ms）防止 API 过载
+  - 自动去重（避免重复更新）
+  - 4096 字符限制保护
+  - 异步定时器和刷新机制
+- 实现了 Webhook 服务器：
+  - 使用 aiohttp + aiogram 实现 webhook 接收
+  - 支持健康检查端点（/healthz）
+  - 自动注册和删除 webhook
+  - 支持 secret token 验证
+- 实现了群组迁移功能：
+  - 处理群组升级到超级群组时的 chat ID 变化
+  - 支持 account-specific 和 global 配置迁移
+  - 自动跳过已存在的新 chat ID
+- 新增依赖：
+  - filetype >= 1.2.0（MIME 类型检测）
+  - httpx >= 0.27.0（移至主依赖，用于媒体下载）
+
+**依赖的已有模块**：
+- openclaw_py.config - OpenClawConfig, TelegramAccountConfig 配置模型
+- openclaw_py.logging - log_debug, log_info, log_error 日志函数
+- openclaw_py.channels.telegram.accounts - resolve_telegram_account 账户解析
+- openclaw_py.channels.telegram.bot - create_telegram_bot Bot 创建
+
+**已知问题**：
+- 无
+
+**测试结果**：92 passed（批次 11 新增测试）

@@ -45,6 +45,51 @@ from .updates import (
     resolve_telegram_update_id,
     should_buffer_media_group,
 )
+from .caption import TELEGRAM_MAX_CAPTION_LENGTH, split_telegram_caption
+from .download import (
+    SavedMedia,
+    TelegramFileInfo,
+    download_telegram_file,
+    get_telegram_file,
+)
+from .draft_chunking import (
+    DraftChunkConfig,
+    resolve_telegram_draft_streaming_chunking,
+)
+from .draft_stream import (
+    TelegramDraftStream,
+    create_telegram_draft_stream,
+)
+from .format import (
+    TelegramFormattedChunk,
+    markdown_to_telegram_chunks,
+    markdown_to_telegram_html,
+    markdown_to_telegram_html_chunks,
+    render_telegram_html_text,
+)
+from .group_migration import (
+    TelegramGroupMigrationResult,
+    migrate_telegram_group_config,
+    migrate_telegram_groups_in_place,
+)
+from .media import (
+    LoadedMedia,
+    is_gif_media,
+    load_web_media,
+    media_kind_from_mime,
+)
+from .send import (
+    TelegramSendOptions,
+    TelegramSendResult,
+    build_inline_keyboard,
+    normalize_chat_id,
+    normalize_message_id,
+    send_message_telegram,
+    send_telegram_document,
+    send_telegram_photo,
+    send_telegram_text,
+)
+from .webhook import TelegramWebhookServer, start_telegram_webhook
 
 __all__ = [
     # Types
@@ -92,4 +137,46 @@ __all__ = [
     # Monitoring
     "monitor_telegram_provider",
     "get_telegram_bot_info",
+    # Caption
+    "TELEGRAM_MAX_CAPTION_LENGTH",
+    "split_telegram_caption",
+    # Download
+    "TelegramFileInfo",
+    "SavedMedia",
+    "get_telegram_file",
+    "download_telegram_file",
+    # Draft chunking
+    "DraftChunkConfig",
+    "resolve_telegram_draft_streaming_chunking",
+    # Draft stream
+    "TelegramDraftStream",
+    "create_telegram_draft_stream",
+    # Format
+    "TelegramFormattedChunk",
+    "markdown_to_telegram_html",
+    "render_telegram_html_text",
+    "markdown_to_telegram_chunks",
+    "markdown_to_telegram_html_chunks",
+    # Group migration
+    "TelegramGroupMigrationResult",
+    "migrate_telegram_groups_in_place",
+    "migrate_telegram_group_config",
+    # Media
+    "LoadedMedia",
+    "media_kind_from_mime",
+    "is_gif_media",
+    "load_web_media",
+    # Send
+    "TelegramSendOptions",
+    "TelegramSendResult",
+    "normalize_chat_id",
+    "normalize_message_id",
+    "build_inline_keyboard",
+    "send_telegram_text",
+    "send_telegram_photo",
+    "send_telegram_document",
+    "send_message_telegram",
+    # Webhook
+    "TelegramWebhookServer",
+    "start_telegram_webhook",
 ]

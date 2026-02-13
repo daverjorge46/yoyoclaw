@@ -1,7 +1,7 @@
 # 迁移状态
 
 ## 当前批次
-batch: 11
+batch: 12
 status: not_started
 
 ## 批次进度
@@ -17,7 +17,7 @@ status: not_started
 | 8 | Agent 上下文 + 用量 | ✅ | 2026-02-13 | 30290a1 |
 | 9 | Agent 工具 + Skills | ✅ | 2026-02-13 | cd1ca40 |
 | 10 | Telegram 核心 Bot | ✅ | 2026-02-13 | b2026c1 |
-| 11 | Telegram 媒体/Webhook/群组 | ⬜ | - | - |
+| 11 | Telegram 媒体/Webhook/群组 | ✅ | 2026-02-13 | pending |
 | 12 | 用户管理 + 权限 | ⬜ | - | - |
 | 13 | 消息路由（全链路） | ⬜ | - | - |
 | 14 | CLI 命令行 | ⬜ | - | - |
@@ -53,12 +53,21 @@ status: not_started
 - openclaw_py/channels/telegram/accounts.py
 - openclaw_py/channels/telegram/api_logging.py
 - openclaw_py/channels/telegram/bot.py
+- openclaw_py/channels/telegram/caption.py
+- openclaw_py/channels/telegram/download.py
+- openclaw_py/channels/telegram/draft_chunking.py
+- openclaw_py/channels/telegram/draft_stream.py
+- openclaw_py/channels/telegram/format.py
+- openclaw_py/channels/telegram/group_migration.py
 - openclaw_py/channels/telegram/helpers.py
+- openclaw_py/channels/telegram/media.py
 - openclaw_py/channels/telegram/message_context.py
 - openclaw_py/channels/telegram/monitor.py
+- openclaw_py/channels/telegram/send.py
 - openclaw_py/channels/telegram/token.py
 - openclaw_py/channels/telegram/types.py
 - openclaw_py/channels/telegram/updates.py
+- openclaw_py/channels/telegram/webhook.py
 - openclaw_py/config/defaults.py
 - openclaw_py/config/env_substitution.py
 - openclaw_py/config/loader.py

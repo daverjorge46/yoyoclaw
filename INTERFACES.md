@@ -2868,3 +2868,384 @@ async def monitor_telegram_provider(
 
 ---
 
+## openclaw_py.channels.telegram.caption
+路径: openclaw_py/channels/telegram/caption.py
+
+```python
+from openclaw_py.channels.telegram.caption import (
+    TELEGRAM_MAX_CAPTION_LENGTH,
+    split_telegram_caption,
+)
+
+TELEGRAM_MAX_CAPTION_LENGTH = 1024
+
+def split_telegram_caption(text: str | None) -> dict[str, str | None]:
+    """Split caption if exceeds 1024 chars. Returns dict with caption/followUpText."""
+```
+
+---
+
+## openclaw_py.channels.telegram.format
+路径: openclaw_py/channels/telegram/format.py
+
+```python
+from openclaw_py.channels.telegram.format import (
+    MarkdownTableMode,
+    TelegramFormattedChunk,
+    escape_html,
+    escape_html_attr,
+    markdown_to_telegram_html_basic,
+    render_telegram_html_text,
+    markdown_to_telegram_html,
+    markdown_to_telegram_chunks,
+    markdown_to_telegram_html_chunks,
+)
+
+MarkdownTableMode = Literal["text", "code", "skip"]
+
+class TelegramFormattedChunk(NamedTuple):
+    html: str
+    text: str
+
+def escape_html(text: str) -> str: ...
+def escape_html_attr(text: str) -> str: ...
+def markdown_to_telegram_html_basic(markdown_text: str) -> str: ...
+def render_telegram_html_text(
+    text: str,
+    text_mode: Literal["markdown", "html"] = "markdown",
+    table_mode: MarkdownTableMode = "text",
+) -> str: ...
+def markdown_to_telegram_html(markdown: str, table_mode: MarkdownTableMode = "text") -> str: ...
+def markdown_to_telegram_chunks(
+    markdown: str,
+    limit: int,
+    table_mode: MarkdownTableMode = "text",
+) -> list[TelegramFormattedChunk]: ...
+def markdown_to_telegram_html_chunks(
+    markdown: str,
+    limit: int,
+    table_mode: MarkdownTableMode = "text",
+) -> list[str]: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.download
+路径: openclaw_py/channels/telegram/download.py
+
+```python
+from openclaw_py.channels.telegram.download import (
+    TelegramFileInfo,
+    SavedMedia,
+    get_telegram_file,
+    download_telegram_file,
+)
+
+class TelegramFileInfo(NamedTuple):
+    file_id: str
+    file_unique_id: str | None = None
+    file_size: int | None = None
+    file_path: str | None = None
+
+class SavedMedia(NamedTuple):
+    file_path: str
+    content_type: str | None
+    size: int
+
+async def get_telegram_file(
+    token: str,
+    file_id: str,
+    timeout_ms: int = 30000,
+) -> TelegramFileInfo: ...
+
+async def download_telegram_file(
+    token: str,
+    info: TelegramFileInfo,
+    save_dir: str | Path,
+    max_bytes: int | None = None,
+    timeout_ms: int = 60000,
+) -> SavedMedia: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.media
+路径: openclaw_py/channels/telegram/media.py
+
+```python
+from openclaw_py.channels.telegram.media import (
+    MediaKind,
+    LoadedMedia,
+    media_kind_from_mime,
+    is_gif_media,
+    load_web_media,
+    detect_mime_from_buffer,
+)
+
+MediaKind = Literal["photo", "video", "audio", "voice", "document", "animation", "sticker"]
+
+class LoadedMedia(NamedTuple):
+    content: bytes
+    mime: str | None
+    filename: str | None
+
+def media_kind_from_mime(mime: str | None) -> MediaKind: ...
+def is_gif_media(mime: str | None, filename: str | None = None) -> bool: ...
+async def load_web_media(
+    url: str,
+    max_bytes: int | None = None,
+    timeout_ms: int = 30000,
+) -> LoadedMedia: ...
+def detect_mime_from_buffer(buffer: bytes, filename: str | None = None) -> str | None: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.draft_chunking
+路径: openclaw_py/channels/telegram/draft_chunking.py
+
+```python
+from openclaw_py.channels.telegram.draft_chunking import (
+    DEFAULT_TELEGRAM_DRAFT_STREAM_MIN,
+    DEFAULT_TELEGRAM_DRAFT_STREAM_MAX,
+    DEFAULT_TEXT_CHUNK_LIMIT,
+    BreakPreference,
+    DraftChunkConfig,
+    resolve_telegram_draft_streaming_chunking,
+)
+
+DEFAULT_TELEGRAM_DRAFT_STREAM_MIN = 200
+DEFAULT_TELEGRAM_DRAFT_STREAM_MAX = 800
+DEFAULT_TEXT_CHUNK_LIMIT = 4096
+
+BreakPreference = Literal["paragraph", "newline", "sentence"]
+
+class DraftChunkConfig(NamedTuple):
+    min_chars: int
+    max_chars: int
+    break_preference: BreakPreference
+
+def resolve_telegram_draft_streaming_chunking(
+    config: OpenClawConfig | None,
+    account_id: str | None = None,
+) -> DraftChunkConfig: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.draft_stream
+路径: openclaw_py/channels/telegram/draft_stream.py
+
+```python
+from openclaw_py.channels.telegram.draft_stream import (
+    TELEGRAM_DRAFT_MAX_CHARS,
+    DEFAULT_THROTTLE_MS,
+    TelegramDraftStream,
+    create_telegram_draft_stream,
+)
+
+TELEGRAM_DRAFT_MAX_CHARS = 4096
+DEFAULT_THROTTLE_MS = 300
+
+class TelegramDraftStream:
+    def __init__(
+        self,
+        bot: Bot,
+        chat_id: int,
+        message_id: int,
+        max_chars: int = TELEGRAM_DRAFT_MAX_CHARS,
+        throttle_ms: int = DEFAULT_THROTTLE_MS,
+        message_thread_id: int | None = None,
+        log_fn: Callable[[str], None] | None = None,
+        warn_fn: Callable[[str], None] | None = None,
+    ): ...
+
+    async def flush(self) -> None: ...
+    def update(self, text: str) -> None: ...
+    def stop(self) -> None: ...
+
+def create_telegram_draft_stream(
+    bot: Bot,
+    chat_id: int,
+    message_id: int,
+    max_chars: int = TELEGRAM_DRAFT_MAX_CHARS,
+    throttle_ms: int = DEFAULT_THROTTLE_MS,
+    message_thread_id: int | None = None,
+    log_fn: Callable[[str], None] | None = None,
+    warn_fn: Callable[[str], None] | None = None,
+) -> TelegramDraftStream: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.group_migration
+路径: openclaw_py/channels/telegram/group_migration.py
+
+```python
+from openclaw_py.channels.telegram.group_migration import (
+    MigrationScope,
+    TelegramGroupMigrationResult,
+    migrate_telegram_groups_in_place,
+    resolve_account_groups,
+    migrate_telegram_group_config,
+)
+
+MigrationScope = Literal["account", "global"]
+
+class TelegramGroupMigrationResult(NamedTuple):
+    migrated: bool
+    skipped_existing: bool
+    scopes: list[MigrationScope]
+
+def migrate_telegram_groups_in_place(
+    groups: dict[str, Any] | None,
+    old_chat_id: str,
+    new_chat_id: str,
+) -> dict[str, bool]: ...
+
+def resolve_account_groups(
+    config: OpenClawConfig,
+    account_id: str | None,
+) -> dict[str, Any] | None: ...
+
+def migrate_telegram_group_config(
+    config: OpenClawConfig,
+    old_chat_id: str,
+    new_chat_id: str,
+    account_id: str | None = None,
+) -> TelegramGroupMigrationResult: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.send
+路径: openclaw_py/channels/telegram/send.py
+
+```python
+from openclaw_py.channels.telegram.send import (
+    TelegramSendResult,
+    TelegramSendOptions,
+    normalize_chat_id,
+    normalize_message_id,
+    build_inline_keyboard,
+    send_telegram_text,
+    send_telegram_photo,
+    send_telegram_document,
+    send_message_telegram,
+)
+
+class TelegramSendResult(NamedTuple):
+    message_id: str
+    chat_id: str
+
+class TelegramSendOptions(NamedTuple):
+    token: str | None = None
+    account_id: str | None = None
+    verbose: bool = False
+    media_url: str | None = None
+    max_bytes: int | None = None
+    text_mode: Literal["markdown", "html"] = "markdown"
+    plain_text: str | None = None
+    as_voice: bool = False
+    as_video_note: bool = False
+    silent: bool = False
+    reply_to_message_id: int | None = None
+    quote_text: str | None = None
+    message_thread_id: int | None = None
+    buttons: list[list[dict[str, str]]] | None = None
+
+def normalize_chat_id(to: str) -> str: ...
+def normalize_message_id(raw: str | int) -> int: ...
+def build_inline_keyboard(buttons: list[list[dict[str, str]]] | None) -> InlineKeyboardMarkup | None: ...
+
+async def send_telegram_text(
+    bot: Bot,
+    chat_id: str | int,
+    text: str,
+    parse_mode: ParseMode = ParseMode.HTML,
+    reply_to_message_id: int | None = None,
+    message_thread_id: int | None = None,
+    reply_markup: InlineKeyboardMarkup | None = None,
+    disable_notification: bool = False,
+) -> TelegramSendResult: ...
+
+async def send_telegram_photo(
+    bot: Bot,
+    chat_id: str | int,
+    photo_path: str | Path | bytes,
+    caption: str | None = None,
+    parse_mode: ParseMode = ParseMode.HTML,
+    reply_to_message_id: int | None = None,
+    message_thread_id: int | None = None,
+    reply_markup: InlineKeyboardMarkup | None = None,
+    disable_notification: bool = False,
+) -> TelegramSendResult: ...
+
+async def send_telegram_document(
+    bot: Bot,
+    chat_id: str | int,
+    document_path: str | Path | bytes,
+    filename: str | None = None,
+    caption: str | None = None,
+    parse_mode: ParseMode = ParseMode.HTML,
+    reply_to_message_id: int | None = None,
+    message_thread_id: int | None = None,
+    reply_markup: InlineKeyboardMarkup | None = None,
+    disable_notification: bool = False,
+) -> TelegramSendResult: ...
+
+async def send_message_telegram(
+    to: str,
+    text: str,
+    config: OpenClawConfig | None = None,
+    **options: Any,
+) -> TelegramSendResult: ...
+```
+
+---
+
+## openclaw_py.channels.telegram.webhook
+路径: openclaw_py/channels/telegram/webhook.py
+
+```python
+from openclaw_py.channels.telegram.webhook import (
+    TelegramWebhookServer,
+    start_telegram_webhook,
+)
+
+class TelegramWebhookServer:
+    def __init__(
+        self,
+        bot: Bot,
+        dispatcher: Dispatcher,
+        path: str,
+        health_path: str,
+        secret: str | None = None,
+    ): ...
+
+    async def start(
+        self,
+        host: str = "0.0.0.0",
+        port: int = 8787,
+        public_url: str | None = None,
+    ) -> None: ...
+
+    async def stop(self) -> None: ...
+
+async def start_telegram_webhook(
+    token: str | None = None,
+    account_id: str = "default",
+    config: OpenClawConfig | None = None,
+    path: str = "/telegram-webhook",
+    health_path: str = "/healthz",
+    port: int = 8787,
+    host: str = "0.0.0.0",
+    secret: str | None = None,
+    public_url: str | None = None,
+    abort_signal: asyncio.Event | None = None,
+    on_startup: Callable[[], None] | None = None,
+) -> TelegramWebhookServer: ...
+```
+
+---
+
