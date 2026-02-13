@@ -102,14 +102,15 @@ describe("subagent announce formatting", () => {
     expect(call?.params?.sessionKey).toBe("agent:main:main");
     // User-visible message keeps the original format but no internal details
     expect(msg).toContain("subagent task");
-    expect(msg).toContain("do thing");
     expect(msg).toContain("failed");
+    // task prompt should NOT leak into user-visible message (only label or generic "task")
     expect(msg).not.toContain("Findings:");
     expect(msg).not.toContain("Stats:");
     expect(msg).not.toContain("Summarize");
-    // Findings and instructions are in extraSystemPrompt (not visible to user)
+    // Findings, task prompt, and instructions are in extraSystemPrompt (not visible to user)
     expect(systemPrompt).toContain("Findings:");
     expect(systemPrompt).toContain("raw subagent reply");
+    expect(systemPrompt).toContain("do thing");
     expect(systemPrompt).toContain("craft a natural response");
   });
 

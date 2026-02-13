@@ -502,7 +502,7 @@ export async function runSubagentAnnounceFlow(params: {
 
     // Build a clean, user-visible message (no internal details)
     const announceType = params.announceType ?? "subagent task";
-    const taskLabel = params.label || params.task || "task";
+    const taskLabel = params.label || "task";
     const triggerMessage = `A ${announceType} "${taskLabel}" just ${statusLabel}.`;
 
     // Internal context for the agent (not visible to the user)
@@ -511,6 +511,8 @@ export async function runSubagentAnnounceFlow(params: {
       "Keep it brief (1-2 sentences). Flow it into the conversation naturally.",
       `Do not mention technical details like tokens, stats, or that this was a ${announceType}.`,
       "You can respond with NO_REPLY if no announcement is needed (e.g., internal task with no user-facing result).",
+      "",
+      `Task: ${params.task || taskLabel}`,
       "",
       "Findings:",
       reply || "(no output)",
