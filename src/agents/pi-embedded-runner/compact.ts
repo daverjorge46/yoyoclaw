@@ -75,7 +75,7 @@ import {
   createSystemPromptOverride,
 } from "./system-prompt.js";
 import { splitSdkTools } from "./tool-split.js";
-import { describeUnknownError, mapThinkingLevel, resolveExecToolDefaults } from "./utils.js";
+import { describeUnknownError, mapThinkingLevel, resolveAgentExecToolDefaults } from "./utils.js";
 import { flushPendingToolResultsAfterIdle } from "./wait-for-idle-before-flush.js";
 
 export type CompactEmbeddedPiSessionParams = {
@@ -364,7 +364,7 @@ export async function compactEmbeddedPiSessionDirect(
     const runAbortController = new AbortController();
     const toolsRaw = createOpenClawCodingTools({
       exec: {
-        ...resolveExecToolDefaults(params.config),
+        ...resolveAgentExecToolDefaults(params.config, params.sessionKey),
         elevated: params.bashElevated,
       },
       sandbox,
