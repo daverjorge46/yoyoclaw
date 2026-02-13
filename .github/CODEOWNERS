@@ -1,0 +1,8 @@
+* @amritaballurkar
+
+# Optional team-based ownership (enable once teams exist with write access)
+# /extensions/discord/** @the-colony/platform @the-colony/security
+# /src/agents/auth-profiles/** @the-colony/platform @the-colony/security
+# /src/gateway/** @the-colony/platform @the-colony/security
+# /src/config/** @the-colony/platform
+# /docs/** @the-colony/platform
