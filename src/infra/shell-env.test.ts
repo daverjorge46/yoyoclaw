@@ -1,9 +1,79 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   loadShellEnvFallback,
   resolveShellEnvFallbackTimeoutMs,
   shouldEnableShellEnvFallback,
 } from "./shell-env.js";
+
+describe("resolveShell Windows fallback (#15586)", () => {
+  const originalProcess = globalThis.process;
+
+  afterEach(() => {
+    vi.stubGlobal("process", originalProcess);
+  });
+
+  it("uses COMSPEC on win32 when SHELL is absent", () => {
+    vi.stubGlobal("process", { ...originalProcess, platform: "win32" });
+    const env: NodeJS.ProcessEnv = { COMSPEC: "C:\\Windows\\System32\\cmd.exe" };
+    const exec = vi.fn(() => Buffer.from(""));
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["SOME_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+      logger: { warn: vi.fn() },
+    });
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec.mock.calls[0][0]).toBe("C:\\Windows\\System32\\cmd.exe");
+  });
+
+  it("falls back to cmd.exe on win32 when both SHELL and COMSPEC are absent", () => {
+    vi.stubGlobal("process", { ...originalProcess, platform: "win32" });
+    const env: NodeJS.ProcessEnv = {};
+    const exec = vi.fn(() => Buffer.from(""));
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["SOME_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+      logger: { warn: vi.fn() },
+    });
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec.mock.calls[0][0]).toBe("cmd.exe");
+  });
+
+  it("falls back to /bin/sh on non-Windows when SHELL is absent", () => {
+    const env: NodeJS.ProcessEnv = {};
+    const exec = vi.fn(() => Buffer.from(""));
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["SOME_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+      logger: { warn: vi.fn() },
+    });
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec.mock.calls[0][0]).toBe("/bin/sh");
+  });
+
+  it("prefers SHELL over platform fallback", () => {
+    vi.stubGlobal("process", { ...originalProcess, platform: "win32" });
+    const env: NodeJS.ProcessEnv = {
+      SHELL: "/usr/bin/bash",
+      COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+    };
+    const exec = vi.fn(() => Buffer.from(""));
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["SOME_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+      logger: { warn: vi.fn() },
+    });
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec.mock.calls[0][0]).toBe("/usr/bin/bash");
+  });
+});
 
 describe("shell env fallback", () => {
   it("is disabled by default", () => {
