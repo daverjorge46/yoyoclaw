@@ -214,7 +214,9 @@ export function buildInlineProviderModels(
       provider: trimmed,
       baseUrl: entry?.baseUrl,
       api: model.api ?? entry?.api,
-      headers: entry?.headers,
+      headers: entry?.headers || model.headers
+        ? { ...entry?.headers, ...model.headers }
+        : undefined,
     }));
   });
 }
