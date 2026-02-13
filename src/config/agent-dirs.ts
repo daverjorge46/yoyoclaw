@@ -1,4 +1,3 @@
-import os from "node:os";
 import path from "node:path";
 import type { OpenClawConfig } from "./types.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
@@ -21,12 +20,11 @@ export class DuplicateAgentDirError extends Error {
   }
 }
 
+/**
+ * Windows: Canonicalize path to lowercase (Windows paths are case-insensitive)
+ */
 function canonicalizeAgentDir(agentDir: string): string {
-  const resolved = path.resolve(agentDir);
-  if (process.platform === "darwin" || process.platform === "win32") {
-    return resolved.toLowerCase();
-  }
-  return resolved;
+  return path.resolve(agentDir).toLowerCase();
 }
 
 function collectReferencedAgentIds(cfg: OpenClawConfig): string[] {
@@ -59,7 +57,6 @@ function collectReferencedAgentIds(cfg: OpenClawConfig): string[] {
 function resolveEffectiveAgentDir(
   cfg: OpenClawConfig,
   agentId: string,
-  deps?: { env?: NodeJS.ProcessEnv; homedir?: () => string },
 ): string {
   const id = normalizeAgentId(agentId);
   const configured = Array.isArray(cfg.agents?.list)
@@ -69,22 +66,18 @@ function resolveEffectiveAgentDir(
   if (trimmed) {
     return resolveUserPath(trimmed);
   }
-  const env = deps?.env ?? process.env;
-  const root = resolveStateDir(
-    env,
-    deps?.homedir ?? (() => resolveRequiredHomeDir(env, os.homedir)),
-  );
+  
+  const root = resolveStateDir(process.env, () => resolveRequiredHomeDir(process.env, () => process.env.USERPROFILE || "C:\\Users\\Default"));
   return path.join(root, "agents", id, "agent");
 }
 
 export function findDuplicateAgentDirs(
   cfg: OpenClawConfig,
-  deps?: { env?: NodeJS.ProcessEnv; homedir?: () => string },
 ): DuplicateAgentDir[] {
   const byDir = new Map<string, { agentDir: string; agentIds: string[] }>();
 
   for (const agentId of collectReferencedAgentIds(cfg)) {
-    const agentDir = resolveEffectiveAgentDir(cfg, agentId, deps);
+    const agentDir = resolveEffectiveAgentDir(cfg, agentId);
     const key = canonicalizeAgentDir(agentDir);
     const entry = byDir.get(key);
     if (entry) {
