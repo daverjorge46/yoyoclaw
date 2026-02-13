@@ -97,7 +97,7 @@ export function createDiscordMessageHandler(params: {
       const syntheticMessage = {
         ...last.data.message,
         content: combinedBaseText,
-        attachments: [],
+        attachments: entries.flatMap((entry) => entry.data.message?.attachments ?? []),
         message_snapshots: (last.data.message as { message_snapshots?: unknown }).message_snapshots,
         messageSnapshots: (last.data.message as { messageSnapshots?: unknown }).messageSnapshots,
         rawData: {
