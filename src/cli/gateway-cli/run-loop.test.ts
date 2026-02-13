@@ -8,6 +8,7 @@ const isGatewaySigusr1RestartExternallyAllowed = vi.fn(() => false);
 const getActiveTaskCount = vi.fn(() => 0);
 const waitForActiveTasks = vi.fn(async () => ({ drained: true }));
 const resetAllLanes = vi.fn();
+const DRAIN_TIMEOUT_LOG = "drain timeout reached; proceeding with restart";
 const gatewayLog = {
   info: vi.fn(),
   warn: vi.fn(),
@@ -51,14 +52,14 @@ describe("runGatewayLoop", () => {
     getActiveTaskCount.mockReturnValueOnce(2).mockReturnValueOnce(0);
     waitForActiveTasks.mockResolvedValueOnce({ drained: false });
 
+    type StartServer = () => Promise<{
+      close: (opts: { reason: string; restartExpectedMs: number | null }) => Promise<void>;
+    }>;
+
     const closeFirst = vi.fn(async () => {});
     const closeSecond = vi.fn(async () => {});
     const start = vi
-      .fn<
-        () => Promise<{
-          close: (opts: { reason: string; restartExpectedMs: number | null }) => Promise<void>;
-        }>
-      >()
+      .fn<StartServer>()
       .mockResolvedValueOnce({ close: closeFirst })
       .mockResolvedValueOnce({ close: closeSecond })
       .mockRejectedValueOnce(new Error("stop-loop"));
@@ -94,9 +95,7 @@ describe("runGatewayLoop", () => {
       });
 
       expect(waitForActiveTasks).toHaveBeenCalledWith(30_000);
-      expect(gatewayLog.warn).toHaveBeenCalledWith(
-        "drain timeout reached; proceeding with restart",
-      );
+      expect(gatewayLog.warn).toHaveBeenCalledWith(DRAIN_TIMEOUT_LOG);
       expect(closeFirst).toHaveBeenCalledWith({
         reason: "gateway restarting",
         restartExpectedMs: 1500,
