@@ -23,18 +23,29 @@ let timerKind: WakeTimerKind | null = null;
 
 const DEFAULT_COALESCE_MS = 250;
 const DEFAULT_RETRY_MS = 1_000;
+const HOOK_REASON_PREFIX = "hook:";
+const REASON_PRIORITY = {
+  RETRY: 0,
+  INTERVAL: 1,
+  DEFAULT: 2,
+  ACTION: 3,
+} as const;
+
+function isActionWakeReason(reason: string): boolean {
+  return reason === "manual" || reason === "exec-event" || reason.startsWith(HOOK_REASON_PREFIX);
+}
 
 function resolveReasonPriority(reason: string): number {
   if (reason === "retry") {
-    return 0;
+    return REASON_PRIORITY.RETRY;
   }
   if (reason === "interval") {
-    return 1;
+    return REASON_PRIORITY.INTERVAL;
   }
-  if (reason === "manual" || reason === "exec-event" || reason.startsWith("hook:")) {
-    return 3;
+  if (isActionWakeReason(reason)) {
+    return REASON_PRIORITY.ACTION;
   }
-  return 2;
+  return REASON_PRIORITY.DEFAULT;
 }
 
 function normalizeWakeReason(reason?: string): string {
@@ -69,7 +80,8 @@ function schedule(coalesceMs: number, kind: WakeTimerKind = "normal") {
   const delay = Number.isFinite(coalesceMs) ? Math.max(0, coalesceMs) : DEFAULT_COALESCE_MS;
   const dueAt = Date.now() + delay;
   if (timer) {
-    // Retry cooldown is a hard minimum delay once requested.
+    // Keep retry cooldown as a hard minimum delay. This prevents the
+    // finally-path reschedule (often delay=0) from collapsing backoff.
     if (timerKind === "retry") {
       return;
     }
