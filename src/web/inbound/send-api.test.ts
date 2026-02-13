@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const recordChannelActivity = vi.fn();
-vi.mock("../../../infra/channel-activity.js", () => ({
+vi.mock("../../infra/channel-activity.js", () => ({
   recordChannelActivity: (...args: unknown[]) => recordChannelActivity(...args),
 }));
 
@@ -31,6 +31,11 @@ describe("createWebSendApi", () => {
         mimetype: "application/pdf",
       }),
     );
+    expect(recordChannelActivity).toHaveBeenCalledWith({
+      channel: "whatsapp",
+      accountId: "main",
+      direction: "outbound",
+    });
   });
 
   it("falls back to default document filename when fileName is absent", async () => {
