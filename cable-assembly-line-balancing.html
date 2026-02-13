@@ -650,7 +650,7 @@
 </footer>
 
 <!-- SheetJS for Excel export/import -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -2700,7 +2700,7 @@ function exportAllDataExcel() {
   const stationData = stations.map((st, si) => {
     const processIndexes = st.tasks.join(', ');
     const processSapNos = st.tasks.map(ti => processes[ti]?.sapNo || '').join(', ');
-    const totalTime = st.tasks.reduce((sum, ti) => sum + getProcessTotal(processes[ti]), 0);
+    const totalTime = st.tasks.reduce((sum, ti) => sum + (processes[ti]?.total || 0), 0);
     const workers = stationResources[si]?.workers || 1;
     const machines = (stationResources[si]?.machines || []).map(m => `${m.name}(${m.qty})`).join('; ');
     return [si + 1, processIndexes, processSapNos, totalTime.toFixed(2), workers, machines];
@@ -2709,14 +2709,17 @@ function exportAllDataExcel() {
   XLSX.utils.book_append_sheet(wb, wsStations, 'LineBalancing');
 
   // Sheet 5: Analysis Settings
+  const totalTime = getTotalTime();
+  const numSt = stations.length || 1;
+  const calculatedTakt = totalTime / numSt;
   const analysisData = [
     ['Setting', 'Value'],
-    ['Target Stations', document.getElementById('stationSlider')?.value || '5'],
+    ['Target Stations', document.getElementById('stationSlider')?.value || numSt],
     ['Algorithm', document.getElementById('algoSelect')?.value || 'lct'],
-    ['Takt Time (s)', taktTime.toFixed(2)],
-    ['Target Daily Output', document.getElementById('targetDailyOutput')?.value || '500'],
-    ['Working Hours/Day', document.getElementById('workingHoursDay')?.value || '8'],
-    ['Working Days/Year', document.getElementById('workingDaysYear')?.value || '210']
+    ['Takt Time (s)', calculatedTakt.toFixed(2)],
+    ['Total Cycle Time (s)', totalTime.toFixed(2)],
+    ['Number of Stations', numSt],
+    ['Working Days/Year', WORKING_DAYS_PER_YEAR]
   ];
   const wsAnalysis = XLSX.utils.aoa_to_sheet(analysisData);
   XLSX.utils.book_append_sheet(wb, wsAnalysis, 'Analysis');
@@ -2850,15 +2853,6 @@ function importAllDataExcel(input) {
           }
           if (row[0] === 'Algorithm' && document.getElementById('algoSelect')) {
             document.getElementById('algoSelect').value = row[1];
-          }
-          if (row[0] === 'Target Daily Output' && document.getElementById('targetDailyOutput')) {
-            document.getElementById('targetDailyOutput').value = row[1];
-          }
-          if (row[0] === 'Working Hours/Day' && document.getElementById('workingHoursDay')) {
-            document.getElementById('workingHoursDay').value = row[1];
-          }
-          if (row[0] === 'Working Days/Year' && document.getElementById('workingDaysYear')) {
-            document.getElementById('workingDaysYear').value = row[1];
           }
         });
       }
