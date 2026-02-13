@@ -1,33 +1,32 @@
 import { confirm as clackConfirm, select as clackSelect, text as clackText } from "@clack/prompts";
-
-import { upsertAuthProfile } from "../../agents/auth-profiles.js";
-import { normalizeProviderId } from "../../agents/model-selection.js";
-import {
-  resolveAgentDir,
-  resolveAgentWorkspaceDir,
-  resolveDefaultAgentId,
-} from "../../agents/agent-scope.js";
-import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
-import { parseDurationMs } from "../../cli/parse-duration.js";
-import { formatCliCommand } from "../../cli/command-format.js";
-import { readConfigFileSnapshot, type OpenClawConfig } from "../../config/config.js";
-import { logConfigUpdated } from "../../config/logging.js";
-import type { RuntimeEnv } from "../../runtime.js";
-import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
-import { applyAuthProfileConfig } from "../onboard-auth.js";
-import { isRemoteEnvironment } from "../oauth-env.js";
-import { openUrl } from "../onboard-helpers.js";
-import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
-import { updateConfig } from "./shared.js";
-import { resolvePluginProviders } from "../../plugins/providers.js";
-import { createClackPrompter } from "../../wizard/clack-prompter.js";
+import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
 import type {
   ProviderAuthMethod,
   ProviderAuthResult,
   ProviderPlugin,
 } from "../../plugins/types.js";
-import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
+import type { RuntimeEnv } from "../../runtime.js";
+import {
+  resolveAgentDir,
+  resolveAgentWorkspaceDir,
+  resolveDefaultAgentId,
+} from "../../agents/agent-scope.js";
+import { upsertAuthProfile } from "../../agents/auth-profiles.js";
+import { normalizeProviderId } from "../../agents/model-selection.js";
+import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
+import { formatCliCommand } from "../../cli/command-format.js";
+import { parseDurationMs } from "../../cli/parse-duration.js";
+import { readConfigFileSnapshot, type OpenClawConfig } from "../../config/config.js";
+import { logConfigUpdated } from "../../config/logging.js";
+import { resolvePluginProviders } from "../../plugins/providers.js";
+import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
+import { createClackPrompter } from "../../wizard/clack-prompter.js";
 import { validateAnthropicSetupToken } from "../auth-token.js";
+import { isRemoteEnvironment } from "../oauth-env.js";
+import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
+import { applyAuthProfileConfig } from "../onboard-auth.js";
+import { openUrl } from "../onboard-helpers.js";
+import { updateConfig } from "./shared.js";
 
 const confirm = (params: Parameters<typeof clackConfirm>[0]) =>
   clackConfirm({
@@ -52,9 +51,13 @@ type TokenProvider = "anthropic";
 
 function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
   const trimmed = raw?.trim();
-  if (!trimmed) return null;
+  if (!trimmed) {
+    return null;
+  }
   const normalized = normalizeProviderId(trimmed);
-  if (normalized === "anthropic") return "anthropic";
+  if (normalized === "anthropic") {
+    return "anthropic";
+  }
   return "custom";
 }
 
@@ -80,14 +83,16 @@ export async function modelsAuthSetupTokenCommand(
       message: "Have you run `claude setup-token` and copied the token?",
       initialValue: true,
     });
-    if (!proceed) return;
+    if (!proceed) {
+      return;
+    }
   }
 
   const tokenInput = await text({
     message: "Paste Anthropic setup-token",
     validate: (value) => validateAnthropicSetupToken(String(value ?? "")),
   });
-  const token = String(tokenInput).trim();
+  const token = String(tokenInput ?? "").trim();
   const profileId = resolveDefaultTokenProfileId(provider);
 
   upsertAuthProfile({
@@ -130,11 +135,11 @@ export async function modelsAuthPasteTokenCommand(
     message: `Paste token for ${provider}`,
     validate: (value) => (value?.trim() ? undefined : "Required"),
   });
-  const token = String(tokenInput).trim();
+  const token = String(tokenInput ?? "").trim();
 
   const expires =
     opts.expiresIn?.trim() && opts.expiresIn.trim().length > 0
-      ? Date.now() + parseDurationMs(String(opts.expiresIn).trim(), { defaultUnit: "d" })
+      ? Date.now() + parseDurationMs(String(opts.expiresIn ?? "").trim(), { defaultUnit: "d" })
       : undefined;
 
   upsertAuthProfile({
@@ -239,7 +244,9 @@ function resolveProviderMatch(
   rawProvider?: string,
 ): ProviderPlugin | null {
   const raw = rawProvider?.trim();
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   const normalized = normalizeProviderId(raw);
   return (
     providers.find((provider) => normalizeProviderId(provider.id) === normalized) ??
@@ -253,7 +260,9 @@ function resolveProviderMatch(
 
 function pickAuthMethod(provider: ProviderPlugin, rawMethod?: string): ProviderAuthMethod | null {
   const raw = rawMethod?.trim();
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   const normalized = raw.toLowerCase();
   return (
     provider.auth.find((method) => method.id.toLowerCase() === normalized) ??
@@ -307,8 +316,12 @@ function applyDefaultModel(cfg: OpenClawConfig, model: string): OpenClawConfig {
 }
 
 function credentialMode(credential: AuthProfileCredential): "api_key" | "oauth" | "token" {
-  if (credential.type === "api_key") return "api_key";
-  if (credential.type === "token") return "token";
+  if (credential.type === "api_key") {
+    return "api_key";
+  }
+  if (credential.type === "token") {
+    return "token";
+  }
   return "oauth";
 }
 

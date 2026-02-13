@@ -1,9 +1,8 @@
-import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
-import type { ChannelId } from "../../channels/plugins/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import type { PollInput } from "../../polls.js";
+import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway, randomIdempotencyKey } from "../../gateway/call.js";
-import type { PollInput } from "../../polls.js";
 import { normalizePollInput } from "../../polls.js";
 import {
   GATEWAY_CLIENT_MODES,
@@ -18,7 +17,6 @@ import {
   type OutboundSendDeps,
 } from "./deliver.js";
 import { normalizeReplyPayloadsForDelivery } from "./payloads.js";
-import type { OutboundChannel } from "./targets.js";
 import { resolveOutboundTarget } from "./targets.js";
 
 export type MessageGatewayOptions = {
@@ -38,6 +36,8 @@ type MessageSendParams = {
   mediaUrls?: string[];
   gifPlayback?: boolean;
   accountId?: string;
+  replyToId?: string;
+  threadId?: string | number;
   dryRun?: boolean;
   bestEffort?: boolean;
   deps?: OutboundSendDeps;
@@ -116,7 +116,7 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
   if (!channel) {
     throw new Error(`Unknown channel: ${params.channel}`);
   }
-  const plugin = getChannelPlugin(channel as ChannelId);
+  const plugin = getChannelPlugin(channel);
   if (!plugin) {
     throw new Error(`Unknown channel: ${channel}`);
   }
@@ -149,7 +149,7 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
   }
 
   if (deliveryMode !== "gateway") {
-    const outboundChannel = channel as Exclude<OutboundChannel, "none">;
+    const outboundChannel = channel;
     const resolvedTarget = resolveOutboundTarget({
       channel: outboundChannel,
       to: params.to,
@@ -157,7 +157,9 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
       accountId: params.accountId,
       mode: "explicit",
     });
-    if (!resolvedTarget.ok) throw resolvedTarget.error;
+    if (!resolvedTarget.ok) {
+      throw resolvedTarget.error;
+    }
 
     const results = await deliverOutboundPayloads({
       cfg,
@@ -165,6 +167,8 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
       to: resolvedTarget.to,
       accountId: params.accountId,
       payloads: normalizedPayloads,
+      replyToId: params.replyToId,
+      threadId: params.threadId,
       gifPlayback: params.gifPlayback,
       deps: params.deps,
       bestEffort: params.bestEffort,
@@ -235,7 +239,7 @@ export async function sendPoll(params: MessagePollParams): Promise<MessagePollRe
     maxSelections: params.maxSelections,
     durationHours: params.durationHours,
   };
-  const plugin = getChannelPlugin(channel as ChannelId);
+  const plugin = getChannelPlugin(channel);
   const outbound = plugin?.outbound;
   if (!outbound?.sendPoll) {
     throw new Error(`Unsupported poll channel: ${channel}`);

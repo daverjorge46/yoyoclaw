@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
       thinkingLevel: "low",
       inputTokens: 2_000,
       outputTokens: 3_000,
+      totalTokens: 5_000,
       contextTokens: 10_000,
       model: "pi:opus",
       sessionId: "abc123",
@@ -103,7 +104,12 @@ vi.mock("../memory/manager.js", () => ({
         sourceCounts: [{ source: "memory", files: 2, chunks: 3 }],
         cache: { enabled: true, entries: 10, maxEntries: 500 },
         fts: { enabled: true, available: true },
-        vector: { enabled: true, available: true, extensionPath: "/opt/vec0.dylib", dims: 1024 },
+        vector: {
+          enabled: true,
+          available: true,
+          extensionPath: "/opt/vec0.dylib",
+          dims: 1024,
+        },
       }),
       close: vi.fn(async () => {}),
       __agentId: agentId,
@@ -115,6 +121,12 @@ vi.mock("../config/sessions.js", () => ({
   loadSessionStore: mocks.loadSessionStore,
   resolveMainSessionKey: mocks.resolveMainSessionKey,
   resolveStorePath: mocks.resolveStorePath,
+  resolveFreshSessionTotalTokens: vi.fn(
+    (entry?: { totalTokens?: number; totalTokensFresh?: boolean }) =>
+      typeof entry?.totalTokens === "number" && entry?.totalTokensFresh !== false
+        ? entry.totalTokens
+        : undefined,
+  ),
   readSessionUpdatedAt: vi.fn(() => undefined),
   recordSessionMetaFromInbound: vi.fn().mockResolvedValue(undefined),
 }));
@@ -298,12 +310,62 @@ describe("statusCommand", () => {
     expect(payload.sessions.defaults.model).toBeTruthy();
     expect(payload.sessions.defaults.contextTokens).toBeGreaterThan(0);
     expect(payload.sessions.recent[0].percentUsed).toBe(50);
+    expect(payload.sessions.recent[0].totalTokensFresh).toBe(true);
     expect(payload.sessions.recent[0].remainingTokens).toBe(5000);
     expect(payload.sessions.recent[0].flags).toContain("verbose:on");
     expect(payload.securityAudit.summary.critical).toBe(1);
     expect(payload.securityAudit.summary.warn).toBe(1);
     expect(payload.gatewayService.label).toBe("LaunchAgent");
     expect(payload.nodeService.label).toBe("LaunchAgent");
+  });
+
+  it("surfaces unknown usage when totalTokens is missing", async () => {
+    const originalLoadSessionStore = mocks.loadSessionStore.getMockImplementation();
+    mocks.loadSessionStore.mockReturnValue({
+      "+1000": {
+        updatedAt: Date.now() - 60_000,
+        inputTokens: 2_000,
+        outputTokens: 3_000,
+        contextTokens: 10_000,
+        model: "pi:opus",
+      },
+    });
+
+    (runtime.log as vi.Mock).mockClear();
+    await statusCommand({ json: true }, runtime as never);
+    const payload = JSON.parse((runtime.log as vi.Mock).mock.calls.at(-1)?.[0]);
+    expect(payload.sessions.recent[0].totalTokens).toBeNull();
+    expect(payload.sessions.recent[0].totalTokensFresh).toBe(false);
+    expect(payload.sessions.recent[0].percentUsed).toBeNull();
+    expect(payload.sessions.recent[0].remainingTokens).toBeNull();
+
+    if (originalLoadSessionStore) {
+      mocks.loadSessionStore.mockImplementation(originalLoadSessionStore);
+    }
+  });
+
+  it("prints unknown usage in formatted output when totalTokens is missing", async () => {
+    const originalLoadSessionStore = mocks.loadSessionStore.getMockImplementation();
+    mocks.loadSessionStore.mockReturnValue({
+      "+1000": {
+        updatedAt: Date.now() - 60_000,
+        inputTokens: 2_000,
+        outputTokens: 3_000,
+        contextTokens: 10_000,
+        model: "pi:opus",
+      },
+    });
+
+    try {
+      (runtime.log as vi.Mock).mockClear();
+      await statusCommand({}, runtime as never);
+      const logs = (runtime.log as vi.Mock).mock.calls.map((c) => String(c[0]));
+      expect(logs.some((line) => line.includes("unknown/") && line.includes("(?%)"))).toBe(true);
+    } finally {
+      if (originalLoadSessionStore) {
+        mocks.loadSessionStore.mockImplementation(originalLoadSessionStore);
+      }
+    }
   });
 
   it("prints formatted lines otherwise", async () => {
@@ -358,8 +420,11 @@ describe("statusCommand", () => {
       const logs = (runtime.log as vi.Mock).mock.calls.map((c) => String(c[0]));
       expect(logs.some((l) => l.includes("auth token"))).toBe(true);
     } finally {
-      if (prevToken === undefined) delete process.env.OPENCLAW_GATEWAY_TOKEN;
-      else process.env.OPENCLAW_GATEWAY_TOKEN = prevToken;
+      if (prevToken === undefined) {
+        delete process.env.OPENCLAW_GATEWAY_TOKEN;
+      } else {
+        process.env.OPENCLAW_GATEWAY_TOKEN = prevToken;
+      }
     }
   });
 
@@ -431,6 +496,7 @@ describe("statusCommand", () => {
             updatedAt: Date.now() - 120_000,
             inputTokens: 1_000,
             outputTokens: 1_000,
+            totalTokens: 2_000,
             contextTokens: 10_000,
             model: "pi:opus",
           },
@@ -443,6 +509,7 @@ describe("statusCommand", () => {
           thinkingLevel: "low",
           inputTokens: 2_000,
           outputTokens: 3_000,
+          totalTokens: 5_000,
           contextTokens: 10_000,
           model: "pi:opus",
           sessionId: "abc123",
@@ -459,10 +526,14 @@ describe("statusCommand", () => {
       payload.sessions.recent.some((sess: { key?: string }) => sess.key === "agent:ops:main"),
     ).toBe(true);
 
-    if (originalAgents) mocks.listAgentsForGateway.mockImplementation(originalAgents);
-    if (originalResolveStorePath)
+    if (originalAgents) {
+      mocks.listAgentsForGateway.mockImplementation(originalAgents);
+    }
+    if (originalResolveStorePath) {
       mocks.resolveStorePath.mockImplementation(originalResolveStorePath);
-    if (originalLoadSessionStore)
+    }
+    if (originalLoadSessionStore) {
       mocks.loadSessionStore.mockImplementation(originalLoadSessionStore);
+    }
   });
 });

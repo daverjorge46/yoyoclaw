@@ -3,7 +3,6 @@ import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-
 import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
 
 export type ExecHost = "sandbox" | "gateway" | "node";
@@ -73,9 +72,15 @@ function hashExecApprovalsRaw(raw: string | null): string {
 }
 
 function expandHome(value: string): string {
-  if (!value) return value;
-  if (value === "~") return os.homedir();
-  if (value.startsWith("~/")) return path.join(os.homedir(), value.slice(2));
+  if (!value) {
+    return value;
+  }
+  if (value === "~") {
+    return os.homedir();
+  }
+  if (value.startsWith("~/")) {
+    return path.join(os.homedir(), value.slice(2));
+  }
   return value;
 }
 
@@ -100,12 +105,18 @@ function mergeLegacyAgent(
   const seen = new Set<string>();
   const pushEntry = (entry: ExecAllowlistEntry) => {
     const key = normalizeAllowlistPattern(entry.pattern);
-    if (!key || seen.has(key)) return;
+    if (!key || seen.has(key)) {
+      return;
+    }
     seen.add(key);
     allowlist.push(entry);
   };
-  for (const entry of current.allowlist ?? []) pushEntry(entry);
-  for (const entry of legacy.allowlist ?? []) pushEntry(entry);
+  for (const entry of current.allowlist ?? []) {
+    pushEntry(entry);
+  }
+  for (const entry of legacy.allowlist ?? []) {
+    pushEntry(entry);
+  }
 
   return {
     security: current.security ?? legacy.security,
@@ -121,13 +132,48 @@ function ensureDir(filePath: string) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+// Coerce legacy/corrupted allowlists into `ExecAllowlistEntry[]` before we spread
+// entries to add ids (spreading strings creates {"0":"l","1":"s",...}).
+function coerceAllowlistEntries(allowlist: unknown): ExecAllowlistEntry[] | undefined {
+  if (!Array.isArray(allowlist) || allowlist.length === 0) {
+    return Array.isArray(allowlist) ? (allowlist as ExecAllowlistEntry[]) : undefined;
+  }
+  let changed = false;
+  const result: ExecAllowlistEntry[] = [];
+  for (const item of allowlist) {
+    if (typeof item === "string") {
+      const trimmed = item.trim();
+      if (trimmed) {
+        result.push({ pattern: trimmed });
+        changed = true;
+      } else {
+        changed = true; // dropped empty string
+      }
+    } else if (item && typeof item === "object" && !Array.isArray(item)) {
+      const pattern = (item as { pattern?: unknown }).pattern;
+      if (typeof pattern === "string" && pattern.trim().length > 0) {
+        result.push(item as ExecAllowlistEntry);
+      } else {
+        changed = true; // dropped invalid entry
+      }
+    } else {
+      changed = true; // dropped invalid entry
+    }
+  }
+  return changed ? (result.length > 0 ? result : undefined) : (allowlist as ExecAllowlistEntry[]);
+}
+
 function ensureAllowlistIds(
   allowlist: ExecAllowlistEntry[] | undefined,
 ): ExecAllowlistEntry[] | undefined {
-  if (!Array.isArray(allowlist) || allowlist.length === 0) return allowlist;
+  if (!Array.isArray(allowlist) || allowlist.length === 0) {
+    return allowlist;
+  }
   let changed = false;
   const next = allowlist.map((entry) => {
-    if (entry.id) return entry;
+    if (entry.id) {
+      return entry;
+    }
     changed = true;
     return { ...entry, id: crypto.randomUUID() };
   });
@@ -145,7 +191,8 @@ export function normalizeExecApprovals(file: ExecApprovalsFile): ExecApprovalsFi
     delete agents.default;
   }
   for (const [key, agent] of Object.entries(agents)) {
-    const allowlist = ensureAllowlistIds(agent.allowlist);
+    const coerced = coerceAllowlistEntries(agent.allowlist);
+    const allowlist = ensureAllowlistIds(coerced);
     if (allowlist !== agent.allowlist) {
       agents[key] = { ...agent, allowlist };
     }
@@ -248,12 +295,16 @@ export function ensureExecApprovals(): ExecApprovalsFile {
 }
 
 function normalizeSecurity(value: ExecSecurity | undefined, fallback: ExecSecurity): ExecSecurity {
-  if (value === "allowlist" || value === "full" || value === "deny") return value;
+  if (value === "allowlist" || value === "full" || value === "deny") {
+    return value;
+  }
   return fallback;
 }
 
 function normalizeAsk(value: ExecAsk | undefined, fallback: ExecAsk): ExecAsk {
-  if (value === "always" || value === "off" || value === "on-miss") return value;
+  if (value === "always" || value === "off" || value === "on-miss") {
+    return value;
+  }
   return fallback;
 }
 
@@ -345,7 +396,9 @@ type CommandResolution = {
 function isExecutableFile(filePath: string): boolean {
   try {
     const stat = fs.statSync(filePath);
-    if (!stat.isFile()) return false;
+    if (!stat.isFile()) {
+      return false;
+    }
     if (process.platform !== "win32") {
       fs.accessSync(filePath, fs.constants.X_OK);
     }
@@ -357,11 +410,15 @@ function isExecutableFile(filePath: string): boolean {
 
 function parseFirstToken(command: string): string | null {
   const trimmed = command.trim();
-  if (!trimmed) return null;
+  if (!trimmed) {
+    return null;
+  }
   const first = trimmed[0];
   if (first === '"' || first === "'") {
     const end = trimmed.indexOf(first, 1);
-    if (end > 1) return trimmed.slice(1, end);
+    if (end > 1) {
+      return trimmed.slice(1, end);
+    }
     return trimmed.slice(1);
   }
   const match = /^[^\s]+/.exec(trimmed);
@@ -398,7 +455,9 @@ function resolveExecutablePath(rawExecutable: string, cwd?: string, env?: NodeJS
   for (const entry of entries) {
     for (const ext of extensions) {
       const candidate = path.join(entry, expanded + ext);
-      if (isExecutableFile(candidate)) return candidate;
+      if (isExecutableFile(candidate)) {
+        return candidate;
+      }
     }
   }
   return undefined;
@@ -410,7 +469,9 @@ export function resolveCommandResolution(
   env?: NodeJS.ProcessEnv,
 ): CommandResolution | null {
   const rawExecutable = parseFirstToken(command);
-  if (!rawExecutable) return null;
+  if (!rawExecutable) {
+    return null;
+  }
   const resolvedPath = resolveExecutablePath(rawExecutable, cwd, env);
   const executableName = resolvedPath ? path.basename(resolvedPath) : rawExecutable;
   return { rawExecutable, resolvedPath, executableName };
@@ -422,7 +483,9 @@ export function resolveCommandResolutionFromArgv(
   env?: NodeJS.ProcessEnv,
 ): CommandResolution | null {
   const rawExecutable = argv[0]?.trim();
-  if (!rawExecutable) return null;
+  if (!rawExecutable) {
+    return null;
+  }
   const resolvedPath = resolveExecutablePath(rawExecutable, cwd, env);
   const executableName = resolvedPath ? path.basename(resolvedPath) : rawExecutable;
   return { rawExecutable, resolvedPath, executableName };
@@ -474,7 +537,9 @@ function globToRegExp(pattern: string): RegExp {
 
 function matchesPattern(pattern: string, target: string): boolean {
   const trimmed = pattern.trim();
-  if (!trimmed) return false;
+  if (!trimmed) {
+    return false;
+  }
   const expanded = trimmed.startsWith("~") ? expandHome(trimmed) : trimmed;
   const hasWildcard = /[*?]/.test(expanded);
   let normalizedPattern = expanded;
@@ -493,13 +558,23 @@ function resolveAllowlistCandidatePath(
   resolution: CommandResolution | null,
   cwd?: string,
 ): string | undefined {
-  if (!resolution) return undefined;
-  if (resolution.resolvedPath) return resolution.resolvedPath;
+  if (!resolution) {
+    return undefined;
+  }
+  if (resolution.resolvedPath) {
+    return resolution.resolvedPath;
+  }
   const raw = resolution.rawExecutable?.trim();
-  if (!raw) return undefined;
+  if (!raw) {
+    return undefined;
+  }
   const expanded = raw.startsWith("~") ? expandHome(raw) : raw;
-  if (!expanded.includes("/") && !expanded.includes("\\")) return undefined;
-  if (path.isAbsolute(expanded)) return expanded;
+  if (!expanded.includes("/") && !expanded.includes("\\")) {
+    return undefined;
+  }
+  if (path.isAbsolute(expanded)) {
+    return expanded;
+  }
   const base = cwd && cwd.trim() ? cwd.trim() : process.cwd();
   return path.resolve(base, expanded);
 }
@@ -508,14 +583,22 @@ export function matchAllowlist(
   entries: ExecAllowlistEntry[],
   resolution: CommandResolution | null,
 ): ExecAllowlistEntry | null {
-  if (!entries.length || !resolution?.resolvedPath) return null;
+  if (!entries.length || !resolution?.resolvedPath) {
+    return null;
+  }
   const resolvedPath = resolution.resolvedPath;
   for (const entry of entries) {
     const pattern = entry.pattern?.trim();
-    if (!pattern) continue;
+    if (!pattern) {
+      continue;
+    }
     const hasPath = pattern.includes("/") || pattern.includes("\\") || pattern.includes("~");
-    if (!hasPath) continue;
-    if (matchesPattern(pattern, resolvedPath)) return entry;
+    if (!hasPath) {
+      continue;
+    }
+    if (matchesPattern(pattern, resolvedPath)) {
+      return entry;
+    }
   }
   return null;
 }
@@ -534,32 +617,96 @@ export type ExecCommandAnalysis = {
 };
 
 const DISALLOWED_PIPELINE_TOKENS = new Set([">", "<", "`", "\n", "\r", "(", ")"]);
+const DOUBLE_QUOTE_ESCAPES = new Set(["\\", '"', "$", "`", "\n", "\r"]);
+const WINDOWS_UNSUPPORTED_TOKENS = new Set([
+  "&",
+  "|",
+  "<",
+  ">",
+  "^",
+  "(",
+  ")",
+  "%",
+  "!",
+  "\n",
+  "\r",
+]);
 
-type IteratorAction = "split" | "skip" | "include" | { reject: string };
+function isDoubleQuoteEscape(next: string | undefined): next is string {
+  return Boolean(next && DOUBLE_QUOTE_ESCAPES.has(next));
+}
 
-/**
- * Iterates through a command string while respecting shell quoting rules.
- * The callback receives each character and the next character, and returns an action:
- * - "split": push current buffer as a segment and start a new one
- * - "skip": skip this character (and optionally the next via skip count)
- * - "include": add this character to the buffer
- * - { reject: reason }: abort with an error
- */
-function iterateQuoteAware(
-  command: string,
-  onChar: (ch: string, next: string | undefined, index: number) => IteratorAction,
-): { ok: true; parts: string[]; hasSplit: boolean } | { ok: false; reason: string } {
-  const parts: string[] = [];
+function splitShellPipeline(command: string): { ok: boolean; reason?: string; segments: string[] } {
+  type HeredocSpec = {
+    delimiter: string;
+    stripTabs: boolean;
+  };
+
+  const parseHeredocDelimiter = (
+    source: string,
+    start: number,
+  ): { delimiter: string; end: number } | null => {
+    let i = start;
+    while (i < source.length && (source[i] === " " || source[i] === "\t")) {
+      i += 1;
+    }
+    if (i >= source.length) {
+      return null;
+    }
+
+    const first = source[i];
+    if (first === "'" || first === '"') {
+      const quote = first;
+      i += 1;
+      let delimiter = "";
+      while (i < source.length) {
+        const ch = source[i];
+        if (ch === "\n" || ch === "\r") {
+          return null;
+        }
+        if (quote === '"' && ch === "\\" && i + 1 < source.length) {
+          delimiter += source[i + 1];
+          i += 2;
+          continue;
+        }
+        if (ch === quote) {
+          return { delimiter, end: i + 1 };
+        }
+        delimiter += ch;
+        i += 1;
+      }
+      return null;
+    }
+
+    let delimiter = "";
+    while (i < source.length) {
+      const ch = source[i];
+      if (/\s/.test(ch) || ch === "|" || ch === "&" || ch === ";" || ch === "<" || ch === ">") {
+        break;
+      }
+      delimiter += ch;
+      i += 1;
+    }
+    if (!delimiter) {
+      return null;
+    }
+    return { delimiter, end: i };
+  };
+
+  const segments: string[] = [];
   let buf = "";
   let inSingle = false;
   let inDouble = false;
   let escaped = false;
-  let hasSplit = false;
+  let emptySegment = false;
+  const pendingHeredocs: HeredocSpec[] = [];
+  let inHeredocBody = false;
+  let heredocLine = "";
 
   const pushPart = () => {
     const trimmed = buf.trim();
     if (trimmed) {
-      parts.push(trimmed);
+      segments.push(trimmed);
     }
     buf = "";
   };
@@ -568,96 +715,240 @@ function iterateQuoteAware(
     const ch = command[i];
     const next = command[i + 1];
 
+    if (inHeredocBody) {
+      if (ch === "\n" || ch === "\r") {
+        const current = pendingHeredocs[0];
+        if (current) {
+          const line = current.stripTabs ? heredocLine.replace(/^\t+/, "") : heredocLine;
+          if (line === current.delimiter) {
+            pendingHeredocs.shift();
+          }
+        }
+        heredocLine = "";
+        if (pendingHeredocs.length === 0) {
+          inHeredocBody = false;
+        }
+        if (ch === "\r" && next === "\n") {
+          i += 1;
+        }
+      } else {
+        heredocLine += ch;
+      }
+      continue;
+    }
+
     if (escaped) {
       buf += ch;
       escaped = false;
+      emptySegment = false;
       continue;
     }
     if (!inSingle && !inDouble && ch === "\\") {
       escaped = true;
       buf += ch;
+      emptySegment = false;
       continue;
     }
     if (inSingle) {
-      if (ch === "'") inSingle = false;
+      if (ch === "'") {
+        inSingle = false;
+      }
       buf += ch;
+      emptySegment = false;
       continue;
     }
     if (inDouble) {
-      if (ch === '"') inDouble = false;
+      if (ch === "\\" && isDoubleQuoteEscape(next)) {
+        buf += ch;
+        buf += next;
+        i += 1;
+        emptySegment = false;
+        continue;
+      }
+      if (ch === "$" && next === "(") {
+        return { ok: false, reason: "unsupported shell token: $()", segments: [] };
+      }
+      if (ch === "`") {
+        return { ok: false, reason: "unsupported shell token: `", segments: [] };
+      }
+      if (ch === "\n" || ch === "\r") {
+        return { ok: false, reason: "unsupported shell token: newline", segments: [] };
+      }
+      if (ch === '"') {
+        inDouble = false;
+      }
       buf += ch;
+      emptySegment = false;
       continue;
     }
     if (ch === "'") {
       inSingle = true;
       buf += ch;
+      emptySegment = false;
       continue;
     }
     if (ch === '"') {
       inDouble = true;
       buf += ch;
+      emptySegment = false;
       continue;
     }
 
-    const action = onChar(ch, next, i);
-    if (typeof action === "object" && "reject" in action) {
-      return { ok: false, reason: action.reject };
-    }
-    if (action === "split") {
-      pushPart();
-      hasSplit = true;
+    if ((ch === "\n" || ch === "\r") && pendingHeredocs.length > 0) {
+      inHeredocBody = true;
+      heredocLine = "";
+      if (ch === "\r" && next === "\n") {
+        i += 1;
+      }
       continue;
     }
-    if (action === "skip") {
+
+    if (ch === "|" && next === "|") {
+      return { ok: false, reason: "unsupported shell token: ||", segments: [] };
+    }
+    if (ch === "|" && next === "&") {
+      return { ok: false, reason: "unsupported shell token: |&", segments: [] };
+    }
+    if (ch === "|") {
+      emptySegment = true;
+      pushPart();
+      continue;
+    }
+    if (ch === "&" || ch === ";") {
+      return { ok: false, reason: `unsupported shell token: ${ch}`, segments: [] };
+    }
+    if (ch === "<" && next === "<") {
+      buf += "<<";
+      emptySegment = false;
+      i += 1;
+
+      let scanIndex = i + 1;
+      let stripTabs = false;
+      if (command[scanIndex] === "-") {
+        stripTabs = true;
+        buf += "-";
+        scanIndex += 1;
+      }
+
+      const parsed = parseHeredocDelimiter(command, scanIndex);
+      if (parsed) {
+        pendingHeredocs.push({ delimiter: parsed.delimiter, stripTabs });
+        buf += command.slice(scanIndex, parsed.end);
+        i = parsed.end - 1;
+      }
+      continue;
+    }
+    if (DISALLOWED_PIPELINE_TOKENS.has(ch)) {
+      return { ok: false, reason: `unsupported shell token: ${ch}`, segments: [] };
+    }
+    if (ch === "$" && next === "(") {
+      return { ok: false, reason: "unsupported shell token: $()", segments: [] };
+    }
+    buf += ch;
+    emptySegment = false;
+  }
+
+  if (inHeredocBody && pendingHeredocs.length > 0) {
+    const current = pendingHeredocs[0];
+    const line = current.stripTabs ? heredocLine.replace(/^\t+/, "") : heredocLine;
+    if (line === current.delimiter) {
+      pendingHeredocs.shift();
+    }
+  }
+
+  if (escaped || inSingle || inDouble) {
+    return { ok: false, reason: "unterminated shell quote/escape", segments: [] };
+  }
+
+  pushPart();
+  if (emptySegment || segments.length === 0) {
+    return {
+      ok: false,
+      reason: segments.length === 0 ? "empty command" : "empty pipeline segment",
+      segments: [],
+    };
+  }
+  return { ok: true, segments };
+}
+
+function findWindowsUnsupportedToken(command: string): string | null {
+  for (const ch of command) {
+    if (WINDOWS_UNSUPPORTED_TOKENS.has(ch)) {
+      if (ch === "\n" || ch === "\r") {
+        return "newline";
+      }
+      return ch;
+    }
+  }
+  return null;
+}
+
+function tokenizeWindowsSegment(segment: string): string[] | null {
+  const tokens: string[] = [];
+  let buf = "";
+  let inDouble = false;
+
+  const pushToken = () => {
+    if (buf.length > 0) {
+      tokens.push(buf);
+      buf = "";
+    }
+  };
+
+  for (let i = 0; i < segment.length; i += 1) {
+    const ch = segment[i];
+    if (ch === '"') {
+      inDouble = !inDouble;
+      continue;
+    }
+    if (!inDouble && /\s/.test(ch)) {
+      pushToken();
       continue;
     }
     buf += ch;
   }
 
-  if (escaped || inSingle || inDouble) {
-    return { ok: false, reason: "unterminated shell quote/escape" };
+  if (inDouble) {
+    return null;
   }
-  pushPart();
-  return { ok: true, parts, hasSplit };
+  pushToken();
+  return tokens.length > 0 ? tokens : null;
 }
 
-function splitShellPipeline(command: string): { ok: boolean; reason?: string; segments: string[] } {
-  let emptySegment = false;
-  const result = iterateQuoteAware(command, (ch, next) => {
-    if (ch === "|" && next === "|") {
-      return { reject: "unsupported shell token: ||" };
-    }
-    if (ch === "|" && next === "&") {
-      return { reject: "unsupported shell token: |&" };
-    }
-    if (ch === "|") {
-      emptySegment = true;
-      return "split";
-    }
-    if (ch === "&" || ch === ";") {
-      return { reject: `unsupported shell token: ${ch}` };
-    }
-    if (DISALLOWED_PIPELINE_TOKENS.has(ch)) {
-      return { reject: `unsupported shell token: ${ch}` };
-    }
-    if (ch === "$" && next === "(") {
-      return { reject: "unsupported shell token: $()" };
-    }
-    emptySegment = false;
-    return "include";
-  });
-
-  if (!result.ok) {
-    return { ok: false, reason: result.reason, segments: [] };
-  }
-  if (emptySegment || result.parts.length === 0) {
+function analyzeWindowsShellCommand(params: {
+  command: string;
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+}): ExecCommandAnalysis {
+  const unsupported = findWindowsUnsupportedToken(params.command);
+  if (unsupported) {
     return {
       ok: false,
-      reason: result.parts.length === 0 ? "empty command" : "empty pipeline segment",
+      reason: `unsupported windows shell token: ${unsupported}`,
       segments: [],
     };
   }
-  return { ok: true, segments: result.parts };
+  const argv = tokenizeWindowsSegment(params.command);
+  if (!argv || argv.length === 0) {
+    return { ok: false, reason: "unable to parse windows command", segments: [] };
+  }
+  return {
+    ok: true,
+    segments: [
+      {
+        raw: params.command,
+        argv,
+        resolution: resolveCommandResolutionFromArgv(argv, params.cwd, params.env),
+      },
+    ],
+  };
+}
+
+function isWindowsPlatform(platform?: string | null): boolean {
+  const normalized = String(platform ?? "")
+    .trim()
+    .toLowerCase();
+  return normalized.startsWith("win");
 }
 
 function tokenizeShellSegment(segment: string): string[] | null {
@@ -694,6 +985,12 @@ function tokenizeShellSegment(segment: string): string[] | null {
       continue;
     }
     if (inDouble) {
+      const next = segment[i + 1];
+      if (ch === "\\" && isDoubleQuoteEscape(next)) {
+        buf += next;
+        i += 1;
+        continue;
+      }
       if (ch === '"') {
         inDouble = false;
       } else {
@@ -747,7 +1044,11 @@ export function analyzeShellCommand(params: {
   command: string;
   cwd?: string;
   env?: NodeJS.ProcessEnv;
+  platform?: string | null;
 }): ExecCommandAnalysis {
+  if (isWindowsPlatform(params.platform)) {
+    return analyzeWindowsShellCommand(params);
+  }
   // First try splitting by chain operators (&&, ||, ;)
   const chainParts = splitCommandChain(params.command);
   if (chainParts) {
@@ -805,10 +1106,18 @@ export function analyzeArgvCommand(params: {
 
 function isPathLikeToken(value: string): boolean {
   const trimmed = value.trim();
-  if (!trimmed) return false;
-  if (trimmed === "-") return false;
-  if (trimmed.startsWith("./") || trimmed.startsWith("../") || trimmed.startsWith("~")) return true;
-  if (trimmed.startsWith("/")) return true;
+  if (!trimmed) {
+    return false;
+  }
+  if (trimmed === "-") {
+    return false;
+  }
+  if (trimmed.startsWith("./") || trimmed.startsWith("../") || trimmed.startsWith("~")) {
+    return true;
+  }
+  if (trimmed.startsWith("/")) {
+    return true;
+  }
   return /^[A-Za-z]:[\\/]/.test(trimmed);
 }
 
@@ -821,7 +1130,9 @@ function defaultFileExists(filePath: string): boolean {
 }
 
 export function normalizeSafeBins(entries?: string[]): Set<string> {
-  if (!Array.isArray(entries)) return new Set();
+  if (!Array.isArray(entries)) {
+    return new Set();
+  }
   const normalized = entries
     .map((entry) => entry.trim().toLowerCase())
     .filter((entry) => entry.length > 0);
@@ -829,7 +1140,9 @@ export function normalizeSafeBins(entries?: string[]): Set<string> {
 }
 
 export function resolveSafeBins(entries?: string[] | null): Set<string> {
-  if (entries === undefined) return normalizeSafeBins(DEFAULT_SAFE_BINS);
+  if (entries === undefined) {
+    return normalizeSafeBins(DEFAULT_SAFE_BINS);
+  }
   return normalizeSafeBins(entries ?? []);
 }
 
@@ -840,22 +1153,34 @@ export function isSafeBinUsage(params: {
   cwd?: string;
   fileExists?: (filePath: string) => boolean;
 }): boolean {
-  if (params.safeBins.size === 0) return false;
+  if (params.safeBins.size === 0) {
+    return false;
+  }
   const resolution = params.resolution;
   const execName = resolution?.executableName?.toLowerCase();
-  if (!execName) return false;
+  if (!execName) {
+    return false;
+  }
   const matchesSafeBin =
     params.safeBins.has(execName) ||
     (process.platform === "win32" && params.safeBins.has(path.parse(execName).name));
-  if (!matchesSafeBin) return false;
-  if (!resolution?.resolvedPath) return false;
+  if (!matchesSafeBin) {
+    return false;
+  }
+  if (!resolution?.resolvedPath) {
+    return false;
+  }
   const cwd = params.cwd ?? process.cwd();
   const exists = params.fileExists ?? defaultFileExists;
   const argv = params.argv.slice(1);
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
-    if (!token) continue;
-    if (token === "-") continue;
+    if (!token) {
+      continue;
+    }
+    if (token === "-") {
+      continue;
+    }
     if (token.startsWith("-")) {
       const eqIndex = token.indexOf("=");
       if (eqIndex > 0) {
@@ -866,8 +1191,12 @@ export function isSafeBinUsage(params: {
       }
       continue;
     }
-    if (isPathLikeToken(token)) return false;
-    if (exists(path.resolve(cwd, token))) return false;
+    if (isPathLikeToken(token)) {
+      return false;
+    }
+    if (exists(path.resolve(cwd, token))) {
+      return false;
+    }
   }
   return true;
 }
@@ -897,7 +1226,9 @@ function evaluateSegments(
         ? { ...segment.resolution, resolvedPath: candidatePath }
         : segment.resolution;
     const match = matchAllowlist(params.allowlist, candidateResolution);
-    if (match) matches.push(match);
+    if (match) {
+      matches.push(match);
+    }
     const safe = isSafeBinUsage({
       argv: segment.argv,
       resolution: segment.resolution,
@@ -982,6 +1313,7 @@ function splitCommandChain(command: string): string[] | null {
 
   for (let i = 0; i < command.length; i += 1) {
     const ch = command[i];
+    const next = command[i + 1];
     if (escaped) {
       buf += ch;
       escaped = false;
@@ -993,12 +1325,22 @@ function splitCommandChain(command: string): string[] | null {
       continue;
     }
     if (inSingle) {
-      if (ch === "'") inSingle = false;
+      if (ch === "'") {
+        inSingle = false;
+      }
       buf += ch;
       continue;
     }
     if (inDouble) {
-      if (ch === '"') inDouble = false;
+      if (ch === "\\" && isDoubleQuoteEscape(next)) {
+        buf += ch;
+        buf += next;
+        i += 1;
+        continue;
+      }
+      if (ch === '"') {
+        inDouble = false;
+      }
       buf += ch;
       continue;
     }
@@ -1014,19 +1356,25 @@ function splitCommandChain(command: string): string[] | null {
     }
 
     if (ch === "&" && command[i + 1] === "&") {
-      if (!pushPart()) invalidChain = true;
+      if (!pushPart()) {
+        invalidChain = true;
+      }
       i += 1;
       foundChain = true;
       continue;
     }
     if (ch === "|" && command[i + 1] === "|") {
-      if (!pushPart()) invalidChain = true;
+      if (!pushPart()) {
+        invalidChain = true;
+      }
       i += 1;
       foundChain = true;
       continue;
     }
     if (ch === ";") {
-      if (!pushPart()) invalidChain = true;
+      if (!pushPart()) {
+        invalidChain = true;
+      }
       foundChain = true;
       continue;
     }
@@ -1035,8 +1383,12 @@ function splitCommandChain(command: string): string[] | null {
   }
 
   const pushedFinal = pushPart();
-  if (!foundChain) return null;
-  if (invalidChain || !pushedFinal) return null;
+  if (!foundChain) {
+    return null;
+  }
+  if (invalidChain || !pushedFinal) {
+    return null;
+  }
   return parts.length > 0 ? parts : null;
 }
 
@@ -1058,13 +1410,15 @@ export function evaluateShellAllowlist(params: {
   env?: NodeJS.ProcessEnv;
   skillBins?: Set<string>;
   autoAllowSkills?: boolean;
+  platform?: string | null;
 }): ExecAllowlistAnalysis {
-  const chainParts = splitCommandChain(params.command);
+  const chainParts = isWindowsPlatform(params.platform) ? null : splitCommandChain(params.command);
   if (!chainParts) {
     const analysis = analyzeShellCommand({
       command: params.command,
       cwd: params.cwd,
       env: params.env,
+      platform: params.platform,
     });
     if (!analysis.ok) {
       return {
@@ -1098,6 +1452,7 @@ export function evaluateShellAllowlist(params: {
       command: part,
       cwd: params.cwd,
       env: params.env,
+      platform: params.platform,
     });
     if (!analysis.ok) {
       return {
@@ -1187,8 +1542,12 @@ export function addAllowlistEntry(
   const existing = agents[target] ?? {};
   const allowlist = Array.isArray(existing.allowlist) ? existing.allowlist : [];
   const trimmed = pattern.trim();
-  if (!trimmed) return;
-  if (allowlist.some((entry) => entry.pattern === trimmed)) return;
+  if (!trimmed) {
+    return;
+  }
+  if (allowlist.some((entry) => entry.pattern === trimmed)) {
+    return;
+  }
   allowlist.push({ id: crypto.randomUUID(), pattern: trimmed, lastUsedAt: Date.now() });
   agents[target] = { ...existing, allowlist };
   approvals.agents = agents;
@@ -1214,14 +1573,18 @@ export async function requestExecApprovalViaSocket(params: {
   timeoutMs?: number;
 }): Promise<ExecApprovalDecision | null> {
   const { socketPath, token, request } = params;
-  if (!socketPath || !token) return null;
+  if (!socketPath || !token) {
+    return null;
+  }
   const timeoutMs = params.timeoutMs ?? 15_000;
   return await new Promise((resolve) => {
     const client = new net.Socket();
     let settled = false;
     let buffer = "";
     const finish = (value: ExecApprovalDecision | null) => {
-      if (settled) return;
+      if (settled) {
+        return;
+      }
       settled = true;
       try {
         client.destroy();
@@ -1250,7 +1613,9 @@ export async function requestExecApprovalViaSocket(params: {
         const line = buffer.slice(0, idx).trim();
         buffer = buffer.slice(idx + 1);
         idx = buffer.indexOf("\n");
-        if (!line) continue;
+        if (!line) {
+          continue;
+        }
         try {
           const msg = JSON.parse(line) as { type?: string; decision?: ExecApprovalDecision };
           if (msg?.type === "decision" && msg.decision) {

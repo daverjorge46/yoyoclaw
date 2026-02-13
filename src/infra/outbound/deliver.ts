@@ -1,29 +1,31 @@
+import type { ReplyPayload } from "../../auto-reply/types.js";
+import type { ChannelOutboundAdapter } from "../../channels/plugins/types.js";
+import type { OpenClawConfig } from "../../config/config.js";
+import type { sendMessageDiscord } from "../../discord/send.js";
+import type { sendMessageIMessage } from "../../imessage/send.js";
+import type { sendMessageSlack } from "../../slack/send.js";
+import type { sendMessageTelegram } from "../../telegram/send.js";
+import type { sendMessageWhatsApp } from "../../web/outbound.js";
+import type { NormalizedOutboundPayload } from "./payloads.js";
+import type { OutboundChannel } from "./targets.js";
 import {
   chunkByParagraph,
   chunkMarkdownTextWithMode,
   resolveChunkMode,
   resolveTextChunkLimit,
 } from "../../auto-reply/chunk.js";
-import type { ReplyPayload } from "../../auto-reply/types.js";
 import { resolveChannelMediaMaxBytes } from "../../channels/plugins/media-limits.js";
 import { loadChannelOutboundAdapter } from "../../channels/plugins/outbound/load.js";
-import type { ChannelOutboundAdapter } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
 import { resolveMarkdownTableMode } from "../../config/markdown-tables.js";
-import type { sendMessageDiscord } from "../../discord/send.js";
-import type { sendMessageIMessage } from "../../imessage/send.js";
-import { markdownToSignalTextChunks, type SignalTextStyleRange } from "../../signal/format.js";
-import { sendMessageSignal } from "../../signal/send.js";
-import type { sendMessageSlack } from "../../slack/send.js";
-import type { sendMessageTelegram } from "../../telegram/send.js";
-import type { sendMessageWhatsApp } from "../../web/outbound.js";
 import {
   appendAssistantMessageToSessionTranscript,
   resolveMirroredTranscriptText,
 } from "../../config/sessions.js";
-import type { NormalizedOutboundPayload } from "./payloads.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
+import { markdownToSignalTextChunks, type SignalTextStyleRange } from "../../signal/format.js";
+import { sendMessageSignal } from "../../signal/send.js";
+import { throwIfAborted } from "./abort.js";
 import { normalizeReplyPayloadsForDelivery } from "./payloads.js";
-import type { OutboundChannel } from "./targets.js";
 
 export type { NormalizedOutboundPayload } from "./payloads.js";
 export { normalizeOutboundPayloads } from "./payloads.js";
@@ -74,12 +76,6 @@ type ChannelHandler = {
   sendMedia: (caption: string, mediaUrl: string) => Promise<OutboundDeliveryResult>;
 };
 
-function throwIfAborted(abortSignal?: AbortSignal): void {
-  if (abortSignal?.aborted) {
-    throw new Error("Outbound delivery aborted");
-  }
-}
-
 // Channel docking: outbound delivery delegates to plugin.outbound adapters.
 async function createChannelHandler(params: {
   cfg: OpenClawConfig;
@@ -124,7 +120,9 @@ function createPluginHandler(params: {
   gifPlayback?: boolean;
 }): ChannelHandler | null {
   const outbound = params.outbound;
-  if (!outbound?.sendText || !outbound?.sendMedia) return null;
+  if (!outbound?.sendText || !outbound?.sendMedia) {
+    return null;
+  }
   const sendText = outbound.sendText;
   const sendMedia = outbound.sendMedia;
   const chunker = outbound.chunker ?? null;
@@ -244,10 +242,14 @@ export async function deliverOutboundPayloads(params: {
           ? chunkMarkdownTextWithMode(text, textLimit, "newline")
           : chunkByParagraph(text, textLimit);
 
-      if (!blockChunks.length && text) blockChunks.push(text);
+      if (!blockChunks.length && text) {
+        blockChunks.push(text);
+      }
       for (const blockChunk of blockChunks) {
         const chunks = handler.chunker(blockChunk, textLimit);
-        if (!chunks.length && blockChunk) chunks.push(blockChunk);
+        if (!chunks.length && blockChunk) {
+          chunks.push(blockChunk);
+        }
         for (const chunk of chunks) {
           throwIfAborted(abortSignal);
           results.push(await handler.sendText(chunk));
@@ -311,18 +313,91 @@ export async function deliverOutboundPayloads(params: {
       })),
     };
   };
-  const normalizedPayloads = normalizeReplyPayloadsForDelivery(payloads);
+  const normalizeWhatsAppPayload = (payload: ReplyPayload): ReplyPayload | null => {
+    const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
+    const rawText = typeof payload.text === "string" ? payload.text : "";
+    const normalizedText = rawText.replace(/^(?:[ \t]*\r?\n)+/, "");
+    if (!normalizedText.trim()) {
+      if (!hasMedia) {
+        return null;
+      }
+      return {
+        ...payload,
+        text: "",
+      };
+    }
+    return {
+      ...payload,
+      text: normalizedText,
+    };
+  };
+  const normalizedPayloads = normalizeReplyPayloadsForDelivery(payloads).flatMap((payload) => {
+    if (channel !== "whatsapp") {
+      return [payload];
+    }
+    const normalized = normalizeWhatsAppPayload(payload);
+    return normalized ? [normalized] : [];
+  });
+  const hookRunner = getGlobalHookRunner();
   for (const payload of normalizedPayloads) {
     const payloadSummary: NormalizedOutboundPayload = {
       text: payload.text ?? "",
       mediaUrls: payload.mediaUrls ?? (payload.mediaUrl ? [payload.mediaUrl] : []),
       channelData: payload.channelData,
     };
+    const emitMessageSent = (success: boolean, error?: string) => {
+      if (!hookRunner?.hasHooks("message_sent")) {
+        return;
+      }
+      void hookRunner
+        .runMessageSent(
+          {
+            to,
+            content: payloadSummary.text,
+            success,
+            ...(error ? { error } : {}),
+          },
+          {
+            channelId: channel,
+            accountId: accountId ?? undefined,
+          },
+        )
+        .catch(() => {});
+    };
     try {
       throwIfAborted(abortSignal);
+
+      // Run message_sending plugin hook (may modify content or cancel)
+      let effectivePayload = payload;
+      if (hookRunner?.hasHooks("message_sending")) {
+        try {
+          const sendingResult = await hookRunner.runMessageSending(
+            {
+              to,
+              content: payloadSummary.text,
+              metadata: { channel, accountId, mediaUrls: payloadSummary.mediaUrls },
+            },
+            {
+              channelId: channel,
+              accountId: accountId ?? undefined,
+            },
+          );
+          if (sendingResult?.cancel) {
+            continue;
+          }
+          if (sendingResult?.content != null) {
+            effectivePayload = { ...payload, text: sendingResult.content };
+            payloadSummary.text = sendingResult.content;
+          }
+        } catch {
+          // Don't block delivery on hook failure
+        }
+      }
+
       params.onPayload?.(payloadSummary);
-      if (handler.sendPayload && payload.channelData) {
-        results.push(await handler.sendPayload(payload));
+      if (handler.sendPayload && effectivePayload.channelData) {
+        results.push(await handler.sendPayload(effectivePayload));
+        emitMessageSent(true);
         continue;
       }
       if (payloadSummary.mediaUrls.length === 0) {
@@ -331,6 +406,7 @@ export async function deliverOutboundPayloads(params: {
         } else {
           await sendTextChunks(payloadSummary.text);
         }
+        emitMessageSent(true);
         continue;
       }
 
@@ -345,8 +421,12 @@ export async function deliverOutboundPayloads(params: {
           results.push(await handler.sendMedia(caption, url));
         }
       }
+      emitMessageSent(true);
     } catch (err) {
-      if (!params.bestEffort) throw err;
+      emitMessageSent(false, err instanceof Error ? err.message : String(err));
+      if (!params.bestEffort) {
+        throw err;
+      }
       params.onError?.(err, payloadSummary);
     }
   }
