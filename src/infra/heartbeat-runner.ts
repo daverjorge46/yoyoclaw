@@ -100,8 +100,9 @@ const EXEC_EVENT_PROMPT =
 // This overrides the standard heartbeat prompt so the model relays the scheduled
 // reminder instead of responding with "HEARTBEAT_OK".
 const CRON_EVENT_PROMPT =
-  "A scheduled reminder has been triggered. The reminder message is shown in the system messages above. " +
-  "Please relay this reminder to the user in a helpful and friendly way.";
+  "A scheduled cron job has fired. The task instructions are in the system messages above. " +
+  "Execute the requested task fully — do NOT reply with HEARTBEAT_OK. " +
+  "Complete the work described, then report the results.";
 
 type HeartbeatAgentState = {
   agentId: string;
