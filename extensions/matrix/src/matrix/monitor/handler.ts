@@ -68,6 +68,8 @@ export type MatrixMonitorHandlerParams = {
     roomId: string,
   ) => Promise<{ name?: string; canonicalAlias?: string; altAliases: string[] }>;
   getMemberDisplayName: (roomId: string, userId: string) => Promise<string>;
+  accountId?: string | null;
+  blockStreaming?: boolean;
 };
 
 export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParams) {
@@ -93,6 +95,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
     directTracker,
     getRoomInfo,
     getMemberDisplayName,
+    accountId,
   } = params;
 
   return async (roomId: string, event: MatrixRawEvent) => {
@@ -435,6 +438,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
       const baseRoute = core.channel.routing.resolveAgentRoute({
         cfg,
         channel: "matrix",
+        accountId,
         peer: {
           kind: isDirectMessage ? "direct" : "channel",
           id: isDirectMessage ? senderId : roomId,
@@ -672,6 +676,8 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
         replyOptions: {
           ...replyOptions,
           skillFilter: roomConfig?.skills,
+          disableBlockStreaming:
+            typeof params.blockStreaming === "boolean" ? !params.blockStreaming : undefined,
           onModelSelected,
         },
       });

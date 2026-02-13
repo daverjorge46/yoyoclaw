@@ -136,6 +136,47 @@ When E2EE is enabled, the bot will request verification from your other sessions
 Open Element (or another client) and approve the verification request to establish trust.
 Once verified, the bot can decrypt messages in encrypted rooms.
 
+## Multi-account
+
+Multi-account support: use `channels.matrix.accounts` with per-account credentials and optional `name`. See [`gateway/configuration`](/gateway/configuration#telegramaccounts--discordaccounts--slackaccounts--signalaccounts--imessageaccounts) for the shared pattern.
+
+Each account runs as a separate Matrix user on any homeserver. Per-account config
+inherits from the top-level `channels.matrix` settings and can override any option
+(DM policy, groups, encryption, etc.).
+
+```json5
+{
+  channels: {
+    matrix: {
+      enabled: true,
+      dm: { policy: "pairing" },
+      accounts: {
+        assistant: {
+          name: "Main assistant",
+          homeserver: "https://matrix.example.org",
+          accessToken: "syt_assistant_***",
+          encryption: true,
+        },
+        alerts: {
+          name: "Alerts bot",
+          homeserver: "https://matrix.example.org",
+          accessToken: "syt_alerts_***",
+          dm: { policy: "allowlist", allowFrom: ["@admin:example.org"] },
+        },
+      },
+    },
+  },
+}
+```
+
+Notes:
+
+- Account startup is serialized to avoid race conditions with concurrent module imports.
+- Env variables (`MATRIX_HOMESERVER`, `MATRIX_ACCESS_TOKEN`, etc.) only apply to the **default** account.
+- Base channel settings (DM policy, group policy, mention gating, etc.) apply to all accounts unless overridden per account.
+- Use `bindings[].match.accountId` to route each account to a different agent.
+- Crypto state is stored per account + access token (separate key stores per account).
+
 ## Routing model
 
 - Replies always go back to Matrix.
@@ -188,6 +229,44 @@ Once verified, the bot can decrypt messages in encrypted rooms.
 - `channels.matrix.replyToMode` controls reply-to metadata when not replying in a thread:
   - `off` (default), `first`, `all`
 
+## Block streaming
+
+Block streaming sends agent replies as they are generated, instead of batching
+everything until the agent finishes. Enable it per channel:
+
+```json5
+{
+  channels: {
+    matrix: {
+      blockStreaming: true, // enable block streaming (off by default)
+    },
+  },
+}
+```
+
+Coalescing merges short consecutive chunks before sending to reduce message spam:
+
+```json5
+{
+  channels: {
+    matrix: {
+      blockStreaming: true,
+      blockStreamingCoalesce: {
+        minChars: 1500, // wait for this many chars before sending
+        maxChars: 4000, // flush if buffer exceeds this
+        idleMs: 1000, // flush after this idle gap (ms)
+      },
+    },
+  },
+}
+```
+
+Sensible coalesce defaults (`minChars: 1500`, `idleMs: 1000`) are applied
+automatically when block streaming is enabled.
+
+See [Streaming and Chunking](/concepts/streaming) for the full set of controls
+(`blockStreamingBreak`, `blockStreamingChunk`, `humanDelay`, etc.).
+
 ## Capabilities
 
 | Feature         | Status                                                                                |
@@ -200,6 +279,7 @@ Once verified, the bot can decrypt messages in encrypted rooms.
 | Reactions       | ✅ Supported (send/read via tools)                                                    |
 | Polls           | ✅ Send supported; inbound poll starts are converted to text (responses/ends ignored) |
 | Location        | ✅ Supported (geo URI; altitude ignored)                                              |
+| Block streaming | ✅ Supported (`channels.matrix.blockStreaming: true`)                                 |
 | Native commands | ✅ Supported                                                                          |
 
 ## Troubleshooting
@@ -253,7 +333,10 @@ Provider options:
 - `channels.matrix.groups`: group allowlist + per-room settings map.
 - `channels.matrix.rooms`: legacy group allowlist/config.
 - `channels.matrix.replyToMode`: reply-to mode for threads/tags.
+- `channels.matrix.blockStreaming`: enable block streaming (default: `false`; required for streaming replies).
+- `channels.matrix.blockStreamingCoalesce`: block streaming coalesce tuning (`{ minChars, maxChars, idleMs }`).
 - `channels.matrix.mediaMaxMb`: inbound/outbound media cap (MB).
 - `channels.matrix.autoJoin`: invite handling (`always | allowlist | off`, default: always).
 - `channels.matrix.autoJoinAllowlist`: allowed room IDs/aliases for auto-join.
+- `channels.matrix.accounts`: multi-account configuration keyed by account ID (each account inherits top-level settings).
 - `channels.matrix.actions`: per-action tool gating (reactions/messages/pins/memberInfo/channelInfo).
