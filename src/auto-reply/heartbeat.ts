@@ -81,9 +81,14 @@ function stripTokenAtEdges(raw: string): { text: string; didStrip: boolean } {
       changed = true;
       continue;
     }
-    if (next.endsWith(token)) {
-      const before = next.slice(0, Math.max(0, next.length - token.length));
-      text = before.trimEnd();
+    // Strip the token when it appears at the end of the text.
+    // Also strip up to 4 trailing non-word characters the model may have appended
+    // (e.g. ".", "!!!", "---"), but only when the token is the entire remaining text
+    // (^ anchor). This prevents mangling sentences like "I should not respond HEARTBEAT_OK."
+    // where the punctuation belongs to the surrounding text.
+    if (next.endsWith(token) || new RegExp(`^${token}[^\\w]{0,4}$`).test(next)) {
+      const idx = next.lastIndexOf(token);
+      text = next.slice(0, idx).trimEnd();
       didStrip = true;
       changed = true;
     }

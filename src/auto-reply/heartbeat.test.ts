@@ -107,6 +107,49 @@ describe("stripHeartbeatToken", () => {
       didStrip: true,
     });
   });
+
+  it("strips trailing punctuation only when directly after the token", () => {
+    // Token with trailing dot/exclamation/dashes → should still strip
+    expect(stripHeartbeatToken(`${HEARTBEAT_TOKEN}.`, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
+    expect(stripHeartbeatToken(`${HEARTBEAT_TOKEN}!!!`, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
+    expect(stripHeartbeatToken(`${HEARTBEAT_TOKEN}---`, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
+  });
+
+  it("does not strip trailing punctuation from unrelated text containing the token", () => {
+    // Token is in the middle — trailing dot belongs to surrounding sentence, not the token
+    expect(
+      stripHeartbeatToken(`I should not respond ${HEARTBEAT_TOKEN}.`, {
+        mode: "message",
+      }),
+    ).toEqual({
+      shouldSkip: false,
+      text: `I should not respond ${HEARTBEAT_TOKEN}.`,
+      didStrip: false,
+    });
+  });
+
+  it("preserves trailing punctuation on text before the token", () => {
+    // Token at end, preceding text has its own punctuation — only the token is stripped
+    expect(
+      stripHeartbeatToken(`All clear. ${HEARTBEAT_TOKEN}`, { mode: "message" }),
+    ).toEqual({
+      shouldSkip: false,
+      text: "All clear.",
+      didStrip: true,
+    });
+  });
 });
 
 describe("isHeartbeatContentEffectivelyEmpty", () => {
