@@ -2853,11 +2853,11 @@ public enum GatewayFrame: Codable, Sendable {
         let type = try typeContainer.decode(String.self, forKey: .type)
         switch type {
         case "req":
-            self = try .req(RequestFrame(from: decoder))
+            self = .req(try RequestFrame(from: decoder))
         case "res":
-            self = try .res(ResponseFrame(from: decoder))
+            self = .res(try ResponseFrame(from: decoder))
         case "event":
-            self = try .event(EventFrame(from: decoder))
+            self = .event(try EventFrame(from: decoder))
         default:
             let container = try decoder.singleValueContainer()
             let raw = try container.decode([String: AnyCodable].self)
