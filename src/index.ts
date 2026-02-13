@@ -78,8 +78,10 @@ const isMain = isMainModule({
 
 if (isMain) {
   // Global error handlers to prevent silent crashes from unhandled rejections/exceptions.
-  // These log the error and exit gracefully instead of crashing without trace.
-  installUnhandledRejectionHandler();
+  // Default behavior is "exit" (preserves historical behavior). Users can opt into
+  // "warn" via config: gateway.unhandledRejections.
+  const cfg = loadConfig();
+  installUnhandledRejectionHandler({ mode: cfg.gateway?.unhandledRejections ?? "exit" });
 
   process.on("uncaughtException", (error) => {
     console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
