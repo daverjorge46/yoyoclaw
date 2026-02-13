@@ -55,18 +55,18 @@ If you run `--deep`, OpenClaw also attempts a best-effort live Gateway probe.
 
 Based on [EarlyCore security research](https://www.earlycore.ai/security) findings, the audit includes checks for common hardening gaps:
 
-| Check ID                                       | Severity      | Description                                                        |
-| ---------------------------------------------- | ------------- | ------------------------------------------------------------------ |
-| `sandbox.mode_not_all`                         | Critical/Warn | Sandbox mode not set to "all" (critical if web/exec tools enabled) |
-| `sandbox.docker.network_not_isolated`          | Critical      | Sandbox network allows SSRF (not set to "none")                    |
-| `tools.dangerous_not_denied`                   | Warn          | Dangerous tools (exec, write, browser, etc.) not in deny list      |
-| `tools.elevated_enabled`                       | Info          | Elevated mode is enabled (bypasses sandbox)                        |
-| `tools.elevated_enabled_no_allowlist`          | Warn          | Elevated mode enabled without allowFrom configured                 |
-| `gateway.tls_disabled`                         | Warn/Critical | TLS not enabled (critical for non-loopback)                        |
-| `tools.agent_to_agent_enabled`                 | Info          | Agent-to-agent messaging enabled                                   |
-| `sandbox.docker.writable_root`                 | Info          | Sandbox root filesystem writable                                   |
-| `sandbox.docker.capabilities_not_dropped`      | Info          | Linux capabilities not dropped in sandbox                          |
-| `gateway.nodes.deny_commands_missing_defaults` | Info          | Default dangerous commands not blocked                             |
+| Check ID                                   | Severity      | Description                                                        |
+| ------------------------------------------ | ------------- | ------------------------------------------------------------------ |
+| `sandbox.mode_not_all`                     | Critical/Warn | Sandbox mode not set to "all" (critical if web/exec tools enabled) |
+| `sandbox.docker.network_not_isolated`      | Critical      | Sandbox network allows SSRF (not set to "none")                    |
+| `tools.dangerous_not_denied`               | Warn          | Dangerous tools (exec, write, browser, etc.) not in deny list      |
+| `tools.elevated_enabled`                   | Info          | Elevated mode is enabled (bypasses sandbox)                        |
+| `tools.elevated_enabled_no_allowlist`      | Warn          | Elevated mode enabled without allowFrom configured                 |
+| `gateway.tls_disabled`                     | Warn/Critical | TLS not enabled (critical for non-loopback)                        |
+| `tools.agent_to_agent_enabled`             | Info          | Agent-to-agent messaging enabled                                   |
+| `sandbox.docker.writable_root`             | Info          | Sandbox root filesystem writable                                   |
+| `sandbox.docker.capabilities_not_dropped`  | Info          | Linux capabilities not dropped in sandbox                          |
+| `gateway.nodes.dangerous_commands_allowed` | Warn          | Dangerous node commands explicitly allowed                         |
 
 ## Credential storage map
 
