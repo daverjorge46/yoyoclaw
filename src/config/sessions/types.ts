@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import type { NormalizedChatType } from "../../channels/chat-type.js";
 import type { ChannelId } from "../../channels/plugins/types.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
+import type { ThreadBinding } from "../thread-registry.js";
 import type { TtsAutoMode } from "../types.tts.js";
 
 export type SessionScope = "per-sender" | "global";
@@ -93,6 +94,9 @@ export type SessionEntry = {
   lastThreadId?: string | number;
   skillsSnapshot?: SessionSkillSnapshot;
   systemPromptReport?: SessionSystemPromptReport;
+
+  /** Thread binding configuration (Phase 1: thread-session binding). */
+  threadBinding?: ThreadBinding;
 };
 
 export function mergeSessionEntry(

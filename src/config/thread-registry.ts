@@ -1,0 +1,200 @@
+/**
+ * Thread-Session Binding Registry
+ *
+ * Persistent, in-memory bidirectional map that tracks which sessions are bound
+ * to which platform threads.  Rebuilt from the session store on load and kept
+ * in sync as sessions are created/updated/removed.
+ *
+ * Key concepts:
+ *   threadKey  – normalized string  `<channel>:<accountId?>:<threadId>`
+ *   sessionKey – existing session key (e.g. `agent:dev:subagent:<uuid>`)
+ *
+ * One thread can have many bound sessions (fan-out).
+ * Each session can be bound to at most one thread.
+ */
+
+/**
+ * Thread binding configuration stored on a SessionEntry.
+ */
+export type ThreadBinding = {
+  /** Platform channel type (e.g. "slack", "discord", "telegram"). */
+  channel: string;
+  /** Platform-specific account / workspace id. */
+  accountId?: string;
+  /** Platform thread identifier. */
+  threadId: string;
+  /** Root message id that started the thread (for creation tracking). */
+  threadRootId?: string;
+
+  /** Delivery mode for agent responses. */
+  mode: "thread-only" | "thread+announcer" | "announcer-only";
+  /** Whether to route cross-thread replies to the parent session. */
+  inheritParent?: boolean;
+
+  /** Unix-ms timestamp when binding was created. */
+  boundAt: number;
+  /** Session key that created the binding. */
+  createdBy?: string;
+  /** Human-readable label for discovery. */
+  label?: string;
+};
+
+// ---------------------------------------------------------------------------
+// Thread key helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a normalised thread key from its components.
+ *
+ * Format: `<channel>:<accountId?>:<threadId>`
+ *
+ * The `accountId` segment is always present (empty string when absent) so that
+ * `parseThreadKey` can round-trip reliably even when the threadId itself
+ * contains colons.
+ */
+export function buildThreadKey(params: {
+  channel: string;
+  accountId?: string;
+  threadId: string;
+}): string {
+  const accountPart = params.accountId ?? "";
+  return `${params.channel}:${accountPart}:${params.threadId}`;
+}
+
+/**
+ * Parse a thread key back to its components.  Returns `null` for malformed
+ * keys (fewer than 3 colon-separated segments).
+ */
+export function parseThreadKey(
+  threadKey: string,
+): { channel: string; accountId?: string; threadId: string } | null {
+  const idx1 = threadKey.indexOf(":");
+  if (idx1 === -1) return null;
+
+  const idx2 = threadKey.indexOf(":", idx1 + 1);
+  if (idx2 === -1) return null;
+
+  const channel = threadKey.slice(0, idx1);
+  const accountId = threadKey.slice(idx1 + 1, idx2) || undefined;
+  const threadId = threadKey.slice(idx2 + 1);
+
+  if (!channel || !threadId) return null;
+
+  return { channel, accountId, threadId };
+}
+
+// ---------------------------------------------------------------------------
+// Registry
+// ---------------------------------------------------------------------------
+
+/**
+ * In-memory bidirectional map: threadKey ↔ sessionKey.
+ */
+export class ThreadBindingRegistry {
+  /** threadKey → Set<sessionKey> */
+  private threadToSessions = new Map<string, Set<string>>();
+  /** sessionKey → threadKey */
+  private sessionToThread = new Map<string, string>();
+
+  // -- mutations ------------------------------------------------------------
+
+  /**
+   * Bind a session to a thread.  If the session was previously bound to a
+   * different thread it is unbound first.
+   */
+  bind(sessionKey: string, threadKey: string): void {
+    // If already bound to a *different* thread, unbind first.
+    const prev = this.sessionToThread.get(sessionKey);
+    if (prev !== undefined && prev !== threadKey) {
+      this.unbind(sessionKey);
+    }
+
+    let sessions = this.threadToSessions.get(threadKey);
+    if (!sessions) {
+      sessions = new Set();
+      this.threadToSessions.set(threadKey, sessions);
+    }
+    sessions.add(sessionKey);
+    this.sessionToThread.set(sessionKey, threadKey);
+  }
+
+  /**
+   * Unbind a session from its thread.  Returns `true` if the session was
+   * actually bound.
+   */
+  unbind(sessionKey: string): boolean {
+    const threadKey = this.sessionToThread.get(sessionKey);
+    if (threadKey === undefined) return false;
+
+    const sessions = this.threadToSessions.get(threadKey);
+    if (sessions) {
+      sessions.delete(sessionKey);
+      if (sessions.size === 0) {
+        this.threadToSessions.delete(threadKey);
+      }
+    }
+    this.sessionToThread.delete(sessionKey);
+    return true;
+  }
+
+  // -- queries --------------------------------------------------------------
+
+  /** Return all session keys bound to a thread (empty array if none). */
+  lookup(threadKey: string): string[] {
+    const sessions = this.threadToSessions.get(threadKey);
+    return sessions ? Array.from(sessions) : [];
+  }
+
+  /** Return the threadKey a session is bound to, or `undefined`. */
+  getBinding(sessionKey: string): string | undefined {
+    return this.sessionToThread.get(sessionKey);
+  }
+
+  /** Check whether a session is bound to any thread. */
+  isBound(sessionKey: string): boolean {
+    return this.sessionToThread.has(sessionKey);
+  }
+
+  // -- bulk operations ------------------------------------------------------
+
+  /**
+   * Rebuild the registry from a session store snapshot.
+   *
+   * Clears all existing mappings and re-indexes every entry that carries a
+   * `threadBinding`.
+   */
+  rebuildFromSessions(sessions: Record<string, { threadBinding?: ThreadBinding }>): void {
+    this.threadToSessions.clear();
+    this.sessionToThread.clear();
+
+    for (const [sessionKey, entry] of Object.entries(sessions)) {
+      if (entry?.threadBinding) {
+        const threadKey = buildThreadKey({
+          channel: entry.threadBinding.channel,
+          accountId: entry.threadBinding.accountId,
+          threadId: entry.threadBinding.threadId,
+        });
+        this.bind(sessionKey, threadKey);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Singleton
+// ---------------------------------------------------------------------------
+
+let registryInstance: ThreadBindingRegistry | null = null;
+
+/** Return the singleton thread-binding registry, creating it on first call. */
+export function getThreadRegistry(): ThreadBindingRegistry {
+  if (!registryInstance) {
+    registryInstance = new ThreadBindingRegistry();
+  }
+  return registryInstance;
+}
+
+/** Reset the singleton (for tests). */
+export function resetThreadRegistry(): void {
+  registryInstance = null;
+}

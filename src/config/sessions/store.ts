@@ -11,6 +11,7 @@ import {
   type DeliveryContext,
 } from "../../utils/delivery-context.js";
 import { getFileMtimeMs, isCacheEnabled, resolveCacheTtlMs } from "../cache-utils.js";
+import { buildThreadKey, getThreadRegistry } from "../thread-registry.js";
 import { deriveSessionMetaPatch } from "./metadata.js";
 import { mergeSessionEntry, type SessionEntry } from "./types.js";
 
@@ -161,6 +162,9 @@ export function loadSessionStore(
     }
   }
 
+  // Rebuild thread binding registry from freshly loaded sessions.
+  getThreadRegistry().rebuildFromSessions(store);
+
   // Cache the result if caching is enabled
   if (!opts.skipCache && isSessionStoreCacheEnabled()) {
     SESSION_STORE_CACHE.set(storePath, {
@@ -192,6 +196,9 @@ async function saveSessionStoreUnlocked(
 ): Promise<void> {
   // Invalidate cache on write to ensure consistency
   invalidateSessionStoreCache(storePath);
+
+  // Keep thread binding registry in sync with the written store.
+  getThreadRegistry().rebuildFromSessions(store);
 
   normalizeSessionStore(store);
 
