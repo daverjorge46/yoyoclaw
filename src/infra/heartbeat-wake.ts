@@ -6,20 +6,33 @@ export type HeartbeatRunResult =
 export type HeartbeatWakeHandler = (opts: { reason?: string }) => Promise<HeartbeatRunResult>;
 
 let handler: HeartbeatWakeHandler | null = null;
+let handlerGeneration = 0;
 let pendingReason: string | null = null;
 let scheduled = false;
 let running = false;
 let timer: NodeJS.Timeout | null = null;
+let timerDueAt: number | null = null;
 
 const DEFAULT_COALESCE_MS = 250;
 const DEFAULT_RETRY_MS = 1_000;
 
 function schedule(coalesceMs: number) {
+  const delay = Number.isFinite(coalesceMs) ? Math.max(0, coalesceMs) : DEFAULT_COALESCE_MS;
+  const dueAt = Date.now() + delay;
   if (timer) {
-    return;
+    // If existing timer fires sooner or at the same time, keep it.
+    if (typeof timerDueAt === "number" && timerDueAt <= dueAt) {
+      return;
+    }
+    // New request needs to fire sooner — preempt the existing timer.
+    clearTimeout(timer);
+    timer = null;
+    timerDueAt = null;
   }
+  timerDueAt = dueAt;
   timer = setTimeout(async () => {
     timer = null;
+    timerDueAt = null;
     scheduled = false;
     const active = handler;
     if (!active) {
@@ -27,7 +40,7 @@ function schedule(coalesceMs: number) {
     }
     if (running) {
       scheduled = true;
-      schedule(coalesceMs);
+      schedule(delay);
       return;
     }
 
@@ -48,18 +61,32 @@ function schedule(coalesceMs: number) {
     } finally {
       running = false;
       if (pendingReason || scheduled) {
-        schedule(coalesceMs);
+        schedule(delay);
       }
     }
-  }, coalesceMs);
+  }, delay);
   timer.unref?.();
 }
 
-export function setHeartbeatWakeHandler(next: HeartbeatWakeHandler | null) {
+/**
+ * Register (or clear) the heartbeat wake handler.
+ * Returns a disposer function that clears this specific registration.
+ * Stale disposers (from previous registrations) are no-ops, preventing
+ * a race where an old runner's cleanup clears a newer runner's handler.
+ */
+export function setHeartbeatWakeHandler(next: HeartbeatWakeHandler | null): () => void {
+  handlerGeneration += 1;
+  const generation = handlerGeneration;
   handler = next;
   if (handler && pendingReason) {
     schedule(DEFAULT_COALESCE_MS);
   }
+  return () => {
+    if (handlerGeneration !== generation) return;
+    if (handler !== next) return;
+    handlerGeneration += 1;
+    handler = null;
+  };
 }
 
 export function requestHeartbeatNow(opts?: { reason?: string; coalesceMs?: number }) {
