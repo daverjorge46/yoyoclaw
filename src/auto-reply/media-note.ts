@@ -112,40 +112,34 @@ export function buildInboundMediaNote(ctx: MsgContext): string | undefined {
     return undefined;
   }
 
-  const unsuppressed = allEntries.filter((e) => !e.suppressed);
-  const suppressedEntries = allEntries.filter((e) => e.suppressed);
-
-  if (unsuppressed.length === 0 && suppressedEntries.length === 0) {
-  const entries = paths
-    .map((entry, index) => ({
-      path: entry ?? "",
-      type: types?.[index] ?? ctx.MediaType,
-      url: urls?.[index] ?? ctx.MediaUrl,
-      index,
-    }))
-    .filter((entry) => {
-      if (suppressed.has(entry.index)) {
-        return false;
-      }
-      // Strip audio attachments when transcription succeeded - the transcript is already
-      // available in the context, raw audio binary would only waste tokens (issue #4197)
-      // Note: Only trust MIME type from per-entry types array, not fallback ctx.MediaType
-      // which could misclassify non-audio attachments (greptile review feedback)
-      const hasPerEntryType = types !== undefined;
-      const isAudioByMime = hasPerEntryType && entry.type?.toLowerCase().startsWith("audio/");
-      const isAudioEntry = isAudioPath(entry.path) || isAudioByMime;
-      if (!isAudioEntry) {
-        return true;
-      }
+  const unsuppressed = allEntries.filter((e) => {
+    if (e.suppressed) {
+      return false;
+    }
+    // Strip audio attachments when transcription succeeded - the transcript is already
+    // available in the context, raw audio binary would only waste tokens (issue #4197)
+    // Note: Only trust MIME type from per-entry types array, not fallback ctx.MediaType
+    // which could misclassify non-audio attachments (greptile review feedback)
+    const hasPerEntryType = types !== undefined;
+    const isAudioByMime = hasPerEntryType && e.type?.toLowerCase().startsWith("audio/");
+    const isAudioEntry = isAudioPath(e.path) || isAudioByMime;
+    if (isAudioEntry) {
       if (
-        transcribedAudioIndices.has(entry.index) ||
-        (canStripSingleAttachmentByTranscript && entry.index === 0)
+        transcribedAudioIndices.has(e.index) ||
+        (canStripSingleAttachmentByTranscript && e.index === 0)
       ) {
         return false;
       }
-      return true;
-    });
-  if (entries.length === 0) {
+    }
+    return true;
+  });
+  // Emit [media source: ...] for suppressed entries (preserves file paths for image tool),
+  // but not for transcribed audio (transcript already covers it).
+  const suppressedEntries = allEntries.filter(
+    (e) => e.suppressed && !transcribedAudioIndices.has(e.index),
+  );
+
+  if (unsuppressed.length === 0 && suppressedEntries.length === 0) {
     return undefined;
   }
 

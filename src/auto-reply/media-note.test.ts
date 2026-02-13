@@ -32,10 +32,10 @@ describe("buildInboundMediaNote", () => {
       MediaUrls: ["https://example.com/a.png", "https://example.com/b.png"],
       MediaUnderstanding: [
         {
-          kind: "audio.transcription",
+          kind: "image.description",
           attachmentIndex: 0,
-          text: "hello",
-          provider: "groq",
+          text: "A photo of a cat",
+          provider: "openai",
         },
       ],
     });
