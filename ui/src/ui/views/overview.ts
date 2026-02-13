@@ -145,14 +145,16 @@ export function renderOverview(props: OverviewProps) {
           ${isTrustedProxy
             ? html`
                 <div class="callout info" style="margin-top: 8px;">
-                  <div style="font-weight: 600; margin-bottom: 6px;">Trusted Proxy Authentication</div>
-                  <div>
-                    This gateway is configured for <strong>trusted-proxy</strong> auth mode.
-                    User identity is managed by your reverse proxy (Pomerium, Caddy, Traefik, etc.).
+                  <div style="font-weight: 600; margin-bottom: 6px;">Trusted Proxy Auth</div>
+                  <div style="margin-bottom: 8px;">
+                    Gateway configured for <strong>trusted-proxy</strong> mode.
+                    Identity managed by reverse proxy.
                   </div>
-                  <div style="margin-top: 8px; font-size: 0.9em;">
-                    <strong>Auth Mode:</strong> <code>trusted-proxy</code><br />
-                    <strong>No gateway token required</strong> — authentication handled by proxy
+                  <div style="font-size: 0.9em; line-height: 1.5;">
+                    <div style="margin-bottom: 4px;">
+                      <strong>Auth Mode:</strong> <code style="font-size: 0.95em;">trusted-proxy</code>
+                    </div>
+                    <div><strong>Token:</strong> Not required</div>
                   </div>
                 </div>
               `
