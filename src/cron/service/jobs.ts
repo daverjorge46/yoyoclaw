@@ -366,6 +366,7 @@ function mergeCronDelivery(
     channel: existing?.channel,
     to: existing?.to,
     bestEffort: existing?.bestEffort,
+    summaryPrompt: existing?.summaryPrompt,
   };
 
   if (typeof patch.mode === "string") {
@@ -381,6 +382,12 @@ function mergeCronDelivery(
   }
   if (typeof patch.bestEffort === "boolean") {
     next.bestEffort = patch.bestEffort;
+  }
+  if ("summaryPrompt" in patch) {
+    next.summaryPrompt =
+      patch.summaryPrompt === false || typeof patch.summaryPrompt === "string"
+        ? patch.summaryPrompt
+        : undefined;
   }
 
   return next;
