@@ -412,14 +412,20 @@ function getOrCreateDebouncer(target: WebhookTarget) {
         return `bluebubbles:${account.accountId}:balloon:${associatedMessageGuid}`;
       }
 
-      // Inbound messages: use sender+chat key so text and subsequent URL balloons
-      // (which arrive with different GUIDs and no associatedMessageGuid) merge
-      // within the debounce window.
+      // Inbound messages: use sender+chat key so a URL balloon (different GUID,
+      // no associatedMessageGuid) lands in the same bucket as the preceding text.
+      // Both messages need the same key for coalescing, so we can't narrow this
+      // to balloons only — the text message must also use the sender key.
+      // At 1500ms the window is tight enough that genuinely separate user
+      // messages won't collide (human typing gap is well above that).
       if (!msg.fromMe) {
-        const chatKey =
-          msg.chatGuid?.trim() ??
-          msg.chatIdentifier?.trim() ??
-          (msg.chatId ? String(msg.chatId) : "dm");
+        const chatKey = msg.chatGuid?.trim()
+          ? `chat_guid:${msg.chatGuid.trim()}`
+          : msg.chatIdentifier?.trim()
+            ? `chat_identifier:${msg.chatIdentifier.trim()}`
+            : msg.chatId
+              ? `chat_id:${msg.chatId}`
+              : "dm";
         return `bluebubbles:${account.accountId}:${chatKey}:${msg.senderId}`;
       }
 
@@ -429,10 +435,13 @@ function getOrCreateDebouncer(target: WebhookTarget) {
         return `bluebubbles:${account.accountId}:msg:${messageId}`;
       }
 
-      const chatKey =
-        msg.chatGuid?.trim() ??
-        msg.chatIdentifier?.trim() ??
-        (msg.chatId ? String(msg.chatId) : "dm");
+      const chatKey = msg.chatGuid?.trim()
+        ? `chat_guid:${msg.chatGuid.trim()}`
+        : msg.chatIdentifier?.trim()
+          ? `chat_identifier:${msg.chatIdentifier.trim()}`
+          : msg.chatId
+            ? `chat_id:${msg.chatId}`
+            : "dm";
       return `bluebubbles:${account.accountId}:${chatKey}:${msg.senderId}`;
     },
     shouldDebounce: (entry) => {
