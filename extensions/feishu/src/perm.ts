@@ -3,6 +3,7 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { listEnabledFeishuAccounts } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { FeishuPermSchema, type FeishuPermParams } from "./perm-schema.js";
+import { createAccountAwareClientResolver } from "./tool-account.js";
 import { resolveToolsConfig } from "./tools-config.js";
 
 // ============ Helpers ============
@@ -136,7 +137,7 @@ export function registerFeishuPermTools(api: OpenClawPluginApi) {
     return;
   }
 
-  const getClient = () => createFeishuClient(firstAccount);
+  const resolveClient = createAccountAwareClientResolver(api.config!, firstAccount);
 
   api.registerTool(
     {
@@ -147,7 +148,7 @@ export function registerFeishuPermTools(api: OpenClawPluginApi) {
       async execute(_toolCallId, params) {
         const p = params as FeishuPermParams;
         try {
-          const client = getClient();
+          const client = resolveClient(p.account);
           switch (p.action) {
             case "list":
               return json(await listMembers(client, p.token, p.type));

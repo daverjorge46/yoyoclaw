@@ -2,6 +2,7 @@ import type * as Lark from "@larksuiteoapi/node-sdk";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { listEnabledFeishuAccounts } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
+import { createAccountAwareClientResolver } from "./tool-account.js";
 import { resolveToolsConfig } from "./tools-config.js";
 import { FeishuWikiSchema, type FeishuWikiParams } from "./wiki-schema.js";
 
@@ -175,7 +176,7 @@ export function registerFeishuWikiTools(api: OpenClawPluginApi) {
     return;
   }
 
-  const getClient = () => createFeishuClient(firstAccount);
+  const resolveClient = createAccountAwareClientResolver(api.config!, firstAccount);
 
   api.registerTool(
     {
@@ -187,7 +188,7 @@ export function registerFeishuWikiTools(api: OpenClawPluginApi) {
       async execute(_toolCallId, params) {
         const p = params as FeishuWikiParams;
         try {
-          const client = getClient();
+          const client = resolveClient(p.account);
           switch (p.action) {
             case "spaces":
               return json(await listSpaces(client));

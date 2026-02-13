@@ -1,4 +1,5 @@
 import { Type, type Static } from "@sinclair/typebox";
+import { AccountParam } from "./tool-account.js";
 
 const TokenType = Type.Union([
   Type.Literal("doc"),
@@ -31,6 +32,7 @@ export const FeishuPermSchema = Type.Union([
     action: Type.Literal("list"),
     token: Type.String({ description: "File token" }),
     type: TokenType,
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("add"),
@@ -39,6 +41,7 @@ export const FeishuPermSchema = Type.Union([
     member_type: MemberType,
     member_id: Type.String({ description: "Member ID (email, open_id, user_id, etc.)" }),
     perm: Permission,
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("remove"),
@@ -46,6 +49,7 @@ export const FeishuPermSchema = Type.Union([
     type: TokenType,
     member_type: MemberType,
     member_id: Type.String({ description: "Member ID to remove" }),
+    account: AccountParam,
   }),
 ]);
 

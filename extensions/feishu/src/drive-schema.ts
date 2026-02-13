@@ -1,4 +1,5 @@
 import { Type, type Static } from "@sinclair/typebox";
+import { AccountParam } from "./tool-account.js";
 
 const FileType = Type.Union([
   Type.Literal("doc"),
@@ -17,11 +18,13 @@ export const FeishuDriveSchema = Type.Union([
     folder_token: Type.Optional(
       Type.String({ description: "Folder token (optional, omit for root directory)" }),
     ),
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("info"),
     file_token: Type.String({ description: "File or folder token" }),
     type: FileType,
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("create_folder"),
@@ -29,17 +32,20 @@ export const FeishuDriveSchema = Type.Union([
     folder_token: Type.Optional(
       Type.String({ description: "Parent folder token (optional, omit for root)" }),
     ),
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("move"),
     file_token: Type.String({ description: "File token to move" }),
     type: FileType,
     folder_token: Type.String({ description: "Target folder token" }),
+    account: AccountParam,
   }),
   Type.Object({
     action: Type.Literal("delete"),
     file_token: Type.String({ description: "File token to delete" }),
     type: FileType,
+    account: AccountParam,
   }),
 ]);
 
