@@ -2519,6 +2519,8 @@ const STORAGE_KEY_PROCESSES = 'lineBalancing_processes';
 const STORAGE_KEY_WORKERS = 'lineBalancing_workers';
 const STORAGE_KEY_TASK_RESOURCES = 'lineBalancing_taskResources';
 const STORAGE_KEY_HEADER = 'lineBalancing_header';
+const STORAGE_KEY_STATIONS = 'lineBalancing_stations';
+const STORAGE_KEY_STATION_RESOURCES = 'lineBalancing_stationResources';
 
 // Header field data
 let headerData = {
@@ -2560,16 +2562,22 @@ function saveToLocalStorage() {
     localStorage.setItem(STORAGE_KEY_PROCESSES, JSON.stringify(processes));
     localStorage.setItem(STORAGE_KEY_WORKERS, JSON.stringify(workers));
     localStorage.setItem(STORAGE_KEY_TASK_RESOURCES, JSON.stringify(taskResources));
+    localStorage.setItem(STORAGE_KEY_STATIONS, JSON.stringify(stations));
+    localStorage.setItem(STORAGE_KEY_STATION_RESOURCES, JSON.stringify(stationResources));
   } catch (e) {
     console.warn('Failed to save to localStorage:', e);
   }
 }
+
+let stationsLoadedFromStorage = false;
 
 function loadFromLocalStorage() {
   try {
     const savedProcesses = localStorage.getItem(STORAGE_KEY_PROCESSES);
     const savedWorkers = localStorage.getItem(STORAGE_KEY_WORKERS);
     const savedTaskResources = localStorage.getItem(STORAGE_KEY_TASK_RESOURCES);
+    const savedStations = localStorage.getItem(STORAGE_KEY_STATIONS);
+    const savedStationResources = localStorage.getItem(STORAGE_KEY_STATION_RESOURCES);
 
     if (savedProcesses) {
       const parsed = JSON.parse(savedProcesses);
@@ -2587,6 +2595,19 @@ function loadFromLocalStorage() {
       const parsed = JSON.parse(savedTaskResources);
       if (parsed && typeof parsed === 'object') {
         taskResources = parsed;
+      }
+    }
+    if (savedStations) {
+      const parsed = JSON.parse(savedStations);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        stations = parsed;
+        stationsLoadedFromStorage = true;
+      }
+    }
+    if (savedStationResources) {
+      const parsed = JSON.parse(savedStationResources);
+      if (parsed && typeof parsed === 'object') {
+        stationResources = parsed;
       }
     }
   } catch (e) {
@@ -2871,6 +2892,55 @@ function importAllDataExcel(input) {
         localStorage.setItem(STORAGE_KEY_HEADER, JSON.stringify(headerData));
       }
 
+      // Read LineBalancing sheet to restore station configuration
+      const wsLineBalancing = wb.Sheets['LineBalancing'];
+      if (wsLineBalancing) {
+        const lbRows = XLSX.utils.sheet_to_json(wsLineBalancing, { header: 1, defval: '' });
+        if (lbRows.length > 1) {
+          stations = [];
+          stationResources = {};
+          for (let i = 1; i < lbRows.length; i++) {
+            const row = lbRows[i];
+            if (!row || row[0] === '') continue;
+
+            // Parse process indexes from column B (e.g., "0, 1, 2")
+            const processIndexStr = String(row[1] || '');
+            const tasks = processIndexStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+
+            if (tasks.length > 0) {
+              stations.push({ tasks: tasks });
+
+              // Parse workers required from column E
+              const workersRequired = parseFloat(row[4]) || 1;
+
+              // Parse machines from column F (e.g., "Cutting Machine(1); Stripping Machine(1)")
+              const machineStr = String(row[5] || '');
+              const machines = [];
+              if (machineStr) {
+                const parts = machineStr.split(';');
+                parts.forEach(part => {
+                  const match = part.trim().match(/^(.+)\((\d+)\)$/);
+                  if (match) {
+                    machines.push({ name: match[1].trim(), qty: parseInt(match[2]) });
+                  }
+                });
+              }
+
+              stationResources[stations.length - 1] = {
+                workers: workersRequired,
+                machines: machines
+              };
+            }
+          }
+        }
+      }
+
+      // If no stations were imported, initialize fresh
+      if (stations.length === 0) {
+        stations = processes.map((p, i) => ({ tasks: [i] }));
+        buildStationResourcesFromTasks();
+      }
+
       // Read Analysis sheet
       const wsAnalysis = wb.Sheets['Analysis'];
       if (wsAnalysis) {
@@ -2892,7 +2962,8 @@ function importAllDataExcel(input) {
 
       const pCount = processes.length;
       const wCount = workers.length;
-      alert('Data imported successfully! Loaded ' + pCount + ' processes and ' + wCount + ' workers. Page will reload.');
+      const sCount = stations.length;
+      alert('Data imported successfully! Loaded ' + pCount + ' processes, ' + wCount + ' workers, and ' + sCount + ' stations. Page will reload.');
       location.reload();
     } catch (err) {
       console.error('Import error:', err);
@@ -2915,7 +2986,11 @@ loadHeaderFields();
 recalcAllProcesses();
 renderProcessTable();
 renderWorkerTable();
-initStations();
+
+// Only init stations if not loaded from storage (preserves balanced configuration)
+if (!stationsLoadedFromStorage) {
+  initStations();
+}
 renderAll();
 </script>
 </body>
