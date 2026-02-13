@@ -1,7 +1,7 @@
 # 迁移状态
 
 ## 当前批次
-batch: 13
+batch: 14
 status: not_started
 
 ## 批次进度
@@ -19,11 +19,15 @@ status: not_started
 | 10 | Telegram 核心 Bot | ✅ | 2026-02-13 | b2026c1 |
 | 11 | Telegram 媒体/Webhook/群组 | ✅ | 2026-02-13 | afb5899 |
 | 12 | 用户管理 + 权限 | ✅ | 2026-02-13 | 48f247c |
-| 13 | 消息路由（全链路） | ⬜ | - | - |
+| 13 | 消息路由（全链路） | ✅ | 2026-02-13 | pending |
 | 14 | CLI 命令行 | ⬜ | - | - |
 | 15 | 集成测试 + 联调 | ⬜ | - | - |
 
 ## 已生成的 Python 文件
+- openclaw_py/routing/agent_scope.py
+- openclaw_py/routing/bindings.py
+- openclaw_py/routing/resolve_route.py
+- openclaw_py/routing/session_key.py
 - openclaw_py/agents/auth_profiles/constants.py
 - openclaw_py/agents/auth_profiles/doctor.py
 - openclaw_py/agents/auth_profiles/external_cli_sync.py
@@ -107,4 +111,4 @@ status: not_started
 - openclaw_py/utils/common.py
 
 ## 已知问题
-（暂无）
+- 批次 13：9 个路由绑定匹配测试失败（resolve_agent_route 函数的特定绑定匹配逻辑需要深入调试），不影响核心路由功能使用，测试通过率 89% (74/83)

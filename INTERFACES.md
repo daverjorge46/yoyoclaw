@@ -3531,3 +3531,161 @@ def migrate_profile_store(store: AuthProfileStore) -> AuthProfileStore: ...
 ```
 
 ---
+
+## openclaw_py.routing.session_key
+路径: openclaw_py/routing/session_key.py
+
+from openclaw_py.routing.session_key import (
+    DEFAULT_AGENT_ID,
+    DEFAULT_MAIN_KEY,
+    DEFAULT_ACCOUNT_ID,
+    SessionKeyShape,
+    ParsedAgentSessionKey,
+    normalize_main_key,
+    to_agent_request_session_key,
+    to_agent_store_session_key,
+    resolve_agent_id_from_session_key,
+    classify_session_key_shape,
+    normalize_agent_id,
+    sanitize_agent_id,
+    normalize_account_id,
+    build_agent_main_session_key,
+    build_agent_peer_session_key,
+    build_group_history_key,
+    resolve_thread_session_keys,
+)
+
+# Constants
+DEFAULT_AGENT_ID: str = "main"
+DEFAULT_MAIN_KEY: str = "main"
+DEFAULT_ACCOUNT_ID: str = "default"
+SessionKeyShape: Literal["missing", "agent", "legacy_or_alias", "malformed_agent"]
+
+# Functions
+def normalize_main_key(value: str | None) -> str: ...
+def normalize_agent_id(value: str | None) -> str: ...
+def sanitize_agent_id(value: str | None) -> str: ...
+def normalize_account_id(value: str | None) -> str: ...
+def to_agent_request_session_key(store_key: str | None) -> str | None: ...
+def to_agent_store_session_key(agent_id: str, request_key: str | None, main_key: str | None = None) -> str: ...
+def resolve_agent_id_from_session_key(session_key: str | None) -> str: ...
+def classify_session_key_shape(session_key: str | None) -> SessionKeyShape: ...
+def build_agent_main_session_key(agent_id: str, main_key: str | None = None) -> str: ...
+def build_agent_peer_session_key(agent_id: str, main_key: str | None, channel: str, account_id: str | None = None, peer_kind: str | None = None, peer_id: str | None = None, identity_links: dict[str, list[str]] | None = None, dm_scope: Literal["main", "per-peer", "per-channel-peer", "per-account-channel-peer"] = "main") -> str: ...
+def build_group_history_key(channel: str, account_id: str | None, peer_kind: Literal["group", "channel"], peer_id: str) -> str: ...
+def resolve_thread_session_keys(base_session_key: str, thread_id: str | None = None, parent_session_key: str | None = None, use_suffix: bool = True) -> dict[str, str | None]: ...
+
+---
+
+## openclaw_py.routing.agent_scope
+路径: openclaw_py/routing/agent_scope.py
+
+from openclaw_py.routing.agent_scope import (
+    list_agent_ids,
+    resolve_default_agent_id,
+    resolve_session_agent_ids,
+    resolve_session_agent_id,
+    resolve_agent_id_from_session_key,
+)
+
+def list_agent_ids(cfg: OpenClawConfig) -> list[str]: ...
+def resolve_default_agent_id(cfg: OpenClawConfig) -> str: ...
+def resolve_session_agent_ids(session_key: str | None = None, config: OpenClawConfig | None = None) -> dict[str, str]: ...
+def resolve_session_agent_id(session_key: str | None = None, config: OpenClawConfig | None = None) -> str: ...
+def resolve_agent_id_from_session_key(session_key: str | None) -> str: ...
+
+---
+
+## openclaw_py.routing.bindings
+路径: openclaw_py/routing/bindings.py
+
+from openclaw_py.routing.bindings import (
+    list_bindings,
+    list_bound_account_ids,
+    resolve_default_agent_bound_account_id,
+    build_channel_account_bindings,
+    resolve_preferred_account_id,
+)
+
+def list_bindings(cfg: OpenClawConfig) -> list[AgentBinding]: ...
+def list_bound_account_ids(cfg: OpenClawConfig, channel_id: str) -> list[str]: ...
+def resolve_default_agent_bound_account_id(cfg: OpenClawConfig, channel_id: str) -> str | None: ...
+def build_channel_account_bindings(cfg: OpenClawConfig) -> dict[str, dict[str, list[str]]]: ...
+def resolve_preferred_account_id(account_ids: list[str], default_account_id: str, bound_accounts: list[str]) -> str: ...
+
+---
+
+## openclaw_py.routing.resolve_route
+路径: openclaw_py/routing/resolve_route.py
+
+from openclaw_py.routing.resolve_route import (
+    RoutePeer,
+    ResolveAgentRouteInput,
+    ResolvedAgentRoute,
+    build_agent_session_key,
+    resolve_agent_route,
+)
+
+class RoutePeer(NamedTuple):
+    kind: ChatType
+    id: str
+
+class ResolveAgentRouteInput(NamedTuple):
+    cfg: OpenClawConfig
+    channel: str
+    account_id: str | None = None
+    peer: RoutePeer | None = None
+    parent_peer: RoutePeer | None = None
+    guild_id: str | None = None
+    team_id: str | None = None
+
+class ResolvedAgentRoute(NamedTuple):
+    agent_id: str
+    channel: str
+    account_id: str
+    session_key: str
+    main_session_key: str
+    matched_by: Literal["binding.peer", "binding.peer.parent", "binding.guild", "binding.team", "binding.account", "binding.channel", "default"]
+
+def build_agent_session_key(agent_id: str, channel: str, account_id: str | None = None, peer: RoutePeer | None = None, dm_scope: Literal["main", "per-peer", "per-channel-peer", "per-account-channel-peer"] = "main", identity_links: dict[str, list[str]] | None = None) -> str: ...
+def resolve_agent_route(input: ResolveAgentRouteInput) -> ResolvedAgentRoute: ...
+
+---
+
+## openclaw_py.config.types (新增 Agent 相关类型)
+路径: openclaw_py/config/types.py
+
+from openclaw_py.config.types import (
+    AgentConfig,
+    AgentsConfig,
+    AgentBinding,
+    AgentBindingMatch,
+    AgentBindingMatchPeer,
+)
+
+class AgentConfig(BaseModel):
+    id: str
+    default: bool | None = None
+    name: str | None = None
+    workspace: str | None = None
+    agent_dir: str | None = None
+    model: str | dict[str, Any] | None = None
+    skills: list[str] | None = None
+
+class AgentsConfig(BaseModel):
+    list: List["AgentConfig"] | None = None
+
+class AgentBindingMatchPeer(BaseModel):
+    kind: ChatType
+    id: str
+
+class AgentBindingMatch(BaseModel):
+    channel: str
+    account_id: str | None = None
+    peer: AgentBindingMatchPeer | None = None
+    guild_id: str | None = None
+    team_id: str | None = None
+
+class AgentBinding(BaseModel):
+    agent_id: str
+    match: AgentBindingMatch

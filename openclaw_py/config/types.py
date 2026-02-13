@@ -4,7 +4,9 @@ This module defines all configuration models for OpenClaw.
 Simplified to only include essential configs (Telegram only, no other channels).
 """
 
-from typing import Any, Literal
+from __future__ import annotations
+
+from typing import Any, List, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -377,6 +379,57 @@ class EnvConfig(BaseModel):
     model_config = {"extra": "allow"}
 
 
+# ============================================================================
+# Agent Configuration
+# ============================================================================
+
+
+class AgentConfig(BaseModel):
+    """Agent configuration."""
+
+    id: str = Field(..., min_length=1)
+    default: bool | None = None
+    name: str | None = None
+    workspace: str | None = None
+    agent_dir: str | None = None
+    model: str | dict[str, Any] | None = None
+    skills: list[str] | None = None
+
+
+class AgentsConfig(BaseModel):
+    """Agents configuration."""
+
+    list: List["AgentConfig"] | None = None
+
+
+class AgentBindingMatchPeer(BaseModel):
+    """Agent binding peer match."""
+
+    kind: ChatType
+    id: str
+
+
+class AgentBindingMatch(BaseModel):
+    """Agent binding match criteria."""
+
+    channel: str
+    account_id: str | None = Field(None, alias="accountId")
+    peer: AgentBindingMatchPeer | None = None
+    guild_id: str | None = Field(None, alias="guildId")
+    team_id: str | None = Field(None, alias="teamId")
+
+    model_config = {"populate_by_name": True}
+
+
+class AgentBinding(BaseModel):
+    """Agent binding (routing rule)."""
+
+    agent_id: str = Field(..., alias="agentId")
+    match: AgentBindingMatch
+
+    model_config = {"populate_by_name": True}
+
+
 class OpenClawConfig(BaseModel):
     """Root OpenClaw configuration.
 
@@ -389,6 +442,8 @@ class OpenClawConfig(BaseModel):
     logging: LoggingConfig | None = None
     session: SessionConfig | None = None
     models: ModelsConfig | None = None
+    agents: AgentsConfig | None = None
+    bindings: list[AgentBinding] | None = None
     telegram: TelegramConfig | None = None
     gateway: GatewayConfig | None = None
     identity: IdentityConfig | None = None
