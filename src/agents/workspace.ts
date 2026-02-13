@@ -339,7 +339,12 @@ export async function loadExtraBootstrapFiles(
       continue;
     }
     try {
-      const content = await fs.readFile(filePath, "utf-8");
+      // Resolve symlinks and verify the real path is still within workspace
+      const realFilePath = await fs.realpath(filePath);
+      if (!realFilePath.startsWith(resolvedDir + path.sep) && realFilePath !== resolvedDir) {
+        continue;
+      }
+      const content = await fs.readFile(realFilePath, "utf-8");
       result.push({
         name: relPath as WorkspaceBootstrapFileName,
         path: filePath,
