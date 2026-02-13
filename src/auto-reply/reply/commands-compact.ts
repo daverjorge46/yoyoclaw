@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../../config/config.js";
 import type { CommandHandler } from "./commands-types.js";
+import { runWithModelFallback } from "../../agents/model-fallback.js";
 import {
   abortEmbeddedPiRun,
   compactEmbeddedPiSession,
@@ -12,6 +13,20 @@ import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { formatContextUsageShort, formatTokenCount } from "../status.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 import { incrementCompactionCount } from "./session-updates.js";
+
+async function resolveCompactModel(params: {
+  cfg: OpenClawConfig;
+  provider: string;
+  model: string;
+}): Promise<{ provider: string; model: string }> {
+  const result = await runWithModelFallback({
+    cfg: params.cfg,
+    provider: params.provider,
+    model: params.model,
+    run: async (provider, model) => ({ provider, model }),
+  });
+  return { provider: result.provider, model: result.model };
+}
 
 function extractCompactInstructions(params: {
   rawBody?: string;
@@ -71,6 +86,11 @@ export const handleCompactCommand: CommandHandler = async (params) => {
     agentId: params.agentId,
     isGroup: params.isGroup,
   });
+  const resolvedModel = await resolveCompactModel({
+    cfg: params.cfg,
+    provider: params.provider,
+    model: params.model,
+  });
   const result = await compactEmbeddedPiSession({
     sessionId,
     sessionKey: params.sessionKey,
@@ -83,8 +103,8 @@ export const handleCompactCommand: CommandHandler = async (params) => {
     workspaceDir: params.workspaceDir,
     config: params.cfg,
     skillsSnapshot: params.sessionEntry.skillsSnapshot,
-    provider: params.provider,
-    model: params.model,
+    provider: resolvedModel.provider,
+    model: resolvedModel.model,
     thinkLevel: params.resolvedThinkLevel ?? (await params.resolveDefaultThinkingLevel()),
     bashElevated: {
       enabled: false,
