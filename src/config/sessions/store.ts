@@ -11,7 +11,6 @@ import {
   type DeliveryContext,
 } from "../../utils/delivery-context.js";
 import { getFileMtimeMs, isCacheEnabled, resolveCacheTtlMs } from "../cache-utils.js";
-import { buildThreadKey, getThreadRegistry } from "../thread-registry.js";
 import { deriveSessionMetaPatch } from "./metadata.js";
 import { mergeSessionEntry, type SessionEntry } from "./types.js";
 
@@ -163,7 +162,13 @@ export function loadSessionStore(
   }
 
   // Rebuild thread binding registry from freshly loaded sessions.
-  getThreadRegistry().rebuildFromSessions(store);
+  // Use lazy import to avoid bundling thread-registry into browser context
+  try {
+    const { getThreadRegistry: getRegistry } = require("../thread-registry.js");
+    getRegistry().rebuildFromSessions(store);
+  } catch {
+    // Ignore if running in browser context where thread-registry isn't available
+  }
 
   // Cache the result if caching is enabled
   if (!opts.skipCache && isSessionStoreCacheEnabled()) {
@@ -198,7 +203,13 @@ async function saveSessionStoreUnlocked(
   invalidateSessionStoreCache(storePath);
 
   // Keep thread binding registry in sync with the written store.
-  getThreadRegistry().rebuildFromSessions(store);
+  // Use lazy import to avoid bundling thread-registry into browser context
+  try {
+    const { getThreadRegistry: getRegistry } = require("../thread-registry.js");
+    getRegistry().rebuildFromSessions(store);
+  } catch {
+    // Ignore if running in browser context where thread-registry isn't available
+  }
 
   normalizeSessionStore(store);
 

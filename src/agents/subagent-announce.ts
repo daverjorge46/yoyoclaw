@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import path from "node:path";
+import type { OriginatingChannelType } from "../auto-reply/templating.js";
 import { resolveQueueSettings } from "../auto-reply/reply/queue.js";
+import { isRoutableChannel, routeReply } from "../auto-reply/reply/route-reply.js";
 import { loadConfig } from "../config/config.js";
 import {
   loadSessionStore,
@@ -8,6 +10,7 @@ import {
   resolveMainSessionKey,
   resolveStorePath,
 } from "../config/sessions.js";
+import { type ThreadBinding, getSessionThreadBinding } from "../config/thread-registry.js";
 import { callGateway } from "../gateway/call.js";
 import { normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -340,6 +343,99 @@ export function buildSubagentSystemPrompt(params: {
   return lines.join("\n");
 }
 
+// ---------------------------------------------------------------------------
+// Thread-aware announce routing
+// ---------------------------------------------------------------------------
+
+/**
+ * Determine announcement targets based on the child session's thread binding.
+ *
+ * Returns:
+ *   - `thread`: post directly to the bound thread (bypass requester agent)
+ *   - `requester`: send to requester agent as today (default)
+ *   - `both`: post to thread AND send to requester
+ */
+type AnnounceTarget = "thread" | "requester" | "both";
+
+async function resolveAnnounceTarget(params: { childSessionKey: string }): Promise<{
+  target: AnnounceTarget;
+  threadBinding?: ThreadBinding;
+}> {
+  try {
+    const agentId = resolveAgentIdFromSessionKey(params.childSessionKey);
+    const cfg = loadConfig();
+    const storePath = resolveStorePath(cfg.session?.store, { agentId });
+    const binding = await getSessionThreadBinding({
+      storePath,
+      sessionKey: params.childSessionKey,
+    });
+    if (!binding || !binding.to) {
+      return { target: "requester" };
+    }
+    switch (binding.mode) {
+      case "thread-only":
+        return { target: "thread", threadBinding: binding };
+      case "thread+announcer":
+        return { target: "both", threadBinding: binding };
+      case "announcer-only":
+        return { target: "requester", threadBinding: binding };
+      default:
+        return { target: "requester" };
+    }
+  } catch {
+    return { target: "requester" };
+  }
+}
+
+/**
+ * Post a completion summary directly to the bound thread via routeReply.
+ *
+ * This bypasses the requester agent re-prompt flow — the sub-agent's final
+ * reply IS the output, so no additional LLM summarisation is needed.
+ */
+async function postCompletionToThread(params: {
+  threadBinding: ThreadBinding;
+  reply: string | undefined;
+  statsLine: string;
+  statusLabel: string;
+  taskLabel: string;
+}): Promise<void> {
+  const { threadBinding, reply, statusLabel, taskLabel } = params;
+
+  if (!threadBinding.to || !isRoutableChannel(threadBinding.channel as OriginatingChannelType)) {
+    throw new Error("Thread binding missing 'to' or channel not routable");
+  }
+
+  // Format a concise completion message
+  const lines: string[] = [];
+  if (statusLabel.includes("completed")) {
+    lines.push(`✅ Task "${taskLabel}" completed.`);
+  } else if (statusLabel.includes("timed out")) {
+    lines.push(`⏱️ Task "${taskLabel}" timed out.`);
+  } else if (statusLabel.includes("failed")) {
+    lines.push(`❌ Task "${taskLabel}" ${statusLabel}.`);
+  } else {
+    lines.push(`📋 Task "${taskLabel}" ${statusLabel}.`);
+  }
+
+  if (reply) {
+    lines.push("");
+    lines.push(reply);
+  }
+
+  const text = lines.join("\n");
+  const cfg = loadConfig();
+
+  await routeReply({
+    payload: { text },
+    channel: threadBinding.channel as OriginatingChannelType,
+    to: threadBinding.to,
+    threadId: threadBinding.threadId,
+    accountId: threadBinding.accountId,
+    cfg,
+  });
+}
+
 export type SubagentRunOutcome = {
   status: "ok" | "error" | "timeout" | "unknown";
   error?: string;
@@ -434,60 +530,84 @@ export async function runSubagentAnnounceFlow(params: {
 
     // Build instructional message for main agent
     const taskLabel = params.label || params.task || "background task";
-    const triggerMessage = [
-      `A background task "${taskLabel}" just ${statusLabel}.`,
-      "",
-      "Findings:",
-      reply || "(no output)",
-      "",
-      statsLine,
-      "",
-      "Summarize this naturally for the user. Keep it brief (1-2 sentences). Flow it into the conversation naturally.",
-      "Do not mention technical details like tokens, stats, or that this was a background task.",
-      "You can respond with NO_REPLY if no announcement is needed (e.g., internal task with no user-facing result).",
-    ].join("\n");
 
-    const queued = await maybeQueueSubagentAnnounce({
-      requesterSessionKey: params.requesterSessionKey,
-      triggerMessage,
-      summaryLine: taskLabel,
-      requesterOrigin,
-    });
-    if (queued === "steered") {
-      didAnnounce = true;
-      return true;
-    }
-    if (queued === "queued") {
-      didAnnounce = true;
-      return true;
+    // -----------------------------------------------------------------------
+    // Thread-aware routing: check if the child session has a thread binding
+    // and route the completion accordingly.
+    // -----------------------------------------------------------------------
+    const { target: announceTarget, threadBinding: childThreadBinding } =
+      await resolveAnnounceTarget({ childSessionKey: params.childSessionKey });
+
+    // --- Thread delivery (direct post, no re-prompting) ---
+    if ((announceTarget === "thread" || announceTarget === "both") && childThreadBinding) {
+      try {
+        await postCompletionToThread({
+          threadBinding: childThreadBinding,
+          reply,
+          statsLine,
+          statusLabel,
+          taskLabel,
+        });
+        didAnnounce = true;
+      } catch (err) {
+        defaultRuntime.error?.(`Thread announce failed, falling back to requester: ${String(err)}`);
+        // Fall through to requester announce as fallback
+      }
     }
 
-    // Send to main agent - it will respond in its own voice
-    let directOrigin = requesterOrigin;
-    if (!directOrigin) {
-      const { entry } = loadRequesterSessionEntry(params.requesterSessionKey);
-      directOrigin = deliveryContextFromSession(entry);
-    }
-    await callGateway({
-      method: "agent",
-      params: {
-        sessionKey: params.requesterSessionKey,
-        message: triggerMessage,
-        deliver: true,
-        channel: directOrigin?.channel,
-        accountId: directOrigin?.accountId,
-        to: directOrigin?.to,
-        threadId:
-          directOrigin?.threadId != null && directOrigin.threadId !== ""
-            ? String(directOrigin.threadId)
-            : undefined,
-        idempotencyKey: crypto.randomUUID(),
-      },
-      expectFinal: true,
-      timeoutMs: 60_000,
-    });
+    // --- Requester delivery (existing behavior) ---
+    // Send to requester when: target is "requester", target is "both",
+    // or thread delivery failed (didAnnounce is still false).
+    if (announceTarget === "requester" || announceTarget === "both" || !didAnnounce) {
+      const triggerMessage = [
+        `A background task "${taskLabel}" just ${statusLabel}.`,
+        "",
+        "Findings:",
+        reply || "(no output)",
+        "",
+        statsLine,
+        "",
+        "Summarize this naturally for the user. Keep it brief (1-2 sentences). Flow it into the conversation naturally.",
+        "Do not mention technical details like tokens, stats, or that this was a background task.",
+        "You can respond with NO_REPLY if no announcement is needed (e.g., internal task with no user-facing result).",
+      ].join("\n");
 
-    didAnnounce = true;
+      const queued = await maybeQueueSubagentAnnounce({
+        requesterSessionKey: params.requesterSessionKey,
+        triggerMessage,
+        summaryLine: taskLabel,
+        requesterOrigin,
+      });
+      if (queued === "steered" || queued === "queued") {
+        didAnnounce = true;
+      } else {
+        // Send to main agent - it will respond in its own voice
+        let directOrigin = requesterOrigin;
+        if (!directOrigin) {
+          const { entry } = loadRequesterSessionEntry(params.requesterSessionKey);
+          directOrigin = deliveryContextFromSession(entry);
+        }
+        await callGateway({
+          method: "agent",
+          params: {
+            sessionKey: params.requesterSessionKey,
+            message: triggerMessage,
+            deliver: true,
+            channel: directOrigin?.channel,
+            accountId: directOrigin?.accountId,
+            to: directOrigin?.to,
+            threadId:
+              directOrigin?.threadId != null && directOrigin.threadId !== ""
+                ? String(directOrigin.threadId)
+                : undefined,
+            idempotencyKey: crypto.randomUUID(),
+          },
+          expectFinal: true,
+          timeoutMs: 60_000,
+        });
+        didAnnounce = true;
+      }
+    }
   } catch (err) {
     defaultRuntime.error?.(`Subagent announce failed: ${String(err)}`);
     // Best-effort follow-ups; ignore failures to avoid breaking the caller response.

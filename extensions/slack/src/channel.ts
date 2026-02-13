@@ -31,6 +31,7 @@ import {
   type ResolvedSlackAccount,
 } from "openclaw/plugin-sdk";
 import { getSlackRuntime } from "./runtime.js";
+import { slackThreadOps } from "./thread-ops.js";
 
 const meta = getChatChannelMeta("slack");
 
@@ -180,6 +181,7 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount> = {
     allowTagsWhenOff: true,
     buildToolContext: (params) => buildSlackThreadingToolContext(params),
   },
+  threadOps: slackThreadOps,
   messaging: {
     normalizeTarget: normalizeSlackMessagingTarget,
     targetResolver: {

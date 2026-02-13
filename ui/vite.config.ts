@@ -31,6 +31,12 @@ export default defineConfig(() => {
       outDir: path.resolve(here, "../dist/control-ui"),
       emptyOutDir: true,
       sourcemap: true,
+      rollupOptions: {
+        // Externalize Node.js built-ins so that any transitive import of
+        // node:module (e.g. from logger.ts → createRequire) doesn't break
+        // the browser bundle.
+        external: [/^node:/],
+      },
     },
     server: {
       host: true,

@@ -288,12 +288,20 @@ export function createSessionsSpawnTool(opts?: {
           resolvedThreadBinding = {
             channel: threadBindingParams.channel,
             accountId: threadBindingParams.accountId,
+            to: threadBindingParams.to ?? opts?.agentTo,
             threadId: threadBindingParams.threadId,
             mode: deliveryMode,
             boundAt: Date.now(),
             createdBy: opts?.agentSessionKey,
             label: threadBindingParams.label,
           };
+          if (!resolvedThreadBinding.to) {
+            return jsonResult({
+              status: "error",
+              error:
+                'threadBinding.to (channel/group ID) is required when mode is "bind" and cannot be inferred from context',
+            });
+          }
         } else if (threadBindingParams.mode === "create") {
           // Create a new thread by posting an initial message
           if (!threadBindingParams.to) {
@@ -305,34 +313,39 @@ export function createSessionsSpawnTool(opts?: {
           const initialMessage =
             threadBindingParams.initialMessage ?? `🤖 Agent spawned: ${task.slice(0, 100)}`;
 
-          // For now, only Slack thread creation is supported.
-          if (threadBindingParams.channel === "slack") {
-            try {
-              const { sendMessageSlack } = await import("../../slack/send.js");
-              const result = await sendMessageSlack(threadBindingParams.to, initialMessage, {
-                accountId: threadBindingParams.accountId ?? undefined,
-              });
-              resolvedThreadBinding = {
-                channel: "slack",
-                accountId: threadBindingParams.accountId,
-                threadId: result.messageId,
-                threadRootId: result.messageId,
-                mode: deliveryMode,
-                boundAt: Date.now(),
-                createdBy: opts?.agentSessionKey,
-                label: threadBindingParams.label,
-              };
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              return jsonResult({
-                status: "error",
-                error: `Failed to create Slack thread: ${msg}`,
-              });
-            }
-          } else {
+          // Use the channel plugin's threadOps to create the thread.
+          const { loadChannelPlugin } = await import("../../channels/plugins/load.js");
+          const plugin = await loadChannelPlugin(threadBindingParams.channel);
+          if (!plugin?.threadOps?.createThread) {
             return jsonResult({
               status: "error",
-              error: `Thread creation for channel "${threadBindingParams.channel}" is not yet supported. Use mode "bind" with an existing threadId.`,
+              error: `Thread creation for channel "${threadBindingParams.channel}" is not supported. Use mode "bind" with an existing threadId.`,
+            });
+          }
+
+          try {
+            const result = await plugin.threadOps.createThread({
+              to: threadBindingParams.to,
+              accountId: threadBindingParams.accountId ?? undefined,
+              initialMessage,
+              cfg,
+            });
+            resolvedThreadBinding = {
+              channel: threadBindingParams.channel,
+              accountId: threadBindingParams.accountId,
+              to: threadBindingParams.to,
+              threadId: result.threadId,
+              threadRootId: result.threadRootId,
+              mode: deliveryMode,
+              boundAt: Date.now(),
+              createdBy: opts?.agentSessionKey,
+              label: threadBindingParams.label,
+            };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return jsonResult({
+              status: "error",
+              error: `Failed to create thread: ${msg}`,
             });
           }
         }

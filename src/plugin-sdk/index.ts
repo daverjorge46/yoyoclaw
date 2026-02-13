@@ -58,6 +58,7 @@ export type {
   ChannelToolSend,
 } from "../channels/plugins/types.js";
 export type { ChannelConfigSchema, ChannelPlugin } from "../channels/plugins/types.plugin.js";
+export type { ChannelThreadOperations } from "../channels/plugins/types.thread-ops.js";
 export type {
   OpenClawPluginApi,
   OpenClawPluginService,

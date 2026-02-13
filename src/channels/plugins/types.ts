@@ -60,4 +60,5 @@ export type {
   ChannelToolSend,
 } from "./types.core.js";
 
+export type { ChannelThreadOperations } from "./types.thread-ops.js";
 export type { ChannelPlugin } from "./types.plugin.js";

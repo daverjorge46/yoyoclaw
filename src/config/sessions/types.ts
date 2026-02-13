@@ -1,5 +1,4 @@
 import type { Skill } from "@mariozechner/pi-coding-agent";
-import crypto from "node:crypto";
 import type { NormalizedChatType } from "../../channels/chat-type.js";
 import type { ChannelId } from "../../channels/plugins/types.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
@@ -103,12 +102,29 @@ export function mergeSessionEntry(
   existing: SessionEntry | undefined,
   patch: Partial<SessionEntry>,
 ): SessionEntry {
-  const sessionId = patch.sessionId ?? existing?.sessionId ?? crypto.randomUUID();
+  // Lazy import crypto only when needed (for server-side UUID generation)
+  const sessionId = patch.sessionId ?? existing?.sessionId ?? generateSessionId();
   const updatedAt = Math.max(existing?.updatedAt ?? 0, patch.updatedAt ?? 0, Date.now());
   if (!existing) {
     return { ...patch, sessionId, updatedAt };
   }
   return { ...existing, ...patch, sessionId, updatedAt };
+}
+
+/**
+ * Generate a unique session ID. Uses crypto.randomUUID() in Node.js or a fallback UUID.
+ * This is lazily imported to avoid bundling crypto into browser-side code.
+ */
+function generateSessionId(): string {
+  // Attempt to use crypto if available (Node.js)
+  try {
+    // eslint-disable-next-line global-require
+    const { randomUUID } = require("crypto");
+    return randomUUID();
+  } catch {
+    // Fallback for browser environment (though this code shouldn't run there)
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  }
 }
 
 export type GroupKeyResolution = {
