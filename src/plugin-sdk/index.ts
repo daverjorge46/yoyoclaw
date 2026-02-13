@@ -63,6 +63,9 @@ export type {
   OpenClawPluginApi,
   OpenClawPluginService,
   OpenClawPluginServiceContext,
+  PluginHookBeforeContextSendContext,
+  PluginHookBeforeContextSendEvent,
+  PluginHookBeforeContextSendResult,
   ProviderAuthContext,
   ProviderAuthResult,
 } from "../plugins/types.js";

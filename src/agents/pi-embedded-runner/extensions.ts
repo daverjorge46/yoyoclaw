@@ -43,25 +43,24 @@ function buildContextPruningExtension(params: {
   model: Model<Api> | undefined;
 }): { additionalExtensionPaths?: string[] } {
   const raw = params.cfg?.agents?.defaults?.contextPruning;
-  if (raw?.mode !== "cache-ttl") {
-    return {};
-  }
-  if (!isCacheTtlEligibleProvider(params.provider, params.modelId)) {
-    return {};
+  const hasPruning =
+    raw?.mode === "cache-ttl" && isCacheTtlEligibleProvider(params.provider, params.modelId);
+
+  if (hasPruning) {
+    const settings = computeEffectiveSettings(raw);
+    if (settings) {
+      setContextPruningRuntime(params.sessionManager, {
+        settings,
+        contextWindowTokens: resolveContextWindowTokens(params),
+        isToolPrunable: makeToolPrunablePredicate(settings.tools),
+        lastCacheTouchAt: readLastCacheTtlTimestamp(params.sessionManager),
+      });
+    }
   }
 
-  const settings = computeEffectiveSettings(raw);
-  if (!settings) {
-    return {};
-  }
-
-  setContextPruningRuntime(params.sessionManager, {
-    settings,
-    contextWindowTokens: resolveContextWindowTokens(params),
-    isToolPrunable: makeToolPrunablePredicate(settings.tools),
-    lastCacheTouchAt: readLastCacheTtlTimestamp(params.sessionManager),
-  });
-
+  // Always load the extension so that before_context_send plugin hooks can
+  // intercept messages even when pruning is disabled. When no pruning runtime
+  // is set and no hooks are registered, the handler returns undefined (no-op).
   return {
     additionalExtensionPaths: [resolvePiExtensionPath("context-pruning")],
   };
