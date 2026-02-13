@@ -1,46 +1,40 @@
 services:
-  openclaw-gateway:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
-    environment:
-      HOME: /home/node
-      TERM: xterm-256color
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
-    volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+  gateway:
+    image: openclaw/gateway:latest  # Pulls latest patched
+    build: .  # Builds if needed (ARM-native)
     ports:
-      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
-      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
-    init: true
-    restart: unless-stopped
-    command:
-      [
-        "node",
-        "dist/index.js",
-        "gateway",
-        "--bind",
-        "${OPENCLAW_GATEWAY_BIND:-lan}",
-        "--port",
-        "18789",
-      ]
-
-  openclaw-cli:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
-    environment:
-      HOME: /home/node
-      TERM: xterm-256color
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
-      BROWSER: echo
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      - "127.0.0.1:18789:18789"  # Localhost-only (safer than "18789:18789")
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
-    stdin_open: true
-    tty: true
-    init: true
-    entrypoint: ["node", "dist/index.js"]
+      - /Users/home/GitHub/openclaw/config:/app/config  # Use ABSOLUTE paths on Mac (replace /full/path/to/openclaw/)
+      - /Users/home/GitHub/openclaw/workspace:/app/workspace
+      - /Users/home/GitHub/openclaw/credentials:/root/.openclaw/credentials
+    environment:
+      - NODE_ENV=production
+      - PORT=18789
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - OLLAMA_BASE=http://host.docker.internal:11434
+      - OLLAMA_API_KEY=ollama-local
+    # Install dependencies on startup (yt-dlp, ffmpeg, jq)
+    # Note: Container runs as non-root 'node' user, so we use sudo or install at build time
+    user: "0:0"  # Temporarily run as root to install packages
+    command: >
+      sh -c "
+        apt-get update -qq 2>/dev/null &&
+        apt-get install -y -qq ffmpeg jq python3-pip curl sudo 2>/dev/null &&
+        pip3 install --break-system-packages -q yt-dlp 2>/dev/null || true &&
+        chown -R node:node /app &&
+        su node -c 'node dist/index.js gateway --allow-unconfigured --port 18789'
+      "
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G  # Cap to protect your MacBook
+    # NO privileged: true – keeps it sandboxed (no host root/shell)
+
+  # models:  # Optional: API proxy (add local Ollama later)
+  #   image: openclaw/models:latest
+  #   environment:
+  #     - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #   restart: unless-stopped
