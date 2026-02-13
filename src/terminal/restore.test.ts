@@ -30,7 +30,7 @@ describe("restoreTerminalState", () => {
     (process.stdin as { isPaused?: () => boolean }).isPaused = originalIsPaused;
   });
 
-  it("does not resume paused stdin while restoring raw mode", () => {
+  it("does not resume paused stdin when resumeStdin is false", () => {
     const setRawMode = vi.fn();
     const resume = vi.fn();
     const isPaused = vi.fn(() => true);
@@ -41,7 +41,7 @@ describe("restoreTerminalState", () => {
     (process.stdin as { resume?: () => void }).resume = resume;
     (process.stdin as { isPaused?: () => boolean }).isPaused = isPaused;
 
-    restoreTerminalState("test");
+    restoreTerminalState("test", { resumeStdin: false });
 
     expect(setRawMode).toHaveBeenCalledWith(false);
     expect(resume).not.toHaveBeenCalled();
