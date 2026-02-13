@@ -101,17 +101,22 @@ async function createLocalEmbeddingProvider(
       return initPromise;
     }
     initPromise = (async () => {
-      if (!llama) {
-        llama = await getLlama({ logLevel: LlamaLogLevel.error });
+      try {
+        if (!llama) {
+          llama = await getLlama({ logLevel: LlamaLogLevel.error });
+        }
+        if (!embeddingModel) {
+          const resolved = await resolveModelFile(modelPath, modelCacheDir || undefined);
+          embeddingModel = await llama.loadModel({ modelPath: resolved });
+        }
+        if (!embeddingContext) {
+          embeddingContext = await embeddingModel.createEmbeddingContext();
+        }
+        return embeddingContext;
+      } catch (err) {
+        initPromise = null;
+        throw err;
       }
-      if (!embeddingModel) {
-        const resolved = await resolveModelFile(modelPath, modelCacheDir || undefined);
-        embeddingModel = await llama.loadModel({ modelPath: resolved });
-      }
-      if (!embeddingContext) {
-        embeddingContext = await embeddingModel.createEmbeddingContext();
-      }
-      return embeddingContext;
     })();
     return initPromise;
   };
