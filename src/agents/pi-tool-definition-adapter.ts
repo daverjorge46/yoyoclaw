@@ -79,6 +79,45 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   };
 }
 
+function withToolDurationMetadata(result: any, durationMs: number): any {
+  if (!result || typeof result !== "object" || Array.isArray(result)) {
+    return result;
+  }
+  const base = result;
+  const metadata =
+    base.metadata && typeof base.metadata === "object" && !Array.isArray(base.metadata)
+      ? base.metadata
+      : {};
+
+  const rootDuration =
+    typeof base.durationMs === "number" && Number.isFinite(base.durationMs)
+      ? base.durationMs
+      : undefined;
+  const metadataDuration =
+    typeof metadata.durationMs === "number" && Number.isFinite(metadata.durationMs)
+      ? metadata.durationMs
+      : undefined;
+  const resolvedDurationMs = rootDuration ?? metadataDuration ?? durationMs;
+
+  // Inject into details if present (AgentToolResult structure)
+  if (base.details && typeof base.details === "object" && !Array.isArray(base.details)) {
+    base.details.durationMs = resolvedDurationMs;
+    base.details.metadata = {
+      ...base.details.metadata,
+      durationMs: resolvedDurationMs,
+    };
+  }
+
+  return {
+    ...base,
+    durationMs: resolvedDurationMs,
+    metadata: {
+      ...metadata,
+      durationMs: resolvedDurationMs,
+    },
+  };
+}
+
 export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
   return tools.map((tool) => {
     const name = tool.name || "tool";
@@ -90,6 +129,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
       parameters: tool.parameters,
       execute: async (...args: ToolExecuteArgs): Promise<AgentToolResult<unknown>> => {
         const { toolCallId, params, onUpdate, signal } = splitToolExecuteArgs(args);
+        const startedAt = performance.now();
         try {
           // Call before_tool_call hook
           const hookOutcome = await runBeforeToolCallHook({
@@ -102,6 +142,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
           }
           const adjustedParams = hookOutcome.params;
           const result = await tool.execute(toolCallId, adjustedParams, signal, onUpdate);
+          const durationMs = Math.max(0, performance.now() - startedAt);
 
           // Call after_tool_call hook
           const hookRunner = getGlobalHookRunner();
@@ -122,7 +163,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return result;
+          return withToolDurationMetadata(result, durationMs);
         } catch (err) {
           if (signal?.aborted) {
             throw err;
@@ -140,6 +181,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
           }
           logError(`[tools] ${normalizedName} failed: ${described.message}`);
 
+          const durationMs = Math.max(0, performance.now() - startedAt);
           const errorResult = jsonResult({
             status: "error",
             tool: normalizedName,
@@ -165,7 +207,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return errorResult;
+          return withToolDurationMetadata(errorResult, durationMs);
         }
       },
     } satisfies ToolDefinition;
@@ -188,6 +230,7 @@ export function toClientToolDefinitions(
       // oxlint-disable-next-line typescript/no-explicit-any
       parameters: func.parameters as any,
       execute: async (...args: ToolExecuteArgs): Promise<AgentToolResult<unknown>> => {
+        const startedAt = performance.now();
         const { toolCallId, params } = splitToolExecuteArgs(args);
         const outcome = await runBeforeToolCallHook({
           toolName: func.name,
@@ -209,6 +252,9 @@ export function toClientToolDefinitions(
           status: "pending",
           tool: func.name,
           message: "Tool execution delegated to client",
+          metadata: {
+            durationMs: Math.max(0, performance.now() - startedAt),
+          },
         });
       },
     } satisfies ToolDefinition;
