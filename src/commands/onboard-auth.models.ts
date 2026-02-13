@@ -75,14 +75,15 @@ export const ZAI_DEFAULT_COST = {
 };
 
 const MINIMAX_MODEL_CATALOG = {
-  "MiniMax-M2.1": { name: "MiniMax M2.1", reasoning: false },
+  "MiniMax-M2.1": { name: "MiniMax M2.1", reasoning: false, multimodal: false },
   "MiniMax-M2.1-lightning": {
     name: "MiniMax M2.1 Lightning",
     reasoning: false,
+    multimodal: false,
   },
-  "MiniMax-M2.5": { name: "MiniMax M2.5", reasoning: true },
-  "MiniMax-M2.5-Lightning": { name: "MiniMax M2.5 Lightning", reasoning: true },
-  "MiniMax-M2.5-Omni": { name: "MiniMax M2.5 Omni", reasoning: true },
+  "MiniMax-M2.5": { name: "MiniMax M2.5", reasoning: true, multimodal: false },
+  "MiniMax-M2.5-Lightning": { name: "MiniMax M2.5 Lightning", reasoning: true, multimodal: false },
+  "MiniMax-M2.5-Omni": { name: "MiniMax M2.5 Omni", reasoning: true, multimodal: true },
 } as const;
 
 type MinimaxCatalogId = keyof typeof MINIMAX_MODEL_CATALOG;
@@ -105,11 +106,12 @@ export function buildMinimaxModelDefinition(params: {
   maxTokens: number;
 }): ModelDefinitionConfig {
   const catalog = MINIMAX_MODEL_CATALOG[params.id as MinimaxCatalogId];
+  const isMultimodal = catalog?.multimodal ?? false;
   return {
     id: params.id,
     name: params.name ?? catalog?.name ?? `MiniMax ${params.id}`,
     reasoning: params.reasoning ?? catalog?.reasoning ?? false,
-    input: ["text"],
+    input: isMultimodal ? ["text", "image"] : ["text"],
     cost: params.cost,
     contextWindow: params.contextWindow,
     maxTokens: params.maxTokens,

@@ -45,7 +45,7 @@ describe("image tool implicit imageModel config", () => {
     expect(createImageTool({ config: cfg, agentDir })).toBeNull();
   });
 
-  it("pairs minimax primary with MiniMax-VL-01 (and fallbacks) when auth exists", async () => {
+  it("pairs minimax primary with MiniMax-M2.5-Omni (and fallbacks) when auth exists", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
     vi.stubEnv("MINIMAX_API_KEY", "minimax-test");
     vi.stubEnv("OPENAI_API_KEY", "openai-test");
@@ -54,7 +54,7 @@ describe("image tool implicit imageModel config", () => {
       agents: { defaults: { model: { primary: "minimax/MiniMax-M2.1" } } },
     };
     expect(resolveImageModelConfigForTool({ cfg, agentDir })).toEqual({
-      primary: "minimax/MiniMax-VL-01",
+      primary: "minimax/MiniMax-M2.5-Omni",
       fallbacks: ["openai/gpt-5-mini", "anthropic/claude-opus-4-5"],
     });
     expect(createImageTool({ config: cfg, agentDir })).not.toBeNull();
