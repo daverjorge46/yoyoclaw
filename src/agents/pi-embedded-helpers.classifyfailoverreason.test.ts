@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { classifyFailoverReason } from "./pi-embedded-helpers.js";
+it("classifies 404 / model-not-found errors as model_not_found", () => {
+  // Google Gemini deprecated model (exact error from issue #4992)
+  expect(
+    classifyFailoverReason(
+      "models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent.",
+    ),
+  ).toBe("model_not_found");
+
+  // Generic 404 with NOT_FOUND status
+  expect(
+    classifyFailoverReason(
+      '{"error":{"code":404,"message":"models/gemini-1.5-pro is not found","status":"NOT_FOUND"}}',
+    ),
+  ).toBe("model_not_found");
+
+  // Model does not exist
+  expect(classifyFailoverReason("The model `gpt-5-turbo` does not exist")).toBe("model_not_found");
+
+  // Model not available
+  expect(classifyFailoverReason("model is not available in your region")).toBe("model_not_found");
+});
 import { DEFAULT_AGENTS_FILENAME } from "./workspace.js";
 
 const _makeFile = (overrides: Partial<WorkspaceBootstrapFile>): WorkspaceBootstrapFile => ({
