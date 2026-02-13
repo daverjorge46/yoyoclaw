@@ -1,9 +1,9 @@
-import fs from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
+import fs from "node:fs/promises";
 import path from "node:path";
+import type { UsageLogEntry } from "./types.js";
 import { TOOL_COST_USD } from "./constants.js";
 import { parseJsonSafe, readFileIfExists } from "./normalize.js";
-import type { UsageLogEntry } from "./types.js";
 
 // In-memory budget tracker to prevent TOCTOU races on concurrent tool calls.
 // Key: "workspaceDir::userSlug::dayPrefix", value: running total in USD.
@@ -23,7 +23,11 @@ function getBudgetKey(workspaceDir: string, userSlug: string, dayPrefix: string)
   return `${workspaceDir}::${userSlug}::${dayPrefix}`;
 }
 
-export async function getBudgetSpent(workspaceDir: string, userSlug: string, dayPrefix: string): Promise<number> {
+export async function getBudgetSpent(
+  workspaceDir: string,
+  userSlug: string,
+  dayPrefix: string,
+): Promise<number> {
   const key = getBudgetKey(workspaceDir, userSlug, dayPrefix);
   const cached = budgetTracker.get(key);
   if (cached !== undefined) {
@@ -35,7 +39,12 @@ export async function getBudgetSpent(workspaceDir: string, userSlug: string, day
   return fromFile;
 }
 
-export function addBudgetSpent(workspaceDir: string, userSlug: string, dayPrefix: string, amount: number): void {
+export function addBudgetSpent(
+  workspaceDir: string,
+  userSlug: string,
+  dayPrefix: string,
+  amount: number,
+): void {
   const key = getBudgetKey(workspaceDir, userSlug, dayPrefix);
   const current = budgetTracker.get(key) ?? 0;
   budgetTracker.set(key, current + amount);
@@ -60,7 +69,9 @@ export function buildBudgetReservationSignature(params: {
   params?: Record<string, unknown>;
 }): string {
   const hash = createHash("sha256")
-    .update(`${params.sessionKey ?? "no-session"}|${params.toolName}|${stableSerialize(params.params ?? {})}`)
+    .update(
+      `${params.sessionKey ?? "no-session"}|${params.toolName}|${stableSerialize(params.params ?? {})}`,
+    )
     .digest("hex")
     .slice(0, 16);
   return `${params.sessionKey ?? "no-session"}::${params.toolName}::${hash}`;
@@ -213,7 +224,11 @@ export function sanitizeParamsForLog(
   for (const [key, value] of Object.entries(params)) {
     if (LOG_SENSITIVE_FIELDS.has(key)) {
       out[key] = typeof value === "string" ? `[${value.length} chars]` : "[redacted]";
-    } else if (key === "command" && typeof value === "string" && value.length > LOG_MAX_COMMAND_LENGTH) {
+    } else if (
+      key === "command" &&
+      typeof value === "string" &&
+      value.length > LOG_MAX_COMMAND_LENGTH
+    ) {
       out[key] = value.slice(0, LOG_MAX_COMMAND_LENGTH) + "...[truncated]";
     } else if (key === "path" || key === "file_path") {
       out[key] = value; // keep paths — they are useful for audit
@@ -231,7 +246,9 @@ export async function appendUsageLog(workspaceDir: string, payload: UsageLogEntr
   await fs.appendFile(path.join(logsDir, "usage.jsonl"), line, "utf-8");
   const dayPrefix = payload.ts.slice(0, 10);
   if (/^\d{4}-\d{2}-\d{2}$/.test(dayPrefix)) {
-    await fs.appendFile(path.join(logsDir, `usage.${dayPrefix}.jsonl`), line, "utf-8").catch(() => undefined);
+    await fs
+      .appendFile(path.join(logsDir, `usage.${dayPrefix}.jsonl`), line, "utf-8")
+      .catch(() => undefined);
   }
 }
 
@@ -270,9 +287,7 @@ async function readUsageForDay(params: {
     onDayEntry: (line) => linesForDay.push(line),
   });
   if (linesForDay.length > 0) {
-    await fs
-      .appendFile(dayFilePath, `${linesForDay.join("\n")}\n`, "utf-8")
-      .catch(() => undefined);
+    await fs.appendFile(dayFilePath, `${linesForDay.join("\n")}\n`, "utf-8").catch(() => undefined);
   }
   return total;
 }

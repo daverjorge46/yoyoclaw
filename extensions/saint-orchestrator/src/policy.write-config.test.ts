@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { canWritePath } from "./policy.js";
 import type { ResolvedTier } from "./types.js";
+import { canWritePath } from "./policy.js";
 
 function ownerTier(): ResolvedTier {
   return {

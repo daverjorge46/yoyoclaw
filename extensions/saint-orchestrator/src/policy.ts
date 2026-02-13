@@ -1,8 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PLATFORM_PROTECTED_FILES } from "./constants.js";
-import { anyMatch, matchPattern, normalizePath, toUnixPath, uniqueStrings, isStarList, normalizeSkills } from "./normalize.js";
 import type { ResolvedTier, TierConfig, ToolPolicy } from "./types.js";
+import { PLATFORM_PROTECTED_FILES } from "./constants.js";
+import {
+  anyMatch,
+  matchPattern,
+  normalizePath,
+  toUnixPath,
+  uniqueStrings,
+  isStarList,
+  normalizeSkills,
+} from "./normalize.js";
 
 export function resolveToolPolicy(tier: TierConfig): ToolPolicy | undefined {
   const allow = uniqueStrings(tier.tools);

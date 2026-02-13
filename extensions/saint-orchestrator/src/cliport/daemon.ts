@@ -182,7 +182,8 @@ function tokenBindingMatchesRequest(
   }
   if (
     binding.containerName &&
-    (!request.containerName || !timingSafeStringEquals(binding.containerName, request.containerName))
+    (!request.containerName ||
+      !timingSafeStringEquals(binding.containerName, request.containerName))
   ) {
     return false;
   }

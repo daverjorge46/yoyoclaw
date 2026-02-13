@@ -3,11 +3,17 @@ import { Type } from "@sinclair/typebox";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { jsonResult, readStringParam } from "openclaw/plugin-sdk";
+import type { ResolvedTier, SaintToolContext, ToolExecutionResult } from "./types.js";
 import { applyPatch } from "../../../src/agents/apply-patch.js";
 import { parseJsonSafe, resolveWorkspaceDir, uniqueStrings } from "./normalize.js";
-import { canReadPath, canWritePath, isConfigManagedPath, needsConfigValidation, resolveRealPathWithinWorkspace } from "./policy.js";
+import {
+  canReadPath,
+  canWritePath,
+  isConfigManagedPath,
+  needsConfigValidation,
+  resolveRealPathWithinWorkspace,
+} from "./policy.js";
 import { resolveTierForToolContext } from "./sessions.js";
-import type { ResolvedTier, SaintToolContext, ToolExecutionResult } from "./types.js";
 import { payloadHash, requireWriteConfirmation, validateConfigWrite } from "./validation.js";
 
 export function resolvePathParam(params: Record<string, unknown>): string {

@@ -37,7 +37,9 @@ function extractBindPaths(bind: string): string[] {
 
 function isCliportSocketBind(bind: string, socketPath: string): boolean {
   const normalizedSocketPath = normalizeSocketPath(socketPath);
-  return extractBindPaths(bind).some((entry) => normalizeSocketPath(entry) === normalizedSocketPath);
+  return extractBindPaths(bind).some(
+    (entry) => normalizeSocketPath(entry) === normalizedSocketPath,
+  );
 }
 
 function hasCliportSocketBind(value: unknown, socketPath: string): boolean {

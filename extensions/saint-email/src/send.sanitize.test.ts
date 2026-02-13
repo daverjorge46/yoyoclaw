@@ -30,7 +30,7 @@ describe("MIME header sanitization", () => {
   });
 
   it("sanitizes filenames by stripping CR/LF and escaping quotes", () => {
-    expect(__testing.sanitizeFilename('report.txt')).toBe("report.txt");
+    expect(__testing.sanitizeFilename("report.txt")).toBe("report.txt");
     expect(__testing.sanitizeFilename('file"name.txt')).toBe("file'name.txt");
     expect(__testing.sanitizeFilename("file\r\nname.txt")).toBe("filename.txt");
     expect(__testing.sanitizeFilename('bad"\r\nheader: injection')).toBe("bad'header: injection");

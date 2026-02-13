@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
-
 // This test verifies that the before_agent_prepare hook error propagation
 // works correctly (Fix #6: fail-closed). The fix changed the catch block in
 // run.ts from `log.warn(...)` (swallow) to `throw hookErr` (propagate).
 //
 // We test the hook runner since it's the component that determines whether
 // errors escape to the caller.
-
 import type { PluginRegistry } from "../../plugins/registry.js";
 import { createHookRunner } from "../../plugins/hooks.js";
 

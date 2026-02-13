@@ -189,10 +189,7 @@ async function ensureCliportTokenAllowed(
     100,
     Math.floor(options?.lockTimeoutMs ?? CLIPORT_TOKENS_LOCK_TIMEOUT_MS),
   );
-  const lockRetryMs = Math.max(
-    5,
-    Math.floor(options?.lockRetryMs ?? CLIPORT_TOKENS_LOCK_RETRY_MS),
-  );
+  const lockRetryMs = Math.max(5, Math.floor(options?.lockRetryMs ?? CLIPORT_TOKENS_LOCK_RETRY_MS));
   const lockStaleMs = Math.max(
     1_000,
     Math.floor(options?.lockStaleMs ?? CLIPORT_TOKENS_LOCK_STALE_MS),
@@ -344,7 +341,9 @@ async function readLockMetadata(lockPath: string): Promise<{
         ? parsed.createdAtMs
         : undefined;
     const pid =
-      typeof parsed.pid === "number" && Number.isFinite(parsed.pid) ? Math.floor(parsed.pid) : undefined;
+      typeof parsed.pid === "number" && Number.isFinite(parsed.pid)
+        ? Math.floor(parsed.pid)
+        : undefined;
     return { createdAtMs, pid, mtimeMs: stat.mtimeMs };
   } catch {
     return { mtimeMs: stat.mtimeMs };

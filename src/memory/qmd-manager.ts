@@ -62,7 +62,6 @@ type QmdQueryResult = {
   body?: string;
 };
 
-
 type CollectionRoot = {
   path: string;
   kind: MemorySource;

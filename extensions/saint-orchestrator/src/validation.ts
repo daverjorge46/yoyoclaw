@@ -215,7 +215,11 @@ function resolveKnownTierNamesFromTiersContent(content: string): Set<string> | n
     return null;
   }
   const state = normalizeTierState(parsed);
-  return new Set<string>(["owner", "external", ...Object.keys(state.custom).map((entry) => normalizeId(entry))]);
+  return new Set<string>([
+    "owner",
+    "external",
+    ...Object.keys(state.custom).map((entry) => normalizeId(entry)),
+  ]);
 }
 
 export async function validateConfigWrite(params: {
@@ -268,7 +272,9 @@ export async function validateConfigWrite(params: {
     if (!contactsValidation.ok) {
       return {
         ok: false,
-        errors: contactsValidation.errors.map((entry) => `contacts.json compatibility check: ${entry}`),
+        errors: contactsValidation.errors.map(
+          (entry) => `contacts.json compatibility check: ${entry}`,
+        ),
       };
     }
     return tiersValidation;

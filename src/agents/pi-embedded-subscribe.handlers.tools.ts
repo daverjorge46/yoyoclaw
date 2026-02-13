@@ -263,5 +263,4 @@ export async function handleToolExecutionEnd(
       ctx.emitToolOutput(toolName, meta, outputText);
     }
   }
-
 }
