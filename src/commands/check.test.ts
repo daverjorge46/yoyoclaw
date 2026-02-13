@@ -26,7 +26,7 @@ import {
   checkGatewayStatus,
   readGatewayLock,
   isProcessRunning,
-  checkGatewayPort,
+  formatInstallationCheckSummary,
 } from "./check.js";
 
 describe("check command", () => {
@@ -727,5 +727,44 @@ describe("gateway status check", () => {
     if (result.lockFileExists && result.running) {
       expect(typeof result.pid).toBe("number");
     }
+  });
+});
+
+describe("formatInstallationCheckSummary", () => {
+  it("should include all checks with ✓/✗ and show fix instructions for failures", () => {
+    const result = {
+      ok: false,
+      checks: [
+        { id: "a", name: "Check A", ok: true },
+        {
+          id: "b",
+          name: "Check B",
+          ok: false,
+          message: "Something went wrong",
+          fix: "Do the thing",
+        },
+      ],
+    };
+
+    const lines = formatInstallationCheckSummary(result, { rich: false }).map((l) => l.text);
+
+    expect(lines.join("\n")).toContain("✓ Check A");
+    expect(lines.join("\n")).toContain("✗ Check B");
+    expect(lines.join("\n")).toContain("→ Something went wrong");
+    expect(lines.join("\n")).toContain("Do the thing");
+    expect(lines.join("\n")).toContain("Some checks failed.");
+  });
+
+  it("should keep visual indicators when rich=true", () => {
+    const result = {
+      ok: true,
+      checks: [{ id: "a", name: "Check A", ok: true }],
+    };
+
+    const lines = formatInstallationCheckSummary(result, { rich: true });
+    const text = lines.map((l) => l.text).join("\n");
+
+    // In CI/test environments color may be disabled; the important part is the indicator.
+    expect(text).toContain("✓ Check A");
   });
 });

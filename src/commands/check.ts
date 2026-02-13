@@ -6,16 +6,12 @@ import type { RuntimeEnv } from "../runtime.js";
 import { resolveBundledSkillsDir } from "../agents/skills/bundled-dir.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { loadConfig, CONFIG_PATH } from "../config/config.js";
-import {
-  STATE_DIR,
-  DEFAULT_GATEWAY_PORT,
-  resolveGatewayPort,
-  resolveGatewayLockDir,
-} from "../config/paths.js";
+import { STATE_DIR, resolveGatewayPort, resolveGatewayLockDir } from "../config/paths.js";
 import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
 import { defaultRuntime } from "../runtime.js";
 import { note } from "../terminal/note.js";
 import { stylePromptTitle } from "../terminal/prompt-style.js";
+import { colorize, isRich, theme } from "../terminal/theme.js";
 
 const intro = (message: string) => clackIntro(stylePromptTitle(message) ?? message);
 const outro = (message: string) => clackOutro(stylePromptTitle(message) ?? message);
@@ -715,6 +711,8 @@ export interface CheckItemResult {
   ok: boolean;
   /** Optional message */
   message?: string;
+  /** Optional fix instructions (shown when ok=false) */
+  fix?: string;
 }
 
 /**
@@ -732,6 +730,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     message: nodeVersionCheck.ok
       ? undefined
       : `Node.js ${nodeVersionCheck.current} installed, but ${nodeVersionCheck.required} or higher is required`,
+    fix: nodeVersionCheck.ok
+      ? undefined
+      : `Install Node.js ${nodeVersionCheck.required}+ and re-run ${formatCliCommand("openclaw check")}`,
   });
 
   // Check 2: pnpm version
@@ -745,6 +746,11 @@ async function runInstallationChecks(): Promise<CheckResult> {
       : pnpmVersionCheck.error
         ? `Could not check pnpm version: ${pnpmVersionCheck.error}`
         : `pnpm ${pnpmVersionCheck.current} installed, but ${pnpmVersionCheck.required} or higher is required`,
+    fix: pnpmVersionCheck.ok
+      ? undefined
+      : pnpmVersionCheck.error
+        ? `Install pnpm ${pnpmVersionCheck.required}+ (or enable via corepack) and re-run ${formatCliCommand("openclaw check")}`
+        : `Upgrade pnpm to ${pnpmVersionCheck.required}+ and re-run ${formatCliCommand("openclaw check")}`,
   });
 
   // Check 3: Environment file exists
@@ -756,6 +762,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     message: envExistsCheck.ok
       ? undefined
       : `No .env file found. Copy .env.example to .env and configure your settings`,
+    fix: envExistsCheck.ok
+      ? undefined
+      : "Copy .env.example to .env, then fill in the required values",
   });
 
   // Check 4: Environment variables are valid
@@ -779,6 +788,13 @@ async function runInstallationChecks(): Promise<CheckResult> {
       }
       return "Failed to validate environment file";
     })(),
+    fix: envValidCheck.ok
+      ? undefined
+      : !envValidCheck.envExists
+        ? "Create a .env file (copy from .env.example) and fill in all required variables"
+        : envValidCheck.missing.length > 0
+          ? `Add missing variables to .env: ${envValidCheck.missing.join(", ")}`
+          : "Review your .env file for formatting errors",
   });
 
   // Check 5: Config file exists
@@ -790,6 +806,7 @@ async function runInstallationChecks(): Promise<CheckResult> {
     message: configExists
       ? undefined
       : `Run ${formatCliCommand("openclaw setup")} to create a config file`,
+    fix: configExists ? undefined : `Run ${formatCliCommand("openclaw setup")}`,
   });
 
   // Check 6: Config is valid (if exists)
@@ -807,6 +824,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     name: "Configuration is valid",
     ok: configValid,
     message: configValid ? undefined : "Configuration file has errors",
+    fix: configValid
+      ? undefined
+      : `Edit ${CONFIG_PATH} to fix errors, or re-run ${formatCliCommand("openclaw setup")}`,
   });
 
   // Check 7: Gateway mode is configured
@@ -826,6 +846,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     message: gatewayModeConfigured
       ? undefined
       : `Run ${formatCliCommand("openclaw config set gateway.mode local")} or configure via ${formatCliCommand("openclaw configure")}`,
+    fix: gatewayModeConfigured
+      ? undefined
+      : `Run ${formatCliCommand("openclaw config set gateway.mode local")}`,
   });
 
   // Check 8: Package root is accessible
@@ -845,6 +868,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     name: "OpenClaw installation is accessible",
     ok: packageRootAccessible,
     message: packageRootAccessible ? undefined : "Installation may be corrupted",
+    fix: packageRootAccessible
+      ? undefined
+      : "Reinstall OpenClaw (or ensure your global install location is readable)",
   });
 
   // Check 9: Database connectivity
@@ -854,6 +880,9 @@ async function runInstallationChecks(): Promise<CheckResult> {
     name: "Database is accessible",
     ok: dbCheck.ok,
     message: dbCheck.ok ? undefined : dbCheck.error || "Database is not accessible",
+    fix: dbCheck.ok
+      ? undefined
+      : "Ensure the state directory is writable and the SQLite database file is intact",
   });
 
   // Check 10: Skills directory exists and is valid
@@ -874,6 +903,12 @@ async function runInstallationChecks(): Promise<CheckResult> {
       }
       return undefined;
     })(),
+    fix:
+      skillsCheck.ok && skillsCheck.skillsDir !== undefined
+        ? undefined
+        : !skillsCheck.skillsDir
+          ? "Reinstall OpenClaw (or set OPENCLAW_BUNDLED_SKILLS_DIR to your skills directory)"
+          : "Reinstall OpenClaw to restore missing skill metadata",
   });
 
   // Check 11: Gateway service status
@@ -894,6 +929,11 @@ async function runInstallationChecks(): Promise<CheckResult> {
       }
       return gatewayCheck.error || "Gateway check failed";
     })(),
+    fix: gatewayCheck.ok
+      ? undefined
+      : !gatewayCheck.running
+        ? `Run ${formatCliCommand("openclaw gateway start")}`
+        : `Restart the gateway (${formatCliCommand("openclaw gateway restart")}) and check port ${gatewayCheck.port}`,
   });
 
   const allOk = checks.every((c) => c.ok);
@@ -905,21 +945,46 @@ async function runInstallationChecks(): Promise<CheckResult> {
 }
 
 /**
- * Format check results for terminal output
+ * A formatted line for installation check output.
  */
-function formatCheckResults(result: CheckResult): string[] {
-  const lines: string[] = [];
+export type FormattedCheckLine =
+  | { kind: "pass"; text: string }
+  | { kind: "fail"; text: string }
+  | { kind: "fix"; text: string }
+  | { kind: "info"; text: string }
+  | { kind: "blank"; text: "" };
+
+/**
+ * Format check results for terminal output.
+ *
+ * - Uses ✓/✗ icons for quick scanning.
+ * - When rich terminal styling is available, colors the icons.
+ * - Includes fix instructions for failed checks (when provided).
+ */
+export function formatInstallationCheckSummary(
+  result: CheckResult,
+  options: { rich?: boolean } = {},
+): FormattedCheckLine[] {
+  const rich = options.rich ?? isRich();
+
+  const lines: FormattedCheckLine[] = [];
 
   for (const check of result.checks) {
-    const status = check.ok ? "✓" : "✗";
-    lines.push(`${status} ${check.name}`);
-    if (check.message) {
-      lines.push(`  → ${check.message}`);
+    const icon = check.ok ? colorize(rich, theme.success, "✓") : colorize(rich, theme.error, "✗");
+
+    lines.push({ kind: check.ok ? "pass" : "fail", text: `${icon} ${check.name}` });
+
+    if (!check.ok && check.message) {
+      lines.push({ kind: "info", text: `  → ${check.message}` });
+    }
+
+    if (!check.ok && check.fix) {
+      lines.push({ kind: "fix", text: check.fix });
     }
   }
 
-  lines.push("");
-  lines.push(result.ok ? "All checks passed!" : "Some checks failed.");
+  lines.push({ kind: "blank", text: "" });
+  lines.push({ kind: "info", text: result.ok ? "All checks passed!" : "Some checks failed." });
 
   return lines;
 }
@@ -940,20 +1005,28 @@ export async function checkCommand(
   if (options.json) {
     runtime.log(JSON.stringify(result, null, 2));
   } else {
-    for (const line of formatCheckResults(result)) {
-      if (line === "") {
+    for (const line of formatInstallationCheckSummary(result)) {
+      if (line.kind === "blank") {
         runtime.log("");
-      } else if (line.startsWith("✓")) {
-        runtime.log(line);
-      } else if (line.startsWith("✗")) {
-        runtime.error(line);
-      } else if (line.startsWith("  →")) {
-        note(line.slice(4), "Fix");
-      } else if (line.includes("passed")) {
-        runtime.log(line);
-      } else {
-        runtime.log(line);
+        continue;
       }
+
+      if (line.kind === "pass") {
+        runtime.log(line.text);
+        continue;
+      }
+
+      if (line.kind === "fail") {
+        runtime.error(line.text);
+        continue;
+      }
+
+      if (line.kind === "fix") {
+        note(line.text, "Fix");
+        continue;
+      }
+
+      runtime.log(line.text);
     }
 
     outro(result.ok ? "Installation looks good!" : "Installation check complete");

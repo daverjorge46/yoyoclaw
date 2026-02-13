@@ -91,3 +91,15 @@ Started: Thursday, February 12th, 2026 — 5:32 PM
 - The `ok` field in validation result is only true when ALL skills have valid metadata
 
 ---
+
+## 2026-02-13 - US-007: Create summary report formatter
+- Added a structured formatter for installation check output (`formatInstallationCheckSummary`)
+- Added optional `fix` instructions per check to help users resolve failures quickly
+- Added rich output support: uses ✓/✗ icons and colors them when terminal styling is enabled
+- Updated `checkCommand` to use the new formatter and route fix instructions through `note(..., "Fix")`
+
+**Files changed:**
+- `src/commands/check.ts` - Added `fix` field to results + new formatter
+- `src/commands/check.test.ts` - Added formatter unit tests
+
+---
