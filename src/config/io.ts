@@ -390,7 +390,9 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         applyModelDefaults(
           applyCompactionDefaults(
             applyContextPruningDefaults(
-              applyAgentDefaults(applySessionDefaults(applyMessageDefaults({}))),
+              applyAgentDefaults(
+                applySessionDefaults(applyLoggingDefaults(applyMessageDefaults({}))),
+              ),
             ),
           ),
         ),
@@ -520,8 +522,14 @@ export function createConfigIO(overrides: ConfigIoDeps = {}) {
         config: normalizeConfigPaths(
           applyTalkApiKey(
             applyModelDefaults(
-              applyAgentDefaults(
-                applySessionDefaults(applyLoggingDefaults(applyMessageDefaults(validated.config))),
+              applyCompactionDefaults(
+                applyContextPruningDefaults(
+                  applyAgentDefaults(
+                    applySessionDefaults(
+                      applyLoggingDefaults(applyMessageDefaults(validated.config)),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
