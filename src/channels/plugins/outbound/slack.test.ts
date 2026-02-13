@@ -42,6 +42,7 @@ describe("slack outbound hook wiring", () => {
       hasHooks: vi.fn().mockReturnValue(true),
       runMessageSending: vi.fn().mockResolvedValue(undefined),
     };
+    // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
     await slackOutbound.sendText({
@@ -67,6 +68,7 @@ describe("slack outbound hook wiring", () => {
       hasHooks: vi.fn().mockReturnValue(true),
       runMessageSending: vi.fn().mockResolvedValue({ cancel: true }),
     };
+    // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
     const result = await slackOutbound.sendText({
@@ -85,6 +87,7 @@ describe("slack outbound hook wiring", () => {
       hasHooks: vi.fn().mockReturnValue(true),
       runMessageSending: vi.fn().mockResolvedValue({ content: "modified" }),
     };
+    // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
     await slackOutbound.sendText({
@@ -105,6 +108,7 @@ describe("slack outbound hook wiring", () => {
       hasHooks: vi.fn().mockReturnValue(false),
       runMessageSending: vi.fn(),
     };
+    // oxlint-disable-next-line typescript/no-explicit-any
     vi.mocked(getGlobalHookRunner).mockReturnValue(mockRunner as any);
 
     await slackOutbound.sendText({
