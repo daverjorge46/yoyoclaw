@@ -28,6 +28,15 @@ Sandboxing details: [Sandboxing](/gateway/sandboxing)
 - Docker Desktop (or Docker Engine) + Docker Compose v2
 - Enough disk for images + logs
 
+> **No pre-built images.** OpenClaw does not publish Docker images to a
+> registry. You build them locally from the source repository. Clone the repo
+> first, then run the setup script from the repo root:
+>
+> ```bash
+> git clone https://github.com/openclaw/openclaw.git
+> cd openclaw
+> ```
+
 ## Containerized Gateway (Docker Compose)
 
 ### Quick start (recommended)
