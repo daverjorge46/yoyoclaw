@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import path from "node:path";
 import { isTruthyEnvValue } from "./env.js";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -9,6 +10,29 @@ let cachedShellPath: string | null | undefined;
 function resolveShell(env: NodeJS.ProcessEnv): string {
   const shell = env.SHELL?.trim();
   return shell && shell.length > 0 ? shell : "/bin/sh";
+}
+
+/**
+ * Build a command that sources the appropriate RC file(s) before dumping
+ * the environment with `env -0`. Login shells (`-l`) source profile files
+ * (.zprofile, .bash_profile) but skip interactive RC files (.zshrc, .bashrc)
+ * where tools like pyenv/nvm/rbenv are commonly configured. This helper
+ * explicitly sources those RC files so their PATH modifications are captured.
+ */
+export function buildEnvDumpCommand(shell: string): string {
+  const base = path.basename(shell);
+
+  if (base === "zsh") {
+    return '{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0';
+  }
+  if (base === "bash") {
+    return '{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0';
+  }
+  if (base === "fish") {
+    return "env -0";
+  }
+  // Unknown shell: try both common RC files
+  return 'for f in "$HOME/.bashrc" "$HOME/.zshrc"; do [ -f "$f" ] && . "$f" >/dev/null 2>&1 || true; done; env -0';
 }
 
 function parseShellEnv(stdout: Buffer): Map<string, string> {
@@ -70,7 +94,7 @@ export function loadShellEnvFallback(opts: ShellEnvFallbackOptions): ShellEnvFal
 
   let stdout: Buffer;
   try {
-    stdout = exec(shell, ["-l", "-c", "env -0"], {
+    stdout = exec(shell, ["-l", "-c", buildEnvDumpCommand(shell)], {
       encoding: "buffer",
       timeout: timeoutMs,
       maxBuffer: DEFAULT_MAX_BUFFER_BYTES,
@@ -145,7 +169,7 @@ export function getShellPathFromLoginShell(opts: {
 
   let stdout: Buffer;
   try {
-    stdout = exec(shell, ["-l", "-c", "env -0"], {
+    stdout = exec(shell, ["-l", "-c", buildEnvDumpCommand(shell)], {
       encoding: "buffer",
       timeout: timeoutMs,
       maxBuffer: DEFAULT_MAX_BUFFER_BYTES,

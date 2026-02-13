@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildEnvDumpCommand,
   loadShellEnvFallback,
   resolveShellEnvFallbackTimeoutMs,
   shouldEnableShellEnvFallback,
@@ -70,5 +71,82 @@ describe("shell env fallback", () => {
     expect(env.OPENAI_API_KEY).toBe("from-parent");
     expect(env.DISCORD_BOT_TOKEN).toBe("discord");
     expect(exec2).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildEnvDumpCommand", () => {
+  it("returns zshrc-sourcing command for zsh", () => {
+    const cmd = buildEnvDumpCommand("/bin/zsh");
+    expect(cmd).toBe('{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0');
+  });
+
+  it("returns bashrc-sourcing command for bash", () => {
+    const cmd = buildEnvDumpCommand("/bin/bash");
+    expect(cmd).toBe('{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0');
+  });
+
+  it("returns plain env -0 for fish (auto-sources config)", () => {
+    const cmd = buildEnvDumpCommand("/usr/bin/fish");
+    expect(cmd).toBe("env -0");
+  });
+
+  it("returns both RC files for unknown shells", () => {
+    const cmd = buildEnvDumpCommand("/bin/sh");
+    expect(cmd).toBe(
+      'for f in "$HOME/.bashrc" "$HOME/.zshrc"; do [ -f "$f" ] && . "$f" >/dev/null 2>&1 || true; done; env -0',
+    );
+  });
+
+  it("handles full paths with nested directories", () => {
+    expect(buildEnvDumpCommand("/usr/local/bin/zsh")).toBe(
+      '{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0',
+    );
+    expect(buildEnvDumpCommand("/opt/homebrew/bin/bash")).toBe(
+      '{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0',
+    );
+  });
+});
+
+describe("loadShellEnvFallback sources RC files", () => {
+  it("passes zshrc-sourcing command to exec for zsh shell", () => {
+    const env: NodeJS.ProcessEnv = { SHELL: "/bin/zsh" };
+    const exec = vi.fn(() => Buffer.from("MY_KEY=val\0"));
+
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["MY_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+    });
+
+    expect(exec).toHaveBeenCalledTimes(1);
+    const args = exec.mock.calls[0]!;
+    expect(args[0]).toBe("/bin/zsh");
+    expect(args[1]).toEqual([
+      "-l",
+      "-c",
+      '{ . "$HOME/.zshrc"; } >/dev/null 2>&1 || true; env -0',
+    ]);
+  });
+
+  it("passes bashrc-sourcing command to exec for bash shell", () => {
+    const env: NodeJS.ProcessEnv = { SHELL: "/bin/bash" };
+    const exec = vi.fn(() => Buffer.from("MY_KEY=val\0"));
+
+    loadShellEnvFallback({
+      enabled: true,
+      env,
+      expectedKeys: ["MY_KEY"],
+      exec: exec as unknown as Parameters<typeof loadShellEnvFallback>[0]["exec"],
+    });
+
+    expect(exec).toHaveBeenCalledTimes(1);
+    const args = exec.mock.calls[0]!;
+    expect(args[0]).toBe("/bin/bash");
+    expect(args[1]).toEqual([
+      "-l",
+      "-c",
+      '{ . "$HOME/.bashrc"; } >/dev/null 2>&1 || true; env -0',
+    ]);
   });
 });
