@@ -100,9 +100,9 @@ describe("web media loading", () => {
     const { buffer, file } = await createLargeTestJpeg();
     const cap = Math.max(1, Math.floor(buffer.length * 0.8));
 
-    await expect(
-      loadWebMedia(file, { maxBytes: cap, optimizeImages: false }),
-    ).rejects.toThrow(/Media exceeds/i);
+    await expect(loadWebMedia(file, { maxBytes: cap, optimizeImages: false })).rejects.toThrow(
+      /Media exceeds/i,
+    );
   });
 
   it("sniffs mime before extension when loading local files", async () => {

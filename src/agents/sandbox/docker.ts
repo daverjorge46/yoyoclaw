@@ -38,7 +38,9 @@ export function execDockerRaw(
 
     const signal = opts?.signal;
     const handleAbort = () => {
-      if (aborted) return;
+      if (aborted) {
+        return;
+      }
       aborted = true;
       child.kill("SIGTERM");
     };
@@ -58,12 +60,16 @@ export function execDockerRaw(
     });
 
     child.on("error", (error) => {
-      if (signal) signal.removeEventListener("abort", handleAbort);
+      if (signal) {
+        signal.removeEventListener("abort", handleAbort);
+      }
       reject(error);
     });
 
     child.on("close", (code) => {
-      if (signal) signal.removeEventListener("abort", handleAbort);
+      if (signal) {
+        signal.removeEventListener("abort", handleAbort);
+      }
       const stdout = Buffer.concat(stdoutChunks);
       const stderr = Buffer.concat(stderrChunks);
       if (aborted || signal?.aborted) {
@@ -98,7 +104,6 @@ export function execDockerRaw(
   });
 }
 
-import { defaultRuntime } from "../../runtime.js";
 import { formatCliCommand } from "../../cli/command-format.js";
 import { defaultRuntime } from "../../runtime.js";
 import { computeSandboxConfigHash } from "./config-hash.js";
@@ -281,9 +286,7 @@ export function buildSandboxCreateArgs(params: {
   if (typeof params.cfg.cpus === "number" && params.cfg.cpus > 0) {
     args.push("--cpus", String(params.cfg.cpus));
   }
-  for (const [name, value] of Object.entries(params.cfg.ulimits ?? {}) as Array<
-    [string, string | number | { soft?: number; hard?: number }]
-  >) {
+  for (const [name, value] of Object.entries(params.cfg.ulimits ?? {})) {
     const formatted = formatUlimitValue(name, value);
     if (formatted) {
       args.push("--ulimit", formatted);

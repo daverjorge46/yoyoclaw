@@ -3,8 +3,8 @@ import { Type } from "@sinclair/typebox";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { applyUpdateHunk } from "./apply-patch-update.js";
 import type { SandboxFsBridge } from "./sandbox/fs-bridge.js";
+import { applyUpdateHunk } from "./apply-patch-update.js";
 
 const BEGIN_PATCH_MARKER = "*** Begin Patch";
 const END_PATCH_MARKER = "*** End Patch";
@@ -242,7 +242,9 @@ function resolvePatchFileOps(options: ApplyPatchOptions): PatchFileOps {
 
 async function ensureDir(filePath: string, ops: PatchFileOps) {
   const parent = path.dirname(filePath);
-  if (!parent || parent === ".") return;
+  if (!parent || parent === ".") {
+    return;
+  }
   await ops.mkdirp(parent);
 }
 

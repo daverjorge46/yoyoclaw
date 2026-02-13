@@ -1,8 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-
-import { resolveSandboxPath } from "../sandbox-paths.js";
 import type { SandboxFsBridge, SandboxFsStat, SandboxResolvedPath } from "../sandbox/fs-bridge.js";
+import { resolveSandboxPath } from "../sandbox-paths.js";
 
 export function createHostSandboxFsBridge(rootDir: string): SandboxFsBridge {
   const root = path.resolve(rootDir);
@@ -65,7 +64,9 @@ export function createHostSandboxFsBridge(rootDir: string): SandboxFsBridge {
           mtimeMs: stats.mtimeMs,
         } satisfies SandboxFsStat;
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+          return null;
+        }
         throw error;
       }
     },

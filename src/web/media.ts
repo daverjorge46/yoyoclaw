@@ -25,6 +25,9 @@ export type WebMediaResult = {
 type WebMediaOptions = {
   maxBytes?: number;
   optimizeImages?: boolean;
+  ssrfPolicy?: SsrFPolicy;
+  /** Allowed root directories for local path reads. "any" skips the check (caller already validated). */
+  localRoots?: string[] | "any";
   readFile?: (filePath: string) => Promise<Buffer>;
 };
 
@@ -163,7 +166,13 @@ async function loadWebMediaInternal(
   mediaUrl: string,
   options: WebMediaOptions = {},
 ): Promise<WebMediaResult> {
-  const { maxBytes, optimizeImages = true, readFile: readFileOverride } = options;
+  const {
+    maxBytes,
+    optimizeImages = true,
+    ssrfPolicy,
+    localRoots,
+    readFile: readFileOverride,
+  } = options;
   // Use fileURLToPath for proper handling of file:// URLs (handles file://localhost/path, etc.)
   if (mediaUrl.startsWith("file://")) {
     try {
@@ -285,35 +294,39 @@ async function loadWebMediaInternal(
 
 export async function loadWebMedia(
   mediaUrl: string,
-  options?: number | WebMediaOptions,
+  maxBytesOrOptions?: number | WebMediaOptions,
+  options?: { ssrfPolicy?: SsrFPolicy; localRoots?: string[] | "any" },
 ): Promise<WebMediaResult> {
-  if (typeof options === "number" || options === undefined) {
+  if (typeof maxBytesOrOptions === "number" || maxBytesOrOptions === undefined) {
     return await loadWebMediaInternal(mediaUrl, {
-      maxBytes: options,
+      maxBytes: maxBytesOrOptions,
       optimizeImages: true,
+      ssrfPolicy: options?.ssrfPolicy,
+      localRoots: options?.localRoots,
     });
   }
   return await loadWebMediaInternal(mediaUrl, {
-    ...options,
-    optimizeImages: options.optimizeImages ?? true,
+    ...maxBytesOrOptions,
+    optimizeImages: maxBytesOrOptions.optimizeImages ?? true,
   });
 }
 
 export async function loadWebMediaRaw(
   mediaUrl: string,
-  options?: number | WebMediaOptions,
+  maxBytesOrOptions?: number | WebMediaOptions,
+  options?: { ssrfPolicy?: SsrFPolicy; localRoots?: string[] | "any" },
 ): Promise<WebMediaResult> {
-  if (typeof options === "number" || options === undefined) {
+  if (typeof maxBytesOrOptions === "number" || maxBytesOrOptions === undefined) {
     return await loadWebMediaInternal(mediaUrl, {
-      maxBytes: options,
+      maxBytes: maxBytesOrOptions,
       optimizeImages: false,
+      ssrfPolicy: options?.ssrfPolicy,
+      localRoots: options?.localRoots,
     });
   }
   return await loadWebMediaInternal(mediaUrl, {
-    ...options,
+    ...maxBytesOrOptions,
     optimizeImages: false,
-    ssrfPolicy: options?.ssrfPolicy,
-    localRoots: options?.localRoots,
   });
 }
 

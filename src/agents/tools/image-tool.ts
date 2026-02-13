@@ -1,5 +1,8 @@
+import { type Api, type Context, complete, type Model } from "@mariozechner/pi-ai";
+import { Type } from "@sinclair/typebox";
 import path from "node:path";
 import type { OpenClawConfig } from "../../config/config.js";
+import type { SandboxFsBridge } from "../sandbox/fs-bridge.js";
 import type { AnyAgentTool } from "./common.js";
 import { resolveUserPath } from "../../utils.js";
 import { loadWebMedia } from "../../web/media.js";
@@ -9,9 +12,8 @@ import { minimaxUnderstandImage } from "../minimax-vlm.js";
 import { getApiKeyForModel, requireApiKey, resolveEnvApiKey } from "../model-auth.js";
 import { runWithImageModelFallback } from "../model-fallback.js";
 import { resolveConfiguredModelRef } from "../model-selection.js";
-import { ensureMoltbotModelsJson } from "../models-config.js";
-import type { AnyAgentTool } from "./common.js";
-import type { SandboxFsBridge } from "../sandbox/fs-bridge.js";
+import { ensureOpenClawModelsJson } from "../models-config.js";
+import { discoverAuthStorage, discoverModels } from "../pi-model-discovery.js";
 import {
   coerceImageAssistantText,
   coerceImageModelConfig,
@@ -207,7 +209,9 @@ async function resolveSandboxedImagePath(params: {
         filePath: candidateRel,
         cwd: params.sandbox.root,
       });
-      if (!stat) throw err;
+      if (!stat) {
+        throw err;
+      }
     } catch {
       throw err;
     }
@@ -398,8 +402,12 @@ export function createImageTool(options?: {
       }
 
       const resolvedImage = (() => {
-        if (sandboxConfig) return imageRaw;
-        if (imageRaw.startsWith("~")) return resolveUserPath(imageRaw);
+        if (sandboxConfig) {
+          return imageRaw;
+        }
+        if (imageRaw.startsWith("~")) {
+          return resolveUserPath(imageRaw);
+        }
         return imageRaw;
       })();
       const resolvedPathInfo: { resolved: string; rewrittenFrom?: string } = isDataUrl

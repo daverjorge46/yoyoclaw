@@ -1,7 +1,6 @@
 import path from "node:path";
-
-import { resolveSandboxPath } from "../sandbox-paths.js";
 import type { SandboxContext, SandboxWorkspaceAccess } from "./types.js";
+import { resolveSandboxPath } from "../sandbox-paths.js";
 import { execDockerRaw, type ExecDockerRawResult } from "./docker.js";
 
 type RunCommandOptions = {
@@ -244,9 +243,15 @@ function resolveSandboxFsPath(params: {
 }
 
 function coerceStatType(typeRaw?: string): "file" | "directory" | "other" {
-  if (!typeRaw) return "other";
+  if (!typeRaw) {
+    return "other";
+  }
   const normalized = typeRaw.trim().toLowerCase();
-  if (normalized.includes("directory")) return "directory";
-  if (normalized.includes("file")) return "file";
+  if (normalized.includes("directory")) {
+    return "directory";
+  }
+  if (normalized.includes("file")) {
+    return "file";
+  }
   return "other";
 }
