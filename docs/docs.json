@@ -104,6 +104,10 @@
       "destination": "/providers/qianfan"
     },
     {
+      "source": "/huawei",
+      "destination": "/providers/huawei"
+    },
+    {
       "source": "/mattermost",
       "destination": "/channels/mattermost"
     },
@@ -1048,7 +1052,8 @@
                   "providers/glm",
                   "providers/zai",
                   "providers/synthetic",
-                  "providers/qianfan"
+                  "providers/qianfan",
+                  "providers/huawei"
                 ]
               }
             ]
