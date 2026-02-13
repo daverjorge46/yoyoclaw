@@ -34,6 +34,7 @@ type ChatModelOption = {
   providerLabel: string;
   model: string;
   label: string;
+  allowed: boolean;
 };
 
 type ChatProviderQuota = {
@@ -90,6 +91,8 @@ export type ChatProps = {
   modelError?: string | null;
   selectedProvider?: string | null;
   selectedModel?: string | null;
+  activeProvider?: string | null;
+  activeModel?: string | null;
   switchingModel?: boolean;
   onProviderChange?: (provider: string) => void;
   onModelChange?: (modelRef: string) => void;
@@ -492,9 +495,14 @@ export function renderChat(props: ChatProps) {
             const providers = Array.from(
               new Map((props.modelOptions ?? []).map((o) => [o.provider, o.providerLabel])).entries(),
             ).map(([provider, providerLabel]) => ({ provider, providerLabel }));
+            const activeProvider =
+              props.activeProvider ??
+              (props.activeModel?.includes("/") ? (props.activeModel.split("/")[0] ?? null) : null) ??
+              null;
             const selectedProvider =
               props.selectedProvider ??
               (props.selectedModel?.includes("/") ? (props.selectedModel.split("/")[0] ?? null) : null) ??
+              activeProvider ??
               providers[0]?.provider ??
               null;
             const providerModels = (props.modelOptions ?? []).filter(
@@ -503,7 +511,9 @@ export function renderChat(props: ChatProps) {
             const selectedModel =
               props.selectedModel && providerModels.some((m) => m.value === props.selectedModel)
                 ? props.selectedModel
-                : providerModels[0]?.value ?? "";
+                : props.activeModel && providerModels.some((m) => m.value === props.activeModel)
+                  ? props.activeModel
+                  : "";
             return html`
               <label class="chat-model-select">
                 <span>Provider</span>
@@ -539,11 +549,19 @@ export function renderChat(props: ChatProps) {
                   }}
                 >
                   <option value="">${props.modelLoading ? "Loading models…" : "Select model"}</option>
-                  ${providerModels.map((opt) => html`<option value=${opt.value}>${opt.label}</option>`)}
+                  ${providerModels.map(
+                    (opt) =>
+                      html`<option value=${opt.value} ?disabled=${!opt.allowed}
+                        >${opt.label}${opt.allowed ? "" : " (not allowed)"}</option
+                      >`,
+                  )}
                 </select>
               </label>
             `;
           })()}
+          ${props.activeModel
+            ? html`<span class="muted">Active: <span class="mono">${props.activeModel}</span></span>`
+            : nothing}
           ${props.switchingModel ? html`<span class="muted">Switching…</span>` : nothing}
           ${props.modelError ? html`<span class="muted">${props.modelError}</span>` : nothing}
         </div>

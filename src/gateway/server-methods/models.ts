@@ -1,4 +1,7 @@
 import type { GatewayRequestHandlers } from "./types.js";
+import { buildAllowedModelSet, modelKey, resolveConfiguredModelRef } from "../../agents/model-selection.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { loadConfig } from "../../config/config.js";
 import {
   ErrorCodes,
   errorShape,
@@ -21,7 +24,23 @@ export const modelsHandlers: GatewayRequestHandlers = {
     }
     try {
       const models = await context.loadGatewayModelCatalog();
-      respond(true, { models }, undefined);
+      const cfg = loadConfig();
+      const defaultRef = resolveConfiguredModelRef({
+        cfg,
+        defaultProvider: DEFAULT_PROVIDER,
+        defaultModel: DEFAULT_MODEL,
+      });
+      const allowed = buildAllowedModelSet({
+        cfg,
+        catalog: models,
+        defaultProvider: defaultRef.provider,
+        defaultModel: defaultRef.model,
+      });
+      const modelsWithPolicy = models.map((entry) => ({
+        ...entry,
+        allowed: allowed.allowAny || allowed.allowedKeys.has(modelKey(entry.provider, entry.id)),
+      }));
+      respond(true, { models: modelsWithPolicy }, undefined);
     } catch (err) {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));
     }

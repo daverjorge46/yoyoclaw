@@ -257,6 +257,7 @@ describe("gateway server models + voicewake", () => {
         name: string;
         provider: string;
         contextWindow?: number;
+        allowed?: boolean;
       }>;
     }>(ws, "models.list");
 
@@ -266,6 +267,7 @@ describe("gateway server models + voicewake", () => {
         name: string;
         provider: string;
         contextWindow?: number;
+        allowed?: boolean;
       }>;
     }>(ws, "models.list");
 
@@ -279,23 +281,27 @@ describe("gateway server models + voicewake", () => {
         name: "A-Model",
         provider: "anthropic",
         contextWindow: 200_000,
+        allowed: true,
       },
       {
         id: "claude-test-b",
         name: "B-Model",
         provider: "anthropic",
         contextWindow: 1000,
+        allowed: true,
       },
       {
         id: "gpt-test-a",
         name: "A-Model",
         provider: "openai",
         contextWindow: 8000,
+        allowed: true,
       },
       {
         id: "gpt-test-z",
         name: "gpt-test-z",
         provider: "openai",
+        allowed: true,
       },
     ]);
 

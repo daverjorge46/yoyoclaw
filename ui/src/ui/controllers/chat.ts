@@ -9,6 +9,7 @@ export type ChatModelOption = {
   providerLabel: string;
   model: string;
   label: string;
+  allowed: boolean;
 };
 
 export type ChatState = {
@@ -49,6 +50,7 @@ type ModelListEntry = {
   name?: string;
   displayName?: string;
   providerLabel?: string;
+  allowed?: boolean;
 };
 
 function normalizeModelOptions(raw: unknown): ChatModelOption[] {
@@ -73,7 +75,7 @@ function normalizeModelOptions(raw: unknown): ChatModelOption[] {
     seen.add(value);
     const label = (r.displayName ?? r.label ?? r.name ?? value).trim() || value;
     const providerLabel = (r.providerLabel ?? provider).trim() || provider;
-    out.push({ value, provider, providerLabel, model, label });
+    out.push({ value, provider, providerLabel, model, label, allowed: r.allowed !== false });
   }
   return out.sort((a, b) =>
     a.providerLabel === b.providerLabel
@@ -125,6 +127,9 @@ export async function switchChatModel(state: ChatState, modelRef: string): Promi
     return true;
   } catch (err) {
     state.chatModelError = String(err);
+    // Revert any transient picker state so UI reflects the actual active model.
+    state.chatSelectedModel = null;
+    state.chatSelectedProvider = null;
     return false;
   } finally {
     state.chatSwitchingModel = false;
