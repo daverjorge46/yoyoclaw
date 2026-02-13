@@ -76,4 +76,6 @@ export type AgentCommandOpts = {
   inputProvenance?: InputProvenance;
   /** Per-call stream param overrides (best-effort). */
   streamParams?: AgentStreamParams;
+  /** Optional trace file path for deterministic tracing. */
+  tracePath?: string;
 };
