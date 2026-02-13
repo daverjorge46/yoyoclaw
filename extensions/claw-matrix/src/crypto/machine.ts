@@ -1,15 +1,10 @@
-import * as crypto from "node:crypto";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import * as os from "node:os";
-
 // @matrix-org/matrix-sdk-crypto-nodejs types
 // userId/deviceId MUST be wrapped types, NOT plain strings
-import {
-  OlmMachine,
-  UserId,
-  DeviceId,
-} from "@matrix-org/matrix-sdk-crypto-nodejs";
+import { OlmMachine, UserId, DeviceId } from "@matrix-org/matrix-sdk-crypto-nodejs";
+import * as crypto from "node:crypto";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 
 // SINGLETON: multi-account requires refactoring this to per-account state
 let _machine: OlmMachine | null = null;
@@ -20,22 +15,17 @@ let _machine: OlmMachine | null = null;
 export function getCryptoStorePath(
   homeserver: string,
   userId: string,
-  accessToken: string
+  accessToken: string,
 ): string {
-  const serverKey = homeserver
-    .replace(/^https?:\/\//, "")
-    .replace(/[/:]/g, "_");
+  const serverKey = homeserver.replace(/^https?:\/\//, "").replace(/[/:]/g, "_");
   const userKey = userId.replace(/[/:]/g, "_");
-  const tokenHash = crypto
-    .createHash("sha256")
-    .update(accessToken)
-    .digest("hex");
+  const tokenHash = crypto.createHash("sha256").update(accessToken).digest("hex");
   return path.join(
     os.homedir(),
     ".openclaw/claw-matrix/accounts/default",
     `${serverKey}__${userKey}`,
     tokenHash,
-    "crypto"
+    "crypto",
   );
 }
 
@@ -46,7 +36,7 @@ export function getCryptoStorePath(
 export async function initCryptoMachine(
   userId: string,
   deviceId: string,
-  storePath: string
+  storePath: string,
 ): Promise<OlmMachine> {
   // Ensure store directory exists
   fs.mkdirSync(storePath, { recursive: true, mode: 0o700 });
@@ -67,7 +57,7 @@ export async function initCryptoMachine(
       const machine = await OlmMachine.initialize(
         new UserId(userId),
         new DeviceId(deviceId),
-        storePath
+        storePath,
       );
       _machine = machine;
       return machine;
@@ -77,14 +67,6 @@ export async function initCryptoMachine(
         await new Promise((r) => setTimeout(r, 500));
       }
     }
-  }
-
-  // Clean up stale WAL/SHM files after exhausting retries
-  for (const ext of ["-wal", "-shm"]) {
-    const stalePath = path.join(storePath, `matrix-sdk-crypto.sqlite3${ext}`);
-    try {
-      if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
-    } catch {}
   }
 
   throw lastError;
@@ -106,16 +88,22 @@ export function getMachine(): OlmMachine {
 export function withCryptoTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  label: string
+  label: string,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
       () => reject(new Error(`Crypto operation timed out: ${label} (${timeoutMs}ms)`)),
-      timeoutMs
+      timeoutMs,
     );
     promise.then(
-      (val) => { clearTimeout(timer); resolve(val); },
-      (err) => { clearTimeout(timer); reject(err); }
+      (val) => {
+        clearTimeout(timer);
+        resolve(val);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
     );
   });
 }
