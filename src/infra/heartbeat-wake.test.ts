@@ -7,6 +7,13 @@ import {
   setHeartbeatWakeHandler,
 } from "./heartbeat-wake.js";
 
+async function loadWakeModule() {
+  return {
+    requestHeartbeatNow,
+    setHeartbeatWakeHandler,
+  };
+}
+
 describe("heartbeat-wake", () => {
   beforeEach(() => {
     resetHeartbeatWakeStateForTests();
