@@ -311,8 +311,10 @@ export function createSessionsSpawnTool(opts?: {
               error: 'threadBinding.to (channel/group ID) is required when mode is "create"',
             });
           }
+          const agentLabel = targetAgentId && targetAgentId !== "main" ? ` [${targetAgentId}]` : "";
           const initialMessage =
-            threadBindingParams.initialMessage ?? `🤖 Agent spawned: ${task.slice(0, 100)}`;
+            threadBindingParams.initialMessage ??
+            `🤖${agentLabel} Agent spawned: ${task.slice(0, 100)}`;
 
           // Use the channel plugin's threadOps to create the thread.
           const { loadChannelPlugin } = await import("../../channels/plugins/load.js");
