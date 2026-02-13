@@ -18,7 +18,7 @@ import {
   writeCache,
 } from "./web-shared.js";
 
-const SEARCH_PROVIDERS = ["brave", "perplexity", "grok"] as const;
+const SEARCH_PROVIDERS = ["brave", "perplexity", "grok", "kimi"] as const;
 const DEFAULT_SEARCH_COUNT = 5;
 const MAX_SEARCH_COUNT = 10;
 
@@ -31,6 +31,13 @@ const OPENROUTER_KEY_PREFIXES = ["sk-or-"];
 
 const XAI_API_ENDPOINT = "https://api.x.ai/v1/responses";
 const DEFAULT_GROK_MODEL = "grok-4-1-fast";
+
+const DEFAULT_KIMI_BASE_URL = "https://api.moonshot.cn/v1";
+const DEFAULT_KIMI_MODEL = "moonshot-v1-128k";
+const KIMI_WEB_SEARCH_TOOL = {
+  type: "builtin_function",
+  function: { name: "$web_search" },
+} as const;
 
 const SEARCH_CACHE = new Map<string, CacheEntry<Record<string, unknown>>>();
 const BRAVE_FRESHNESS_SHORTCUTS = new Set(["pd", "pw", "pm", "py"]);
@@ -102,6 +109,12 @@ type GrokConfig = {
   inlineCitations?: boolean;
 };
 
+type KimiConfig = {
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+};
+
 type GrokSearchResponse = {
   output?: Array<{
     type?: string;
@@ -123,6 +136,29 @@ type GrokSearchResponse = {
     start_index: number;
     end_index: number;
     url: string;
+  }>;
+};
+
+type KimiSearchResponse = {
+  choices?: Array<{
+    finish_reason?: string;
+    message?: {
+      role?: string;
+      content?: string;
+      tool_calls?: Array<{
+        id?: string;
+        type?: string;
+        function?: {
+          name?: string;
+          arguments?: string;
+        };
+      }>;
+    };
+  }>;
+  search_results?: Array<{
+    title?: string;
+    url?: string;
+    content?: string;
   }>;
 };
 
@@ -205,6 +241,14 @@ function missingSearchKeyPayload(provider: (typeof SEARCH_PROVIDERS)[number]) {
       docs: "https://docs.openclaw.ai/tools/web",
     };
   }
+  if (provider === "kimi") {
+    return {
+      error: "missing_kimi_api_key",
+      message:
+        "web_search (kimi) needs a Moonshot AI API key. Set KIMI_API_KEY or MOONSHOT_API_KEY in the Gateway environment, or configure tools.web.search.kimi.apiKey.",
+      docs: "https://docs.openclaw.ai/tools/web",
+    };
+  }
   return {
     error: "missing_brave_api_key",
     message: `web_search needs a Brave Search API key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
@@ -222,6 +266,9 @@ function resolveSearchProvider(search?: WebSearchConfig): (typeof SEARCH_PROVIDE
   }
   if (raw === "grok") {
     return "grok";
+  }
+  if (raw === "kimi") {
+    return "kimi";
   }
   if (raw === "brave") {
     return "brave";
@@ -365,6 +412,42 @@ function resolveGrokModel(grok?: GrokConfig): string {
 
 function resolveGrokInlineCitations(grok?: GrokConfig): boolean {
   return grok?.inlineCitations === true;
+}
+
+function resolveKimiConfig(search?: WebSearchConfig): KimiConfig {
+  if (!search || typeof search !== "object") {
+    return {};
+  }
+  const kimi = "kimi" in search ? search.kimi : undefined;
+  if (!kimi || typeof kimi !== "object") {
+    return {};
+  }
+  return kimi as KimiConfig;
+}
+
+function resolveKimiApiKey(kimi?: KimiConfig): string | undefined {
+  const fromConfig = normalizeApiKey(kimi?.apiKey);
+  if (fromConfig) {
+    return fromConfig;
+  }
+  const fromEnvKimi = normalizeApiKey(process.env.KIMI_API_KEY);
+  if (fromEnvKimi) {
+    return fromEnvKimi;
+  }
+  const fromEnvMoonshot = normalizeApiKey(process.env.MOONSHOT_API_KEY);
+  return fromEnvMoonshot || undefined;
+}
+
+function resolveKimiModel(kimi?: KimiConfig): string {
+  const fromConfig =
+    kimi && "model" in kimi && typeof kimi.model === "string" ? kimi.model.trim() : "";
+  return fromConfig || DEFAULT_KIMI_MODEL;
+}
+
+function resolveKimiBaseUrl(kimi?: KimiConfig): string {
+  const fromConfig =
+    kimi && "baseUrl" in kimi && typeof kimi.baseUrl === "string" ? kimi.baseUrl.trim() : "";
+  return fromConfig || DEFAULT_KIMI_BASE_URL;
 }
 
 function resolveSearchCount(value: unknown, fallback: number): number {
@@ -524,6 +607,101 @@ async function runGrokSearch(params: {
   return { content, citations, inlineCitations };
 }
 
+async function runKimiSearch(params: {
+  query: string;
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  timeoutSeconds: number;
+}): Promise<{ content: string; citations: string[] }> {
+  const baseUrl = params.baseUrl.trim().replace(/\/$/, "");
+  const endpoint = `${baseUrl}/chat/completions`;
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${params.apiKey}`,
+  };
+  const tools = [KIMI_WEB_SEARCH_TOOL];
+
+  const messages: Record<string, unknown>[] = [
+    {
+      role: "system",
+      content:
+        "You are a helpful assistant. Use the web search tool to find current information, then provide a concise answer with source URLs.",
+    },
+    {
+      role: "user",
+      content: params.query,
+    },
+  ];
+
+  // Kimi's $web_search is a builtin tool that triggers server-side searches.
+  // The model may need multiple rounds — each round returns
+  // finish_reason="tool_calls" until it has enough information to answer.
+  const allCitations: string[] = [];
+  const MAX_ROUNDS = 5;
+
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ model: params.model, messages, tools }),
+      signal: withTimeout(undefined, params.timeoutSeconds * 1000),
+    });
+
+    if (!res.ok) {
+      const detail = await readResponseText(res);
+      throw new Error(`Kimi API error (${res.status}): ${detail || res.statusText}`);
+    }
+
+    const data = (await res.json()) as KimiSearchResponse;
+    allCitations.push(...extractKimiCitations(data));
+    const choice = data.choices?.[0];
+
+    // Model answered — return the final content.
+    if (choice?.finish_reason !== "tool_calls") {
+      return {
+        content: choice?.message?.content ?? "No response",
+        citations: [...new Set(allCitations)],
+      };
+    }
+
+    // Echo the assistant tool_calls back so Kimi can continue searching
+    // or synthesize the final answer. reasoning_content is required by
+    // Kimi's reasoning mode and must be non-empty.
+    const assistantMsg = choice.message ?? {};
+    messages.push({
+      ...assistantMsg,
+      reasoning_content: "Searching the web for relevant information.",
+    });
+
+    for (const toolCall of assistantMsg.tool_calls ?? []) {
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: toolCall.function?.arguments ?? "{}",
+      });
+    }
+  }
+
+  // Exhausted all rounds — return whatever the last message had.
+  return {
+    content: "Search completed but no final answer was produced.",
+    citations: [...new Set(allCitations)],
+  };
+}
+
+function extractKimiCitations(data: KimiSearchResponse): string[] {
+  const citations: string[] = [];
+  if (Array.isArray(data.search_results)) {
+    for (const result of data.search_results) {
+      if (result.url) {
+        citations.push(result.url);
+      }
+    }
+  }
+  return citations;
+}
+
 async function runWebSearch(params: {
   query: string;
   count: number;
@@ -539,13 +717,17 @@ async function runWebSearch(params: {
   perplexityModel?: string;
   grokModel?: string;
   grokInlineCitations?: boolean;
+  kimiBaseUrl?: string;
+  kimiModel?: string;
 }): Promise<Record<string, unknown>> {
   const cacheKey = normalizeCacheKey(
     params.provider === "brave"
       ? `${params.provider}:${params.query}:${params.count}:${params.country || "default"}:${params.search_lang || "default"}:${params.ui_lang || "default"}:${params.freshness || "default"}`
       : params.provider === "perplexity"
         ? `${params.provider}:${params.query}:${params.perplexityBaseUrl ?? DEFAULT_PERPLEXITY_BASE_URL}:${params.perplexityModel ?? DEFAULT_PERPLEXITY_MODEL}`
-        : `${params.provider}:${params.query}:${params.grokModel ?? DEFAULT_GROK_MODEL}:${String(params.grokInlineCitations ?? false)}`,
+        : params.provider === "kimi"
+          ? `${params.provider}:${params.query}:${params.kimiBaseUrl ?? DEFAULT_KIMI_BASE_URL}:${params.kimiModel ?? DEFAULT_KIMI_MODEL}`
+          : `${params.provider}:${params.query}:${params.grokModel ?? DEFAULT_GROK_MODEL}:${String(params.grokInlineCitations ?? false)}`,
   );
   const cached = readCache(SEARCH_CACHE, cacheKey);
   if (cached) {
@@ -604,6 +786,33 @@ async function runWebSearch(params: {
       content: wrapWebContent(content),
       citations,
       inlineCitations,
+    };
+    writeCache(SEARCH_CACHE, cacheKey, payload, params.cacheTtlMs);
+    return payload;
+  }
+
+  if (params.provider === "kimi") {
+    const { content, citations } = await runKimiSearch({
+      query: params.query,
+      apiKey: params.apiKey,
+      baseUrl: params.kimiBaseUrl ?? DEFAULT_KIMI_BASE_URL,
+      model: params.kimiModel ?? DEFAULT_KIMI_MODEL,
+      timeoutSeconds: params.timeoutSeconds,
+    });
+
+    const payload = {
+      query: params.query,
+      provider: params.provider,
+      model: params.kimiModel ?? DEFAULT_KIMI_MODEL,
+      tookMs: Date.now() - start,
+      externalContent: {
+        untrusted: true,
+        source: "web_search",
+        provider: params.provider,
+        wrapped: true,
+      },
+      content: wrapWebContent(content),
+      citations,
     };
     writeCache(SEARCH_CACHE, cacheKey, payload, params.cacheTtlMs);
     return payload;
@@ -688,13 +897,16 @@ export function createWebSearchTool(options?: {
   const provider = resolveSearchProvider(search);
   const perplexityConfig = resolvePerplexityConfig(search);
   const grokConfig = resolveGrokConfig(search);
+  const kimiConfig = resolveKimiConfig(search);
 
   const description =
     provider === "perplexity"
       ? "Search the web using Perplexity Sonar (direct or via OpenRouter). Returns AI-synthesized answers with citations from real-time web search."
       : provider === "grok"
         ? "Search the web using xAI Grok. Returns AI-synthesized answers with citations from real-time web search."
-        : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
+        : provider === "kimi"
+          ? "Search the web using Kimi by Moonshot AI. Returns AI-synthesized answers with citations from real-time web search via native $web_search."
+          : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
 
   return {
     label: "Web Search",
@@ -709,7 +921,9 @@ export function createWebSearchTool(options?: {
           ? perplexityAuth?.apiKey
           : provider === "grok"
             ? resolveGrokApiKey(grokConfig)
-            : resolveSearchApiKey(search);
+            : provider === "kimi"
+              ? resolveKimiApiKey(kimiConfig)
+              : resolveSearchApiKey(search);
 
       if (!apiKey) {
         return jsonResult(missingSearchKeyPayload(provider));
@@ -757,6 +971,8 @@ export function createWebSearchTool(options?: {
         perplexityModel: resolvePerplexityModel(perplexityConfig),
         grokModel: resolveGrokModel(grokConfig),
         grokInlineCitations: resolveGrokInlineCitations(grokConfig),
+        kimiModel: resolveKimiModel(kimiConfig),
+        kimiBaseUrl: resolveKimiBaseUrl(kimiConfig),
       });
       return jsonResult(result);
     },
@@ -773,4 +989,7 @@ export const __testing = {
   resolveGrokModel,
   resolveGrokInlineCitations,
   extractGrokContent,
+  resolveKimiApiKey,
+  resolveKimiModel,
+  resolveKimiBaseUrl,
 } as const;
