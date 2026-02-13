@@ -228,6 +228,11 @@ export function createHooksRequestHandler(
     const next: HookAuthFailure = expired
       ? { count: 1, windowStartedAtMs: nowMs }
       : { count: current.count + 1, windowStartedAtMs: current.windowStartedAtMs };
+    // Delete-before-set refreshes Map insertion order so recently-active
+    // clients are not evicted before dormant ones during oldest-half eviction.
+    if (hookAuthFailures.has(clientKey)) {
+      hookAuthFailures.delete(clientKey);
+    }
     hookAuthFailures.set(clientKey, next);
     if (next.count <= HOOK_AUTH_FAILURE_LIMIT) {
       return { throttled: false };
