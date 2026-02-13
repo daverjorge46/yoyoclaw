@@ -5,21 +5,74 @@ export type HeartbeatRunResult =
 
 export type HeartbeatWakeHandler = (opts: { reason?: string }) => Promise<HeartbeatRunResult>;
 
+type WakeTimerKind = "normal" | "retry";
+type PendingWakeReason = {
+  reason: string;
+  priority: number;
+  requestedAt: number;
+};
+
 let handler: HeartbeatWakeHandler | null = null;
 let handlerGeneration = 0;
-let pendingReason: string | null = null;
+let pendingWake: PendingWakeReason | null = null;
 let scheduled = false;
 let running = false;
 let timer: NodeJS.Timeout | null = null;
 let timerDueAt: number | null = null;
+let timerKind: WakeTimerKind | null = null;
 
 const DEFAULT_COALESCE_MS = 250;
 const DEFAULT_RETRY_MS = 1_000;
 
-function schedule(coalesceMs: number) {
+function resolveReasonPriority(reason: string): number {
+  if (reason === "retry") {
+    return 0;
+  }
+  if (reason === "interval") {
+    return 1;
+  }
+  if (reason === "manual" || reason === "exec-event" || reason.startsWith("hook:")) {
+    return 3;
+  }
+  return 2;
+}
+
+function normalizeWakeReason(reason?: string): string {
+  if (typeof reason !== "string") {
+    return "requested";
+  }
+  const trimmed = reason.trim();
+  return trimmed.length > 0 ? trimmed : "requested";
+}
+
+function queuePendingWakeReason(reason?: string, requestedAt = Date.now()) {
+  const normalizedReason = normalizeWakeReason(reason);
+  const next: PendingWakeReason = {
+    reason: normalizedReason,
+    priority: resolveReasonPriority(normalizedReason),
+    requestedAt,
+  };
+  if (!pendingWake) {
+    pendingWake = next;
+    return;
+  }
+  if (next.priority > pendingWake.priority) {
+    pendingWake = next;
+    return;
+  }
+  if (next.priority === pendingWake.priority && next.requestedAt >= pendingWake.requestedAt) {
+    pendingWake = next;
+  }
+}
+
+function schedule(coalesceMs: number, kind: WakeTimerKind = "normal") {
   const delay = Number.isFinite(coalesceMs) ? Math.max(0, coalesceMs) : DEFAULT_COALESCE_MS;
   const dueAt = Date.now() + delay;
   if (timer) {
+    // Retry cooldown is a hard minimum delay once requested.
+    if (timerKind === "retry") {
+      return;
+    }
     // If existing timer fires sooner or at the same time, keep it.
     if (typeof timerDueAt === "number" && timerDueAt <= dueAt) {
       return;
@@ -28,11 +81,14 @@ function schedule(coalesceMs: number) {
     clearTimeout(timer);
     timer = null;
     timerDueAt = null;
+    timerKind = null;
   }
   timerDueAt = dueAt;
+  timerKind = kind;
   timer = setTimeout(async () => {
     timer = null;
     timerDueAt = null;
+    timerKind = null;
     scheduled = false;
     const active = handler;
     if (!active) {
@@ -40,28 +96,28 @@ function schedule(coalesceMs: number) {
     }
     if (running) {
       scheduled = true;
-      schedule(delay);
+      schedule(delay, kind);
       return;
     }
 
-    const reason = pendingReason;
-    pendingReason = null;
+    const reason = pendingWake?.reason;
+    pendingWake = null;
     running = true;
     try {
       const res = await active({ reason: reason ?? undefined });
       if (res.status === "skipped" && res.reason === "requests-in-flight") {
         // The main lane is busy; retry soon.
-        pendingReason = reason ?? "retry";
-        schedule(DEFAULT_RETRY_MS);
+        queuePendingWakeReason(reason ?? "retry");
+        schedule(DEFAULT_RETRY_MS, "retry");
       }
     } catch {
       // Error is already logged by the heartbeat runner; schedule a retry.
-      pendingReason = reason ?? "retry";
-      schedule(DEFAULT_RETRY_MS);
+      queuePendingWakeReason(reason ?? "retry");
+      schedule(DEFAULT_RETRY_MS, "retry");
     } finally {
       running = false;
-      if (pendingReason || scheduled) {
-        schedule(delay);
+      if (pendingWake || scheduled) {
+        schedule(delay, "normal");
       }
     }
   }, delay);
@@ -78,20 +134,24 @@ export function setHeartbeatWakeHandler(next: HeartbeatWakeHandler | null): () =
   handlerGeneration += 1;
   const generation = handlerGeneration;
   handler = next;
-  if (handler && pendingReason) {
-    schedule(DEFAULT_COALESCE_MS);
+  if (handler && pendingWake) {
+    schedule(DEFAULT_COALESCE_MS, "normal");
   }
   return () => {
-    if (handlerGeneration !== generation) return;
-    if (handler !== next) return;
+    if (handlerGeneration !== generation) {
+      return;
+    }
+    if (handler !== next) {
+      return;
+    }
     handlerGeneration += 1;
     handler = null;
   };
 }
 
 export function requestHeartbeatNow(opts?: { reason?: string; coalesceMs?: number }) {
-  pendingReason = opts?.reason ?? pendingReason ?? "requested";
-  schedule(opts?.coalesceMs ?? DEFAULT_COALESCE_MS);
+  queuePendingWakeReason(opts?.reason);
+  schedule(opts?.coalesceMs ?? DEFAULT_COALESCE_MS, "normal");
 }
 
 export function hasHeartbeatWakeHandler() {
@@ -99,5 +159,5 @@ export function hasHeartbeatWakeHandler() {
 }
 
 export function hasPendingHeartbeatWake() {
-  return pendingReason !== null || Boolean(timer) || scheduled;
+  return pendingWake !== null || Boolean(timer) || scheduled;
 }
