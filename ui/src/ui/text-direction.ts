@@ -17,9 +17,13 @@ export function detectTextDirection(
   text: string | null,
   skipPattern: RegExp = /[\s\p{P}\p{S}]/u,
 ): "rtl" | "ltr" {
-  if (!text) return "ltr";
+  if (!text) {
+    return "ltr";
+  }
   for (const char of text) {
-    if (skipPattern.test(char)) continue;
+    if (skipPattern.test(char)) {
+      continue;
+    }
     return RTL_CHAR_REGEX.test(char) ? "rtl" : "ltr";
   }
   return "ltr";
