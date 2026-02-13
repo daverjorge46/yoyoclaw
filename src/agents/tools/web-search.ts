@@ -102,19 +102,25 @@ type GrokConfig = {
   inlineCitations?: boolean;
 };
 
+type GrokAnnotation = {
+  type?: string;
+  url?: string;
+  start_index?: number;
+  end_index?: number;
+};
+
 type GrokSearchResponse = {
   output?: Array<{
     type?: string;
     role?: string;
+    // Direct output_text fields (grok-4 family with server-side tools)
+    text?: string;
+    annotations?: GrokAnnotation[];
+    // Nested content blocks (message wrapper format)
     content?: Array<{
       type?: string;
       text?: string;
-      annotations?: Array<{
-        type?: string;
-        url?: string;
-        start_index?: number;
-        end_index?: number;
-      }>;
+      annotations?: GrokAnnotation[];
     }>;
   }>;
   output_text?: string; // deprecated field - kept for backwards compatibility
@@ -141,18 +147,25 @@ function extractGrokContent(data: GrokSearchResponse): {
   text: string | undefined;
   annotationCitations: string[];
 } {
-  // xAI Responses API format: find the message output with text content
+  // xAI Responses API format: find output_text content blocks.
+  // They can appear either directly in the output array or nested inside a "message" wrapper.
   for (const output of data.output ?? []) {
-    if (output.type !== "message") {
-      continue;
+    // Direct output_text block (common with grok-4 family + server-side tools)
+    if (output.type === "output_text" && typeof output.text === "string" && output.text) {
+      const urls = (output.annotations ?? [])
+        .filter((a) => a.type === "url_citation" && typeof a.url === "string")
+        .map((a) => a.url as string);
+      return { text: output.text, annotationCitations: [...new Set(urls)] };
     }
-    for (const block of output.content ?? []) {
-      if (block.type === "output_text" && typeof block.text === "string" && block.text) {
-        // Extract url_citation annotations from this content block
-        const urls = (block.annotations ?? [])
-          .filter((a) => a.type === "url_citation" && typeof a.url === "string")
-          .map((a) => a.url as string);
-        return { text: block.text, annotationCitations: [...new Set(urls)] };
+    // Nested inside a "message" wrapper
+    if (output.type === "message") {
+      for (const block of output.content ?? []) {
+        if (block.type === "output_text" && typeof block.text === "string" && block.text) {
+          const urls = (block.annotations ?? [])
+            .filter((a) => a.type === "url_citation" && typeof a.url === "string")
+            .map((a) => a.url as string);
+          return { text: block.text, annotationCitations: [...new Set(urls)] };
+        }
       }
     }
   }
