@@ -237,7 +237,7 @@ export async function monitorWebChannel(
       }
       const delay = computeBackoff(reconnectPolicy, reconnectAttempts);
       runtime.error(
-        `WhatsApp Web connection failed. Retry ${reconnectAttempts}/${reconnectPolicy.maxAttempts || "∞"} in ${formatDurationMs(delay)}… (${errorStr})`,
+        `WhatsApp Web connection failed. Retry ${reconnectAttempts}/${reconnectPolicy.maxAttempts || "∞"} in ${formatDurationPrecise(delay)}… (${errorStr})`,
       );
       try {
         await sleep(delay, abortSignal);
