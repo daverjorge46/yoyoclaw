@@ -461,6 +461,10 @@ export function formatAssistantErrorText(
     return `LLM request rejected: ${invalidRequest[1]}`;
   }
 
+  if (isConnectionErrorMessage(raw)) {
+    return "The AI service encountered a connection error. Please try again in a moment.";
+  }
+
   if (isOverloadedErrorMessage(raw)) {
     return "The AI service is temporarily overloaded. Please try again in a moment.";
   }
@@ -582,6 +586,17 @@ const ERROR_PATTERNS = {
     "messages.1.content.1.tool_use.id",
     "invalid request format",
   ],
+  connection: [
+    "connection error",
+    "apiconnectionerror",
+    "socket hang up",
+    "econnrefused",
+    "econnreset",
+    "enotfound",
+    "fetch failed",
+    "network error",
+    "dns lookup failed",
+  ],
 } as const;
 
 const TOOL_CALL_INPUT_MISSING_RE =
@@ -610,6 +625,10 @@ export function isRateLimitErrorMessage(raw: string): boolean {
 
 export function isTimeoutErrorMessage(raw: string): boolean {
   return matchesErrorPatterns(raw, ERROR_PATTERNS.timeout);
+}
+
+export function isConnectionErrorMessage(raw: string): boolean {
+  return matchesErrorPatterns(raw, ERROR_PATTERNS.connection);
 }
 
 export function isBillingErrorMessage(raw: string): boolean {
@@ -728,6 +747,9 @@ export function classifyFailoverReason(raw: string): FailoverReason | null {
   }
   if (isBillingErrorMessage(raw)) {
     return "billing";
+  }
+  if (isConnectionErrorMessage(raw)) {
+    return "timeout";
   }
   if (isTimeoutErrorMessage(raw)) {
     return "timeout";
