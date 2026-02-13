@@ -158,6 +158,21 @@ describe("legacy config detection", () => {
     });
     expect(res.config?.audio).toBeUndefined();
   });
+  it("rejects audio.transcription when command contains non-string parts", async () => {
+    vi.resetModules();
+    const { migrateLegacyConfig } = await import("./config.js");
+    const res = migrateLegacyConfig({
+      audio: {
+        transcription: {
+          command: [{}],
+          timeoutSeconds: 120,
+        },
+      },
+    });
+    expect(res.changes).toContain("Removed audio.transcription (invalid or empty command).");
+    expect(res.config?.tools?.media?.audio).toBeUndefined();
+    expect(res.config?.audio).toBeUndefined();
+  });
   it("migrates agent config into agents.defaults and tools", async () => {
     vi.resetModules();
     const { migrateLegacyConfig } = await import("./config.js");
