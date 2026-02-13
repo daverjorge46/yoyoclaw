@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Line Balancing – Double End M12 Cable Assembly 5 Pole Female 5M</title>
+<title>Line Balancing & Capacity Planning</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -322,8 +322,30 @@
 <body>
 
 <header>
-  <h1>Line Balancing System</h1>
-  <p>Double End M12 Cable Assembly – 5 Pole Female – 5 Meters</p>
+  <h1>Line Balancing & Capacity Planning <span style="font-size:0.7rem;background:var(--surface);padding:4px 10px;border-radius:4px;color:var(--muted);margin-left:8px;">V1.0.0</span></h1>
+  <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:12px;align-items:center;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <label style="color:var(--muted);font-size:0.8rem;">SAP No.:</label>
+      <input type="text" id="headerSapNo" placeholder="e.g., 12345678" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:0.8rem;width:120px;" onchange="saveHeaderFields()">
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <label style="color:var(--muted);font-size:0.8rem;">Product No.:</label>
+      <input type="text" id="headerProductNo" placeholder="e.g., PN-001" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:0.8rem;width:120px;" onchange="saveHeaderFields()">
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <label style="color:var(--muted);font-size:0.8rem;">Product Description:</label>
+      <input type="text" id="headerProductDesc" placeholder="e.g., M12 Cable Assembly" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:0.8rem;width:220px;" onchange="saveHeaderFields()">
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <label style="color:var(--muted);font-size:0.8rem;">Calculation By:</label>
+      <input type="text" id="headerCalcBy" placeholder="e.g., John Doe" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:0.8rem;width:140px;" onchange="saveHeaderFields()">
+    </div>
+    <div style="display:flex;gap:8px;margin-left:auto;">
+      <button class="secondary" onclick="exportAllDataExcel()" style="font-size:0.75rem;padding:6px 12px;">📥 Export All (Excel)</button>
+      <button class="secondary" onclick="document.getElementById('importAllExcel').click()" style="font-size:0.75rem;padding:6px 12px;">📤 Import All</button>
+      <input type="file" id="importAllExcel" accept=".xlsx,.xls" style="display:none" onchange="importAllDataExcel(this)">
+    </div>
+  </div>
 </header>
 
 <div class="container">
@@ -347,7 +369,7 @@
         <input type="file" id="importProcessCSV" accept=".csv" style="display:none" onchange="importProcessesCSV(this)">
         <button class="secondary" onclick="clearProcessData()" style="margin-left:auto;">🗑️ Clear All</button>
       </div>
-      <div class="table-scroll">
+      <div style="border: 1px solid var(--border); border-radius: 8px; overflow-x: auto;">
         <table class="form-table" id="processTable">
           <thead>
             <tr>
@@ -385,7 +407,7 @@
           <input type="number" id="defaultHourlyRate" value="15.00" min="0" step="0.50" style="width:100px" onchange="updateWorkerCosts()">
         </div>
       </div>
-      <div class="table-scroll">
+      <div style="border: 1px solid var(--border); border-radius: 8px; overflow-x: auto;">
         <table class="form-table" id="workerTable">
           <thead>
             <tr>
@@ -624,8 +646,11 @@
 </div>
 
 <footer>
-  Line Balancing System — Double End M12 Cable Assembly 5 Pole Female 5 Meters
+  Line Balancing & Capacity Planning V1.0.0
 </footer>
+
+<!-- SheetJS for Excel export/import -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -2487,6 +2512,42 @@ function parseCSV(text) {
 const STORAGE_KEY_PROCESSES = 'lineBalancing_processes';
 const STORAGE_KEY_WORKERS = 'lineBalancing_workers';
 const STORAGE_KEY_TASK_RESOURCES = 'lineBalancing_taskResources';
+const STORAGE_KEY_HEADER = 'lineBalancing_header';
+
+// Header field data
+let headerData = {
+  sapNo: '',
+  productNo: '',
+  productDesc: '',
+  calcBy: ''
+};
+
+function saveHeaderFields() {
+  headerData.sapNo = document.getElementById('headerSapNo')?.value || '';
+  headerData.productNo = document.getElementById('headerProductNo')?.value || '';
+  headerData.productDesc = document.getElementById('headerProductDesc')?.value || '';
+  headerData.calcBy = document.getElementById('headerCalcBy')?.value || '';
+  try {
+    localStorage.setItem(STORAGE_KEY_HEADER, JSON.stringify(headerData));
+  } catch (e) {
+    console.warn('Failed to save header to localStorage:', e);
+  }
+}
+
+function loadHeaderFields() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_HEADER);
+    if (saved) {
+      headerData = JSON.parse(saved);
+      if (document.getElementById('headerSapNo')) document.getElementById('headerSapNo').value = headerData.sapNo || '';
+      if (document.getElementById('headerProductNo')) document.getElementById('headerProductNo').value = headerData.productNo || '';
+      if (document.getElementById('headerProductDesc')) document.getElementById('headerProductDesc').value = headerData.productDesc || '';
+      if (document.getElementById('headerCalcBy')) document.getElementById('headerCalcBy').value = headerData.calcBy || '';
+    }
+  } catch (e) {
+    console.warn('Failed to load header from localStorage:', e);
+  }
+}
 
 function saveToLocalStorage() {
   try {
@@ -2577,11 +2638,258 @@ saveStationResourcesToTasks = function() {
 };
 
 // ══════════════════════════════════════════════════════════════
+// EXCEL EXPORT / IMPORT (Complete Data)
+// ══════════════════════════════════════════════════════════════
+
+const DATA_VERSION = '1.0.0';
+
+function getTimestamp() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}_${hh}${min}${ss}`;
+}
+
+function exportAllDataExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert('Excel library not loaded. Please refresh the page and try again.');
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Header Info
+  const headerInfo = [
+    ['Line Balancing & Capacity Planning', '', '', 'Version:', DATA_VERSION],
+    [''],
+    ['SAP No.', headerData.sapNo || ''],
+    ['Product No.', headerData.productNo || ''],
+    ['Product Description', headerData.productDesc || ''],
+    ['Calculation By', headerData.calcBy || ''],
+    ['Export Date', new Date().toLocaleString()]
+  ];
+  const wsHeader = XLSX.utils.aoa_to_sheet(headerInfo);
+  XLSX.utils.book_append_sheet(wb, wsHeader, 'Info');
+
+  // Sheet 2: Processes
+  const processHeaders = ['#', 'UID', 'SAP No.', 'Description', 'Cycle Time (s)', 'Efficiency %', '2-Side Multiplier', 'Machines'];
+  const processData = processes.map((p, i) => {
+    const machines = (taskResources[i]?.machines || []).map(m => `${m.name}(${m.qty})`).join('; ');
+    return [i + 1, p.uid, p.sapNo, p.desc, p.cycle, p.eff, p.mult, machines];
+  });
+  const wsProcesses = XLSX.utils.aoa_to_sheet([processHeaders, ...processData]);
+  XLSX.utils.book_append_sheet(wb, wsProcesses, 'Processes');
+
+  // Sheet 3: Workers
+  const workerHeaders = ['#', 'UID', 'Employee Code', 'Name', 'Shift Start', 'Shift End', 'Break (min)', 'Participation %', 'Work Days/Yr', 'Hourly Rate', 'Skills (Station Indexes)', 'Assignments (Station:Percent)'];
+  const workerData = workers.map((w, i) => {
+    ensureWorkerFields(w);
+    const skills = (w.skills || []).join(', ');
+    const assignments = (w.assignments || []).map(a => `${a.station}:${a.percent}%`).join('; ');
+    return [i + 1, w.uid, w.code, w.name, w.shiftStart, w.shiftEnd, w.breakMin, w.participationRate, w.workingDaysPerYear, w.hourlyRate, skills, assignments];
+  });
+  const wsWorkers = XLSX.utils.aoa_to_sheet([workerHeaders, ...workerData]);
+  XLSX.utils.book_append_sheet(wb, wsWorkers, 'Workers');
+
+  // Sheet 4: Line Balancing (Stations)
+  const stationHeaders = ['Station #', 'Processes (Indexes)', 'Process SAP Nos', 'Total Time (s)', 'Workers Required', 'Machines'];
+  const stationData = stations.map((st, si) => {
+    const processIndexes = st.tasks.join(', ');
+    const processSapNos = st.tasks.map(ti => processes[ti]?.sapNo || '').join(', ');
+    const totalTime = st.tasks.reduce((sum, ti) => sum + getProcessTotal(processes[ti]), 0);
+    const workers = stationResources[si]?.workers || 1;
+    const machines = (stationResources[si]?.machines || []).map(m => `${m.name}(${m.qty})`).join('; ');
+    return [si + 1, processIndexes, processSapNos, totalTime.toFixed(2), workers, machines];
+  });
+  const wsStations = XLSX.utils.aoa_to_sheet([stationHeaders, ...stationData]);
+  XLSX.utils.book_append_sheet(wb, wsStations, 'LineBalancing');
+
+  // Sheet 5: Analysis Settings
+  const analysisData = [
+    ['Setting', 'Value'],
+    ['Target Stations', document.getElementById('stationSlider')?.value || '5'],
+    ['Algorithm', document.getElementById('algoSelect')?.value || 'lct'],
+    ['Takt Time (s)', taktTime.toFixed(2)],
+    ['Target Daily Output', document.getElementById('targetDailyOutput')?.value || '500'],
+    ['Working Hours/Day', document.getElementById('workingHoursDay')?.value || '8'],
+    ['Working Days/Year', document.getElementById('workingDaysYear')?.value || '210']
+  ];
+  const wsAnalysis = XLSX.utils.aoa_to_sheet(analysisData);
+  XLSX.utils.book_append_sheet(wb, wsAnalysis, 'Analysis');
+
+  // Generate filename with version and timestamp
+  const filename = `Line Balancing Data V${DATA_VERSION}_${getTimestamp()}.xlsx`;
+
+  // Write and download
+  XLSX.writeFile(wb, filename);
+}
+
+function importAllDataExcel(input) {
+  if (!input.files || !input.files[0]) return;
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+
+      // Read Processes sheet
+      const wsProcesses = wb.Sheets['Processes'];
+      if (wsProcesses) {
+        const processRows = XLSX.utils.sheet_to_json(wsProcesses, { header: 1 });
+        if (processRows.length > 1) {
+          processes = [];
+          taskResources = {};
+          for (let i = 1; i < processRows.length; i++) {
+            const row = processRows[i];
+            if (!row || row.length < 4) continue;
+            const p = {
+              uid: row[1] || `p${i}`,
+              sapNo: row[2] || '',
+              desc: row[3] || '',
+              cycle: parseFloat(row[4]) || 0,
+              eff: parseFloat(row[5]) || 80,
+              mult: parseFloat(row[6]) || 1
+            };
+            processes.push(p);
+
+            // Parse machines
+            const machineStr = row[7] || '';
+            const machines = [];
+            if (machineStr) {
+              const parts = machineStr.split(';');
+              parts.forEach(part => {
+                const match = part.trim().match(/^(.+)\((\d+)\)$/);
+                if (match) {
+                  machines.push({ name: match[1].trim(), qty: parseInt(match[2]) });
+                }
+              });
+            }
+            taskResources[i - 1] = { machines };
+          }
+        }
+      }
+
+      // Read Workers sheet
+      const wsWorkers = wb.Sheets['Workers'];
+      if (wsWorkers) {
+        const workerRows = XLSX.utils.sheet_to_json(wsWorkers, { header: 1 });
+        if (workerRows.length > 1) {
+          workers = [];
+          for (let i = 1; i < workerRows.length; i++) {
+            const row = workerRows[i];
+            if (!row || row.length < 4) continue;
+
+            // Parse skills
+            const skillsStr = row[10] || '';
+            const skills = skillsStr ? skillsStr.toString().split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+
+            // Parse assignments
+            const assignStr = row[11] || '';
+            const assignments = [];
+            if (assignStr) {
+              const parts = assignStr.toString().split(';');
+              parts.forEach(part => {
+                const match = part.trim().match(/^(\d+):(\d+)%?$/);
+                if (match) {
+                  assignments.push({ station: parseInt(match[1]), percent: parseInt(match[2]) });
+                }
+              });
+            }
+
+            const w = {
+              uid: row[1] || `w${i}`,
+              code: row[2] || '',
+              name: row[3] || '',
+              shiftStart: row[4] || '08:00',
+              shiftEnd: row[5] || '17:00',
+              breakMin: parseInt(row[6]) || 30,
+              participationRate: parseFloat(row[7]) || 100,
+              workingDaysPerYear: parseInt(row[8]) || 210,
+              hourlyRate: parseFloat(row[9]) || 15,
+              skills: skills,
+              assignments: assignments
+            };
+            workers.push(w);
+          }
+        }
+      }
+
+      // Read Info sheet for header
+      const wsInfo = wb.Sheets['Info'];
+      if (wsInfo) {
+        const infoRows = XLSX.utils.sheet_to_json(wsInfo, { header: 1 });
+        infoRows.forEach(row => {
+          if (row[0] === 'SAP No.') headerData.sapNo = row[1] || '';
+          if (row[0] === 'Product No.') headerData.productNo = row[1] || '';
+          if (row[0] === 'Product Description') headerData.productDesc = row[1] || '';
+          if (row[0] === 'Calculation By') headerData.calcBy = row[1] || '';
+        });
+        // Update header inputs
+        if (document.getElementById('headerSapNo')) document.getElementById('headerSapNo').value = headerData.sapNo;
+        if (document.getElementById('headerProductNo')) document.getElementById('headerProductNo').value = headerData.productNo;
+        if (document.getElementById('headerProductDesc')) document.getElementById('headerProductDesc').value = headerData.productDesc;
+        if (document.getElementById('headerCalcBy')) document.getElementById('headerCalcBy').value = headerData.calcBy;
+        localStorage.setItem(STORAGE_KEY_HEADER, JSON.stringify(headerData));
+      }
+
+      // Read Analysis sheet
+      const wsAnalysis = wb.Sheets['Analysis'];
+      if (wsAnalysis) {
+        const analysisRows = XLSX.utils.sheet_to_json(wsAnalysis, { header: 1 });
+        analysisRows.forEach(row => {
+          if (row[0] === 'Target Stations' && document.getElementById('stationSlider')) {
+            document.getElementById('stationSlider').value = row[1];
+            document.getElementById('stationCount').textContent = row[1];
+          }
+          if (row[0] === 'Algorithm' && document.getElementById('algoSelect')) {
+            document.getElementById('algoSelect').value = row[1];
+          }
+          if (row[0] === 'Target Daily Output' && document.getElementById('targetDailyOutput')) {
+            document.getElementById('targetDailyOutput').value = row[1];
+          }
+          if (row[0] === 'Working Hours/Day' && document.getElementById('workingHoursDay')) {
+            document.getElementById('workingHoursDay').value = row[1];
+          }
+          if (row[0] === 'Working Days/Year' && document.getElementById('workingDaysYear')) {
+            document.getElementById('workingDaysYear').value = row[1];
+          }
+        });
+      }
+
+      // Save and refresh
+      saveToLocalStorage();
+      saveHeaderFields();
+      recalcAllProcesses();
+      renderProcessTable();
+      renderWorkerTable();
+      initStations();
+      renderAll();
+
+      alert('Data imported successfully!');
+    } catch (err) {
+      console.error('Import error:', err);
+      alert('Failed to import data. Please check the file format.');
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+  input.value = ''; // Reset file input
+}
+
+// ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
 
 // Load data from localStorage first
 loadFromLocalStorage();
+loadHeaderFields();
 
 recalcAllProcesses();
 renderProcessTable();
