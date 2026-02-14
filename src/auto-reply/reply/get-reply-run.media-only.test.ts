@@ -173,6 +173,7 @@ describe("runPreparedReply media-only handling", () => {
     const result = await runPreparedReply(
       baseParams({
         ctx: {
+          ChatType: "direct",
           Body: "",
           RawBody: "",
           CommandBody: "",
@@ -203,6 +204,22 @@ describe("runPreparedReply media-only handling", () => {
     const onToolResult = vi.fn();
     const result = await runPreparedReply(
       baseParams({
+        ctx: {
+          Body: "",
+          RawBody: "",
+          CommandBody: "",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+        },
+        sessionCtx: {
+          Body: "",
+          BodyStripped: "",
+          MediaPath: "/tmp/input.png",
+          Provider: "slack",
+          ChatType: "direct",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+        },
         opts: {
           onToolResult,
         } as never,
@@ -212,5 +229,20 @@ describe("runPreparedReply media-only handling", () => {
 
     const call = vi.mocked(runReplyAgent).mock.calls[0]?.[0];
     expect(call?.suppressToolErrorFallback).toBe(false);
+  });
+
+  it("suppresses tool error fallback in group chats even when a tool-result callback exists", async () => {
+    const onToolResult = vi.fn();
+    const result = await runPreparedReply(
+      baseParams({
+        opts: {
+          onToolResult,
+        } as never,
+      }),
+    );
+
+    expect(result).toEqual({ text: "ok" });
+    const call = vi.mocked(runReplyAgent).mock.calls[0]?.[0];
+    expect(call?.suppressToolErrorFallback).toBe(true);
   });
 });

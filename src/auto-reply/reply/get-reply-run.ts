@@ -483,7 +483,7 @@ export async function runPreparedReply(
     resolvedBlockStreamingBreak,
     sessionCtx,
     shouldInjectGroupIntro,
-    suppressToolErrorFallback: !opts?.onToolResult,
+    suppressToolErrorFallback: sessionCtx.ChatType === "group" || !opts?.onToolResult,
     typingMode,
   });
 }
