@@ -975,6 +975,31 @@ public struct SessionsPreviewParams: Codable, Sendable {
     }
 }
 
+public struct SessionsFilesListParams: Codable, Sendable {
+    public let key: String
+    public let scope: AnyCodable?
+    public let includemissing: Bool?
+    public let limit: Int?
+
+    public init(
+        key: String,
+        scope: AnyCodable?,
+        includemissing: Bool?,
+        limit: Int?
+    ) {
+        self.key = key
+        self.scope = scope
+        self.includemissing = includemissing
+        self.limit = limit
+    }
+    private enum CodingKeys: String, CodingKey {
+        case key
+        case scope
+        case includemissing = "includeMissing"
+        case limit
+    }
+}
+
 public struct SessionsResolveParams: Codable, Sendable {
     public let key: String?
     public let sessionid: String?
@@ -2011,6 +2036,43 @@ public struct SkillsBinsResult: Codable, Sendable {
     }
 }
 
+public struct SkillsImportParams: Codable, Sendable {
+    public let source: AnyCodable
+    public let filepath: String?
+    public let package: String?
+    public let registry: String?
+    public let force: Bool?
+    public let skipscan: Bool?
+    public let timeoutms: Int?
+
+    public init(
+        source: AnyCodable,
+        filepath: String?,
+        package: String?,
+        registry: String?,
+        force: Bool?,
+        skipscan: Bool?,
+        timeoutms: Int?
+    ) {
+        self.source = source
+        self.filepath = filepath
+        self.package = package
+        self.registry = registry
+        self.force = force
+        self.skipscan = skipscan
+        self.timeoutms = timeoutms
+    }
+    private enum CodingKeys: String, CodingKey {
+        case source
+        case filepath = "filePath"
+        case package
+        case registry
+        case force
+        case skipscan = "skipScan"
+        case timeoutms = "timeoutMs"
+    }
+}
+
 public struct SkillsInstallParams: Codable, Sendable {
     public let name: String
     public let installid: String
@@ -2029,6 +2091,19 @@ public struct SkillsInstallParams: Codable, Sendable {
         case name
         case installid = "installId"
         case timeoutms = "timeoutMs"
+    }
+}
+
+public struct SkillsUninstallParams: Codable, Sendable {
+    public let skillname: String
+
+    public init(
+        skillname: String
+    ) {
+        self.skillname = skillname
+    }
+    private enum CodingKeys: String, CodingKey {
+        case skillname = "skillName"
     }
 }
 
@@ -2657,17 +2732,21 @@ public struct ChatSendParams: Codable, Sendable {
 public struct ChatAbortParams: Codable, Sendable {
     public let sessionkey: String
     public let runid: String?
+    public let cascadesubagents: Bool?
 
     public init(
         sessionkey: String,
-        runid: String?
+        runid: String?,
+        cascadesubagents: Bool?
     ) {
         self.sessionkey = sessionkey
         self.runid = runid
+        self.cascadesubagents = cascadesubagents
     }
     private enum CodingKeys: String, CodingKey {
         case sessionkey = "sessionKey"
         case runid = "runId"
+        case cascadesubagents = "cascadeSubagents"
     }
 }
 
