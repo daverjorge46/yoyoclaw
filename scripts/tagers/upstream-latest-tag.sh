@@ -35,8 +35,8 @@ git fetch "${REMOTE}" --tags --quiet
 
 latest="$(
   git tag --list 'v*' --sort=-version:refname \
-    | grep -E '^v[0-9]{4}\\.[0-9]+\\.[0-9]+([-.][0-9]+)?$' \
-    | head -n 1
+    | grep -E '^v[0-9]{4}\.[0-9]+\.[0-9]+([-.][0-9]+)?$' \
+    | head -n 1 || true
 )"
 
 if [[ -z "${latest}" ]]; then
