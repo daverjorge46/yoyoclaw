@@ -190,7 +190,12 @@ export class GatewayClient {
     const storedToken = this.opts.deviceIdentity
       ? loadDeviceAuthToken({ deviceId: this.opts.deviceIdentity.deviceId, role })?.token
       : null;
-    const authToken = storedToken ?? this.opts.token ?? undefined;
+    // When an explicit token is provided (e.g. gatewayToken targeting a remote
+    // gateway), prefer it over any locally-stored device auth token.  The stored
+    // token is scoped to the local gateway and will cause auth failures on
+    // remote gateways.  Fall back to storedToken only when no explicit token
+    // was supplied.
+    const authToken = this.opts.token ?? storedToken ?? undefined;
     const canFallbackToShared = Boolean(storedToken && this.opts.token);
     const auth =
       authToken || this.opts.password
