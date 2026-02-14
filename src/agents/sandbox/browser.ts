@@ -106,9 +106,12 @@ export async function ensureSandboxBrowser(params: {
   const state = await dockerContainerState(containerName);
   if (!state.exists) {
     await ensureSandboxBrowserImage(params.cfg.browser.image ?? DEFAULT_SANDBOX_BROWSER_IMAGE);
+    const browserDockerCfg = params.cfg.browser.binds
+      ? { ...params.cfg.docker, network: "bridge", binds: params.cfg.browser.binds }
+      : { ...params.cfg.docker, network: "bridge" };
     const args = buildSandboxCreateArgs({
       name: containerName,
-      cfg: { ...params.cfg.docker, network: "bridge" },
+      cfg: browserDockerCfg,
       scopeKey: params.scopeKey,
       labels: { "openclaw.sandboxBrowser": "1" },
     });

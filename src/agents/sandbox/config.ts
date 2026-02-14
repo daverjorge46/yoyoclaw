@@ -88,6 +88,7 @@ export function resolveSandboxBrowserConfig(params: {
 }): SandboxBrowserConfig {
   const agentBrowser = params.scope === "shared" ? undefined : params.agentBrowser;
   const globalBrowser = params.globalBrowser;
+  const binds = [...(globalBrowser?.binds ?? []), ...(agentBrowser?.binds ?? [])];
   return {
     enabled: agentBrowser?.enabled ?? globalBrowser?.enabled ?? false,
     image: agentBrowser?.image ?? globalBrowser?.image ?? DEFAULT_SANDBOX_BROWSER_IMAGE,
@@ -107,6 +108,7 @@ export function resolveSandboxBrowserConfig(params: {
       agentBrowser?.autoStartTimeoutMs ??
       globalBrowser?.autoStartTimeoutMs ??
       DEFAULT_SANDBOX_BROWSER_AUTOSTART_TIMEOUT_MS,
+    binds: binds.length ? binds : undefined,
   };
 }
 
