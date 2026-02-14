@@ -21,7 +21,7 @@ Compaction **persists** in the session’s JSONL history.
 
 ## Configuration
 
-See [Compaction config & modes](/concepts/compaction) for the `agents.defaults.compaction` settings.
+See [Compaction config](/gateway/configuration-reference#agentsdefaultscompaction) for the `agents.defaults.compaction` settings.
 
 ## Auto-compaction (default on)
 
