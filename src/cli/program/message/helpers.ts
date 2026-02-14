@@ -28,7 +28,11 @@ async function runPluginStopHooks(): Promise<void> {
   if (!hookRunner?.hasHooks("gateway_stop")) {
     return;
   }
-  await hookRunner.runGatewayStop({ reason: "cli message action complete" }, {});
+  try {
+    await hookRunner.runGatewayStop({ reason: "cli message action complete" }, {});
+  } catch (err) {
+    defaultRuntime.error(danger(`gateway_stop hook failed: ${String(err)}`));
+  }
 }
 
 export function createMessageCliHelpers(

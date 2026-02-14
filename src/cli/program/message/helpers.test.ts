@@ -107,6 +107,20 @@ describe("runMessageAction", () => {
     expect(exitMock).toHaveBeenCalledWith(1);
   });
 
+  it("logs gateway_stop failure and still exits with success code", async () => {
+    hasHooksMock.mockReturnValueOnce(true);
+    runGatewayStopMock.mockRejectedValueOnce(new Error("hook failed"));
+    const fakeCommand = { help: vi.fn() } as never;
+    const { runMessageAction } = createMessageCliHelpers(fakeCommand, "discord");
+
+    await expect(
+      runMessageAction("send", { channel: "discord", target: "123", message: "hi" }),
+    ).rejects.toThrow("exit");
+
+    expect(errorMock).toHaveBeenCalledWith("gateway_stop hook failed: Error: hook failed");
+    expect(exitMock).toHaveBeenCalledWith(0);
+  });
+
   it("does not call exit(0) when the action throws", async () => {
     messageCommandMock.mockRejectedValueOnce(new Error("boom"));
     const fakeCommand = { help: vi.fn() } as never;
