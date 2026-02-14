@@ -421,7 +421,8 @@ describe("browser control server", () => {
     expect(pwMocks.armFileUploadViaPlaywright).toHaveBeenCalledWith({
       cdpUrl: cdpBaseUrl,
       targetId: "abcd1234",
-      paths: [path.join(DEFAULT_UPLOAD_DIR, "a.txt")],
+      // The server resolves paths (which adds a drive letter on Windows for `\\tmp\\...` style roots).
+      paths: [path.resolve(DEFAULT_UPLOAD_DIR, "a.txt")],
       timeoutMs: 1234,
     });
 
@@ -485,6 +486,23 @@ describe("browser control server", () => {
     });
     expect(shot.ok).toBe(true);
     expect(typeof shot.path).toBe("string");
+  });
+
+  it("blocks file chooser traversal / absolute paths outside uploads dir", async () => {
+    const base = await startServerAndBase();
+
+    const traversal = await postJson<{ error?: string }>(`${base}/hooks/file-chooser`, {
+      paths: ["../../../../etc/passwd"],
+    });
+    expect(traversal.error).toContain("Invalid path");
+    expect(pwMocks.armFileUploadViaPlaywright).not.toHaveBeenCalled();
+
+    const absOutside = path.join(path.parse(DEFAULT_UPLOAD_DIR).root, "etc", "passwd");
+    const abs = await postJson<{ error?: string }>(`${base}/hooks/file-chooser`, {
+      paths: [absOutside],
+    });
+    expect(abs.error).toContain("Invalid path");
+    expect(pwMocks.armFileUploadViaPlaywright).not.toHaveBeenCalled();
   });
 
   it("agent contract: stop endpoint", async () => {
