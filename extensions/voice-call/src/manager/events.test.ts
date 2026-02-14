@@ -1,10 +1,10 @@
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { CallManagerContext } from "./context.js";
-import { processEvent } from "./events.js";
 import type { HangupCallInput, NormalizedEvent } from "../types.js";
+import type { CallManagerContext } from "./context.js";
 import { VoiceCallConfigSchema } from "../config.js";
+import { processEvent } from "./events.js";
 
 function createContext(overrides: Partial<CallManagerContext> = {}): CallManagerContext {
   return {
