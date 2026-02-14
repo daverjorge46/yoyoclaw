@@ -184,10 +184,7 @@ export async function sessionsCommand(
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
   });
-  const configContextTokens =
-    cfg.agents?.defaults?.contextTokens ??
-    lookupContextTokens(resolved.model) ??
-    DEFAULT_CONTEXT_TOKENS;
+  const configContextTokens = lookupContextTokens(resolved.model) ?? DEFAULT_CONTEXT_TOKENS;
   const configModel = resolved.model ?? DEFAULT_MODEL;
   const storePath = resolveStorePath(opts.store ?? cfg.session?.store);
   const store = loadSessionStore(storePath);
