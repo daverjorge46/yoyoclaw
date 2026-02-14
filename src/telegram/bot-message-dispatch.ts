@@ -22,6 +22,7 @@ import { createTypingCallbacks } from "../channels/typing.js";
 import { resolveMarkdownTableMode } from "../config/markdown-tables.js";
 import { danger, logVerbose } from "../globals.js";
 import { deliverReplies } from "./bot/delivery.js";
+import { resolveTelegramBlockReplyBreak } from "./bot/helpers.js";
 import { resolveTelegramDraftStreamingChunking } from "./draft-chunking.js";
 import { createTelegramDraftStream } from "./draft-stream.js";
 import { cacheSticker, describeStickerImage } from "./sticker-cache.js";
@@ -174,6 +175,7 @@ export const dispatchTelegramMessage = async ({
   const disableBlockStreaming =
     Boolean(draftStream) ||
     (typeof telegramCfg.blockStreaming === "boolean" ? !telegramCfg.blockStreaming : undefined);
+  const blockReplyBreak = resolveTelegramBlockReplyBreak(telegramCfg);
 
   const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
     cfg,
@@ -303,6 +305,7 @@ export const dispatchTelegramMessage = async ({
     replyOptions: {
       skillFilter,
       disableBlockStreaming,
+      blockReplyBreak,
       onPartialReply: draftStream ? (payload) => updateDraftFromPartial(payload.text) : undefined,
       onModelSelected,
     },

@@ -211,4 +211,43 @@ describe("block streaming", () => {
       expect(onBlockReplyStreamMode).not.toHaveBeenCalled();
     });
   });
+
+  it("passes blockReplyBreak override through to embedded runs", async () => {
+    await withTempHome(async (home) => {
+      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(async () => ({
+        payloads: [{ text: "ok" }],
+        meta: {
+          durationMs: 5,
+          agentMeta: { sessionId: "s", provider: "p", model: "m" },
+        },
+      }));
+
+      await getReplyFromConfig(
+        {
+          Body: "ping",
+          From: "+1004",
+          To: "+2000",
+          MessageSid: "msg-200",
+          Provider: "telegram",
+        },
+        {
+          disableBlockStreaming: false,
+          blockReplyBreak: "message_end",
+        },
+        {
+          agents: {
+            defaults: {
+              model: "anthropic/claude-opus-4-5",
+              workspace: path.join(home, "openclaw"),
+            },
+          },
+          channels: { telegram: { allowFrom: ["*"] } },
+          session: { store: path.join(home, "sessions.json") },
+        },
+      );
+
+      const firstCall = piEmbeddedMock.runEmbeddedPiAgent.mock.calls[0]?.[0];
+      expect(firstCall?.blockReplyBreak).toBe("message_end");
+    });
+  });
 });

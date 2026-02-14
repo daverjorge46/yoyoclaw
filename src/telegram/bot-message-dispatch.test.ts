@@ -109,4 +109,66 @@ describe("dispatchTelegramMessage draft streaming", () => {
       }),
     );
   });
+
+  it("forces message_end block streaming break when blockStreaming is enabled", async () => {
+    createTelegramDraftStream.mockReturnValue(undefined);
+    dispatchReplyWithBufferedBlockDispatcher.mockResolvedValue({ queuedFinal: false });
+    deliverReplies.mockResolvedValue({ delivered: false });
+
+    const resolveBotTopicsEnabled = vi.fn().mockResolvedValue(false);
+    const context = {
+      ctxPayload: {},
+      primaryCtx: { message: { chat: { id: 123, type: "private" } } },
+      msg: {
+        chat: { id: 123, type: "private" },
+        message_id: 456,
+      },
+      chatId: 123,
+      isGroup: false,
+      resolvedThreadId: undefined,
+      replyThreadId: undefined,
+      threadSpec: { scope: "dm" },
+      historyKey: undefined,
+      historyLimit: 0,
+      groupHistories: new Map(),
+      route: { agentId: "default", accountId: "default" },
+      skillFilter: undefined,
+      sendTyping: vi.fn(),
+      sendRecordVoice: vi.fn(),
+      ackReactionPromise: null,
+      reactionApi: null,
+      removeAckAfterReply: false,
+    };
+
+    const bot = { api: { sendMessageDraft: vi.fn() } } as unknown as Bot;
+    const runtime = {
+      log: vi.fn(),
+      error: vi.fn(),
+      exit: () => {
+        throw new Error("exit");
+      },
+    };
+
+    await dispatchTelegramMessage({
+      context,
+      bot,
+      cfg: {},
+      runtime,
+      replyToMode: "off",
+      streamMode: "off",
+      textLimit: 4096,
+      telegramCfg: { blockStreaming: true },
+      opts: { token: "token" },
+      resolveBotTopicsEnabled,
+    });
+
+    expect(dispatchReplyWithBufferedBlockDispatcher).toHaveBeenCalledWith(
+      expect.objectContaining({
+        replyOptions: expect.objectContaining({
+          disableBlockStreaming: false,
+          blockReplyBreak: "message_end",
+        }),
+      }),
+    );
+  });
 });
