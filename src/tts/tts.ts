@@ -360,7 +360,11 @@ export function buildTtsSystemPromptHint(cfg: OpenClawConfig): string | undefine
     "Voice (TTS) is enabled.",
     autoHint,
     `Keep spoken text ≤${maxLength} chars to avoid auto-summary (summary ${summarize}).`,
-    "Use [[tts:...]] and optional [[tts:text]]...[[/tts:text]] to control voice/expressiveness.",
+    "Use [[tts:key=value ...]] to control voice. Available params (all optional):",
+    "  stability=0‑1 (lower → expressive, higher → steady), style=0‑1 (higher → dramatic),",
+    "  speed=0.5‑2, similarityBoost=0‑1. Example: [[tts:stability=0.4 style=0.7]]",
+    "Use [[tts:text]]alt text[[/tts:text]] to provide separate spoken text from visible text.",
+    "Do NOT use bare words like [[tts:soft]] — they are not supported.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -591,7 +595,7 @@ function parseNumberValue(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function parseTtsDirectives(
+export function parseTtsDirectives(
   text: string,
   policy: ResolvedTtsModelOverrides,
 ): TtsDirectiveParseResult {
@@ -612,6 +616,8 @@ function parseTtsDirectives(
     }
     return "";
   });
+  // Strip orphan closing tags (model sometimes emits [[/tts:text]] without a matching opener)
+  cleanedText = cleanedText.replace(/\[\[\/tts:[^\]]*\]\]/gi, "");
 
   const directiveRegex = /\[\[tts:([^\]]+)\]\]/gi;
   cleanedText = cleanedText.replace(directiveRegex, (_match, body: string) => {
@@ -620,6 +626,9 @@ function parseTtsDirectives(
     for (const token of tokens) {
       const eqIndex = token.indexOf("=");
       if (eqIndex === -1) {
+        warnings.push(
+          `unknown bare directive "${token}" — use key=value format (e.g. stability=0.4 style=0.7)`,
+        );
         continue;
       }
       const rawKey = token.slice(0, eqIndex).trim();
