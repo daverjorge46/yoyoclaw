@@ -242,4 +242,36 @@ describe("sanitizeToolCallInputs", () => {
       : [];
     expect(types).toEqual(["text", "toolUse"]);
   });
+
+  it("drops tool calls with empty name", () => {
+    const input: AgentMessage[] = [
+      {
+        role: "assistant",
+        content: [{ type: "toolUse", id: "call_empty", name: "", input: { path: "a" } }],
+      },
+      { role: "user", content: "hello" },
+    ];
+
+    const out = sanitizeToolCallInputs(input);
+    expect(out.map((m) => m.role)).toEqual(["user"]);
+  });
+
+  it("drops tool calls with missing name", () => {
+    const input: AgentMessage[] = [
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "thinking" },
+          { type: "toolCall", id: "call_noname", input: { x: 1 } },
+        ],
+      },
+    ];
+
+    const out = sanitizeToolCallInputs(input);
+    const assistant = out[0] as Extract<AgentMessage, { role: "assistant" }>;
+    const types = Array.isArray(assistant.content)
+      ? assistant.content.map((block) => (block as { type?: unknown }).type)
+      : [];
+    expect(types).toEqual(["text"]);
+  });
 });
