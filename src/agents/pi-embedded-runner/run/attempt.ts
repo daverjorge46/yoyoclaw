@@ -938,7 +938,9 @@ export async function runEmbeddedAttempt(
         }
 
         try {
-          await waitForCompactionRetry();
+          // Important: compaction can enter a retry state and never resolve.
+          // Make this wait abortable so timeouts/aborts can't hang the attempt before cleanup.
+          await abortable(waitForCompactionRetry());
         } catch (err) {
           if (isRunnerAbortError(err)) {
             if (!promptError) {
