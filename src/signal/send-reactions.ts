@@ -4,7 +4,7 @@
 
 import { loadConfig } from "../config/config.js";
 import { resolveSignalAccount } from "./accounts.js";
-import { signalRpcRequest } from "./client.js";
+import { adapterRpcRequest as signalRpcRequest } from "./client-adapter.js";
 
 export type SignalReactionOpts = {
   baseUrl?: string;

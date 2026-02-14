@@ -44,14 +44,28 @@ vi.mock("../config/sessions.js", () => ({
   recordSessionMetaFromInbound: vi.fn().mockResolvedValue(undefined),
 }));
 
-const streamMock = vi.fn();
 const signalCheckMock = vi.fn();
 const signalRpcRequestMock = vi.fn();
 
 vi.mock("./client.js", () => ({
-  streamSignalEvents: (...args: unknown[]) => streamMock(...args),
+  streamSignalEvents: vi.fn(),
   signalCheck: (...args: unknown[]) => signalCheckMock(...args),
   signalRpcRequest: (...args: unknown[]) => signalRpcRequestMock(...args),
+}));
+
+vi.mock("./client-adapter.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./client-adapter.js")>();
+  return {
+    ...actual,
+    detectSignalApiMode: vi.fn().mockResolvedValue("native"),
+    fetchAttachmentAdapter: vi.fn().mockResolvedValue(null),
+    adapterRpcRequest: (...args: unknown[]) => signalRpcRequestMock(...args),
+  };
+});
+
+const streamMock = vi.fn();
+vi.mock("./sse-reconnect.js", () => ({
+  runSignalSseLoop: (...args: unknown[]) => streamMock(...args),
 }));
 
 vi.mock("./daemon.js", () => ({

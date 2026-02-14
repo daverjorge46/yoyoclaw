@@ -50,6 +50,17 @@ vi.mock("./client.js", () => ({
   signalRpcRequest: (...args: unknown[]) => signalRpcRequestMock(...args),
 }));
 
+vi.mock("./accounts.js", () => ({
+  resolveSignalAccount: () => ({
+    accountId: "default",
+    enabled: true,
+    baseUrl: "http://localhost:8080",
+    configured: true,
+    name: "default",
+    config: { apiMode: "native" },
+  }),
+}));
+
 vi.mock("./daemon.js", () => ({
   spawnSignalDaemon: vi.fn(() => ({ stop: vi.fn() })),
 }));
@@ -61,7 +72,7 @@ beforeEach(() => {
   config = {
     messages: { responsePrefix: "PFX" },
     channels: {
-      signal: { autoStart: false, dmPolicy: "open", allowFrom: ["*"] },
+      signal: { autoStart: false, dmPolicy: "open", allowFrom: ["*"], apiMode: "native" },
     },
   };
   sendMock.mockReset().mockResolvedValue(undefined);
