@@ -138,6 +138,13 @@ export function createDiscordMessageHandler(params: {
 
   return async (data, client) => {
     try {
+      // Early filter: skip processing bot's own messages before debounce
+      // This prevents self-DoS from cron deliveries generating MESSAGE_CREATE events
+      // See: https://github.com/openclaw/openclaw/issues/15874
+      const author = data.author;
+      if (params.botUserId && author?.id === params.botUserId) {
+        return;
+      }
       await debouncer.enqueue({ data, client });
     } catch (err) {
       params.runtime.error?.(danger(`handler failed: ${String(err)}`));
