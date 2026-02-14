@@ -680,22 +680,40 @@ function onDebuggerDetach(source, reason) {
   if (!tabId) return
   if (!tabs.has(tabId)) return
   
-  void detachTab(tabId, reason)
-  
-  // If detached due to navigation/reload, try to re-attach after a delay
+  // Navigation/reload: Chrome detaches debugger but the tab still exists.
+  // Do NOT send detach events to the relay — just re-attach seamlessly.
   if (reason === 'target_closed') {
+    const oldState = tabs.get(tabId)
+    // Show reconnecting state but keep the tab in our maps
+    setBadge(tabId, 'connecting')
+    void chrome.action.setTitle({
+      tabId,
+      title: 'OpenClaw Browser Relay: re-attaching after navigation...',
+    })
+    
     setTimeout(async () => {
       try {
         const tab = await chrome.tabs.get(tabId)
         if (tab && relayWs?.readyState === WebSocket.OPEN) {
           console.log(`Re-attaching tab ${tabId} after navigation`)
+          // Clean up old session mappings before fresh attach
+          if (oldState?.sessionId) tabBySession.delete(oldState.sessionId)
+          tabs.delete(tabId)
           await attachTab(tabId, { skipAttachedEvent: false })
+        } else {
+          // Tab gone or relay down — clean up fully
+          void detachTab(tabId, reason)
         }
       } catch (err) {
         console.warn(`Failed to re-attach tab ${tabId} after navigation:`, err.message)
+        void detachTab(tabId, reason)
       }
     }, 500)
+    return
   }
+  
+  // Non-navigation detach (user action, crash, etc.) — full cleanup
+  void detachTab(tabId, reason)
 }
 
 // ========== NEW: Tab lifecycle listeners ==========
