@@ -10,6 +10,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Onboarding: always show the default-model selector during the wizard when auth was chosen interactively (including Custom API key), so users can pick or confirm their model without having to run `openclaw configure --section model` afterward.
 - Security/Agents: scope CLI process cleanup to owned child PIDs to avoid killing unrelated processes on shared hosts. Thanks @aether-ai-agent.
 - Security/Agents (macOS): prevent shell injection when writing Claude CLI keychain credentials. (#15924) Thanks @aether-ai-agent.
 - Security: fix Chutes manual OAuth login state validation (thanks @aether-ai-agent). (#16058)
