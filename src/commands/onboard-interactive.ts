@@ -16,7 +16,8 @@ export async function runInteractiveOnboarding(
     await runOnboardingWizard(opts, runtime, prompter);
   } catch (err) {
     if (err instanceof WizardCancelledError) {
-      exitCode = 0;
+      // Best practice: cancellation is not a successful completion.
+      exitCode = 1;
       return;
     }
     throw err;

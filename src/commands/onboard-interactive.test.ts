@@ -58,7 +58,7 @@ describe("runInteractiveOnboarding", () => {
 
     await expect(runInteractiveOnboarding({} as never, runtime)).rejects.toBe(exitError);
 
-    expect(runtime.exit).toHaveBeenCalledWith(0);
+    expect(runtime.exit).toHaveBeenCalledWith(1);
     expect(mocks.restoreTerminalState).toHaveBeenCalledWith("onboarding finish", {
       resumeStdin: false,
     });
