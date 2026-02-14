@@ -1,5 +1,3 @@
-/** Resilient fetch wrapper for Ollama — handles cold starts, model loading, connection issues. */
-
 export interface OllamaFetchOptions {
   retries?: number;
   retryDelayMs?: number;
@@ -7,17 +5,13 @@ export interface OllamaFetchOptions {
   onRetry?: (attempt: number, error: Error) => void;
 }
 
-function isConnectionRefused(err: unknown): boolean {
-  if (err instanceof TypeError && err.cause) {
-    return (err.cause as any)?.code === "ECONNREFUSED";
-  }
-  return err instanceof Error && err.message.includes("ECONNREFUSED");
-}
+const isConnectionRefused = (err: unknown): boolean =>
+  (err instanceof TypeError && (err.cause as any)?.code === "ECONNREFUSED") ||
+  (err instanceof Error && err.message.includes("ECONNREFUSED"));
 
-function isTimeout(err: unknown): boolean {
-  if (err instanceof DOMException) return err.name === "TimeoutError" || err.name === "AbortError";
-  return err instanceof Error && err.name === "TimeoutError";
-}
+const isTimeout = (err: unknown): boolean =>
+  (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) ||
+  (err instanceof Error && err.name === "TimeoutError");
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 

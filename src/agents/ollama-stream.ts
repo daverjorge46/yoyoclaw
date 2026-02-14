@@ -17,8 +17,6 @@ import { OLLAMA_BASE_URL } from "./ollama-shared.js";
 /** @deprecated Use OLLAMA_BASE_URL from ollama-shared.ts */
 export const OLLAMA_NATIVE_BASE_URL = OLLAMA_BASE_URL;
 
-// ── Ollama /api/chat request types ──────────────────────────────────────────
-
 interface OllamaChatRequest {
   model: string;
   messages: OllamaChatMessage[];
@@ -52,8 +50,6 @@ interface OllamaToolCall {
   };
 }
 
-// ── Ollama /api/chat response types ─────────────────────────────────────────
-
 interface OllamaChatResponse {
   model: string;
   created_at: string;
@@ -73,8 +69,6 @@ interface OllamaChatResponse {
   eval_duration?: number;
 }
 
-// ── Message conversion ──────────────────────────────────────────────────────
-
 type InputContentPart =
   | { type: "text"; text: string }
   | { type: "image"; data: string }
@@ -82,25 +76,19 @@ type InputContentPart =
   | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> };
 
 function extractTextContent(content: unknown): string {
-  if (typeof content === "string") {
-    return content;
-  }
-  if (!Array.isArray(content)) {
-    return "";
-  }
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
   return (content as InputContentPart[])
-    .filter((part): part is { type: "text"; text: string } => part.type === "text")
-    .map((part) => part.text)
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
     .join("");
 }
 
 function extractOllamaImages(content: unknown): string[] {
-  if (!Array.isArray(content)) {
-    return [];
-  }
+  if (!Array.isArray(content)) return [];
   return (content as InputContentPart[])
-    .filter((part): part is { type: "image"; data: string } => part.type === "image")
-    .map((part) => part.data);
+    .filter((p): p is { type: "image"; data: string } => p.type === "image")
+    .map((p) => p.data);
 }
 
 function extractToolCalls(content: unknown): OllamaToolCall[] {
@@ -167,82 +155,43 @@ export function convertToOllamaMessages(
   return result;
 }
 
-// ── Tool extraction ─────────────────────────────────────────────────────────
-
 function extractOllamaTools(tools: Tool[] | undefined): OllamaTool[] {
-  if (!tools || !Array.isArray(tools)) {
-    return [];
-  }
-  const result: OllamaTool[] = [];
-  for (const tool of tools) {
-    if (typeof tool.name !== "string" || !tool.name) {
-      continue;
-    }
-    result.push({
-      type: "function",
+  if (!tools?.length) return [];
+  return tools
+    .filter((t) => typeof t.name === "string" && t.name)
+    .map((t) => ({
+      type: "function" as const,
       function: {
-        name: tool.name,
-        description: typeof tool.description === "string" ? tool.description : "",
-        parameters: (tool.parameters ?? {}) as Record<string, unknown>,
+        name: t.name,
+        description: typeof t.description === "string" ? t.description : "",
+        parameters: (t.parameters ?? {}) as Record<string, unknown>,
       },
-    });
-  }
-  return result;
+    }));
 }
-
-// ── Response conversion ─────────────────────────────────────────────────────
 
 export function buildAssistantMessage(
   response: OllamaChatResponse,
   modelInfo: { api: string; provider: string; id: string },
 ): AssistantMessage {
   const content: (TextContent | ThinkingContent | ToolCall)[] = [];
-
-  if (response.message.thinking) {
-    content.push({ type: "thinking", thinking: response.message.thinking });
-  }
-
-  if (response.message.content) {
-    content.push({ type: "text", text: response.message.content });
-  }
-
+  if (response.message.thinking) content.push({ type: "thinking", thinking: response.message.thinking });
+  if (response.message.content) content.push({ type: "text", text: response.message.content });
   const toolCalls = response.message.tool_calls;
-  if (toolCalls && toolCalls.length > 0) {
-    for (const tc of toolCalls) {
-      content.push({
-        type: "toolCall",
-        id: `ollama_call_${randomUUID()}`,
-        name: tc.function.name,
-        arguments: tc.function.arguments,
-      });
-    }
+  if (toolCalls?.length) {
+    for (const tc of toolCalls)
+      content.push({ type: "toolCall", id: `ollama_call_${randomUUID()}`, name: tc.function.name, arguments: tc.function.arguments });
   }
-
-  const hasToolCalls = toolCalls && toolCalls.length > 0;
-  const stopReason: StopReason = hasToolCalls ? "toolUse" : "stop";
-
-  const usage: Usage = {
-    input: response.prompt_eval_count ?? 0,
-    output: response.eval_count ?? 0,
-    cacheRead: 0,
-    cacheWrite: 0,
-    totalTokens: (response.prompt_eval_count ?? 0) + (response.eval_count ?? 0),
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
-  };
-
+  const input = response.prompt_eval_count ?? 0;
+  const output = response.eval_count ?? 0;
   return {
-    role: "assistant",
-    content,
-    stopReason,
-    api: modelInfo.api,
-    provider: modelInfo.provider,
-    model: modelInfo.id,
-    usage,
+    role: "assistant", content,
+    stopReason: toolCalls?.length ? "toolUse" : "stop",
+    api: modelInfo.api, provider: modelInfo.provider, model: modelInfo.id,
+    usage: { input, output, cacheRead: 0, cacheWrite: 0, totalTokens: input + output,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
     timestamp: Date.now(),
   };
 }
-
-// ── NDJSON streaming parser ─────────────────────────────────────────────────
 
 export async function* parseNdjsonStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
@@ -283,8 +232,6 @@ export async function* parseNdjsonStream(
     }
   }
 }
-
-// ── Main StreamFn factory ───────────────────────────────────────────────────
 
 function resolveOllamaChatUrl(baseUrl: string): string {
   const trimmed = baseUrl.trim().replace(/\/+$/, "");

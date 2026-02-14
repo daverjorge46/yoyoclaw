@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import os from "node:os";
 import { promisify } from "node:util";
+import { OLLAMA_BASE_URL } from "./ollama-shared.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -94,7 +95,7 @@ export function suggestOllamaOptions(resources: SystemResources): Record<string,
 
 export async function unloadModel(
   modelName: string,
-  baseUrl = "http://127.0.0.1:11434",
+  baseUrl = OLLAMA_BASE_URL,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${baseUrl}/api/generate`, {
@@ -115,14 +116,5 @@ export async function unloadModel(
 
 export async function getMemoryPressure(): Promise<"low" | "medium" | "high" | "critical"> {
   const freeGB = os.freemem() / 1024 ** 3;
-  if (freeGB < 1) {
-    return "critical";
-  }
-  if (freeGB < 2) {
-    return "high";
-  }
-  if (freeGB < 4) {
-    return "medium";
-  }
-  return "low";
+  return freeGB < 1 ? "critical" : freeGB < 2 ? "high" : freeGB < 4 ? "medium" : "low";
 }

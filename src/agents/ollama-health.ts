@@ -1,23 +1,11 @@
 import { OLLAMA_BASE_URL, ollamaGet } from "./ollama-shared.js";
+import type { OllamaModel, OllamaRunningModel } from "./ollama-shared.js";
+
+export type { OllamaModel, OllamaRunningModel } from "./ollama-shared.js";
 
 export type OllamaHealthStatus =
   | { healthy: true; version: string }
   | { healthy: false; error: string };
-
-export type OllamaModel = {
-  name: string;
-  size: number;
-  modifiedAt: string;
-  digest: string;
-};
-
-export type OllamaRunningModel = {
-  name: string;
-  size: number;
-  sizeVram: number;
-  digest: string;
-  expiresAt: string;
-};
 
 export type OllamaStatusInfo = {
   health: OllamaHealthStatus;
@@ -30,16 +18,16 @@ export async function checkOllamaHealth(
 ): Promise<OllamaHealthStatus> {
   try {
     const data = (await ollamaGet(`${baseUrl}/api/version`)) as Record<string, unknown>;
-    if (typeof data?.version === "string") {
-      return { healthy: true, version: data.version };
-    }
-    return { healthy: false, error: "Unexpected response from /api/version" };
+    return typeof data?.version === "string"
+      ? { healthy: true, version: data.version }
+      : { healthy: false, error: "Unexpected response from /api/version" };
   } catch (err: any) {
-    const msg =
-      err?.name === "AbortError" || err?.name === "TimeoutError"
+    return {
+      healthy: false,
+      error: err?.name === "AbortError" || err?.name === "TimeoutError"
         ? "Connection timed out"
-        : String(err?.message ?? err);
-    return { healthy: false, error: msg };
+        : String(err?.message ?? err),
+    };
   }
 }
 

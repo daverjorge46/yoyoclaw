@@ -17,7 +17,7 @@ import {
   buildHuggingfaceModelDefinition,
 } from "./huggingface-models.js";
 import { resolveAwsSdkEnvVarName, resolveEnvApiKey } from "./model-auth.js";
-import { OLLAMA_NATIVE_BASE_URL } from "./ollama-stream.js";
+import { OLLAMA_BASE_URL as OLLAMA_NATIVE_BASE_URL } from "./ollama-shared.js";
 import {
   buildSyntheticModelDefinition,
   SYNTHETIC_BASE_URL,

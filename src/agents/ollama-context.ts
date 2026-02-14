@@ -43,7 +43,6 @@ export const OLLAMA_MODEL_PROFILES: Record<
   },
 };
 
-/** Get model profile by exact or prefix match. */
 export function getModelProfile(modelName: string): ModelProfile | undefined {
   if (OLLAMA_MODEL_PROFILES[modelName]) {
     return { name: modelName, ...OLLAMA_MODEL_PROFILES[modelName] };
@@ -64,7 +63,6 @@ export function getModelProfile(modelName: string): ModelProfile | undefined {
   return undefined;
 }
 
-/** Models that fit in the given RAM, sorted by capability descending. */
 export function recommendModelsForRam(availableRamGB: number): ModelProfile[] {
   return Object.entries(OLLAMA_MODEL_PROFILES)
     .filter(([, p]) => p.ramGB <= availableRamGB)
@@ -72,7 +70,4 @@ export function recommendModelsForRam(availableRamGB: number): ModelProfile[] {
     .toSorted((a, b) => b.ramGB - a.ramGB || b.contextWindow - a.contextWindow);
 }
 
-/** Usable system RAM in GB (total minus ~2GB OS overhead). */
-export async function getSystemRam(): Promise<number> {
-  return Math.max(0, os.totalmem() / 1024 ** 3 - 2);
-}
+export const getSystemRam = (): number => Math.max(0, os.totalmem() / 1024 ** 3 - 2);
