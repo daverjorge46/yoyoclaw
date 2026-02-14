@@ -23,12 +23,14 @@ describe("sendPollTelegram", () => {
 
   it("retries without message_thread_id on thread-not-found", async () => {
     const api = {
-      sendPoll: vi.fn(async (_chatId: string, _question: string, _options: string[], params: any) => {
-        if (params?.message_thread_id) {
-          throw new Error("400: Bad Request: message thread not found");
-        }
-        return { message_id: 1, chat: { id: 2 }, poll: { id: "p2" } };
-      }),
+      sendPoll: vi.fn(
+        async (_chatId: string, _question: string, _options: string[], params: any) => {
+          if (params?.message_thread_id) {
+            throw new Error("400: Bad Request: message thread not found");
+          }
+          return { message_id: 1, chat: { id: 2 }, poll: { id: "p2" } };
+        },
+      ),
     };
 
     const res = await sendPollTelegram(
@@ -57,4 +59,3 @@ describe("sendPollTelegram", () => {
     expect(api.sendPoll).not.toHaveBeenCalled();
   });
 });
-
