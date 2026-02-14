@@ -30,6 +30,40 @@ type SnapshotEntry = {
 
 let selectedSnapshot: string | null = null;
 let selectedEventIndex: number | null = null;
+let showMethodSuggestions = false;
+
+type RpcMethod = { method: string; params: string; description: string };
+
+const RPC_METHODS: RpcMethod[] = [
+  { method: "status", params: "{}", description: "Gateway status snapshot" },
+  { method: "health", params: "{}", description: "Health check" },
+  { method: "last-heartbeat", params: "{}", description: "Last heartbeat data" },
+  { method: "system-presence", params: "{}", description: "System presence info" },
+  { method: "models.list", params: "{}", description: "List available models" },
+  { method: "logs.tail", params: '{"lines": 100}', description: "Tail log entries" },
+  { method: "config.set", params: '{"path": "key", "value": "val"}', description: "Set a config value" },
+  { method: "config.apply", params: '{"config": {}}', description: "Apply full config" },
+  { method: "chat.send", params: '{"message": "", "to": ""}', description: "Send a chat message" },
+  { method: "sessions.usage", params: '{"sessionKey": ""}', description: "Session usage stats" },
+  { method: "sessions.usage.logs", params: '{"sessionKey": ""}', description: "Session usage logs" },
+  { method: "sessions.usage.timeseries", params: '{"sessionKey": ""}', description: "Usage time series" },
+  { method: "sessions.delete", params: '{"sessionKey": ""}', description: "Delete a session" },
+  { method: "sessions.patch", params: '{"sessionKey": "", "patch": {}}', description: "Patch session data" },
+  { method: "usage.cost", params: "{}", description: "Usage cost summary" },
+  { method: "skills.status", params: "{}", description: "Installed skills status" },
+  { method: "skills.update", params: '{"name": ""}', description: "Update a skill" },
+  { method: "cron.add", params: '{"name": "", "schedule": {}, "payload": {}}', description: "Add a cron job" },
+  { method: "cron.run", params: '{"jobId": ""}', description: "Trigger a cron job" },
+  { method: "cron.update", params: '{"jobId": "", "patch": {}}', description: "Update a cron job" },
+  { method: "cron.remove", params: '{"jobId": ""}', description: "Remove a cron job" },
+  { method: "agent.identity.get", params: "{}", description: "Get agent identity" },
+  { method: "channels.logout", params: '{"channel": ""}', description: "Logout a channel" },
+  { method: "device.pair.approve", params: '{"requestId": ""}', description: "Approve device pairing" },
+  { method: "device.pair.reject", params: '{"requestId": ""}', description: "Reject device pairing" },
+  { method: "device.token.revoke", params: '{"deviceId": ""}', description: "Revoke device token" },
+  { method: "exec.approval.resolve", params: '{"id": "", "approved": true}', description: "Resolve exec approval" },
+  { method: "update.run", params: "{}", description: "Run gateway update" },
+];
 
 function countKeys(data: unknown): number {
   if (!data || typeof data !== "object") return 0;
@@ -77,13 +111,41 @@ export function renderDebug(props: DebugProps) {
 
     <section class="card" style="margin-bottom: 12px;">
       <div class="row" style="gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-        <label class="field" style="flex: 1; min-width: 160px; margin: 0;">
+        <label class="field" style="flex: 1; min-width: 160px; margin: 0; position: relative;">
           <span>Method</span>
           <input
             .value=${props.callMethod}
-            @input=${(e: Event) => props.onCallMethodChange((e.target as HTMLInputElement).value)}
+            @input=${(e: Event) => {
+              props.onCallMethodChange((e.target as HTMLInputElement).value);
+              showMethodSuggestions = true;
+            }}
+            @focus=${() => { showMethodSuggestions = true; requestUpdate(); }}
+            @blur=${() => { setTimeout(() => { showMethodSuggestions = false; requestUpdate(); }, 150); }}
             placeholder="system-presence"
+            autocomplete="off"
           />
+          ${showMethodSuggestions && props.callMethod.length >= 0 ? (() => {
+            const needle = props.callMethod.toLowerCase();
+            const matches = RPC_METHODS.filter((m) => 
+              !needle || m.method.toLowerCase().includes(needle) || m.description.toLowerCase().includes(needle)
+            ).slice(0, 10);
+            return matches.length > 0 ? html`
+              <div class="rpc-suggestions">
+                ${matches.map((m) => html`
+                  <div class="rpc-suggestion" @mousedown=${(e: Event) => {
+                    e.preventDefault();
+                    props.onCallMethodChange(m.method);
+                    props.onCallParamsChange(m.params);
+                    showMethodSuggestions = false;
+                    requestUpdate();
+                  }}>
+                    <div class="rpc-suggestion-method mono">${m.method}</div>
+                    <div class="rpc-suggestion-desc">${m.description}</div>
+                  </div>
+                `)}
+              </div>
+            ` : nothing;
+          })() : nothing}
         </label>
         <label class="field" style="flex: 2; min-width: 200px; margin: 0;">
           <span>Params (JSON)</span>

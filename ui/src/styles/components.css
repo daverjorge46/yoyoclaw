@@ -1430,6 +1430,49 @@
 }
 
 /* Debug snapshot table rows */
+/* RPC autocomplete suggestions */
+.rpc-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.rpc-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--duration-fast) ease;
+}
+
+.rpc-suggestion:last-child {
+  border-bottom: none;
+}
+
+.rpc-suggestion:hover {
+  background: var(--bg-hover);
+}
+
+.rpc-suggestion-method {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.rpc-suggestion-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
 .debug-snapshot-header {
   display: flex;
   gap: 12px;
