@@ -339,7 +339,7 @@ export async function importSkill(params: SkillImportRequest): Promise<SkillImpo
       }
       archivePath = downloadResult.filePath;
     } else {
-      return fail(`Unsupported source: ${params.source}`);
+      return fail("Unsupported source");
     }
 
     // -----------------------------------------------------------------------

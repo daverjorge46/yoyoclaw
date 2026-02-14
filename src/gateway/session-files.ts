@@ -617,11 +617,9 @@ function observationsFromToolCall(params: {
       toString(args.dir) ??
       toString(args.directory) ??
       params.defaultWorkdir;
-    const workdir = resolveCandidatePath(
-      workdirCandidate,
-      params.defaultWorkdir,
-      params.workspaceDir,
-    );
+    const workdir =
+      resolveCandidatePath(workdirCandidate, params.defaultWorkdir, params.workspaceDir) ??
+      undefined;
     return extractExecObservations({
       command,
       workdir,
