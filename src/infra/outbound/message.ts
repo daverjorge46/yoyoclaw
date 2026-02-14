@@ -180,6 +180,7 @@ export async function sendMessage(params: MessageSendParams): Promise<MessageSen
       channel: outboundChannel,
       to: resolvedTarget.to,
       accountId: params.accountId,
+      sessionKey: params.mirror?.sessionKey,
       payloads: normalizedPayloads,
       replyToId: params.replyToId,
       threadId: params.threadId,
