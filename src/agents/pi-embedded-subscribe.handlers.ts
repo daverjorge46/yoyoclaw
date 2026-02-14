@@ -91,7 +91,6 @@ function dispatchEvent(
  *
  * - `pendingCount` tracks items on the chain. Incremented synchronously when
  * - `pendingCount` tracks items on the chain. Incremented synchronously when
- *   an event enters the chain; decremented inside the `finally` block so
  * - When `pendingCount` returns to 0, subsequent events take the direct path.
  * - The handler always returns `void` — subscription contract unchanged.
  */
