@@ -93,7 +93,10 @@ export async function sendMessageIMessage(
     const resolveAttachmentFn = opts.resolveAttachmentImpl ?? resolveAttachment;
     const resolved = await resolveAttachmentFn(opts.mediaUrl.trim(), maxBytes);
     filePath = resolved.path;
-    if (!message.trim()) {
+    // Only add media placeholder if not suppressed in config
+    // See: https://github.com/openclaw/openclaw/issues/15840
+    const suppressPlaceholders = cfg.messages?.suppressMediaPlaceholders ?? false;
+    if (!message.trim() && !suppressPlaceholders) {
       const kind = mediaKindFromMime(resolved.contentType ?? undefined);
       if (kind) {
         message = kind === "image" ? "<media:image>" : `<media:${kind}>`;

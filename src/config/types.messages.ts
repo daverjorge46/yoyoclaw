@@ -84,6 +84,13 @@ export type MessagesConfig = {
   removeAckAfterReply?: boolean;
   /** Text-to-speech settings for outbound replies. */
   tts?: TtsConfig;
+  /**
+   * Suppress automatic media placeholder text in inbound messages.
+   * When true, media without captions will have empty body instead of
+   * placeholders like `<media:audio>`, `<media:image>`, etc.
+   * Default: false (placeholders enabled for accessibility)
+   */
+  suppressMediaPlaceholders?: boolean;
 };
 
 export type NativeCommandsSetting = boolean | "auto";

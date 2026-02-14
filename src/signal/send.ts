@@ -164,7 +164,10 @@ export async function sendMessageSignal(
     const resolved = await resolveAttachment(opts.mediaUrl.trim(), maxBytes);
     attachments = [resolved.path];
     const kind = mediaKindFromMime(resolved.contentType ?? undefined);
-    if (!message && kind) {
+    // Only add media placeholder if not suppressed in config
+    // See: https://github.com/openclaw/openclaw/issues/15840
+    const suppressPlaceholders = cfg.messages?.suppressMediaPlaceholders ?? false;
+    if (!message && kind && !suppressPlaceholders) {
       // Avoid sending an empty body when only attachments exist.
       message = kind === "image" ? "<media:image>" : `<media:${kind}>`;
       messageFromPlaceholder = true;
