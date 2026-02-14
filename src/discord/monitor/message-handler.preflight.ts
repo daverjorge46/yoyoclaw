@@ -32,6 +32,7 @@ import { fetchPluralKitMessageInfo } from "../pluralkit.js";
 import { sendMessageDiscord } from "../send.js";
 import {
   allowListMatches,
+  isDiscordAutoThreadOwnedByBot,
   isDiscordGroupAllowedByPolicy,
   normalizeDiscordAllowList,
   normalizeDiscordSlug,
@@ -374,6 +375,14 @@ export async function preflightDiscordMessage(
       : undefined;
 
   const threadOwnerId = threadChannel ? (threadChannel.ownerId ?? channelInfo?.ownerId) : undefined;
+  const autoThreadEnabled = channelConfig?.autoThread ?? params.threadAutoCreate;
+  const isAutoThreadOwnedByBot = isDiscordAutoThreadOwnedByBot({
+    isThread: Boolean(threadChannel),
+    channelConfig,
+    botId,
+    threadOwnerId,
+    autoThreadEnabled,
+  });
   const shouldRequireMention = resolveDiscordShouldRequireMention({
     isGuildMessage,
     isThread: Boolean(threadChannel),
@@ -381,6 +390,7 @@ export async function preflightDiscordMessage(
     threadOwnerId,
     channelConfig,
     guildInfo,
+    isAutoThreadOwnedByBot,
   });
 
   // Preflight audio transcription for mention detection in guilds
@@ -578,6 +588,8 @@ export async function preflightDiscordMessage(
     replyToMode: params.replyToMode,
     ackReactionScope: params.ackReactionScope,
     groupPolicy: params.groupPolicy,
+    threadAutoCreate: params.threadAutoCreate,
+    threadInheritParent: params.threadInheritParent,
     data: params.data,
     client: params.client,
     message,

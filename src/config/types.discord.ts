@@ -42,9 +42,31 @@ export type DiscordGuildChannelConfig = {
   systemPrompt?: string;
   /** If false, omit thread starter context for this channel (default: true). */
   includeThreadStarter?: boolean;
+  /**
+   * If true, OpenClaw creates a thread for each message in this channel (when not already in a
+   * thread) and replies inside that thread. This keeps channel sessions clean and reduces tokens.
+   */
+  autoThread?: boolean;
 };
 
 export type DiscordReactionNotificationMode = "off" | "own" | "all" | "allowlist";
+
+export type DiscordThreadConfig = {
+  /**
+   * If true, automatically create a thread for each non-thread guild message and reply in-thread.
+   * Per-channel overrides via `channels.discord.guilds.*.channels.*.autoThread` still apply.
+   *
+   * Default: false.
+   */
+  autoCreate?: boolean;
+  /**
+   * If true, thread sessions may inherit parent channel session state (fork transcript and inherit
+   * model overrides). When false, threads start clean (recommended with autoCreate).
+   *
+   * Default: false.
+   */
+  inheritParent?: boolean;
+};
 
 export type DiscordGuildEntry = {
   slug?: string;
@@ -154,6 +176,8 @@ export type DiscordAccountConfig = {
   dmHistoryLimit?: number;
   /** Per-DM config overrides keyed by user ID. */
   dms?: Record<string, DmConfig>;
+  /** Threading controls. */
+  thread?: DiscordThreadConfig;
   /** Retry policy for outbound Discord API calls. */
   retry?: OutboundRetryConfig;
   /** Per-action tool gating (default: true for all). */

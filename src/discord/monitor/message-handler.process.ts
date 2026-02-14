@@ -77,10 +77,14 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     guildInfo,
     guildSlug,
     channelConfig,
+    threadAutoCreate,
+    threadInheritParent,
     baseSessionKey,
     route,
     commandAuthorized,
   } = ctx;
+
+  const autoThreadEnabled = channelConfig?.autoThread ?? threadAutoCreate;
 
   const mediaList = await resolveMediaList(message, mediaMaxBytes);
   const text = messageText;
@@ -177,7 +181,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     envelope: envelopeOptions,
   });
   const shouldIncludeChannelHistory =
-    !isDirectMessage && !(isGuildMessage && channelConfig?.autoThread && !threadChannel);
+    !isDirectMessage && !(isGuildMessage && autoThreadEnabled && !threadChannel);
   if (shouldIncludeChannelHistory) {
     combinedBody = buildPendingHistoryContextFromMap({
       historyMap: guildHistories,
@@ -223,7 +227,7 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     threadLabel = threadName
       ? `Discord thread #${normalizeDiscordSlug(parentName)} › ${threadName}`
       : `Discord thread #${normalizeDiscordSlug(parentName)}`;
-    if (threadParentId) {
+    if (threadInheritParent && threadParentId) {
       parentSessionKey = buildAgentSessionKey({
         agentId: route.agentId,
         channel: route.channel,
@@ -242,7 +246,8 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     client,
     message,
     isGuildMessage,
-    channelConfig,
+    autoThreadEnabled,
+    inheritParent: threadInheritParent,
     threadChannel,
     baseText: baseText ?? "",
     combinedBody,
@@ -302,7 +307,9 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
     ReplyToId: replyContext?.id,
     ReplyToBody: replyContext?.body,
     ReplyToSender: replyContext?.sender,
-    ParentSessionKey: autoThreadContext?.ParentSessionKey ?? threadKeys.parentSessionKey,
+    ParentSessionKey: threadInheritParent
+      ? (autoThreadContext?.ParentSessionKey ?? threadKeys.parentSessionKey)
+      : undefined,
     ThreadStarterBody: threadStarterBody,
     ThreadLabel: threadLabel,
     Timestamp: resolveTimestampMs(message.timestamp),

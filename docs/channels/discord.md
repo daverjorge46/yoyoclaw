@@ -87,6 +87,40 @@ Token resolution is account-aware. Config token values win over env fallback. `D
 - Group DMs are ignored by default (`channels.discord.dm.groupEnabled=false`).
 - Native slash commands run in isolated command sessions (`agent:<agentId>:discord:slash:<userId>`), while still carrying `CommandTargetSessionKey` to the routed conversation session.
 
+## Threads
+
+Discord threads can be used to keep channel conversations organized and reduce context growth. OpenClaw supports two related behaviors:
+
+- Per-channel auto-threading: `channels.discord.guilds.*.channels.*.autoThread=true` creates a new Discord thread for each inbound non-thread message and replies inside that thread.
+- Global default for auto-threading: `channels.discord.thread.autoCreate=true` enables auto-threading when a per-channel `autoThread` override is not present.
+
+Thread session inheritance is controlled separately:
+
+- `channels.discord.thread.inheritParent=false` (recommended) keeps each thread as a clean session with no parent channel transcript/model inheritance.
+- `channels.discord.thread.inheritParent=true` allows thread sessions to inherit from the parent channel session.
+
+Thread starter injection:
+
+- `channels.discord.guilds.*.channels.*.includeThreadStarter=false` omits the thread starter text from the first AI turn in a thread.
+
+Example: reply in a fresh thread per message (no parent inheritance)
+
+```json5
+{
+  channels: {
+    discord: {
+      thread: {
+        autoCreate: true,
+        inheritParent: false,
+      },
+      // Note: guild messages are mention-gated by default. To reply to all
+      // messages in a specific server/channel, also set requireMention=false
+      // for that scope.
+    },
+  },
+}
+```
+
 ## Access control and routing
 
 <Tabs>

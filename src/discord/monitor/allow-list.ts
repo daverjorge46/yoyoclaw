@@ -413,13 +413,20 @@ export function resolveDiscordShouldRequireMention(params: {
 export function isDiscordAutoThreadOwnedByBot(params: {
   isThread: boolean;
   channelConfig?: DiscordChannelConfigResolved | null;
+  /**
+   * Effective autoThread enablement. When omitted, falls back to channelConfig.autoThread.
+   * This supports global defaults (e.g. channels.discord.thread.autoCreate) when channelConfig
+   * is not available.
+   */
+  autoThreadEnabled?: boolean;
   botId?: string | null;
   threadOwnerId?: string | null;
 }): boolean {
   if (!params.isThread) {
     return false;
   }
-  if (!params.channelConfig?.autoThread) {
+  const autoThreadEnabled = params.autoThreadEnabled ?? params.channelConfig?.autoThread ?? false;
+  if (!autoThreadEnabled) {
     return false;
   }
   const botId = params.botId?.trim();

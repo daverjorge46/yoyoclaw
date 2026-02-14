@@ -1,7 +1,6 @@
 import { ChannelType, type Client } from "@buape/carbon";
 import { Routes } from "discord-api-types/v10";
 import type { ReplyToMode } from "../../config/config.js";
-import type { DiscordChannelConfigResolved } from "./allow-list.js";
 import type { DiscordMessageEvent } from "./listeners.js";
 import { createReplyReferencePlanner } from "../../auto-reply/reply/reply-reference.js";
 import { logVerbose } from "../../globals.js";
@@ -238,7 +237,7 @@ export type DiscordAutoThreadContext = {
   To: string;
   OriginatingTo: string;
   SessionKey: string;
-  ParentSessionKey: string;
+  ParentSessionKey?: string;
 };
 
 export function resolveDiscordAutoThreadContext(params: {
@@ -246,6 +245,7 @@ export function resolveDiscordAutoThreadContext(params: {
   channel: string;
   messageChannelId: string;
   createdThreadId?: string | null;
+  inheritParent: boolean;
 }): DiscordAutoThreadContext | null {
   const createdThreadId = String(params.createdThreadId ?? "").trim();
   if (!createdThreadId) {
@@ -273,7 +273,7 @@ export function resolveDiscordAutoThreadContext(params: {
     To: `channel:${createdThreadId}`,
     OriginatingTo: `channel:${createdThreadId}`,
     SessionKey: threadSessionKey,
-    ParentSessionKey: parentSessionKey,
+    ParentSessionKey: params.inheritParent ? parentSessionKey : undefined,
   };
 }
 
@@ -286,7 +286,8 @@ export async function resolveDiscordAutoThreadReplyPlan(params: {
   client: Client;
   message: DiscordMessageEvent["message"];
   isGuildMessage: boolean;
-  channelConfig?: DiscordChannelConfigResolved | null;
+  autoThreadEnabled: boolean;
+  inheritParent: boolean;
   threadChannel?: DiscordThreadChannel | null;
   baseText: string;
   combinedBody: string;
@@ -301,7 +302,7 @@ export async function resolveDiscordAutoThreadReplyPlan(params: {
     client: params.client,
     message: params.message,
     isGuildMessage: params.isGuildMessage,
-    channelConfig: params.channelConfig,
+    autoThreadEnabled: params.autoThreadEnabled,
     threadChannel: params.threadChannel,
     baseText: params.baseText,
     combinedBody: params.combinedBody,
@@ -319,6 +320,7 @@ export async function resolveDiscordAutoThreadReplyPlan(params: {
         channel: params.channel,
         messageChannelId: params.message.channelId,
         createdThreadId,
+        inheritParent: params.inheritParent,
       })
     : null;
   return { ...deliveryPlan, createdThreadId, autoThreadContext };
@@ -328,7 +330,7 @@ export async function maybeCreateDiscordAutoThread(params: {
   client: Client;
   message: DiscordMessageEvent["message"];
   isGuildMessage: boolean;
-  channelConfig?: DiscordChannelConfigResolved | null;
+  autoThreadEnabled: boolean;
   threadChannel?: DiscordThreadChannel | null;
   baseText: string;
   combinedBody: string;
@@ -336,7 +338,7 @@ export async function maybeCreateDiscordAutoThread(params: {
   if (!params.isGuildMessage) {
     return undefined;
   }
-  if (!params.channelConfig?.autoThread) {
+  if (!params.autoThreadEnabled) {
     return undefined;
   }
   if (params.threadChannel) {

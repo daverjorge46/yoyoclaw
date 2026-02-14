@@ -16,6 +16,7 @@ describe("resolveDiscordAutoThreadContext", () => {
         channel: "discord",
         messageChannelId: "parent",
         createdThreadId: undefined,
+        inheritParent: true,
       }),
     ).toBeNull();
   });
@@ -26,6 +27,7 @@ describe("resolveDiscordAutoThreadContext", () => {
       channel: "discord",
       messageChannelId: "parent",
       createdThreadId: "thread",
+      inheritParent: true,
     });
     expect(context).not.toBeNull();
     expect(context?.To).toBe("channel:thread");
@@ -45,6 +47,18 @@ describe("resolveDiscordAutoThreadContext", () => {
         peer: { kind: "channel", id: "parent" },
       }),
     );
+  });
+
+  it("omits ParentSessionKey when inheritParent is false", () => {
+    const context = resolveDiscordAutoThreadContext({
+      agentId: "agent",
+      channel: "discord",
+      messageChannelId: "parent",
+      createdThreadId: "thread",
+      inheritParent: false,
+    });
+    expect(context).not.toBeNull();
+    expect(context?.ParentSessionKey).toBeUndefined();
   });
 });
 
@@ -135,9 +149,7 @@ describe("maybeCreateDiscordAutoThread", () => {
         channelId: "parent",
       } as unknown as import("./listeners.js").DiscordMessageEvent["message"],
       isGuildMessage: true,
-      channelConfig: {
-        autoThread: true,
-      } as unknown as import("./allow-list.js").DiscordChannelConfigResolved,
+      autoThreadEnabled: true,
       threadChannel: null,
       baseText: "hello",
       combinedBody: "hello",
@@ -166,9 +178,7 @@ describe("maybeCreateDiscordAutoThread", () => {
         channelId: "parent",
       } as unknown as import("./listeners.js").DiscordMessageEvent["message"],
       isGuildMessage: true,
-      channelConfig: {
-        autoThread: true,
-      } as unknown as import("./allow-list.js").DiscordChannelConfigResolved,
+      autoThreadEnabled: true,
       threadChannel: null,
       baseText: "hello",
       combinedBody: "hello",
@@ -190,9 +200,8 @@ describe("resolveDiscordAutoThreadReplyPlan", () => {
         channelId: "parent",
       } as unknown as import("./listeners.js").DiscordMessageEvent["message"],
       isGuildMessage: true,
-      channelConfig: {
-        autoThread: true,
-      } as unknown as import("./allow-list.js").DiscordChannelConfigResolved,
+      autoThreadEnabled: true,
+      inheritParent: true,
       threadChannel: null,
       baseText: "hello",
       combinedBody: "hello",
@@ -220,9 +229,8 @@ describe("resolveDiscordAutoThreadReplyPlan", () => {
         channelId: "parent",
       } as unknown as import("./listeners.js").DiscordMessageEvent["message"],
       isGuildMessage: true,
-      channelConfig: {
-        autoThread: true,
-      } as unknown as import("./allow-list.js").DiscordChannelConfigResolved,
+      autoThreadEnabled: true,
+      inheritParent: true,
       threadChannel: { id: "thread" },
       baseText: "hello",
       combinedBody: "hello",
@@ -245,9 +253,8 @@ describe("resolveDiscordAutoThreadReplyPlan", () => {
         channelId: "parent",
       } as unknown as import("./listeners.js").DiscordMessageEvent["message"],
       isGuildMessage: true,
-      channelConfig: {
-        autoThread: false,
-      } as unknown as import("./allow-list.js").DiscordChannelConfigResolved,
+      autoThreadEnabled: false,
+      inheritParent: true,
       threadChannel: null,
       baseText: "hello",
       combinedBody: "hello",

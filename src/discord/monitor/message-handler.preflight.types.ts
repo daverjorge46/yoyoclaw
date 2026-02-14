@@ -30,6 +30,8 @@ export type DiscordMessagePreflightContext = {
   replyToMode: ReplyToMode;
   ackReactionScope: "all" | "direct" | "group-all" | "group-mentions";
   groupPolicy: "open" | "disabled" | "allowlist";
+  threadAutoCreate: boolean;
+  threadInheritParent: boolean;
 
   data: DiscordMessageEvent;
   client: Client;
@@ -99,6 +101,8 @@ export type DiscordMessagePreflightParams = {
   guildEntries?: Record<string, DiscordGuildEntryResolved>;
   ackReactionScope: DiscordMessagePreflightContext["ackReactionScope"];
   groupPolicy: DiscordMessagePreflightContext["groupPolicy"];
+  threadAutoCreate: DiscordMessagePreflightContext["threadAutoCreate"];
+  threadInheritParent: DiscordMessagePreflightContext["threadInheritParent"];
   data: DiscordMessageEvent;
   client: Client;
 };

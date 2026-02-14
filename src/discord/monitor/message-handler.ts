@@ -31,6 +31,8 @@ export function createDiscordMessageHandler(params: {
   mediaMaxBytes: number;
   textLimit: number;
   replyToMode: ReplyToMode;
+  threadAutoCreate: boolean;
+  threadInheritParent: boolean;
   dmEnabled: boolean;
   groupDmEnabled: boolean;
   groupDmChannels?: Array<string | number>;

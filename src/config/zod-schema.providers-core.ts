@@ -272,6 +272,13 @@ export const DiscordAccountSchema = z
     historyLimit: z.number().int().min(0).optional(),
     dmHistoryLimit: z.number().int().min(0).optional(),
     dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
+    thread: z
+      .object({
+        autoCreate: z.boolean().optional(),
+        inheritParent: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
     textChunkLimit: z.number().int().positive().optional(),
     chunkMode: z.enum(["length", "newline"]).optional(),
     blockStreaming: z.boolean().optional(),

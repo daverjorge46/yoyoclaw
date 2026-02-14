@@ -87,6 +87,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
     });
@@ -154,6 +156,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
     });
@@ -233,6 +237,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
     });
@@ -334,6 +340,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
       guildEntries: {
@@ -425,6 +433,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
       guildEntries: {
@@ -500,6 +510,8 @@ describe("discord tool result dispatch", () => {
       mediaMaxBytes: 10_000,
       textLimit: 2000,
       replyToMode: "off",
+      threadAutoCreate: false,
+      threadInheritParent: false,
       dmEnabled: true,
       groupDmEnabled: false,
     });

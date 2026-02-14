@@ -161,6 +161,8 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
   const textLimit = resolveTextChunkLimit(cfg, "discord", account.accountId, {
     fallbackLimit: 2000,
   });
+  const threadAutoCreate = discordCfg.thread?.autoCreate ?? false;
+  const threadInheritParent = discordCfg.thread?.inheritParent ?? false;
   const historyLimit = Math.max(
     0,
     opts.historyLimit ?? discordCfg.historyLimit ?? cfg.messages?.groupChat?.historyLimit ?? 20,
@@ -556,6 +558,8 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
     mediaMaxBytes,
     textLimit,
     replyToMode,
+    threadAutoCreate,
+    threadInheritParent,
     dmEnabled,
     groupDmEnabled,
     groupDmChannels,
