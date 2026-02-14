@@ -632,7 +632,17 @@ export async function compactEmbeddedPiSessionDirect(
         }
 
         const compactStartedAt = Date.now();
-        const result = await session.compact(params.customInstructions);
+        const COMPACT_TIMEOUT_MS = 300_000; // 5 minutes safety timeout
+        const result = await Promise.race([
+          session.compact(params.customInstructions),
+          new Promise<never>((_, reject) => {
+            const timer = setTimeout(
+              () => reject(new Error("Compaction timed out")),
+              COMPACT_TIMEOUT_MS,
+            );
+            timer.unref?.();
+          }),
+        ]);
         // Estimate tokens after compaction by summing token estimates for remaining messages
         let tokensAfter: number | undefined;
         try {
