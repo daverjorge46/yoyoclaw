@@ -1,6 +1,7 @@
 ---
 name: p2p-collaboration
 description: Decentralized agent-to-agent knowledge exchange and unified compute resources using HiveMind and BitTorrent.
+homepage: https://github.com/Agnuxo1/OpenCLAW-P2P
 metadata:
   {
     "openclaw":
