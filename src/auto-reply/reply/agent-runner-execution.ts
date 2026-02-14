@@ -489,6 +489,7 @@ export async function runAgentTurnWithFallback(params: {
           kind: "final",
           payload: {
             text: "⚠️ Context limit exceeded. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
+            isError: true,
           },
         };
       }
@@ -499,6 +500,7 @@ export async function runAgentTurnWithFallback(params: {
             kind: "final",
             payload: {
               text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+              isError: true,
             },
           };
         }
@@ -523,6 +525,7 @@ export async function runAgentTurnWithFallback(params: {
           kind: "final",
           payload: {
             text: "⚠️ Context limit exceeded during compaction. I've reset our conversation to start fresh - please try again.\n\nTo prevent this, increase your compaction buffer by setting `agents.defaults.compaction.reserveTokensFloor` to 4000 or higher in your config.",
+            isError: true,
           },
         };
       }
@@ -533,6 +536,7 @@ export async function runAgentTurnWithFallback(params: {
             kind: "final",
             payload: {
               text: "⚠️ Message ordering conflict. I've reset the conversation - please try again.",
+              isError: true,
             },
           };
         }
@@ -579,6 +583,7 @@ export async function runAgentTurnWithFallback(params: {
           kind: "final",
           payload: {
             text: "⚠️ Session history was corrupted. I've reset the conversation - please try again!",
+            isError: true,
           },
         };
       }
@@ -613,6 +618,7 @@ export async function runAgentTurnWithFallback(params: {
         kind: "final",
         payload: {
           text: fallbackText,
+          isError: true,
         },
       };
     }
