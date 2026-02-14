@@ -96,4 +96,62 @@ describe("nostrPlugin dispatch", () => {
     await deliverFn({ text: "response text" });
     expect(replyFn).toHaveBeenCalledWith("response text");
   });
+  it("handles empty text in deliver callback", async () => {
+    const account = {
+      accountId: "acc1",
+      publicKey: "pub1",
+      privateKey: "priv1",
+      relays: ["wss://relay.example.com"],
+      configured: true,
+      enabled: true,
+    };
+    const ctx: any = {
+      account,
+      setStatus: vi.fn(),
+      log: { info: vi.fn(), debug: vi.fn(), error: vi.fn() },
+    };
+    await nostrPlugin.gateway?.startAccount(ctx);
+    const onMessage = (startNostrBus as any).mock.calls[0][0].onMessage;
+    const replyFn = vi.fn();
+
+    await onMessage("sender1", "text", replyFn);
+
+    const dispatchCall = (dispatchReplyWithBufferedBlockDispatcher as any).mock.calls[0][0];
+    const deliverFn = dispatchCall.dispatcherOptions.deliver;
+
+    // Test with undefined text (should default to empty string)
+    await deliverFn({});
+    expect(replyFn).toHaveBeenCalledWith("");
+  });
+
+  it("logs error in onError callback", async () => {
+    const account = {
+      accountId: "acc1",
+      publicKey: "pub1",
+      privateKey: "priv1",
+      relays: ["wss://relay.example.com"],
+      configured: true,
+      enabled: true,
+    };
+    const ctx: any = {
+      account,
+      setStatus: vi.fn(),
+      log: { info: vi.fn(), debug: vi.fn(), error: vi.fn() },
+    };
+    await nostrPlugin.gateway?.startAccount(ctx);
+    const onMessage = (startNostrBus as any).mock.calls[0][0].onMessage;
+    const replyFn = vi.fn();
+
+    await onMessage("sender1", "text", replyFn);
+
+    const dispatchCall = (dispatchReplyWithBufferedBlockDispatcher as any).mock.calls[0][0];
+    const onErrorFn = dispatchCall.dispatcherOptions.onError;
+
+    const testError = new Error("Test error");
+    onErrorFn(testError);
+
+    expect(ctx.log.error).toHaveBeenCalledWith(
+      expect.stringContaining("Error processing message from sender1: Error: Test error"),
+    );
+  });
 });
