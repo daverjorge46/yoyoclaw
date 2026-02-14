@@ -106,11 +106,3 @@ List only real risks for this PR. Add/remove entries as needed. If none, write `
 
 - Risk:
   - Mitigation:
-
-## Reviewer Checklist
-
-- [ ] Scope is clear and bounded
-- [ ] Repro steps work as written
-- [ ] Evidence is sufficient
-- [ ] Security impact reviewed
-- [ ] Docs/examples/config updated (if needed)
