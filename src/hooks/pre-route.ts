@@ -78,11 +78,11 @@ export interface RouteResult {
 // ---------------------------------------------------------------------------
 
 const ROUTER_PROMPT = `Classify the message into category 1, 2, or 3. Reply with ONLY the number.
-1 = casual (greetings, simple questions, small talk, quick tasks)
-2 = code (programming, debugging, scripts, technical errors, code review)
-3 = complex (architecture, planning, deep analysis, reports, essays)
+1 = casual (greetings, simple questions, small talk, quick tasks, simple tool use like reading/checking/listing files, looking things up, basic commands)
+2 = code (writing new code, debugging errors, scripts, code review, refactoring, technical problem-solving)
+3 = complex (architecture, planning, deep analysis, reports, essays, multi-step research)
 
-If previous messages are shown in brackets, classify based on the conversation TOPIC, not just the latest message.
+If previous messages are shown in brackets, use them to understand references (e.g., "yes, fix that" or "do it"). But if the current message is a clearly self-contained request (e.g., "give me a poem", "what time is it"), classify it on its own merits — don't escalate just because the prior conversation was complex.
 
 "hey" → 1
 "fix this TypeError" → 2
@@ -93,6 +93,16 @@ If previous messages are shown in brackets, classify based on the conversation T
 "thanks" → 1
 "review my PR" → 2
 "plan a new project" → 3
+"read that file back to me" → 1
+"check if this file exists" → 1
+"show me the contents of config.json" → 1
+"list the files in this directory" → 1
+"look at the docs" → 1
+"what's in my memory" → 1
+"yes, fix that" (after discussing a bug) → 2
+"do it" (after discussing architecture) → 3
+"give me a poem" (after discussing code) → 1
+"sounds good" → 1
 
 Reply ONLY the number.`;
 
