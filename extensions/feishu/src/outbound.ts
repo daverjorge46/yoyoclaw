@@ -1,7 +1,4 @@
-import type {
-  ChannelOutboundAdapter,
-  ClawdbotConfig,
-} from "openclaw/plugin-sdk";
+import type { ChannelOutboundAdapter, ClawdbotConfig } from "openclaw/plugin-sdk";
 import { sendMediaFeishu } from "./media.js";
 import { getFeishuRuntime } from "./runtime.js";
 import { sendMessageFeishu, sendMarkdownCardFeishu } from "./send.js";
@@ -12,8 +9,7 @@ type FeishuConfig = {
 
 export const feishuOutbound: ChannelOutboundAdapter = {
   deliveryMode: "direct",
-  chunker: (text, limit) =>
-    getFeishuRuntime().channel.text.chunkMarkdownText(text, limit),
+  chunker: (text, limit) => getFeishuRuntime().channel.text.chunkMarkdownText(text, limit),
   chunkerMode: "markdown",
   textChunkLimit: 4000,
   sendText: async ({ cfg, to, text, accountId }) => {
