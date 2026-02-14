@@ -261,6 +261,29 @@ describe("exec tool backgrounding", () => {
     expect(normalizeText(textBlock?.text)).toBe("beta");
   });
 
+  it("keeps offset-only log requests unbounded by default tail mode", async () => {
+    const lines = Array.from({ length: 260 }, (_value, index) => `line-${index + 1}`);
+    const result = await execTool.execute("call1", {
+      command: echoLines(lines),
+      background: true,
+    });
+    const sessionId = (result.details as { sessionId: string }).sessionId;
+    await waitForCompletion(sessionId);
+
+    const log = await processTool.execute("call2", {
+      action: "log",
+      sessionId,
+      offset: 30,
+    });
+
+    const textBlock = log.content.find((c) => c.type === "text")?.text ?? "";
+    const renderedLines = textBlock.split("\n");
+    expect(renderedLines[0]?.trim()).toBe("line-31");
+    expect(renderedLines[renderedLines.length - 1]?.trim()).toBe("line-260");
+    expect(textBlock).not.toContain("showing last 200");
+    expect((log.details as { totalLines?: number }).totalLines).toBe(260);
+  });
+
   it("scopes process sessions by scopeKey", async () => {
     const bashA = createExecTool({ backgroundMs: 10, scopeKey: "agent:alpha" });
     const processA = createProcessTool({ scopeKey: "agent:alpha" });

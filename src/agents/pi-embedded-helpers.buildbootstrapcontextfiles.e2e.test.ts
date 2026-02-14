@@ -67,4 +67,26 @@ describe("buildBootstrapContextFiles", () => {
     expect(result).toHaveLength(3);
     expect(result[2]?.content).toContain("[...truncated, read USER.md for full content...]");
   });
+
+  it("enforces strict total cap even when truncation markers are present", () => {
+    const files = [
+      makeFile({ name: "AGENTS.md", content: "a".repeat(1_000) }),
+      makeFile({ name: "SOUL.md", path: "/tmp/SOUL.md", content: "b".repeat(1_000) }),
+    ];
+    const result = buildBootstrapContextFiles(files, {
+      maxChars: 100,
+      totalMaxChars: 150,
+    });
+    const totalChars = result.reduce((sum, entry) => sum + entry.content.length, 0);
+    expect(totalChars).toBeLessThanOrEqual(150);
+  });
+
+  it("skips bootstrap injection when remaining total budget is too small", () => {
+    const files = [makeFile({ name: "AGENTS.md", content: "a".repeat(1_000) })];
+    const result = buildBootstrapContextFiles(files, {
+      maxChars: 200,
+      totalMaxChars: 40,
+    });
+    expect(result).toEqual([]);
+  });
 });

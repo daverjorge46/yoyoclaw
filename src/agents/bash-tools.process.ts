@@ -296,16 +296,18 @@ export function createProcessTool(
               };
             }
             const effectiveOffset = params.offset;
+            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
             const effectiveLimit =
               typeof params.limit === "number" && Number.isFinite(params.limit)
                 ? params.limit
-                : DEFAULT_LOG_TAIL_LINES;
+                : usingDefaultTail
+                  ? DEFAULT_LOG_TAIL_LINES
+                  : undefined;
             const { slice, totalLines, totalChars } = sliceLogLines(
               scopedSession.aggregated,
               effectiveOffset,
               effectiveLimit,
             );
-            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
             const defaultTailNote =
               usingDefaultTail && totalLines > DEFAULT_LOG_TAIL_LINES
                 ? `\n\n[showing last ${DEFAULT_LOG_TAIL_LINES} of ${totalLines} lines; pass offset/limit to page]`
@@ -325,17 +327,19 @@ export function createProcessTool(
           }
           if (scopedFinished) {
             const effectiveOffset = params.offset;
+            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
             const effectiveLimit =
               typeof params.limit === "number" && Number.isFinite(params.limit)
                 ? params.limit
-                : DEFAULT_LOG_TAIL_LINES;
+                : usingDefaultTail
+                  ? DEFAULT_LOG_TAIL_LINES
+                  : undefined;
             const { slice, totalLines, totalChars } = sliceLogLines(
               scopedFinished.aggregated,
               effectiveOffset,
               effectiveLimit,
             );
             const status = scopedFinished.status === "completed" ? "completed" : "failed";
-            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
             const defaultTailNote =
               usingDefaultTail && totalLines > DEFAULT_LOG_TAIL_LINES
                 ? `\n\n[showing last ${DEFAULT_LOG_TAIL_LINES} of ${totalLines} lines; pass offset/limit to page]`

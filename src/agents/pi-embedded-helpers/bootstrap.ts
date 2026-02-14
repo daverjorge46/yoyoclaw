@@ -83,6 +83,7 @@ export function stripThoughtSignatures<T>(
 
 export const DEFAULT_BOOTSTRAP_MAX_CHARS = 20_000;
 export const DEFAULT_BOOTSTRAP_TOTAL_MAX_CHARS = 24_000;
+const MIN_BOOTSTRAP_FILE_BUDGET_CHARS = 64;
 const BOOTSTRAP_HEAD_RATIO = 0.7;
 const BOOTSTRAP_TAIL_RATIO = 0.2;
 
@@ -144,6 +145,20 @@ function trimBootstrapContent(
   };
 }
 
+function clampToBudget(content: string, budget: number): string {
+  if (budget <= 0) {
+    return "";
+  }
+  if (content.length <= budget) {
+    return content;
+  }
+  if (budget <= 3) {
+    return content.slice(0, budget);
+  }
+  const safe = Math.max(1, budget - 1);
+  return `${content.slice(0, safe)}…`;
+}
+
 export async function ensureSessionHeader(params: {
   sessionFile: string;
   sessionId: string;
@@ -183,27 +198,40 @@ export function buildBootstrapContextFiles(
     if (remainingTotalChars <= 0) {
       break;
     }
+    if (remainingTotalChars < MIN_BOOTSTRAP_FILE_BUDGET_CHARS) {
+      opts?.warn?.(
+        `remaining bootstrap budget is ${remainingTotalChars} chars (<${MIN_BOOTSTRAP_FILE_BUDGET_CHARS}); skipping additional bootstrap files`,
+      );
+      break;
+    }
     if (file.missing) {
+      const missingText = `[MISSING] Expected at: ${file.path}`;
+      const cappedMissingText = clampToBudget(missingText, remainingTotalChars);
+      if (!cappedMissingText) {
+        break;
+      }
+      remainingTotalChars = Math.max(0, remainingTotalChars - cappedMissingText.length);
       result.push({
         path: file.path,
-        content: `[MISSING] Expected at: ${file.path}`,
+        content: cappedMissingText,
       });
       continue;
     }
     const fileMaxChars = Math.max(1, Math.min(maxChars, remainingTotalChars));
     const trimmed = trimBootstrapContent(file.content ?? "", file.name, fileMaxChars);
-    if (!trimmed.content) {
+    const contentWithinBudget = clampToBudget(trimmed.content, remainingTotalChars);
+    if (!contentWithinBudget) {
       continue;
     }
-    if (trimmed.truncated) {
+    if (trimmed.truncated || contentWithinBudget.length < trimmed.content.length) {
       opts?.warn?.(
         `workspace bootstrap file ${file.name} is ${trimmed.originalLength} chars (limit ${trimmed.maxChars}); truncating in injected context`,
       );
     }
-    remainingTotalChars = Math.max(0, remainingTotalChars - trimmed.content.length);
+    remainingTotalChars = Math.max(0, remainingTotalChars - contentWithinBudget.length);
     result.push({
       path: file.path,
-      content: trimmed.content,
+      content: contentWithinBudget,
     });
   }
   return result;
