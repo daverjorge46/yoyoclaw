@@ -99,6 +99,31 @@ describe("sandbox browser binds config", () => {
     expect(resolved.binds).toEqual(["/global:/global:ro", "/agent:/agent:rw"]);
   });
 
+  it("treats empty binds as configured (override to none)", () => {
+    const resolved = resolveSandboxBrowserConfig({
+      scope: "agent",
+      globalBrowser: { binds: [] },
+      agentBrowser: {},
+    });
+    expect(resolved.binds).toEqual([]);
+  });
+
+  it("ignores agent browser binds under shared scope", () => {
+    const resolved = resolveSandboxBrowserConfig({
+      scope: "shared",
+      globalBrowser: { binds: ["/global:/global:ro"] },
+      agentBrowser: { binds: ["/agent:/agent:rw"] },
+    });
+    expect(resolved.binds).toEqual(["/global:/global:ro"]);
+
+    const resolvedNoGlobal = resolveSandboxBrowserConfig({
+      scope: "shared",
+      globalBrowser: {},
+      agentBrowser: { binds: ["/agent:/agent:rw"] },
+    });
+    expect(resolvedNoGlobal.binds).toBeUndefined();
+  });
+
   it("returns undefined binds when none configured", () => {
     const resolved = resolveSandboxBrowserConfig({
       scope: "agent",

@@ -89,6 +89,8 @@ export function resolveSandboxBrowserConfig(params: {
   const agentBrowser = params.scope === "shared" ? undefined : params.agentBrowser;
   const globalBrowser = params.globalBrowser;
   const binds = [...(globalBrowser?.binds ?? []), ...(agentBrowser?.binds ?? [])];
+  // Treat `binds: []` as an explicit override, so it can disable `docker.binds` for the browser container.
+  const bindsConfigured = globalBrowser?.binds !== undefined || agentBrowser?.binds !== undefined;
   return {
     enabled: agentBrowser?.enabled ?? globalBrowser?.enabled ?? false,
     image: agentBrowser?.image ?? globalBrowser?.image ?? DEFAULT_SANDBOX_BROWSER_IMAGE,
@@ -108,7 +110,7 @@ export function resolveSandboxBrowserConfig(params: {
       agentBrowser?.autoStartTimeoutMs ??
       globalBrowser?.autoStartTimeoutMs ??
       DEFAULT_SANDBOX_BROWSER_AUTOSTART_TIMEOUT_MS,
-    binds: binds.length ? binds : undefined,
+    binds: bindsConfigured ? binds : undefined,
   };
 }
 
