@@ -223,6 +223,25 @@ describe("sanitizeToolCallInputs", () => {
     expect(out.map((m) => m.role)).toEqual(["user"]);
   });
 
+  it("drops tool_use blocks with empty name", () => {
+    const input: AgentMessage[] = [
+      {
+        role: "assistant",
+        content: [
+          { type: "toolUse", id: "call_empty", name: "", input: { path: "a" } },
+          { type: "text", text: "kept" },
+        ],
+      },
+    ];
+
+    const out = sanitizeToolCallInputs(input);
+    const assistant = out[0] as Extract<AgentMessage, { role: "assistant" }>;
+    const types = Array.isArray(assistant.content)
+      ? assistant.content.map((block) => (block as { type?: unknown }).type)
+      : [];
+    expect(types).toEqual(["text"]);
+  });
+
   it("keeps valid tool calls and preserves text blocks", () => {
     const input: AgentMessage[] = [
       {
