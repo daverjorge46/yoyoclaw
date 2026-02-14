@@ -52,6 +52,7 @@ export function createMessageCliHelpers(
           deps,
           defaultRuntime,
         );
+        defaultRuntime.exit(0);
       },
       (err) => {
         defaultRuntime.error(danger(String(err)));
