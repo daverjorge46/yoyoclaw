@@ -444,7 +444,7 @@ export const registerTelegramHandlers = ({
             `⏳ Submitting decision: **${decisionLabel}**...`,
             { parse_mode: "Markdown" },
           );
-        } catch (editErr) {
+        } catch {
           // Ignore errors - message may have expired
         }
 
