@@ -26,6 +26,7 @@ type AuthChoiceFlagOptions = Pick<
   | "opencodeZenApiKey"
   | "xaiApiKey"
   | "litellmApiKey"
+  | "edgeeApiKey"
   | "customBaseUrl"
   | "customModelId"
   | "customApiKey"
@@ -54,6 +55,7 @@ const AUTH_CHOICE_FLAG_MAP = [
   { flag: "opencodeZenApiKey", authChoice: "opencode-zen", label: "--opencode-zen-api-key" },
   { flag: "huggingfaceApiKey", authChoice: "huggingface-api-key", label: "--huggingface-api-key" },
   { flag: "litellmApiKey", authChoice: "litellm-api-key", label: "--litellm-api-key" },
+  { flag: "edgeeApiKey", authChoice: "edgee-api-key", label: "--edgee-api-key" },
 ] satisfies ReadonlyArray<AuthChoiceFlag>;
 
 export type AuthChoiceInference = {

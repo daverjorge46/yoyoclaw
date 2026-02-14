@@ -58,8 +58,8 @@ export function registerOnboardCommand(program: Command) {
     .option("--mode <mode>", "Wizard mode: local|remote")
     .option(
       "--auth-choice <choice>",
-      "Auth: setup-token|token|chutes|openai-codex|openai-api-key|xai-api-key|qianfan-api-key|openrouter-api-key|litellm-api-key|ai-gateway-api-key|cloudflare-ai-gateway-api-key|moonshot-api-key|moonshot-api-key-cn|kimi-code-api-key|synthetic-api-key|venice-api-key|gemini-api-key|zai-api-key|zai-coding-global|zai-coding-cn|zai-global|zai-cn|xiaomi-api-key|apiKey|minimax-api|minimax-api-lightning|opencode-zen|custom-api-key|skip|together-api-key|huggingface-api-key",
-      "Auth: setup-token|token|chutes|vllm|openai-codex|openai-api-key|xai-api-key|qianfan-api-key|openrouter-api-key|litellm-api-key|ai-gateway-api-key|cloudflare-ai-gateway-api-key|moonshot-api-key|moonshot-api-key-cn|kimi-code-api-key|synthetic-api-key|venice-api-key|gemini-api-key|zai-api-key|zai-coding-global|zai-coding-cn|zai-global|zai-cn|xiaomi-api-key|apiKey|minimax-api|minimax-api-lightning|opencode-zen|custom-api-key|skip|together-api-key|huggingface-api-key",
+      "Auth: setup-token|token|chutes|openai-codex|openai-api-key|xai-api-key|qianfan-api-key|edgee-api-key|openrouter-api-key|litellm-api-key|ai-gateway-api-key|cloudflare-ai-gateway-api-key|moonshot-api-key|moonshot-api-key-cn|kimi-code-api-key|synthetic-api-key|venice-api-key|gemini-api-key|zai-api-key|zai-coding-global|zai-coding-cn|zai-global|zai-cn|xiaomi-api-key|apiKey|minimax-api|minimax-api-lightning|opencode-zen|custom-api-key|skip|together-api-key|huggingface-api-key",
+      "Auth: setup-token|token|chutes|vllm|openai-codex|openai-api-key|xai-api-key|qianfan-api-key|edgee-api-key|openrouter-api-key|litellm-api-key|ai-gateway-api-key|cloudflare-ai-gateway-api-key|moonshot-api-key|moonshot-api-key-cn|kimi-code-api-key|synthetic-api-key|venice-api-key|gemini-api-key|zai-api-key|zai-coding-global|zai-coding-cn|zai-global|zai-cn|xiaomi-api-key|apiKey|minimax-api|minimax-api-lightning|opencode-zen|custom-api-key|skip|together-api-key|huggingface-api-key",
     )
     .option(
       "--token-provider <id>",
@@ -92,6 +92,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--xai-api-key <key>", "xAI API key")
     .option("--litellm-api-key <key>", "LiteLLM API key")
     .option("--qianfan-api-key <key>", "QIANFAN API key")
+    .option("--edgee-api-key <key>", "Edgee API key")
     .option("--custom-base-url <url>", "Custom provider base URL")
     .option("--custom-api-key <key>", "Custom provider API key (optional)")
     .option("--custom-model-id <id>", "Custom provider model ID")
