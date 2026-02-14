@@ -35,7 +35,7 @@ export function buildEnvDumpCommand(shell: string): string {
       return '{ . "$HOME/.kshrc"; } >/dev/null 2>&1 || true; env -0';
     case "tcsh":
       // tcsh reads ~/.tcshrc first, falls back to ~/.cshrc
-      return "source ~/.tcshrc >& /dev/null; source ~/.cshrc >& /dev/null; env -0";
+      return "if ( -f ~/.tcshrc ) then; source ~/.tcshrc >& /dev/null; else; source ~/.cshrc >& /dev/null; endif; env -0";
     case "csh":
       return "source ~/.cshrc >& /dev/null; env -0";
     case "dash":
