@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildConfigSchema } from "./schema.js";
+import { OpenClawSchema } from "./zod-schema.js";
 
 describe("config schema", () => {
   it("exports schema + hints", () => {
@@ -116,5 +117,72 @@ describe("config schema", () => {
     expect(defaultsHint?.help).toContain("bluebubbles");
     expect(defaultsHint?.help).toContain("last");
     expect(listHint?.help).toContain("bluebubbles");
+  });
+});
+
+describe("gateway.auth.rateLimit schema validation", () => {
+  it("accepts valid gateway.auth.rateLimit config", () => {
+    const result = OpenClawSchema.safeParse({
+      gateway: {
+        auth: {
+          mode: "token",
+          rateLimit: {
+            maxAttempts: 10,
+            windowMs: 60000,
+            lockoutMs: 300000,
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.gateway?.auth?.rateLimit?.maxAttempts).toBe(10);
+      expect(result.data.gateway?.auth?.rateLimit?.windowMs).toBe(60000);
+      expect(result.data.gateway?.auth?.rateLimit?.lockoutMs).toBe(300000);
+    }
+  });
+
+  it("accepts gateway.auth.rateLimit with all fields", () => {
+    const result = OpenClawSchema.safeParse({
+      gateway: {
+        auth: {
+          rateLimit: {
+            maxAttempts: 5,
+            windowMs: 30000,
+            lockoutMs: 120000,
+            exemptLoopback: true,
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.gateway?.auth?.rateLimit?.exemptLoopback).toBe(true);
+    }
+  });
+
+  it("accepts gateway.auth without rateLimit", () => {
+    const result = OpenClawSchema.safeParse({
+      gateway: {
+        auth: {
+          mode: "token",
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects gateway.auth.rateLimit with unknown keys", () => {
+    const result = OpenClawSchema.safeParse({
+      gateway: {
+        auth: {
+          rateLimit: {
+            maxAttempts: 10,
+            unknownKey: true,
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(false);
   });
 });
