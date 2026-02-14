@@ -2,6 +2,12 @@ import { join } from "node:path";
 import { afterEach, vi } from "vitest";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 
+// Avoid exporting vitest mock types (TS2742 under pnpm + d.ts emit).
+// oxlint-disable-next-line typescript/no-explicit-any
+type AnyMock = any;
+// oxlint-disable-next-line typescript/no-explicit-any
+type AnyMocks = Record<string, any>;
+
 const piEmbeddedMocks = vi.hoisted(() => ({
   abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
   compactEmbeddedPiSession: vi.fn(),
@@ -11,19 +17,19 @@ const piEmbeddedMocks = vi.hoisted(() => ({
   isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
 }));
 
-export function getAbortEmbeddedPiRunMock() {
+export function getAbortEmbeddedPiRunMock(): AnyMock {
   return piEmbeddedMocks.abortEmbeddedPiRun;
 }
 
-export function getCompactEmbeddedPiSessionMock() {
+export function getCompactEmbeddedPiSessionMock(): AnyMock {
   return piEmbeddedMocks.compactEmbeddedPiSession;
 }
 
-export function getRunEmbeddedPiAgentMock() {
+export function getRunEmbeddedPiAgentMock(): AnyMock {
   return piEmbeddedMocks.runEmbeddedPiAgent;
 }
 
-export function getQueueEmbeddedPiMessageMock() {
+export function getQueueEmbeddedPiMessageMock(): AnyMock {
   return piEmbeddedMocks.queueEmbeddedPiMessage;
 }
 
@@ -49,7 +55,7 @@ const providerUsageMocks = vi.hoisted(() => ({
   resolveUsageProviderId: vi.fn((provider: string) => provider.split("/")[0]),
 }));
 
-export function getProviderUsageMocks() {
+export function getProviderUsageMocks(): AnyMocks {
   return providerUsageMocks;
 }
 
@@ -77,7 +83,7 @@ const modelCatalogMocks = vi.hoisted(() => ({
   resetModelCatalogCacheForTest: vi.fn(),
 }));
 
-export function getModelCatalogMocks() {
+export function getModelCatalogMocks(): AnyMocks {
   return modelCatalogMocks;
 }
 
@@ -89,7 +95,7 @@ const webSessionMocks = vi.hoisted(() => ({
   readWebSelfId: vi.fn().mockReturnValue({ e164: "+1999" }),
 }));
 
-export function getWebSessionMocks() {
+export function getWebSessionMocks(): AnyMocks {
   return webSessionMocks;
 }
 
