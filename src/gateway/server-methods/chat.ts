@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
-import { resolveSessionAgentId } from "../../agents/agent-scope.js";
+import { resolveAgentWorkspaceDir, resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { dispatchInboundMessage } from "../../auto-reply/dispatch.js";
@@ -344,10 +344,18 @@ export const chatHandlers: GatewayRequestHandlers = {
         mimeType?: string;
         fileName?: string;
         content?: unknown;
+        path?: string;
       }>;
       timeoutMs?: number;
       idempotencyKey: string;
     };
+    const rawSessionKey = p.sessionKey;
+    const { cfg, entry, canonicalKey: sessionKey } = loadSessionEntry(rawSessionKey);
+    const agentId = resolveSessionAgentId({
+      sessionKey,
+      config: cfg,
+    });
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
     const stopCommand = isChatStopCommandText(p.message);
     const normalizedAttachments =
       p.attachments
@@ -355,6 +363,7 @@ export const chatHandlers: GatewayRequestHandlers = {
           type: typeof a?.type === "string" ? a.type : undefined,
           mimeType: typeof a?.mimeType === "string" ? a.mimeType : undefined,
           fileName: typeof a?.fileName === "string" ? a.fileName : undefined,
+          path: typeof a?.path === "string" ? a.path.trim() : undefined,
           content:
             typeof a?.content === "string"
               ? a.content
@@ -366,7 +375,7 @@ export const chatHandlers: GatewayRequestHandlers = {
                   ).toString("base64")
                 : undefined,
         }))
-        .filter((a) => a.content) ?? [];
+        .filter((a) => a.content || a.path) ?? [];
     const rawMessage = p.message.trim();
     if (!rawMessage && normalizedAttachments.length === 0) {
       respond(
@@ -383,6 +392,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         const parsed = await parseMessageWithAttachments(p.message, normalizedAttachments, {
           maxBytes: 5_000_000,
           log: context.logGateway,
+          workspaceDir,
         });
         parsedMessage = parsed.message;
         parsedImages = parsed.images;
@@ -391,8 +401,6 @@ export const chatHandlers: GatewayRequestHandlers = {
         return;
       }
     }
-    const rawSessionKey = p.sessionKey;
-    const { cfg, entry, canonicalKey: sessionKey } = loadSessionEntry(rawSessionKey);
     const timeoutMs = resolveAgentTimeoutMs({
       cfg,
       overrideMs: p.timeoutMs,
@@ -495,11 +503,20 @@ export const chatHandlers: GatewayRequestHandlers = {
         SenderUsername: clientInfo?.displayName,
         GatewayClientScopes: client?.connect?.scopes,
       };
+      const pathAttachments = normalizedAttachments.filter(
+        (a): a is typeof a & { path: string } => typeof a.path === "string" && a.path.length > 0,
+      );
+      if (pathAttachments.length > 0) {
+        const paths = pathAttachments.map((a) => a.path);
+        ctx.MediaPath = paths[0];
+        ctx.MediaPaths = paths;
+        ctx.MediaTypes = pathAttachments.map((a) =>
+          typeof a.mimeType === "string" && a.mimeType.trim().length > 0
+            ? a.mimeType
+            : "application/octet-stream",
+        );
+      }
 
-      const agentId = resolveSessionAgentId({
-        sessionKey,
-        config: cfg,
-      });
       const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
         cfg,
         agentId,
