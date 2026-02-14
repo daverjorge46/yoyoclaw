@@ -29,7 +29,6 @@ export async function startGatewaySidecars(params: {
   pluginRegistry: ReturnType<typeof loadOpenClawPlugins>;
   defaultWorkspaceDir: string;
   deps: CliDeps;
-  port: number;
   startChannels: () => Promise<void>;
   log: { warn: (msg: string) => void };
   logHooks: {
