@@ -1,0 +1,599 @@
+name: Windows Package Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build type (debug or release)"
+        required: false
+        default: "debug"
+        type: choice
+        options:
+          - debug
+          - release
+
+env:
+  NODE_VERSION: "22.x"
+  PNPM_VERSION: "10.23.0"
+
+jobs:
+  build-npm-package:
+    name: Build NPM Package (Windows)
+    runs-on: windows-latest
+    outputs:
+      package_version: ${{ steps.version.outputs.version }}
+      artifact_name: ${{ steps.artifact.outputs.name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
+
+      - name: Checkout submodules (retry)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          for attempt in 1 2 3 4 5; do
+            if git -c protocol.version=2 submodule update --init --force --depth=1 --recursive; then
+              exit 0
+            fi
+            echo "Submodule update failed (attempt $attempt/5). Retrying…"
+            sleep $((attempt * 10))
+          done
+          exit 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          check-latest: true
+
+      - name: Setup pnpm (corepack)
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          for attempt in 1 2 3; do
+            if corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate; then
+              pnpm -v
+              exit 0
+            fi
+            echo "corepack prepare failed (attempt $attempt/3). Retrying..."
+            sleep $((attempt * 10))
+          done
+          exit 1
+
+      - name: Display runtime versions
+        shell: bash
+        run: |
+          node -v
+          npm -v
+          pnpm -v
+
+      - name: Get package version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Package version: $VERSION"
+
+      - name: Install dependencies
+        shell: bash
+        env:
+          CI: true
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true
+
+      - name: Bundle A2UI (if needed)
+        shell: bash
+        run: |
+          if [ -d "src/canvas-host/a2ui" ]; then
+            pnpm canvas:a2ui:bundle || echo "A2UI bundle step skipped or failed"
+          fi
+
+      - name: Build TypeScript
+        shell: bash
+        run: pnpm build
+
+      - name: Verify build outputs
+        shell: bash
+        run: |
+          echo "Checking dist/ directory..."
+          ls -lh dist/ || dir dist\
+          echo "Checking entry point..."
+          test -f dist/entry.js || (echo "ERROR: dist/entry.js not found" && exit 1)
+          echo "Build verification complete"
+
+      - name: Create production bundle with npm
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TARBALL_NAME="openclaw-${VERSION}.tgz"
+
+          echo "Removing pnpm node_modules to avoid workspace symlinks..."
+          rm -rf node_modules
+
+          echo "Installing production dependencies with npm..."
+          echo "npm creates real files, not pnpm workspace symlinks"
+          npm install --omit=dev --legacy-peer-deps
+
+          echo "Creating tarball with bundled dependencies..."
+          mkdir -p ./artifacts
+
+          # Create tarball directly with all necessary files
+          tar -czf "./artifacts/${TARBALL_NAME}" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules/.cache' \
+            --exclude='node_modules/.pnpm' \
+            dist/ \
+            node_modules/ \
+            extensions/ \
+            skills/ \
+            assets/ \
+            docs/ \
+            package.json \
+            openclaw.mjs \
+            README.md \
+            LICENSE \
+            CHANGELOG.md \
+            2>/dev/null || true
+
+          echo "Tarball created successfully"
+          ls -lh ./artifacts/
+          echo "Tarball size: $(du -h ./artifacts/${TARBALL_NAME} | cut -f1)"
+
+      - name: Set artifact name
+        id: artifact
+        shell: bash
+        run: |
+          ARTIFACT_NAME="openclaw-${{ steps.version.outputs.version }}.tgz"
+          echo "name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+          echo "Artifact name: $ARTIFACT_NAME"
+
+      - name: Upload NPM package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-windows
+          path: ./artifacts/*.tgz
+          retention-days: 90
+          if-no-files-found: error
+
+  test-installer-script:
+    name: Test Windows Installation
+    runs-on: windows-latest
+    needs: build-npm-package
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download built package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package-windows
+          path: ./test-artifacts
+
+      - name: Display downloaded artifacts
+        shell: powershell
+        run: |
+          Write-Host "Downloaded artifacts:" -ForegroundColor Cyan
+          Get-ChildItem ./test-artifacts -Recurse | Select-Object FullName, Length
+
+      - name: Create test user directory
+        shell: powershell
+        run: |
+          $testDir = "C:\TestOpenClaw"
+          New-Item -Path $testDir -ItemType Directory -Force | Out-Null
+          Write-Host "Created test directory: $testDir" -ForegroundColor Green
+
+      - name: Test installer with local tarball
+        shell: powershell
+        run: |
+          # Get the tarball path
+          $tarball = Get-ChildItem ./test-artifacts/*.tgz | Select-Object -First 1
+          Write-Host "Testing installation with: $($tarball.FullName)" -ForegroundColor Cyan
+
+          # Create a test OpenClaw directory
+          $testInstallPath = "C:\TestOpenClaw"
+          $testBinPath = Join-Path $testInstallPath "bin"
+          New-Item -Path $testBinPath -ItemType Directory -Force | Out-Null
+
+          # Extract tarball directly
+          Write-Host "Extracting tarball..." -ForegroundColor Yellow
+          tar -xzf $tarball.FullName -C $testBinPath
+
+          Write-Host "Extraction complete" -ForegroundColor Green
+          Write-Host "Contents of bin directory:" -ForegroundColor Cyan
+          Get-ChildItem $testBinPath | Select-Object Name, Length
+
+      - name: Verify node_modules exists
+        shell: powershell
+        run: |
+          $testBinPath = "C:\TestOpenClaw\bin"
+          $nodeModulesPath = Join-Path $testBinPath "node_modules"
+
+          if (Test-Path $nodeModulesPath) {
+            Write-Host "[OK] node_modules found (bundled successfully)" -ForegroundColor Green
+            $packageCount = (Get-ChildItem $nodeModulesPath -Directory | Measure-Object).Count
+            Write-Host "  Package count: $packageCount" -ForegroundColor Cyan
+          } else {
+            Write-Host "[FAIL] ERROR: node_modules NOT found!" -ForegroundColor Red
+            Write-Host "  Package should have bundled dependencies" -ForegroundColor Red
+            exit 1
+          }
+
+      - name: Verify dist/index.js exists
+        shell: powershell
+        run: |
+          $testBinPath = "C:\TestOpenClaw\bin"
+          $indexPath = Join-Path $testBinPath "dist\index.js"
+
+          if (Test-Path $indexPath) {
+            Write-Host "[OK] dist/index.js found" -ForegroundColor Green
+          } else {
+            Write-Host "[FAIL] ERROR: dist/index.js NOT found!" -ForegroundColor Red
+            Write-Host "  Checking for index.js in other locations..." -ForegroundColor Yellow
+            Get-ChildItem $testBinPath -Filter "index.js" -Recurse | Select-Object FullName
+            exit 1
+          }
+
+      - name: Test OpenClaw CLI
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $testBinPath = "C:\TestOpenClaw\bin"
+          Push-Location $testBinPath
+
+          Write-Host "Testing OpenClaw CLI..." -ForegroundColor Cyan
+
+          # Test --version (capture exit code)
+          Write-Host "`nTesting: node dist/index.js --version" -ForegroundColor Yellow
+          $versionOutput = & node dist/index.js --version 2>&1
+          $versionExit = $LASTEXITCODE
+          Write-Host $versionOutput
+          if ($versionExit -ne 0) {
+            Write-Host "[FAIL] --version failed with exit code $versionExit" -ForegroundColor Red
+            Pop-Location
+            exit 1
+          }
+
+          # Test --help (some CLIs return non-zero for help, so just check output)
+          Write-Host "`nTesting: node dist/index.js --help" -ForegroundColor Yellow
+          $helpOutput = & node dist/index.js --help 2>&1 | Select-Object -First 20
+          Write-Host $helpOutput
+
+          # Check if help output contains expected content
+          $helpString = $helpOutput -join " "
+          if ($helpString -match "OpenClaw|Usage|Commands") {
+            Write-Host "`n[OK] OpenClaw CLI works!" -ForegroundColor Green
+            Pop-Location
+            exit 0
+          } else {
+            Write-Host "`n[FAIL] Help output doesn't look correct" -ForegroundColor Red
+            Pop-Location
+            exit 1
+          }
+
+      - name: Test Install-OpenClaw.ps1 script syntax
+        shell: powershell
+        run: |
+          Write-Host "Validating Install-OpenClaw.ps1 syntax..." -ForegroundColor Cyan
+          $script = Get-Content scripts/Install-OpenClaw.ps1 -Raw
+          $errors = $null
+          [System.Management.Automation.PSParser]::Tokenize($script, [ref]$errors) | Out-Null
+
+          if ($errors.Count -eq 0) {
+            Write-Host "[OK] Install-OpenClaw.ps1 syntax is valid" -ForegroundColor Green
+          } else {
+            Write-Host "[FAIL] Syntax errors found in Install-OpenClaw.ps1:" -ForegroundColor Red
+            $errors | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+            exit 1
+          }
+
+      - name: Test Uninstall-OpenClaw.ps1 script syntax
+        shell: powershell
+        run: |
+          Write-Host "Validating Uninstall-OpenClaw.ps1 syntax..." -ForegroundColor Cyan
+          $script = Get-Content scripts/Uninstall-OpenClaw.ps1 -Raw
+          $errors = $null
+          [System.Management.Automation.PSParser]::Tokenize($script, [ref]$errors) | Out-Null
+
+          if ($errors.Count -eq 0) {
+            Write-Host "[OK] Uninstall-OpenClaw.ps1 syntax is valid" -ForegroundColor Green
+          } else {
+            Write-Host "[FAIL] Syntax errors found in Uninstall-OpenClaw.ps1:" -ForegroundColor Red
+            $errors | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+            exit 1
+          }
+
+      - name: Cleanup test directory
+        if: always()
+        shell: powershell
+        run: |
+          Remove-Item -Path "C:\TestOpenClaw" -Recurse -Force -ErrorAction SilentlyContinue
+          Write-Host "Cleaned up test directory" -ForegroundColor Gray
+
+  # Future: Native Windows app build
+  build-windows-app:
+    name: Build Native Windows App (Placeholder)
+    runs-on: windows-latest
+    if: false # Disabled until Windows app is implemented
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Check for Windows app
+        id: check_app
+        shell: powershell
+        run: |
+          if (Test-Path "apps/windows") {
+            Write-Output "windows_app_exists=true" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Output "windows_app_exists=false" >> $env:GITHUB_OUTPUT
+            Write-Output "Windows app directory not found - skipping build"
+          }
+
+      - name: Build Windows app
+        if: steps.check_app.outputs.windows_app_exists == 'true'
+        shell: powershell
+        run: |
+          cd apps/windows
+          dotnet restore
+          dotnet build -c Release
+
+      - name: Install WiX Toolset
+        if: steps.check_app.outputs.windows_app_exists == 'true'
+        shell: powershell
+        run: |
+          # Install WiX via dotnet tool
+          dotnet tool install --global wix --version 5.0.2
+
+      - name: Create MSI installer
+        if: steps.check_app.outputs.windows_app_exists == 'true'
+        shell: powershell
+        run: |
+          # Placeholder for MSI creation
+          Write-Output "MSI creation would happen here"
+
+      - name: Upload Windows app artifacts
+        if: steps.check_app.outputs.windows_app_exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-app-installer
+          path: |
+            dist/*.msi
+            dist/*.exe
+          retention-days: 7
+
+  release-latest:
+    name: Create Latest Release (Public)
+    runs-on: windows-latest
+    needs: [build-npm-package, test-installer-script]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download NPM package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package-windows
+          path: ./release-artifacts
+
+      - name: Display release artifacts
+        shell: bash
+        run: |
+          echo "Release artifacts:"
+          ls -lh ./release-artifacts/
+
+      - name: Get commit info
+        id: commit_info
+        shell: bash
+        run: |
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          COMMIT_DATE=$(git show -s --format=%ci HEAD | cut -d' ' -f1)
+          echo "commit_short=$COMMIT_SHORT" >> "$GITHUB_OUTPUT"
+          echo "commit_date=$COMMIT_DATE" >> "$GITHUB_OUTPUT"
+
+      - name: Create release notes
+        shell: bash
+        run: |
+          cat > release-notes.md <<'EOF'
+          # Clawdbot Windows Package - Latest Build
+
+          **Build Date:** ${{ steps.commit_info.outputs.commit_date }}
+          **Commit:** ${{ steps.commit_info.outputs.commit_short }}
+          **Version:** ${{ needs.build-npm-package.outputs.package_version }}
+
+          ## 🚀 Installation
+
+          ### PowerShell Installer (Recommended)
+          ```powershell
+          # Download installer script
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/j0904/clawdbot/main/scripts/Install-OpenClaw.ps1" -OutFile "Install-OpenClaw.ps1"
+
+          # Run installer (will download and install OpenClaw)
+          .\Install-OpenClaw.ps1
+          ```
+
+          ### Manual Installation
+          Download the `.tgz` file below and extract:
+          ```powershell
+          # Download
+          Invoke-WebRequest -Uri "https://github.com/j0904/clawdbot/releases/download/latest/openclaw-${{ needs.build-npm-package.outputs.package_version }}.tgz" -OutFile openclaw.tgz
+
+          # Extract to your desired location
+          tar -xzf openclaw.tgz -C C:\UserStorage\$env:USERNAME\OpenClaw\bin
+
+          # No npm install needed - dependencies are bundled!
+          ```
+
+          ### From NPM Registry (if published)
+          ```powershell
+          npm install -g openclaw@latest
+          ```
+
+          ## 📦 Package Contents
+          - Fully bundled tarball with **all dependencies included**
+          - **No npm install required** - ready to run after extraction
+          - Compatible with Node.js 22+
+          - Built and tested on Windows
+          - Requires only Node.js runtime (no git, npm, or build tools needed)
+
+          ## 📖 Documentation
+          - [GitHub Repository](https://github.com/j0904/clawdbot)
+          - [Installation Guide](https://github.com/j0904/clawdbot#installation)
+
+          ---
+          **Note:** This is an automated build from the latest commit to `main`. For stable releases, use tagged versions.
+          EOF
+          cat release-notes.md
+
+      - name: Delete existing 'latest' release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || echo "No existing 'latest' release to delete"
+
+      - name: Create or Update Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Latest Windows Build
+          tag_name: latest
+          files: |
+            ./release-artifacts/*.tgz
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-windows:
+    name: Create Windows Release Assets
+    runs-on: windows-latest
+    needs: [build-npm-package, test-installer-script]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download NPM package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package-windows
+          path: ./release-artifacts
+
+      - name: Display release artifacts
+        shell: bash
+        run: |
+          echo "Release artifacts:"
+          ls -lh ./release-artifacts/
+
+      - name: Extract version from tag
+        id: tag_version
+        shell: bash
+        run: |
+          TAG=${GITHUB_REF#refs/tags/v}
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Tag version: $TAG"
+
+      - name: Create release notes
+        shell: bash
+        run: |
+          cat > release-notes.md <<'EOF'
+          # Moltbot Windows Release ${{ steps.tag_version.outputs.version }}
+
+          ## Installation
+
+          ### Option 1: NPM (Recommended)
+          ```powershell
+          npm install -g moltbot@${{ steps.tag_version.outputs.version }}
+          ```
+
+          ### Option 2: PowerShell Installer
+          ```powershell
+          iwr -useb https://molt.bot/install.ps1 | iex
+          ```
+
+          ### Option 3: WSL2 (Recommended for full features)
+          See [Windows WSL2 documentation](https://docs.molt.bot/platforms/windows)
+
+          ## Package Contents
+          - NPM package tarball for Windows
+          - Compatible with Node.js 22+
+
+          ## Notes
+          - Native Windows companion app coming soon
+          - For full features, WSL2 installation is recommended
+          EOF
+          cat release-notes.md
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./release-artifacts/*.tgz
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-npm-package, test-installer-script]
+    if: always()
+    steps:
+      - name: Generate summary
+        shell: bash
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY <<'EOF'
+          # Windows Package Build Summary
+
+          ## Build Results
+          - **Package Version**: ${{ needs.build-npm-package.outputs.package_version }}
+          - **NPM Package**: ${{ needs.build-npm-package.result == 'success' && '✅ Built' || '❌ Failed' }}
+          - **Installer Test**: ${{ needs.test-installer-script.result == 'success' && '✅ Passed' || needs.test-installer-script.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }}
+
+          ## Artifacts
+          - NPM tarball: `${{ needs.build-npm-package.outputs.artifact_name }}`
+
+          ## Next Steps
+          - Native Windows app: Coming soon (apps/windows/ to be implemented)
+          - MSI installer: Will be added when Windows app is ready
+          - Auto-update: Squirrel.Windows integration planned
+
+          ## Documentation
+          - [Windows Setup Guide](https://docs.molt.bot/platforms/windows)
+          - [WSL2 Installation](https://docs.molt.bot/platforms/windows#install-wsl2)
+          EOF

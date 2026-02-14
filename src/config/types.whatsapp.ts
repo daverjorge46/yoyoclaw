@@ -100,6 +100,8 @@ export type WhatsAppConfig = {
   debounceMs?: number;
   /** Heartbeat visibility settings for this channel. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
+  /** Minimum confidence threshold for auto-replies (0.0-1.0). Responses below this are suppressed. Default: 0 (all responses sent). */
+  minResponseConfidence?: number;
 };
 
 export type WhatsAppAccountConfig = {
@@ -168,4 +170,6 @@ export type WhatsAppAccountConfig = {
   debounceMs?: number;
   /** Heartbeat visibility settings for this account. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
+  /** Minimum confidence threshold for auto-replies (0.0-1.0). Responses below this are suppressed. Default: 0 (all responses sent). */
+  minResponseConfidence?: number;
 };
