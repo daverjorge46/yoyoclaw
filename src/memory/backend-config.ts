@@ -50,6 +50,12 @@ export type ResolvedQmdSessionConfig = {
   retentionDays?: number;
 };
 
+export type ResolvedQmdMcpConfig = {
+  enabled: boolean;
+  command?: string;
+  args?: string[];
+};
+
 export type ResolvedQmdConfig = {
   command: string;
   searchMode: MemoryQmdSearchMode;
@@ -59,12 +65,15 @@ export type ResolvedQmdConfig = {
   limits: ResolvedQmdLimitsConfig;
   includeDefaultMemory: boolean;
   scope?: SessionSendPolicyConfig;
+  mcp?: ResolvedQmdMcpConfig;
 };
 
 const DEFAULT_BACKEND: MemoryBackend = "builtin";
 const DEFAULT_CITATIONS: MemoryCitationsMode = "auto";
 const DEFAULT_QMD_INTERVAL = "5m";
 const DEFAULT_QMD_DEBOUNCE_MS = 15_000;
+const DEFAULT_QMD_TIMEOUT_MS = 15_000; // QMD's ML pipeline (query expansion + reranking) needs 10-15s
+const DEFAULT_QMD_SEARCH_MODE: MemoryQmdSearchMode = "query";
 const DEFAULT_QMD_TIMEOUT_MS = 4_000;
 // Defaulting to `query` can be extremely slow on CPU-only systems (query expansion + rerank).
 // Prefer a faster mode for interactive use; users can opt into `query` for best recall.
@@ -302,6 +311,13 @@ export function resolveMemoryBackendConfig(params: {
     },
     limits: resolveLimits(qmdCfg?.limits),
     scope: qmdCfg?.scope ?? DEFAULT_QMD_SCOPE,
+    mcp: qmdCfg?.mcp
+      ? {
+          enabled: qmdCfg.mcp.enabled === true,
+          command: qmdCfg.mcp.command?.trim() || undefined,
+          args: qmdCfg.mcp.args || undefined,
+        }
+      : undefined,
   };
 
   return {
