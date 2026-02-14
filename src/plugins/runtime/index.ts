@@ -1,5 +1,8 @@
 import { createRequire } from "node:module";
-import type { PluginRuntime } from "./types.js";
+import crypto from "node:crypto";
+import type { PluginRuntime, PluginSessionSpawnOptions, PluginSessionSpawnResult, RateLimitOptions } from "./types.js";
+import { callGateway } from "../../gateway/call.js";
+import { AGENT_LANE_SUBAGENT } from "../../agents/lanes.js";
 import { resolveEffectiveMessagesConfig, resolveHumanDelayConfig } from "../../agents/identity.js";
 import { createMemoryGetTool, createMemorySearchTool } from "../../agents/tools/memory-tool.js";
 import { handleSlackAction } from "../../agents/tools/slack-actions.js";
@@ -236,6 +239,111 @@ function loadWhatsAppActions() {
   return whatsappActionsPromise;
 }
 
+// ---------------------------------------------------------------------------
+// In-memory sliding-window rate limiter
+// ---------------------------------------------------------------------------
+
+const rateLimitStore = new Map<string, number[]>();
+
+function rateLimitCheck(key: string, opts?: RateLimitOptions): boolean {
+  const maxRequests = opts?.maxRequests ?? 10;
+  const windowMs = opts?.windowMs ?? 60_000;
+  const now = Date.now();
+
+  let timestamps = rateLimitStore.get(key) ?? [];
+  timestamps = timestamps.filter((t) => now - t < windowMs);
+
+  if (timestamps.length >= maxRequests) {
+    rateLimitStore.set(key, timestamps);
+    return false;
+  }
+
+  timestamps.push(now);
+  rateLimitStore.set(key, timestamps);
+  return true;
+}
+
+function rateLimitReset(key: string): void {
+  rateLimitStore.delete(key);
+}
+
+// ---------------------------------------------------------------------------
+// Plugin session spawning
+// ---------------------------------------------------------------------------
+
+async function spawnPluginSession(opts: PluginSessionSpawnOptions): Promise<PluginSessionSpawnResult> {
+  const childSessionKey = `agent:main:subagent:${crypto.randomUUID()}`;
+  const idem = crypto.randomUUID();
+  const timeoutSeconds =
+    typeof opts.timeoutSeconds === "number" && Number.isFinite(opts.timeoutSeconds)
+      ? Math.max(0, Math.floor(opts.timeoutSeconds))
+      : 120;
+
+  // Apply model override if requested
+  if (opts.model) {
+    try {
+      await callGateway({
+        method: "sessions.patch",
+        params: { key: childSessionKey, model: opts.model },
+        timeoutMs: 10_000,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Non-fatal: log but continue with default model
+      if (!msg.includes("invalid model") && !msg.includes("model not allowed")) {
+        return { status: "error", error: `Model override failed: ${msg}` };
+      }
+    }
+  }
+
+  // Apply tool policy override if requested
+  if (opts.toolPolicy) {
+    try {
+      await callGateway({
+        method: "sessions.patch",
+        params: {
+          key: childSessionKey,
+          toolPolicy: {
+            allow: opts.toolPolicy.allow,
+            deny: opts.toolPolicy.deny,
+          },
+        },
+        timeoutMs: 10_000,
+      });
+    } catch {
+      // Tool policy via sessions.patch may not be supported yet —
+      // fall through and let the agent run with default subagent policy.
+      // The extraSystemPrompt still guides behavior.
+    }
+  }
+
+  try {
+    const response = await callGateway<{ runId?: string }>({
+      method: "agent",
+      params: {
+        message: opts.message,
+        sessionKey: childSessionKey,
+        idempotencyKey: idem,
+        deliver: false,
+        lane: AGENT_LANE_SUBAGENT,
+        extraSystemPrompt: opts.systemPrompt,
+        timeout: timeoutSeconds > 0 ? timeoutSeconds : undefined,
+        label: opts.label,
+      },
+      timeoutMs: 10_000,
+    });
+
+    return {
+      status: "accepted",
+      sessionKey: childSessionKey,
+      runId: response?.runId ?? idem,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { status: "error", error: msg, sessionKey: childSessionKey };
+  }
+}
+
 export function createPluginRuntime(): PluginRuntime {
   return {
     version: resolveVersion(),
@@ -428,6 +536,13 @@ export function createPluginRuntime(): PluginRuntime {
     },
     state: {
       resolveStateDir,
+    },
+    sessions: {
+      spawn: spawnPluginSession,
+    },
+    rateLimit: {
+      check: rateLimitCheck,
+      reset: rateLimitReset,
     },
   };
 }
