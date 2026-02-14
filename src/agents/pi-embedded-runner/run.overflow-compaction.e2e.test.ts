@@ -116,6 +116,7 @@ vi.mock("./logger.js", () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
+    isEnabled: vi.fn(() => false),
   },
 }));
 
@@ -243,6 +244,7 @@ describe("overflow compaction in run loop", () => {
 
   it("retries after successful compaction on context overflow promptError", async () => {
     const overflowError = new Error("request_too_large: Request size exceeds model context window");
+    const compactionEvents: Array<{ phase?: string; willRetry?: boolean }> = [];
 
     mockedRunEmbeddedAttempt
       .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
@@ -258,7 +260,17 @@ describe("overflow compaction in run loop", () => {
       },
     });
 
-    const result = await runEmbeddedPiAgent(baseParams);
+    const result = await runEmbeddedPiAgent({
+      ...baseParams,
+      onAgentEvent: (evt) => {
+        if (evt.stream === "compaction") {
+          compactionEvents.push({
+            phase: typeof evt.data?.phase === "string" ? evt.data.phase : undefined,
+            willRetry: typeof evt.data?.willRetry === "boolean" ? evt.data.willRetry : undefined,
+          });
+        }
+      },
+    });
 
     expect(mockedCompactDirect).toHaveBeenCalledTimes(1);
     expect(mockedCompactDirect).toHaveBeenCalledWith(
@@ -271,6 +283,10 @@ describe("overflow compaction in run loop", () => {
       ),
     );
     expect(log.info).toHaveBeenCalledWith(expect.stringContaining("auto-compaction succeeded"));
+    expect(compactionEvents).toEqual([
+      { phase: "start", willRetry: undefined },
+      { phase: "end", willRetry: false },
+    ]);
     // Should not be an error result
     expect(result.meta.error).toBeUndefined();
   });
@@ -302,6 +318,7 @@ describe("overflow compaction in run loop", () => {
 
   it("returns error if compaction fails", async () => {
     const overflowError = new Error("request_too_large: Request size exceeds model context window");
+    const compactionEvents: Array<{ phase?: string; willRetry?: boolean }> = [];
 
     mockedRunEmbeddedAttempt.mockResolvedValue(makeAttemptResult({ promptError: overflowError }));
 
@@ -311,10 +328,25 @@ describe("overflow compaction in run loop", () => {
       reason: "nothing to compact",
     });
 
-    const result = await runEmbeddedPiAgent(baseParams);
+    const result = await runEmbeddedPiAgent({
+      ...baseParams,
+      onAgentEvent: (evt) => {
+        if (evt.stream === "compaction") {
+          compactionEvents.push({
+            phase: typeof evt.data?.phase === "string" ? evt.data.phase : undefined,
+            willRetry: typeof evt.data?.willRetry === "boolean" ? evt.data.willRetry : undefined,
+          });
+        }
+      },
+    });
 
     expect(mockedCompactDirect).toHaveBeenCalledTimes(1);
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(1);
+    expect(compactionEvents).toEqual([
+      { phase: "start", willRetry: undefined },
+      { phase: "end", willRetry: true },
+      { phase: "end", willRetry: false },
+    ]);
     expect(result.meta.error?.kind).toBe("context_overflow");
     expect(result.payloads?.[0]?.isError).toBe(true);
     expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("auto-compaction failed"));

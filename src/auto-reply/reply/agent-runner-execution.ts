@@ -369,7 +369,11 @@ export async function runAgentTurnWithFallback(params: {
                           entry,
                         }),
                       )
-                      .catch(() => {});
+                      .catch((err) => {
+                        logVerbose(
+                          `compaction notification delivery failed (best-effort): ${String(err)}`,
+                        );
+                      });
                   }
                 }
                 if (phase === "end" && !willRetry) {

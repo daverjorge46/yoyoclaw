@@ -536,13 +536,18 @@ export async function runEmbeddedPiAgent(
               !isCompactionFailure &&
               overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
             ) {
-              log.debug(
-                `[compaction-diag] decision diagId=${overflowDiagId} branch=compact ` +
-                  `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=unknown ` +
-                  `attempt=${overflowCompactionAttempts + 1} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
-              );
+              if (log.isEnabled("debug")) {
+                log.debug(
+                  `[compaction-diag] decision diagId=${overflowDiagId} branch=compact ` +
+                    `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=unknown ` +
+                    `attempt=${overflowCompactionAttempts + 1} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
+                );
+              }
               overflowCompactionAttempts++;
               overflowCompactionStarted = true;
+              // Emit synthetic compaction lifecycle events for overflow recovery so
+              // reply-run observers can notify users and track completion consistently.
+              params.onAgentEvent?.({ stream: "compaction", data: { phase: "start" } });
               log.warn(
                 `context overflow detected (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); attempting auto-compaction for ${provider}/${modelId}`,
               );
@@ -572,6 +577,10 @@ export async function runEmbeddedPiAgent(
                 attempt: overflowCompactionAttempts,
                 maxAttempts: MAX_OVERFLOW_COMPACTION_ATTEMPTS,
               });
+              params.onAgentEvent?.({
+                stream: "compaction",
+                data: { phase: "end", willRetry: !compactResult.compacted },
+              });
               if (compactResult.compacted) {
                 autoCompactionCount += 1;
                 log.info(`auto-compaction succeeded for ${provider}/${modelId}; retrying prompt`);
@@ -594,11 +603,13 @@ export async function runEmbeddedPiAgent(
                 : false;
 
               if (hasOversized) {
-                log.debug(
-                  `[compaction-diag] decision diagId=${overflowDiagId} branch=truncate_tool_results ` +
-                    `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=${hasOversized} ` +
-                    `attempt=${overflowCompactionAttempts} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
-                );
+                if (log.isEnabled("debug")) {
+                  log.debug(
+                    `[compaction-diag] decision diagId=${overflowDiagId} branch=truncate_tool_results ` +
+                      `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=${hasOversized} ` +
+                      `attempt=${overflowCompactionAttempts} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
+                  );
+                }
                 toolResultTruncationAttempted = true;
                 log.warn(
                   `[context-overflow-recovery] Attempting tool result truncation for ${provider}/${modelId} ` +
@@ -621,7 +632,7 @@ export async function runEmbeddedPiAgent(
                 log.warn(
                   `[context-overflow-recovery] Tool result truncation did not help: ${truncResult.reason ?? "unknown"}`,
                 );
-              } else {
+              } else if (log.isEnabled("debug")) {
                 log.debug(
                   `[compaction-diag] decision diagId=${overflowDiagId} branch=give_up ` +
                     `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=${hasOversized} ` +
@@ -630,9 +641,10 @@ export async function runEmbeddedPiAgent(
               }
             }
             if (
-              isCompactionFailure ||
-              overflowCompactionAttempts >= MAX_OVERFLOW_COMPACTION_ATTEMPTS ||
-              toolResultTruncationAttempted
+              (isCompactionFailure ||
+                overflowCompactionAttempts >= MAX_OVERFLOW_COMPACTION_ATTEMPTS ||
+                toolResultTruncationAttempted) &&
+              log.isEnabled("debug")
             ) {
               log.debug(
                 `[compaction-diag] decision diagId=${overflowDiagId} branch=give_up ` +
