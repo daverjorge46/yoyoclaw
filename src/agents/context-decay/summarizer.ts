@@ -156,7 +156,9 @@ export async function summarizeAgedToolResults(params: {
         didUpdate = true;
       }
     } catch (err) {
-      log.warn(`context-decay: failed to summarize tool result at index ${item.index}: ${err}`);
+      log.warn(
+        `context-decay: failed to summarize tool result at index ${item.index}: ${String(err)}`,
+      );
     }
   }
 
@@ -165,7 +167,7 @@ export async function summarizeAgedToolResults(params: {
       await saveSummaryStore(sessionFilePath, updatedStore);
       log.info(`context-decay: saved ${Object.keys(updatedStore).length} summaries`);
     } catch (err) {
-      log.warn(`context-decay: failed to save summary store: ${err}`);
+      log.warn(`context-decay: failed to save summary store: ${String(err)}`);
     }
   }
 }

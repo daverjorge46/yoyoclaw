@@ -184,7 +184,7 @@ export function buildGroupSummarizationPrompt(params: {
           } else if (block.type === "tool_use") {
             const argsStr = JSON.stringify(block.input ?? {});
             const truncatedArgs = argsStr.length > 500 ? argsStr.slice(0, 500) + "..." : argsStr;
-            textParts.push(`[Called tool: ${block.name}(${truncatedArgs})]`);
+            textParts.push(`[Called tool: ${String(block.name)}(${truncatedArgs})]`);
           }
           // Skip thinking blocks
         }
@@ -319,7 +319,7 @@ export async function summarizeAgedTurnWindows(params: {
       }
     } catch (err) {
       log.warn(
-        `context-decay: failed to group-summarize window [turns ${win.turnRange[0]}-${win.turnRange[1]}]: ${err}`,
+        `context-decay: failed to group-summarize window [turns ${win.turnRange[0]}-${win.turnRange[1]}]: ${String(err)}`,
       );
     }
   }
@@ -329,7 +329,7 @@ export async function summarizeAgedTurnWindows(params: {
       await saveGroupSummaryStore(sessionFilePath, updatedStore);
       log.info(`context-decay: saved ${updatedStore.length} group summaries`);
     } catch (err) {
-      log.warn(`context-decay: failed to save group summary store: ${err}`);
+      log.warn(`context-decay: failed to save group summary store: ${String(err)}`);
     }
   }
 }

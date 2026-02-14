@@ -41,7 +41,9 @@ import {
 import { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/diagnostic.js";
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { runOnboardingWizard } from "../wizard/onboarding.js";
+import { createAuthRateLimiter, type AuthRateLimiter } from "./auth-rate-limit.js";
 import { startGatewayConfigReloader } from "./config-reload.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { NodeRegistry } from "./node-registry.js";
@@ -269,6 +271,12 @@ export async function startGatewayServer(
   let hooksConfig = runtimeConfig.hooksConfig;
   const canvasHostEnabled = runtimeConfig.canvasHostEnabled;
 
+  // Create auth rate limiter only when explicitly configured.
+  const rateLimitConfig = cfgAtStart.gateway?.auth?.rateLimit;
+  const authRateLimiter: AuthRateLimiter | undefined = rateLimitConfig
+    ? createAuthRateLimiter(rateLimitConfig)
+    : undefined;
+
   let controlUiRootState: ControlUiRootState | undefined;
   if (controlUiRootOverride) {
     const resolvedOverride = resolveControlUiRootOverrideSync(controlUiRootOverride);
@@ -339,6 +347,7 @@ export async function startGatewayServer(
     openResponsesEnabled,
     openResponsesConfig,
     resolvedAuth,
+    rateLimiter: authRateLimiter,
     gatewayTls,
     hooksConfig: () => hooksConfig,
     pluginRegistry,
@@ -461,6 +470,18 @@ export async function startGatewayServer(
 
   void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
 
+  // Recover pending outbound deliveries from previous crash/restart.
+  void (async () => {
+    const { recoverPendingDeliveries } = await import("../infra/outbound/delivery-queue.js");
+    const { deliverOutboundPayloads } = await import("../infra/outbound/deliver.js");
+    const logRecovery = log.child("delivery-recovery");
+    await recoverPendingDeliveries({
+      deliver: deliverOutboundPayloads,
+      log: logRecovery,
+      cfg: cfgAtStart,
+    });
+  })().catch((err) => log.error(`Delivery recovery failed: ${String(err)}`));
+
   const execApprovalManager = new ExecApprovalManager();
   const execApprovalForwarder = createExecApprovalForwarder();
   const execApprovalHandlers = createExecApprovalHandlers(execApprovalManager, {
@@ -477,6 +498,7 @@ export async function startGatewayServer(
     canvasHostEnabled: Boolean(canvasHost),
     canvasHostServerPort,
     resolvedAuth,
+    rateLimiter: authRateLimiter,
     gatewayMethods,
     events: GATEWAY_EVENTS,
     logGateway: log,
@@ -558,6 +580,16 @@ export async function startGatewayServer(
     logBrowser,
   }));
 
+  // Run gateway_start plugin hook (fire-and-forget)
+  {
+    const hookRunner = getGlobalHookRunner();
+    if (hookRunner?.hasHooks("gateway_start")) {
+      void hookRunner.runGatewayStart({ port }, { port }).catch((err) => {
+        log.warn(`gateway_start hook failed: ${String(err)}`);
+      });
+    }
+  }
+
   const { applyHotReload, requestGatewayRestart } = createGatewayReloadHandlers({
     deps,
     broadcast,
@@ -624,6 +656,20 @@ export async function startGatewayServer(
 
   return {
     close: async (opts) => {
+      // Run gateway_stop plugin hook before shutdown
+      {
+        const hookRunner = getGlobalHookRunner();
+        if (hookRunner?.hasHooks("gateway_stop")) {
+          try {
+            await hookRunner.runGatewayStop(
+              { reason: opts?.reason ?? "gateway stopping" },
+              { port },
+            );
+          } catch (err) {
+            log.warn(`gateway_stop hook failed: ${String(err)}`);
+          }
+        }
+      }
       if (diagnosticsEnabled) {
         stopDiagnosticHeartbeat();
       }
@@ -632,6 +678,7 @@ export async function startGatewayServer(
         skillsRefreshTimer = null;
       }
       skillsChangeUnsub();
+      authRateLimiter?.dispose();
       await close(opts);
     },
   };
