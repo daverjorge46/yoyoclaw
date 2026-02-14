@@ -198,12 +198,6 @@ export function buildBootstrapContextFiles(
     if (remainingTotalChars <= 0) {
       break;
     }
-    if (remainingTotalChars < MIN_BOOTSTRAP_FILE_BUDGET_CHARS) {
-      opts?.warn?.(
-        `remaining bootstrap budget is ${remainingTotalChars} chars (<${MIN_BOOTSTRAP_FILE_BUDGET_CHARS}); skipping additional bootstrap files`,
-      );
-      break;
-    }
     if (file.missing) {
       const missingText = `[MISSING] Expected at: ${file.path}`;
       const cappedMissingText = clampToBudget(missingText, remainingTotalChars);
@@ -216,6 +210,12 @@ export function buildBootstrapContextFiles(
         content: cappedMissingText,
       });
       continue;
+    }
+    if (remainingTotalChars < MIN_BOOTSTRAP_FILE_BUDGET_CHARS) {
+      opts?.warn?.(
+        `remaining bootstrap budget is ${remainingTotalChars} chars (<${MIN_BOOTSTRAP_FILE_BUDGET_CHARS}); skipping additional bootstrap files`,
+      );
+      break;
     }
     const fileMaxChars = Math.max(1, Math.min(maxChars, remainingTotalChars));
     const trimmed = trimBootstrapContent(file.content ?? "", file.name, fileMaxChars);

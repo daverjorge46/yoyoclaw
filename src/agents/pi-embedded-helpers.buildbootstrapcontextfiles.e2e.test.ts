@@ -89,4 +89,14 @@ describe("buildBootstrapContextFiles", () => {
     });
     expect(result).toEqual([]);
   });
+
+  it("keeps missing markers under small total budgets", () => {
+    const files = [makeFile({ missing: true, content: undefined })];
+    const result = buildBootstrapContextFiles(files, {
+      totalMaxChars: 20,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.content.length).toBeLessThanOrEqual(20);
+    expect(result[0]?.content.startsWith("[MISSING]")).toBe(true);
+  });
 });
