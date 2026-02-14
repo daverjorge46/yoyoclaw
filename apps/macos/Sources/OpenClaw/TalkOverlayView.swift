@@ -4,50 +4,73 @@ import SwiftUI
 struct TalkOverlayView: View {
     var controller: TalkOverlayController
     @State private var appState = AppStateStore.shared
+    @State private var eventStore = AgentEventStore.shared
     @State private var hoveringWindow = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            let isPaused = self.controller.model.isPaused
-            Color.clear
-            TalkOrbView(
-                phase: self.controller.model.phase,
-                level: self.controller.model.level,
-                accent: self.seamColor,
-                isPaused: isPaused)
-                .frame(width: TalkOverlayController.orbSize, height: TalkOverlayController.orbSize)
-                .padding(.top, TalkOverlayController.orbPadding)
-                .padding(.trailing, TalkOverlayController.orbPadding)
-                .contentShape(Circle())
-                .opacity(isPaused ? 0.55 : 1)
-                .background(
-                    TalkOrbInteractionView(
-                        onSingleClick: { TalkModeController.shared.togglePaused() },
-                        onDoubleClick: { TalkModeController.shared.stopSpeaking(reason: .userTap) },
-                        onDragStart: { TalkModeController.shared.setPaused(true) }))
-                .overlay(alignment: .topLeading) {
-                    Button {
-                        TalkModeController.shared.exitTalkMode()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.95))
-                            .frame(width: 18, height: 18)
-                            .background(Color.black.opacity(0.4))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
+        let isPaused = self.controller.model.isPaused
+        let expanded = self.controller.model.isExpanded
+        let snapshot = TalkOverlayWorkflowSnapshotBuilder.build(
+            phase: self.controller.model.phase,
+            events: self.eventStore.events)
+
+        return VStack(alignment: .trailing, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                TalkOverlayCompactCardView(
+                    snapshot: snapshot,
+                    isExpanded: expanded,
+                    onToggleExpanded: { self.controller.toggleExpanded() })
+                    .padding(.top, 8)
+
+                TalkOrbView(
+                    phase: self.controller.model.phase,
+                    level: self.controller.model.level,
+                    accent: self.seamColor,
+                    isPaused: isPaused)
+                    .frame(width: TalkOverlayController.orbSize, height: TalkOverlayController.orbSize)
                     .contentShape(Circle())
-                    .offset(x: -2, y: -2)
-                    .opacity(self.hoveringWindow ? 1 : 0)
-                    .animation(.easeOut(duration: 0.12), value: self.hoveringWindow)
-                }
-                .onHover { self.hoveringWindow = $0 }
+                    .opacity(isPaused ? 0.55 : 1)
+                    .background(
+                        TalkOrbInteractionView(
+                            onSingleClick: { TalkModeController.shared.togglePaused() },
+                            onDoubleClick: { TalkModeController.shared.stopSpeaking(reason: .userTap) },
+                            onDragStart: { TalkModeController.shared.setPaused(true) }))
+                    .overlay(alignment: .topLeading) {
+                        Button {
+                            TalkModeController.shared.exitTalkMode()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Color.white.opacity(0.95))
+                                .frame(width: 18, height: 18)
+                                .background(Color.black.opacity(0.4))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .contentShape(Circle())
+                        .offset(x: -2, y: -2)
+                        .opacity(self.hoveringWindow ? 1 : 0)
+                        .animation(.easeOut(duration: 0.12), value: self.hoveringWindow)
+                    }
+                    .onHover { self.hoveringWindow = $0 }
+            }
+
+            if expanded {
+                TalkOverlayDrawerView(snapshot: snapshot)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
+        .padding(.top, TalkOverlayController.orbPadding)
+        .padding(.trailing, TalkOverlayController.orbPadding)
+        .padding(.leading, 8)
         .frame(
-            width: TalkOverlayController.overlaySize,
-            height: TalkOverlayController.overlaySize,
+            width: expanded ? TalkOverlayController.expandedWidth : TalkOverlayController.compactWidth,
+            height: expanded ? TalkOverlayController.expandedHeight : TalkOverlayController.compactHeight,
             alignment: .topTrailing)
+        .animation(.easeOut(duration: 0.16), value: expanded)
+        .background(Color.clear)
+        .clipped()
+        .compositingGroup()
     }
 
     private static let defaultSeamColor = Color(red: 79 / 255.0, green: 122 / 255.0, blue: 154 / 255.0)

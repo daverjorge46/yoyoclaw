@@ -7,7 +7,13 @@ import SwiftUI
 @Observable
 final class TalkOverlayController {
     static let shared = TalkOverlayController()
-    static let overlaySize: CGFloat = 440
+    static let compactWidth: CGFloat = 360
+    static let compactHeight: CGFloat = 156
+    static let expandedWidth: CGFloat = 500
+    static let expandedHeight: CGFloat = 640
+    static let compactCardWidth: CGFloat = 236
+    static let drawerWidth: CGFloat = 472
+    static let drawerHeight: CGFloat = 470
     static let orbSize: CGFloat = 96
     static let orbPadding: CGFloat = 12
     static let orbHitSlop: CGFloat = 10
@@ -16,6 +22,7 @@ final class TalkOverlayController {
 
     struct Model {
         var isVisible: Bool = false
+        var isExpanded: Bool = false
         var phase: TalkModePhase = .idle
         var isPaused: Bool = false
         var level: Double = 0
@@ -29,7 +36,11 @@ final class TalkOverlayController {
     func present() {
         self.ensureWindow()
         self.hostingView?.rootView = TalkOverlayView(controller: self)
-        let target = self.targetFrame()
+        if !self.model.isVisible {
+            // Default to compact on each fresh presentation.
+            self.model.isExpanded = false
+        }
+        let target = self.targetFrame(forExpanded: self.model.isExpanded)
 
         guard let window else { return }
         if !self.model.isVisible {
@@ -50,9 +61,20 @@ final class TalkOverlayController {
         }
     }
 
+    func toggleExpanded() {
+        self.setExpanded(!self.model.isExpanded)
+    }
+
+    func setExpanded(_ expanded: Bool, animated: Bool = true) {
+        guard self.model.isExpanded != expanded else { return }
+        self.model.isExpanded = expanded
+        self.resizeWindow(animated: animated)
+    }
+
     func dismiss() {
         guard let window else {
             self.model.isVisible = false
+            self.model.isExpanded = false
             return
         }
 
@@ -66,6 +88,7 @@ final class TalkOverlayController {
             Task { @MainActor in
                 window.orderOut(nil)
                 self.model.isVisible = false
+                self.model.isExpanded = false
             }
         }
     }
@@ -101,7 +124,11 @@ final class TalkOverlayController {
     private func ensureWindow() {
         if self.window != nil { return }
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: Self.overlaySize, height: Self.overlaySize),
+            contentRect: NSRect(
+                x: 0,
+                y: 0,
+                width: Self.compactWidth,
+                height: Self.compactHeight),
             styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
             defer: false)
@@ -125,12 +152,33 @@ final class TalkOverlayController {
         self.window = panel
     }
 
-    private func targetFrame() -> NSRect {
+    private func resizeWindow(animated: Bool) {
+        guard let window else { return }
+        let target = self.targetFrame(forExpanded: self.model.isExpanded)
+        guard self.model.isVisible, animated else {
+            window.setFrame(target, display: true)
+            return
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.16
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            window.animator().setFrame(target, display: true)
+        }
+    }
+
+    private static func overlaySize(forExpanded expanded: Bool) -> NSSize {
+        if expanded {
+            return NSSize(width: Self.expandedWidth, height: Self.expandedHeight)
+        }
+        return NSSize(width: Self.compactWidth, height: Self.compactHeight)
+    }
+
+    private func targetFrame(forExpanded expanded: Bool) -> NSRect {
         let screen = self.window?.screen
             ?? NSScreen.main
             ?? NSScreen.screens.first
         guard let screen else { return .zero }
-        let size = NSSize(width: Self.overlaySize, height: Self.overlaySize)
+        let size = Self.overlaySize(forExpanded: expanded)
         let visible = screen.visibleFrame
         let origin = CGPoint(
             x: visible.maxX - size.width - self.screenInset,
