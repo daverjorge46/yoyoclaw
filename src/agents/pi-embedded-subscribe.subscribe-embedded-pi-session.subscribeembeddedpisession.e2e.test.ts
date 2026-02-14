@@ -318,6 +318,100 @@ describe("subscribeEmbeddedPiSession", () => {
     expect(payloads[0]?.mediaUrls).toEqual(["https://example.com/a.png"]);
   });
 
+  it("keeps unresolved mutating failure when an unrelated tool succeeds", () => {
+    let handler: ((evt: unknown) => void) | undefined;
+    const session: StubSession = {
+      subscribe: (fn) => {
+        handler = fn;
+        return () => {};
+      },
+    };
+
+    const subscription = subscribeEmbeddedPiSession({
+      session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
+      runId: "run-tools-1",
+      sessionKey: "test-session",
+    });
+
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "write",
+      toolCallId: "w1",
+      args: { path: "/tmp/demo.txt", content: "next" },
+    });
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "write",
+      toolCallId: "w1",
+      isError: true,
+      result: { error: "disk full" },
+    });
+    expect(subscription.getLastToolError()?.toolName).toBe("write");
+
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "read",
+      toolCallId: "r1",
+      args: { path: "/tmp/demo.txt" },
+    });
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "read",
+      toolCallId: "r1",
+      isError: false,
+      result: { text: "ok" },
+    });
+
+    expect(subscription.getLastToolError()?.toolName).toBe("write");
+  });
+
+  it("clears unresolved mutating failure when the same action succeeds", () => {
+    let handler: ((evt: unknown) => void) | undefined;
+    const session: StubSession = {
+      subscribe: (fn) => {
+        handler = fn;
+        return () => {};
+      },
+    };
+
+    const subscription = subscribeEmbeddedPiSession({
+      session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
+      runId: "run-tools-2",
+      sessionKey: "test-session",
+    });
+
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "write",
+      toolCallId: "w1",
+      args: { path: "/tmp/demo.txt", content: "next" },
+    });
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "write",
+      toolCallId: "w1",
+      isError: true,
+      result: { error: "disk full" },
+    });
+    expect(subscription.getLastToolError()?.toolName).toBe("write");
+
+    handler?.({
+      type: "tool_execution_start",
+      toolName: "write",
+      toolCallId: "w2",
+      args: { path: "/tmp/demo.txt", content: "retry" },
+    });
+    handler?.({
+      type: "tool_execution_end",
+      toolName: "write",
+      toolCallId: "w2",
+      isError: false,
+      result: { ok: true },
+    });
+
+    expect(subscription.getLastToolError()).toBeUndefined();
+  });
+
   it("emits lifecycle:error event on agent_end when last assistant message was an error", async () => {
     let handler: ((evt: unknown) => void) | undefined;
     const session: StubSession = {

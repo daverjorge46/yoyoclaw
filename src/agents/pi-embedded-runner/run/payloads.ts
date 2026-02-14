@@ -54,7 +54,13 @@ export function buildEmbeddedRunPayloads(params: {
   assistantTexts: string[];
   toolMetas: ToolMetaEntry[];
   lastAssistant: AssistantMessage | undefined;
-  lastToolError?: { toolName: string; meta?: string; error?: string };
+  lastToolError?: {
+    toolName: string;
+    meta?: string;
+    error?: string;
+    mutatingAction?: boolean;
+    actionFingerprint?: string;
+  };
   config?: OpenClawConfig;
   sessionKey: string;
   provider?: string;
@@ -252,7 +258,8 @@ export function buildEmbeddedRunPayloads(params: {
       errorLower.includes("must have") ||
       errorLower.includes("needs") ||
       errorLower.includes("requires");
-    const isMutatingToolError = isLikelyMutatingTool(params.lastToolError.toolName);
+    const isMutatingToolError =
+      params.lastToolError.mutatingAction ?? isLikelyMutatingTool(params.lastToolError.toolName);
     const shouldShowToolError = isMutatingToolError || (!hasUserFacingReply && !isRecoverableError);
 
     // Always surface mutating tool failures so we do not silently confirm actions that did not happen.
@@ -264,10 +271,23 @@ export function buildEmbeddedRunPayloads(params: {
         { markdown: useMarkdown },
       );
       const errorSuffix = params.lastToolError.error ? `: ${params.lastToolError.error}` : "";
-      replyItems.push({
-        text: `⚠️ ${toolSummary} failed${errorSuffix}`,
-        isError: true,
-      });
+      const warningText = `⚠️ ${toolSummary} failed${errorSuffix}`;
+      const normalizedWarning = normalizeTextForComparison(warningText);
+      const duplicateWarning = normalizedWarning
+        ? replyItems.some((item) => {
+            if (!item.text) {
+              return false;
+            }
+            const normalizedExisting = normalizeTextForComparison(item.text);
+            return normalizedExisting.length > 0 && normalizedExisting === normalizedWarning;
+          })
+        : false;
+      if (!duplicateWarning) {
+        replyItems.push({
+          text: warningText,
+          isError: true,
+        });
+      }
     }
   }
 
