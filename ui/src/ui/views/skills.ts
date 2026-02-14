@@ -2,6 +2,8 @@ import { html, nothing } from "lit";
 import type { SkillMessageMap } from "../controllers/skills.ts";
 import type { SkillStatusEntry, SkillStatusReport } from "../types.ts";
 import { clampText } from "../format.ts";
+import { icons } from "../icons.ts";
+import { renderJsonBlock } from "./json-renderer.ts";
 
 type SkillGroup = {
   id: string;
@@ -15,6 +17,8 @@ const SKILL_SOURCE_GROUPS: Array<{ id: string; label: string; sources: string[] 
   { id: "installed", label: "Installed Skills", sources: ["openclaw-managed"] },
   { id: "extra", label: "Extra Skills", sources: ["openclaw-extra"] },
 ];
+
+let selectedSkillKey: string | null = null;
 
 function groupSkills(skills: SkillStatusEntry[]): SkillGroup[] {
   const groups = new Map<string, SkillGroup>();
@@ -58,6 +62,92 @@ export type SkillsProps = {
   onInstall: (skillKey: string, name: string, installId: string) => void;
 };
 
+function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
+  const busy = props.busyKey === skill.skillKey;
+  const apiKey = props.edits[skill.skillKey] ?? "";
+  const message = props.messages[skill.skillKey] ?? null;
+  const canInstall = skill.install.length > 0 && skill.missing.bins.length > 0;
+  const missing = [
+    ...skill.missing.bins.map((b: string) => `bin:${b}`),
+    ...skill.missing.env.map((e: string) => `env:${e}`),
+    ...skill.missing.config.map((c: string) => `config:${c}`),
+    ...skill.missing.os.map((o: string) => `os:${o}`),
+  ];
+
+  const requestUpdate = () => props.onFilterChange(props.filter);
+
+  return html`
+    <div class="log-detail" style="max-height: none;">
+      <div class="log-detail-header">
+        <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;">
+          <span class="icon" style="width: 14px; height: 14px;">${icons.puzzle}</span>
+          ${skill.name}
+        </div>
+        <button class="btn btn--sm" @click=${() => { selectedSkillKey = null; requestUpdate(); }}>✕</button>
+      </div>
+      <div class="log-detail-fields">
+        <div class="log-detail-field">
+          <div class="log-detail-label">Description</div>
+          <div class="log-detail-value">${skill.description}</div>
+        </div>
+        <div class="log-detail-row-inline">
+          <div class="log-detail-field" style="flex: 1;">
+            <div class="log-detail-label">Status</div>
+            <div class="log-detail-value">
+              <span class="log-level ${skill.eligible ? "info" : "warn"}">${skill.eligible ? "ELIGIBLE" : "BLOCKED"}</span>
+            </div>
+          </div>
+          <div class="log-detail-field" style="flex: 1;">
+            <div class="log-detail-label">Source</div>
+            <div class="log-detail-value mono">${skill.source}</div>
+          </div>
+        </div>
+        ${skill.disabled ? html`
+          <div class="log-detail-field">
+            <div class="log-detail-label">State</div>
+            <div class="log-detail-value"><span class="log-level warn">DISABLED</span></div>
+          </div>
+        ` : nothing}
+        ${missing.length > 0 ? html`
+          <div class="log-detail-field">
+            <div class="log-detail-label">Missing</div>
+            <div class="chip-row">${missing.map((m: string) => html`<span class="chip chip-warn">${m}</span>`)}</div>
+          </div>
+        ` : nothing}
+        ${skill.primaryEnv ? html`
+          <div class="log-detail-field">
+            <div class="log-detail-label">API Key</div>
+            <div class="row" style="gap: 8px;">
+              <input type="password" style="flex: 1; font-size: 12px;"
+                .value=${apiKey}
+                @input=${(e: Event) => props.onEdit(skill.skillKey, (e.target as HTMLInputElement).value)} />
+              <button class="btn btn--sm primary" ?disabled=${busy}
+                @click=${() => props.onSaveKey(skill.skillKey)}>Save</button>
+            </div>
+          </div>
+        ` : nothing}
+        <div class="row" style="gap: 8px; margin-top: 4px;">
+          <button class="btn btn--sm" ?disabled=${busy}
+            @click=${() => props.onToggle(skill.skillKey, skill.disabled)}>
+            ${skill.disabled ? "Enable" : "Disable"}
+          </button>
+          ${canInstall ? html`
+            <button class="btn btn--sm" ?disabled=${busy}
+              @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}>
+              ${busy ? "Installing…" : skill.install[0].label}
+            </button>
+          ` : nothing}
+        </div>
+        ${message ? html`
+          <div class="callout ${message.kind === "error" ? "danger" : ""}" style="margin-top: 4px; font-size: 12px;">
+            ${message.message}
+          </div>
+        ` : nothing}
+      </div>
+    </div>
+  `;
+}
+
 export function renderSkills(props: SkillsProps) {
   const skills = props.report?.skills ?? [];
   const filter = props.filter.trim().toLowerCase();
@@ -67,189 +157,66 @@ export function renderSkills(props: SkillsProps) {
       )
     : skills;
   const groups = groupSkills(filtered);
+  const allSkills = groups.flatMap((g) => g.skills);
+  const selectedSkill = allSkills.find((s) => s.skillKey === selectedSkillKey) ?? null;
+  if (!selectedSkill) selectedSkillKey = null;
+
+  const requestUpdate = () => props.onFilterChange(props.filter);
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
+    <section class="card" style="padding: 0;">
+      <div class="row" style="justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border);">
         <div>
           <div class="card-title">Skills</div>
-          <div class="card-sub">Bundled, managed, and workspace skills.</div>
+          <div class="card-sub">${filtered.length} skills</div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
-      </div>
-
-      <div class="filters" style="margin-top: 14px;">
-        <label class="field" style="flex: 1;">
-          <span>Filter</span>
-          <input
+        <div class="row" style="gap: 8px;">
+          <input type="text" style="width: 200px; font-size: 12px;"
             .value=${props.filter}
             @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Search skills"
-          />
-        </label>
-        <div class="muted">${filtered.length} shown</div>
-      </div>
-
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-          : nothing
-      }
-
-      ${
-        filtered.length === 0
-          ? html`
-              <div class="muted" style="margin-top: 16px">No skills found.</div>
-            `
-          : html`
-            <div class="agent-skills-groups" style="margin-top: 16px;">
-              ${groups.map((group) => {
-                const collapsedByDefault = group.id === "workspace" || group.id === "built-in";
-                return html`
-                  <details class="agent-skills-group" ?open=${!collapsedByDefault}>
-                    <summary class="agent-skills-header">
-                      <span>${group.label}</span>
-                      <span class="muted">${group.skills.length}</span>
-                    </summary>
-                    <div class="list skills-grid">
-                      ${group.skills.map((skill) => renderSkill(skill, props))}
-                    </div>
-                  </details>
-                `;
-              })}
-            </div>
-          `
-      }
-    </section>
-  `;
-}
-
-function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
-  const busy = props.busyKey === skill.skillKey;
-  const apiKey = props.edits[skill.skillKey] ?? "";
-  const message = props.messages[skill.skillKey] ?? null;
-  const canInstall = skill.install.length > 0 && skill.missing.bins.length > 0;
-  const showBundledBadge = Boolean(skill.bundled && skill.source !== "openclaw-bundled");
-  const missing = [
-    ...skill.missing.bins.map((b) => `bin:${b}`),
-    ...skill.missing.env.map((e) => `env:${e}`),
-    ...skill.missing.config.map((c) => `config:${c}`),
-    ...skill.missing.os.map((o) => `os:${o}`),
-  ];
-  const reasons: string[] = [];
-  if (skill.disabled) {
-    reasons.push("disabled");
-  }
-  if (skill.blockedByAllowlist) {
-    reasons.push("blocked by allowlist");
-  }
-  return html`
-    <div class="list-item">
-      <div class="list-main">
-        <div class="list-title">
-          ${skill.emoji ? `${skill.emoji} ` : ""}${skill.name}
-        </div>
-        <div class="list-sub">${clampText(skill.description, 140)}</div>
-        <div class="chip-row" style="margin-top: 6px;">
-          <span class="chip">${skill.source}</span>
-          ${
-            showBundledBadge
-              ? html`
-                  <span class="chip">bundled</span>
-                `
-              : nothing
-          }
-          <span class="chip ${skill.eligible ? "chip-ok" : "chip-warn"}">
-            ${skill.eligible ? "eligible" : "blocked"}
-          </span>
-          ${
-            skill.disabled
-              ? html`
-                  <span class="chip chip-warn">disabled</span>
-                `
-              : nothing
-          }
-        </div>
-        ${
-          missing.length > 0
-            ? html`
-              <div class="muted" style="margin-top: 6px;">
-                Missing: ${missing.join(", ")}
-              </div>
-            `
-            : nothing
-        }
-        ${
-          reasons.length > 0
-            ? html`
-              <div class="muted" style="margin-top: 6px;">
-                Reason: ${reasons.join(", ")}
-              </div>
-            `
-            : nothing
-        }
-      </div>
-      <div class="list-meta">
-        <div class="row" style="justify-content: flex-end; flex-wrap: wrap;">
-          <button
-            class="btn"
-            ?disabled=${busy}
-            @click=${() => props.onToggle(skill.skillKey, skill.disabled)}
-          >
-            ${skill.disabled ? "Enable" : "Disable"}
+            placeholder="Search skills" />
+          <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${props.loading ? "Loading…" : "Refresh"}
           </button>
-          ${
-            canInstall
-              ? html`<button
-                class="btn"
-                ?disabled=${busy}
-                @click=${() => props.onInstall(skill.skillKey, skill.name, skill.install[0].id)}
-              >
-                ${busy ? "Installing…" : skill.install[0].label}
-              </button>`
-              : nothing
-          }
         </div>
-        ${
-          message
-            ? html`<div
-              class="muted"
-              style="margin-top: 8px; color: ${
-                message.kind === "error"
-                  ? "var(--danger-color, #d14343)"
-                  : "var(--success-color, #0a7f5a)"
-              };"
-            >
-              ${message.message}
-            </div>`
-            : nothing
-        }
-        ${
-          skill.primaryEnv
-            ? html`
-              <div class="field" style="margin-top: 10px;">
-                <span>API key</span>
-                <input
-                  type="password"
-                  .value=${apiKey}
-                  @input=${(e: Event) =>
-                    props.onEdit(skill.skillKey, (e.target as HTMLInputElement).value)}
-                />
-              </div>
-              <button
-                class="btn primary"
-                style="margin-top: 8px;"
-                ?disabled=${busy}
-                @click=${() => props.onSaveKey(skill.skillKey)}
-              >
-                Save key
-              </button>
-            `
-            : nothing
-        }
       </div>
-    </div>
+
+      ${props.error ? html`<div class="callout danger" style="margin: 12px 14px;">${props.error}</div>` : nothing}
+
+      <div class="logs-split ${selectedSkill ? "logs-split--open" : ""}">
+        <div style="flex: 1; min-width: 0; overflow: hidden;">
+          <div class="log-stream" style="max-height: 600px;">
+            <div class="log-header" style="grid-template-columns: 24px minmax(140px, 200px) minmax(0, 1fr) 80px 70px;">
+              <div class="log-header-cell"></div>
+              <div class="log-header-cell">Name</div>
+              <div class="log-header-cell">Description</div>
+              <div class="log-header-cell">Source</div>
+              <div class="log-header-cell">Status</div>
+            </div>
+            ${filtered.length === 0
+              ? html`<div class="muted" style="padding: 12px 14px;">No skills found.</div>`
+              : groups.map((group) => html`
+                  <div class="debug-snapshot-row" style="background: var(--bg-elevated); cursor: default; padding: 4px 12px;">
+                    <div style="font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">${group.label}</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">${group.skills.length}</div>
+                  </div>
+                  ${group.skills.map((skill) => html`
+                    <div class="log-row ${selectedSkillKey === skill.skillKey ? "selected" : ""}"
+                      style="grid-template-columns: 24px minmax(140px, 200px) minmax(0, 1fr) 80px 70px;"
+                      @click=${() => { selectedSkillKey = skill.skillKey; requestUpdate(); }}>
+                      <div class="icon" style="width: 14px; height: 14px; color: var(--muted);">${icons.puzzle}</div>
+                      <div style="font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${skill.name}</div>
+                      <div class="log-message mono">${clampText(skill.description, 80)}</div>
+                      <div class="mono" style="font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${skill.source.replace("openclaw-", "")}</div>
+                      <div><span class="log-level ${skill.eligible ? "info" : "warn"}" style="font-size: 10px;">${skill.eligible ? "OK" : "BLOCKED"}</span></div>
+                    </div>
+                  `)}
+                `)
+            }
+          </div>
+        </div>
+        ${selectedSkill ? renderSkillDetail(selectedSkill, props) : nothing}
+      </div>
+    </section>
   `;
 }
