@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { ToolPolicySchema } from "./zod-schema.agent-runtime.js";
+import {
+  ChannelVerifiedSchema,
+  ToolPolicyBySenderSchema,
+  ToolPolicySchema,
+} from "./zod-schema.agent-runtime.js";
 import { ChannelHeartbeatVisibilitySchema } from "./zod-schema.channels.js";
 import {
   BlockStreamingCoalesceSchema,
@@ -9,12 +13,11 @@ import {
   MarkdownConfigSchema,
 } from "./zod-schema.core.js";
 
-const ToolPolicyBySenderSchema = z.record(z.string(), ToolPolicySchema).optional();
-
 export const WhatsAppAccountSchema = z
   .object({
     name: z.string().optional(),
     capabilities: z.array(z.string()).optional(),
+    verified: ChannelVerifiedSchema,
     markdown: MarkdownConfigSchema,
     configWrites: z.boolean().optional(),
     enabled: z.boolean().optional(),
@@ -36,6 +39,7 @@ export const WhatsAppAccountSchema = z
     mediaMaxMb: z.number().int().positive().optional(),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
+    toolsBySender: ToolPolicyBySenderSchema,
     groups: z
       .record(
         z.string(),
@@ -44,6 +48,8 @@ export const WhatsAppAccountSchema = z
             requireMention: z.boolean().optional(),
             tools: ToolPolicySchema,
             toolsBySender: ToolPolicyBySenderSchema,
+            instructions: z.string().optional(),
+            typingMode: z.enum(["never", "instant", "thinking", "message"]).optional(),
           })
           .strict()
           .optional(),
@@ -80,6 +86,7 @@ export const WhatsAppConfigSchema = z
   .object({
     accounts: z.record(z.string(), WhatsAppAccountSchema.optional()).optional(),
     capabilities: z.array(z.string()).optional(),
+    verified: ChannelVerifiedSchema.default(true),
     markdown: MarkdownConfigSchema,
     configWrites: z.boolean().optional(),
     sendReadReceipts: z.boolean().optional(),
@@ -98,6 +105,7 @@ export const WhatsAppConfigSchema = z
     mediaMaxMb: z.number().int().positive().optional().default(50),
     blockStreaming: z.boolean().optional(),
     blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
+    toolsBySender: ToolPolicyBySenderSchema,
     actions: z
       .object({
         reactions: z.boolean().optional(),
@@ -114,6 +122,8 @@ export const WhatsAppConfigSchema = z
             requireMention: z.boolean().optional(),
             tools: ToolPolicySchema,
             toolsBySender: ToolPolicyBySenderSchema,
+            instructions: z.string().optional(),
+            typingMode: z.enum(["never", "instant", "thinking", "message"]).optional(),
           })
           .strict()
           .optional(),

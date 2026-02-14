@@ -53,6 +53,7 @@ import {
   resolveToolProfilePolicy,
   stripPluginOnlyAllowlist,
 } from "./tool-policy.js";
+import { jsonResult } from "./tools/common.js";
 
 function isOpenAIProvider(provider?: string) {
   const normalized = provider?.trim().toLowerCase();
@@ -322,6 +323,49 @@ export function createOpenClawCodingTools(options?: {
     cleanupMs: cleanupMsOverride ?? execConfig.cleanupMs,
     scopeKey,
   });
+
+  // Wrap exec tool with scoped command policy check
+  const scopedExecPolicies = [
+    profilePolicyWithAlsoAllow,
+    providerProfilePolicyWithAlsoAllow,
+    globalPolicy,
+    globalProviderPolicy,
+    agentPolicy,
+    agentProviderPolicy,
+    groupPolicy,
+    sandbox?.tools,
+    subagentPolicy,
+  ];
+  const wrappedExecTool: AnyAgentTool = {
+    ...execTool,
+    execute: async (toolCallId, params, signal, onUpdate) => {
+      const rawCommand = (params as { command?: unknown })?.command;
+      if (typeof rawCommand !== "string" || !rawCommand.trim()) {
+        return jsonResult({
+          status: "error",
+          tool: "exec",
+          error: "exec command missing or invalid. Provide a non-empty command.",
+        });
+      }
+      const command = rawCommand.trim();
+      if (!isToolAllowedByPolicies("exec", scopedExecPolicies, command)) {
+        return jsonResult({
+          status: "error",
+          tool: "exec",
+          error: `exec command blocked by policy: ${command.slice(0, 50)}${command.length > 50 ? "..." : ""}`,
+        });
+      }
+      if (command !== rawCommand) {
+        return execTool.execute(
+          toolCallId,
+          { ...(params as Record<string, unknown>), command },
+          signal,
+          onUpdate,
+        );
+      }
+      return execTool.execute(toolCallId, params, signal, onUpdate);
+    },
+  } as AnyAgentTool;
   const applyPatchTool =
     !applyPatchEnabled || (sandboxRoot && !allowWorkspaceWrites)
       ? null
@@ -343,7 +387,7 @@ export function createOpenClawCodingTools(options?: {
         : []
       : []),
     ...(applyPatchTool ? [applyPatchTool as unknown as AnyAgentTool] : []),
-    execTool as unknown as AnyAgentTool,
+    wrappedExecTool,
     processTool as unknown as AnyAgentTool,
     // Channel docking: include channel-defined agent tools (login, etc.).
     ...listChannelAgentTools({ cfg: options?.config }),
