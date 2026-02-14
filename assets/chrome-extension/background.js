@@ -201,6 +201,8 @@ async function ensureRelayConnection() {
 
   try {
     await relayConnectPromise
+    // Reset reconnect counter on any successful connection (including manual)
+    reconnectAttempts = 0
   } finally {
     relayConnectPromise = null
   }
@@ -258,6 +260,8 @@ async function reattachKnownTabs() {
   const tabsToReattach = Array.from(tabs.keys())
   
   for (const tabId of tabsToReattach) {
+    if (tabOperationLocks.has(tabId)) continue
+    tabOperationLocks.add(tabId)
     try {
       const tab = await chrome.tabs.get(tabId)
       if (tab) {
@@ -275,6 +279,8 @@ async function reattachKnownTabs() {
     } catch (err) {
       console.warn(`Failed to re-attach tab ${tabId}:`, err.message)
       tabs.delete(tabId)
+    } finally {
+      tabOperationLocks.delete(tabId)
     }
   }
   
