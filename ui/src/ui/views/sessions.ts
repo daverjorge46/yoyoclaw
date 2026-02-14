@@ -3,8 +3,10 @@ import type { GatewaySessionRow, SessionsListResult } from "../types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatSessionTokens } from "../presenter.ts";
+import type { AppMode } from "../navigation.ts";
 
 export type SessionsProps = {
+  mode: AppMode;
   loading: boolean;
   result: SessionsListResult | null;
   error: string | null;
@@ -109,6 +111,123 @@ function resolveThinkLevelPatchValue(value: string, isBinary: boolean): string |
 
 export function renderSessions(props: SessionsProps) {
   const rows = props.result?.sessions ?? [];
+  const isBasic = props.mode === "basic";
+
+  // Simplified filters for Basic mode
+  const filtersHtml = isBasic
+    ? html`
+        <div class="filters" style="margin-top: 14px;">
+          <label class="field">
+            <span>Active within (minutes)</span>
+            <input
+              .value=${props.activeMinutes}
+              @input=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: (e.target as HTMLInputElement).value,
+                  limit: props.limit,
+                  includeGlobal: props.includeGlobal,
+                  includeUnknown: props.includeUnknown,
+                })}
+            />
+          </label>
+          <label class="field">
+            <span>Limit</span>
+            <input
+              .value=${props.limit}
+              @input=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: props.activeMinutes,
+                  limit: (e.target as HTMLInputElement).value,
+                  includeGlobal: props.includeGlobal,
+                  includeUnknown: props.includeUnknown,
+                })}
+            />
+          </label>
+        </div>
+      `
+    : html`
+        <div class="filters" style="margin-top: 14px;">
+          <label class="field">
+            <span>Active within (minutes)</span>
+            <input
+              .value=${props.activeMinutes}
+              @input=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: (e.target as HTMLInputElement).value,
+                  limit: props.limit,
+                  includeGlobal: props.includeGlobal,
+                  includeUnknown: props.includeUnknown,
+                })}
+            />
+          </label>
+          <label class="field">
+            <span>Limit</span>
+            <input
+              .value=${props.limit}
+              @input=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: props.activeMinutes,
+                  limit: (e.target as HTMLInputElement).value,
+                  includeGlobal: props.includeGlobal,
+                  includeUnknown: props.includeUnknown,
+                })}
+            />
+          </label>
+          <label class="field checkbox">
+            <span>Include global</span>
+            <input
+              type="checkbox"
+              .checked=${props.includeGlobal}
+              @change=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: props.activeMinutes,
+                  limit: props.limit,
+                  includeGlobal: (e.target as HTMLInputElement).checked,
+                  includeUnknown: props.includeUnknown,
+                })}
+            />
+          </label>
+          <label class="field checkbox">
+            <span>Include unknown</span>
+            <input
+              type="checkbox"
+              .checked=${props.includeUnknown}
+              @change=${(e: Event) =>
+                props.onFiltersChange({
+                  activeMinutes: props.activeMinutes,
+                  limit: props.limit,
+                  includeGlobal: props.includeGlobal,
+                  includeUnknown: (e.target as HTMLInputElement).checked,
+                })}
+            />
+          </label>
+        </div>
+      `;
+
+  // Simplified table columns for Basic mode
+  const tableHeadHtml = isBasic
+    ? html`
+        <div class="table-head">
+          <div>Key</div>
+          <div>Label</div>
+          <div>Kind</div>
+          <div>Updated</div>
+        </div>
+      `
+    : html`
+        <div class="table-head">
+          <div>Key</div>
+          <div>Label</div>
+          <div>Kind</div>
+          <div>Updated</div>
+          <div>Tokens</div>
+          <div>Thinking</div>
+          <div>Verbose</div>
+          <div>Reasoning</div>
+          <div>Actions</div>
+        </div>
+      `;
+
   return html`
     <section class="card">
       <div class="row" style="justify-content: space-between;">
@@ -121,62 +240,7 @@ export function renderSessions(props: SessionsProps) {
         </button>
       </div>
 
-      <div class="filters" style="margin-top: 14px;">
-        <label class="field">
-          <span>Active within (minutes)</span>
-          <input
-            .value=${props.activeMinutes}
-            @input=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: (e.target as HTMLInputElement).value,
-                limit: props.limit,
-                includeGlobal: props.includeGlobal,
-                includeUnknown: props.includeUnknown,
-              })}
-          />
-        </label>
-        <label class="field">
-          <span>Limit</span>
-          <input
-            .value=${props.limit}
-            @input=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: props.activeMinutes,
-                limit: (e.target as HTMLInputElement).value,
-                includeGlobal: props.includeGlobal,
-                includeUnknown: props.includeUnknown,
-              })}
-          />
-        </label>
-        <label class="field checkbox">
-          <span>Include global</span>
-          <input
-            type="checkbox"
-            .checked=${props.includeGlobal}
-            @change=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: props.activeMinutes,
-                limit: props.limit,
-                includeGlobal: (e.target as HTMLInputElement).checked,
-                includeUnknown: props.includeUnknown,
-              })}
-          />
-        </label>
-        <label class="field checkbox">
-          <span>Include unknown</span>
-          <input
-            type="checkbox"
-            .checked=${props.includeUnknown}
-            @change=${(e: Event) =>
-              props.onFiltersChange({
-                activeMinutes: props.activeMinutes,
-                limit: props.limit,
-                includeGlobal: props.includeGlobal,
-                includeUnknown: (e.target as HTMLInputElement).checked,
-              })}
-          />
-        </label>
-      </div>
+      ${filtersHtml}
 
       ${
         props.error
@@ -189,24 +253,14 @@ export function renderSessions(props: SessionsProps) {
       </div>
 
       <div class="table" style="margin-top: 16px;">
-        <div class="table-head">
-          <div>Key</div>
-          <div>Label</div>
-          <div>Kind</div>
-          <div>Updated</div>
-          <div>Tokens</div>
-          <div>Thinking</div>
-          <div>Verbose</div>
-          <div>Reasoning</div>
-          <div>Actions</div>
-        </div>
+        ${tableHeadHtml}
         ${
           rows.length === 0
             ? html`
                 <div class="muted">No sessions found.</div>
               `
             : rows.map((row) =>
-                renderRow(row, props.basePath, props.onPatch, props.onDelete, props.loading),
+                renderRow(row, props.basePath, props.onPatch, props.onDelete, props.loading, isBasic),
               )
         }
       </div>
@@ -220,6 +274,7 @@ function renderRow(
   onPatch: SessionsProps["onPatch"],
   onDelete: SessionsProps["onDelete"],
   disabled: boolean,
+  isBasic: boolean,
 ) {
   const updated = row.updatedAt ? formatRelativeTimestamp(row.updatedAt) : "n/a";
   const rawThinking = row.thinkingLevel ?? "";
@@ -241,6 +296,32 @@ function renderRow(
     ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(row.key)}`
     : null;
 
+  // Simplified row for Basic mode
+  if (isBasic) {
+    return html`
+      <div class="table-row">
+        <div class="mono session-key-cell">
+          ${canLink ? html`<a href=${chatUrl} class="session-link">${row.key}</a>` : row.key}
+          ${showDisplayName ? html`<span class="muted session-key-display-name">${displayName}</span>` : nothing}
+        </div>
+        <div>
+          <input
+            .value=${row.label ?? ""}
+            ?disabled=${disabled}
+            placeholder="(optional)"
+            @change=${(e: Event) => {
+              const value = (e.target as HTMLInputElement).value.trim();
+              onPatch(row.key, { label: value || null });
+            }}
+          />
+        </div>
+        <div>${row.kind}</div>
+        <div>${updated}</div>
+      </div>
+    `;
+  }
+
+  // Full row for Advanced mode
   return html`
     <div class="table-row">
       <div class="mono session-key-cell">

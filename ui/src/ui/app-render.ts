@@ -285,6 +285,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "sessions"
             ? renderSessions({
+                mode: state.mode,
                 loading: state.sessionsLoading,
                 result: state.sessionsResult,
                 error: state.sessionsError,
