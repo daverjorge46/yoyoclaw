@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import { safeEqualSecret } from "../security/secret-equal.js";
 import {
   createAsyncLock,
@@ -176,7 +176,7 @@ function scopesAllow(requested: string[], allowed: string[]): boolean {
 }
 
 function newToken() {
-  return randomUUID().replaceAll("-", "");
+  return randomBytes(32).toString("base64url");
 }
 
 export async function listDevicePairing(baseDir?: string): Promise<DevicePairingList> {
