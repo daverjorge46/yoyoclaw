@@ -124,6 +124,12 @@ export async function runAgentTurnWithFallback(params: {
     params.followupRun.run.model = routed.model;
     fallbackProvider = routed.provider;
     fallbackModel = routed.model;
+
+    // Send model tag via streaming pipeline so it arrives before streamed content.
+    // For non-streaming, the tag is prepended to finalPayloads in runReplyAgent.
+    if (params.blockReplyPipeline) {
+      params.blockReplyPipeline.enqueue({ text: `🔀 ${route.modelRef}` });
+    }
   }
 
   while (true) {
