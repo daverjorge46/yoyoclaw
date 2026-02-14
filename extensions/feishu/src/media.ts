@@ -1,12 +1,12 @@
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
-import fs from "fs";
-import os from "os";
-import path from "path";
-import { Readable } from "stream";
-import { resolveFeishuAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
+import { resolveFeishuAccount } from "./accounts.js";
 import { getFeishuRuntime } from "./runtime.js";
 import { resolveReceiveIdType, normalizeFeishuTarget } from "./targets.js";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { Readable } from "stream";
 
 export type DownloadImageResult = {
   buffer: Buffer;
@@ -40,12 +40,9 @@ export async function downloadImageFeishu(params: {
     path: { image_key: imageKey },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK response type
   const responseAny = response as any;
   if (responseAny.code !== undefined && responseAny.code !== 0) {
-    throw new Error(
-      `Feishu image download failed: ${responseAny.msg || `code ${responseAny.code}`}`,
-    );
+    throw new Error(`Feishu image download failed: ${responseAny.msg || `code ${responseAny.code}`}`);
   }
 
   // Handle various response formats from Feishu SDK
@@ -90,8 +87,10 @@ export async function downloadImageFeishu(params: {
   } else {
     // Debug: log what we actually received
     const keys = Object.keys(responseAny);
-    const types = keys.map((k) => `${k}: ${typeof responseAny[k]}`).join(", ");
-    throw new Error(`Feishu image download failed: unexpected response format. Keys: [${types}]`);
+    const types = keys.map(k => `${k}: ${typeof responseAny[k]}`).join(", ");
+    throw new Error(
+      `Feishu image download failed: unexpected response format. Keys: [${types}]`,
+    );
   }
 
   return { buffer };
@@ -121,7 +120,6 @@ export async function downloadMessageResourceFeishu(params: {
     params: { type },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK response type
   const responseAny = response as any;
   if (responseAny.code !== undefined && responseAny.code !== 0) {
     throw new Error(
@@ -171,7 +169,7 @@ export async function downloadMessageResourceFeishu(params: {
   } else {
     // Debug: log what we actually received
     const keys = Object.keys(responseAny);
-    const types = keys.map((k) => `${k}: ${typeof responseAny[k]}`).join(", ");
+    const types = keys.map(k => `${k}: ${typeof responseAny[k]}`).join(", ");
     throw new Error(
       `Feishu message resource download failed: unexpected response format. Keys: [${types}]`,
     );
@@ -211,22 +209,20 @@ export async function uploadImageFeishu(params: {
 
   const client = createFeishuClient(account);
 
-  // SDK accepts Buffer directly or fs.ReadStream for file paths
-  // Using Readable.from(buffer) causes issues with form-data library
-  // See: https://github.com/larksuite/node-sdk/issues/121
-  const imageData = typeof image === "string" ? fs.createReadStream(image) : image;
+  // SDK expects a Readable stream, not a Buffer
+  // Use type assertion since SDK actually accepts any Readable at runtime
+  const imageStream =
+    typeof image === "string" ? fs.createReadStream(image) : Readable.from(image);
 
   const response = await client.im.image.create({
     data: {
       image_type: imageType,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK accepts Buffer or ReadStream
-      image: imageData as any,
+      image: imageStream as any,
     },
   });
 
   // SDK v1.30+ returns data directly without code wrapper on success
   // On error, it throws or returns { code, msg }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK response type
   const responseAny = response as any;
   if (responseAny.code !== undefined && responseAny.code !== 0) {
     throw new Error(`Feishu image upload failed: ${responseAny.msg || `code ${responseAny.code}`}`);
@@ -260,23 +256,21 @@ export async function uploadFileFeishu(params: {
 
   const client = createFeishuClient(account);
 
-  // SDK accepts Buffer directly or fs.ReadStream for file paths
-  // Using Readable.from(buffer) causes issues with form-data library
-  // See: https://github.com/larksuite/node-sdk/issues/121
-  const fileData = typeof file === "string" ? fs.createReadStream(file) : file;
+  // SDK expects a Readable stream, not a Buffer
+  // Use type assertion since SDK actually accepts any Readable at runtime
+  const fileStream =
+    typeof file === "string" ? fs.createReadStream(file) : Readable.from(file);
 
   const response = await client.im.file.create({
     data: {
       file_type: fileType,
       file_name: fileName,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK accepts Buffer or ReadStream
-      file: fileData as any,
+      file: fileStream as any,
       ...(duration !== undefined && { duration }),
     },
   });
 
   // SDK v1.30+ returns data directly without code wrapper on success
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK response type
   const responseAny = response as any;
   if (responseAny.code !== undefined && responseAny.code !== 0) {
     throw new Error(`Feishu file upload failed: ${responseAny.msg || `code ${responseAny.code}`}`);
@@ -360,7 +354,6 @@ export async function sendFileFeishu(params: {
   cfg: ClawdbotConfig;
   to: string;
   fileKey: string;
-  /** Use "media" for audio/video files, "file" for documents */
   msgType?: "file" | "media";
   replyToMessageId?: string;
   accountId?: string;
@@ -502,7 +495,6 @@ export async function sendMediaFeishu(params: {
       fileType,
       accountId,
     });
-    // Feishu requires msg_type "media" for audio/video, "file" for documents
     const isMedia = fileType === "mp4" || fileType === "opus";
     return sendFileFeishu({
       cfg,

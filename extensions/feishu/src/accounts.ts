@@ -1,11 +1,6 @@
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
-import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
-import type {
-  FeishuConfig,
-  FeishuAccountConfig,
-  FeishuDomain,
-  ResolvedFeishuAccount,
-} from "./types.js";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk";
+import type { FeishuConfig, FeishuAccountConfig, FeishuDomain, ResolvedFeishuAccount } from "./types.js";
 
 /**
  * List all configured account IDs from the accounts field.
@@ -28,7 +23,7 @@ export function listFeishuAccountIds(cfg: ClawdbotConfig): string[] {
     // Backward compatibility: no accounts configured, use default
     return [DEFAULT_ACCOUNT_ID];
   }
-  return [...ids].toSorted((a, b) => a.localeCompare(b));
+  return [...ids].sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -60,7 +55,10 @@ function resolveAccountConfig(
  * Merge top-level config with account-specific config.
  * Account-specific fields override top-level fields.
  */
-function mergeFeishuAccountConfig(cfg: ClawdbotConfig, accountId: string): FeishuConfig {
+function mergeFeishuAccountConfig(
+  cfg: ClawdbotConfig,
+  accountId: string,
+): FeishuConfig {
   const feishuCfg = cfg.channels?.feishu as FeishuConfig | undefined;
 
   // Extract base config (exclude accounts field to avoid recursion)
@@ -85,9 +83,7 @@ export function resolveFeishuCredentials(cfg?: FeishuConfig): {
 } | null {
   const appId = cfg?.appId?.trim();
   const appSecret = cfg?.appSecret?.trim();
-  if (!appId || !appSecret) {
-    return null;
-  }
+  if (!appId || !appSecret) return null;
   return {
     appId,
     appSecret,

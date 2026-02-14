@@ -1,6 +1,6 @@
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
-import { resolveFeishuAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
+import { resolveFeishuAccount } from "./accounts.js";
 
 export type FeishuReaction = {
   reactionId: string;
