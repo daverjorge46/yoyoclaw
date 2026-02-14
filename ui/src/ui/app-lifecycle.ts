@@ -9,6 +9,7 @@ import {
   stopDebugPolling,
 } from "./app-polling.ts";
 import { observeTopbar, scheduleChatScroll, scheduleLogsScroll } from "./app-scroll.ts";
+import { onMessagesUpdated } from "./chat/audio-queue.ts";
 import {
   applySettingsFromUrl,
   attachThemeListener,
@@ -53,6 +54,8 @@ export function handleConnected(host: LifecycleHost) {
 
 export function handleFirstUpdated(host: LifecycleHost) {
   observeTopbar(host as unknown as Parameters<typeof observeTopbar>[0]);
+
+  // Audio autoplay init happens in handleUpdated when first messages arrive
 }
 
 export function handleDisconnected(host: LifecycleHost) {
@@ -84,6 +87,9 @@ export function handleUpdated(host: LifecycleHost, changed: Map<PropertyKey, unk
       host as unknown as Parameters<typeof scheduleChatScroll>[0],
       forcedByTab || forcedByLoad || !host.chatHasAutoScrolled,
     );
+
+    // Track message count for audio autoplay (distinguishes initial load from new messages)
+    onMessagesUpdated(host.chatMessages.length);
   }
   if (
     host.tab === "logs" &&

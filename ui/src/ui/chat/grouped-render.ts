@@ -5,6 +5,7 @@ import type { MessageGroup } from "../types/chat-types.ts";
 import { toSanitizedMarkdownHtml } from "../markdown.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import { extractAudioBlocks } from "./audio-extract.ts";
+import { trackAudio } from "./audio-queue.ts";
 import { renderCopyAsMarkdownButton } from "./copy-as-markdown.ts";
 import {
   extractTextCached,
@@ -276,11 +277,11 @@ function renderGroupedMessage(
       ${
         audioBlocks.length > 0
           ? audioBlocks.map(
-              (block) => html`
-              <audio class="chat-audio-player" controls preload="auto">
-                <source src="${block.dataUri}" type="${block.mimeType}">
-              </audio>
-            `,
+              (block) => {
+                trackAudio(block.dataUri);
+                return html`<audio class="chat-audio-player" controls preload="auto">
+                    <source src="${block.dataUri}" type="${block.mimeType}"></audio>`;
+              },
             )
           : nothing
       }
