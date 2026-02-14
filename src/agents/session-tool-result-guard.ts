@@ -58,13 +58,13 @@ function capToolResultSize(msg: AgentMessage): AgentMessage {
     return msg;
   }
   const content = normalizeToolResultContent((msg as { content?: unknown }).content);
-  const normalizedMessage = { ...msg, content } as AgentMessage;
+  const normalizedMessage = { ...msg, content } as unknown as AgentMessage;
 
   // Calculate total text size
   let totalTextChars = 0;
   for (const block of content) {
     if (block && typeof block === "object" && (block as { type?: string }).type === "text") {
-      const text = (block as TextContent).text;
+      const text = (block as { text?: unknown }).text;
       if (typeof text === "string") {
         totalTextChars += text.length;
       }

@@ -1,5 +1,6 @@
 import type { ChannelId } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "./config.js";
+import type { TypingMode } from "./types.base.js";
 import type { ContactsConfig } from "./types.contacts.js";
 import type { GroupToolPolicyBySenderConfig, GroupToolPolicyConfig } from "./types.tools.js";
 import { normalizeAccountId } from "../routing/session-key.js";
@@ -11,6 +12,7 @@ export type ChannelGroupConfig = {
   tools?: GroupToolPolicyConfig;
   toolsBySender?: GroupToolPolicyBySenderConfig;
   instructions?: string;
+  typingMode?: TypingMode;
 };
 
 export type ChannelDmConfig = {

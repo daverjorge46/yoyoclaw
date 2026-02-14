@@ -165,8 +165,21 @@ export async function runPreparedReply(
   const isGroupChat = sessionCtx.ChatType === "group";
   const wasMentioned = ctx.WasMentioned === true;
   const isHeartbeat = opts?.isHeartbeat === true;
+  // Resolve channel group policy early (needed for typingMode and instructions)
+  const groupId = resolveGroupSessionKey(sessionCtx)?.id;
+  const channel = sessionCtx.OriginatingChannel ?? sessionCtx.Provider;
+  const groupPolicy = channel
+    ? resolveChannelGroupPolicy({
+        cfg,
+        channel,
+        groupId,
+        accountId: sessionCtx.AccountId,
+      })
+    : undefined;
+  const groupTypingMode =
+    groupPolicy?.groupConfig?.typingMode ?? groupPolicy?.defaultConfig?.typingMode;
   const typingMode = resolveTypingMode({
-    configured: sessionCfg?.typingMode ?? agentCfg?.typingMode,
+    configured: groupTypingMode ?? sessionCfg?.typingMode ?? agentCfg?.typingMode,
     isGroupChat,
     wasMentioned,
     isHeartbeat,
@@ -192,17 +205,6 @@ export async function runPreparedReply(
     senderE164: sessionCtx.SenderE164,
     ownerNumbers: command.ownerList,
   });
-  // Resolve channel group instructions (if any)
-  const groupId = resolveGroupSessionKey(sessionCtx)?.id;
-  const channel = sessionCtx.OriginatingChannel ?? sessionCtx.Provider;
-  const groupPolicy = channel
-    ? resolveChannelGroupPolicy({
-        cfg,
-        channel,
-        groupId,
-        accountId: sessionCtx.AccountId,
-      })
-    : undefined;
   const groupInstructions =
     groupPolicy?.groupConfig?.instructions ?? groupPolicy?.defaultConfig?.instructions;
   const inboundMetaPrompt = buildInboundMetaSystemPrompt(

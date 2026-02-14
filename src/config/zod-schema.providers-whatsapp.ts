@@ -49,6 +49,7 @@ export const WhatsAppAccountSchema = z
             tools: ToolPolicySchema,
             toolsBySender: ToolPolicyBySenderSchema,
             instructions: z.string().optional(),
+            typingMode: z.enum(["never", "instant", "thinking", "message"]).optional(),
           })
           .strict()
           .optional(),
@@ -122,6 +123,7 @@ export const WhatsAppConfigSchema = z
             tools: ToolPolicySchema,
             toolsBySender: ToolPolicyBySenderSchema,
             instructions: z.string().optional(),
+            typingMode: z.enum(["never", "instant", "thinking", "message"]).optional(),
           })
           .strict()
           .optional(),
