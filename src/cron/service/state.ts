@@ -64,6 +64,16 @@ export type CronServiceState = {
   deps: CronServiceDepsInternal;
   store: CronStoreFile | null;
   timer: NodeJS.Timeout | null;
+  /** When state.running was set to true; used to detect hung onTimer. */
+  runningStartedAtMs: number | null;
+  /** Background watchdog that re-arms the timer if it dies. */
+  watchdogTimer: NodeJS.Timeout | null;
+  /** Anti-zombie check-in: re-init if no timer tick completes within this window. */
+  antiZombieTimer: NodeJS.Timeout | null;
+  /** Guard to prevent overlapping anti-zombie watchdog iterations. */
+  antiZombieInProgress: boolean;
+  /** Last time onTimer completed a tick (used by anti-zombie to detect frozen scheduler). */
+  lastTimerTickAtMs: number | null;
   running: boolean;
   op: Promise<unknown>;
   warnedDisabled: boolean;
@@ -76,6 +86,11 @@ export function createCronServiceState(deps: CronServiceDeps): CronServiceState 
     deps: { ...deps, nowMs: deps.nowMs ?? (() => Date.now()) },
     store: null,
     timer: null,
+    runningStartedAtMs: null,
+    watchdogTimer: null,
+    antiZombieTimer: null,
+    antiZombieInProgress: false,
+    lastTimerTickAtMs: null,
     running: false,
     op: Promise.resolve(),
     warnedDisabled: false,

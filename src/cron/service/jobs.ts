@@ -18,7 +18,22 @@ import {
   normalizeRequiredName,
 } from "./normalize.js";
 
+/** Default max job duration (ms); used when job has no custom timeoutSeconds. */
+const DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000;
+
+/** Minimum threshold for clearing stuck runningAtMs; avoids false positives for short jobs. */
+const MIN_STUCK_RUN_MS = 15 * 60 * 1000;
+
+/** Failsafe upper bound for stuck runs used in maintenance recomputes. */
 const STUCK_RUN_MS = 2 * 60 * 60 * 1000;
+
+export function getStuckRunThresholdMs(job: CronJob): number {
+  const jobMaxMs =
+    job.payload.kind === "agentTurn" && typeof job.payload.timeoutSeconds === "number"
+      ? job.payload.timeoutSeconds * 1_000
+      : DEFAULT_JOB_TIMEOUT_MS;
+  return Math.max(MIN_STUCK_RUN_MS, jobMaxMs * 1.5);
+}
 
 function resolveEveryAnchorMs(params: {
   schedule: { everyMs: number; anchorMs?: number };
@@ -113,9 +128,10 @@ export function recomputeNextRuns(state: CronServiceState): boolean {
       continue;
     }
     const runningAt = job.state.runningAtMs;
-    if (typeof runningAt === "number" && now - runningAt > STUCK_RUN_MS) {
+    const thresholdMs = getStuckRunThresholdMs(job);
+    if (typeof runningAt === "number" && now - runningAt > thresholdMs) {
       state.deps.log.warn(
-        { jobId: job.id, runningAtMs: runningAt },
+        { jobId: job.id, runningAtMs: runningAt, thresholdMs },
         "cron: clearing stuck running marker",
       );
       job.state.runningAtMs = undefined;

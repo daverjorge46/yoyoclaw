@@ -23,6 +23,18 @@ const MAX_TIMER_DELAY_MS = 60_000;
  */
 const DEFAULT_JOB_TIMEOUT_MS = 10 * 60_000; // 10 minutes
 
+/** Threshold for treating state.running as stale (hung onTimer). Must exceed max job duration. */
+const STALE_RUNNING_MS = 2 * DEFAULT_JOB_TIMEOUT_MS;
+
+/** Watchdog fires every 2.5 minutes to detect and recover from a dead timer. */
+const WATCHDOG_INTERVAL_MS = 2.5 * 60_000;
+
+/** Anti-zombie: if no timer tick completes within this window, re-initialize the scheduler. */
+const ANTI_ZOMBIE_IDLE_MS = 60_000;
+
+/** How often the anti-zombie check-in runs. */
+const ANTI_ZOMBIE_CHECK_INTERVAL_MS = 60_000;
+
 /**
  * Exponential backoff delays (in ms) indexed by consecutive error count.
  * After the last entry the delay stays constant.
@@ -149,6 +161,7 @@ export function armTimer(state: CronServiceState) {
       await onTimer(state);
     } catch (err) {
       state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+      armTimer(state); // Defensive: ensure next wake is scheduled
     }
   }, clampedDelay);
   state.deps.log.debug(
@@ -158,7 +171,31 @@ export function armTimer(state: CronServiceState) {
 }
 
 export async function onTimer(state: CronServiceState) {
-  if (state.running) {
+  const now = state.deps.nowMs();
+  // Recover from hung onTimer: if running has been true for too long, reset and proceed.
+  if (state.running && typeof state.runningStartedAtMs === "number") {
+    if (now - state.runningStartedAtMs > STALE_RUNNING_MS) {
+      state.deps.log.warn(
+        { runningStartedAtMs: state.runningStartedAtMs, staleAfterMs: STALE_RUNNING_MS },
+        "cron: recovering from hung run, resetting state.running",
+      );
+      state.running = false;
+      state.runningStartedAtMs = null;
+    } else {
+      // Still within window: re-arm so scheduler keeps ticking (issue #12025).
+      if (state.timer) {
+        clearTimeout(state.timer);
+      }
+      state.timer = setTimeout(async () => {
+        try {
+          await onTimer(state);
+        } catch (err) {
+          state.deps.log.error({ err: String(err) }, "cron: timer tick failed");
+        }
+      }, MAX_TIMER_DELAY_MS);
+      return;
+    }
+  } else if (state.running) {
     // Re-arm the timer so the scheduler keeps ticking even when a job is
     // still executing.  Without this, a long-running job (e.g. an agentTurn
     // exceeding MAX_TIMER_DELAY_MS) causes the clamped 60 s timer to fire
@@ -182,6 +219,7 @@ export async function onTimer(state: CronServiceState) {
     return;
   }
   state.running = true;
+  state.runningStartedAtMs = now;
   try {
     const dueJobs = await locked(state, async () => {
       await ensureLoaded(state, { forceReload: true, skipRecompute: true });
@@ -333,6 +371,8 @@ export async function onTimer(state: CronServiceState) {
     }
   } finally {
     state.running = false;
+    state.runningStartedAtMs = null;
+    state.lastTimerTickAtMs = state.deps.nowMs();
     armTimer(state);
   }
 }
@@ -588,6 +628,138 @@ export function stopTimer(state: CronServiceState) {
     clearTimeout(state.timer);
   }
   state.timer = null;
+  if (state.watchdogTimer) {
+    clearInterval(state.watchdogTimer);
+  }
+  state.watchdogTimer = null;
+  if (state.antiZombieTimer) {
+    clearInterval(state.antiZombieTimer);
+  }
+  state.antiZombieTimer = null;
+}
+
+/**
+ * Start the watchdog that re-arms the timer if it dies (e.g. hung onTimer).
+ * Call when cron service starts; stopTimer clears it on stop.
+ */
+export function startWatchdog(state: CronServiceState) {
+  if (state.watchdogTimer) {
+    return;
+  }
+  if (!state.deps.cronEnabled) {
+    return;
+  }
+  state.watchdogTimer = setInterval(() => {
+    if (!state.deps.cronEnabled || state.store === null) {
+      return;
+    }
+    const nextAt = nextWakeAtMs(state);
+    if (nextAt == null) {
+      return;
+    }
+    if (state.timer !== null) {
+      return; // Timer is armed
+    }
+    state.deps.log.info({}, "cron: watchdog re-arming timer (recovered from stale state)");
+    armTimer(state);
+  }, WATCHDOG_INTERVAL_MS);
+  state.watchdogTimer.unref?.();
+}
+
+/**
+ * Anti-zombie self-healing: if the scheduler has not completed a single timer tick
+ * within ANTI_ZOMBIE_IDLE_MS (e.g. 60s), re-initialize the event loop (clear timer,
+ * reset running, re-arm). Solves the case where the service reports "Active" but
+ * jobs are frozen. Call when cron starts; stopTimer clears it.
+ */
+export function startAntiZombieWatchdog(state: CronServiceState) {
+  if (state.antiZombieTimer) {
+    return;
+  }
+  if (!state.deps.cronEnabled) {
+    return;
+  }
+  state.antiZombieTimer = setInterval(async () => {
+    if (state.antiZombieInProgress) {
+      return;
+    }
+    state.antiZombieInProgress = true;
+    if (!state.deps.cronEnabled || state.store === null) {
+      state.antiZombieInProgress = false;
+      return;
+    }
+    if (nextWakeAtMs(state) == null) {
+      return; // Nothing to run; no need to re-init
+    }
+    if (state.running) {
+      return; // Tick in progress; STALE_RUNNING_MS handles hung ticks
+    }
+    const now = state.deps.nowMs();
+    const lastTick = state.lastTimerTickAtMs ?? 0;
+    if (now - lastTick <= ANTI_ZOMBIE_IDLE_MS) {
+      state.antiZombieInProgress = false;
+      return;
+    }
+    state.deps.log.warn(
+      { lastTimerTickAtMs: lastTick, idleMs: now - lastTick, thresholdMs: ANTI_ZOMBIE_IDLE_MS },
+      "cron: anti-zombie: no tick in 60s, re-initializing scheduler",
+    );
+
+    try {
+      // Recover in-flight jobs that were marked as running but never
+      // completed. We treat only sufficiently old markers as stale to avoid
+      // double-running genuinely in-progress work.
+      await locked(state, async () => {
+        const jobs = state.store?.jobs ?? [];
+        const staleJobs = jobs.filter(
+          (job) =>
+            job.enabled &&
+            typeof job.state.runningAtMs === "number" &&
+            now - job.state.runningAtMs >= STALE_RUNNING_MS,
+        );
+
+        if (staleJobs.length === 0) {
+          return;
+        }
+
+        for (const job of staleJobs) {
+          const runningAtMs = job.state.runningAtMs as number;
+          state.deps.log.warn(
+            {
+              jobId: job.id,
+              runningAtMs,
+              staleAfterMs: STALE_RUNNING_MS,
+            },
+            "cron: anti-zombie: recovering stale-running job",
+          );
+
+          // Clear the running marker and force the job to be considered due
+          // immediately so the next scheduler tick will execute it.
+          job.state.runningAtMs = undefined;
+          job.state.nextRunAtMs = now;
+        }
+
+        await persist(state);
+      });
+    } catch (err) {
+      state.deps.log.error(
+        { err: String(err) },
+        "cron: anti-zombie: failed to recover stale-running jobs",
+      );
+    } finally {
+      state.antiZombieInProgress = false;
+    }
+
+    if (state.timer) {
+      clearTimeout(state.timer);
+    }
+    state.timer = null;
+    state.running = false;
+    state.runningStartedAtMs = null;
+    state.lastTimerTickAtMs = now;
+    armTimer(state);
+  }, ANTI_ZOMBIE_CHECK_INTERVAL_MS);
+  state.antiZombieTimer.unref?.();
 }
 
 export function emit(state: CronServiceState, evt: CronEvent) {

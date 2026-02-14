@@ -5,6 +5,7 @@ import {
   computeJobNextRunAtMs,
   createJob,
   findJobOrThrow,
+  getStuckRunThresholdMs,
   isJobDue,
   nextWakeAtMs,
   recomputeNextRuns,
@@ -12,7 +13,16 @@ import {
 } from "./jobs.js";
 import { locked } from "./locked.js";
 import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
-import { armTimer, emit, executeJob, runMissedJobs, stopTimer, wake } from "./timer.js";
+import {
+  armTimer,
+  emit,
+  executeJob,
+  runMissedJobs,
+  startAntiZombieWatchdog,
+  startWatchdog,
+  stopTimer,
+  wake,
+} from "./timer.js";
 
 export async function start(state: CronServiceState) {
   await locked(state, async () => {
@@ -22,10 +32,21 @@ export async function start(state: CronServiceState) {
     }
     await ensureLoaded(state, { skipRecompute: true });
     const jobs = state.store?.jobs ?? [];
+    const now = state.deps.nowMs();
     for (const job of jobs) {
-      if (typeof job.state.runningAtMs === "number") {
+      const runningAtMs = job.state.runningAtMs;
+      if (typeof runningAtMs !== "number") {
+        continue;
+      }
+
+      const thresholdMs = getStuckRunThresholdMs(job);
+      // Only clear markers that are clearly older than a normal stuck run
+      // threshold so we avoid double-executing jobs that were legitimately
+      // in-flight when the process restarted. Fresh markers are left intact
+      // and will be handled by the normal stuck-run recovery logic.
+      if (now - runningAtMs >= thresholdMs) {
         state.deps.log.warn(
-          { jobId: job.id, runningAtMs: job.state.runningAtMs },
+          { jobId: job.id, runningAtMs, staleAfterMs: thresholdMs },
           "cron: clearing stale running marker on startup",
         );
         job.state.runningAtMs = undefined;
@@ -35,6 +56,9 @@ export async function start(state: CronServiceState) {
     recomputeNextRuns(state);
     await persist(state);
     armTimer(state);
+    state.lastTimerTickAtMs = state.deps.nowMs();
+    startWatchdog(state);
+    startAntiZombieWatchdog(state);
     state.deps.log.info(
       {
         enabled: true,
@@ -61,6 +85,11 @@ export async function status(state: CronServiceState) {
         await persist(state);
       }
     }
+    // Recover from zombie: if timer is dead but we have jobs to run, re-arm.
+    if (state.deps.cronEnabled && nextWakeAtMs(state) != null && state.timer === null) {
+      state.deps.log.info({}, "cron: re-arming timer (recovered from stale state)");
+      armTimer(state);
+    }
     return {
       enabled: state.deps.cronEnabled,
       storePath: state.deps.storePath,
@@ -80,6 +109,11 @@ export async function list(state: CronServiceState, opts?: { includeDisabled?: b
       if (changed) {
         await persist(state);
       }
+    }
+    // Recover from zombie: if timer is dead but we have jobs to run, re-arm.
+    if (state.deps.cronEnabled && nextWakeAtMs(state) != null && state.timer === null) {
+      state.deps.log.info({}, "cron: re-arming timer (recovered from stale state)");
+      armTimer(state);
     }
     const includeDisabled = opts?.includeDisabled === true;
     const jobs = (state.store?.jobs ?? []).filter((j) => includeDisabled || j.enabled);
