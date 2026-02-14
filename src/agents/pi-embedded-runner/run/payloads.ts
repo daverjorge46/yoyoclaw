@@ -202,13 +202,14 @@ export function buildEmbeddedRunPayloads(params: {
   }
 
   if (params.lastToolError) {
-    const lastAssistantHasToolCalls =
-      Array.isArray(params.lastAssistant?.content) &&
-      params.lastAssistant?.content.some((block) =>
-        block && typeof block === "object"
-          ? (block as { type?: unknown }).type === "toolCall"
-          : false,
-      );
+    const lastAssistantContent = Array.isArray(params.lastAssistant?.content)
+      ? params.lastAssistant?.content
+      : [];
+    const lastAssistantHasToolCalls = lastAssistantContent.some((block) =>
+      block && typeof block === "object"
+        ? (block as { type?: unknown }).type === "toolCall"
+        : false,
+    );
     const lastAssistantWasToolUse = params.lastAssistant?.stopReason === "toolUse";
     const hasUserFacingReply =
       replyItems.length > 0 && !lastAssistantHasToolCalls && !lastAssistantWasToolUse;
