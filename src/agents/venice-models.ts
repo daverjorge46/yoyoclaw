@@ -343,6 +343,7 @@ export async function discoverVeniceModels(): Promise<ModelDefinitionConfig[]> {
     // Create abort controller with timeout to prevent unhandled rejections
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
+    if (typeof timeoutId.unref === "function") timeoutId.unref();
 
     let response: Response;
     try {
