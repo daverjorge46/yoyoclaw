@@ -184,7 +184,9 @@ export async function runMemoryFlushIfNeeded(params: {
           sessionKey: params.sessionKey,
           update: async () => ({
             memoryFlushAt: Date.now(),
-            memoryFlushCompactionCount,
+            // Only update memoryFlushCompactionCount if compaction actually completed (#15930)
+            // Otherwise the session becomes permanently blocked from future auto-compaction
+            ...(memoryCompactionCompleted ? { memoryFlushCompactionCount } : {}),
           }),
         });
         if (updatedEntry) {
