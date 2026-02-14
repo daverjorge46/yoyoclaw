@@ -390,6 +390,7 @@ export async function runSubagentAnnounceFlow(params: {
   label?: string;
   outcome?: SubagentRunOutcome;
   announceType?: SubagentAnnounceType;
+  summaryPrompt?: string | false;
 }): Promise<boolean> {
   let didAnnounce = false;
   let shouldDeleteChildSession = params.cleanup === "delete";
@@ -496,6 +497,18 @@ export async function runSubagentAnnounceFlow(params: {
     // Build instructional message for main agent
     const announceType = params.announceType ?? "subagent task";
     const taskLabel = params.label || params.task || "task";
+
+    const defaultSummaryPrompt = [
+      "Summarize this naturally for the user. Keep it brief (1-2 sentences). Flow it into the conversation naturally.",
+      `Do not mention technical details like tokens, stats, or that this was a ${announceType}.`,
+      "You can respond with NO_REPLY if no announcement is needed (e.g., internal task with no user-facing result).",
+    ].join("\n");
+
+    const summaryInstruction =
+      params.summaryPrompt === false || params.summaryPrompt === ""
+        ? ""
+        : (params.summaryPrompt ?? defaultSummaryPrompt);
+
     const triggerMessage = [
       `A ${announceType} "${taskLabel}" just ${statusLabel}.`,
       "",
@@ -503,10 +516,7 @@ export async function runSubagentAnnounceFlow(params: {
       reply || "(no output)",
       "",
       statsLine,
-      "",
-      "Summarize this naturally for the user. Keep it brief (1-2 sentences). Flow it into the conversation naturally.",
-      `Do not mention technical details like tokens, stats, or that this was a ${announceType}.`,
-      "You can respond with NO_REPLY if no announcement is needed (e.g., internal task with no user-facing result).",
+      ...(summaryInstruction ? ["", summaryInstruction] : []),
     ].join("\n");
 
     const queued = await maybeQueueSubagentAnnounce({
