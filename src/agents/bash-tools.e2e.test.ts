@@ -221,6 +221,28 @@ describe("exec tool backgrounding", () => {
     expect(status).toBe("completed");
   });
 
+  it("defaults process log to a bounded tail when no window is provided", async () => {
+    const lines = Array.from({ length: 260 }, (_value, index) => `line-${index + 1}`);
+    const result = await execTool.execute("call1", {
+      command: echoLines(lines),
+      background: true,
+    });
+    const sessionId = (result.details as { sessionId: string }).sessionId;
+    await waitForCompletion(sessionId);
+
+    const log = await processTool.execute("call2", {
+      action: "log",
+      sessionId,
+    });
+    const textBlock = log.content.find((c) => c.type === "text")?.text ?? "";
+    const firstLine = textBlock.split("\n")[0]?.trim();
+    expect(textBlock).toContain("showing last 200 of 260 lines");
+    expect(firstLine).toBe("line-61");
+    expect(textBlock).toContain("line-61");
+    expect(textBlock).toContain("line-260");
+    expect((log.details as { totalLines?: number }).totalLines).toBe(260);
+  });
+
   it("supports line offsets for log slices", async () => {
     const result = await execTool.execute("call1", {
       command: echoLines(["alpha", "beta", "gamma"]),
@@ -299,6 +321,26 @@ describe("exec notifyOnExit", () => {
 
     expect(finished).toBeTruthy();
     expect(hasEvent).toBe(true);
+  });
+
+  it("skips no-op completion events when command succeeds without output", async () => {
+    const tool = createExecTool({
+      allowBackground: true,
+      backgroundMs: 0,
+      notifyOnExit: true,
+      sessionKey: "agent:main:main",
+    });
+
+    const result = await tool.execute("call2", {
+      command: shortDelayCmd,
+      background: true,
+    });
+
+    expect(result.details.status).toBe("running");
+    const sessionId = (result.details as { sessionId: string }).sessionId;
+    const status = await waitForCompletion(sessionId);
+    expect(status).toBe("completed");
+    expect(peekSystemEvents("agent:main:main")).toEqual([]);
   });
 });
 

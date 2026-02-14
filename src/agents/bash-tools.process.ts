@@ -30,6 +30,7 @@ type WritableStdin = {
   end: () => void;
   destroyed?: boolean;
 };
+const DEFAULT_LOG_TAIL_LINES = 200;
 
 const processSchema = Type.Object({
   action: Type.String({ description: "Process action" }),
@@ -294,13 +295,23 @@ export function createProcessTool(
                 details: { status: "failed" },
               };
             }
+            const effectiveOffset = params.offset;
+            const effectiveLimit =
+              typeof params.limit === "number" && Number.isFinite(params.limit)
+                ? params.limit
+                : DEFAULT_LOG_TAIL_LINES;
             const { slice, totalLines, totalChars } = sliceLogLines(
               scopedSession.aggregated,
-              params.offset,
-              params.limit,
+              effectiveOffset,
+              effectiveLimit,
             );
+            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
+            const defaultTailNote =
+              usingDefaultTail && totalLines > DEFAULT_LOG_TAIL_LINES
+                ? `\n\n[showing last ${DEFAULT_LOG_TAIL_LINES} of ${totalLines} lines; pass offset/limit to page]`
+                : "";
             return {
-              content: [{ type: "text", text: slice || "(no output yet)" }],
+              content: [{ type: "text", text: (slice || "(no output yet)") + defaultTailNote }],
               details: {
                 status: scopedSession.exited ? "completed" : "running",
                 sessionId: params.sessionId,
@@ -313,14 +324,26 @@ export function createProcessTool(
             };
           }
           if (scopedFinished) {
+            const effectiveOffset = params.offset;
+            const effectiveLimit =
+              typeof params.limit === "number" && Number.isFinite(params.limit)
+                ? params.limit
+                : DEFAULT_LOG_TAIL_LINES;
             const { slice, totalLines, totalChars } = sliceLogLines(
               scopedFinished.aggregated,
-              params.offset,
-              params.limit,
+              effectiveOffset,
+              effectiveLimit,
             );
             const status = scopedFinished.status === "completed" ? "completed" : "failed";
+            const usingDefaultTail = params.offset === undefined && params.limit === undefined;
+            const defaultTailNote =
+              usingDefaultTail && totalLines > DEFAULT_LOG_TAIL_LINES
+                ? `\n\n[showing last ${DEFAULT_LOG_TAIL_LINES} of ${totalLines} lines; pass offset/limit to page]`
+                : "";
             return {
-              content: [{ type: "text", text: slice || "(no output recorded)" }],
+              content: [
+                { type: "text", text: (slice || "(no output recorded)") + defaultTailNote },
+              ],
               details: {
                 status,
                 sessionId: params.sessionId,

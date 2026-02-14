@@ -82,6 +82,7 @@ export function stripThoughtSignatures<T>(
 }
 
 export const DEFAULT_BOOTSTRAP_MAX_CHARS = 20_000;
+export const DEFAULT_BOOTSTRAP_TOTAL_MAX_CHARS = 24_000;
 const BOOTSTRAP_HEAD_RATIO = 0.7;
 const BOOTSTRAP_TAIL_RATIO = 0.2;
 
@@ -161,11 +162,19 @@ export async function ensureSessionHeader(params: {
 
 export function buildBootstrapContextFiles(
   files: WorkspaceBootstrapFile[],
-  opts?: { warn?: (message: string) => void; maxChars?: number },
+  opts?: { warn?: (message: string) => void; maxChars?: number; totalMaxChars?: number },
 ): EmbeddedContextFile[] {
   const maxChars = opts?.maxChars ?? DEFAULT_BOOTSTRAP_MAX_CHARS;
+  const totalMaxChars = Math.max(
+    1,
+    Math.floor(opts?.totalMaxChars ?? Math.max(maxChars, DEFAULT_BOOTSTRAP_TOTAL_MAX_CHARS)),
+  );
+  let remainingTotalChars = totalMaxChars;
   const result: EmbeddedContextFile[] = [];
   for (const file of files) {
+    if (remainingTotalChars <= 0) {
+      break;
+    }
     if (file.missing) {
       result.push({
         path: file.path,
@@ -173,7 +182,8 @@ export function buildBootstrapContextFiles(
       });
       continue;
     }
-    const trimmed = trimBootstrapContent(file.content ?? "", file.name, maxChars);
+    const fileMaxChars = Math.max(1, Math.min(maxChars, remainingTotalChars));
+    const trimmed = trimBootstrapContent(file.content ?? "", file.name, fileMaxChars);
     if (!trimmed.content) {
       continue;
     }
@@ -182,6 +192,7 @@ export function buildBootstrapContextFiles(
         `workspace bootstrap file ${file.name} is ${trimmed.originalLength} chars (limit ${trimmed.maxChars}); truncating in injected context`,
       );
     }
+    remainingTotalChars = Math.max(0, remainingTotalChars - trimmed.content.length);
     result.push({
       path: file.path,
       content: trimmed.content,
