@@ -379,6 +379,7 @@ export {
   resolveLineAccount,
 } from "../line/accounts.js";
 export { LineConfigSchema } from "../line/config-schema.js";
+export { SynologyChatConfigSchema } from "../synology-chat/config-schema.js";
 export type {
   LineConfig,
   LineAccountConfig,
