@@ -21,6 +21,8 @@ export interface OneDriveUploadResult {
   name: string;
 }
 
+const ONEDRIVE_SIMPLE_UPLOAD_LIMIT_BYTES = 4 * 1024 * 1024;
+
 /**
  * Upload a file to the user's OneDrive root folder.
  * For larger files, this uses the simple upload endpoint (up to 4MB).
@@ -35,6 +37,15 @@ export async function uploadToOneDrive(params: {
 }): Promise<OneDriveUploadResult> {
   const fetchFn = params.fetchFn ?? fetch;
   const token = await params.tokenProvider.getAccessToken(GRAPH_SCOPE);
+
+  if (params.buffer.length > ONEDRIVE_SIMPLE_UPLOAD_LIMIT_BYTES) {
+    throw new Error(
+      `OneDrive simple upload only supports files up to ${ONEDRIVE_SIMPLE_UPLOAD_LIMIT_BYTES} bytes (${(
+        ONEDRIVE_SIMPLE_UPLOAD_LIMIT_BYTES /
+        (1024 * 1024)
+      ).toFixed(0)}MB). Use a resumable upload session implementation for larger files.`,
+    );
+  }
 
   // Use "OpenClawShared" folder to organize bot-uploaded files
   const uploadPath = `/OpenClawShared/${encodeURIComponent(params.filename)}`;
