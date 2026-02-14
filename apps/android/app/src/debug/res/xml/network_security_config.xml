@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config xmlns:tools="http://schemas.android.com/tools">
   <!-- 
-    Production security config: cleartext disabled by default.
-    Only specific trusted domains (tailnet/local dev) are allowed cleartext.
-    Debug builds override this via src/debug/res/xml/.
+    Debug security config: cleartext permitted globally for development.
+    This config is only used in debug builds (src/debug/res/xml/).
+    Release builds use the secure config from src/main/res/xml/.
   -->
-  <base-config cleartextTrafficPermitted="false" />
+  <base-config cleartextTrafficPermitted="true" tools:ignore="InsecureBaseConfiguration" />
   <!-- Allow HTTP for tailnet/local dev endpoints (e.g. canvas/background web). -->
   <domain-config cleartextTrafficPermitted="true">
     <domain includeSubdomains="true">openclaw.local</domain>
