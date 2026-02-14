@@ -31,6 +31,7 @@ import {
   resolveTelegramForumThreadId,
 } from "./bot/helpers.js";
 import { migrateTelegramGroupConfig } from "./group-migration.js";
+import { recordInboundMessage } from "./inbound-message-store.js";
 import { resolveTelegramInlineButtonsScope } from "./inline-buttons.js";
 import {
   buildModelsKeyboard,
@@ -693,6 +694,11 @@ export const registerTelegramHandlers = ({
       if (shouldSkipUpdate(ctx)) {
         return;
       }
+
+      // Record for inbound message store (enables chat history reads).
+      // Placed before access checks so the store reflects what the bot received,
+      // not what it acted on. The store is in-memory with TTL — no disk persistence.
+      recordInboundMessage(msg);
 
       const chatId = msg.chat.id;
       const isGroup = msg.chat.type === "group" || msg.chat.type === "supergroup";

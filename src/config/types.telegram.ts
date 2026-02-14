@@ -18,6 +18,8 @@ export type TelegramActionConfig = {
   editMessage?: boolean;
   /** Enable sticker actions (send and search). */
   sticker?: boolean;
+  /** Enable reading messages from inbound message store. */
+  messages?: boolean;
 };
 
 export type TelegramNetworkConfig = {
