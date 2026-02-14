@@ -665,8 +665,7 @@ describe("gateway server auth/connect", () => {
       mode: "token",
       token: "secret",
       rateLimit: { maxAttempts: 1, windowMs: 60_000, lockoutMs: 60_000, exemptLoopback: false },
-      // oxlint-disable-next-line typescript/no-explicit-any
-    } as any;
+    };
     const prevToken = process.env.OPENCLAW_GATEWAY_TOKEN;
     process.env.OPENCLAW_GATEWAY_TOKEN = "secret";
     const port = await getFreePort();
@@ -721,8 +720,7 @@ describe("gateway server auth/connect", () => {
       mode: "token",
       token: "secret",
       rateLimit: { maxAttempts: 1, windowMs: 60_000, lockoutMs: 60_000, exemptLoopback: false },
-      // oxlint-disable-next-line typescript/no-explicit-any
-    } as any;
+    };
     const prevToken = process.env.OPENCLAW_GATEWAY_TOKEN;
     process.env.OPENCLAW_GATEWAY_TOKEN = "secret";
     const port = await getFreePort();
