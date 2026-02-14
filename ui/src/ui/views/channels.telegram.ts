@@ -4,6 +4,7 @@ import type { ChannelsProps } from "./channels.types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { icons } from "../icons.ts";
+import { statusChip } from "./channels.shared.ts";
 
 export function renderTelegramCard(params: {
   props: ChannelsProps;
@@ -29,13 +30,11 @@ export function renderTelegramCard(params: {
         <div class="status-list account-card-status">
           <div>
             <span class="label">Running</span>
-            <span class="log-level ${account.running ? "info" : "warn"}">
-              ${account.running ? "Yes" : "No"}
-            </span>
+            ${statusChip(account.running)}
           </div>
           <div>
             <span class="label">Configured</span>
-            <span>${account.configured ? "Yes" : "No"}</span>
+            ${statusChip(account.configured)}
           </div>
           <div>
             <span class="label">Last inbound</span>

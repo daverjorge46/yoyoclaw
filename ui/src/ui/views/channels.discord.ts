@@ -4,6 +4,7 @@ import type { ChannelsProps } from "./channels.types.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
 import { icons } from "../icons.ts";
+import { statusChip } from "./channels.shared.ts";
 
 export function renderDiscordCard(params: {
   props: ChannelsProps;
@@ -11,7 +12,6 @@ export function renderDiscordCard(params: {
   accountCountLabel: unknown;
 }) {
   const { props, discord, accountCountLabel } = params;
-  const isRunning = discord?.running ?? false;
 
   return html`
     <div class="card" style="padding: 0;">
@@ -28,13 +28,11 @@ export function renderDiscordCard(params: {
         <div class="status-list">
           <div>
             <span class="label">Configured</span>
-            <span>${discord?.configured ? "Yes" : "No"}</span>
+            ${statusChip(discord?.configured)}
           </div>
           <div>
             <span class="label">Running</span>
-            <span class="log-level ${isRunning ? "info" : "warn"}">
-              ${isRunning ? "Yes" : "No"}
-            </span>
+            ${statusChip(discord?.running)}
           </div>
           <div>
             <span class="label">Last start</span>
