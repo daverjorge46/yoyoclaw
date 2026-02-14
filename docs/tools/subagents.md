@@ -337,8 +337,6 @@ By default, sub-agents get **all tools except** a set of denied tools that are u
     | `whatsapp_login` | Interactive setup — not a task |
     | `session_status` | Status/scheduling — main agent coordinates |
     | `cron` | Status/scheduling — main agent coordinates |
-    | `memory_search` | Pass relevant info in spawn prompt instead |
-    | `memory_get` | Pass relevant info in spawn prompt instead |
   </Accordion>
 </AccordionGroup>
 
