@@ -605,16 +605,12 @@ export async function prepareSlackMessage(params: {
     MediaType: effectiveMedia?.[0]?.contentType,
     MediaUrl: effectiveMedia?.[0]?.path,
     MediaPaths:
-      effectiveMedia && effectiveMedia.length > 0
-        ? effectiveMedia.map((m) => m.path)
-        : undefined,
+      effectiveMedia && effectiveMedia.length > 0 ? effectiveMedia.map((m) => m.path) : undefined,
     MediaUrls:
-      effectiveMedia && effectiveMedia.length > 0
-        ? effectiveMedia.map((m) => m.path)
-        : undefined,
+      effectiveMedia && effectiveMedia.length > 0 ? effectiveMedia.map((m) => m.path) : undefined,
     MediaTypes:
       effectiveMedia && effectiveMedia.length > 0
-        ? (effectiveMedia.map((m) => m.contentType).filter(Boolean) as string[])
+        ? effectiveMedia.map((m) => m.contentType ?? "application/octet-stream")
         : undefined,
     CommandAuthorized: commandAuthorized,
     OriginatingChannel: "slack" as const,
