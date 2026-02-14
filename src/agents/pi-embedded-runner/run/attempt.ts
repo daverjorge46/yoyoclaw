@@ -975,6 +975,7 @@ export async function runEmbeddedAttempt(
 
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await
+        const usage = getUsageTotals?.();
         if (hookRunner?.hasHooks("agent_end")) {
           hookRunner
             .runAgentEnd(
@@ -983,6 +984,13 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                tokenUsage: usage
+                  ? {
+                      input: usage.input ?? 0,
+                      output: usage.output ?? 0,
+                      total: usage.total,
+                    }
+                  : undefined,
               },
               {
                 agentId: hookAgentId,
