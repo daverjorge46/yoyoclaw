@@ -1,9 +1,9 @@
 import type { ThinkingLevel } from "@mariozechner/pi-agent-core";
 import type { ReasoningLevel, ThinkLevel } from "../../auto-reply/thinking.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import type { ExecToolDefaults } from "../bash-tools.js";
 import { logVerbose, danger } from "../../globals.js";
 import { resolveAgentConfig, resolveSessionAgentIds } from "../agent-scope.js";
-import type { ExecToolDefaults } from "../bash-tools.js";
 
 export function mapThinkingLevel(level?: ThinkLevel): ThinkingLevel {
   // pi-agent-core supports "xhigh"; OpenClaw enables it for specific models.
@@ -13,9 +13,7 @@ export function mapThinkingLevel(level?: ThinkLevel): ThinkingLevel {
   return level;
 }
 
-export function resolveExecToolDefaults(
-  config?: OpenClawConfig,
-): ExecToolDefaults | undefined {
+export function resolveExecToolDefaults(config?: OpenClawConfig): ExecToolDefaults | undefined {
   const tools = config?.tools;
   if (!tools?.exec) {
     return undefined;
@@ -43,11 +41,7 @@ export function resolveAgentExecToolDefaults(
 
   const globalExec = config.tools?.exec;
 
-  if (
-    !sessionKey ||
-    typeof sessionKey !== "string" ||
-    sessionKey.trim().length === 0
-  ) {
+  if (!sessionKey || typeof sessionKey !== "string" || sessionKey.trim().length === 0) {
     return globalExec ?? {};
   }
 
@@ -72,13 +66,11 @@ export function resolveAgentExecToolDefaults(
       backgroundMs: agentExec?.backgroundMs ?? globalExec?.backgroundMs,
       timeoutSec: agentExec?.timeoutSec ?? globalExec?.timeoutSec,
       approvalRunningNoticeMs:
-        agentExec?.approvalRunningNoticeMs ??
-        globalExec?.approvalRunningNoticeMs,
+        agentExec?.approvalRunningNoticeMs ?? globalExec?.approvalRunningNoticeMs,
       cleanupMs: agentExec?.cleanupMs ?? globalExec?.cleanupMs,
       notifyOnExit: agentExec?.notifyOnExit ?? globalExec?.notifyOnExit,
       elevated: agentExec?.elevated ?? globalExec?.elevated,
-      allowBackground:
-        agentExec?.allowBackground ?? globalExec?.allowBackground,
+      allowBackground: agentExec?.allowBackground ?? globalExec?.allowBackground,
       sandbox: agentExec?.sandbox ?? globalExec?.sandbox,
     };
 
