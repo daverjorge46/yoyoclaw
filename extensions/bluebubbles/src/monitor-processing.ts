@@ -506,10 +506,15 @@ export async function processMessage(
       ? `${rawBody} ${replyTag}`
       : `${replyTag} ${rawBody}`
     : rawBody;
-  // Build fromLabel the same way as iMessage/Signal: group label for groups, sender for DMs.
+  // Build fromLabel the same way as iMessage/Signal (formatInboundFromLabel):
+  // group label + id for groups, sender for DMs.
   // The sender identity is included in the envelope body via formatInboundEnvelope.
   const senderLabel = message.senderName || `user:${message.senderId}`;
-  const fromLabel = isGroup ? message.chatName?.trim() || `group:${peerId}` : senderLabel;
+  const fromLabel = isGroup
+    ? `${message.chatName?.trim() || "Group"} id:${peerId}`
+    : senderLabel !== message.senderId
+      ? `${senderLabel} id:${message.senderId}`
+      : senderLabel;
   const groupSubject = isGroup ? message.chatName?.trim() || undefined : undefined;
   const groupMembers = isGroup
     ? formatGroupMembers({

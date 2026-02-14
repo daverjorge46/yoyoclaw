@@ -1407,17 +1407,17 @@ describe("BlueBubbles webhook monitor", () => {
       await handleBlueBubblesWebhookRequest(req, res);
       await flushAsync();
 
-      // formatInboundEnvelope should be called with group label as from, and sender info
+      // formatInboundEnvelope should be called with group label + id as from, and sender info
       expect(mockFormatInboundEnvelope).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: "Family Chat",
+          from: "Family Chat id:iMessage;+;chat123456",
           chatType: "group",
           sender: { name: "Alice", id: "+15551234567" },
         }),
       );
-      // ConversationLabel should be the group label, not the sender
+      // ConversationLabel should be the group label + id, not the sender
       const callArgs = mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[0][0];
-      expect(callArgs.ctx.ConversationLabel).toBe("Family Chat");
+      expect(callArgs.ctx.ConversationLabel).toBe("Family Chat id:iMessage;+;chat123456");
       expect(callArgs.ctx.SenderName).toBe("Alice");
       // BodyForAgent should be raw text, not the envelope-formatted body
       expect(callArgs.ctx.BodyForAgent).toBe("hello everyone");
@@ -1458,7 +1458,7 @@ describe("BlueBubbles webhook monitor", () => {
 
       expect(mockFormatInboundEnvelope).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: expect.stringContaining("group:"),
+          from: expect.stringMatching(/^Group id:/),
           chatType: "group",
           sender: { name: undefined, id: "+15551234567" },
         }),
@@ -1500,13 +1500,13 @@ describe("BlueBubbles webhook monitor", () => {
 
       expect(mockFormatInboundEnvelope).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: "Alice",
+          from: "Alice id:+15551234567",
           chatType: "direct",
           sender: { name: "Alice", id: "+15551234567" },
         }),
       );
       const callArgs = mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[0][0];
-      expect(callArgs.ctx.ConversationLabel).toBe("Alice");
+      expect(callArgs.ctx.ConversationLabel).toBe("Alice id:+15551234567");
     });
   });
 
