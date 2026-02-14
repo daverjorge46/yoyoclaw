@@ -194,7 +194,22 @@ export async function extractArchive(params: {
         filter: (entryPath, entry) => {
           try {
             validateArchiveEntryPath(entryPath);
-            if (entry.type === "SymbolicLink" || entry.type === "Link") {
+            // `tar`'s filter callback can pass either a ReadEntry or a Stats-ish object;
+            // fail closed for any link-like entries.
+            const entryType =
+              typeof entry === "object" &&
+              entry !== null &&
+              "type" in entry &&
+              typeof (entry as { type?: unknown }).type === "string"
+                ? (entry as { type: string }).type
+                : undefined;
+            const isSymlink =
+              typeof entry === "object" &&
+              entry !== null &&
+              "isSymbolicLink" in entry &&
+              typeof (entry as { isSymbolicLink?: unknown }).isSymbolicLink === "function" &&
+              Boolean((entry as { isSymbolicLink: () => boolean }).isSymbolicLink());
+            if (entryType === "SymbolicLink" || entryType === "Link" || isSymlink) {
               throw new Error(`tar entry is a link: ${entryPath}`);
             }
             const relPath = stripArchivePath(entryPath, strip);
