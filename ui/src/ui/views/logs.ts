@@ -3,21 +3,14 @@ import type { AppMode } from "../app.ts";
 import type { LogEntry, LogLevel } from "../types.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
-const LEVEL_ORDER: Record<string, number> = {
-  trace: 0,
-  debug: 1,
-  info: 2,
-  warn: 3,
-  error: 4,
-  fatal: 5,
-};
+const LEVEL_ORDER: Record<string, number> = { trace: 0, debug: 1, info: 2, warn: 3, error: 4, fatal: 5 };
 
 type SortField = "time" | "level" | "subsystem" | "message";
 type SortDir = "asc" | "desc";
 
-// Module-level sort state (persists across re-renders)
 let currentSortField: SortField = "time";
 let currentSortDir: SortDir = "desc";
+let selectedEntryIndex: number | null = null;
 
 export type LogsProps = {
   mode: AppMode;
@@ -38,47 +31,36 @@ export type LogsProps = {
 };
 
 function formatTime(value?: string | null) {
-  if (!value) {
-    return "";
-  }
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
+  if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleTimeString();
 }
 
+function formatFullTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString();
+}
+
 function matchesFilter(entry: LogEntry, needle: string) {
-  if (!needle) {
-    return true;
-  }
-  const haystack = [entry.message, entry.subsystem, entry.raw]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+  if (!needle) return true;
+  const haystack = [entry.message, entry.subsystem, entry.raw].filter(Boolean).join(" ").toLowerCase();
   return haystack.includes(needle);
 }
 
 function sortEntries(entries: LogEntry[], field: SortField, dir: SortDir): LogEntry[] {
-  const sorted = [...entries].toSorted((a, b) => {
+  return [...entries].sort((a, b) => {
     let cmp = 0;
     switch (field) {
-      case "time":
-        cmp = (a.time ?? "").localeCompare(b.time ?? "");
-        break;
-      case "level":
-        cmp = (LEVEL_ORDER[a.level ?? ""] ?? -1) - (LEVEL_ORDER[b.level ?? ""] ?? -1);
-        break;
-      case "subsystem":
-        cmp = (a.subsystem ?? "").localeCompare(b.subsystem ?? "");
-        break;
-      case "message":
-        cmp = (a.message ?? a.raw ?? "").localeCompare(b.message ?? b.raw ?? "");
-        break;
+      case "time": cmp = (a.time ?? "").localeCompare(b.time ?? ""); break;
+      case "level": cmp = (LEVEL_ORDER[a.level ?? ""] ?? -1) - (LEVEL_ORDER[b.level ?? ""] ?? -1); break;
+      case "subsystem": cmp = (a.subsystem ?? "").localeCompare(b.subsystem ?? ""); break;
+      case "message": cmp = (a.message ?? a.raw ?? "").localeCompare(b.message ?? b.raw ?? ""); break;
     }
     return dir === "asc" ? cmp : -cmp;
   });
-  return sorted;
 }
 
 function toggleSort(field: SortField, requestUpdate: () => void) {
@@ -91,124 +73,125 @@ function toggleSort(field: SortField, requestUpdate: () => void) {
   requestUpdate();
 }
 
+function renderDetailPanel(entry: LogEntry) {
+  return html`
+    <div class="log-detail">
+      <div class="log-detail-header">
+        <div class="card-title" style="font-size: 13px;">Log Entry Detail</div>
+        <button class="btn btn--sm" @click=${() => { selectedEntryIndex = null; }}>✕</button>
+      </div>
+      <div class="log-detail-fields">
+        <div class="log-detail-field">
+          <div class="log-detail-label">Time</div>
+          <div class="log-detail-value mono">${formatFullTime(entry.time)}</div>
+        </div>
+        <div class="log-detail-field">
+          <div class="log-detail-label">Level</div>
+          <div class="log-detail-value"><span class="log-level ${entry.level ?? ""}">${entry.level ?? ""}</span></div>
+        </div>
+        ${entry.subsystem ? html`
+          <div class="log-detail-field">
+            <div class="log-detail-label">Subsystem</div>
+            <div class="log-detail-value mono">${entry.subsystem}</div>
+          </div>
+        ` : nothing}
+        <div class="log-detail-field">
+          <div class="log-detail-label">Message</div>
+          <div class="log-detail-value mono" style="white-space: pre-wrap; word-break: break-word;">${entry.message ?? ""}</div>
+        </div>
+        <div class="log-detail-field">
+          <div class="log-detail-label">Raw</div>
+          <pre class="log-detail-raw">${entry.raw}</pre>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 export function renderLogs(props: LogsProps) {
   const isBasic = props.mode === "basic";
   const needle = props.filterText.trim().toLowerCase();
   const levelFiltered = LEVELS.some((level) => !props.levelFilters[level]);
   const filtered = props.entries.filter((entry) => {
-    if (entry.level && !props.levelFilters[entry.level]) {
-      return false;
-    }
+    if (entry.level && !props.levelFilters[entry.level]) return false;
     return matchesFilter(entry, needle);
   });
   const sorted = sortEntries(filtered, currentSortField, currentSortDir);
   const exportLabel = needle || levelFiltered ? "filtered" : "visible";
-
-  // Force re-render by triggering filter text change with same value
   const requestUpdate = () => props.onFilterTextChange(props.filterText);
+
+  // Clamp selected index
+  const selectedEntry = selectedEntryIndex !== null && selectedEntryIndex < sorted.length
+    ? sorted[selectedEntryIndex]
+    : null;
+  if (!selectedEntry) selectedEntryIndex = null;
 
   const renderHeaderCell = (field: SortField, label: string) => {
     const isSorted = currentSortField === field;
     const arrow = isSorted ? (currentSortDir === "asc" ? "↑" : "↓") : "↕";
     return html`
-      <div
-        class="log-header-cell ${isSorted ? "sorted" : ""}"
-        @click=${() => toggleSort(field, requestUpdate)}
-      >
-        ${label}
-        <span class="log-sort-arrow">${arrow}</span>
+      <div class="log-header-cell ${isSorted ? "sorted" : ""}" @click=${() => toggleSort(field, requestUpdate)}>
+        ${label} <span class="log-sort-arrow">${arrow}</span>
       </div>
     `;
   };
 
   return html`
     <div class="logs-toolbar">
-      <input
-        type="text"
-        .value=${props.filterText}
+      <input type="text" .value=${props.filterText}
         @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
-        placeholder="Search logs"
-      />
+        placeholder="Search logs" />
       <label class="logs-auto-follow">
-        <input
-          type="checkbox"
-          .checked=${props.autoFollow}
-          @change=${(e: Event) => props.onToggleAutoFollow((e.target as HTMLInputElement).checked)}
-        />
+        <input type="checkbox" .checked=${props.autoFollow}
+          @change=${(e: Event) => props.onToggleAutoFollow((e.target as HTMLInputElement).checked)} />
         <span>Auto-follow</span>
       </label>
       <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
         ${props.loading ? "Loading…" : "Refresh"}
       </button>
-      <button
-        class="btn btn--sm"
-        ?disabled=${sorted.length === 0}
-        @click=${() =>
-          props.onExport(
-            sorted.map((entry) => entry.raw),
-            exportLabel,
-          )}
-      >
+      <button class="btn btn--sm" ?disabled=${sorted.length === 0}
+        @click=${() => props.onExport(sorted.map((entry) => entry.raw), exportLabel)}>
         Export ${exportLabel}
       </button>
     </div>
 
     <div class="chip-row" style="margin-top: 8px;">
-      ${LEVELS.map(
-        (level) => html`
-          <button
-            class="log-chip ${level} ${props.levelFilters[level] ? "active" : ""}"
-            @click=${() => props.onLevelToggle(level, !props.levelFilters[level])}
-          >
-            ${level}
-          </button>
-        `,
-      )}
+      ${LEVELS.map((level) => html`
+        <button class="log-chip ${level} ${props.levelFilters[level] ? "active" : ""}"
+          @click=${() => props.onLevelToggle(level, !props.levelFilters[level])}>
+          ${level}
+        </button>
+      `)}
     </div>
 
-    ${
-      props.file
-        ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>`
-        : nothing
-    }
-    ${
-      props.truncated
-        ? html`
-            <div class="callout" style="margin-top: 10px">Log output truncated; showing latest chunk.</div>
-          `
-        : nothing
-    }
-    ${
-      props.error
-        ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>`
-        : nothing
-    }
+    ${props.file ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>` : nothing}
+    ${props.truncated ? html`<div class="callout" style="margin-top: 10px">Log output truncated; showing latest chunk.</div>` : nothing}
+    ${props.error ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>` : nothing}
 
-    <section class="card" style="margin-top: 8px; padding: 0;">
-      <div class="log-stream" @scroll=${props.onScroll}>
-        <div class="log-header">
-          ${renderHeaderCell("time", "Time")}
-          ${renderHeaderCell("level", "Level")}
-          ${isBasic ? nothing : renderHeaderCell("subsystem", "Subsystem")}
-          ${renderHeaderCell("message", "Message")}
-        </div>
-        ${
-          sorted.length === 0
-            ? html`
-                <div class="muted" style="padding: 12px">No log entries.</div>
-              `
-            : sorted.map(
-                (entry) => html`
-                <div class="log-row">
+    <div class="logs-split ${selectedEntry ? "logs-split--open" : ""}" style="margin-top: 8px;">
+      <section class="card" style="padding: 0; flex: 1; min-width: 0; overflow: hidden;">
+        <div class="log-stream" @scroll=${props.onScroll}>
+          <div class="log-header">
+            ${renderHeaderCell("time", "Time")}
+            ${renderHeaderCell("level", "Level")}
+            ${isBasic ? nothing : renderHeaderCell("subsystem", "Subsystem")}
+            ${renderHeaderCell("message", "Message")}
+          </div>
+          ${sorted.length === 0
+            ? html`<div class="muted" style="padding: 12px">No log entries.</div>`
+            : sorted.map((entry, i) => html`
+                <div class="log-row ${selectedEntryIndex === i ? "selected" : ""}"
+                  @click=${() => { selectedEntryIndex = i; requestUpdate(); }}>
                   <div class="log-time mono">${formatTime(entry.time)}</div>
                   <div class="log-level ${entry.level ?? ""}">${entry.level ?? ""}</div>
                   ${isBasic ? nothing : html`<div class="log-subsystem mono">${entry.subsystem ?? ""}</div>`}
                   <div class="log-message mono">${entry.message ?? entry.raw}</div>
                 </div>
-              `,
-              )
-        }
-      </div>
-    </section>
+              `)
+          }
+        </div>
+      </section>
+      ${selectedEntry ? renderDetailPanel(selectedEntry) : nothing}
+    </div>
   `;
 }
