@@ -217,7 +217,9 @@ export function createHooksRequestHandler(
       if (hookAuthFailures.size >= HOOK_AUTH_FAILURE_TRACK_MAX) {
         let toRemove = Math.floor(hookAuthFailures.size / 2);
         for (const key of hookAuthFailures.keys()) {
-          if (toRemove <= 0) break;
+          if (toRemove <= 0) {
+            break;
+          }
           hookAuthFailures.delete(key);
           toRemove--;
         }
