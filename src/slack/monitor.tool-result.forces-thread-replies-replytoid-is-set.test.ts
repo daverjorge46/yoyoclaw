@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe("monitorSlackProvider tool results", () => {
-  it("forces thread replies when replyToId is set", async () => {
+  it("ignores replyToId when replyToMode is off", async () => {
     replyMock.mockResolvedValue({ text: "forced reply", replyToId: "555" });
     slackTestState.config = {
       messages: {
@@ -66,6 +66,56 @@ describe("monitorSlackProvider tool results", () => {
     await run;
 
     expect(sendMock).toHaveBeenCalledTimes(1);
+    // replyToId from inline directives should be ignored when replyToMode is off
+    expect(sendMock.mock.calls[0][2]).toMatchObject({ threadTs: undefined });
+  });
+
+  it("forces thread replies when replyToId is set and replyToMode is all", async () => {
+    replyMock.mockResolvedValue({ text: "forced reply", replyToId: "555" });
+    slackTestState.config = {
+      messages: {
+        responsePrefix: "PFX",
+        ackReaction: "👀",
+        ackReactionScope: "group-mentions",
+      },
+      channels: {
+        slack: {
+          dm: { enabled: true, policy: "open", allowFrom: ["*"] },
+          replyToMode: "all",
+        },
+      },
+    };
+
+    const controller = new AbortController();
+    const run = monitorSlackProvider({
+      botToken: "bot-token",
+      appToken: "app-token",
+      abortSignal: controller.signal,
+    });
+
+    await waitForSlackEvent("message");
+    const handler = getSlackHandlers()?.get("message");
+    if (!handler) {
+      throw new Error("Slack message handler not registered");
+    }
+
+    await handler({
+      event: {
+        type: "message",
+        user: "U1",
+        text: "hello",
+        ts: "789",
+        channel: "C1",
+        channel_type: "im",
+      },
+    });
+
+    await flush();
+    controller.abort();
+    await run;
+
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    // replyToId should be used when replyToMode allows threading
     expect(sendMock.mock.calls[0][2]).toMatchObject({ threadTs: "555" });
   });
 
