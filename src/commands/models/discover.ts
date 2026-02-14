@@ -17,17 +17,30 @@ export async function modelsDiscoverCommand(
     if (providerFilter) {
       return p.includes(providerFilter);
     }
-    return p.includes("windsurf") || p.includes("cursor") || p.includes("antigravity");
+    return (
+      p.includes("windsurf") ||
+      p.includes("cursor") ||
+      p.includes("antigravity") ||
+      p.includes("grepilte") ||
+      p.includes("coderabbit")
+    );
   });
 
   const results: Array<{ modelRef: string; provider: string; name: string }> = [];
   for (const entry of interesting) {
-    results.push({ modelRef: `${entry.provider}/${entry.id}`, provider: entry.provider, name: entry.name });
+    results.push({
+      modelRef: `${entry.provider}/${entry.id}`,
+      provider: entry.provider,
+      name: entry.name,
+    });
   }
 
   // Also include OpenRouter free models via existing scan (non-probing by default)
   try {
-    const scanResults = await modelsScanCommand({ provider: "openrouter", noProbe: true, json: false, maxCandidates: "6" } as any, runtime as any);
+    const scanResults = await modelsScanCommand(
+      { provider: "openrouter", noProbe: true, json: false, maxCandidates: "6" } as any,
+      runtime as any,
+    );
     // modelsScanCommand prints and updates config itself; here we only attempt to include discovered entries.
   } catch (e) {
     // ignore errors from scan (we'll still report catalog models)

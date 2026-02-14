@@ -1,6 +1,8 @@
 import { loadModelCatalog } from "./model-catalog.js";
 import { discoverAntigravityModels } from "./providers/antigravity.js";
+import { discoverCodeRabbitModels } from "./providers/coderabbit.js";
 import { discoverCursorModels } from "./providers/cursor.js";
+import { discoverGrepilteModels } from "./providers/grepilte.js";
 import { discoverWindsurfModels } from "./providers/windsurf.js";
 
 /**
@@ -14,7 +16,13 @@ export async function resolvePreferredModels(opts?: { includeProviders?: boolean
   // local catalog entries first
   for (const entry of catalog) {
     const p = entry.provider.toLowerCase();
-    if (p.includes("windsurf") || p.includes("cursor") || p.includes("antigravity")) {
+    if (
+      p.includes("windsurf") ||
+      p.includes("cursor") ||
+      p.includes("antigravity") ||
+      p.includes("grepilte") ||
+      p.includes("coderabbit")
+    ) {
       results.push(`${entry.provider}/${entry.id}`);
     }
   }
@@ -31,6 +39,14 @@ export async function resolvePreferredModels(opts?: { includeProviders?: boolean
     try {
       const ag = await discoverAntigravityModels().catch(() => []);
       for (const m of ag) results.push(`${m.provider}/${m.id}`);
+    } catch {}
+    try {
+      const gp = await discoverGrepilteModels().catch(() => []);
+      for (const m of gp) results.push(`${m.provider}/${m.id}`);
+    } catch {}
+    try {
+      const cr = await discoverCodeRabbitModels().catch(() => []);
+      for (const m of cr) results.push(`${m.provider}/${m.id}`);
     } catch {}
   }
 

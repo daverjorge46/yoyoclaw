@@ -39,6 +39,10 @@ jobs:
           CURSOR_ENDPOINT: ${{ secrets.CURSOR_ENDPOINT }}
           ANTIGRAVITY_API_KEY: ${{ secrets.ANTIGRAVITY_API_KEY }}
           ANTIGRAVITY_ENDPOINT: ${{ secrets.ANTIGRAVITY_ENDPOINT }}
+          GREPILTE_API_KEY: ${{ secrets.GREPILTE_API_KEY }}
+          GREPILTE_ENDPOINT: ${{ secrets.GREPILTE_ENDPOINT }}
+          CODERABBIT_API_KEY: ${{ secrets.CODERABBIT_API_KEY }}
+          CODERABBIT_ENDPOINT: ${{ secrets.CODERABBIT_ENDPOINT }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
         run: |
           # Write runner-only provider configs so secrets never land in repo
@@ -63,6 +67,20 @@ EOF
 {"antigravity": {"apiKey": "${ANTIGRAVITY_API_KEY}", "endpoint": "${ANTIGRAVITY_ENDPOINT}"}}
 EOF
             chmod 600 "$HOME/.openclaw/antigravity.json"
+          fi
+
+          if [ -n "${GREPILTE_API_KEY}" ] || [ -n "${GREPILTE_ENDPOINT}" ]; then
+            cat > "$HOME/.openclaw/grepilte.json" <<EOF
+{"grepilte": {"apiKey": "${GREPILTE_API_KEY}", "endpoint": "${GREPILTE_ENDPOINT}"}}
+EOF
+            chmod 600 "$HOME/.openclaw/grepilte.json"
+          fi
+
+          if [ -n "${CODERABBIT_API_KEY}" ] || [ -n "${CODERABBIT_ENDPOINT}" ]; then
+            cat > "$HOME/.openclaw/coderabbit.json" <<EOF
+{"coderabbit": {"apiKey": "${CODERABBIT_API_KEY}", "endpoint": "${CODERABBIT_ENDPOINT}"}}
+EOF
+            chmod 600 "$HOME/.openclaw/coderabbit.json"
           fi
 
           if [ -n "${GITHUB_API_TOKEN}" ]; then
