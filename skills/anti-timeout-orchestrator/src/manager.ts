@@ -1,8 +1,8 @@
-import { DatabaseSync } from "node:sqlite";
 import { fork, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -84,11 +84,13 @@ function ensureWarmWorker() {
 }
 
 function recoverStaleTasks(db: DatabaseSync) {
-  const info = db.prepare(`
-    UPDATE tasks 
-    SET status = 'pending', worker_pid = NULL, started_at = NULL 
+  const info = db
+    .prepare(`
+    UPDATE tasks
+    SET status = 'pending', worker_pid = NULL, started_at = NULL
     WHERE status = 'running'
-  `).run();
+  `)
+    .run();
 
   if (info.changes > 0) {
     console.log(`[Manager] Recovered ${info.changes} stale tasks.`);
@@ -98,20 +100,24 @@ function recoverStaleTasks(db: DatabaseSync) {
 function claimTask(db: DatabaseSync): Task | undefined {
   const now = new Date().toISOString();
 
-  const row = db.prepare(`
-    SELECT * FROM tasks 
-    WHERE status='pending' 
-    ORDER BY priority ASC, created_at ASC, id ASC 
+  const row = db
+    .prepare(`
+    SELECT * FROM tasks
+    WHERE status='pending'
+    ORDER BY priority ASC, created_at ASC, id ASC
     LIMIT 1
-  `).get() as Task | undefined;
+  `)
+    .get() as Task | undefined;
 
   if (!row) return undefined;
 
-  const info = db.prepare(`
+  const info = db
+    .prepare(`
     UPDATE tasks
     SET status='running', started_at=?, attempt=attempt+1, error=NULL
     WHERE id=? AND status='pending'
-  `).run(now, row.id);
+  `)
+    .run(now, row.id);
 
   if (info.changes !== 1) return undefined;
 

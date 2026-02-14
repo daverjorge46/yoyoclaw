@@ -1,6 +1,6 @@
-import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 
 const DEFAULT_QUEUE_DIR = "/home/node/.openclaw/workspace/queues/anti-timeout-orchestrator";
 const DB_PATH = path.join(DEFAULT_QUEUE_DIR, "queue.sqlite3");
