@@ -83,7 +83,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
           <span class="icon" style="width: 14px; height: 14px;">${icons.puzzle}</span>
           ${skill.name}
         </div>
-        <button class="btn btn--sm" @click=${() => { selectedSkillKey = null; requestUpdate(); }}>✕</button>
+        <button class="btn btn--sm" @click=${() => { selectedSkillKey = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
       </div>
       <div class="log-detail-fields">
         <div class="log-detail-field">

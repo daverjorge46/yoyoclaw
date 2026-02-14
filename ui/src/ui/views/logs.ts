@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import type { AppMode } from "../app.ts";
 import type { LogEntry, LogLevel } from "../types.ts";
 import { tryParseJson, renderJsonTree } from "./json-renderer.ts";
+import { icons } from "../icons.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
 const LEVEL_ORDER: Record<string, number> = { trace: 0, debug: 1, info: 2, warn: 3, error: 4, fatal: 5 };
@@ -104,7 +105,7 @@ function renderDetailPanel(entry: LogEntry, requestUpdate: () => void) {
     <div class="log-detail">
       <div class="log-detail-header">
         <div class="card-title" style="font-size: 13px;">Log Entry Detail</div>
-        <button class="btn btn--sm" @click=${() => { selectedEntryIndex = null; requestUpdate(); }}>✕</button>
+        <button class="btn btn--sm" @click=${() => { selectedEntryIndex = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
       </div>
       <div class="log-detail-fields">
         <div class="log-detail-field">

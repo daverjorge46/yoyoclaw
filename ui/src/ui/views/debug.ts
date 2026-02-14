@@ -201,7 +201,7 @@ export function renderDebug(props: DebugProps) {
             <div class="log-detail" style="max-height: none;">
               <div class="log-detail-header">
                 <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;"><span class="icon" style="width: 14px; height: 14px;">${activeSnapshot.icon}</span>${activeSnapshot.name}</div>
-                <button class="btn btn--sm" @click=${() => { selectedSnapshot = null; requestUpdate(); }}>✕</button>
+                <button class="btn btn--sm" @click=${() => { selectedSnapshot = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
               </div>
               <div style="padding: 10px 14px;">
                 ${renderJsonBlock(activeSnapshot.data)}
@@ -246,7 +246,7 @@ export function renderDebug(props: DebugProps) {
                 <div class="log-detail" style="max-height: 400px;">
                   <div class="log-detail-header">
                     <div class="card-title" style="font-size: 13px;">${props.eventLog[selectedEventIndex].event}</div>
-                    <button class="btn btn--sm" @click=${() => { selectedEventIndex = null; requestUpdate(); }}>✕</button>
+                    <button class="btn btn--sm" @click=${() => { selectedEventIndex = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
                   </div>
                   <div class="log-detail-fields">
                     <div class="log-detail-field">

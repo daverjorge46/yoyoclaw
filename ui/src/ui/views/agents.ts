@@ -15,6 +15,7 @@ import {
   renderAgentCron,
 } from "./agents-panels-status-files.ts";
 import { renderAgentTools, renderAgentSkills } from "./agents-panels-tools-skills.ts";
+import { icons } from "../icons.ts";
 import {
   agentBadgeText,
   buildAgentContext,
