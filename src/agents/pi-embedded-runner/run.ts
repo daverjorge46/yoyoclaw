@@ -601,20 +601,30 @@ export async function runEmbeddedPiAgent(
               }
             }
             const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
-            const contextLimit = ctxInfo.tokens;
-            const sessionLabel = params.sessionKey ?? params.sessionId;
+            const contextLimit = typeof ctxInfo.tokens === "number" ? ctxInfo.tokens : 0;
+
+            const header = isCompactionFailure
+              ? `Compaction failure (${provider}/${modelId})`
+              : `Context overflow (${provider}/${modelId}, limit: ${contextLimit ? contextLimit.toLocaleString() : "unknown"} tokens)`;
+
+            const actions = isCompactionFailure
+              ? [
+                  "  \u2022 Run /reset to clear context and start fresh",
+                  "  \u2022 Session compaction failed \u2014 the summarizer could not reduce context size",
+                ]
+              : [
+                  "  \u2022 Run /reset to clear context and start fresh",
+                  "  \u2022 Or switch to a model with a larger context window",
+                  "  \u2022 Consider lowering contextTokens in config to trigger earlier compaction",
+                ];
+
             const overflowDetails = [
-              `Context overflow (${provider}/${modelId}, limit: ${contextLimit.toLocaleString()} tokens)`,
-              sessionLabel ? `  Session: ${sessionLabel}` : null,
+              header,
               `  Messages: ${msgCount}`,
               "",
               "Actions:",
-              "  \u2022 Run /reset to clear context and start fresh",
-              "  \u2022 Or switch to a model with a larger context window",
-              "  \u2022 Consider lowering contextTokens in config to trigger earlier compaction",
-            ]
-              .filter((line) => line !== null)
-              .join("\n");
+              ...actions,
+            ].join("\n");
             return {
               payloads: [
                 {
