@@ -234,12 +234,16 @@ export async function runCronIsolatedAgentTurn(params: {
   const persistSessionEntry = async () => {
     cronSession.store[agentSessionKey] = cronSession.sessionEntry;
     if (runSessionKey !== agentSessionKey) {
-      cronSession.store[runSessionKey] = cronSession.sessionEntry;
+      // For :run: records, we don't need to duplicate the large skillsSnapshot.
+      const { skillsSnapshot: _ignored, ...runEntry } = cronSession.sessionEntry;
+      cronSession.store[runSessionKey] = runEntry;
     }
     await updateSessionStore(cronSession.storePath, (store) => {
       store[agentSessionKey] = cronSession.sessionEntry;
       if (runSessionKey !== agentSessionKey) {
-        store[runSessionKey] = cronSession.sessionEntry;
+        // Also apply the snapshot omission to the file-based update.
+        const { skillsSnapshot: _ignored, ...runEntry } = cronSession.sessionEntry;
+        store[runSessionKey] = runEntry;
       }
     });
   };
