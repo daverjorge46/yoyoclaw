@@ -96,6 +96,7 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
     reactions: true,
     threads: true,
     media: true,
+    polls: true,
     nativeCommands: true,
     blockStreaming: true,
   },
@@ -273,6 +274,7 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
     chunker: (text, limit) => getTelegramRuntime().channel.text.chunkMarkdownText(text, limit),
     chunkerMode: "markdown",
     textChunkLimit: 4000,
+    pollMaxOptions: 10,
     sendText: async ({ to, text, accountId, deps, replyToId, threadId }) => {
       const send = deps?.sendTelegram ?? getTelegramRuntime().channel.telegram.sendMessageTelegram;
       const replyToMessageId = parseReplyToMessageId(replyToId);
@@ -298,6 +300,10 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
       });
       return { channel: "telegram", ...result };
     },
+    sendPoll: async ({ to, poll, accountId }) =>
+      await getTelegramRuntime().channel.telegram.sendPollTelegram(to, poll, {
+        accountId: accountId ?? undefined,
+      }),
   },
   status: {
     defaultRuntime: {
