@@ -19,6 +19,8 @@ type BreakResult = {
   fenceSplit?: FenceSplit;
 };
 
+const SENTENCE_BOUNDARY_RE = /(?:[.!?;](?=\s|$)|[。！？；…])/g;
+
 type ParagraphBreak = {
   index: number;
   length: number;
@@ -211,7 +213,7 @@ export class EmbeddedBlockChunker {
     }
 
     if (preference !== "newline") {
-      const matches = buffer.matchAll(/[.!?](?=\s|$)/g);
+      const matches = buffer.matchAll(SENTENCE_BOUNDARY_RE);
       let sentenceIdx = -1;
       for (const match of matches) {
         const at = match.index ?? -1;
@@ -271,7 +273,7 @@ export class EmbeddedBlockChunker {
     }
 
     if (preference !== "newline") {
-      const matches = window.matchAll(/[.!?](?=\s|$)/g);
+      const matches = window.matchAll(SENTENCE_BOUNDARY_RE);
       let sentenceIdx = -1;
       for (const match of matches) {
         const at = match.index ?? -1;
