@@ -99,9 +99,22 @@ export type DiscordExecApprovalConfig = {
   cleanupAfterResolve?: boolean;
 };
 
+export type DiscordAgentComponentsRateLimitConfig = {
+  /** Enable or disable rate limiting. Default: true */
+  enabled?: boolean;
+  /** Maximum interactions allowed in time window. Default: 5 */
+  maxInteractions?: number;
+  /** Time window in milliseconds. Default: 10000 (10s) */
+  windowMs?: number;
+  /** Message shown when rate limited */
+  rateLimitMessage?: string;
+};
+
 export type DiscordAgentComponentsConfig = {
   /** Enable agent-controlled interactive components (buttons, select menus). Default: true. */
   enabled?: boolean;
+  /** Rate limiting configuration for component interactions. Addresses CWE-770. */
+  rateLimit?: DiscordAgentComponentsRateLimitConfig;
 };
 
 export type DiscordAccountConfig = {
