@@ -1,11 +1,11 @@
 ---
 name: p2p-collaboration
-description: "Decentralized agent-to-agent knowledge exchange and unified compute resources using HiveMind and BitTorrent."
+description: Decentralized agent-to-agent knowledge exchange and unified compute resources using HiveMind and BitTorrent.
 metadata:
   {
     "openclaw":
       {
-        "emoji": "⛓️‍💥",
+        "emoji": "🌐",
         "requires": { "env": ["GITHUB_TOKEN", "HIVEMIND_GIST_ID"] },
       },
   }
