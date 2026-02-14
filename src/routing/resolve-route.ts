@@ -79,7 +79,17 @@ function resolveChannelDefaultAccountIdForRoute(cfg: OpenClawConfig, channel: st
     }
     return normalizeAccountIdFromSessionKey(resolveChannelDefaultAccountId({ plugin, cfg }));
   } catch {
-    // Plugin registry not initialized yet (early-init/config-only context) - fall back to default
+    // Plugin registry not initialized - fall back to config introspection
+    const channelCfg = cfg.channels?.[channel];
+    if (channelCfg && typeof channelCfg === "object" && "accounts" in channelCfg) {
+      const accounts = (channelCfg as { accounts?: Record<string, unknown> }).accounts;
+      if (accounts && typeof accounts === "object") {
+        const accountIds = Object.keys(accounts);
+        if (accountIds.length === 1) {
+          return normalizeAccountIdFromSessionKey(accountIds[0]);
+        }
+      }
+    }
     return DEFAULT_ACCOUNT_ID;
   }
 }
