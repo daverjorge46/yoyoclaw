@@ -40,7 +40,12 @@ import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { runReplyAgent } from "./agent-runner.js";
 import { applySessionHints } from "./body.js";
 import { buildGroupIntro } from "./groups.js";
-import { buildInboundMetaSystemPrompt, buildInboundUserContextPrefix } from "./inbound-meta.js";
+import {
+  buildInboundMetaSystemPrompt,
+  buildInboundUserContextPrefix,
+  resolveInboundTime,
+  type InboundTimeParams,
+} from "./inbound-meta.js";
 import { resolveQueueSettings } from "./queue.js";
 import { routeReply } from "./route-reply.js";
 import { ensureSkillSnapshot, prependSystemEvents } from "./session-updates.js";
@@ -183,9 +188,34 @@ export async function runPreparedReply(
       })
     : "";
   const groupSystemPrompt = sessionCtx.GroupSystemPrompt?.trim() ?? "";
+  const inboundTimeParams: InboundTimeParams = {
+    agentDefaults: agentCfg,
+    isFirstMessage: isFirstTurnInSession,
+    lastTimeSentAt: sessionEntry?.lastInboundTimeSentAt,
+    lastDateSentAt: sessionEntry?.lastInboundTimeDateSentAt,
+  };
   const inboundMetaPrompt = buildInboundMetaSystemPrompt(
     isNewSession ? sessionCtx : { ...sessionCtx, ThreadStarterBody: undefined },
+    inboundTimeParams,
   );
+
+  // Update session entry with inbound time tracking
+  const currentTimestamp = sessionCtx.Timestamp ?? Date.now();
+  const inboundTimeResult = resolveInboundTime(currentTimestamp, inboundTimeParams);
+  if (inboundTimeResult.value && sessionEntry && sessionStore && sessionKey) {
+    sessionEntry.lastInboundTimeSentAt = currentTimestamp;
+    if (inboundTimeResult.isFullDate) {
+      sessionEntry.lastInboundTimeDateSentAt = currentTimestamp;
+    }
+    sessionEntry.updatedAt = Date.now();
+    sessionStore[sessionKey] = sessionEntry;
+    if (storePath) {
+      const updatedEntry = sessionEntry;
+      await updateSessionStore(storePath, (store) => {
+        store[sessionKey] = updatedEntry;
+      });
+    }
+  }
   const extraSystemPrompt = [inboundMetaPrompt, groupIntro, groupSystemPrompt]
     .filter(Boolean)
     .join("\n\n");
