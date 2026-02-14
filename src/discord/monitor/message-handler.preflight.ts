@@ -246,6 +246,9 @@ export async function preflightDiscordMessage(
       (message.mentionedUsers?.length ?? 0) > 0 ||
       (message.mentionedRoles?.length ?? 0) > 0),
   );
+  const hasEveryoneOrRoleMention = Boolean(
+    !isDirectMessage && (message.mentionedEveryone || (message.mentionedRoles?.length ?? 0) > 0),
+  );
 
   if (
     isGuildMessage &&
@@ -428,7 +431,7 @@ export async function preflightDiscordMessage(
 
   const wasMentioned =
     !isDirectMessage &&
-    matchesMentionWithExplicit({
+    (matchesMentionWithExplicit({
       text: baseText,
       mentionRegexes,
       explicit: {
@@ -437,7 +440,8 @@ export async function preflightDiscordMessage(
         canResolveExplicit: Boolean(botId),
       },
       transcript: preflightTranscript,
-    });
+    }) ||
+      (shouldRequireMention && hasEveryoneOrRoleMention));
   const implicitMention = Boolean(
     !isDirectMessage &&
     botId &&
