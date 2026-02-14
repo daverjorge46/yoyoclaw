@@ -16,6 +16,7 @@ import {
 } from "../daemon/service-audit.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { note } from "../terminal/note.js";
+import { VERSION } from "../version.js";
 import { buildGatewayInstallPlan } from "./daemon-install-helpers.js";
 import { DEFAULT_GATEWAY_DAEMON_RUNTIME, type GatewayDaemonRuntime } from "./daemon-runtime.js";
 import type { DoctorOptions, DoctorPrompter } from "./doctor-prompter.js";
@@ -107,6 +108,7 @@ export async function maybeRepairGatewayServiceConfig(
   const audit = await auditGatewayServiceConfig({
     env: process.env,
     command,
+    currentVersion: VERSION,
   });
   const needsNodeRuntime = needsNodeRuntimeMigration(audit.issues);
   const systemNodeInfo = needsNodeRuntime

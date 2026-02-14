@@ -291,6 +291,54 @@ export async function restartSystemdService({
   stdout.write(`${formatLine("Restarted systemd service", unitName)}\n`);
 }
 
+export async function patchSystemdUnitVersion({
+  env,
+  version,
+}: {
+  env: Record<string, string | undefined>;
+  version: string;
+}): Promise<boolean> {
+  const unitPath = resolveSystemdUnitPath(env);
+  let content: string;
+  try {
+    content = await fs.readFile(unitPath, "utf8");
+  } catch {
+    return false;
+  }
+
+  const newDescription = formatGatewayServiceDescription({
+    profile: env.OPENCLAW_PROFILE,
+    version,
+  });
+  let changed = false;
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i]!.trim();
+    if (trimmed.startsWith("Description=")) {
+      const newLine = `Description=${newDescription}`;
+      if (lines[i] !== newLine) {
+        lines[i] = newLine;
+        changed = true;
+      }
+    } else if (trimmed.startsWith("Environment=")) {
+      const raw = trimmed.slice("Environment=".length).trim();
+      const parsed = parseSystemdEnvAssignment(raw);
+      if (parsed && parsed.key === "OPENCLAW_SERVICE_VERSION" && parsed.value !== version) {
+        lines[i] = `Environment=OPENCLAW_SERVICE_VERSION=${version}`;
+        changed = true;
+      }
+    }
+  }
+
+  if (!changed) {
+    return false;
+  }
+
+  await fs.writeFile(unitPath, lines.join("\n"), "utf8");
+  await execSystemctl(["--user", "daemon-reload"]);
+  return true;
+}
+
 export async function isSystemdServiceEnabled(args: {
   env?: Record<string, string | undefined>;
 }): Promise<boolean> {

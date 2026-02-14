@@ -4,6 +4,7 @@ import { isSystemdUserServiceAvailable } from "../../daemon/systemd.js";
 import { renderSystemdUnavailableHints } from "../../daemon/systemd-hints.js";
 import { isWSL } from "../../infra/wsl.js";
 import { defaultRuntime } from "../../runtime.js";
+import { VERSION } from "../../version.js";
 import { buildDaemonServiceSnapshot, createNullWriter, emitDaemonActionJson } from "./response.js";
 import { renderGatewayServiceStartHints } from "./shared.js";
 import type { DaemonLifecycleOptions } from "./types.js";
@@ -276,6 +277,13 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
       }
     }
     return false;
+  }
+  if (service.patchVersion) {
+    try {
+      await service.patchVersion({ env: process.env, version: VERSION });
+    } catch {
+      // Non-fatal: version metadata is cosmetic; don't block restart
+    }
   }
   try {
     await service.restart({ env: process.env, stdout });

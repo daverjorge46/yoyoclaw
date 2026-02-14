@@ -20,6 +20,7 @@ import type { GatewayServiceRuntime } from "./service-runtime.js";
 import {
   installSystemdService,
   isSystemdServiceEnabled,
+  patchSystemdUnitVersion,
   readSystemdServiceExecStart,
   readSystemdServiceRuntime,
   restartSystemdService,
@@ -61,6 +62,10 @@ export type GatewayService = {
     sourcePath?: string;
   } | null>;
   readRuntime: (env: Record<string, string | undefined>) => Promise<GatewayServiceRuntime>;
+  patchVersion?: (args: {
+    env: Record<string, string | undefined>;
+    version: string;
+  }) => Promise<boolean>;
 };
 
 export function resolveGatewayService(): GatewayService {
@@ -119,6 +124,7 @@ export function resolveGatewayService(): GatewayService {
       isLoaded: async (args) => isSystemdServiceEnabled(args),
       readCommand: readSystemdServiceExecStart,
       readRuntime: async (env) => await readSystemdServiceRuntime(env),
+      patchVersion: async (args) => patchSystemdUnitVersion(args),
     };
   }
 

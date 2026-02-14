@@ -42,6 +42,7 @@ export const SERVICE_AUDIT_CODES = {
   systemdAfterNetworkOnline: "systemd-after-network-online",
   systemdRestartSec: "systemd-restart-sec",
   systemdWantsNetworkOnline: "systemd-wants-network-online",
+  serviceVersionMismatch: "service-version-mismatch",
 } as const;
 
 export function needsNodeRuntimeMigration(issues: ServiceConfigIssue[]): boolean {
@@ -311,10 +312,30 @@ async function auditGatewayRuntime(
   }
 }
 
+function auditServiceVersion(
+  command: GatewayServiceCommand,
+  currentVersion: string,
+  issues: ServiceConfigIssue[],
+) {
+  const installedVersion = command?.environment?.OPENCLAW_SERVICE_VERSION;
+  if (!installedVersion) {
+    return;
+  }
+  if (installedVersion !== currentVersion) {
+    issues.push({
+      code: SERVICE_AUDIT_CODES.serviceVersionMismatch,
+      message: `Service version ${installedVersion} does not match current version ${currentVersion}`,
+      detail: `${installedVersion} -> ${currentVersion}`,
+      level: "recommended",
+    });
+  }
+}
+
 export async function auditGatewayServiceConfig(params: {
   env: Record<string, string | undefined>;
   command: GatewayServiceCommand;
   platform?: NodeJS.Platform;
+  currentVersion?: string;
 }): Promise<ServiceConfigAudit> {
   const issues: ServiceConfigIssue[] = [];
   const platform = params.platform ?? process.platform;
@@ -322,6 +343,10 @@ export async function auditGatewayServiceConfig(params: {
   auditGatewayCommand(params.command?.programArguments, issues);
   auditGatewayServicePath(params.command, issues, params.env, platform);
   await auditGatewayRuntime(params.env, params.command, issues, platform);
+
+  if (params.currentVersion) {
+    auditServiceVersion(params.command, params.currentVersion, issues);
+  }
 
   if (platform === "linux") {
     await auditSystemdUnit(params.env, issues);
