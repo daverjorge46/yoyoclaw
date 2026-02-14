@@ -271,7 +271,28 @@ function rateLimitReset(key: string): void {
 // Plugin session spawning
 // ---------------------------------------------------------------------------
 
+// Guard: limit concurrent plugin-spawned sessions to prevent runaway costs.
+const PLUGIN_SPAWN_MAX_CONCURRENT = 10;
+const PLUGIN_SPAWN_MAX_PER_MINUTE = 20;
+const pluginSpawnActive = new Set<string>();
+
 async function spawnPluginSession(opts: PluginSessionSpawnOptions): Promise<PluginSessionSpawnResult> {
+  // Concurrency guard
+  if (pluginSpawnActive.size >= PLUGIN_SPAWN_MAX_CONCURRENT) {
+    return {
+      status: "error",
+      error: `Too many concurrent plugin-spawned sessions (max ${PLUGIN_SPAWN_MAX_CONCURRENT}). Wait for existing sessions to complete.`,
+    };
+  }
+
+  // Rate limit plugin spawns globally
+  if (!rateLimitCheck("__plugin_spawn_global__", { maxRequests: PLUGIN_SPAWN_MAX_PER_MINUTE, windowMs: 60_000 })) {
+    return {
+      status: "error",
+      error: `Plugin session spawn rate limit exceeded (max ${PLUGIN_SPAWN_MAX_PER_MINUTE}/min).`,
+    };
+  }
+
   const childSessionKey = `agent:main:subagent:${crypto.randomUUID()}`;
   const idem = crypto.randomUUID();
   const timeoutSeconds =
@@ -317,6 +338,8 @@ async function spawnPluginSession(opts: PluginSessionSpawnOptions): Promise<Plug
     }
   }
 
+  pluginSpawnActive.add(childSessionKey);
+
   try {
     const response = await callGateway<{ runId?: string }>({
       method: "agent",
@@ -341,6 +364,10 @@ async function spawnPluginSession(opts: PluginSessionSpawnOptions): Promise<Plug
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return { status: "error", error: msg, sessionKey: childSessionKey };
+  } finally {
+    // Clean up after a delay to account for async processing.
+    // The gateway handles the actual session lifecycle; this just tracks concurrency.
+    setTimeout(() => pluginSpawnActive.delete(childSessionKey), 5_000);
   }
 }
 
