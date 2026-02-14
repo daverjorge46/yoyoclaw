@@ -135,9 +135,11 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
       skillFilter: prepared.channelConfig?.skills,
       hasRepliedRef,
       disableBlockStreaming:
-        typeof account.config.blockStreaming === "boolean"
-          ? !account.config.blockStreaming
-          : undefined,
+        account.config.deliverOnlyToolMessages === true
+          ? true
+          : typeof account.config.blockStreaming === "boolean"
+            ? !account.config.blockStreaming
+            : undefined,
       onModelSelected,
     },
   });

@@ -173,6 +173,7 @@ export const dispatchTelegramMessage = async ({
 
   const disableBlockStreaming =
     Boolean(draftStream) ||
+    telegramCfg.deliverOnlyToolMessages === true ||
     (typeof telegramCfg.blockStreaming === "boolean" ? !telegramCfg.blockStreaming : undefined);
 
   const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
