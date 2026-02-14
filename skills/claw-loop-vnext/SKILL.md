@@ -37,3 +37,29 @@ For goal `goal-xyz.json` in `~/clawd/goals`:
 
 - Event log: `~/clawd/goals/.runtime/goal-xyz.events.jsonl`
 - Runtime state: `~/clawd/goals/.runtime/goal-xyz.state.json`
+
+## Rollout
+
+1. Bridge mode (`orchestration.mode=bridge`): SDK-first with tmux fallback.
+2. SDK-first mode (`orchestration.mode=sdk-first`): SDK primary path with fallback.
+3. SDK-only mode (future): remove tmux fallback after migration confidence.
+
+## Demo
+
+```bash
+node --import tsx scripts/claw-loop-vnext-dry-run.ts
+```
+
+## Test Command
+
+```bash
+pnpm exec vitest run \
+  src/claw-loop-vnext/__tests__/goal.test.ts \
+  src/claw-loop-vnext/__tests__/signal-parser.test.ts \
+  src/claw-loop-vnext/__tests__/runtime-store.test.ts \
+  src/claw-loop-vnext/__tests__/send-with-retry.test.ts \
+  src/claw-loop-vnext/__tests__/orchestrator.dedupe.test.ts \
+  src/claw-loop-vnext/__tests__/regression-unknown-delivery.test.ts \
+  src/claw-loop-vnext/__tests__/integration-mocked-driver.test.ts \
+  src/claw-loop-vnext/__tests__/regression-stuck-single-nudge.test.ts
+```
