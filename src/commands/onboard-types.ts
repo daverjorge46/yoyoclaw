@@ -9,6 +9,7 @@ export type AuthChoice =
   | "claude-cli"
   | "token"
   | "chutes"
+  | "vllm"
   | "openai-codex"
   | "openai-api-key"
   | "openrouter-api-key"
@@ -22,12 +23,17 @@ export type AuthChoice =
   | "synthetic-api-key"
   | "venice-api-key"
   | "together-api-key"
+  | "huggingface-api-key"
   | "codex-cli"
   | "apiKey"
   | "gemini-api-key"
   | "google-antigravity"
   | "google-gemini-cli"
   | "zai-api-key"
+  | "zai-coding-global"
+  | "zai-coding-cn"
+  | "zai-global"
+  | "zai-cn"
   | "xiaomi-api-key"
   | "minimax-cloud"
   | "minimax"
@@ -45,12 +51,15 @@ export type AuthChoice =
 export type AuthChoiceGroupId =
   | "openai"
   | "anthropic"
+  | "vllm"
   | "google"
   | "copilot"
   | "openrouter"
+  | "litellm"
   | "ai-gateway"
   | "cloudflare-ai-gateway"
   | "moonshot"
+  | "stepfun"
   | "zai"
   | "xiaomi"
   | "opencode-zen"
@@ -58,6 +67,8 @@ export type AuthChoiceGroupId =
   | "synthetic"
   | "venice"
   | "qwen"
+  | "together"
+  | "huggingface"
   | "qianfan"
   | "xai"
   | "custom";
@@ -106,6 +117,7 @@ export type OnboardOptions = {
   syntheticApiKey?: string;
   veniceApiKey?: string;
   togetherApiKey?: string;
+  huggingfaceApiKey?: string;
   opencodeZenApiKey?: string;
   xaiApiKey?: string;
   qianfanApiKey?: string;
