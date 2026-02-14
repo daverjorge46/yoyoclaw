@@ -32,6 +32,7 @@ import {
   isMarkdownCapableMessageChannel,
   resolveMessageChannel,
 } from "../../utils/message-channel.js";
+import { resolveRouterConfig, routeMessage, parseRoutedModelRef } from "../../hooks/pre-route.js";
 import { stripHeartbeatToken } from "../heartbeat.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../tokens.js";
 import { buildThreadingToolContext, resolveEnforceFinalTag } from "./agent-runner-utils.js";
@@ -100,6 +101,20 @@ export async function runAgentTurnWithFallback(params: {
   let fallbackModel = params.followupRun.run.model;
   let didResetAfterCompactionFailure = false;
   let didRetryTransientHttpError = false;
+
+  // ─── Pre-route: classify message and select model tier ───
+  const routerConfig = resolveRouterConfig(params.followupRun.run.config);
+  if (routerConfig) {
+    const route = await routeMessage(params.commandBody, routerConfig);
+    logVerbose(
+      `[pre-route] tier="${route.tier}" (${route.latencyMs}ms${route.fallback ? " FALLBACK" : ""}) → ${route.modelRef}`,
+    );
+    const routed = parseRoutedModelRef(route.modelRef);
+    params.followupRun.run.provider = routed.provider;
+    params.followupRun.run.model = routed.model;
+    fallbackProvider = routed.provider;
+    fallbackModel = routed.model;
+  }
 
   while (true) {
     try {
