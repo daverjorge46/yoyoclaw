@@ -298,11 +298,12 @@ export function createExecTool(
       }
 
       const mergedEnv = { ...baseEnv, ...defaultsEnv, ...params.env };
+      const mergedSandboxEnv = { ...defaultsEnv, ...params.env };
 
       const env = sandbox
         ? buildSandboxEnv({
             defaultPath: DEFAULT_PATH,
-            paramsEnv: params.env,
+            paramsEnv: mergedSandboxEnv,
             sandboxEnv: sandbox.env,
             containerWorkdir: containerWorkdir ?? sandbox.containerWorkdir,
           })
@@ -360,7 +361,7 @@ export function createExecTool(
         }
         const argv = buildNodeShellCommand(params.command, nodeInfo?.platform);
 
-        const nodeEnv = params.env ? { ...params.env } : undefined;
+        const nodeEnv = { ...defaultsEnv, ...params.env };
 
         if (nodeEnv) {
           applyPathPrepend(nodeEnv, defaultPathPrepend, { requireExisting: true });
