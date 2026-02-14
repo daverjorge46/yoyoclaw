@@ -80,10 +80,10 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
     <div class="log-detail" style="max-height: none;">
       <div class="log-detail-header">
         <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;">
-          <span class="icon" style="width: 14px; height: 14px;">${icons.puzzle}</span>
+          <span class="icon-sm" style="width: 14px; height: 14px;">${icons.puzzle}</span>
           ${skill.name}
         </div>
-        <button class="btn btn--sm" @click=${() => { selectedSkillKey = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
+        <button class="btn btn--sm" @click=${() => { selectedSkillKey = null; requestUpdate(); }}><span class="icon-sm" style="width:12px;height:12px;">${icons.x}</span></button>
       </div>
       <div class="log-detail-fields">
         <div class="log-detail-field">

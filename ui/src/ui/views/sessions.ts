@@ -114,10 +114,10 @@ function renderSessionDetail(row: GatewaySessionRow, props: SessionsProps) {
     <div class="log-detail" style="max-height: none;">
       <div class="log-detail-header">
         <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;">
-          <span class="icon" style="width: 14px; height: 14px;">${icons.messageSquare}</span>
+          <span class="icon-sm" style="width: 14px; height: 14px;">${icons.messageSquare}</span>
           Session
         </div>
-        <button class="btn btn--sm" @click=${() => { selectedSessionKey = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
+        <button class="btn btn--sm" @click=${() => { selectedSessionKey = null; requestUpdate(); }}><span class="icon-sm" style="width:12px;height:12px;">${icons.x}</span></button>
       </div>
       <div class="log-detail-fields">
         <div class="log-detail-field">

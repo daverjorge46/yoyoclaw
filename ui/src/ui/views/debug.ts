@@ -205,7 +205,7 @@ export function renderDebug(props: DebugProps) {
               (snap) => html`
                 <div class="debug-snapshot-row ${selectedSnapshot === snap.name ? "selected" : ""}"
                   @click=${() => { selectedSnapshot = selectedSnapshot === snap.name ? null : snap.name; requestUpdate(); }}>
-                  <div class="icon" style="flex: 0 0 36px; text-align: center; width: 16px; height: 16px;">${snap.icon}</div>
+                  <div style="flex: 0 0 36px; display: flex; align-items: center; justify-content: center;"><span class="icon-sm" style="width: 16px; height: 16px; color: var(--muted);">${snap.icon}</span></div>
                   <div style="flex: 1; font-weight: 500;">${snap.name}</div>
                   <div class="mono" style="flex: 0 0 80px; text-align: right; color: var(--muted);">${snap.keyCount}</div>
                 </div>
@@ -215,8 +215,8 @@ export function renderDebug(props: DebugProps) {
           ${activeSnapshot ? html`
             <div class="log-detail" style="max-height: none;">
               <div class="log-detail-header">
-                <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;"><span class="icon" style="width: 14px; height: 14px;">${activeSnapshot.icon}</span>${activeSnapshot.name}</div>
-                <button class="btn btn--sm" @click=${() => { selectedSnapshot = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
+                <div class="card-title" style="font-size: 13px; display: flex; align-items: center; gap: 6px;"><span class="icon-sm" style="width: 14px; height: 14px; color: var(--muted);">${activeSnapshot.icon}</span>${activeSnapshot.name}</div>
+                <button class="btn btn--sm" @click=${() => { selectedSnapshot = null; requestUpdate(); }}><span class="icon-sm" style="width:12px;height:12px;">${icons.x}</span></button>
               </div>
               <div style="padding: 10px 14px;">
                 ${renderJsonBlock(activeSnapshot.data)}
@@ -261,7 +261,7 @@ export function renderDebug(props: DebugProps) {
                 <div class="log-detail" style="max-height: 400px;">
                   <div class="log-detail-header">
                     <div class="card-title" style="font-size: 13px;">${props.eventLog[selectedEventIndex].event}</div>
-                    <button class="btn btn--sm" @click=${() => { selectedEventIndex = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
+                    <button class="btn btn--sm" @click=${() => { selectedEventIndex = null; requestUpdate(); }}><span class="icon-sm" style="width:12px;height:12px;">${icons.x}</span></button>
                   </div>
                   <div class="log-detail-fields">
                     <div class="log-detail-field">

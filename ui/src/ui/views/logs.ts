@@ -105,7 +105,7 @@ function renderDetailPanel(entry: LogEntry, requestUpdate: () => void) {
     <div class="log-detail">
       <div class="log-detail-header">
         <div class="card-title" style="font-size: 13px;">Log Entry Detail</div>
-        <button class="btn btn--sm" @click=${() => { selectedEntryIndex = null; requestUpdate(); }}><span class="icon" style="width:12px;height:12px;">${icons.x}</span></button>
+        <button class="btn btn--sm" @click=${() => { selectedEntryIndex = null; requestUpdate(); }}><span class="icon-sm" style="width:12px;height:12px;">${icons.x}</span></button>
       </div>
       <div class="log-detail-fields">
         <div class="log-detail-field">
