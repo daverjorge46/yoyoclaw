@@ -130,6 +130,7 @@ export const OpenClawSchema = z
       .object({
         enabled: z.boolean().optional(),
         flags: z.array(z.string()).optional(),
+        laneWaitWarnMs: z.number().int().nonnegative().optional(),
         otel: z
           .object({
             enabled: z.boolean().optional(),
@@ -242,6 +243,17 @@ export const OpenClawSchema = z
             avatar: z.string().max(200).optional(),
           })
           .strict()
+          .optional(),
+        agents: z
+          .record(
+            z.string(),
+            z
+              .object({
+                name: z.string().max(50).optional(),
+                avatar: z.string().max(200).optional(),
+              })
+              .strict(),
+          )
           .optional(),
       })
       .strict()
