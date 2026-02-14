@@ -3,6 +3,7 @@ import type { GatewayHelloOk } from "../gateway.ts";
 import type { UiSettings } from "../storage.ts";
 import { formatRelativeTimestamp, formatDurationHuman } from "../format.ts";
 import { formatNextRun } from "../presenter.ts";
+import { icons } from "../icons.ts";
 
 import type { AppMode } from "../navigation.ts";
 
@@ -201,14 +202,17 @@ export function renderOverview(props: OverviewProps) {
         </div>
       `;
 
+  const connectionStatus = props.connected ? "info" : "warn";
+  const connectionText = props.connected ? "Connected" : "Disconnected";
+
   // Simplified snapshot stats for Basic mode
   const snapshotStats = isBasic
     ? html`
         <div class="stat-grid" style="margin-top: 16px;">
           <div class="stat">
             <div class="stat-label">Status</div>
-            <div class="stat-value ${props.connected ? "ok" : "warn"}">
-              ${props.connected ? "Connected" : "Disconnected"}
+            <div class="stat-value">
+              <span class="log-level ${connectionStatus}">${connectionText}</span>
             </div>
           </div>
           <div class="stat">
@@ -221,8 +225,8 @@ export function renderOverview(props: OverviewProps) {
         <div class="stat-grid" style="margin-top: 16px;">
           <div class="stat">
             <div class="stat-label">Status</div>
-            <div class="stat-value ${props.connected ? "ok" : "warn"}">
-              ${props.connected ? "Connected" : "Disconnected"}
+            <div class="stat-value">
+              <span class="log-level ${connectionStatus}">${connectionText}</span>
             </div>
           </div>
           <div class="stat">
@@ -242,16 +246,19 @@ export function renderOverview(props: OverviewProps) {
         </div>
       `;
 
+  const cronStatus = props.cronEnabled == null ? "n/a" : props.cronEnabled ? "info" : "warn";
+  const cronText = props.cronEnabled == null ? "n/a" : props.cronEnabled ? "Enabled" : "Disabled";
+
   // Simplified stats row for Basic mode
   const statsRow = isBasic
     ? html`
         <section class="grid grid-cols-2" style="margin-top: 18px;">
-          <div class="card stat-card">
+          <div class="card stat-card" style="padding: 12px 14px;">
             <div class="stat-label">Instances</div>
             <div class="stat-value">${props.presenceCount}</div>
             <div class="muted">Presence beacons in the last 5 minutes.</div>
           </div>
-          <div class="card stat-card">
+          <div class="card stat-card" style="padding: 12px 14px;">
             <div class="stat-label">Sessions</div>
             <div class="stat-value">${props.sessionsCount ?? "n/a"}</div>
             <div class="muted">Recent session keys tracked by the gateway.</div>
@@ -260,20 +267,20 @@ export function renderOverview(props: OverviewProps) {
       `
     : html`
         <section class="grid grid-cols-3" style="margin-top: 18px;">
-          <div class="card stat-card">
+          <div class="card stat-card" style="padding: 12px 14px;">
             <div class="stat-label">Instances</div>
             <div class="stat-value">${props.presenceCount}</div>
             <div class="muted">Presence beacons in the last 5 minutes.</div>
           </div>
-          <div class="card stat-card">
+          <div class="card stat-card" style="padding: 12px 14px;">
             <div class="stat-label">Sessions</div>
             <div class="stat-value">${props.sessionsCount ?? "n/a"}</div>
             <div class="muted">Recent session keys tracked by the gateway.</div>
           </div>
-          <div class="card stat-card">
+          <div class="card stat-card" style="padding: 12px 14px;">
             <div class="stat-label">Cron</div>
             <div class="stat-value">
-              ${props.cronEnabled == null ? "n/a" : props.cronEnabled ? "Enabled" : "Disabled"}
+              ${props.cronEnabled == null ? "n/a" : html`<span class="log-level ${cronStatus}">${cronText}</span>`}
             </div>
             <div class="muted">Next wake ${formatNextRun(props.cronNext)}</div>
           </div>
