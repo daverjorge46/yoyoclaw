@@ -321,14 +321,31 @@ export function buildSubagentSystemPrompt(params: {
   childSessionKey: string;
   label?: string;
   task?: string;
+  agentDefinition?: {
+    name: string;
+    systemPrompt?: string;
+  };
 }) {
   const taskText =
     typeof params.task === "string" && params.task.trim()
       ? params.task.replace(/\s+/g, " ").trim()
       : "{{TASK_DESCRIPTION}}";
+
+  // When an agent definition provides a custom system prompt, prepend it
+  const agentDefSection: string[] = [];
+  if (params.agentDefinition?.systemPrompt) {
+    agentDefSection.push(
+      `## Agent: ${params.agentDefinition.name}`,
+      "",
+      params.agentDefinition.systemPrompt,
+      "",
+    );
+  }
+
   const lines = [
     "# Subagent Context",
     "",
+    ...agentDefSection,
     "You are a **subagent** spawned by the main agent for a specific task.",
     "",
     "## Your Role",
@@ -356,6 +373,7 @@ export function buildSubagentSystemPrompt(params: {
     "- Only use the `message` tool when explicitly instructed to contact a specific external recipient; otherwise return plain text and let the main agent deliver it",
     "",
     "## Session Context",
+    params.agentDefinition ? `- Agent type: ${params.agentDefinition.name}` : undefined,
     params.label ? `- Label: ${params.label}` : undefined,
     params.requesterSessionKey ? `- Requester session: ${params.requesterSessionKey}.` : undefined,
     params.requesterOrigin?.channel

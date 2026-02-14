@@ -11,7 +11,8 @@ import {
   parseAgentSessionKey,
 } from "../../routing/session-key.js";
 import { normalizeDeliveryContext } from "../../utils/delivery-context.js";
-import { resolveAgentConfig } from "../agent-scope.js";
+import { resolveAgentDefinition } from "../agent-definitions/index.js";
+import { resolveAgentConfig, resolveAgentWorkspaceDir } from "../agent-scope.js";
 import { AGENT_LANE_SUBAGENT } from "../lanes.js";
 import { optionalStringEnum } from "../schema/typebox.js";
 import { buildSubagentSystemPrompt } from "../subagent-announce.js";
@@ -27,6 +28,8 @@ const SessionsSpawnToolSchema = Type.Object({
   task: Type.String(),
   label: Type.Optional(Type.String()),
   agentId: Type.Optional(Type.String()),
+  /** Reference an agent definition by name (loads from workspace agents/ directory). */
+  agent: Type.Optional(Type.String()),
   model: Type.Optional(Type.String()),
   thinking: Type.Optional(Type.String()),
   runTimeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
@@ -82,13 +85,14 @@ export function createSessionsSpawnTool(opts?: {
     label: "Sessions",
     name: "sessions_spawn",
     description:
-      "Spawn a background sub-agent run in an isolated session and announce the result back to the requester chat.",
+      "Spawn a background sub-agent run in an isolated session and announce the result back to the requester chat. Use the `agent` parameter to spawn a pre-configured agent type defined in your workspace agents/ directory.",
     parameters: SessionsSpawnToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
       const task = readStringParam(params, "task", { required: true });
       const label = typeof params.label === "string" ? params.label.trim() : "";
       const requestedAgentId = readStringParam(params, "agentId");
+      const agentDefinitionName = readStringParam(params, "agent");
       const modelOverride = readStringParam(params, "model");
       const thinkingOverrideRaw = readStringParam(params, "thinking");
       const cleanup =
@@ -168,8 +172,25 @@ export function createSessionsSpawnTool(opts?: {
       const childSessionKey = `agent:${targetAgentId}:subagent:${crypto.randomUUID()}`;
       const spawnedByKey = requesterInternalKey;
       const targetAgentConfig = resolveAgentConfig(cfg, targetAgentId);
+
+      // Resolve agent definition if specified
+      const agentDef = (() => {
+        if (!agentDefinitionName) {
+          return undefined;
+        }
+        const workspaceDir = resolveAgentWorkspaceDir(cfg, requesterAgentId);
+        return resolveAgentDefinition(workspaceDir, agentDefinitionName);
+      })();
+      if (agentDefinitionName && !agentDef) {
+        return jsonResult({
+          status: "error",
+          error: `Agent definition "${agentDefinitionName}" not found. Place a markdown file in your workspace agents/ directory.`,
+        });
+      }
+
       const resolvedModel =
         normalizeModelSelection(modelOverride) ??
+        normalizeModelSelection(agentDef?.model) ??
         normalizeModelSelection(targetAgentConfig?.subagents?.model) ??
         normalizeModelSelection(cfg.agents?.defaults?.subagents?.model);
 
@@ -238,8 +259,11 @@ export function createSessionsSpawnTool(opts?: {
         requesterSessionKey,
         requesterOrigin,
         childSessionKey,
-        label: label || undefined,
+        label: label || agentDef?.name || undefined,
         task,
+        agentDefinition: agentDef
+          ? { name: agentDef.name, systemPrompt: agentDef.systemPrompt }
+          : undefined,
       });
 
       const childIdem = crypto.randomUUID();
@@ -300,6 +324,7 @@ export function createSessionsSpawnTool(opts?: {
         childSessionKey,
         runId: childRunId,
         modelApplied: resolvedModel ? modelApplied : undefined,
+        agentDefinition: agentDef ? agentDef.name : undefined,
         warning: modelWarning,
       });
     },
