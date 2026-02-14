@@ -201,7 +201,6 @@ export function resolveGatewayAuth(params: {
   const password = authConfig.password ?? env.CLAWDBOT_GATEWAY_PASSWORD ?? undefined;
   const trustedProxy = authConfig.trustedProxy;
 
-  // Determine auth mode: explicit > password > token > trusted-proxy > none
   let mode: ResolvedGatewayAuth["mode"];
   if (authConfig.mode) {
     mode = authConfig.mode;
@@ -267,13 +266,11 @@ function authorizeTrustedProxy(params: {
     return { reason: "trusted_proxy_no_request" };
   }
 
-  // Verify the request came from a trusted proxy IP
   const remoteAddr = req.socket?.remoteAddress;
   if (!remoteAddr || !isTrustedProxyAddress(remoteAddr, trustedProxies)) {
     return { reason: "trusted_proxy_untrusted_source" };
   }
 
-  // Check required headers are present
   const requiredHeaders = trustedProxyConfig.requiredHeaders ?? [];
   for (const header of requiredHeaders) {
     const value = headerValue(req.headers[header.toLowerCase()]);
@@ -282,7 +279,6 @@ function authorizeTrustedProxy(params: {
     }
   }
 
-  // Extract user identity from the configured header
   const userHeaderValue = headerValue(req.headers[trustedProxyConfig.userHeader.toLowerCase()]);
   if (!userHeaderValue || userHeaderValue.trim() === "") {
     return { reason: "trusted_proxy_user_missing" };
@@ -290,7 +286,6 @@ function authorizeTrustedProxy(params: {
 
   const user = userHeaderValue.trim();
 
-  // Check user allowlist if configured
   const allowUsers = trustedProxyConfig.allowUsers ?? [];
   if (allowUsers.length > 0 && !allowUsers.includes(user)) {
     return { reason: "trusted_proxy_user_not_allowed" };
@@ -316,7 +311,6 @@ export async function authorizeGatewayConnect(params: {
   const tailscaleWhois = params.tailscaleWhois ?? readTailscaleWhoisIdentity;
   const localDirect = isLocalDirectRequest(req, trustedProxies);
 
-  // Handle trusted-proxy auth mode first (bypasses rate limiting)
   if (auth.mode === "trusted-proxy") {
     if (!auth.trustedProxy) {
       return { ok: false, reason: "trusted_proxy_config_missing" };
@@ -337,7 +331,6 @@ export async function authorizeGatewayConnect(params: {
     return { ok: false, reason: result.reason };
   }
 
-  // --- Rate-limit gate (for token/password auth) ---
   const limiter = params.rateLimiter;
   const ip =
     params.clientIp ?? resolveRequestClientIp(req, trustedProxies) ?? req?.socket?.remoteAddress;
@@ -360,7 +353,6 @@ export async function authorizeGatewayConnect(params: {
       tailscaleWhois,
     });
     if (tailscaleCheck.ok) {
-      // Successful auth – reset rate-limit counter for this IP.
       limiter?.reset(ip, rateLimitScope);
       return {
         ok: true,

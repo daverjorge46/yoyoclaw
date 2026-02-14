@@ -21,7 +21,6 @@ export function buildGatewaySnapshot(): Snapshot {
   const scope = cfg.session?.scope ?? "per-sender";
   const presence = listSystemPresence();
   const uptimeMs = Math.round(process.uptime() * 1000);
-  // Resolve auth mode for UI display
   const auth = resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
   // Health is async; caller should await getHealthSnapshot and replace later if needed.
   const emptyHealth: unknown = {};

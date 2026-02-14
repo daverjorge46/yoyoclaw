@@ -343,7 +343,6 @@ function collectGatewayConfigFindings(
     });
   }
 
-  // Trusted-proxy auth mode findings
   if (auth.mode === "trusted-proxy") {
     const trustedProxies = cfg.gateway?.trustedProxies ?? [];
     const trustedProxyConfig = cfg.gateway?.auth?.trustedProxy;

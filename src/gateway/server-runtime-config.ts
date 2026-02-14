@@ -102,7 +102,6 @@ export async function resolveGatewayRuntimeConfig(params: {
     );
   }
 
-  // Trusted-proxy mode validations
   if (authMode === "trusted-proxy") {
     if (isLoopbackHost(bindHost)) {
       throw new Error(

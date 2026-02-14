@@ -58,7 +58,6 @@ export async function ensureBrowserControlAuth(params: {
     return { auth };
   }
 
-  // Respect explicit trusted-proxy mode (no token/password needed).
   if (params.cfg.gateway?.auth?.mode === "trusted-proxy") {
     return { auth };
   }
