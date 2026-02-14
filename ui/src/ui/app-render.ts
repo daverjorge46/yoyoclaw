@@ -865,6 +865,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "config"
             ? renderConfig({
+                mode: state.mode,
                 raw: state.configRaw,
                 originalRaw: state.configRawOriginal,
                 valid: state.configValid,

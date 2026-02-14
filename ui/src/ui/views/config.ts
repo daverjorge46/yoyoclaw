@@ -1,9 +1,11 @@
 import { html, nothing } from "lit";
 import type { ConfigUiHints } from "../types.ts";
+import type { AppMode } from "../navigation.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
 
 export type ConfigProps = {
+  mode: AppMode;
   raw: string;
   originalRaw: string;
   valid: boolean | null;
@@ -383,22 +385,33 @@ function truncateValue(value: unknown, maxLen = 40): string {
   return str.slice(0, maxLen - 3) + "...";
 }
 
+// Essential sections to show in Basic mode
+const BASIC_MODE_SECTIONS = new Set(["env", "gateway"]);
+
 export function renderConfig(props: ConfigProps) {
   const validity = props.valid == null ? "unknown" : props.valid ? "valid" : "invalid";
   const analysis = analyzeConfigSchema(props.schema);
   const formUnsafe = analysis.schema ? analysis.unsupportedPaths.length > 0 : false;
+  const isBasic = props.mode === "basic";
 
   // Get available sections from schema
   const schemaProps = analysis.schema?.properties ?? {};
   const availableSections = SECTIONS.filter((s) => s.key in schemaProps);
 
-  // Add any sections in schema but not in our list
-  const knownKeys = new Set(SECTIONS.map((s) => s.key));
-  const extraSections = Object.keys(schemaProps)
-    .filter((k) => !knownKeys.has(k))
-    .map((k) => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1) }));
+  // Filter to essential sections only in Basic mode
+  const filteredSections = isBasic
+    ? availableSections.filter((s) => BASIC_MODE_SECTIONS.has(s.key))
+    : availableSections;
 
-  const allSections = [...availableSections, ...extraSections];
+  // Add any sections in schema but not in our list (only in Advanced mode)
+  const knownKeys = new Set(SECTIONS.map((s) => s.key));
+  const extraSections = isBasic
+    ? []
+    : Object.keys(schemaProps)
+        .filter((k) => !knownKeys.has(k))
+        .map((k) => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1) }));
+
+  const allSections = [...filteredSections, ...extraSections];
 
   const activeSectionSchema =
     props.activeSection && analysis.schema && schemaType(analysis.schema) === "object"
