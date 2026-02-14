@@ -905,6 +905,7 @@ export function startHeartbeatRunner(opts: {
     const startedAt = Date.now();
     const now = startedAt;
     let ran = false;
+    let sawRequestsInFlight = false;
 
     for (const agent of state.agents.values()) {
       if (isInterval && now < agent.nextDueMs) {
@@ -929,9 +930,9 @@ export function startHeartbeatRunner(opts: {
         continue;
       }
       if (res.status === "skipped" && res.reason === "requests-in-flight") {
+        sawRequestsInFlight = true;
         advanceAgentSchedule(agent, now);
-        scheduleNext();
-        return res;
+        continue;
       }
       if (res.status !== "skipped" || res.reason !== "disabled") {
         advanceAgentSchedule(agent, now);
@@ -944,6 +945,9 @@ export function startHeartbeatRunner(opts: {
     scheduleNext();
     if (ran) {
       return { status: "ran", durationMs: Date.now() - startedAt };
+    }
+    if (sawRequestsInFlight) {
+      return { status: "skipped", reason: "requests-in-flight" };
     }
     return { status: "skipped", reason: isInterval ? "not-due" : "disabled" };
   };
