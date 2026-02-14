@@ -3,6 +3,7 @@ import type { ConfigUiHints } from "../types.ts";
 import type { AppMode } from "../navigation.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
+import { renderJsonBlock } from "./json-renderer.ts";
 
 export type ConfigProps = {
   mode: AppMode;
@@ -745,9 +746,7 @@ export function renderConfig(props: ConfigProps) {
         ${
           props.issues.length > 0
             ? html`<div class="callout danger" style="margin-top: 12px;">
-              <pre class="code-block">
-${JSON.stringify(props.issues, null, 2)}</pre
-              >
+              ${renderJsonBlock(props.issues)}
             </div>`
             : nothing
         }
