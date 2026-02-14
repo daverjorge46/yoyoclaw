@@ -20,4 +20,9 @@ export type PreparedSlackMessage = {
   ackReactionMessageTs?: string;
   ackReactionValue: string;
   ackReactionPromise: Promise<boolean> | null;
+  /** Origin of the message if it was sent by our own bot via the message tool. */
+  messageOrigin?: {
+    sessionKey: string;
+    agentId: string;
+  };
 };

@@ -81,6 +81,10 @@ export type ChannelOutboundContext = {
   accountId?: string | null;
   deps?: OutboundSendDeps;
   silent?: boolean;
+  /** Originating session key for agent-to-agent routing (prevents loops). */
+  originSessionKey?: string;
+  /** Originating agent ID for agent-to-agent routing. */
+  originAgentId?: string;
 };
 
 export type ChannelOutboundPayloadContext = ChannelOutboundContext & {

@@ -12,6 +12,7 @@ import { loadWebMedia } from "../web/media.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { createSlackWebClient } from "./client.js";
 import { markdownToSlackMrkdwnChunks } from "./format.js";
+import { recordMessageOrigin } from "./message-origin-cache.js";
 import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
@@ -33,6 +34,10 @@ type SlackSendOpts = {
   mediaUrl?: string;
   client?: WebClient;
   threadTs?: string;
+  /** Originating session for agent-to-agent routing (prevents loops). */
+  originSessionKey?: string;
+  /** Originating agent ID for agent-to-agent routing. */
+  originAgentId?: string;
 };
 
 export type SlackSendResult = {
@@ -198,6 +203,16 @@ export async function sendMessageSlack(
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
+  }
+
+  // Record message origin for agent-to-agent routing
+  if (lastMessageId && opts.originSessionKey && opts.originAgentId) {
+    recordMessageOrigin({
+      channelId,
+      messageTs: lastMessageId,
+      sessionKey: opts.originSessionKey,
+      agentId: opts.originAgentId,
+    });
   }
 
   return {
