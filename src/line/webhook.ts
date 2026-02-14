@@ -38,22 +38,9 @@ export function createLineWebhookMiddleware(
 
   return async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     try {
-      const signature = req.headers["x-line-signature"];
-
-      if (!signature || typeof signature !== "string") {
-        res.status(400).json({ error: "Missing X-Line-Signature header" });
-        return;
-      }
-
       const rawBody = readRawBody(req);
       if (!rawBody) {
         res.status(400).json({ error: "Missing raw request body for signature verification" });
-        return;
-      }
-
-      if (!validateLineSignature(rawBody, signature, channelSecret)) {
-        logVerbose("line: webhook signature validation failed");
-        res.status(401).json({ error: "Invalid signature" });
         return;
       }
 
@@ -63,16 +50,35 @@ export function createLineWebhookMiddleware(
         return;
       }
 
+      // LINE verification requests have empty events array and no signature
+      // Skip signature validation for these verification requests
+      if (!body.events || body.events.length === 0) {
+        logVerbose("line: webhook verification request (empty events)");
+        res.status(200).json({ status: "ok" });
+        return;
+      }
+
+      const signature = req.headers["x-line-signature"];
+
+      if (!signature || typeof signature !== "string") {
+        res.status(400).json({ error: "Missing X-Line-Signature header" });
+        return;
+      }
+
+      if (!validateLineSignature(rawBody, signature, channelSecret)) {
+        logVerbose("line: webhook signature validation failed");
+        res.status(401).json({ error: "Invalid signature" });
+        return;
+      }
+
       // Respond immediately to avoid timeout
       res.status(200).json({ status: "ok" });
 
       // Process events asynchronously
-      if (body.events && body.events.length > 0) {
-        logVerbose(`line: received ${body.events.length} webhook events`);
-        await onEvents(body).catch((err) => {
-          runtime?.error?.(danger(`line webhook handler failed: ${String(err)}`));
-        });
-      }
+      logVerbose(`line: received ${body.events.length} webhook events`);
+      await onEvents(body).catch((err) => {
+        runtime?.error?.(danger(`line webhook handler failed: ${String(err)}`));
+      });
     } catch (err) {
       runtime?.error?.(danger(`line webhook error: ${String(err)}`));
       if (!res.headersSent) {
