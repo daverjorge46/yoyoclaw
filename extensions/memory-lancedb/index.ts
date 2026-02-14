@@ -186,6 +186,11 @@ const MEMORY_TRIGGERS = [
   /zapamatuj si|pamatuj|remember/i,
   /preferuji|radši|nechci|prefer/i,
   /rozhodli jsme|budeme používat/i,
+  /记住|记得|请记|别忘|不要忘/,
+  /我喜欢|我偏好|我讨厌|我不喜欢|我爱|我想要|我需要/,
+  /我决定|我们决定|就这么定|以后都|以后用/,
+  /我的.+是|是我的|我叫|我是/,
+  /重要|总是|从不|一定要|必须|千万/,
   /\+\d{10,}/,
   /[\w.-]+@[\w.-]+\.\w+/,
   /můj\s+\w+\s+je|je\s+můj/i,
@@ -220,16 +225,16 @@ export function shouldCapture(text: string): boolean {
 
 export function detectCategory(text: string): MemoryCategory {
   const lower = text.toLowerCase();
-  if (/prefer|radši|like|love|hate|want/i.test(lower)) {
+  if (/prefer|radši|like|love|hate|want|喜欢|偏好|讨厌|爱|想要|需要/i.test(lower)) {
     return "preference";
   }
-  if (/rozhodli|decided|will use|budeme/i.test(lower)) {
+  if (/rozhodli|decided|will use|budeme|决定|以后用|就这么定/i.test(lower)) {
     return "decision";
   }
-  if (/\+\d{10,}|@[\w.-]+\.\w+|is called|jmenuje se/i.test(lower)) {
+  if (/\+\d{10,}|@[\w.-]+\.\w+|is called|jmenuje se|我叫|名字是/i.test(lower)) {
     return "entity";
   }
-  if (/is|are|has|have|je|má|jsou/i.test(lower)) {
+  if (/is|are|has|have|je|má|jsou|是|有/i.test(lower)) {
     return "fact";
   }
   return "other";
