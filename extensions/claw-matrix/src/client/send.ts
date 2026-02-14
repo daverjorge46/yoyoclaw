@@ -1,0 +1,591 @@
+import { RoomId, UserId, EncryptionSettings } from "@matrix-org/matrix-sdk-crypto-nodejs";
+import type { SendResult, MatrixEncryptedContent } from "../types.js";
+import { getMachine } from "../crypto/machine.js";
+import { processOutgoingRequests } from "../crypto/outgoing.js";
+import { incrementCounter } from "../health.js";
+import { matrixFetch, txnId } from "./http.js";
+import { uploadMedia, mimeToMsgtype, type EncryptedFile } from "./media.js";
+import { isRoomEncrypted, getRoomMembers } from "./rooms.js";
+
+// Lazy import markdown-it and sanitize-html
+let md: any = null;
+let sanitize: any = null;
+
+async function getMarkdown() {
+  if (!md) {
+    const MarkdownIt = (await import("markdown-it")).default;
+    md = new MarkdownIt();
+  }
+  return md;
+}
+
+async function getSanitize() {
+  if (!sanitize) {
+    sanitize = (await import("sanitize-html")).default;
+  }
+  return sanitize;
+}
+
+/**
+ * Convert markdown text to Matrix message content with HTML formatted_body.
+ */
+async function formatMessage(text: string): Promise<{
+  msgtype: string;
+  body: string;
+  format: string;
+  formatted_body: string;
+}> {
+  const markdown = await getMarkdown();
+  const sanitizeHtml = await getSanitize();
+
+  const html = sanitizeHtml(markdown.render(text), {
+    allowedTags: [
+      "b",
+      "i",
+      "em",
+      "strong",
+      "a",
+      "p",
+      "br",
+      "ul",
+      "ol",
+      "li",
+      "code",
+      "pre",
+      "blockquote",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "hr",
+      "span",
+      "del",
+      "sup",
+      "sub",
+    ],
+    allowedAttributes: {
+      a: ["href", "target"],
+      span: ["data-mx-bg-color", "data-mx-color"],
+    },
+  });
+
+  return {
+    msgtype: "m.text",
+    body: text,
+    format: "org.matrix.custom.html",
+    formatted_body: html,
+  };
+}
+
+/**
+ * Fetch an event for building reply fallback text.
+ * If the event is encrypted, attempts decryption via OlmMachine.
+ * Returns sender + body, or undefined on any failure (graceful).
+ */
+async function fetchEventForReply(
+  roomId: string,
+  eventId: string,
+): Promise<{ sender: string; body: string } | undefined> {
+  try {
+    const raw = await matrixFetch<{
+      type: string;
+      sender: string;
+      content: Record<string, unknown>;
+    }>(
+      "GET",
+      `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/event/${encodeURIComponent(eventId)}`,
+    );
+
+    let body: string | undefined;
+    let sender = raw.sender ?? "";
+
+    if (raw.type === "m.room.encrypted") {
+      try {
+        const machine = getMachine();
+        const decrypted = await machine.decryptRoomEvent(JSON.stringify(raw), new RoomId(roomId));
+        const parsed = JSON.parse(decrypted.event);
+        body = typeof parsed.content?.body === "string" ? parsed.content.body : undefined;
+      } catch {
+        // Decryption failed — fall through to undefined
+      }
+    } else if (raw.type === "m.room.message") {
+      body = typeof raw.content?.body === "string" ? (raw.content.body as string) : undefined;
+    }
+
+    if (!sender || !body) return undefined;
+    // Truncate long bodies for fallback
+    if (body.length > 200) body = body.slice(0, 200) + "…";
+    return { sender, body };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Ensure room keys are shared with all members before encrypting.
+ *
+ * Full dance:
+ * 1. Fetch room members (from cache or server)
+ * 2. updateTrackedUsers — tell OlmMachine about them
+ * 3. Process outgoing requests — flushes any key queries
+ * 4. getMissingSessions — find devices we need OTKs for
+ * 5. Process outgoing requests — sends key claim requests
+ * 6. shareRoomKey — generate + distribute Megolm session keys
+ * 7. Process outgoing requests — sends to-device key shares
+ */
+async function ensureRoomKeysShared(
+  roomId: string,
+  log?: { warn?: (msg: string) => void; info?: (msg: string) => void },
+): Promise<void> {
+  const machine = getMachine();
+
+  // Step 1: Get room members
+  let memberIds: string[];
+  const cached = getRoomMembers(roomId);
+  if (cached.size > 0) {
+    memberIds = [...cached];
+  } else {
+    // Fetch from server
+    try {
+      const response = await matrixFetch<{ joined: Record<string, unknown> }>(
+        "GET",
+        `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`,
+      );
+      memberIds = Object.keys(response.joined ?? {});
+    } catch (err: any) {
+      log?.warn?.(`[send] Failed to fetch room members: ${err.message}`);
+      memberIds = [];
+    }
+  }
+
+  if (memberIds.length === 0) {
+    log?.warn?.(`[send] No members found for room ${roomId}`);
+    return;
+  }
+
+  const userIds = memberIds.map((id) => new UserId(id));
+
+  // Step 2: Track users — tells OlmMachine about devices it hasn't seen
+  await machine.updateTrackedUsers(userIds);
+
+  // Step 3: Flush any key query requests generated by updateTrackedUsers
+  await processOutgoingRequests(log as any);
+
+  // Step 4: Find devices we're missing Olm sessions with
+  const claimRequest = await machine.getMissingSessions(userIds);
+  if (claimRequest) {
+    // Step 5: Send the key claim request and mark it
+    try {
+      const claimResponse = await matrixFetch(
+        "POST",
+        "/_matrix/client/v3/keys/claim",
+        JSON.parse(claimRequest.body),
+      );
+      await machine.markRequestAsSent(
+        claimRequest.id,
+        claimRequest.type,
+        JSON.stringify(claimResponse),
+      );
+    } catch (err: any) {
+      log?.warn?.(`[send] Key claim failed: ${err.message}`);
+      // Continue anyway — shareRoomKey may still work for known sessions
+    }
+  }
+
+  // Step 6: Generate and distribute Megolm session keys
+  incrementCounter("keySharingOps");
+  const matrixRoomId = new RoomId(roomId);
+  let settings: EncryptionSettings;
+  try {
+    settings = new EncryptionSettings();
+  } catch (err: any) {
+    // If no-arg constructor fails, the FFI binding differs from .d.ts
+    log?.warn?.(`[send] EncryptionSettings() constructor failed: ${err.message}`);
+    throw new Error(`Cannot create EncryptionSettings: ${err.message}`);
+  }
+  const toDeviceRequests = await machine.shareRoomKey(matrixRoomId, userIds, settings);
+
+  // Step 7: Send all to-device key share requests
+  for (const toDeviceReq of toDeviceRequests) {
+    try {
+      const path = `/_matrix/client/v3/sendToDevice/${encodeURIComponent(toDeviceReq.eventType)}/${encodeURIComponent(toDeviceReq.txnId)}`;
+      const response = await matrixFetch("PUT", path, JSON.parse(toDeviceReq.body));
+      await machine.markRequestAsSent(toDeviceReq.id, toDeviceReq.type, JSON.stringify(response));
+    } catch (err: any) {
+      log?.warn?.(`[send] Failed to send room key share: ${err.message}`);
+    }
+  }
+}
+
+/**
+ * Send a text message to a Matrix room.
+ * Handles both encrypted and unencrypted rooms.
+ *
+ * This is the function called by outbound.sendText() in channel.ts.
+ */
+export async function sendMatrixMessage(opts: {
+  roomId: string;
+  text: string;
+  replyToId?: string;
+  config?: unknown;
+  log?: { info: (msg: string) => void; warn: (msg: string) => void; error: (msg: string) => void };
+}): Promise<SendResult> {
+  const { roomId, text, replyToId, log } = opts;
+
+  // Truncate oversized messages instead of rejecting
+  let truncatedText = text;
+  if (Buffer.byteLength(text) > 60_000) {
+    log?.warn?.(`[send] Message too large (${Buffer.byteLength(text)} bytes), truncating`);
+    // UTF-8-safe truncation: back up from cut point to avoid splitting multi-byte chars
+    const buf = Buffer.from(text);
+    let end = 59_000;
+    while (end > 0 && (buf[end] & 0xc0) === 0x80) end--;
+    truncatedText = buf.subarray(0, end).toString("utf-8") + "\n\n[message truncated]";
+  }
+
+  // Format message with markdown → HTML
+  const content = await formatMessage(truncatedText);
+
+  // Add reply relation with spec-compliant fallback (§11.19.1)
+  if (replyToId) {
+    (content as any)["m.relates_to"] = {
+      "m.in_reply_to": { event_id: replyToId },
+    };
+
+    const original = await fetchEventForReply(roomId, replyToId);
+    if (original) {
+      // Plain-text fallback: > <@user:server> original text
+      const quotedLines = original.body
+        .split("\n")
+        .map((l) => `> ${l}`)
+        .join("\n");
+      content.body = `> <${original.sender}>\n${quotedLines}\n\n${content.body}`;
+      // HTML fallback: <mx-reply> with sender link and quoted text
+      const roomPermalink = `https://matrix.to/#/${encodeURIComponent(roomId)}/${encodeURIComponent(replyToId)}`;
+      const senderPermalink = `https://matrix.to/#/${encodeURIComponent(original.sender)}`;
+      const sanitizeHtml = await getSanitize();
+      const escapedBody = sanitizeHtml(original.body, { allowedTags: [], allowedAttributes: {} });
+      const escapedSender = sanitizeHtml(original.sender, {
+        allowedTags: [],
+        allowedAttributes: {},
+      });
+      content.formatted_body =
+        `<mx-reply><blockquote><a href="${roomPermalink}">In reply to</a> <a href="${senderPermalink}">${escapedSender}</a><br>${escapedBody}</blockquote></mx-reply>` +
+        content.formatted_body;
+    } else {
+      // Graceful fallback: event fetch failed, use event ID only
+      content.body = `> <in reply to ${replyToId}>\n\n${content.body}`;
+      content.formatted_body =
+        `<mx-reply><blockquote><a href="https://matrix.to/#/${encodeURIComponent(roomId)}/${encodeURIComponent(replyToId)}">In reply to</a> ${replyToId}</blockquote></mx-reply>` +
+        content.formatted_body;
+    }
+  }
+
+  if (isRoomEncrypted(roomId)) {
+    return sendEncrypted(roomId, content, log);
+  } else {
+    return sendPlaintext(roomId, content);
+  }
+}
+
+/**
+ * Send an encrypted message.
+ * Optimistic: try encrypt+send, if fails fetch members and retry.
+ */
+async function sendEncrypted(
+  roomId: string,
+  content: Record<string, unknown>,
+  log?: {
+    info?: (msg: string) => void;
+    warn?: (msg: string) => void;
+    error?: (msg: string) => void;
+  },
+): Promise<SendResult> {
+  const machine = getMachine();
+  const matrixRoomId = new RoomId(roomId);
+
+  // First attempt: optimistic encrypt
+  try {
+    await ensureRoomKeysShared(roomId, log as any);
+    incrementCounter("encryptOps");
+    const encrypted = JSON.parse(
+      await machine.encryptRoomEvent(matrixRoomId, "m.room.message", JSON.stringify(content)),
+    ) as MatrixEncryptedContent;
+
+    // Validate encrypted output
+    if (
+      !encrypted.algorithm ||
+      !encrypted.sender_key ||
+      !encrypted.ciphertext ||
+      !encrypted.session_id
+    ) {
+      throw new Error("Encrypted event missing required fields");
+    }
+
+    // Post-encryption size check (ciphertext + base64 overhead can exceed 65KB)
+    const encryptedSize = Buffer.byteLength(JSON.stringify(encrypted));
+    if (encryptedSize > 65_536) {
+      throw new Error(`Encrypted event too large: ${encryptedSize} bytes (limit 65536)`);
+    }
+
+    const eventId = await putEvent(
+      roomId,
+      "m.room.encrypted",
+      encrypted as unknown as Record<string, unknown>,
+    );
+    incrementCounter("messagesSent");
+    return { eventId, roomId };
+  } catch (firstErr: any) {
+    // Post-encryption size errors should not be retried
+    if (firstErr.message?.includes("too large")) throw firstErr;
+
+    // Retry once: flush pending outgoing requests only (first attempt already
+    // did the full ensureRoomKeysShared dance — repeating it is redundant and
+    // doubles the network round-trips for key queries/claims/shares)
+    log?.warn?.(
+      `[send] Encrypt failed, retrying after flushing outgoing requests: ${firstErr.message}`,
+    );
+    await processOutgoingRequests(log as any);
+
+    incrementCounter("encryptOps");
+    const encrypted = JSON.parse(
+      await machine.encryptRoomEvent(matrixRoomId, "m.room.message", JSON.stringify(content)),
+    ) as MatrixEncryptedContent;
+
+    // Post-encryption size check on retry path too
+    const retrySize = Buffer.byteLength(JSON.stringify(encrypted));
+    if (retrySize > 65_536) {
+      throw new Error(`Encrypted event too large: ${retrySize} bytes (limit 65536)`);
+    }
+
+    const eventId = await putEvent(
+      roomId,
+      "m.room.encrypted",
+      encrypted as unknown as Record<string, unknown>,
+    );
+    incrementCounter("messagesSent");
+    return { eventId, roomId };
+  }
+}
+
+/**
+ * Send a plaintext message.
+ */
+async function sendPlaintext(
+  roomId: string,
+  content: Record<string, unknown>,
+): Promise<SendResult> {
+  const eventId = await putEvent(roomId, "m.room.message", content);
+  incrementCounter("messagesSent");
+  return { eventId, roomId };
+}
+
+/**
+ * PUT an event to a room.
+ */
+async function putEvent(
+  roomId: string,
+  eventType: string,
+  content: Record<string, unknown>,
+): Promise<string> {
+  // Pre-send size check — covers both plaintext and any event type
+  const size = Buffer.byteLength(JSON.stringify(content));
+  if (size > 65_536) {
+    throw new Error(`Event too large: ${size} bytes (limit 65536)`);
+  }
+  const tid = txnId();
+  const response = await matrixFetch<{ event_id: string }>(
+    "PUT",
+    `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/${encodeURIComponent(eventType)}/${tid}`,
+    content,
+  );
+  return response.event_id;
+}
+
+// ── Media Sending ─────────────────────────────────────────────────────
+export async function sendMedia(opts: {
+  roomId: string;
+  buffer: Buffer;
+  mimeType: string;
+  filename: string;
+  caption?: string;
+  replyToId?: string;
+  log?: {
+    info?: (msg: string) => void;
+    warn?: (msg: string) => void;
+    error?: (msg: string) => void;
+  };
+}): Promise<SendResult> {
+  const { roomId, buffer, mimeType, filename, caption, replyToId, log } = opts;
+  const encrypted = isRoomEncrypted(roomId);
+  const msgtype = mimeToMsgtype(mimeType);
+
+  // Upload (encrypts if room is encrypted)
+  incrementCounter("mediaSent");
+  const upload = await uploadMedia(buffer, mimeType, filename, encrypted);
+
+  // Build event content
+  const content: Record<string, unknown> = {
+    msgtype,
+    body: caption ?? filename,
+    info: {
+      mimetype: mimeType,
+      size: buffer.length,
+    },
+  };
+
+  if (encrypted && upload.encryptedFile) {
+    content.file = upload.encryptedFile;
+  } else {
+    content.url = upload.mxcUrl;
+  }
+
+  if (replyToId) {
+    content["m.relates_to"] = {
+      "m.in_reply_to": { event_id: replyToId },
+    };
+  }
+
+  if (encrypted) {
+    return sendEncrypted(roomId, content, log);
+  }
+  return sendPlaintext(roomId, content);
+}
+
+// ── Reactions ─────────────────────────────────────────────────────────
+export async function sendReaction(
+  roomId: string,
+  targetEventId: string,
+  emoji: string,
+): Promise<string> {
+  const content = {
+    "m.relates_to": {
+      rel_type: "m.annotation",
+      event_id: targetEventId,
+      key: emoji,
+    },
+  };
+  return putEvent(roomId, "m.reaction", content);
+}
+
+export async function listReactions(
+  roomId: string,
+  eventId: string,
+): Promise<Record<string, number>> {
+  const response = await matrixFetch<{
+    chunk: Array<{ content: { "m.relates_to"?: { key?: string } } }>;
+  }>(
+    "GET",
+    `/_matrix/client/v1/rooms/${encodeURIComponent(roomId)}/relations/${encodeURIComponent(eventId)}/m.annotation/m.reaction`,
+  );
+
+  const counts: Record<string, number> = {};
+  for (const event of response.chunk ?? []) {
+    const key = event.content?.["m.relates_to"]?.key;
+    if (key) counts[key] = (counts[key] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export async function removeReaction(
+  roomId: string,
+  eventId: string,
+  ownUserId: string,
+  emoji: string,
+): Promise<void> {
+  // Find own reaction event via relations API
+  const response = await matrixFetch<{
+    chunk: Array<{
+      event_id: string;
+      sender: string;
+      content: { "m.relates_to"?: { key?: string } };
+    }>;
+  }>(
+    "GET",
+    `/_matrix/client/v1/rooms/${encodeURIComponent(roomId)}/relations/${encodeURIComponent(eventId)}/m.annotation/m.reaction`,
+  );
+
+  const ownReaction = (response.chunk ?? []).find(
+    (e) => e.sender === ownUserId && e.content?.["m.relates_to"]?.key === emoji,
+  );
+
+  if (ownReaction?.event_id) {
+    await matrixFetch(
+      "PUT",
+      `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/redact/${encodeURIComponent(ownReaction.event_id)}/${txnId()}`,
+      {},
+    );
+  }
+}
+
+// ── Edit & Delete ─────────────────────────────────────────────────────
+export async function editMessage(
+  roomId: string,
+  targetEventId: string,
+  newText: string,
+): Promise<SendResult> {
+  const formatted = await formatMessage(newText);
+  // Outer content includes format/formatted_body for clients that don't understand edits
+  const content: Record<string, unknown> = {
+    msgtype: "m.text",
+    body: `* ${newText}`,
+    format: formatted.format,
+    formatted_body: `* ${formatted.formatted_body}`,
+    "m.new_content": formatted,
+    "m.relates_to": {
+      rel_type: "m.replace",
+      event_id: targetEventId,
+    },
+  };
+
+  if (isRoomEncrypted(roomId)) {
+    return sendEncrypted(roomId, content);
+  }
+  return sendPlaintext(roomId, content);
+}
+
+export async function deleteMessage(
+  roomId: string,
+  eventId: string,
+  reason?: string,
+): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (reason) body.reason = reason;
+  await matrixFetch(
+    "PUT",
+    `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/redact/${encodeURIComponent(eventId)}/${txnId()}`,
+    body,
+  );
+}
+
+// ── Typing Indicators ─────────────────────────────────────────────────
+// SINGLETON: multi-account requires refactoring this to per-account state
+let lastTypingSentAt = 0;
+const TYPING_THROTTLE_MS = 4_000;
+
+/**
+ * Send typing indicator. Throttled: re-sends typing=true only every 4s.
+ * Fire-and-forget — errors are silently ignored.
+ */
+export async function sendTyping(roomId: string, userId: string, typing: boolean): Promise<void> {
+  if (typing) {
+    const now = Date.now();
+    if (now - lastTypingSentAt < TYPING_THROTTLE_MS) return;
+    lastTypingSentAt = now;
+  }
+
+  try {
+    await matrixFetch(
+      "PUT",
+      `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/typing/${encodeURIComponent(userId)}`,
+      { typing, timeout: 30_000 },
+    );
+  } catch {
+    // Non-critical — silently ignore
+  }
+}
+
+// Re-export for use as the outbound sendMatrix function
+export type { SendResult };
