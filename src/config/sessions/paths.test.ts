@@ -58,6 +58,11 @@ describe("session path safety", () => {
     expect(() =>
       resolveSessionFilePath("sess-1", { sessionFile: "/etc/passwd" }, { sessionsDir }),
     ).toThrow(/within sessions directory/);
+
+    // Absolute path outside the agents tree should also be rejected
+    expect(() =>
+      resolveSessionFilePath("sess-1", { sessionFile: "/var/log/syslog" }, { sessionsDir }),
+    ).toThrow(/within sessions directory/);
   });
 
   it("accepts sessionFile candidates within the sessions dir", () => {
@@ -96,13 +101,55 @@ describe("session path safety", () => {
     expect(resolved).toBe(path.resolve(sessionsDir, "abc-123-topic-42.jsonl"));
   });
 
-  it("rejects absolute sessionFile paths outside the sessions dir", () => {
+  it("accepts absolute sessionFile paths from a different agent dir (multi-agent)", () => {
+    // Stub OPENCLAW_STATE_DIR so resolveStateDir() returns the test prefix
+    vi.stubEnv("OPENCLAW_STATE_DIR", "/tmp/openclaw");
+
+    const sessionsDir = "/tmp/openclaw/agents/main/sessions";
+
+    // In multi-agent setups, the sessionsDir may point to the main agent's dir
+    // while the sessionFile belongs to another agent. Absolute paths within the
+    // agents sessions tree are accepted.
+    const resolved = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "/tmp/openclaw/agents/work/sessions/abc-123.jsonl" },
+      { sessionsDir },
+    );
+
+    expect(resolved).toBe("/tmp/openclaw/agents/work/sessions/abc-123.jsonl");
+  });
+
+  it("rejects absolute sessionFile paths outside the agents sessions tree", () => {
+    vi.stubEnv("OPENCLAW_STATE_DIR", "/tmp/openclaw");
+
+    const sessionsDir = "/tmp/openclaw/agents/main/sessions";
+
+    // Path inside state dir but not under agents/<id>/sessions/
+    expect(() =>
+      resolveSessionFilePath(
+        "sess-1",
+        { sessionFile: "/tmp/openclaw/config/secrets.json" },
+        { sessionsDir },
+      ),
+    ).toThrow(/within sessions directory/);
+
+    // Path under agents/ but not in sessions/ subdir
+    expect(() =>
+      resolveSessionFilePath(
+        "sess-1",
+        { sessionFile: "/tmp/openclaw/agents/main/agent/SOUL.md" },
+        { sessionsDir },
+      ),
+    ).toThrow(/within sessions directory/);
+  });
+
+  it("still rejects relative sessionFile paths that escape the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
 
     expect(() =>
       resolveSessionFilePath(
         "sess-1",
-        { sessionFile: "/tmp/openclaw/agents/work/sessions/abc-123.jsonl" },
+        { sessionFile: "../../etc/passwd" },
         { sessionsDir },
       ),
     ).toThrow(/within sessions directory/);
