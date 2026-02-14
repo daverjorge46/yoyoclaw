@@ -98,7 +98,6 @@ export async function modelsListCommand(
       if (providerFilter && entry.ref.provider.toLowerCase() !== providerFilter) {
         continue;
       }
-<<<<<<< HEAD
       let model = modelByKey.get(entry.key);
       if (!model && modelRegistry) {
         const forwardCompat = resolveForwardCompatModel(
