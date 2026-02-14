@@ -14,6 +14,7 @@ import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import { resolveCronStyleNow } from "../../agents/current-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { resolveAgentAvatar } from "../../agents/identity-avatar.js";
 import { resolveAgentIdentity } from "../../agents/identity.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
@@ -557,12 +558,13 @@ export async function runCronIsolatedAgentTurn(params: {
       return withRunSession({ status: "ok", summary, outputText });
     }
     const agentIdentity = resolveAgentIdentity(cfgWithAgentDefaults, agentId);
-    const identityAvatar = agentIdentity?.avatar?.trim();
+    const avatar = resolveAgentAvatar(cfgWithAgentDefaults, agentId);
+    const icon_url = avatar.kind === "remote" ? avatar.url : undefined;
     const username = agentIdentity?.name?.trim() || undefined;
-    const icon_url = identityAvatar?.startsWith("http") ? identityAvatar : undefined;
-    const icon_emoji = !identityAvatar?.startsWith("http")
-      ? agentIdentity?.emoji?.trim() || undefined
-      : undefined;
+    const rawEmoji = agentIdentity?.emoji?.trim();
+    // Slack `icon_emoji` requires :emoji_name: (not a Unicode emoji).
+    const icon_emoji =
+      !icon_url && rawEmoji && /^:[^:\\s]+:$/.test(rawEmoji) ? rawEmoji : undefined;
 
     // Shared subagent announce flow is text-based. When we have an explicit sender
     // identity to preserve, prefer direct outbound delivery even for plain-text payloads.

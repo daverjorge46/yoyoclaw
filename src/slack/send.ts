@@ -80,16 +80,27 @@ async function postSlackMessageBestEffort(params: {
     text: params.text,
     thread_ts: params.threadTs,
   };
-  const payload = {
-    ...basePayload,
-    ...(params.opts.username ? { username: params.opts.username } : {}),
-    ...(params.opts.icon_url ? { icon_url: params.opts.icon_url } : {}),
-    ...(params.opts.icon_emoji && !params.opts.icon_url
-      ? { icon_emoji: params.opts.icon_emoji }
-      : {}),
-  };
   try {
-    return await params.client.chat.postMessage(payload);
+    // Slack Web API types model icon_url and icon_emoji as mutually exclusive.
+    // Build payloads in explicit branches so TS and runtime stay aligned.
+    if (params.opts.icon_url) {
+      return await params.client.chat.postMessage({
+        ...basePayload,
+        ...(params.opts.username ? { username: params.opts.username } : {}),
+        icon_url: params.opts.icon_url,
+      });
+    }
+    if (params.opts.icon_emoji) {
+      return await params.client.chat.postMessage({
+        ...basePayload,
+        ...(params.opts.username ? { username: params.opts.username } : {}),
+        icon_emoji: params.opts.icon_emoji,
+      });
+    }
+    return await params.client.chat.postMessage({
+      ...basePayload,
+      ...(params.opts.username ? { username: params.opts.username } : {}),
+    });
   } catch (err) {
     if (!hasCustomIdentity(params.opts) || !isSlackCustomizeScopeError(err)) {
       throw err;

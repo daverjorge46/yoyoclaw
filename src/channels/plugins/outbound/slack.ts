@@ -45,9 +45,9 @@ export const slackOutbound: ChannelOutboundAdapter = {
     const result = await send(to, finalText, {
       threadTs,
       accountId: accountId ?? undefined,
-      username,
-      icon_url,
-      icon_emoji,
+      ...(username ? { username } : {}),
+      ...(icon_url ? { icon_url } : {}),
+      ...(icon_emoji && !icon_url ? { icon_emoji } : {}),
     });
     return { channel: "slack", ...result };
   },
@@ -92,9 +92,9 @@ export const slackOutbound: ChannelOutboundAdapter = {
       mediaUrl,
       threadTs,
       accountId: accountId ?? undefined,
-      username,
-      icon_url,
-      icon_emoji,
+      ...(username ? { username } : {}),
+      ...(icon_url ? { icon_url } : {}),
+      ...(icon_emoji && !icon_url ? { icon_emoji } : {}),
     });
     return { channel: "slack", ...result };
   },
