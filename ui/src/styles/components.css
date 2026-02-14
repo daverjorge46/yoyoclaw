@@ -990,6 +990,48 @@
 }
 
 /* ===========================================
+   Logs Toolbar
+   =========================================== */
+
+.logs-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.logs-toolbar input[type="text"] {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--input);
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 13px;
+  outline: none;
+  color: var(--text);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.logs-toolbar input[type="text"]:focus {
+  border-color: var(--ring);
+}
+
+.logs-auto-follow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.logs-auto-follow input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+/* ===========================================
    Tables
    =========================================== */
 
@@ -1118,6 +1160,27 @@
   border-color: var(--danger-subtle);
 }
 
+.log-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+  user-select: none;
+}
+
+.log-chip:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
 .log-chip.trace,
 .log-chip.debug {
   color: var(--muted);
@@ -1137,6 +1200,41 @@
 .log-chip.fatal {
   color: var(--danger);
   border-color: var(--danger-subtle);
+}
+
+/* Active states — solid color fills */
+.log-chip.active.trace,
+.log-chip.active.debug {
+  background: var(--muted-strong);
+  border-color: var(--muted-strong);
+  color: var(--text-strong);
+}
+
+.log-chip.active.info {
+  background: var(--info);
+  border-color: var(--info);
+  color: #fff;
+}
+
+.log-chip.active.warn {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #1a1a1a;
+}
+
+.log-chip.active.error,
+.log-chip.active.fatal {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* Light mode active adjustments */
+:root[data-theme="light"] .log-chip.active.trace,
+:root[data-theme="light"] .log-chip.active.debug {
+  background: var(--muted);
+  border-color: var(--muted);
+  color: #fff;
 }
 
 .log-subsystem {

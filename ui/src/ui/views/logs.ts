@@ -1,6 +1,6 @@
 import { html, nothing } from "lit";
-import type { LogEntry, LogLevel } from "../types.ts";
 import type { AppMode } from "../app.ts";
+import type { LogEntry, LogLevel } from "../types.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
 
@@ -57,85 +57,70 @@ export function renderLogs(props: LogsProps) {
   const exportLabel = needle || levelFiltered ? "filtered" : "visible";
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Logs</div>
-          <div class="card-sub">Gateway file logs (JSONL).</div>
-        </div>
-        <div class="row" style="gap: 8px;">
-          <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Loading…" : "Refresh"}
-          </button>
+    <div class="logs-toolbar">
+      <input
+        type="text"
+        .value=${props.filterText}
+        @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
+        placeholder="Search logs"
+      />
+      <label class="logs-auto-follow">
+        <input
+          type="checkbox"
+          .checked=${props.autoFollow}
+          @change=${(e: Event) => props.onToggleAutoFollow((e.target as HTMLInputElement).checked)}
+        />
+        <span>Auto-follow</span>
+      </label>
+      <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
+        ${props.loading ? "Loading…" : "Refresh"}
+      </button>
+      <button
+        class="btn btn--sm"
+        ?disabled=${filtered.length === 0}
+        @click=${() =>
+          props.onExport(
+            filtered.map((entry) => entry.raw),
+            exportLabel,
+          )}
+      >
+        Export ${exportLabel}
+      </button>
+    </div>
+
+    <div class="chip-row" style="margin-top: 8px;">
+      ${LEVELS.map(
+        (level) => html`
           <button
-            class="btn"
-            ?disabled=${filtered.length === 0}
-            @click=${() =>
-              props.onExport(
-                filtered.map((entry) => entry.raw),
-                exportLabel,
-              )}
+            class="log-chip ${level} ${props.levelFilters[level] ? "active" : ""}"
+            @click=${() => props.onLevelToggle(level, !props.levelFilters[level])}
           >
-            Export ${exportLabel}
+            ${level}
           </button>
-        </div>
-      </div>
+        `,
+      )}
+    </div>
 
-      <div class="filters" style="margin-top: 14px;">
-        <label class="field" style="min-width: 220px;">
-          <span>Filter</span>
-          <input
-            .value=${props.filterText}
-            @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
-            placeholder="Search logs"
-          />
-        </label>
-        <label class="field checkbox">
-          <span>Auto-follow</span>
-          <input
-            type="checkbox"
-            .checked=${props.autoFollow}
-            @change=${(e: Event) =>
-              props.onToggleAutoFollow((e.target as HTMLInputElement).checked)}
-          />
-        </label>
-      </div>
+    ${
+      props.file
+        ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>`
+        : nothing
+    }
+    ${
+      props.truncated
+        ? html`
+            <div class="callout" style="margin-top: 10px">Log output truncated; showing latest chunk.</div>
+          `
+        : nothing
+    }
+    ${
+      props.error
+        ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>`
+        : nothing
+    }
 
-      <div class="chip-row" style="margin-top: 12px;">
-        ${LEVELS.map(
-          (level) => html`
-            <label class="chip log-chip ${level}">
-              <input
-                type="checkbox"
-                .checked=${props.levelFilters[level]}
-                @change=${(e: Event) =>
-                  props.onLevelToggle(level, (e.target as HTMLInputElement).checked)}
-              />
-              <span>${level}</span>
-            </label>
-          `,
-        )}
-      </div>
-
-      ${
-        props.file
-          ? html`<div class="muted" style="margin-top: 10px;">File: ${props.file}</div>`
-          : nothing
-      }
-      ${
-        props.truncated
-          ? html`
-              <div class="callout" style="margin-top: 10px">Log output truncated; showing latest chunk.</div>
-            `
-          : nothing
-      }
-      ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 10px;">${props.error}</div>`
-          : nothing
-      }
-
-      <div class="log-stream" style="margin-top: 12px;" @scroll=${props.onScroll}>
+    <section class="card" style="margin-top: 8px; padding: 0;">
+      <div class="log-stream" @scroll=${props.onScroll}>
         ${
           filtered.length === 0
             ? html`
