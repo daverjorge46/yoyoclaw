@@ -43,6 +43,8 @@ export type RuntimeState = {
   >;
   seenSignalKeys: Record<string, string>;
   lastOutputDigest?: string;
+  lastActivityAt?: string;
+  lastNudgeAt?: string;
   updatedAt: string;
 };
 
@@ -57,6 +59,8 @@ export type LoopEvent = {
     | "signal_seen"
     | "signal_deduped"
     | "phase_advanced"
-    | "goal_updated";
+    | "goal_updated"
+    | "stuck_nudge_sent"
+    | "stuck_nudge_skipped";
   data?: Record<string, unknown>;
 };

@@ -30,6 +30,11 @@ export type HandleResult = {
   outputText: string;
 };
 
+export type StuckTickResult = {
+  nudged: boolean;
+  reason: "sent" | "within_cooldown" | "below_threshold" | "no_pending_phase";
+};
+
 function goalIdFromFile(goalFile: string): string {
   return path.basename(goalFile, ".json");
 }
@@ -178,4 +183,61 @@ export async function approveNextPhase(goalFile: string): Promise<GoalFile> {
     ...goal,
     awaitingApproval: undefined,
   };
+}
+
+export async function nudgeIfStuck(
+  deps: OrchestratorDeps,
+  goalFile: string,
+  options?: { stuckAfterMs?: number; cooldownMs?: number },
+): Promise<StuckTickResult> {
+  const goalId = goalIdFromFile(goalFile);
+  const goal = await loadGoalFile(goalFile);
+  const current = getCurrentPhase(goal);
+  if (!current) {
+    return { nudged: false, reason: "no_pending_phase" };
+  }
+
+  const { eventLogFile, stateFile } = runtimePaths(deps.goalsDir, goalId);
+  const store = new RuntimeStore(stateFile);
+  const now = Date.now();
+  const stuckAfterMs = options?.stuckAfterMs ?? 5 * 60_000;
+  const cooldownMs = options?.cooldownMs ?? 10 * 60_000;
+  const lastNudgeAt = await store.getLastNudgeAt(goalId);
+  if (lastNudgeAt && now - Date.parse(lastNudgeAt) < cooldownMs) {
+    await appendEvent(
+      eventLogFile,
+      createEvent(goalId, "stuck_nudge_skipped", { reason: "within_cooldown", lastNudgeAt }),
+    );
+    return { nudged: false, reason: "within_cooldown" };
+  }
+
+  const lastActivityAt = await store.getLastActivityAt(goalId);
+  if (!lastActivityAt || now - Date.parse(lastActivityAt) < stuckAfterMs) {
+    await appendEvent(
+      eventLogFile,
+      createEvent(goalId, "stuck_nudge_skipped", { reason: "below_threshold", lastActivityAt }),
+    );
+    return { nudged: false, reason: "below_threshold" };
+  }
+
+  const message =
+    "# Orchestrator Nudge\n\nPlease post a concise progress update for the current phase. Continue execution, and only emit PHASE_COMPLETE when done.";
+  const result = await sendCurrentPhasePrompt(deps, goalFile, message);
+  if (result.delivered) {
+    await store.markNudgeSent(goalId);
+    await appendEvent(
+      eventLogFile,
+      createEvent(goalId, "stuck_nudge_sent", {
+        transport: result.transport,
+        ackId: result.ackId,
+      }),
+    );
+    return { nudged: true, reason: "sent" };
+  }
+
+  await appendEvent(
+    eventLogFile,
+    createEvent(goalId, "stuck_nudge_skipped", { reason: "below_threshold", delivery: false }),
+  );
+  return { nudged: false, reason: "below_threshold" };
 }

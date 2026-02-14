@@ -57,6 +57,29 @@ export class RuntimeStore {
       transport,
       at: nowIso(),
     };
+    state.lastActivityAt = nowIso();
+    await this.save(state);
+  }
+
+  async touchActivity(goalId: string): Promise<void> {
+    const state = await this.load(goalId);
+    state.lastActivityAt = nowIso();
+    await this.save(state);
+  }
+
+  async getLastActivityAt(goalId: string): Promise<string | undefined> {
+    const state = await this.load(goalId);
+    return state.lastActivityAt;
+  }
+
+  async getLastNudgeAt(goalId: string): Promise<string | undefined> {
+    const state = await this.load(goalId);
+    return state.lastNudgeAt;
+  }
+
+  async markNudgeSent(goalId: string): Promise<void> {
+    const state = await this.load(goalId);
+    state.lastNudgeAt = nowIso();
     await this.save(state);
   }
 
