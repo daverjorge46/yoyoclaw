@@ -224,6 +224,7 @@ export type AppViewState = {
   connect: () => void;
   setTab: (tab: Tab) => void;
   setTheme: (theme: ThemeMode, context?: ThemeTransitionContext) => void;
+  setMode: (mode: "basic" | "advanced") => void;
   applySettings: (next: UiSettings) => void;
   loadOverview: () => Promise<void>;
   loadAssistantIdentity: () => Promise<void>;

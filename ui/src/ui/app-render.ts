@@ -3,7 +3,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
-import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
+import { renderChatControls, renderModeToggle, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -51,7 +51,7 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import { normalizeBasePath, getVisibleTabs, subtitleForTab, titleForTab } from "./navigation.ts";
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
@@ -137,11 +137,12 @@ export function renderApp(state: AppViewState) {
             <span>Health</span>
             <span class="mono">${state.connected ? "OK" : "Offline"}</span>
           </div>
+          ${renderModeToggle(state)}
           ${renderThemeToggle(state)}
         </div>
       </header>
       <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
-        ${TAB_GROUPS.map((group) => {
+        ${getVisibleTabs(state.mode).map((group) => {
           const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
           return html`
@@ -200,6 +201,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "overview"
             ? renderOverview({
+                mode: state.mode,
                 connected: state.connected,
                 hello: state.hello,
                 settings: state.settings,
@@ -232,6 +234,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "channels"
             ? renderChannels({
+                mode: state.mode,
                 connected: state.connected,
                 loading: state.channelsLoading,
                 snapshot: state.channelsSnapshot,
@@ -283,6 +286,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "sessions"
             ? renderSessions({
+                mode: state.mode,
                 loading: state.sessionsLoading,
                 result: state.sessionsResult,
                 error: state.sessionsError,
@@ -337,6 +341,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "agents"
             ? renderAgents({
+                mode: state.mode,
                 loading: state.agentsLoading,
                 error: state.agentsError,
                 agentsList: state.agentsList,
@@ -704,6 +709,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "nodes"
             ? renderNodes({
+                mode: state.mode,
                 loading: state.nodesLoading,
                 nodes: state.nodes,
                 devicesLoading: state.devicesLoading,
@@ -862,6 +868,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "config"
             ? renderConfig({
+                mode: state.mode,
                 raw: state.configRaw,
                 originalRaw: state.configRawOriginal,
                 valid: state.configValid,
@@ -923,6 +930,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "logs"
             ? renderLogs({
+                mode: state.mode,
                 loading: state.logsLoading,
                 error: state.logsError,
                 file: state.logsFile,

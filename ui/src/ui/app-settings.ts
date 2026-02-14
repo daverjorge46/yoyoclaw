@@ -39,6 +39,7 @@ type SettingsHost = {
   password?: string;
   theme: ThemeMode;
   themeResolved: ResolvedTheme;
+  mode: "basic" | "advanced";
   applySessionKey: string;
   sessionKey: string;
   tab: Tab;
@@ -66,6 +67,9 @@ export function applySettings(host: SettingsHost, next: UiSettings) {
   if (next.theme !== host.theme) {
     host.theme = next.theme;
     applyResolvedTheme(host, resolveTheme(next.theme));
+  }
+  if (next.mode !== host.mode) {
+    host.mode = next.mode;
   }
   host.applySessionKey = host.settings.lastActiveSessionKey;
 }
@@ -147,6 +151,10 @@ export function applySettingsFromUrl(host: SettingsHost) {
 }
 
 export function setTab(host: SettingsHost, next: Tab) {
+  // Navigation guard: redirect Advanced-only views to overview when in Basic mode
+  if (host.mode === "basic" && (next === "debug" || next === "logs")) {
+    next = "overview";
+  }
   if (host.tab !== next) {
     host.tab = next;
   }
@@ -179,6 +187,13 @@ export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTra
     context,
     currentTheme: host.theme,
   });
+}
+
+export function setMode(host: SettingsHost, next: "basic" | "advanced") {
+  if (host.mode !== next) {
+    host.mode = next;
+    applySettings(host, { ...host.settings, mode: next });
+  }
 }
 
 export async function refreshActiveTab(host: SettingsHost) {
@@ -266,6 +281,10 @@ export function syncThemeWithSettings(host: SettingsHost) {
   applyResolvedTheme(host, resolveTheme(host.theme));
 }
 
+export function syncModeWithSettings(host: SettingsHost) {
+  host.mode = host.settings.mode ?? "basic";
+}
+
 export function applyResolvedTheme(host: SettingsHost, resolved: ResolvedTheme) {
   host.themeResolved = resolved;
   if (typeof document === "undefined") {
@@ -346,6 +365,10 @@ export function onPopState(host: SettingsHost) {
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
+  // Navigation guard: redirect Advanced-only views to overview when in Basic mode
+  if (host.mode === "basic" && (next === "debug" || next === "logs")) {
+    next = "overview";
+  }
   if (host.tab !== next) {
     host.tab = next;
   }
