@@ -13,6 +13,7 @@ type ToolCallBlock = {
   name?: unknown;
   input?: unknown;
   arguments?: unknown;
+  partialJson?: unknown;
 };
 
 function extractToolCallsFromAssistant(
@@ -56,6 +57,20 @@ function hasToolCallInput(block: ToolCallBlock): boolean {
   const hasArguments =
     "arguments" in block ? block.arguments !== undefined && block.arguments !== null : false;
   return hasInput || hasArguments;
+}
+
+/**
+ * Detect tool call blocks still carrying the streaming-only `partialJson` field.
+ * When the SSE stream is interrupted (e.g. proxy sends malformed events, connection
+ * reset), the `content_block_stop` handler never fires, leaving `partialJson` on the
+ * block.  Persisting these incomplete blocks in session history causes cascading
+ * failures: the next request sends the malformed content back to the provider, which
+ * may again produce a broken stream.
+ *
+ * See: https://github.com/openclaw/openclaw/issues/16517
+ */
+function hasPartialJson(block: ToolCallBlock): boolean {
+  return "partialJson" in block && block.partialJson !== undefined && block.partialJson !== null;
 }
 
 function extractToolResultId(msg: Extract<AgentMessage, { role: "toolResult" }>): string | null {
@@ -118,7 +133,7 @@ export function repairToolCallInputs(messages: AgentMessage[]): ToolCallInputRep
     let droppedInMessage = 0;
 
     for (const block of msg.content) {
-      if (isToolCallBlock(block) && !hasToolCallInput(block)) {
+      if (isToolCallBlock(block) && (!hasToolCallInput(block) || hasPartialJson(block))) {
         droppedToolCalls += 1;
         droppedInMessage += 1;
         changed = true;

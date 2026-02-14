@@ -223,6 +223,63 @@ describe("sanitizeToolCallInputs", () => {
     expect(out.map((m) => m.role)).toEqual(["user"]);
   });
 
+  it("drops tool calls that still have partialJson (incomplete streaming)", () => {
+    // When a stream is interrupted (e.g. proxy sends malformed SSE, connection reset),
+    // tool call blocks may retain the streaming-only `partialJson` field because
+    // `content_block_stop` never fired.  These incomplete blocks must be stripped
+    // from session history to prevent cascading failures on subsequent requests.
+    // See: https://github.com/openclaw/openclaw/issues/16517
+    const input: AgentMessage[] = [
+      {
+        role: "assistant",
+        content: [
+          { type: "text", text: "Let me check that." },
+          {
+            type: "toolCall",
+            id: "call_partial",
+            name: "Bash",
+            arguments: {},
+            partialJson: '{"command": "ls',
+          },
+        ],
+        stopReason: "error",
+      } as AgentMessage,
+      { role: "user", content: "something went wrong" },
+    ];
+
+    const out = sanitizeToolCallInputs(input);
+    const assistant = out[0] as Extract<AgentMessage, { role: "assistant" }>;
+    const types = Array.isArray(assistant.content)
+      ? assistant.content.map((block) => (block as { type?: unknown }).type)
+      : [];
+    // The incomplete tool call should be dropped, but text should be preserved
+    expect(types).toEqual(["text"]);
+    expect(out).toHaveLength(2);
+  });
+
+  it("drops entire assistant message when all content is incomplete partialJson tool calls", () => {
+    const input: AgentMessage[] = [
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "toolCall",
+            id: "call_only",
+            name: "Read",
+            arguments: {},
+            partialJson: '{"file_path": "/tmp',
+          },
+        ],
+        stopReason: "error",
+      } as AgentMessage,
+      { role: "user", content: "retry" },
+    ];
+
+    const out = sanitizeToolCallInputs(input);
+    // The entire assistant message should be dropped since it has no valid content
+    expect(out.map((m) => m.role)).toEqual(["user"]);
+  });
+
   it("keeps valid tool calls and preserves text blocks", () => {
     const input: AgentMessage[] = [
       {
