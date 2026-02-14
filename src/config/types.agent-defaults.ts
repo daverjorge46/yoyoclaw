@@ -155,6 +155,13 @@ export type AgentDefaultsConfig = {
    * idleMs: wait time before flushing when idle.
    */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
+  /**
+   * Suppress assistant narration on messaging channels.
+   * When true, only tool outputs (like `message` tool) are delivered to the user.
+   * Assistant text written between tool calls is discarded.
+   * Useful for Slack/Telegram where you want only the final polished reply.
+   */
+  suppressNarrationOnMessaging?: boolean;
   /** Human-like delay between block replies. */
   humanDelay?: HumanDelayConfig;
   timeoutSeconds?: number;

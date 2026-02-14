@@ -79,6 +79,22 @@ export type DispatchFromConfigResult = {
   counts: Record<ReplyDispatchKind, number>;
 };
 
+function shouldSuppressNarration(
+  cfg: OpenClawConfig,
+  agentId: string | undefined,
+  channel: string,
+): boolean {
+  // Only apply to messaging channels (slack, telegram, discord, etc.)
+  const messagingChannels = new Set(["slack", "telegram", "discord", "whatsapp", "signal"]);
+  if (!messagingChannels.has(channel.toLowerCase())) {
+    return false;
+  }
+  // Check per-agent config first
+  const agentList = cfg.agents?.list ?? [];
+  const agentCfg = agentId ? agentList.find((a) => a.identity?.id === agentId) : undefined;
+  return agentCfg?.suppressNarrationOnMessaging ?? cfg.agents?.defaults?.suppressNarrationOnMessaging ?? false;
+}
+
 export async function dispatchReplyFromConfig(params: {
   ctx: FinalizedMsgContext;
   cfg: OpenClawConfig;
@@ -89,6 +105,8 @@ export async function dispatchReplyFromConfig(params: {
   const { ctx, cfg, dispatcher } = params;
   const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
   const channel = String(ctx.Surface ?? ctx.Provider ?? "unknown").toLowerCase();
+  const agentId = resolveSessionAgentId({ sessionKey: ctx.SessionKey, config: cfg });
+  const suppressNarration = shouldSuppressNarration(cfg, agentId ?? undefined, channel);
   const chatId = ctx.To ?? ctx.From;
   const messageId = ctx.MessageSid ?? ctx.MessageSidFirst ?? ctx.MessageSidLast;
   const sessionKey = ctx.SessionKey;
@@ -317,32 +335,34 @@ export async function dispatchReplyFromConfig(params: {
               return run();
             }
           : undefined,
-        onBlockReply: (payload: ReplyPayload, context) => {
-          const run = async () => {
-            // Accumulate block text for TTS generation after streaming
-            if (payload.text) {
-              if (accumulatedBlockText.length > 0) {
-                accumulatedBlockText += "\n";
-              }
-              accumulatedBlockText += payload.text;
-              blockCount++;
-            }
-            const ttsPayload = await maybeApplyTtsToPayload({
-              payload,
-              cfg,
-              channel: ttsChannel,
-              kind: "block",
-              inboundAudio,
-              ttsAuto: sessionTtsAuto,
-            });
-            if (shouldRouteToOriginating) {
-              await sendPayloadAsync(ttsPayload, context?.abortSignal, false);
-            } else {
-              dispatcher.sendBlockReply(ttsPayload);
-            }
-          };
-          return run();
-        },
+        onBlockReply: suppressNarration
+          ? undefined
+          : (payload: ReplyPayload, context) => {
+              const run = async () => {
+                // Accumulate block text for TTS generation after streaming
+                if (payload.text) {
+                  if (accumulatedBlockText.length > 0) {
+                    accumulatedBlockText += "\n";
+                  }
+                  accumulatedBlockText += payload.text;
+                  blockCount++;
+                }
+                const ttsPayload = await maybeApplyTtsToPayload({
+                  payload,
+                  cfg,
+                  channel: ttsChannel,
+                  kind: "block",
+                  inboundAudio,
+                  ttsAuto: sessionTtsAuto,
+                });
+                if (shouldRouteToOriginating) {
+                  await sendPayloadAsync(ttsPayload, context?.abortSignal, false);
+                } else {
+                  dispatcher.sendBlockReply(ttsPayload);
+                }
+              };
+              return run();
+            },
       },
       cfg,
     );
