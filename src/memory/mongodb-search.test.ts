@@ -414,15 +414,8 @@ describe("mongoSearch dispatcher", () => {
   });
 
   it("falls back to $text search when all Atlas Search methods fail", async () => {
-    const col = mockCollectionThatFails("not available");
-    // Override find to succeed
-    (col.find as ReturnType<typeof vi.fn>).mockReturnValue({
-      sort: vi.fn(() => ({
-        limit: vi.fn(() => ({
-          toArray: vi.fn(async () => SAMPLE_DOCS),
-        })),
-      })),
-    });
+    // With NO_CAPS, dispatcher skips Atlas Search and goes directly to $text fallback
+    const col = mockCollectionWithResults(SAMPLE_DOCS);
 
     await mongoSearch(col, "test", null, {
       ...baseOpts,
@@ -430,24 +423,15 @@ describe("mongoSearch dispatcher", () => {
       embeddingMode: "managed",
     });
 
-    // Should have used find() with $text
-    expect(col.find).toHaveBeenCalled();
-    const findArg = (col.find as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(findArg.$text).toBeDefined();
-    expect(findArg.$text.$search).toBe("test");
+    // Should have used aggregate with $text $match
+    expect(col.aggregate).toHaveBeenCalled();
+    const pipeline = (col.aggregate as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(pipeline[0].$match.$text).toBeDefined();
+    expect(pipeline[0].$match.$text.$search).toBe("test");
   });
 
   it("returns empty when everything fails", async () => {
     const col = mockCollectionThatFails("total failure");
-    (col.find as ReturnType<typeof vi.fn>).mockReturnValue({
-      sort: vi.fn(() => ({
-        limit: vi.fn(() => ({
-          toArray: vi.fn(async () => {
-            throw new Error("$text also failed");
-          }),
-        })),
-      })),
-    });
 
     const results = await mongoSearch(col, "test", null, {
       ...baseOpts,

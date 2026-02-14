@@ -523,19 +523,22 @@ export async function mongoSearch(
       filter.source = opts.sessionKey === "__memory__" ? "memory" : "sessions";
     }
     const docs = await collection
-      .find(filter, {
-        projection: {
-          _id: 0,
-          path: 1,
-          startLine: 1,
-          endLine: 1,
-          text: 1,
-          source: 1,
-          score: { $meta: "textScore" },
+      .aggregate([
+        { $match: filter },
+        {
+          $project: {
+            _id: 0,
+            path: 1,
+            startLine: 1,
+            endLine: 1,
+            text: 1,
+            source: 1,
+            score: { $meta: "textScore" },
+          },
         },
-      })
-      .toSorted({ score: { $meta: "textScore" } })
-      .limit(opts.maxResults)
+        { $sort: { score: { $meta: "textScore" } } },
+        { $limit: opts.maxResults },
+      ])
       .toArray();
     return docs
       .map((doc: Document) => toSearchResult(doc, "memory"))
