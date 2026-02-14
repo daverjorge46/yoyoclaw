@@ -104,7 +104,12 @@ export function downgradeOpenAIReasoningBlocks(messages: AgentMessage[]): AgentM
       }
       const signature = parseOpenAIReasoningSignature(record.thinkingSignature);
       if (!signature) {
-        nextContent.push(block);
+        // Convert unsigned thinking blocks to text to avoid API rejection
+        // ("thinking.signature: Field required") from proxies that omit signatures
+        if (typeof record.thinking === "string" && record.thinking.trim()) {
+          nextContent.push({ type: "text", text: record.thinking } as AssistantContentBlock);
+          changed = true;
+        }
         continue;
       }
       if (hasFollowingNonThinkingBlock(assistantMsg.content, i)) {
