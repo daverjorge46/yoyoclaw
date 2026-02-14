@@ -48,16 +48,26 @@ describe("session path safety", () => {
     expect(resolved).toBe(path.resolve(sessionsDir, "sess-1-topic-topic%2Fa%2Bb.jsonl"));
   });
 
-  it("rejects unsafe sessionFile candidates that escape the sessions dir", () => {
+  it("falls back when sessionFile candidates escape the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
 
-    expect(() =>
-      resolveSessionFilePath("sess-1", { sessionFile: "../../etc/passwd" }, { sessionsDir }),
-    ).toThrow(/within sessions directory/);
+    const resolved1 = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "../../etc/passwd" },
+      {
+        sessionsDir,
+      },
+    );
+    expect(resolved1).toBe(path.resolve(sessionsDir, "sess-1.jsonl"));
 
-    expect(() =>
-      resolveSessionFilePath("sess-1", { sessionFile: "/etc/passwd" }, { sessionsDir }),
-    ).toThrow(/within sessions directory/);
+    const resolved2 = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "/etc/passwd" },
+      {
+        sessionsDir,
+      },
+    );
+    expect(resolved2).toBe(path.resolve(sessionsDir, "sess-1.jsonl"));
   });
 
   it("accepts sessionFile candidates within the sessions dir", () => {
@@ -96,16 +106,16 @@ describe("session path safety", () => {
     expect(resolved).toBe(path.resolve(sessionsDir, "abc-123-topic-42.jsonl"));
   });
 
-  it("rejects absolute sessionFile paths outside the sessions dir", () => {
+  it("falls back when absolute sessionFile paths are outside the sessions dir", () => {
     const sessionsDir = "/tmp/openclaw/agents/main/sessions";
 
-    expect(() =>
-      resolveSessionFilePath(
-        "sess-1",
-        { sessionFile: "/tmp/openclaw/agents/work/sessions/abc-123.jsonl" },
-        { sessionsDir },
-      ),
-    ).toThrow(/within sessions directory/);
+    const resolved = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "/tmp/openclaw/agents/work/sessions/abc-123.jsonl" },
+      { sessionsDir },
+    );
+
+    expect(resolved).toBe(path.resolve(sessionsDir, "sess-1.jsonl"));
   });
 
   it("uses agent sessions dir fallback for transcript path", () => {

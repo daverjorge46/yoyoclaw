@@ -121,9 +121,21 @@ export function resolveSessionFilePath(
 ): string {
   const sessionsDir = resolveSessionsDir(opts);
   const candidate = entry?.sessionFile?.trim();
+
+  // `sessionFile` is optional metadata persisted in sessions.json. In practice it can become
+  // stale/corrupted (e.g. absolute paths, moved state dir, etc.).
+  //
+  // Security note: even if a candidate is provided, we always enforce containment checks;
+  // and if the candidate fails validation, we fall back to the derived safe path instead
+  // of throwing and breaking message handling.
   if (candidate) {
-    return resolvePathWithinSessionsDir(sessionsDir, candidate);
+    try {
+      return resolvePathWithinSessionsDir(sessionsDir, candidate);
+    } catch {
+      // ignore invalid `sessionFile` candidates
+    }
   }
+
   return resolveSessionTranscriptPathInDir(sessionId, sessionsDir);
 }
 
