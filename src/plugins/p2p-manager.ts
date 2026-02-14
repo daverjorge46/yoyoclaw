@@ -1,4 +1,4 @@
-import { logError } from '../logger.js';
+import { logError } from "../logger.js";
 
 /**
  * P2PManager: A TypeScript bridge for HiveMind signaling.
@@ -11,8 +11,8 @@ export class P2PManager {
 
   constructor(agentName: string) {
     this.agentName = agentName;
-    this.gistId = process.env.HIVEMIND_GIST_ID || '';
-    this.token = process.env.GITHUB_TOKEN || '';
+    this.gistId = process.env.HIVEMIND_GIST_ID || "";
+    this.token = process.env.GITHUB_TOKEN || "";
   }
 
   /**
@@ -26,13 +26,15 @@ export class P2PManager {
       const nodes = state.active_nodes || {};
       nodes[this.agentName] = {
         last_seen: new Date().toISOString(),
-        role: 'Official-Node',
-        status: 'online',
+        role: "Official-Node",
+        status: "online",
       };
       state.active_nodes = nodes;
       await this.writeState(state);
     } catch (error) {
-      logError(`P2P: Failed to register presence: ${error instanceof Error ? error.message : String(error)}`);
+      logError(
+        `P2P: Failed to register presence: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -55,7 +57,9 @@ export class P2PManager {
       state.knowledge_base = insights;
       await this.writeState(state);
     } catch (error) {
-      logError(`P2P: Failed to publish insight: ${error instanceof Error ? error.message : String(error)}`);
+      logError(
+        `P2P: Failed to publish insight: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -64,29 +68,29 @@ export class P2PManager {
     const response = await fetch(url, {
       headers: {
         Authorization: `token ${this.token}`,
-        Accept: 'application/vnd.github.v3+json',
+        Accept: "application/vnd.github.v3+json",
       },
     });
     if (!response.ok) {
       throw new Error(`State read failed: ${response.statusText}`);
     }
     const data: any = await response.json();
-    const content = data.files['hivemind_state.json']?.content;
+    const content = data.files["hivemind_state.json"]?.content;
     return content ? JSON.parse(content) : {};
   }
 
   private async writeState(state: any): Promise<void> {
     const url = `https://api.github.com/gists/${this.gistId}`;
     const response = await fetch(url, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
         Authorization: `token ${this.token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         files: {
-          'hivemind_state.json': {
+          "hivemind_state.json": {
             content: JSON.stringify(state, null, 2),
           },
         },
