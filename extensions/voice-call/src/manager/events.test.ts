@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -7,6 +8,8 @@ import { VoiceCallConfigSchema } from "../config.js";
 import { processEvent } from "./events.js";
 
 function createContext(overrides: Partial<CallManagerContext> = {}): CallManagerContext {
+  const storePath = path.join(os.tmpdir(), `openclaw-voice-call-events-test-${Date.now()}`);
+  fs.mkdirSync(storePath, { recursive: true });
   return {
     activeCalls: new Map(),
     providerCallIdMap: new Map(),
@@ -18,7 +21,7 @@ function createContext(overrides: Partial<CallManagerContext> = {}): CallManager
       provider: "plivo",
       fromNumber: "+15550000000",
     }),
-    storePath: path.join(os.tmpdir(), `openclaw-voice-call-events-test-${Date.now()}`),
+    storePath,
     webhookUrl: null,
     transcriptWaiters: new Map(),
     maxDurationTimers: new Map(),
@@ -137,6 +140,71 @@ describe("processEvent (functional)", () => {
     expect(ctx.activeCalls.size).toBe(0);
     expect(hangupCalls).toHaveLength(1);
     expect(hangupCalls[0]?.providerCallId).toBe("prov-dup");
+  });
+
+  it("updates providerCallId map when provider ID changes", () => {
+    const now = Date.now();
+    const ctx = createContext();
+    ctx.activeCalls.set("call-1", {
+      callId: "call-1",
+      providerCallId: "request-uuid",
+      provider: "plivo",
+      direction: "outbound",
+      state: "initiated",
+      from: "+15550000000",
+      to: "+15550000001",
+      startedAt: now,
+      transcript: [],
+      processedEventIds: [],
+      metadata: {},
+    });
+    ctx.providerCallIdMap.set("request-uuid", "call-1");
+
+    processEvent(ctx, {
+      id: "evt-provider-id-change",
+      type: "call.answered",
+      callId: "call-1",
+      providerCallId: "call-uuid",
+      timestamp: now + 1,
+    });
+
+    expect(ctx.activeCalls.get("call-1")?.providerCallId).toBe("call-uuid");
+    expect(ctx.providerCallIdMap.get("call-uuid")).toBe("call-1");
+    expect(ctx.providerCallIdMap.has("request-uuid")).toBe(false);
+  });
+
+  it("invokes onCallAnswered hook for answered events", () => {
+    const now = Date.now();
+    let answeredCallId: string | null = null;
+    const ctx = createContext({
+      onCallAnswered: (call) => {
+        answeredCallId = call.callId;
+      },
+    });
+    ctx.activeCalls.set("call-2", {
+      callId: "call-2",
+      providerCallId: "call-2-provider",
+      provider: "plivo",
+      direction: "inbound",
+      state: "ringing",
+      from: "+15550000002",
+      to: "+15550000000",
+      startedAt: now,
+      transcript: [],
+      processedEventIds: [],
+      metadata: {},
+    });
+    ctx.providerCallIdMap.set("call-2-provider", "call-2");
+
+    processEvent(ctx, {
+      id: "evt-answered-hook",
+      type: "call.answered",
+      callId: "call-2",
+      providerCallId: "call-2-provider",
+      timestamp: now + 1,
+    });
+
+    expect(answeredCallId).toBe("call-2");
   });
 
   it("when hangup throws, logs and does not throw", () => {

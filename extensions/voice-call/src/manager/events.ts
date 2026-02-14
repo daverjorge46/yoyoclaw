@@ -135,9 +135,16 @@ export function processEvent(ctx: CallManagerContext, event: NormalizedEvent): v
     return;
   }
 
-  if (event.providerCallId && !call.providerCallId) {
+  if (event.providerCallId && event.providerCallId !== call.providerCallId) {
+    const previousProviderCallId = call.providerCallId;
     call.providerCallId = event.providerCallId;
     ctx.providerCallIdMap.set(event.providerCallId, call.callId);
+    if (previousProviderCallId) {
+      const mapped = ctx.providerCallIdMap.get(previousProviderCallId);
+      if (mapped === call.callId) {
+        ctx.providerCallIdMap.delete(previousProviderCallId);
+      }
+    }
   }
 
   call.processedEventIds.push(event.id);
@@ -161,6 +168,7 @@ export function processEvent(ctx: CallManagerContext, event: NormalizedEvent): v
           await endCall(ctx, callId);
         },
       });
+      ctx.onCallAnswered?.(call);
       break;
 
     case "call.active":
