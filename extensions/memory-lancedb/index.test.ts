@@ -104,6 +104,10 @@ describe("memory plugin e2e", () => {
     expect(shouldCapture("<relevant-memories>injected</relevant-memories>")).toBe(false);
     expect(shouldCapture("<system>status</system>")).toBe(false);
     expect(shouldCapture("Here is a short **summary**\n- bullet")).toBe(false);
+    const nearLimit = `I always prefer this setting. ${"x".repeat(1450)}`;
+    const overLimit = `I always prefer this setting. ${"x".repeat(1505)}`;
+    expect(shouldCapture(nearLimit)).toBe(true);
+    expect(shouldCapture(overLimit)).toBe(false);
   });
 
   test("detectCategory classifies using production logic", async () => {

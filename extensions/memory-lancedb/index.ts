@@ -195,7 +195,7 @@ const MEMORY_TRIGGERS = [
 ];
 
 export function shouldCapture(text: string): boolean {
-  if (text.length < 10 || text.length > 500) {
+  if (text.length < 10 || text.length > 1500) {
     return false;
   }
   // Skip injected context from memory recall
