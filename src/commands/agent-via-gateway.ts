@@ -88,11 +88,20 @@ export async function agentViaGatewayCommand(opts: AgentCliOpts, runtime: Runtim
   if (!body) {
     throw new Error("Message (--message) is required");
   }
-  if (!opts.to && !opts.sessionId && !opts.agent) {
-    throw new Error("Pass --to <E.164>, --session-id, or --agent to choose a session");
-  }
 
   const cfg = loadConfig();
+
+  // Apply CLI config defaults for single-user setups (#15925)
+  const cliAgentCfg = cfg.cli?.agent;
+  const effectiveDeliver = opts.deliver ?? cliAgentCfg?.defaultDeliver ?? false;
+  const effectiveChannel = opts.channel ?? cliAgentCfg?.defaultChannel;
+  const effectiveReplyTo = opts.replyTo ?? cliAgentCfg?.defaultTo;
+  const effectiveReplyAccount = opts.replyAccount ?? cliAgentCfg?.defaultAccountId;
+
+  if (!opts.to && !opts.sessionId && !opts.agent && !effectiveReplyTo) {
+    throw new Error("Pass --to <E.164>, --session-id, --agent, or set cli.agent.defaultTo in config");
+  }
+
   const agentIdRaw = opts.agent?.trim();
   const agentId = agentIdRaw ? normalizeAgentId(agentIdRaw) : undefined;
   if (agentId) {
@@ -113,7 +122,7 @@ export async function agentViaGatewayCommand(opts: AgentCliOpts, runtime: Runtim
     sessionId: opts.sessionId,
   }).sessionKey;
 
-  const channel = normalizeMessageChannel(opts.channel) ?? DEFAULT_CHAT_CHANNEL;
+  const channel = normalizeMessageChannel(effectiveChannel) ?? DEFAULT_CHAT_CHANNEL;
   const idempotencyKey = opts.runId?.trim() || randomIdempotencyKey();
 
   const response = await withProgress(
@@ -129,14 +138,14 @@ export async function agentViaGatewayCommand(opts: AgentCliOpts, runtime: Runtim
           message: body,
           agentId,
           to: opts.to,
-          replyTo: opts.replyTo,
+          replyTo: effectiveReplyTo,
           sessionId: opts.sessionId,
           sessionKey,
           thinking: opts.thinking,
-          deliver: Boolean(opts.deliver),
+          deliver: Boolean(effectiveDeliver),
           channel,
           replyChannel: opts.replyChannel,
-          replyAccountId: opts.replyAccount,
+          replyAccountId: effectiveReplyAccount,
           timeout: timeoutSeconds,
           lane: opts.lane,
           extraSystemPrompt: opts.extraSystemPrompt,
