@@ -74,8 +74,8 @@ describe("extractImages", () => {
     ];
     const images = extractImages(content);
     expect(images).toHaveLength(2);
-    expect(images[0]!.mimeType).toBe("image/png");
-    expect(images[1]!.mimeType).toBe("image/jpeg");
+    expect(images[0].mimeType).toBe("image/png");
+    expect(images[1].mimeType).toBe("image/jpeg");
   });
 
   it("ignores non-data-url image_url entries", () => {

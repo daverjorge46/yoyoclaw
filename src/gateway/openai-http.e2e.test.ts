@@ -579,8 +579,8 @@ describe("OpenAI-compatible HTTP API (e2e)", () => {
 
     // Should only have images from the LAST user message
     expect(typedOpts.images).toHaveLength(1);
-    expect(typedOpts.images![0]!.data).toBe(base64Last);
-    expect(typedOpts.images![0]!.mimeType).toBe("image/png");
+    expect(typedOpts.images[0].data).toBe(base64Last);
+    expect(typedOpts.images[0].mimeType).toBe("image/png");
 
     await res.text();
   });
