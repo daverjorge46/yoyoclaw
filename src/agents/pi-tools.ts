@@ -45,6 +45,7 @@ import {
   createSandboxedWriteTool,
   normalizeToolParams,
   patchToolSchemaForClaudeCompatibility,
+  wrapToolWorkspaceRootGuard,
   wrapToolParamNormalization,
 } from "./pi-tools.read.js";
 import { cleanToolSchemaForGemini, normalizeToolParameters } from "./pi-tools.schema.js";
@@ -109,7 +110,19 @@ function resolveExecConfig(params: { cfg?: OpenClawConfig; agentId?: string }) {
       agentExec?.approvalRunningNoticeMs ?? globalExec?.approvalRunningNoticeMs,
     cleanupMs: agentExec?.cleanupMs ?? globalExec?.cleanupMs,
     notifyOnExit: agentExec?.notifyOnExit ?? globalExec?.notifyOnExit,
+    notifyOnExitEmptySuccess:
+      agentExec?.notifyOnExitEmptySuccess ?? globalExec?.notifyOnExitEmptySuccess,
     applyPatch: agentExec?.applyPatch ?? globalExec?.applyPatch,
+  };
+}
+
+function resolveFsConfig(params: { cfg?: OpenClawConfig; agentId?: string }) {
+  const cfg = params.cfg;
+  const globalFs = cfg?.tools?.fs;
+  const agentFs =
+    cfg && params.agentId ? resolveAgentConfig(cfg, params.agentId)?.tools?.fs : undefined;
+  return {
+    workspaceOnly: agentFs?.workspaceOnly ?? globalFs?.workspaceOnly,
   };
 }
 
@@ -241,11 +254,14 @@ export function createOpenClawCodingTools(options?: {
     subagentPolicy,
   ]);
   const execConfig = resolveExecConfig({ cfg: options?.config, agentId });
+  const fsConfig = resolveFsConfig({ cfg: options?.config, agentId });
   const sandboxRoot = sandbox?.workspaceDir;
   const sandboxFsBridge = sandbox?.fsBridge;
   const allowWorkspaceWrites = sandbox?.workspaceAccess !== "ro";
   const workspaceRoot = options?.workspaceDir ?? process.cwd();
-  const applyPatchConfig = options?.config?.tools?.exec?.applyPatch;
+  const workspaceOnly = fsConfig.workspaceOnly === true;
+  const applyPatchConfig = execConfig.applyPatch;
+  const applyPatchWorkspaceOnly = workspaceOnly || applyPatchConfig?.workspaceOnly === true;
   const applyPatchEnabled =
     !!applyPatchConfig?.enabled &&
     isOpenAIProvider(options?.modelProvider) &&
@@ -270,7 +286,8 @@ export function createOpenClawCodingTools(options?: {
         ];
       }
       const freshReadTool = createReadTool(workspaceRoot);
-      return [createOpenClawReadTool(freshReadTool)];
+      const wrapped = createOpenClawReadTool(freshReadTool);
+      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
     }
     if (tool.name === "bash" || tool.name === execToolName) {
       return [];
@@ -280,16 +297,22 @@ export function createOpenClawCodingTools(options?: {
         return [];
       }
       // Wrap with param normalization for Claude Code compatibility
-      return [
-        wrapToolParamNormalization(createWriteTool(workspaceRoot), CLAUDE_PARAM_GROUPS.write),
-      ];
+      const wrapped = wrapToolParamNormalization(
+        createWriteTool(workspaceRoot),
+        CLAUDE_PARAM_GROUPS.write,
+      );
+      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
     }
     if (tool.name === "edit") {
       if (sandboxRoot) {
         return [];
       }
       // Wrap with param normalization for Claude Code compatibility
-      return [wrapToolParamNormalization(createEditTool(workspaceRoot), CLAUDE_PARAM_GROUPS.edit)];
+      const wrapped = wrapToolParamNormalization(
+        createEditTool(workspaceRoot),
+        CLAUDE_PARAM_GROUPS.edit,
+      );
+      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
     }
     return [tool];
   });
@@ -313,6 +336,8 @@ export function createOpenClawCodingTools(options?: {
     approvalRunningNoticeMs:
       options?.exec?.approvalRunningNoticeMs ?? execConfig.approvalRunningNoticeMs,
     notifyOnExit: options?.exec?.notifyOnExit ?? execConfig.notifyOnExit,
+    notifyOnExitEmptySuccess:
+      options?.exec?.notifyOnExitEmptySuccess ?? execConfig.notifyOnExitEmptySuccess,
     sandbox: sandbox
       ? {
           containerName: sandbox.containerName,
@@ -335,6 +360,7 @@ export function createOpenClawCodingTools(options?: {
             sandboxRoot && allowWorkspaceWrites
               ? { root: sandboxRoot, bridge: sandboxFsBridge! }
               : undefined,
+          workspaceOnly: applyPatchWorkspaceOnly,
         });
   const tools: AnyAgentTool[] = [
     ...base,
