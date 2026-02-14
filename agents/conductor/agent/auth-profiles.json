@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "profiles": {
+    "openai-codex:default": {
+      "type": "oauth",
+      "provider": "openai-codex",
+      "access": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE5MzQ0ZTY1LWJiYzktNDRkMS1hOWQwLWY5NTdiMDc5YmQwZSIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSJdLCJjbGllbnRfaWQiOiJhcHBfRU1vYW1FRVo3M2YwQ2tYYVhwN2hyYW5uIiwiZXhwIjoxNzcwNjMwMzUwLCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoiODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9hY2NvdW50X3VzZXJfaWQiOiJ1c2VyLWd4V3A0ZzUwcENhRWtSWXhlU0FzN0cxRV9fODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9jb21wdXRlX3Jlc2lkZW5jeSI6Im5vX2NvbnN0cmFpbnQiLCJjaGF0Z3B0X3BsYW5fdHlwZSI6InBybyIsImNoYXRncHRfdXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIiwidXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vbWZhIjp7InJlcXVpcmVkIjoieWVzIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vcHJvZmlsZSI6eyJlbWFpbCI6InNodW5zdWtlQGFtYml0aW91c2FpLmNvLmpwIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJpYXQiOjE3Njk3NjYzNTAsImlzcyI6Imh0dHBzOi8vYXV0aC5vcGVuYWkuY29tIiwianRpIjoiNDI2MTZhOWUtNmU5OC00ZTVlLWIwNmEtY2IwYzM2NjAwYjlmIiwibmJmIjoxNzY5NzY2MzUwLCJwd2RfYXV0aF90aW1lIjoxNzY5NzY2MzQ5MzMyLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsImVtYWlsIiwib2ZmbGluZV9hY2Nlc3MiXSwic2Vzc2lvbl9pZCI6ImF1dGhzZXNzXzk5TGZ5ak10SHI1MURia2NCclZmZzNFZSIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTEwMTQ1NzkwOTk0NTA0MTIwNDY2In0.pNOn1GZxa8z5_Zl5ZgoKkt29W0RoTF13G5a9zgjCWTUZdz5rxT8OVmoZXiQmmhTNed_Mg4-AkTPeEIXNL94rThDehE7gzY50WFF0UD72sBvYoR7iFHbyciW0XF3Wfk7y-VVYnWfRj-_preVJLiFIHxI_kUpjvHgRgn2PhrVW-Bx7QtThA0IoR5y9qCbEn3eu3H-1NzD_1a5cd7spRZyF4f3sScd_fSjgdXrNCpMioqWykPnpZjYDbHDVRz1pXYUr7LR6hz--8TeroDzwMq1BzrGxHQiVY2CxPjnji33NOKSEdvMkY-38xR9Osn2vr8IDcKi9Cz0L6ayfViuYGZ1t7j7mHiQBpZ-ru3vqxRyuN08XXzdnktQFgdplFYpnLBLU3SJnYoi02qo_2cVqz8TTFppUhadsJZtFV6naggARvQLGzZdRfAqvgjRLZ2bKonsjj5TFNahuGIM0ij7NfoAcskNjr_lCc6aIjSZ1AlgK2_EkOU7mh0bNtMcTKzEq8a_Ubz3pY-YvMnAyXbGR5FbQNsoxgRcGD1BtRaIOvppjn-QYJT6hvsI3vlc-E0oa7L9iqn8hcGhKovubcwwLBVoE1OU6ZBsH5HKPnXnsCQEMZ6Lb8Nt6M9mF78YJpGET2d-zxSHN50DY968ybMVpshhlEf3Ah5KSJL94voH4SzanABs",
+      "refresh": "rt_HejITNhiT8h0IV5G4GSZl4_0aWy0NS5EWKX3ZsL2y0E.T29go8brCkrEQ83W4_WzED7OEfB9kZPd9eq4j6ctD6E",
+      "expires": 1769769951081.8083,
+      "accountId": "885ea1a4-7dad-48f8-92b5-b5e6155c7acc"
+    },
+    "anthropic:oauth": {
+      "type": "oauth",
+      "provider": "anthropic",
+      "access": "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",
+      "refresh": "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",
+      "expires": 1770792703479,
+      "scopes": [
+        "user:inference",
+        "user:profile",
+        "user:sessions:claude_code"
+      ],
+      "subscriptionType": "max",
+      "rateLimitTier": "default_claude_max_20x"
+    },
+    "zai:default": {
+      "type": "api_key",
+      "provider": "zai",
+      "key": "7a6d9ce00a9d4437977189093aaddde8.WPyatQazDGioVCti"
+    },
+    "anthropic:oauth": {
+      "type": "oauth",
+      "provider": "anthropic",
+      "access": "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",
+      "refresh": "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",
+      "expires": 1770661504763
+    },
+    "openai-codex:default": {
+      "type": "oauth",
+      "provider": "openai-codex",
+      "access": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE5MzQ0ZTY1LWJiYzktNDRkMS1hOWQwLWY5NTdiMDc5YmQwZSIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSJdLCJjbGllbnRfaWQiOiJhcHBfRU1vYW1FRVo3M2YwQ2tYYVhwN2hyYW5uIiwiZXhwIjoxNzcxNTQwMjU3LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoiODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9hY2NvdW50X3VzZXJfaWQiOiJ1c2VyLWd4V3A0ZzUwcENhRWtSWXhlU0FzN0cxRV9fODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9jb21wdXRlX3Jlc2lkZW5jeSI6Im5vX2NvbnN0cmFpbnQiLCJjaGF0Z3B0X3BsYW5fdHlwZSI6InBybyIsImNoYXRncHRfdXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIiwidXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vbWZhIjp7InJlcXVpcmVkIjoieWVzIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vcHJvZmlsZSI6eyJlbWFpbCI6InNodW5zdWtlQGFtYml0aW91c2FpLmNvLmpwIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJpYXQiOjE3NzA2NzYyNTcsImlzcyI6Imh0dHBzOi8vYXV0aC5vcGVuYWkuY29tIiwianRpIjoiODVkZDNiYTktN2UxZS00YzdjLTlhYTYtNGZiNjhmYmFiMzMxIiwibmJmIjoxNzcwNjc2MjU3LCJwd2RfYXV0aF90aW1lIjoxNzcwNjc2MjU2MDMzLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsImVtYWlsIiwib2ZmbGluZV9hY2Nlc3MiXSwic2Vzc2lvbl9pZCI6ImF1dGhzZXNzX1BiY0Rzenp1bXpwZnlRSTRYd0c1am02ciIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTEwMTQ1NzkwOTk0NTA0MTIwNDY2In0.HGj20x73WyJ_KWyHGcepl0QLkQIDL_u3OCmsdsOFN8vq4iUVjomigT82-utnBAeN5mv25Tktj8AoCkb2LuVGXSnOuXu7ThvLvHfF_qNOx4A-6d-2BbUaHaO0jopFuru5SgY-aZ88T4U1L_aoQnXKYTczAGpl1vDyZXR1g58TaH0JWT8N7mK2PJiRGzLm_sLaLYoIiQ7kaFy823nQRuyllPJDBqp5X7uBHwDWsAA9wnxizjqsADT6erhf3vKEd-LsfTmyiL-rAtLqNJ1Fz8lrhq264B_CijBlegZayGp_JP0RHKUijW_x3LYzhjzdBXH5aV7mb5RPcbjCoO7fJ1HrPHk58R0eF4xVU5M87Tpre_9_G_F-ng2qCLPWUDpoXs11s_Gzs3_a4jfrC1OUiI5stdt5ew_1T05jqedyyQawoBdc6uq3hOZWlmwR9wHB8Zs8DRS_vdhe0Eo6F9g4oG5LwMc8K7yQZvWBbJ9QhWSiBmHEKAEHNiVglXDvHwUOtAaISEYL9IU3SO3abVDeT9l7s0CdBd1XxxxEFp61ATgBaIdDjcUuX5a1_NniRvW8Quef5VDvygMVLpS3BrE8pwt_d5K8ZAyk8cITgVbZSKatyBMc-Cu51Ld4SXh-1kq4rZJPiqLU1kHxYZjNVGTGdMSMIc_SKqJUr8C_dqg4oEpmd_0",
+      "refresh": "rt_NHUTBIsjaIMkQB6cMeMPgvqyNKc5PIH8O2RBU3shMtY.49t-xR9ZYbkLMxrRmpoaGOqMqjjlu2c2BiIzoTrNCAY",
+      "expires": 1771540256359,
+      "accountId": "885ea1a4-7dad-48f8-92b5-b5e6155c7acc"
+    }
+  },
+  "lastGood": {
+    "openai-codex": "openai-codex:default",
+    "anthropic": "anthropic:oauth",
+    "zai": "zai:default"
+  },
+  "usageStats": {
+    "openai-codex:default": {
+      "lastUsed": 1769391737865,
+      "errorCount": 0,
+      "lastFailureAt": 1769391585082
+    },
+    "anthropic:oauth": {
+      "lastUsed": 1770770688814,
+      "errorCount": 0
+    },
+    "zai:default": {
+      "lastUsed": 1771046966785,
+      "errorCount": 0
+    }
+  }
+}

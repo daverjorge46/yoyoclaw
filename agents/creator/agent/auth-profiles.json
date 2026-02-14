@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "profiles": {
+    "openai-codex:default": {
+      "type": "oauth",
+      "provider": "openai-codex",
+      "access": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE5MzQ0ZTY1LWJiYzktNDRkMS1hOWQwLWY5NTdiMDc5YmQwZSIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSJdLCJjbGllbnRfaWQiOiJhcHBfRU1vYW1FRVo3M2YwQ2tYYVhwN2hyYW5uIiwiZXhwIjoxNzY5ODkxMTA5LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoiODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9hY2NvdW50X3VzZXJfaWQiOiJ1c2VyLWd4V3A0ZzUwcENhRWtSWXhlU0FzN0cxRV9fODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9jb21wdXRlX3Jlc2lkZW5jeSI6Im5vX2NvbnN0cmFpbnQiLCJjaGF0Z3B0X3BsYW5fdHlwZSI6InBybyIsImNoYXRncHRfdXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIiwidXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vbWZhIjp7InJlcXVpcmVkIjoieWVzIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vcHJvZmlsZSI6eyJlbWFpbCI6InNodW5zdWtlQGFtYml0aW91c2FpLmNvLmpwIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJpYXQiOjE3NjkwMjcxMDksImlzcyI6Imh0dHBzOi8vYXV0aC5vcGVuYWkuY29tIiwianRpIjoiZGMwNTExMDktZjk1NC00ODk5LWFkYWEtYjAyNzFjYmI3YzBhIiwibmJmIjoxNzY5MDI3MTA5LCJwd2RfYXV0aF90aW1lIjoxNzY4NzM5MjA3NjU3LCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsImVtYWlsIiwib2ZmbGluZV9hY2Nlc3MiXSwic2Vzc2lvbl9pZCI6ImF1dGhzZXNzX3RoVGV5Zjh1RlJwd0oxdUtOWDZEcXJCRCIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTEwMTQ1NzkwOTk0NTA0MTIwNDY2In0.nqJChnFKt79-gwesUM3drqaCcSFZTfN0oojMIx7fipOVpxJl-vcHREOVouX7fZaPbupD5ArvwBmqAxnJMAYttp41x1xDLi3A9i-5h6rNGkk24ECubEyP5yTi0srE1QkxqaHHdFhqd3DVgsQEcikM4GIgbTsimRAQhnyqeZ1vz_rnxvWeEGV8qH52qQQvKzcYOJGIpKnsuWJmeabR1ISh54fOZ57kiX9luC1hM37QJwi2iJ6zrXdgv5Fv5VZjQw0xblcsxdOzcqtZEZu89Adflndyr8lVmV71AN5YPnVzQuDsi_VWEmLKH2jfyt9mv7dRmi7tpyMGhJVdoQGOIiq6ZAPafxKvbcGvVHuoiNc48AVNhHdFTi7C8YFSYoqt9c6WrKgcoh0rJstrDeCSghby1BFiq1O4mCvYnEnDAp1djVXKSm_R2NREieBgLqk9B6-UlIaIBJyD9jvyag8fk-CpmOIBIwveiBiZNmfEb_AUSqJ-BxHRfzt8i-WaWo5-zRlW5KELCXlAMnOGQDcjjIIxrk6zTFeKBYpG2mAw1hJOP5b5Plc5sVcVpG1xalEXXdWVrAYzZ5dS9okMdWMb5H_ECb28T-Yd_odJGHlMSvtll60rdIU1a2wZeHsoA6xS-b0KQ0z-cOP1zGfHb5jWFMHyWaOeyTIU8pLnmITdiN0KBa4",
+      "refresh": "rt_gX1_LtOjI3r6w1PSkBi5n2MspnQRlVryNDhdi9P3AkA.WTq7ippb-FRvdkgjYUmUBMcFhp6785sKUPbuHGCE7LM",
+      "expires": 1769891108602,
+      "accountId": "885ea1a4-7dad-48f8-92b5-b5e6155c7acc"
+    },
+    "anthropic:oauth": {
+      "type": "oauth",
+      "provider": "anthropic",
+      "access": "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",
+      "refresh": "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",
+      "expires": 1770993652866,
+      "scopes": [
+        "user:inference",
+        "user:profile",
+        "user:sessions:claude_code"
+      ],
+      "subscriptionType": "max",
+      "rateLimitTier": "default_claude_max_20x"
+    },
+    "zai:default": {
+      "type": "api_key",
+      "provider": "zai",
+      "key": "7a6d9ce00a9d4437977189093aaddde8.WPyatQazDGioVCti"
+    },
+    "anthropic:oauth": {
+      "type": "oauth",
+      "provider": "anthropic",
+      "access": "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",
+      "refresh": "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",
+      "expires": 1770661504763
+    },
+    "openai-codex:default": {
+      "type": "oauth",
+      "provider": "openai-codex",
+      "access": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE5MzQ0ZTY1LWJiYzktNDRkMS1hOWQwLWY5NTdiMDc5YmQwZSIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiaHR0cHM6Ly9hcGkub3BlbmFpLmNvbS92MSJdLCJjbGllbnRfaWQiOiJhcHBfRU1vYW1FRVo3M2YwQ2tYYVhwN2hyYW5uIiwiZXhwIjoxNzcxNTQwMjU3LCJodHRwczovL2FwaS5vcGVuYWkuY29tL2F1dGgiOnsiY2hhdGdwdF9hY2NvdW50X2lkIjoiODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9hY2NvdW50X3VzZXJfaWQiOiJ1c2VyLWd4V3A0ZzUwcENhRWtSWXhlU0FzN0cxRV9fODg1ZWExYTQtN2RhZC00OGY4LTkyYjUtYjVlNjE1NWM3YWNjIiwiY2hhdGdwdF9jb21wdXRlX3Jlc2lkZW5jeSI6Im5vX2NvbnN0cmFpbnQiLCJjaGF0Z3B0X3BsYW5fdHlwZSI6InBybyIsImNoYXRncHRfdXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIiwidXNlcl9pZCI6InVzZXItZ3hXcDRnNTBwQ2FFa1JZeGVTQXM3RzFFIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vbWZhIjp7InJlcXVpcmVkIjoieWVzIn0sImh0dHBzOi8vYXBpLm9wZW5haS5jb20vcHJvZmlsZSI6eyJlbWFpbCI6InNodW5zdWtlQGFtYml0aW91c2FpLmNvLmpwIiwiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJpYXQiOjE3NzA2NzYyNTcsImlzcyI6Imh0dHBzOi8vYXV0aC5vcGVuYWkuY29tIiwianRpIjoiODVkZDNiYTktN2UxZS00YzdjLTlhYTYtNGZiNjhmYmFiMzMxIiwibmJmIjoxNzcwNjc2MjU3LCJwd2RfYXV0aF90aW1lIjoxNzcwNjc2MjU2MDMzLCJzY3AiOlsib3BlbmlkIiwicHJvZmlsZSIsImVtYWlsIiwib2ZmbGluZV9hY2Nlc3MiXSwic2Vzc2lvbl9pZCI6ImF1dGhzZXNzX1BiY0Rzenp1bXpwZnlRSTRYd0c1am02ciIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTEwMTQ1NzkwOTk0NTA0MTIwNDY2In0.HGj20x73WyJ_KWyHGcepl0QLkQIDL_u3OCmsdsOFN8vq4iUVjomigT82-utnBAeN5mv25Tktj8AoCkb2LuVGXSnOuXu7ThvLvHfF_qNOx4A-6d-2BbUaHaO0jopFuru5SgY-aZ88T4U1L_aoQnXKYTczAGpl1vDyZXR1g58TaH0JWT8N7mK2PJiRGzLm_sLaLYoIiQ7kaFy823nQRuyllPJDBqp5X7uBHwDWsAA9wnxizjqsADT6erhf3vKEd-LsfTmyiL-rAtLqNJ1Fz8lrhq264B_CijBlegZayGp_JP0RHKUijW_x3LYzhjzdBXH5aV7mb5RPcbjCoO7fJ1HrPHk58R0eF4xVU5M87Tpre_9_G_F-ng2qCLPWUDpoXs11s_Gzs3_a4jfrC1OUiI5stdt5ew_1T05jqedyyQawoBdc6uq3hOZWlmwR9wHB8Zs8DRS_vdhe0Eo6F9g4oG5LwMc8K7yQZvWBbJ9QhWSiBmHEKAEHNiVglXDvHwUOtAaISEYL9IU3SO3abVDeT9l7s0CdBd1XxxxEFp61ATgBaIdDjcUuX5a1_NniRvW8Quef5VDvygMVLpS3BrE8pwt_d5K8ZAyk8cITgVbZSKatyBMc-Cu51Ld4SXh-1kq4rZJPiqLU1kHxYZjNVGTGdMSMIc_SKqJUr8C_dqg4oEpmd_0",
+      "refresh": "rt_NHUTBIsjaIMkQB6cMeMPgvqyNKc5PIH8O2RBU3shMtY.49t-xR9ZYbkLMxrRmpoaGOqMqjjlu2c2BiIzoTrNCAY",
+      "expires": 1771540256359,
+      "accountId": "885ea1a4-7dad-48f8-92b5-b5e6155c7acc"
+    }
+  },
+  "lastGood": {
+    "openai-codex": "openai-codex:default",
+    "anthropic": "anthropic:oauth",
+    "zai": "zai:default"
+  },
+  "usageStats": {
+    "openai-codex:default": {
+      "lastUsed": 1769391593290,
+      "errorCount": 0,
+      "lastFailureAt": 1769391593286
+    },
+    "anthropic:oauth": {
+      "lastUsed": 1770943702479,
+      "errorCount": 0,
+      "lastFailureAt": 1770918822077
+    },
+    "zai:default": {
+      "lastUsed": 1771023389004,
+      "errorCount": 0,
+      "lastFailureAt": 1771003516353
+    }
+  }
+}
