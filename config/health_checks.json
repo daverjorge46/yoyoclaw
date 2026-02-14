@@ -1,0 +1,6 @@
+{
+  "morning-brief": {
+    "env": ["TICKTICK_CLIENT_ID", "TICKTICK_CLIENT_SECRET"],
+    "files": ["/home/node/.credentials/gmail.json"]
+  }
+}
