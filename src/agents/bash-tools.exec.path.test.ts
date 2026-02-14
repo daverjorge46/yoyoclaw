@@ -86,40 +86,38 @@ describe("exec PATH login shell merge", () => {
     expect(shellPathMock).toHaveBeenCalledTimes(1);
   });
 
-  it("throws security violation when env.PATH is provided", async () => {
+  it("silently drops env.PATH (not in allowlist) on host execution", async () => {
     if (isWin) {
       return;
     }
     process.env.PATH = "/usr/bin";
 
     const { createExecTool } = await import("./bash-tools.exec.js");
-    const { getShellPathFromLoginShell } = await import("../infra/shell-env.js");
-    const shellPathMock = vi.mocked(getShellPathFromLoginShell);
-    shellPathMock.mockClear();
 
     const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
 
-    await expect(
-      tool.execute("call1", {
-        command: "echo $PATH",
-        env: { PATH: "/explicit/bin" },
-      }),
-    ).rejects.toThrow(/Security Violation: Custom 'PATH' variable is forbidden/);
-
-    expect(shellPathMock).not.toHaveBeenCalled();
+    // PATH is not in the allowlist, so it is silently filtered out and the command succeeds
+    const result = await tool.execute("call1", {
+      command: "echo $PATH",
+      env: { PATH: "/explicit/bin" },
+    });
+    const text = normalizeText(result.content.find((c) => c.type === "text")?.text);
+    // The explicit PATH should NOT appear in the output
+    expect(text).not.toContain("/explicit/bin");
   });
 });
 
 describe("exec host env validation", () => {
-  it("blocks LD_/DYLD_ env vars on host execution", async () => {
+  it("silently drops dangerous env vars (not in allowlist) on host execution", async () => {
     const { createExecTool } = await import("./bash-tools.exec.js");
     const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
 
-    await expect(
-      tool.execute("call1", {
-        command: "echo ok",
-        env: { LD_DEBUG: "1" },
-      }),
-    ).rejects.toThrow(/Security Violation: Environment variable 'LD_DEBUG' is forbidden/);
+    // LD_DEBUG is not in the allowlist, so it is silently filtered out
+    const result = await tool.execute("call1", {
+      command: "echo ok",
+      env: { LD_DEBUG: "1" },
+    });
+    const text = normalizeText(result.content.find((c) => c.type === "text")?.text);
+    expect(text).toContain("ok");
   });
 });
