@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { resolveConfigSnapshotHash } from "../config/config.js";
 import {
   connectOk,
   installGatewayTestHooks,
@@ -42,6 +43,33 @@ describe("gateway config methods", () => {
     });
     expect(res.ok).toBe(false);
     expect(res.error?.message ?? "").toContain("raw must be an object");
+  });
+
+  it("rejects invalid config via patch and returns error", async () => {
+    // 1. Get base hash
+    const getRes = await rpcReq<{ hash?: string; raw?: string }>(ws, "config.get", {});
+    expect(getRes.ok).toBe(true);
+    const baseHash = resolveConfigSnapshotHash({
+      hash: getRes.payload?.hash,
+      raw: getRes.payload?.raw,
+    });
+
+    // 2. Send invalid patch (maxPingPongTurns: 6 is invalid, max is 5)
+    const patchRes = await rpcReq<{ ok?: boolean; error?: { message?: string } }>(ws, "config.patch", {
+      raw: JSON.stringify({
+        session: {
+          agentToAgent: {
+            maxPingPongTurns: 6
+          }
+        }
+      }),
+      baseHash,
+    });
+
+    // 3. Verify rejection
+    expect(patchRes.ok).toBe(false);
+    expect(patchRes.error).toBeDefined();
+    expect(patchRes.error?.message).toMatch(/invalid config/);
   });
 });
 
