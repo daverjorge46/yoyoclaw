@@ -24,7 +24,42 @@ export type SsrFPolicy = {
 };
 
 const PRIVATE_IPV6_PREFIXES = ["fe80:", "fec0:", "fc", "fd"];
-const BLOCKED_HOSTNAMES = new Set(["localhost", "metadata.google.internal"]);
+
+// Cloud provider metadata service hostnames.
+// These endpoints expose sensitive instance credentials and configuration.
+// Reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
+//            https://cloud.google.com/compute/docs/metadata/overview
+//            https://docs.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service
+const BLOCKED_HOSTNAMES = new Set([
+  "localhost",
+  // GCP metadata service
+  "metadata.google.internal",
+  "metadata.goog",
+  // AWS metadata service (hostname alias)
+  "instance-data",
+  // Azure metadata service
+  "metadata.azure.com",
+  // Alibaba Cloud metadata service
+  "100.100.100.200",
+  // DigitalOcean metadata service
+  "metadata.digitalocean.com",
+  // Oracle Cloud metadata service
+  "metadata.oraclecloud.com",
+  // Kubernetes internal DNS
+  "kubernetes.default",
+  "kubernetes.default.svc",
+]);
+
+// IP addresses commonly used by cloud metadata services.
+// Block these to prevent SSRF even when accessed by IP directly.
+const BLOCKED_METADATA_IPS = new Set([
+  // AWS/GCP/Azure/DigitalOcean metadata endpoint (link-local)
+  "169.254.169.254",
+  // AWS IMDSv2 alternative endpoint
+  "fd00:ec2::254",
+  // Alibaba Cloud metadata
+  "100.100.100.200",
+]);
 
 function normalizeHostname(hostname: string): string {
   const normalized = hostname.trim().toLowerCase().replace(/\.$/, "");
@@ -187,6 +222,28 @@ export function isBlockedHostname(hostname: string): boolean {
   );
 }
 
+/**
+ * Check if an IP address is a known cloud metadata service endpoint.
+ * These endpoints are separate from private IP ranges and require explicit blocking.
+ */
+export function isBlockedMetadataIp(address: string): boolean {
+  let normalized = address.trim().toLowerCase();
+  if (normalized.startsWith("[") && normalized.endsWith("]")) {
+    normalized = normalized.slice(1, -1);
+  }
+  if (!normalized) {
+    return false;
+  }
+
+  // Handle IPv4-mapped IPv6 addresses (e.g., ::ffff:169.254.169.254)
+  if (normalized.startsWith("::ffff:")) {
+    const mapped = normalized.slice("::ffff:".length);
+    return BLOCKED_METADATA_IPS.has(mapped);
+  }
+
+  return BLOCKED_METADATA_IPS.has(normalized);
+}
+
 export function createPinnedLookup(params: {
   hostname: string;
   addresses: string[];
@@ -276,6 +333,11 @@ export async function resolvePinnedHostnameWithPolicy(
     if (isPrivateIpAddress(normalized)) {
       throw new SsrFBlockedError("Blocked: private/internal IP address");
     }
+
+    // Block cloud metadata service IPs (e.g., 169.254.169.254) even when accessed directly
+    if (isBlockedMetadataIp(normalized)) {
+      throw new SsrFBlockedError("Blocked: cloud metadata service IP address");
+    }
   }
 
   const lookupFn = params.lookupFn ?? dnsLookup;
@@ -288,6 +350,11 @@ export async function resolvePinnedHostnameWithPolicy(
     for (const entry of results) {
       if (isPrivateIpAddress(entry.address)) {
         throw new SsrFBlockedError("Blocked: resolves to private/internal IP address");
+      }
+      // Check if DNS resolution returns a cloud metadata service IP
+      // This catches DNS rebinding attacks targeting metadata endpoints
+      if (isBlockedMetadataIp(entry.address)) {
+        throw new SsrFBlockedError("Blocked: resolves to cloud metadata service IP");
       }
     }
   }
