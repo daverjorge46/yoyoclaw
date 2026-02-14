@@ -566,13 +566,14 @@ export async function runExecProcess(opts: {
     }, opts.timeoutSec * 1000);
   }
 
+  const onUpdate = typeof opts.onUpdate === "function" ? opts.onUpdate : undefined;
   const emitUpdate = () => {
-    if (!opts.onUpdate) {
+    if (!onUpdate) {
       return;
     }
     const tailText = session.tail || session.aggregated;
     const warningText = opts.warnings.length ? `${opts.warnings.join("\n")}\n\n` : "";
-    opts.onUpdate({
+    onUpdate({
       content: [{ type: "text", text: warningText + (tailText || "") }],
       details: {
         status: "running",

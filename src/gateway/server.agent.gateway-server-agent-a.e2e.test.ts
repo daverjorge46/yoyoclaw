@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import type { PluginRegistry } from "../plugins/registry.js";
+import { resolveMainSessionKeyFromConfig } from "../config/sessions.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import {
   agentCommand,
@@ -286,6 +287,29 @@ describe("gateway server agent", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  test("agent.identity.get resolves default agent for global sessions", async () => {
+    testState.agentsConfig = {
+      list: [
+        {
+          id: "pulse",
+          default: true,
+          identity: { name: "Pulse", emoji: "P" },
+        },
+      ],
+    };
+
+    const res = await rpcReq<{ agentId?: string; name?: string; avatar?: string }>(
+      ws,
+      "agent.identity.get",
+      { sessionKey: "global" },
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.payload?.agentId).toBe("pulse");
+    expect(res.payload?.name).toBe("Pulse");
+    expect(res.payload?.avatar).toBe("P");
+  });
+
   test("agent forwards accountId to agentCommand", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
@@ -448,7 +472,7 @@ describe("gateway server agent", () => {
 
     const spy = vi.mocked(agentCommand);
     const call = spy.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(call.sessionKey).toBe("main");
+    expect(call.sessionKey).toBe(resolveMainSessionKeyFromConfig());
     expectChannels(call, "webchat");
     expect(typeof call.message).toBe("string");
     expect(call.message).toContain("what is in the image?");
