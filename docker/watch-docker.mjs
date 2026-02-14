@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Watch Dockerfile and docker-compose.yml; on change run:
+ * Watch Dockerfile/compose and runtime dependency manifests; on change run:
  *   docker compose down openclaw-gateway && docker compose up -d --build --force-recreate openclaw-gateway
  * Intended to be run as a long-lived daemon (e.g. under PM2).
  */
@@ -13,8 +13,28 @@ import process from "node:process";
 const DEBOUNCE_MS = 3000;
 const CWD = process.cwd();
 const BUILD_PENDING_FILE = path.join(CWD, ".watch-docker-build-pending");
-const WATCH_FILES = ["Dockerfile", "docker-compose.yml", "ui", ".env"];
-const HEALTHCHECK_URL = "https://openclaw-gateway.tail5587.ts.net/";
+const FIX_PROMPT_PATH = path.join(CWD, "docker", "fix-docker-build.md");
+const MAX_FIX_ATTEMPTS = 3;
+const WATCH_GLOBS = [
+  "Dockerfile",
+  "docker-compose.yml",
+  ".env",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".npmrc",
+  "patches/**",
+  "docker/*.sh",
+  "docker/*.mjs",
+  "docker/*.cjs",
+  "docker/*.yml",
+  "docker/*.yaml",
+  "packages/**/package.json",
+  "extensions/**/package.json",
+  "apps/**/package.json",
+  "ui/package.json",
+];
+const HEALTHCHECK_URL = process.env.OPENCLAW_DOCKER_HEALTHCHECK_URL ?? "http://127.0.0.1:18789/";
 const HEALTHCHECK_TIMEOUT_MS = 30_000;
 const HEALTHCHECK_INTERVAL_MS = 60_000;
 
@@ -22,8 +42,7 @@ let debounceTimer = null;
 let healthTimer = null;
 let running = false;
 let recoveringByHealthcheck = false;
-/** 目前正在跑的 compose 子行程，供執行中觸發時 kill */
-let composeChild = null;
+let pendingRebuild = false;
 /** 當前 run 的 id，被 kill 後啟動新 run 時遞增，用於忽略舊 run 的 .then() */
 let currentRunId = 0;
 
@@ -63,6 +82,87 @@ function run(cmd, args, opts = {}) {
   });
 }
 
+async function runCursorAgentFix(attempt) {
+  const ts = new Date().toISOString();
+  if (!fs.existsSync(FIX_PROMPT_PATH)) {
+    console.error(`[${ts}] Fix prompt not found: ${FIX_PROMPT_PATH}`);
+    return false;
+  }
+  let prompt = "";
+  try {
+    prompt = fs.readFileSync(FIX_PROMPT_PATH, "utf8").trim();
+  } catch (err) {
+    console.error(`[${ts}] Failed to read fix prompt: ${String(err)}`);
+    return false;
+  }
+  if (!prompt) {
+    console.error(`[${ts}] Fix prompt is empty: ${FIX_PROMPT_PATH}`);
+    return false;
+  }
+  console.log(`[${ts}] Auto-fix attempt ${attempt}/${MAX_FIX_ATTEMPTS}: cursor-agent -p <prompt>`);
+  const result = await run("cursor-agent", ["-p", prompt], { captureBoth: true });
+  const ts2 = new Date().toISOString();
+  if (result.code === 0) {
+    console.log(`[${ts2}] Auto-fix attempt ${attempt} finished successfully.`);
+    return true;
+  }
+  console.error(`[${ts2}] Auto-fix attempt ${attempt} failed with code=${result.code}.`);
+  return false;
+}
+
+async function notifyTelegramBuildFailure() {
+  const ts = new Date().toISOString();
+  const message =
+    "openclaw-docker-watch: build failed after 3 auto-fix attempts. " +
+    "See /home/jethro/.pm2/logs/openclaw-docker-watch-out.log";
+  console.log(`[${ts}] Sending Telegram failure notice to 109967251.`);
+  await run(
+    "pnpm",
+    [
+      "openclaw",
+      "message",
+      "send",
+      "--channel",
+      "telegram",
+      "--target",
+      "109967251",
+      "--message",
+      message,
+    ],
+    { captureBoth: true },
+  );
+}
+
+async function buildWithAutoFixes(childRef, runId) {
+  for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS; attempt += 1) {
+    if (runId !== currentRunId) {
+      return { ok: false, cancelled: true };
+    }
+    if (attempt > 1) {
+      await runCursorAgentFix(attempt - 1);
+    }
+    const ts = new Date().toISOString();
+    console.log(`[${ts}] Building image (attempt ${attempt}/${MAX_FIX_ATTEMPTS})...`);
+    const result = await run("docker", ["compose", "build", "openclaw-gateway"], {
+      env: { ...process.env, BUILDKIT_PROGRESS: "plain" },
+      childRef,
+      captureBoth: true,
+    });
+    if (runId !== currentRunId) {
+      return { ok: false, cancelled: true };
+    }
+    if (result.code === 0) {
+      return { ok: true, cancelled: false };
+    }
+    const ts2 = new Date().toISOString();
+    console.error(
+      `[${ts2}] Build attempt ${attempt}/${MAX_FIX_ATTEMPTS} failed with code=${result.code}.`,
+    );
+  }
+  await notifyTelegramBuildFailure();
+  return { ok: false, cancelled: false };
+}
+
 async function runJustUpRecovery() {
   if (recoveringByHealthcheck || running) {
     return;
@@ -84,6 +184,52 @@ async function runJustUpRecovery() {
   recoveringByHealthcheck = false;
 }
 
+async function getGatewayContainerHealth() {
+  const idResult = await run("docker", ["compose", "ps", "-q", "openclaw-gateway"], {
+    capture: true,
+    captureStderr: true,
+  });
+  const id = idResult.stderr.trim();
+  if (!id) {
+    return { status: "missing" };
+  }
+  const inspectResult = await run("docker", ["inspect", "--format", "{{json .State}}", id], {
+    capture: true,
+    captureStderr: true,
+  });
+  if (inspectResult.code !== 0) {
+    return { status: "unknown" };
+  }
+  try {
+    const state = JSON.parse(inspectResult.stderr.trim() || "{}");
+    const healthStatus = state?.Health?.Status;
+    if (healthStatus) {
+      return { status: healthStatus };
+    }
+    if (state?.Running === true) {
+      return { status: "running" };
+    }
+    if (state?.Running === false) {
+      return { status: "stopped" };
+    }
+  } catch {
+    return { status: "unknown" };
+  }
+  return { status: "unknown" };
+}
+
+async function shouldRecoverFromHealthFailure() {
+  const health = await getGatewayContainerHealth();
+  const okStatuses = new Set(["healthy", "starting", "running"]);
+  if (okStatuses.has(health.status)) {
+    console.warn(
+      `[${new Date().toISOString()}] Healthcheck failed but container status=${health.status}; skipping recovery.`,
+    );
+    return false;
+  }
+  return true;
+}
+
 async function probeGatewayHealth() {
   if (running || recoveringByHealthcheck) {
     return;
@@ -96,17 +242,18 @@ async function probeGatewayHealth() {
       signal: ctrl.signal,
       redirect: "follow",
     });
-    if (!res.ok) {
-      console.warn(
-        `[${new Date().toISOString()}] Healthcheck non-OK status ${res.status} from ${HEALTHCHECK_URL}`,
+    if (res.status >= 500) {
+      console.log(
+        `[${new Date().toISOString()}] Healthcheck HTTP ${res.status} from ${HEALTHCHECK_URL} (treat as reachable).`,
       );
-      await runJustUpRecovery();
     }
   } catch (err) {
     console.warn(
       `[${new Date().toISOString()}] Healthcheck failed for ${HEALTHCHECK_URL}: ${String(err)}`,
     );
-    await runJustUpRecovery();
+    if (await shouldRecoverFromHealthFailure()) {
+      await runJustUpRecovery();
+    }
   } finally {
     clearTimeout(t);
   }
@@ -114,12 +261,9 @@ async function probeGatewayHealth() {
 
 function runCompose(retrying = false) {
   if (running && !retrying) {
-    console.log(`[${new Date().toISOString()}] Rebuild in progress, killing and starting latest…`);
-    if (composeChild?.kill) {
-      composeChild.kill("SIGTERM");
-    }
-    composeChild = null;
-    setTimeout(() => runCompose(), 400);
+    // Avoid restart storms: queue one follow-up rebuild and let the current run finish.
+    pendingRebuild = true;
+    console.log(`[${new Date().toISOString()}] Rebuild in progress, queued one follow-up run.`);
     return;
   }
   running = true;
@@ -132,44 +276,67 @@ function runCompose(retrying = false) {
   const childRef = {};
   const ts = new Date().toISOString();
   console.log(
-    `[${ts}] Triggering: docker compose down openclaw-gateway && docker compose up -d --build --force-recreate openclaw-gateway`,
+    `[${ts}] Triggering: docker compose build openclaw-gateway && docker compose down openclaw-gateway && docker compose up -d --force-recreate openclaw-gateway`,
   );
-  void run("docker", ["compose", "down", "openclaw-gateway"])
-    .then(({ code: _code }) => {
+  void buildWithAutoFixes(childRef, myRunId)
+    .then((buildResult) => {
+      if (!buildResult || buildResult.cancelled || !buildResult.ok) {
+        running = false;
+        return null;
+      }
       if (myRunId !== currentRunId) {
         running = false;
-        return;
+        return null;
       }
-      const upPromise = run(
-        "docker",
-        ["compose", "up", "-d", "--build", "--force-recreate", "openclaw-gateway"],
-        {
-          env: { ...process.env, BUILDKIT_PROGRESS: "plain" },
-          childRef,
-          captureBoth: true, // BUILDKIT_PROGRESS=plain 時衝突錯誤在 stdout，需 capture 兩者才能偵測
-        },
-      );
-      composeChild = childRef.current;
-      return upPromise;
+      return run("docker", ["compose", "down", "openclaw-gateway"]);
+    })
+    .then((downResult) => {
+      if (!downResult) {
+        return null;
+      }
+      if (myRunId !== currentRunId) {
+        running = false;
+        return null;
+      }
+      return run("docker", ["compose", "up", "-d", "--force-recreate", "openclaw-gateway"], {
+        env: { ...process.env, BUILDKIT_PROGRESS: "plain" },
+        childRef,
+        captureBoth: true, // BUILDKIT_PROGRESS=plain 時衝突錯誤在 stdout，需 capture 兩者才能偵測
+      });
     })
     .then((result) => {
-      composeChild = null;
       if (!result) {
+        if (!running && pendingRebuild) {
+          pendingRebuild = false;
+          runCompose();
+        }
         return;
       }
       const { code, signal, stderr } = result;
       if (myRunId !== currentRunId) {
         running = false;
+        if (pendingRebuild) {
+          pendingRebuild = false;
+          runCompose();
+        }
         return;
       }
       running = false;
       const ts2 = new Date().toISOString();
       if (signal === "SIGTERM") {
+        if (pendingRebuild) {
+          pendingRebuild = false;
+          runCompose();
+        }
         return;
       }
       if (code === 0) {
         removeBuildPending();
         console.log(`[${ts2}] Rebuild finished successfully.`);
+        if (pendingRebuild) {
+          pendingRebuild = false;
+          runCompose();
+        }
         return;
       }
       const conflictMatch =
@@ -185,6 +352,10 @@ function runCompose(retrying = false) {
         console.error(stderr);
       }
       console.error(`[${ts2}] Rebuild exited with code=${code}. Daemon keeps watching.`);
+      if (pendingRebuild) {
+        pendingRebuild = false;
+        runCompose();
+      }
     });
 }
 
@@ -229,7 +400,7 @@ function scheduleRebuild() {
   }, DEBOUNCE_MS);
 }
 
-const watcher = chokidar.watch(WATCH_FILES, {
+const watcher = chokidar.watch(WATCH_GLOBS, {
   cwd: CWD,
   ignoreInitial: true,
   ignored: ["**/node_modules/**", "**/.vite-temp/**", "**/.cache/**", "**/dist/**"],
@@ -247,11 +418,8 @@ watcher.on("add", (path) => {
   if (shouldIgnore(path)) {
     return;
   }
-  const matches = WATCH_FILES.includes(path) || WATCH_FILES.some((w) => path.startsWith(w + "/"));
-  if (matches) {
-    console.log(`[${new Date().toISOString()}] ${path} added.`);
-    scheduleRebuild();
-  }
+  console.log(`[${new Date().toISOString()}] ${path} added.`);
+  scheduleRebuild();
 });
 
 watcher.on("error", (err) => {
@@ -260,7 +428,7 @@ watcher.on("error", (err) => {
 
 watcher.on("ready", () => {
   console.log(
-    `[${new Date().toISOString()}] Watching ${WATCH_FILES.join(", ")}. Edit to trigger rebuild.`,
+    `[${new Date().toISOString()}] Watching ${WATCH_GLOBS.join(", ")}. Edit to trigger rebuild.`,
   );
   console.log(
     `[${new Date().toISOString()}] Healthcheck enabled: ${HEALTHCHECK_URL} (timeout ${HEALTHCHECK_TIMEOUT_MS}ms, interval ${HEALTHCHECK_INTERVAL_MS}ms)`,

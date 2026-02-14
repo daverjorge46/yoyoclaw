@@ -82,8 +82,8 @@ RUN --mount=type=cache,target=/app/.npm,id=openclaw-npm-cache,uid=1000,gid=1000 
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node src ./src
 COPY --chown=node:node ui/src ./ui/src
-COPY --chown=node:node docker/docker-entrypoint.sh docker/docker-gateway-entrypoint.sh ./docker/
-RUN chmod +x docker/docker-entrypoint.sh docker/docker-gateway-entrypoint.sh
+COPY --chown=node:node docker/docker-entrypoint.sh ./docker/
+RUN chmod +x docker/docker-entrypoint.sh
 # 開發環境不在 image build 階段產生 dist；runtime 由 tsx/vite dev 直接跑 src/ui。
 ENV OPENCLAW_PREFER_PNPM=1
 
@@ -95,7 +95,8 @@ ENV NODE_ENV=development
 # For container platforms requiring external health checks:
 #   1. Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD env var
 #   2. Override command: ["just", "start", "node", "/app/openclaw.mjs", "gateway", "--bind", "lan"]
-# gateway entrypoint：前置（tailscale 等） + build-app（Control UI） + exec node（PID 1）
+# 統一 entrypoint：前置（tailscale/credentials） + sidecar daemons + exec node（PID 1）
+# --setup-only 模式僅做前置，供 justfile 等先跑 build-app 再 exec
 # 用 bash 執行避免 volume 掛載覆蓋 execute bit 導致 Permission denied
-ENTRYPOINT ["bash", "/app/docker/docker-gateway-entrypoint.sh"]
+ENTRYPOINT ["bash", "/app/docker/docker-entrypoint.sh"]
 CMD ["node", "/app/openclaw.mjs", "gateway", "--allow-unconfigured"]

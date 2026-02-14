@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --setup-only：只做 tailscale/credentials 等前置，不 exec；供 just start 先跑 build-app 再 exec
+# 統一 Docker entrypoint
+#
+# 模式：
+#   --setup-only  只做前置（tailscale/credentials），不 exec；供 justfile 等先跑 build-app 再 exec
+#   (預設)        前置 + sidecar daemons + exec（gateway 正式啟動路徑）
+#
+# 以 exec 結束讓 node 成為 PID 1，正確接收 Docker SIGTERM。
+
 SETUP_ONLY=0
 if [[ "${1:-}" == "--setup-only" ]]; then
   SETUP_ONLY=1
   shift
 fi
+
+# ── 前置：tailscale / credentials / brew ────────────────────────────────────
 
 # 讓 gateway 的 tailscale CLI 一律用此 socket（與下方 tailscaled 相同路徑）
 export TAILSCALE_SOCKET="${TAILSCALE_SOCKET:-/home/node/.openclaw/tailscale/tailscaled.sock}"
@@ -22,7 +31,9 @@ if [[ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]] && [[ -f /tmp/brew-initial.tar
   tar xf /tmp/brew-initial.tar -C /home/linuxbrew --no-same-owner 2>/dev/null || true
 fi
 
-# 是否為「gateway + --tailscale serve/funnel」：需要 tailscaled daemon 在跑，否則 tailscale serve 會 connection refused
+# ── Tailscale ────────────────────────────────────────────────────────────────
+
+# 是否為「gateway + --tailscale serve/funnel」：需要 tailscaled daemon 在跑
 need_tailscale_daemon() {
   local has_gateway=0 has_serve_or_funnel=0
   while [[ $# -gt 0 ]]; do
@@ -47,11 +58,7 @@ if [[ -z "${TS_BIN_TAILSCALED}" ]] || [[ -z "${TS_BIN_TAILSCALE}" ]]; then
 fi
 
 # 僅啟動 tailscaled daemon 並等待 socket；不執行 tailscale up（留給 start_tailscale_if_enabled 在 autologin 時做）
-ensure_tailscaled_daemon() {
-  if [[ -z "${TS_BIN_TAILSCALED}" ]] || [[ -z "${TS_BIN_TAILSCALE}" ]]; then
-    echo "openclaw entrypoint: tailscale not installed; gateway will run without Tailscale serve" >&2
-    return 1
-  fi
+start_tailscaled_daemon() {
   local ts_state_dir="${TAILSCALE_STATE_DIR:-/home/node/.openclaw/tailscale}"
   local ts_socket="${TAILSCALE_SOCKET:-${ts_state_dir}/tailscaled.sock}"
   local ts_tun_mode="${TAILSCALE_TUN_MODE:-userspace-networking}"
@@ -63,6 +70,16 @@ ensure_tailscaled_daemon() {
     nohup "${TS_BIN_TAILSCALED}" --state="${ts_state_file}" --socket="${ts_socket}" --tun="${ts_tun_mode}" </dev/null >>/tmp/tailscaled.log 2>&1 &
     disown -a 2>/dev/null || true
   fi
+}
+
+ensure_tailscaled_daemon() {
+  if [[ -z "${TS_BIN_TAILSCALED}" ]] || [[ -z "${TS_BIN_TAILSCALE}" ]]; then
+    echo "openclaw entrypoint: tailscale not installed; gateway will run without Tailscale serve" >&2
+    return 1
+  fi
+  local ts_state_dir="${TAILSCALE_STATE_DIR:-/home/node/.openclaw/tailscale}"
+  local ts_socket="${TAILSCALE_SOCKET:-${ts_state_dir}/tailscaled.sock}"
+  start_tailscaled_daemon
   for _ in $(seq 1 45); do
     if [[ -S "${ts_socket}" ]]; then
       sleep 2
@@ -97,14 +114,14 @@ start_tailscale_if_enabled() {
   mkdir -p "${ts_state_dir}"
   export TAILSCALE_SOCKET="${ts_socket}"
 
-  # 若尚未啟動 daemon（未在下方 ensure_tailscaled_daemon 路徑），則在此啟動並等待 socket
+  # 若尚未啟動 daemon，則在此啟動並等待 socket
   if ! [[ -S "${ts_socket}" ]]; then
     if ! ensure_tailscaled_daemon; then
       return
     fi
   fi
 
-  # Give daemon time to listen, then retry "tailscale up" until it connects (daemon can be slow to accept)
+  # Give daemon time to listen, then retry "tailscale up" until it connects
   sleep 10
   local -a up_args=(--authkey="${TAILSCALE_AUTHKEY}")
   if [[ -n "${TAILSCALE_HOSTNAME:-}" ]]; then
@@ -146,15 +163,64 @@ start_tailscale_if_enabled() {
 # 使用 --tailscale serve/funnel 時必須先有 tailscaled；失敗則 exit 以利存取（不可 skipped）
 # PM2 模式下 command 不含 gateway args，透過 OPENCLAW_GATEWAY_FORCE_TAILSCALED=1 強制啟動 daemon。
 if need_tailscale_daemon "$@" || [[ "${OPENCLAW_GATEWAY_FORCE_TAILSCALED:-0}" == "1" ]]; then
-  ensure_tailscaled_daemon || exit 1
+  if [[ "${OPENCLAW_GATEWAY_TAILSCALED_BLOCK_STARTUP:-0}" == "1" ]]; then
+    if ! ensure_tailscaled_daemon; then
+      if [[ "${OPENCLAW_GATEWAY_REQUIRE_TAILSCALED:-0}" == "1" ]]; then
+        exit 1
+      fi
+      echo "openclaw entrypoint: tailscaled unavailable; continuing without blocking startup" >&2
+    fi
+  else
+    if [[ -z "${TS_BIN_TAILSCALED}" ]]; then
+      echo "openclaw entrypoint: tailscaled binary missing; skip daemon prestart" >&2
+    else
+      start_tailscaled_daemon || true
+    fi
+  fi
 fi
 start_tailscale_if_enabled
+
+# ── --setup-only 到此結束 ───────────────────────────────────────────────────
 
 if [[ "${SETUP_ONLY}" == "1" ]]; then
   exit 0
 fi
 
-# 若已傳入完整指令（例如 compose command: [node, /app/openclaw.mjs, gateway, ...]）則直接 exec；否則補上 node + 入口
+# ── 以下僅在正式啟動（非 --setup-only）時執行 ─────────────────────────────────
+
+# 清理 anti-timeout queue 的殘留 lock（容器重啟後可自動恢復）
+rm -rf /home/node/.openclaw/workspace/queues/anti-timeout-orchestrator/lock || true
+
+# Source profile for runtime commands (including tests run via docker compose run).
+if [[ -f /home/node/.profile ]]; then
+  # shellcheck disable=SC1091
+  source /home/node/.profile
+fi
+
+# Control UI assets auto-build（約 1-2 秒）
+if [[ ! -f /app/dist/control-ui/index.html ]]; then
+  echo "openclaw entrypoint: Control UI assets missing, building…" >&2
+  if [[ -f /app/scripts/ui.js ]] && command -v pnpm >/dev/null 2>&1; then
+    (cd /app && node scripts/ui.js build 2>&1 | tail -3) || echo "openclaw entrypoint: ui:build failed (non-fatal)" >&2
+  fi
+fi
+
+# session-tg-sync daemon（背景監控 session 更新 → Telegram forum topics）
+# 設 OPENCLAW_SESSION_TG_SYNC=0 可關閉
+if [[ "${OPENCLAW_SESSION_TG_SYNC:-1}" == "1" ]] && [[ -f /app/scripts/session-tg-sync.py ]] && command -v python3 >/dev/null 2>&1; then
+  _tg_sync_dir="/home/node/.openclaw/agents/main/sessions"
+  if [[ -d "${_tg_sync_dir}" ]]; then
+    echo "openclaw entrypoint: starting session-tg-sync daemon" >&2
+    nohup python3 -u /app/scripts/session-tg-sync.py \
+      --dir "${_tg_sync_dir}" \
+      --interval 3 \
+      --filter important \
+      </dev/null >>/tmp/session-tg-sync.log 2>&1 &
+    disown -a 2>/dev/null || true
+  fi
+fi
+
+# exec 取代本腳本，node 成為 PID 1
 if [[ "${1:-}" == "node" ]] && [[ -n "${2:-}" ]]; then
   exec "$@"
 else

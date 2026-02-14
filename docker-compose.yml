@@ -11,6 +11,9 @@ services:
     environment:
       HOME: /home/node
       CI: "true"
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_PROFILE_FILE: /home/node/.profile
       # /usr/sbin + /usr/bin 優先（tailscaled 在 sbin、tailscale 在 bin）；gemini 在 /app/.npm-global
       PATH: /usr/sbin:/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/app/.npm-global/bin:/app/.bun/bin:/usr/local/bin
       TERM: xterm-256color
@@ -35,13 +38,21 @@ services:
       TAILSCALE_TUN_MODE: ${TAILSCALE_TUN_MODE:-userspace-networking}
       TAILSCALE_ACCEPT_ROUTES: ${TAILSCALE_ACCEPT_ROUTES:-0}
       OPENCLAW_GATEWAY_FORCE_TAILSCALED: "1"
+      OPENCLAW_GATEWAY_TAILSCALED_BLOCK_STARTUP: "0"
+      OPENCLAW_GATEWAY_REQUIRE_TAILSCALED: "0"
+      OPENCLAW_GATEWAY_SKIP_CONTROL_UI_BUILD: "1"
       # Tailscale serve 從 localhost 轉發，須信任 proxy 以消除「Proxy headers from untrusted address」
       OPENCLAW_GATEWAY_TRUSTED_PROXIES: ${OPENCLAW_GATEWAY_TRUSTED_PROXIES:-127.0.0.1,::1}
-      OPENCLAW_UI_DEV: "1"
       OPENCLAW_TELEGRAM_INBOUND_QUEUE_SCRIPT: /home/node/.openclaw/workspace/scripts/enqueue_telegram_inbound.sh
     volumes:
       - .:/app
       - /app/node_modules
+      - ./data:/home/node
+      - ${OPENCLAW_CONFIG_DIR:-${HOME}/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-${HOME}/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_PROFILE_FILE:-${HOME}/.profile}:/home/node/.profile
+      # 同步宿主機時區
+      - /etc/localtime:/etc/localtime:ro
       # brew 持久化：skill install 的 brew install 會寫入此處；預設 ./data/brew，首次請 mkdir -p data/brew && chown 1000:1000 data/brew
       - ${OPENCLAW_BREW_DIR:-./data/brew}:/home/linuxbrew
       # 供 sandbox 在容器內啟動子容器（agent sandbox / sandbox-browser）
@@ -60,19 +71,71 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # 開發模式：用 PM2 同時跑 gateway(tsx watch) + control-ui(vite dev)。
+    # 直接啟動 gateway，避免 PM2 + tsx/vite 啟動競爭拖慢 Telegram 首次處理。
     # OPENCLAW_GATEWAY_ALSO_BIND_LAN=1：gateway 除 loopback 外再監聽 0.0.0.0，讓同 compose 的 openclaw-cli 可連
-    command: ["pnpm", "exec", "pm2-runtime", "start", "docker/pm2.gateway-dev.config.cjs"]
+    command: ["node", "/app/openclaw.mjs", "gateway", "--tailscale", "serve", "--verbose"]
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          'node -e "require(''http'').get(''http://127.0.0.1:18789/'', r => process.exit(r.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+          'node -e "const n=require(''net'');const s=n.connect({host:''127.0.0.1'',port:18789});s.once(''connect'',()=>{s.destroy();process.exit(0)});s.once(''error'',()=>process.exit(1));setTimeout(()=>process.exit(1),2000);"',
         ]
       interval: 5s
       timeout: 5s
       retries: 20
-      start_period: 90s
+      start_period: 180s
+
+  openclaw-queue-worker:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: ""
+        HTTPS_PROXY: ""
+        OPENCLAW_DOCKER_APT_PACKAGES: ${OPENCLAW_DOCKER_APT_PACKAGES:-}
+    depends_on:
+      openclaw-gateway:
+        condition: service_healthy
+    environment:
+      HOME: /home/node
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_PROFILE_FILE: /home/node/.profile
+      PATH: /usr/sbin:/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/app/.npm-global/bin:/app/.bun/bin:/usr/local/bin
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      OPENCLAW_GATEWAY_URL: ${OPENCLAW_GATEWAY_URL:-ws://openclaw-gateway:18789}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./data:/home/node
+      - ${OPENCLAW_CONFIG_DIR:-${HOME}/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-${HOME}/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_PROFILE_FILE:-${HOME}/.profile}:/home/node/.profile
+      - /etc/localtime:/etc/localtime:ro
+      - ${OPENCLAW_BREW_DIR:-./data/brew}:/home/linuxbrew
+    init: true
+    restart: unless-stopped
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Persistent queue daemon: 200ms poll + fs.watch for sub-second task pickup.
+    # Replaces the fire-and-forget shell/python chain that caused ~12s latency.
+    command:
+      ["node", "--experimental-strip-types", "/app/skills/anti-timeout-orchestrator/src/daemon.ts"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /home/node/.openclaw/workspace/queues/anti-timeout-orchestrator/queue.sqlite3",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   openclaw-cli:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
@@ -88,6 +151,9 @@ services:
         condition: service_started
     environment:
       HOME: /home/node
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_PROFILE_FILE: /home/node/.profile
       PATH: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/app/.npm-global/bin:/app/.bun/bin:/usr/local/bin:/usr/bin:/bin
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
@@ -101,6 +167,10 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - ./data:/home/node
+      - ${OPENCLAW_CONFIG_DIR:-${HOME}/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-${HOME}/.openclaw/workspace}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_PROFILE_FILE:-${HOME}/.profile}:/home/node/.profile
       - ${OPENCLAW_BREW_DIR:-./data/brew}:/home/linuxbrew
     stdin_open: true
     tty: true

@@ -91,7 +91,7 @@ repos:
       # oxfmt --check on full tree (CI parity)
       - id: oxfmt
         name: oxfmt
-        entry: scripts/pre-commit/run-node-tool.sh oxfmt --check src test
+        entry: scripts/pre-commit/run-node-tool.sh oxfmt --check --ignore-path .gitignore src test
         language: system
         pass_filenames: false
         types_or: [javascript, jsx, ts, tsx]

@@ -4,7 +4,6 @@ set -euo pipefail
 DOCKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$DOCKER_DIR")"
 COMPOSE_FILE="$REPO_ROOT/docker-compose.yml"
-EXTRA_COMPOSE_FILE="$REPO_ROOT/docker-compose.extra.yml"
 IMAGE_NAME="${OPENCLAW_IMAGE:-openclaw:local}"
 EXTRA_MOUNTS="${OPENCLAW_EXTRA_MOUNTS:-}"
 HOME_VOLUME_NAME="${OPENCLAW_HOME_VOLUME:-}"
@@ -71,81 +70,12 @@ PY
 fi
 export OPENCLAW_GATEWAY_TOKEN
 
-COMPOSE_FILES=("$COMPOSE_FILE")
-COMPOSE_ARGS=()
-
-write_extra_compose() {
-  local home_volume="$1"
-  shift
-  local mount
-
-  cat >"$EXTRA_COMPOSE_FILE" <<'YAML'
-services:
-  openclaw-gateway:
-    volumes:
-YAML
-
-  if [[ -n "$home_volume" ]]; then
-    printf '      - %s:/home/node\n' "$home_volume" >>"$EXTRA_COMPOSE_FILE"
-    printf '      - %s:/home/node/.openclaw\n' "$OPENCLAW_CONFIG_DIR" >>"$EXTRA_COMPOSE_FILE"
-    printf '      - %s:/home/node/.openclaw/workspace\n' "$OPENCLAW_WORKSPACE_DIR" >>"$EXTRA_COMPOSE_FILE"
-  fi
-
-  for mount in "$@"; do
-    printf '      - %s\n' "$mount" >>"$EXTRA_COMPOSE_FILE"
-  done
-
-  cat >>"$EXTRA_COMPOSE_FILE" <<'YAML'
-  openclaw-cli:
-    volumes:
-YAML
-
-  if [[ -n "$home_volume" ]]; then
-    printf '      - %s:/home/node\n' "$home_volume" >>"$EXTRA_COMPOSE_FILE"
-    printf '      - %s:/home/node/.openclaw\n' "$OPENCLAW_CONFIG_DIR" >>"$EXTRA_COMPOSE_FILE"
-    printf '      - %s:/home/node/.openclaw/workspace\n' "$OPENCLAW_WORKSPACE_DIR" >>"$EXTRA_COMPOSE_FILE"
-  fi
-
-  for mount in "$@"; do
-    printf '      - %s\n' "$mount" >>"$EXTRA_COMPOSE_FILE"
-  done
-
-  if [[ -n "$home_volume" && "$home_volume" != *"/"* ]]; then
-    cat >>"$EXTRA_COMPOSE_FILE" <<YAML
-volumes:
-  ${home_volume}:
-YAML
-  fi
-}
-
-VALID_MOUNTS=()
-if [[ -n "$EXTRA_MOUNTS" ]]; then
-  IFS=',' read -r -a mounts <<<"$EXTRA_MOUNTS"
-  for mount in "${mounts[@]}"; do
-    mount="${mount#"${mount%%[![:space:]]*}"}"
-    mount="${mount%"${mount##*[![:space:]]}"}"
-    if [[ -n "$mount" ]]; then
-      VALID_MOUNTS+=("$mount")
-    fi
-  done
+COMPOSE_ARGS=("-f" "$COMPOSE_FILE")
+COMPOSE_HINT="docker compose -f ${COMPOSE_FILE}"
+if [[ -n "$EXTRA_MOUNTS" || -n "$HOME_VOLUME_NAME" ]]; then
+  echo "Notice: OPENCLAW_EXTRA_MOUNTS/OPENCLAW_HOME_VOLUME are ignored in single-file mode." >&2
+  echo "Edit docker-compose.yml directly for custom mounts/volumes." >&2
 fi
-
-if [[ -n "$HOME_VOLUME_NAME" || ${#VALID_MOUNTS[@]} -gt 0 ]]; then
-  # Bash 3.2 + nounset treats "${array[@]}" on an empty array as unbound.
-  if [[ ${#VALID_MOUNTS[@]} -gt 0 ]]; then
-    write_extra_compose "$HOME_VOLUME_NAME" "${VALID_MOUNTS[@]}"
-  else
-    write_extra_compose "$HOME_VOLUME_NAME"
-  fi
-  COMPOSE_FILES+=("$EXTRA_COMPOSE_FILE")
-fi
-for compose_file in "${COMPOSE_FILES[@]}"; do
-  COMPOSE_ARGS+=("-f" "$compose_file")
-done
-COMPOSE_HINT="docker compose"
-for compose_file in "${COMPOSE_FILES[@]}"; do
-  COMPOSE_HINT+=" -f ${compose_file}"
-done
 
 ENV_FILE="$REPO_ROOT/.env"
 upsert_env() {
@@ -185,6 +115,25 @@ upsert_env() {
   mv "$tmp" "$file"
 }
 
+remove_env_key() {
+  local file="$1"
+  local key="$2"
+  local tmp
+  tmp="$(mktemp)"
+
+  if [[ -f "$file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      local current_key="${line%%=*}"
+      if [[ "$current_key" != "$key" ]]; then
+        printf '%s\n' "$line" >>"$tmp"
+      fi
+    done <"$file"
+    mv "$tmp" "$file"
+  else
+    rm -f "$tmp"
+  fi
+}
+
 upsert_env "$ENV_FILE" \
   OPENCLAW_CONFIG_DIR \
   OPENCLAW_WORKSPACE_DIR \
@@ -196,6 +145,7 @@ upsert_env "$ENV_FILE" \
   OPENCLAW_EXTRA_MOUNTS \
   OPENCLAW_HOME_VOLUME \
   OPENCLAW_DOCKER_APT_PACKAGES
+remove_env_key "$ENV_FILE" "COMPOSE_FILE"
 
 echo "==> Building Docker image: $IMAGE_NAME"
 ensure_buildx
