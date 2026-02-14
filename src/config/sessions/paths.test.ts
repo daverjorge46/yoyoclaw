@@ -127,4 +127,24 @@ describe("session path safety", () => {
     const opts = resolveSessionFilePathOptions({ agentId: "ops" });
     expect(opts).toEqual({ agentId: "ops" });
   });
+
+  it("resolves transcript path for non-default agent", () => {
+    // Issue #15883: non-default agent transcript path should resolve to that agent's sessions dir
+    const resolved = resolveSessionTranscriptPath("sess-1", "stellar");
+    expect(resolved.endsWith(path.join("agents", "stellar", "sessions", "sess-1.jsonl"))).toBe(
+      true,
+    );
+  });
+
+  it("resolves session file path for non-default agent without explicit sessionsDir", () => {
+    // Issue #15883: sessionFile without sessionsDir should use agentId to determine sessions dir
+    const resolved = resolveSessionFilePath(
+      "sess-1",
+      { sessionFile: "threaded-session.jsonl" },
+      { agentId: "stellar" },
+    );
+    expect(
+      resolved.endsWith(path.join("agents", "stellar", "sessions", "threaded-session.jsonl")),
+    ).toBe(true);
+  });
 });
