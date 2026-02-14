@@ -181,7 +181,7 @@ export function renderDebug(props: DebugProps) {
                 </div>
               </div>
               ${selectedEventIndex !== null && props.eventLog[selectedEventIndex] ? html`
-                <div class="log-detail">
+                <div class="log-detail" style="max-height: 400px;">
                   <div class="log-detail-header">
                     <div class="card-title" style="font-size: 13px;">${props.eventLog[selectedEventIndex].event}</div>
                     <button class="btn btn--sm" @click=${() => { selectedEventIndex = null; requestUpdate(); }}>✕</button>
