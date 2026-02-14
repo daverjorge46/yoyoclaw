@@ -12,6 +12,28 @@ const toolCallMessage = asAppendMessage({
   content: [{ type: "toolCall", id: "call_1", name: "read", arguments: {} }],
 });
 
+type PersistedToolResultMessage = {
+  role?: string;
+  durationMs?: number;
+  metadata?: { durationMs?: number; source?: string };
+  details?: { durationMs?: number; metadata?: { durationMs?: number } };
+};
+
+function getPersistedToolResult(sm: SessionManager): PersistedToolResultMessage {
+  return sm
+    .getEntries()
+    .filter((e) => e.type === "message")
+    .map((e) => (e as { message: AgentMessage }).message as PersistedToolResultMessage)
+    .find((m) => m.role === "toolResult") as PersistedToolResultMessage;
+}
+
+function expectDurationFields(message: PersistedToolResultMessage, expected: number): void {
+  expect(message.durationMs).toBe(expected);
+  expect(message.metadata?.durationMs).toBe(expected);
+  expect(message.details?.durationMs).toBe(expected);
+  expect(message.details?.metadata?.durationMs).toBe(expected);
+}
+
 describe("installSessionToolResultGuard", () => {
   it("inserts synthetic toolResult before non-tool message when pending", () => {
     const sm = SessionManager.inMemory();
@@ -270,7 +292,7 @@ describe("installSessionToolResultGuard", () => {
     expect(textBlock.text).toBe(originalText);
   });
 
-  it("copies root durationMs into metadata before persistence", () => {
+  it("normalizes all duration fields for successful tool results on persistence", () => {
     const sm = SessionManager.inMemory();
     installSessionToolResultGuard(sm);
 
@@ -282,20 +304,41 @@ describe("installSessionToolResultGuard", () => {
         toolName: "read",
         content: [{ type: "text", text: "ok" }],
         isError: false,
-        durationMs: 42,
+        details: {
+          durationMs: 42,
+        },
       }),
     );
 
-    const persisted = sm
-      .getEntries()
-      .filter((e) => e.type === "message")
-      .map((e) => (e as { message: AgentMessage }).message)
-      .find((m) => m.role === "toolResult") as { metadata?: { durationMs?: number } };
-
-    expect(persisted.metadata?.durationMs).toBe(42);
+    const persisted = getPersistedToolResult(sm);
+    expectDurationFields(persisted, 42);
   });
 
-  it("keeps existing metadata.durationMs when already present", () => {
+  it("normalizes all duration fields for failed tool results on persistence", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm);
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        toolName: "read",
+        content: [{ type: "text", text: "error" }],
+        isError: true,
+        details: {
+          metadata: {
+            durationMs: 17,
+          },
+        },
+      }),
+    );
+
+    const persisted = getPersistedToolResult(sm);
+    expectDurationFields(persisted, 17);
+  });
+
+  it("keeps metadata.durationMs as source-of-truth when already present", () => {
     const sm = SessionManager.inMemory();
     installSessionToolResultGuard(sm);
 
@@ -312,16 +355,39 @@ describe("installSessionToolResultGuard", () => {
       }),
     );
 
-    const persisted = sm
-      .getEntries()
-      .filter((e) => e.type === "message")
-      .map((e) => (e as { message: AgentMessage }).message)
-      .find((m) => m.role === "toolResult") as {
-      metadata?: { durationMs?: number; source?: string };
-    };
-
-    expect(persisted.metadata?.durationMs).toBe(7);
+    const persisted = getPersistedToolResult(sm);
+    expectDurationFields(persisted, 7);
     expect(persisted.metadata?.source).toBe("tool");
+  });
+
+  it("does not inject/normalize duration fields when disabled", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm, {
+      normalizeToolResultDurationsForTranscript: false,
+    });
+
+    sm.appendMessage(toolCallMessage);
+    sm.appendMessage(
+      asAppendMessage({
+        role: "toolResult",
+        toolCallId: "call_1",
+        toolName: "read",
+        content: [{ type: "text", text: "ok" }],
+        isError: false,
+        details: {
+          durationMs: 42,
+          metadata: {
+            durationMs: 42,
+          },
+        },
+      }),
+    );
+
+    const persisted = getPersistedToolResult(sm);
+    expect(persisted.durationMs).toBeUndefined();
+    expect(persisted.metadata?.durationMs).toBeUndefined();
+    expect(persisted.details?.durationMs).toBe(42);
+    expect(persisted.details?.metadata?.durationMs).toBe(42);
   });
 
   it("applies message persistence transform to user messages", () => {

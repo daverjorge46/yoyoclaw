@@ -126,7 +126,11 @@ function withToolDurationMetadata(
   } as unknown as AgentToolResult<unknown>;
 }
 
-export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
+export function toToolDefinitions(
+  tools: AnyAgentTool[],
+  opts?: { recordDurationMetadata?: boolean },
+): ToolDefinition[] {
+  const recordDurationMetadata = opts?.recordDurationMetadata !== false;
   return tools.map((tool) => {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
@@ -171,7 +175,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return withToolDurationMetadata(result, durationMs);
+          return recordDurationMetadata ? withToolDurationMetadata(result, durationMs) : result;
         } catch (err) {
           if (signal?.aborted) {
             throw err;
@@ -215,7 +219,9 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return withToolDurationMetadata(errorResult, durationMs);
+          return recordDurationMetadata
+            ? withToolDurationMetadata(errorResult, durationMs)
+            : errorResult;
         }
       },
     } satisfies ToolDefinition;
@@ -228,7 +234,9 @@ export function toClientToolDefinitions(
   tools: ClientToolDefinition[],
   onClientToolCall?: (toolName: string, params: Record<string, unknown>) => void,
   hookContext?: { agentId?: string; sessionKey?: string },
+  opts?: { recordDurationMetadata?: boolean },
 ): ToolDefinition[] {
+  const recordDurationMetadata = opts?.recordDurationMetadata !== false;
   return tools.map((tool) => {
     const func = tool.function;
     return {
@@ -255,14 +263,17 @@ export function toClientToolDefinitions(
           onClientToolCall(func.name, paramsRecord);
         }
         // Return a pending result - the client will execute this tool
-        return jsonResult({
+        const pendingResult: Record<string, unknown> = {
           status: "pending",
           tool: func.name,
           message: "Tool execution delegated to client",
-          metadata: {
+        };
+        if (recordDurationMetadata) {
+          pendingResult.metadata = {
             durationMs: Math.max(0, performance.now() - startedAt),
-          },
-        });
+          };
+        }
+        return jsonResult(pendingResult);
       },
     } satisfies ToolDefinition;
   });

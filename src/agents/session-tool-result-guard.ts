@@ -124,30 +124,64 @@ function asFiniteNumber(value: unknown): number | undefined {
 type ToolResultMessageWithDurationMeta = Extract<AgentMessage, { role: "toolResult" }> & {
   durationMs?: unknown;
   metadata?: unknown;
+  details?: unknown;
 };
+
+function resolveToolResultDurationMs(
+  message: ToolResultMessageWithDurationMeta,
+): number | undefined {
+  const metadata = asObjectRecord(message.metadata);
+  const details = asObjectRecord(message.details);
+  const detailsMetadata = asObjectRecord(details?.metadata);
+
+  return (
+    asFiniteNumber(metadata?.durationMs) ??
+    asFiniteNumber(message.durationMs) ??
+    asFiniteNumber(details?.durationMs) ??
+    asFiniteNumber(detailsMetadata?.durationMs)
+  );
+}
 
 function ensureToolResultDurationForTranscript(message: AgentMessage): AgentMessage {
   if (!message || typeof message !== "object" || message.role !== "toolResult") {
     return message;
   }
+
   const toolResultMessage = message as ToolResultMessageWithDurationMeta;
-  const existingMeta = asObjectRecord(toolResultMessage.metadata) ?? {};
-  const existingDuration = asFiniteNumber(existingMeta.durationMs);
-  if (existingDuration !== undefined) {
+  const resolvedDurationMs = resolveToolResultDurationMs(toolResultMessage);
+  if (resolvedDurationMs === undefined) {
     return message;
   }
 
-  const fallbackDuration = asFiniteNumber(toolResultMessage.durationMs);
-  if (fallbackDuration === undefined) {
-    return message;
-  }
+  const metadata = asObjectRecord(toolResultMessage.metadata) ?? {};
+  const detailsRecord = asObjectRecord(toolResultMessage.details);
+  const detailsMetadata = asObjectRecord(detailsRecord?.metadata) ?? {};
+  const normalizedDetails = detailsRecord
+    ? {
+        ...detailsRecord,
+        durationMs: resolvedDurationMs,
+        metadata: {
+          ...detailsMetadata,
+          durationMs: resolvedDurationMs,
+        },
+      }
+    : toolResultMessage.details === undefined || toolResultMessage.details === null
+      ? {
+          durationMs: resolvedDurationMs,
+          metadata: {
+            durationMs: resolvedDurationMs,
+          },
+        }
+      : toolResultMessage.details;
 
   return {
     ...message,
+    durationMs: resolvedDurationMs,
     metadata: {
-      ...existingMeta,
-      durationMs: fallbackDuration,
+      ...metadata,
+      durationMs: resolvedDurationMs,
     },
+    details: normalizedDetails,
   } as AgentMessage;
 }
 
@@ -171,6 +205,11 @@ export function installSessionToolResultGuard(
      * Defaults to true.
      */
     allowSyntheticToolResults?: boolean;
+    /**
+     * Whether to inject/normalize tool result duration fields before transcript persistence.
+     * Defaults to true.
+     */
+    normalizeToolResultDurationsForTranscript?: boolean;
   },
 ): {
   flushPendingToolResults: () => void;
@@ -187,7 +226,10 @@ export function installSessionToolResultGuard(
     message: AgentMessage,
     meta: { toolCallId?: string; toolName?: string; isSynthetic?: boolean },
   ) => {
-    const withDuration = ensureToolResultDurationForTranscript(message);
+    const normalizeDurations = opts?.normalizeToolResultDurationsForTranscript !== false;
+    const withDuration = normalizeDurations
+      ? ensureToolResultDurationForTranscript(message)
+      : message;
     const transformer = opts?.transformToolResultForPersistence;
     return transformer ? transformer(withDuration, meta) : withDuration;
   };

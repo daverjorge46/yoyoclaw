@@ -109,6 +109,11 @@ function createStubTool(name: string): AgentTool<unknown, unknown> {
   };
 }
 
+type DurationProbeResult = AgentToolResult<unknown> & {
+  durationMs?: number;
+  metadata?: { durationMs?: number };
+};
+
 describe("splitSdkTools", () => {
   const tools = [
     createStubTool("read"),
@@ -145,5 +150,60 @@ describe("splitSdkTools", () => {
       "write",
       "browser",
     ]);
+  });
+
+  it("disables tool result duration injection when configured off", async () => {
+    const probeTool: AgentTool<unknown, unknown> = {
+      name: "probe",
+      label: "probe",
+      description: "",
+      parameters: {},
+      execute: async () =>
+        ({ content: [{ type: "text", text: "ok" }] }) as AgentToolResult<unknown>,
+    };
+
+    const { customTools } = splitSdkTools({
+      tools: [probeTool],
+      sandboxEnabled: false,
+      recordToolResultDurations: false,
+    });
+
+    const result = (await customTools[0].execute(
+      "probe-call",
+      {},
+      undefined,
+      undefined,
+      undefined,
+    )) as DurationProbeResult;
+
+    expect(result.durationMs).toBeUndefined();
+    expect(result.metadata?.durationMs).toBeUndefined();
+  });
+
+  it("keeps tool result duration injection enabled by default", async () => {
+    const probeTool: AgentTool<unknown, unknown> = {
+      name: "probeOn",
+      label: "probeOn",
+      description: "",
+      parameters: {},
+      execute: async () =>
+        ({ content: [{ type: "text", text: "ok" }] }) as AgentToolResult<unknown>,
+    };
+
+    const { customTools } = splitSdkTools({
+      tools: [probeTool],
+      sandboxEnabled: false,
+    });
+
+    const result = (await customTools[0].execute(
+      "probe-call-on",
+      {},
+      undefined,
+      undefined,
+      undefined,
+    )) as DurationProbeResult;
+
+    expect(typeof result.durationMs).toBe("number");
+    expect(typeof result.metadata?.durationMs).toBe("number");
   });
 });

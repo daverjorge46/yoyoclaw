@@ -1,6 +1,6 @@
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import { describe, expect, it } from "vitest";
-import { toToolDefinitions } from "./pi-tool-definition-adapter.js";
+import { toClientToolDefinitions, toToolDefinitions } from "./pi-tool-definition-adapter.js";
 
 type TimedAgentToolResult = AgentToolResult<unknown> & {
   durationMs?: number;
@@ -116,6 +116,56 @@ describe("pi tool definition adapter", () => {
     );
   });
 
+  it("can disable duration metadata injection for successful execution", async () => {
+    const tool = {
+      name: "okNoDuration",
+      label: "OkNoDuration",
+      description: "works",
+      parameters: {},
+      execute: async () => {
+        return { content: [{ type: "text", text: "done" }] };
+      },
+    } satisfies AgentTool<unknown, unknown>;
+
+    const defs = toToolDefinitions([tool], { recordDurationMetadata: false });
+    const result = (await defs[0].execute(
+      "call-no-duration",
+      {},
+      undefined,
+      undefined,
+    )) as TimedAgentToolResult;
+
+    expect(result.durationMs).toBeUndefined();
+    expect(result.metadata?.durationMs).toBeUndefined();
+  });
+
+  it("can disable duration metadata injection for failed execution", async () => {
+    const tool = {
+      name: "failNoDuration",
+      label: "FailNoDuration",
+      description: "fails",
+      parameters: {},
+      execute: async () => {
+        throw new Error("unlucky");
+      },
+    } satisfies AgentTool<unknown, unknown>;
+
+    const defs = toToolDefinitions([tool], { recordDurationMetadata: false });
+    const result = (await defs[0].execute(
+      "call-no-duration-fail",
+      {},
+      undefined,
+      undefined,
+    )) as TimedAgentToolResult;
+
+    expect(result.durationMs).toBeUndefined();
+    expect(result.metadata?.durationMs).toBeUndefined();
+    expect((result.details as { durationMs?: number }).durationMs).toBeUndefined();
+    expect((result.details as { metadata?: { durationMs?: number } }).metadata?.durationMs).toBe(
+      undefined,
+    );
+  });
+
   it("mirrors existing root durationMs into metadata", async () => {
     const tool = {
       name: "preTimed",
@@ -140,5 +190,57 @@ describe("pi tool definition adapter", () => {
 
     expect(result.durationMs).toBe(123);
     expect(result.metadata?.durationMs).toBe(123);
+  });
+
+  it("records client tool pending duration metadata by default", async () => {
+    const [tool] = toClientToolDefinitions([
+      {
+        type: "function",
+        function: {
+          name: "client_pending",
+          parameters: { type: "object" },
+        },
+      },
+    ]);
+
+    const result = (await tool.execute(
+      "client-call-1",
+      {},
+      undefined,
+      undefined,
+      undefined,
+    )) as TimedAgentToolResult;
+
+    const details = result.details as { metadata?: { durationMs?: number } } | undefined;
+    expect(typeof details?.metadata?.durationMs).toBe("number");
+    expect(details?.metadata?.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("can disable client tool pending duration metadata", async () => {
+    const [tool] = toClientToolDefinitions(
+      [
+        {
+          type: "function",
+          function: {
+            name: "client_pending_no_duration",
+            parameters: { type: "object" },
+          },
+        },
+      ],
+      undefined,
+      undefined,
+      { recordDurationMetadata: false },
+    );
+
+    const result = (await tool.execute(
+      "client-call-2",
+      {},
+      undefined,
+      undefined,
+      undefined,
+    )) as TimedAgentToolResult;
+
+    const details = result.details as { metadata?: { durationMs?: number } } | undefined;
+    expect(details?.metadata?.durationMs).toBeUndefined();
   });
 });
