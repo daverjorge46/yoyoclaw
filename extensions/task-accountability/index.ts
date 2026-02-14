@@ -184,28 +184,26 @@ function expandPath(filePath: string): string {
   return filePath;
 }
 
+// Well-known path for custom instructions (avoids config schema issues)
+const CUSTOM_INSTRUCTIONS_PATH = "~/.openclaw/protocols/github-workflow.md";
+
 async function loadCustomInstructions(config: TaskAccountabilityConfig): Promise<string | null> {
-  // Explicitly disabled
+  // Explicitly disabled via config
   if (config.instructions === false) {
     return null;
   }
 
-  // File takes precedence
-  if (config.instructionsFile) {
-    try {
-      const filePath = expandPath(config.instructionsFile);
-      const content = await fs.readFile(filePath, "utf-8");
-      return content.trim();
-    } catch (err) {
-      console.error(
-        `[task-accountability] Failed to load instructions file: ${config.instructionsFile}`,
-        err,
-      );
-      return INSTRUCTIONS; // Fall back to default
-    }
+  // Check well-known custom instructions file first
+  try {
+    const customPath = expandPath(CUSTOM_INSTRUCTIONS_PATH);
+    const content = await fs.readFile(customPath, "utf-8");
+    console.log(`[task-accountability] Using custom instructions from ${CUSTOM_INSTRUCTIONS_PATH}`);
+    return content.trim();
+  } catch {
+    // File doesn't exist, continue
   }
 
-  // Inline custom instructions
+  // Inline custom instructions from config
   if (typeof config.instructions === "string") {
     return config.instructions.trim();
   }
