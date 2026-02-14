@@ -3,7 +3,7 @@ import { SessionManager } from "@mariozechner/pi-coding-agent";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { describe, expect, it, afterEach, vi } from "vitest";
 import {
   initializeGlobalHookRunner,
   resetGlobalHookRunner,
