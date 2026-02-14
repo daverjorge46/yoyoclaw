@@ -41,4 +41,11 @@ describe("toSanitizedMarkdownHtml", () => {
     expect(html).toContain("<img");
     expect(html).toContain("data:image/png;base64,");
   });
+
+  it("strips javascript image urls", () => {
+    const html = toSanitizedMarkdownHtml("![X](javascript:alert(1))");
+    expect(html).toContain("<img");
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("src=");
+  });
 });
