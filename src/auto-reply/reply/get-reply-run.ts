@@ -14,7 +14,7 @@ import {
   isEmbeddedPiRunStreaming,
   resolveEmbeddedSessionLane,
 } from "../../agents/pi-embedded.js";
-import { resolveContactContext } from "../../config/group-policy.js";
+import { resolveChannelGroupPolicy, resolveContactContext } from "../../config/group-policy.js";
 import {
   resolveGroupSessionKey,
   resolveSessionFilePath,
@@ -192,9 +192,22 @@ export async function runPreparedReply(
     senderE164: sessionCtx.SenderE164,
     ownerNumbers: command.ownerList,
   });
+  // Resolve channel group instructions (if any)
+  const groupId = resolveGroupSessionKey(sessionCtx)?.id;
+  const channel = sessionCtx.OriginatingChannel ?? sessionCtx.Provider;
+  const groupPolicy = channel
+    ? resolveChannelGroupPolicy({
+        cfg,
+        channel,
+        groupId,
+        accountId: sessionCtx.AccountId,
+      })
+    : undefined;
+  const groupInstructions =
+    groupPolicy?.groupConfig?.instructions ?? groupPolicy?.defaultConfig?.instructions;
   const inboundMetaPrompt = buildInboundMetaSystemPrompt(
     isNewSession ? sessionCtx : { ...sessionCtx, ThreadStarterBody: undefined },
-    { contactContext },
+    { contactContext, groupInstructions },
   );
   const extraSystemPrompt = [inboundMetaPrompt, groupIntro, groupSystemPrompt]
     .filter(Boolean)

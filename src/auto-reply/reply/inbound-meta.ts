@@ -14,6 +14,8 @@ function safeTrim(value: unknown): string | undefined {
 export type InboundMetaOptions = {
   /** Contact context resolved from the contacts registry. */
   contactContext?: ContactContext;
+  /** Channel group instructions (from channels.{channel}.groups.{groupId}.instructions). */
+  groupInstructions?: string;
 };
 
 export function buildInboundMetaSystemPrompt(
@@ -80,6 +82,17 @@ export function buildInboundMetaSystemPrompt(
       "The following instructions apply to this sender based on their contact group membership.",
       "",
       opts.contactContext.instructions,
+    );
+  }
+
+  // Inject channel group instructions (if any)
+  if (opts?.groupInstructions) {
+    sections.push(
+      "",
+      "## Group Instructions",
+      "The following instructions apply to this chat group.",
+      "",
+      opts.groupInstructions,
     );
   }
 

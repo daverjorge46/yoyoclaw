@@ -10,6 +10,7 @@ export type ChannelGroupConfig = {
   requireMention?: boolean;
   tools?: GroupToolPolicyConfig;
   toolsBySender?: GroupToolPolicyBySenderConfig;
+  instructions?: string;
 };
 
 export type ChannelDmConfig = {
