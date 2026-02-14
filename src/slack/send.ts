@@ -33,7 +33,71 @@ type SlackSendOpts = {
   mediaUrl?: string;
   client?: WebClient;
   threadTs?: string;
+  username?: string;
+  icon_url?: string;
+  icon_emoji?: string;
 };
+
+function hasCustomIdentity(opts: SlackSendOpts): boolean {
+  return Boolean(opts.username || opts.icon_url || opts.icon_emoji);
+}
+
+function isSlackCustomizeScopeError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false;
+  }
+  const maybeData = err as Error & {
+    data?: {
+      error?: string;
+      needed?: string;
+      response_metadata?: { scopes?: string[]; acceptedScopes?: string[] };
+    };
+  };
+  const code = maybeData.data?.error?.toLowerCase();
+  if (code !== "missing_scope") {
+    return false;
+  }
+  const needed = maybeData.data?.needed?.toLowerCase();
+  if (needed?.includes("chat:write.customize")) {
+    return true;
+  }
+  const scopes = [
+    ...(maybeData.data?.response_metadata?.scopes ?? []),
+    ...(maybeData.data?.response_metadata?.acceptedScopes ?? []),
+  ].map((scope) => scope.toLowerCase());
+  return scopes.includes("chat:write.customize");
+}
+
+async function postSlackMessageBestEffort(params: {
+  client: WebClient;
+  channelId: string;
+  text: string;
+  threadTs?: string;
+  opts: SlackSendOpts;
+}) {
+  const basePayload = {
+    channel: params.channelId,
+    text: params.text,
+    thread_ts: params.threadTs,
+  };
+  const payload = {
+    ...basePayload,
+    ...(params.opts.username ? { username: params.opts.username } : {}),
+    ...(params.opts.icon_url ? { icon_url: params.opts.icon_url } : {}),
+    ...(params.opts.icon_emoji && !params.opts.icon_url
+      ? { icon_emoji: params.opts.icon_emoji }
+      : {}),
+  };
+  try {
+    return await params.client.chat.postMessage(payload);
+  } catch (err) {
+    if (!hasCustomIdentity(params.opts) || !isSlackCustomizeScopeError(err)) {
+      throw err;
+    }
+    logVerbose("slack send: missing chat:write.customize, retrying without custom identity");
+    return params.client.chat.postMessage(basePayload);
+  }
+}
 
 export type SlackSendResult = {
   messageId: string;
@@ -182,19 +246,23 @@ export async function sendMessageSlack(
       maxBytes: mediaMaxBytes,
     });
     for (const chunk of rest) {
-      const response = await client.chat.postMessage({
-        channel: channelId,
+      const response = await postSlackMessageBestEffort({
+        client,
+        channelId,
         text: chunk,
-        thread_ts: opts.threadTs,
+        threadTs: opts.threadTs,
+        opts,
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
   } else {
     for (const chunk of chunks.length ? chunks : [""]) {
-      const response = await client.chat.postMessage({
-        channel: channelId,
+      const response = await postSlackMessageBestEffort({
+        client,
+        channelId,
         text: chunk,
-        thread_ts: opts.threadTs,
+        threadTs: opts.threadTs,
+        opts,
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
