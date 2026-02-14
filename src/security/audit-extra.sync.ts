@@ -844,17 +844,17 @@ export function collectSmallModelRiskFindings(params: {
     });
     const exposed: string[] = [];
     if (isWebSearchEnabled(params.cfg, params.env)) {
-      if (isToolAllowedByPolicies("web_search", policies)) {
+      if (isToolAllowedByPolicies("web_search", policies, true)) {
         exposed.push("web_search");
       }
     }
     if (isWebFetchEnabled(params.cfg)) {
-      if (isToolAllowedByPolicies("web_fetch", policies)) {
+      if (isToolAllowedByPolicies("web_fetch", policies, true)) {
         exposed.push("web_fetch");
       }
     }
     if (isBrowserEnabled(params.cfg)) {
-      if (isToolAllowedByPolicies("browser", policies)) {
+      if (isToolAllowedByPolicies("browser", policies, true)) {
         exposed.push("browser");
       }
     }

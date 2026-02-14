@@ -386,7 +386,7 @@ export async function collectPluginsTrustFindings(params: {
         sandboxMode,
         agentId: context.agentId,
       });
-      const broadPolicy = isToolAllowedByPolicies("__openclaw_plugin_probe__", policies);
+      const broadPolicy = isToolAllowedByPolicies("__openclaw_plugin_probe__", policies, true);
       const explicitPluginAllow =
         !restrictiveProfile &&
         (hasExplicitPluginAllow({

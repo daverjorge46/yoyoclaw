@@ -127,7 +127,7 @@ export async function runCommandWithTimeout(
     stdio,
     cwd,
     env: resolvedEnv,
-    windowsVerbatimArguments: isCmdBatch,
+    windowsVerbatimArguments: isCmdBatch || windowsVerbatimArguments,
     shell: false,
   });
   // Spawn with inherited stdin (TTY) so tools like `pi` stay interactive when needed.

@@ -255,6 +255,7 @@ export async function handleToolsInvokeHttpRequest(
     ]),
   });
 
+  const senderIsOwner = authResult.ok;
   const subagentFiltered = applyToolPolicyPipeline({
     // oxlint-disable-next-line typescript/no-explicit-any
     tools: allTools as any,
@@ -276,6 +277,7 @@ export async function handleToolsInvokeHttpRequest(
       }),
       { policy: subagentPolicy, label: "subagent tools.allow" },
     ],
+    senderIsOwner,
   });
 
   // Gateway HTTP-specific deny list — applies to ALL sessions via HTTP.
