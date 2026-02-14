@@ -51,6 +51,8 @@ export type EmbeddedPiSubscribeState = {
   assistantTextBaseline: number;
   suppressBlockChunks: boolean;
   lastReasoningSent?: string;
+  /** Track if <think> tag has been prepended for the current assistant message. */
+  thinkTagPrepended: boolean;
 
   compactionInFlight: boolean;
   pendingCompactionRetry: number;
