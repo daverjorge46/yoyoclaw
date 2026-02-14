@@ -73,17 +73,48 @@ export function renderDebug(props: DebugProps) {
         : nothing
     }
 
-    <section class="grid grid-cols-2">
-      <div class="card" style="padding: 0;">
-        <div class="row" style="justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border);">
-          <div>
-            <div class="card-title">Snapshots</div>
-            <div class="card-sub">Status, health, heartbeat, and models.</div>
-          </div>
-          <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Loading…" : "Refresh"}
-          </button>
+    <section class="card" style="margin-bottom: 12px;">
+      <div class="row" style="gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+        <label class="field" style="flex: 1; min-width: 160px; margin: 0;">
+          <span>Method</span>
+          <input
+            .value=${props.callMethod}
+            @input=${(e: Event) => props.onCallMethodChange((e.target as HTMLInputElement).value)}
+            placeholder="system-presence"
+          />
+        </label>
+        <label class="field" style="flex: 2; min-width: 200px; margin: 0;">
+          <span>Params (JSON)</span>
+          <input
+            .value=${props.callParams}
+            @input=${(e: Event) => props.onCallParamsChange((e.target as HTMLInputElement).value)}
+            placeholder='{"key": "value"}'
+          />
+        </label>
+        <button class="btn primary" @click=${props.onCall} style="height: 36px;">Call</button>
+      </div>
+      ${
+        props.callError
+          ? html`<div class="callout danger" style="margin-top: 8px;">${props.callError}</div>`
+          : nothing
+      }
+      ${
+        props.callResult
+          ? html`<div style="margin-top: 8px;">${renderJsonBlock(props.callResult)}</div>`
+          : nothing
+      }
+    </section>
+
+    <section class="card" style="padding: 0;">
+      <div class="row" style="justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border);">
+        <div>
+          <div class="card-title">Snapshots</div>
+          <div class="card-sub">Status, health, heartbeat, and models.</div>
         </div>
+        <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
+          ${props.loading ? "Loading…" : "Refresh"}
+        </button>
+      </div>
         <div class="logs-split ${activeSnapshot ? "logs-split--open" : ""}">
           <div style="flex: 1; min-width: 0;">
             <div class="debug-snapshot-header">
@@ -114,45 +145,6 @@ export function renderDebug(props: DebugProps) {
             </div>
           ` : nothing}
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Manual RPC</div>
-        <div class="card-sub">Send a raw gateway method with JSON params.</div>
-        <div class="form-grid" style="margin-top: 16px;">
-          <label class="field">
-            <span>Method</span>
-            <input
-              .value=${props.callMethod}
-              @input=${(e: Event) => props.onCallMethodChange((e.target as HTMLInputElement).value)}
-              placeholder="system-presence"
-            />
-          </label>
-          <label class="field">
-            <span>Params (JSON)</span>
-            <textarea
-              .value=${props.callParams}
-              @input=${(e: Event) =>
-                props.onCallParamsChange((e.target as HTMLTextAreaElement).value)}
-              rows="6"
-            ></textarea>
-          </label>
-        </div>
-        <div class="row" style="margin-top: 12px;">
-          <button class="btn primary" @click=${props.onCall}>Call</button>
-        </div>
-        ${
-          props.callError
-            ? html`<div class="callout danger" style="margin-top: 12px;">
-              ${props.callError}
-            </div>`
-            : nothing
-        }
-        ${
-          props.callResult
-            ? html`<div style="margin-top: 12px;">${renderJsonBlock(props.callResult)}</div>`
-            : nothing
-        }
       </div>
     </section>
 
