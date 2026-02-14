@@ -513,7 +513,7 @@ describe("streamSignalEventsAdapter", () => {
     expect(mockStreamSignalEvents).not.toHaveBeenCalled();
   });
 
-  it("parses native SSE receive events into SignalReceivePayload", async () => {
+  it("passes native SSE events through unchanged", async () => {
     const payload = { envelope: { sourceNumber: "+1555000111" } };
     mockStreamSignalEvents.mockImplementation(async (params) => {
       // Simulate receiving an SSE event with event: "receive"
@@ -527,10 +527,10 @@ describe("streamSignalEventsAdapter", () => {
     });
 
     expect(events).toHaveLength(1);
-    expect(events[0]).toEqual(payload);
+    expect(events[0]).toEqual({ event: "receive", data: JSON.stringify(payload) });
   });
 
-  it("skips native SSE events that are not receive", async () => {
+  it("passes non-receive native SSE events through unchanged", async () => {
     mockStreamSignalEvents.mockImplementation(async (params) => {
       params.onEvent({ event: "message", data: '{"test": true}' });
     });
@@ -541,10 +541,11 @@ describe("streamSignalEventsAdapter", () => {
       onEvent: (evt) => events.push(evt),
     });
 
-    expect(events).toHaveLength(0);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual({ event: "message", data: '{"test": true}' });
   });
 
-  it("passes container events directly to onEvent", async () => {
+  it("converts container events to SSE-like receive events", async () => {
     setApiMode("container");
     mockStreamContainerEvents.mockImplementation(async (params) => {
       // Simulate receiving an event
@@ -558,7 +559,10 @@ describe("streamSignalEventsAdapter", () => {
     });
 
     expect(events).toHaveLength(1);
-    expect(events[0]).toEqual({ envelope: { sourceNumber: "+1555000111" } });
+    expect(events[0]).toEqual({
+      event: "receive",
+      data: JSON.stringify({ envelope: { sourceNumber: "+1555000111" } }),
+    });
   });
 
   it("passes abort signal to underlying stream", async () => {

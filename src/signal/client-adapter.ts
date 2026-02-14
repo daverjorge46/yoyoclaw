@@ -8,7 +8,7 @@
 
 import type { SignalApiMode } from "../config/types.signal.js";
 import type { SignalRpcOptions } from "./client.js";
-import type { SignalReceivePayload } from "./monitor/event-handler.types.js";
+import type { SignalSseEvent } from "./client.js";
 import { loadConfig } from "../config/config.js";
 import {
   containerCheck,
@@ -209,14 +209,14 @@ export async function detectSignalApiMode(
 
 /**
  * Stream events from Signal, using the appropriate transport based on API mode.
- * Events are normalized to SignalReceivePayload format.
+ * Adapter emits the legacy SSE-like shape so callers can remain unchanged.
  */
 export async function streamSignalEventsAdapter(params: {
   baseUrl: string;
   account?: string;
   accountId?: string;
   abortSignal?: AbortSignal;
-  onEvent: (payload: SignalReceivePayload) => void;
+  onEvent: (event: SignalSseEvent) => void;
   logger?: { log?: (msg: string) => void; error?: (msg: string) => void };
 }): Promise<void> {
   const mode = await resolveApiMode(params.baseUrl, params.accountId);
@@ -226,27 +226,17 @@ export async function streamSignalEventsAdapter(params: {
       baseUrl: params.baseUrl,
       account: params.account,
       abortSignal: params.abortSignal,
-      onEvent: (event) => params.onEvent(event as SignalReceivePayload),
+      onEvent: (event) => params.onEvent({ event: "receive", data: JSON.stringify(event) }),
       logger: params.logger,
     });
   }
 
-  // Native SSE: parse event.data JSON and pass as SignalReceivePayload
+  // Native SSE already uses this shape.
   return streamSignalEvents({
     baseUrl: params.baseUrl,
     account: params.account,
     abortSignal: params.abortSignal,
-    onEvent: (event) => {
-      if (event.event !== "receive" || !event.data) {
-        return;
-      }
-      try {
-        const payload = JSON.parse(event.data) as SignalReceivePayload;
-        params.onEvent(payload);
-      } catch {
-        params.logger?.error?.(`failed to parse SSE event: ${event.data?.slice(0, 100)}`);
-      }
-    },
+    onEvent: (event) => params.onEvent(event),
   });
 }
 

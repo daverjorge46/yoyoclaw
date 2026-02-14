@@ -313,8 +313,25 @@ export function createSignalEventHandler(deps: SignalEventHandlerDeps) {
     },
   });
 
-  return async (payload: SignalReceivePayload | null) => {
-    if (!payload) {
+  return async (event: { event?: string; data?: string } | SignalReceivePayload | null) => {
+    let payload: SignalReceivePayload | null = null;
+    if (event && typeof event === "object" && ("envelope" in event || "exception" in event)) {
+      payload = event;
+    } else if (
+      event &&
+      typeof event === "object" &&
+      "event" in event &&
+      event.event === "receive" &&
+      "data" in event &&
+      typeof event.data === "string"
+    ) {
+      try {
+        payload = JSON.parse(event.data) as SignalReceivePayload;
+      } catch (err) {
+        deps.runtime.error?.(`failed to parse event: ${String(err)}`);
+        return;
+      }
+    } else {
       return;
     }
 

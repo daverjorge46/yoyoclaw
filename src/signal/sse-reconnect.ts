@@ -1,6 +1,6 @@
 import type { BackoffPolicy } from "../infra/backoff.js";
 import type { RuntimeEnv } from "../runtime.js";
-import type { SignalReceivePayload } from "./monitor/event-handler.types.js";
+import type { SignalSseEvent } from "./client.js";
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { computeBackoff, sleepWithAbort } from "../infra/backoff.js";
 import { streamSignalEventsAdapter } from "./client-adapter.js";
@@ -17,7 +17,7 @@ type RunSignalSseLoopParams = {
   account?: string;
   abortSignal?: AbortSignal;
   runtime: RuntimeEnv;
-  onEvent: (payload: SignalReceivePayload) => void;
+  onEvent: (event: SignalSseEvent) => void;
   policy?: Partial<BackoffPolicy>;
 };
 
@@ -48,9 +48,9 @@ export async function runSignalSseLoop({
         baseUrl,
         account,
         abortSignal,
-        onEvent: (payload: SignalReceivePayload) => {
+        onEvent: (event: SignalSseEvent) => {
           reconnectAttempts = 0;
-          onEvent(payload);
+          onEvent(event);
         },
         logger: {
           log: runtime.log,
