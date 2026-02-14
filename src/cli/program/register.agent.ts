@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { DEFAULT_CHAT_CHANNEL } from "../../channels/defaults.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { hasExplicitOptions } from "../command-options.js";
@@ -17,7 +18,7 @@ export function registerAgentCommands(program: Command, args: { agentChannelOpti
     .option("--verbose <on|off>", "Persist agent verbose level for the session")
     .option(
       "--channel <channel>",
-      `Delivery channel: ${args.agentChannelOptions} (default: whatsapp)`,
+      `Delivery channel: ${args.agentChannelOptions} (default: ${DEFAULT_CHAT_CHANNEL})`,
     )
     .option("--reply-to <target>", "Delivery target override (separate from session routing)")
     .option("--reply-channel <channel>", "Delivery channel override (separate from routing)")

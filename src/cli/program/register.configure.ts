@@ -1,19 +1,7 @@
 import type { Command } from "commander";
+import { CONFIGURE_WIZARD_SECTIONS } from "../../commands/configure-sections.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
-
-// Inlined from configure.shared.ts to avoid pulling in @clack/prompts for --help text.
-// The canonical list lives in commands/configure.shared.ts; keep in sync.
-const CONFIGURE_WIZARD_SECTIONS = [
-  "workspace",
-  "model",
-  "web",
-  "gateway",
-  "daemon",
-  "channels",
-  "skills",
-  "health",
-] as const;
 
 export function registerConfigureCommand(program: Command) {
   program
