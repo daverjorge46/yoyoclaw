@@ -132,6 +132,27 @@ describe("buildAssistantMessage", () => {
     expect(toolCall.id).toMatch(/^ollama_call_[0-9a-f-]{36}$/);
   });
 
+  it("builds response with thinking content", () => {
+    const response = {
+      model: "qwen3:32b",
+      created_at: "2026-01-01T00:00:00Z",
+      message: {
+        role: "assistant" as const,
+        content: "The answer is 3.",
+        thinking: "Let me count the r's in strawberry: s-t-r-a-w-b-e-r-r-y. That's 3.",
+      },
+      done: true,
+      prompt_eval_count: 10,
+      eval_count: 20,
+    };
+    const result = buildAssistantMessage(response, modelInfo);
+    expect(result.content).toHaveLength(2);
+    expect(result.content[0].type).toBe("thinking");
+    expect((result.content[0] as { thinking: string }).thinking).toContain("count the r");
+    expect(result.content[1].type).toBe("text");
+    expect((result.content[1] as { text: string }).text).toBe("The answer is 3.");
+  });
+
   it("sets all costs to zero for local models", () => {
     const response = {
       model: "qwen3:32b",
@@ -283,6 +304,132 @@ describe("createOllamaStreamFn", () => {
       };
       expect(requestBody.options.num_ctx).toBe(131072);
       expect(requestBody.options.num_predict).toBe(123);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("emits thinking events when model returns thinking chunks", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      // Verify think:true is in request body
+      const body = JSON.parse(init.body as string);
+      expect(body.think).toBe(true);
+
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","thinking":"Let me think..."},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","thinking":" about this."},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"The answer is 42."},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":5,"eval_count":10}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:8b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+          reasoning: true,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "What is the meaning of life?" }],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {
+          reasoning: "medium",
+        } as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+
+      const types = events.map((e) => e.type);
+
+      // Should have thinking events before text events
+      expect(types).toContain("thinking_start");
+      expect(types).toContain("thinking_delta");
+      expect(types).toContain("thinking_end");
+      expect(types).toContain("text_start");
+      expect(types).toContain("text_delta");
+      expect(types).toContain("text_end");
+      expect(types).toContain("done");
+
+      // Thinking should come before text
+      const thinkingStartIdx = types.indexOf("thinking_start");
+      const textStartIdx = types.indexOf("text_start");
+      expect(thinkingStartIdx).toBeLessThan(textStartIdx);
+
+      // Verify thinking deltas
+      const thinkingDeltas = events.filter((e) => e.type === "thinking_delta");
+      expect(thinkingDeltas).toHaveLength(2);
+      expect((thinkingDeltas[0] as { delta: string }).delta).toBe("Let me think...");
+      expect((thinkingDeltas[1] as { delta: string }).delta).toBe(" about this.");
+
+      // Verify thinking_end has accumulated content
+      const thinkingEnd = events.find((e) => e.type === "thinking_end") as { content: string };
+      expect(thinkingEnd.content).toBe("Let me think... about this.");
+
+      // Verify text content
+      const textEnd = events.find((e) => e.type === "text_end") as { content: string };
+      expect(textEnd.content).toBe("The answer is 42.");
+
+      // Verify done message has both thinking and text
+      const doneEvent = events.find((e) => e.type === "done") as {
+        message: { content: Array<{ type: string }> };
+      };
+      expect(doneEvent.message.content[0].type).toBe("thinking");
+      expect(doneEvent.message.content[1].type).toBe("text");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("does not send think param when reasoning is not requested", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string);
+      expect(body.think).toBeUndefined();
+
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"Hello"},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":1,"eval_count":1}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "llama3.3",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "hi" }],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+      expect(events.at(-1)?.type).toBe("done");
     } finally {
       globalThis.fetch = originalFetch;
     }

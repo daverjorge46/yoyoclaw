@@ -3,6 +3,7 @@ import type {
   AssistantMessage,
   StopReason,
   TextContent,
+  ThinkingContent,
   ToolCall,
   Tool,
   Usage,
@@ -18,6 +19,7 @@ interface OllamaChatRequest {
   model: string;
   messages: OllamaChatMessage[];
   stream: boolean;
+  think?: boolean;
   tools?: OllamaTool[];
   options?: Record<string, unknown>;
 }
@@ -54,6 +56,7 @@ interface OllamaChatResponse {
   message: {
     role: "assistant";
     content: string;
+    thinking?: string;
     tool_calls?: OllamaToolCall[];
   };
   done: boolean;
@@ -189,7 +192,11 @@ export function buildAssistantMessage(
   response: OllamaChatResponse,
   modelInfo: { api: string; provider: string; id: string },
 ): AssistantMessage {
-  const content: (TextContent | ToolCall)[] = [];
+  const content: (TextContent | ThinkingContent | ToolCall)[] = [];
+
+  if (response.message.thinking) {
+    content.push({ type: "thinking", thinking: response.message.thinking });
+  }
 
   if (response.message.content) {
     content.push({ type: "text", text: response.message.content });
@@ -307,10 +314,16 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
           ollamaOptions.num_predict = options.maxTokens;
         }
 
+        // Enable native thinking when reasoning is requested.
+        // Ollama's `think` parameter separates thinking from content in the response.
+        // Models that don't support it will ignore the parameter gracefully.
+        const thinkingEnabled = !!(options as { reasoning?: string } | undefined)?.reasoning;
+
         const body: OllamaChatRequest = {
           model: model.id,
           messages: ollamaMessages,
           stream: true,
+          ...(thinkingEnabled ? { think: true } : {}),
           ...(ollamaTools.length > 0 ? { tools: ollamaTools } : {}),
           options: ollamaOptions,
         };
@@ -341,20 +354,49 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
 
         const reader = response.body.getReader();
         let accumulatedContent = "";
+        let accumulatedThinking = "";
         const accumulatedToolCalls: OllamaToolCall[] = [];
         let finalResponse: OllamaChatResponse | undefined;
+        let thinkingStarted = false;
+        let thinkingEnded = false;
         let textStarted = false;
+        let contentBlockIndex = 0;
 
         for await (const chunk of parseNdjsonStream(reader)) {
+          // Handle thinking chunks (Ollama sends `message.thinking` before `message.content`)
+          if (chunk.message?.thinking) {
+            if (!thinkingStarted) {
+              thinkingStarted = true;
+              stream.push({ type: "thinking_start" as const, contentIndex: contentBlockIndex });
+            }
+            stream.push({
+              type: "thinking_delta" as const,
+              contentIndex: contentBlockIndex,
+              delta: chunk.message.thinking,
+            });
+            accumulatedThinking += chunk.message.thinking;
+          }
+
           if (chunk.message?.content) {
+            // Close thinking block when content starts
+            if (thinkingStarted && !thinkingEnded) {
+              thinkingEnded = true;
+              stream.push({
+                type: "thinking_end" as const,
+                contentIndex: contentBlockIndex,
+                content: accumulatedThinking,
+              });
+              contentBlockIndex++;
+            }
+
             // Emit incremental text events for responsive streaming UX
             if (!textStarted) {
               textStarted = true;
-              stream.push({ type: "text_start" as const, contentIndex: 0 });
+              stream.push({ type: "text_start" as const, contentIndex: contentBlockIndex });
             }
             stream.push({
               type: "text_delta" as const,
-              contentIndex: 0,
+              contentIndex: contentBlockIndex,
               delta: chunk.message.content,
             });
             accumulatedContent += chunk.message.content;
@@ -372,11 +414,19 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
           }
         }
 
-        // Close text block if we started one
+        // Close any open blocks
+        if (thinkingStarted && !thinkingEnded) {
+          stream.push({
+            type: "thinking_end" as const,
+            contentIndex: contentBlockIndex,
+            content: accumulatedThinking,
+          });
+          contentBlockIndex++;
+        }
         if (textStarted) {
           stream.push({
             type: "text_end" as const,
-            contentIndex: 0,
+            contentIndex: contentBlockIndex,
             content: accumulatedContent,
           });
         }
@@ -386,6 +436,9 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
         }
 
         finalResponse.message.content = accumulatedContent;
+        if (accumulatedThinking) {
+          finalResponse.message.thinking = accumulatedThinking;
+        }
         if (accumulatedToolCalls.length > 0) {
           finalResponse.message.tool_calls = accumulatedToolCalls;
         }
