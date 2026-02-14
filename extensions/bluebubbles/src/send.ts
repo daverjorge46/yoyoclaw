@@ -2,6 +2,7 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import crypto from "node:crypto";
 import { stripMarkdown } from "openclaw/plugin-sdk";
 import { resolveBlueBubblesAccount } from "./accounts.js";
+import { getCachedBlueBubblesPrivateApiStatus } from "./probe.js";
 import {
   extractHandleFromChatGuid,
   normalizeBlueBubblesHandle,
@@ -397,6 +398,7 @@ export async function sendMessageBlueBubbles(
   if (!password) {
     throw new Error("BlueBubbles password is required");
   }
+  const privateApiStatus = getCachedBlueBubblesPrivateApiStatus(account.accountId);
 
   const target = resolveSendTarget(to);
   const chatGuid = await resolveChatGuidForTarget({
@@ -429,6 +431,11 @@ export async function sendMessageBlueBubbles(
     message: strippedText,
   };
   if (needsPrivateApi) {
+    if (privateApiStatus === false) {
+      throw new Error(
+        "BlueBubbles send failed: reply/effect requires Private API, but it is disabled on the BlueBubbles server.",
+      );
+    }
     payload.method = "private-api";
   }
 
