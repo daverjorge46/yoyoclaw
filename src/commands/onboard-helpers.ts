@@ -459,23 +459,28 @@ export function resolveControlUiLinks(params: {
   bind?: "auto" | "lan" | "loopback" | "custom" | "tailnet";
   customBindHost?: string;
   basePath?: string;
+  isDashboard?: boolean; // for dashboard command, always use localhost
 }): { httpUrl: string; wsUrl: string } {
   const port = params.port;
   const bind = params.bind ?? "loopback";
   const customBindHost = params.customBindHost?.trim();
   const tailnetIPv4 = pickPrimaryTailnetIPv4();
-  const host = (() => {
-    if (bind === "custom" && customBindHost && isValidIPv4(customBindHost)) {
-      return customBindHost;
-    }
-    if (bind === "tailnet" && tailnetIPv4) {
-      return tailnetIPv4 ?? "127.0.0.1";
-    }
-    if (bind === "lan") {
-      return pickPrimaryLanIPv4() ?? "127.0.0.1";
-    }
-    return "127.0.0.1";
-  })();
+  // For dashboard (local access), always use localhost regardless of bind mode
+  const isLocalDashboard = params.isDashboard === true;
+  const host = isLocalDashboard
+    ? "127.0.0.1"
+    : (() => {
+        if (bind === "custom" && customBindHost && isValidIPv4(customBindHost)) {
+          return customBindHost;
+        }
+        if (bind === "tailnet" && tailnetIPv4) {
+          return tailnetIPv4 ?? "127.0.0.1";
+        }
+        if (bind === "lan") {
+          return pickPrimaryLanIPv4() ?? "127.0.0.1";
+        }
+        return "127.0.0.1";
+      })();
   const basePath = normalizeControlUiBasePath(params.basePath);
   const uiPath = basePath ? `${basePath}/` : "/";
   const wsPath = basePath ? basePath : "";
