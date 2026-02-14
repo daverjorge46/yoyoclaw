@@ -8,11 +8,19 @@ type CodexUsageResponse = {
       limit_window_seconds?: number;
       used_percent?: number;
       reset_at?: number;
+      remaining_requests?: number;
+      total_requests?: number;
+      limit_requests?: number;
+      used_requests?: number;
     };
     secondary_window?: {
       limit_window_seconds?: number;
       used_percent?: number;
       reset_at?: number;
+      remaining_requests?: number;
+      total_requests?: number;
+      limit_requests?: number;
+      used_requests?: number;
     };
   };
   plan_type?: string;
@@ -65,10 +73,18 @@ export async function fetchCodexUsage(
   if (data.rate_limit?.primary_window) {
     const pw = data.rate_limit.primary_window;
     const windowHours = Math.round((pw.limit_window_seconds || 10800) / 3600);
+    const limit = pw.limit_requests ?? pw.total_requests;
+    const remaining =
+      pw.remaining_requests ??
+      (typeof pw.used_requests === "number" && typeof limit === "number"
+        ? limit - pw.used_requests
+        : undefined);
     windows.push({
       label: `${windowHours}h`,
       usedPercent: clampPercent(pw.used_percent || 0),
       resetAt: pw.reset_at ? pw.reset_at * 1000 : undefined,
+      remaining,
+      limit,
     });
   }
 
@@ -76,10 +92,18 @@ export async function fetchCodexUsage(
     const sw = data.rate_limit.secondary_window;
     const windowHours = Math.round((sw.limit_window_seconds || 86400) / 3600);
     const label = windowHours >= 24 ? "Day" : `${windowHours}h`;
+    const limit = sw.limit_requests ?? sw.total_requests;
+    const remaining =
+      sw.remaining_requests ??
+      (typeof sw.used_requests === "number" && typeof limit === "number"
+        ? limit - sw.used_requests
+        : undefined);
     windows.push({
       label,
       usedPercent: clampPercent(sw.used_percent || 0),
       resetAt: sw.reset_at ? sw.reset_at * 1000 : undefined,
+      remaining,
+      limit,
     });
   }
 

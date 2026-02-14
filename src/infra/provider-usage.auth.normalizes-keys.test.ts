@@ -21,9 +21,9 @@ describe("resolveProviderAuths key normalization", () => {
       },
       {
         env: {
-          ZAI_API_KEY: "zai-\r\nkey",
-          MINIMAX_API_KEY: "minimax-\r\nkey",
-          XIAOMI_API_KEY: "xiaomi-\r\nkey",
+          ZAI_API_KEY: "zai-\r\nkey", // pragma: allowlist secret
+          MINIMAX_API_KEY: "minimax-\r\nkey", // pragma: allowlist secret
+          XIAOMI_API_KEY: "xiaomi-\r\nkey", // pragma: allowlist secret
         },
       },
     );
@@ -69,5 +69,61 @@ describe("resolveProviderAuths key normalization", () => {
         },
       },
     );
+  });
+
+  it("returns multiple oauth-like accounts for the same provider", async () => {
+    await withTempHome(async (home) => {
+      const agentDir = path.join(home, ".openclaw", "agents", "main", "agent");
+      await fs.mkdir(agentDir, { recursive: true });
+      await fs.writeFile(
+        path.join(agentDir, "auth-profiles.json"),
+        `${JSON.stringify(
+          {
+            version: 1,
+            order: {
+              "github-copilot": ["github-copilot:work", "github-copilot:personal"],
+            },
+            profiles: {
+              "github-copilot:work": {
+                type: "token",
+                provider: "github-copilot",
+                token: "work-token",
+                email: "work@example.com",
+              },
+              "github-copilot:personal": {
+                type: "token",
+                provider: "github-copilot",
+                token: "personal-token",
+                email: "personal@example.com",
+              },
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+
+      vi.resetModules();
+      const { resolveProviderAuths } = await import("./provider-usage.auth.js");
+      const auths = await resolveProviderAuths({
+        providers: ["github-copilot"],
+        agentDir,
+      });
+      expect(auths).toEqual([
+        {
+          provider: "github-copilot",
+          token: "work-token",
+          profileId: "github-copilot:work",
+          accountLabel: "work@example.com",
+        },
+        {
+          provider: "github-copilot",
+          token: "personal-token",
+          profileId: "github-copilot:personal",
+          accountLabel: "personal@example.com",
+        },
+      ]);
+    });
   });
 });

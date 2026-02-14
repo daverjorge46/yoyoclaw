@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { withTempHome } from "../../test/helpers/temp-home.js";
@@ -70,6 +71,50 @@ describe("provider usage formatting", () => {
 });
 
 describe("provider usage loading", () => {
+  it("reuses persisted cache within 10 minutes", async () => {
+    const makeResponse = (status: number, body: unknown): Response => {
+      const payload = typeof body === "string" ? body : JSON.stringify(body);
+      const headers = typeof body === "string" ? undefined : { "Content-Type": "application/json" };
+      return new Response(payload, { status, headers });
+    };
+
+    const mockFetch = vi.fn<Parameters<typeof fetch>, ReturnType<typeof fetch>>(async (input) => {
+      const url =
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("api.github.com/copilot_internal/user")) {
+        return makeResponse(200, {
+          quota_snapshots: {
+            premium_interactions: { percent_remaining: 50 },
+          },
+        });
+      }
+      return makeResponse(404, "not found");
+    });
+
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-usage-cache-"));
+    const now = Date.UTC(2026, 0, 7, 0, 0, 0);
+    const auth = [
+      { provider: "github-copilot", token: "token-1", profileId: "github:work" },
+    ] as const;
+
+    const first = await loadProviderUsageSummary({
+      now,
+      auth: [...auth],
+      fetch: mockFetch,
+      stateDir,
+    });
+    const second = await loadProviderUsageSummary({
+      now: now + 2 * 60_000,
+      auth: [...auth],
+      fetch: mockFetch,
+      stateDir,
+    });
+
+    expect(first.providers.length).toBe(1);
+    expect(second.providers.length).toBe(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it("loads usage snapshots with injected auth", async () => {
     const makeResponse = (status: number, body: unknown): Response => {
       const payload = typeof body === "string" ? body : JSON.stringify(body);

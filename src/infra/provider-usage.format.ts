@@ -44,7 +44,11 @@ function formatWindowShort(window: UsageWindow, now?: number): string {
   const remaining = clampPercent(100 - window.usedPercent);
   const reset = formatResetRemaining(window.resetAt, now);
   const resetSuffix = reset ? ` ⏱${reset}` : "";
-  return `${remaining.toFixed(0)}% left (${window.label}${resetSuffix})`;
+  const left =
+    typeof window.remaining === "number" && typeof window.limit === "number"
+      ? `${Math.max(0, Math.round(window.remaining))}/${Math.max(0, Math.round(window.limit))} (~${remaining.toFixed(0)}%)`
+      : `${remaining.toFixed(0)}%`;
+  return `${left} left (${window.label}${resetSuffix})`;
 }
 
 export function formatUsageWindowSummary(
@@ -68,7 +72,11 @@ export function formatUsageWindowSummary(
     const remaining = clampPercent(100 - window.usedPercent);
     const reset = includeResets ? formatResetRemaining(window.resetAt, now) : null;
     const resetSuffix = reset ? ` ⏱${reset}` : "";
-    return `${window.label} ${remaining.toFixed(0)}% left${resetSuffix}`;
+    const left =
+      typeof window.remaining === "number" && typeof window.limit === "number"
+        ? `${Math.max(0, Math.round(window.remaining))}/${Math.max(0, Math.round(window.limit))} (~${remaining.toFixed(0)}%)`
+        : `${remaining.toFixed(0)}%`;
+    return `${window.label} ${left} left${resetSuffix}`;
   });
   return parts.join(" · ");
 }
@@ -90,7 +98,8 @@ export function formatUsageSummaryLine(
       if (!window) {
         return null;
       }
-      return `${entry.displayName} ${formatWindowShort(window, opts?.now)}`;
+      const accountSuffix = entry.accountLabel ? ` (${entry.accountLabel})` : "";
+      return `${entry.displayName}${accountSuffix} ${formatWindowShort(window, opts?.now)}`;
     })
     .filter(Boolean) as string[];
 
@@ -107,21 +116,26 @@ export function formatUsageReportLines(summary: UsageSummary, opts?: { now?: num
 
   const lines: string[] = ["Usage:"];
   for (const entry of summary.providers) {
+    const accountSuffix = entry.accountLabel ? ` (${entry.accountLabel})` : "";
     const planSuffix = entry.plan ? ` (${entry.plan})` : "";
     if (entry.error) {
-      lines.push(`  ${entry.displayName}${planSuffix}: ${entry.error}`);
+      lines.push(`  ${entry.displayName}${accountSuffix}${planSuffix}: ${entry.error}`);
       continue;
     }
     if (entry.windows.length === 0) {
-      lines.push(`  ${entry.displayName}${planSuffix}: no data`);
+      lines.push(`  ${entry.displayName}${accountSuffix}${planSuffix}: no data`);
       continue;
     }
-    lines.push(`  ${entry.displayName}${planSuffix}`);
+    lines.push(`  ${entry.displayName}${accountSuffix}${planSuffix}`);
     for (const window of entry.windows) {
       const remaining = clampPercent(100 - window.usedPercent);
       const reset = formatResetRemaining(window.resetAt, opts?.now);
       const resetSuffix = reset ? ` · resets ${reset}` : "";
-      lines.push(`    ${window.label}: ${remaining.toFixed(0)}% left${resetSuffix}`);
+      const left =
+        typeof window.remaining === "number" && typeof window.limit === "number"
+          ? `${Math.max(0, Math.round(window.remaining))}/${Math.max(0, Math.round(window.limit))} (~${remaining.toFixed(0)}%)`
+          : `${remaining.toFixed(0)}%`;
+      lines.push(`    ${window.label}: ${left} left${resetSuffix}`);
     }
   }
   return lines;

@@ -17,6 +17,8 @@ export type ProviderAuth = {
   provider: UsageProviderId;
   token: string;
   accountId?: string;
+  profileId?: string;
+  accountLabel?: string;
 };
 
 function parseGoogleToken(apiKey: string): { token: string } | null {
@@ -151,10 +153,25 @@ function resolveXiaomiApiKey(): string | undefined {
   return undefined;
 }
 
-async function resolveOAuthToken(params: {
+function resolveAccountLabelFromCredential(
+  profileId: string,
+  cred: { email?: string; accountId?: string } | null,
+): string {
+  const email = cred?.email?.trim();
+  if (email) {
+    return email;
+  }
+  const accountId = cred?.accountId?.trim();
+  if (accountId) {
+    return accountId;
+  }
+  return profileId;
+}
+
+async function resolveOAuthTokens(params: {
   provider: UsageProviderId;
   agentDir?: string;
-}): Promise<ProviderAuth | null> {
+}): Promise<ProviderAuth[]> {
   const cfg = loadConfig();
   const store = ensureAuthProfileStore(params.agentDir, {
     allowKeychainPrompt: false,
@@ -173,6 +190,7 @@ async function resolveOAuthToken(params: {
     }
   }
 
+  const resolvedAuths: ProviderAuth[] = [];
   for (const profileId of deduped) {
     const cred = store.profiles[profileId];
     if (!cred || (cred.type !== "oauth" && cred.type !== "token")) {
@@ -195,20 +213,26 @@ async function resolveOAuthToken(params: {
         const parsed = parseGoogleToken(resolved.apiKey);
         token = parsed?.token ?? resolved.apiKey;
       }
-      return {
+      const accountId =
+        cred.type === "oauth" && "accountId" in cred
+          ? (cred as { accountId?: string }).accountId
+          : undefined;
+      resolvedAuths.push({
         provider: params.provider,
         token,
-        accountId:
-          cred.type === "oauth" && "accountId" in cred
-            ? (cred as { accountId?: string }).accountId
-            : undefined,
-      };
+        accountId,
+        profileId,
+        accountLabel: resolveAccountLabelFromCredential(profileId, {
+          email: resolved.email,
+          accountId,
+        }),
+      });
     } catch {
       // ignore
     }
   }
 
-  return null;
+  return resolvedAuths;
 }
 
 function resolveOAuthProviders(agentDir?: string): UsageProviderId[] {
@@ -279,12 +303,12 @@ export async function resolveProviderAuths(params: {
     if (!oauthProviders.includes(provider)) {
       continue;
     }
-    const auth = await resolveOAuthToken({
+    const authEntries = await resolveOAuthTokens({
       provider,
       agentDir: params.agentDir,
     });
-    if (auth) {
-      auths.push(auth);
+    if (authEntries.length > 0) {
+      auths.push(...authEntries);
     }
   }
 

@@ -554,6 +554,7 @@ export async function modelsStatusCommand(
     runtime.log(colorize(rich, theme.muted, "- none"));
   } else {
     const usageByProvider = new Map<string, string>();
+    const usageScoreByProvider = new Map<string, number>();
     const usageProviders = Array.from(
       new Set(
         oauthProfiles
@@ -575,7 +576,15 @@ export async function modelsStatusCommand(
             includeResets: true,
           });
           if (formatted) {
-            usageByProvider.set(snapshot.provider, formatted);
+            const score = Math.max(
+              ...snapshot.windows.map((window) => 100 - window.usedPercent),
+              -1,
+            );
+            const previousScore = usageScoreByProvider.get(snapshot.provider);
+            if (previousScore === undefined || score > previousScore) {
+              usageScoreByProvider.set(snapshot.provider, score);
+              usageByProvider.set(snapshot.provider, formatted);
+            }
           }
         }
       } catch {

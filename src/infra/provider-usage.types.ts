@@ -2,6 +2,8 @@ export type UsageWindow = {
   label: string;
   usedPercent: number;
   resetAt?: number;
+  remaining?: number;
+  limit?: number;
 };
 
 export type ProviderUsageSnapshot = {
@@ -10,6 +12,12 @@ export type ProviderUsageSnapshot = {
   windows: UsageWindow[];
   plan?: string;
   error?: string;
+  accountId?: string;
+  accountLabel?: string;
+  profileId?: string;
+  fetchedAt?: number;
+  cacheExpiresAt?: number;
+  stale?: boolean;
 };
 
 export type UsageSummary = {
