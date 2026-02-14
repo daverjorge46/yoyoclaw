@@ -85,6 +85,8 @@ export type GatewayAuthConfig = {
   token?: string;
   /** Shared password for password mode (consider env instead). */
   password?: string;
+  /** Shared rate limit for CLI credential checks and gateway token validation (ms). */
+  rateLimit?: number;
   /** Allow Tailscale identity headers when serve mode is enabled. */
   allowTailscale?: boolean;
 };

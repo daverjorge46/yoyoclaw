@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildConfigSchema } from "./schema.js";
+import { validateConfigObject } from "./config.js";
 
 describe("config schema", () => {
   it("exports schema + hints", () => {
@@ -101,4 +102,16 @@ describe("config schema", () => {
     expect(defaultsHint?.help).toContain("last");
     expect(listHint?.help).toContain("bluebubbles");
   });
+
+  it("accepts gateway.auth.rateLimit in config validation", () => {
+    const res = validateConfigObject({
+      gateway: {
+        auth: {
+          rateLimit: 30000,
+        },
+      },
+    });
+    expect(res.ok).toBe(true);
+  });
 });
+

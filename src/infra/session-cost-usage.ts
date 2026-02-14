@@ -10,6 +10,7 @@ import {
   resolveSessionTranscriptsDirForAgent,
 } from "../config/sessions/paths.js";
 import { countToolResults, extractToolCallNames } from "../utils/transcript-tools.js";
+import { resolveAgentIdFromSessionKey } from "../routing/session-key.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../utils/usage-format.js";
 
 type CostBreakdown = {
@@ -560,13 +561,18 @@ export async function loadSessionCostSummary(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
+  sessionKey?: string;
   config?: OpenClawConfig;
   startMs?: number;
   endMs?: number;
 }): Promise<SessionCostSummary | null> {
   const sessionFile =
     params.sessionFile ??
-    (params.sessionId ? resolveSessionFilePath(params.sessionId, params.sessionEntry) : undefined);
+    (params.sessionId
+      ? resolveSessionFilePath(params.sessionId, params.sessionEntry, {
+          agentId: params.sessionKey ? resolveAgentIdFromSessionKey(params.sessionKey) : undefined,
+        })
+      : undefined);
   if (!sessionFile || !fs.existsSync(sessionFile)) {
     return null;
   }
@@ -850,12 +856,17 @@ export async function loadSessionUsageTimeSeries(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
+  sessionKey?: string;
   config?: OpenClawConfig;
   maxPoints?: number;
 }): Promise<SessionUsageTimeSeries | null> {
   const sessionFile =
     params.sessionFile ??
-    (params.sessionId ? resolveSessionFilePath(params.sessionId, params.sessionEntry) : undefined);
+    (params.sessionId
+      ? resolveSessionFilePath(params.sessionId, params.sessionEntry, {
+          agentId: params.sessionKey ? resolveAgentIdFromSessionKey(params.sessionKey) : undefined,
+        })
+      : undefined);
   if (!sessionFile || !fs.existsSync(sessionFile)) {
     return null;
   }
@@ -930,12 +941,17 @@ export async function loadSessionLogs(params: {
   sessionId?: string;
   sessionEntry?: SessionEntry;
   sessionFile?: string;
+  sessionKey?: string;
   config?: OpenClawConfig;
   limit?: number;
 }): Promise<SessionLogEntry[] | null> {
   const sessionFile =
     params.sessionFile ??
-    (params.sessionId ? resolveSessionFilePath(params.sessionId, params.sessionEntry) : undefined);
+    (params.sessionId
+      ? resolveSessionFilePath(params.sessionId, params.sessionEntry, {
+          agentId: params.sessionKey ? resolveAgentIdFromSessionKey(params.sessionKey) : undefined,
+        })
+      : undefined);
   if (!sessionFile || !fs.existsSync(sessionFile)) {
     return null;
   }

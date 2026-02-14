@@ -164,6 +164,7 @@ export const handleUsageCommand: CommandHandler = async (params, allowTextComman
   if (rawArgs.toLowerCase().startsWith("cost")) {
     const sessionSummary = await loadSessionCostSummary({
       sessionId: params.sessionEntry?.sessionId,
+      sessionKey: params.sessionKey,
       sessionEntry: params.sessionEntry,
       sessionFile: params.sessionEntry?.sessionFile,
       config: params.cfg,

@@ -86,6 +86,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "gateway.remote.tlsFingerprint": "Remote Gateway TLS Fingerprint",
   "gateway.auth.token": "Gateway Token",
   "gateway.auth.password": "Gateway Password",
+  "gateway.auth.rateLimit": "Gateway Auth Rate Limit",
   "tools.media.image.enabled": "Enable Image Understanding",
   "tools.media.image.maxBytes": "Image Understanding Max Bytes",
   "tools.media.image.maxChars": "Image Understanding Max Chars",
@@ -372,6 +373,7 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.auth.token":
     "Required by default for gateway access (unless using Tailscale Serve identity); required for non-loopback binds.",
   "gateway.auth.password": "Required for Tailscale funnel.",
+  "gateway.auth.rateLimit": "Gateway auth request throttling (ms).",
   "gateway.controlUi.basePath":
     "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
   "gateway.controlUi.root":

@@ -483,6 +483,7 @@ export const usageHandlers: GatewayRequestHandlers = {
     for (const merged of limitedEntries) {
       const usage = await loadSessionCostSummary({
         sessionId: merged.sessionId,
+        sessionKey: merged.key,
         sessionEntry: merged.storeEntry,
         sessionFile: merged.sessionFile,
         config,
@@ -768,6 +769,7 @@ export const usageHandlers: GatewayRequestHandlers = {
 
     const timeseries = await loadSessionUsageTimeSeries({
       sessionId,
+      sessionKey: key,
       sessionEntry: entry,
       sessionFile,
       config,
@@ -811,6 +813,7 @@ export const usageHandlers: GatewayRequestHandlers = {
     const { loadSessionLogs } = await import("../../infra/session-cost-usage.js");
     const logs = await loadSessionLogs({
       sessionId,
+      sessionKey: key,
       sessionEntry: entry,
       sessionFile,
       config,
