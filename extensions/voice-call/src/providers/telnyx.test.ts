@@ -22,6 +22,64 @@ function decodeBase64Url(input: string): Buffer {
   return Buffer.from(padded, "base64");
 }
 
+describe("TelnyxProvider.parseWebhookEvent", () => {
+  it("passes direction, from, and to for call.initiated events", () => {
+    const provider = new TelnyxProvider(
+      { apiKey: "KEY123", connectionId: "CONN456", publicKey: undefined },
+      { skipVerification: true },
+    );
+
+    const rawBody = JSON.stringify({
+      data: {
+        id: "evt-123",
+        event_type: "call.initiated",
+        payload: {
+          call_control_id: "cc-abc",
+          direction: "incoming",
+          from: "+15551234567",
+          to: "+15559876543",
+        },
+      },
+    });
+
+    const result = provider.parseWebhookEvent(
+      createCtx({ rawBody }),
+    );
+    expect(result.events).toHaveLength(1);
+    const event = result.events[0];
+    expect(event.type).toBe("call.initiated");
+    expect(event.direction).toBe("inbound");
+    expect(event.from).toBe("+15551234567");
+    expect(event.to).toBe("+15559876543");
+  });
+
+  it("sets direction to outbound for non-incoming calls", () => {
+    const provider = new TelnyxProvider(
+      { apiKey: "KEY123", connectionId: "CONN456", publicKey: undefined },
+      { skipVerification: true },
+    );
+
+    const rawBody = JSON.stringify({
+      data: {
+        id: "evt-456",
+        event_type: "call.initiated",
+        payload: {
+          call_control_id: "cc-def",
+          direction: "outgoing",
+          from: "+15551111111",
+          to: "+15552222222",
+        },
+      },
+    });
+
+    const result = provider.parseWebhookEvent(
+      createCtx({ rawBody }),
+    );
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0].direction).toBe("outbound");
+  });
+});
+
 describe("TelnyxProvider.verifyWebhook", () => {
   it("fails closed when public key is missing and skipVerification is false", () => {
     const provider = new TelnyxProvider(
