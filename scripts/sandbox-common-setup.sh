@@ -27,6 +27,7 @@ docker build \
   --build-arg BREW_INSTALL_DIR="${BREW_INSTALL_DIR}" \
   - <<EOF
 FROM ${BASE_IMAGE}
+USER root
 ENV DEBIAN_FRONTEND=noninteractive
 ARG INSTALL_PNPM=1
 ARG INSTALL_BUN=1
