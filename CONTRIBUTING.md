@@ -1,6 +1,6 @@
-# Contributing to openclaw-local
+# 🌱 Contributing to openclaw-local
 
-Hey! Thanks for wanting to contribute. This is a hacker's project — we keep things simple.
+Hey! Thanks for wanting to contribute. This is a hacker's project — we keep things simple. 🌿
 
 ## Setup
 
@@ -49,6 +49,6 @@ Don't fight the formatter. Just run `pnpm format` before committing.
 
 This is a fork of [OpenClaw](https://github.com/openclaw-ai/openclaw). See [FORK.md](./FORK.md) for what we changed and why. We try to keep the diff minimal so upstream merges stay clean.
 
-## Questions?
+## 💚 Questions?
 
-Open an issue. There are no stupid questions.
+Open an issue. There are no stupid questions. We're growing this garden together. 🌻

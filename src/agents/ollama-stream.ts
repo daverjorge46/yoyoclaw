@@ -362,17 +362,47 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
         let textStarted = false;
         let contentBlockIndex = 0;
 
+        // Build a partial AssistantMessage that we update incrementally.
+        // Every stream event requires a `partial` snapshot.
+        const partial: AssistantMessage = {
+          role: "assistant",
+          content: [],
+          stopReason: "stop",
+          api: model.api,
+          provider: model.provider,
+          model: model.id,
+          usage: {
+            input: 0,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            totalTokens: 0,
+            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+          },
+          timestamp: Date.now(),
+        };
+
+        stream.push({ type: "start", partial });
+
         for await (const chunk of parseNdjsonStream(reader)) {
           // Handle thinking chunks (Ollama sends `message.thinking` before `message.content`)
           if (chunk.message?.thinking) {
             if (!thinkingStarted) {
               thinkingStarted = true;
-              stream.push({ type: "thinking_start" as const, contentIndex: contentBlockIndex });
+              partial.content.push({ type: "thinking", thinking: "" } as ThinkingContent);
+              stream.push({
+                type: "thinking_start" as const,
+                contentIndex: contentBlockIndex,
+                partial,
+              });
             }
+            (partial.content[contentBlockIndex] as ThinkingContent).thinking +=
+              chunk.message.thinking;
             stream.push({
               type: "thinking_delta" as const,
               contentIndex: contentBlockIndex,
               delta: chunk.message.thinking,
+              partial,
             });
             accumulatedThinking += chunk.message.thinking;
           }
@@ -385,6 +415,7 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
                 type: "thinking_end" as const,
                 contentIndex: contentBlockIndex,
                 content: accumulatedThinking,
+                partial,
               });
               contentBlockIndex++;
             }
@@ -392,12 +423,19 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
             // Emit incremental text events for responsive streaming UX
             if (!textStarted) {
               textStarted = true;
-              stream.push({ type: "text_start" as const, contentIndex: contentBlockIndex });
+              partial.content.push({ type: "text", text: "" } as TextContent);
+              stream.push({
+                type: "text_start" as const,
+                contentIndex: contentBlockIndex,
+                partial,
+              });
             }
+            (partial.content[contentBlockIndex] as TextContent).text += chunk.message.content;
             stream.push({
               type: "text_delta" as const,
               contentIndex: contentBlockIndex,
               delta: chunk.message.content,
+              partial,
             });
             accumulatedContent += chunk.message.content;
           }
@@ -420,6 +458,7 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
             type: "thinking_end" as const,
             contentIndex: contentBlockIndex,
             content: accumulatedThinking,
+            partial,
           });
           contentBlockIndex++;
         }
@@ -428,6 +467,7 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
             type: "text_end" as const,
             contentIndex: contentBlockIndex,
             content: accumulatedContent,
+            partial,
           });
         }
 

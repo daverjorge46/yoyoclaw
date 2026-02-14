@@ -1,14 +1,14 @@
-# FORK.md — openclaw-local
+# 🌿 FORK.md — openclaw-local
 
 This documents what changed from upstream [OpenClaw](https://github.com/openclaw-ai/openclaw) and why.
 
-## Philosophy
+## 🌱 Philosophy
 
 openclaw-local is a minimal fork that changes **defaults**, not architecture. The goal: a user who runs `openclaw onboard` gets a working local setup with Ollama without needing any API keys or cloud accounts.
 
 All cloud provider functionality is preserved. This fork only changes what happens when you don't configure anything.
 
-## Changes from upstream
+## 🍃 Changes from upstream
 
 ### `package.json`
 
@@ -36,7 +36,7 @@ All cloud provider functionality is preserved. This fork only changes what happe
 - **`openclaw-local.example.json`** — Example config with Ollama defaults
 - **`scripts/setup-local.sh`** — Setup script that checks for Ollama, pulls a model, generates config
 
-## Keeping up with upstream
+## 🔄 Keeping up with upstream
 
 ```bash
 git remote add upstream https://github.com/openclaw-ai/openclaw.git
