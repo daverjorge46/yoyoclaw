@@ -96,6 +96,10 @@ export function parseShubhamReply(rawText: string): ParsedReply {
   if (noScore > yesScore && noScore >= 1) {
     availability = "no";
     reason = "negative";
+  } else if (maybeScore >= 1 && maybeScore >= yesScore) {
+    // "not sure" can contain "sure"; prefer tentative intent when uncertainty is explicit.
+    availability = "maybe";
+    reason = "tentative";
   } else if (yesScore > noScore && yesScore >= 1) {
     availability = "yes";
     reason = "positive";
