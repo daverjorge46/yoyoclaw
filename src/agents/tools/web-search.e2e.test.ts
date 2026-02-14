@@ -31,6 +31,8 @@ const {
   isDirectPerplexityBaseUrl,
   resolvePerplexityRequestModel,
   normalizeFreshness,
+  normalizeBraveSearchLang,
+  normalizeBraveUiLang,
   resolveGrokApiKey,
   resolveGrokModel,
   resolveGrokInlineCitations,
@@ -125,6 +127,66 @@ describe("web_search freshness normalization", () => {
     expect(normalizeFreshness("2024-13-01to2024-01-31")).toBeUndefined();
     expect(normalizeFreshness("2024-02-30to2024-03-01")).toBeUndefined();
     expect(normalizeFreshness("2024-03-10to2024-03-01")).toBeUndefined();
+  });
+});
+
+describe("web_search Brave Chinese language normalization", () => {
+  describe("normalizeBraveSearchLang", () => {
+    it("maps zh to zh-hans (simplified Chinese default)", () => {
+      expect(normalizeBraveSearchLang("zh")).toBe("zh-hans");
+    });
+
+    it("maps zh-cn to zh-hans", () => {
+      expect(normalizeBraveSearchLang("zh-cn")).toBe("zh-hans");
+      expect(normalizeBraveSearchLang("zh-CN")).toBe("zh-hans");
+    });
+
+    it("maps zh-tw to zh-hant (traditional)", () => {
+      expect(normalizeBraveSearchLang("zh-tw")).toBe("zh-hant");
+      expect(normalizeBraveSearchLang("zh-TW")).toBe("zh-hant");
+    });
+
+    it("maps zh-hk to zh-hant", () => {
+      expect(normalizeBraveSearchLang("zh-hk")).toBe("zh-hant");
+    });
+
+    it("passes through other language codes unchanged", () => {
+      expect(normalizeBraveSearchLang("en")).toBe("en");
+      expect(normalizeBraveSearchLang("de")).toBe("de");
+      expect(normalizeBraveSearchLang("ja")).toBe("ja");
+    });
+
+    it("returns undefined for undefined input", () => {
+      expect(normalizeBraveSearchLang(undefined)).toBeUndefined();
+    });
+  });
+
+  describe("normalizeBraveUiLang", () => {
+    it("maps zh to zh-CN (simplified Chinese default)", () => {
+      expect(normalizeBraveUiLang("zh")).toBe("zh-CN");
+    });
+
+    it("maps zh-cn to zh-CN", () => {
+      expect(normalizeBraveUiLang("zh-cn")).toBe("zh-CN");
+    });
+
+    it("maps zh-tw to zh-TW", () => {
+      expect(normalizeBraveUiLang("zh-tw")).toBe("zh-TW");
+    });
+
+    it("maps zh-hk to zh-HK", () => {
+      expect(normalizeBraveUiLang("zh-hk")).toBe("zh-HK");
+    });
+
+    it("passes through other language codes unchanged", () => {
+      expect(normalizeBraveUiLang("en")).toBe("en");
+      expect(normalizeBraveUiLang("de")).toBe("de");
+      expect(normalizeBraveUiLang("ja")).toBe("ja");
+    });
+
+    it("returns undefined for undefined input", () => {
+      expect(normalizeBraveUiLang(undefined)).toBeUndefined();
+    });
   });
 });
 
