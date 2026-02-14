@@ -30,19 +30,7 @@ vi.mock("./client-container.js", () => ({
 vi.mock("../config/config.js", () => ({
   loadConfig: vi.fn(() => ({})),
 }));
-
-vi.mock("./accounts.js", () => ({
-  resolveSignalAccount: vi.fn(() => ({
-    accountId: "default",
-    baseUrl: "http://localhost:8080",
-    enabled: true,
-    configured: true,
-    name: "default",
-    config: { apiMode: "native" },
-  })),
-}));
-
-import { resolveSignalAccount } from "./accounts.js";
+import { loadConfig } from "../config/config.js";
 import {
   containerCheck,
   containerSendMessage,
@@ -62,17 +50,16 @@ const mockContainerSendTyping = vi.mocked(containerSendTyping);
 const mockContainerSendReceipt = vi.mocked(containerSendReceipt);
 const mockContainerFetchAttachment = vi.mocked(containerFetchAttachment);
 const mockStreamContainerEvents = vi.mocked(streamContainerEvents);
-const mockResolveSignalAccount = vi.mocked(resolveSignalAccount);
+const mockLoadConfig = vi.mocked(loadConfig);
 
 function setApiMode(mode: "native" | "container" | "auto") {
-  mockResolveSignalAccount.mockReturnValue({
-    accountId: "default",
-    baseUrl: "http://localhost:8080",
-    enabled: true,
-    configured: true,
-    name: "default",
-    config: { apiMode: mode },
-  } as ReturnType<typeof resolveSignalAccount>);
+  mockLoadConfig.mockReturnValue({
+    channels: {
+      signal: {
+        apiMode: mode,
+      },
+    },
+  });
 }
 
 describe("detectSignalApiMode", () => {

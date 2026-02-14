@@ -381,7 +381,6 @@ export async function monitorSignalProvider(opts: MonitorSignalOpts = {}): Promi
     await runSignalSseLoop({
       baseUrl,
       account,
-      accountId: accountInfo.accountId,
       abortSignal: opts.abortSignal,
       runtime,
       onEvent: (event) => {

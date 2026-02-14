@@ -15,7 +15,6 @@ const DEFAULT_RECONNECT_POLICY: BackoffPolicy = {
 type RunSignalSseLoopParams = {
   baseUrl: string;
   account?: string;
-  accountId?: string;
   abortSignal?: AbortSignal;
   runtime: RuntimeEnv;
   onEvent: (payload: SignalReceivePayload) => void;
@@ -25,7 +24,6 @@ type RunSignalSseLoopParams = {
 export async function runSignalSseLoop({
   baseUrl,
   account,
-  accountId,
   abortSignal,
   runtime,
   onEvent,
@@ -49,7 +47,6 @@ export async function runSignalSseLoop({
       await streamSignalEventsAdapter({
         baseUrl,
         account,
-        accountId,
         abortSignal,
         onEvent: (payload: SignalReceivePayload) => {
           reconnectAttempts = 0;

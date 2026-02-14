@@ -10,7 +10,6 @@ import type { SignalApiMode } from "../config/types.signal.js";
 import type { SignalRpcOptions } from "./client.js";
 import type { SignalReceivePayload } from "./monitor/event-handler.types.js";
 import { loadConfig } from "../config/config.js";
-import { resolveSignalAccount } from "./accounts.js";
 import {
   containerCheck,
   containerFetchAttachment,
@@ -34,11 +33,11 @@ const detectedModeCache = new Map<string, "native" | "container">();
  */
 async function resolveApiMode(
   baseUrl: string,
-  accountId?: string,
+  _accountId?: string,
 ): Promise<"native" | "container"> {
   const cfg = loadConfig();
-  const account = resolveSignalAccount({ cfg, accountId });
-  const configured = account.config.apiMode ?? "auto";
+  // apiMode is channel-global and should not vary by account.
+  const configured = cfg.channels?.signal?.apiMode ?? "auto";
 
   if (configured === "native" || configured === "container") {
     return configured;

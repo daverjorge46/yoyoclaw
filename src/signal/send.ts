@@ -216,7 +216,6 @@ export async function sendMessageSignal(
   const result = await signalRpcRequest<{ timestamp?: number }>("send", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
-    accountId: opts.accountId,
   });
   const timestamp = result?.timestamp;
   return {
@@ -247,7 +246,6 @@ export async function sendTypingSignal(
   await signalRpcRequest("sendTyping", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
-    accountId: opts.accountId,
   });
   return true;
 }
@@ -278,7 +276,6 @@ export async function sendReadReceiptSignal(
   await signalRpcRequest("sendReceipt", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
-    accountId: opts.accountId,
   });
   return true;
 }

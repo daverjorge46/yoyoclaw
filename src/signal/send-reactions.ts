@@ -139,7 +139,6 @@ export async function sendReactionSignal(
   const result = await signalRpcRequest<{ timestamp?: number }>("sendReaction", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
-    accountId: opts.accountId,
   });
 
   return {
@@ -207,7 +206,6 @@ export async function removeReactionSignal(
   const result = await signalRpcRequest<{ timestamp?: number }>("sendReaction", params, {
     baseUrl,
     timeoutMs: opts.timeoutMs,
-    accountId: opts.accountId,
   });
 
   return {
