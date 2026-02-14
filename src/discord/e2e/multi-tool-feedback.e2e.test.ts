@@ -138,7 +138,17 @@ function assertNoExcessiveDuplication(creates: MessageEvent[]): void {
 }
 
 // Test suite names and their channel suffixes.
-const TEST_SUITES = ["read", "bash", "multi-tool", "web-search", "thinking"] as const;
+const TEST_SUITES = [
+  "read",
+  "bash",
+  "multi-tool",
+  "web-search",
+  "thinking",
+  "fmt-wide",
+  "fmt-blanks",
+  "fmt-long",
+  "fmt-short",
+] as const;
 type SuiteName = (typeof TEST_SUITES)[number];
 
 describeLive("Discord multi-tool feedback display", () => {
@@ -511,6 +521,109 @@ describeLive("Discord multi-tool feedback display", () => {
     expect(hasSubstantiveAnswer).toBe(true);
 
     // No excessive duplication of content across messages.
+    assertNoExcessiveDuplication(creates);
+  }, 120_000);
+
+  // ---------------------------------------------------------------
+  // Test 6: Wide output (column truncation)
+  // ---------------------------------------------------------------
+  it("fmt-wide: truncates wide lines at ~80 columns", async () => {
+    const { channelId, events } = getSuiteState("fmt-wide");
+    events.length = 0;
+
+    const channel = await fetchTextChannel(channelId);
+
+    await channel.send(
+      `<@${CLAW_BOT_ID}> Run this exact bash command and show me the output: ` +
+        `printf '%0.s=' {1..120} && echo "" && printf '%0.s-' {1..150} && echo "" && echo "short line"`,
+    );
+
+    await waitForBotResponse(events, 90_000, 15_000);
+
+    const creates = events.filter((e) => e.type === "create");
+    logEvents("fmt-wide", events);
+    expect(creates.length).toBeGreaterThan(0);
+    assertHasToolFeedback(creates);
+    assertNoExcessiveDuplication(creates);
+  }, 120_000);
+
+  // ---------------------------------------------------------------
+  // Test 7: Output with blank lines (blank stripping)
+  // ---------------------------------------------------------------
+  it("fmt-blanks: strips blank lines from tool output preview", async () => {
+    const { channelId, events } = getSuiteState("fmt-blanks");
+    events.length = 0;
+
+    const channel = await fetchTextChannel(channelId);
+
+    await channel.send(
+      `<@${CLAW_BOT_ID}> Run this exact bash command: ` +
+        `echo "line 1" && echo "" && echo "" && echo "line 2" && echo "" && echo "line 3" && echo "" && echo "" && echo "" && echo "line 4"`,
+    );
+
+    await waitForBotResponse(events, 90_000, 15_000);
+
+    const creates = events.filter((e) => e.type === "create");
+    logEvents("fmt-blanks", events);
+    expect(creates.length).toBeGreaterThan(0);
+    assertHasToolFeedback(creates);
+    assertNoExcessiveDuplication(creates);
+  }, 120_000);
+
+  // ---------------------------------------------------------------
+  // Test 8: Long output (remaining lines indicator)
+  // ---------------------------------------------------------------
+  it("fmt-long: shows remaining count inside code block for long output", async () => {
+    const { channelId, events } = getSuiteState("fmt-long");
+    events.length = 0;
+
+    const channel = await fetchTextChannel(channelId);
+
+    await channel.send(
+      `<@${CLAW_BOT_ID}> Run this exact bash command: ` +
+        `seq 1 30 | while read n; do echo "line $n: $(printf '%0.s#' $(seq 1 $n))"; done`,
+    );
+
+    await waitForBotResponse(events, 90_000, 15_000);
+
+    const creates = events.filter((e) => e.type === "create");
+    logEvents("fmt-long", events);
+    expect(creates.length).toBeGreaterThan(0);
+    assertHasToolFeedback(creates);
+
+    // At least one message should contain "remaining" inside a
+    // code block (our new formatting).
+    const hasRemaining = creates.some((e) => {
+      const c = e.content ?? "";
+      return c.includes("remaining)") && c.includes("```");
+    });
+    expect(hasRemaining).toBe(true);
+
+    assertNoExcessiveDuplication(creates);
+  }, 120_000);
+
+  // ---------------------------------------------------------------
+  // Test 9: Short output (no remaining indicator)
+  // ---------------------------------------------------------------
+  it("fmt-short: shows short output without remaining indicator", async () => {
+    const { channelId, events } = getSuiteState("fmt-short");
+    events.length = 0;
+
+    const channel = await fetchTextChannel(channelId);
+
+    await channel.send(`<@${CLAW_BOT_ID}> Run this exact bash command: echo "hello world"`);
+
+    await waitForBotResponse(events, 90_000, 15_000);
+
+    const creates = events.filter((e) => e.type === "create");
+    logEvents("fmt-short", events);
+    expect(creates.length).toBeGreaterThan(0);
+    assertHasToolFeedback(creates);
+
+    // With only 1 output line, no remaining indicator should appear.
+    const hasRemaining = creates.some((e) => (e.content ?? "").includes("remaining)"));
+    expect(hasRemaining).toBe(false);
+
     assertNoExcessiveDuplication(creates);
   }, 120_000);
 });
