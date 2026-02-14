@@ -364,7 +364,9 @@ function createProfileContext(
       );
     }
 
-    await stopOpenClawChrome(profileState.running);
+    if (profileState.running) {
+      await stopOpenClawChrome(profileState.running);
+    }
     setProfileRunning(null);
 
     const relaunched = await launchOpenClawChrome(current.resolved, profile);
