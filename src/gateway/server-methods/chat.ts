@@ -15,6 +15,7 @@ import { INTERNAL_MESSAGE_CHANNEL } from "../../utils/message-channel.js";
 import {
   abortChatRunById,
   abortChatRunsForSessionKey,
+  type ChatAbortControllerEntry,
   isChatStopCommandText,
   resolveChatRunExpiresAtMs,
 } from "../chat-abort.js";
@@ -48,6 +49,11 @@ type TranscriptAppendResult = {
 };
 
 type AppendMessageArg = Parameters<SessionManager["appendMessage"]>[0];
+type AbortedPartialSnapshot = {
+  runId: string;
+  sessionId: string;
+  text: string;
+};
 
 function resolveTranscriptPath(params: {
   sessionId: string;
@@ -102,6 +108,7 @@ function appendAssistantTranscriptMessage(params: {
   sessionFile?: string;
   agentId?: string;
   createIfMissing?: boolean;
+  idempotencyKey?: string;
 }): TranscriptAppendResult {
   const transcriptPath = resolveTranscriptPath({
     sessionId: params.sessionId,
@@ -154,6 +161,7 @@ function appendAssistantTranscriptMessage(params: {
     api: "openai-responses",
     provider: "openclaw",
     model: "gateway-injected",
+    ...(params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : {}),
   };
 
   try {
@@ -164,6 +172,56 @@ function appendAssistantTranscriptMessage(params: {
     return { ok: true, messageId, message: messageBody };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function collectSessionAbortPartials(params: {
+  chatAbortControllers: Map<string, ChatAbortControllerEntry>;
+  chatRunBuffers: Map<string, string>;
+  sessionKey: string;
+}): AbortedPartialSnapshot[] {
+  const out: AbortedPartialSnapshot[] = [];
+  for (const [runId, active] of params.chatAbortControllers) {
+    if (active.sessionKey !== params.sessionKey) {
+      continue;
+    }
+    const text = params.chatRunBuffers.get(runId);
+    if (!text || !text.trim()) {
+      continue;
+    }
+    out.push({
+      runId,
+      sessionId: active.sessionId,
+      text,
+    });
+  }
+  return out;
+}
+
+function persistAbortedPartials(params: {
+  context: Pick<GatewayRequestContext, "logGateway">;
+  sessionKey: string;
+  snapshots: AbortedPartialSnapshot[];
+}) {
+  if (params.snapshots.length === 0) {
+    return;
+  }
+  const { storePath, entry } = loadSessionEntry(params.sessionKey);
+  for (const snapshot of params.snapshots) {
+    const sessionId = entry?.sessionId ?? snapshot.sessionId ?? snapshot.runId;
+    const appended = appendAssistantTranscriptMessage({
+      message: snapshot.text,
+      sessionId,
+      storePath,
+      sessionFile: entry?.sessionFile,
+      createIfMissing: true,
+      idempotencyKey: `${snapshot.runId}:assistant`,
+    });
+    if (!appended.ok) {
+      params.context.logGateway.warn(
+        `chat.abort transcript append failed: ${appended.error ?? "unknown error"}`,
+      );
+    }
   }
 }
 
@@ -275,7 +333,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    const { sessionKey, runId } = params as {
+    const { sessionKey: rawSessionKey, runId } = params as {
       sessionKey: string;
       runId?: string;
     };
@@ -292,10 +350,22 @@ export const chatHandlers: GatewayRequestHandlers = {
     };
 
     if (!runId) {
+      const snapshots = collectSessionAbortPartials({
+        chatAbortControllers: context.chatAbortControllers,
+        chatRunBuffers: context.chatRunBuffers,
+        sessionKey: rawSessionKey,
+      });
       const res = abortChatRunsForSessionKey(ops, {
-        sessionKey,
+        sessionKey: rawSessionKey,
         stopReason: "rpc",
       });
+      if (res.aborted) {
+        persistAbortedPartials({
+          context,
+          sessionKey: rawSessionKey,
+          snapshots,
+        });
+      }
       respond(true, { ok: true, aborted: res.aborted, runIds: res.runIds });
       return;
     }
@@ -305,7 +375,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       respond(true, { ok: true, aborted: false, runIds: [] });
       return;
     }
-    if (active.sessionKey !== sessionKey) {
+    if (active.sessionKey !== rawSessionKey) {
       respond(
         false,
         undefined,
@@ -314,11 +384,19 @@ export const chatHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    const partialText = context.chatRunBuffers.get(runId);
     const res = abortChatRunById(ops, {
       runId,
-      sessionKey,
+      sessionKey: rawSessionKey,
       stopReason: "rpc",
     });
+    if (res.aborted && partialText && partialText.trim()) {
+      persistAbortedPartials({
+        context,
+        sessionKey: rawSessionKey,
+        snapshots: [{ runId, sessionId: active.sessionId, text: partialText }],
+      });
+    }
     respond(true, {
       ok: true,
       aborted: res.aborted,
@@ -420,6 +498,11 @@ export const chatHandlers: GatewayRequestHandlers = {
     }
 
     if (stopCommand) {
+      const snapshots = collectSessionAbortPartials({
+        chatAbortControllers: context.chatAbortControllers,
+        chatRunBuffers: context.chatRunBuffers,
+        sessionKey: rawSessionKey,
+      });
       const res = abortChatRunsForSessionKey(
         {
           chatAbortControllers: context.chatAbortControllers,
@@ -433,6 +516,13 @@ export const chatHandlers: GatewayRequestHandlers = {
         },
         { sessionKey: rawSessionKey, stopReason: "stop" },
       );
+      if (res.aborted) {
+        persistAbortedPartials({
+          context,
+          sessionKey: rawSessionKey,
+          snapshots,
+        });
+      }
       respond(true, { ok: true, aborted: res.aborted, runIds: res.runIds });
       return;
     }
