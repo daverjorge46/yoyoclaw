@@ -12,24 +12,24 @@ expose the gateway and bridge ports.
 
 ```mermaid
 graph TD
-    subgraph Cluster[Kubernetes Cluster]
-        subgraph NS[Namespace: openclaw]
-            PVC1[(PVC: config)]
-            PVC2[(PVC: workspace)]
-            subgraph Deploy[Deployment: openclaw]
-                OC[Container: ghcr.io/openclaw/openclaw]
-                SB[Optional sidecar(s)]
+    subgraph Cluster["Kubernetes Cluster"]
+        subgraph NS["Namespace: openclaw"]
+            PVC1[("PVC: config")]
+            PVC2[("PVC: workspace")]
+            subgraph Deploy["Deployment: openclaw"]
+                OC["Container: ghcr.io/openclaw/openclaw"]
+                SB["Optional sidecar"]
             end
-            SVC((Service: gateway/bridge))
+            SVC(("Service: gateway/bridge"))
         end
     end
 
     OC --> PVC1
     OC --> PVC2
-    SB -. shared volume .-> PVC2
+    SB -. "shared volume" .-> PVC2
     Deploy --> SVC
     SVC -->|18789| Users
-    SVC -->|18790| Bridges/Tunnels
+    SVC -->|18790| "Bridges/Tunnels"
 ```
 
 Flux or Argo CD reconcile the chart via Kustomize overlays, keeping the cluster in sync
