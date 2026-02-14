@@ -32,7 +32,7 @@ else
 fi
 
 CHROME_ARGS+=(
-  "--remote-debugging-address=127.0.0.1"
+  "--remote-debugging-address=0.0.0.0"
   "--remote-debugging-port=${CHROME_CDP_PORT}"
   "--user-data-dir=${HOME}/.chrome"
   "--no-first-run"
@@ -45,6 +45,12 @@ CHROME_ARGS+=(
   "--metrics-recording-only"
   "--no-sandbox"
 )
+
+# Add extra args if provided
+if [[ -n "${OPENCLAW_BROWSER_EXTRA_ARGS:-}" ]]; then
+  read -ra EXTRA_ARGS <<< "${OPENCLAW_BROWSER_EXTRA_ARGS}"
+  CHROME_ARGS+=("${EXTRA_ARGS[@]}")
+fi
 
 chromium "${CHROME_ARGS[@]}" about:blank &
 
