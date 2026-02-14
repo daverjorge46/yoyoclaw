@@ -19,6 +19,7 @@ export function renderUsageTab(state: AppViewState) {
   }
 
   return renderUsage({
+    mode: state.mode,
     loading: state.usageLoading,
     error: state.usageError,
     startDate: state.usageStartDate,

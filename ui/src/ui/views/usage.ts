@@ -43,6 +43,8 @@ import {
 export type { UsageColumnId, SessionLogEntry, SessionLogRole };
 
 export function renderUsage(props: UsageProps) {
+  const isBasic = props.mode === "basic";
+
   // Show loading skeleton if loading and no data yet
   if (props.loading && !props.totals) {
     // Use inline styles since main stylesheet hasn't loaded yet on initial render
@@ -675,7 +677,11 @@ export function renderUsage(props: UsageProps) {
           ${renderFilterSelect("channel", "Channel", channelOptions)}
           ${renderFilterSelect("provider", "Provider", providerOptions)}
           ${renderFilterSelect("model", "Model", modelOptions)}
-          ${renderFilterSelect("tool", "Tool", toolOptions)}
+          ${
+            !isBasic
+              ? html`${renderFilterSelect("tool", "Tool", toolOptions)}`
+              : nothing
+          }
           <span class="usage-query-hint">
             Tip: use filters or click bars to filter days.
           </span>
@@ -752,17 +758,25 @@ export function renderUsage(props: UsageProps) {
       }
     </section>
 
-    ${renderUsageInsights(
-      displayTotals,
-      activeAggregates,
-      insightStats,
-      hasMissingCost,
-      buildPeakErrorHours(aggregateSessions, props.timeZone),
-      displaySessionCount,
-      totalSessions,
-    )}
+    ${
+      !isBasic
+        ? renderUsageInsights(
+            displayTotals,
+            activeAggregates,
+            insightStats,
+            hasMissingCost,
+            buildPeakErrorHours(aggregateSessions, props.timeZone),
+            displaySessionCount,
+            totalSessions,
+          )
+        : nothing
+    }
 
-    ${renderUsageMosaic(aggregateSessions, props.timeZone, props.selectedHours, props.onSelectHour)}
+    ${
+      !isBasic
+        ? renderUsageMosaic(aggregateSessions, props.timeZone, props.selectedHours, props.onSelectHour)
+        : nothing
+    }
 
     <!-- Two-column layout: Daily+Breakdown on left, Sessions on right -->
     <div class="usage-grid">
@@ -800,10 +814,11 @@ export function renderUsage(props: UsageProps) {
       </div>
     </div>
 
-    <!-- Session Detail Panel (when selected) or Empty State -->
+    <!-- Session Detail Panel (when selected) or Empty State - Advanced mode only -->
     ${
-      primarySelectedEntry
-        ? renderSessionDetailPanel(
+      !isBasic
+        ? primarySelectedEntry
+          ? renderSessionDetailPanel(
             primarySelectedEntry,
             props.timeSeries,
             props.timeSeriesLoading,
@@ -833,7 +848,8 @@ export function renderUsage(props: UsageProps) {
             props.onToggleContextExpanded,
             props.onClearSessions,
           )
-        : renderEmptyDetailState()
+          : renderEmptyDetailState()
+        : nothing
     }
   `;
 }
