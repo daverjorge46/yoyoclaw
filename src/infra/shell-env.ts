@@ -38,10 +38,6 @@ export function buildEnvDumpCommand(shell: string): string {
       return "if ( -f ~/.tcshrc ) then; source ~/.tcshrc >& /dev/null; else; source ~/.cshrc >& /dev/null; endif; env -0";
     case "csh":
       return "source ~/.cshrc >& /dev/null; env -0";
-    case "dash":
-    case "ash":
-      // POSIX minimal shells use $ENV for interactive RC
-      return '{ [ -n "$ENV" ] && . "$ENV"; } >/dev/null 2>&1 || true; env -0';
     case "nu":
       // nushell: -l already sources env.nu (where PATH goes); config.nu
       // cannot be conditionally sourced (parser directive). ^env calls
