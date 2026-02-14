@@ -1,6 +1,9 @@
+import fs from "node:fs/promises";
 import { type AddressInfo, createServer } from "node:net";
+import os from "node:os";
+import path from "node:path";
 import { fetch as realFetch } from "undici";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_AI_SNAPSHOT_MAX_CHARS } from "./constants.js";
 
 const describeListen = process.env.OPENCLAW_TEST_CAN_LISTEN === "1" ? describe : describe.skip;
@@ -89,6 +92,16 @@ const pwMocks = vi.hoisted(() => ({
   waitForViaPlaywright: vi.fn(async () => {}),
 }));
 
+const chromeUserDataDir = vi.hoisted(() => ({ dir: "/tmp/openclaw" }));
+
+beforeAll(async () => {
+  chromeUserDataDir.dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-chrome-user-data-"));
+});
+
+afterAll(async () => {
+  await fs.rm(chromeUserDataDir.dir, { recursive: true, force: true });
+});
+
 function makeProc(pid = 123) {
   const handlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
@@ -142,13 +155,13 @@ vi.mock("./chrome.js", () => ({
     return {
       pid: 123,
       exe: { kind: "chrome", path: "/fake/chrome" },
-      userDataDir: "/tmp/openclaw",
+      userDataDir: chromeUserDataDir.dir,
       cdpPort: profile.cdpPort,
       startedAt: Date.now(),
       proc,
     };
   }),
-  resolveOpenClawUserDataDir: vi.fn(() => "/tmp/openclaw"),
+  resolveOpenClawUserDataDir: vi.fn(() => chromeUserDataDir.dir),
   stopOpenClawChrome: vi.fn(async () => {
     reachable = false;
   }),
@@ -181,6 +194,9 @@ vi.mock("./screenshot.js", () => ({
     contentType: "image/png",
   })),
 }));
+
+const { startBrowserControlServerFromConfig, stopBrowserControlServer } =
+  await import("./server.js");
 
 async function getFreePort(): Promise<number> {
   while (true) {
@@ -301,12 +317,10 @@ describeListen("browser control server", () => {
     } else {
       process.env.OPENCLAW_GATEWAY_PORT = prevGatewayPort;
     }
-    const { stopBrowserControlServer } = await import("./server.js");
     await stopBrowserControlServer();
   });
 
   const startServerAndBase = async () => {
-    const { startBrowserControlServerFromConfig } = await import("./server.js");
     await startBrowserControlServerFromConfig();
     const base = `http://127.0.0.1:${testPort}`;
     await realFetch(`${base}/start`, { method: "POST" }).then((r) => r.json());
@@ -345,6 +359,17 @@ describeListen("browser control server", () => {
       cdpUrl: cdpBaseUrl,
       targetId: "abcd1234",
       maxChars: DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+    });
+
+    const snapAiZero = (await realFetch(`${base}/snapshot?format=ai&maxChars=0`).then((r) =>
+      r.json(),
+    )) as { ok: boolean; format?: string };
+    expect(snapAiZero.ok).toBe(true);
+    expect(snapAiZero.format).toBe("ai");
+    const [lastCall] = pwMocks.snapshotAiViaPlaywright.mock.calls.at(-1) ?? [];
+    expect(lastCall).toEqual({
+      cdpUrl: cdpBaseUrl,
+      targetId: "abcd1234",
     });
   });
 

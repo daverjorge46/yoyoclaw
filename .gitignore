@@ -87,8 +87,8 @@ logs/
 /memory/
 .agent/*.json
 !.agent/workflows/
-local/
+/local/
 /data
 /.env-store*
-
 .tags
+package-lock.json

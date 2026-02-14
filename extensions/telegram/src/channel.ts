@@ -292,7 +292,7 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
     resolveToolPolicy: resolveTelegramGroupToolPolicy,
   },
   threading: {
-    resolveReplyToMode: ({ cfg }) => cfg.channels?.telegram?.replyToMode ?? "first",
+    resolveReplyToMode: ({ cfg }) => cfg.channels?.telegram?.replyToMode ?? "off",
   },
   messaging: {
     normalizeTarget: normalizeTelegramMessagingTarget,
@@ -532,6 +532,7 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
         webhookUrl: account.config.webhookUrl,
         webhookSecret: account.config.webhookSecret,
         webhookPath: account.config.webhookPath,
+        webhookHost: account.config.webhookHost,
       });
     },
     logoutAccount: async ({ accountId, cfg }) => {

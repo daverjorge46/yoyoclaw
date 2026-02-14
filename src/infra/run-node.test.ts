@@ -26,19 +26,7 @@ describe("run-node script", () => {
         const versionPath = path.join(tmp, ".openclaw-version.txt");
 
         await fs.mkdir(fakeBinDir, { recursive: true });
-        await fs.mkdir(path.join(tmp, "src"), { recursive: true });
         await fs.mkdir(path.dirname(indexPath), { recursive: true });
-        await fs.writeFile(path.join(tmp, "src", "index.ts"), "export {};\n", "utf-8");
-        await fs.writeFile(
-          path.join(tmp, "package.json"),
-          JSON.stringify({ name: "openclaw" }),
-          "utf-8",
-        );
-        await fs.writeFile(
-          path.join(tmp, "tsconfig.json"),
-          JSON.stringify({ compilerOptions: {} }),
-          "utf-8",
-        );
         await fs.writeFile(indexPath, "<html>sentinel</html>\n", "utf-8");
 
         await fs.writeFile(

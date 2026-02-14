@@ -20,6 +20,7 @@ import {
   markdownToTelegramChunks,
   markdownToTelegramHtml,
   renderTelegramHtmlText,
+  wrapFileReferencesInHtml,
 } from "../format.js";
 import { buildInlineKeyboard } from "../send.js";
 import { cacheSticker, getCachedSticker } from "../sticker-cache.js";
@@ -105,7 +106,9 @@ export async function deliverReplies(params: {
       const nested = markdownToTelegramChunks(chunk, textLimit, { tableMode: params.tableMode });
       if (!nested.length && chunk) {
         chunks.push({
-          html: markdownToTelegramHtml(chunk, { tableMode: params.tableMode }),
+          html: wrapFileReferencesInHtml(
+            markdownToTelegramHtml(chunk, { tableMode: params.tableMode, wrapFileRefs: false }),
+          ),
           text: chunk,
         });
         continue;

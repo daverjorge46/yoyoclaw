@@ -4,6 +4,12 @@ import { afterAll, afterEach, beforeEach, vi } from "vitest";
 
 // Ensure Vitest environment is properly set
 process.env.VITEST = "true";
+// Vitest vm forks can load transitive lockfile helpers many times per worker.
+// Raise listener budget to avoid noisy MaxListeners warnings and warning-stack overhead.
+const TEST_PROCESS_MAX_LISTENERS = 128;
+if (process.getMaxListeners() > 0 && process.getMaxListeners() < TEST_PROCESS_MAX_LISTENERS) {
+  process.setMaxListeners(TEST_PROCESS_MAX_LISTENERS);
+}
 
 // Default to disabled to avoid race conditions in setup ordering.
 (globalThis as { __OPENCLAW_CAN_LISTEN__?: boolean }).__OPENCLAW_CAN_LISTEN__ = false;
@@ -231,12 +237,18 @@ const createDefaultRegistry = () =>
     },
   ]);
 
+// Creating a fresh registry before every single test was measurable overhead.
+// The registry is treated as immutable by production code; tests that need a
+// custom registry set it explicitly.
+const DEFAULT_PLUGIN_REGISTRY = createDefaultRegistry();
+
 beforeEach(() => {
-  setActivePluginRegistry(createDefaultRegistry());
+  setActivePluginRegistry(DEFAULT_PLUGIN_REGISTRY);
 });
 
 afterEach(() => {
-  setActivePluginRegistry(createDefaultRegistry());
   // Guard against leaked fake timers across test files/workers.
-  vi.useRealTimers();
+  if (vi.isFakeTimers()) {
+    vi.useRealTimers();
+  }
 });

@@ -11,39 +11,28 @@ import {
   resolveLaunchAgentPlistPath,
 } from "./launchd.js";
 
-async function withLaunchctlStub(
-  options: { listOutput?: string },
-  run: (context: { env: Record<string, string | undefined>; logPath: string }) => Promise<void>,
-) {
-  const originalPath = process.env.PATH;
-  const originalListOutput = process.env.OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT;
+function parseLaunchctlCalls(raw: string): string[][] {
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.split(/\s+/));
+}
 
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-launchctl-test-"));
-  try {
-    const binDir = path.join(tmpDir, "bin");
-    const homeDir = path.join(tmpDir, "home");
-    const logPath = path.join(tmpDir, "launchctl.log");
-    const listPath = path.join(tmpDir, "launchctl.list");
-    await fs.mkdir(binDir, { recursive: true });
-    await fs.mkdir(homeDir, { recursive: true });
-    await fs.writeFile(listPath, options.listOutput ?? "", "utf8");
-
-    const stubPath = path.join(binDir, "launchctl");
+async function writeLaunchctlStub(binDir: string) {
+  if (process.platform === "win32") {
+    const stubJsPath = path.join(binDir, "launchctl.js");
     await fs.writeFile(
-      stubPath,
+      stubJsPath,
       [
-        "#!/usr/bin/env node",
-        'const fs = require("node:fs");',
-        'const path = require("node:path");',
-        'const baseDir = path.resolve(__dirname, "..");',
-        'const logPath = path.join(baseDir, "launchctl.log");',
-        'const listPath = path.join(baseDir, "launchctl.list");',
+        'import fs from "node:fs";',
         "const args = process.argv.slice(2);",
+        "const logPath = process.env.OPENCLAW_TEST_LAUNCHCTL_LOG;",
         "if (logPath) {",
-        '  fs.appendFileSync(logPath, JSON.stringify(args) + "\\n", "utf8");',
+        '  fs.appendFileSync(logPath, args.join("\\t") + "\\n", "utf8");',
         "}",
         'if (args[0] === "list") {',
-        '  const output = fs.existsSync(listPath) ? fs.readFileSync(listPath, "utf8") : "";',
+        '  const output = process.env.OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT || "";',
         "  process.stdout.write(output);",
         "}",
         "process.exit(0);",
@@ -51,17 +40,61 @@ async function withLaunchctlStub(
       ].join("\n"),
       "utf8",
     );
+    await fs.writeFile(
+      path.join(binDir, "launchctl.cmd"),
+      `@echo off\r\nnode "%~dp0\\launchctl.js" %*\r\n`,
+      "utf8",
+    );
+    return;
+  }
 
-    if (process.platform === "win32") {
-      await fs.writeFile(
-        path.join(binDir, "launchctl.cmd"),
-        `@echo off\r\nnode "%~dp0\\launchctl" %*\r\n`,
-        "utf8",
-      );
-    } else {
-      await fs.chmod(stubPath, 0o755);
-    }
+  const shPath = path.join(binDir, "launchctl");
+  await fs.writeFile(
+    shPath,
+    [
+      "#!/bin/sh",
+      'log_path="${OPENCLAW_TEST_LAUNCHCTL_LOG:-}"',
+      'if [ -n "$log_path" ]; then',
+      '  line=""',
+      '  for arg in "$@"; do',
+      '    if [ -n "$line" ]; then',
+      '      line="$line $arg"',
+      "    else",
+      '      line="$arg"',
+      "    fi",
+      "  done",
+      '  printf \'%s\\n\' "$line" >> "$log_path"',
+      "fi",
+      'if [ "$1" = "list" ]; then',
+      "  printf '%s' \"${OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT:-}\"",
+      "fi",
+      "exit 0",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  await fs.chmod(shPath, 0o755);
+}
 
+async function withLaunchctlStub(
+  options: { listOutput?: string },
+  run: (context: { env: Record<string, string | undefined>; logPath: string }) => Promise<void>,
+) {
+  const originalPath = process.env.PATH;
+  const originalLogPath = process.env.OPENCLAW_TEST_LAUNCHCTL_LOG;
+  const originalListOutput = process.env.OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT;
+
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-launchctl-test-"));
+  try {
+    const binDir = path.join(tmpDir, "bin");
+    const homeDir = path.join(tmpDir, "home");
+    const logPath = path.join(tmpDir, "launchctl.log");
+    await fs.mkdir(binDir, { recursive: true });
+    await fs.mkdir(homeDir, { recursive: true });
+
+    await writeLaunchctlStub(binDir);
+
+    process.env.OPENCLAW_TEST_LAUNCHCTL_LOG = logPath;
     process.env.OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT = options.listOutput ?? "";
     process.env.PATH = `${binDir}${path.delimiter}${originalPath ?? ""}`;
 
@@ -74,6 +107,11 @@ async function withLaunchctlStub(
     });
   } finally {
     process.env.PATH = originalPath;
+    if (originalLogPath === undefined) {
+      delete process.env.OPENCLAW_TEST_LAUNCHCTL_LOG;
+    } else {
+      process.env.OPENCLAW_TEST_LAUNCHCTL_LOG = originalLogPath;
+    }
     if (originalListOutput === undefined) {
       delete process.env.OPENCLAW_TEST_LAUNCHCTL_LIST_OUTPUT;
     } else {
@@ -122,10 +160,7 @@ describe("launchd bootstrap repair", () => {
       const repair = await repairLaunchAgentBootstrap({ env });
       expect(repair.ok).toBe(true);
 
-      const calls = (await fs.readFile(logPath, "utf8"))
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line) as string[]);
+      const calls = parseLaunchctlCalls(await fs.readFile(logPath, "utf8"));
 
       const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
       const label = "ai.openclaw.gateway";
@@ -140,6 +175,7 @@ describe("launchd bootstrap repair", () => {
 describe("launchd install", () => {
   it("enables service before bootstrap (clears persisted disabled state)", async () => {
     const originalPath = process.env.PATH;
+    const originalLogPath = process.env.OPENCLAW_TEST_LAUNCHCTL_LOG;
 
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-launchctl-test-"));
     try {
@@ -149,34 +185,9 @@ describe("launchd install", () => {
       await fs.mkdir(binDir, { recursive: true });
       await fs.mkdir(homeDir, { recursive: true });
 
-      const stubPath = path.join(binDir, "launchctl");
-      await fs.writeFile(
-        stubPath,
-        [
-          "#!/usr/bin/env node",
-          'const fs = require("node:fs");',
-          'const path = require("node:path");',
-          'const baseDir = path.resolve(__dirname, "..");',
-          'const logPath = path.join(baseDir, "launchctl.log");',
-          "if (logPath) {",
-          '  fs.appendFileSync(logPath, JSON.stringify(process.argv.slice(2)) + "\\n", "utf8");',
-          "}",
-          "process.exit(0);",
-          "",
-        ].join("\n"),
-        "utf8",
-      );
+      await writeLaunchctlStub(binDir);
 
-      if (process.platform === "win32") {
-        await fs.writeFile(
-          path.join(binDir, "launchctl.cmd"),
-          `@echo off\r\nnode "%~dp0\\launchctl" %*\r\n`,
-          "utf8",
-        );
-      } else {
-        await fs.chmod(stubPath, 0o755);
-      }
-
+      process.env.OPENCLAW_TEST_LAUNCHCTL_LOG = logPath;
       process.env.PATH = `${binDir}${path.delimiter}${originalPath ?? ""}`;
 
       const env: Record<string, string | undefined> = {
@@ -189,10 +200,7 @@ describe("launchd install", () => {
         programArguments: ["node", "-e", "process.exit(0)"],
       });
 
-      const calls = (await fs.readFile(logPath, "utf8"))
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line) as string[]);
+      const calls = parseLaunchctlCalls(await fs.readFile(logPath, "utf8"));
 
       const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
       const label = "ai.openclaw.gateway";
@@ -211,6 +219,11 @@ describe("launchd install", () => {
       expect(enableIndex).toBeLessThan(bootstrapIndex);
     } finally {
       process.env.PATH = originalPath;
+      if (originalLogPath === undefined) {
+        delete process.env.OPENCLAW_TEST_LAUNCHCTL_LOG;
+      } else {
+        process.env.OPENCLAW_TEST_LAUNCHCTL_LOG = originalLogPath;
+      }
       await fs.rm(tmpDir, { recursive: true, force: true });
     }
   });
