@@ -441,9 +441,51 @@ export function createOllamaStreamFn(baseUrl: string): StreamFn {
           }
 
           // Ollama sends tool_calls in intermediate (done:false) chunks,
-          // NOT in the final done:true chunk. Collect from all chunks.
+          // NOT in the final done:true chunk. Collect and emit events for each.
           if (chunk.message?.tool_calls) {
-            accumulatedToolCalls.push(...chunk.message.tool_calls);
+            // Close any open text block before emitting tool call events
+            if (textStarted) {
+              stream.push({
+                type: "text_end" as const,
+                contentIndex: contentBlockIndex,
+                content: accumulatedContent,
+                partial,
+              });
+              contentBlockIndex++;
+              textStarted = false;
+            }
+
+            for (const tc of chunk.message.tool_calls) {
+              accumulatedToolCalls.push(tc);
+
+              const toolCallId = `ollama_call_${randomUUID()}`;
+              const toolCall: ToolCall = {
+                type: "toolCall",
+                id: toolCallId,
+                name: tc.function.name,
+                arguments: tc.function.arguments,
+              };
+              partial.content.push(toolCall);
+
+              stream.push({
+                type: "toolcall_start" as const,
+                contentIndex: contentBlockIndex,
+                partial,
+              });
+              stream.push({
+                type: "toolcall_delta" as const,
+                contentIndex: contentBlockIndex,
+                delta: JSON.stringify(tc.function.arguments),
+                partial,
+              });
+              stream.push({
+                type: "toolcall_end" as const,
+                contentIndex: contentBlockIndex,
+                toolCall,
+                partial,
+              });
+              contentBlockIndex++;
+            }
           }
 
           if (chunk.done) {

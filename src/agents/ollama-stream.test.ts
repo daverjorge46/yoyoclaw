@@ -489,4 +489,344 @@ describe("createOllamaStreamFn", () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it("emits toolcall events when model returns tool_calls", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => {
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"","tool_calls":[{"function":{"name":"bash","arguments":{"command":"ls -la"}}}]},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":10,"eval_count":5}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "list files" }],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+
+      const types = events.map((e) => e.type);
+      expect(types).toContain("start");
+      expect(types).toContain("toolcall_start");
+      expect(types).toContain("toolcall_delta");
+      expect(types).toContain("toolcall_end");
+      expect(types).toContain("done");
+
+      // Verify done event has stopReason "toolUse"
+      const doneEvent = events.find((e) => e.type === "done") as {
+        reason: string;
+        message: {
+          stopReason: string;
+          content: Array<{
+            type: string;
+            name?: string;
+            arguments?: Record<string, unknown>;
+            id?: string;
+          }>;
+        };
+      };
+      expect(doneEvent.reason).toBe("toolUse");
+      expect(doneEvent.message.stopReason).toBe("toolUse");
+
+      // Verify tool call in done message
+      const toolCall = doneEvent.message.content.find((c) => c.type === "toolCall");
+      expect(toolCall).toBeDefined();
+      expect(toolCall!.name).toBe("bash");
+      expect(toolCall!.arguments).toEqual({ command: "ls -la" });
+      expect(toolCall!.id).toMatch(/^ollama_call_[0-9a-f-]{36}$/);
+
+      // Verify toolcall_delta has JSON string of arguments
+      const toolDelta = events.find((e) => e.type === "toolcall_delta") as { delta: string };
+      expect(toolDelta.delta).toBe('{"command":"ls -la"}');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("emits multiple toolcall events for parallel tool calls", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => {
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"","tool_calls":[{"function":{"name":"read","arguments":{"path":"/tmp/a"}}}]},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"","tool_calls":[{"function":{"name":"bash","arguments":{"command":"ls"}}}]},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":10,"eval_count":5}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "do two things" }],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+
+      // Should have two sets of toolcall events
+      const toolStarts = events.filter((e) => e.type === "toolcall_start");
+      const toolDeltas = events.filter((e) => e.type === "toolcall_delta");
+      const toolEnds = events.filter((e) => e.type === "toolcall_end");
+      expect(toolStarts).toHaveLength(2);
+      expect(toolDeltas).toHaveLength(2);
+      expect(toolEnds).toHaveLength(2);
+
+      // Verify incrementing contentIndex
+      expect((toolStarts[0] as { contentIndex: number }).contentIndex).toBe(0);
+      expect((toolStarts[1] as { contentIndex: number }).contentIndex).toBe(1);
+
+      // Verify done has both tool calls
+      const doneEvent = events.find((e) => e.type === "done") as {
+        message: { content: Array<{ type: string; name?: string }> };
+      };
+      const toolCalls = doneEvent.message.content.filter((c) => c.type === "toolCall");
+      expect(toolCalls).toHaveLength(2);
+      expect(toolCalls[0].name).toBe("read");
+      expect(toolCalls[1].name).toBe("bash");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("emits text then toolcall events when model responds with both", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => {
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"Let me check."},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"","tool_calls":[{"function":{"name":"bash","arguments":{"command":"ls"}}}]},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":10,"eval_count":5}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "check files" }],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+
+      const types = events.map((e) => e.type);
+
+      // Text events should come before toolcall events
+      const textStartIdx = types.indexOf("text_start");
+      const textEndIdx = types.indexOf("text_end");
+      const toolStartIdx = types.indexOf("toolcall_start");
+      expect(textStartIdx).toBeLessThan(textEndIdx);
+      expect(textEndIdx).toBeLessThan(toolStartIdx);
+
+      // Verify text content
+      const textEnd = events.find((e) => e.type === "text_end") as { content: string };
+      expect(textEnd.content).toBe("Let me check.");
+
+      // Verify done has both text and tool call
+      const doneEvent = events.find((e) => e.type === "done") as {
+        message: { content: Array<{ type: string }> };
+      };
+      expect(doneEvent.message.content.some((c) => c.type === "text")).toBe(true);
+      expect(doneEvent.message.content.some((c) => c.type === "toolCall")).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("sends tools in request body when context has tools", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string);
+      // Verify tools are sent
+      expect(body.tools).toBeDefined();
+      expect(body.tools).toHaveLength(1);
+      expect(body.tools[0]).toEqual({
+        type: "function",
+        function: {
+          name: "bash",
+          description: "Run a shell command",
+          parameters: { type: "object", properties: { command: { type: "string" } } },
+        },
+      });
+
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"ok"},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":1,"eval_count":1}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "hi" }],
+          tools: [
+            {
+              name: "bash",
+              description: "Run a shell command",
+              parameters: { type: "object", properties: { command: { type: "string" } } },
+            },
+          ],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+      expect(events.at(-1)?.type).toBe("done");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("skips tools with missing names and omits tools field for empty array", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string);
+      // Empty valid tools after filtering → no tools field
+      expect(body.tools).toBeUndefined();
+
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"ok"},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":1,"eval_count":1}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "hi" }],
+          tools: [
+            { description: "no name tool", parameters: {} },
+            { name: "", description: "empty name", parameters: {} },
+          ],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+      expect(events.at(-1)?.type).toBe("done");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("sends no tools field when tools array is empty", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string);
+      expect(body.tools).toBeUndefined();
+
+      const payload = [
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":"ok"},"done":false}',
+        '{"model":"m","created_at":"t","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":1,"eval_count":1}',
+      ].join("\n");
+      return new Response(`${payload}\n`, {
+        status: 200,
+        headers: { "Content-Type": "application/x-ndjson" },
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      const streamFn = createOllamaStreamFn("http://localhost:11434");
+      const stream = streamFn(
+        {
+          id: "qwen3:32b",
+          api: "ollama",
+          provider: "ollama",
+          contextWindow: 128000,
+        } as unknown as Parameters<typeof streamFn>[0],
+        {
+          messages: [{ role: "user", content: "hi" }],
+          tools: [],
+        } as unknown as Parameters<typeof streamFn>[1],
+        {} as unknown as Parameters<typeof streamFn>[2],
+      );
+
+      const events = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+      expect(events.at(-1)?.type).toBe("done");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
