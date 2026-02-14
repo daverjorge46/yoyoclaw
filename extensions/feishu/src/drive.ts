@@ -3,6 +3,7 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { listEnabledFeishuAccounts } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { FeishuDriveSchema, type FeishuDriveParams } from "./drive-schema.js";
+import { createAccountAwareClientResolver } from "./tool-account.js";
 import { resolveToolsConfig } from "./tools-config.js";
 
 // ============ Helpers ============
@@ -187,7 +188,7 @@ export function registerFeishuDriveTools(api: OpenClawPluginApi) {
     return;
   }
 
-  const getClient = () => createFeishuClient(firstAccount);
+  const resolveClient = createAccountAwareClientResolver(api.config!, firstAccount);
 
   api.registerTool(
     {
@@ -199,7 +200,7 @@ export function registerFeishuDriveTools(api: OpenClawPluginApi) {
       async execute(_toolCallId, params) {
         const p = params as FeishuDriveParams;
         try {
-          const client = getClient();
+          const client = resolveClient(p.account);
           switch (p.action) {
             case "list":
               return json(await listFolder(client, p.folder_token));

@@ -5,6 +5,7 @@ import { Readable } from "stream";
 import { listEnabledFeishuAccounts } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { FeishuDocSchema, type FeishuDocParams } from "./doc-schema.js";
+import { AccountParam, createAccountAwareClientResolver } from "./tool-account.js";
 import { resolveToolsConfig } from "./tools-config.js";
 
 // ============ Helpers ============
@@ -454,8 +455,8 @@ export function registerFeishuDocTools(api: OpenClawPluginApi) {
   const firstAccount = accounts[0];
   const toolsCfg = resolveToolsConfig(firstAccount.config.tools);
 
-  // Helper to get client for the default account
-  const getClient = () => createFeishuClient(firstAccount);
+  // Helper to get client — supports per-invocation account selection
+  const resolveClient = createAccountAwareClientResolver(api.config!, firstAccount);
   const registered: string[] = [];
 
   // Main document tool with action-based dispatch
@@ -470,7 +471,7 @@ export function registerFeishuDocTools(api: OpenClawPluginApi) {
         async execute(_toolCallId, params) {
           const p = params as FeishuDocParams;
           try {
-            const client = getClient();
+            const client = resolveClient(p.account);
             switch (p.action) {
               case "read":
                 return json(await readDoc(client, p.doc_token));
@@ -510,10 +511,13 @@ export function registerFeishuDocTools(api: OpenClawPluginApi) {
         label: "Feishu App Scopes",
         description:
           "List current app permissions (scopes). Use to debug permission issues or check available capabilities.",
-        parameters: Type.Object({}),
-        async execute() {
+        parameters: Type.Object({
+          account: AccountParam,
+        }),
+        async execute(_toolCallId, params) {
           try {
-            const result = await listAppScopes(getClient());
+            const { account } = params as { account?: string };
+            const result = await listAppScopes(resolveClient(account));
             return json(result);
           } catch (err) {
             return json({ error: err instanceof Error ? err.message : String(err) });
