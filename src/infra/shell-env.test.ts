@@ -101,7 +101,7 @@ describe("buildEnvDumpCommand", () => {
 
   it("returns csh-family sourcing commands for tcsh and csh", () => {
     expect(buildEnvDumpCommand("/bin/tcsh")).toBe(
-      "source ~/.tcshrc >& /dev/null; source ~/.cshrc >& /dev/null; env -0",
+      "if ( -f ~/.tcshrc ) then; source ~/.tcshrc >& /dev/null; else; source ~/.cshrc >& /dev/null; endif; env -0",
     );
     expect(buildEnvDumpCommand("/bin/csh")).toBe("source ~/.cshrc >& /dev/null; env -0");
   });
