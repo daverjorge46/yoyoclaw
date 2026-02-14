@@ -142,3 +142,21 @@
   padding-left: 0;
   padding-right: 1em;
 }
+
+/* =============================================
+   INLINE AUDIO PLAYER
+   ============================================= */
+
+.chat-audio-player {
+  display: block;
+  max-width: 100%;
+  width: 300px;
+  margin: 8px 0;
+  border-radius: 8px;
+  height: 40px;
+}
+
+.chat-audio-player:focus {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+}

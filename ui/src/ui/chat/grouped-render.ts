@@ -4,6 +4,7 @@ import type { AssistantIdentity } from "../assistant-identity.ts";
 import type { MessageGroup } from "../types/chat-types.ts";
 import { toSanitizedMarkdownHtml } from "../markdown.ts";
 import { detectTextDirection } from "../text-direction.ts";
+import { extractAudioBlocks } from "./audio-extract.ts";
 import { renderCopyAsMarkdownButton } from "./copy-as-markdown.ts";
 import {
   extractTextCached,
@@ -238,7 +239,13 @@ function renderGroupedMessage(
   const extractedText = extractTextCached(message);
   const extractedThinking =
     opts.showReasoning && role === "assistant" ? extractThinkingCached(message) : null;
-  const markdownBase = extractedText?.trim() ? extractedText : null;
+
+  // Extract inline audio blocks before markdown rendering
+  const audioResult = extractedText ? extractAudioBlocks(extractedText) : null;
+  const audioBlocks = audioResult?.audioBlocks ?? [];
+  const textAfterAudio = audioResult ? audioResult.text : extractedText;
+
+  const markdownBase = textAfterAudio?.trim() ? textAfterAudio : null;
   const reasoningMarkdown = extractedThinking ? formatReasoningMarkdown(extractedThinking) : null;
   const markdown = markdownBase;
   const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
@@ -256,7 +263,9 @@ function renderGroupedMessage(
     return html`${toolCards.map((card) => renderToolCardSidebar(card, onOpenSidebar))}`;
   }
 
-  if (!markdown && !hasToolCards && !hasImages) {
+  const hasAudio = audioBlocks.length > 0;
+
+  if (!markdown && !hasToolCards && !hasImages && !hasAudio) {
     return nothing;
   }
 
@@ -264,6 +273,17 @@ function renderGroupedMessage(
     <div class="${bubbleClasses}">
       ${canCopyMarkdown ? renderCopyAsMarkdownButton(markdown!) : nothing}
       ${renderMessageImages(images)}
+      ${
+        audioBlocks.length > 0
+          ? audioBlocks.map(
+              (block) => html`
+              <audio class="chat-audio-player" controls preload="auto">
+                <source src="${block.dataUri}" type="${block.mimeType}">
+              </audio>
+            `,
+            )
+          : nothing
+      }
       ${
         reasoningMarkdown
           ? html`<div class="chat-thinking">${unsafeHTML(

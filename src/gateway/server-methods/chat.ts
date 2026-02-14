@@ -19,6 +19,7 @@ import {
   resolveChatRunExpiresAtMs,
 } from "../chat-abort.js";
 import { type ChatImageContent, parseMessageWithAttachments } from "../chat-attachments.js";
+import { inlineAudioInMessage } from "../chat-audio-inline.js";
 import { stripEnvelopeFromMessages } from "../chat-sanitize.js";
 import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
 import {
@@ -177,12 +178,14 @@ function broadcastChatFinal(params: {
   message?: Record<string, unknown>;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
+  // Inline audio files for webchat playback
+  const message = params.message ? inlineAudioInMessage(params.message) : params.message;
   const payload = {
     runId: params.runId,
     sessionKey: params.sessionKey,
     seq,
     state: "final" as const,
-    message: params.message,
+    message,
   };
   params.context.broadcast("chat", payload);
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
@@ -252,10 +255,17 @@ export const chatHandlers: GatewayRequestHandlers = {
       }
     }
     const verboseLevel = entry?.verboseLevel ?? cfg.agents?.defaults?.verboseDefault;
+    // Inline audio files for webchat playback
+    const processed = capped.map((msg) => {
+      if (typeof msg === "object" && msg !== null) {
+        return inlineAudioInMessage(msg as Record<string, unknown>);
+      }
+      return msg;
+    });
     respond(true, {
       sessionKey,
       sessionId,
-      messages: capped,
+      messages: processed,
       thinkingLevel,
       verboseLevel,
     });
