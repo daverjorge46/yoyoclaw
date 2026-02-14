@@ -151,6 +151,10 @@ export function applySettingsFromUrl(host: SettingsHost) {
 }
 
 export function setTab(host: SettingsHost, next: Tab) {
+  // Navigation guard: redirect Advanced-only views to overview when in Basic mode
+  if (host.mode === "basic" && (next === "debug" || next === "logs")) {
+    next = "overview";
+  }
   if (host.tab !== next) {
     host.tab = next;
   }
@@ -361,6 +365,10 @@ export function onPopState(host: SettingsHost) {
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
+  // Navigation guard: redirect Advanced-only views to overview when in Basic mode
+  if (host.mode === "basic" && (next === "debug" || next === "logs")) {
+    next = "overview";
+  }
   if (host.tab !== next) {
     host.tab = next;
   }
