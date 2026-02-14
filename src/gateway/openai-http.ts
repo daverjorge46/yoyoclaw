@@ -223,7 +223,7 @@ async function extractImagesFromOpenAiMessages(
 
     const dataUriMatch = url.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s);
     if (dataUriMatch) {
-      images.push({ type: "image", data: dataUriMatch[2]!, mimeType: dataUriMatch[1]! });
+      images.push({ type: "image", data: dataUriMatch[2], mimeType: dataUriMatch[1] });
     } else if (url.startsWith("http://") || url.startsWith("https://")) {
       try {
         const image = await extractImageContentFromSource({ type: "url", url }, IMAGE_LIMITS);
