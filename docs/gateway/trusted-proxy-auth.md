@@ -5,6 +5,7 @@ read_when:
   - Setting up Pomerium, Caddy, or nginx with OAuth in front of OpenClaw
   - Fixing WebSocket 1008 unauthorized errors with reverse proxy setups
 ---
+
 # Trusted Proxy Auth
 
 > ⚠️ **Security-sensitive feature.** This mode delegates authentication entirely to your reverse proxy. Misconfiguration can expose your Gateway to unauthorized access. Read this page carefully before enabling.
@@ -40,36 +41,36 @@ Use `trusted-proxy` auth mode when:
   gateway: {
     // Must bind to network interface (not loopback)
     bind: "lan",
-    
+
     // CRITICAL: Only add your proxy's IP(s) here
     trustedProxies: ["10.0.0.1", "172.17.0.1"],
-    
+
     auth: {
       mode: "trusted-proxy",
       trustedProxy: {
         // Header containing authenticated user identity (required)
         userHeader: "x-forwarded-user",
-        
+
         // Optional: headers that MUST be present (proxy verification)
         requiredHeaders: ["x-forwarded-proto", "x-forwarded-host"],
-        
+
         // Optional: restrict to specific users (empty = allow all)
-        allowUsers: ["nick@example.com", "admin@company.org"]
-      }
-    }
-  }
+        allowUsers: ["nick@example.com", "admin@company.org"],
+      },
+    },
+  },
 }
 ```
 
 ### Configuration Reference
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `gateway.trustedProxies` | Yes | Array of proxy IP addresses to trust. Requests from other IPs are rejected. |
-| `gateway.auth.mode` | Yes | Must be `"trusted-proxy"` |
-| `gateway.auth.trustedProxy.userHeader` | Yes | Header name containing the authenticated user identity |
-| `gateway.auth.trustedProxy.requiredHeaders` | No | Additional headers that must be present for the request to be trusted |
-| `gateway.auth.trustedProxy.allowUsers` | No | Allowlist of user identities. Empty means allow all authenticated users. |
+| Field                                       | Required | Description                                                                 |
+| ------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `gateway.trustedProxies`                    | Yes      | Array of proxy IP addresses to trust. Requests from other IPs are rejected. |
+| `gateway.auth.mode`                         | Yes      | Must be `"trusted-proxy"`                                                   |
+| `gateway.auth.trustedProxy.userHeader`      | Yes      | Header name containing the authenticated user identity                      |
+| `gateway.auth.trustedProxy.requiredHeaders` | No       | Additional headers that must be present for the request to be trusted       |
+| `gateway.auth.trustedProxy.allowUsers`      | No       | Allowlist of user identities. Empty means allow all authenticated users.    |
 
 ## Proxy Setup Examples
 
@@ -81,19 +82,20 @@ Pomerium passes identity in `x-pomerium-claim-email` (or other claim headers) an
 {
   gateway: {
     bind: "lan",
-    trustedProxies: ["10.0.0.1"],  // Pomerium's IP
+    trustedProxies: ["10.0.0.1"], // Pomerium's IP
     auth: {
       mode: "trusted-proxy",
       trustedProxy: {
         userHeader: "x-pomerium-claim-email",
-        requiredHeaders: ["x-pomerium-jwt-assertion"]
-      }
-    }
-  }
+        requiredHeaders: ["x-pomerium-jwt-assertion"],
+      },
+    },
+  },
 }
 ```
 
 Pomerium config snippet:
+
 ```yaml
 routes:
   - from: https://openclaw.example.com
@@ -114,23 +116,24 @@ Caddy with the `caddy-security` plugin can authenticate users and pass identity 
 {
   gateway: {
     bind: "lan",
-    trustedProxies: ["127.0.0.1"],  // Caddy's IP (if on same host)
+    trustedProxies: ["127.0.0.1"], // Caddy's IP (if on same host)
     auth: {
       mode: "trusted-proxy",
       trustedProxy: {
-        userHeader: "x-forwarded-user"
-      }
-    }
-  }
+        userHeader: "x-forwarded-user",
+      },
+    },
+  },
 }
 ```
 
 Caddyfile snippet:
+
 ```
 openclaw.example.com {
     authenticate with oauth2_provider
     authorize with policy1
-    
+
     reverse_proxy openclaw:18789 {
         header_up X-Forwarded-User {http.auth.user.email}
     }
@@ -145,23 +148,24 @@ oauth2-proxy authenticates users and passes identity in `x-auth-request-email`.
 {
   gateway: {
     bind: "lan",
-    trustedProxies: ["10.0.0.1"],  // nginx/oauth2-proxy IP
+    trustedProxies: ["10.0.0.1"], // nginx/oauth2-proxy IP
     auth: {
       mode: "trusted-proxy",
       trustedProxy: {
-        userHeader: "x-auth-request-email"
-      }
-    }
-  }
+        userHeader: "x-auth-request-email",
+      },
+    },
+  },
 }
 ```
 
 nginx config snippet:
+
 ```nginx
 location / {
     auth_request /oauth2/auth;
     auth_request_set $user $upstream_http_x_auth_request_email;
-    
+
     proxy_pass http://openclaw:18789;
     proxy_set_header X-Auth-Request-Email $user;
     proxy_http_version 1.1;
@@ -176,14 +180,14 @@ location / {
 {
   gateway: {
     bind: "lan",
-    trustedProxies: ["172.17.0.1"],  // Traefik container IP
+    trustedProxies: ["172.17.0.1"], // Traefik container IP
     auth: {
       mode: "trusted-proxy",
       trustedProxy: {
-        userHeader: "x-forwarded-user"
-      }
-    }
-  }
+        userHeader: "x-forwarded-user",
+      },
+    },
+  },
 }
 ```
 
@@ -202,8 +206,9 @@ Before enabling trusted-proxy auth, verify:
 `openclaw security audit` will flag trusted-proxy auth with a **critical** severity finding. This is intentional — it's a reminder that you're delegating security to your proxy setup.
 
 The audit checks for:
+
 - Missing `trustedProxies` configuration
-- Missing `userHeader` configuration  
+- Missing `userHeader` configuration
 - Empty `allowUsers` (allows any authenticated user)
 
 ## Troubleshooting
@@ -211,6 +216,7 @@ The audit checks for:
 ### "trusted_proxy_untrusted_source"
 
 The request didn't come from an IP in `gateway.trustedProxies`. Check:
+
 - Is the proxy IP correct? (Docker container IPs can change)
 - Is there a load balancer in front of your proxy?
 - Use `docker inspect` or `kubectl get pods -o wide` to find actual IPs
@@ -218,13 +224,15 @@ The request didn't come from an IP in `gateway.trustedProxies`. Check:
 ### "trusted_proxy_user_missing"
 
 The user header was empty or missing. Check:
+
 - Is your proxy configured to pass identity headers?
 - Is the header name correct? (case-insensitive, but spelling matters)
 - Is the user actually authenticated at the proxy?
 
-### "trusted_proxy_missing_header_*"
+### "trusted*proxy_missing_header*\*"
 
 A required header wasn't present. Check:
+
 - Your proxy configuration for those specific headers
 - Whether headers are being stripped somewhere in the chain
 
@@ -235,6 +243,7 @@ The user is authenticated but not in `allowUsers`. Either add them or remove the
 ### WebSocket Still Failing
 
 Make sure your proxy:
+
 - Supports WebSocket upgrades (`Upgrade: websocket`, `Connection: upgrade`)
 - Passes the identity headers on WebSocket upgrade requests (not just HTTP)
 - Doesn't have a separate auth path for WebSocket connections

@@ -182,7 +182,9 @@ export async function promptGatewayConfig(
 
   let gatewayToken: string | undefined;
   let gatewayPassword: string | undefined;
-  let trustedProxyConfig: { userHeader: string; requiredHeaders?: string[]; allowUsers?: string[] } | undefined;
+  let trustedProxyConfig:
+    | { userHeader: string; requiredHeaders?: string[]; allowUsers?: string[] }
+    | undefined;
   let trustedProxies: string[] | undefined;
   let next = cfg;
 
@@ -239,7 +241,10 @@ export async function promptGatewayConfig(
       runtime,
     );
     const requiredHeaders = requiredHeadersRaw
-      ? String(requiredHeadersRaw).split(",").map((h) => h.trim()).filter(Boolean)
+      ? String(requiredHeadersRaw)
+          .split(",")
+          .map((h) => h.trim())
+          .filter(Boolean)
       : [];
 
     const allowUsersRaw = guardCancel(
@@ -250,7 +255,10 @@ export async function promptGatewayConfig(
       runtime,
     );
     const allowUsers = allowUsersRaw
-      ? String(allowUsersRaw).split(",").map((u) => u.trim()).filter(Boolean)
+      ? String(allowUsersRaw)
+          .split(",")
+          .map((u) => u.trim())
+          .filter(Boolean)
       : [];
 
     const trustedProxiesRaw = guardCancel(

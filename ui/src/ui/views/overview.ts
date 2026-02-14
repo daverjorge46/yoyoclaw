@@ -142,16 +142,25 @@ export function renderOverview(props: OverviewProps) {
               placeholder="ws://100.x.y.z:18789"
             />
           </label>
-          ${isTrustedProxy
-            ? html`
-                <div class="field" style="margin-top: 8px;">
-                  <span>Gateway Token</span>
-                  <div style="padding: 8px 12px; background: var(--bg-subtle, #f5f5f5); border-radius: 4px; color: var(--text-secondary, #666); font-size: 0.95em;">
-                    Trusted Proxy mode
+          ${
+            isTrustedProxy
+              ? html`
+                  <div class="field" style="margin-top: 8px">
+                    <span>Gateway Token</span>
+                    <div
+                      style="
+                        padding: 8px 12px;
+                        background: var(--bg-subtle, #f5f5f5);
+                        border-radius: 4px;
+                        color: var(--text-secondary, #666);
+                        font-size: 0.95em;
+                      "
+                    >
+                      Trusted Proxy mode
+                    </div>
                   </div>
-                </div>
-              `
-            : html`
+                `
+              : html`
                 <label class="field">
                   <span>Gateway Token</span>
                   <input
@@ -175,7 +184,8 @@ export function renderOverview(props: OverviewProps) {
                     placeholder="system or shared password"
                   />
                 </label>
-              `}
+              `
+          }
           <label class="field">
             <span>Default Session Key</span>
             <input
