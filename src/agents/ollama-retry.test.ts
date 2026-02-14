@@ -84,7 +84,7 @@ describe("ollamaFetch", () => {
         retries: 3,
         retryDelayMs: 1,
       }),
-    ).rejects.toThrow("ECONNREFUSED");
+    ).rejects.toThrow("fetch failed");
     expect(mock).toHaveBeenCalledTimes(4);
   });
 
@@ -147,7 +147,7 @@ describe("ollamaFetch", () => {
         retries: 1,
         retryDelayMs: 1,
       }),
-    ).rejects.toThrow("ECONNREFUSED");
+    ).rejects.toThrow("fetch failed");
     expect(mock).toHaveBeenCalledTimes(2);
   });
 });

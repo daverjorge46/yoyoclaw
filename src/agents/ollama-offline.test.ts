@@ -1,31 +1,34 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { checkConnectivity, getOfflineCapabilities, getStatus } from "./ollama-offline.js";
 
-// Mock global fetch
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+let fetchSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-  mockFetch.mockReset();
+  fetchSpy = vi.spyOn(globalThis, "fetch");
+});
+
+afterEach(() => {
+  fetchSpy.mockRestore();
 });
 
 function mockFetchImpl(opts: { ollama?: boolean; internet?: boolean } = {}) {
   const { ollama = true, internet = true } = opts;
-  mockFetch.mockImplementation((url: string) => {
-    if (typeof url === "string" && url.includes("11434")) {
+  fetchSpy.mockImplementation(((input: RequestInfo | URL, _init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input.toString();
+    if (url.includes("11434")) {
       if (!ollama) {
         return Promise.reject(new Error("ECONNREFUSED"));
       }
-      return Promise.resolve({ ok: true });
+      return Promise.resolve(new Response("ok", { status: 200 }));
     }
-    if (typeof url === "string" && url.includes("1.1.1.1")) {
+    if (url.includes("1.1.1.1")) {
       if (!internet) {
         return Promise.reject(new Error("timeout"));
       }
-      return Promise.resolve({ ok: true });
+      return Promise.resolve(new Response("ok", { status: 200 }));
     }
     return Promise.reject(new Error("unexpected URL"));
-  });
+  }) as typeof fetch);
 }
 
 describe("checkConnectivity", () => {
@@ -54,8 +57,11 @@ describe("checkConnectivity", () => {
   });
 
   it("handles fetch timeout (abort)", async () => {
-    mockFetch.mockImplementation(
-      () => new Promise((_, reject) => setTimeout(() => reject(new Error("aborted")), 10)),
+    fetchSpy.mockImplementation(
+      (() =>
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("aborted")), 10),
+        )) as typeof fetch,
     );
     const result = await checkConnectivity();
     expect(result.ollama).toBe(false);
