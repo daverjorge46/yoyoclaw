@@ -38,7 +38,9 @@ export function isContextOverflowError(errorMessage?: string): boolean {
 
 const CONTEXT_WINDOW_TOO_SMALL_RE = /context window.*(too small|minimum is)/i;
 const CONTEXT_OVERFLOW_HINT_RE =
-  /context.*overflow|context window.*(too (?:large|long)|exceed|over|limit|max(?:imum)?|requested|sent|tokens)|(?:prompt|request|input).*(too (?:large|long)|exceed|over|limit|max(?:imum)?)/i;
+  /context.*overflow|context window.*(too (?:large|long)|exceed|over|limit|max(?:imum)?|requested|sent|tokens)|prompt.*(too (?:large|long)|exceed|over|limit|max(?:imum)?)|(?:request|input).*(?:context|window|length|token).*(too (?:large|long)|exceed|over|limit|max(?:imum)?)/i;
+const RATE_LIMIT_HINT_RE =
+  /rate limit|too many requests|requests per (?:minute|hour|day)|quota|throttl|429\b/i;
 
 export function isLikelyContextOverflowError(errorMessage?: string): boolean {
   if (!errorMessage) {
@@ -56,6 +58,9 @@ export function isLikelyContextOverflowError(errorMessage?: string): boolean {
   if (isContextOverflowError(errorMessage)) {
     return true;
   }
+  if (RATE_LIMIT_HINT_RE.test(errorMessage)) {
+    return false;
+  }
   return CONTEXT_OVERFLOW_HINT_RE.test(errorMessage);
 }
 
@@ -72,9 +77,13 @@ export function isCompactionFailureError(errorMessage?: string): boolean {
   if (!hasCompactionTerm) {
     return false;
   }
-  // For compaction failures, also accept "context overflow" without colon
-  // since the error message itself describes a compaction/summarization failure
-  return isContextOverflowError(errorMessage) || lower.includes("context overflow");
+  // Treat any likely overflow shape as a compaction failure when compaction terms are present.
+  // Providers often vary wording (e.g. "context window exceeded") across APIs.
+  if (isLikelyContextOverflowError(errorMessage)) {
+    return true;
+  }
+  // Keep explicit fallback for bare "context overflow" strings.
+  return lower.includes("context overflow");
 }
 
 const ERROR_PAYLOAD_PREFIX_RE =
@@ -479,7 +488,7 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
   const stripped = stripFinalTagsFromText(text);
   const trimmed = stripped.trim();
   if (!trimmed) {
-    return stripped;
+    return "";
   }
 
   // Only apply error-pattern rewrites when the caller knows this text is an error payload.
@@ -518,7 +527,10 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
     }
   }
 
-  return collapseConsecutiveDuplicateBlocks(stripped);
+  // Strip leading blank lines (including whitespace-only lines) without clobbering indentation on
+  // the first content line (e.g. markdown/code blocks).
+  const withoutLeadingEmptyLines = stripped.replace(/^(?:[ \t]*\r?\n)+/, "");
+  return collapseConsecutiveDuplicateBlocks(withoutLeadingEmptyLines);
 }
 
 export function isRateLimitAssistantError(msg: AssistantMessage | undefined): boolean {
