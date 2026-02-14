@@ -333,7 +333,7 @@ export function resolveDiscordChannelConfig(params: {
 }): DiscordChannelConfigResolved | null {
   const { guildInfo, channelId, channelName, channelSlug } = params;
   const channels = guildInfo?.channels;
-  if (!channels) {
+  if (!channels || Object.keys(channels).length === 0) {
     return null;
   }
   const match = resolveDiscordChannelEntryMatch(channels, {
