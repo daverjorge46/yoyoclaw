@@ -71,6 +71,24 @@ function resolveSessionsDir(opts?: SessionFilePathOptions): string {
   return resolveAgentSessionsDir(opts?.agentId);
 }
 
+/**
+ * Checks whether an absolute path is inside the agents sessions tree.
+ * Valid paths must be under `<stateDir>/agents/<agentId>/sessions/`.
+ */
+function isWithinAgentSessionsTree(absolutePath: string): boolean {
+  const stateDir = path.resolve(resolveStateDir());
+  const agentsDir = path.join(stateDir, "agents");
+  const resolved = path.resolve(absolutePath);
+  if (!resolved.startsWith(agentsDir + path.sep)) {
+    return false;
+  }
+  // Ensure the path is under agents/<id>/sessions/ (at least 3 segments past agentsDir)
+  const remainder = resolved.slice(agentsDir.length + 1);
+  const segments = remainder.split(path.sep);
+  // segments[0] = agentId, segments[1] should be "sessions", segments[2+] = file
+  return segments.length >= 3 && segments[1] === "sessions";
+}
+
 function resolvePathWithinSessionsDir(sessionsDir: string, candidate: string): string {
   const trimmed = candidate.trim();
   if (!trimmed) {
@@ -83,10 +101,10 @@ function resolvePathWithinSessionsDir(sessionsDir: string, candidate: string): s
   const normalized = path.isAbsolute(trimmed) ? path.relative(resolvedBase, trimmed) : trimmed;
   if (!normalized || normalized.startsWith("..") || path.isAbsolute(normalized)) {
     // In multi-agent setups, the sessionsDir may point to a different agent's
-    // directory than the one that owns the session file. When the candidate is
-    // an absolute path that exists on disk, trust it directly — the session
-    // store already validated ownership when it was written.
-    if (path.isAbsolute(trimmed)) {
+    // directory than the one that owns the session file. An absolute path is
+    // allowed only if it falls within the agents sessions tree
+    // (<stateDir>/agents/<id>/sessions/), preventing arbitrary file access.
+    if (path.isAbsolute(trimmed) && isWithinAgentSessionsTree(trimmed)) {
       return trimmed;
     }
     throw new Error("Session file path must be within sessions directory");
