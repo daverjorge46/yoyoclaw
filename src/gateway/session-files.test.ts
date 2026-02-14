@@ -135,6 +135,7 @@ describe("listSessionFilesFromTranscript", () => {
   test("filters missing created files by default and keeps them when includeMissing=true", () => {
     const sessionId = "sess-missing-filter";
     const buildDir = path.join(workspaceDir, "build");
+    const outputPath = path.join(buildDir, "output.txt");
     fs.mkdirSync(buildDir, { recursive: true });
 
     writeTranscript({
@@ -164,10 +165,8 @@ describe("listSessionFilesFromTranscript", () => {
       workspaceDir,
       scope: "created",
     });
-    expect(createdOnly.entries.some((entry) => entry.path.endsWith("/build"))).toBe(true);
-    expect(createdOnly.entries.some((entry) => entry.path.endsWith("/build/output.txt"))).toBe(
-      false,
-    );
+    expect(createdOnly.entries.some((entry) => entry.path === buildDir)).toBe(true);
+    expect(createdOnly.entries.some((entry) => entry.path === outputPath)).toBe(false);
 
     const allWithMissing = listSessionFilesFromTranscript({
       sessionId,
@@ -176,9 +175,7 @@ describe("listSessionFilesFromTranscript", () => {
       scope: "all",
       includeMissing: true,
     });
-    const outputEntry = allWithMissing.entries.find((entry) =>
-      entry.path.endsWith("/build/output.txt"),
-    );
+    const outputEntry = allWithMissing.entries.find((entry) => entry.path === outputPath);
     expect(outputEntry).toBeDefined();
     expect(outputEntry?.exists).toBe(false);
     expect(outputEntry?.actions).toEqual(expect.arrayContaining(["created", "deleted"]));
