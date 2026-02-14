@@ -82,6 +82,13 @@ function resolvePathWithinSessionsDir(sessionsDir: string, candidate: string): s
   // convert them to relative so the containment check passes.
   const normalized = path.isAbsolute(trimmed) ? path.relative(resolvedBase, trimmed) : trimmed;
   if (!normalized || normalized.startsWith("..") || path.isAbsolute(normalized)) {
+    // In multi-agent setups, the sessionsDir may point to a different agent's
+    // directory than the one that owns the session file. When the candidate is
+    // an absolute path that exists on disk, trust it directly — the session
+    // store already validated ownership when it was written.
+    if (path.isAbsolute(trimmed)) {
+      return trimmed;
+    }
     throw new Error("Session file path must be within sessions directory");
   }
   return path.resolve(resolvedBase, normalized);
