@@ -172,7 +172,7 @@ export async function runEmbeddedPiAgent(
         ? "markdown"
         : "plain"
       : "markdown");
-  const isProbeRun = params.isProbeRun === true;
+  const isProbeSession = params.probeMode ?? params.sessionId?.startsWith("probe-") ?? false;
 
   return enqueueSession(() =>
     enqueueGlobal(async () => {
@@ -457,7 +457,7 @@ export async function runEmbeddedPiAgent(
             bashElevated: params.bashElevated,
             timeoutMs: params.timeoutMs,
             runId: params.runId,
-            isProbeRun,
+            probeMode: isProbeSession,
             abortSignal: params.abortSignal,
             shouldEmitToolResult: params.shouldEmitToolResult,
             shouldEmitToolOutput: params.shouldEmitToolOutput,
@@ -679,7 +679,7 @@ export async function runEmbeddedPiAgent(
             }
             const promptFailoverReason = classifyFailoverReason(errorText);
             if (
-              !isProbeRun &&
+              !isProbeSession &&
               promptFailoverReason &&
               promptFailoverReason !== "timeout" &&
               lastProfileId
@@ -767,7 +767,7 @@ export async function runEmbeddedPiAgent(
           const shouldRotate = (!aborted && failoverFailure) || timedOut;
 
           if (shouldRotate) {
-            if (lastProfileId && !isProbeRun) {
+            if (lastProfileId && !isProbeSession) {
               const reason =
                 timedOut || assistantFailoverReason === "timeout"
                   ? "timeout"

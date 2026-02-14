@@ -675,13 +675,13 @@ export async function runEmbeddedAttempt(
         isCompacting: () => subscription.isCompacting(),
         abort: abortRun,
       };
-      setActiveEmbeddedRun(params.sessionId, queueHandle, { isProbeRun: params.isProbeRun });
+      setActiveEmbeddedRun(params.sessionId, queueHandle, { probeMode: params.probeMode });
 
       let abortWarnTimer: NodeJS.Timeout | undefined;
-      const isProbeRun = params.isProbeRun === true;
+      const isProbeSession = params.probeMode ?? params.sessionId?.startsWith("probe-") ?? false;
       const abortTimer = setTimeout(
         () => {
-          if (!isProbeRun) {
+          if (!isProbeSession) {
             log.warn(
               `embedded run timeout: runId=${params.runId} sessionId=${params.sessionId} timeoutMs=${params.timeoutMs}`,
             );
@@ -692,7 +692,7 @@ export async function runEmbeddedAttempt(
               if (!activeSession.isStreaming) {
                 return;
               }
-              if (!isProbeRun) {
+              if (!isProbeSession) {
                 log.warn(
                   `embedded run abort still streaming: runId=${params.runId} sessionId=${params.sessionId}`,
                 );
@@ -898,7 +898,7 @@ export async function runEmbeddedAttempt(
         }
         unsubscribe();
         clearActiveEmbeddedRun(params.sessionId, queueHandle, {
-          isProbeRun: params.isProbeRun,
+          probeMode: params.probeMode,
         });
         params.abortSignal?.removeEventListener?.("abort", onAbort);
       }

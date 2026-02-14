@@ -73,9 +73,10 @@ Files:
 
 Changes:
 
-- Add explicit probe flag (`isProbeRun`) and thread it from `models status --probe`.
-- Guard cooldown writes with `!isProbeRun` where `markAuthProfileFailure` is called in embedded run failure paths.
-- Remove cooldown-suppression heuristics based on `sessionId.startsWith("probe-")` in patched runner paths.
+- Add explicit `probeMode` flag and thread it from `models status --probe`.
+- Resolve probe mode with backward-compatible fallback:
+  - `params.probeMode ?? params.sessionId.startsWith("probe-")`
+- Guard cooldown writes with `!isProbeSession` where `markAuthProfileFailure` is called in embedded run failure paths.
 
 Files:
 
@@ -85,17 +86,21 @@ Files:
 ## Tests added / updated
 
 1. `src/agents/model-fallback.test.ts`
-   - Adds assertion that provider-cooldown skips are grouped in final summary text.
+   - Asserts provider-cooldown skips preserve `provider/model:` summary format.
 2. `src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts`
    - Adds probe-session timeout case and asserts no `cooldownUntil` / `lastFailureAt` is written.
+   - Adds two-profile probe rotation case:
+     - first profile times out
+     - run rotates to second profile
+     - no cooldown persisted for timed-out profile
 
 ## Verification run
 
 Executed:
 
 ```bash
-pnpm vitest run src/agents/model-fallback.test.ts src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts
-pnpm exec oxfmt --check src/agents/model-fallback.ts src/agents/model-fallback.test.ts src/agents/pi-embedded-runner/run.ts src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts docs/debug/model-fallback-provider-cooldown-issue-draft.md docs/debug/handoff-probe-cooldown-fallback-pr.md
+pnpm vitest run src/agents/model-fallback.test.ts src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts src/commands/models/list.status.test.ts
+pnpm exec oxfmt --check src/agents/model-fallback.ts src/agents/model-fallback.test.ts src/agents/pi-embedded-runner/run.ts src/agents/pi-embedded-runner/run/attempt.ts src/agents/pi-embedded-runner/run/params.ts src/agents/pi-embedded-runner/run/types.ts src/agents/pi-embedded-runner/runs.ts src/commands/models/list.probe.ts src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts docs/debug/model-fallback-provider-cooldown-issue-draft.md docs/debug/handoff-probe-cooldown-fallback-pr.md
 ```
 
 Status:
@@ -114,14 +119,6 @@ Status:
 4. Additional paths:
    - Confirm no other probe code paths still call cooldown mutators indirectly.
 
-## Alternative considered
-
-- Add an explicit `probeMode` / `suppressAuthPenalty` flag to `RunEmbeddedPiAgentParams` and thread it from probe command.
-- Current patch uses `sessionId.startsWith("probe-")`, which is consistent with existing probe detection but less explicit than a first-class flag.
-
 ## Recommended next step
 
-Deep-review this branch and decide between:
-
-1. PR as-is (minimal invasive change, tests included).
-2. Follow-up refinement: explicit runner flag instead of session-name convention.
+Deep-review this branch and decide whether to PR as-is. The patch is now explicit-flag first, backward-compatible, and test-covered for rotation behavior.

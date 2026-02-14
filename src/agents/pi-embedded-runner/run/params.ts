@@ -78,8 +78,8 @@ export type RunEmbeddedPiAgentParams = {
   bashElevated?: ExecElevatedDefaults;
   timeoutMs: number;
   runId: string;
-  /** Explicit probe marker for diagnostic runs (suppresses auth-penalty side effects). */
-  isProbeRun?: boolean;
+  /** Probe mode for diagnostic runs (suppresses auth-penalty side effects). */
+  probeMode?: boolean;
   abortSignal?: AbortSignal;
   shouldEmitToolResult?: () => boolean;
   shouldEmitToolOutput?: () => boolean;

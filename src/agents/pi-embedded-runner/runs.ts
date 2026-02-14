@@ -114,7 +114,7 @@ function notifyEmbeddedRunEnded(sessionId: string) {
 export function setActiveEmbeddedRun(
   sessionId: string,
   handle: EmbeddedPiQueueHandle,
-  opts?: { isProbeRun?: boolean },
+  opts?: { probeMode?: boolean },
 ) {
   const wasActive = ACTIVE_EMBEDDED_RUNS.has(sessionId);
   ACTIVE_EMBEDDED_RUNS.set(sessionId, handle);
@@ -123,7 +123,7 @@ export function setActiveEmbeddedRun(
     state: "processing",
     reason: wasActive ? "run_replaced" : "run_started",
   });
-  if (!opts?.isProbeRun) {
+  if (!(opts?.probeMode ?? sessionId.startsWith("probe-"))) {
     diag.debug(`run registered: sessionId=${sessionId} totalActive=${ACTIVE_EMBEDDED_RUNS.size}`);
   }
 }
@@ -131,12 +131,12 @@ export function setActiveEmbeddedRun(
 export function clearActiveEmbeddedRun(
   sessionId: string,
   handle: EmbeddedPiQueueHandle,
-  opts?: { isProbeRun?: boolean },
+  opts?: { probeMode?: boolean },
 ) {
   if (ACTIVE_EMBEDDED_RUNS.get(sessionId) === handle) {
     ACTIVE_EMBEDDED_RUNS.delete(sessionId);
     logSessionStateChange({ sessionId, state: "idle", reason: "run_completed" });
-    if (!opts?.isProbeRun) {
+    if (!(opts?.probeMode ?? sessionId.startsWith("probe-"))) {
       diag.debug(`run cleared: sessionId=${sessionId} totalActive=${ACTIVE_EMBEDDED_RUNS.size}`);
     }
     notifyEmbeddedRunEnded(sessionId);

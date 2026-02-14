@@ -330,7 +330,7 @@ async function probeTarget(params: {
       authProfileIdSource: target.profileId ? "user" : undefined,
       timeoutMs,
       runId: `probe-${crypto.randomUUID()}`,
-      isProbeRun: true,
+      probeMode: true,
       lane: `auth-probe:${target.provider}:${target.profileId ?? target.source}`,
       thinkLevel: "off",
       reasoningLevel: "off",
