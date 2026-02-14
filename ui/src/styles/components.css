@@ -1110,8 +1110,8 @@
   display: grid;
   grid-template-columns: 90px 70px minmax(140px, 200px) minmax(0, 1fr);
   gap: 12px;
-  align-items: start;
-  padding: 8px 12px;
+  align-items: center;
+  padding: 5px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 12px;
   transition: background var(--duration-fast) ease;
@@ -1132,11 +1132,14 @@
 
 .log-level {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  width: fit-content;
+  padding: 3px 8px;
+  width: 54px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .log-level.trace,
@@ -1158,6 +1161,51 @@
 .log-level.fatal {
   color: var(--danger);
   border-color: var(--danger-subtle);
+}
+
+.log-header {
+  display: grid;
+  grid-template-columns: 90px 70px minmax(140px, 200px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.log-header-cell {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color var(--duration-fast) ease;
+}
+
+.log-header-cell:hover {
+  color: var(--text);
+}
+
+.log-header-cell.sorted {
+  color: var(--text-strong);
+}
+
+.log-sort-arrow {
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.log-header-cell:hover .log-sort-arrow,
+.log-header-cell.sorted .log-sort-arrow {
+  opacity: 1;
 }
 
 .log-chip {

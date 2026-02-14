@@ -3,6 +3,21 @@ import type { AppMode } from "../app.ts";
 import type { LogEntry, LogLevel } from "../types.ts";
 
 const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
+const LEVEL_ORDER: Record<string, number> = {
+  trace: 0,
+  debug: 1,
+  info: 2,
+  warn: 3,
+  error: 4,
+  fatal: 5,
+};
+
+type SortField = "time" | "level" | "subsystem" | "message";
+type SortDir = "asc" | "desc";
+
+// Module-level sort state (persists across re-renders)
+let currentSortField: SortField = "time";
+let currentSortDir: SortDir = "desc";
 
 export type LogsProps = {
   mode: AppMode;
@@ -44,6 +59,38 @@ function matchesFilter(entry: LogEntry, needle: string) {
   return haystack.includes(needle);
 }
 
+function sortEntries(entries: LogEntry[], field: SortField, dir: SortDir): LogEntry[] {
+  const sorted = [...entries].toSorted((a, b) => {
+    let cmp = 0;
+    switch (field) {
+      case "time":
+        cmp = (a.time ?? "").localeCompare(b.time ?? "");
+        break;
+      case "level":
+        cmp = (LEVEL_ORDER[a.level ?? ""] ?? -1) - (LEVEL_ORDER[b.level ?? ""] ?? -1);
+        break;
+      case "subsystem":
+        cmp = (a.subsystem ?? "").localeCompare(b.subsystem ?? "");
+        break;
+      case "message":
+        cmp = (a.message ?? a.raw ?? "").localeCompare(b.message ?? b.raw ?? "");
+        break;
+    }
+    return dir === "asc" ? cmp : -cmp;
+  });
+  return sorted;
+}
+
+function toggleSort(field: SortField, requestUpdate: () => void) {
+  if (currentSortField === field) {
+    currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
+  } else {
+    currentSortField = field;
+    currentSortDir = field === "time" ? "desc" : "asc";
+  }
+  requestUpdate();
+}
+
 export function renderLogs(props: LogsProps) {
   const isBasic = props.mode === "basic";
   const needle = props.filterText.trim().toLowerCase();
@@ -54,7 +101,25 @@ export function renderLogs(props: LogsProps) {
     }
     return matchesFilter(entry, needle);
   });
+  const sorted = sortEntries(filtered, currentSortField, currentSortDir);
   const exportLabel = needle || levelFiltered ? "filtered" : "visible";
+
+  // Force re-render by triggering filter text change with same value
+  const requestUpdate = () => props.onFilterTextChange(props.filterText);
+
+  const renderHeaderCell = (field: SortField, label: string) => {
+    const isSorted = currentSortField === field;
+    const arrow = isSorted ? (currentSortDir === "asc" ? "↑" : "↓") : "↕";
+    return html`
+      <div
+        class="log-header-cell ${isSorted ? "sorted" : ""}"
+        @click=${() => toggleSort(field, requestUpdate)}
+      >
+        ${label}
+        <span class="log-sort-arrow">${arrow}</span>
+      </div>
+    `;
+  };
 
   return html`
     <div class="logs-toolbar">
@@ -77,10 +142,10 @@ export function renderLogs(props: LogsProps) {
       </button>
       <button
         class="btn btn--sm"
-        ?disabled=${filtered.length === 0}
+        ?disabled=${sorted.length === 0}
         @click=${() =>
           props.onExport(
-            filtered.map((entry) => entry.raw),
+            sorted.map((entry) => entry.raw),
             exportLabel,
           )}
       >
@@ -121,23 +186,23 @@ export function renderLogs(props: LogsProps) {
 
     <section class="card" style="margin-top: 8px; padding: 0;">
       <div class="log-stream" @scroll=${props.onScroll}>
+        <div class="log-header">
+          ${renderHeaderCell("time", "Time")}
+          ${renderHeaderCell("level", "Level")}
+          ${isBasic ? nothing : renderHeaderCell("subsystem", "Subsystem")}
+          ${renderHeaderCell("message", "Message")}
+        </div>
         ${
-          filtered.length === 0
+          sorted.length === 0
             ? html`
                 <div class="muted" style="padding: 12px">No log entries.</div>
               `
-            : filtered.map(
+            : sorted.map(
                 (entry) => html`
                 <div class="log-row">
                   <div class="log-time mono">${formatTime(entry.time)}</div>
                   <div class="log-level ${entry.level ?? ""}">${entry.level ?? ""}</div>
-                  ${
-                    // Basic mode shows simplified logs (hide subsystem)
-                    // Advanced mode shows verbose logs (show subsystem)
-                    isBasic
-                      ? nothing
-                      : html`<div class="log-subsystem mono">${entry.subsystem ?? ""}</div>`
-                  }
+                  ${isBasic ? nothing : html`<div class="log-subsystem mono">${entry.subsystem ?? ""}</div>`}
                   <div class="log-message mono">${entry.message ?? entry.raw}</div>
                 </div>
               `,
