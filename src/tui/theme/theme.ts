@@ -77,7 +77,6 @@ function detectTerminalBackground(): "light" | "dark" {
 
   // Some terminals/apps set explicit theme hints
   const termProgram = process.env.TERM_PROGRAM;
-  const colorTerm = process.env.COLORTERM;
 
   // macOS Terminal.app defaults to light
   if (termProgram === "Apple_Terminal" && !colorfgbg) {
