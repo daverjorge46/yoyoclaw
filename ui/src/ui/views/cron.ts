@@ -4,6 +4,7 @@ import type { CronFormState } from "../ui-types.ts";
 import { formatRelativeTimestamp, formatMs } from "../format.ts";
 import { pathForTab } from "../navigation.ts";
 import { formatCronSchedule, formatNextRun } from "../presenter.ts";
+import { icons } from "../icons.ts";
 
 export type CronProps = {
   basePath: string;
@@ -272,41 +273,8 @@ export function renderCron(props: CronProps) {
       </div>
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Jobs</div>
-      <div class="card-sub">All scheduled jobs stored in the gateway.</div>
-      ${
-        props.jobs.length === 0
-          ? html`
-              <div class="muted" style="margin-top: 12px">No jobs yet.</div>
-            `
-          : html`
-            <div class="list" style="margin-top: 12px;">
-              ${props.jobs.map((job) => renderJob(job, props))}
-            </div>
-          `
-      }
-    </section>
-
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Run history</div>
-      <div class="card-sub">Latest runs for ${selectedRunTitle}.</div>
-      ${
-        props.runsJobId == null
-          ? html`
-              <div class="muted" style="margin-top: 12px">Select a job to inspect run history.</div>
-            `
-          : orderedRuns.length === 0
-            ? html`
-                <div class="muted" style="margin-top: 12px">No runs yet.</div>
-              `
-            : html`
-              <div class="list" style="margin-top: 12px;">
-                ${orderedRuns.map((entry) => renderRun(entry, props.basePath))}
-              </div>
-            `
-      }
-    </section>
+    ${renderJobsSection(props)}
+    ${renderRunsSection(props, selectedRunTitle, orderedRuns)}
   `;
 }
 
@@ -379,143 +347,84 @@ function renderScheduleFields(props: CronProps) {
   `;
 }
 
+function renderJobsSection(props: CronProps) {
+  return html`
+    <section class="card" style="margin-top: 18px; padding: 0;">
+      <div style="padding: 12px 14px; border-bottom: 1px solid var(--border);">
+        <div class="card-title">Jobs</div>
+        <div class="card-sub">All scheduled jobs stored in the gateway.</div>
+      </div>
+      ${
+        props.jobs.length === 0
+          ? html`
+              <div style="padding: 12px 14px;" class="muted">No jobs yet.</div>
+            `
+          : html`
+              <div class="log-header" style="grid-template-columns: 2fr 2fr 1fr 1fr;">
+                <div>Name</div>
+                <div>Schedule</div>
+                <div>Status</div>
+                <div>Last Run</div>
+              </div>
+              ${props.jobs.map((job) => renderJob(job, props))}
+            `
+      }
+    </section>
+  `;
+}
+
+function renderRunsSection(props: CronProps, selectedRunTitle: string, orderedRuns: CronRunLogEntry[]) {
+  return html`
+    <section class="card" style="margin-top: 18px; padding: 0;">
+      <div style="padding: 12px 14px; border-bottom: 1px solid var(--border);">
+        <div class="card-title">Run history</div>
+        <div class="card-sub">Latest runs for ${selectedRunTitle}.</div>
+      </div>
+      ${
+        props.runsJobId == null
+          ? html`
+              <div style="padding: 12px 14px;" class="muted">Select a job to inspect run history.</div>
+            `
+          : orderedRuns.length === 0
+            ? html`
+                <div style="padding: 12px 14px;" class="muted">No runs yet.</div>
+              `
+            : html`
+              <div class="log-header" style="grid-template-columns: 1fr 2fr 1fr 1fr;">
+                <div>Status</div>
+                <div>Summary</div>
+                <div>Time</div>
+                <div>Duration</div>
+              </div>
+              ${orderedRuns.map((entry) => renderRun(entry, props.basePath))}
+            `
+      }
+    </section>
+  `;
+}
+
 function renderJob(job: CronJob, props: CronProps) {
   const isSelected = props.runsJobId === job.id;
-  const itemClass = `list-item list-item-clickable cron-job${isSelected ? " list-item-selected" : ""}`;
+  const rowStyle = isSelected ? "background: var(--bg-elevated);" : "";
+  const statusClass = job.enabled ? "info" : "error";
+  const statusText = job.enabled ? "enabled" : "disabled";
+  const lastRun = job.state?.lastRunAtMs ? formatRelativeTimestamp(job.state.lastRunAtMs) : "never";
+  
   return html`
-    <div class=${itemClass} @click=${() => props.onLoadRuns(job.id)}>
-      <div class="list-main">
-        <div class="list-title">${job.name}</div>
-        <div class="list-sub">${formatCronSchedule(job)}</div>
-        ${renderJobPayload(job)}
-        ${job.agentId ? html`<div class="muted cron-job-agent">Agent: ${job.agentId}</div>` : nothing}
+    <div 
+      class="log-row" 
+      style="grid-template-columns: 2fr 2fr 1fr 1fr; height: 36px; padding: 0 14px; align-items: center; cursor: pointer; ${rowStyle}"
+      @click=${() => props.onLoadRuns(job.id)}
+    >
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span class="icon" style="width:14px;height:14px;margin-right:6px;">${icons.zap}</span>
+        ${job.name}
       </div>
-      <div class="list-meta">
-        ${renderJobState(job)}
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${formatCronSchedule(job)}</div>
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span class="log-level ${statusClass}">${statusText}</span>
       </div>
-      <div class="cron-job-footer">
-        <div class="chip-row cron-job-chips">
-          <span class=${`chip ${job.enabled ? "chip-ok" : "chip-danger"}`}>
-            ${job.enabled ? "enabled" : "disabled"}
-          </span>
-          <span class="chip">${job.sessionTarget}</span>
-          <span class="chip">${job.wakeMode}</span>
-        </div>
-        <div class="row cron-job-actions">
-          <button
-            class="btn"
-            ?disabled=${props.busy}
-            @click=${(event: Event) => {
-              event.stopPropagation();
-              props.onToggle(job, !job.enabled);
-            }}
-          >
-            ${job.enabled ? "Disable" : "Enable"}
-          </button>
-          <button
-            class="btn"
-            ?disabled=${props.busy}
-            @click=${(event: Event) => {
-              event.stopPropagation();
-              props.onRun(job);
-            }}
-          >
-            Run
-          </button>
-          <button
-            class="btn"
-            ?disabled=${props.busy}
-            @click=${(event: Event) => {
-              event.stopPropagation();
-              props.onLoadRuns(job.id);
-            }}
-          >
-            History
-          </button>
-          <button
-            class="btn danger"
-            ?disabled=${props.busy}
-            @click=${(event: Event) => {
-              event.stopPropagation();
-              props.onRemove(job);
-            }}
-          >
-            Remove
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderJobPayload(job: CronJob) {
-  if (job.payload.kind === "systemEvent") {
-    return html`<div class="cron-job-detail">
-      <span class="cron-job-detail-label">System</span>
-      <span class="muted cron-job-detail-value">${job.payload.text}</span>
-    </div>`;
-  }
-
-  const delivery = job.delivery;
-  const deliveryTarget =
-    delivery?.channel || delivery?.to
-      ? ` (${delivery.channel ?? "last"}${delivery.to ? ` -> ${delivery.to}` : ""})`
-      : "";
-
-  return html`
-    <div class="cron-job-detail">
-      <span class="cron-job-detail-label">Prompt</span>
-      <span class="muted cron-job-detail-value">${job.payload.message}</span>
-    </div>
-    ${
-      delivery
-        ? html`<div class="cron-job-detail">
-            <span class="cron-job-detail-label">Delivery</span>
-            <span class="muted cron-job-detail-value">${delivery.mode}${deliveryTarget}</span>
-          </div>`
-        : nothing
-    }
-  `;
-}
-
-function formatStateRelative(ms?: number) {
-  if (typeof ms !== "number" || !Number.isFinite(ms)) {
-    return "n/a";
-  }
-  return formatRelativeTimestamp(ms);
-}
-
-function renderJobState(job: CronJob) {
-  const status = job.state?.lastStatus ?? "n/a";
-  const statusClass =
-    status === "ok"
-      ? "cron-job-status-ok"
-      : status === "error"
-        ? "cron-job-status-error"
-        : status === "skipped"
-          ? "cron-job-status-skipped"
-          : "cron-job-status-na";
-  const nextRunAtMs = job.state?.nextRunAtMs;
-  const lastRunAtMs = job.state?.lastRunAtMs;
-
-  return html`
-    <div class="cron-job-state">
-      <div class="cron-job-state-row">
-        <span class="cron-job-state-key">Status</span>
-        <span class=${`cron-job-status-pill ${statusClass}`}>${status}</span>
-      </div>
-      <div class="cron-job-state-row">
-        <span class="cron-job-state-key">Next</span>
-        <span class="cron-job-state-value" title=${formatMs(nextRunAtMs)}>
-          ${formatStateRelative(nextRunAtMs)}
-        </span>
-      </div>
-      <div class="cron-job-state-row">
-        <span class="cron-job-state-key">Last</span>
-        <span class="cron-job-state-value" title=${formatMs(lastRunAtMs)}>
-          ${formatStateRelative(lastRunAtMs)}
-        </span>
-      </div>
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${lastRun}</div>
     </div>
   `;
 }
@@ -525,22 +434,20 @@ function renderRun(entry: CronRunLogEntry, basePath: string) {
     typeof entry.sessionKey === "string" && entry.sessionKey.trim().length > 0
       ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(entry.sessionKey)}`
       : null;
+  const statusClass = entry.status === "ok" ? "info" : entry.status === "error" ? "error" : "warn";
+  const duration = `${entry.durationMs ?? 0}ms`;
+  
   return html`
-    <div class="list-item">
-      <div class="list-main">
-        <div class="list-title">${entry.status}</div>
-        <div class="list-sub">${entry.summary ?? ""}</div>
+    <div class="log-row" style="grid-template-columns: 1fr 2fr 1fr 1fr; height: 36px; padding: 0 14px; align-items: center;">
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        <span class="log-level ${statusClass}">${entry.status}</span>
       </div>
-      <div class="list-meta">
-        <div>${formatMs(entry.ts)}</div>
-        <div class="muted">${entry.durationMs ?? 0}ms</div>
-        ${
-          chatUrl
-            ? html`<div><a class="session-link" href=${chatUrl}>Open run chat</a></div>`
-            : nothing
-        }
-        ${entry.error ? html`<div class="muted">${entry.error}</div>` : nothing}
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        ${entry.summary ?? ""}
+        ${chatUrl ? html` · <a href=${chatUrl} style="font-size: 12px;">view</a>` : nothing}
       </div>
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${formatMs(entry.ts)}</div>
+      <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${duration}</div>
     </div>
   `;
 }
