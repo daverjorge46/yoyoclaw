@@ -643,6 +643,20 @@ export function isOverloadedErrorMessage(raw: string): boolean {
   return matchesErrorPatterns(raw, ERROR_PATTERNS.overloaded);
 }
 
+/**
+ * Returns true for transient provider errors eligible for automatic retry:
+ * HTTP 5xx, overloaded, rate-limited, and timeout errors.
+ * Non-transient errors (auth 401/403, billing 402, format) are excluded.
+ */
+export function isRetryableApiError(raw: string): boolean {
+  return (
+    isTransientHttpError(raw) ||
+    isOverloadedErrorMessage(raw) ||
+    isRateLimitErrorMessage(raw) ||
+    isTimeoutErrorMessage(raw)
+  );
+}
+
 export function parseImageDimensionError(raw: string): {
   maxDimensionPx?: number;
   messageIndex?: number;
