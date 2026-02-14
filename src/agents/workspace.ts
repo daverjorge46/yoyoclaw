@@ -192,36 +192,43 @@ export async function ensureAgentWorkspace(params?: {
   const heartbeatPath = path.join(dir, DEFAULT_HEARTBEAT_FILENAME);
   const bootstrapPath = path.join(dir, DEFAULT_BOOTSTRAP_FILENAME);
 
-  const isBrandNewWorkspace = await (async () => {
-    const paths = [agentsPath, soulPath, toolsPath, identityPath, userPath, heartbeatPath];
-    const existing = await Promise.all(
-      paths.map(async (p) => {
-        try {
-          await fs.access(p);
-          return true;
-        } catch {
-          return false;
-        }
-      }),
-    );
-    return existing.every((v) => !v);
-  })();
+  // Check which files are missing - only load templates for those
+  const filesToCheck = [
+    { path: agentsPath, template: DEFAULT_AGENTS_FILENAME },
+    { path: soulPath, template: DEFAULT_SOUL_FILENAME },
+    { path: toolsPath, template: DEFAULT_TOOLS_FILENAME },
+    { path: identityPath, template: DEFAULT_IDENTITY_FILENAME },
+    { path: userPath, template: DEFAULT_USER_FILENAME },
+    { path: heartbeatPath, template: DEFAULT_HEARTBEAT_FILENAME },
+  ];
 
-  const agentsTemplate = await loadTemplate(DEFAULT_AGENTS_FILENAME);
-  const soulTemplate = await loadTemplate(DEFAULT_SOUL_FILENAME);
-  const toolsTemplate = await loadTemplate(DEFAULT_TOOLS_FILENAME);
-  const identityTemplate = await loadTemplate(DEFAULT_IDENTITY_FILENAME);
-  const userTemplate = await loadTemplate(DEFAULT_USER_FILENAME);
-  const heartbeatTemplate = await loadTemplate(DEFAULT_HEARTBEAT_FILENAME);
-  const bootstrapTemplate = await loadTemplate(DEFAULT_BOOTSTRAP_FILENAME);
+  const missingFiles = await Promise.all(
+    filesToCheck.map(async ({ path: filePath, template }) => {
+      try {
+        await fs.access(filePath);
+        return null; // File exists, no need to load template
+      } catch {
+        return { path: filePath, template };
+      }
+    }),
+  );
 
-  await writeFileIfMissing(agentsPath, agentsTemplate);
-  await writeFileIfMissing(soulPath, soulTemplate);
-  await writeFileIfMissing(toolsPath, toolsTemplate);
-  await writeFileIfMissing(identityPath, identityTemplate);
-  await writeFileIfMissing(userPath, userTemplate);
-  await writeFileIfMissing(heartbeatPath, heartbeatTemplate);
+  const filesToCreate = missingFiles.filter(
+    (f): f is { path: string; template: string } => f !== null,
+  );
+  const isBrandNewWorkspace = filesToCreate.length === filesToCheck.length;
+
+  // Only load and write templates for files that are actually missing
+  await Promise.all(
+    filesToCreate.map(async ({ path: filePath, template }) => {
+      const content = await loadTemplate(template);
+      await writeFileIfMissing(filePath, content);
+    }),
+  );
+
+  // Bootstrap file is only created for brand new workspaces
   if (isBrandNewWorkspace) {
+    const bootstrapTemplate = await loadTemplate(DEFAULT_BOOTSTRAP_FILENAME);
     await writeFileIfMissing(bootstrapPath, bootstrapTemplate);
   }
   await ensureGitRepo(dir, isBrandNewWorkspace);
