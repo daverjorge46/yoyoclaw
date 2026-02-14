@@ -233,9 +233,14 @@ export async function executePluginCommand(params: {
   args?: string;
   senderId?: string;
   channel: string;
+  channelId?: PluginCommandContext["channelId"];
   isAuthorizedSender: boolean;
   commandBody: string;
   config: OpenClawConfig;
+  from?: PluginCommandContext["from"];
+  to?: PluginCommandContext["to"];
+  accountId?: PluginCommandContext["accountId"];
+  messageThreadId?: PluginCommandContext["messageThreadId"];
 }): Promise<PluginCommandResult> {
   const { command, args, senderId, channel, isAuthorizedSender, commandBody, config } = params;
 
@@ -254,10 +259,15 @@ export async function executePluginCommand(params: {
   const ctx: PluginCommandContext = {
     senderId,
     channel,
+    channelId: params.channelId,
     isAuthorizedSender,
     args: sanitizedArgs,
     commandBody,
     config,
+    from: params.from,
+    to: params.to,
+    accountId: params.accountId,
+    messageThreadId: params.messageThreadId,
   };
 
   // Defender skill start/end logging (optional; enables collusion detection)
