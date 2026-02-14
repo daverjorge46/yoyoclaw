@@ -12,6 +12,7 @@ import { collectChannelSecurityFindings } from "./audit-channel.js";
 import {
   collectAttackSurfaceSummaryFindings,
   collectExposureMatrixFindings,
+  collectGatewayHttpSessionKeyOverrideFindings,
   collectHooksHardeningFindings,
   collectIncludeFilePermFindings,
   collectInstalledSkillsCodeSafetyFindings,
@@ -607,7 +608,8 @@ export async function runSecurityAudit(opts: SecurityAuditOptions): Promise<Secu
   findings.push(...collectBrowserControlFindings(cfg, env));
   findings.push(...collectLoggingFindings(cfg));
   findings.push(...collectElevatedFindings(cfg));
-  findings.push(...collectHooksHardeningFindings(cfg));
+  findings.push(...collectHooksHardeningFindings(cfg, env));
+  findings.push(...collectGatewayHttpSessionKeyOverrideFindings(cfg));
   findings.push(...collectSandboxDockerNoopFindings(cfg));
   findings.push(...collectNodeDenyCommandPatternFindings(cfg));
   findings.push(...collectMinimalProfileOverrideFindings(cfg));
