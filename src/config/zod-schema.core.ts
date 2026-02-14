@@ -67,7 +67,24 @@ export const ModelProviderSchema = z
     authHeader: z.boolean().optional(),
     models: z.array(ModelDefinitionSchema),
   })
-  .strict();
+  .strict()
+  .superRefine((provider, ctx) => {
+    if (provider.models.length === 0) {
+      return;
+    }
+    const allModelsHaveApi = provider.models.every((m) => m.api != null);
+    if (!provider.api && !allModelsHaveApi) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["api"],
+        message:
+          'Missing "api" field. Custom providers with models should specify an API type. ' +
+          'Valid values: "openai-completions", "anthropic-messages", "openai-responses", ' +
+          '"google-generative-ai", "github-copilot", "bedrock-converse-stream", "ollama". ' +
+          'Most custom/proxy setups (e.g. LiteLLM) use "openai-completions".',
+      });
+    }
+  });
 
 export const BedrockDiscoverySchema = z
   .object({

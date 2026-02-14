@@ -32,7 +32,7 @@ export function buildInlineProviderModels(
       ...model,
       provider: trimmed,
       baseUrl: entry?.baseUrl,
-      api: model.api ?? entry?.api,
+      api: model.api ?? entry?.api ?? "openai-completions",
     }));
   });
 }
