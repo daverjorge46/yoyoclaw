@@ -46,7 +46,9 @@ export class P2PManager {
    * Registers the agent's presence in the global HiveMind.
    */
   async registerPresence(): Promise<void> {
-    if (!this.gistId || !this.token) return;
+    if (!this.gistId || !this.token) {
+      return;
+    }
 
     try {
       const state = await this.readState();
@@ -69,7 +71,9 @@ export class P2PManager {
    * Publishes an insight to the global knowledge base.
    */
   async publishInsight(topic: string, content: string, tags: string[] = []): Promise<void> {
-    if (!this.gistId || !this.token) return;
+    if (!this.gistId || !this.token) {
+      return;
+    }
 
     try {
       const state = await this.readState();
