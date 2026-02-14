@@ -29,6 +29,7 @@ import { enqueueSystemEvent } from "../infra/system-events.js";
 import { logInfo, logWarn } from "../logger.js";
 import { formatSpawnError, spawnWithFallback } from "../process/spawn-utils.js";
 import { parseAgentSessionKey, resolveAgentIdFromSessionKey } from "../routing/session-key.js";
+import { checkElevatedCommand } from "../security/elevated-command-guard.js";
 import {
   type ProcessSession,
   type SessionStdin,
@@ -823,6 +824,13 @@ export function createExecTool(
     defaults?.agentId ??
     (parsedAgentSession ? resolveAgentIdFromSessionKey(defaults?.sessionKey) : undefined);
 
+  if (defaults?.elevated?.enabled && defaults?.elevated?.defaultLevel === "full") {
+    logWarn(
+      "exec: elevated=full is enabled — AI agent commands will execute on the host without approval. " +
+        "A prompt-injected agent could run arbitrary commands. Review tools.elevated config.",
+    );
+  }
+
   return {
     name: "exec",
     label: "exec",
@@ -951,6 +959,16 @@ export function createExecTool(
       const bypassApprovals = elevatedRequested && elevatedMode === "full";
       if (bypassApprovals) {
         ask = "off";
+        // Guard against obviously destructive commands when approvals are bypassed
+        const guard = checkElevatedCommand(params.command);
+        if (guard.blocked) {
+          logWarn(
+            `exec: elevated command blocked — ${guard.reason} (command: ${truncateMiddle(params.command, 120)})`,
+          );
+          throw new Error(
+            `Command blocked in elevated mode: ${guard.reason}. Use sandbox mode for this operation.`,
+          );
+        }
       }
 
       const sandbox = host === "sandbox" ? defaults?.sandbox : undefined;
