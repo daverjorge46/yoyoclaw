@@ -1,4 +1,5 @@
 import { normalizeVerboseLevel } from "../auto-reply/thinking.js";
+import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { loadConfig } from "../config/config.js";
 import { type AgentEventPayload, getAgentRunContext } from "../infra/agent-events.js";
 import { resolveHeartbeatVisibility } from "../infra/heartbeat-visibility.js";
@@ -229,6 +230,9 @@ export function createAgentEventHandler({
 }: AgentEventHandlerOptions) {
   const emitChatDelta = (sessionKey: string, clientRunId: string, seq: number, text: string) => {
     chatRunState.buffers.set(clientRunId, text);
+    if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
+      return;
+    }
     const now = Date.now();
     const last = chatRunState.deltaSentAt.get(clientRunId) ?? 0;
     if (now - last < 150) {
@@ -261,6 +265,7 @@ export function createAgentEventHandler({
     error?: unknown,
   ) => {
     const text = chatRunState.buffers.get(clientRunId)?.trim() ?? "";
+    const isSilent = isSilentReplyText(text, SILENT_REPLY_TOKEN);
     chatRunState.buffers.delete(clientRunId);
     chatRunState.deltaSentAt.delete(clientRunId);
     if (jobState === "done") {
@@ -269,7 +274,7 @@ export function createAgentEventHandler({
         sessionKey,
         seq,
         state: "final" as const,
-        message: text
+        message: !isSilent && text
           ? {
               role: "assistant",
               content: [{ type: "text", text }],
