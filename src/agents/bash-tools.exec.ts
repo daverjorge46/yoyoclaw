@@ -78,6 +78,7 @@ export type ExecToolDefaults = {
   messageProvider?: string;
   notifyOnExit?: boolean;
   cwd?: string;
+  env?: Record<string, string>;
 };
 
 export type { BashSandboxConfig } from "./bash-tools.shared.js";
@@ -288,6 +289,7 @@ export function createExecTool(
       }
 
       const baseEnv = coerceEnv(process.env);
+      const defaultsEnv = defaults?.env;
 
       // Logic: Sandbox gets raw env. Host (gateway/node) must pass validation.
       // We validate BEFORE merging to prevent any dangerous vars from entering the stream.
@@ -295,7 +297,7 @@ export function createExecTool(
         validateHostEnv(params.env);
       }
 
-      const mergedEnv = params.env ? { ...baseEnv, ...params.env } : baseEnv;
+      const mergedEnv = { ...baseEnv, ...defaultsEnv, ...params.env };
 
       const env = sandbox
         ? buildSandboxEnv({

@@ -183,6 +183,8 @@ export type ExecToolConfig = {
   cleanupMs?: number;
   /** Emit a system event and heartbeat when a backgrounded exec exits. */
   notifyOnExit?: boolean;
+  /** Environment variables to inject into exec commands (merged with process.env; tool-call env takes precedence). */
+  env?: Record<string, string>;
   /** apply_patch subtool configuration (experimental). */
   applyPatch?: {
     /** Enable apply_patch for OpenAI models (default: false). */
