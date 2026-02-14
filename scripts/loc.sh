@@ -35,10 +35,15 @@ SINCE_DATE="$1"
 # --- Main Execution ---
 
 # Check if Python script exists
-PYTHON_SCRIPT="scripts/analyze_git_stats.py"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="${SCRIPT_DIR}/analyze_git_stats.py"
+
 if [[ ! -f "$PYTHON_SCRIPT" ]]; then
-    echo "Error: $PYTHON_SCRIPT not found!"
-    echo "Please run this script from the project root directory."
+    echo "⚠️  Warning: analyze_git_stats.py not found at: $PYTHON_SCRIPT"
+    echo ""
+    echo "This script requires a Python analyzer that is not included in the scaffolded scripts."
+    echo "For a simpler LOC count, use: ./scripts/loc_simple.sh"
+    echo ""
     exit 1
 fi
 

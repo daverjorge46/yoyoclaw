@@ -2,8 +2,9 @@
 # A script to add, commit, and push changes to GitHub.
 # It uses a default timestamped message if none is provided.
 
-# Ensure we are in the correct directory for git commands
-cd ~/your-project.com || exit
+# Get the repository root directory (works from any subdirectory in the repo)
+REPO_ROOT="$(git rev-parse --show-toplevel)" || exit
+cd "$REPO_ROOT" || exit
 
 # --- New Logic ---
 # Generate the Pacific Time timestamp.
@@ -31,14 +32,3 @@ echo "Pushing changes to GitHub..."
 git push
 
 echo "Push complete."
-
-# Start test server for current branch
-current_branch=$(git branch --show-current)
-if [ "$current_branch" != "main" ]; then
-    echo ""
-    echo "🚀 Starting test server for branch '$current_branch'..."
-    ./test_server_manager.sh start "$current_branch"
-else
-    echo ""
-    echo "ℹ️  Skipping test server startup for main branch"
-fi
