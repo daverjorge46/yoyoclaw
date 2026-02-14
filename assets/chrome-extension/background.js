@@ -83,16 +83,24 @@ async function restoreState() {
         nextSession = extensionState.nextSession
       }
       
-      // Validate and restore tabs - some may have closed during service worker downtime
+      // Validate restored tabs and re-attach debuggers.
+      // After an MV3 service worker restart, Chrome has no debugger sessions
+      // even though we saved tab state — so we must re-attach, not just
+      // repopulate the maps.
+      const tabsToReattach = []
       if (Array.isArray(extensionState.attachedTabs)) {
         for (const [tabId, tabState] of extensionState.attachedTabs) {
           try {
             const tab = await chrome.tabs.get(tabId)
             if (tab) {
-              tabs.set(tabId, tabState)
-              if (tabState.sessionId) {
-                tabBySession.set(tabState.sessionId, tabId)
-              }
+              tabsToReattach.push(tabId)
+              // Mark as disconnected until debugger re-attach succeeds
+              tabs.set(tabId, { ...tabState, state: 'disconnected' })
+              setBadge(tabId, 'connecting')
+              void chrome.action.setTitle({
+                tabId,
+                title: 'OpenClaw Browser Relay: reconnecting...',
+              })
             }
           } catch {
             // Tab no longer exists, skip it
@@ -107,6 +115,31 @@ async function restoreState() {
             childSessionToTab.set(sessionId, tabId)
           }
         }
+      }
+
+      // Re-attach debuggers after relay connection is established
+      if (tabsToReattach.length > 0) {
+        try {
+          await ensureRelayConnection()
+          for (const tabId of tabsToReattach) {
+            try {
+              // Clear stale state before fresh attach
+              const oldState = tabs.get(tabId)
+              if (oldState?.sessionId) tabBySession.delete(oldState.sessionId)
+              tabs.delete(tabId)
+              await attachTab(tabId)
+              console.log(`Restored debugger for tab ${tabId}`)
+            } catch (err) {
+              console.warn(`Failed to re-attach tab ${tabId}:`, err.message)
+              tabs.delete(tabId)
+              setBadge(tabId, 'off')
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to connect relay during restore, will retry via keepalive:', err.message)
+          if (!reconnectTimer) scheduleReconnect()
+        }
+        await saveState()
       }
     }
   } catch (err) {
@@ -691,7 +724,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       if (!relayConnectPromise && !reconnectTimer) {
         console.log('Keepalive: WebSocket unhealthy, triggering reconnect')
         await ensureRelayConnection().catch(() => {
-          // If connection fails, scheduleReconnect will be called by onRelayClosed
+          // ensureRelayConnection may throw without triggering onRelayClosed
+          // (e.g., preflight fetch fails before WS is created), so ensure
+          // reconnect is always scheduled on failure.
+          if (!reconnectTimer) {
+            scheduleReconnect()
+          }
         })
       }
     }
