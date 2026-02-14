@@ -410,9 +410,8 @@ function splitShellPipeline(command: string): { ok: boolean; reason?: string; se
       if (ch === "`") {
         return { ok: false, reason: "unsupported shell token: `", segments: [] };
       }
-      if (ch === "\n" || ch === "\r") {
-        return { ok: false, reason: "unsupported shell token: newline", segments: [] };
-      }
+      // Literal newlines inside double quotes are valid POSIX shell syntax.
+      // Security-sensitive tokens ($(), backticks) are already rejected above.
       if (ch === '"') {
         inDouble = false;
       }

@@ -247,6 +247,22 @@ describe("exec approvals shell parsing", () => {
     expect(res.segments[0]?.argv[0]).toBe("/usr/bin/cat");
   });
 
+  it("allows literal newlines inside double-quoted strings", () => {
+    const res = analyzeShellCommand({
+      command: 'gh issue create --body "## Heading\n\nSome text with **markdown**"',
+    });
+    expect(res.ok).toBe(true);
+    expect(res.segments[0]?.argv[0]).toBe("gh");
+  });
+
+  it("allows carriage return + newline inside double-quoted strings", () => {
+    const res = analyzeShellCommand({
+      command: 'echo "line one\r\nline two"',
+    });
+    expect(res.ok).toBe(true);
+    expect(res.segments[0]?.argv[0]).toBe("echo");
+  });
+
   it("rejects multiline commands without heredoc", () => {
     const res = analyzeShellCommand({
       command: "/usr/bin/echo first line\n/usr/bin/echo second line",
