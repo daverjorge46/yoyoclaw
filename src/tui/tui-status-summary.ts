@@ -5,7 +5,7 @@ import { formatContextUsageLine } from "./tui-formatters.js";
 
 export function formatStatusSummary(summary: GatewayStatusSummary) {
   const lines: string[] = [];
-  lines.push("Gateway status");
+  lines.push("🌿 gclaw status");
 
   if (!summary.linkChannel) {
     lines.push("Link channel: unknown");
