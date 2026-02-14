@@ -392,6 +392,7 @@ export async function resolveReplyDirectives(params: {
     defaultModel,
     provider,
     model,
+    thinkingLevel: resolvedThinkLevel,
     hasModelDirective: directives.hasModelDirective,
     hasResolvedHeartbeatModelOverride,
   });
