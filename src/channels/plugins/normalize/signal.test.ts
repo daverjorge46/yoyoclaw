@@ -34,4 +34,22 @@ describe("signal target normalization", () => {
     expect(looksLikeSignalTargetId("uuid:")).toBe(false);
     expect(looksLikeSignalTargetId("uuid:not-a-uuid")).toBe(false);
   });
+
+  it("preserves group ID case (base64 is case-sensitive) (#11662)", () => {
+    expect(normalizeSignalMessagingTarget("group:AbCdEfGh123456789xYz+/aBcDeF==")).toBe(
+      "group:AbCdEfGh123456789xYz+/aBcDeF==",
+    );
+  });
+
+  it("preserves group ID case with signal: prefix (#11662)", () => {
+    expect(normalizeSignalMessagingTarget("signal:group:AbCdEfGh123456789xYz+/aBcDeF==")).toBe(
+      "group:AbCdEfGh123456789xYz+/aBcDeF==",
+    );
+  });
+
+  it("preserves group ID case with uppercase GROUP: prefix (#11662)", () => {
+    expect(normalizeSignalMessagingTarget("GROUP:AbCdEfGh123456789xYz+/aBcDeF==")).toBe(
+      "group:AbCdEfGh123456789xYz+/aBcDeF==",
+    );
+  });
 });
