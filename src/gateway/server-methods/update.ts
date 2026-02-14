@@ -48,7 +48,7 @@ function scheduleGatewayServiceRestart(opts?: { delayMs?: number; reason?: strin
       `update.run: service restart via ${restart.method} failed (${restart.detail ?? "unknown"}); falling back to in-process SIGUSR1 restart`,
     );
     scheduleGatewaySigusr1Restart({
-      delayMs: 0,
+      // Keep a short grace period so slow service-manager restarts can settle first.
       reason: reason ?? "update.run:fallback",
     });
   }, delayMs);
