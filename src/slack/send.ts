@@ -12,6 +12,7 @@ import { loadWebMedia } from "../web/media.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { createSlackWebClient } from "./client.js";
 import { markdownToSlackMrkdwnChunks } from "./format.js";
+import { recordMessageOrigin } from "./message-origin-cache.js";
 import { parseSlackTarget } from "./targets.js";
 import { resolveSlackBotToken } from "./token.js";
 
@@ -33,6 +34,10 @@ type SlackSendOpts = {
   mediaUrl?: string;
   client?: WebClient;
   threadTs?: string;
+  /** Originating session for agent-to-agent routing (prevents loops). */
+  originSessionKey?: string;
+  /** Originating agent ID for agent-to-agent routing. */
+  originAgentId?: string;
 };
 
 export type SlackSendResult = {
@@ -94,7 +99,7 @@ async function uploadSlackFile(params: {
   caption?: string;
   threadTs?: string;
   maxBytes?: number;
-}): Promise<string> {
+}): Promise<{ fileId: string; messageTs?: string }> {
   const {
     buffer,
     contentType: _contentType,
@@ -112,8 +117,8 @@ async function uploadSlackFile(params: {
     : basePayload;
   const response = await params.client.files.uploadV2(payload);
   const parsed = response as {
-    files?: Array<{ id?: string; name?: string }>;
-    file?: { id?: string; name?: string };
+    files?: Array<{ id?: string; name?: string; ts?: string }>;
+    file?: { id?: string; name?: string; ts?: string };
   };
   const fileId =
     parsed.files?.[0]?.id ??
@@ -121,7 +126,9 @@ async function uploadSlackFile(params: {
     parsed.files?.[0]?.name ??
     parsed.file?.name ??
     "unknown";
-  return fileId;
+  // Extract the message timestamp from the file upload response
+  const messageTs = parsed.files?.[0]?.ts ?? parsed.file?.ts;
+  return { fileId, messageTs };
 }
 
 export async function sendMessageSlack(
@@ -171,9 +178,10 @@ export async function sendMessageSlack(
       : undefined;
 
   let lastMessageId = "";
+  let mediaMessageTs: string | undefined;
   if (opts.mediaUrl) {
     const [firstChunk, ...rest] = chunks;
-    lastMessageId = await uploadSlackFile({
+    const uploadResult = await uploadSlackFile({
       client,
       channelId,
       mediaUrl: opts.mediaUrl,
@@ -181,6 +189,10 @@ export async function sendMessageSlack(
       threadTs: opts.threadTs,
       maxBytes: mediaMaxBytes,
     });
+    // Track the file upload's message ts separately - don't use fileId as fallback
+    // since fileId is not a valid message timestamp for origin lookup
+    mediaMessageTs = uploadResult.messageTs;
+    lastMessageId = uploadResult.messageTs ?? uploadResult.fileId;
     for (const chunk of rest) {
       const response = await client.chat.postMessage({
         channel: channelId,
@@ -198,6 +210,22 @@ export async function sendMessageSlack(
       });
       lastMessageId = response.ts ?? lastMessageId;
     }
+  }
+
+  // Record message origin for agent-to-agent routing
+  // Only record if we have a valid message timestamp (not a file ID)
+  const validMessageTs = opts.mediaUrl
+    ? (mediaMessageTs ?? lastMessageId.match(/^\d+\.\d+$/))
+      ? lastMessageId
+      : undefined
+    : lastMessageId;
+  if (validMessageTs && opts.originSessionKey && opts.originAgentId) {
+    recordMessageOrigin({
+      channelId,
+      messageTs: validMessageTs,
+      sessionKey: opts.originSessionKey,
+      agentId: opts.originAgentId,
+    });
   }
 
   return {

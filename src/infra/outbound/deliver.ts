@@ -88,6 +88,8 @@ async function createChannelHandler(params: {
   deps?: OutboundSendDeps;
   gifPlayback?: boolean;
   silent?: boolean;
+  originSessionKey?: string;
+  originAgentId?: string;
 }): Promise<ChannelHandler> {
   const outbound = await loadChannelOutboundAdapter(params.channel);
   if (!outbound?.sendText || !outbound?.sendMedia) {
@@ -104,6 +106,8 @@ async function createChannelHandler(params: {
     deps: params.deps,
     gifPlayback: params.gifPlayback,
     silent: params.silent,
+    originSessionKey: params.originSessionKey,
+    originAgentId: params.originAgentId,
   });
   if (!handler) {
     throw new Error(`Outbound not configured for channel: ${params.channel}`);
@@ -122,6 +126,8 @@ function createPluginHandler(params: {
   deps?: OutboundSendDeps;
   gifPlayback?: boolean;
   silent?: boolean;
+  originSessionKey?: string;
+  originAgentId?: string;
 }): ChannelHandler | null {
   const outbound = params.outbound;
   if (!outbound?.sendText || !outbound?.sendMedia) {
@@ -149,6 +155,8 @@ function createPluginHandler(params: {
             deps: params.deps,
             silent: params.silent,
             payload,
+            originSessionKey: params.originSessionKey,
+            originAgentId: params.originAgentId,
           })
       : undefined,
     sendText: async (text) =>
@@ -162,6 +170,8 @@ function createPluginHandler(params: {
         gifPlayback: params.gifPlayback,
         deps: params.deps,
         silent: params.silent,
+        originSessionKey: params.originSessionKey,
+        originAgentId: params.originAgentId,
       }),
     sendMedia: async (caption, mediaUrl) =>
       sendMedia({
@@ -175,6 +185,8 @@ function createPluginHandler(params: {
         gifPlayback: params.gifPlayback,
         deps: params.deps,
         silent: params.silent,
+        originSessionKey: params.originSessionKey,
+        originAgentId: params.originAgentId,
       }),
   };
 }
@@ -301,6 +313,8 @@ async function deliverOutboundPayloadsCore(params: {
     threadId: params.threadId,
     gifPlayback: params.gifPlayback,
     silent: params.silent,
+    originSessionKey: params.mirror?.sessionKey,
+    originAgentId: params.mirror?.agentId,
   });
   const textLimit = handler.chunker
     ? resolveTextChunkLimit(cfg, channel, accountId, {

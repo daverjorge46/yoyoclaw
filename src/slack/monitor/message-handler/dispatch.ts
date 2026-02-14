@@ -18,6 +18,32 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
   const cfg = ctx.cfg;
   const runtime = ctx.runtime;
 
+  // Prevent routing loops: if this message was sent by our own bot via the message tool
+  // and the target session matches the origin session, skip dispatching.
+  // This allows agent-to-agent communication while preventing a session from receiving
+  // its own messages back.
+  if (prepared.messageOrigin) {
+    const normalizedOriginSession = prepared.messageOrigin.sessionKey.toLowerCase();
+    const normalizedRouteSession = route.sessionKey.toLowerCase();
+    if (normalizedOriginSession === normalizedRouteSession) {
+      logVerbose(
+        `slack: skipping dispatch for session ${route.sessionKey} (origin matches route, preventing loop)`,
+      );
+      // Still record the session and clear history, but don't dispatch to the agent
+      if (prepared.isRoomish) {
+        clearHistoryEntriesIfEnabled({
+          historyMap: ctx.channelHistories,
+          historyKey: prepared.historyKey,
+          limit: ctx.historyLimit,
+        });
+      }
+      return;
+    }
+    logVerbose(
+      `slack: routing message from session ${prepared.messageOrigin.sessionKey} to session ${route.sessionKey} (agent-to-agent)`,
+    );
+  }
+
   if (prepared.isDirectMessage) {
     const sessionCfg = cfg.session;
     const storePath = resolveStorePath(sessionCfg?.store, {

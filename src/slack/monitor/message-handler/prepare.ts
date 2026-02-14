@@ -37,6 +37,7 @@ import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import { buildUntrustedChannelMetadata } from "../../../security/channel-metadata.js";
 import { reactSlackMessage } from "../../actions.js";
+import { lookupMessageOrigin } from "../../message-origin-cache.js";
 import { sendMessageSlack } from "../../send.js";
 import { resolveSlackThreadContext } from "../../threading.js";
 import { resolveSlackAllowListMatch, resolveSlackUserAllowed } from "../allow-list.js";
@@ -93,11 +94,35 @@ export async function prepareSlackMessage(params: {
     false;
 
   const isBotMessage = Boolean(message.bot_id);
+  // Only classify as "own bot" when the message's user matches our bot's user ID.
+  // Comparing message.bot_id to ctx.botUserId is incorrect because they are
+  // different ID types (bot_id is like "B123", user IDs are like "U123").
+  const isOwnBotMessage =
+    isBotMessage && message.user && ctx.botUserId && message.user === ctx.botUserId;
+
+  // Check if this is a message from our own bot with a tracked origin
+  // (i.e., sent via the message tool by another agent)
+  const messageOrigin = isOwnBotMessage
+    ? lookupMessageOrigin({
+        channelId: message.channel,
+        messageTs: message.ts ?? "",
+      })
+    : undefined;
+
   if (isBotMessage) {
-    if (message.user && ctx.botUserId && message.user === ctx.botUserId) {
+    // If this is from our own bot with a tracked origin, allow it through
+    // so it can be routed to other bound sessions (agent-to-agent communication)
+    if (isOwnBotMessage && messageOrigin) {
+      logVerbose(
+        `slack: received own bot message with origin session=${messageOrigin.sessionKey}, will route to other bound sessions`,
+      );
+      // Continue processing - the origin will be used to prevent routing loops
+    } else if (isOwnBotMessage) {
+      // Own bot message without tracked origin - drop to prevent loops
+      logVerbose(`slack: drop own bot message (no origin tracked, preventing loop)`);
       return null;
-    }
-    if (!allowBots) {
+    } else if (!allowBots) {
+      // External bot message and allowBots is false
       logVerbose(`slack: drop bot message ${message.bot_id ?? "unknown"} (allowBots=false)`);
       return null;
     }
@@ -666,5 +691,6 @@ export async function prepareSlackMessage(params: {
     ackReactionMessageTs,
     ackReactionValue,
     ackReactionPromise,
+    messageOrigin,
   };
 }
