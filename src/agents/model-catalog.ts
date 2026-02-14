@@ -22,7 +22,8 @@ type DiscoveredModel = {
 
 type PiSdkModule = typeof import("./pi-model-discovery.js");
 
-let modelCatalogPromise: Promise<ModelCatalogEntry[]> | null = null;
+// Use Map to cache model catalogs per agentDir - fixes sub-agent model resolution
+const modelCatalogCache = new Map<string, Promise<ModelCatalogEntry[]>>();
 let hasLoggedModelCatalogError = false;
 const defaultImportPiSdk = () => import("./pi-model-discovery.js");
 let importPiSdk = defaultImportPiSdk;
@@ -57,7 +58,7 @@ function applyOpenAICodexSparkFallback(models: ModelCatalogEntry[]): void {
 }
 
 export function resetModelCatalogCacheForTest() {
-  modelCatalogPromise = null;
+  modelCatalogCache.clear();
   hasLoggedModelCatalogError = false;
   importPiSdk = defaultImportPiSdk;
 }
@@ -72,14 +73,18 @@ export async function loadModelCatalog(params?: {
   agentDir?: string;
   useCache?: boolean;
 }): Promise<ModelCatalogEntry[]> {
+  const agentDir = params?.agentDir ?? resolveOpenClawAgentDir();
+  
   if (params?.useCache === false) {
-    modelCatalogPromise = null;
+    modelCatalogCache.delete(agentDir);
   }
-  if (modelCatalogPromise) {
-    return modelCatalogPromise;
+  
+  const cachedPromise = modelCatalogCache.get(agentDir);
+  if (cachedPromise) {
+    return cachedPromise;
   }
 
-  modelCatalogPromise = (async () => {
+  const catalogPromise = (async () => {
     const models: ModelCatalogEntry[] = [];
     const sortModels = (entries: ModelCatalogEntry[]) =>
       entries.sort((a, b) => {
@@ -131,7 +136,7 @@ export async function loadModelCatalog(params?: {
 
       if (models.length === 0) {
         // If we found nothing, don't cache this result so we can try again.
-        modelCatalogPromise = null;
+        modelCatalogCache.delete(agentDir);
       }
 
       return sortModels(models);
@@ -141,7 +146,7 @@ export async function loadModelCatalog(params?: {
         console.warn(`[model-catalog] Failed to load model catalog: ${String(error)}`);
       }
       // Don't poison the cache on transient dependency/filesystem issues.
-      modelCatalogPromise = null;
+      modelCatalogCache.delete(agentDir);
       if (models.length > 0) {
         return sortModels(models);
       }
@@ -149,7 +154,9 @@ export async function loadModelCatalog(params?: {
     }
   })();
 
-  return modelCatalogPromise;
+  // Cache by agentDir before returning
+  modelCatalogCache.set(agentDir, catalogPromise);
+  return catalogPromise;
 }
 
 /**
