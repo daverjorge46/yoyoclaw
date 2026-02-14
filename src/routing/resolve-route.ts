@@ -72,11 +72,16 @@ function normalizeAccountId(value: string | undefined | null): string {
 }
 
 function resolveChannelDefaultAccountIdForRoute(cfg: OpenClawConfig, channel: string): string {
-  const plugin = getChannelPlugin(channel);
-  if (!plugin) {
+  try {
+    const plugin = getChannelPlugin(channel);
+    if (!plugin) {
+      return DEFAULT_ACCOUNT_ID;
+    }
+    return normalizeAccountIdFromSessionKey(resolveChannelDefaultAccountId({ plugin, cfg }));
+  } catch {
+    // Plugin registry not initialized yet (early-init/config-only context) - fall back to default
     return DEFAULT_ACCOUNT_ID;
   }
-  return normalizeAccountIdFromSessionKey(resolveChannelDefaultAccountId({ plugin, cfg }));
 }
 
 function matchesAccountId(
