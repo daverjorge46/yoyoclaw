@@ -1,6 +1,35 @@
 import type { SessionSendPolicyConfig } from "./types.base.js";
 
-export type MemoryBackend = "builtin" | "qmd";
+export type MemoryBackend = "builtin" | "qmd" | "mongodb";
+
+export type MemoryMongoDBDeploymentProfile =
+  | "atlas-default"
+  | "atlas-m0"
+  | "community-mongot"
+  | "community-bare";
+
+export type MemoryMongoDBEmbeddingMode = "automated" | "managed";
+
+export type MemoryMongoDBFusionMethod = "scoreFusion" | "rankFusion" | "js-merge";
+
+export type MemoryMongoDBConfig = {
+  /** MongoDB connection string. Env fallback: OPENCLAW_MONGODB_URI */
+  uri?: string;
+  /** Database name. Default: "openclaw" */
+  database?: string;
+  /** Collection prefix. Default: "openclaw_" */
+  collectionPrefix?: string;
+  /** Deployment profile. Default: "atlas-default" */
+  deploymentProfile?: MemoryMongoDBDeploymentProfile;
+  /** Embedding mode. Default: "automated" (MongoDB Voyage AI autoEmbed) */
+  embeddingMode?: MemoryMongoDBEmbeddingMode;
+  /** Hybrid search fusion method. Default: "scoreFusion" */
+  fusionMethod?: MemoryMongoDBFusionMethod;
+  /** Vector quantization. Default: "none" */
+  quantization?: "none" | "scalar" | "binary";
+  /** File watcher debounce in milliseconds. Default: 500 */
+  watchDebounceMs?: number;
+};
 export type MemoryCitationsMode = "auto" | "on" | "off";
 export type MemoryQmdSearchMode = "query" | "search" | "vsearch";
 
@@ -8,6 +37,7 @@ export type MemoryConfig = {
   backend?: MemoryBackend;
   citations?: MemoryCitationsMode;
   qmd?: MemoryQmdConfig;
+  mongodb?: MemoryMongoDBConfig;
 };
 
 export type MemoryQmdConfig = {

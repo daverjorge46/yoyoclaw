@@ -4,6 +4,9 @@ import type { SessionSendPolicyConfig } from "../config/types.base.js";
 import type {
   MemoryBackend,
   MemoryCitationsMode,
+  MemoryMongoDBDeploymentProfile,
+  MemoryMongoDBEmbeddingMode,
+  MemoryMongoDBFusionMethod,
   MemoryQmdConfig,
   MemoryQmdIndexPath,
   MemoryQmdSearchMode,
@@ -13,10 +16,22 @@ import { parseDurationMs } from "../cli/parse-duration.js";
 import { resolveUserPath } from "../utils.js";
 import { splitShellArgs } from "../utils/shell-argv.js";
 
+export type ResolvedMongoDBConfig = {
+  uri: string;
+  database: string;
+  collectionPrefix: string;
+  deploymentProfile: MemoryMongoDBDeploymentProfile;
+  embeddingMode: MemoryMongoDBEmbeddingMode;
+  fusionMethod: MemoryMongoDBFusionMethod;
+  quantization: "none" | "scalar" | "binary";
+  watchDebounceMs: number;
+};
+
 export type ResolvedMemoryBackendConfig = {
   backend: MemoryBackend;
   citations: MemoryCitationsMode;
   qmd?: ResolvedQmdConfig;
+  mongodb?: ResolvedMongoDBConfig;
 };
 
 export type ResolvedQmdCollection = {
@@ -259,6 +274,36 @@ export function resolveMemoryBackendConfig(params: {
 }): ResolvedMemoryBackendConfig {
   const backend = params.cfg.memory?.backend ?? DEFAULT_BACKEND;
   const citations = params.cfg.memory?.citations ?? DEFAULT_CITATIONS;
+
+  if (backend === "mongodb") {
+    const mongoCfg = params.cfg.memory?.mongodb;
+    const uri = mongoCfg?.uri ?? process.env.OPENCLAW_MONGODB_URI;
+    if (!uri) {
+      throw new Error(
+        "MongoDB URI required: set memory.mongodb.uri in config or OPENCLAW_MONGODB_URI env var",
+      );
+    }
+    return {
+      backend: "mongodb",
+      citations,
+      mongodb: {
+        uri,
+        database: mongoCfg?.database ?? "openclaw",
+        collectionPrefix: mongoCfg?.collectionPrefix ?? "openclaw_",
+        deploymentProfile: mongoCfg?.deploymentProfile ?? "atlas-default",
+        embeddingMode: mongoCfg?.embeddingMode ?? "automated",
+        fusionMethod: mongoCfg?.fusionMethod ?? "scoreFusion",
+        quantization: mongoCfg?.quantization ?? "none",
+        watchDebounceMs:
+          typeof mongoCfg?.watchDebounceMs === "number" &&
+          Number.isFinite(mongoCfg.watchDebounceMs) &&
+          mongoCfg.watchDebounceMs >= 0
+            ? Math.floor(mongoCfg.watchDebounceMs)
+            : 500,
+      },
+    };
+  }
+
   if (backend !== "qmd") {
     return { backend: "builtin", citations };
   }

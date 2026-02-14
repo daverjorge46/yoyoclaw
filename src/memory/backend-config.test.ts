@@ -1,5 +1,5 @@
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { resolveMemoryBackendConfig } from "./backend-config.js";
@@ -107,5 +107,106 @@ describe("resolveMemoryBackendConfig", () => {
     } as OpenClawConfig;
     const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
     expect(resolved.qmd?.searchMode).toBe("vsearch");
+  });
+
+  // ---------------------------------------------------------------------------
+  // MongoDB backend tests
+  // ---------------------------------------------------------------------------
+
+  it("resolves mongodb backend with all defaults", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb://localhost:27017",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.backend).toBe("mongodb");
+    expect(resolved.mongodb).toBeDefined();
+    expect(resolved.mongodb!.uri).toBe("mongodb://localhost:27017");
+    expect(resolved.mongodb!.database).toBe("openclaw");
+    expect(resolved.mongodb!.collectionPrefix).toBe("openclaw_");
+    expect(resolved.mongodb!.deploymentProfile).toBe("atlas-default");
+    expect(resolved.mongodb!.embeddingMode).toBe("automated");
+    expect(resolved.mongodb!.fusionMethod).toBe("scoreFusion");
+    expect(resolved.mongodb!.quantization).toBe("none");
+  });
+
+  it("resolves mongodb with custom config values", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb+srv://atlas.example.com",
+          database: "mydb",
+          collectionPrefix: "custom_",
+          deploymentProfile: "community-mongot",
+          embeddingMode: "managed",
+          fusionMethod: "rankFusion",
+          quantization: "scalar",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.mongodb!.uri).toBe("mongodb+srv://atlas.example.com");
+    expect(resolved.mongodb!.database).toBe("mydb");
+    expect(resolved.mongodb!.collectionPrefix).toBe("custom_");
+    expect(resolved.mongodb!.deploymentProfile).toBe("community-mongot");
+    expect(resolved.mongodb!.embeddingMode).toBe("managed");
+    expect(resolved.mongodb!.fusionMethod).toBe("rankFusion");
+    expect(resolved.mongodb!.quantization).toBe("scalar");
+  });
+
+  it("resolves mongodb URI from OPENCLAW_MONGODB_URI env var", () => {
+    vi.stubEnv("OPENCLAW_MONGODB_URI", "mongodb://from-env:27017");
+    try {
+      const cfg = {
+        agents: { defaults: { workspace: "/tmp/memory-test" } },
+        memory: {
+          backend: "mongodb",
+          mongodb: {},
+        },
+      } as OpenClawConfig;
+      const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+      expect(resolved.mongodb!.uri).toBe("mongodb://from-env:27017");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("throws when mongodb backend has no URI", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {},
+      },
+    } as OpenClawConfig;
+    expect(() => resolveMemoryBackendConfig({ cfg, agentId: "main" })).toThrow(
+      /MongoDB URI required/,
+    );
+  });
+
+  it("config URI takes precedence over env var", () => {
+    vi.stubEnv("OPENCLAW_MONGODB_URI", "mongodb://from-env:27017");
+    try {
+      const cfg = {
+        agents: { defaults: { workspace: "/tmp/memory-test" } },
+        memory: {
+          backend: "mongodb",
+          mongodb: {
+            uri: "mongodb://from-config:27017",
+          },
+        },
+      } as OpenClawConfig;
+      const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+      expect(resolved.mongodb!.uri).toBe("mongodb://from-config:27017");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });
