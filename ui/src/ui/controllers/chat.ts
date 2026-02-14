@@ -16,6 +16,7 @@ export type ChatState = {
   chatRunId: string | null;
   chatStream: string | null;
   chatStreamStartedAt: number | null;
+  chatRoutedModel: string | null;
   lastError: string | null;
 };
 
@@ -25,6 +26,7 @@ export type ChatEventPayload = {
   state: "delta" | "final" | "aborted" | "error";
   message?: unknown;
   errorMessage?: string;
+  routedModel?: string;
 };
 
 export async function loadChatHistory(state: ChatState) {
@@ -193,18 +195,24 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
         state.chatStream = next;
       }
     }
+    if (payload.routedModel) {
+      state.chatRoutedModel = payload.routedModel;
+    }
   } else if (payload.state === "final") {
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
+    state.chatRoutedModel = null;
   } else if (payload.state === "aborted") {
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
+    state.chatRoutedModel = null;
   } else if (payload.state === "error") {
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
+    state.chatRoutedModel = null;
     state.lastError = payload.errorMessage ?? "chat error";
   }
   return payload.state;

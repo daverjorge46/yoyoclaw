@@ -51,8 +51,6 @@ export type AgentRunLoopResult =
       autoCompactionCompleted: boolean;
       /** Payload keys sent directly (not via pipeline) during tool flush. */
       directlySentBlockKeys?: Set<string>;
-      /** Model reference selected by pre-route (e.g. "anthropic/claude-opus-4-6"). */
-      routedModelRef?: string;
     }
   | { kind: "final"; payload: ReplyPayload };
 
@@ -113,7 +111,6 @@ export async function runAgentTurnWithFallback(params: {
     params.isHeartbeat || isSystemPrompt
       ? null
       : resolveRouterConfig(params.followupRun.run.config);
-  let routedModelRef: string | undefined;
   if (routerConfig) {
     // Extract last user message from session for conversation context
     let recentContext: string[] | undefined;
@@ -140,22 +137,14 @@ export async function runAgentTurnWithFallback(params: {
     console.log(
       `[pre-route] tier="${route.tier}" (${route.latencyMs}ms${route.fallback ? " FALLBACK" : ""}) → ${route.modelRef}`,
     );
-    routedModelRef = route.modelRef;
     const routed = parseRoutedModelRef(route.modelRef);
     params.followupRun.run.provider = routed.provider;
     params.followupRun.run.model = routed.model;
     fallbackProvider = routed.provider;
     fallbackModel = routed.model;
 
-    // Store routed model on the run context so webchat can prepend the tag
-    // (webchat disables block streaming, so the pipeline path below is skipped).
+    // Store routed model on the run context so the webchat UI can display it.
     registerAgentRunContext(runId, { routedModelRef: route.modelRef });
-
-    // Send model tag via streaming pipeline so it arrives before streamed content.
-    // For non-streaming, the tag is prepended to finalPayloads in runReplyAgent.
-    if (params.blockReplyPipeline) {
-      params.blockReplyPipeline.enqueue({ text: `🔀 ${route.modelRef}` });
-    }
   }
 
   while (true) {
@@ -683,6 +672,5 @@ export async function runAgentTurnWithFallback(params: {
     didLogHeartbeatStrip,
     autoCompactionCompleted,
     directlySentBlockKeys: directlySentBlockKeys.size > 0 ? directlySentBlockKeys : undefined,
-    routedModelRef,
   };
 }

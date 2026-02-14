@@ -68,7 +68,7 @@ describe("resolveRouterConfig", () => {
     const result = resolveRouterConfig({
       router: {
         enabled: true,
-        ollamaBaseUrl: "http://jetson:11434",
+        baseUrl: "http://jetson:11434",
         model: "qwen3:4b",
         timeoutMs: 5000,
         tiers: {
@@ -82,7 +82,7 @@ describe("resolveRouterConfig", () => {
 
     expect(result).toEqual({
       enabled: true,
-      ollamaBaseUrl: "http://jetson:11434",
+      baseUrl: "http://jetson:11434",
       model: "qwen3:4b",
       timeoutMs: 5000,
       tiers: {
@@ -91,7 +91,6 @@ describe("resolveRouterConfig", () => {
         "3": "anthropic/claude-opus-4-6",
       },
       defaultTier: "2",
-      systemPrompt: undefined,
     });
   });
 });
@@ -130,7 +129,6 @@ describe("parseRoutedModelRef", () => {
 describe("routeMessage", () => {
   const baseCfg: RouterConfig = {
     enabled: true,
-    ollamaBaseUrl: "http://localhost:11434",
     tiers: {
       "1": "minimax/MiniMax-Text-01",
       "2": "anthropic/claude-haiku-4-5-20251001",
@@ -256,11 +254,11 @@ describe("routeMessage", () => {
     expect(body.options.temperature).toBe(0.0);
   });
 
-  it("uses custom ollamaBaseUrl from config", async () => {
+  it("uses custom baseUrl from config", async () => {
     mockOllamaResponse("1");
     await routeMessage("hey", {
       ...baseCfg,
-      ollamaBaseUrl: "http://jetson:11434",
+      baseUrl: "http://jetson:11434",
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(

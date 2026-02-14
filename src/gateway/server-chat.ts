@@ -228,7 +228,13 @@ export function createAgentEventHandler({
   clearAgentRunContext,
   toolEventRecipients,
 }: AgentEventHandlerOptions) {
-  const emitChatDelta = (sessionKey: string, clientRunId: string, seq: number, text: string) => {
+  const emitChatDelta = (
+    sessionKey: string,
+    clientRunId: string,
+    seq: number,
+    text: string,
+    routedModel?: string,
+  ) => {
     if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
       return;
     }
@@ -239,7 +245,7 @@ export function createAgentEventHandler({
       return;
     }
     chatRunState.deltaSentAt.set(clientRunId, now);
-    const payload = {
+    const payload: Record<string, unknown> = {
       runId: clientRunId,
       sessionKey,
       seq,
@@ -250,6 +256,9 @@ export function createAgentEventHandler({
         timestamp: now,
       },
     };
+    if (routedModel) {
+      payload.routedModel = routedModel;
+    }
     // Suppress webchat broadcast for heartbeat runs when showOk is false
     if (!shouldSuppressHeartbeatBroadcast(clientRunId)) {
       broadcast("chat", payload, { dropIfSlow: true });
@@ -381,24 +390,9 @@ export function createAgentEventHandler({
         nodeSendToSession(sessionKey, "agent", isToolEvent ? toolPayload : agentPayload);
       }
       if (!isAborted && evt.stream === "assistant" && typeof evt.data?.text === "string") {
-        emitChatDelta(sessionKey, clientRunId, evt.seq, evt.data.text);
+        const routedModel = getAgentRunContext(evt.runId)?.routedModelRef;
+        emitChatDelta(sessionKey, clientRunId, evt.seq, evt.data.text, routedModel);
       } else if (!isAborted && (lifecyclePhase === "end" || lifecyclePhase === "error")) {
-        // Prepend routed model tag to the buffer so webchat shows which model handled
-        // the request. Block-streaming channels handle this via the pipeline; webchat
-        // disables block streaming so the tag must be injected here before the final
-        // broadcast.
-        if (lifecyclePhase === "end") {
-          const runContext = getAgentRunContext(evt.runId);
-          if (runContext?.routedModelRef) {
-            const existing = chatRunState.buffers.get(clientRunId) ?? "";
-            if (existing) {
-              chatRunState.buffers.set(
-                clientRunId,
-                `🔀 ${runContext.routedModelRef}\n\n${existing}`,
-              );
-            }
-          }
-        }
         if (chatLink) {
           const finished = chatRunState.registry.shift(evt.runId);
           if (!finished) {
