@@ -121,7 +121,13 @@ export const systemHandlers: GatewayRequestHandlers = {
         }
       }
     } else {
-      enqueueSystemEvent(text, { sessionKey });
+      const normalizedReason = (reason ?? "").toLowerCase();
+      const isHeartbeatOrigin =
+        normalizedReason.startsWith("periodic") || normalizedReason === "heartbeat";
+      enqueueSystemEvent(text, {
+        sessionKey,
+        ...(isHeartbeatOrigin ? { source: "heartbeat" } : {}),
+      });
     }
     const nextPresenceVersion = context.incrementPresenceVersion();
     context.broadcast(
