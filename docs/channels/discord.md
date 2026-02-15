@@ -482,6 +482,57 @@ Default gate behavior:
 | moderation                                                                                                                                                               | disabled |
 | presence                                                                                                                                                                 | disabled |
 
+## Embeds
+
+Discord embeds allow rich, structured messages with colors, fields, timestamps, and formatted sections. OpenClaw provides ready-to-use embed templates for common use cases.
+
+### Quick Example
+
+```typescript
+import { createStatusEmbed } from './discord/embed-templates.js';
+import { sendMessageDiscord } from './discord/send.js';
+
+const embed = createStatusEmbed({
+  title: "Task Complete",
+  description: "Your request has been processed.",
+  status: "success",
+  fields: [
+    { name: "Duration", value: "2.3s", inline: true },
+    { name: "Items", value: "42", inline: true }
+  ]
+});
+
+await sendMessageDiscord(channelId, "", { embeds: [embed] });
+```
+
+### Available Templates
+
+OpenClaw includes built-in templates for:
+
+- **Status embeds** — success, info, warning, error states
+- **Alert embeds** — warnings with action recommendations
+- **System status** — health monitoring with metrics
+- **Session warnings** — large session file alerts
+- **Cron job status** — scheduled task monitoring
+- **Memory status** — NeuralMemory + SQLite metrics
+- **Error reports** — errors with stack traces and context
+- **Success confirmations** — operation completion with details
+
+See [Discord Embeds Guide](/discord-embeds) for full documentation and examples.
+
+### Embed Limits
+
+- Max 10 embeds per message
+- Title: 256 characters
+- Description: 4096 characters
+- Fields: 25 max (name: 256 chars, value: 1024 chars)
+- Footer: 2048 characters
+- Total: 6000 characters across all embeds
+
+### Permissions
+
+Bot requires **Embed Links** permission in the channel.
+
 ## Voice messages
 
 Discord voice messages show a waveform preview and require OGG/Opus audio plus metadata. OpenClaw generates the waveform automatically, but it needs `ffmpeg` and `ffprobe` available on the gateway host to inspect and convert audio files.

@@ -6,17 +6,18 @@ export const discordOutbound: ChannelOutboundAdapter = {
   chunker: null,
   textChunkLimit: 2000,
   pollMaxOptions: 10,
-  sendText: async ({ to, text, accountId, deps, replyToId, silent }) => {
+  sendText: async ({ to, text, accountId, deps, replyToId, silent, embeds }) => {
     const send = deps?.sendDiscord ?? sendMessageDiscord;
     const result = await send(to, text, {
       verbose: false,
       replyTo: replyToId ?? undefined,
       accountId: accountId ?? undefined,
       silent: silent ?? undefined,
+      embeds: embeds ?? undefined,
     });
     return { channel: "discord", ...result };
   },
-  sendMedia: async ({ to, text, mediaUrl, accountId, deps, replyToId, silent }) => {
+  sendMedia: async ({ to, text, mediaUrl, accountId, deps, replyToId, silent, embeds }) => {
     const send = deps?.sendDiscord ?? sendMessageDiscord;
     const result = await send(to, text, {
       verbose: false,
@@ -24,6 +25,7 @@ export const discordOutbound: ChannelOutboundAdapter = {
       replyTo: replyToId ?? undefined,
       accountId: accountId ?? undefined,
       silent: silent ?? undefined,
+      embeds: embeds ?? undefined,
     });
     return { channel: "discord", ...result };
   },
