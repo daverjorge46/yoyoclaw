@@ -6,6 +6,16 @@ import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { listDeliverableMessageChannels } from "../utils/message-channel.js";
 
 /**
+ * Strip control characters from a path before embedding in an LLM prompt.
+ * Prevents prompt injection via newlines/carriage-returns in directory names (OC-19).
+ * Preserves tabs (\x09) which are harmless in prompt context.
+ */
+export function sanitizePathForPrompt(path: string): string {
+  // eslint-disable-next-line no-control-regex
+  return path.replace(/[\x00-\x08\x0a-\x1f\x7f]/g, "");
+}
+
+/**
  * Controls which hardcoded sections are included in the system prompt.
  * - "full": All sections (default, for main agent)
  * - "minimal": Reduced sections (Tooling, Workspace, Runtime) - used for subagents
@@ -450,7 +460,7 @@ export function buildAgentSystemPrompt(params: {
       ? "If you need the current date, time, or day of week, run session_status (📊 session_status)."
       : "",
     "## Workspace",
-    `Your working directory is: ${params.workspaceDir}`,
+    `Your working directory is: ${sanitizePathForPrompt(params.workspaceDir)}`,
     "Treat this directory as the single global workspace for file operations unless explicitly instructed otherwise.",
     ...workspaceNotes,
     "",
@@ -462,18 +472,18 @@ export function buildAgentSystemPrompt(params: {
           "Some tools may be unavailable due to sandbox policy.",
           "Sub-agents stay sandboxed (no elevated/host access). Need outside-sandbox read/write? Don't spawn; ask first.",
           params.sandboxInfo.workspaceDir
-            ? `Sandbox workspace: ${params.sandboxInfo.workspaceDir}`
+            ? `Sandbox workspace: ${sanitizePathForPrompt(params.sandboxInfo.workspaceDir)}`
             : "",
           params.sandboxInfo.workspaceAccess
             ? `Agent workspace access: ${params.sandboxInfo.workspaceAccess}${
                 params.sandboxInfo.agentWorkspaceMount
-                  ? ` (mounted at ${params.sandboxInfo.agentWorkspaceMount})`
+                  ? ` (mounted at ${sanitizePathForPrompt(params.sandboxInfo.agentWorkspaceMount)})`
                   : ""
               }`
             : "",
           params.sandboxInfo.browserBridgeUrl ? "Sandbox browser: enabled." : "",
           params.sandboxInfo.browserNoVncUrl
-            ? `Sandbox browser observer (noVNC): ${params.sandboxInfo.browserNoVncUrl}`
+            ? `Sandbox browser observer (noVNC): ${sanitizePathForPrompt(params.sandboxInfo.browserNoVncUrl)}`
             : "",
           params.sandboxInfo.hostBrowserAllowed === true
             ? "Host browser control: allowed."

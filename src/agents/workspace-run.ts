@@ -1,4 +1,5 @@
 import type { OpenClawConfig } from "../config/config.js";
+import { logWarn } from "../logger.js";
 import { redactIdentifier } from "../logging/redact-identifier.js";
 import {
   classifySessionKeyShape,
@@ -84,8 +85,16 @@ export function resolveRunWorkspaceDir(params: {
   if (typeof requested === "string") {
     const trimmed = requested.trim();
     if (trimmed) {
+      // Strip control characters to prevent prompt injection via directory names (OC-19)
+      // eslint-disable-next-line no-control-regex
+      const sanitized = trimmed.replace(/[\x00-\x08\x0a-\x1f\x7f]/g, "");
+      if (sanitized !== trimmed) {
+        logWarn(
+          "Control characters stripped from workspace path (potential prompt injection attempt)",
+        );
+      }
       return {
-        workspaceDir: resolveUserPath(trimmed),
+        workspaceDir: resolveUserPath(sanitized),
         usedFallback: false,
         agentId,
         agentIdSource,
@@ -96,8 +105,11 @@ export function resolveRunWorkspaceDir(params: {
   const fallbackReason: WorkspaceFallbackReason =
     requested == null ? "missing" : typeof requested === "string" ? "blank" : "invalid_type";
   const fallbackWorkspace = resolveAgentWorkspaceDir(params.config ?? {}, agentId);
+  // Sanitize fallback path for defense-in-depth (OC-19)
+  // eslint-disable-next-line no-control-regex
+  const sanitizedFallback = fallbackWorkspace.replace(/[\x00-\x08\x0a-\x1f\x7f]/g, "");
   return {
-    workspaceDir: resolveUserPath(fallbackWorkspace),
+    workspaceDir: resolveUserPath(sanitizedFallback),
     usedFallback: true,
     fallbackReason,
     agentId,
