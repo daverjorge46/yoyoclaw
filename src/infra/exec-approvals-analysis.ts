@@ -410,9 +410,6 @@ function splitShellPipeline(command: string): { ok: boolean; reason?: string; se
       if (ch === "`") {
         return { ok: false, reason: "unsupported shell token: `", segments: [] };
       }
-      if (ch === "\n" || ch === "\r") {
-        return { ok: false, reason: "unsupported shell token: newline", segments: [] };
-      }
       if (ch === '"') {
         inDouble = false;
       }
