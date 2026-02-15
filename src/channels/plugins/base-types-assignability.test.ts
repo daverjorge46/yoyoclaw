@@ -1,13 +1,13 @@
 import { describe, it, expectTypeOf } from "vitest";
-import type { BaseProbeResult, BaseTokenResolution } from "./types.js";
-import type { TelegramProbe } from "../../telegram/probe.js";
 import type { DiscordProbe } from "../../discord/probe.js";
-import type { SlackProbe } from "../../slack/probe.js";
-import type { SignalProbe } from "../../signal/probe.js";
+import type { DiscordTokenResolution } from "../../discord/token.js";
 import type { IMessageProbe } from "../../imessage/probe.js";
 import type { LineProbeResult } from "../../line/types.js";
+import type { SignalProbe } from "../../signal/probe.js";
+import type { SlackProbe } from "../../slack/probe.js";
+import type { TelegramProbe } from "../../telegram/probe.js";
 import type { TelegramTokenResolution } from "../../telegram/token.js";
-import type { DiscordTokenResolution } from "../../discord/token.js";
+import type { BaseProbeResult, BaseTokenResolution } from "./types.js";
 
 describe("BaseProbeResult assignability", () => {
   it("TelegramProbe satisfies BaseProbeResult", () => {
