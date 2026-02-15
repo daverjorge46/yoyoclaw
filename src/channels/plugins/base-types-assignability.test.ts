@@ -6,6 +6,8 @@ import type { SlackProbe } from "../../slack/probe.js";
 import type { SignalProbe } from "../../signal/probe.js";
 import type { IMessageProbe } from "../../imessage/probe.js";
 import type { LineProbeResult } from "../../line/types.js";
+import type { TelegramTokenResolution } from "../../telegram/token.js";
+import type { DiscordTokenResolution } from "../../discord/token.js";
 
 describe("BaseProbeResult assignability", () => {
   it("TelegramProbe satisfies BaseProbeResult", () => {
@@ -30,5 +32,15 @@ describe("BaseProbeResult assignability", () => {
 
   it("LineProbeResult satisfies BaseProbeResult", () => {
     expectTypeOf<LineProbeResult>().toMatchTypeOf<BaseProbeResult>();
+  });
+});
+
+describe("BaseTokenResolution assignability", () => {
+  it("TelegramTokenResolution satisfies BaseTokenResolution", () => {
+    expectTypeOf<TelegramTokenResolution>().toMatchTypeOf<BaseTokenResolution>();
+  });
+
+  it("DiscordTokenResolution satisfies BaseTokenResolution", () => {
+    expectTypeOf<DiscordTokenResolution>().toMatchTypeOf<BaseTokenResolution>();
   });
 });
