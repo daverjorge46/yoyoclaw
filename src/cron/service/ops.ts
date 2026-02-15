@@ -1,4 +1,4 @@
-import type { CronJobCreate, CronJobPatch } from "../types.js";
+import type { CronJob, CronJobCreate, CronJobPatch } from "../types.js";
 import type { CronServiceState } from "./state.js";
 import {
   applyJobPatch,
@@ -12,7 +12,15 @@ import {
 } from "./jobs.js";
 import { locked } from "./locked.js";
 import { ensureLoaded, persist, warnIfDisabled } from "./store.js";
-import { armTimer, emit, executeJob, runMissedJobs, stopTimer, wake } from "./timer.js";
+import {
+  applyJobResult,
+  armTimer,
+  emit,
+  executeJobCore,
+  runMissedJobs,
+  stopTimer,
+  wake,
+} from "./timer.js";
 
 export async function start(state: CronServiceState) {
   let startupInterruptedJobIds = new Set<string>();
@@ -210,32 +218,77 @@ export async function run(state: CronServiceState, id: string, mode?: "due" | "f
     if (!due) {
       return { ok: true, ran: false, reason: "not-due" as const };
     }
-    // Reserve the run while holding the lock so concurrent control RPCs
-    // observe this job as in-flight immediately.
+
+    // Reserve run atomically under lock, then execute with a snapshot outside lock.
     job.state.runningAtMs = now;
     job.state.lastError = undefined;
+    emit(state, { jobId: job.id, action: "started", runAtMs: now });
     await persist(state);
-    return { ok: true, ran: true, jobId: id, now } as const;
+
+    const executionJob = JSON.parse(JSON.stringify(job)) as CronJob;
+    return { ok: true, ran: true, jobId: job.id, startedAt: now, executionJob } as const;
   });
 
   if (!prepared.ran) {
     return prepared;
   }
 
-  // Execute outside the cron store lock so cron.status/list/control RPCs are
-  // not blocked by long-running job payloads.
-  const runNow = prepared.now;
-  if (typeof runNow !== "number") {
+  if (!("jobId" in prepared) || !("startedAt" in prepared) || !("executionJob" in prepared)) {
     return { ok: true, ran: false, reason: "not-found-after-prepare" as const };
   }
-  const job = state.store?.jobs.find((j) => j.id === prepared.jobId);
-  if (!job) {
+  const preparedJobId = prepared.jobId;
+  const preparedStartedAt = prepared.startedAt;
+  const executionJob = prepared.executionJob;
+  if (typeof preparedStartedAt !== "number" || !executionJob) {
     return { ok: true, ran: false, reason: "not-found-after-prepare" as const };
   }
-  await executeJob(state, job, runNow, { forced: mode === "force" });
+
+  let coreResult: {
+    status: "ok" | "error" | "skipped";
+    error?: string;
+    summary?: string;
+    sessionId?: string;
+    sessionKey?: string;
+  };
+  try {
+    coreResult = await executeJobCore(state, executionJob);
+  } catch (err) {
+    coreResult = { status: "error", error: String(err) };
+  }
+  const endedAt = state.deps.nowMs();
 
   await locked(state, async () => {
     await ensureLoaded(state, { forceReload: true, skipRecompute: true });
+    const job = state.store?.jobs.find((j) => j.id === preparedJobId);
+    if (!job) {
+      return;
+    }
+
+    const shouldDelete = applyJobResult(state, job, {
+      status: coreResult.status,
+      error: coreResult.error,
+      startedAt: preparedStartedAt,
+      endedAt,
+    });
+
+    emit(state, {
+      jobId: job.id,
+      action: "finished",
+      status: coreResult.status,
+      error: coreResult.error,
+      summary: coreResult.summary,
+      sessionId: coreResult.sessionId,
+      sessionKey: coreResult.sessionKey,
+      runAtMs: preparedStartedAt,
+      durationMs: job.state.lastDurationMs,
+      nextRunAtMs: job.state.nextRunAtMs,
+    });
+
+    if (shouldDelete && state.store) {
+      state.store.jobs = state.store.jobs.filter((j) => j.id !== job.id);
+      emit(state, { jobId: job.id, action: "removed" });
+    }
+
     recomputeNextRuns(state);
     await persist(state);
     armTimer(state);
