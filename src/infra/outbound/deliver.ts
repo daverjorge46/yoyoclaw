@@ -473,6 +473,7 @@ async function deliverOutboundPayloadsCore(
             },
           );
           if (sendingResult?.cancel) {
+            emitMessageSent(false, "canceled by message_sending hook");
             continue;
           }
           if (sendingResult?.content != null) {
