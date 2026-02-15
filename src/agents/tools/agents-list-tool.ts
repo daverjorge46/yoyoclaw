@@ -6,7 +6,8 @@ import {
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../../routing/session-key.js";
-import { resolveAgentConfig } from "../agent-scope.js";
+import { loadAgentDefinitions } from "../agent-definitions/index.js";
+import { resolveAgentConfig, resolveAgentWorkspaceDir } from "../agent-scope.js";
 import { jsonResult } from "./common.js";
 import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
 
@@ -18,6 +19,12 @@ type AgentListEntry = {
   configured: boolean;
 };
 
+type AgentDefinitionEntry = {
+  name: string;
+  description?: string;
+  source: string;
+};
+
 export function createAgentsListTool(opts?: {
   agentSessionKey?: string;
   /** Explicit agent ID override for cron/hook sessions. */
@@ -26,7 +33,8 @@ export function createAgentsListTool(opts?: {
   return {
     label: "Agents",
     name: "agents_list",
-    description: "List agent ids you can target with sessions_spawn (based on allowlists).",
+    description:
+      "List agent ids you can target with sessions_spawn (based on allowlists) and available agent definitions.",
     parameters: AgentsListToolSchema,
     execute: async () => {
       const cfg = loadConfig();
@@ -87,10 +95,25 @@ export function createAgentsListTool(opts?: {
         configured: configuredIds.includes(id),
       }));
 
+      // Load agent definitions from workspace
+      let definitions: AgentDefinitionEntry[] = [];
+      try {
+        const workspaceDir = resolveAgentWorkspaceDir(cfg, requesterAgentId);
+        const defs = loadAgentDefinitions(workspaceDir);
+        definitions = defs.map((def) => ({
+          name: def.name,
+          description: def.description,
+          source: def.source,
+        }));
+      } catch {
+        // Best-effort; agent definitions are optional
+      }
+
       return jsonResult({
         requester: requesterAgentId,
         allowAny,
         agents,
+        definitions,
       });
     },
   };
