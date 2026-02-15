@@ -73,8 +73,10 @@ export async function reactSlackMessage(
   emoji: string,
   opts: SlackActionClientOpts = {},
 ) {
-  const client = await getClient(opts);
+  const token = resolveToken(opts.token, opts.accountId);
+  const client = opts.client ?? createSlackWebClient(token);
   await client.reactions.add({
+    token,
     channel: channelId,
     timestamp: messageId,
     name: normalizeEmoji(emoji),
@@ -87,8 +89,10 @@ export async function removeSlackReaction(
   emoji: string,
   opts: SlackActionClientOpts = {},
 ) {
-  const client = await getClient(opts);
+  const token = resolveToken(opts.token, opts.accountId);
+  const client = opts.client ?? createSlackWebClient(token);
   await client.reactions.remove({
+    token,
     channel: channelId,
     timestamp: messageId,
     name: normalizeEmoji(emoji),
