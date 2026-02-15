@@ -371,9 +371,10 @@ export async function detectCapabilities(db: Db): Promise<DetectedCapabilities> 
     // listSearchIndexes not available
   }
 
-  // Automated embedding is detected via search index definitions (check during index creation)
-  // For now mark as available if vectorSearch is available (it's a configuration, not a runtime probe)
-  result.automatedEmbedding = result.vectorSearch;
+  // Automated embedding (autoEmbed with Voyage AI) availability is a deployment/config choice,
+  // not a runtime probe. Community Edition with mongot has vectorSearch but NOT autoEmbed.
+  // The config's embeddingMode drives this, not capability detection.
+  result.automatedEmbedding = false;
 
   log.info(`detected capabilities: ${JSON.stringify(result)}`);
   return result;

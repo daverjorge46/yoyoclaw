@@ -134,6 +134,127 @@ export async function configureMemorySection(
     runtime,
   );
 
+  // Auto-set embeddingMode based on profile
+  const isCommunity = profile === "community-mongot" || profile === "community-bare";
+  const embeddingMode = isCommunity ? "managed" : "automated";
+
+  let baseResult: OpenClawConfig = {
+    ...nextConfig,
+    memory: {
+      ...nextConfig.memory,
+      backend: "mongodb",
+      mongodb: {
+        ...nextConfig.memory?.mongodb,
+        uri,
+        deploymentProfile: profile as MemoryMongoDBDeploymentProfile,
+        embeddingMode,
+      },
+    },
+  };
+
+  if (isCommunity) {
+    if (profile === "community-bare") {
+      note(
+        [
+          "Text/keyword search via $text is available out of the box.",
+          "Vector/semantic search requires mongot (Community + mongot profile).",
+        ].join("\n"),
+        "Search Capabilities",
+      );
+    } else {
+      // community-mongot: vector search available with managed embeddings
+      const wantVectorSearch = guardCancel(
+        await confirm({
+          message: "Enable vector/semantic search? (requires an embedding API key)",
+          initialValue: true,
+        }),
+        runtime,
+      );
+
+      if (wantVectorSearch) {
+        const embeddingProvider = guardCancel(
+          await select({
+            message: "Embedding provider for vector search",
+            options: [
+              { value: "voyage", label: "Voyage AI", hint: "Best for code retrieval" },
+              { value: "openai", label: "OpenAI", hint: "text-embedding-3-small" },
+              { value: "gemini", label: "Google Gemini", hint: "text-embedding-004" },
+              {
+                value: "local",
+                label: "Local (no API key needed)",
+                hint: "On-device via node-llama-cpp",
+              },
+            ],
+            initialValue: "voyage",
+          }),
+          runtime,
+        );
+
+        if (embeddingProvider === "local") {
+          baseResult = {
+            ...baseResult,
+            agents: {
+              ...baseResult.agents,
+              defaults: {
+                ...baseResult.agents?.defaults,
+                memorySearch: {
+                  ...baseResult.agents?.defaults?.memorySearch,
+                  provider: "local",
+                },
+              },
+            },
+          };
+        } else {
+          const ENV_VAR_MAP: Record<string, string> = {
+            voyage: "VOYAGE_API_KEY",
+            openai: "OPENAI_API_KEY",
+            gemini: "GEMINI_API_KEY",
+          };
+          const envVar = ENV_VAR_MAP[embeddingProvider] ?? "API_KEY";
+
+          const rawKey = guardCancel(
+            await text({
+              message: envVar,
+              placeholder: "sk-... (leave blank if already set as env var)",
+              validate: () => undefined,
+            }),
+            runtime,
+          );
+          const apiKey = String(rawKey ?? "").trim() || undefined;
+
+          if (!apiKey) {
+            note(`Set ${envVar} in your environment before starting the gateway.`, "Reminder");
+          }
+
+          baseResult = {
+            ...baseResult,
+            agents: {
+              ...baseResult.agents,
+              defaults: {
+                ...baseResult.agents?.defaults,
+                memorySearch: {
+                  ...baseResult.agents?.defaults?.memorySearch,
+                  provider: embeddingProvider as "openai" | "gemini" | "voyage",
+                  ...(apiKey
+                    ? { remote: { ...baseResult.agents?.defaults?.memorySearch?.remote, apiKey } }
+                    : {}),
+                },
+              },
+            },
+          };
+        }
+      } else {
+        note(
+          [
+            "Text search will work out of the box.",
+            `Enable later: openclaw configure → Memory`,
+          ].join("\n"),
+          "Text Search Only",
+        );
+      }
+    }
+  }
+
   // Offer connection test
   const shouldTest = guardCancel(
     await confirm({
@@ -147,18 +268,7 @@ export async function configureMemorySection(
     await testMongoDBConnection(uri);
   }
 
-  return {
-    ...nextConfig,
-    memory: {
-      ...nextConfig.memory,
-      backend: "mongodb",
-      mongodb: {
-        ...nextConfig.memory?.mongodb,
-        uri,
-        deploymentProfile: profile as MemoryMongoDBDeploymentProfile,
-      },
-    },
-  };
+  return baseResult;
 }
 
 async function testMongoDBConnection(uri: string): Promise<void> {

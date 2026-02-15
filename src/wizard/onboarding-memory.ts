@@ -117,7 +117,11 @@ async function setupMongoDBMemory(
     initialValue: suggestedProfile,
   });
 
-  return {
+  // Auto-set embeddingMode based on profile
+  const isCommunity = profile === "community-mongot" || profile === "community-bare";
+  const embeddingMode = isCommunity ? "managed" : "automated";
+
+  const baseResult: OpenClawConfig = {
     ...config,
     memory: {
       ...config.memory,
@@ -126,6 +130,105 @@ async function setupMongoDBMemory(
         ...config.memory?.mongodb,
         uri: trimmedUri,
         deploymentProfile: profile,
+        embeddingMode,
+      },
+    },
+  };
+
+  if (!isCommunity) {
+    return baseResult;
+  }
+
+  // community-bare: no mongot → text search only, no vector search possible
+  if (profile === "community-bare") {
+    await prompter.note(
+      [
+        "Text/keyword search via $text is available out of the box.",
+        "Vector/semantic search requires mongot (Community + mongot profile).",
+      ].join("\n"),
+      "Search Capabilities",
+    );
+    return baseResult;
+  }
+
+  // community-mongot: vector search available with managed embeddings
+  const wantVectorSearch = await prompter.confirm({
+    message: "Enable vector/semantic search? (requires an embedding API key)",
+    initialValue: true,
+  });
+
+  if (!wantVectorSearch) {
+    await prompter.note(
+      [
+        "Text search will work out of the box.",
+        `Enable later: ${isClawMongo ? "clawmongo" : "openclaw"} configure → Memory`,
+      ].join("\n"),
+      "Text Search Only",
+    );
+    return baseResult;
+  }
+
+  const embeddingProvider = await prompter.select<"openai" | "gemini" | "voyage" | "local">({
+    message: "Embedding provider for vector search",
+    options: [
+      { value: "voyage", label: "Voyage AI", hint: "Best for code retrieval" },
+      { value: "openai", label: "OpenAI", hint: "text-embedding-3-small" },
+      { value: "gemini", label: "Google Gemini", hint: "text-embedding-004" },
+      { value: "local", label: "Local (no API key needed)", hint: "On-device via node-llama-cpp" },
+    ],
+    initialValue: "voyage",
+  });
+
+  if (embeddingProvider === "local") {
+    return {
+      ...baseResult,
+      agents: {
+        ...baseResult.agents,
+        defaults: {
+          ...baseResult.agents?.defaults,
+          memorySearch: {
+            ...baseResult.agents?.defaults?.memorySearch,
+            provider: "local",
+          },
+        },
+      },
+    };
+  }
+
+  const ENV_VAR_MAP: Record<string, string> = {
+    voyage: "VOYAGE_API_KEY",
+    openai: "OPENAI_API_KEY",
+    gemini: "GEMINI_API_KEY",
+  };
+  const envVar = ENV_VAR_MAP[embeddingProvider] ?? "API_KEY";
+
+  const rawKey = await prompter.text({
+    message: envVar,
+    placeholder: "sk-... (leave blank if already set as env var)",
+    validate: () => undefined,
+  });
+  const apiKey = rawKey?.trim() || undefined;
+
+  if (!apiKey) {
+    await prompter.note(
+      `Set ${envVar} in your environment before starting the gateway.`,
+      "Reminder",
+    );
+  }
+
+  return {
+    ...baseResult,
+    agents: {
+      ...baseResult.agents,
+      defaults: {
+        ...baseResult.agents?.defaults,
+        memorySearch: {
+          ...baseResult.agents?.defaults?.memorySearch,
+          provider: embeddingProvider,
+          ...(apiKey
+            ? { remote: { ...baseResult.agents?.defaults?.memorySearch?.remote, apiKey } }
+            : {}),
+        },
       },
     },
   };

@@ -298,6 +298,67 @@ describe("resolveMemoryBackendConfig", () => {
     expect(resolved.mongodb!.changeStreamDebounceMs).toBe(1000);
   });
 
+  it("defaults embeddingMode to managed for community-mongot profile", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb://localhost:27017",
+          deploymentProfile: "community-mongot",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.mongodb!.embeddingMode).toBe("managed");
+  });
+
+  it("defaults embeddingMode to managed for community-bare profile", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb://localhost:27017",
+          deploymentProfile: "community-bare",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.mongodb!.embeddingMode).toBe("managed");
+  });
+
+  it("defaults embeddingMode to automated for atlas-m0 profile", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb+srv://atlas.example.com",
+          deploymentProfile: "atlas-m0",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.mongodb!.embeddingMode).toBe("automated");
+  });
+
+  it("respects explicit embeddingMode override regardless of profile", () => {
+    const cfg = {
+      agents: { defaults: { workspace: "/tmp/memory-test" } },
+      memory: {
+        backend: "mongodb",
+        mongodb: {
+          uri: "mongodb://localhost:27017",
+          deploymentProfile: "community-mongot",
+          embeddingMode: "automated",
+        },
+      },
+    } as OpenClawConfig;
+    const resolved = resolveMemoryBackendConfig({ cfg, agentId: "main" });
+    expect(resolved.mongodb!.embeddingMode).toBe("automated");
+  });
+
   it("throws when mongodb backend has no URI", () => {
     const cfg = {
       agents: { defaults: { workspace: "/tmp/memory-test" } },

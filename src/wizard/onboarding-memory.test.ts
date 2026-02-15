@@ -144,15 +144,16 @@ describe("setupMemoryBackend", () => {
     const { setupMemoryBackend } = await import("./onboarding-memory.js");
     const config: OpenClawConfig = {};
     const prompter = createMockPrompter({
-      selectResponses: ["mongodb", "community-mongot"],
-      textResponses: ["mongodb://localhost:27017/"],
+      // 3rd select is embedding provider (triggered by community-mongot flow)
+      selectResponses: ["mongodb", "community-mongot", "voyage"],
+      textResponses: ["mongodb://localhost:27017/", "sk-test"],
     });
 
     await setupMemoryBackend(config, prompter);
 
     // The second select call should have initialValue "community-mongot"
     const selectCalls = (prompter.select as ReturnType<typeof vi.fn>).mock.calls;
-    expect(selectCalls.length).toBe(2);
+    expect(selectCalls.length).toBe(3); // backend, profile, embedding provider
     const profileSelectParams = selectCalls[1][0];
     expect(profileSelectParams.initialValue).toBe("community-mongot");
   });
@@ -204,6 +205,129 @@ describe("setupMemoryBackend", () => {
       (o: { value: string }) => o.value === "mongodb",
     );
     expect(mongoOption.label).toContain("Recommended");
+  });
+
+  it("sets embeddingMode to managed for community-mongot and prompts for vector search", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    // select: backend=mongodb, profile=community-mongot, provider=voyage
+    // confirm: wantVectorSearch=true
+    // text: URI, API key
+    const confirmResponses = [true];
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "community-mongot", "voyage"],
+      textResponses: ["mongodb://localhost:27017/", "sk-voyage-test-key"],
+    });
+    prompter.confirm = vi.fn(
+      async () => confirmResponses.shift() ?? true,
+    ) as WizardPrompter["confirm"];
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.memory?.mongodb?.embeddingMode).toBe("managed");
+    expect(result.agents?.defaults?.memorySearch?.provider).toBe("voyage");
+    expect(result.agents?.defaults?.memorySearch?.remote?.apiKey).toBe("sk-voyage-test-key");
+  });
+
+  it("sets embeddingMode to automated for atlas profiles (no embedding prompt)", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "atlas-default"],
+      textResponses: ["mongodb+srv://user:pass@cluster.mongodb.net/"],
+    });
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.memory?.mongodb?.embeddingMode).toBe("automated");
+    // No embedding provider prompt for Atlas (automated mode)
+    expect(prompter.confirm).not.toHaveBeenCalled();
+  });
+
+  it("skips embedding prompt for community-bare (text search only)", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "community-bare"],
+      textResponses: ["mongodb://localhost:27017/"],
+    });
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.memory?.mongodb?.embeddingMode).toBe("managed");
+    // No confirm for community-bare — just a note about text search
+    expect(prompter.confirm).not.toHaveBeenCalled();
+    expect(prompter.note).toHaveBeenCalled();
+    const noteCall = (prompter.note as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c: unknown[]) => typeof c[0] === "string" && c[0].includes("$text"),
+    );
+    expect(noteCall).toBeDefined();
+  });
+
+  it("saves local provider without API key prompt", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    const confirmResponses = [true];
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "community-mongot", "local"],
+      textResponses: ["mongodb://localhost:27017/"],
+    });
+    prompter.confirm = vi.fn(
+      async () => confirmResponses.shift() ?? true,
+    ) as WizardPrompter["confirm"];
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.agents?.defaults?.memorySearch?.provider).toBe("local");
+    // Only 1 text call (URI) — no API key prompt for local
+    expect(prompter.text).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows reminder when API key is left blank", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    const confirmResponses = [true];
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "community-mongot", "openai"],
+      textResponses: ["mongodb://localhost:27017/", ""],
+    });
+    prompter.confirm = vi.fn(
+      async () => confirmResponses.shift() ?? true,
+    ) as WizardPrompter["confirm"];
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.agents?.defaults?.memorySearch?.provider).toBe("openai");
+    expect(result.agents?.defaults?.memorySearch?.remote?.apiKey).toBeUndefined();
+    // Should show reminder note about env var
+    const noteCall = (prompter.note as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c: unknown[]) => typeof c[0] === "string" && c[0].includes("OPENAI_API_KEY"),
+    );
+    expect(noteCall).toBeDefined();
+  });
+
+  it("skips vector search when user declines", async () => {
+    const { setupMemoryBackend } = await import("./onboarding-memory.js");
+    const config: OpenClawConfig = {};
+    const confirmResponses = [false];
+    const prompter = createMockPrompter({
+      selectResponses: ["mongodb", "community-mongot"],
+      textResponses: ["mongodb://localhost:27017/"],
+    });
+    prompter.confirm = vi.fn(
+      async () => confirmResponses.shift() ?? true,
+    ) as WizardPrompter["confirm"];
+
+    const result = await setupMemoryBackend(config, prompter);
+
+    expect(result.memory?.mongodb?.embeddingMode).toBe("managed");
+    // No embedding provider saved
+    expect(result.agents?.defaults?.memorySearch?.provider).toBeUndefined();
+    // Should show text-search-only note
+    const noteCall = (prompter.note as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c: unknown[]) => typeof c[0] === "string" && c[0].includes("Text search"),
+    );
+    expect(noteCall).toBeDefined();
   });
 
   it("defaults to builtin when running as openclaw", async () => {

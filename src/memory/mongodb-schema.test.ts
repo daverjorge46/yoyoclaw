@@ -533,6 +533,6 @@ describe("detectCapabilities", () => {
     const caps = await detectCapabilities(db);
     expect(caps.vectorSearch).toBe(true);
     expect(caps.textSearch).toBe(true);
-    expect(caps.automatedEmbedding).toBe(true);
+    expect(caps.automatedEmbedding).toBe(false);
   });
 });

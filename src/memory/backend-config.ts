@@ -289,6 +289,12 @@ export function resolveMemoryBackendConfig(params: {
         "MongoDB URI required: set memory.mongodb.uri in config or OPENCLAW_MONGODB_URI env var",
       );
     }
+    const deploymentProfile: MemoryMongoDBDeploymentProfile =
+      mongoCfg?.deploymentProfile ?? "atlas-default";
+    const isCommunity =
+      deploymentProfile === "community-mongot" || deploymentProfile === "community-bare";
+    const defaultEmbeddingMode: MemoryMongoDBEmbeddingMode = isCommunity ? "managed" : "automated";
+
     return {
       backend: "mongodb",
       citations,
@@ -296,8 +302,8 @@ export function resolveMemoryBackendConfig(params: {
         uri,
         database: mongoCfg?.database ?? "openclaw",
         collectionPrefix: mongoCfg?.collectionPrefix ?? "openclaw_",
-        deploymentProfile: mongoCfg?.deploymentProfile ?? "atlas-default",
-        embeddingMode: mongoCfg?.embeddingMode ?? "automated",
+        deploymentProfile,
+        embeddingMode: mongoCfg?.embeddingMode ?? defaultEmbeddingMode,
         fusionMethod: mongoCfg?.fusionMethod ?? "scoreFusion",
         quantization: mongoCfg?.quantization ?? "none",
         watchDebounceMs:
