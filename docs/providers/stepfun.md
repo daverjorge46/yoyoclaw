@@ -8,17 +8,30 @@ title: "StepFun"
 
 # StepFun
 
-StepFun is an AI company that builds the **Step** model series, covering text, audio, and multi-modal models. It provides the [Step 3.5 Flash](https://github.com/stepfun-ai/Step-3.5-Flash) reasoning model API with OpenAI-compatible endpoints. Get your API key from the StepFun Open Platform.
+[StepFun](https://platform.stepfun.ai/) is an AI company that develops the **Step** model family across language, multimodal, and reasoning capabilities.
+
+It provides the [Step 3.5 Flash](https://github.com/stepfun-ai/Step-3.5-Flash) reasoning model API with OpenAI-compatible endpoints.
+
+### Platform Versions
+
+StepFun offers two platform versions depending on your region:
+
+- **International Version**: [platform.stepfun.ai](https://platform.stepfun.ai/)
+  - API Base URL: `https://api.stepfun.ai/v1`
+- **China Version**: [platform.stepfun.com](https://platform.stepfun.com/)
+  - API Base URL: `https://api.stepfun.com/v1`
+
+Obtain your API key from the respective platform for your region.
 
 ## Onboarding (recommended)
 
-Use the built-in onboarding flow:
+To get started quickly, run the built-in onboarding command:
 
 ```bash
 openclaw onboard --auth-choice stepfun-api-key
 ```
 
-Non-interactive:
+For non-interactive setups (e.g. CI/CD):
 
 ```bash
 openclaw onboard --non-interactive \
@@ -27,14 +40,14 @@ openclaw onboard --non-interactive \
   --stepfun-api-key "$STEPFUN_API_KEY"
 ```
 
-This stores auth in the agent auth profile store and configures:
+This command stores your credentials and configures OpenClaw with:
 
 - Provider: `stepfun`
 - Default model: `stepfun/step-3.5-flash`
 
-## Manual configuration (fallback)
+## Manual configuration
 
-Configure StepFun by editing `~/.openclaw/openclaw.json` directly.
+Reference for `~/.openclaw/openclaw.json` (if you prefer manual editing):
 
 ```json5
 {
@@ -42,7 +55,7 @@ Configure StepFun by editing `~/.openclaw/openclaw.json` directly.
     providers: {
       stepfun: {
         baseUrl: "https://api.stepfun.ai/v1",
-        apiKey: "YOUR_SK_KEY_HERE",
+        apiKey: "YOUR_API_KEY",
         auth: "api-key",
         api: "openai-completions",
         models: [
@@ -68,6 +81,5 @@ Configure StepFun by editing `~/.openclaw/openclaw.json` directly.
 
 ## Notes
 
-- Use `https://api.stepfun.ai/v1` for the international endpoint, and `https://api.stepfun.com/v1` for the China endpoint.
-- Onboarding uses `https://api.stepfun.ai/v1` by default.
-- For China endpoint users, set `models.providers.stepfun.baseUrl` to `https://api.stepfun.com/v1` in config or Control UI.
+- The `openclaw onboard` command uses the International endpoint (`https://api.stepfun.ai/v1`) by default.
+- If you are using the China endpoint, update `models.providers.stepfun.baseUrl` to `https://api.stepfun.com/v1` in your configuration or via the Control UI.
