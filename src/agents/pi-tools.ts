@@ -237,17 +237,21 @@ export function createOpenClawCodingTools(options?: {
     isSubagentSessionKey(options?.sessionKey) && options?.sessionKey
       ? resolveSubagentToolPolicy(options.config)
       : undefined;
-  const allowBackground = isToolAllowedByPolicies("process", [
-    profilePolicyWithAlsoAllow,
-    providerProfilePolicyWithAlsoAllow,
-    globalPolicy,
-    globalProviderPolicy,
-    agentPolicy,
-    agentProviderPolicy,
-    groupPolicy,
-    sandbox?.tools,
-    subagentPolicy,
-  ]);
+  const allowBackground = isToolAllowedByPolicies(
+    "process",
+    [
+      profilePolicyWithAlsoAllow,
+      providerProfilePolicyWithAlsoAllow,
+      globalPolicy,
+      globalProviderPolicy,
+      agentPolicy,
+      agentProviderPolicy,
+      groupPolicy,
+      sandbox?.tools,
+      subagentPolicy,
+    ],
+    options?.senderIsOwner === true,
+  );
   const execConfig = resolveExecConfig({ cfg: options?.config, agentId });
   const fsConfig = resolveFsConfig({ cfg: options?.config, agentId });
   const sandboxRoot = sandbox?.workspaceDir;
@@ -433,6 +437,7 @@ export function createOpenClawCodingTools(options?: {
       { policy: sandbox?.tools, label: "sandbox tools.allow" },
       { policy: subagentPolicy, label: "subagent tools.allow" },
     ],
+    senderIsOwner,
   });
   // Always normalize tool JSON Schemas before handing them to pi-agent/pi-ai.
   // Without this, some providers (notably OpenAI) will reject root-level union schemas.
