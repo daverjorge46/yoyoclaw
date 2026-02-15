@@ -13,6 +13,57 @@ import {
 import { isToolResultMessage, normalizeRoleForGrouping } from "./message-normalizer.ts";
 import { extractToolCards, renderToolCardSidebar } from "./tool-cards.ts";
 
+const MEDIA_LINE_RE = /^\s*MEDIA:\s*`?([^\n`]+)`?\s*$/;
+const AUDIO_EXT_RE = /\.(mp3|wav|opus)$/i;
+
+function getMediaBaseUrl(): string {
+  if (typeof globalThis === "undefined") return "";
+  const g = globalThis as unknown as { location?: { origin: string } };
+  return g.location?.origin ?? "";
+}
+
+function toPlayableUrl(path: string, baseUrl: string): string {
+  const trimmed = path.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (!baseUrl) return "";
+  return `${baseUrl}/api/media/by-path?path=${encodeURIComponent(trimmed)}`;
+}
+
+type TextSegment = { type: "text"; content: string };
+type AudioSegment = { type: "audio"; playableUrl: string };
+type MessageSegment = TextSegment | AudioSegment;
+
+function parseTextWithMedia(text: string, baseUrl: string): MessageSegment[] {
+  const segments: MessageSegment[] = [];
+  const lines = text.split(/\r?\n/);
+  let currentText: string[] = [];
+
+  for (const line of lines) {
+    const m = line.match(MEDIA_LINE_RE);
+    if (m) {
+      const path = m[1].trim();
+      if (AUDIO_EXT_RE.test(path)) {
+        if (currentText.length > 0) {
+          segments.push({ type: "text", content: currentText.join("\n") });
+          currentText = [];
+        }
+        const playableUrl = toPlayableUrl(path, baseUrl);
+        if (playableUrl) {
+          segments.push({ type: "audio", playableUrl });
+        }
+      } else {
+        currentText.push(line);
+      }
+    } else {
+      currentText.push(line);
+    }
+  }
+  if (currentText.length > 0) {
+    segments.push({ type: "text", content: currentText.join("\n") });
+  }
+  return segments;
+}
+
 type ImageBlock = {
   url: string;
   alt?: string;
@@ -273,7 +324,23 @@ function renderGroupedMessage(
       }
       ${
         markdown
-          ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">${unsafeHTML(toSanitizedMarkdownHtml(markdown))}</div>`
+          ? (() => {
+              const baseUrl = getMediaBaseUrl();
+              const segments = parseTextWithMedia(markdown, baseUrl);
+              const hasAudio = segments.some((s) => s.type === "audio");
+              if (!hasAudio) {
+                return html`<div class="chat-text" dir="${detectTextDirection(markdown)}">${unsafeHTML(toSanitizedMarkdownHtml(markdown))}</div>`;
+              }
+              return html`<div class="chat-text" dir="${detectTextDirection(markdown)}">
+                ${segments.map((seg) =>
+                  seg.type === "text"
+                    ? seg.content
+                      ? unsafeHTML(toSanitizedMarkdownHtml(seg.content))
+                      : nothing
+                    : html`<audio controls src="${seg.playableUrl}" class="chat-tts-audio" title="Play speech"></audio>`,
+                )}
+              </div>`;
+            })()
           : nothing
       }
       ${toolCards.map((card) => renderToolCardSidebar(card, onOpenSidebar))}
