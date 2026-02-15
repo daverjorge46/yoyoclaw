@@ -79,7 +79,7 @@ class SecurePrefs(context: Context) {
     MutableStateFlow(prefs.getString("voice.elevenLabsApiKey", "") ?: "")
   val elevenLabsApiKey: StateFlow<String> = _elevenLabsApiKey
 
-  private val _elevenLabsVoiceId = MutableStateFlow(prefs.getString("eleven_labs_voice_id", "") ?: "")
+  private val _elevenLabsVoiceId = MutableStateFlow(prefs.getString("voice.elevenLabsVoiceId", "") ?: "")
   val elevenLabsVoiceId: StateFlow<String> = _elevenLabsVoiceId
 
   private val _lastDiscoveredStableId =
