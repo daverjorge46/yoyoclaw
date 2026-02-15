@@ -40,6 +40,7 @@ import { enqueueFollowupRun, type FollowupRun, type QueueSettings } from "./queu
 import { createReplyToModeFilterForChannel, resolveReplyToMode } from "./reply-threading.js";
 import { incrementCompactionCount } from "./session-updates.js";
 import { persistSessionUsageUpdate } from "./session-usage.js";
+import { generateSideResponse } from "./side-response.js";
 import { createTypingSignaler } from "./typing-mode.js";
 
 const BLOCK_REPLY_SEND_TIMEOUT_MS = 15_000;
@@ -162,8 +163,15 @@ export async function runReplyAgent(params: {
       : null;
 
   if (shouldSteer && isStreaming) {
+    // Queue as followUp so the main agent sees the message after its
+    // current tool calls complete (followUp does not cancel tools).
     const steered = queueEmbeddedPiMessage(followupRun.run.sessionId, followupRun.prompt);
     if (steered && !shouldFollowup) {
+      // Fire a quick side response so the user gets an immediate
+      // answer while the main agent continues working.
+      const sideResult = await generateSideResponse({
+        message: followupRun.prompt,
+      });
       if (activeSessionEntry && activeSessionStore && sessionKey) {
         const updatedAt = Date.now();
         activeSessionEntry.updatedAt = updatedAt;
@@ -177,6 +185,9 @@ export async function runReplyAgent(params: {
         }
       }
       typing.cleanup();
+      if (sideResult?.text) {
+        return { text: sideResult.text };
+      }
       return undefined;
     }
   }

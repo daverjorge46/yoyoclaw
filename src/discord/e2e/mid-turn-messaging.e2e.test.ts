@@ -76,6 +76,24 @@ async function waitForFirstBotMessage(events: MessageEvent[], maxWaitMs: number)
   return false;
 }
 
+/** Wait until a specific content pattern appears in bot messages.
+ * Returns the timestamp of the matching message, or null if timed out. */
+async function waitForContentMatch(
+  events: MessageEvent[],
+  pattern: string,
+  maxWaitMs: number,
+): Promise<number | null> {
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWaitMs) {
+    await new Promise((r) => setTimeout(r, 500));
+    const match = events.find((e) => e.type === "create" && (e.content ?? "").includes(pattern));
+    if (match) {
+      return match.timestamp;
+    }
+  }
+  return null;
+}
+
 describeLive("Discord mid-turn messaging (steer mode)", () => {
   let client: Client;
   const nonce = randomBytes(4).toString("hex");
@@ -187,55 +205,64 @@ describeLive("Discord mid-turn messaging (steer mode)", () => {
     console.log(`[E2E:${label}] Captured ${creates.length} messages from Claw bot:`);
     for (const e of creates) {
       const preview = (e.content ?? "").slice(0, 120);
-      console.log(`  [${e.type}] ${preview}`);
+      console.log(`  [${e.type} t=${e.timestamp}] ${preview}`);
     }
   }
 
   // ---------------------------------------------------------------
-  // Test: Agent responds to a follow-up message sent mid-task
+  // Test: Side response arrives before the long-running tool finishes
   // ---------------------------------------------------------------
-  it("responds to follow-up while processing a long-running task", async () => {
+  it("responds to follow-up while tool is still running", async () => {
     events.length = 0;
 
     const channel = await fetchTextChannel();
 
-    // Send a message that triggers a long-running Bash command.
-    // The sleep ensures the agent is busy when we send the follow-up.
+    // Use sleep 20 to create a long window where the tool is running.
+    // The side response should arrive well before 20 seconds.
     await channel.send(
       `<@${CLAW_BOT_ID}> Run this exact bash command and tell me the output: ` +
-        `sleep 8 && echo "SLOW_TASK_DONE_${nonce}"`,
+        `sleep 20 && echo "SLOW_TASK_DONE_${nonce}"`,
     );
 
-    // Wait for the bot to start processing (first message appears,
-    // typically tool feedback like *Bash*).
+    // Wait for the bot to start processing (tool feedback message).
     const started = await waitForFirstBotMessage(events, 30_000);
     expect(started).toBe(true);
 
-    // Now send a follow-up message while the first task is running.
-    // With steer mode, this should be injected mid-turn.
+    // Record the time we send the follow-up.
+    const followUpSentAt = Date.now();
+
+    // Send a follow-up while the sleep is running.
     await channel.send(`<@${CLAW_BOT_ID}> Quick question while you're working: what is 7 * 13?`);
 
-    // Wait for both responses to complete. The agent should handle
-    // the follow-up AND finish the original task.
-    await waitForBotResponse(events, 180_000, 20_000);
+    // Wait for "91" to appear. The side response should come within
+    // ~15 seconds (well before the 20s sleep finishes).
+    const answerTimestamp = await waitForContentMatch(events, "91", 60_000);
+    expect(answerTimestamp).not.toBeNull();
+
+    // The side response should have arrived within 15 seconds of the
+    // follow-up being sent (the sleep takes 20 seconds, so if the
+    // answer arrived before the sleep, the side response worked).
+    const responseLatencyMs = answerTimestamp! - followUpSentAt;
+    console.log(`[E2E:mid-turn] Side response latency: ${responseLatencyMs}ms`);
+    expect(responseLatencyMs).toBeLessThan(18_000);
+
+    // Now wait for the full task to complete.
+    await waitForBotResponse(events, 120_000, 20_000);
 
     logEvents("mid-turn");
 
     const creates = events.filter((e) => e.type === "create");
-
-    // The bot must have responded with at least 2 messages
-    // (tool feedback + final reply, possibly more with mid-turn).
     expect(creates.length).toBeGreaterThanOrEqual(2);
 
-    // Verify the original task completed.
+    // The original task should still complete.
     const allContent = creates.map((e) => e.content ?? "").join("\n");
     expect(allContent).toContain(`SLOW_TASK_DONE_${nonce}`);
 
-    // Verify the agent answered the follow-up question (7 * 13 = 91).
+    // The follow-up was answered.
     expect(allContent).toContain("91");
 
     // No edits allowed.
     const updates = events.filter((e) => e.type === "update");
     expect(updates).toHaveLength(0);
-  }, 240_000);
+  }, 300_000);
 });
