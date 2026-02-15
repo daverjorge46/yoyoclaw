@@ -1,0 +1,14 @@
+{
+  "id": "yoyo-memory-sync",
+  "kind": "tools",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "claudeProjectMemoryDir": {
+        "type": "string",
+        "description": "Path to Claude Code project memory directory"
+      }
+    }
+  }
+}

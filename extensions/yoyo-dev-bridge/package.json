@@ -1,0 +1,18 @@
+{
+  "name": "@yoyo-claw/yoyo-dev-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bridges Yoyo Claw agent to Yoyo Dev workflows (specs, tasks, fixes)",
+  "type": "module",
+  "devDependencies": {
+    "openclaw": "workspace:*"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.1.26"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

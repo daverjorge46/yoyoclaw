@@ -1,0 +1,14 @@
+{
+  "id": "yoyo-dev-bridge",
+  "kind": "tools",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "projectRoot": {
+        "type": "string",
+        "description": "Path to the Yoyo Dev project root (containing .yoyo-dev/)"
+      }
+    }
+  }
+}

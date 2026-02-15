@@ -1,46 +1,87 @@
 services:
-  openclaw-gateway:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
+  yoyo-claw-gateway:
+    image: ${YOYO_CLAW_IMAGE:-yoyo-claw:local}
     environment:
-      HOME: /home/node
+      HOME: /home/yoyo-claw
       TERM: xterm-256color
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      OPENCLAW_GATEWAY_TOKEN: ${YOYO_CLAW_GATEWAY_TOKEN:-${OPENCLAW_GATEWAY_TOKEN}}
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${YOYO_CLAW_CONFIG_DIR:-./data/config}:/home/yoyo-claw/.yoyo-claw
+      - ${YOYO_CLAW_WORKSPACE_DIR:-./data/workspace}:/home/yoyo-claw/.yoyo-claw/workspace
     ports:
-      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
-      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+      - "${YOYO_CLAW_PORT:-18789}:18789"
     init: true
     restart: unless-stopped
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
     command:
       [
         "node",
-        "dist/index.js",
+        "openclaw.mjs",
         "gateway",
         "--bind",
-        "${OPENCLAW_GATEWAY_BIND:-lan}",
+        "${YOYO_CLAW_BIND:-lan}",
         "--port",
         "18789",
       ]
+    healthcheck:
+      test: ["CMD", "node", "-e", "const h=require('http');const r=h.get('http://127.0.0.1:18789/health',s=>{process.exit(s.statusCode===200?0:1)});r.on('error',()=>process.exit(1));r.end()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
-  openclaw-cli:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
+  yoyo-claw-cli:
+    image: ${YOYO_CLAW_IMAGE:-yoyo-claw:local}
     environment:
-      HOME: /home/node
+      HOME: /home/yoyo-claw
       TERM: xterm-256color
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      OPENCLAW_GATEWAY_TOKEN: ${YOYO_CLAW_GATEWAY_TOKEN:-${OPENCLAW_GATEWAY_TOKEN}}
       BROWSER: echo
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${YOYO_CLAW_CONFIG_DIR:-./data/config}:/home/yoyo-claw/.yoyo-claw
+      - ${YOYO_CLAW_WORKSPACE_DIR:-./data/workspace}:/home/yoyo-claw/.yoyo-claw/workspace
     stdin_open: true
     tty: true
     init: true
-    entrypoint: ["node", "dist/index.js"]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    entrypoint: ["node", "openclaw.mjs"]
+
+  # Optional: Nginx reverse proxy for remote access (e.g. via Tailscale)
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "${NGINX_PORT:-8443}:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
+    depends_on:
+      yoyo-claw-gateway:
+        condition: service_healthy
+    profiles:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE

@@ -35,24 +35,24 @@
   --border-strong: #3f3f46;
   --border-hover: #52525b;
   --input: #27272a;
-  --ring: #ff5c5c;
+  --ring: #22d3ee;
 
-  /* Accent - Punchy signature red */
-  --accent: #ff5c5c;
-  --accent-hover: #ff7070;
-  --accent-muted: #ff5c5c;
-  --accent-subtle: rgba(255, 92, 92, 0.15);
-  --accent-foreground: #fafafa;
-  --accent-glow: rgba(255, 92, 92, 0.25);
-  --primary: #ff5c5c;
-  --primary-foreground: #ffffff;
+  /* Accent - Yoyo Dev cyan */
+  --accent: #22d3ee;
+  --accent-hover: #67e8f9;
+  --accent-muted: #22d3ee;
+  --accent-subtle: rgba(34, 211, 238, 0.15);
+  --accent-foreground: #0a0a0b;
+  --accent-glow: rgba(34, 211, 238, 0.25);
+  --primary: #22d3ee;
+  --primary-foreground: #0a0a0b;
 
-  /* Secondary - Teal accent for variety */
+  /* Secondary - Yoyo Dev mauve accent */
   --secondary: #1e2028;
   --secondary-foreground: #f4f4f5;
-  --accent-2: #14b8a6;
-  --accent-2-muted: rgba(20, 184, 166, 0.7);
-  --accent-2-subtle: rgba(20, 184, 166, 0.15);
+  --accent-2: #c084fc;
+  --accent-2-muted: rgba(192, 132, 252, 0.7);
+  --accent-2-subtle: rgba(192, 132, 252, 0.15);
 
   /* Semantic - More saturated */
   --ok: #22c55e;

@@ -38,6 +38,18 @@ Things like:
 - Default speaker: Kitchen HomePod
 ```
 
+## Yoyo Dev Platform
+
+- **GUI Dashboard**: http://localhost:5174 (Yoyo AI Dashboard)
+- **Gateway**: ws://127.0.0.1:18789 (WebSocket API)
+- **IDE Integration**: Claude Code via Yoyo Dev framework
+
+## Communication Rules
+
+- User sends text → respond with text
+- User sends audio → respond with voice (if TTS configured)
+- Match the user's language
+
 ## Why Separate?
 
 Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.

@@ -214,6 +214,20 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## Security Rules
+
+- NEVER write credentials, API keys, or tokens to memory files or daily logs.
+- NEVER share MEMORY.md contents in group chats or shared sessions.
+- When handling sensitive operations, verify with the user before proceeding.
+- Log all executed commands to the audit system.
+
+## Yoyo Dev Integration
+
+- You have access to Yoyo Dev project context via the yoyo-dev-bridge plugin.
+- Use `list-specs` and `get-spec` tools to understand current project state.
+- Reference active tasks and specifications when relevant to the conversation.
+- Coordinate with Claude Code workflows when the user is working in their IDE.
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
