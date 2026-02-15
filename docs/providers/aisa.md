@@ -28,11 +28,11 @@ title: "AIsa"
 
 These three models are pre-configured when you onboard with AIsa:
 
-| Model ID        | Name          | Developer   | Best For                  |
-| --------------- | ------------- | ----------- | ------------------------- |
-| `qwen3-max`     | Qwen3 Max     | Alibaba     | General-purpose (default) |
-| `deepseek-v3.1` | DeepSeek V3.1 | DeepSeek    | Reasoning                 |
-| `kimi-k2.5`     | Kimi K2.5     | Moonshot AI | Long-context tasks        |
+| Model ID        | Name          | Developer   | Best For                  | Context | Vision |
+| --------------- | ------------- | ----------- | ------------------------- | ------- | ------ |
+| `qwen3-max`     | Qwen3 Max     | Alibaba     | General-purpose (default) | 256k    | Yes    |
+| `deepseek-v3.1` | DeepSeek V3.1 | DeepSeek    | Reasoning                 | 128k    | No     |
+| `kimi-k2.5`     | Kimi K2.5     | Moonshot AI | Long-context tasks        | 256k    | No     |
 
 ## Full Model Catalog
 
