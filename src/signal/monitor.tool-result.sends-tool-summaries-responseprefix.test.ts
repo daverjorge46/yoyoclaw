@@ -24,6 +24,7 @@ const {
   upsertPairingRequestMock,
   waitForTransportReadyMock,
 } = getSignalToolResultTestMocks();
+const { monitorSignalProvider } = await import("./monitor.js");
 
 async function runMonitorWithMocks(
   opts: Parameters<(typeof import("./monitor.js"))["monitorSignalProvider"]>[0],
