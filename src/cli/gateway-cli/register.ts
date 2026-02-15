@@ -21,7 +21,7 @@ import {
   runDaemonUninstall,
 } from "../daemon-cli.js";
 import { withProgress } from "../progress.js";
-import { callGatewayCli, gatewayCallOpts } from "./call.js";
+import { callGatewayCli, gatewayCallOpts, resolveGatewayRpcOpts } from "./call.js";
 import {
   dedupeBeacons,
   parseDiscoverTimeoutMs,
@@ -89,6 +89,9 @@ export function registerGatewayCli(program: Command) {
           `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/gateway", "docs.openclaw.ai/cli/gateway")}\n`,
       ),
   );
+  // Parent `gateway` command defines auth flags for `gateway run`.
+  // Positional option parsing keeps subcommand flags (e.g. `gateway call --token`) scoped correctly.
+  gateway.enablePositionalOptions();
 
   addGatewayRunCommand(
     gateway.command("run").description("Run the WebSocket Gateway (foreground)"),
@@ -104,9 +107,10 @@ export function registerGatewayCli(program: Command) {
     .option("--no-probe", "Skip RPC probe")
     .option("--deep", "Scan system-level services", false)
     .option("--json", "Output JSON", false)
-    .action(async (opts) => {
+    .action(async (opts, command) => {
+      const rpcOpts = resolveGatewayRpcOpts(opts, command.parent?.opts?.());
       await runDaemonStatus({
-        rpc: opts,
+        rpc: rpcOpts,
         probe: Boolean(opts.probe),
         deep: Boolean(opts.deep),
         json: Boolean(opts.json),
@@ -163,10 +167,11 @@ export function registerGatewayCli(program: Command) {
       .description("Call a Gateway method")
       .argument("<method>", "Method name (health/status/system-presence/cron.*)")
       .option("--params <json>", "JSON object string for params", "{}")
-      .action(async (method, opts) => {
+      .action(async (method, opts, command) => {
+        const rpcOpts = resolveGatewayRpcOpts(opts, command.parent?.opts?.());
         await runGatewayCommand(async () => {
           const params = JSON.parse(String(opts.params ?? "{}"));
-          const result = await callGatewayCli(method, opts, params);
+          const result = await callGatewayCli(method, rpcOpts, params);
           if (opts.json) {
             defaultRuntime.log(JSON.stringify(result, null, 2));
             return;
@@ -185,10 +190,11 @@ export function registerGatewayCli(program: Command) {
       .command("usage-cost")
       .description("Fetch usage cost summary from session logs")
       .option("--days <days>", "Number of days to include", "30")
-      .action(async (opts) => {
+      .action(async (opts, command) => {
+        const rpcOpts = resolveGatewayRpcOpts(opts, command.parent?.opts?.());
         await runGatewayCommand(async () => {
           const days = parseDaysOption(opts.days);
-          const result = await callGatewayCli("usage.cost", opts, { days });
+          const result = await callGatewayCli("usage.cost", rpcOpts, { days });
           if (opts.json) {
             defaultRuntime.log(JSON.stringify(result, null, 2));
             return;
@@ -206,9 +212,10 @@ export function registerGatewayCli(program: Command) {
     gateway
       .command("health")
       .description("Fetch Gateway health")
-      .action(async (opts) => {
+      .action(async (opts, command) => {
+        const rpcOpts = resolveGatewayRpcOpts(opts, command.parent?.opts?.());
         await runGatewayCommand(async () => {
-          const result = await callGatewayCli("health", opts);
+          const result = await callGatewayCli("health", rpcOpts);
           if (opts.json) {
             defaultRuntime.log(JSON.stringify(result, null, 2));
             return;
