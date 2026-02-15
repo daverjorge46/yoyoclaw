@@ -528,6 +528,10 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
         return;
       }
     }
+    // Wait for any pending block replies from the dispatcher queue
+    // to finish sending before sending status/tool feedback.
+    // This ensures text content appears before tool digests.
+    await dispatcher.waitForIdle();
     sendingStatus = true;
     try {
       await doSendStatus(text);
