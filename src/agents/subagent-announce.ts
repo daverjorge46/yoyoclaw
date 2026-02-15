@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import path from "node:path";
 import { resolveQueueSettings } from "../auto-reply/reply/queue.js";
 import { loadConfig } from "../config/config.js";
@@ -117,6 +116,13 @@ async function sendAnnounce(item: AnnounceQueueItem) {
   const origin = item.origin;
   const threadId =
     origin?.threadId != null && origin.threadId !== "" ? String(origin.threadId) : undefined;
+  // Use a deterministic idempotency key derived from the session key and
+  // enqueue timestamp so the gateway dedup cache catches duplicates when
+  // the announce is delivered via both the announce queue drain *and* the
+  // gateway-level message queue (which re-queues the callGateway "agent"
+  // call if the main session is still busy).
+  // See: https://github.com/openclaw/openclaw/issues/17122
+  const idempotencyKey = `announce:${item.sessionKey}:${item.enqueuedAt}`;
   await callGateway({
     method: "agent",
     params: {
@@ -127,7 +133,7 @@ async function sendAnnounce(item: AnnounceQueueItem) {
       to: origin?.to,
       threadId,
       deliver: true,
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey,
     },
     expectFinal: true,
     timeoutMs: 60_000,
@@ -530,6 +536,10 @@ export async function runSubagentAnnounceFlow(params: {
       const { entry } = loadRequesterSessionEntry(params.requesterSessionKey);
       directOrigin = deliveryContextFromSession(entry);
     }
+    // Use a deterministic idempotency key so the gateway dedup cache
+    // catches duplicates if this announce is also queued by the gateway-
+    // level message queue while the main session is busy (#17122).
+    const directIdempotencyKey = `announce:${params.childSessionKey}:${params.childRunId}`;
     await callGateway({
       method: "agent",
       params: {
@@ -543,7 +553,7 @@ export async function runSubagentAnnounceFlow(params: {
           directOrigin?.threadId != null && directOrigin.threadId !== ""
             ? String(directOrigin.threadId)
             : undefined,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: directIdempotencyKey,
       },
       expectFinal: true,
       timeoutMs: 60_000,
