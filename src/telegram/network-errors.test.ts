@@ -84,3 +84,20 @@ describe("isRecoverableTelegramNetworkError", () => {
     });
   });
 });
+
+describe("raw fetch TypeError (not Grammy HttpError)", () => {
+  it("is detected as recoverable network error", () => {
+    const rawFetchError = new TypeError("fetch failed");
+
+    expect(isRecoverableTelegramNetworkError(rawFetchError, { context: "polling" })).toBe(true);
+  });
+
+  it("is detected with cause chain", () => {
+    const cause = Object.assign(new Error("getaddrinfo ENOTFOUND api.telegram.org"), {
+      code: "ENOTFOUND",
+    });
+    const rawFetchError = Object.assign(new TypeError("fetch failed"), { cause });
+
+    expect(isRecoverableTelegramNetworkError(rawFetchError, { context: "polling" })).toBe(true);
+  });
+});
