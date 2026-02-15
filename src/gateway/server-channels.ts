@@ -107,10 +107,14 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
       return;
     }
 
+    let lastAbort: AbortController | undefined;
     for (let accountIndex = 0; accountIndex < accountIds.length; accountIndex++) {
       const id = accountIds[accountIndex];
       if (accountIndex > 0) {
         await new Promise((r) => setTimeout(r, 2000));
+        if (lastAbort?.signal.aborted) {
+          break;
+        }
       }
       if (store.tasks.has(id)) {
         continue;
@@ -142,6 +146,7 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
       }
 
       const abort = new AbortController();
+      lastAbort = abort;
       store.aborts.set(id, abort);
       setRuntime(channelId, id, {
         accountId: id,
