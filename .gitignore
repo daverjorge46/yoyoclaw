@@ -84,3 +84,7 @@ USER.md
 !.agent/workflows/
 /local/
 package-lock.json
+
+# AI and code generation artifacts
+## Claude
+.claude/
