@@ -10,6 +10,7 @@
  */
 
 import type { PluginRegistry } from "./registry.js";
+import type { PluginHookGatewayContext, PluginHookGatewayStopEvent } from "./types.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { createHookRunner, type HookRunner } from "./hooks.js";
 
@@ -62,6 +63,26 @@ export function getGlobalPluginRegistry(): PluginRegistry | null {
  */
 export function hasGlobalHooks(hookName: Parameters<HookRunner["hasHooks"]>[0]): boolean {
   return getGlobalHookRunner()?.hasHooks(hookName) ?? false;
+}
+
+export async function runGlobalGatewayStopSafely(params: {
+  event: PluginHookGatewayStopEvent;
+  ctx: PluginHookGatewayContext;
+  onError?: (err: unknown) => void;
+}): Promise<void> {
+  const hookRunner = getGlobalHookRunner();
+  if (!hookRunner?.hasHooks("gateway_stop")) {
+    return;
+  }
+  try {
+    await hookRunner.runGatewayStop(params.event, params.ctx);
+  } catch (err) {
+    if (params.onError) {
+      params.onError(err);
+      return;
+    }
+    log.warn(`gateway_stop hook failed: ${String(err)}`);
+  }
 }
 
 /**

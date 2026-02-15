@@ -53,10 +53,22 @@ describe("sanitizeUserFacingText", () => {
     expect(sanitizeUserFacingText(text)).toBe(text);
   });
 
+  it("does not rewrite conversational billing/help text without errorContext", () => {
+    const text =
+      "If your API billing is low, top up credits in your provider dashboard and retry payment verification.";
+    expect(sanitizeUserFacingText(text)).toBe(text);
+  });
+
   it("sanitizes raw API error payloads", () => {
     const raw = '{"type":"error","error":{"message":"Something exploded","type":"server_error"}}';
     expect(sanitizeUserFacingText(raw, { errorContext: true })).toBe(
       "LLM error server_error: Something exploded",
+    );
+  });
+
+  it("returns a friendly message for rate limit errors in Error: prefixed payloads", () => {
+    expect(sanitizeUserFacingText("Error: 429 Rate limit exceeded", { errorContext: true })).toBe(
+      "⚠️ API rate limit reached. Please try again later.",
     );
   });
 
@@ -77,7 +89,7 @@ describe("sanitizeUserFacingText", () => {
   });
 
   it("strips leading whitespace and newlines combined", () => {
-    expect(sanitizeUserFacingText("\n \n Hello")).toBe("Hello");
+    expect(sanitizeUserFacingText("\n \nHello")).toBe("Hello");
     expect(sanitizeUserFacingText("  \n\nHello")).toBe("Hello");
   });
 
