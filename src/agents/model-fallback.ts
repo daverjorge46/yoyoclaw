@@ -22,10 +22,20 @@ import {
 } from "./model-selection.js";
 
 /**
- * Maximum number of retry rounds when all fallback candidates fail with rate_limit.
+ * Maximum number of retry rounds when all fallback candidates fail with a
+ * retryable reason (rate_limit, timeout, or unknown — the latter two cover
+ * Antigravity-style proxies that hang instead of returning 429).
  * Each round waits progressively longer before retrying the full candidate list.
  */
 const RATE_LIMIT_MAX_RETRIES = 2;
+
+/**
+ * Reasons that qualify for automatic retry-with-backoff.
+ * - rate_limit: explicit 429 / cooldown skip
+ * - timeout:    request hung (commonly a silent rate limit from proxies)
+ * - unknown:    no classifiable reason — often a timeout with empty error body
+ */
+const RETRYABLE_REASONS = new Set<string>(["rate_limit", "timeout", "unknown"]);
 
 /**
  * Base delay (ms) for 429 retry backoff.  Actual delay = base × 2^(round-1),
@@ -327,20 +337,22 @@ export async function runWithModelFallback<T>(params: {
       }
     }
 
-    // ── 429 retry-with-backoff ──────────────────────────────────────────
-    // When every attempt failed due to rate_limit (or was skipped because
-    // the provider was already in cooldown) AND at least one candidate
-    // actually ran, wait and retry the full candidate list.  This handles
-    // the common single-provider scenario where all fallbacks share the
-    // same auth profile and a single 429 puts them all in cooldown.
-    const allRateLimit =
-      attempts.length > 0 && attempts.every((a) => a.reason === "rate_limit");
+    // ── Retryable-failure backoff ────────────────────────────────────────
+    // When every attempt failed with a retryable reason (rate_limit,
+    // timeout, or unknown), wait and retry the full candidate list.
+    // This handles the common single-provider scenario where all fallbacks
+    // share the same auth profile and a single 429 (or silent hang that
+    // manifests as timeout/unknown) puts them all in cooldown.
+    const allRetryable =
+      attempts.length > 0 &&
+      attempts.every((a) => RETRYABLE_REASONS.has(a.reason ?? "unknown"));
 
-    if (allRateLimit && retryRound < RATE_LIMIT_MAX_RETRIES) {
+    if (allRetryable && retryRound < RATE_LIMIT_MAX_RETRIES) {
       const delay = Math.min(baseDelay * 2 ** retryRound, RATE_LIMIT_RETRY_MAX_DELAY_MS);
 
       // Log so we can verify retry behaviour in production
-      const logMsg = `[model-fallback] 429 retry: round ${retryRound + 1}/${RATE_LIMIT_MAX_RETRIES}, waiting ${(delay / 1000).toFixed(0)}s before retrying ${candidates.length} candidates`;
+      const reasons = [...new Set(attempts.map((a) => a.reason ?? "unknown"))].join(",");
+      const logMsg = `[model-fallback] retry: round ${retryRound + 1}/${RATE_LIMIT_MAX_RETRIES}, reasons=${reasons}, waiting ${(delay / 1000).toFixed(0)}s before retrying ${candidates.length} candidates`;
       if (typeof globalThis.console?.warn === "function") {
         console.warn(logMsg);
       }
