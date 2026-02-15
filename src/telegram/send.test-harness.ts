@@ -1,5 +1,4 @@
 import { beforeEach, vi } from "vitest";
-import type { MockFn } from "../test-utils/vitest-mock-fn.js";
 
 const { botApi, botCtorSpy } = vi.hoisted(() => ({
   botApi: {
@@ -20,13 +19,6 @@ const { loadWebMedia } = vi.hoisted(() => ({
 const { loadConfig } = vi.hoisted(() => ({
   loadConfig: vi.fn(() => ({})),
 }));
-
-type TelegramSendTestMocks = {
-  botApi: Record<string, MockFn>;
-  botCtorSpy: MockFn;
-  loadConfig: MockFn;
-  loadWebMedia: MockFn;
-};
 
 vi.mock("../web/media.js", () => ({
   loadWebMedia,
@@ -56,7 +48,7 @@ vi.mock("../config/config.js", async (importOriginal) => {
   };
 });
 
-export function getTelegramSendTestMocks(): TelegramSendTestMocks {
+export function getTelegramSendTestMocks(): unknown {
   return { botApi, botCtorSpy, loadConfig, loadWebMedia };
 }
 
