@@ -1,3 +1,4 @@
+import { franc } from "franc-min";
 import {
   existsSync,
   mkdirSync,
@@ -54,6 +55,7 @@ const DEFAULT_OPENAI_VOICE = "alloy";
 const DEFAULT_EDGE_VOICE = "en-US-MichelleNeural";
 const DEFAULT_EDGE_LANG = "en-US";
 const DEFAULT_EDGE_OUTPUT_FORMAT = "audio-24khz-48kbitrate-mono-mp3";
+const DEFAULT_PIPER_BASE_URL = "http://piper-http:5001";
 
 const DEFAULT_ELEVENLABS_VOICE_SETTINGS = {
   stability: 0.5,
@@ -127,6 +129,13 @@ export type ResolvedTtsConfig = {
     proxy?: string;
     timeoutMs?: number;
   };
+  piper: {
+    baseUrl: string;
+    baseUrlByLang?: Record<string, string>;
+    voice?: string;
+    voiceByLang?: Record<string, string>;
+    timeoutMs?: number;
+  };
   prefsPath?: string;
   maxTextLength: number;
   timeoutMs: number;
@@ -159,6 +168,9 @@ export type TtsDirectiveOverrides = {
   openai?: {
     voice?: string;
     model?: string;
+  };
+  piper?: {
+    voice?: string;
   };
   elevenlabs?: {
     voiceId?: string;
@@ -300,6 +312,15 @@ export function resolveTtsConfig(cfg: OpenClawConfig): ResolvedTtsConfig {
       saveSubtitles: raw.edge?.saveSubtitles ?? false,
       proxy: raw.edge?.proxy?.trim() || undefined,
       timeoutMs: raw.edge?.timeoutMs,
+    },
+    piper: {
+      baseUrl: normalizeUrl(
+        raw.piper?.baseUrl?.trim() || process.env.PIPER_HTTP_URL?.trim() || DEFAULT_PIPER_BASE_URL,
+      ),
+      baseUrlByLang: normalizePiperUrlMap(raw.piper?.baseUrlByLang),
+      voice: raw.piper?.voice?.trim() || undefined,
+      voiceByLang: normalizePiperVoiceMap(raw.piper?.voiceByLang),
+      timeoutMs: raw.piper?.timeoutMs,
     },
     prefsPath: raw.prefsPath,
     maxTextLength: raw.maxTextLength ?? DEFAULT_MAX_TEXT_LENGTH,
@@ -493,6 +514,141 @@ function resolveEdgeOutputFormat(config: ResolvedTtsConfig): string {
   return config.edge.outputFormat;
 }
 
+function normalizeUrl(value?: string): string {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed.replace(/\/+$/, "");
+}
+
+function normalizePiperVoiceMap(
+  value: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const entries = Object.entries(value)
+    .map(([key, voice]) => [normalizeLangKey(key), voice?.trim()] as const)
+    .filter(([key, voice]) => key && voice);
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return Object.fromEntries(entries);
+}
+
+function normalizePiperUrlMap(
+  value: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const entries = Object.entries(value)
+    .map(([key, url]) => [normalizeLangKey(key), normalizeUrl(url)] as const)
+    .filter(([key, url]) => key && url);
+  if (entries.length === 0) {
+    return undefined;
+  }
+  return Object.fromEntries(entries);
+}
+
+function normalizeLangKey(value: string): string {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) {
+    return "";
+  }
+  const split = trimmed.split(/[-_]/)[0];
+  return split.trim();
+}
+
+const ISO3_TO_1: Record<string, string> = {
+  eng: "en",
+  deu: "de",
+  ger: "de",
+  fra: "fr",
+  fre: "fr",
+  hin: "hi",
+};
+
+function detectLanguage(text: string): string | undefined {
+  const trimmed = text.trim();
+  if (trimmed.length < 20) {
+    return undefined;
+  }
+  // Strong Hindi signal: Devanagari script.
+  if (/[\u0900-\u097F]/.test(trimmed)) {
+    return "hi";
+  }
+  const letters = trimmed.replace(/[^A-Za-z\u00C0-\u024F]/g, "");
+  if (letters.length < 10) {
+    return undefined;
+  }
+  const iso3 = franc(trimmed);
+  if (!iso3 || iso3 === "und") {
+    return undefined;
+  }
+  return ISO3_TO_1[iso3] ?? iso3;
+}
+
+function resolvePiperVoice(params: {
+  text: string;
+  config: ResolvedTtsConfig["piper"];
+  overrideVoice?: string;
+}): string | undefined {
+  const { text, config, overrideVoice } = params;
+  if (overrideVoice?.trim()) {
+    return overrideVoice.trim();
+  }
+  const voiceByLang = config.voiceByLang;
+  if (!voiceByLang || Object.keys(voiceByLang).length === 0) {
+    return config.voice;
+  }
+  const detected = detectLanguage(text);
+  if (detected) {
+    const key = normalizeLangKey(detected);
+    const mapped = voiceByLang[key];
+    if (mapped) {
+      return mapped;
+    }
+  }
+  return config.voice;
+}
+
+function resolvePiperBaseUrl(params: {
+  text: string;
+  config: ResolvedTtsConfig["piper"];
+  overrideVoice?: string;
+}): string {
+  const { text, config, overrideVoice } = params;
+  const baseUrlByLang = config.baseUrlByLang;
+  if (!baseUrlByLang || Object.keys(baseUrlByLang).length === 0) {
+    return config.baseUrl;
+  }
+
+  if (overrideVoice) {
+    const normalizedVoice = overrideVoice.trim();
+    const matchedLang = Object.entries(config.voiceByLang ?? {}).find(
+      ([, voice]) => voice === normalizedVoice,
+    );
+    if (matchedLang) {
+      const mapped = baseUrlByLang[matchedLang[0]];
+      if (mapped) {
+        return mapped;
+      }
+    }
+  }
+
+  const detected = detectLanguage(text);
+  if (detected) {
+    const key = normalizeLangKey(detected);
+    const mapped = baseUrlByLang[key];
+    if (mapped) {
+      return mapped;
+    }
+  }
+  return config.baseUrl;
+}
+
 export function resolveTtsApiKey(
   config: ResolvedTtsConfig,
   provider: TtsProvider,
@@ -506,7 +662,7 @@ export function resolveTtsApiKey(
   return undefined;
 }
 
-export const TTS_PROVIDERS = ["openai", "elevenlabs", "edge"] as const;
+export const TTS_PROVIDERS = ["openai", "elevenlabs", "edge", "piper"] as const;
 
 export function resolveTtsProviderOrder(primary: TtsProvider): TtsProvider[] {
   return [primary, ...TTS_PROVIDERS.filter((provider) => provider !== primary)];
@@ -516,7 +672,44 @@ export function isTtsProviderConfigured(config: ResolvedTtsConfig, provider: Tts
   if (provider === "edge") {
     return config.edge.enabled;
   }
+  if (provider === "piper") {
+    return Boolean(config.piper.baseUrl);
+  }
   return Boolean(resolveTtsApiKey(config, provider));
+}
+
+async function piperTTS(params: {
+  text: string;
+  outputPath: string;
+  baseUrl: string;
+  timeoutMs: number;
+  voice?: string;
+}): Promise<void> {
+  const { text, outputPath, baseUrl, timeoutMs, voice } = params;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const payload = voice?.trim() ? { text, voice: voice.trim() } : { text };
+
+  try {
+    const response = await fetch(`${baseUrl}/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Piper HTTP error (${response.status})`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length === 0) {
+      throw new Error("Piper HTTP returned empty audio");
+    }
+    writeFileSync(outputPath, buffer);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function textToSpeech(params: {
@@ -613,6 +806,39 @@ export async function textToSpeech(params: {
           provider,
           outputFormat: edgeResult.outputFormat,
           voiceCompatible,
+        };
+      }
+
+      if (provider === "piper") {
+        const tempDir = mkdtempSync(path.join(tmpdir(), "tts-"));
+        const audioPath = path.join(tempDir, `voice-${Date.now()}.wav`);
+        const overrideVoice = params.overrides?.piper?.voice;
+        const voice = resolvePiperVoice({
+          text: params.text,
+          config: config.piper,
+          overrideVoice,
+        });
+        const baseUrl = resolvePiperBaseUrl({
+          text: params.text,
+          config: config.piper,
+          overrideVoice,
+        });
+        await piperTTS({
+          text: params.text,
+          outputPath: audioPath,
+          baseUrl,
+          timeoutMs: config.piper.timeoutMs ?? config.timeoutMs,
+          voice,
+        });
+        scheduleCleanup(tempDir);
+
+        return {
+          success: true,
+          audioPath,
+          latencyMs: Date.now() - providerStart,
+          provider,
+          outputFormat: "wav",
+          voiceCompatible: false,
         };
       }
 
@@ -715,6 +941,10 @@ export async function textToSpeechTelephony(params: {
     try {
       if (provider === "edge") {
         lastError = "edge: unsupported for telephony";
+        continue;
+      }
+      if (provider === "piper") {
+        lastError = "piper: unsupported for telephony";
         continue;
       }
 
@@ -930,12 +1160,15 @@ export async function maybeApplyTtsToPayload(params: {
 }
 
 export const _test = {
+  detectLanguage,
   isValidVoiceId,
   isValidOpenAIVoice,
   isValidOpenAIModel,
   OPENAI_TTS_MODELS,
   OPENAI_TTS_VOICES,
   parseTtsDirectives,
+  resolvePiperBaseUrl,
+  resolvePiperVoice,
   resolveModelOverridePolicy,
   summarizeText,
   resolveOutputFormat,
