@@ -84,6 +84,7 @@ export function buildInboundUserContextPrefix(ctx: TemplateContext): string {
         username: safeTrim(ctx.SenderUsername),
         tag: safeTrim(ctx.SenderTag),
         e164: safeTrim(ctx.SenderE164),
+        id: safeTrim(ctx.SenderId),
       };
   if (senderInfo?.label) {
     blocks.push(
