@@ -894,6 +894,16 @@ export const registerTelegramHandlers = ({
       } catch (mediaErr) {
         const errMsg = String(mediaErr);
         if (errMsg.includes("exceeds") && errMsg.includes("MB limit")) {
+          // When requireMention is enabled, only send error if user mentioned the bot
+          // This prevents spam in groups where users haven't mentioned the bot
+          const requireMention = groupConfig?.requireMention ?? telegramCfg.groups?.requireMention;
+          const hasMention = msg.entities?.some((e) => e.type === "mention") ||
+            msg.caption_entities?.some((e) => e.type === "mention");
+          if (requireMention && !hasMention) {
+            // Silently ignore - user didn't mention the bot
+            logger.debug({ chatId, requireMention }, "skipping file size error (no mention)");
+            return;
+          }
           const limitMb = Math.round(mediaMaxBytes / (1024 * 1024));
           await withTelegramApiErrorLogging({
             operation: "sendMessage",
