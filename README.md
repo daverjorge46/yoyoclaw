@@ -1,4 +1,4 @@
-# Yoyo Claw
+# `¯\_(ツ)_/¯` Yoyo Claw
 
 Local, security-hardened OpenClaw fork for Yoyo Dev AI.
 
