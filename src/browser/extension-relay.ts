@@ -269,7 +269,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
   };
 
   /** Send a command to ALL extensions and merge results (used for target listing) */
-  const sendToAllExtensions = async (
+  const _sendToAllExtensions = async (
     payload: Omit<ExtensionForwardCommandMessage, "id">,
   ): Promise<unknown[]> => {
     const results: unknown[] = [];
