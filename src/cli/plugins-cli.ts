@@ -121,9 +121,10 @@ function applySlotSelectionForPlugin(
   return { config: result.config, warnings: result.warnings };
 }
 
-function createPluginInstallLogger(runtime: {
-  log: (msg: string) => void;
-}): { info: (msg: string) => void; warn: (msg: string) => void } {
+function createPluginInstallLogger(runtime: { log: (msg: string) => void }): {
+  info: (msg: string) => void;
+  warn: (msg: string) => void;
+} {
   return {
     info: (msg) => runtime.log(msg),
     warn: (msg) => runtime.log(theme.warn(msg)),

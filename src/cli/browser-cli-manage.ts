@@ -61,16 +61,20 @@ async function runBrowserCommand(action: () => Promise<void>) {
   });
 }
 
-function logBrowserTabs(tabs: BrowserTab[], json?: boolean) {
+function logBrowserTabs(
+  tabs: BrowserTab[],
+  runtime: { log: (msg: string) => void },
+  json?: boolean,
+) {
   if (json) {
-    defaultRuntime.log(JSON.stringify({ tabs }, null, 2));
+    runtime.log(JSON.stringify({ tabs }, null, 2));
     return;
   }
   if (tabs.length === 0) {
-    defaultRuntime.log("No tabs (browser closed or no targets).");
+    runtime.log("No tabs (browser closed or no targets).");
     return;
   }
-  defaultRuntime.log(
+  runtime.log(
     tabs
       .map((t, i) => `${i + 1}. ${t.title || "(untitled)"}\n   ${t.url}\n   id: ${t.targetId}`)
       .join("\n"),
@@ -183,7 +187,7 @@ export function registerBrowserManageCommands(
           { timeoutMs: 3000 },
         );
         const tabs = result.tabs ?? [];
-        logBrowserTabs(tabs, parent?.json);
+        logBrowserTabs(tabs, defaultRuntime, parent?.json);
       });
     });
 
@@ -208,7 +212,7 @@ export function registerBrowserManageCommands(
           { timeoutMs: 10_000 },
         );
         const tabs = result.tabs ?? [];
-        logBrowserTabs(tabs, parent?.json);
+        logBrowserTabs(tabs, defaultRuntime, parent?.json);
       });
     });
 
