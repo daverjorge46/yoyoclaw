@@ -492,6 +492,8 @@ export function createSessionsSpawnTool(opts?: {
         cleanup,
         label: label || undefined,
         runTimeoutSeconds,
+        attachmentsDir: attachmentAbsDir,
+        retainAttachmentsOnKeep,
       });
 
       return jsonResult({
