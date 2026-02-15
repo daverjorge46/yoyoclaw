@@ -98,8 +98,10 @@ function parseCallbackInput(input: string): { code: string; state: string } | { 
   }
 }
 
-function resolvePlatform(): "WINDOWS" | "MACOS" {
-  return process.platform === "win32" ? "WINDOWS" : "MACOS";
+function resolvePlatform(): "WINDOWS" | "MACOS" | "LINUX" {
+  if (process.platform === "win32") return "WINDOWS";
+  if (process.platform === "linux") return "LINUX";
+  return "MACOS";
 }
 
 async function fetchWithTimeout(
