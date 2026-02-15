@@ -119,10 +119,7 @@ const ANNOUNCE_RETRY_BASE_MS = 2_000;
 function resolveAnnounceTimeoutMs(): number {
   try {
     const cfg = loadConfig();
-    const cfgTimeout = (cfg as Record<string, unknown>).agents as
-      | { defaults?: { subagents?: { announceTimeoutMs?: number } } }
-      | undefined;
-    const value = cfgTimeout?.defaults?.subagents?.announceTimeoutMs;
+    const value = cfg.agents?.defaults?.subagents?.announceTimeoutMs;
     if (typeof value === "number" && Number.isFinite(value) && value > 0) {
       return Math.min(Math.max(Math.floor(value), 5_000), 300_000);
     }
@@ -141,16 +138,18 @@ async function callGatewayWithRetry(opts: Parameters<typeof callGateway>[0]): Pr
       return;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
-      const isTimeout = lastError.message.includes("timeout");
-      const isCloseError = lastError.message.includes("gateway closed");
-      if (!isTimeout && !isCloseError) {
+      const msg = lastError.message;
+      const isRetryable =
+        /timeout|timed out|etimedout/i.test(msg) ||
+        /gateway closed|abnormal closure|econnreset|socket hang up/i.test(msg);
+      if (!isRetryable) {
         // Non-retryable error — surface immediately.
         throw lastError;
       }
       if (attempt < maxRetries) {
         const delayMs = ANNOUNCE_RETRY_BASE_MS * 2 ** attempt;
         defaultRuntime.error?.(
-          `Announce delivery attempt ${attempt + 1}/${maxRetries + 1} failed (${isTimeout ? "timeout" : "closed"}), retrying in ${delayMs}ms...`,
+          `Announce delivery attempt ${attempt + 1}/${maxRetries + 1} failed (retryable), retrying in ${delayMs}ms...`,
         );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
@@ -165,6 +164,12 @@ async function sendAnnounce(item: AnnounceQueueItem) {
   const origin = item.origin;
   const threadId =
     origin?.threadId != null && origin.threadId !== "" ? String(origin.threadId) : undefined;
+  // Reuse persisted idempotency key across queue-level retries to prevent
+  // duplicate announces after ambiguous timeout/close failures.
+  const idempotencyKey = item.idempotencyKey ?? crypto.randomUUID();
+  if (!item.idempotencyKey) {
+    item.idempotencyKey = idempotencyKey;
+  }
   await callGatewayWithRetry({
     method: "agent",
     params: {
@@ -175,7 +180,7 @@ async function sendAnnounce(item: AnnounceQueueItem) {
       to: requesterIsSubagent ? undefined : origin?.to,
       threadId: requesterIsSubagent ? undefined : threadId,
       deliver: !requesterIsSubagent,
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey,
     },
     timeoutMs: resolveAnnounceTimeoutMs(),
   });
@@ -617,6 +622,12 @@ export async function runSubagentAnnounceFlow(params: {
       const { entry } = loadRequesterSessionEntry(targetRequesterSessionKey);
       directOrigin = deliveryContextFromSession(entry);
     }
+    // Use a stable idempotency key across retries so the server can dedupe
+    // if a previous attempt was accepted but the client timed out.
+    // Drop expectFinal on retries: if the server already accepted the first
+    // request and a run is in-flight, retry with expectFinal would wait for
+    // the run to finish, timeout again, and loop until retries exhausted.
+    const directIdempotencyKey = crypto.randomUUID();
     await callGatewayWithRetry({
       method: "agent",
       params: {
@@ -630,9 +641,8 @@ export async function runSubagentAnnounceFlow(params: {
           !requesterIsSubagent && directOrigin?.threadId != null && directOrigin.threadId !== ""
             ? String(directOrigin.threadId)
             : undefined,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: directIdempotencyKey,
       },
-      expectFinal: true,
       timeoutMs: resolveAnnounceTimeoutMs(),
     });
 
