@@ -254,8 +254,11 @@ export async function sendMessageTelegram(
   // Only include these if actually provided to keep API calls clean.
   const messageThreadId =
     opts.messageThreadId != null ? opts.messageThreadId : target.messageThreadId;
+  // Use scope "dm" as the safe default: sendMessageTelegram does not know the
+  // chat type, and "forum" scope incorrectly strips thread ID 1 (General topic)
+  // which is valid in DMs with topics enabled.
   const threadSpec =
-    messageThreadId != null ? { id: messageThreadId, scope: "forum" as const } : undefined;
+    messageThreadId != null ? { id: messageThreadId, scope: "dm" as const } : undefined;
   const threadIdParams = buildTelegramThreadParams(threadSpec);
   const threadParams: Record<string, unknown> = threadIdParams ? { ...threadIdParams } : {};
   const quoteText = opts.quoteText?.trim();
@@ -298,6 +301,10 @@ export async function sendMessageTelegram(
     );
   };
 
+  // Check both the params object and the outer messageThreadId to detect
+  // auto-injected thread IDs that buildTelegramThreadParams may have stripped.
+  const hadThreadId = messageThreadId != null;
+
   const sendWithThreadFallback = async <T>(
     params: Record<string, unknown> | undefined,
     label: string,
@@ -309,7 +316,10 @@ export async function sendMessageTelegram(
     try {
       return await attempt(params, label);
     } catch (err) {
-      if (!hasMessageThreadIdParam(params) || !isTelegramThreadNotFoundError(err)) {
+      if (
+        (!hasMessageThreadIdParam(params) && !hadThreadId) ||
+        !isTelegramThreadNotFoundError(err)
+      ) {
         throw err;
       }
       if (opts.verbose) {
@@ -839,7 +849,7 @@ export async function sendStickerTelegram(
   const messageThreadId =
     opts.messageThreadId != null ? opts.messageThreadId : target.messageThreadId;
   const threadSpec =
-    messageThreadId != null ? { id: messageThreadId, scope: "forum" as const } : undefined;
+    messageThreadId != null ? { id: messageThreadId, scope: "dm" as const } : undefined;
   const threadIdParams = buildTelegramThreadParams(threadSpec);
   const threadParams: Record<string, number> = threadIdParams ? { ...threadIdParams } : {};
   if (opts.replyToMessageId != null) {
@@ -872,6 +882,8 @@ export async function sendStickerTelegram(
     );
   };
 
+  const hadThreadId = messageThreadId != null;
+
   const sendWithThreadFallback = async <T>(
     params: Record<string, number> | undefined,
     label: string,
@@ -883,7 +895,10 @@ export async function sendStickerTelegram(
     try {
       return await attempt(params, label);
     } catch (err) {
-      if (!hasMessageThreadIdParam(params) || !isTelegramThreadNotFoundError(err)) {
+      if (
+        (!hasMessageThreadIdParam(params) && !hadThreadId) ||
+        !isTelegramThreadNotFoundError(err)
+      ) {
         throw err;
       }
       if (opts.verbose) {
@@ -969,7 +984,7 @@ export async function sendPollTelegram(
   const messageThreadId =
     opts.messageThreadId != null ? opts.messageThreadId : target.messageThreadId;
   const threadSpec =
-    messageThreadId != null ? { id: messageThreadId, scope: "forum" as const } : undefined;
+    messageThreadId != null ? { id: messageThreadId, scope: "dm" as const } : undefined;
   const threadIdParams = buildTelegramThreadParams(threadSpec);
 
   // Build poll options as simple strings (Grammy accepts string[] or InputPollOption[])
@@ -1004,6 +1019,8 @@ export async function sendPollTelegram(
     );
   };
 
+  const hadThreadId = messageThreadId != null;
+
   const sendWithThreadFallback = async <T>(
     params: Record<string, unknown> | undefined,
     label: string,
@@ -1015,7 +1032,10 @@ export async function sendPollTelegram(
     try {
       return await attempt(params, label);
     } catch (err) {
-      if (!hasMessageThreadIdParam(params) || !isTelegramThreadNotFoundError(err)) {
+      if (
+        (!hasMessageThreadIdParam(params) && !hadThreadId) ||
+        !isTelegramThreadNotFoundError(err)
+      ) {
         throw err;
       }
       if (opts.verbose) {
