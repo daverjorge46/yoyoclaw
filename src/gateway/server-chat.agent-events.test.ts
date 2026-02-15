@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { registerAgentRunContext, resetAgentRunContextForTest } from "../infra/agent-events.js";
 import {
   createAgentEventHandler,
@@ -111,7 +112,7 @@ describe("agent event handler", () => {
       seq: 1,
       stream: "assistant",
       ts: Date.now(),
-      data: { text: "NO_REPLY" },
+      data: { text: SILENT_REPLY_TOKEN },
     });
     handler({
       runId: "run-2",
