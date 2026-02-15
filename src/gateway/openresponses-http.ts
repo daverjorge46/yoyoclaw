@@ -48,7 +48,12 @@ import {
   setSseHeaders,
   writeDone,
 } from "./http-common.js";
-import { getBearerToken, resolveAgentIdForRequest, resolveSessionKey } from "./http-utils.js";
+import {
+  getBearerToken,
+  resolveAgentIdForRequest,
+  resolveSessionKey,
+  validateSessionKeyOwnership,
+} from "./http-utils.js";
 import {
   CreateResponseBodySchema,
   type ContentPart,
@@ -484,6 +489,16 @@ export async function handleOpenResponsesHttpRequest(
     return true;
   }
   const agentId = resolveAgentIdForRequest({ req, model });
+
+  // CWE-639: validate session ownership before resolving
+  const ownershipError = validateSessionKeyOwnership(req, authResult.user);
+  if (ownershipError) {
+    sendJson(res, 403, {
+      error: { message: ownershipError, type: "authorization_error" },
+    });
+    return true;
+  }
+
   const sessionKey = resolveOpenResponsesSessionKey({ req, agentId, user });
 
   // Build prompt from input
