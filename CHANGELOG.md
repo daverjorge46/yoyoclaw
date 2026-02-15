@@ -6,8 +6,11 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- macOS: add an opt-in local Gateway child-process runtime mode with quit behavior controls in app settings, and add Calendar/Reminders/Contacts permission metadata + signing entitlements for agent-requested personal-information access. Thanks @loganprit.
+
 ### Fixes
 
+- CLI/Gateway: preserve `gateway` parent auth flags for nested gateway subcommands (`call`, `usage`, `health`) and trim auth token/password values before RPC calls to avoid whitespace-auth failures in local Gateway flows. Thanks @loganprit.
 - TUI: make searchable-select filtering and highlight rendering ANSI-aware so queries ignore hidden escape codes and no longer corrupt ANSI styling sequences during match highlighting. (#4519) Thanks @bee4come.
 
 ## 2026.2.14
