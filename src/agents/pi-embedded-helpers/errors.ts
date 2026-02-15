@@ -397,7 +397,8 @@ export function formatAssistantErrorText(
   return safeRaw.length > 600 ? `${safeRaw.slice(0, 600)}…` : safeRaw;
 }
 
-const FILESYSTEM_PATH_RE = /\/(?:Users|home|tmp|var|etc)\/[^\s,)}\]]+/g;
+const FILESYSTEM_PATH_RE =
+  /(?:\/(?:Users|home|tmp|var|etc)\/[^\s,)}\]]+|[A-Z]:\\(?:Users|Documents|AppData|Program Files)[^\s,)}\]]*)/g;
 
 function stripFilesystemPaths(text: string): string {
   return text.replace(FILESYSTEM_PATH_RE, "<path>");

@@ -50,10 +50,18 @@ describe("sanitizeUserFacingText", () => {
 
   it("sanitizes tool execution errors with filesystem paths", () => {
     const raw =
-      "Could not find exact text to replace in /Users/wade.digital/.openclaw/workspace/memory/2026-02-14.md";
+      "Could not find exact text to replace in /Users/alice/.openclaw/workspace/memory/2026-02-14.md";
     const result = sanitizeUserFacingText(raw);
-    expect(result).not.toContain("/Users/wade.digital");
+    expect(result).not.toContain("/Users/alice");
     expect(result).not.toContain(".openclaw/workspace");
+  });
+
+  it("sanitizes Windows filesystem paths", () => {
+    const raw =
+      "Could not find exact text to replace in C:\\Users\\bob\\AppData\\Local\\.openclaw\\workspace\\MEMORY.md";
+    const result = sanitizeUserFacingText(raw);
+    expect(result).not.toContain("C:\\Users\\bob");
+    expect(result).not.toContain("AppData");
   });
 
   it("sanitizes generic external API error JSON payloads", () => {

@@ -66,9 +66,9 @@ describe("formatAssistantErrorText", () => {
 
   it("does not leak filesystem paths in tool error messages", () => {
     const msg = makeAssistantError(
-      "Edit tool failed: Could not find exact text in /Users/wade.digital/.openclaw/workspace/MEMORY.md",
+      "Edit tool failed: Could not find exact text in /Users/alice/.openclaw/workspace/MEMORY.md",
     );
     const result = formatAssistantErrorText(msg);
-    expect(result).not.toContain("/Users/wade.digital");
+    expect(result).not.toContain("/Users/alice");
   });
 });
