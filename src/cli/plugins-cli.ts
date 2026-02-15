@@ -162,7 +162,7 @@ function logSlotWarnings(warnings: string[]) {
 export function registerPluginsCli(program: Command) {
   const plugins = program
     .command("plugins")
-    .description("Manage OpenClaw plugins/extensions")
+    .description("Manage YoYo-Claw plugins/extensions")
     .addHelpText(
       "after",
       () =>
