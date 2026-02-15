@@ -12,7 +12,7 @@ title: "StepFun"
 
 It provides the [Step 3.5 Flash](https://github.com/stepfun-ai/Step-3.5-Flash) reasoning model API with OpenAI-compatible endpoints.
 
-### Platform Versions
+## Platform Versions
 
 StepFun offers two platform versions depending on your region:
 
