@@ -153,17 +153,26 @@ export function extractToolResultMediaPaths(result: unknown): string[] {
       continue;
     }
     if (entry.type === "text" && typeof entry.text === "string") {
-      // Reset lastIndex since MEDIA_TOKEN_RE is global.
-      MEDIA_TOKEN_RE.lastIndex = 0;
-      let match: RegExpExecArray | null;
-      while ((match = MEDIA_TOKEN_RE.exec(entry.text)) !== null) {
-        // Strip surrounding quotes/backticks and whitespace (mirrors cleanCandidate in media/parse).
-        const p = match[1]
-          ?.replace(/^[`"'[{(]+/, "")
-          .replace(/[`"'\]})\\,]+$/, "")
-          .trim();
-        if (p && p.length <= 4096) {
-          paths.push(p);
+      // Only parse lines that start with MEDIA: to avoid false positives
+      // in documentation, transcripts, or code examples mentioning "MEDIA:"
+      const lines = entry.text.split("\n");
+      for (const line of lines) {
+        const trimmedStart = line.trimStart();
+        if (!trimmedStart.startsWith("MEDIA:")) {
+          continue;
+        }
+        // Reset lastIndex since MEDIA_TOKEN_RE is global.
+        MEDIA_TOKEN_RE.lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = MEDIA_TOKEN_RE.exec(line)) !== null) {
+          // Strip surrounding quotes/backticks and whitespace (mirrors cleanCandidate in media/parse).
+          const p = match[1]
+            ?.replace(/^[`"'[{(]+/, "")
+            .replace(/[`"'\]})\\,]+$/, "")
+            .trim();
+          if (p && p.length <= 4096) {
+            paths.push(p);
+          }
         }
       }
     }
