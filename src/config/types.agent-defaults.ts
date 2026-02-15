@@ -94,6 +94,10 @@ export type CliBackendConfig = {
 };
 
 export type AgentDefaultsConfig = {
+  /** Agent runtime engine selection (defaults to "camel"). */
+  runtimeEngine?: "pi" | "camel";
+  /** CaMeL metadata propagation mode (defaults to "strict"). */
+  runtimeEvalMode?: "normal" | "strict";
   /** Primary model and fallbacks (provider/model). */
   model?: AgentModelListConfig;
   /** Optional image-capable model and fallbacks (provider/model). */

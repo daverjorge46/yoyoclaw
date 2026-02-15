@@ -256,6 +256,18 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.installs.*.installedAt": "ISO timestamp of last install/update.",
   "agents.list.*.identity.avatar":
     "Agent avatar (workspace-relative path, http(s) URL, or data URI).",
+  "agents.defaults.runtimeEngine":
+    'Agent runtime engine ("camel" default for capability-enforced CaMeL runtime; set "pi" for legacy runtime).',
+  "agents.defaults.runtimeEvalMode":
+    'CaMeL metadata propagation mode ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
+  "agents.list.*.runtimeEngine":
+    'Per-agent runtime engine override ("camel" for capability-enforced CaMeL runtime, "pi" for legacy runtime).',
+  "agents.list.*.runtimeEvalMode":
+    'Per-agent CaMeL metadata propagation mode override ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
+  "agents.list[].runtimeEngine":
+    'Per-agent runtime engine override ("camel" for capability-enforced CaMeL runtime, "pi" for legacy runtime).',
+  "agents.list[].runtimeEvalMode":
+    'Per-agent CaMeL metadata propagation mode override ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
   "agents.defaults.model.primary": "Primary model (provider/model).",
   "agents.defaults.model.fallbacks":
     "Ordered fallback models (provider/model). Used when the primary model fails.",

@@ -22,6 +22,8 @@ export type AgentConfig = {
   id: string;
   default?: boolean;
   name?: string;
+  runtimeEngine?: AgentDefaultsConfig["runtimeEngine"];
+  runtimeEvalMode?: AgentDefaultsConfig["runtimeEvalMode"];
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;

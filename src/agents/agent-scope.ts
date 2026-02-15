@@ -15,6 +15,8 @@ type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[num
 
 type ResolvedAgentConfig = {
   name?: string;
+  runtimeEngine?: AgentEntry["runtimeEngine"];
+  runtimeEvalMode?: AgentEntry["runtimeEvalMode"];
   workspace?: string;
   agentDir?: string;
   model?: AgentEntry["model"];
@@ -106,6 +108,8 @@ export function resolveAgentConfig(
   }
   return {
     name: typeof entry.name === "string" ? entry.name : undefined,
+    runtimeEngine: entry.runtimeEngine,
+    runtimeEvalMode: entry.runtimeEvalMode,
     workspace: typeof entry.workspace === "string" ? entry.workspace : undefined,
     agentDir: typeof entry.agentDir === "string" ? entry.agentDir : undefined,
     model:
@@ -134,6 +138,28 @@ export function resolveAgentSkillsFilter(
   }
   const normalized = raw.map((entry) => String(entry).trim()).filter(Boolean);
   return normalized.length > 0 ? normalized : [];
+}
+
+export function resolveAgentRuntimeEngine(
+  cfg: OpenClawConfig,
+  agentId: string,
+): "pi" | "camel" | undefined {
+  const raw = resolveAgentConfig(cfg, agentId)?.runtimeEngine;
+  if (raw === "pi" || raw === "camel") {
+    return raw;
+  }
+  return undefined;
+}
+
+export function resolveAgentRuntimeEvalMode(
+  cfg: OpenClawConfig,
+  agentId: string,
+): "normal" | "strict" | undefined {
+  const raw = resolveAgentConfig(cfg, agentId)?.runtimeEvalMode;
+  if (raw === "normal" || raw === "strict") {
+    return raw;
+  }
+  return undefined;
 }
 
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {

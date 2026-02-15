@@ -6,6 +6,8 @@ import {
   resolveAgentDir,
   resolveAgentModelFallbacksOverride,
   resolveAgentModelPrimary,
+  resolveAgentRuntimeEngine,
+  resolveAgentRuntimeEvalMode,
   resolveAgentWorkspaceDir,
 } from "./agent-scope.js";
 
@@ -112,6 +114,29 @@ describe("resolveAgentConfig", () => {
       },
     };
     expect(resolveAgentModelFallbacksOverride(cfgDisable, "linus")).toEqual([]);
+  });
+
+  it("supports per-agent runtime engine and eval mode overrides", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        defaults: {
+          runtimeEngine: "camel",
+          runtimeEvalMode: "strict",
+        },
+        list: [
+          {
+            id: "work",
+            runtimeEngine: "pi",
+            runtimeEvalMode: "normal",
+          },
+        ],
+      },
+    };
+
+    expect(resolveAgentRuntimeEngine(cfg, "work")).toBe("pi");
+    expect(resolveAgentRuntimeEvalMode(cfg, "work")).toBe("normal");
+    expect(resolveAgentRuntimeEngine(cfg, "main")).toBeUndefined();
+    expect(resolveAgentRuntimeEvalMode(cfg, "main")).toBeUndefined();
   });
 
   it("should return agent-specific sandbox config", () => {

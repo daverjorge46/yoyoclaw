@@ -5,6 +5,7 @@ import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { resolveAgentRuntimeEngine, resolveAgentRuntimeEvalMode } from "../agent-scope.js";
 import {
   isProfileInCooldown,
   markAuthProfileFailure,
@@ -51,6 +52,7 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
+import { runEmbeddedCamelAttempt } from "./run/camel-attempt.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
 import {
   truncateOversizedToolResultsInSession,
@@ -414,6 +416,17 @@ export async function runEmbeddedPiAgent(
       const usageAccumulator = createUsageAccumulator();
       let lastRunPromptUsage: ReturnType<typeof normalizeUsage> | undefined;
       let autoCompactionCount = 0;
+      const configuredRuntimeEngine =
+        (params.config && workspaceResolution.agentId
+          ? resolveAgentRuntimeEngine(params.config, workspaceResolution.agentId)
+          : undefined) ?? params.config?.agents?.defaults?.runtimeEngine;
+      const runtimeEngine = configuredRuntimeEngine === "pi" ? "pi" : "camel";
+      const configuredRuntimeEvalMode =
+        (params.config && workspaceResolution.agentId
+          ? resolveAgentRuntimeEvalMode(params.config, workspaceResolution.agentId)
+          : undefined) ?? params.config?.agents?.defaults?.runtimeEvalMode;
+      const runtimeEvalMode = configuredRuntimeEvalMode === "normal" ? "normal" : "strict";
+      const runAttempt = runtimeEngine === "camel" ? runEmbeddedCamelAttempt : runEmbeddedAttempt;
       try {
         while (true) {
           attemptedThinking.add(thinkLevel);
@@ -421,8 +434,12 @@ export async function runEmbeddedPiAgent(
 
           const prompt =
             provider === "anthropic" ? scrubAnthropicRefusalMagic(params.prompt) : params.prompt;
+          const runtimeApiKey =
+            apiKeyInfo && typeof (apiKeyInfo as { apiKey?: unknown }).apiKey === "string"
+              ? (apiKeyInfo as { apiKey?: string }).apiKey
+              : undefined;
 
-          const attempt = await runEmbeddedAttempt({
+          const attempt = await runAttempt({
             sessionId: params.sessionId,
             sessionKey: params.sessionKey,
             messageChannel: params.messageChannel,
@@ -434,11 +451,17 @@ export async function runEmbeddedPiAgent(
             groupChannel: params.groupChannel,
             groupSpace: params.groupSpace,
             spawnedBy: params.spawnedBy,
+            senderId: params.senderId,
+            senderName: params.senderName,
+            senderUsername: params.senderUsername,
+            senderE164: params.senderE164,
             senderIsOwner: params.senderIsOwner,
             currentChannelId: params.currentChannelId,
             currentThreadTs: params.currentThreadTs,
             replyToMode: params.replyToMode,
             hasRepliedRef: params.hasRepliedRef,
+            requireExplicitMessageTarget: params.requireExplicitMessageTarget,
+            disableMessageTool: params.disableMessageTool,
             sessionFile: params.sessionFile,
             workspaceDir: resolvedWorkspace,
             agentDir,
@@ -446,12 +469,15 @@ export async function runEmbeddedPiAgent(
             skillsSnapshot: params.skillsSnapshot,
             prompt,
             images: params.images,
+            clientTools: params.clientTools,
             disableTools: params.disableTools,
             provider,
             modelId,
             model,
             authStorage,
             modelRegistry,
+            runtimeApiKey,
+            runtimeEvalMode,
             agentId: workspaceResolution.agentId,
             thinkLevel,
             verboseLevel: params.verboseLevel,
