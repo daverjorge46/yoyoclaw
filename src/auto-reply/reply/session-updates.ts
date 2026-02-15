@@ -20,22 +20,14 @@ export async function prependSystemEvents(params: {
   isNewSession: boolean;
   prefixedBodyBase: string;
 }): Promise<string> {
-  const compactSystemEvent = (line: string): string | null => {
-    const trimmed = line.trim();
+  const compactSystemEvent = (event: { text: string; source?: string }): string | null => {
+    // Filter heartbeat-sourced events by tag rather than text matching,
+    // since heartbeat prompts are user-configurable.
+    if (event.source === "heartbeat") {
+      return null;
+    }
+    const trimmed = event.text.trim();
     if (!trimmed) {
-      return null;
-    }
-    const lower = trimmed.toLowerCase();
-    if (lower.includes("reason periodic")) {
-      return null;
-    }
-    // Filter out the actual heartbeat prompt, but not cron jobs that mention "heartbeat"
-    // The heartbeat prompt starts with "Read HEARTBEAT.md" - cron payloads won't match this
-    if (lower.startsWith("read heartbeat.md")) {
-      return null;
-    }
-    // Also filter heartbeat poll/wake noise
-    if (lower.includes("heartbeat poll") || lower.includes("heartbeat wake")) {
       return null;
     }
     if (trimmed.startsWith("Node:")) {
@@ -89,7 +81,7 @@ export async function prependSystemEvents(params: {
   systemLines.push(
     ...queued
       .map((event) => {
-        const compacted = compactSystemEvent(event.text);
+        const compacted = compactSystemEvent(event);
         if (!compacted) {
           return null;
         }

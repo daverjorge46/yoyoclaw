@@ -686,4 +686,41 @@ describe("prependSystemEvents", () => {
       vi.useRealTimers();
     }
   });
+
+  it("filters heartbeat-sourced events by tag and preserves non-heartbeat events", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-01-12T20:19:17Z"));
+      const sessionKey = "agent:main:heartbeat-test";
+
+      // Heartbeat-sourced events should be filtered regardless of text content
+      enqueueSystemEvent("any custom heartbeat prompt text", {
+        sessionKey,
+        source: "heartbeat",
+      });
+      enqueueSystemEvent("periodic check", { sessionKey, source: "heartbeat" });
+
+      // Non-heartbeat events should be preserved even if they mention "heartbeat"
+      enqueueSystemEvent("read heartbeat.md for the latest status", { sessionKey });
+      enqueueSystemEvent("Actual user event", { sessionKey });
+
+      const result = await prependSystemEvents({
+        cfg: {} as OpenClawConfig,
+        sessionKey,
+        isMainSession: false,
+        isNewSession: false,
+        prefixedBodyBase: "User: hi",
+      });
+
+      // Non-heartbeat events preserved
+      expect(result).toContain("read heartbeat.md for the latest status");
+      expect(result).toContain("Actual user event");
+      // Heartbeat-tagged events filtered
+      expect(result).not.toContain("any custom heartbeat prompt text");
+      expect(result).not.toContain("periodic check");
+    } finally {
+      resetSystemEventsForTest();
+      vi.useRealTimers();
+    }
+  });
 });
