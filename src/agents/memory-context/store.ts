@@ -116,13 +116,14 @@ export class WarmStore {
     //   is better (e.g. Gemini 3072). → Re-embed all segments with the better provider.
     const currentDim = this.opts.embedding.dim;
     const providerName = this.opts.embedding.name ?? "";
-    const isFallbackProvider = providerName === "hash" || providerName === "none" || providerName === "noop";
+    const isFallbackProvider =
+      providerName === "hash" || providerName === "none" || providerName === "noop";
     const isDowngrade = cachedDim > 0 && cachedDim !== currentDim && isFallbackProvider;
 
     if (isDowngrade) {
       console.info(
         `[memory-context] dim mismatch (cached=${cachedDim}, current=${currentDim}) ` +
-        `with fallback provider "${providerName}" — preserving vector cache, using BM25-only`,
+          `with fallback provider "${providerName}" — preserving vector cache, using BM25-only`,
       );
       this.preserveVectorCache = true;
     }
@@ -409,6 +410,32 @@ export class WarmStore {
    */
   searchByBM25(query: string, limit = 5): Array<{ id: string; score: number }> {
     return this.bm25.search(query, limit);
+  }
+
+  /**
+   * Get timeline neighbors of a segment for window-based recall.
+   * Returns segments within `windowSize` positions in the timeline, with distance info.
+   */
+  getTimelineNeighbors(
+    segmentId: string,
+    windowSize: number,
+  ): Array<{ segment: ConversationSegment; distance: number }> {
+    const pos = this.timeline.indexOf(segmentId, this.timelineHead);
+    if (pos === -1) {
+      return [];
+    }
+
+    const start = Math.max(this.timelineHead, pos - windowSize);
+    const end = Math.min(this.timeline.length - 1, pos + windowSize);
+
+    const result: Array<{ segment: ConversationSegment; distance: number }> = [];
+    for (let i = start; i <= end; i++) {
+      const seg = this.segments.get(this.timeline[i]);
+      if (seg) {
+        result.push({ segment: seg, distance: Math.abs(i - pos) });
+      }
+    }
+    return result;
   }
 
   async search(query: string, limit = 5, minScore = 0): Promise<SegmentSearchResult[]> {

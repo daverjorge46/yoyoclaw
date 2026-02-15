@@ -38,6 +38,53 @@ export class KnowledgeStore {
   private appendChain: Promise<void> = Promise.resolve();
   private initialized = false;
 
+  /** IDF cache: token → idf score.  Invalidated when fact count changes. */
+  private idfCache: Map<string, number> | null = null;
+  private idfCacheFactCount = 0;
+
+  /**
+   * Minimal CJK safety stop-words — only particles/pronouns that are NEVER
+   * meaningful as search keywords.  Kept small on purpose; the IDF weighting
+   * handles the rest automatically.
+   */
+  private static readonly CJK_STOP = new Set([
+    "的",
+    "是",
+    "了",
+    "在",
+    "我",
+    "你",
+    "他",
+    "她",
+    "它",
+    "也",
+    "都",
+    "就",
+    "和",
+    "有",
+    "这",
+    "那",
+    "不",
+    "会",
+    "到",
+    "着",
+    "过",
+    "得",
+    "地",
+    "吗",
+    "呢",
+    "吧",
+    "啊",
+    "么",
+    "与",
+    "及",
+    "把",
+    "被",
+    "让",
+    "之",
+    "其",
+  ]);
+
   constructor(storagePath: string) {
     this.storagePath = storagePath;
     this.filePath = path.join(storagePath, "knowledge.jsonl");
@@ -148,6 +195,7 @@ export class KnowledgeStore {
 
     this.facts.set(fact.id, fact);
     this.contentIndex.set(hash, fact.id);
+    this.invalidateIdf();
     await this.appendLine(fact);
     return fact;
   }
@@ -175,6 +223,7 @@ export class KnowledgeStore {
 
     this.facts.set(id, updated);
     this.contentIndex.set(this.contentHash(newContent), id);
+    this.invalidateIdf();
     await this.appendLine(updated);
     return updated;
   }
@@ -192,6 +241,7 @@ export class KnowledgeStore {
 
     const updated: KnowledgeFact = { ...existing, supersededBy: newId };
     this.facts.set(oldId, updated);
+    this.invalidateIdf();
     await this.appendLine(updated);
     return true;
   }
@@ -209,6 +259,7 @@ export class KnowledgeStore {
     this.facts.delete(id);
     const hash = this.contentHash(existing.content);
     this.contentIndex.delete(hash);
+    this.invalidateIdf();
     await this.appendLine({ ...existing, _deleted: true } as StoredFact);
     return true;
   }
@@ -238,27 +289,102 @@ export class KnowledgeStore {
   }
 
   /**
-   * Tokenize text into words (whitespace-split) + individual CJK characters.
+   * Tokenize text into words (whitespace-split) + CJK bigrams.
    * Handles mixed Chinese/English without external dependencies.
+   *
+   * CJK runs are split into overlapping bigrams (e.g. "工作流程" → ["工作", "作流", "流程"])
+   * so that two-character compound words match precisely instead of
+   * single characters matching everything.
+   * Single-char CJK runs are kept as-is (after stop-word filtering).
    */
   private static tokenize(text: string): string[] {
     const tokens: string[] = [];
-    // Match runs of CJK chars individually, or runs of non-CJK non-whitespace as words
+    // Match consecutive runs of CJK, or non-CJK words
     const re =
-      /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]|[^\s\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g;
+      /([\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+)|([^\s\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+)/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
-      const t = m[0].toLowerCase();
-      if (t) {
-        tokens.push(t);
+      if (m[1]) {
+        // CJK run → overlapping bigrams
+        const run = m[1];
+        if (run.length === 1) {
+          if (!KnowledgeStore.CJK_STOP.has(run)) {
+            tokens.push(run);
+          }
+        } else {
+          for (let i = 0; i < run.length - 1; i++) {
+            const bigram = run[i] + run[i + 1];
+            // Skip bigrams where BOTH chars are stop-words
+            if (!KnowledgeStore.CJK_STOP.has(run[i]) || !KnowledgeStore.CJK_STOP.has(run[i + 1])) {
+              tokens.push(bigram);
+            }
+          }
+        }
+      } else if (m[2]) {
+        const t = m[2].toLowerCase();
+        if (t) {
+          tokens.push(t);
+        }
       }
     }
     return tokens;
   }
 
+  // ── IDF helpers ──────────────────────────────────────────────────────────
+
   /**
-   * Search facts by keyword with CJK-aware tokenization and adaptive threshold.
-   * Uses scoring to rank results by match quality.
+   * Lazily compute IDF (Inverse Document Frequency) from all active facts.
+   * Cached and invalidated when the number of facts changes (add/supersede).
+   *
+   * IDF(t) = ln((N + 1) / (df(t) + 1))
+   *   where N = number of active facts, df(t) = facts containing token t.
+   *
+   * Tokens appearing in most facts get IDF → 0, rare tokens get high IDF.
+   */
+  private getIdf(): Map<string, number> {
+    const activeCount = this.size;
+    if (this.idfCache && this.idfCacheFactCount === activeCount) {
+      return this.idfCache;
+    }
+
+    const df = new Map<string, number>();
+    let N = 0;
+    for (const f of this.facts.values()) {
+      if (f.supersededBy) {
+        continue;
+      }
+      N++;
+      const text = `${f.content} ${f.context ?? ""}`.toLowerCase();
+      const seen = new Set(KnowledgeStore.tokenize(text));
+      for (const t of seen) {
+        df.set(t, (df.get(t) || 0) + 1);
+      }
+    }
+
+    const idf = new Map<string, number>();
+    for (const [token, count] of df) {
+      idf.set(token, Math.log((N + 1) / (count + 1)));
+    }
+
+    this.idfCache = idf;
+    this.idfCacheFactCount = activeCount;
+    return idf;
+  }
+
+  /** Invalidate IDF cache (call after add/update/supersede). */
+  private invalidateIdf(): void {
+    this.idfCache = null;
+  }
+
+  /**
+   * Search facts by keyword with CJK-aware tokenization, IDF-weighted scoring,
+   * and adaptive minimum-score filtering.
+   *
+   * Improvements over simple match-count:
+   *  1. CJK stop-words are filtered out of query tokens.
+   *  2. Each token is weighted by IDF — common tokens contribute little,
+   *     rare/meaningful tokens dominate the score.
+   *  3. A minimum score threshold filters out weak matches.
    */
   search(query: string, limit = 10): KnowledgeFact[] {
     const queryTokens = [...new Set(KnowledgeStore.tokenize(query))];
@@ -266,16 +392,27 @@ export class KnowledgeStore {
       return [];
     }
 
-    // Adaptive threshold: prevents long concatenated queries from requiring too many matches
-    let threshold: number;
-    if (queryTokens.length <= 2) {
-      threshold = 1;
-    } else if (queryTokens.length <= 8) {
-      threshold = Math.ceil(queryTokens.length * 0.5);
-    } else {
-      // For long queries (e.g. 3 user messages concatenated): cap threshold
-      threshold = Math.min(Math.ceil(queryTokens.length * 0.3), 6);
+    const idf = this.getIdf();
+
+    // Only keep query tokens that appear in at least one fact.
+    // Unknown tokens (e.g. noise CJK bigrams crossing word boundaries like
+    // "钱吧", "在怎") can never match anything and would inflate totalWeight,
+    // diluting scores for genuinely relevant tokens.
+    const tokenWeights = queryTokens
+      .filter((t) => idf.has(t))
+      .map((t) => ({
+        token: t,
+        weight: idf.get(t)!,
+      }));
+
+    // Total possible weight (for normalizing score to 0-1)
+    const totalWeight = tokenWeights.reduce((s, tw) => s + tw.weight, 0);
+    if (totalWeight <= 0) {
+      return []; // all query tokens are ultra-common → no useful search
     }
+
+    // Minimum score: at least 50% of IDF-weighted query must match
+    const minScore = 0.5;
 
     const scored: { fact: KnowledgeFact; score: number }[] = [];
     for (const f of this.facts.values()) {
@@ -283,12 +420,19 @@ export class KnowledgeStore {
         continue;
       }
       const text = `${f.content} ${f.context ?? ""}`.toLowerCase();
-      const matchCount = queryTokens.filter((w) => text.includes(w)).length;
-      if (matchCount >= threshold) {
-        scored.push({ fact: f, score: matchCount / queryTokens.length });
+      let matchWeight = 0;
+      for (const { token, weight } of tokenWeights) {
+        if (text.includes(token)) {
+          matchWeight += weight;
+        }
+      }
+      const score = matchWeight / totalWeight;
+      if (score >= minScore) {
+        scored.push({ fact: f, score });
       }
     }
-    // Sort by match score descending, then by timestamp descending
+
+    // Sort by IDF-weighted score descending, then by recency
     scored.sort((a, b) => b.score - a.score || b.fact.timestamp - a.fact.timestamp);
     return scored.slice(0, limit).map((s) => s.fact);
   }

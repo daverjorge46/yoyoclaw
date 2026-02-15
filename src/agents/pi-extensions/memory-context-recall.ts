@@ -13,6 +13,7 @@ import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-age
 import { getGlobalMemoryRuntime, computeHardCap } from "../memory-context/global-runtime.js";
 import { buildRecalledContextBlock } from "../memory-context/recall-format.js";
 import { maybeRedact } from "../memory-context/redaction.js";
+import { stripChannelPrefix } from "../memory-context/shared.js";
 import { smartTrim, type MessageLike } from "../memory-context/smart-trim.js";
 import { sanitizeToolUseResultPairing } from "../session-transcript-repair.js";
 import { getCompactionSafeguardRuntime } from "./compaction-safeguard-runtime.js";
@@ -47,8 +48,11 @@ function extractText(msg: AgentMessage): string {
 /**
  * Check if a message is a channel-injected system prefix (e.g. Feishu metadata).
  * These contain no user intent and should be excluded from search queries.
+ * Matches both "System: [2026-02-15 ..." and "[Sun 2026-02-15 ..." formats.
+ * Imported from shared.ts as the canonical source.
  */
-const SYSTEM_PREFIX_RE = /^System:\s*\[\d{4}-\d{2}-\d{2}\s/;
+// Re-export for local use; canonical definition is in shared.ts
+const SYSTEM_PREFIX_RE = /^(?:System:\s*)?\[(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+\d{4}-\d{2}-\d{2}\s/;
 
 /**
  * Extract search query from last 2-3 user messages (broader keyword coverage).
@@ -83,7 +87,27 @@ function estimateMessageTokens(msg: MessageLike): number {
   return Math.max(1, Math.ceil(text.length / 3));
 }
 
+/**
+ * Cached user prompt from the before_agent_start event.
+ * This captures the user input BEFORE channel-injected system messages
+ * are mixed into the messages array.
+ *
+ * Note: In gateway mode, event.prompt may still contain system event lines
+ * prepended by prependSystemEvents (e.g. "System: [timestamp] Feishu[main] ...").
+ * We strip those before caching.
+ */
+let cachedUserPrompt: string | undefined;
+
+// stripSystemPrefix delegates to the shared stripChannelPrefix
+const stripSystemPrefix = stripChannelPrefix;
+
 export default function memoryContextRecallExtension(api: ExtensionAPI): void {
+  // Cache the clean user prompt before the agent loop starts.
+  // This fires once per user interaction, before any context events.
+  api.on("before_agent_start", (event) => {
+    cachedUserPrompt = stripSystemPrefix(event.prompt);
+  });
+
   api.on("context", async (event: { messages: AgentMessage[] }, ctx: ExtensionContext) => {
     const sessionId =
       (ctx.sessionManager as unknown as { sessionId?: string }).sessionId ?? "unknown";
@@ -98,7 +122,14 @@ export default function memoryContextRecallExtension(api: ExtensionAPI): void {
     messages = messages.filter((msg) => !isRecalledContextMessage(msg));
 
     // ========== Step 2: Extract search query ==========
-    const query = extractSearchQuery(messages);
+    // Prefer cachedUserPrompt (clean, from before_agent_start) over
+    // extractSearchQuery (messages array may contain channel system messages).
+    const query = cachedUserPrompt?.trim() || extractSearchQuery(messages);
+    if (cachedUserPrompt) {
+      console.info(
+        `memory-context: using cachedUserPrompt for query: "${cachedUserPrompt.substring(0, 80)}"`,
+      );
+    }
 
     // ========== Step 3: Smart Trim (if near overflow) ==========
     const hardCap = computeHardCap(runtime);
@@ -108,9 +139,7 @@ export default function memoryContextRecallExtension(api: ExtensionAPI): void {
     const safeguardRuntime = getCompactionSafeguardRuntime(ctx.sessionManager);
     const reserveTokens =
       safeguardRuntime?.contextWindowTokens && safeguardRuntime?.maxHistoryShare
-        ? Math.round(
-            safeguardRuntime.contextWindowTokens * (1 - safeguardRuntime.maxHistoryShare),
-          )
+        ? Math.round(safeguardRuntime.contextWindowTokens * (1 - safeguardRuntime.maxHistoryShare))
         : 4000;
     const safeLimit = runtime.contextWindowTokens - reserveTokens - hardCap;
 
@@ -150,7 +179,12 @@ export default function memoryContextRecallExtension(api: ExtensionAPI): void {
                 if (text.includes(RECALLED_CONTEXT_MARKER)) {
                   continue;
                 }
-                const archivedText = maybeRedact(text, runtime.config.redaction);
+                // Strip channel system prefixes before archiving
+                const cleanedText = stripChannelPrefix(text);
+                if (!cleanedText) {
+                  continue;
+                }
+                const archivedText = maybeRedact(cleanedText, runtime.config.redaction);
                 // Check if already archived (dedup)
                 if (runtime.rawStore.isArchived(role as "user" | "assistant", archivedText)) {
                   continue;
@@ -213,7 +247,46 @@ export default function memoryContextRecallExtension(api: ExtensionAPI): void {
         );
       }
 
-      const recall = buildRecalledContextBlock(knowledgeFacts, rawResults, hardCap);
+      // ---- Window expansion: enrich search results with neighboring segments ----
+      const WINDOW_SIZE = 2; // ±2 segments around each match
+      const WINDOW_SCORE_DECAY = 0.15; // score drops 15% per step from matched segment
+
+      const windowedSegments = new Map<
+        string,
+        { segment: import("../memory-context/store.js").ConversationSegment; score: number }
+      >();
+
+      for (const result of rawResults) {
+        // Keep the original matched segment with its search score
+        const existing = windowedSegments.get(result.segment.id);
+        if (!existing || existing.score < result.score) {
+          windowedSegments.set(result.segment.id, {
+            segment: result.segment,
+            score: result.score,
+          });
+        }
+
+        // Expand window: add neighboring segments with decayed scores
+        const neighbors = runtime.rawStore.getTimelineNeighbors(result.segment.id, WINDOW_SIZE);
+        for (const { segment: neighbor, distance } of neighbors) {
+          if (distance === 0) {
+            continue;
+          } // skip self (already added above)
+          const decayedScore = Math.max(0, result.score * (1 - distance * WINDOW_SCORE_DECAY));
+          const prev = windowedSegments.get(neighbor.id);
+          if (!prev || prev.score < decayedScore) {
+            windowedSegments.set(neighbor.id, { segment: neighbor, score: decayedScore });
+          }
+        }
+      }
+
+      const expandedResults = Array.from(windowedSegments.values());
+
+      console.info(
+        `memory-context: window expansion ${rawResults.length} → ${expandedResults.length} segments`,
+      );
+
+      const recall = buildRecalledContextBlock(knowledgeFacts, expandedResults, hardCap);
 
       if (!recall.block) {
         return messages !== event.messages ? { messages } : undefined;
