@@ -380,4 +380,22 @@ result = query_ai_assistant(query="extract", input=payload, schema=Extracted)`);
       tool: "query_ai_assistant",
     });
   });
+
+  it("fails safely on triple-quoted call arguments", () => {
+    expect(() =>
+      parseCamelProgramToSteps(`notify(text="""hello, world""", channel="ops")`),
+    ).toThrow(/Unsupported expression/);
+  });
+
+  it("fails safely on raw string call arguments", () => {
+    expect(() => parseCamelProgramToSteps(`notify(pattern=r"^foo,bar$", channel="ops")`)).toThrow(
+      /Unsupported expression/,
+    );
+  });
+
+  it("fails safely on f-string call arguments with nested braces", () => {
+    expect(() =>
+      parseCamelProgramToSteps(`notify(text=f"payload {obj.get('x', {'k': 1})}", channel="ops")`),
+    ).toThrow(/Unsupported expression/);
+  });
 });
