@@ -38,7 +38,14 @@ vi.mock("../agents/model-auth.js", () => ({
   requireApiKey: vi.fn((auth: { apiKey?: string }) => auth.apiKey ?? ""),
 }));
 
-const { _test, resolveTtsConfig, maybeApplyTtsToPayload, getTtsProvider } = tts;
+const {
+  _test,
+  resolveTtsConfig,
+  maybeApplyTtsToPayload,
+  getTtsProvider,
+  resolveTtsProviderOrder,
+  isTtsProviderConfigured,
+} = tts;
 
 const {
   isValidVoiceId,
@@ -184,6 +191,30 @@ describe("tts", () => {
         },
       });
       expect(resolveEdgeOutputFormat(config)).toBe("audio-24khz-96kbitrate-mono-mp3");
+    });
+  });
+
+  describe("piper provider core", () => {
+    it("includes piper in provider fallback order", () => {
+      expect(resolveTtsProviderOrder("piper")).toEqual(["piper", "openai", "elevenlabs", "edge"]);
+    });
+
+    it("resolves piper defaults and marks provider configured", () => {
+      const config = resolveTtsConfig({
+        agents: { defaults: { model: { primary: "openai/gpt-4o-mini" } } },
+        messages: { tts: {} },
+      });
+      expect(config.piper.baseUrl).toBe("http://piper-http:5001");
+      expect(isTtsProviderConfigured(config, "piper")).toBe(true);
+    });
+
+    it("falls back to default piper baseUrl when configured value is blank", () => {
+      const config = resolveTtsConfig({
+        agents: { defaults: { model: { primary: "openai/gpt-4o-mini" } } },
+        messages: { tts: { piper: { baseUrl: "   " } } },
+      });
+      expect(config.piper.baseUrl).toBe("http://piper-http:5001");
+      expect(isTtsProviderConfigured(config, "piper")).toBe(true);
     });
   });
 

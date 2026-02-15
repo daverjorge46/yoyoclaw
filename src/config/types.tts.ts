@@ -1,4 +1,4 @@
-export type TtsProvider = "elevenlabs" | "openai" | "edge";
+export type TtsProvider = "elevenlabs" | "openai" | "edge" | "piper";
 
 export type TtsMode = "final" | "all";
 
@@ -71,6 +71,12 @@ export type TtsConfig = {
     volume?: string;
     saveSubtitles?: boolean;
     proxy?: string;
+    timeoutMs?: number;
+  };
+  /** Piper (Wyoming HTTP sidecar) configuration. */
+  piper?: {
+    baseUrl?: string;
+    voice?: string;
     timeoutMs?: number;
   };
   /** Optional path for local TTS user preferences JSON. */

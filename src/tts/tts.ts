@@ -54,6 +54,7 @@ const DEFAULT_OPENAI_VOICE = "alloy";
 const DEFAULT_EDGE_VOICE = "en-US-MichelleNeural";
 const DEFAULT_EDGE_LANG = "en-US";
 const DEFAULT_EDGE_OUTPUT_FORMAT = "audio-24khz-48kbitrate-mono-mp3";
+const DEFAULT_PIPER_BASE_URL = "http://piper-http:5001";
 
 const DEFAULT_ELEVENLABS_VOICE_SETTINGS = {
   stability: 0.5,
@@ -127,6 +128,11 @@ export type ResolvedTtsConfig = {
     proxy?: string;
     timeoutMs?: number;
   };
+  piper: {
+    baseUrl: string;
+    voice?: string;
+    timeoutMs?: number;
+  };
   prefsPath?: string;
   maxTextLength: number;
   timeoutMs: number;
@@ -159,6 +165,9 @@ export type TtsDirectiveOverrides = {
   openai?: {
     voice?: string;
     model?: string;
+  };
+  piper?: {
+    voice?: string;
   };
   elevenlabs?: {
     voiceId?: string;
@@ -300,6 +309,13 @@ export function resolveTtsConfig(cfg: OpenClawConfig): ResolvedTtsConfig {
       saveSubtitles: raw.edge?.saveSubtitles ?? false,
       proxy: raw.edge?.proxy?.trim() || undefined,
       timeoutMs: raw.edge?.timeoutMs,
+    },
+    piper: {
+      baseUrl: normalizeUrl(
+        raw.piper?.baseUrl?.trim() || process.env.PIPER_HTTP_URL?.trim() || DEFAULT_PIPER_BASE_URL,
+      ),
+      voice: raw.piper?.voice?.trim() || undefined,
+      timeoutMs: raw.piper?.timeoutMs,
     },
     prefsPath: raw.prefsPath,
     maxTextLength: raw.maxTextLength ?? DEFAULT_MAX_TEXT_LENGTH,
@@ -493,6 +509,29 @@ function resolveEdgeOutputFormat(config: ResolvedTtsConfig): string {
   return config.edge.outputFormat;
 }
 
+function normalizeUrl(value?: string): string {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed.replace(/\/+$/, "");
+}
+
+function resolvePiperVoice(params: {
+  config: ResolvedTtsConfig["piper"];
+  overrideVoice?: string;
+}): string | undefined {
+  const { config, overrideVoice } = params;
+  if (overrideVoice?.trim()) {
+    return overrideVoice.trim();
+  }
+  return config.voice;
+}
+
+function resolvePiperBaseUrl(config: ResolvedTtsConfig["piper"]): string {
+  return config.baseUrl;
+}
+
 export function resolveTtsApiKey(
   config: ResolvedTtsConfig,
   provider: TtsProvider,
@@ -506,7 +545,7 @@ export function resolveTtsApiKey(
   return undefined;
 }
 
-export const TTS_PROVIDERS = ["openai", "elevenlabs", "edge"] as const;
+export const TTS_PROVIDERS = ["openai", "elevenlabs", "edge", "piper"] as const;
 
 export function resolveTtsProviderOrder(primary: TtsProvider): TtsProvider[] {
   return [primary, ...TTS_PROVIDERS.filter((provider) => provider !== primary)];
@@ -516,7 +555,44 @@ export function isTtsProviderConfigured(config: ResolvedTtsConfig, provider: Tts
   if (provider === "edge") {
     return config.edge.enabled;
   }
+  if (provider === "piper") {
+    return Boolean(config.piper.baseUrl);
+  }
   return Boolean(resolveTtsApiKey(config, provider));
+}
+
+async function piperTTS(params: {
+  text: string;
+  outputPath: string;
+  baseUrl: string;
+  timeoutMs: number;
+  voice?: string;
+}): Promise<void> {
+  const { text, outputPath, baseUrl, timeoutMs, voice } = params;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const payload = voice?.trim() ? { text, voice: voice.trim() } : { text };
+
+  try {
+    const response = await fetch(`${baseUrl}/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Piper HTTP error (${response.status})`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length === 0) {
+      throw new Error("Piper HTTP returned empty audio");
+    }
+    writeFileSync(outputPath, buffer);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function textToSpeech(params: {
@@ -613,6 +689,34 @@ export async function textToSpeech(params: {
           provider,
           outputFormat: edgeResult.outputFormat,
           voiceCompatible,
+        };
+      }
+
+      if (provider === "piper") {
+        const tempDir = mkdtempSync(path.join(tmpdir(), "tts-"));
+        const audioPath = path.join(tempDir, `voice-${Date.now()}.wav`);
+        const overrideVoice = params.overrides?.piper?.voice;
+        const voice = resolvePiperVoice({
+          config: config.piper,
+          overrideVoice,
+        });
+        const baseUrl = resolvePiperBaseUrl(config.piper);
+        await piperTTS({
+          text: params.text,
+          outputPath: audioPath,
+          baseUrl,
+          timeoutMs: config.piper.timeoutMs ?? config.timeoutMs,
+          voice,
+        });
+        scheduleCleanup(tempDir);
+
+        return {
+          success: true,
+          audioPath,
+          latencyMs: Date.now() - providerStart,
+          provider,
+          outputFormat: "wav",
+          voiceCompatible: false,
         };
       }
 
@@ -715,6 +819,10 @@ export async function textToSpeechTelephony(params: {
     try {
       if (provider === "edge") {
         lastError = "edge: unsupported for telephony";
+        continue;
+      }
+      if (provider === "piper") {
+        lastError = "piper: unsupported for telephony";
         continue;
       }
 
