@@ -4,6 +4,7 @@ import {
   buildTypingThreadParams,
   expandTextLinks,
   normalizeForwardedContext,
+  resolveTelegramBlockReplyBreak,
   resolveTelegramForumThreadId,
 } from "./helpers.js";
 
@@ -67,6 +68,18 @@ describe("buildTypingThreadParams", () => {
 
   it("normalizes thread ids to integers", () => {
     expect(buildTypingThreadParams(42.9)).toEqual({ message_thread_id: 42 });
+  });
+});
+
+describe("resolveTelegramBlockReplyBreak", () => {
+  it("forces message_end break when block streaming is explicitly enabled", () => {
+    expect(resolveTelegramBlockReplyBreak({ blockStreaming: true })).toBe("message_end");
+  });
+
+  it("returns undefined when block streaming is disabled or unset", () => {
+    expect(resolveTelegramBlockReplyBreak({ blockStreaming: false })).toBeUndefined();
+    expect(resolveTelegramBlockReplyBreak({})).toBeUndefined();
+    expect(resolveTelegramBlockReplyBreak(undefined)).toBeUndefined();
   });
 });
 

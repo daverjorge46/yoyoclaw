@@ -91,6 +91,16 @@ export function resolveTelegramStreamMode(telegramCfg?: {
   return "partial";
 }
 
+/**
+ * Telegram block streaming should emit at assistant message boundaries when explicitly enabled.
+ * This avoids losing intermediate assistant messages on providers that don't emit text_end events.
+ */
+export function resolveTelegramBlockReplyBreak(telegramCfg?: {
+  blockStreaming?: boolean;
+}): "message_end" | undefined {
+  return telegramCfg?.blockStreaming === true ? "message_end" : undefined;
+}
+
 export function buildTelegramGroupPeerId(chatId: number | string, messageThreadId?: number) {
   return messageThreadId != null ? `${chatId}:topic:${messageThreadId}` : String(chatId);
 }

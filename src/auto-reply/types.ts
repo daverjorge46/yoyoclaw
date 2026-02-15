@@ -37,6 +37,12 @@ export type GetReplyOptions = {
    * Use this to get model/provider/thinkLevel for responsePrefix template interpolation. */
   onModelSelected?: (ctx: ModelSelectedContext) => void;
   disableBlockStreaming?: boolean;
+  /**
+   * Override block reply emission boundary for this request.
+   * - text_end: emit on text_end events (default behavior)
+   * - message_end: emit on assistant message_end boundaries
+   */
+  blockReplyBreak?: "text_end" | "message_end";
   /** Timeout for block reply delivery (ms). */
   blockReplyTimeoutMs?: number;
   /** If provided, only load these skills for this session (empty = no skills). */

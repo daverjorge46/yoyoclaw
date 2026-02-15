@@ -52,6 +52,7 @@ import {
   buildTelegramGroupFrom,
   buildTelegramGroupPeerId,
   buildTelegramParentPeer,
+  resolveTelegramBlockReplyBreak,
   resolveTelegramForumThreadId,
   resolveTelegramThreadSpec,
 } from "./bot/helpers.js";
@@ -528,6 +529,7 @@ export const registerTelegramNativeCommands = ({
             typeof telegramCfg.blockStreaming === "boolean"
               ? !telegramCfg.blockStreaming
               : undefined;
+          const blockReplyBreak = resolveTelegramBlockReplyBreak(telegramCfg);
           const chunkMode = resolveChunkMode(cfg, "telegram", route.accountId);
 
           const deliveryState = {
@@ -577,6 +579,7 @@ export const registerTelegramNativeCommands = ({
             replyOptions: {
               skillFilter,
               disableBlockStreaming,
+              blockReplyBreak,
               onModelSelected,
             },
           });
