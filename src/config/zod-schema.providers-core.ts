@@ -226,8 +226,8 @@ export const DiscordGuildChannelSchema = z
     toolsBySender: ToolPolicyBySenderSchema,
     skills: z.array(z.string()).optional(),
     enabled: z.boolean().optional(),
-    users: z.array(z.union([z.string(), z.number()])).optional(),
-    roles: z.array(z.union([z.string(), z.number()])).optional(),
+    users: z.array(z.string()).optional(),
+    roles: z.array(z.string()).optional(),
     systemPrompt: z.string().optional(),
     includeThreadStarter: z.boolean().optional(),
     autoThread: z.boolean().optional(),
@@ -241,8 +241,8 @@ export const DiscordGuildSchema = z
     tools: ToolPolicySchema,
     toolsBySender: ToolPolicyBySenderSchema,
     reactionNotifications: z.enum(["off", "own", "all", "allowlist"]).optional(),
-    users: z.array(z.union([z.string(), z.number()])).optional(),
-    roles: z.array(z.union([z.string(), z.number()])).optional(),
+    users: z.array(z.string()).optional(),
+    roles: z.array(z.string()).optional(),
     channels: z.record(z.string(), DiscordGuildChannelSchema.optional()).optional(),
   })
   .strict();
