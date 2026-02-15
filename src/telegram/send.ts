@@ -978,6 +978,12 @@ export async function sendPollTelegram(
   // Normalize the poll input (validates question, options, maxSelections)
   const normalizedPoll = normalizePollInput(poll, { maxOptions: 10 });
 
+  const messageThreadId =
+    opts.messageThreadId != null ? opts.messageThreadId : target.messageThreadId;
+  const threadSpec =
+    messageThreadId != null ? { id: messageThreadId, scope: "forum" as const } : undefined;
+  const threadIdParams = buildTelegramThreadParams(threadSpec);
+
   // Build poll options as simple strings (Grammy accepts string[] or InputPollOption[])
   const pollOptions = normalizedPoll.options;
 
@@ -1013,16 +1019,7 @@ export async function sendPollTelegram(
     allows_multiple_answers: normalizedPoll.maxSelections > 1,
     is_anonymous: opts.isAnonymous ?? true,
     ...(durationSeconds !== undefined ? { open_period: durationSeconds } : {}),
-    ...buildTelegramThreadParams(
-      opts.messageThreadId != null
-        ? opts.messageThreadId
-        : target.messageThreadId
-          ? {
-              id: opts.messageThreadId != null ? opts.messageThreadId : target.messageThreadId,
-              scope: "forum" as const,
-            }
-          : undefined,
-    ),
+    ...(threadIdParams ? threadIdParams : {}),
     ...(opts.replyToMessageId != null
       ? { reply_to_message_id: Math.trunc(opts.replyToMessageId) }
       : {}),
@@ -1035,13 +1032,7 @@ export async function sendPollTelegram(
     opts.verbose,
     async (effectiveParams, label) =>
       requestWithDiag(
-        () =>
-          api.sendPoll(
-            chatId,
-            normalizedPoll.question,
-            pollOptions,
-            effectiveParams as Parameters<typeof api.sendPoll>[2],
-          ),
+        () => api.sendPoll(chatId, normalizedPoll.question, pollOptions, effectiveParams as any),
         label,
       ).catch((err) => {
         throw wrapChatNotFoundError(err, chatId, to);
