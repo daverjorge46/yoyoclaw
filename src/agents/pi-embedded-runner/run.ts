@@ -410,6 +410,7 @@ export async function runEmbeddedPiAgent(
 
       const MAX_OVERFLOW_COMPACTION_ATTEMPTS = 3;
       let overflowCompactionAttempts = 0;
+      let overflowCompactionStarted = false;
       let toolResultTruncationAttempted = false;
       const usageAccumulator = createUsageAccumulator();
       let lastRunPromptUsage: ReturnType<typeof normalizeUsage> | undefined;
@@ -550,6 +551,10 @@ export async function runEmbeddedPiAgent(
                 );
               }
               overflowCompactionAttempts++;
+              overflowCompactionStarted = true;
+              // Emit synthetic compaction lifecycle events for overflow recovery so
+              // reply-run observers can notify users and track completion consistently.
+              params.onAgentEvent?.({ stream: "compaction", data: { phase: "start" } });
               log.warn(
                 `context overflow detected (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); attempting auto-compaction for ${provider}/${modelId}`,
               );
@@ -578,6 +583,10 @@ export async function runEmbeddedPiAgent(
                 diagId: overflowDiagId,
                 attempt: overflowCompactionAttempts,
                 maxAttempts: MAX_OVERFLOW_COMPACTION_ATTEMPTS,
+              });
+              params.onAgentEvent?.({
+                stream: "compaction",
+                data: { phase: "end", willRetry: !compactResult.compacted },
               });
               if (compactResult.compacted) {
                 autoCompactionCount += 1;
@@ -649,6 +658,14 @@ export async function runEmbeddedPiAgent(
                   `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=unknown ` +
                   `attempt=${overflowCompactionAttempts} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
               );
+            }
+            // Terminal failure — emit a final end event only if we started a compaction
+            // cycle, so the caller can clean up (re-arm dedupe, set autoCompactionCompleted).
+            if (overflowCompactionStarted) {
+              params.onAgentEvent?.({
+                stream: "compaction",
+                data: { phase: "end", willRetry: false },
+              });
             }
             const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
             return {
