@@ -428,9 +428,9 @@ function buildChatCommands(): ChatCommandDefinition[] {
     }),
     defineChatCommand({
       key: "compact",
+      nativeName: "compact",
       description: "Compact the session context.",
       textAlias: "/compact",
-      scope: "text",
       category: "session",
       args: [
         {
