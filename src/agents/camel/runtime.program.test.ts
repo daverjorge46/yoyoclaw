@@ -146,6 +146,135 @@ final(result.email)
     expect(result.assistantTexts.at(-1)).toBe("alice@example.com");
   });
 
+  it("feeds planner parse diagnostics (line/column) back into repair loop", async () => {
+    completeSimpleMock
+      .mockResolvedValueOnce(
+        assistantText(`\`\`\`python
+items = [
+final("bad")
+\`\`\``),
+      )
+      .mockResolvedValueOnce(
+        assistantText(`\`\`\`python
+final("recovered")
+\`\`\``),
+      );
+
+    const result = await runCamelRuntime({
+      model: {} as never,
+      provider: "openai",
+      modelId: "mock-1",
+      prompt: "recover from planner syntax",
+      history: "",
+      tools: [],
+      runId: "run:test:planner-parse-repair",
+      maxPlanRetries: 2,
+    });
+    expect(result.assistantTexts.at(-1)).toBe("recovered");
+    expect(result.issues.some((issue) => issue.stage === "plan")).toBe(true);
+    expect(
+      result.issues.some(
+        (issue) =>
+          issue.stage === "plan" &&
+          issue.message.includes("line 1") &&
+          issue.message.includes("column"),
+      ),
+    ).toBe(true);
+  });
+
+  it("feeds unknown code tool diagnostics (line/column) back into repair loop", async () => {
+    completeSimpleMock
+      .mockResolvedValueOnce(
+        assistantText(`\`\`\`python
+open(path="/tmp/file.txt")
+final("bad")
+\`\`\``),
+      )
+      .mockResolvedValueOnce(
+        assistantText(`\`\`\`python
+final("recovered")
+\`\`\``),
+      );
+
+    const result = await runCamelRuntime({
+      model: {} as never,
+      provider: "openai",
+      modelId: "mock-1",
+      prompt: "use only available tools",
+      history: "",
+      tools: [],
+      runId: "run:test:planner-unknown-tool-repair",
+      maxPlanRetries: 2,
+    });
+    expect(result.assistantTexts.at(-1)).toBe("recovered");
+    expect(
+      result.issues.some(
+        (issue) =>
+          issue.stage === "plan" &&
+          issue.message.includes('unknown tool "open"') &&
+          issue.message.includes("line 1") &&
+          issue.message.includes("column"),
+      ),
+    ).toBe(true);
+  });
+
+  it("feeds unknown json tool diagnostics with step path back into repair loop", async () => {
+    completeSimpleMock
+      .mockResolvedValueOnce(
+        assistantText(
+          '{"steps":[{"kind":"tool","tool":"open","args":{"path":"/tmp/file.txt"}},{"kind":"final","text":"bad"}]}',
+        ),
+      )
+      .mockResolvedValueOnce(
+        assistantText(`\`\`\`python
+final("recovered")
+\`\`\``),
+      );
+
+    const result = await runCamelRuntime({
+      model: {} as never,
+      provider: "openai",
+      modelId: "mock-1",
+      prompt: "use only available tools",
+      history: "",
+      tools: [],
+      runId: "run:test:planner-unknown-json-tool-repair",
+      maxPlanRetries: 2,
+    });
+    expect(result.assistantTexts.at(-1)).toBe("recovered");
+    expect(
+      result.issues.some(
+        (issue) =>
+          issue.stage === "plan" &&
+          issue.message.includes("Planner validation error at steps[0].tool") &&
+          issue.message.includes('unknown tool "open"'),
+      ),
+    ).toBe(true);
+  });
+
+  it("honors configured max planner retries", async () => {
+    completeSimpleMock.mockResolvedValueOnce(
+      assistantText(`\`\`\`python
+items = [
+final("bad")
+\`\`\``),
+    );
+
+    await expect(
+      runCamelRuntime({
+        model: {} as never,
+        provider: "openai",
+        modelId: "mock-1",
+        prompt: "fail fast",
+        history: "",
+        tools: [],
+        runId: "run:test:planner-retries-limit",
+        maxPlanRetries: 1,
+      }),
+    ).rejects.toThrow(/line 1, column/);
+    expect(completeSimpleMock).toHaveBeenCalledTimes(1);
+  });
+
   it("allows trusted state-changing tool calls with public control flow", async () => {
     const execTool = {
       name: "exec",

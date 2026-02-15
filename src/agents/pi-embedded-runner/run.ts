@@ -5,7 +5,11 @@ import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
-import { resolveAgentRuntimeEngine, resolveAgentRuntimeEvalMode } from "../agent-scope.js";
+import {
+  resolveAgentRuntimeEngine,
+  resolveAgentRuntimeEvalMode,
+  resolveAgentRuntimePlanRetries,
+} from "../agent-scope.js";
 import {
   isProfileInCooldown,
   markAuthProfileFailure,
@@ -420,12 +424,22 @@ export async function runEmbeddedPiAgent(
         (params.config && workspaceResolution.agentId
           ? resolveAgentRuntimeEngine(params.config, workspaceResolution.agentId)
           : undefined) ?? params.config?.agents?.defaults?.runtimeEngine;
-      const runtimeEngine = configuredRuntimeEngine === "pi" ? "pi" : "camel";
+      const runtimeEngine = configuredRuntimeEngine === "camel" ? "camel" : "pi";
       const configuredRuntimeEvalMode =
         (params.config && workspaceResolution.agentId
           ? resolveAgentRuntimeEvalMode(params.config, workspaceResolution.agentId)
           : undefined) ?? params.config?.agents?.defaults?.runtimeEvalMode;
       const runtimeEvalMode = configuredRuntimeEvalMode === "normal" ? "normal" : "strict";
+      const configuredRuntimePlanRetries =
+        (params.config && workspaceResolution.agentId
+          ? resolveAgentRuntimePlanRetries(params.config, workspaceResolution.agentId)
+          : undefined) ?? params.config?.agents?.defaults?.runtimePlanRetries;
+      const runtimePlanRetries =
+        typeof configuredRuntimePlanRetries === "number" &&
+        Number.isFinite(configuredRuntimePlanRetries) &&
+        configuredRuntimePlanRetries > 0
+          ? Math.trunc(configuredRuntimePlanRetries)
+          : undefined;
       const runAttempt = runtimeEngine === "camel" ? runEmbeddedCamelAttempt : runEmbeddedAttempt;
       try {
         while (true) {
@@ -478,6 +492,7 @@ export async function runEmbeddedPiAgent(
             modelRegistry,
             runtimeApiKey,
             runtimeEvalMode,
+            runtimePlanRetries,
             agentId: workspaceResolution.agentId,
             thinkLevel,
             verboseLevel: params.verboseLevel,

@@ -146,6 +146,7 @@ describe("runEmbeddedCamelAttempt", () => {
         authStorage: {} as never,
         modelRegistry: {} as never,
         thinkLevel: "off",
+        runtimePlanRetries: 4,
         timeoutMs: 10_000,
         runId: "run:camel-attempt-test",
         onAssistantMessageStart,
@@ -158,6 +159,7 @@ describe("runEmbeddedCamelAttempt", () => {
       expect(runCamelRuntimeMock).toHaveBeenCalledTimes(1);
       expect(runCamelRuntimeMock.mock.calls[0]?.[0]).toMatchObject({
         extraSystemPrompt: "CAMEL SYSTEM PROMPT",
+        maxPlanRetries: 4,
       });
       expect(onAssistantMessageStart).toHaveBeenCalledTimes(1);
       expect(onPartialReply).toHaveBeenCalledWith({ text: "final answer" });

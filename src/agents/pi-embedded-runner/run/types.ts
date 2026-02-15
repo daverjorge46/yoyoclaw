@@ -59,6 +59,7 @@ export type EmbeddedRunAttemptParams = {
   modelRegistry: ModelRegistry;
   runtimeApiKey?: string;
   runtimeEvalMode?: CamelEvalMode;
+  runtimePlanRetries?: number;
   thinkLevel: ThinkLevel;
   verboseLevel?: VerboseLevel;
   reasoningLevel?: ReasoningLevel;

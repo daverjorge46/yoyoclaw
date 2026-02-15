@@ -24,6 +24,7 @@ export type AgentConfig = {
   name?: string;
   runtimeEngine?: AgentDefaultsConfig["runtimeEngine"];
   runtimeEvalMode?: AgentDefaultsConfig["runtimeEvalMode"];
+  runtimePlanRetries?: AgentDefaultsConfig["runtimePlanRetries"];
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;

@@ -67,21 +67,27 @@ function makeConfig(params: {
   agentRuntime?: "pi" | "camel";
   defaultsEval?: "normal" | "strict";
   agentEval?: "normal" | "strict";
+  defaultsPlanRetries?: number;
+  agentPlanRetries?: number;
 }): OpenClawConfig {
   return {
     agents: {
       defaults: {
         runtimeEngine: params.defaultsRuntime,
         runtimeEvalMode: params.defaultsEval,
+        runtimePlanRetries: params.defaultsPlanRetries,
       },
       list:
-        params.agentRuntime === undefined && params.agentEval === undefined
+        params.agentRuntime === undefined &&
+        params.agentEval === undefined &&
+        params.agentPlanRetries === undefined
           ? undefined
           : [
               {
                 id: "work",
                 runtimeEngine: params.agentRuntime,
                 runtimeEvalMode: params.agentEval,
+                runtimePlanRetries: params.agentPlanRetries,
               },
             ],
     },
@@ -109,10 +115,10 @@ function makeConfig(params: {
 }
 
 describe("runEmbeddedPiAgent runtimeEngine dispatch", () => {
-  it("defaults to camel runtime when runtimeEngine is unset", async () => {
-    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-camel-fallback-"));
+  it("defaults to pi runtime when runtimeEngine is unset", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-pi-fallback-"));
     try {
-      runEmbeddedCamelAttemptMock.mockResolvedValueOnce(makeAttempt());
+      runEmbeddedAttemptMock.mockResolvedValueOnce(makeAttempt());
 
       await runEmbeddedPiAgent({
         sessionId: "session:test",
@@ -124,12 +130,12 @@ describe("runEmbeddedPiAgent runtimeEngine dispatch", () => {
         provider: "openai",
         model: "mock-1",
         timeoutMs: 5_000,
-        runId: "run:camel-fallback",
+        runId: "run:pi-fallback",
         enqueue: immediateEnqueue,
       });
 
-      expect(runEmbeddedCamelAttemptMock).toHaveBeenCalledTimes(1);
-      expect(runEmbeddedAttemptMock).not.toHaveBeenCalled();
+      expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(1);
+      expect(runEmbeddedCamelAttemptMock).not.toHaveBeenCalled();
     } finally {
       await fs.rm(workspaceDir, { recursive: true, force: true });
     }
@@ -242,6 +248,38 @@ describe("runEmbeddedPiAgent runtimeEngine dispatch", () => {
       expect(runEmbeddedCamelAttemptMock).toHaveBeenCalledTimes(1);
       expect(runEmbeddedCamelAttemptMock.mock.calls[0]?.[0]).toMatchObject({
         runtimeEvalMode: "normal",
+      });
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes configured runtimePlanRetries to camel runtime", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-camel-plan-retries-"));
+    try {
+      runEmbeddedCamelAttemptMock.mockResolvedValueOnce(makeAttempt());
+
+      await runEmbeddedPiAgent({
+        sessionId: "session:test",
+        sessionKey: "agent:work:main",
+        sessionFile: path.join(workspaceDir, "session.jsonl"),
+        workspaceDir,
+        config: makeConfig({
+          defaultsRuntime: "camel",
+          defaultsPlanRetries: 8,
+          agentPlanRetries: 3,
+        }),
+        prompt: "hello",
+        provider: "openai",
+        model: "mock-1",
+        timeoutMs: 5_000,
+        runId: "run:camel-plan-retries",
+        enqueue: immediateEnqueue,
+      });
+
+      expect(runEmbeddedCamelAttemptMock).toHaveBeenCalledTimes(1);
+      expect(runEmbeddedCamelAttemptMock.mock.calls[0]?.[0]).toMatchObject({
+        runtimePlanRetries: 3,
       });
     } finally {
       await fs.rm(workspaceDir, { recursive: true, force: true });

@@ -41,6 +41,12 @@ export type CamelStructuredSchema = {
   fields: Record<string, CamelSchemaField>;
 };
 
+export type CamelPlannerSourceLocation = {
+  line: number;
+  column: number;
+  lineText?: string;
+};
+
 export type CamelPlannerStepAssign = {
   kind: "assign";
   saveAs: string;
@@ -59,6 +65,7 @@ export type CamelPlannerStepTool = {
   args?: Record<string, unknown>;
   saveAs?: string;
   summary?: string;
+  sourceLocation?: CamelPlannerSourceLocation;
 };
 
 export type CamelPlannerStepQllm = {

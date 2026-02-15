@@ -526,6 +526,7 @@ export async function runEmbeddedCamelAttempt(
       modelId: params.modelId,
       runtimeApiKey: params.runtimeApiKey,
       evalMode: params.runtimeEvalMode,
+      maxPlanRetries: params.runtimePlanRetries,
       prompt: params.prompt,
       history: historySummary,
       tools,

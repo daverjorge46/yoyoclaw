@@ -6,6 +6,7 @@ import type {
   CamelCapability,
   CamelEvalMode,
   CamelExecutionEvent,
+  CamelPlannerSourceLocation,
   CamelSchemaField,
   CamelSchemaFieldType,
   CamelPlannerIssue,
@@ -38,7 +39,7 @@ import {
   createUserCapability,
   mergeCapabilities,
 } from "./capabilities.js";
-import { parseJsonPayload } from "./parser.js";
+import { CamelJsonParseError, parseJsonPayload } from "./parser.js";
 import { evaluateCamelPolicy } from "./policy.js";
 import { parseCamelProgramToSteps } from "./program-parser.js";
 import {
@@ -48,12 +49,14 @@ import {
   buildCamelQllmPrompt,
 } from "./prompts.js";
 
-const CAMEL_MAX_PLAN_RETRIES = 10;
+const CAMEL_DEFAULT_MAX_PLAN_RETRIES = 10;
+const CAMEL_MAX_PLAN_RETRIES_LIMIT = 50;
 const CAMEL_MAX_STEPS = 64;
 const CAMEL_PLANNER_MAX_TOKENS = 2_400;
 const CAMEL_QLLM_MAX_TOKENS = 1_200;
 const CAMEL_QLLM_RETRIES = 10;
 const CAMEL_FINAL_MAX_TOKENS = 1_100;
+const CAMEL_VIRTUAL_TOOL_NAMES = new Set(["print", "query_ai_assistant"]);
 
 type CamelRuntimeParams = {
   model: Model<Api>;
@@ -72,6 +75,7 @@ type CamelRuntimeParams = {
   shouldEmitToolOutput?: () => boolean;
   onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void;
+  maxPlanRetries?: number;
 };
 
 export type CamelRuntimeResult = {
@@ -1661,12 +1665,202 @@ function normalizeStructuredSchema(
   };
 }
 
+function plannerValidationError(path: string, message: string): PlannerError {
+  return new PlannerError(`Planner validation error at ${path}: ${message}`, true);
+}
+
+function asPlannerRecord(value: unknown, path: string): Record<string, unknown> {
+  if (!isRecord(value)) {
+    throw plannerValidationError(path, "expected object.");
+  }
+  return value;
+}
+
+function asPlannerString(value: unknown, path: string): string {
+  if (typeof value !== "string" || !value.trim()) {
+    throw plannerValidationError(path, "expected non-empty string.");
+  }
+  return value;
+}
+
+function asPlannerStringArray(value: unknown, path: string): string[] {
+  if (!Array.isArray(value)) {
+    throw plannerValidationError(path, "expected string array.");
+  }
+  const output: string[] = [];
+  value.forEach((entry, index) => {
+    if (typeof entry !== "string" || !entry.trim()) {
+      throw plannerValidationError(`${path}[${index}]`, "expected non-empty string.");
+    }
+    output.push(entry);
+  });
+  if (output.length === 0) {
+    throw plannerValidationError(path, "must not be empty.");
+  }
+  return output;
+}
+
+function asPlannerSourceLocation(
+  value: unknown,
+  path: string,
+): CamelPlannerSourceLocation | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const parsed = asPlannerRecord(value, path);
+  const line = parsed.line;
+  const column = parsed.column;
+  const lineText = parsed.lineText;
+  if (!Number.isFinite(line) || typeof line !== "number" || line <= 0) {
+    throw plannerValidationError(`${path}.line`, "expected positive number when provided.");
+  }
+  if (
+    column !== undefined &&
+    (!Number.isFinite(column) || typeof column !== "number" || column <= 0)
+  ) {
+    throw plannerValidationError(`${path}.column`, "expected positive number when provided.");
+  }
+  if (lineText !== undefined && typeof lineText !== "string") {
+    throw plannerValidationError(`${path}.lineText`, "expected string when provided.");
+  }
+  return {
+    line: Math.trunc(line),
+    column:
+      typeof column === "number" && Number.isFinite(column) && column > 0 ? Math.trunc(column) : 1,
+    lineText,
+  };
+}
+
+function asPlannerStepArray(value: unknown, path: string): CamelPlannerStep[] {
+  if (!Array.isArray(value)) {
+    throw plannerValidationError(path, "expected step array.");
+  }
+  return value.map((entry, index) => normalizePlannerStep(entry, `${path}[${index}]`));
+}
+
+function normalizePlannerStep(step: unknown, path: string): CamelPlannerStep {
+  const parsed = asPlannerRecord(step, path);
+  const kind = asPlannerString(parsed.kind, `${path}.kind`);
+
+  if (kind === "assign") {
+    if (!Object.hasOwn(parsed, "value")) {
+      throw plannerValidationError(`${path}.value`, "missing value.");
+    }
+    return {
+      kind: "assign",
+      saveAs: asPlannerString(parsed.saveAs, `${path}.saveAs`),
+      value: parsed.value,
+    };
+  }
+
+  if (kind === "unpack") {
+    if (!Object.hasOwn(parsed, "value")) {
+      throw plannerValidationError(`${path}.value`, "missing value.");
+    }
+    return {
+      kind: "unpack",
+      targets: asPlannerStringArray(parsed.targets, `${path}.targets`),
+      value: parsed.value,
+    };
+  }
+
+  if (kind === "tool") {
+    if (parsed.args !== undefined && !isRecord(parsed.args)) {
+      throw plannerValidationError(`${path}.args`, "expected object when provided.");
+    }
+    if (parsed.saveAs !== undefined && typeof parsed.saveAs !== "string") {
+      throw plannerValidationError(`${path}.saveAs`, "expected string when provided.");
+    }
+    if (parsed.summary !== undefined && typeof parsed.summary !== "string") {
+      throw plannerValidationError(`${path}.summary`, "expected string when provided.");
+    }
+    return {
+      kind: "tool",
+      tool: asPlannerString(parsed.tool, `${path}.tool`),
+      args: parsed.args,
+      saveAs: parsed.saveAs,
+      summary: parsed.summary,
+      sourceLocation: asPlannerSourceLocation(parsed.sourceLocation, `${path}.sourceLocation`),
+    };
+  }
+
+  if (kind === "qllm") {
+    if (!Object.hasOwn(parsed, "input")) {
+      throw plannerValidationError(`${path}.input`, "missing input.");
+    }
+    const schema = normalizeStructuredSchema(parsed.schema, "output");
+    return {
+      kind: "qllm",
+      instruction: asPlannerString(parsed.instruction, `${path}.instruction`),
+      input: parsed.input,
+      schema,
+      saveAs: asPlannerString(parsed.saveAs, `${path}.saveAs`),
+    };
+  }
+
+  if (kind === "if") {
+    if (!Object.hasOwn(parsed, "condition")) {
+      throw plannerValidationError(`${path}.condition`, "missing condition.");
+    }
+    const thenValue = parsed.thenBranch ?? parsed.then;
+    return {
+      kind: "if",
+      condition: parsed.condition,
+      thenBranch: asPlannerStepArray(thenValue, `${path}.thenBranch`),
+      otherwise:
+        parsed.otherwise === undefined
+          ? undefined
+          : asPlannerStepArray(parsed.otherwise, `${path}.otherwise`),
+    };
+  }
+
+  if (kind === "for") {
+    if (!Object.hasOwn(parsed, "iterable")) {
+      throw plannerValidationError(`${path}.iterable`, "missing iterable.");
+    }
+    const item =
+      typeof parsed.item === "string"
+        ? parsed.item
+        : Array.isArray(parsed.item)
+          ? asPlannerStringArray(parsed.item, `${path}.item`)
+          : null;
+    if (!item || (typeof item === "string" && !item.trim())) {
+      throw plannerValidationError(`${path}.item`, "expected string or string array.");
+    }
+    return {
+      kind: "for",
+      item,
+      iterable: parsed.iterable,
+      body: asPlannerStepArray(parsed.body, `${path}.body`),
+    };
+  }
+
+  if (kind === "raise") {
+    if (!Object.hasOwn(parsed, "error")) {
+      throw plannerValidationError(`${path}.error`, "missing error.");
+    }
+    return {
+      kind: "raise",
+      error: parsed.error,
+    };
+  }
+
+  if (kind === "final") {
+    return {
+      kind: "final",
+      text: asPlannerString(parsed.text, `${path}.text`),
+    };
+  }
+
+  throw plannerValidationError(`${path}.kind`, `unsupported step kind "${kind}".`);
+}
+
 function normalizeProgram(program: unknown): CamelPlannerProgram {
   const parsed = isRecord(program) ? program : null;
-  if (!parsed || !Array.isArray(parsed.steps)) {
+  if (!parsed || parsed.steps === undefined) {
     throw new PlannerError("Planner response is missing `steps`.", true);
   }
-  const steps = parsed.steps as CamelPlannerStep[];
+  const steps = asPlannerStepArray(parsed.steps, "steps");
   if (steps.length === 0) {
     throw new PlannerError("Planner returned an empty plan.", true);
   }
@@ -1689,6 +1883,86 @@ function createToolIndex(tools: AnyAgentTool[]): Map<string, AnyAgentTool> {
     index.set(name, tool);
   }
   return index;
+}
+
+function summarizeAllowedTools(allowedToolNames: Set<string>): string {
+  const sorted = [...allowedToolNames].toSorted();
+  if (sorted.length === 0) {
+    return "(none)";
+  }
+  if (sorted.length <= 16) {
+    return sorted.join(", ");
+  }
+  return `${sorted.slice(0, 16).join(", ")}, ... (+${sorted.length - 16} more)`;
+}
+
+function formatSourceLocation(location?: CamelPlannerSourceLocation): string {
+  if (!location || !Number.isFinite(location.line) || location.line <= 0) {
+    return "";
+  }
+  if (Number.isFinite(location.column) && location.column > 0) {
+    return ` (line ${location.line}, column ${location.column})`;
+  }
+  return ` (line ${location.line})`;
+}
+
+function buildAllowedToolNames(params: {
+  toolIndex: Map<string, AnyAgentTool>;
+  clientToolNames?: Set<string>;
+}): Set<string> {
+  const allowed = new Set<string>(CAMEL_VIRTUAL_TOOL_NAMES);
+  for (const toolName of params.toolIndex.keys()) {
+    const normalized = toolName.trim().toLowerCase();
+    if (normalized) {
+      allowed.add(normalized);
+    }
+  }
+  for (const toolName of params.clientToolNames ?? []) {
+    const normalized = toolName.trim().toLowerCase();
+    if (normalized) {
+      allowed.add(normalized);
+    }
+  }
+  return allowed;
+}
+
+function validatePlannerToolUsage(params: {
+  steps: CamelPlannerStep[];
+  allowedToolNames: Set<string>;
+  path?: string;
+}): void {
+  const walk = (steps: CamelPlannerStep[], path: string): void => {
+    steps.forEach((step, index) => {
+      const stepPath = `${path}[${index}]`;
+      if (step.kind === "tool") {
+        const normalizedToolName = step.tool.trim().toLowerCase();
+        if (!normalizedToolName) {
+          throw plannerValidationError(`${stepPath}.tool`, "expected non-empty string.");
+        }
+        if (!params.allowedToolNames.has(normalizedToolName)) {
+          const locationText = formatSourceLocation(step.sourceLocation);
+          const allowedSummary = summarizeAllowedTools(params.allowedToolNames);
+          throw plannerValidationError(
+            `${stepPath}.tool`,
+            `unknown tool "${normalizedToolName}"${locationText}. Allowed tools: ${allowedSummary}.`,
+          );
+        }
+        return;
+      }
+      if (step.kind === "if") {
+        walk(step.thenBranch, `${stepPath}.thenBranch`);
+        if (step.otherwise) {
+          walk(step.otherwise, `${stepPath}.otherwise`);
+        }
+        return;
+      }
+      if (step.kind === "for") {
+        walk(step.body, `${stepPath}.body`);
+      }
+    });
+  };
+
+  walk(params.steps, params.path ?? "steps");
 }
 
 function summarizeHistoryText(history: string): string {
@@ -1754,6 +2028,18 @@ function sanitizeIssueMessage(message: string): string {
   return `${cleaned.slice(0, 400)}...`;
 }
 
+function resolveMaxPlanRetries(configured?: number): number {
+  const parsedConfigured =
+    typeof configured === "number" && Number.isFinite(configured) && configured > 0
+      ? Math.trunc(configured)
+      : undefined;
+  const rawEnv = process.env.OPENCLAW_CAMEL_MAX_PLAN_RETRIES?.trim();
+  const parsedEnv = rawEnv && /^\d+$/.test(rawEnv) ? Number.parseInt(rawEnv, 10) : undefined;
+  const candidate = parsedConfigured ?? parsedEnv ?? CAMEL_DEFAULT_MAX_PLAN_RETRIES;
+  const bounded = Math.max(1, Math.min(CAMEL_MAX_PLAN_RETRIES_LIMIT, candidate));
+  return Number.isFinite(bounded) ? Math.trunc(bounded) : CAMEL_DEFAULT_MAX_PLAN_RETRIES;
+}
+
 export async function runCamelRuntime(params: CamelRuntimeParams): Promise<CamelRuntimeResult> {
   const usageEntries: Array<NormalizedUsage | undefined> = [];
   const vars = new Map<string, CamelRuntimeValue>();
@@ -1774,6 +2060,11 @@ export async function runCamelRuntime(params: CamelRuntimeParams): Promise<Camel
   let finalText: string | undefined;
   let globalStep = 0;
   const evalMode: CamelEvalMode = params.evalMode ?? "strict";
+  const maxPlanRetries = resolveMaxPlanRetries(params.maxPlanRetries);
+  const allowedToolNames = buildAllowedToolNames({
+    toolIndex,
+    clientToolNames: params.clientToolNames,
+  });
 
   const effectiveStrictControlCapability = (base: CamelCapability): CamelCapability => {
     if (evalMode !== "strict" || strictDependencyCapabilities.length === 0) {
@@ -2242,7 +2533,7 @@ export async function runCamelRuntime(params: CamelRuntimeParams): Promise<Camel
       }),
     ),
   ];
-  for (let attempt = 0; attempt < CAMEL_MAX_PLAN_RETRIES; attempt += 1) {
+  for (let attempt = 0; attempt < maxPlanRetries; attempt += 1) {
     const planner = await callModel({
       model: params.model,
       runtimeApiKey: params.runtimeApiKey,
@@ -2254,38 +2545,42 @@ export async function runCamelRuntime(params: CamelRuntimeParams): Promise<Camel
     plannerMessages.push(planner.message);
     let program: CamelPlannerProgram;
     try {
-      const parsedPlan = parseJsonPayload<unknown>(planner.text, "planner output");
-      program = normalizeProgram(parsedPlan);
-    } catch (jsonErr) {
       try {
         const codeSteps = parseCamelProgramToSteps(planner.text);
-        program = {
-          steps: codeSteps,
-        };
+        program = normalizeProgram({ steps: codeSteps });
       } catch (codeErr) {
-        const err = codeErr instanceof Error ? codeErr : jsonErr;
-        const trusted = err instanceof PlannerError ? err.trusted : true;
-        const message = sanitizeIssueMessage(
-          err instanceof Error ? err.message : toDisplayText(err),
-        );
-        issues.push({
-          stage: "plan",
-          message: trusted ? message : "untrusted planner error (redacted)",
-          trusted,
-        });
-        if (attempt === CAMEL_MAX_PLAN_RETRIES - 1) {
+        try {
+          const parsedPlan = parseJsonPayload<unknown>(planner.text, "planner output");
+          program = normalizeProgram(parsedPlan);
+        } catch (jsonErr) {
+          const err = jsonErr instanceof CamelJsonParseError ? codeErr : jsonErr;
           throw err;
         }
-        plannerMessages.push(
-          userTextMessage(
-            buildCamelPlannerRepairPrompt({
-              userPrompt: params.prompt,
-              priorIssues: issues,
-            }),
-          ),
-        );
-        continue;
       }
+      validatePlannerToolUsage({
+        steps: program.steps,
+        allowedToolNames,
+      });
+    } catch (err) {
+      const trusted = err instanceof PlannerError ? err.trusted : true;
+      const message = sanitizeIssueMessage(err instanceof Error ? err.message : toDisplayText(err));
+      issues.push({
+        stage: "plan",
+        message: trusted ? message : "untrusted planner error (redacted)",
+        trusted,
+      });
+      if (attempt === maxPlanRetries - 1) {
+        throw err;
+      }
+      plannerMessages.push(
+        userTextMessage(
+          buildCamelPlannerRepairPrompt({
+            userPrompt: params.prompt,
+            priorIssues: issues,
+          }),
+        ),
+      );
+      continue;
     }
     try {
       const result = await executeSteps(program.steps, []);
@@ -2301,7 +2596,7 @@ export async function runCamelRuntime(params: CamelRuntimeParams): Promise<Camel
       if (completed || clientToolCall || lastToolError) {
         break;
       }
-      if (attempt < CAMEL_MAX_PLAN_RETRIES - 1) {
+      if (attempt < maxPlanRetries - 1) {
         plannerMessages.push(
           userTextMessage(
             buildCamelPlannerRepairPrompt({
@@ -2319,7 +2614,7 @@ export async function runCamelRuntime(params: CamelRuntimeParams): Promise<Camel
         message: trusted ? message : "untrusted execution error (redacted)",
         trusted,
       });
-      if (attempt === CAMEL_MAX_PLAN_RETRIES - 1) {
+      if (attempt === maxPlanRetries - 1) {
         throw err;
       }
       plannerMessages.push(

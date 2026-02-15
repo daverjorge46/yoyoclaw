@@ -8,6 +8,7 @@ import {
   resolveAgentModelPrimary,
   resolveAgentRuntimeEngine,
   resolveAgentRuntimeEvalMode,
+  resolveAgentRuntimePlanRetries,
   resolveAgentWorkspaceDir,
 } from "./agent-scope.js";
 
@@ -116,18 +117,20 @@ describe("resolveAgentConfig", () => {
     expect(resolveAgentModelFallbacksOverride(cfgDisable, "linus")).toEqual([]);
   });
 
-  it("supports per-agent runtime engine and eval mode overrides", () => {
+  it("supports per-agent runtime engine/eval/retry overrides", () => {
     const cfg: OpenClawConfig = {
       agents: {
         defaults: {
           runtimeEngine: "camel",
           runtimeEvalMode: "strict",
+          runtimePlanRetries: 10,
         },
         list: [
           {
             id: "work",
             runtimeEngine: "pi",
             runtimeEvalMode: "normal",
+            runtimePlanRetries: 3,
           },
         ],
       },
@@ -135,8 +138,10 @@ describe("resolveAgentConfig", () => {
 
     expect(resolveAgentRuntimeEngine(cfg, "work")).toBe("pi");
     expect(resolveAgentRuntimeEvalMode(cfg, "work")).toBe("normal");
+    expect(resolveAgentRuntimePlanRetries(cfg, "work")).toBe(3);
     expect(resolveAgentRuntimeEngine(cfg, "main")).toBeUndefined();
     expect(resolveAgentRuntimeEvalMode(cfg, "main")).toBeUndefined();
+    expect(resolveAgentRuntimePlanRetries(cfg, "main")).toBeUndefined();
   });
 
   it("should return agent-specific sandbox config", () => {

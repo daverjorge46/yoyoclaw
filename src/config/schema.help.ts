@@ -257,17 +257,23 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.list.*.identity.avatar":
     "Agent avatar (workspace-relative path, http(s) URL, or data URI).",
   "agents.defaults.runtimeEngine":
-    'Agent runtime engine ("camel" default for capability-enforced CaMeL runtime; set "pi" for legacy runtime).',
+    'Agent runtime engine ("pi" default for legacy runtime; set "camel" for capability-enforced CaMeL runtime).',
   "agents.defaults.runtimeEvalMode":
     'CaMeL metadata propagation mode ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
+  "agents.defaults.runtimePlanRetries":
+    "Maximum planner repair attempts before failing the CaMeL run (default: 10).",
   "agents.list.*.runtimeEngine":
     'Per-agent runtime engine override ("camel" for capability-enforced CaMeL runtime, "pi" for legacy runtime).',
   "agents.list.*.runtimeEvalMode":
     'Per-agent CaMeL metadata propagation mode override ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
+  "agents.list.*.runtimePlanRetries":
+    "Per-agent override for maximum planner repair attempts before CaMeL run failure.",
   "agents.list[].runtimeEngine":
     'Per-agent runtime engine override ("camel" for capability-enforced CaMeL runtime, "pi" for legacy runtime).',
   "agents.list[].runtimeEvalMode":
     'Per-agent CaMeL metadata propagation mode override ("strict" for dependency-aware taint propagation, "normal" for looser propagation).',
+  "agents.list[].runtimePlanRetries":
+    "Per-agent override for maximum planner repair attempts before CaMeL run failure.",
   "agents.defaults.model.primary": "Primary model (provider/model).",
   "agents.defaults.model.fallbacks":
     "Ordered fallback models (provider/model). Used when the primary model fails.",

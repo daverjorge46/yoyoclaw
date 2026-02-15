@@ -1,5 +1,15 @@
 import JSON5 from "json5";
 
+export class CamelJsonParseError extends Error {
+  readonly label: string;
+
+  constructor(label: string) {
+    super(`Failed to parse ${label} as JSON.`);
+    this.name = "CamelJsonParseError";
+    this.label = label;
+  }
+}
+
 export function extractSingleCodeBlock(markdownText: string): string | undefined {
   const pattern = /```([a-zA-Z0-9_+\-#]*)\n([\s\S]*?)\n```/g;
   const matches = Array.from(markdownText.matchAll(pattern));
@@ -43,5 +53,5 @@ export function parseJsonPayload<T>(text: string, label: string): T {
       }
     }
   }
-  throw new Error(`Failed to parse ${label} as JSON.`);
+  throw new CamelJsonParseError(label);
 }

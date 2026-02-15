@@ -17,6 +17,7 @@ type ResolvedAgentConfig = {
   name?: string;
   runtimeEngine?: AgentEntry["runtimeEngine"];
   runtimeEvalMode?: AgentEntry["runtimeEvalMode"];
+  runtimePlanRetries?: AgentEntry["runtimePlanRetries"];
   workspace?: string;
   agentDir?: string;
   model?: AgentEntry["model"];
@@ -110,6 +111,12 @@ export function resolveAgentConfig(
     name: typeof entry.name === "string" ? entry.name : undefined,
     runtimeEngine: entry.runtimeEngine,
     runtimeEvalMode: entry.runtimeEvalMode,
+    runtimePlanRetries:
+      typeof entry.runtimePlanRetries === "number" &&
+      Number.isFinite(entry.runtimePlanRetries) &&
+      entry.runtimePlanRetries > 0
+        ? Math.trunc(entry.runtimePlanRetries)
+        : undefined,
     workspace: typeof entry.workspace === "string" ? entry.workspace : undefined,
     agentDir: typeof entry.agentDir === "string" ? entry.agentDir : undefined,
     model:
@@ -160,6 +167,17 @@ export function resolveAgentRuntimeEvalMode(
     return raw;
   }
   return undefined;
+}
+
+export function resolveAgentRuntimePlanRetries(
+  cfg: OpenClawConfig,
+  agentId: string,
+): number | undefined {
+  const raw = resolveAgentConfig(cfg, agentId)?.runtimePlanRetries;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) {
+    return undefined;
+  }
+  return Math.trunc(raw);
 }
 
 export function resolveAgentModelPrimary(cfg: OpenClawConfig, agentId: string): string | undefined {

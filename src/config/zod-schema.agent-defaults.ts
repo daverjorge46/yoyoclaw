@@ -17,6 +17,7 @@ export const AgentDefaultsSchema = z
   .object({
     runtimeEngine: z.union([z.literal("pi"), z.literal("camel")]).optional(),
     runtimeEvalMode: z.union([z.literal("normal"), z.literal("strict")]).optional(),
+    runtimePlanRetries: z.number().int().positive().optional(),
     model: z
       .object({
         primary: z.string().optional(),

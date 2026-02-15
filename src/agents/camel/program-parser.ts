@@ -1,5 +1,5 @@
 import JSON5 from "json5";
-import type { CamelPlannerStep, CamelSchemaField } from "./types.js";
+import type { CamelPlannerSourceLocation, CamelPlannerStep, CamelSchemaField } from "./types.js";
 import { extractSingleCodeBlock } from "./parser.js";
 
 const VAR_REF_RE = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$/;
@@ -33,10 +33,93 @@ const BUILTIN_EXPRESSION_CALLS = new Set([
 ]);
 
 export class CamelProgramParseError extends Error {
-  constructor(message: string) {
-    super(message);
+  readonly baseMessage: string;
+  readonly line?: number;
+  readonly column?: number;
+  readonly lineText?: string;
+
+  constructor(
+    message: string,
+    options?: {
+      line?: number;
+      column?: number;
+      lineText?: string;
+    },
+  ) {
+    const line = options?.line;
+    const column = options?.column;
+    const location =
+      typeof line === "number"
+        ? typeof column === "number"
+          ? ` (line ${line}, column ${column})`
+          : ` (line ${line})`
+        : "";
+    super(`${message}${location}`);
     this.name = "CamelProgramParseError";
+    this.baseMessage = message;
+    this.line = line;
+    this.column = column;
+    this.lineText = options?.lineText;
   }
+}
+
+function firstMeaningfulColumn(line: string): number {
+  const idx = line.search(/\S/);
+  return idx >= 0 ? idx + 1 : 1;
+}
+
+function inferColumnFromErrorMessage(params: {
+  line: string;
+  statementText: string;
+  message: string;
+}): number {
+  const candidates: string[] = [];
+  const colonIdx = params.message.lastIndexOf(":");
+  if (colonIdx >= 0) {
+    const trailing = params.message.slice(colonIdx + 1).trim();
+    if (trailing) {
+      candidates.push(trailing);
+    }
+  }
+  if (params.statementText.trim()) {
+    candidates.push(params.statementText.trim());
+  }
+  for (const candidate of candidates) {
+    const idx = params.line.indexOf(candidate);
+    if (idx >= 0) {
+      return idx + 1;
+    }
+  }
+  return firstMeaningfulColumn(params.line);
+}
+
+function withProgramLineContext(
+  error: unknown,
+  params: {
+    lineNumber: number;
+    lineText: string;
+    statementText: string;
+  },
+): CamelProgramParseError {
+  if (!(error instanceof CamelProgramParseError)) {
+    throw error;
+  }
+  if (typeof error.line === "number") {
+    return error;
+  }
+  const column =
+    typeof error.column === "number"
+      ? error.column
+      : inferColumnFromErrorMessage({
+          line: params.lineText,
+          statementText: params.statementText,
+          message: error.baseMessage,
+        });
+  return new CamelProgramParseError(error.baseMessage, {
+    line: params.lineNumber,
+    column,
+    lineText: params.lineText,
+  });
 }
 
 type ParsedCall = {
@@ -1484,7 +1567,11 @@ class ProgramParser {
       throw new CamelProgramParseError("Expected an indented block.");
     }
     if (next.indent <= parentIndent) {
-      throw new CamelProgramParseError("Expected an indented block.");
+      throw new CamelProgramParseError("Expected an indented block.", {
+        line: next.index + 1,
+        column: next.indent + 1,
+        lineText: this.lines[next.index] ?? "",
+      });
     }
     return next.indent;
   }
@@ -1503,17 +1590,52 @@ class ProgramParser {
         break;
       }
       if (indent > expectedIndent) {
-        throw new CamelProgramParseError(`Unexpected indentation on line ${this.index + 1}.`);
+        throw new CamelProgramParseError("Unexpected indentation.", {
+          line: this.index + 1,
+          column: indent + 1,
+          lineText: line,
+        });
       }
       if (stopOnElseClause && isElseClause(trimmed)) {
         break;
       }
-      steps.push(...this.parseStatement(trimmed, expectedIndent));
+      const lineNumber = this.index + 1;
+      try {
+        steps.push(...this.parseStatement(trimmed, expectedIndent));
+      } catch (error) {
+        throw withProgramLineContext(error, {
+          lineNumber,
+          lineText: line,
+          statementText: trimmed,
+        });
+      }
     }
     return steps;
   }
 
   private parseStatement(text: string, currentIndent: number): CamelPlannerStep[] {
+    const lineNumber = this.index + 1;
+    const lineText = this.lines[this.index] ?? text;
+    const statementIndent = countIndent(lineText);
+    const toolSourceLocation = (toolName: string): CamelPlannerSourceLocation => {
+      const escaped = toolName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const callPattern = new RegExp(`\\b${escaped}\\s*\\(`);
+      const match = callPattern.exec(lineText);
+      const lineBasedColumn =
+        typeof match?.index === "number"
+          ? match.index + 1
+          : (() => {
+              const fallbackIndex = lineText.indexOf(toolName);
+              return fallbackIndex >= 0 ? fallbackIndex + 1 : firstMeaningfulColumn(lineText);
+            })();
+      const column = Math.max(lineBasedColumn, statementIndent + 1);
+      return {
+        line: lineNumber,
+        column,
+        lineText,
+      };
+    };
+
     if (text === "pass") {
       this.index += 1;
       return [];
@@ -1551,9 +1673,11 @@ class ProgramParser {
           break;
         }
         if (indent > bodyIndent) {
-          throw new CamelProgramParseError(
-            `Unexpected indentation in class body on line ${this.index + 1}.`,
-          );
+          throw new CamelProgramParseError("Unexpected indentation in class body.", {
+            line: this.index + 1,
+            column: indent + 1,
+            lineText: line,
+          });
         }
 
         if (inDocstring) {
@@ -1761,6 +1885,7 @@ class ProgramParser {
               tool: call.name,
               args: call.args,
               saveAs: tempVar,
+              sourceLocation: toolSourceLocation(call.name),
             },
             {
               kind: "unpack",
@@ -1809,6 +1934,7 @@ class ProgramParser {
             tool: call.name,
             args: call.args,
             saveAs,
+            sourceLocation: toolSourceLocation(call.name),
           },
         ];
       }
@@ -1863,6 +1989,7 @@ class ProgramParser {
           kind: "tool",
           tool: "print",
           args: { text: printArg },
+          sourceLocation: toolSourceLocation("print"),
         },
       ];
     }
@@ -1876,6 +2003,7 @@ class ProgramParser {
         kind: "tool",
         tool: call.name,
         args: call.args,
+        sourceLocation: toolSourceLocation(call.name),
       },
     ];
   }
@@ -1885,7 +2013,28 @@ export function parseCamelProgramToSteps(programText: string): CamelPlannerStep[
   const code = extractSingleCodeBlock(programText) ?? programText;
   const lines = code.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
   const parser = new ProgramParser(lines);
-  const steps = parser.parseProgram();
+  let steps: CamelPlannerStep[];
+  try {
+    steps = parser.parseProgram();
+  } catch (error) {
+    if (!(error instanceof CamelProgramParseError)) {
+      throw error;
+    }
+    if (typeof error.line === "number") {
+      throw error;
+    }
+    const fallbackIndex = Math.max(0, Math.min(parser.index, lines.length - 1));
+    const fallbackLine = lines[fallbackIndex] ?? "";
+    throw new CamelProgramParseError(error.baseMessage, {
+      line: fallbackIndex + 1,
+      column: inferColumnFromErrorMessage({
+        line: fallbackLine,
+        statementText: fallbackLine.trim(),
+        message: error.baseMessage,
+      }),
+      lineText: fallbackLine,
+    });
+  }
   if (steps.length === 0) {
     throw new CamelProgramParseError("Program is empty.");
   }

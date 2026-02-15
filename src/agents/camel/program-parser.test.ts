@@ -32,8 +32,36 @@ return "done"
     expect(steps).toEqual([{ kind: "final", text: "ok" }]);
   });
 
+  it("attaches source location to parsed tool calls", () => {
+    const steps = parseCamelProgramToSteps(`\`\`\`python
+  result = open(path="/tmp/file.txt")
+\`\`\``);
+    expect(steps[0]).toMatchObject({
+      kind: "tool",
+      tool: "open",
+      sourceLocation: {
+        line: 1,
+        column: 10,
+      },
+    });
+  });
+
   it("rejects unsupported statements", () => {
     expect(() => parseCamelProgramToSteps("while True:\n  pass")).toThrow(CamelProgramParseError);
+  });
+
+  it("reports line/column diagnostics for parse failures", () => {
+    try {
+      parseCamelProgramToSteps(`items = [
+final("bad")`);
+      throw new Error("expected parse error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(CamelProgramParseError);
+      const parseError = error as CamelProgramParseError;
+      expect(parseError.line).toBe(1);
+      expect(parseError.column).toBe(9);
+      expect(parseError.message).toContain("line 1, column 9");
+    }
   });
 
   it("parses expression operators", () => {
