@@ -357,7 +357,7 @@ function findDueJobs(state: CronServiceState): CronJob[] {
   });
 }
 
-export async function runMissedJobs(state: CronServiceState) {
+export async function runMissedJobs(state: CronServiceState, interruptedJobIds?: Set<string>) {
   if (!state.store) {
     return;
   }
@@ -370,6 +370,13 @@ export async function runMissedJobs(state: CronServiceState) {
       return false;
     }
     if (typeof j.state.runningAtMs === "number") {
+      return false;
+    }
+    // Skip jobs that were interrupted (had a stale running marker cleared
+    // on startup).  Re-firing them immediately risks a restart loop when
+    // the job itself caused the previous crash/hang.  (#16694)
+    if (interruptedJobIds?.has(j.id)) {
+      state.deps.log.info({ jobId: j.id }, "cron: skipping interrupted job to avoid restart loop");
       return false;
     }
     const next = j.state.nextRunAtMs;
