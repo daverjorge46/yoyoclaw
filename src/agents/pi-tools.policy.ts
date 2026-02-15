@@ -50,9 +50,6 @@ const DEFAULT_SUBAGENT_TOOL_DENY = [
   // Status/scheduling - main agent coordinates
   "session_status",
   "cron",
-  // Memory - pass relevant info in spawn prompt instead
-  "memory_search",
-  "memory_get",
 ];
 
 export function resolveSubagentToolPolicy(cfg?: OpenClawConfig): SandboxToolPolicy {
