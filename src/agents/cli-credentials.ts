@@ -382,13 +382,13 @@ export function readClaudeCliCredentialsCached(options?: {
 
 export function writeClaudeCliKeychainCredentials(
   newCredentials: OAuthCredentials,
-  options?: { execSync?: ExecSyncFn; execFileSync?: ExecFileSyncFn },
+  options?: { execFileSync?: ExecFileSyncFn },
 ): boolean {
-  const execSyncImpl = options?.execSync ?? execSync;
   const execFileSyncImpl = options?.execFileSync ?? execFileSync;
   try {
-    const existingResult = execSyncImpl(
-      `security find-generic-password -s "${CLAUDE_CLI_KEYCHAIN_SERVICE}" -w 2>/dev/null`,
+    const existingResult = execFileSyncImpl(
+      "security",
+      ["find-generic-password", "-s", CLAUDE_CLI_KEYCHAIN_SERVICE, "-w"],
       { encoding: "utf8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] },
     );
 
