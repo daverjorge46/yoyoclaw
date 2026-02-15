@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import { listAgentIds } from "../../agents/agent-scope.js";
 import {
   normalizeThinkLevel,
   normalizeVerboseLevel,
@@ -20,6 +21,35 @@ import {
   type SessionEntry,
 } from "../../config/sessions.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
+
+/**
+ * Find a session key by its UUID across all agent session stores.
+ * This is needed when --session-id is a UUID (not an agent:... format key),
+ * since we don't know which agent's store contains the session.
+ *
+ * @returns The session key if found, undefined otherwise
+ */
+export function findSessionKeyByUuid(opts: {
+  cfg: OpenClawConfig;
+  sessionId: string;
+}): string | undefined {
+  const sessionCfg = opts.cfg.session;
+  const agentIds = listAgentIds(opts.cfg);
+
+  for (const agentId of agentIds) {
+    const storePath = resolveStorePath(sessionCfg?.store, { agentId });
+    const sessionStore = loadSessionStore(storePath);
+
+    const foundKey = Object.keys(sessionStore).find(
+      (key) => sessionStore[key]?.sessionId === opts.sessionId,
+    );
+    if (foundKey) {
+      return foundKey;
+    }
+  }
+
+  return undefined;
+}
 
 export type SessionResolution = {
   sessionId: string;
