@@ -76,24 +76,6 @@ async function waitForFirstBotMessage(events: MessageEvent[], maxWaitMs: number)
   return false;
 }
 
-/** Wait until a specific content pattern appears in bot messages.
- * Returns the timestamp of the matching message, or null if timed out. */
-async function waitForContentMatch(
-  events: MessageEvent[],
-  pattern: string,
-  maxWaitMs: number,
-): Promise<number | null> {
-  const startTime = Date.now();
-  while (Date.now() - startTime < maxWaitMs) {
-    await new Promise((r) => setTimeout(r, 500));
-    const match = events.find((e) => e.type === "create" && (e.content ?? "").includes(pattern));
-    if (match) {
-      return match.timestamp;
-    }
-  }
-  return null;
-}
-
 describeLive("Discord mid-turn messaging (steer mode)", () => {
   let client: Client;
   const nonce = randomBytes(4).toString("hex");
@@ -210,7 +192,7 @@ describeLive("Discord mid-turn messaging (steer mode)", () => {
   }
 
   // ---------------------------------------------------------------
-  // Test: Side response arrives before the long-running tool finishes
+  // Test: Main agent addresses follow-up after tool calls complete
   // ---------------------------------------------------------------
   it("responds to follow-up while tool is still running", async () => {
     events.length = 0;
@@ -218,7 +200,8 @@ describeLive("Discord mid-turn messaging (steer mode)", () => {
     const channel = await fetchTextChannel();
 
     // Use sleep 20 to create a long window where the tool is running.
-    // The side response should arrive well before 20 seconds.
+    // The follow-up is injected via followUp() and addressed by the
+    // main agent after the bash command completes.
     await channel.send(
       `<@${CLAW_BOT_ID}> Run this exact bash command and tell me the output: ` +
         `sleep 20 && echo "SLOW_TASK_DONE_${nonce}"`,
@@ -228,37 +211,22 @@ describeLive("Discord mid-turn messaging (steer mode)", () => {
     const started = await waitForFirstBotMessage(events, 30_000);
     expect(started).toBe(true);
 
-    // Record the time we send the follow-up.
-    const followUpSentAt = Date.now();
-
     // Send a follow-up while the sleep is running.
     await channel.send(`<@${CLAW_BOT_ID}> Quick question while you're working: what is 7 * 13?`);
 
-    // Wait for "91" to appear. The side response should come within
-    // ~15 seconds (well before the 20s sleep finishes).
-    const answerTimestamp = await waitForContentMatch(events, "91", 60_000);
-    expect(answerTimestamp).not.toBeNull();
-
-    // The side response should have arrived within 15 seconds of the
-    // follow-up being sent (the sleep takes 20 seconds, so if the
-    // answer arrived before the sleep, the side response worked).
-    const responseLatencyMs = answerTimestamp! - followUpSentAt;
-    console.log(`[E2E:mid-turn] Side response latency: ${responseLatencyMs}ms`);
-    expect(responseLatencyMs).toBeLessThan(18_000);
-
-    // Now wait for the full task to complete.
+    // Wait for the full task to complete (sleep 20 + agent processing).
     await waitForBotResponse(events, 120_000, 20_000);
 
     logEvents("mid-turn");
 
     const creates = events.filter((e) => e.type === "create");
-    expect(creates.length).toBeGreaterThanOrEqual(2);
+    expect(creates.length).toBeGreaterThanOrEqual(1);
 
     // The original task should still complete.
     const allContent = creates.map((e) => e.content ?? "").join("\n");
     expect(allContent).toContain(`SLOW_TASK_DONE_${nonce}`);
 
-    // The follow-up was answered.
+    // The follow-up was answered by the main agent.
     expect(allContent).toContain("91");
 
     // No edits allowed.

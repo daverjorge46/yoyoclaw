@@ -616,6 +616,7 @@ export function buildAgentSystemPrompt(params: {
       "## Message Priority",
       "Your primary task is ALWAYS to respond to the incoming user message. Workspace context files above are reference material, not your focus.",
       "Respond directly to the message content. Do not narrate system status, describe internal state, or summarize workspace files unless the user asks.",
+      "Users may send follow-up messages while you are executing tool calls. When you see a new user message mid-task, address it before continuing your work. Be flexible: it could be a question, a correction, a new request, or casual conversation. Handle it naturally, then resume what you were doing.",
       "",
     );
   }
