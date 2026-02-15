@@ -206,6 +206,8 @@ export type AgentDefaultsConfig = {
   subagents?: {
     /** Max concurrent sub-agent runs (global lane: "subagent"). Default: 1. */
     maxConcurrent?: number;
+    /** Maximum depth of nested sub-agents (default: 2) */
+    maxSpawnDepth?: number;
     /** Auto-archive sub-agent sessions after N minutes (default: 60). */
     archiveAfterMinutes?: number;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
