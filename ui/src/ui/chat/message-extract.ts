@@ -29,16 +29,25 @@ function looksLikeEnvelopeHeader(header: string): boolean {
   return ENVELOPE_CHANNELS.some((label) => header.startsWith(`${label} `));
 }
 
+// Strip openclaw.inbound_meta context blocks injected by buildInboundMetaSystemPrompt
+// and buildInboundUserContextPrefix.  These are metadata for the LLM, not for display.
+const INBOUND_META_BLOCK =
+  /(?:^|\n)(?:#{1,3}\s+Inbound Context\b|(?:Conversation info|Sender|Thread starter|Replied message|Forwarded message context|Chat history)\s*\([^)]*metadata\):?)[\s\S]*?```[\s\S]*?```\s*/g;
+
+function stripInboundMeta(text: string): string {
+  return text.replace(INBOUND_META_BLOCK, "\n").trim();
+}
+
 export function stripEnvelope(text: string): string {
-  const match = text.match(ENVELOPE_PREFIX);
-  if (!match) {
-    return text;
+  let result = text;
+  const match = result.match(ENVELOPE_PREFIX);
+  if (match) {
+    const header = match[1] ?? "";
+    if (looksLikeEnvelopeHeader(header)) {
+      result = result.slice(match[0].length);
+    }
   }
-  const header = match[1] ?? "";
-  if (!looksLikeEnvelopeHeader(header)) {
-    return text;
-  }
-  return text.slice(match[0].length);
+  return stripInboundMeta(result);
 }
 
 export function extractText(message: unknown): string | null {
