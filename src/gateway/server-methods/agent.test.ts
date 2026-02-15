@@ -273,4 +273,54 @@ describe("gateway agent handler", () => {
     expect(capturedStore?.["agent:main:work"]).toBeDefined();
     expect(capturedStore?.["agent:main:MAIN"]).toBeUndefined();
   });
+
+  it("rejects malformed agent session keys early in agent handler", async () => {
+    mocks.agentCommand.mockClear();
+    const respond = vi.fn();
+
+    await agentHandlers.agent({
+      params: {
+        message: "test",
+        sessionKey: "agent:main",
+        idempotencyKey: "test-malformed-session-key",
+      },
+      respond,
+      context: makeContext(),
+      req: { type: "req", id: "4", method: "agent" },
+      client: null,
+      isWebchatConnect: () => false,
+    });
+
+    expect(mocks.agentCommand).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        message: expect.stringContaining("malformed session key"),
+      }),
+    );
+  });
+
+  it("rejects malformed session keys in agent.identity.get", async () => {
+    const respond = vi.fn();
+
+    await agentHandlers["agent.identity.get"]({
+      params: {
+        sessionKey: "agent:main",
+      },
+      respond,
+      context: makeContext(),
+      req: { type: "req", id: "5", method: "agent.identity.get" },
+      client: null,
+      isWebchatConnect: () => false,
+    });
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        message: expect.stringContaining("malformed session key"),
+      }),
+    );
+  });
 });
