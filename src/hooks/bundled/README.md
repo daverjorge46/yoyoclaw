@@ -18,6 +18,20 @@ Automatically saves session context to memory when you issue `/new`.
 openclaw hooks enable session-memory
 ```
 
+### 🧠 inference-extraction
+
+Extracts connective inferences (behavioral patterns, decision-making tendencies) from session conversations.
+
+**Events**: `command:new`, `command:reset`
+**What it does**: Analyzes session transcript via LLM, extracts structured behavioral inferences, writes as individual markdown notes.
+**Output**: `<workspace>/memory/inferences/<domain>-<date>-<hash>.md`
+
+**Enable**:
+
+```bash
+openclaw hooks enable inference-extraction
+```
+
 ### 📎 bootstrap-extra-files
 
 Injects extra bootstrap files (for example monorepo `AGENTS.md`/`TOOLS.md`) during prompt assembly.
@@ -171,7 +185,7 @@ Currently supported events:
 - **agent:bootstrap**: Before workspace bootstrap files are injected
 - **gateway:startup**: Gateway startup (after channels start)
 
-More event types coming soon (session lifecycle, agent errors, etc.).
+More event types planned (agent errors, etc.).
 
 ## Handler API
 

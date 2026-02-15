@@ -35,6 +35,10 @@ You’ll see:
 Before compaction, OpenClaw can run a **silent memory flush** turn to store
 durable notes to disk. See [Memory](/concepts/memory) for details and config.
 
+On session reset (`/new`, `/reset`), OpenClaw can also extract **connective
+inferences** from the conversation. See
+[Inference extraction](/concepts/inference-extraction) for details.
+
 ## Manual compaction
 
 Use `/compact` (optionally with instructions) to force a compaction pass:

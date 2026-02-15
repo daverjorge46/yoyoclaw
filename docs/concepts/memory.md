@@ -76,6 +76,13 @@ Details:
 For the full compaction lifecycle, see
 [Session management + compaction](/reference/session-management-compaction).
 
+## Inference extraction
+
+Beyond storing facts, OpenClaw can extract **connective inferences** from
+conversations — behavioral patterns, decision-making tendencies, and
+communication styles. These are written to `memory/inferences/` on session
+reset. See [Inference extraction](/concepts/inference-extraction) for details.
+
 ## Vector memory search
 
 OpenClaw can build a small vector index over `MEMORY.md` and `memory/*.md` so
