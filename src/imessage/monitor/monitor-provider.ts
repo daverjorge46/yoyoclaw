@@ -55,6 +55,7 @@ import {
   normalizeIMessageHandle,
 } from "../targets.js";
 import { deliverReplies } from "./deliver.js";
+import { parseIMessageNotification } from "./parse-notification.js";
 import { normalizeAllowList, resolveRuntime } from "./runtime.js";
 
 /** Bounded deduplication so the same message is not delivered twice (watch + poll). */
@@ -335,7 +336,9 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
     const effectiveDmAllowFrom = Array.from(new Set([...allowFrom, ...storeAllowFrom]))
       .map((v) => String(v).trim())
       .filter(Boolean);
-    const effectiveGroupAllowFrom = Array.from(new Set([...groupAllowFrom, ...storeAllowFrom]))
+    // Keep DM pairing-store authorization scoped to DMs; group access must come
+    // from explicit group allowlist config.
+    const effectiveGroupAllowFrom = Array.from(new Set(groupAllowFrom))
       .map((v) => String(v).trim())
       .filter(Boolean);
 
@@ -700,6 +703,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
         onModelSelected,
       },
     });
+
     if (!queuedFinal) {
       if (isGroup && historyKey) {
         clearHistoryEntriesIfEnabled({
@@ -716,9 +720,9 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
   }
 
   const handleMessage = async (raw: unknown) => {
-    const params = raw as { message?: IMessagePayload | null };
-    const message = params?.message ?? null;
+    const message = parseIMessageNotification(raw);
     if (!message) {
+      logVerbose("imessage: dropping malformed RPC message payload");
       return;
     }
     const key = chatKeyForDedup(message);
