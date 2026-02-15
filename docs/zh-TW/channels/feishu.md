@@ -83,7 +83,7 @@ Lark（全球）租戶應使用 [https://open.larksuite.com/app](https://open.la
 2. 填寫應用程式名稱 + 描述
 3. 選擇應用程式圖示
 
-![建立企業自建應用](../images/feishu-step2-create-app.png)
+![建立企業自建應用](../../images/feishu-step2-create-app.png)
 
 ### 3. 複製憑證
 
@@ -94,7 +94,7 @@ Lark（全球）租戶應使用 [https://open.larksuite.com/app](https://open.la
 
 ❗ **重要：** 請私密保存 App Secret。
 
-![獲取憑證](../images/feishu-step3-credentials.png)
+![獲取憑證](../../images/feishu-step3-credentials.png)
 
 ### 4. 設定權限
 
@@ -126,7 +126,7 @@ Lark（全球）租戶應使用 [https://open.larksuite.com/app](https://open.la
 }
 ```
 
-![設定權限](../images/feishu-step4-permissions.png)
+![設定權限](../../images/feishu-step4-permissions.png)
 
 ### 5. 啟用機器人功能
 
@@ -135,7 +135,7 @@ Lark（全球）租戶應使用 [https://open.larksuite.com/app](https://open.la
 1. 啟用機器人功能
 2. 設定機器人名稱
 
-![啟用機器人功能](../images/feishu-step5-bot-capability.png)
+![啟用機器人功能](../../images/feishu-step5-bot-capability.png)
 
 ### 6. 設定事件訂閱
 
@@ -151,7 +151,7 @@ Lark（全球）租戶應使用 [https://open.larksuite.com/app](https://open.la
 
 ⚠️ 如果 Gateway 未執行，長連接設定可能無法成功儲存。
 
-![設定事件訂閱](../images/feishu-step6-event-subscription.png)
+![設定事件訂閱](../../images/feishu-step6-event-subscription.png)
 
 ### 7. 發佈應用程式
 
