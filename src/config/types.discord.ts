@@ -147,6 +147,13 @@ export type DiscordAccountConfig = {
   /** Merge streamed block replies before sending. */
   blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   /**
+   * When true, suppress all assistant text output when the `message` tool sends to the
+   * originating channel. Only the message tool's output is delivered; any narration or
+   * intermediate text is discarded. Useful for clean, intentional replies on messaging
+   * surfaces. Automatically disables block streaming.
+   */
+  deliverOnlyToolMessages?: boolean;
+  /**
    * Soft max line count per Discord message.
    * Discord clients can clip/collapse very tall messages; splitting by lines
    * keeps replies readable in-channel. Default: 17.

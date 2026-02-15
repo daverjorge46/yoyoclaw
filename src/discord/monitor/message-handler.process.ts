@@ -398,9 +398,11 @@ export async function processDiscordMessage(ctx: DiscordMessagePreflightContext)
       ...replyOptions,
       skillFilter: channelConfig?.skills,
       disableBlockStreaming:
-        typeof discordConfig?.blockStreaming === "boolean"
-          ? !discordConfig.blockStreaming
-          : undefined,
+        discordConfig?.deliverOnlyToolMessages === true
+          ? true
+          : typeof discordConfig?.blockStreaming === "boolean"
+            ? !discordConfig.blockStreaming
+            : undefined,
       onModelSelected,
     },
   });
