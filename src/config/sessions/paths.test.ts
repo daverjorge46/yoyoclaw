@@ -34,6 +34,13 @@ describe("session path safety", () => {
     expect(validateSessionId("ABC_123.hello")).toBe("ABC_123.hello");
   });
 
+  it("accepts colons and plus signs for WhatsApp-style session IDs", () => {
+    expect(validateSessionId("agent:wa-relay:whatsapp:+573144849423")).toBe(
+      "agent:wa-relay:whatsapp:+573144849423",
+    );
+    expect(validateSessionId("sess:topic+1")).toBe("sess:topic+1");
+  });
+
   it("rejects unsafe session IDs", () => {
     expect(() => validateSessionId("../etc/passwd")).toThrow(/Invalid session ID/);
     expect(() => validateSessionId("a/b")).toThrow(/Invalid session ID/);
