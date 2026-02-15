@@ -1,4 +1,11 @@
-import type { HeartbeatStatus, SessionStatus, StatusSummary } from "./status.types.js";
+import type {
+  HeartbeatStatus,
+  SessionGroup,
+  SessionGroups,
+  SessionStatus,
+  SessionType,
+  StatusSummary,
+} from "./status.types.js";
 import { lookupContextTokens } from "../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
@@ -31,6 +38,33 @@ const classifyKey = (key: string, entry?: SessionEntry): SessionStatus["kind"] =
     return "group";
   }
   return "direct";
+};
+
+/**
+ * Classify session type for grouping in status output.
+ * - main: Primary interactive session (agent:xxx:main or agent:xxx:xxx without cron/run)
+ * - cronJob: Cron job definition (agent:xxx:cron:uuid)
+ * - cronRun: Individual cron execution (agent:xxx:cron:uuid:run:uuid)
+ * - other: Everything else
+ */
+const classifySessionType = (key: string): SessionType => {
+  // Check for cron run pattern: agent:xxx:cron:uuid:run:uuid
+  if (/:cron:[^:]+:run:/.test(key)) {
+    return "cronRun";
+  }
+  // Check for cron job pattern: agent:xxx:cron:uuid
+  if (/:cron:[^:]+$/.test(key)) {
+    return "cronJob";
+  }
+  // Check for main session: agent:xxx:main or agent:xxx:xxx (without cron)
+  if (/^agent:[^:]+:main$/.test(key)) {
+    return "main";
+  }
+  // Direct sessions without cron prefix
+  if (/^agent:[^:]+:[^:]+$/.test(key) && !key.includes(":cron:")) {
+    return "main";
+  }
+  return "other";
 };
 
 const buildFlags = (entry?: SessionEntry): string[] => {
@@ -67,7 +101,63 @@ const buildFlags = (entry?: SessionEntry): string[] => {
   return flags;
 };
 
-export async function getStatusSummary(): Promise<StatusSummary> {
+/**
+ * Group sessions by type for improved status display.
+ * Collapses cron run history when there are many entries.
+ */
+const groupSessions = (sessions: SessionStatus[]): SessionGroups => {
+  const main = sessions.filter((s) => s.sessionType === "main");
+  const cronJobs = sessions.filter((s) => s.sessionType === "cronJob");
+  const cronRuns = sessions.filter((s) => s.sessionType === "cronRun");
+  const other = sessions.filter((s) => s.sessionType === "other");
+
+  // Collapse cron runs if there are many (show only count, not all sessions)
+  const shouldCollapseRuns = cronRuns.length > 20;
+
+  const createGroup = (
+    label: string,
+    items: SessionStatus[],
+    collapsed: boolean,
+  ): SessionGroup => ({
+    label,
+    count: items.length,
+    sessions: collapsed ? items.slice(0, 5) : items,
+    collapsed,
+  });
+
+  return {
+    active: createGroup("Active", main, false),
+    cronJobs: createGroup("Cron Jobs", cronJobs, false),
+    cronRuns: createGroup("Recent Runs", cronRuns, shouldCollapseRuns),
+    other: createGroup("Other", other, false),
+  };
+};
+
+export function redactSensitiveStatusSummary(summary: StatusSummary): StatusSummary {
+  return {
+    ...summary,
+    sessions: {
+      ...summary.sessions,
+      paths: [],
+      defaults: {
+        model: null,
+        contextTokens: null,
+      },
+      recent: [],
+      byAgent: summary.sessions.byAgent.map((entry) => ({
+        ...entry,
+        path: "[redacted]",
+        recent: [],
+      })),
+      grouped: undefined,
+    },
+  };
+}
+
+export async function getStatusSummary(
+  options: { includeSensitive?: boolean } = {},
+): Promise<StatusSummary> {
+  const { includeSensitive = true } = options;
   const cfg = loadConfig();
   const linkContext = await resolveLinkChannelContext(cfg);
   const agentList = listAgentsForGateway(cfg);
@@ -137,6 +227,7 @@ export async function getStatusSummary(): Promise<StatusSummary> {
           agentId,
           key,
           kind: classifyKey(key, entry),
+          sessionType: classifySessionType(key),
           sessionId: entry?.sessionId,
           updatedAt,
           age,
@@ -179,7 +270,10 @@ export async function getStatusSummary(): Promise<StatusSummary> {
   const recent = allSessions.slice(0, 10);
   const totalSessions = allSessions.length;
 
-  return {
+  // Group sessions by type for better UX
+  const grouped = groupSessions(allSessions);
+
+  const summary: StatusSummary = {
     linkChannel: linkContext
       ? {
           id: linkContext.plugin.id,
@@ -203,6 +297,8 @@ export async function getStatusSummary(): Promise<StatusSummary> {
       },
       recent,
       byAgent,
+      grouped,
     },
   };
+  return includeSensitive ? summary : redactSensitiveStatusSummary(summary);
 }
