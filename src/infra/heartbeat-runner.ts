@@ -3,7 +3,7 @@ import path from "node:path";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelHeartbeatDeps } from "../channels/plugins/types.js";
 import type { OpenClawConfig } from "../config/config.js";
-import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
+import type { AgentDefaultsConfig, AgentModelListConfig } from "../config/types.agent-defaults.js";
 import type { OutboundSendDeps } from "./outbound/deliver.js";
 import {
   resolveAgentConfig,
@@ -88,7 +88,7 @@ export type HeartbeatSummary = {
   everyMs: number | null;
   prompt: string;
   target: string;
-  model?: string;
+  model?: string | AgentModelListConfig;
   ackMaxChars: number;
 };
 
@@ -538,11 +538,40 @@ export async function runHeartbeatOnce(opts: {
   };
 
   try {
-    const heartbeatModelOverride = heartbeat?.model?.trim() || undefined;
-    const replyOpts = heartbeatModelOverride
-      ? { isHeartbeat: true, heartbeatModelOverride }
-      : { isHeartbeat: true };
-    const replyResult = await getReplyFromConfig(ctx, replyOpts, cfg);
+    let runCfg = cfg;
+    const heartbeatModel = heartbeat?.model;
+    let replyOpts: { isHeartbeat: true; heartbeatModelOverride?: string } = { isHeartbeat: true };
+
+    if (typeof heartbeatModel === "string") {
+      // Simple string model: pass as override
+      const heartbeatModelOverride = heartbeatModel.trim() || undefined;
+      if (heartbeatModelOverride) {
+        replyOpts = { isHeartbeat: true, heartbeatModelOverride };
+      }
+    } else if (heartbeatModel && typeof heartbeatModel === "object") {
+      // Complex primary/fallbacks: synthesize config so fallback logic works end-to-end
+      const filteredList = (cfg.agents?.list ?? []).filter(
+        (a) => normalizeAgentId(a.id) !== normalizeAgentId(agentId),
+      );
+
+      runCfg = {
+        ...cfg,
+        agents: {
+          ...cfg.agents,
+          list: filteredList,
+          defaults: {
+            ...cfg.agents?.defaults,
+            model: heartbeatModel,
+            heartbeat: {
+              ...cfg.agents?.defaults?.heartbeat,
+              model: undefined,
+            },
+          },
+        },
+      };
+    }
+
+    const replyResult = await getReplyFromConfig(ctx, replyOpts, runCfg);
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
     const includeReasoning = heartbeat?.includeReasoning === true;
     const reasoningPayloads = includeReasoning
