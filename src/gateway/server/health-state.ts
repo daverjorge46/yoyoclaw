@@ -1,10 +1,11 @@
+import type { Snapshot } from "../protocol/index.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { getHealthSnapshot, type HealthSummary } from "../../commands/health.js";
-import { CONFIG_PATH_CLAWDBOT, STATE_DIR_CLAWDBOT, loadConfig } from "../../config/config.js";
+import { CONFIG_PATH, STATE_DIR, loadConfig } from "../../config/config.js";
 import { resolveMainSessionKey } from "../../config/sessions.js";
-import { normalizeMainKey } from "../../routing/session-key.js";
 import { listSystemPresence } from "../../infra/system-presence.js";
-import type { Snapshot } from "../protocol/index.js";
+import { normalizeMainKey } from "../../routing/session-key.js";
+import { resolveGatewayAuth } from "../auth.js";
 
 let presenceVersion = 1;
 let healthVersion = 1;
@@ -20,6 +21,7 @@ export function buildGatewaySnapshot(): Snapshot {
   const scope = cfg.session?.scope ?? "per-sender";
   const presence = listSystemPresence();
   const uptimeMs = Math.round(process.uptime() * 1000);
+  const auth = resolveGatewayAuth({ authConfig: cfg.gateway?.auth, env: process.env });
   // Health is async; caller should await getHealthSnapshot and replace later if needed.
   const emptyHealth: unknown = {};
   return {
@@ -28,14 +30,15 @@ export function buildGatewaySnapshot(): Snapshot {
     stateVersion: { presence: presenceVersion, health: healthVersion },
     uptimeMs,
     // Surface resolved paths so UIs can display the true config location.
-    configPath: CONFIG_PATH_CLAWDBOT,
-    stateDir: STATE_DIR_CLAWDBOT,
+    configPath: CONFIG_PATH,
+    stateDir: STATE_DIR,
     sessionDefaults: {
       defaultAgentId,
       mainKey,
       mainSessionKey,
       scope,
     },
+    authMode: auth.mode,
   };
 }
 

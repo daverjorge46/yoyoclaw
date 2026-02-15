@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-
-import type { ClawdbotConfig } from "../../config/config.js";
+import type { OpenClawConfig } from "../../config/config.js";
 import { HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN } from "../tokens.js";
 import { createReplyDispatcher } from "./reply-dispatcher.js";
 import { createReplyToModeFilter, resolveReplyToMode } from "./reply-threading.js";
 
-const emptyCfg = {} as ClawdbotConfig;
+const emptyCfg = {} as OpenClawConfig;
 
 describe("createReplyDispatcher", () => {
   it("drops empty payloads and silent tokens without media", async () => {
@@ -101,6 +100,8 @@ describe("createReplyDispatcher", () => {
     dispatcher.sendFinalReply({ text: "two" });
 
     await dispatcher.waitForIdle();
+    dispatcher.markComplete();
+    await Promise.resolve();
     expect(onIdle).toHaveBeenCalledTimes(1);
   });
 
@@ -157,8 +158,8 @@ describe("createReplyDispatcher", () => {
 });
 
 describe("resolveReplyToMode", () => {
-  it("defaults to first for Telegram", () => {
-    expect(resolveReplyToMode(emptyCfg, "telegram")).toBe("first");
+  it("defaults to off for Telegram", () => {
+    expect(resolveReplyToMode(emptyCfg, "telegram")).toBe("off");
   });
 
   it("defaults to off for Discord and Slack", () => {
@@ -177,7 +178,7 @@ describe("resolveReplyToMode", () => {
         discord: { replyToMode: "first" },
         slack: { replyToMode: "all" },
       },
-    } as ClawdbotConfig;
+    } as OpenClawConfig;
     expect(resolveReplyToMode(cfg, "telegram")).toBe("all");
     expect(resolveReplyToMode(cfg, "discord")).toBe("first");
     expect(resolveReplyToMode(cfg, "slack")).toBe("all");
@@ -191,7 +192,7 @@ describe("resolveReplyToMode", () => {
           replyToModeByChatType: { direct: "all", group: "first" },
         },
       },
-    } as ClawdbotConfig;
+    } as OpenClawConfig;
     expect(resolveReplyToMode(cfg, "slack", null, "direct")).toBe("all");
     expect(resolveReplyToMode(cfg, "slack", null, "group")).toBe("first");
     expect(resolveReplyToMode(cfg, "slack", null, "channel")).toBe("off");
@@ -205,7 +206,7 @@ describe("resolveReplyToMode", () => {
           replyToMode: "first",
         },
       },
-    } as ClawdbotConfig;
+    } as OpenClawConfig;
     expect(resolveReplyToMode(cfg, "slack", null, "direct")).toBe("first");
     expect(resolveReplyToMode(cfg, "slack", null, "channel")).toBe("first");
   });
@@ -218,7 +219,7 @@ describe("resolveReplyToMode", () => {
           dm: { replyToMode: "all" },
         },
       },
-    } as ClawdbotConfig;
+    } as OpenClawConfig;
     expect(resolveReplyToMode(cfg, "slack", null, "direct")).toBe("all");
     expect(resolveReplyToMode(cfg, "slack", null, "channel")).toBe("off");
   });
@@ -231,7 +232,7 @@ describe("createReplyToModeFilter", () => {
   });
 
   it("keeps replyToId when mode is off and reply tags are allowed", () => {
-    const filter = createReplyToModeFilter("off", { allowTagsWhenOff: true });
+    const filter = createReplyToModeFilter("off", { allowExplicitReplyTagsWhenOff: true });
     expect(filter({ text: "hi", replyToId: "1", replyToTag: true }).replyToId).toBe("1");
   });
 

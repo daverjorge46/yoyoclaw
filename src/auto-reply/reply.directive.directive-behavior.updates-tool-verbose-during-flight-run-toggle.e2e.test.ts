@@ -1,64 +1,16 @@
+import "./reply.directive.directive-behavior.e2e-mocks.js";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
-import { loadModelCatalog } from "../agents/model-catalog.js";
-import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
+import { describe, expect, it, vi } from "vitest";
 import { loadSessionStore, resolveSessionKey, saveSessionStore } from "../config/sessions.js";
+import {
+  installDirectiveBehaviorE2EHooks,
+  runEmbeddedPiAgent,
+  withTempHome,
+} from "./reply.directive.directive-behavior.e2e-harness.js";
 import { getReplyFromConfig } from "./reply.js";
 
-const MAIN_SESSION_KEY = "agent:main:main";
-
-vi.mock("../agents/pi-embedded.js", () => ({
-  abortEmbeddedPiRun: vi.fn().mockReturnValue(false),
-  runEmbeddedPiAgent: vi.fn(),
-  queueEmbeddedPiMessage: vi.fn().mockReturnValue(false),
-  resolveEmbeddedSessionLane: (key: string) => `session:${key.trim() || "main"}`,
-  isEmbeddedPiRunActive: vi.fn().mockReturnValue(false),
-  isEmbeddedPiRunStreaming: vi.fn().mockReturnValue(false),
-}));
-vi.mock("../agents/model-catalog.js", () => ({
-  loadModelCatalog: vi.fn(),
-}));
-
-async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(
-    async (home) => {
-      return await fn(home);
-    },
-    {
-      env: {
-        CLAWDBOT_AGENT_DIR: (home) => path.join(home, ".clawdbot", "agent"),
-        PI_CODING_AGENT_DIR: (home) => path.join(home, ".clawdbot", "agent"),
-      },
-      prefix: "clawdbot-reply-",
-    },
-  );
-}
-
-function _assertModelSelection(
-  storePath: string,
-  selection: { model?: string; provider?: string } = {},
-) {
-  const store = loadSessionStore(storePath);
-  const entry = store[MAIN_SESSION_KEY];
-  expect(entry).toBeDefined();
-  expect(entry?.modelOverride).toBe(selection.model);
-  expect(entry?.providerOverride).toBe(selection.provider);
-}
-
 describe("directive behavior", () => {
-  beforeEach(() => {
-    vi.mocked(runEmbeddedPiAgent).mockReset();
-    vi.mocked(loadModelCatalog).mockResolvedValue([
-      { id: "claude-opus-4-5", name: "Opus 4.5", provider: "anthropic" },
-      { id: "claude-sonnet-4-1", name: "Sonnet 4.1", provider: "anthropic" },
-      { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
-    ]);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  installDirectiveBehaviorE2EHooks();
 
   it("updates tool verbose during an in-flight run (toggle on)", async () => {
     await withTempHome(async (home) => {
@@ -101,7 +53,7 @@ describe("directive behavior", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-opus-4-5",
-              workspace: path.join(home, "clawd"),
+              workspace: path.join(home, "openclaw"),
             },
           },
           channels: { whatsapp: { allowFrom: ["*"] } },
@@ -159,7 +111,7 @@ describe("directive behavior", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-opus-4-5",
-              workspace: path.join(home, "clawd"),
+              workspace: path.join(home, "openclaw"),
             },
           },
           channels: { whatsapp: { allowFrom: ["*"] } },
@@ -174,7 +126,7 @@ describe("directive behavior", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-opus-4-5",
-              workspace: path.join(home, "clawd"),
+              workspace: path.join(home, "openclaw"),
             },
           },
           channels: { whatsapp: { allowFrom: ["*"] } },
@@ -189,7 +141,6 @@ describe("directive behavior", () => {
   });
   it("shows summary on /model", async () => {
     await withTempHome(async (home) => {
-      vi.mocked(runEmbeddedPiAgent).mockReset();
       const storePath = path.join(home, "sessions.json");
 
       const res = await getReplyFromConfig(
@@ -199,7 +150,7 @@ describe("directive behavior", () => {
           agents: {
             defaults: {
               model: { primary: "anthropic/claude-opus-4-5" },
-              workspace: path.join(home, "clawd"),
+              workspace: path.join(home, "openclaw"),
               models: {
                 "anthropic/claude-opus-4-5": {},
                 "openai/gpt-4.1-mini": {},
@@ -221,7 +172,6 @@ describe("directive behavior", () => {
   });
   it("lists allowlisted models on /model status", async () => {
     await withTempHome(async (home) => {
-      vi.mocked(runEmbeddedPiAgent).mockReset();
       const storePath = path.join(home, "sessions.json");
 
       const res = await getReplyFromConfig(
@@ -231,7 +181,7 @@ describe("directive behavior", () => {
           agents: {
             defaults: {
               model: { primary: "anthropic/claude-opus-4-5" },
-              workspace: path.join(home, "clawd"),
+              workspace: path.join(home, "openclaw"),
               models: {
                 "anthropic/claude-opus-4-5": {},
                 "openai/gpt-4.1-mini": {},

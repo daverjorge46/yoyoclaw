@@ -37,6 +37,8 @@ export const AgentDefaultsSchema = z
             alias: z.string().optional(),
             /** Provider-specific API parameters (e.g., GLM-4.7 thinking mode). */
             params: z.record(z.string(), z.unknown()).optional(),
+            /** Enable streaming for this model (default: true, false for Ollama to avoid SDK issue #1205). */
+            streaming: z.boolean().optional(),
           })
           .strict(),
       )
@@ -45,6 +47,7 @@ export const AgentDefaultsSchema = z
     repoRoot: z.string().optional(),
     skipBootstrap: z.boolean().optional(),
     bootstrapMaxChars: z.number().int().positive().optional(),
+    bootstrapTotalMaxChars: z.number().int().positive().optional(),
     userTimezone: z.string().optional(),
     timeFormat: z.union([z.literal("auto"), z.literal("12"), z.literal("24")]).optional(),
     envelopeTimezone: z.string().optional(),
@@ -90,6 +93,7 @@ export const AgentDefaultsSchema = z
       .object({
         mode: z.union([z.literal("default"), z.literal("safeguard")]).optional(),
         reserveTokensFloor: z.number().int().nonnegative().optional(),
+        maxHistoryShare: z.number().min(0.1).max(0.9).optional(),
         memoryFlush: z
           .object({
             enabled: z.boolean().optional(),
@@ -149,6 +153,7 @@ export const AgentDefaultsSchema = z
               .strict(),
           ])
           .optional(),
+        thinking: z.string().optional(),
       })
       .strict()
       .optional(),

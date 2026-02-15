@@ -5,6 +5,7 @@
 import { loadConfig } from "../config/config.js";
 import { resolveSignalAccount } from "./accounts.js";
 import { signalRpcRequest } from "./client.js";
+import { resolveSignalRpcContext } from "./rpc-context.js";
 
 export type SignalReactionOpts = {
   baseUrl?: string;
@@ -23,13 +24,17 @@ export type SignalReactionResult = {
 
 function normalizeSignalId(raw: string): string {
   const trimmed = raw.trim();
-  if (!trimmed) return "";
+  if (!trimmed) {
+    return "";
+  }
   return trimmed.replace(/^signal:/i, "").trim();
 }
 
 function normalizeSignalUuid(raw: string): string {
   const trimmed = normalizeSignalId(raw);
-  if (!trimmed) return "";
+  if (!trimmed) {
+    return "";
+  }
   if (trimmed.toLowerCase().startsWith("uuid:")) {
     return trimmed.slice("uuid:".length).trim();
   }
@@ -44,33 +49,15 @@ function resolveTargetAuthorParams(params: {
   const candidates = [params.targetAuthor, params.targetAuthorUuid, params.fallback];
   for (const candidate of candidates) {
     const raw = candidate?.trim();
-    if (!raw) continue;
+    if (!raw) {
+      continue;
+    }
     const normalized = normalizeSignalUuid(raw);
-    if (normalized) return { targetAuthor: normalized };
+    if (normalized) {
+      return { targetAuthor: normalized };
+    }
   }
   return {};
-}
-
-function resolveReactionRpcContext(
-  opts: SignalReactionOpts,
-  accountInfo?: ReturnType<typeof resolveSignalAccount>,
-) {
-  const hasBaseUrl = Boolean(opts.baseUrl?.trim());
-  const hasAccount = Boolean(opts.account?.trim());
-  const resolvedAccount =
-    accountInfo ||
-    (!hasBaseUrl || !hasAccount
-      ? resolveSignalAccount({
-          cfg: loadConfig(),
-          accountId: opts.accountId,
-        })
-      : undefined);
-  const baseUrl = opts.baseUrl?.trim() || resolvedAccount?.baseUrl;
-  if (!baseUrl) {
-    throw new Error("Signal base URL is required");
-  }
-  const account = opts.account?.trim() || resolvedAccount?.config.account?.trim();
-  return { baseUrl, account };
 }
 
 /**
@@ -90,7 +77,7 @@ export async function sendReactionSignal(
     cfg: loadConfig(),
     accountId: opts.accountId,
   });
-  const { baseUrl, account } = resolveReactionRpcContext(opts, accountInfo);
+  const { baseUrl, account } = resolveSignalRpcContext(opts, accountInfo);
 
   const normalizedRecipient = normalizeSignalUuid(recipient);
   const groupId = opts.groupId?.trim();
@@ -118,9 +105,15 @@ export async function sendReactionSignal(
     targetTimestamp,
     ...targetAuthorParams,
   };
-  if (normalizedRecipient) params.recipients = [normalizedRecipient];
-  if (groupId) params.groupIds = [groupId];
-  if (account) params.account = account;
+  if (normalizedRecipient) {
+    params.recipients = [normalizedRecipient];
+  }
+  if (groupId) {
+    params.groupIds = [groupId];
+  }
+  if (account) {
+    params.account = account;
+  }
 
   const result = await signalRpcRequest<{ timestamp?: number }>("sendReaction", params, {
     baseUrl,
@@ -150,7 +143,7 @@ export async function removeReactionSignal(
     cfg: loadConfig(),
     accountId: opts.accountId,
   });
-  const { baseUrl, account } = resolveReactionRpcContext(opts, accountInfo);
+  const { baseUrl, account } = resolveSignalRpcContext(opts, accountInfo);
 
   const normalizedRecipient = normalizeSignalUuid(recipient);
   const groupId = opts.groupId?.trim();
@@ -179,9 +172,15 @@ export async function removeReactionSignal(
     remove: true,
     ...targetAuthorParams,
   };
-  if (normalizedRecipient) params.recipients = [normalizedRecipient];
-  if (groupId) params.groupIds = [groupId];
-  if (account) params.account = account;
+  if (normalizedRecipient) {
+    params.recipients = [normalizedRecipient];
+  }
+  if (groupId) {
+    params.groupIds = [groupId];
+  }
+  if (account) {
+    params.account = account;
+  }
 
   const result = await signalRpcRequest<{ timestamp?: number }>("sendReaction", params, {
     baseUrl,

@@ -44,6 +44,18 @@ type AnnounceQueueState = {
 
 const ANNOUNCE_QUEUES = new Map<string, AnnounceQueueState>();
 
+export function resetAnnounceQueuesForTests() {
+  // Test isolation: other suites may leave a draining queue behind in the worker.
+  // Clearing the map alone isn't enough because drain loops capture `queue` by reference.
+  for (const queue of ANNOUNCE_QUEUES.values()) {
+    queue.items.length = 0;
+    queue.summaryLines.length = 0;
+    queue.droppedCount = 0;
+    queue.lastEnqueuedAt = 0;
+  }
+  ANNOUNCE_QUEUES.clear();
+}
+
 function getAnnounceQueue(
   key: string,
   settings: AnnounceQueueSettings,
@@ -82,7 +94,9 @@ function getAnnounceQueue(
 
 function scheduleAnnounceDrain(key: string) {
   const queue = ANNOUNCE_QUEUES.get(key);
-  if (!queue || queue.draining) return;
+  if (!queue || queue.draining) {
+    return;
+  }
   queue.draining = true;
   void (async () => {
     try {
@@ -92,19 +106,27 @@ function scheduleAnnounceDrain(key: string) {
         if (queue.mode === "collect") {
           if (forceIndividualCollect) {
             const next = queue.items.shift();
-            if (!next) break;
+            if (!next) {
+              break;
+            }
             await queue.send(next);
             continue;
           }
           const isCrossChannel = hasCrossChannelItems(queue.items, (item) => {
-            if (!item.origin) return {};
-            if (!item.originKey) return { cross: true };
+            if (!item.origin) {
+              return {};
+            }
+            if (!item.originKey) {
+              return { cross: true };
+            }
             return { key: item.originKey };
           });
           if (isCrossChannel) {
             forceIndividualCollect = true;
             const next = queue.items.shift();
-            if (!next) break;
+            if (!next) {
+              break;
+            }
             await queue.send(next);
             continue;
           }
@@ -117,7 +139,9 @@ function scheduleAnnounceDrain(key: string) {
             renderItem: (item, idx) => `---\nQueued #${idx + 1}\n${item.prompt}`.trim(),
           });
           const last = items.at(-1);
-          if (!last) break;
+          if (!last) {
+            break;
+          }
           await queue.send({ ...last, prompt });
           continue;
         }
@@ -125,13 +149,17 @@ function scheduleAnnounceDrain(key: string) {
         const summaryPrompt = buildQueueSummaryPrompt({ state: queue, noun: "announce" });
         if (summaryPrompt) {
           const next = queue.items.shift();
-          if (!next) break;
+          if (!next) {
+            break;
+          }
           await queue.send({ ...next, prompt: summaryPrompt });
           continue;
         }
 
         const next = queue.items.shift();
-        if (!next) break;
+        if (!next) {
+          break;
+        }
         await queue.send(next);
       }
     } catch (err) {

@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -12,10 +13,45 @@ type HeldLock = {
   lockPath: string;
 };
 
-const HELD_LOCKS = new Map<string, HeldLock>();
+const CLEANUP_SIGNALS = ["SIGINT", "SIGTERM", "SIGQUIT", "SIGABRT"] as const;
+type CleanupSignal = (typeof CLEANUP_SIGNALS)[number];
+const CLEANUP_STATE_KEY = Symbol.for("openclaw.sessionWriteLockCleanupState");
+const HELD_LOCKS_KEY = Symbol.for("openclaw.sessionWriteLockHeldLocks");
+
+type CleanupState = {
+  registered: boolean;
+  cleanupHandlers: Map<CleanupSignal, () => void>;
+};
+
+function resolveHeldLocks(): Map<string, HeldLock> {
+  const proc = process as NodeJS.Process & {
+    [HELD_LOCKS_KEY]?: Map<string, HeldLock>;
+  };
+  if (!proc[HELD_LOCKS_KEY]) {
+    proc[HELD_LOCKS_KEY] = new Map<string, HeldLock>();
+  }
+  return proc[HELD_LOCKS_KEY];
+}
+
+const HELD_LOCKS = resolveHeldLocks();
+
+function resolveCleanupState(): CleanupState {
+  const proc = process as NodeJS.Process & {
+    [CLEANUP_STATE_KEY]?: CleanupState;
+  };
+  if (!proc[CLEANUP_STATE_KEY]) {
+    proc[CLEANUP_STATE_KEY] = {
+      registered: false,
+      cleanupHandlers: new Map<CleanupSignal, () => void>(),
+    };
+  }
+  return proc[CLEANUP_STATE_KEY];
+}
 
 function isAlive(pid: number): boolean {
-  if (!Number.isFinite(pid) || pid <= 0) return false;
+  if (!Number.isFinite(pid) || pid <= 0) {
+    return false;
+  }
   try {
     process.kill(pid, 0);
     return true;
@@ -24,12 +60,81 @@ function isAlive(pid: number): boolean {
   }
 }
 
+/**
+ * Synchronously release all held locks.
+ * Used during process exit when async operations aren't reliable.
+ */
+function releaseAllLocksSync(): void {
+  for (const [sessionFile, held] of HELD_LOCKS) {
+    try {
+      if (typeof held.handle.close === "function") {
+        void held.handle.close().catch(() => {});
+      }
+    } catch {
+      // Ignore errors during cleanup - best effort
+    }
+    try {
+      fsSync.rmSync(held.lockPath, { force: true });
+    } catch {
+      // Ignore errors during cleanup - best effort
+    }
+    HELD_LOCKS.delete(sessionFile);
+  }
+}
+
+function handleTerminationSignal(signal: CleanupSignal): void {
+  releaseAllLocksSync();
+  const cleanupState = resolveCleanupState();
+  const shouldReraise = process.listenerCount(signal) === 1;
+  if (shouldReraise) {
+    const handler = cleanupState.cleanupHandlers.get(signal);
+    if (handler) {
+      process.off(signal, handler);
+      cleanupState.cleanupHandlers.delete(signal);
+    }
+    try {
+      process.kill(process.pid, signal);
+    } catch {
+      // Ignore errors during shutdown
+    }
+  }
+}
+
+function registerCleanupHandlers(): void {
+  const cleanupState = resolveCleanupState();
+  if (!cleanupState.registered) {
+    cleanupState.registered = true;
+    // Cleanup on normal exit and process.exit() calls
+    process.on("exit", () => {
+      releaseAllLocksSync();
+    });
+  }
+
+  // Handle termination signals
+  for (const signal of CLEANUP_SIGNALS) {
+    if (cleanupState.cleanupHandlers.has(signal)) {
+      continue;
+    }
+    try {
+      const handler = () => handleTerminationSignal(signal);
+      cleanupState.cleanupHandlers.set(signal, handler);
+      process.on(signal, handler);
+    } catch {
+      // Ignore unsupported signals on this platform.
+    }
+  }
+}
+
 async function readLockPayload(lockPath: string): Promise<LockFilePayload | null> {
   try {
     const raw = await fs.readFile(lockPath, "utf8");
     const parsed = JSON.parse(raw) as Partial<LockFilePayload>;
-    if (typeof parsed.pid !== "number") return null;
-    if (typeof parsed.createdAt !== "string") return null;
+    if (typeof parsed.pid !== "number") {
+      return null;
+    }
+    if (typeof parsed.createdAt !== "string") {
+      return null;
+    }
     return { pid: parsed.pid, createdAt: parsed.createdAt };
   } catch {
     return null;
@@ -43,6 +148,7 @@ export async function acquireSessionWriteLock(params: {
 }): Promise<{
   release: () => Promise<void>;
 }> {
+  registerCleanupHandlers();
   const timeoutMs = params.timeoutMs ?? 10_000;
   const staleMs = params.staleMs ?? 30 * 60 * 1000;
   const sessionFile = path.resolve(params.sessionFile);
@@ -63,9 +169,13 @@ export async function acquireSessionWriteLock(params: {
     return {
       release: async () => {
         const current = HELD_LOCKS.get(normalizedSessionFile);
-        if (!current) return;
+        if (!current) {
+          return;
+        }
         current.count -= 1;
-        if (current.count > 0) return;
+        if (current.count > 0) {
+          return;
+        }
         HELD_LOCKS.delete(normalizedSessionFile);
         await current.handle.close();
         await fs.rm(current.lockPath, { force: true });
@@ -87,9 +197,13 @@ export async function acquireSessionWriteLock(params: {
       return {
         release: async () => {
           const current = HELD_LOCKS.get(normalizedSessionFile);
-          if (!current) return;
+          if (!current) {
+            return;
+          }
           current.count -= 1;
-          if (current.count > 0) return;
+          if (current.count > 0) {
+            return;
+          }
           HELD_LOCKS.delete(normalizedSessionFile);
           await current.handle.close();
           await fs.rm(current.lockPath, { force: true });
@@ -97,7 +211,9 @@ export async function acquireSessionWriteLock(params: {
       };
     } catch (err) {
       const code = (err as { code?: unknown }).code;
-      if (code !== "EEXIST") throw err;
+      if (code !== "EEXIST") {
+        throw err;
+      }
       const payload = await readLockPayload(lockPath);
       const createdAt = payload?.createdAt ? Date.parse(payload.createdAt) : NaN;
       const stale = !Number.isFinite(createdAt) || Date.now() - createdAt > staleMs;
@@ -116,3 +232,9 @@ export async function acquireSessionWriteLock(params: {
   const owner = payload?.pid ? `pid=${payload.pid}` : "unknown";
   throw new Error(`session file locked (timeout ${timeoutMs}ms): ${owner} ${lockPath}`);
 }
+
+export const __testing = {
+  cleanupSignals: [...CLEANUP_SIGNALS],
+  handleTerminationSignal,
+  releaseAllLocksSync,
+};

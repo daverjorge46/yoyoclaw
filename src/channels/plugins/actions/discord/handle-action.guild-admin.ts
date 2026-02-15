@@ -1,11 +1,11 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
+import type { ChannelMessageActionContext } from "../../types.js";
 import {
   readNumberParam,
   readStringArrayParam,
   readStringParam,
 } from "../../../../agents/tools/common.js";
 import { handleDiscordAction } from "../../../../agents/tools/discord-actions.js";
-import type { ChannelMessageActionContext } from "../../types.js";
 
 type Ctx = Pick<ChannelMessageActionContext, "action" | "params" | "cfg" | "accountId">;
 
@@ -183,6 +183,11 @@ export async function tryHandleDiscordMessageActionGuildAdmin(params: {
     const rateLimitPerUser = readNumberParam(actionParams, "rateLimitPerUser", {
       integer: true,
     });
+    const archived = typeof actionParams.archived === "boolean" ? actionParams.archived : undefined;
+    const locked = typeof actionParams.locked === "boolean" ? actionParams.locked : undefined;
+    const autoArchiveDuration = readNumberParam(actionParams, "autoArchiveDuration", {
+      integer: true,
+    });
     return await handleDiscordAction(
       {
         action: "channelEdit",
@@ -194,6 +199,9 @@ export async function tryHandleDiscordMessageActionGuildAdmin(params: {
         parentId: parentId === undefined ? undefined : parentId,
         nsfw,
         rateLimitPerUser: rateLimitPerUser ?? undefined,
+        archived,
+        locked,
+        autoArchiveDuration: autoArchiveDuration ?? undefined,
       },
       cfg,
     );
@@ -347,7 +355,7 @@ export async function tryHandleDiscordMessageActionGuildAdmin(params: {
     const deleteMessageDays = readNumberParam(actionParams, "deleteDays", {
       integer: true,
     });
-    const discordAction = action as "timeout" | "kick" | "ban";
+    const discordAction = action;
     return await handleDiscordAction(
       {
         action: discordAction,
@@ -393,11 +401,17 @@ export async function tryHandleDiscordMessageActionGuildAdmin(params: {
     });
     const mediaUrl = readStringParam(actionParams, "media", { trim: false });
     const replyTo = readStringParam(actionParams, "replyTo");
+
+    // `message.thread-reply` (tool) uses `threadId`, while the CLI historically used `to`/`channelId`.
+    // Prefer `threadId` when present to avoid accidentally replying in the parent channel.
+    const threadId = readStringParam(actionParams, "threadId");
+    const channelId = threadId ?? resolveChannelId();
+
     return await handleDiscordAction(
       {
         action: "threadReply",
         accountId: accountId ?? undefined,
-        channelId: resolveChannelId(),
+        channelId,
         content,
         mediaUrl: mediaUrl ?? undefined,
         replyTo: replyTo ?? undefined,

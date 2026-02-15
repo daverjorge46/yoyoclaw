@@ -7,7 +7,7 @@ import type {
 } from "./types.base.js";
 import type { ChannelHeartbeatVisibilityConfig } from "./types.channels.js";
 import type { DmConfig, ProviderCommandsConfig } from "./types.messages.js";
-import type { GroupToolPolicyConfig } from "./types.tools.js";
+import type { GroupToolPolicyBySenderConfig, GroupToolPolicyConfig } from "./types.tools.js";
 
 export type SlackDmConfig = {
   /** If false, ignore all incoming Slack DMs. Default: true. */
@@ -33,6 +33,7 @@ export type SlackChannelConfig = {
   requireMention?: boolean;
   /** Optional tool policy overrides for this channel. */
   tools?: GroupToolPolicyConfig;
+  toolsBySender?: GroupToolPolicyBySenderConfig;
   /** Allow bot-authored messages to trigger replies (default: false). */
   allowBots?: boolean;
   /** Allowlist of users that can invoke the bot in this channel. */
@@ -59,7 +60,7 @@ export type SlackActionConfig = {
 export type SlackSlashCommandConfig = {
   /** Enable handling for the configured slash command (default: false). */
   enabled?: boolean;
-  /** Slash command name (default: "clawd"). */
+  /** Slash command name (default: "openclaw"). */
   name?: string;
   /** Session key prefix for slash commands (default: "slack:slash"). */
   sessionPrefix?: string;
@@ -72,6 +73,8 @@ export type SlackThreadConfig = {
   historyScope?: "thread" | "channel";
   /** If true, thread sessions inherit the parent channel transcript. Default: false. */
   inheritParent?: boolean;
+  /** Maximum number of thread messages to fetch as context when starting a new thread session (default: 20). Set to 0 to disable thread history fetching. */
+  initialHistoryLimit?: number;
 };
 
 export type SlackAccountConfig = {
@@ -137,10 +140,22 @@ export type SlackAccountConfig = {
   thread?: SlackThreadConfig;
   actions?: SlackActionConfig;
   slashCommand?: SlackSlashCommandConfig;
+  /**
+   * Alias for dm.policy (prefer this so it inherits cleanly via base->account shallow merge).
+   * Legacy key: channels.slack.dm.policy.
+   */
+  dmPolicy?: DmPolicy;
+  /**
+   * Alias for dm.allowFrom (prefer this so it inherits cleanly via base->account shallow merge).
+   * Legacy key: channels.slack.dm.allowFrom.
+   */
+  allowFrom?: Array<string | number>;
   dm?: SlackDmConfig;
   channels?: Record<string, SlackChannelConfig>;
   /** Heartbeat visibility settings for this channel. */
   heartbeat?: ChannelHeartbeatVisibilityConfig;
+  /** Outbound response prefix override for this channel/account. */
+  responsePrefix?: string;
 };
 
 export type SlackConfig = {

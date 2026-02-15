@@ -1,11 +1,10 @@
-import { createServer } from "node:http";
-
 import { webhookCallback } from "grammy";
-import type { ClawdbotConfig } from "../config/config.js";
+import { createServer } from "node:http";
+import type { OpenClawConfig } from "../config/config.js";
+import type { RuntimeEnv } from "../runtime.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { formatErrorMessage } from "../infra/errors.js";
-import type { RuntimeEnv } from "../runtime.js";
-import { defaultRuntime } from "../runtime.js";
+import { installRequestBodyLimitGuard } from "../infra/http-body.js";
 import {
   logWebhookError,
   logWebhookProcessed,
@@ -13,13 +12,18 @@ import {
   startDiagnosticHeartbeat,
   stopDiagnosticHeartbeat,
 } from "../logging/diagnostic.js";
+import { defaultRuntime } from "../runtime.js";
 import { resolveTelegramAllowedUpdates } from "./allowed-updates.js";
+import { withTelegramApiErrorLogging } from "./api-logging.js";
 import { createTelegramBot } from "./bot.js";
+
+const TELEGRAM_WEBHOOK_MAX_BODY_BYTES = 1024 * 1024;
+const TELEGRAM_WEBHOOK_BODY_TIMEOUT_MS = 30_000;
 
 export async function startTelegramWebhook(opts: {
   token: string;
   accountId?: string;
-  config?: ClawdbotConfig;
+  config?: OpenClawConfig;
   path?: string;
   port?: number;
   host?: string;
@@ -33,7 +37,14 @@ export async function startTelegramWebhook(opts: {
   const path = opts.path ?? "/telegram-webhook";
   const healthPath = opts.healthPath ?? "/healthz";
   const port = opts.port ?? 8787;
-  const host = opts.host ?? "0.0.0.0";
+  const host = opts.host ?? "127.0.0.1";
+  const secret = typeof opts.secret === "string" ? opts.secret.trim() : "";
+  if (!secret) {
+    throw new Error(
+      "Telegram webhook mode requires a non-empty secret token. " +
+        "Set channels.telegram.webhookSecret in your config.",
+    );
+  }
   const runtime = opts.runtime ?? defaultRuntime;
   const diagnosticsEnabled = isDiagnosticsEnabled(opts.config);
   const bot = createTelegramBot({
@@ -44,7 +55,7 @@ export async function startTelegramWebhook(opts: {
     accountId: opts.accountId,
   });
   const handler = webhookCallback(bot, "http", {
-    secretToken: opts.secret,
+    secretToken: secret,
   });
 
   if (diagnosticsEnabled) {
@@ -66,9 +77,17 @@ export async function startTelegramWebhook(opts: {
     if (diagnosticsEnabled) {
       logWebhookReceived({ channel: "telegram", updateType: "telegram-post" });
     }
+    const guard = installRequestBodyLimitGuard(req, res, {
+      maxBytes: TELEGRAM_WEBHOOK_MAX_BODY_BYTES,
+      timeoutMs: TELEGRAM_WEBHOOK_BODY_TIMEOUT_MS,
+      responseFormat: "text",
+    });
+    if (guard.isTripped()) {
+      return;
+    }
     const handled = handler(req, res);
-    if (handled && typeof (handled as Promise<void>).catch === "function") {
-      void (handled as Promise<void>)
+    if (handled && typeof handled.catch === "function") {
+      void handled
         .then(() => {
           if (diagnosticsEnabled) {
             logWebhookProcessed({
@@ -79,6 +98,9 @@ export async function startTelegramWebhook(opts: {
           }
         })
         .catch((err) => {
+          if (guard.isTripped()) {
+            return;
+          }
           const errMsg = formatErrorMessage(err);
           if (diagnosticsEnabled) {
             logWebhookError({
@@ -88,18 +110,30 @@ export async function startTelegramWebhook(opts: {
             });
           }
           runtime.log?.(`webhook handler failed: ${errMsg}`);
-          if (!res.headersSent) res.writeHead(500);
+          if (!res.headersSent) {
+            res.writeHead(500);
+          }
           res.end();
+        })
+        .finally(() => {
+          guard.dispose();
         });
+      return;
     }
+    guard.dispose();
   });
 
   const publicUrl =
     opts.publicUrl ?? `http://${host === "0.0.0.0" ? "localhost" : host}:${port}${path}`;
 
-  await bot.api.setWebhook(publicUrl, {
-    secret_token: opts.secret,
-    allowed_updates: resolveTelegramAllowedUpdates(),
+  await withTelegramApiErrorLogging({
+    operation: "setWebhook",
+    runtime,
+    fn: () =>
+      bot.api.setWebhook(publicUrl, {
+        secret_token: secret,
+        allowed_updates: resolveTelegramAllowedUpdates(),
+      }),
   });
 
   await new Promise<void>((resolve) => server.listen(port, host, resolve));

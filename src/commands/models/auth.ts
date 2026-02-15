@@ -1,38 +1,34 @@
-import { spawnSync } from "node:child_process";
-
 import { confirm as clackConfirm, select as clackSelect, text as clackText } from "@clack/prompts";
-
-import {
-  CLAUDE_CLI_PROFILE_ID,
-  ensureAuthProfileStore,
-  upsertAuthProfile,
-} from "../../agents/auth-profiles.js";
-import { normalizeProviderId } from "../../agents/model-selection.js";
+import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
+import type { ProviderAuthResult, ProviderPlugin } from "../../plugins/types.js";
+import type { RuntimeEnv } from "../../runtime.js";
 import {
   resolveAgentDir,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
+import { upsertAuthProfile } from "../../agents/auth-profiles.js";
+import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
-import { parseDurationMs } from "../../cli/parse-duration.js";
 import { formatCliCommand } from "../../cli/command-format.js";
-import { readConfigFileSnapshot, type ClawdbotConfig } from "../../config/config.js";
+import { parseDurationMs } from "../../cli/parse-duration.js";
+import { readConfigFileSnapshot } from "../../config/config.js";
 import { logConfigUpdated } from "../../config/logging.js";
-import type { RuntimeEnv } from "../../runtime.js";
-import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
-import { applyAuthProfileConfig } from "../onboard-auth.js";
-import { isRemoteEnvironment } from "../oauth-env.js";
-import { openUrl } from "../onboard-helpers.js";
-import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
-import { updateConfig } from "./shared.js";
 import { resolvePluginProviders } from "../../plugins/providers.js";
+import { stylePromptHint, stylePromptMessage } from "../../terminal/prompt-style.js";
 import { createClackPrompter } from "../../wizard/clack-prompter.js";
-import type {
-  ProviderAuthMethod,
-  ProviderAuthResult,
-  ProviderPlugin,
-} from "../../plugins/types.js";
-import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
+import { validateAnthropicSetupToken } from "../auth-token.js";
+import { isRemoteEnvironment } from "../oauth-env.js";
+import { createVpsAwareOAuthHandlers } from "../oauth-flow.js";
+import { applyAuthProfileConfig } from "../onboard-auth.js";
+import { openUrl } from "../onboard-helpers.js";
+import {
+  applyDefaultModel,
+  mergeConfigPatch,
+  pickAuthMethod,
+  resolveProviderMatch,
+} from "../provider-auth-helpers.js";
+import { updateConfig } from "./shared.js";
 
 const confirm = (params: Parameters<typeof clackConfirm>[0]) =>
   clackConfirm({
@@ -57,9 +53,13 @@ type TokenProvider = "anthropic";
 
 function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
   const trimmed = raw?.trim();
-  if (!trimmed) return null;
+  if (!trimmed) {
+    return null;
+  }
   const normalized = normalizeProviderId(trimmed);
-  if (normalized === "anthropic") return "anthropic";
+  if (normalized === "anthropic") {
+    return "anthropic";
+  }
   return "custom";
 }
 
@@ -73,9 +73,7 @@ export async function modelsAuthSetupTokenCommand(
 ) {
   const provider = resolveTokenProvider(opts.provider ?? "anthropic");
   if (provider !== "anthropic") {
-    throw new Error(
-      "Only --provider anthropic is supported for setup-token (uses `claude setup-token`).",
-    );
+    throw new Error("Only --provider anthropic is supported for setup-token.");
   }
 
   if (!process.stdin.isTTY) {
@@ -84,38 +82,40 @@ export async function modelsAuthSetupTokenCommand(
 
   if (!opts.yes) {
     const proceed = await confirm({
-      message: "Run `claude setup-token` now?",
+      message: "Have you run `claude setup-token` and copied the token?",
       initialValue: true,
     });
-    if (!proceed) return;
+    if (!proceed) {
+      return;
+    }
   }
 
-  const res = spawnSync("claude", ["setup-token"], { stdio: "inherit" });
-  if (res.error) throw res.error;
-  if (typeof res.status === "number" && res.status !== 0) {
-    throw new Error(`claude setup-token failed (exit ${res.status})`);
-  }
-
-  const store = ensureAuthProfileStore(undefined, {
-    allowKeychainPrompt: true,
+  const tokenInput = await text({
+    message: "Paste Anthropic setup-token",
+    validate: (value) => validateAnthropicSetupToken(String(value ?? "")),
   });
-  const synced = store.profiles[CLAUDE_CLI_PROFILE_ID];
-  if (!synced) {
-    throw new Error(
-      `No Claude Code CLI credentials found after setup-token. Expected auth profile ${CLAUDE_CLI_PROFILE_ID}.`,
-    );
-  }
+  const token = String(tokenInput ?? "").trim();
+  const profileId = resolveDefaultTokenProfileId(provider);
+
+  upsertAuthProfile({
+    profileId,
+    credential: {
+      type: "token",
+      provider,
+      token,
+    },
+  });
 
   await updateConfig((cfg) =>
     applyAuthProfileConfig(cfg, {
-      profileId: CLAUDE_CLI_PROFILE_ID,
-      provider: "anthropic",
-      mode: "oauth",
+      profileId,
+      provider,
+      mode: "token",
     }),
   );
 
   logConfigUpdated(runtime);
-  runtime.log(`Auth profile: ${CLAUDE_CLI_PROFILE_ID} (anthropic/oauth)`);
+  runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
 }
 
 export async function modelsAuthPasteTokenCommand(
@@ -137,11 +137,11 @@ export async function modelsAuthPasteTokenCommand(
     message: `Paste token for ${provider}`,
     validate: (value) => (value?.trim() ? undefined : "Required"),
   });
-  const token = String(tokenInput).trim();
+  const token = String(tokenInput ?? "").trim();
 
   const expires =
     opts.expiresIn?.trim() && opts.expiresIn.trim().length > 0
-      ? Date.now() + parseDurationMs(String(opts.expiresIn).trim(), { defaultUnit: "d" })
+      ? Date.now() + parseDurationMs(String(opts.expiresIn ?? "").trim(), { defaultUnit: "d" })
       : undefined;
 
   upsertAuthProfile({
@@ -189,7 +189,7 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
             {
               value: "setup-token",
               label: "setup-token (claude)",
-              hint: "Runs `claude setup-token` (recommended)",
+              hint: "Paste a setup-token from `claude setup-token`",
             },
           ]
         : []),
@@ -241,81 +241,35 @@ type LoginOptions = {
   setDefault?: boolean;
 };
 
-function resolveProviderMatch(
+export function resolveRequestedLoginProviderOrThrow(
   providers: ProviderPlugin[],
   rawProvider?: string,
 ): ProviderPlugin | null {
-  const raw = rawProvider?.trim();
-  if (!raw) return null;
-  const normalized = normalizeProviderId(raw);
-  return (
-    providers.find((provider) => normalizeProviderId(provider.id) === normalized) ??
-    providers.find(
-      (provider) =>
-        provider.aliases?.some((alias) => normalizeProviderId(alias) === normalized) ?? false,
-    ) ??
-    null
-  );
-}
-
-function pickAuthMethod(provider: ProviderPlugin, rawMethod?: string): ProviderAuthMethod | null {
-  const raw = rawMethod?.trim();
-  if (!raw) return null;
-  const normalized = raw.toLowerCase();
-  return (
-    provider.auth.find((method) => method.id.toLowerCase() === normalized) ??
-    provider.auth.find((method) => method.label.toLowerCase() === normalized) ??
-    null
-  );
-}
-
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
-
-function mergeConfigPatch<T>(base: T, patch: unknown): T {
-  if (!isPlainRecord(base) || !isPlainRecord(patch)) {
-    return patch as T;
+  const requested = rawProvider?.trim();
+  if (!requested) {
+    return null;
   }
-
-  const next: Record<string, unknown> = { ...base };
-  for (const [key, value] of Object.entries(patch)) {
-    const existing = next[key];
-    if (isPlainRecord(existing) && isPlainRecord(value)) {
-      next[key] = mergeConfigPatch(existing, value);
-    } else {
-      next[key] = value;
-    }
+  const matched = resolveProviderMatch(providers, requested);
+  if (matched) {
+    return matched;
   }
-  return next as T;
-}
-
-function applyDefaultModel(cfg: ClawdbotConfig, model: string): ClawdbotConfig {
-  const models = { ...cfg.agents?.defaults?.models };
-  models[model] = models[model] ?? {};
-
-  const existingModel = cfg.agents?.defaults?.model;
-  return {
-    ...cfg,
-    agents: {
-      ...cfg.agents,
-      defaults: {
-        ...cfg.agents?.defaults,
-        models,
-        model: {
-          ...(existingModel && typeof existingModel === "object" && "fallbacks" in existingModel
-            ? { fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks }
-            : undefined),
-          primary: model,
-        },
-      },
-    },
-  };
+  const available = providers
+    .map((provider) => provider.id)
+    .filter(Boolean)
+    .toSorted((a, b) => a.localeCompare(b));
+  const availableText = available.length > 0 ? available.join(", ") : "(none)";
+  throw new Error(
+    `Unknown provider "${requested}". Loaded providers: ${availableText}. Verify plugins via \`${formatCliCommand("openclaw plugins list --json")}\`.`,
+  );
 }
 
 function credentialMode(credential: AuthProfileCredential): "api_key" | "oauth" | "token" {
-  if (credential.type === "api_key") return "api_key";
-  if (credential.type === "token") return "token";
+  if (credential.type === "api_key") {
+    return "api_key";
+  }
+  if (credential.type === "token") {
+    return "token";
+  }
   return "oauth";
 }
 
@@ -339,13 +293,14 @@ export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: Runtim
   const providers = resolvePluginProviders({ config, workspaceDir });
   if (providers.length === 0) {
     throw new Error(
-      `No provider plugins found. Install one via \`${formatCliCommand("clawdbot plugins install")}\`.`,
+      `No provider plugins found. Install one via \`${formatCliCommand("openclaw plugins install")}\`.`,
     );
   }
 
   const prompter = createClackPrompter();
+  const requestedProvider = resolveRequestedLoginProviderOrThrow(providers, opts.provider);
   const selectedProvider =
-    resolveProviderMatch(providers, opts.provider) ??
+    requestedProvider ??
     (await prompter
       .select({
         message: "Select a provider",

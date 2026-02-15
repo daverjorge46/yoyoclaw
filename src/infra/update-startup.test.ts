@@ -1,20 +1,31 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UpdateCheckResult } from "./update-check.js";
 
-vi.mock("./clawdbot-root.js", () => ({
-  resolveClawdbotPackageRoot: vi.fn(),
+vi.mock("./openclaw-root.js", () => ({
+  resolveOpenClawPackageRoot: vi.fn(),
 }));
 
 vi.mock("./update-check.js", async () => {
-  const actual = await vi.importActual<typeof import("./update-check.js")>("./update-check.js");
+  const parse = (value: string) => value.split(".").map((part) => Number.parseInt(part, 10));
+  const compareSemverStrings = (a: string, b: string) => {
+    const left = parse(a);
+    const right = parse(b);
+    for (let idx = 0; idx < 3; idx += 1) {
+      const l = left[idx] ?? 0;
+      const r = right[idx] ?? 0;
+      if (l !== r) {
+        return l < r ? -1 : 1;
+      }
+    }
+    return 0;
+  };
+
   return {
-    ...actual,
     checkUpdateStatus: vi.fn(),
-    fetchNpmTagVersion: vi.fn(),
+    compareSemverStrings,
     resolveNpmChannelTag: vi.fn(),
   };
 });
@@ -24,32 +35,84 @@ vi.mock("../version.js", () => ({
 }));
 
 describe("update-startup", () => {
-  const originalEnv = { ...process.env };
+  let suiteRoot = "";
+  let suiteCase = 0;
   let tempDir: string;
+  let prevStateDir: string | undefined;
+  let prevNodeEnv: string | undefined;
+  let prevVitest: string | undefined;
+  let hadStateDir = false;
+  let hadNodeEnv = false;
+  let hadVitest = false;
+
+  let resolveOpenClawPackageRoot: (typeof import("./openclaw-root.js"))["resolveOpenClawPackageRoot"];
+  let checkUpdateStatus: (typeof import("./update-check.js"))["checkUpdateStatus"];
+  let resolveNpmChannelTag: (typeof import("./update-check.js"))["resolveNpmChannelTag"];
+  let runGatewayUpdateCheck: (typeof import("./update-startup.js"))["runGatewayUpdateCheck"];
+  let loaded = false;
+
+  beforeAll(async () => {
+    suiteRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-check-suite-"));
+  });
 
   beforeEach(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-17T10:00:00Z"));
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-update-check-"));
-    process.env.CLAWDBOT_STATE_DIR = tempDir;
-    delete process.env.VITEST;
+    tempDir = path.join(suiteRoot, `case-${++suiteCase}`);
+    await fs.mkdir(tempDir);
+    hadStateDir = Object.prototype.hasOwnProperty.call(process.env, "OPENCLAW_STATE_DIR");
+    prevStateDir = process.env.OPENCLAW_STATE_DIR;
+    process.env.OPENCLAW_STATE_DIR = tempDir;
+
+    hadNodeEnv = Object.prototype.hasOwnProperty.call(process.env, "NODE_ENV");
+    prevNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "test";
+
+    // Ensure update checks don't short-circuit in test mode.
+    hadVitest = Object.prototype.hasOwnProperty.call(process.env, "VITEST");
+    prevVitest = process.env.VITEST;
+    delete process.env.VITEST;
+
+    // Perf: load mocked modules once (after timers/env are set up).
+    if (!loaded) {
+      ({ resolveOpenClawPackageRoot } = await import("./openclaw-root.js"));
+      ({ checkUpdateStatus, resolveNpmChannelTag } = await import("./update-check.js"));
+      ({ runGatewayUpdateCheck } = await import("./update-startup.js"));
+      loaded = true;
+    }
   });
 
   afterEach(async () => {
     vi.useRealTimers();
-    process.env = { ...originalEnv };
-    await fs.rm(tempDir, { recursive: true, force: true });
+    if (hadStateDir) {
+      process.env.OPENCLAW_STATE_DIR = prevStateDir;
+    } else {
+      delete process.env.OPENCLAW_STATE_DIR;
+    }
+    if (hadNodeEnv) {
+      process.env.NODE_ENV = prevNodeEnv;
+    } else {
+      delete process.env.NODE_ENV;
+    }
+    if (hadVitest) {
+      process.env.VITEST = prevVitest;
+    } else {
+      delete process.env.VITEST;
+    }
+  });
+
+  afterAll(async () => {
+    if (suiteRoot) {
+      await fs.rm(suiteRoot, { recursive: true, force: true });
+    }
+    suiteRoot = "";
+    suiteCase = 0;
   });
 
   it("logs update hint for npm installs when newer tag exists", async () => {
-    const { resolveClawdbotPackageRoot } = await import("./clawdbot-root.js");
-    const { checkUpdateStatus, resolveNpmChannelTag } = await import("./update-check.js");
-    const { runGatewayUpdateCheck } = await import("./update-startup.js");
-
-    vi.mocked(resolveClawdbotPackageRoot).mockResolvedValue("/opt/clawdbot");
+    vi.mocked(resolveOpenClawPackageRoot).mockResolvedValue("/opt/openclaw");
     vi.mocked(checkUpdateStatus).mockResolvedValue({
-      root: "/opt/clawdbot",
+      root: "/opt/openclaw",
       installKind: "package",
       packageManager: "npm",
     } satisfies UpdateCheckResult);
@@ -77,13 +140,9 @@ describe("update-startup", () => {
   });
 
   it("uses latest when beta tag is older than release", async () => {
-    const { resolveClawdbotPackageRoot } = await import("./clawdbot-root.js");
-    const { checkUpdateStatus, resolveNpmChannelTag } = await import("./update-check.js");
-    const { runGatewayUpdateCheck } = await import("./update-startup.js");
-
-    vi.mocked(resolveClawdbotPackageRoot).mockResolvedValue("/opt/clawdbot");
+    vi.mocked(resolveOpenClawPackageRoot).mockResolvedValue("/opt/openclaw");
     vi.mocked(checkUpdateStatus).mockResolvedValue({
-      root: "/opt/clawdbot",
+      root: "/opt/openclaw",
       installKind: "package",
       packageManager: "npm",
     } satisfies UpdateCheckResult);
@@ -111,7 +170,6 @@ describe("update-startup", () => {
   });
 
   it("skips update check when disabled in config", async () => {
-    const { runGatewayUpdateCheck } = await import("./update-startup.js");
     const log = { info: vi.fn() };
 
     await runGatewayUpdateCheck({

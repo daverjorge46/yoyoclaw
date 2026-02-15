@@ -1,5 +1,4 @@
-import type { MatrixClient } from "matrix-bot-sdk";
-
+import type { MatrixClient } from "@vector-im/matrix-bot-sdk";
 import { getMatrixRuntime } from "../../runtime.js";
 
 // Type for encrypted file info
@@ -22,24 +21,30 @@ async function fetchMatrixMediaBuffer(params: {
   mxcUrl: string;
   maxBytes: number;
 }): Promise<{ buffer: Buffer; headerType?: string } | null> {
-  // matrix-bot-sdk provides mxcToHttp helper
+  // @vector-im/matrix-bot-sdk provides mxcToHttp helper
   const url = params.client.mxcToHttp(params.mxcUrl);
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
 
   // Use the client's download method which handles auth
   try {
-    const buffer = await params.client.downloadContent(params.mxcUrl);
+    const result = await params.client.downloadContent(params.mxcUrl);
+    const raw = result.data ?? result;
+    const buffer = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
+
     if (buffer.byteLength > params.maxBytes) {
       throw new Error("Matrix media exceeds configured size limit");
     }
-    return { buffer: Buffer.from(buffer) };
+    return { buffer, headerType: result.contentType };
   } catch (err) {
-    throw new Error(`Matrix media download failed: ${String(err)}`);
+    throw new Error(`Matrix media download failed: ${String(err)}`, { cause: err });
   }
 }
 
 /**
  * Download and decrypt encrypted media from a Matrix room.
+ * Uses @vector-im/matrix-bot-sdk's decryptMedia which handles both download and decryption.
  */
 async function fetchEncryptedMediaBuffer(params: {
   client: MatrixClient;
@@ -50,17 +55,14 @@ async function fetchEncryptedMediaBuffer(params: {
     throw new Error("Cannot decrypt media: crypto not enabled");
   }
 
-  // Download the encrypted content
-  const encryptedBuffer = await params.client.downloadContent(params.file.url);
-  if (encryptedBuffer.byteLength > params.maxBytes) {
+  // decryptMedia handles downloading and decrypting the encrypted content internally
+  const decrypted = await params.client.crypto.decryptMedia(
+    params.file as Parameters<typeof params.client.crypto.decryptMedia>[0],
+  );
+
+  if (decrypted.byteLength > params.maxBytes) {
     throw new Error("Matrix media exceeds configured size limit");
   }
-
-  // Decrypt using matrix-bot-sdk crypto
-  const decrypted = await params.client.crypto.decryptMedia(
-    Buffer.from(encryptedBuffer),
-    params.file,
-  );
 
   return { buffer: decrypted };
 }
@@ -69,6 +71,7 @@ export async function downloadMatrixMedia(params: {
   client: MatrixClient;
   mxcUrl: string;
   contentType?: string;
+  sizeBytes?: number;
   maxBytes: number;
   file?: EncryptedFile;
 }): Promise<{
@@ -77,6 +80,9 @@ export async function downloadMatrixMedia(params: {
   placeholder: string;
 } | null> {
   let fetched: { buffer: Buffer; headerType?: string } | null;
+  if (typeof params.sizeBytes === "number" && params.sizeBytes > params.maxBytes) {
+    throw new Error("Matrix media exceeds configured size limit");
+  }
 
   if (params.file) {
     // Encrypted media
@@ -94,7 +100,9 @@ export async function downloadMatrixMedia(params: {
     });
   }
 
-  if (!fetched) return null;
+  if (!fetched) {
+    return null;
+  }
   const headerType = fetched.headerType ?? params.contentType ?? undefined;
   const saved = await getMatrixRuntime().channel.media.saveMediaBuffer(
     fetched.buffer,

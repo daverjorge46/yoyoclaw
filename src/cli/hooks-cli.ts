@@ -1,31 +1,31 @@
+import type { Command } from "commander";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
-import type { Command } from "commander";
+import type { OpenClawConfig } from "../config/config.js";
+import type { HookEntry } from "../hooks/types.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import type { ClawdbotConfig } from "../config/config.js";
-import { resolveArchiveKind } from "../infra/archive.js";
+import { loadConfig, writeConfigFile } from "../config/io.js";
 import {
   buildWorkspaceHookStatus,
   type HookStatusEntry,
   type HookStatusReport,
 } from "../hooks/hooks-status.js";
-import type { HookEntry } from "../hooks/types.js";
-import { loadWorkspaceHookEntries } from "../hooks/workspace.js";
-import { loadConfig, writeConfigFile } from "../config/io.js";
 import {
   installHooksFromNpmSpec,
   installHooksFromPath,
   resolveHookInstallDir,
 } from "../hooks/install.js";
 import { recordHookInstall } from "../hooks/installs.js";
+import { loadWorkspaceHookEntries } from "../hooks/workspace.js";
+import { resolveArchiveKind } from "../infra/archive.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
-import { formatCliCommand } from "./command-format.js";
 import { resolveUserPath, shortenHomePath } from "../utils.js";
+import { formatCliCommand } from "./command-format.js";
 
 export type HooksListOptions = {
   json?: boolean;
@@ -57,7 +57,7 @@ function mergeHookEntries(pluginEntries: HookEntry[], workspaceEntries: HookEntr
   return Array.from(merged.values());
 }
 
-function buildHooksReport(config: ClawdbotConfig): HookStatusReport {
+function buildHooksReport(config: OpenClawConfig): HookStatusReport {
   const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
   const workspaceEntries = loadWorkspaceHookEntries(workspaceDir, { config });
   const pluginReport = buildPluginStatusReport({ config, workspaceDir });
@@ -67,8 +67,12 @@ function buildHooksReport(config: ClawdbotConfig): HookStatusReport {
 }
 
 function formatHookStatus(hook: HookStatusEntry): string {
-  if (hook.eligible) return theme.success("✓ ready");
-  if (hook.disabled) return theme.warn("⏸ disabled");
+  if (hook.eligible) {
+    return theme.success("✓ ready");
+  }
+  if (hook.disabled) {
+    return theme.warn("⏸ disabled");
+  }
   return theme.error("✗ missing");
 }
 
@@ -78,7 +82,9 @@ function formatHookName(hook: HookStatusEntry): string {
 }
 
 function formatHookSource(hook: HookStatusEntry): string {
-  if (!hook.managedByPlugin) return hook.source;
+  if (!hook.managedByPlugin) {
+    return hook.source;
+  }
   return `plugin:${hook.pluginId ?? "unknown"}`;
 }
 
@@ -112,6 +118,31 @@ async function readInstalledPackageVersion(dir: string): Promise<string | undefi
   }
 }
 
+type HookInternalEntryLike = Record<string, unknown> & { enabled?: boolean };
+
+function enableInternalHookEntries(config: OpenClawConfig, hookNames: string[]): OpenClawConfig {
+  const entries = { ...config.hooks?.internal?.entries } as Record<string, HookInternalEntryLike>;
+
+  for (const hookName of hookNames) {
+    entries[hookName] = {
+      ...entries[hookName],
+      enabled: true,
+    };
+  }
+
+  return {
+    ...config,
+    hooks: {
+      ...config.hooks,
+      internal: {
+        ...config.hooks?.internal,
+        enabled: true,
+        entries,
+      },
+    },
+  };
+}
+
 /**
  * Format the hooks list output
  */
@@ -141,7 +172,7 @@ export function formatHooksList(report: HookStatusReport, opts: HooksListOptions
 
   if (hooks.length === 0) {
     const message = opts.eligible
-      ? `No eligible hooks found. Run \`${formatCliCommand("clawdbot hooks list")}\` to see all hooks.`
+      ? `No eligible hooks found. Run \`${formatCliCommand("openclaw hooks list")}\` to see all hooks.`
       : "No hooks found.";
     return message;
   }
@@ -197,7 +228,7 @@ export function formatHookInfo(
     if (opts.json) {
       return JSON.stringify({ error: "not found", hook: hookName }, null, 2);
     }
-    return `Hook "${hookName}" not found. Run \`${formatCliCommand("clawdbot hooks list")}\` to see available hooks.`;
+    return `Hook "${hookName}" not found. Run \`${formatCliCommand("openclaw hooks list")}\` to see available hooks.`;
   }
 
   if (opts.json) {
@@ -326,13 +357,24 @@ export function formatHooksCheck(report: HookStatusReport, opts: HooksCheckOptio
     lines.push(theme.heading("Hooks not ready:"));
     for (const hook of notEligible) {
       const reasons = [];
-      if (hook.disabled) reasons.push("disabled");
-      if (hook.missing.bins.length > 0) reasons.push(`bins: ${hook.missing.bins.join(", ")}`);
-      if (hook.missing.anyBins.length > 0)
+      if (hook.disabled) {
+        reasons.push("disabled");
+      }
+      if (hook.missing.bins.length > 0) {
+        reasons.push(`bins: ${hook.missing.bins.join(", ")}`);
+      }
+      if (hook.missing.anyBins.length > 0) {
         reasons.push(`anyBins: ${hook.missing.anyBins.join(", ")}`);
-      if (hook.missing.env.length > 0) reasons.push(`env: ${hook.missing.env.join(", ")}`);
-      if (hook.missing.config.length > 0) reasons.push(`config: ${hook.missing.config.join(", ")}`);
-      if (hook.missing.os.length > 0) reasons.push(`os: ${hook.missing.os.join(", ")}`);
+      }
+      if (hook.missing.env.length > 0) {
+        reasons.push(`env: ${hook.missing.env.join(", ")}`);
+      }
+      if (hook.missing.config.length > 0) {
+        reasons.push(`config: ${hook.missing.config.join(", ")}`);
+      }
+      if (hook.missing.os.length > 0) {
+        reasons.push(`os: ${hook.missing.os.join(", ")}`);
+      }
       lines.push(`  ${hook.emoji ?? "🔗"} ${hook.name} - ${reasons.join("; ")}`);
     }
   }
@@ -424,7 +466,7 @@ export function registerHooksCli(program: Command): void {
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/hooks", "docs.clawd.bot/cli/hooks")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/hooks", "docs.openclaw.ai/cli/hooks")}\n`,
     );
 
   hooks
@@ -533,7 +575,7 @@ export function registerHooksCli(program: Command): void {
             process.exit(1);
           }
 
-          let next: ClawdbotConfig = {
+          let next: OpenClawConfig = {
             ...cfg,
             hooks: {
               ...cfg.hooks,
@@ -548,24 +590,7 @@ export function registerHooksCli(program: Command): void {
             },
           };
 
-          for (const hookName of probe.hooks) {
-            next = {
-              ...next,
-              hooks: {
-                ...next.hooks,
-                internal: {
-                  ...next.hooks?.internal,
-                  entries: {
-                    ...next.hooks?.internal?.entries,
-                    [hookName]: {
-                      ...(next.hooks?.internal?.entries?.[hookName] as object | undefined),
-                      enabled: true,
-                    },
-                  },
-                },
-              },
-            };
-          }
+          next = enableInternalHookEntries(next, probe.hooks);
 
           next = recordHookInstall(next, {
             hookId: probe.hookPackId,
@@ -594,38 +619,7 @@ export function registerHooksCli(program: Command): void {
           process.exit(1);
         }
 
-        let next: ClawdbotConfig = {
-          ...cfg,
-          hooks: {
-            ...cfg.hooks,
-            internal: {
-              ...cfg.hooks?.internal,
-              enabled: true,
-              entries: {
-                ...cfg.hooks?.internal?.entries,
-              },
-            },
-          },
-        };
-
-        for (const hookName of result.hooks) {
-          next = {
-            ...next,
-            hooks: {
-              ...next.hooks,
-              internal: {
-                ...next.hooks?.internal,
-                entries: {
-                  ...next.hooks?.internal?.entries,
-                  [hookName]: {
-                    ...(next.hooks?.internal?.entries?.[hookName] as object | undefined),
-                    enabled: true,
-                  },
-                },
-              },
-            },
-          };
-        }
+        let next = enableInternalHookEntries(cfg, result.hooks);
 
         const source: "archive" | "path" = resolveArchiveKind(resolved) ? "archive" : "path";
 
@@ -674,38 +668,7 @@ export function registerHooksCli(program: Command): void {
         process.exit(1);
       }
 
-      let next: ClawdbotConfig = {
-        ...cfg,
-        hooks: {
-          ...cfg.hooks,
-          internal: {
-            ...cfg.hooks?.internal,
-            enabled: true,
-            entries: {
-              ...cfg.hooks?.internal?.entries,
-            },
-          },
-        },
-      };
-
-      for (const hookName of result.hooks) {
-        next = {
-          ...next,
-          hooks: {
-            ...next.hooks,
-            internal: {
-              ...next.hooks?.internal,
-              entries: {
-                ...next.hooks?.internal?.entries,
-                [hookName]: {
-                  ...(next.hooks?.internal?.entries?.[hookName] as object | undefined),
-                  enabled: true,
-                },
-              },
-            },
-          },
-        };
-      }
+      let next = enableInternalHookEntries(cfg, result.hooks);
 
       next = recordHookInstall(next, {
         hookId: result.hookPackId,
@@ -754,7 +717,13 @@ export function registerHooksCli(program: Command): void {
           continue;
         }
 
-        const installPath = record.installPath ?? resolveHookInstallDir(hookId);
+        let installPath: string;
+        try {
+          installPath = record.installPath ?? resolveHookInstallDir(hookId);
+        } catch (err) {
+          defaultRuntime.log(theme.error(`Invalid install path for "${hookId}": ${String(err)}`));
+          continue;
+        }
         const currentVersion = await readInstalledPackageVersion(installPath);
 
         if (opts.dryRun) {

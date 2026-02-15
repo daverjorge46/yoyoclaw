@@ -1,9 +1,14 @@
+import type { OpenClawConfig } from "../config/config.js";
+import type { RuntimeEnv } from "../runtime.js";
+import type {
+  ChannelsWizardMode,
+  ConfigureWizardParams,
+  WizardSection,
+} from "./configure.shared.js";
 import { formatCliCommand } from "../cli/command-format.js";
-import type { ClawdbotConfig } from "../config/config.js";
 import { readConfigFileSnapshot, resolveGatewayPort, writeConfigFile } from "../config/config.js";
 import { logConfigUpdated } from "../config/logging.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
-import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { note } from "../terminal/note.js";
 import { resolveUserPath } from "../utils.js";
@@ -11,13 +16,8 @@ import { createClackPrompter } from "../wizard/clack-prompter.js";
 import { WizardCancelledError } from "../wizard/prompts.js";
 import { removeChannelConfigWizard } from "./configure.channels.js";
 import { maybeInstallDaemon } from "./configure.daemon.js";
-import { promptGatewayConfig } from "./configure.gateway.js";
 import { promptAuthConfig } from "./configure.gateway-auth.js";
-import type {
-  ChannelsWizardMode,
-  ConfigureWizardParams,
-  WizardSection,
-} from "./configure.shared.js";
+import { promptGatewayConfig } from "./configure.gateway.js";
 import {
   CONFIGURE_SECTION_OPTIONS,
   confirm,
@@ -26,8 +26,8 @@ import {
   select,
   text,
 } from "./configure.shared.js";
-import { healthCommand } from "./health.js";
 import { formatHealthCheckFailure } from "./health-format.js";
+import { healthCommand } from "./health.js";
 import { noteChannelStatus, setupChannels } from "./onboard-channels.js";
 import {
   applyWizardMetadata,
@@ -44,6 +44,44 @@ import { promptRemoteGatewayConfig } from "./onboard-remote.js";
 import { setupSkills } from "./onboard-skills.js";
 
 type ConfigureSectionChoice = WizardSection | "__continue";
+
+async function runGatewayHealthCheck(params: {
+  cfg: OpenClawConfig;
+  runtime: RuntimeEnv;
+  port: number;
+}): Promise<void> {
+  const localLinks = resolveControlUiLinks({
+    bind: params.cfg.gateway?.bind ?? "loopback",
+    port: params.port,
+    customBindHost: params.cfg.gateway?.customBindHost,
+    basePath: undefined,
+  });
+  const remoteUrl = params.cfg.gateway?.remote?.url?.trim();
+  const wsUrl = params.cfg.gateway?.mode === "remote" && remoteUrl ? remoteUrl : localLinks.wsUrl;
+  const token = params.cfg.gateway?.auth?.token ?? process.env.OPENCLAW_GATEWAY_TOKEN;
+  const password = params.cfg.gateway?.auth?.password ?? process.env.OPENCLAW_GATEWAY_PASSWORD;
+
+  await waitForGatewayReachable({
+    url: wsUrl,
+    token,
+    password,
+    deadlineMs: 15_000,
+  });
+
+  try {
+    await healthCommand({ json: false, timeoutMs: 10_000 }, params.runtime);
+  } catch (err) {
+    params.runtime.error(formatHealthCheckFailure(err));
+    note(
+      [
+        "Docs:",
+        "https://docs.openclaw.ai/gateway/health",
+        "https://docs.openclaw.ai/gateway/troubleshooting",
+      ].join("\n"),
+      "Health check help",
+    );
+  }
+}
 
 async function promptConfigureSection(
   runtime: RuntimeEnv,
@@ -79,7 +117,7 @@ async function promptChannelMode(runtime: RuntimeEnv): Promise<ChannelsWizardMod
         {
           value: "remove",
           label: "Remove channel config",
-          hint: "Delete channel tokens/settings from clawdbot.json",
+          hint: "Delete channel tokens/settings from openclaw.json",
         },
       ],
       initialValue: "configure",
@@ -89,9 +127,9 @@ async function promptChannelMode(runtime: RuntimeEnv): Promise<ChannelsWizardMod
 }
 
 async function promptWebToolsConfig(
-  nextConfig: ClawdbotConfig,
+  nextConfig: OpenClawConfig,
   runtime: RuntimeEnv,
-): Promise<ClawdbotConfig> {
+): Promise<OpenClawConfig> {
   const existingSearch = nextConfig.tools?.web?.search;
   const existingFetch = nextConfig.tools?.web?.fetch;
   const hasSearchKey = Boolean(existingSearch?.apiKey);
@@ -100,7 +138,7 @@ async function promptWebToolsConfig(
     [
       "Web search lets your agent look things up online using the `web_search` tool.",
       "It requires a Brave Search API key (you can store it in the config or set BRAVE_API_KEY in the Gateway environment).",
-      "Docs: https://docs.clawd.bot/tools/web",
+      "Docs: https://docs.openclaw.ai/tools/web",
     ].join("\n"),
     "Web search",
   );
@@ -136,7 +174,7 @@ async function promptWebToolsConfig(
         [
           "No key stored yet, so web_search will stay unavailable.",
           "Store a key here or set BRAVE_API_KEY in the Gateway environment.",
-          "Docs: https://docs.clawd.bot/tools/web",
+          "Docs: https://docs.openclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -175,11 +213,11 @@ export async function runConfigureWizard(
 ) {
   try {
     printWizardHeader(runtime);
-    intro(opts.command === "update" ? "Clawdbot update wizard" : "Clawdbot configure");
+    intro(opts.command === "update" ? "OpenClaw update wizard" : "OpenClaw configure");
     const prompter = createClackPrompter();
 
     const snapshot = await readConfigFileSnapshot();
-    const baseConfig: ClawdbotConfig = snapshot.valid ? snapshot.config : {};
+    const baseConfig: OpenClawConfig = snapshot.valid ? snapshot.config : {};
 
     if (snapshot.exists) {
       const title = snapshot.valid ? "Existing config detected" : "Invalid config";
@@ -189,14 +227,14 @@ export async function runConfigureWizard(
           [
             ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
             "",
-            "Docs: https://docs.clawd.bot/gateway/configuration",
+            "Docs: https://docs.openclaw.ai/gateway/configuration",
           ].join("\n"),
           "Config issues",
         );
       }
       if (!snapshot.valid) {
         outro(
-          `Config invalid. Run \`${formatCliCommand("clawdbot doctor")}\` to repair it, then re-run configure.`,
+          `Config invalid. Run \`${formatCliCommand("openclaw doctor")}\` to repair it, then re-run configure.`,
         );
         runtime.exit(1);
         return;
@@ -206,8 +244,8 @@ export async function runConfigureWizard(
     const localUrl = "ws://127.0.0.1:18789";
     const localProbe = await probeGatewayReachable({
       url: localUrl,
-      token: baseConfig.gateway?.auth?.token ?? process.env.CLAWDBOT_GATEWAY_TOKEN,
-      password: baseConfig.gateway?.auth?.password ?? process.env.CLAWDBOT_GATEWAY_PASSWORD,
+      token: baseConfig.gateway?.auth?.token ?? process.env.OPENCLAW_GATEWAY_TOKEN,
+      password: baseConfig.gateway?.auth?.password ?? process.env.OPENCLAW_GATEWAY_PASSWORD,
     });
     const remoteUrl = baseConfig.gateway?.remote?.url?.trim() ?? "";
     const remoteProbe = remoteUrl
@@ -240,7 +278,7 @@ export async function runConfigureWizard(
         ],
       }),
       runtime,
-    ) as "local" | "remote";
+    );
 
     if (mode === "remote") {
       let remoteConfig = await promptRemoteGatewayConfig(baseConfig, prompter);
@@ -274,7 +312,7 @@ export async function runConfigureWizard(
     let gatewayToken: string | undefined =
       nextConfig.gateway?.auth?.token ??
       baseConfig.gateway?.auth?.token ??
-      process.env.CLAWDBOT_GATEWAY_TOKEN;
+      process.env.OPENCLAW_GATEWAY_TOKEN;
 
     const persistConfig = async () => {
       nextConfig = applyWizardMetadata(nextConfig, {
@@ -368,37 +406,7 @@ export async function runConfigureWizard(
       }
 
       if (selected.includes("health")) {
-        const localLinks = resolveControlUiLinks({
-          bind: nextConfig.gateway?.bind ?? "loopback",
-          port: gatewayPort,
-          customBindHost: nextConfig.gateway?.customBindHost,
-          basePath: undefined,
-        });
-        const remoteUrl = nextConfig.gateway?.remote?.url?.trim();
-        const wsUrl =
-          nextConfig.gateway?.mode === "remote" && remoteUrl ? remoteUrl : localLinks.wsUrl;
-        const token = nextConfig.gateway?.auth?.token ?? process.env.CLAWDBOT_GATEWAY_TOKEN;
-        const password =
-          nextConfig.gateway?.auth?.password ?? process.env.CLAWDBOT_GATEWAY_PASSWORD;
-        await waitForGatewayReachable({
-          url: wsUrl,
-          token,
-          password,
-          deadlineMs: 15_000,
-        });
-        try {
-          await healthCommand({ json: false, timeoutMs: 10_000 }, runtime);
-        } catch (err) {
-          runtime.error(formatHealthCheckFailure(err));
-          note(
-            [
-              "Docs:",
-              "https://docs.clawd.bot/gateway/health",
-              "https://docs.clawd.bot/gateway/troubleshooting",
-            ].join("\n"),
-            "Health check help",
-          );
-        }
+        await runGatewayHealthCheck({ cfg: nextConfig, runtime, port: gatewayPort });
       }
     } else {
       let ranSection = false;
@@ -406,7 +414,9 @@ export async function runConfigureWizard(
 
       while (true) {
         const choice = await promptConfigureSection(runtime, ranSection);
-        if (choice === "__continue") break;
+        if (choice === "__continue") {
+          break;
+        }
         ranSection = true;
 
         if (choice === "workspace") {
@@ -493,37 +503,7 @@ export async function runConfigureWizard(
         }
 
         if (choice === "health") {
-          const localLinks = resolveControlUiLinks({
-            bind: nextConfig.gateway?.bind ?? "loopback",
-            port: gatewayPort,
-            customBindHost: nextConfig.gateway?.customBindHost,
-            basePath: undefined,
-          });
-          const remoteUrl = nextConfig.gateway?.remote?.url?.trim();
-          const wsUrl =
-            nextConfig.gateway?.mode === "remote" && remoteUrl ? remoteUrl : localLinks.wsUrl;
-          const token = nextConfig.gateway?.auth?.token ?? process.env.CLAWDBOT_GATEWAY_TOKEN;
-          const password =
-            nextConfig.gateway?.auth?.password ?? process.env.CLAWDBOT_GATEWAY_PASSWORD;
-          await waitForGatewayReachable({
-            url: wsUrl,
-            token,
-            password,
-            deadlineMs: 15_000,
-          });
-          try {
-            await healthCommand({ json: false, timeoutMs: 10_000 }, runtime);
-          } catch (err) {
-            runtime.error(formatHealthCheckFailure(err));
-            note(
-              [
-                "Docs:",
-                "https://docs.clawd.bot/gateway/health",
-                "https://docs.clawd.bot/gateway/troubleshooting",
-              ].join("\n"),
-              "Health check help",
-            );
-          }
+          await runGatewayHealthCheck({ cfg: nextConfig, runtime, port: gatewayPort });
         }
       }
 
@@ -551,9 +531,9 @@ export async function runConfigureWizard(
       basePath: nextConfig.gateway?.controlUi?.basePath,
     });
     // Try both new and old passwords since gateway may still have old config.
-    const newPassword = nextConfig.gateway?.auth?.password ?? process.env.CLAWDBOT_GATEWAY_PASSWORD;
-    const oldPassword = baseConfig.gateway?.auth?.password ?? process.env.CLAWDBOT_GATEWAY_PASSWORD;
-    const token = nextConfig.gateway?.auth?.token ?? process.env.CLAWDBOT_GATEWAY_TOKEN;
+    const newPassword = nextConfig.gateway?.auth?.password ?? process.env.OPENCLAW_GATEWAY_PASSWORD;
+    const oldPassword = baseConfig.gateway?.auth?.password ?? process.env.OPENCLAW_GATEWAY_PASSWORD;
+    const token = nextConfig.gateway?.auth?.token ?? process.env.OPENCLAW_GATEWAY_TOKEN;
 
     let gatewayProbe = await probeGatewayReachable({
       url: links.wsUrl,
@@ -577,7 +557,7 @@ export async function runConfigureWizard(
         `Web UI: ${links.httpUrl}`,
         `Gateway WS: ${links.wsUrl}`,
         gatewayStatusLine,
-        "Docs: https://docs.clawd.bot/web/control-ui",
+        "Docs: https://docs.openclaw.ai/web/control-ui",
       ].join("\n"),
       "Control UI",
     );
@@ -585,7 +565,7 @@ export async function runConfigureWizard(
     outro("Configure complete.");
   } catch (err) {
     if (err instanceof WizardCancelledError) {
-      runtime.exit(0);
+      runtime.exit(1);
       return;
     }
     throw err;

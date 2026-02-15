@@ -1,161 +1,22 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { escapeRegExp, formatEnvelopeTimestamp } from "../../test/helpers/envelope-timestamp.js";
+import {
+  getOnHandler,
+  getLoadConfigMock,
+  onSpy,
+  replySpy,
+  sendMessageSpy,
+  setMessageReactionSpy,
+  setMyCommandsSpy,
+} from "./bot.create-telegram-bot.test-harness.js";
+import { createTelegramBot } from "./bot.js";
 
-let createTelegramBot: typeof import("./bot.js").createTelegramBot;
-let resetInboundDedupe: typeof import("../auto-reply/reply/inbound-dedupe.js").resetInboundDedupe;
-
-const { sessionStorePath } = vi.hoisted(() => ({
-  sessionStorePath: `/tmp/clawdbot-telegram-${Math.random().toString(16).slice(2)}.json`,
-}));
-
-const { loadWebMedia } = vi.hoisted(() => ({
-  loadWebMedia: vi.fn(),
-}));
-
-vi.mock("../web/media.js", () => ({
-  loadWebMedia,
-}));
-
-const { loadConfig } = vi.hoisted(() => ({
-  loadConfig: vi.fn(() => ({})),
-}));
-vi.mock("../config/config.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../config/config.js")>();
-  return {
-    ...actual,
-    loadConfig,
-  };
-});
-
-vi.mock("../config/sessions.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../config/sessions.js")>();
-  return {
-    ...actual,
-    resolveStorePath: vi.fn((storePath) => storePath ?? sessionStorePath),
-  };
-});
-
-const { readTelegramAllowFromStore, upsertTelegramPairingRequest } = vi.hoisted(() => ({
-  readTelegramAllowFromStore: vi.fn(async () => [] as string[]),
-  upsertTelegramPairingRequest: vi.fn(async () => ({
-    code: "PAIRCODE",
-    created: true,
-  })),
-}));
-
-vi.mock("./pairing-store.js", () => ({
-  readTelegramAllowFromStore,
-  upsertTelegramPairingRequest,
-}));
-
-const useSpy = vi.fn();
-const middlewareUseSpy = vi.fn();
-const onSpy = vi.fn();
-const stopSpy = vi.fn();
-const commandSpy = vi.fn();
-const botCtorSpy = vi.fn();
-const answerCallbackQuerySpy = vi.fn(async () => undefined);
-const sendChatActionSpy = vi.fn();
-const setMessageReactionSpy = vi.fn(async () => undefined);
-const setMyCommandsSpy = vi.fn(async () => undefined);
-const sendMessageSpy = vi.fn(async () => ({ message_id: 77 }));
-const sendAnimationSpy = vi.fn(async () => ({ message_id: 78 }));
-const sendPhotoSpy = vi.fn(async () => ({ message_id: 79 }));
-type ApiStub = {
-  config: { use: (arg: unknown) => void };
-  answerCallbackQuery: typeof answerCallbackQuerySpy;
-  sendChatAction: typeof sendChatActionSpy;
-  setMessageReaction: typeof setMessageReactionSpy;
-  setMyCommands: typeof setMyCommandsSpy;
-  sendMessage: typeof sendMessageSpy;
-  sendAnimation: typeof sendAnimationSpy;
-  sendPhoto: typeof sendPhotoSpy;
-};
-const apiStub: ApiStub = {
-  config: { use: useSpy },
-  answerCallbackQuery: answerCallbackQuerySpy,
-  sendChatAction: sendChatActionSpy,
-  setMessageReaction: setMessageReactionSpy,
-  setMyCommands: setMyCommandsSpy,
-  sendMessage: sendMessageSpy,
-  sendAnimation: sendAnimationSpy,
-  sendPhoto: sendPhotoSpy,
-};
-
-vi.mock("grammy", () => ({
-  Bot: class {
-    api = apiStub;
-    use = middlewareUseSpy;
-    on = onSpy;
-    stop = stopSpy;
-    command = commandSpy;
-    constructor(
-      public token: string,
-      public options?: { client?: { fetch?: typeof fetch } },
-    ) {
-      botCtorSpy(token, options);
-    }
-  },
-  InputFile: class {},
-  webhookCallback: vi.fn(),
-}));
-
-const sequentializeMiddleware = vi.fn();
-const sequentializeSpy = vi.fn(() => sequentializeMiddleware);
-let _sequentializeKey: ((ctx: unknown) => string) | undefined;
-vi.mock("@grammyjs/runner", () => ({
-  sequentialize: (keyFn: (ctx: unknown) => string) => {
-    _sequentializeKey = keyFn;
-    return sequentializeSpy();
-  },
-}));
-
-const throttlerSpy = vi.fn(() => "throttler");
-
-vi.mock("@grammyjs/transformer-throttler", () => ({
-  apiThrottler: () => throttlerSpy(),
-}));
-
-vi.mock("../auto-reply/reply.js", () => {
-  const replySpy = vi.fn(async (_ctx, opts) => {
-    await opts?.onReplyStart?.();
-    return undefined;
-  });
-  return { getReplyFromConfig: replySpy, __replySpy: replySpy };
-});
-
-let replyModule: typeof import("../auto-reply/reply.js");
-
-const getOnHandler = (event: string) => {
-  const handler = onSpy.mock.calls.find((call) => call[0] === event)?.[1];
-  if (!handler) throw new Error(`Missing handler for event: ${event}`);
-  return handler as (ctx: Record<string, unknown>) => Promise<void>;
-};
+const loadConfig = getLoadConfigMock();
 
 const ORIGINAL_TZ = process.env.TZ;
 describe("createTelegramBot", () => {
-  beforeEach(async () => {
-    vi.resetModules();
-    ({ resetInboundDedupe } = await import("../auto-reply/reply/inbound-dedupe.js"));
-    ({ createTelegramBot } = await import("./bot.js"));
-    replyModule = await import("../auto-reply/reply.js");
+  beforeEach(() => {
     process.env.TZ = "UTC";
-    resetInboundDedupe();
-    loadConfig.mockReturnValue({
-      channels: {
-        telegram: { dmPolicy: "open", allowFrom: ["*"] },
-      },
-    });
-    loadWebMedia.mockReset();
-    sendAnimationSpy.mockReset();
-    sendPhotoSpy.mockReset();
-    setMessageReactionSpy.mockReset();
-    answerCallbackQuerySpy.mockReset();
-    setMyCommandsSpy.mockReset();
-    middlewareUseSpy.mockReset();
-    sequentializeSpy.mockReset();
-    botCtorSpy.mockReset();
-    _sequentializeKey = undefined;
   });
   afterEach(() => {
     process.env.TZ = ORIGINAL_TZ;
@@ -165,7 +26,6 @@ describe("createTelegramBot", () => {
 
   it("accepts group messages when mentionPatterns match (without @botUsername)", async () => {
     onSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -195,7 +55,7 @@ describe("createTelegramBot", () => {
         message_id: 1,
         from: { id: 9, first_name: "Ada" },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
@@ -211,9 +71,8 @@ describe("createTelegramBot", () => {
     );
   });
 
-  it("skips group messages when another user is explicitly mentioned", async () => {
+  it("accepts group messages when mentionPatterns match even if another user is mentioned", async () => {
     onSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -244,16 +103,16 @@ describe("createTelegramBot", () => {
         message_id: 3,
         from: { id: 9, first_name: "Ada" },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
-    expect(replySpy).not.toHaveBeenCalled();
+    expect(replySpy).toHaveBeenCalledTimes(1);
+    expect(replySpy.mock.calls[0][0].WasMentioned).toBe(true);
   });
 
   it("keeps group envelope headers stable (sender identity is separate)", async () => {
     onSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -286,7 +145,7 @@ describe("createTelegramBot", () => {
           username: "ada",
         },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
@@ -304,7 +163,6 @@ describe("createTelegramBot", () => {
   it("reacts to mention-gated group messages when ackReaction is enabled", async () => {
     onSpy.mockReset();
     setMessageReactionSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -332,7 +190,7 @@ describe("createTelegramBot", () => {
         message_id: 123,
         from: { id: 9, first_name: "Ada" },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
@@ -349,7 +207,6 @@ describe("createTelegramBot", () => {
   });
   it("skips group messages when requireMention is enabled and no mention matches", async () => {
     onSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -373,7 +230,7 @@ describe("createTelegramBot", () => {
         message_id: 2,
         from: { id: 9, first_name: "Ada" },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
@@ -381,7 +238,6 @@ describe("createTelegramBot", () => {
   });
   it("allows group messages when requireMention is enabled but mentions cannot be detected", async () => {
     onSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     loadConfig.mockReturnValue({
@@ -416,7 +272,6 @@ describe("createTelegramBot", () => {
   it("includes reply-to context when a Telegram reply is received", async () => {
     onSpy.mockReset();
     sendMessageSpy.mockReset();
-    const replySpy = replyModule.__replySpy as unknown as ReturnType<typeof vi.fn>;
     replySpy.mockReset();
 
     createTelegramBot({ token: "tok" });
@@ -433,7 +288,7 @@ describe("createTelegramBot", () => {
           from: { first_name: "Ada" },
         },
       },
-      me: { username: "clawdbot_bot" },
+      me: { username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 

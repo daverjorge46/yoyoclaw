@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
 import type { PluginRegistry } from "../plugins/registry.js";
-import { setActivePluginRegistry } from "../plugins/runtime.js";
+import { setRegistry } from "./server.agent.gateway-server-agent.mocks.js";
 import {
   agentCommand,
   connectOk,
@@ -31,39 +31,6 @@ afterAll(async () => {
   ws.close();
   await server.close();
 });
-
-const registryState = vi.hoisted(() => ({
-  registry: {
-    plugins: [],
-    tools: [],
-    channels: [],
-    providers: [],
-    gatewayHandlers: {},
-    httpHandlers: [],
-    httpRoutes: [],
-    cliRegistrars: [],
-    services: [],
-    diagnostics: [],
-  } as PluginRegistry,
-}));
-
-vi.mock("./server-plugins.js", async () => {
-  const { setActivePluginRegistry } = await import("../plugins/runtime.js");
-  return {
-    loadGatewayPlugins: (params: { baseMethods: string[] }) => {
-      setActivePluginRegistry(registryState.registry);
-      return {
-        pluginRegistry: registryState.registry,
-        gatewayMethods: params.baseMethods ?? [],
-      };
-    },
-  };
-});
-
-const setRegistry = (registry: PluginRegistry) => {
-  registryState.registry = registry;
-  setActivePluginRegistry(registry);
-};
 
 const BASE_IMAGE_PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+X3mIAAAAASUVORK5CYII=";
@@ -113,9 +80,13 @@ const createStubChannelPlugin = (params: {
     deliveryMode: "direct",
     resolveTarget: ({ to, allowFrom }) => {
       const trimmed = to?.trim() ?? "";
-      if (trimmed) return { ok: true, to: trimmed };
+      if (trimmed) {
+        return { ok: true, to: trimmed };
+      }
       const first = allowFrom?.[0];
-      if (first) return { ok: true, to: String(first) };
+      if (first) {
+        return { ok: true, to: String(first) };
+      }
       return {
         ok: false,
         error: new Error(`missing target for ${params.id}`),
@@ -167,7 +138,7 @@ describe("gateway server agent", () => {
   test("agent marks implicit delivery when lastTo is stale", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+436769770569"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -199,7 +170,7 @@ describe("gateway server agent", () => {
 
   test("agent forwards sessionKey to agentCommand", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -227,7 +198,7 @@ describe("gateway server agent", () => {
 
   test("agent derives sessionKey from agentId", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     testState.agentsConfig = { list: [{ id: "ops" }] };
     await writeSessionStore({
@@ -285,7 +256,7 @@ describe("gateway server agent", () => {
   test("agent forwards accountId to agentCommand", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -320,7 +291,7 @@ describe("gateway server agent", () => {
   test("agent avoids lastAccountId when explicit to is provided", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -353,7 +324,7 @@ describe("gateway server agent", () => {
   test("agent keeps explicit accountId when explicit to is provided", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -387,7 +358,7 @@ describe("gateway server agent", () => {
   test("agent falls back to lastAccountId for implicit delivery", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -418,7 +389,7 @@ describe("gateway server agent", () => {
 
   test("agent forwards image attachments as images[]", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -444,9 +415,10 @@ describe("gateway server agent", () => {
 
     const spy = vi.mocked(agentCommand);
     const call = spy.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(call.sessionKey).toBe("main");
+    expect(call.sessionKey).toBe("agent:main:main");
     expectChannels(call, "webchat");
-    expect(call.message).toBe("what is in the image?");
+    expect(typeof call.message).toBe("string");
+    expect(call.message).toContain("what is in the image?");
 
     const images = call.images as Array<Record<string, unknown>>;
     expect(Array.isArray(images)).toBe(true);
@@ -459,7 +431,7 @@ describe("gateway server agent", () => {
   test("agent falls back to whatsapp when delivery requested and no last channel exists", async () => {
     setRegistry(defaultRegistry);
     testState.allowFrom = ["+1555"];
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -488,7 +460,7 @@ describe("gateway server agent", () => {
 
   test("agent routes main last-channel whatsapp", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -521,7 +493,7 @@ describe("gateway server agent", () => {
 
   test("agent routes main last-channel telegram", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -553,7 +525,7 @@ describe("gateway server agent", () => {
 
   test("agent routes main last-channel discord", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -585,7 +557,7 @@ describe("gateway server agent", () => {
 
   test("agent routes main last-channel slack", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {
@@ -617,7 +589,7 @@ describe("gateway server agent", () => {
 
   test("agent routes main last-channel signal", async () => {
     setRegistry(defaultRegistry);
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawdbot-gw-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     await writeSessionStore({
       entries: {

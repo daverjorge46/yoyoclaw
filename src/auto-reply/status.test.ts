@@ -1,10 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../config/config.js";
 import { normalizeTestText } from "../../test/helpers/normalize-text.js";
 import { withTempHome } from "../../test/helpers/temp-home.js";
-import type { ClawdbotConfig } from "../config/config.js";
-import { buildCommandsMessage, buildHelpMessage, buildStatusMessage } from "./status.js";
+import {
+  buildCommandsMessage,
+  buildCommandsMessagePaginated,
+  buildHelpMessage,
+  buildStatusMessage,
+} from "./status.js";
+
+const { listPluginCommands } = vi.hoisted(() => ({
+  listPluginCommands: vi.fn(() => []),
+}));
+
+vi.mock("../plugins/commands.js", () => ({
+  listPluginCommands,
+}));
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -32,7 +45,7 @@ describe("buildStatusMessage", () => {
             },
           },
         },
-      } as ClawdbotConfig,
+      } as OpenClawConfig,
       agent: {
         model: "anthropic/pi:opus",
         contextTokens: 32_000,
@@ -58,7 +71,7 @@ describe("buildStatusMessage", () => {
     });
     const normalized = normalizeTestText(text);
 
-    expect(normalized).toContain("Clawdbot");
+    expect(normalized).toContain("OpenClaw");
     expect(normalized).toContain("Model: anthropic/pi:opus");
     expect(normalized).toContain("api-key");
     expect(normalized).toContain("Tokens: 1.2k in / 800 out");
@@ -83,7 +96,7 @@ describe("buildStatusMessage", () => {
             { id: "discord", sandbox: { mode: "all" } },
           ],
         },
-      } as ClawdbotConfig,
+      } as OpenClawConfig,
       agent: {},
       sessionKey: "agent:discord:discord:channel:1456350065223270435",
       sessionScope: "per-sender",
@@ -320,7 +333,7 @@ describe("buildStatusMessage", () => {
             },
           },
         },
-      } as ClawdbotConfig,
+      } as OpenClawConfig,
       agent: { model: "anthropic/claude-opus-4-5" },
       sessionEntry: { sessionId: "c1", updatedAt: 0, inputTokens: 10 },
       sessionKey: "agent:main:main",
@@ -335,13 +348,10 @@ describe("buildStatusMessage", () => {
   it("prefers cached prompt tokens from the session log", async () => {
     await withTempHome(
       async (dir) => {
-        vi.resetModules();
-        const { buildStatusMessage: buildStatusMessageDynamic } = await import("./status.js");
-
         const sessionId = "sess-1";
         const logPath = path.join(
           dir,
-          ".clawdbot",
+          ".openclaw",
           "agents",
           "main",
           "sessions",
@@ -370,7 +380,7 @@ describe("buildStatusMessage", () => {
           "utf-8",
         );
 
-        const text = buildStatusMessageDynamic({
+        const text = buildStatusMessage({
           agent: {
             model: "anthropic/claude-opus-4-5",
             contextTokens: 32_000,
@@ -390,20 +400,141 @@ describe("buildStatusMessage", () => {
 
         expect(normalizeTestText(text)).toContain("Context: 1.0k/32k");
       },
-      { prefix: "clawdbot-status-" },
+      { prefix: "openclaw-status-" },
+    );
+  });
+
+  it("reads transcript usage for non-default agents", async () => {
+    await withTempHome(
+      async (dir) => {
+        const sessionId = "sess-worker1";
+        const logPath = path.join(
+          dir,
+          ".openclaw",
+          "agents",
+          "worker1",
+          "sessions",
+          `${sessionId}.jsonl`,
+        );
+        fs.mkdirSync(path.dirname(logPath), { recursive: true });
+
+        fs.writeFileSync(
+          logPath,
+          [
+            JSON.stringify({
+              type: "message",
+              message: {
+                role: "assistant",
+                model: "claude-opus-4-5",
+                usage: {
+                  input: 1,
+                  output: 2,
+                  cacheRead: 1000,
+                  cacheWrite: 0,
+                  totalTokens: 1003,
+                },
+              },
+            }),
+          ].join("\n"),
+          "utf-8",
+        );
+
+        const text = buildStatusMessage({
+          agent: {
+            model: "anthropic/claude-opus-4-5",
+            contextTokens: 32_000,
+          },
+          sessionEntry: {
+            sessionId,
+            updatedAt: 0,
+            totalTokens: 3,
+            contextTokens: 32_000,
+          },
+          sessionKey: "agent:worker1:telegram:12345",
+          sessionScope: "per-sender",
+          queue: { mode: "collect", depth: 0 },
+          includeTranscriptUsage: true,
+          modelAuth: "api-key",
+        });
+
+        expect(normalizeTestText(text)).toContain("Context: 1.0k/32k");
+      },
+      { prefix: "openclaw-status-" },
+    );
+  });
+
+  it("reads transcript usage using explicit agentId when sessionKey is missing", async () => {
+    await withTempHome(
+      async (dir) => {
+        const sessionId = "sess-worker2";
+        const logPath = path.join(
+          dir,
+          ".openclaw",
+          "agents",
+          "worker2",
+          "sessions",
+          `${sessionId}.jsonl`,
+        );
+        fs.mkdirSync(path.dirname(logPath), { recursive: true });
+
+        fs.writeFileSync(
+          logPath,
+          [
+            JSON.stringify({
+              type: "message",
+              message: {
+                role: "assistant",
+                model: "claude-opus-4-5",
+                usage: {
+                  input: 2,
+                  output: 3,
+                  cacheRead: 1200,
+                  cacheWrite: 0,
+                  totalTokens: 1205,
+                },
+              },
+            }),
+          ].join("\n"),
+          "utf-8",
+        );
+
+        const text = buildStatusMessage({
+          agent: {
+            model: "anthropic/claude-opus-4-5",
+            contextTokens: 32_000,
+          },
+          agentId: "worker2",
+          sessionEntry: {
+            sessionId,
+            updatedAt: 0,
+            totalTokens: 5,
+            contextTokens: 32_000,
+          },
+          // Intentionally omitted: sessionKey
+          sessionScope: "per-sender",
+          queue: { mode: "collect", depth: 0 },
+          includeTranscriptUsage: true,
+          modelAuth: "api-key",
+        });
+
+        expect(normalizeTestText(text)).toContain("Context: 1.2k/32k");
+      },
+      { prefix: "openclaw-status-" },
     );
   });
 });
 
 describe("buildCommandsMessage", () => {
-  it("lists commands with aliases and text-only hints", () => {
+  it("lists commands with aliases and hints", () => {
     const text = buildCommandsMessage({
       commands: { config: false, debug: false },
-    } as ClawdbotConfig);
+    } as OpenClawConfig);
+    expect(text).toContain("ℹ️ Slash commands");
+    expect(text).toContain("Status");
     expect(text).toContain("/commands - List all slash commands.");
     expect(text).toContain("/skill - Run a skill by name.");
-    expect(text).toContain("/think (aliases: /thinking, /t) - Set thinking level.");
-    expect(text).toContain("/compact (text-only) - Compact the session context.");
+    expect(text).toContain("/think (/thinking, /t) - Set thinking level.");
+    expect(text).toContain("/compact - Compact the session context.");
     expect(text).not.toContain("/config");
     expect(text).not.toContain("/debug");
   });
@@ -412,7 +543,7 @@ describe("buildCommandsMessage", () => {
     const text = buildCommandsMessage(
       {
         commands: { config: false, debug: false },
-      } as ClawdbotConfig,
+      } as OpenClawConfig,
       [
         {
           name: "demo_skill",
@@ -429,9 +560,40 @@ describe("buildHelpMessage", () => {
   it("hides config/debug when disabled", () => {
     const text = buildHelpMessage({
       commands: { config: false, debug: false },
-    } as ClawdbotConfig);
-    expect(text).toContain("Skills: /skill <name> [input]");
+    } as OpenClawConfig);
+    expect(text).toContain("Skills");
+    expect(text).toContain("/skill <name> [input]");
     expect(text).not.toContain("/config");
     expect(text).not.toContain("/debug");
+  });
+});
+
+describe("buildCommandsMessagePaginated", () => {
+  it("formats telegram output with pages", () => {
+    const result = buildCommandsMessagePaginated(
+      {
+        commands: { config: false, debug: false },
+      } as OpenClawConfig,
+      undefined,
+      { surface: "telegram", page: 1 },
+    );
+    expect(result.text).toContain("ℹ️ Commands (1/");
+    expect(result.text).toContain("Session");
+    expect(result.text).toContain("/stop - Stop the current run.");
+  });
+
+  it("includes plugin commands in the paginated list", () => {
+    listPluginCommands.mockReturnValue([
+      { name: "plugin_cmd", description: "Plugin command", pluginId: "demo-plugin" },
+    ]);
+    const result = buildCommandsMessagePaginated(
+      {
+        commands: { config: false, debug: false },
+      } as OpenClawConfig,
+      undefined,
+      { surface: "telegram", page: 99 },
+    );
+    expect(result.text).toContain("Plugins");
+    expect(result.text).toContain("/plugin_cmd (demo-plugin) - Plugin command");
   });
 });

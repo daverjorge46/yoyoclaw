@@ -1,10 +1,12 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import { parseReplyDirectives } from "../../../auto-reply/reply/reply-directives.js";
 import type { ReasoningLevel, VerboseLevel } from "../../../auto-reply/thinking.js";
+import type { OpenClawConfig } from "../../../config/config.js";
+import type { ToolResultFormat } from "../../pi-embedded-subscribe.js";
+import { parseReplyDirectives } from "../../../auto-reply/reply/reply-directives.js";
 import { isSilentReplyText, SILENT_REPLY_TOKEN } from "../../../auto-reply/tokens.js";
 import { formatToolAggregate } from "../../../auto-reply/tool-meta.js";
-import type { ClawdbotConfig } from "../../../config/config.js";
 import {
+  BILLING_ERROR_USER_MESSAGE,
   formatAssistantErrorText,
   formatRawAssistantErrorForUi,
   getApiErrorPayloadFingerprint,
@@ -16,7 +18,7 @@ import {
   extractAssistantThinking,
   formatReasoningMessage,
 } from "../../pi-embedded-utils.js";
-import type { ToolResultFormat } from "../../pi-embedded-subscribe.js";
+import { isLikelyMutatingToolName } from "../../tool-mutation.js";
 
 type ToolMetaEntry = { toolName: string; meta?: string };
 
@@ -24,9 +26,16 @@ export function buildEmbeddedRunPayloads(params: {
   assistantTexts: string[];
   toolMetas: ToolMetaEntry[];
   lastAssistant: AssistantMessage | undefined;
-  lastToolError?: { toolName: string; meta?: string; error?: string };
-  config?: ClawdbotConfig;
+  lastToolError?: {
+    toolName: string;
+    meta?: string;
+    error?: string;
+    mutatingAction?: boolean;
+    actionFingerprint?: string;
+  };
+  config?: OpenClawConfig;
   sessionKey: string;
+  provider?: string;
   verboseLevel?: VerboseLevel;
   reasoningLevel?: ReasoningLevel;
   toolResultFormat?: ToolResultFormat;
@@ -57,6 +66,7 @@ export function buildEmbeddedRunPayloads(params: {
     ? formatAssistantErrorText(params.lastAssistant, {
         cfg: params.config,
         sessionKey: params.sessionKey,
+        provider: params.provider,
       })
     : undefined;
   const rawErrorMessage = lastAssistantErrored
@@ -75,8 +85,11 @@ export function buildEmbeddedRunPayloads(params: {
     ? normalizeTextForComparison(rawErrorMessage)
     : null;
   const normalizedErrorText = errorText ? normalizeTextForComparison(errorText) : null;
+  const normalizedGenericBillingErrorText = normalizeTextForComparison(BILLING_ERROR_USER_MESSAGE);
   const genericErrorText = "The AI service returned an error. Please try again.";
-  if (errorText) replyItems.push({ text: errorText, isError: true });
+  if (errorText) {
+    replyItems.push({ text: errorText, isError: true });
+  }
 
   const inlineToolResults =
     params.inlineToolResultsAllowed && params.verboseLevel !== "off" && params.toolMetas.length > 0;
@@ -110,31 +123,58 @@ export function buildEmbeddedRunPayloads(params: {
     params.lastAssistant && params.reasoningLevel === "on"
       ? formatReasoningMessage(extractAssistantThinking(params.lastAssistant))
       : "";
-  if (reasoningText) replyItems.push({ text: reasoningText });
+  if (reasoningText) {
+    replyItems.push({ text: reasoningText });
+  }
 
   const fallbackAnswerText = params.lastAssistant ? extractAssistantText(params.lastAssistant) : "";
   const shouldSuppressRawErrorText = (text: string) => {
-    if (!lastAssistantErrored) return false;
+    if (!lastAssistantErrored) {
+      return false;
+    }
     const trimmed = text.trim();
-    if (!trimmed) return false;
+    if (!trimmed) {
+      return false;
+    }
     if (errorText) {
       const normalized = normalizeTextForComparison(trimmed);
-      if (normalized && normalizedErrorText && normalized === normalizedErrorText) return true;
-      if (trimmed === genericErrorText) return true;
+      if (normalized && normalizedErrorText && normalized === normalizedErrorText) {
+        return true;
+      }
+      if (trimmed === genericErrorText) {
+        return true;
+      }
+      if (
+        normalized &&
+        normalizedGenericBillingErrorText &&
+        normalized === normalizedGenericBillingErrorText
+      ) {
+        return true;
+      }
     }
-    if (rawErrorMessage && trimmed === rawErrorMessage) return true;
-    if (formattedRawErrorMessage && trimmed === formattedRawErrorMessage) return true;
+    if (rawErrorMessage && trimmed === rawErrorMessage) {
+      return true;
+    }
+    if (formattedRawErrorMessage && trimmed === formattedRawErrorMessage) {
+      return true;
+    }
     if (normalizedRawErrorText) {
       const normalized = normalizeTextForComparison(trimmed);
-      if (normalized && normalized === normalizedRawErrorText) return true;
+      if (normalized && normalized === normalizedRawErrorText) {
+        return true;
+      }
     }
     if (normalizedFormattedRawErrorMessage) {
       const normalized = normalizeTextForComparison(trimmed);
-      if (normalized && normalized === normalizedFormattedRawErrorMessage) return true;
+      if (normalized && normalized === normalizedFormattedRawErrorMessage) {
+        return true;
+      }
     }
     if (rawErrorFingerprint) {
       const fingerprint = getApiErrorPayloadFingerprint(trimmed);
-      if (fingerprint && fingerprint === rawErrorFingerprint) return true;
+      if (fingerprint && fingerprint === rawErrorFingerprint) {
+        return true;
+      }
     }
     return isRawApiErrorPayload(trimmed);
   };
@@ -190,22 +230,37 @@ export function buildEmbeddedRunPayloads(params: {
       errorLower.includes("must have") ||
       errorLower.includes("needs") ||
       errorLower.includes("requires");
+    const isMutatingToolError =
+      params.lastToolError.mutatingAction ??
+      isLikelyMutatingToolName(params.lastToolError.toolName);
+    const shouldShowToolError = isMutatingToolError || (!hasUserFacingReply && !isRecoverableError);
 
-    // Show tool errors only when:
-    // 1. There's no user-facing reply AND the error is not recoverable
-    // Recoverable errors (validation, missing params) are already in the model's context
-    // and shouldn't be surfaced to users since the model should retry.
-    if (!hasUserFacingReply && !isRecoverableError) {
+    // Always surface mutating tool failures so we do not silently confirm actions that did not happen.
+    // Otherwise, keep the previous behavior and only surface non-recoverable failures when no reply exists.
+    if (shouldShowToolError) {
       const toolSummary = formatToolAggregate(
         params.lastToolError.toolName,
         params.lastToolError.meta ? [params.lastToolError.meta] : undefined,
         { markdown: useMarkdown },
       );
       const errorSuffix = params.lastToolError.error ? `: ${params.lastToolError.error}` : "";
-      replyItems.push({
-        text: `⚠️ ${toolSummary} failed${errorSuffix}`,
-        isError: true,
-      });
+      const warningText = `⚠️ ${toolSummary} failed${errorSuffix}`;
+      const normalizedWarning = normalizeTextForComparison(warningText);
+      const duplicateWarning = normalizedWarning
+        ? replyItems.some((item) => {
+            if (!item.text) {
+              return false;
+            }
+            const normalizedExisting = normalizeTextForComparison(item.text);
+            return normalizedExisting.length > 0 && normalizedExisting === normalizedWarning;
+          })
+        : false;
+      if (!duplicateWarning) {
+        replyItems.push({
+          text: warningText,
+          isError: true,
+        });
+      }
     }
   }
 
@@ -222,8 +277,12 @@ export function buildEmbeddedRunPayloads(params: {
       audioAsVoice: item.audioAsVoice || Boolean(hasAudioAsVoiceTag && item.media?.length),
     }))
     .filter((p) => {
-      if (!p.text && !p.mediaUrl && (!p.mediaUrls || p.mediaUrls.length === 0)) return false;
-      if (p.text && isSilentReplyText(p.text, SILENT_REPLY_TOKEN)) return false;
+      if (!p.text && !p.mediaUrl && (!p.mediaUrls || p.mediaUrls.length === 0)) {
+        return false;
+      }
+      if (p.text && isSilentReplyText(p.text, SILENT_REPLY_TOKEN)) {
+        return false;
+      }
       return true;
     });
 }

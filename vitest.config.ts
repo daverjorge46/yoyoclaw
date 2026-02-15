@@ -11,20 +11,29 @@ const ciWorkers = isWindows ? 2 : 3;
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "clawdbot/plugin-sdk": path.join(repoRoot, "src", "plugin-sdk", "index.ts"),
-    },
+    // Keep this ordered: the base `openclaw/plugin-sdk` alias is a prefix match.
+    alias: [
+      {
+        find: "openclaw/plugin-sdk/account-id",
+        replacement: path.join(repoRoot, "src", "plugin-sdk", "account-id.ts"),
+      },
+      {
+        find: "openclaw/plugin-sdk",
+        replacement: path.join(repoRoot, "src", "plugin-sdk", "index.ts"),
+      },
+    ],
   },
   test: {
     testTimeout: 120_000,
     hookTimeout: isWindows ? 180_000 : 120_000,
+    // Many suites rely on `vi.stubEnv(...)` and expect it to be scoped to the test.
+    // This is especially important under `pool=vmForks` where env leaks cross-file.
+    unstubEnvs: true,
+    // Same rationale as unstubEnvs: avoid cross-test pollution under vmForks.
+    unstubGlobals: true,
     pool: "forks",
     maxWorkers: isCI ? ciWorkers : localWorkers,
-    include: [
-      "src/**/*.test.ts",
-      "extensions/**/*.test.ts",
-      "test/format-error.test.ts",
-    ],
+    include: ["src/**/*.test.ts", "extensions/**/*.test.ts", "test/format-error.test.ts"],
     setupFiles: ["test/setup.ts"],
     exclude: [
       "dist/**",
@@ -32,7 +41,7 @@ export default defineConfig({
       "apps/macos/.build/**",
       "**/node_modules/**",
       "**/vendor/**",
-      "dist/Clawdbot.app/**",
+      "dist/OpenClaw.app/**",
       "**/*.live.test.ts",
       "**/*.e2e.test.ts",
     ],
