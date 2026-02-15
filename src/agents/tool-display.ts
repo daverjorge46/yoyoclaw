@@ -404,13 +404,36 @@ export type ToolResultInfo = {
 };
 
 /**
- * Infer a code fence language hint from the tool name and detail.
- * Always returns empty string for plaintext code blocks (no
- * syntax highlighting) so tool output renders cleanly without
- * false-positive keyword coloring.
+ * Map file extensions to Discord code fence language hints.
+ * Only includes extensions where the hint differs from the
+ * extension itself or needs an explicit entry.
  */
-function inferCodeLang(_key: string, _detail?: string): string {
-  return "";
+const EXT_TO_LANG: Record<string, string> = {
+  cjs: "js",
+  cts: "ts",
+  hpp: "cpp",
+  luau: "lua",
+  mjs: "js",
+  mts: "ts",
+  yml: "yaml",
+};
+
+/**
+ * Infer a code fence language hint from the tool name and detail.
+ * For file-backed tools (Read, Write, Edit) the hint is derived
+ * from the file extension so Discord applies syntax highlighting.
+ * Bash output stays plaintext to avoid false-positive coloring.
+ */
+function inferCodeLang(key: string, detail?: string): string {
+  if (!detail) return "";
+  // Only infer language for file-backed tools
+  if (key !== "read" && key !== "write" && key !== "edit") return "";
+
+  const dot = detail.lastIndexOf(".");
+  if (dot === -1 || dot === detail.length - 1) return "";
+  const ext = detail.slice(dot + 1).toLowerCase();
+
+  return EXT_TO_LANG[ext] ?? ext;
 }
 
 /**
