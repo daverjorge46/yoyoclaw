@@ -256,6 +256,7 @@ describe("memory flush transcript fallback", () => {
   it("uses the last usage entry from the session transcript", async () => {
     const tmp = await fsPromises.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const logPath = path.join(tmp, "session.jsonl");
+    const storePath = path.join(tmp, "sessions.json");
     const lines = [
       JSON.stringify({ message: { usage: { input: 10, output: 5 } } }),
       JSON.stringify({ usage: { total: 25 } }),
@@ -268,14 +269,39 @@ describe("memory flush transcript fallback", () => {
       updatedAt: Date.now(),
       sessionFile: logPath,
     };
-    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry);
+    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry, "main", {
+      storePath,
+    });
 
     expect(snapshot).toEqual({ promptTokens: 6, outputTokens: 4 });
+  });
+
+  it("resolves relative sessionFile entries against the session store directory", async () => {
+    const tmp = await fsPromises.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
+    const logPath = path.join(tmp, "session.jsonl");
+    const storePath = path.join(tmp, "sessions.json");
+    await fsPromises.writeFile(
+      logPath,
+      JSON.stringify({ usage: { input: 60, output: 10 } }),
+      "utf-8",
+    );
+
+    const sessionEntry = {
+      sessionId: "session",
+      updatedAt: Date.now(),
+      sessionFile: "session.jsonl",
+    };
+    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry, "main", {
+      storePath,
+    });
+
+    expect(snapshot).toEqual({ promptTokens: 60, outputTokens: 10 });
   });
 
   it("derives prompt/output snapshot when usage.total is a zero placeholder", async () => {
     const tmp = await fsPromises.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const logPath = path.join(tmp, "session.jsonl");
+    const storePath = path.join(tmp, "sessions.json");
     const lines = [JSON.stringify({ usage: { total: 0, input: 80, output: 20 } })];
     await fsPromises.writeFile(logPath, lines.join("\n"), "utf-8");
 
@@ -284,7 +310,9 @@ describe("memory flush transcript fallback", () => {
       updatedAt: Date.now(),
       sessionFile: logPath,
     };
-    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry);
+    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry, "main", {
+      storePath,
+    });
 
     expect(snapshot).toEqual({ promptTokens: 80, outputTokens: 20 });
   });
@@ -292,6 +320,7 @@ describe("memory flush transcript fallback", () => {
   it("ignores trailing zero-usage transcript lines", async () => {
     const tmp = await fsPromises.mkdtemp(path.join(os.tmpdir(), "openclaw-flush-"));
     const logPath = path.join(tmp, "session.jsonl");
+    const storePath = path.join(tmp, "sessions.json");
     const lines = [
       JSON.stringify({ usage: { input: 100, output: 20 } }),
       JSON.stringify({ usage: { input: 0, output: 0, totalTokens: 0 } }),
@@ -303,7 +332,9 @@ describe("memory flush transcript fallback", () => {
       updatedAt: Date.now(),
       sessionFile: logPath,
     };
-    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry);
+    const snapshot = await readPromptTokensFromSessionLog("session", sessionEntry, "main", {
+      storePath,
+    });
 
     expect(snapshot).toEqual({ promptTokens: 100, outputTokens: 20 });
   });
