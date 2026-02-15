@@ -152,13 +152,15 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
     });
 
     if (opts.useWebhook) {
+      // Resolve webhookSecret from opts or fall back to account config (OC-07).
+      const webhookSecret = opts.webhookSecret || account.config.webhookSecret;
       await startTelegramWebhook({
         token,
         accountId: account.accountId,
         config: cfg,
         path: opts.webhookPath,
         port: opts.webhookPort,
-        secret: opts.webhookSecret,
+        secret: webhookSecret,
         host: opts.webhookHost ?? account.config.webhookHost,
         runtime: opts.runtime as RuntimeEnv,
         fetch: proxyFetch,
