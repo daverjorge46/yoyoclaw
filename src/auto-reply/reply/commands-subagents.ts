@@ -27,6 +27,11 @@ import { callGateway } from "../../gateway/call.js";
 import { logVerbose } from "../../globals.js";
 import { formatTimeAgo } from "../../infra/format-time/format-relative.ts";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
+import {
+  formatDurationCompact,
+  formatTokenUsageDisplay,
+  truncateLine,
+} from "../../shared/subagents-format.js";
 import { INTERNAL_MESSAGE_CHANNEL } from "../../utils/message-channel.js";
 import { stopSubagentsForRequester } from "./abort.js";
 import { clearSessionQueues } from "./queue.js";
@@ -45,48 +50,6 @@ const ACTIONS = new Set(["list", "kill", "log", "send", "steer", "info", "help"]
 const RECENT_WINDOW_MINUTES = 30;
 const SUBAGENT_TASK_PREVIEW_MAX = 110;
 const STEER_ABORT_SETTLE_TIMEOUT_MS = 5_000;
-
-function formatDurationCompact(valueMs?: number) {
-  if (!valueMs || !Number.isFinite(valueMs) || valueMs <= 0) {
-    return "n/a";
-  }
-  const minutes = Math.max(1, Math.round(valueMs / 60_000));
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const minutesRemainder = minutes % 60;
-  if (hours < 24) {
-    return minutesRemainder > 0 ? `${hours}h${minutesRemainder}m` : `${hours}h`;
-  }
-  const days = Math.floor(hours / 24);
-  const hoursRemainder = hours % 24;
-  return hoursRemainder > 0 ? `${days}d${hoursRemainder}h` : `${days}d`;
-}
-
-function formatTokenShort(value?: number) {
-  if (!value || !Number.isFinite(value) || value <= 0) {
-    return undefined;
-  }
-  const n = Math.floor(value);
-  if (n < 1_000) {
-    return `${n}`;
-  }
-  if (n < 10_000) {
-    return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
-  }
-  if (n < 1_000_000) {
-    return `${Math.round(n / 1_000)}k`;
-  }
-  return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}m`;
-}
-
-function truncateLine(value: string, maxLength: number) {
-  if (value.length <= maxLength) {
-    return value;
-  }
-  return `${value.slice(0, maxLength).trimEnd()}...`;
-}
 
 function compactLine(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -132,63 +95,6 @@ function resolveModelDisplay(
     return combined.slice(slash + 1);
   }
   return combined;
-}
-
-function resolveTotalTokens(entry?: {
-  totalTokens?: unknown;
-  inputTokens?: unknown;
-  outputTokens?: unknown;
-}) {
-  if (!entry || typeof entry !== "object") {
-    return undefined;
-  }
-  if (typeof entry.totalTokens === "number" && Number.isFinite(entry.totalTokens)) {
-    return entry.totalTokens;
-  }
-  const input = typeof entry.inputTokens === "number" ? entry.inputTokens : 0;
-  const output = typeof entry.outputTokens === "number" ? entry.outputTokens : 0;
-  const total = input + output;
-  return total > 0 ? total : undefined;
-}
-
-function resolveIoTokens(entry?: { inputTokens?: unknown; outputTokens?: unknown }) {
-  if (!entry || typeof entry !== "object") {
-    return undefined;
-  }
-  const input =
-    typeof entry.inputTokens === "number" && Number.isFinite(entry.inputTokens)
-      ? entry.inputTokens
-      : 0;
-  const output =
-    typeof entry.outputTokens === "number" && Number.isFinite(entry.outputTokens)
-      ? entry.outputTokens
-      : 0;
-  const total = input + output;
-  if (total <= 0) {
-    return undefined;
-  }
-  return { input, output, total };
-}
-
-function resolveUsageDisplay(entry?: {
-  totalTokens?: unknown;
-  inputTokens?: unknown;
-  outputTokens?: unknown;
-}) {
-  const io = resolveIoTokens(entry);
-  const promptCache = resolveTotalTokens(entry);
-  const parts: string[] = [];
-  if (io) {
-    const input = formatTokenShort(io.input) ?? "0";
-    const output = formatTokenShort(io.output) ?? "0";
-    parts.push(`tokens ${formatTokenShort(io.total)} (in ${input} / out ${output})`);
-  } else if (typeof promptCache === "number" && promptCache > 0) {
-    parts.push(`tokens ${formatTokenShort(promptCache)} prompt/cache`);
-  }
-  if (typeof promptCache === "number" && io && promptCache > io.total) {
-    parts.push(`prompt/cache ${formatTokenShort(promptCache)}`);
-  }
-  return parts.join(", ");
 }
 
 function resolveDisplayStatus(entry: SubagentRunRecord) {
@@ -431,7 +337,7 @@ export const handleSubagentsCommand: CommandHandler = async (params, allowTextCo
           entry.childSessionKey,
           storeCache,
         );
-        const usageText = resolveUsageDisplay(sessionEntry);
+        const usageText = formatTokenUsageDisplay(sessionEntry);
         const label = truncateLine(formatRunLabel(entry, { maxLength: 48 }), 48);
         const task = formatTaskPreview(entry.task);
         const runtime = formatDurationCompact(now - (entry.startedAt ?? entry.createdAt));
@@ -448,7 +354,7 @@ export const handleSubagentsCommand: CommandHandler = async (params, allowTextCo
           entry.childSessionKey,
           storeCache,
         );
-        const usageText = resolveUsageDisplay(sessionEntry);
+        const usageText = formatTokenUsageDisplay(sessionEntry);
         const label = truncateLine(formatRunLabel(entry, { maxLength: 48 }), 48);
         const task = formatTaskPreview(entry.task);
         const runtime = formatDurationCompact(
