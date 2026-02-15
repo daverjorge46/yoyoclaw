@@ -32,6 +32,7 @@ import { resolveDiscordChannelAllowlist } from "../resolve-channels.js";
 import { resolveDiscordUserAllowlist } from "../resolve-users.js";
 import { normalizeDiscordToken } from "../token.js";
 import { createAgentComponentButton, createAgentSelectMenu } from "./agent-components.js";
+import { ComponentInteractionRateLimiter } from "./component-rate-limiter.js";
 import { createExecApprovalButton, DiscordExecApprovalHandler } from "./exec-approvals.js";
 import { createDiscordGatewayPlugin } from "./gateway-plugin.js";
 import { registerGateway, unregisterGateway } from "./gateway-registry.js";
@@ -445,6 +446,10 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
   const agentComponentsConfig = discordCfg.agentComponents ?? {};
   const agentComponentsEnabled = agentComponentsConfig.enabled ?? true;
 
+  if (agentComponentsEnabled) {
+    ComponentInteractionRateLimiter.initialize(agentComponentsConfig.rateLimit ?? {});
+  }
+
   const components: BaseMessageInteractiveComponent[] = [
     createDiscordCommandArgFallbackButton({
       cfg,
@@ -671,6 +676,7 @@ export async function monitorDiscordProvider(opts: MonitorDiscordOpts = {}) {
     if (execApprovalsHandler) {
       await execApprovalsHandler.stop();
     }
+    ComponentInteractionRateLimiter.getInstanceOrNull()?.dispose();
   }
 }
 

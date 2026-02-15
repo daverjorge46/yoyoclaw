@@ -326,6 +326,21 @@ export const DiscordAccountSchema = z
       })
       .strict()
       .optional(),
+    agentComponents: z
+      .object({
+        enabled: z.boolean().optional(),
+        rateLimit: z
+          .object({
+            enabled: z.boolean().optional(),
+            maxInteractions: z.number().int().positive().optional(),
+            windowMs: z.number().int().positive().optional(),
+            rateLimitMessage: z.string().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
     responsePrefix: z.string().optional(),
     activity: z.string().optional(),
     status: z.enum(["online", "dnd", "idle", "invisible"]).optional(),

@@ -10,7 +10,7 @@ import { ButtonStyle, ChannelType } from "discord-api-types/v10";
 import type { OpenClawConfig } from "../../config/config.js";
 import { logVerbose } from "../../globals.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
-import { logDebug, logError } from "../../logger.js";
+import { logDebug, logError, logWarn } from "../../logger.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
 import {
   readChannelAllowFromStore,
@@ -26,6 +26,10 @@ import {
   resolveDiscordGuildEntry,
   resolveDiscordMemberAllowed,
 } from "./allow-list.js";
+import {
+  ComponentInteractionRateLimiter,
+  type RateLimitedComponentType,
+} from "./component-rate-limiter.js";
 import { formatDiscordUserTag } from "./format.js";
 
 const AGENT_BUTTON_KEY = "agent";
@@ -194,6 +198,34 @@ function formatUsername(user: { username: string; discriminator?: string | null 
   return user.username;
 }
 
+async function checkComponentRateLimit(
+  interaction: AgentComponentInteraction,
+  componentType: RateLimitedComponentType,
+): Promise<boolean> {
+  const limiter = ComponentInteractionRateLimiter.getInstanceOrNull();
+  if (!limiter) {
+    return true;
+  }
+
+  const userId = interaction.user?.id;
+  const channelId = interaction.rawData.channel_id;
+  if (!userId || !channelId) {
+    return false;
+  }
+
+  if (limiter.checkAndRecord(userId, channelId, componentType)) {
+    return true;
+  }
+
+  logWarn("Component interaction rate limited", { userId, channelId, componentType });
+  try {
+    await interaction.reply({ content: limiter.rateLimitMessage, ephemeral: true });
+  } catch {
+    // Interaction may have expired
+  }
+  return false;
+}
+
 /**
  * Check if a channel type is a thread type
  */
@@ -313,6 +345,11 @@ export class AgentComponentButton extends Button {
     }
 
     const { componentId } = parsed;
+
+    // Rate limit check before authorization to avoid wasted work
+    if (!(await checkComponentRateLimit(interaction, "button"))) {
+      return;
+    }
 
     // P1 FIX: Use interaction's actual channel_id instead of trusting customId
     // This prevents channel ID spoofing attacks where an attacker crafts a button
@@ -451,6 +488,11 @@ export class AgentSelectMenu extends StringSelectMenu {
     }
 
     const { componentId } = parsed;
+
+    // Rate limit check before authorization to avoid wasted work
+    if (!(await checkComponentRateLimit(interaction, "selectMenu"))) {
+      return;
+    }
 
     // Use interaction's actual channel_id (trusted source from Discord)
     // This prevents channel spoofing attacks
