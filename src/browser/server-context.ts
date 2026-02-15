@@ -341,7 +341,8 @@ function createProfileContext(
     }
 
     // HTTP responds but WebSocket fails - port in use by something else
-    if (!profileState.running) {
+    // Skip this check for remote CDP profiles since we never own the remote process
+    if (!profileState.running && !remoteCdp) {
       throw new Error(
         `Port ${profile.cdpPort} is in use for profile "${profile.name}" but not by openclaw. ` +
           `Run action=reset-profile profile=${profile.name} to kill the process.`,
@@ -363,7 +364,9 @@ function createProfileContext(
       );
     }
 
-    await stopOpenClawChrome(profileState.running);
+    if (profileState.running) {
+      await stopOpenClawChrome(profileState.running);
+    }
     setProfileRunning(null);
 
     const relaunched = await launchOpenClawChrome(current.resolved, profile);
