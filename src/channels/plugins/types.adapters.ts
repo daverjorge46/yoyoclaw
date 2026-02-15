@@ -83,6 +83,7 @@ export type ChannelOutboundContext = {
   identity?: OutboundIdentity;
   deps?: OutboundSendDeps;
   silent?: boolean;
+  embeds?: unknown[];
 };
 
 export type ChannelOutboundPayloadContext = ChannelOutboundContext & {
