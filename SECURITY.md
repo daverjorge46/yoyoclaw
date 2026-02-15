@@ -1,10 +1,15 @@
 # Security Policy
 
-If you believe you've found a security issue in OpenClaw, please report it privately.
+Yoyo Claw is a local fork of OpenClaw. Security reporting depends on where the issue originates:
 
-## Reporting
+- **Security issues in core OpenClaw functionality** -- Report upstream per OpenClaw's security policy (see below).
+- **Security issues in Yoyo Claw extensions or local customizations** (e.g., `yoyo-dev-bridge`, `yoyo-memory-sync`, custom skills, UI theming) -- Report to the [Yoyo Dev AI repository](https://github.com/yoga999/yoyo-dev-ai).
 
-Report vulnerabilities directly to the repository where the issue lives:
+If you believe you've found a security issue in core OpenClaw, please report it privately.
+
+## Upstream Reporting
+
+Report core OpenClaw vulnerabilities directly to the repository where the issue lives:
 
 - **Core CLI and gateway** — [openclaw/openclaw](https://github.com/openclaw/openclaw)
 - **macOS desktop app** — [openclaw/openclaw](https://github.com/openclaw/openclaw) (apps/macos)

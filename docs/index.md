@@ -1,71 +1,60 @@
 ---
-summary: "OpenClaw is a multi-channel gateway for AI agents that runs on any OS."
+summary: "Yoyo Claw is a local, security-hardened OpenClaw fork that powers the Yoyo AI Business and Personal AI Assistant."
 read_when:
-  - Introducing OpenClaw to newcomers
-title: "OpenClaw"
+  - Introducing Yoyo Claw to newcomers
+title: "Yoyo Claw"
 ---
 
-# OpenClaw 🦞
+# Yoyo Claw
+
+> Local, security-hardened [OpenClaw](https://github.com/openclaw/openclaw) fork for **Yoyo Dev AI**.
 
 <p align="center">
-    <img
-        src="/assets/openclaw-logo-text-dark.png"
-        alt="OpenClaw"
-        width="500"
-        class="dark:hidden"
-    />
-    <img
-        src="/assets/openclaw-logo-text.png"
-        alt="OpenClaw"
-        width="500"
-        class="hidden dark:block"
-    />
-</p>
-
-> _"EXFOLIATE! EXFOLIATE!"_ — A space lobster, probably
-
-<p align="center">
-  <strong>Any OS gateway for AI agents across WhatsApp, Telegram, Discord, iMessage, and more.</strong><br />
-  Send a message, get an agent response from your pocket. Plugins add Mattermost and more.
+  <strong>Multi-channel AI gateway across WhatsApp, Telegram, Discord, iMessage, and more.</strong><br />
+  Powers the <strong>Yoyo AI</strong> Business and Personal AI Assistant.
 </p>
 
 <Columns>
   <Card title="Get Started" href="/start/getting-started" icon="rocket">
-    Install OpenClaw and bring up the Gateway in minutes.
+    Install and bring up the Gateway in minutes.
   </Card>
   <Card title="Run the Wizard" href="/start/wizard" icon="sparkles">
-    Guided setup with `openclaw onboard` and pairing flows.
+    Guided setup with onboarding and pairing flows.
   </Card>
   <Card title="Open the Control UI" href="/web/control-ui" icon="layout-dashboard">
     Launch the browser dashboard for chat, config, and sessions.
   </Card>
 </Columns>
 
-## What is OpenClaw?
+## What is Yoyo Claw?
 
-OpenClaw is a **self-hosted gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, iMessage, and more — to AI coding agents like Pi. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI assistant.
+Yoyo Claw is a locally-managed fork of [OpenClaw](https://openclaw.ai), the open-source personal AI assistant gateway. It serves as the engine behind **Yoyo AI**, the Business and Personal AI Assistant within the Yoyo Dev AI platform.
 
-**Who is it for?** Developers and power users who want a personal AI assistant they can message from anywhere — without giving up control of their data or relying on a hosted service.
+**What Yoyo Claw adds over upstream OpenClaw:**
 
-**What makes it different?**
+- **Local-first architecture** -- Config home at `~/.yoyo-claw/`, no global npm install required
+- **Security hardening** -- Audit logging, gateway token authentication
+- **Custom extensions** -- `yoyo-dev-bridge` (spec/task/fix tools), `yoyo-memory-sync` (Claude Code memory access)
+- **Custom skills** -- `yoyo/web-search`, `yoyo/token-usage`
+- **Themed UI** -- Cyan/mauve palette customization
+- **Default Yoyo identity** -- Warm, professional agent personality template
+
+**Core OpenClaw capabilities (preserved):**
 
 - **Self-hosted**: runs on your hardware, your rules
 - **Multi-channel**: one Gateway serves WhatsApp, Telegram, Discord, and more simultaneously
 - **Agent-native**: built for coding agents with tool use, sessions, memory, and multi-agent routing
 - **Open source**: MIT licensed, community-driven
 
-**What do you need?** Node 22+, an API key (Anthropic recommended), and 5 minutes.
-
 ## How it works
 
 ```mermaid
 flowchart LR
   A["Chat apps + plugins"] --> B["Gateway"]
-  B --> C["Pi agent"]
+  B --> C["Yoyo AI agent"]
   B --> D["CLI"]
   B --> E["Web Control UI"]
-  B --> F["macOS app"]
-  B --> G["iOS and Android nodes"]
+  B --> F["Yoyo AI GUI (port 5174)"]
 ```
 
 The Gateway is the single source of truth for sessions, routing, and channel connections.
@@ -96,43 +85,36 @@ The Gateway is the single source of truth for sessions, routing, and channel con
 ## Quick start
 
 <Steps>
-  <Step title="Install OpenClaw">
+  <Step title="Build Yoyo Claw">
     ```bash
-    npm install -g openclaw@latest
+    cd yoyo-claw && pnpm install --frozen-lockfile && pnpm build
     ```
   </Step>
-  <Step title="Onboard and install the service">
+  <Step title="Start the Gateway">
     ```bash
-    openclaw onboard --install-daemon
+    node yoyo-claw/openclaw.mjs gateway --port 18789
     ```
   </Step>
-  <Step title="Pair WhatsApp and start the Gateway">
+  <Step title="Pair channels">
     ```bash
-    openclaw channels login
-    openclaw gateway --port 18789
+    node yoyo-claw/openclaw.mjs channels login
     ```
   </Step>
 </Steps>
 
-Need the full install and dev setup? See [Quick start](/start/quickstart).
+Default port: 18789. Config at `~/.yoyo-claw/openclaw.json`.
 
 ## Dashboard
 
 Open the browser Control UI after the Gateway starts.
 
 - Local default: [http://127.0.0.1:18789/](http://127.0.0.1:18789/)
+- Yoyo AI GUI: port 5174 (`yoyo-gui --ai`)
 - Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)
 
-<p align="center">
-  <img src="whatsapp-openclaw.jpg" alt="OpenClaw" width="420" />
-</p>
+## Configuration
 
-## Configuration (optional)
-
-Config lives at `~/.openclaw/openclaw.json`.
-
-- If you **do nothing**, OpenClaw uses the bundled Pi binary in RPC mode with per-sender sessions.
-- If you want to lock it down, start with `channels.whatsapp.allowFrom` and (for groups) mention rules.
+Config lives at `~/.yoyo-claw/openclaw.json` (symlinked from `~/.openclaw` and `~/.yoyo-ai`).
 
 Example:
 
@@ -144,7 +126,7 @@ Example:
       groups: { "*": { requireMention: true } },
     },
   },
-  messages: { groupChat: { mentionPatterns: ["@openclaw"] } },
+  messages: { groupChat: { mentionPatterns: ["@yoyo"] } },
 }
 ```
 
@@ -186,7 +168,7 @@ Example:
   <Card title="Troubleshooting" href="/gateway/troubleshooting" icon="wrench">
     Gateway diagnostics and common errors.
   </Card>
-  <Card title="About and credits" href="/reference/credits" icon="info">
-    Project origins, contributors, and license.
+  <Card title="Based on OpenClaw" href="https://github.com/openclaw/openclaw" icon="info">
+    Upstream project, contributors, and license.
   </Card>
 </Columns>

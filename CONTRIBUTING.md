@@ -1,8 +1,15 @@
-# Contributing to OpenClaw
+# Contributing to Yoyo Claw
 
-Welcome to the lobster tank! 🦞
+Yoyo Claw is a local fork of OpenClaw maintained within the Yoyo Dev AI project. Contributions fall into two categories:
 
-## Quick Links
+- **Core OpenClaw issues and PRs** -- Submit upstream at [github.com/openclaw/openclaw](https://github.com/openclaw/openclaw).
+- **Yoyo-specific extensions, skills, and customizations** -- Submit to this repository (yoyo-dev-ai).
+
+If you are unsure where a change belongs, default to upstream for anything that affects core OpenClaw functionality.
+
+---
+
+## Upstream Quick Links
 
 - **GitHub:** https://github.com/openclaw/openclaw
 - **Discord:** https://discord.gg/qkhbAGHRBT
