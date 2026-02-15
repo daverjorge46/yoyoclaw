@@ -58,6 +58,12 @@ Common commands
 - Docs export: `gog docs export <docId> --format txt --out /tmp/doc.txt`
 - Docs cat: `gog docs cat <docId>`
 
+Attachments
+
+- Get message with attachments: `gog gmail get <messageId> --json` (returns `attachments` array with `filename`, `attachmentId`, `mimeType`, `size`)
+- Download attachment: `gog gmail attachment <messageId> <attachmentId> --out /path/to/file`
+- Download with original name: `gog gmail attachment <messageId> <attachmentId> --name <filename>`
+
 Calendar Colors
 
 - Use `gog calendar colors` to see all available event colors (IDs 1-11)
