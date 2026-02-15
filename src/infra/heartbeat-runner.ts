@@ -7,6 +7,7 @@ import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
 import type { OutboundSendDeps } from "./outbound/deliver.js";
 import {
   resolveAgentConfig,
+  resolveAgentDir,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../agents/agent-scope.js";
@@ -60,6 +61,7 @@ import {
   resolveHeartbeatSenderContext,
 } from "./outbound/targets.js";
 import { peekSystemEvents } from "./system-events.js";
+import { isFailoverError } from "../agents/failover-error.js";
 
 type HeartbeatDeps = OutboundSendDeps &
   ChannelHeartbeatDeps & {
@@ -88,10 +90,14 @@ export type HeartbeatSummary = {
   prompt: string;
   target: string;
   model?: string;
+  primary?: string;
+  fallbacks?: string[];
+  fallbackMode?: "immediate" | "next_heartbeat";
   ackMaxChars: number;
 };
 
 const DEFAULT_HEARTBEAT_TARGET = "last";
+const HEARTBEAT_STATE_FILENAME = "heartbeat-state.json";
 
 // Prompt used when an async exec has completed and the result should be relayed to the user.
 // This overrides the standard heartbeat prompt to ensure the model responds with the exec result
@@ -175,7 +181,10 @@ export function resolveHeartbeatSummaryForAgent(
   );
   const target =
     merged?.target ?? defaults?.target ?? overrides?.target ?? DEFAULT_HEARTBEAT_TARGET;
-  const model = merged?.model ?? defaults?.model ?? overrides?.model;
+  // Support both legacy `model` and new `primary` fields
+  const model = merged?.primary?.trim() ?? merged?.model?.trim();
+  const fallbacks = merged?.fallbacks;
+  const fallbackMode = merged?.fallbackMode;
   const ackMaxChars = Math.max(
     0,
     merged?.ackMaxChars ??
@@ -191,6 +200,9 @@ export function resolveHeartbeatSummaryForAgent(
     prompt,
     target,
     model,
+    primary: merged?.primary?.trim(),
+    fallbacks,
+    fallbackMode,
     ackMaxChars,
   };
 }
@@ -250,6 +262,120 @@ function resolveHeartbeatAckMaxChars(cfg: OpenClawConfig, heartbeat?: HeartbeatC
       cfg.agents?.defaults?.heartbeat?.ackMaxChars ??
       DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
   );
+}
+
+// ============================================================================
+// Heartbeat Model Fallback State Management
+// ============================================================================
+
+type HeartbeatModelState = {
+  agentId: string;
+  currentFallbackIndex: number;
+  lastUpdated: number;
+};
+
+function getHeartbeatStatePath(agentDir: string): string {
+  return path.join(agentDir, HEARTBEAT_STATE_FILENAME);
+}
+
+async function loadHeartbeatAgentModelState(
+  agentDir: string,
+): Promise<HeartbeatModelState | null> {
+  const statePath = getHeartbeatStatePath(agentDir);
+  try {
+    await fs.access(statePath);
+  } catch {
+    // File doesn't exist — normal on first run
+    return null;
+  }
+  let content: string;
+  try {
+    content = await fs.readFile(statePath, "utf-8");
+  } catch (err) {
+    // File exists but can't be read (e.g. wrong permissions) — user must fix manually
+    log.warn("heartbeat: cannot read state file (check permissions)", {
+      path: statePath,
+      error: formatErrorMessage(err),
+    });
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(content) as HeartbeatModelState;
+    if (typeof parsed.currentFallbackIndex !== "number") {
+      log.warn("heartbeat: state file has unexpected format, resetting", { path: statePath });
+      return null;
+    }
+    return parsed;
+  } catch (err) {
+    // File exists but is corrupt — log so the user can investigate
+    log.warn("heartbeat: failed to parse state file (check for corruption)", {
+      path: statePath,
+      error: formatErrorMessage(err),
+    });
+    return null;
+  }
+}
+
+async function saveHeartbeatAgentModelState(
+  agentDir: string,
+  update: Partial<HeartbeatModelState>,
+  existing: HeartbeatModelState | null,
+): Promise<void> {
+  try {
+    const statePath = getHeartbeatStatePath(agentDir);
+    const next: HeartbeatModelState = {
+      currentFallbackIndex: 0,
+      lastUpdated: Date.now(),
+      agentId: existing?.agentId ?? "",
+      ...existing,
+      ...update,
+      lastUpdated: Date.now(),
+    };
+    await fs.writeFile(statePath, JSON.stringify(next, null, 2));
+  } catch (err) {
+    log.warn("heartbeat: failed to save model state", { error: formatErrorMessage(err) });
+  }
+}
+
+/**
+ * Resolve the ordered list of models to try for heartbeat.
+ * Supports both legacy `model` field and new `primary`/`fallbacks` fields.
+ */
+function resolveHeartbeatModelChain(
+  heartbeat: HeartbeatConfig | undefined,
+  agentModelState: HeartbeatModelState | null,
+): { models: string[]; fallbackMode: "immediate" | "next_heartbeat" } {
+  const fallbackMode = heartbeat?.fallbackMode ?? "immediate";
+
+  // Build the model chain: primary first, then fallbacks
+  const models: string[] = [];
+
+  // Prefer `primary` over legacy `model`, but support both
+  const primary = heartbeat?.primary?.trim() ?? heartbeat?.model?.trim();
+  if (primary) {
+    models.push(primary);
+  }
+
+  // Add fallbacks
+  const fallbacks = heartbeat?.fallbacks ?? [];
+  for (const fb of fallbacks) {
+    const trimmed = fb.trim();
+    if (trimmed && !models.includes(trimmed)) {
+      models.push(trimmed);
+    }
+  }
+
+  // If fallbackMode is "next_heartbeat" and we have a saved state, rotate the list
+  // to start from the last successful model
+  if (fallbackMode === "next_heartbeat" && agentModelState && models.length > 1) {
+    const startIndex = Math.min(agentModelState.currentFallbackIndex, models.length - 1);
+    if (startIndex > 0) {
+      const rotated = [...models.slice(startIndex), ...models.slice(0, startIndex)];
+      return { models: rotated, fallbackMode };
+    }
+  }
+
+  return { models, fallbackMode };
 }
 
 function resolveHeartbeatSession(
@@ -432,6 +558,7 @@ export async function runHeartbeatOnce(opts: {
   const isCronEventReason = Boolean(opts.reason?.startsWith("cron:"));
   const isWakeReason = opts.reason === "wake" || Boolean(opts.reason?.startsWith("hook:"));
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+  const agentDir = resolveAgentDir(cfg, agentId);
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
     const heartbeatFileContent = await fs.readFile(heartbeatFilePath, "utf-8");
@@ -545,12 +672,70 @@ export async function runHeartbeatOnce(opts: {
     return true;
   };
 
-  try {
-    const heartbeatModelOverride = heartbeat?.model?.trim() || undefined;
-    const replyOpts = heartbeatModelOverride
-      ? { isHeartbeat: true, heartbeatModelOverride }
+  const agentModelState = await loadHeartbeatAgentModelState(agentDir);
+  const { models: modelChain, fallbackMode } = resolveHeartbeatModelChain(heartbeat, agentModelState);
+  const ackMaxChars = resolveHeartbeatAckMaxChars(cfg, heartbeat);
+
+  // Helper to run one model attempt and return result or throw
+  const runWithModel = async (modelOverride: string | undefined) => {
+    const replyOpts = modelOverride
+      ? { isHeartbeat: true, heartbeatModelOverride: modelOverride }
       : { isHeartbeat: true };
-    const replyResult = await getReplyFromConfig(ctx, replyOpts, cfg);
+    return getReplyFromConfig(ctx, replyOpts, cfg);
+  };
+
+  try {
+    let replyResult: ReplyPayload | ReplyPayload[] | undefined;
+
+    if (modelChain.length === 0) {
+      // No model configured — use default
+      replyResult = await runWithModel(undefined);
+    } else if (modelChain.length === 1) {
+      // Single model
+      replyResult = await runWithModel(modelChain[0]);
+    } else if (fallbackMode === "next_heartbeat") {
+      // next_heartbeat mode: use the current model per saved state, fail fast
+      const model = modelChain[0]; // already rotated by resolveHeartbeatModelChain
+      try {
+        replyResult = await runWithModel(model);
+        // Success: reset to primary
+        await saveHeartbeatAgentModelState(agentDir, { currentFallbackIndex: 0, agentId }, agentModelState);
+      } catch (err) {
+        if (isFailoverError(err)) {
+          // Advance to next model for next heartbeat
+          const currentIdx = agentModelState?.currentFallbackIndex ?? 0;
+          const allModels = resolveHeartbeatModelChain(heartbeat, null).models;
+          const nextIdx = (currentIdx + 1) % allModels.length;
+          await saveHeartbeatAgentModelState(agentDir, { currentFallbackIndex: nextIdx, agentId }, agentModelState);
+          log.warn(`heartbeat: model ${model} failed, will try ${allModels[nextIdx]} next heartbeat`);
+        }
+        throw err;
+      }
+    } else {
+      // immediate mode: try each model in order
+      let lastErr: unknown;
+      for (let i = 0; i < modelChain.length; i++) {
+        const model = modelChain[i];
+        try {
+          replyResult = await runWithModel(model);
+          if (i !== 0) {
+            log.info(`heartbeat: fallback model succeeded: ${model} (attempt ${i + 1})`);
+          }
+          break;
+        } catch (err) {
+          lastErr = err;
+          if (isFailoverError(err) && i < modelChain.length - 1) {
+            log.warn(`heartbeat: model ${model} failed, trying fallback (${i + 2}/${modelChain.length})`);
+            continue;
+          }
+          throw err;
+        }
+      }
+      if (!replyResult) {
+        throw lastErr;
+      }
+    }
+
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
     const includeReasoning = heartbeat?.includeReasoning === true;
     const reasoningPayloads = includeReasoning
@@ -579,7 +764,6 @@ export async function runHeartbeatOnce(opts: {
       return { status: "ran", durationMs: Date.now() - startedAt };
     }
 
-    const ackMaxChars = resolveHeartbeatAckMaxChars(cfg, heartbeat);
     const normalized = normalizeHeartbeatReply(replyPayload, responsePrefix, ackMaxChars);
     // For exec completion events, don't skip even if the response looks like HEARTBEAT_OK.
     // The model should be responding with exec results, not ack tokens.
