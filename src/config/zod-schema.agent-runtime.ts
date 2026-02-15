@@ -328,7 +328,7 @@ export const AgentToolsSchema = z
 export const MemorySearchSchema = z
   .object({
     enabled: z.boolean().optional(),
-    sources: z.array(z.union([z.literal("memory"), z.literal("sessions")])).optional(),
+    sources: z.array(z.union([z.literal("memory"), z.literal("sessions")])).default(["memory"]),
     extraPaths: z.array(z.string()).optional(),
     experimental: z
       .object({
@@ -376,7 +376,7 @@ export const MemorySearchSchema = z
       .optional(),
     store: z
       .object({
-        driver: z.literal("sqlite").optional(),
+        driver: z.literal("sqlite").default("sqlite"),
         path: z.string().optional(),
         vector: z
           .object({
