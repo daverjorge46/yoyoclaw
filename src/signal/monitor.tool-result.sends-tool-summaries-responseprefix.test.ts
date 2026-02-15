@@ -14,7 +14,7 @@ import {
 installSignalToolResultTestHooks();
 
 // Import after the harness registers `vi.mock(...)` for Signal internals.
-await import("./monitor.js");
+const { monitorSignalProvider } = await import("./monitor.js");
 
 const {
   replyMock,
@@ -24,12 +24,8 @@ const {
   upsertPairingRequestMock,
   waitForTransportReadyMock,
 } = getSignalToolResultTestMocks();
-const { monitorSignalProvider } = await import("./monitor.js");
 
-async function runMonitorWithMocks(
-  opts: Parameters<(typeof import("./monitor.js"))["monitorSignalProvider"]>[0],
-) {
-  const { monitorSignalProvider } = await import("./monitor.js");
+async function runMonitorWithMocks(opts: Parameters<typeof monitorSignalProvider>[0]) {
   return monitorSignalProvider(opts);
 }
 describe("monitorSignalProvider tool results", () => {
