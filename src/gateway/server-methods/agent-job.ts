@@ -11,13 +11,26 @@ type AgentRunSnapshot = {
   startedAt?: number;
   endedAt?: number;
   error?: string;
+  finalAssistantText?: string;
   ts: number;
 };
+
+type AgentRunAssistantText = {
+  text: string;
+  ts: number;
+};
+
+const agentRunAssistantTexts = new Map<string, AgentRunAssistantText>();
 
 function pruneAgentRunCache(now = Date.now()) {
   for (const [runId, entry] of agentRunCache) {
     if (now - entry.ts > AGENT_RUN_CACHE_TTL_MS) {
       agentRunCache.delete(runId);
+    }
+  }
+  for (const [runId, entry] of agentRunAssistantTexts) {
+    if (now - entry.ts > AGENT_RUN_CACHE_TTL_MS) {
+      agentRunAssistantTexts.delete(runId);
     }
   }
 }
@@ -27,6 +40,41 @@ function recordAgentRunSnapshot(entry: AgentRunSnapshot) {
   agentRunCache.set(entry.runId, entry);
 }
 
+function extractAssistantText(data: Record<string, unknown> | undefined): {
+  mode: "set" | "append";
+  text: string;
+} | null {
+  if (!data) {
+    return null;
+  }
+  const text = data.text;
+  if (typeof text === "string" && text.trim()) {
+    return { mode: "set", text };
+  }
+  const delta = data.delta;
+  if (typeof delta === "string" && delta.length > 0) {
+    return { mode: "append", text: delta };
+  }
+  return null;
+}
+
+function recordAssistantText(runId: string, text: string, mode: "set" | "append" = "set") {
+  const ts = Date.now();
+  pruneAgentRunCache(ts);
+  if (mode === "append") {
+    const previous = agentRunAssistantTexts.get(runId)?.text ?? "";
+    agentRunAssistantTexts.set(runId, { text: `${previous}${text}`, ts });
+    return;
+  }
+  agentRunAssistantTexts.set(runId, { text, ts });
+}
+
+function consumeAssistantText(runId: string): string | undefined {
+  const entry = agentRunAssistantTexts.get(runId);
+  agentRunAssistantTexts.delete(runId);
+  return entry?.text;
+}
+
 function ensureAgentRunListener() {
   if (agentRunListenerStarted) {
     return;
@@ -34,6 +82,13 @@ function ensureAgentRunListener() {
   agentRunListenerStarted = true;
   onAgentEvent((evt) => {
     if (!evt) {
+      return;
+    }
+    if (evt.stream === "assistant") {
+      const update = extractAssistantText(evt.data);
+      if (update) {
+        recordAssistantText(evt.runId, update.text, update.mode);
+      }
       return;
     }
     if (evt.stream !== "lifecycle") {
@@ -52,6 +107,7 @@ function ensureAgentRunListener() {
       typeof evt.data?.startedAt === "number" ? evt.data.startedAt : agentRunStarts.get(evt.runId);
     const endedAt = typeof evt.data?.endedAt === "number" ? evt.data.endedAt : undefined;
     const error = typeof evt.data?.error === "string" ? evt.data.error : undefined;
+    const finalAssistantText = consumeAssistantText(evt.runId);
     agentRunStarts.delete(evt.runId);
     recordAgentRunSnapshot({
       runId: evt.runId,
@@ -59,6 +115,7 @@ function ensureAgentRunListener() {
       startedAt,
       endedAt,
       error,
+      finalAssistantText,
       ts: Date.now(),
     });
   });
@@ -95,7 +152,10 @@ export async function waitForAgentJob(params: {
       resolve(entry);
     };
     const unsubscribe = onAgentEvent((evt) => {
-      if (!evt || evt.stream !== "lifecycle") {
+      if (!evt) {
+        return;
+      }
+      if (evt.stream !== "lifecycle") {
         return;
       }
       if (evt.runId !== runId) {
@@ -116,12 +176,14 @@ export async function waitForAgentJob(params: {
           : agentRunStarts.get(evt.runId);
       const endedAt = typeof evt.data?.endedAt === "number" ? evt.data.endedAt : undefined;
       const error = typeof evt.data?.error === "string" ? evt.data.error : undefined;
+      const finalAssistantText = consumeAssistantText(evt.runId);
       const snapshot: AgentRunSnapshot = {
         runId: evt.runId,
         status: phase === "error" ? "error" : evt.data?.aborted ? "timeout" : "ok",
         startedAt,
         endedAt,
         error,
+        finalAssistantText,
         ts: Date.now(),
       };
       recordAgentRunSnapshot(snapshot);
