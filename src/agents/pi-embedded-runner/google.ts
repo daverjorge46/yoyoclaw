@@ -20,6 +20,7 @@ import {
   sanitizeToolCallInputs,
   sanitizeToolUseResultPairing,
 } from "../session-transcript-repair.js";
+import { filterOrphanedToolResults } from "../tool-compatibility-filter.js";
 import { resolveTranscriptPolicy } from "../transcript-policy.js";
 import { log } from "./logger.js";
 import { describeUnknownError } from "./utils.js";
@@ -442,9 +443,22 @@ export async function sanitizeSessionHistory(params: {
       provider: params.provider,
       modelId: params.modelId,
     });
+  // First annotate inter-session user messages
   const withInterSessionMarkers = annotateInterSessionUserMessages(params.messages);
+
+  // Then filter orphaned tool results for provider compatibility
+  const { filtered: compatibleMessages, removedCount } =
+    filterOrphanedToolResults(withInterSessionMarkers);
+
+  if (removedCount > 0) {
+    log.info(
+      `Filtered ${removedCount} orphaned tool results for provider compatibility ` +
+        `(${params.provider}/${params.modelId})`,
+    );
+  }
+
   const sanitizedImages = await sanitizeSessionMessagesImages(
-    withInterSessionMarkers,
+    compatibleMessages,
     "session:history",
     {
       sanitizeMode: policy.sanitizeMode,
