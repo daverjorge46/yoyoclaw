@@ -321,7 +321,6 @@ class TalkModeManager(
   private suspend fun finalizeTranscript(transcript: String) {
     listeningMode = false
     _isListening.value = false
-    _statusText.value = "Thinking…"
     lastTranscript = ""
     lastHeardAtMs = null
 
