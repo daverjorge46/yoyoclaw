@@ -75,7 +75,7 @@ vi.mock("../config/config.js", () => ({
 }));
 
 describe("nodes-cli coverage", () => {
-  let registerNodesCli: (program: Command) => void;
+  let registerNodesCli: (program: Command) => void | Promise<void>;
 
   beforeAll(async () => {
     ({ registerNodesCli } = await import("./nodes-cli.js"));
@@ -91,7 +91,7 @@ describe("nodes-cli coverage", () => {
   it("invokes system.run with parsed params", async () => {
     const program = new Command();
     program.exitOverride();
-    registerNodesCli(program);
+    await registerNodesCli(program);
 
     await program.parseAsync(
       [
@@ -136,7 +136,7 @@ describe("nodes-cli coverage", () => {
   it("invokes system.run with raw command", async () => {
     const program = new Command();
     program.exitOverride();
-    registerNodesCli(program);
+    await registerNodesCli(program);
 
     await program.parseAsync(
       ["nodes", "run", "--agent", "main", "--node", "mac-1", "--raw", "echo hi"],
@@ -161,7 +161,7 @@ describe("nodes-cli coverage", () => {
   it("invokes system.notify with provided fields", async () => {
     const program = new Command();
     program.exitOverride();
-    registerNodesCli(program);
+    await registerNodesCli(program);
 
     await program.parseAsync(
       [
@@ -195,7 +195,7 @@ describe("nodes-cli coverage", () => {
   it("invokes location.get with params", async () => {
     const program = new Command();
     program.exitOverride();
-    registerNodesCli(program);
+    await registerNodesCli(program);
 
     await program.parseAsync(
       [
