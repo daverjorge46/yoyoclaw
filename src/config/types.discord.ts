@@ -174,6 +174,8 @@ export type DiscordAccountConfig = {
    * Legacy key: channels.discord.dm.allowFrom.
    */
   allowFrom?: Array<string | number>;
+  /** Default delivery target for CLI --deliver when no explicit --reply-to is provided. */
+  defaultTo?: string;
   dm?: DiscordDmConfig;
   /** New per-guild config keyed by guild id or slug. */
   guilds?: Record<string, DiscordGuildEntry>;
