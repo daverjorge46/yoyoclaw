@@ -70,6 +70,7 @@ export type AuthChoiceGroupId =
   | "qwen"
   | "together"
   | "huggingface"
+  | "novita"
   | "qianfan"
   | "xai"
   | "custom";
