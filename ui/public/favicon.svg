@@ -1,22 +1,141 @@
-<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="lobster-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ff4d4d"/>
-      <stop offset="100%" stop-color="#991b1b"/>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d2f1e"/>
+      <stop offset="50%" stop-color="#4a3522"/>
+      <stop offset="100%" stop-color="#443020"/>
+    </linearGradient>
+    <radialGradient id="glowCenter" cx="50%" cy="42%" r="45%">
+      <stop offset="0%" stop-color="#ff8c00" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#3d2f1e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8c00"/>
+      <stop offset="50%" stop-color="#ff5500"/>
+      <stop offset="100%" stop-color="#ff8c00"/>
+    </linearGradient>
+    <filter id="outerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 0.5 0 0 0  0 0 0 0 0  0 0 0 0.5 0" result="colorBlur"/>
+      <feMerge>
+        <feMergeNode in="colorBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="textGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 0.55 0 0 0  0 0 0 0 0  0 0 0 0.7 0" result="colorBlur"/>
+      <feMerge>
+        <feMergeNode in="colorBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="particleGlow">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff8c00"/>
+      <stop offset="50%" stop-color="#ffaa00"/>
+      <stop offset="100%" stop-color="#ff5500"/>
     </linearGradient>
   </defs>
-  <!-- Body -->
-  <path d="M60 10 C30 10 15 35 15 55 C15 75 30 95 45 100 L45 110 L55 110 L55 100 C55 100 60 102 65 100 L65 110 L75 110 L75 100 C90 95 105 75 105 55 C105 35 90 10 60 10Z" fill="url(#lobster-gradient)"/>
-  <!-- Left Claw -->
-  <path d="M20 45 C5 40 0 50 5 60 C10 70 20 65 25 55 C28 48 25 45 20 45Z" fill="url(#lobster-gradient)"/>
-  <!-- Right Claw -->
-  <path d="M100 45 C115 40 120 50 115 60 C110 70 100 65 95 55 C92 48 95 45 100 45Z" fill="url(#lobster-gradient)"/>
-  <!-- Antenna -->
-  <path d="M45 15 Q35 5 30 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
-  <path d="M75 15 Q85 5 90 8" stroke="#ff4d4d" stroke-width="3" stroke-linecap="round"/>
-  <!-- Eyes -->
-  <circle cx="45" cy="35" r="6" fill="#050810"/>
-  <circle cx="75" cy="35" r="6" fill="#050810"/>
-  <circle cx="46" cy="34" r="2.5" fill="#00e5cc"/>
-  <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
+
+  <!-- Background -->
+  <rect x="16" y="16" width="480" height="480" rx="90" ry="90" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  
+  <!-- Grid -->
+  <g opacity="0.1">
+    <line x1="96" y1="16" x2="96" y2="496" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="176" y1="16" x2="176" y2="496" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="256" y1="16" x2="256" y2="496" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="336" y1="16" x2="336" y2="496" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="416" y1="16" x2="416" y2="496" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="16" y1="96" x2="496" y2="96" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="16" y1="176" x2="496" y2="176" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="16" y1="256" x2="496" y2="256" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="16" y1="336" x2="496" y2="336" stroke="#ff8c00" stroke-width="0.5"/>
+    <line x1="16" y1="416" x2="496" y2="416" stroke="#ff8c00" stroke-width="0.5"/>
+  </g>
+
+  <!-- Glow -->
+  <rect x="16" y="16" width="480" height="480" rx="90" ry="90" fill="url(#glowCenter)"/>
+
+  <!-- Orbital ring -->
+  <ellipse cx="256" cy="258" rx="180" ry="120" fill="none" stroke="url(#ringGrad)" stroke-width="1.2" opacity="0.25" stroke-dasharray="6 5"/>
+
+  <!-- Particles -->
+  <circle cx="92" cy="120" r="2.5" fill="#ff8c00" opacity="0.4" filter="url(#particleGlow)">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="428" cy="140" r="2" fill="#ff5500" opacity="0.3" filter="url(#particleGlow)">
+    <animate attributeName="opacity" values="0.3;0.08;0.3" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="410" cy="390" r="2" fill="#ff8c00" opacity="0.25" filter="url(#particleGlow)">
+    <animate attributeName="opacity" values="0.25;0.06;0.25" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="400" r="2.5" fill="#ff5500" opacity="0.2" filter="url(#particleGlow)">
+    <animate attributeName="opacity" values="0.2;0.04;0.2" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Circuit nodes -->
+  <g stroke="#ff8c00" stroke-width="1" fill="none" opacity="0.08">
+    <path d="M256 80 L256 105"/>
+    <path d="M256 405 L256 430"/>
+    <path d="M80 258 L55 258"/>
+    <path d="M432 258 L457 258"/>
+    <circle cx="256" cy="80" r="2.5" fill="#ff8c00"/>
+    <circle cx="256" cy="430" r="2.5" fill="#ff8c00"/>
+    <circle cx="55" cy="258" r="2.5" fill="#ff8c00"/>
+    <circle cx="457" cy="258" r="2.5" fill="#ff8c00"/>
+  </g>
+
+  <!-- ====== YoYo-AI TOP BRAND ====== -->
+  <text x="256" y="148" text-anchor="middle" fill="url(#brandGrad)" font-family="'SF Pro Display', 'Helvetica Neue', sans-serif" font-size="38" font-weight="800" letter-spacing="-1">YoYoClaw</text>
+
+  <!-- ====== SHRUG KAOMOJI ¯\_(ツ)_/¯ ====== -->
+  <g filter="url(#textGlow)">
+    <!-- Left arm ¯\_ -->
+    <line x1="42" y1="248" x2="98" y2="248" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    <line x1="98" y1="248" x2="136" y2="308" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    <line x1="136" y1="318" x2="172" y2="318" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Right arm _/¯ -->
+    <line x1="340" y1="318" x2="376" y2="318" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    <line x1="376" y1="308" x2="414" y2="248" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    <line x1="414" y1="248" x2="470" y2="248" stroke="#ff8c00" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  </g>
+
+  <!-- Face container -->
+  <g filter="url(#outerGlow)">
+    <rect x="168" y="210" width="176" height="132" rx="32" ry="32" fill="#4a3522" stroke="#ff8c00" stroke-width="2" opacity="0.9"/>
+  </g>
+
+  <!-- ツ FACE — faithful to the katakana ツ -->
+  <g>
+    <!-- Left eye: small dot/tick going up-right (like ツ) -->
+    <circle cx="218" cy="260" r="5" fill="#ffaa00"/>
+    
+    <!-- Right eye: small dot/tick going up-right (like ツ) -->
+    <circle cx="294" cy="260" r="5" fill="#ffaa00"/>
+    
+    <!-- ツ mouth: wide happy smile curving upward -->
+    <path d="M220 288 Q256 318 292 288" stroke="#ffaa00" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Bottom: status -->
+  <g>
+    <circle cx="222" cy="448" r="4.5" fill="#ffaa00" opacity="0.85">
+      <animate attributeName="opacity" values="0.85;0.3;0.85" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="260" y="453" text-anchor="middle" fill="#8a7a5a" font-family="'SF Mono', 'Fira Code', monospace" font-size="14" letter-spacing="4">ONLINE</text>
+  </g>
+
+  <!-- Corner accents -->
+  <path d="M38 54 L38 38 L54 38" stroke="#ff8c00" stroke-width="1.5" fill="none" opacity="0.35"/>
+  <path d="M458 38 L474 38 L474 54" stroke="#ff8c00" stroke-width="1.5" fill="none" opacity="0.35"/>
+  <path d="M38 458 L38 474 L54 474" stroke="#ff8c00" stroke-width="1.5" fill="none" opacity="0.35"/>
+  <path d="M458 474 L474 474 L474 458" stroke="#ff8c00" stroke-width="1.5" fill="none" opacity="0.35"/>
 </svg>
