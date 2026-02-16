@@ -1,75 +1,75 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 :root {
-  /* Background - Warmer dark with depth */
-  --bg: #12141a;
-  --bg-accent: #14161d;
-  --bg-elevated: #1a1d25;
-  --bg-hover: #262a35;
-  --bg-muted: #262a35;
+  /* Background - Terminal dark */
+  --bg: #0d1117;
+  --bg-accent: #0d1117;
+  --bg-elevated: #21262d;
+  --bg-hover: #30363d;
+  --bg-muted: #30363d;
 
-  /* Card / Surface - More contrast between levels */
-  --card: #181b22;
-  --card-foreground: #f4f4f5;
+  /* Card / Surface */
+  --card: #161b22;
+  --card-foreground: #e6edf3;
   --card-highlight: rgba(255, 255, 255, 0.05);
-  --popover: #181b22;
-  --popover-foreground: #f4f4f5;
+  --popover: #161b22;
+  --popover-foreground: #e6edf3;
 
   /* Panel */
-  --panel: #12141a;
-  --panel-strong: #1a1d25;
-  --panel-hover: #262a35;
-  --chrome: rgba(18, 20, 26, 0.95);
-  --chrome-strong: rgba(18, 20, 26, 0.98);
+  --panel: #0d1117;
+  --panel-strong: #21262d;
+  --panel-hover: #30363d;
+  --chrome: rgba(13, 17, 23, 0.95);
+  --chrome-strong: rgba(13, 17, 23, 0.98);
 
-  /* Text - Slightly warmer */
-  --text: #e4e4e7;
-  --text-strong: #fafafa;
-  --chat-text: #e4e4e7;
-  --muted: #71717a;
-  --muted-strong: #52525b;
-  --muted-foreground: #71717a;
+  /* Text */
+  --text: #e6edf3;
+  --text-strong: #e6edf3;
+  --chat-text: #e6edf3;
+  --muted: #8b949e;
+  --muted-strong: #6e7681;
+  --muted-foreground: #8b949e;
 
-  /* Border - Subtle but defined */
-  --border: #27272a;
-  --border-strong: #3f3f46;
-  --border-hover: #52525b;
-  --input: #27272a;
-  --ring: #22d3ee;
+  /* Border */
+  --border: #30363d;
+  --border-strong: #484f58;
+  --border-hover: #6e7681;
+  --input: #30363d;
+  --ring: #e85d04;
 
-  /* Accent - Yoyo Dev cyan */
-  --accent: #22d3ee;
-  --accent-hover: #67e8f9;
-  --accent-muted: #22d3ee;
-  --accent-subtle: rgba(34, 211, 238, 0.15);
-  --accent-foreground: #0a0a0b;
-  --accent-glow: rgba(34, 211, 238, 0.25);
-  --primary: #22d3ee;
-  --primary-foreground: #0a0a0b;
+  /* Accent - Orange */
+  --accent: #e85d04;
+  --accent-hover: #fb923c;
+  --accent-muted: #e85d04;
+  --accent-subtle: rgba(232, 93, 4, 0.15);
+  --accent-foreground: #ffffff;
+  --accent-glow: rgba(232, 93, 4, 0.25);
+  --primary: #e85d04;
+  --primary-foreground: #ffffff;
 
-  /* Secondary - Yoyo Dev mauve accent */
-  --secondary: #1e2028;
-  --secondary-foreground: #f4f4f5;
-  --accent-2: #c084fc;
-  --accent-2-muted: rgba(192, 132, 252, 0.7);
-  --accent-2-subtle: rgba(192, 132, 252, 0.15);
+  /* Secondary - Gold accent */
+  --secondary: #161b22;
+  --secondary-foreground: #e6edf3;
+  --accent-2: #d29922;
+  --accent-2-muted: rgba(210, 153, 34, 0.7);
+  --accent-2-subtle: rgba(210, 153, 34, 0.15);
 
-  /* Semantic - More saturated */
+  /* Semantic */
   --ok: #22c55e;
   --ok-muted: rgba(34, 197, 94, 0.75);
   --ok-subtle: rgba(34, 197, 94, 0.12);
   --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
-  --warn: #f59e0b;
-  --warn-muted: rgba(245, 158, 11, 0.75);
-  --warn-subtle: rgba(245, 158, 11, 0.12);
+  --destructive-foreground: #e6edf3;
+  --warn: #d29922;
+  --warn-muted: rgba(210, 153, 34, 0.75);
+  --warn-subtle: rgba(210, 153, 34, 0.12);
   --danger: #ef4444;
   --danger-muted: rgba(239, 68, 68, 0.75);
   --danger-subtle: rgba(239, 68, 68, 0.12);
   --info: #3b82f6;
 
   /* Focus - With glow */
-  --focus: rgba(255, 92, 92, 0.25);
+  --focus: rgba(232, 93, 4, 0.25);
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring), 0 0 20px var(--accent-glow);
 
@@ -80,27 +80,28 @@
   --theme-switch-x: 50%;
   --theme-switch-y: 50%;
 
-  /* Typography - Space Grotesk for personality */
+  /* Typography - JetBrains Mono for terminal aesthetic */
   --mono:
     "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
-  --font-body: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
   --font-display:
-    "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
-  /* Shadows - Richer with subtle color */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.03);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.03);
-  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  /* Shadows - Darker terminal shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-lg: 0 8px 16px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
   --shadow-glow: 0 0 30px var(--accent-glow);
 
-  /* Radii - Slightly larger for friendlier feel */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* Radii - Tighter for terminal feel */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
   --radius-full: 9999px;
-  --radius: 8px;
+  --radius: 4px;
 
   /* Transitions - Snappy but smooth */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -113,68 +114,68 @@
   color-scheme: dark;
 }
 
-/* Light theme - Clean with subtle warmth */
+/* Light theme */
 :root[data-theme="light"] {
-  --bg: #fafafa;
-  --bg-accent: #f5f5f5;
+  --bg: #ffffff;
+  --bg-accent: #f6f8fa;
   --bg-elevated: #ffffff;
-  --bg-hover: #f0f0f0;
-  --bg-muted: #f0f0f0;
-  --bg-content: #f5f5f5;
+  --bg-hover: #f3f4f6;
+  --bg-muted: #f3f4f6;
+  --bg-content: #f6f8fa;
 
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #1f2328;
   --card-highlight: rgba(0, 0, 0, 0.03);
   --popover: #ffffff;
-  --popover-foreground: #18181b;
+  --popover-foreground: #1f2328;
 
-  --panel: #fafafa;
-  --panel-strong: #f5f5f5;
-  --panel-hover: #ebebeb;
-  --chrome: rgba(250, 250, 250, 0.95);
-  --chrome-strong: rgba(250, 250, 250, 0.98);
+  --panel: #f6f8fa;
+  --panel-strong: #eaeef2;
+  --panel-hover: #d0d7de;
+  --chrome: rgba(255, 255, 255, 0.95);
+  --chrome-strong: rgba(255, 255, 255, 0.98);
 
-  --text: #3f3f46;
-  --text-strong: #18181b;
-  --chat-text: #3f3f46;
-  --muted: #71717a;
-  --muted-strong: #52525b;
-  --muted-foreground: #71717a;
+  --text: #1f2328;
+  --text-strong: #1f2328;
+  --chat-text: #1f2328;
+  --muted: #656d76;
+  --muted-strong: #424a53;
+  --muted-foreground: #656d76;
 
-  --border: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --border-hover: #a1a1aa;
-  --input: #e4e4e7;
+  --border: #d0d7de;
+  --border-strong: #afb8c1;
+  --border-hover: #8c959f;
+  --input: #d0d7de;
 
-  --accent: #dc2626;
-  --accent-hover: #ef4444;
-  --accent-muted: #dc2626;
-  --accent-subtle: rgba(220, 38, 38, 0.12);
+  --accent: #d45500;
+  --accent-hover: #e85d04;
+  --accent-muted: #d45500;
+  --accent-subtle: rgba(232, 93, 4, 0.12);
   --accent-foreground: #ffffff;
-  --accent-glow: rgba(220, 38, 38, 0.15);
-  --primary: #dc2626;
+  --accent-glow: rgba(232, 93, 4, 0.15);
+  --primary: #d45500;
   --primary-foreground: #ffffff;
 
-  --secondary: #f4f4f5;
-  --secondary-foreground: #3f3f46;
-  --accent-2: #0d9488;
-  --accent-2-muted: rgba(13, 148, 136, 0.75);
-  --accent-2-subtle: rgba(13, 148, 136, 0.12);
+  --secondary: #f6f8fa;
+  --secondary-foreground: #1f2328;
+  --accent-2: #ca8a04;
+  --accent-2-muted: rgba(202, 138, 4, 0.75);
+  --accent-2-subtle: rgba(202, 138, 4, 0.12);
 
   --ok: #16a34a;
   --ok-muted: rgba(22, 163, 74, 0.75);
   --ok-subtle: rgba(22, 163, 74, 0.1);
   --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --warn: #d97706;
-  --warn-muted: rgba(217, 119, 6, 0.75);
-  --warn-subtle: rgba(217, 119, 6, 0.1);
+  --destructive-foreground: #ffffff;
+  --warn: #ca8a04;
+  --warn-muted: rgba(202, 138, 4, 0.75);
+  --warn-subtle: rgba(202, 138, 4, 0.1);
   --danger: #dc2626;
   --danger-muted: rgba(220, 38, 38, 0.75);
   --danger-subtle: rgba(220, 38, 38, 0.1);
   --info: #2563eb;
 
-  --focus: rgba(220, 38, 38, 0.2);
+  --focus: rgba(232, 93, 4, 0.2);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring), 0 0 16px var(--accent-glow);
 
   --grid-line: rgba(0, 0, 0, 0.05);
@@ -354,7 +355,7 @@ select {
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 rgba(255, 92, 92, 0);
+    box-shadow: 0 0 0 rgba(232, 93, 4, 0);
   }
   50% {
     box-shadow: 0 0 20px var(--accent-glow);
