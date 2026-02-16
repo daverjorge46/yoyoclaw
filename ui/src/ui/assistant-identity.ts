@@ -12,7 +12,11 @@ export type AssistantIdentity = {
 
 declare global {
   interface Window {
+    __YOYOCLAW_ASSISTANT_NAME__?: string;
+    __YOYOCLAW_ASSISTANT_AVATAR__?: string;
+    /** @deprecated Use __YOYOCLAW_ASSISTANT_NAME__ instead */
     __OPENCLAW_ASSISTANT_NAME__?: string;
+    /** @deprecated Use __YOYOCLAW_ASSISTANT_AVATAR__ instead */
     __OPENCLAW_ASSISTANT_AVATAR__?: string;
   }
 }
@@ -46,7 +50,7 @@ export function resolveInjectedAssistantIdentity(): AssistantIdentity {
     return normalizeAssistantIdentity({});
   }
   return normalizeAssistantIdentity({
-    name: window.__OPENCLAW_ASSISTANT_NAME__,
-    avatar: window.__OPENCLAW_ASSISTANT_AVATAR__,
+    name: window.__YOYOCLAW_ASSISTANT_NAME__ ?? window.__OPENCLAW_ASSISTANT_NAME__,
+    avatar: window.__YOYOCLAW_ASSISTANT_AVATAR__ ?? window.__OPENCLAW_ASSISTANT_AVATAR__,
   });
 }

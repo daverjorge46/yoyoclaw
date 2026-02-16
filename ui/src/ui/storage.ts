@@ -1,6 +1,16 @@
-const KEY = "openclaw.control.settings.v1";
+const KEY = "yoyoclaw.control.settings.v1";
+const LEGACY_KEY = "openclaw.control.settings.v1";
 
 import type { ThemeMode } from "./theme.ts";
+
+// One-time migration from legacy storage key
+try {
+  if (!localStorage.getItem(KEY) && localStorage.getItem(LEGACY_KEY)) {
+    localStorage.setItem(KEY, localStorage.getItem(LEGACY_KEY)!);
+  }
+} catch {
+  // best-effort
+}
 
 export type UiSettings = {
   gatewayUrl: string;

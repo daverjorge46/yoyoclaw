@@ -5,7 +5,20 @@ import {
   normalizeDeviceAuthScopes,
 } from "../../../src/shared/device-auth.js";
 
-const STORAGE_KEY = "openclaw.device.auth.v1";
+const STORAGE_KEY = "yoyoclaw.device.auth.v1";
+const LEGACY_STORAGE_KEY = "openclaw.device.auth.v1";
+
+// One-time migration from legacy storage key
+try {
+  if (
+    !window.localStorage.getItem(STORAGE_KEY) &&
+    window.localStorage.getItem(LEGACY_STORAGE_KEY)
+  ) {
+    window.localStorage.setItem(STORAGE_KEY, window.localStorage.getItem(LEGACY_STORAGE_KEY)!);
+  }
+} catch {
+  // best-effort
+}
 
 function readStore(): DeviceAuthStore | null {
   try {
