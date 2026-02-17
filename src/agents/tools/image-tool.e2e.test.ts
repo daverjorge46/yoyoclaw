@@ -153,7 +153,7 @@ describe("image tool implicit imageModel config", () => {
 
   it("allows workspace images outside default local media roots", async () => {
     const workspaceParent = await fs.mkdtemp(
-      path.join(process.cwd(), ".openclaw-workspace-image-"),
+      path.join(process.cwd(), ".yoyoclaw-workspace-image-"),
     );
     try {
       const workspaceDir = path.join(workspaceParent, "workspace");
@@ -222,7 +222,7 @@ describe("image tool implicit imageModel config", () => {
 
   it("allows workspace images via createOpenClawCodingTools default workspace root", async () => {
     const workspaceParent = await fs.mkdtemp(
-      path.join(process.cwd(), ".openclaw-workspace-image-"),
+      path.join(process.cwd(), ".yoyoclaw-workspace-image-"),
     );
     try {
       const workspaceDir = path.join(workspaceParent, "workspace");
@@ -352,7 +352,7 @@ describe("image tool implicit imageModel config", () => {
 
     const res = await tool.execute("t1", {
       prompt: "Describe the image.",
-      image: "@/Users/steipete/.openclaw/media/inbound/photo.png",
+      image: "@/Users/steipete/.yoyoclaw/media/inbound/photo.png",
     });
 
     expect(fetch).toHaveBeenCalledTimes(1);

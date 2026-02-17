@@ -237,7 +237,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
     }
     const stateDir = await initStateDir("state-lan-");
     process.env.OPENCLAW_STATE_DIR = stateDir;
-    process.env.OPENCLAW_CONFIG_PATH = path.join(stateDir, "openclaw.json");
+    process.env.OPENCLAW_CONFIG_PATH = path.join(stateDir, "yoyoclaw.json");
 
     const port = await getFreeGatewayPort();
     const workspace = path.join(stateDir, "openclaw");

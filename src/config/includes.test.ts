@@ -12,7 +12,7 @@ const CONFIG_DIR = path.join(ROOT_DIR, "config");
 const ETC_OPENCLAW_DIR = path.join(ROOT_DIR, "etc", "openclaw");
 const SHARED_DIR = path.join(ROOT_DIR, "shared");
 
-const DEFAULT_BASE_PATH = path.join(CONFIG_DIR, "openclaw.json");
+const DEFAULT_BASE_PATH = path.join(CONFIG_DIR, "yoyoclaw.json");
 
 function configPath(...parts: string[]) {
   return path.join(CONFIG_DIR, ...parts);
@@ -281,7 +281,7 @@ describe("resolveConfigIncludes", () => {
   it("resolves parent directory references", () => {
     const files = { [sharedPath("common.json")]: { shared: true } };
     const obj = { $include: "../../shared/common.json" };
-    expect(resolve(obj, files, configPath("sub", "openclaw.json"))).toEqual({
+    expect(resolve(obj, files, configPath("sub", "yoyoclaw.json"))).toEqual({
       shared: true,
     });
   });

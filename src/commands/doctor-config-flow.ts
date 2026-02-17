@@ -417,8 +417,8 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
     return changes;
   }
 
-  const targetDir = path.join(home, ".openclaw");
-  const targetPath = path.join(targetDir, "openclaw.json");
+  const targetDir = path.join(home, ".yoyoclaw");
+  const targetPath = path.join(targetDir, "yoyoclaw.json");
   try {
     await fs.access(targetPath);
     return changes;
@@ -427,6 +427,7 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
   }
 
   const legacyCandidates = [
+    path.join(home, ".yoyoclaw", "yoyoclaw.json"),
     path.join(home, ".clawdbot", "clawdbot.json"),
     path.join(home, ".moldbot", "moldbot.json"),
     path.join(home, ".moltbot", "moltbot.json"),

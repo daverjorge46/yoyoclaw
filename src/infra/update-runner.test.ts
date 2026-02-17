@@ -252,7 +252,7 @@ describe("runGatewayUpdate", () => {
   it("cleans stale npm rename dirs before global update", async () => {
     const nodeModules = path.join(tempDir, "node_modules");
     const pkgRoot = path.join(nodeModules, "openclaw");
-    const staleDir = path.join(nodeModules, ".openclaw-stale");
+    const staleDir = path.join(nodeModules, ".yoyoclaw-stale");
     await fs.mkdir(staleDir, { recursive: true });
     await fs.mkdir(pkgRoot, { recursive: true });
     await fs.writeFile(

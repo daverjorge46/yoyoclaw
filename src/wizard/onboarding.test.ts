@@ -81,7 +81,7 @@ vi.mock("./onboarding.completion.js", () => ({
 describe("runOnboardingWizard", () => {
   it("exits when config is invalid", async () => {
     readConfigFileSnapshot.mockResolvedValueOnce({
-      path: "/tmp/.openclaw/openclaw.json",
+      path: "/tmp/.yoyoclaw/yoyoclaw.json",
       exists: true,
       raw: "{}",
       parsed: {},

@@ -12,7 +12,7 @@ describe("config io write", () => {
 
   it("persists caller changes onto resolved config without leaking runtime defaults", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -53,7 +53,7 @@ describe("config io write", () => {
 
   it("preserves env var references when writing", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -112,7 +112,7 @@ describe("config io write", () => {
 
   it("does not reintroduce Slack/Discord legacy dm.policy defaults when writing", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -174,7 +174,7 @@ describe("config io write", () => {
 
   it("keeps env refs in arrays when appending entries", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -247,7 +247,7 @@ describe("config io write", () => {
 
   it("logs an overwrite audit entry when replacing an existing config file", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -309,8 +309,8 @@ describe("config io write", () => {
 
   it("appends config write audit JSONL entries with forensic metadata", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
-      const auditPath = path.join(home, ".openclaw", "logs", "config-audit.jsonl");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
+      const auditPath = path.join(home, ".yoyoclaw", "logs", "config-audit.jsonl");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,
@@ -354,8 +354,8 @@ describe("config io write", () => {
 
   it("records gateway watch session markers in config audit entries", async () => {
     await withTempHome("openclaw-config-io-", async (home) => {
-      const configPath = path.join(home, ".openclaw", "openclaw.json");
-      const auditPath = path.join(home, ".openclaw", "logs", "config-audit.jsonl");
+      const configPath = path.join(home, ".yoyoclaw", "yoyoclaw.json");
+      const auditPath = path.join(home, ".yoyoclaw", "logs", "config-audit.jsonl");
       await fs.mkdir(path.dirname(configPath), { recursive: true });
       await fs.writeFile(
         configPath,

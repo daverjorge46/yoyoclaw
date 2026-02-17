@@ -101,7 +101,7 @@ async function withOnboardEnv(
   delete process.env.CUSTOM_API_KEY;
 
   const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
-  const configPath = path.join(tempHome, "openclaw.json");
+  const configPath = path.join(tempHome, "yoyoclaw.json");
   process.env.HOME = tempHome;
   process.env.OPENCLAW_STATE_DIR = tempHome;
   process.env.OPENCLAW_CONFIG_PATH = configPath;

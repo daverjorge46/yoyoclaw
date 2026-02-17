@@ -101,7 +101,7 @@ async function setupGatewayTestHome() {
   tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gateway-home-"));
   process.env.HOME = tempHome;
   process.env.USERPROFILE = tempHome;
-  process.env.OPENCLAW_STATE_DIR = path.join(tempHome, ".openclaw");
+  process.env.OPENCLAW_STATE_DIR = path.join(tempHome, ".yoyoclaw");
   delete process.env.OPENCLAW_CONFIG_PATH;
 }
 
@@ -129,7 +129,7 @@ async function resetGatewayTestState(options: { uniqueConfigRoot: boolean }) {
   if (options.uniqueConfigRoot) {
     tempConfigRoot = await fs.mkdtemp(path.join(tempHome, "openclaw-test-"));
   } else {
-    tempConfigRoot = path.join(tempHome, ".openclaw-test");
+    tempConfigRoot = path.join(tempHome, ".yoyoclaw-test");
     await fs.rm(tempConfigRoot, { recursive: true, force: true });
     await fs.mkdir(tempConfigRoot, { recursive: true });
   }

@@ -15,7 +15,7 @@ async function withTempConfig(params: { cfg: unknown; run: () => Promise<void> }
   const prevDisableCache = process.env.OPENCLAW_DISABLE_CONFIG_CACHE;
 
   const dir = await mkdtemp(path.join(os.tmpdir(), "openclaw-canvas-auth-test-"));
-  const configPath = path.join(dir, "openclaw.json");
+  const configPath = path.join(dir, "yoyoclaw.json");
 
   process.env.OPENCLAW_CONFIG_PATH = configPath;
   process.env.OPENCLAW_DISABLE_CONFIG_CACHE = "1";
