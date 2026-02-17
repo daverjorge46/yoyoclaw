@@ -1,13 +1,13 @@
 ---
-summary: "Yoyo Claw is a local, security-hardened OpenClaw fork that powers the Yoyo AI Business and Personal AI Assistant."
+summary: "YoyoClaw is a local, security-hardened OpenClaw fork that powers the Yoyo AI Business and Personal AI Assistant."
 read_when:
-  - Introducing Yoyo Claw to newcomers
-title: "Yoyo Claw"
+  - Introducing YoyoClaw to newcomers
+title: "YoyoClaw"
 ---
 
-# Yoyo Claw
+# YoyoClaw
 
-> Local, security-hardened [OpenClaw](https://github.com/openclaw/openclaw) fork for **Yoyo Dev AI**.
+> Local, security-hardened [OpenClaw](https://github.com/daverjorge46/yoyoclaw) fork for **Yoyo Dev AI**.
 
 <p align="center">
   <strong>Multi-channel AI gateway across WhatsApp, Telegram, Discord, iMessage, and more.</strong><br />
@@ -26,13 +26,13 @@ title: "Yoyo Claw"
   </Card>
 </Columns>
 
-## What is Yoyo Claw?
+## What is YoyoClaw?
 
-Yoyo Claw is a locally-managed fork of [OpenClaw](https://openclaw.ai), the open-source personal AI assistant gateway. It serves as the engine behind **Yoyo AI**, the Business and Personal AI Assistant within the Yoyo Dev AI platform.
+YoyoClaw is a locally-managed fork of [OpenClaw](https://github.com/daverjorge46/yoyoclaw), the open-source personal AI assistant gateway. It serves as the engine behind **Yoyo AI**, the Business and Personal AI Assistant within the Yoyo Dev AI platform.
 
-**What Yoyo Claw adds over upstream OpenClaw:**
+**What YoyoClaw adds over upstream OpenClaw:**
 
-- **Local-first architecture** -- Config home at `~/.yoyo-claw/`, no global npm install required
+- **Local-first architecture** -- Config home at `~/.yoyoclaw/`, no global npm install required
 - **Security hardening** -- Audit logging, gateway token authentication
 - **Custom extensions** -- `yoyo-dev-bridge` (spec/task/fix tools), `yoyo-memory-sync` (Claude Code memory access)
 - **Custom skills** -- `yoyo/web-search`, `yoyo/token-usage`
@@ -85,24 +85,24 @@ The Gateway is the single source of truth for sessions, routing, and channel con
 ## Quick start
 
 <Steps>
-  <Step title="Build Yoyo Claw">
+  <Step title="Build YoyoClaw">
     ```bash
-    cd yoyo-claw && pnpm install --frozen-lockfile && pnpm build
+    cd yoyoclaw && pnpm install --frozen-lockfile && pnpm build
     ```
   </Step>
   <Step title="Start the Gateway">
     ```bash
-    node yoyo-claw/openclaw.mjs gateway --port 18789
+    node yoyoclaw/yoyoclaw.mjs gateway --port 18789
     ```
   </Step>
   <Step title="Pair channels">
     ```bash
-    node yoyo-claw/openclaw.mjs channels login
+    node yoyoclaw/yoyoclaw.mjs channels login
     ```
   </Step>
 </Steps>
 
-Default port: 18789. Config at `~/.yoyo-claw/openclaw.json`.
+Default port: 18789. Config at `~/.yoyoclaw/yoyoclaw.json`.
 
 ## Dashboard
 
@@ -114,7 +114,7 @@ Open the browser Control UI after the Gateway starts.
 
 ## Configuration
 
-Config lives at `~/.yoyo-claw/openclaw.json` (symlinked from `~/.openclaw` and `~/.yoyo-ai`).
+Config lives at `~/.yoyoclaw/yoyoclaw.json` (symlinked from `~/.yoyoclaw` and `~/.yoyo-ai`).
 
 Example:
 
@@ -168,7 +168,7 @@ Example:
   <Card title="Troubleshooting" href="/gateway/troubleshooting" icon="wrench">
     Gateway diagnostics and common errors.
   </Card>
-  <Card title="Based on OpenClaw" href="https://github.com/openclaw/openclaw" icon="info">
+  <Card title="Based on OpenClaw" href="https://github.com/daverjorge46/yoyoclaw" icon="info">
     Upstream project, contributors, and license.
   </Card>
 </Columns>

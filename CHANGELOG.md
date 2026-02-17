@@ -2,12 +2,12 @@
 
 Upstream docs: https://docs.openclaw.ai
 
-## Yoyo Claw Local Changes
+## YoyoClaw Local Changes
 
-The following changes are specific to the Yoyo Claw fork and are not part of upstream OpenClaw.
+The following changes are specific to the YoyoClaw fork and are not part of upstream OpenClaw.
 
-- **Local-first architecture** -- Config home moved to `~/.yoyo-claw/`, with symlinks from `~/.openclaw` and `~/.yoyo-ai`. No global npm install required; runs via `node openclaw.mjs` or the `yoyo_claw()` helper.
-- **Security hardening** -- Audit logging at `~/.yoyo-claw/audit.log`. Gateway token authentication via `~/.yoyo-claw/.gateway-token`.
+- **Local-first architecture** -- Config home moved to `~/.yoyoclaw/`, with symlinks from `~/.openclaw` and `~/.yoyo-ai`. No global npm install required; runs via `node yoyoclaw.mjs` or the `yoyo_claw()` helper.
+- **Security hardening** -- Audit logging at `~/.yoyoclaw/audit.log`. Gateway token authentication via `~/.yoyoclaw/.gateway-token`.
 - **Custom extensions** -- `yoyo-dev-bridge` (spec/task/fix tools for agent integration), `yoyo-memory-sync` (Claude Code memory access). Located in `extensions/`.
 - **Custom skills** -- `yoyo/web-search`, `yoyo/token-usage`. Located in `skills/yoyo/`.
 - **UI theming** -- Cyan/mauve palette customization applied in `ui/src/styles/base.css`.

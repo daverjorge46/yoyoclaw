@@ -24,11 +24,11 @@ Use this page for day-1 startup and day-2 operations of the Gateway service.
   <Step title="Start the Gateway">
 
 ```bash
-openclaw gateway --port 18789
+yoyoclaw gateway --port 18789
 # debug/trace mirrored to stdio
-openclaw gateway --port 18789 --verbose
+yoyoclaw gateway --port 18789 --verbose
 # force-kill listener on selected port, then start
-openclaw gateway --force
+yoyoclaw gateway --force
 ```
 
   </Step>
@@ -36,9 +36,9 @@ openclaw gateway --force
   <Step title="Verify service health">
 
 ```bash
-openclaw gateway status
-openclaw status
-openclaw logs --follow
+yoyoclaw gateway status
+yoyoclaw status
+yoyoclaw logs --follow
 ```
 
 Healthy baseline: `Runtime: running` and `RPC probe: ok`.
@@ -48,7 +48,7 @@ Healthy baseline: `Runtime: running` and `RPC probe: ok`.
   <Step title="Validate channel readiness">
 
 ```bash
-openclaw channels status --probe
+yoyoclaw channels status --probe
 ```
 
   </Step>
@@ -88,14 +88,14 @@ Default mode is `gateway.reload.mode="hybrid"`.
 ## Operator command set
 
 ```bash
-openclaw gateway status
-openclaw gateway status --deep
-openclaw gateway status --json
-openclaw gateway install
-openclaw gateway restart
-openclaw gateway stop
-openclaw logs --follow
-openclaw doctor
+yoyoclaw gateway status
+yoyoclaw gateway status --deep
+yoyoclaw gateway status --json
+yoyoclaw gateway install
+yoyoclaw gateway restart
+yoyoclaw gateway stop
+yoyoclaw logs --follow
+yoyoclaw doctor
 ```
 
 ## Remote access
@@ -123,22 +123,22 @@ Use supervised runs for production-like reliability.
   <Tab title="macOS (launchd)">
 
 ```bash
-openclaw gateway install
-openclaw gateway status
-openclaw gateway restart
-openclaw gateway stop
+yoyoclaw gateway install
+yoyoclaw gateway status
+yoyoclaw gateway restart
+yoyoclaw gateway stop
 ```
 
-LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>` (named profile). `openclaw doctor` audits and repairs service config drift.
+LaunchAgent labels are `ai.yoyoclaw.gateway` (default) or `ai.yoyoclaw.<profile>` (named profile). `yoyoclaw doctor` audits and repairs service config drift.
 
   </Tab>
 
   <Tab title="Linux (systemd user)">
 
 ```bash
-openclaw gateway install
-systemctl --user enable --now openclaw-gateway[-<profile>].service
-openclaw gateway status
+yoyoclaw gateway install
+systemctl --user enable --now yoyoclaw-gateway[-<profile>].service
+yoyoclaw gateway status
 ```
 
 For persistence after logout, enable lingering:
@@ -155,7 +155,7 @@ Use a system unit for multi-user/always-on hosts.
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now openclaw-gateway[-<profile>].service
+sudo systemctl enable --now yoyoclaw-gateway[-<profile>].service
 ```
 
   </Tab>
@@ -176,8 +176,8 @@ Checklist per instance:
 Example:
 
 ```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json OPENCLAW_STATE_DIR=~/.openclaw-a openclaw gateway --port 19001
-OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b openclaw gateway --port 19002
+OPENCLAW_CONFIG_PATH=~/.yoyoclaw/a.json OPENCLAW_STATE_DIR=~/.yoyoclaw-a yoyoclaw gateway --port 19001
+OPENCLAW_CONFIG_PATH=~/.yoyoclaw/b.json OPENCLAW_STATE_DIR=~/.yoyoclaw-b yoyoclaw gateway --port 19002
 ```
 
 See: [Multiple gateways](/gateway/multiple-gateways).
@@ -185,9 +185,9 @@ See: [Multiple gateways](/gateway/multiple-gateways).
 ### Dev profile quick path
 
 ```bash
-openclaw --dev setup
-openclaw --dev gateway --allow-unconfigured
-openclaw --dev status
+yoyoclaw --dev setup
+yoyoclaw --dev gateway --allow-unconfigured
+yoyoclaw --dev status
 ```
 
 Defaults include isolated state/config and base gateway port `19001`.
@@ -216,9 +216,9 @@ See full protocol docs: [Gateway Protocol](/gateway/protocol).
 ### Readiness
 
 ```bash
-openclaw gateway status
-openclaw channels status --probe
-openclaw health
+yoyoclaw gateway status
+yoyoclaw channels status --probe
+yoyoclaw health
 ```
 
 ### Gap recovery

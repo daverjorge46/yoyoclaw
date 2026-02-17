@@ -14,28 +14,28 @@ Use this page for scheduler and delivery issues (`cron` + `heartbeat`).
 ## Command ladder
 
 ```bash
-openclaw status
-openclaw gateway status
-openclaw logs --follow
-openclaw doctor
-openclaw channels status --probe
+yoyoclaw status
+yoyoclaw gateway status
+yoyoclaw logs --follow
+yoyoclaw doctor
+yoyoclaw channels status --probe
 ```
 
 Then run automation checks:
 
 ```bash
-openclaw cron status
-openclaw cron list
-openclaw system heartbeat last
+yoyoclaw cron status
+yoyoclaw cron list
+yoyoclaw system heartbeat last
 ```
 
 ## Cron not firing
 
 ```bash
-openclaw cron status
-openclaw cron list
-openclaw cron runs --id <jobId> --limit 20
-openclaw logs --follow
+yoyoclaw cron status
+yoyoclaw cron list
+yoyoclaw cron runs --id <jobId> --limit 20
+yoyoclaw logs --follow
 ```
 
 Good output looks like:
@@ -53,10 +53,10 @@ Common signatures:
 ## Cron fired but no delivery
 
 ```bash
-openclaw cron runs --id <jobId> --limit 20
-openclaw cron list
-openclaw channels status --probe
-openclaw logs --follow
+yoyoclaw cron runs --id <jobId> --limit 20
+yoyoclaw cron list
+yoyoclaw channels status --probe
+yoyoclaw logs --follow
 ```
 
 Good output looks like:
@@ -74,10 +74,10 @@ Common signatures:
 ## Heartbeat suppressed or skipped
 
 ```bash
-openclaw system heartbeat last
-openclaw logs --follow
-openclaw config get agents.defaults.heartbeat
-openclaw channels status --probe
+yoyoclaw system heartbeat last
+yoyoclaw logs --follow
+yoyoclaw config get agents.defaults.heartbeat
+yoyoclaw channels status --probe
 ```
 
 Good output looks like:
@@ -95,11 +95,11 @@ Common signatures:
 ## Timezone and activeHours gotchas
 
 ```bash
-openclaw config get agents.defaults.heartbeat.activeHours
-openclaw config get agents.defaults.heartbeat.activeHours.timezone
-openclaw config get agents.defaults.userTimezone || echo "agents.defaults.userTimezone not set"
-openclaw cron list
-openclaw logs --follow
+yoyoclaw config get agents.defaults.heartbeat.activeHours
+yoyoclaw config get agents.defaults.heartbeat.activeHours.timezone
+yoyoclaw config get agents.defaults.userTimezone || echo "agents.defaults.userTimezone not set"
+yoyoclaw cron list
+yoyoclaw logs --follow
 ```
 
 Quick rules:

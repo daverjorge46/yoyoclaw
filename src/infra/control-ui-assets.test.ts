@@ -123,11 +123,11 @@ describe("control UI assets helpers", () => {
   it("resolves dist control-ui index path from package root argv1", async () => {
     await withTempDir(async (tmp) => {
       await fs.writeFile(path.join(tmp, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(tmp, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(tmp, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(tmp, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(tmp, "dist", "control-ui", "index.html"), "<html></html>\n");
 
-      expect(await resolveControlUiDistIndexPath(path.join(tmp, "openclaw.mjs"))).toBe(
+      expect(await resolveControlUiDistIndexPath(path.join(tmp, "yoyoclaw.mjs"))).toBe(
         path.join(tmp, "dist", "control-ui", "index.html"),
       );
     });
@@ -136,11 +136,11 @@ describe("control UI assets helpers", () => {
   it("resolves control-ui root for package entrypoint argv1", async () => {
     await withTempDir(async (tmp) => {
       await fs.writeFile(path.join(tmp, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(tmp, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(tmp, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(tmp, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(tmp, "dist", "control-ui", "index.html"), "<html></html>\n");
 
-      expect(resolveControlUiRootSync({ argv1: path.join(tmp, "openclaw.mjs") })).toBe(
+      expect(resolveControlUiRootSync({ argv1: path.join(tmp, "yoyoclaw.mjs") })).toBe(
         path.join(tmp, "dist", "control-ui"),
       );
     });
@@ -166,11 +166,11 @@ describe("control UI assets helpers", () => {
     await withTempDir(async (tmp) => {
       // Package named "openclaw" but resolveOpenClawPackageRoot failed for other reasons
       await fs.writeFile(path.join(tmp, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(tmp, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(tmp, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(tmp, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(tmp, "dist", "control-ui", "index.html"), "<html></html>\n");
 
-      expect(await resolveControlUiDistIndexPath(path.join(tmp, "openclaw.mjs"))).toBe(
+      expect(await resolveControlUiDistIndexPath(path.join(tmp, "yoyoclaw.mjs"))).toBe(
         path.join(tmp, "dist", "control-ui", "index.html"),
       );
     });
@@ -228,11 +228,11 @@ describe("control UI assets helpers", () => {
       await fs.mkdir(realPkg, { recursive: true });
       await fs.mkdir(bin, { recursive: true });
       await fs.writeFile(path.join(realPkg, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(realPkg, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(realPkg, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(realPkg, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(realPkg, "dist", "control-ui", "index.html"), "<html></html>\n");
       const ok = await trySymlink(
-        path.join("..", "real-pkg", "openclaw.mjs"),
+        path.join("..", "real-pkg", "yoyoclaw.mjs"),
         path.join(bin, "openclaw"),
       );
       if (!ok) {
@@ -254,11 +254,11 @@ describe("control UI assets helpers", () => {
       await fs.mkdir(realPkg, { recursive: true });
       await fs.mkdir(bin, { recursive: true });
       await fs.writeFile(path.join(realPkg, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(realPkg, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(realPkg, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(realPkg, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(realPkg, "dist", "control-ui", "index.html"), "<html></html>\n");
       const ok = await trySymlink(
-        path.join("..", "real-pkg", "openclaw.mjs"),
+        path.join("..", "real-pkg", "yoyoclaw.mjs"),
         path.join(bin, "openclaw"),
       );
       if (!ok) {
@@ -278,11 +278,11 @@ describe("control UI assets helpers", () => {
       await fs.mkdir(realPkg, { recursive: true });
       await fs.mkdir(bin, { recursive: true });
       await fs.writeFile(path.join(realPkg, "package.json"), JSON.stringify({ name: "openclaw" }));
-      await fs.writeFile(path.join(realPkg, "openclaw.mjs"), "export {};\n");
+      await fs.writeFile(path.join(realPkg, "yoyoclaw.mjs"), "export {};\n");
       await fs.mkdir(path.join(realPkg, "dist", "control-ui"), { recursive: true });
       await fs.writeFile(path.join(realPkg, "dist", "control-ui", "index.html"), "<html></html>\n");
       const ok = await trySymlink(
-        path.join("..", "real-pkg", "openclaw.mjs"),
+        path.join("..", "real-pkg", "yoyoclaw.mjs"),
         path.join(bin, "openclaw"),
       );
       if (!ok) {

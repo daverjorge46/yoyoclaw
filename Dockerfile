@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 # Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
-ENV OPENCLAW_PREFER_PNPM=1
+ENV YOYOCLAW_PREFER_PNPM=1
 RUN pnpm ui:build
 
 # Remove dev dependencies and test files
@@ -39,30 +39,30 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN groupadd -r yoyo-claw && \
-    useradd -r -g yoyo-claw -m -d /home/yoyo-claw -s /bin/bash yoyo-claw
+RUN groupadd -r yoyoclaw && \
+    useradd -r -g yoyoclaw -m -d /home/yoyoclaw -s /bin/bash yoyoclaw
 
 WORKDIR /app
 
 # Copy built artifacts from builder
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/dist ./dist
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/node_modules ./node_modules
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/package.json ./package.json
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/openclaw.mjs ./openclaw.mjs
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/docs ./docs
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/extensions ./extensions
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/skills ./skills
-COPY --from=builder --chown=yoyo-claw:yoyo-claw /app/assets ./assets
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/dist ./dist
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/node_modules ./node_modules
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/package.json ./package.json
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/yoyoclaw.mjs ./yoyoclaw.mjs
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/docs ./docs
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/extensions ./extensions
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/skills ./skills
+COPY --from=builder --chown=yoyoclaw:yoyoclaw /app/assets ./assets
 
 ENV NODE_ENV=production
 
 # Create writable data directory
-RUN mkdir -p /home/yoyo-claw/.yoyo-claw && \
-    chown -R yoyo-claw:yoyo-claw /home/yoyo-claw/.yoyo-claw && \
-    ln -sf /home/yoyo-claw/.yoyo-claw /home/yoyo-claw/.openclaw
+RUN mkdir -p /home/yoyoclaw/.yoyoclaw && \
+    chown -R yoyoclaw:yoyoclaw /home/yoyoclaw/.yoyoclaw && \
+    ln -sf /home/yoyoclaw/.yoyoclaw /home/yoyoclaw/.openclaw
 
 # Security: run as non-root
-USER yoyo-claw
+USER yoyoclaw
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
@@ -75,4 +75,4 @@ ENTRYPOINT ["dumb-init", "--"]
 
 # Bind to loopback by default for security.
 # Override with: --bind lan --allow-public (requires explicit opt-in)
-CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
+CMD ["node", "yoyoclaw.mjs", "gateway", "--allow-unconfigured"]

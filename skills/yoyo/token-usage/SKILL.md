@@ -1,14 +1,7 @@
 ---
 name: yoyo-token-usage
 description: "Track and report API token usage and costs across models and sessions. Monitor spending and optimize model selection."
-metadata:
-  {
-    "openclaw":
-      {
-        "emoji": "📊",
-        "requires": {},
-      },
-  }
+metadata: { "openclaw": { "emoji": "📊", "requires": {} } }
 ---
 
 # Token Usage Tracker
@@ -30,12 +23,13 @@ Read the gateway's usage data from session files:
 
 ```bash
 # Count tokens in recent sessions
-find ~/.yoyo-claw/agents/*/sessions/ -name "*.jsonl" -mtime -1 -exec wc -l {} +
+find ~/.yoyoclaw/agents/*/sessions/ -name "*.jsonl" -mtime -1 -exec wc -l {} +
 ```
 
 ### Cost Estimation
 
 Use these approximate rates (per 1M tokens):
+
 - Claude Sonnet: $3 input / $15 output
 - Claude Opus: $15 input / $75 output
 - GPT-4o: $2.50 input / $10 output
@@ -44,6 +38,7 @@ Use these approximate rates (per 1M tokens):
 ### Daily Summary
 
 When asked about usage, check session logs and provide:
+
 1. Total messages today
 2. Estimated tokens used
 3. Breakdown by model

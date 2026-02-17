@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "Yoyo Claw",
+  "name": "YoyoClaw",
   "description": "Local, security-hardened OpenClaw fork for Yoyo Dev AI. Self-hosted gateway that connects WhatsApp, Telegram, Discord, iMessage, and more to AI agents. Powers the Yoyo AI Business and Personal AI Assistant.",
   "theme": "mint",
   "icons": {
@@ -36,12 +36,12 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/openclaw/openclaw",
+        "href": "https://github.com/daverjorge46/yoyoclaw",
         "icon": "github"
       },
       {
         "label": "Releases",
-        "href": "https://github.com/openclaw/openclaw/releases",
+        "href": "https://github.com/daverjorge46/yoyoclaw/releases",
         "icon": "package"
       }
     ]
@@ -261,15 +261,15 @@
     },
     {
       "source": "/clawd",
-      "destination": "/start/openclaw"
+      "destination": "/start/yoyoclaw"
     },
     {
       "source": "/start/clawd",
-      "destination": "/start/openclaw"
+      "destination": "/start/yoyoclaw"
     },
     {
       "source": "/start/clawd/",
-      "destination": "/start/openclaw"
+      "destination": "/start/yoyoclaw"
     },
     {
       "source": "/clawhub",
@@ -827,7 +827,7 @@
               },
               {
                 "group": "Guides",
-                "pages": ["start/openclaw"]
+                "pages": ["start/yoyoclaw"]
               }
             ]
           },
@@ -1338,7 +1338,7 @@
               },
               {
                 "group": "指南",
-                "pages": ["zh-CN/start/openclaw"]
+                "pages": ["zh-CN/start/yoyoclaw"]
               }
             ]
           },

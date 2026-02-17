@@ -1,15 +1,15 @@
-# `¯\_(ツ)_/¯` Yoyo Claw
+# `¯\_(ツ)_/¯` YoyoClaw
 
-Local, security-hardened OpenClaw fork for Yoyo Dev AI.
+Local, security-hardened AI gateway fork for Yoyo Dev AI.
 
-## What is Yoyo Claw
+## What is YoyoClaw
 
-Yoyo Claw is a locally-managed fork of [OpenClaw](https://github.com/openclaw/openclaw), the open-source personal AI assistant. Yoyo Claw serves as the engine behind **Yoyo AI**, the Business and Personal AI Assistant within the Yoyo Dev AI platform.
+YoyoClaw is a locally-managed fork of [OpenClaw](https://github.com/openclaw/openclaw), the open-source personal AI assistant. YoyoClaw serves as the engine behind **Yoyo AI**, the Business and Personal AI Assistant within the Yoyo Dev AI platform.
 
-## What Yoyo Claw Adds
+## What YoyoClaw Adds
 
-- **Local-first architecture** -- Config home at `~/.yoyo-claw/`, no global npm install required. Symlinked from `~/.openclaw` and `~/.yoyo-ai` for compatibility.
-- **Security hardening** -- Audit logging (`~/.yoyo-claw/audit.log`), gateway token authentication (`~/.yoyo-claw/.gateway-token`).
+- **Local-first architecture** -- Config home at `~/.yoyoclaw/`, no global npm install required. Symlinked from `~/.openclaw` and `~/.yoyo-ai` for compatibility.
+- **Security hardening** -- Audit logging (`~/.yoyoclaw/audit.log`), gateway token authentication (`~/.yoyoclaw/.gateway-token`).
 - **Custom extensions** -- `yoyo-dev-bridge` (spec/task/fix tools for agent integration), `yoyo-memory-sync` (Claude Code memory access).
 - **Custom skills** -- `yoyo/web-search`, `yoyo/token-usage`.
 - **Yoyo identity template** -- Default agent personality with warm, professional branding.
@@ -18,21 +18,21 @@ Yoyo Claw is a locally-managed fork of [OpenClaw](https://github.com/openclaw/op
 ## Quick Start
 
 ```bash
-cd yoyo-claw && pnpm install --frozen-lockfile && pnpm build
-node yoyo-claw/openclaw.mjs  # or use yoyo_claw() helper from setup/functions.sh
+cd yoyoclaw && pnpm install --frozen-lockfile && pnpm build
+node yoyoclaw/yoyoclaw.mjs  # or use yoyo_claw() helper from setup/functions.sh
 ```
 
 Default port: **18789**
 
 ## Key Paths
 
-| Path                                 | Purpose                      |
-| ------------------------------------ | ---------------------------- |
-| `~/.yoyo-claw/openclaw.json`         | Configuration                |
-| `~/.yoyo-claw/agents/main/sessions/` | Session data                 |
-| `~/.yoyo-claw/workspace-yoyo/`       | Workspace                    |
-| `~/.yoyo-claw/.gateway-token`        | Gateway authentication token |
-| `~/.yoyo-claw/audit.log`             | Security audit log           |
+| Path                                | Purpose                      |
+| ----------------------------------- | ---------------------------- |
+| `~/.yoyoclaw/yoyoclaw.json`         | Configuration                |
+| `~/.yoyoclaw/agents/main/sessions/` | Session data                 |
+| `~/.yoyoclaw/workspace-yoyo/`       | Workspace                    |
+| `~/.yoyoclaw/.gateway-token`        | Gateway authentication token |
+| `~/.yoyoclaw/audit.log`             | Security audit log           |
 
 ## Channels Supported
 
@@ -42,7 +42,7 @@ Extension channels (via plugins): BlueBubbles, Matrix, Zalo, Zalo Personal, LINE
 
 ## Based on OpenClaw
 
-Yoyo Claw is built on top of [OpenClaw](https://github.com/openclaw/openclaw) ([openclaw.ai](https://openclaw.ai)). Full credit to the OpenClaw maintainers and contributors for the upstream project.
+YoyoClaw is built on top of [OpenClaw](https://github.com/openclaw/openclaw). Full credit to the OpenClaw maintainers and contributors for the upstream project.
 
 Internal reference documentation in `docs/` mirrors upstream for compatibility. For upstream documentation, see [docs.openclaw.ai](https://docs.openclaw.ai).
 
