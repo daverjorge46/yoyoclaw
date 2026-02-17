@@ -63,7 +63,7 @@ function setTempHome(base: string) {
   process.env.USERPROFILE = base;
   // Ensure tests using HOME isolation aren't affected by leaked OPENCLAW_HOME.
   delete process.env.OPENCLAW_HOME;
-  process.env.OPENCLAW_STATE_DIR = path.join(base, ".openclaw");
+  process.env.OPENCLAW_STATE_DIR = path.join(base, ".yoyoclaw");
 
   if (process.platform !== "win32") {
     return;
