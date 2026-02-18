@@ -165,25 +165,23 @@ install_and_build() {
 
 # ── Link globally ───────────────────────────────────────────────────
 ensure_pnpm_home() {
-  # pnpm link --global requires PNPM_HOME / global-bin-dir to be set.
-  # If missing, run `pnpm setup` and source the resulting shell config.
+  # pnpm link --global requires PNPM_HOME to be set and the directory to exist.
+  # Always ensure this, regardless of what pnpm thinks it knows.
   if [ -n "${PNPM_HOME:-}" ] && [ -d "$PNPM_HOME" ]; then
+    ok "PNPM_HOME already set to $PNPM_HOME"
     return 0
   fi
 
-  # Check if pnpm already knows its global bin dir
-  if pnpm bin -g >/dev/null 2>&1; then
-    return 0
-  fi
+  info "Configuring pnpm global bin directory..."
 
-  info "Configuring pnpm global bin directory (pnpm setup)..."
-  pnpm setup 2>/dev/null || true
-
-  # pnpm setup writes to shell rc files; source the env it sets.
-  # It always uses $HOME/.local/share/pnpm as PNPM_HOME.
+  # Set PNPM_HOME to the standard location
   export PNPM_HOME="${HOME}/.local/share/pnpm"
-  export PATH="$PNPM_HOME:$PATH"
   mkdir -p "$PNPM_HOME"
+  export PATH="$PNPM_HOME:$PATH"
+
+  # Run pnpm setup to persist PNPM_HOME into shell rc files for future sessions
+  pnpm setup 2>&1 | grep -v "ERR_PNPM" || true
+
   ok "PNPM_HOME set to $PNPM_HOME"
 }
 
