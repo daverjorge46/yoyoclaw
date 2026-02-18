@@ -84,3 +84,12 @@ USER.md
 !.agent/workflows/
 /local/
 package-lock.json
+
+# Yoyo Dev
+.yoyo-dev/product/
+.yoyo-dev/specs/
+.yoyo-dev/fixes/
+.yoyo-dev/recaps/
+.yoyo-dev/memory/
+.yoyo-dev/.tui-session.json
+.yoyo-dev/tui-errors.log

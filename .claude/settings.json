@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "user_prompt_submit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/orchestrate.cjs \"$PROMPT\""
+          }
+        ]
+      }
+    ]
+  }
+}

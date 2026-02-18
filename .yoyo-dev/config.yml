@@ -1,0 +1,27 @@
+# Yoyo Dev Configuration
+yoyo_dev_version: 7.0.0
+base_installation: /home/yoga999/.yoyo-dev
+
+agents:
+  claude_code:
+    enabled: true
+  cursor:
+    enabled: false
+
+# Project Tech Stack
+tech_stack:
+  framework: "react-typescript"
+  database: "none"
+  styling: "tailwindcss"
+
+# Orchestration
+orchestration:
+  enabled: true
+  global_mode: true
+  confidence_threshold: 0.6
+
+# Backend API (for browser GUI)
+backend:
+  enabled: true
+  port: 3457
+  host: "localhost"
