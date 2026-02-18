@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-Yoyo Claw is a local, security-hardened fork of OpenClaw maintained within the Yoyo Dev AI project. The guidelines below are inherited from upstream and adapted for local development.
+YoyoClaw is a local, security-hardened fork of OpenClaw maintained within the Yoyo Dev AI project. The guidelines below are inherited from upstream and adapted for local development.
 
 - Upstream repo: https://github.com/openclaw/openclaw
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
