@@ -23,21 +23,21 @@ describe("resolveSystemdUserUnitPath", () => {
   it("uses default service name when OPENCLAW_PROFILE is default", () => {
     const env = { HOME: "/home/test", OPENCLAW_PROFILE: "default" };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway.service",
     );
   });
 
   it("uses default service name when OPENCLAW_PROFILE is unset", () => {
     const env = { HOME: "/home/test" };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway.service",
     );
   });
 
   it("uses profile-specific service name when OPENCLAW_PROFILE is set to a custom value", () => {
     const env = { HOME: "/home/test", OPENCLAW_PROFILE: "jbphoenix" };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway-jbphoenix.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway-jbphoenix.service",
     );
   });
 
@@ -75,21 +75,21 @@ describe("resolveSystemdUserUnitPath", () => {
   it("handles case-insensitive 'Default' profile", () => {
     const env = { HOME: "/home/test", OPENCLAW_PROFILE: "Default" };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway.service",
     );
   });
 
   it("handles case-insensitive 'DEFAULT' profile", () => {
     const env = { HOME: "/home/test", OPENCLAW_PROFILE: "DEFAULT" };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway.service",
     );
   });
 
   it("trims whitespace from OPENCLAW_PROFILE", () => {
     const env = { HOME: "/home/test", OPENCLAW_PROFILE: "  myprofile  " };
     expect(resolveSystemdUserUnitPath(env)).toBe(
-      "/home/test/.config/systemd/user/openclaw-gateway-myprofile.service",
+      "/home/test/.config/systemd/user/yoyoclaw-gateway-myprofile.service",
     );
   });
 });

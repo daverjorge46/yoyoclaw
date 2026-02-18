@@ -175,10 +175,14 @@ async function assertSystemdAvailable() {
     return;
   }
   const detail = res.stderr || res.stdout;
+  const hint =
+    "\n\nAlternatives:" +
+    "\n  - Run the gateway in foreground mode: yoyoclaw gateway run" +
+    "\n  - Enable user services: loginctl enable-linger $USER (then retry)";
   if (detail.toLowerCase().includes("not found")) {
-    throw new Error("systemctl not available; systemd user services are required on Linux.");
+    throw new Error("systemctl not available; systemd user services are required on Linux." + hint);
   }
-  throw new Error(`systemctl --user unavailable: ${detail || "unknown error"}`.trim());
+  throw new Error(`systemctl --user unavailable: ${detail || "unknown error"}`.trim() + hint);
 }
 
 export async function installSystemdService({
