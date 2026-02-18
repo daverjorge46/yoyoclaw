@@ -164,40 +164,36 @@ install_and_build() {
 }
 
 # ── Link globally ───────────────────────────────────────────────────
-ensure_pnpm_home() {
-  # pnpm link --global requires PNPM_HOME to be set and the directory to exist.
-  # Always ensure this, regardless of what pnpm thinks it knows.
-  if [ -n "${PNPM_HOME:-}" ] && [ -d "$PNPM_HOME" ]; then
-    ok "PNPM_HOME already set to $PNPM_HOME"
-    return 0
-  fi
+link_global() {
+  info "Linking yoyoclaw globally..."
 
-  info "Configuring pnpm global bin directory..."
-
-  # Set PNPM_HOME to the standard location
-  export PNPM_HOME="${HOME}/.local/share/pnpm"
+  # Ensure PNPM_HOME is set and the directory exists — required for pnpm link --global.
+  export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
   mkdir -p "$PNPM_HOME"
   export PATH="$PNPM_HOME:$PATH"
 
-  # Run pnpm setup to persist PNPM_HOME into shell rc files for future sessions
-  pnpm setup 2>&1 | grep -v "ERR_PNPM" || true
+  # Persist PNPM_HOME into shell rc files for future sessions.
+  pnpm setup 2>/dev/null || true
 
-  ok "PNPM_HOME set to $PNPM_HOME"
-}
-
-link_global() {
-  ensure_pnpm_home
-
-  info "Linking yoyoclaw globally..."
-  (cd "$CLONE_DIR" && pnpm link --global)
-  ok "yoyoclaw linked globally"
+  # Try pnpm link --global; fall back to a manual symlink if it fails.
+  if (cd "$CLONE_DIR" && pnpm link --global) 2>/dev/null; then
+    ok "yoyoclaw linked globally via pnpm"
+  else
+    warn "pnpm link --global failed — creating manual symlink instead"
+    local bin_dir="$HOME/.local/bin"
+    mkdir -p "$bin_dir"
+    ln -sf "$CLONE_DIR/yoyoclaw.mjs" "$bin_dir/yoyoclaw"
+    chmod +x "$bin_dir/yoyoclaw"
+    export PATH="$bin_dir:$PATH"
+    ok "yoyoclaw symlinked to $bin_dir/yoyoclaw"
+  fi
 
   if require_cmd yoyoclaw; then
-    ok "yoyoclaw is now available in PATH"
+    ok "yoyoclaw is now available in PATH: $(command -v yoyoclaw)"
   else
-    warn "yoyoclaw binary not found in PATH after linking."
-    warn "You may need to add pnpm's global bin to your PATH:"
-    warn "  export PATH=\"${PNPM_HOME:-\$(pnpm bin -g)}:\$PATH\""
+    warn "yoyoclaw not found in PATH. Add one of these to your shell profile:"
+    warn "  export PATH=\"$PNPM_HOME:\$PATH\""
+    warn "  export PATH=\"$HOME/.local/bin:\$PATH\""
   fi
 }
 
