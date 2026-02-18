@@ -10,9 +10,9 @@ import {
 installPwToolsCoreTestHooks();
 const sessionMocks = getPwToolsCoreSessionMocks();
 const tmpDirMocks = vi.hoisted(() => ({
-  resolvePreferredOpenClawTmpDir: vi.fn(() => "/tmp/openclaw"),
+  resolvePreferredYoyoClawTmpDir: vi.fn(() => "/tmp/yoyoclaw"),
 }));
-vi.mock("../infra/tmp-openclaw-dir.js", () => tmpDirMocks);
+vi.mock("../infra/tmp-yoyoclaw-dir.js", () => tmpDirMocks);
 const mod = await import("./pw-tools-core.js");
 
 describe("pw-tools-core", () => {
@@ -20,7 +20,7 @@ describe("pw-tools-core", () => {
     for (const fn of Object.values(tmpDirMocks)) {
       fn.mockClear();
     }
-    tmpDirMocks.resolvePreferredOpenClawTmpDir.mockReturnValue("/tmp/openclaw");
+    tmpDirMocks.resolvePreferredYoyoClawTmpDir.mockReturnValue("/tmp/yoyoclaw");
   });
 
   it("waits for the next download and saves it", async () => {
@@ -113,7 +113,7 @@ describe("pw-tools-core", () => {
       saveAs,
     };
 
-    tmpDirMocks.resolvePreferredOpenClawTmpDir.mockReturnValue("/tmp/openclaw-preferred");
+    tmpDirMocks.resolvePreferredYoyoClawTmpDir.mockReturnValue("/tmp/yoyoclaw-preferred");
     setPwToolsCoreCurrentPage({ on, off });
 
     const p = mod.waitForDownloadViaPlaywright({
@@ -131,14 +131,14 @@ describe("pw-tools-core", () => {
     const expectedRootedDownloadsDir = path.join(
       path.sep,
       "tmp",
-      "openclaw-preferred",
+      "yoyoclaw-preferred",
       "downloads",
     );
-    const expectedDownloadsTail = `${path.join("tmp", "openclaw-preferred", "downloads")}${path.sep}`;
+    const expectedDownloadsTail = `${path.join("tmp", "yoyoclaw-preferred", "downloads")}${path.sep}`;
     expect(path.dirname(String(outPath))).toBe(expectedRootedDownloadsDir);
     expect(path.basename(String(outPath))).toMatch(/-file\.bin$/);
     expect(path.normalize(res.path)).toContain(path.normalize(expectedDownloadsTail));
-    expect(tmpDirMocks.resolvePreferredOpenClawTmpDir).toHaveBeenCalled();
+    expect(tmpDirMocks.resolvePreferredYoyoClawTmpDir).toHaveBeenCalled();
   });
 
   it("sanitizes suggested download filenames to prevent traversal escapes", async () => {
@@ -157,7 +157,7 @@ describe("pw-tools-core", () => {
       saveAs,
     };
 
-    tmpDirMocks.resolvePreferredOpenClawTmpDir.mockReturnValue("/tmp/openclaw-preferred");
+    tmpDirMocks.resolvePreferredYoyoClawTmpDir.mockReturnValue("/tmp/yoyoclaw-preferred");
     setPwToolsCoreCurrentPage({ on, off });
 
     const p = mod.waitForDownloadViaPlaywright({
@@ -173,11 +173,11 @@ describe("pw-tools-core", () => {
     const outPath = vi.mocked(saveAs).mock.calls[0]?.[0];
     expect(typeof outPath).toBe("string");
     expect(path.dirname(String(outPath))).toBe(
-      path.join(path.sep, "tmp", "openclaw-preferred", "downloads"),
+      path.join(path.sep, "tmp", "yoyoclaw-preferred", "downloads"),
     );
     expect(path.basename(String(outPath))).toMatch(/-passwd$/);
     expect(path.normalize(res.path)).toContain(
-      path.normalize(`${path.join("tmp", "openclaw-preferred", "downloads")}${path.sep}`),
+      path.normalize(`${path.join("tmp", "yoyoclaw-preferred", "downloads")}${path.sep}`),
     );
   });
   it("waits for a matching response and returns its body", async () => {

@@ -4,12 +4,12 @@ import path from "node:path";
 import { Logger as TsLogger } from "tslog";
 import type { OpenClawConfig } from "../config/types.js";
 import type { ConsoleStyle } from "./console.js";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredYoyoClawTmpDir } from "../infra/tmp-yoyoclaw-dir.js";
 import { readLoggingConfig } from "./config.js";
 import { type LogLevel, levelToMinLevel, normalizeLogLevel } from "./levels.js";
 import { loggingState } from "./state.js";
 
-export const DEFAULT_LOG_DIR = resolvePreferredOpenClawTmpDir();
+export const DEFAULT_LOG_DIR = resolvePreferredYoyoClawTmpDir();
 export const DEFAULT_LOG_FILE = path.join(DEFAULT_LOG_DIR, "openclaw.log"); // legacy single-file path
 
 const LOG_PREFIX = "openclaw";
