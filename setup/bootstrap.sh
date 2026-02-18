@@ -144,7 +144,11 @@ clone_repo() {
 # ── Build ────────────────────────────────────────────────────────────
 install_and_build() {
   info "Installing dependencies..."
-  (cd "$CLONE_DIR" && pnpm install --frozen-lockfile)
+  if [ -f "$CLONE_DIR/pnpm-lock.yaml" ]; then
+    (cd "$CLONE_DIR" && pnpm install --frozen-lockfile)
+  else
+    (cd "$CLONE_DIR" && pnpm install)
+  fi
   ok "Dependencies installed"
 
   info "Building YoyoClaw..."
@@ -160,7 +164,32 @@ install_and_build() {
 }
 
 # ── Link globally ───────────────────────────────────────────────────
+ensure_pnpm_home() {
+  # pnpm link --global requires PNPM_HOME / global-bin-dir to be set.
+  # If missing, run `pnpm setup` and source the resulting shell config.
+  if [ -n "${PNPM_HOME:-}" ] && [ -d "$PNPM_HOME" ]; then
+    return 0
+  fi
+
+  # Check if pnpm already knows its global bin dir
+  if pnpm bin -g >/dev/null 2>&1; then
+    return 0
+  fi
+
+  info "Configuring pnpm global bin directory (pnpm setup)..."
+  pnpm setup 2>/dev/null || true
+
+  # pnpm setup writes to shell rc files; source the env it sets.
+  # It always uses $HOME/.local/share/pnpm as PNPM_HOME.
+  export PNPM_HOME="${HOME}/.local/share/pnpm"
+  export PATH="$PNPM_HOME:$PATH"
+  mkdir -p "$PNPM_HOME"
+  ok "PNPM_HOME set to $PNPM_HOME"
+}
+
 link_global() {
+  ensure_pnpm_home
+
   info "Linking yoyoclaw globally..."
   (cd "$CLONE_DIR" && pnpm link --global)
   ok "yoyoclaw linked globally"
@@ -170,7 +199,7 @@ link_global() {
   else
     warn "yoyoclaw binary not found in PATH after linking."
     warn "You may need to add pnpm's global bin to your PATH:"
-    warn "  export PATH=\"\$(pnpm bin -g):\$PATH\""
+    warn "  export PATH=\"${PNPM_HOME:-\$(pnpm bin -g)}:\$PATH\""
   fi
 }
 
