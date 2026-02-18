@@ -3,10 +3,14 @@ import { fileURLToPath } from "node:url";
 import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
 import { pathExists } from "../utils.js";
 
-const FALLBACK_TEMPLATE_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../docs/reference/templates",
-);
+// Compute fallback paths relative to this module's location.
+// In source: src/agents/workspace-templates.ts → ../../docs = yoyoclaw/docs (correct)
+// In bundle: dist/workspace-*.js            → ../docs  = yoyoclaw/docs (correct)
+const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const FALLBACK_TEMPLATE_DIRS = [
+  path.resolve(__moduleDir, "../docs/reference/templates"),
+  path.resolve(__moduleDir, "../../docs/reference/templates"),
+];
 
 let cachedTemplateDir: string | undefined;
 let resolvingTemplateDir: Promise<string> | undefined;
@@ -31,8 +35,7 @@ export async function resolveWorkspaceTemplateDir(opts?: {
     const packageRoot = await resolveOpenClawPackageRoot({ moduleUrl, argv1, cwd });
     const candidates = [
       packageRoot ? path.join(packageRoot, "docs", "reference", "templates") : null,
-      cwd ? path.resolve(cwd, "docs", "reference", "templates") : null,
-      FALLBACK_TEMPLATE_DIR,
+      ...FALLBACK_TEMPLATE_DIRS,
     ].filter(Boolean) as string[];
 
     for (const candidate of candidates) {
@@ -42,7 +45,7 @@ export async function resolveWorkspaceTemplateDir(opts?: {
       }
     }
 
-    cachedTemplateDir = candidates[0] ?? FALLBACK_TEMPLATE_DIR;
+    cachedTemplateDir = candidates[0] ?? FALLBACK_TEMPLATE_DIRS[0];
     return cachedTemplateDir;
   })();
 
