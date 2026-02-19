@@ -16,7 +16,7 @@ const readConfigFileSnapshot = vi.hoisted(() =>
   vi.fn(async () => ({ exists: false, valid: true, config: {} })),
 );
 const ensureSystemdUserLingerInteractive = vi.hoisted(() => vi.fn(async () => {}));
-const isSystemdUserServiceAvailable = vi.hoisted(() => vi.fn(async () => true));
+const isSystemdBooted = vi.hoisted(() => vi.fn(() => true));
 const ensureControlUiAssetsBuilt = vi.hoisted(() => vi.fn(async () => ({ ok: true })));
 const runTui = vi.hoisted(() => vi.fn(async () => {}));
 const setupOnboardingShellCompletion = vi.hoisted(() => vi.fn(async () => {}));
@@ -63,7 +63,7 @@ vi.mock("../commands/systemd-linger.js", () => ({
 }));
 
 vi.mock("../daemon/systemd.js", () => ({
-  isSystemdUserServiceAvailable,
+  isSystemdBooted,
 }));
 
 vi.mock("../infra/control-ui-assets.js", () => ({

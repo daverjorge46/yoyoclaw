@@ -1,7 +1,7 @@
 import type { GatewayService } from "../../daemon/service.js";
 import { resolveIsNixMode } from "../../config/paths.js";
 import { renderSystemdUnavailableHints } from "../../daemon/systemd-hints.js";
-import { isSystemdUserServiceAvailable } from "../../daemon/systemd.js";
+import { isSystemdBooted } from "../../daemon/systemd.js";
 import { isWSL } from "../../infra/wsl.js";
 import { defaultRuntime } from "../../runtime.js";
 import {
@@ -19,7 +19,7 @@ async function maybeAugmentSystemdHints(hints: string[]): Promise<string[]> {
   if (process.platform !== "linux") {
     return hints;
   }
-  const systemdAvailable = await isSystemdUserServiceAvailable().catch(() => false);
+  const systemdAvailable = isSystemdBooted();
   if (systemdAvailable) {
     return hints;
   }

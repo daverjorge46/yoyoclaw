@@ -1,7 +1,7 @@
 import type { RuntimeEnv } from "../runtime.js";
 import {
   enableSystemdUserLinger,
-  isSystemdUserServiceAvailable,
+  isSystemdBooted,
   readSystemdUserLingerStatus,
 } from "../daemon/systemd.js";
 import { note } from "../terminal/note.js";
@@ -104,7 +104,7 @@ export async function ensureSystemdUserLingerNonInteractive(params: {
     return;
   }
   const env = params.env ?? process.env;
-  if (!(await isSystemdUserServiceAvailable())) {
+  if (!isSystemdBooted()) {
     return;
   }
   const status = await readSystemdUserLingerStatus(env);

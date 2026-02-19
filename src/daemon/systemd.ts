@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayServiceRuntime } from "./service-runtime.js";
@@ -47,6 +48,19 @@ export function resolveSystemdUserUnitPath(env: Record<string, string | undefine
 
 export { enableSystemdUserLinger, readSystemdUserLingerStatus };
 export type { SystemdUserLingerStatus };
+
+/**
+ * Checks whether systemd is the init system by testing for /run/systemd/system.
+ * This does NOT require the user D-Bus, so it works even when the user manager
+ * hasn't started yet (the exact scenario where linger needs to be enabled).
+ */
+export function isSystemdBooted(): boolean {
+  try {
+    return fsSync.statSync("/run/systemd/system").isDirectory();
+  } catch {
+    return false;
+  }
+}
 
 // Unit file parsing/rendering: see systemd-unit.ts
 
@@ -181,24 +195,40 @@ function ensureXdgRuntimeDir(): void {
 
 async function assertSystemdAvailable() {
   ensureXdgRuntimeDir();
-  const maxAttempts = 3;
+  const maxAttempts = 5;
   let lastDetail = "";
+  let lingerAttempted = false;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const res = await execSystemctl(["--user", "status"]);
     if (res.code === 0) {
       return;
     }
     lastDetail = res.stderr || res.stdout;
-    if (lastDetail.toLowerCase().includes("not found")) {
+    const detail = lastDetail.toLowerCase();
+    if (detail.includes("not found")) {
       break;
     }
-    // Bus may not be ready yet (e.g. linger was just enabled and the
-    // user manager is still starting).  Wait briefly before retrying.
-    if (attempt < maxAttempts - 1 && lastDetail.toLowerCase().includes("failed to connect")) {
-      await new Promise((resolve) => setTimeout(resolve, 2_000));
-    } else {
-      break;
+    if (detail.includes("failed to connect") || detail.includes("permission denied")) {
+      // On the first bus failure, try enabling linger so the user manager starts.
+      // loginctl talks to the system bus, so it works even without the user bus.
+      if (!lingerAttempted && isSystemdBooted()) {
+        lingerAttempted = true;
+        const user = process.env.USER?.trim() || process.env.LOGNAME?.trim() || undefined;
+        if (user) {
+          // Try without sudo first, then with non-interactive sudo.
+          const noSudo = await enableSystemdUserLinger({ env: process.env, user });
+          if (!noSudo.ok) {
+            await enableSystemdUserLinger({ env: process.env, user, sudoMode: "non-interactive" });
+          }
+        }
+      }
+      if (attempt < maxAttempts - 1) {
+        // Increasing delay: 2s, 3s, 4s, 5s to give the user manager time to start.
+        await new Promise((resolve) => setTimeout(resolve, 2_000 + attempt * 1_000));
+        continue;
+      }
     }
+    break;
   }
   const hint =
     "\n\nAlternatives:" +

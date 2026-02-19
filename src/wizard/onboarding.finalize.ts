@@ -26,7 +26,7 @@ import {
   resolveControlUiLinks,
 } from "../commands/onboard-helpers.js";
 import { resolveGatewayService } from "../daemon/service.js";
-import { isSystemdUserServiceAvailable } from "../daemon/systemd.js";
+import { isSystemdBooted } from "../daemon/systemd.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
 import { restoreTerminalState } from "../terminal/restore.js";
 import { runTui } from "../tui/tui.js";
@@ -62,11 +62,10 @@ export async function finalizeOnboardingWizard(
     }
   };
 
-  const systemdAvailable =
-    process.platform === "linux" ? await isSystemdUserServiceAvailable() : true;
+  const systemdAvailable = process.platform === "linux" ? isSystemdBooted() : true;
   if (process.platform === "linux" && !systemdAvailable) {
     await prompter.note(
-      "Systemd user services are unavailable. Skipping lingering checks and service install.",
+      "Systemd is not the init system. Skipping lingering checks and service install.",
       "Systemd",
     );
   }
