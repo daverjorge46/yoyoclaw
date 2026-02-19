@@ -5,6 +5,7 @@ import {
   ensureCompletionCacheExists,
 } from "../../commands/doctor-completion.js";
 import { doctorCommand } from "../../commands/doctor.js";
+import { ensureSystemdUserLingerInteractive } from "../../commands/systemd-linger.js";
 import { readConfigFileSnapshot, writeConfigFile } from "../../config/config.js";
 import {
   channelToNpmTag,
@@ -390,6 +391,14 @@ async function maybeRestartService(params: {
   opts: UpdateCommandOptions;
 }): Promise<void> {
   if (params.shouldRestart) {
+    if (process.platform === "linux") {
+      await ensureSystemdUserLingerInteractive({
+        runtime: defaultRuntime,
+        prompt: !params.opts.json,
+        requireConfirm: !params.opts.json,
+      });
+    }
+
     if (!params.opts.json) {
       defaultRuntime.log("");
       defaultRuntime.log(theme.heading("Restarting service..."));

@@ -6,6 +6,15 @@ import {
 } from "../daemon/systemd.js";
 import { note } from "../terminal/note.js";
 
+function ensureXdgRuntimeDir(): void {
+  if (!process.env.XDG_RUNTIME_DIR) {
+    const uid = process.getuid?.();
+    if (uid !== undefined) {
+      process.env.XDG_RUNTIME_DIR = `/run/user/${uid}`;
+    }
+  }
+}
+
 export type LingerPrompter = {
   confirm?: (params: { message: string; initialValue?: boolean }) => Promise<boolean>;
   note: (message: string, title?: string) => Promise<void> | void;
@@ -29,10 +38,6 @@ export async function ensureSystemdUserLingerInteractive(params: {
   const env = params.env ?? process.env;
   const prompter = params.prompter ?? { note };
   const title = params.title ?? "Systemd";
-  if (!(await isSystemdUserServiceAvailable())) {
-    await prompter.note("Systemd user services are unavailable. Skipping lingering checks.", title);
-    return;
-  }
   const status = await readSystemdUserLingerStatus(env);
   if (!status) {
     await prompter.note(
@@ -69,6 +74,7 @@ export async function ensureSystemdUserLingerInteractive(params: {
     user: status.user,
   });
   if (resultNoSudo.ok) {
+    ensureXdgRuntimeDir();
     await prompter.note(`Enabled systemd lingering for ${status.user}.`, title);
     return;
   }
@@ -79,6 +85,7 @@ export async function ensureSystemdUserLingerInteractive(params: {
     sudoMode: "prompt",
   });
   if (result.ok) {
+    ensureXdgRuntimeDir();
     await prompter.note(`Enabled systemd lingering for ${status.user}.`, title);
     return;
   }
