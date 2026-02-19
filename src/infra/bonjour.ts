@@ -40,7 +40,7 @@ function isDisabledByEnv() {
 
 function safeServiceName(name: string) {
   const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed : "OpenClaw";
+  return trimmed.length > 0 ? trimmed : "YoyoClaw";
 }
 
 function prettifyInstanceName(name: string) {
