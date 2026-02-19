@@ -108,7 +108,9 @@ export function createAuditLogger(): AuditLogger {
   const FLUSH_INTERVAL_MS = 5_000;
 
   function flush(): void {
-    if (fd === null || buffer.length === 0) return;
+    if (fd === null || buffer.length === 0) {
+      return;
+    }
     const data = buffer.join("");
     buffer = [];
     try {
@@ -123,11 +125,7 @@ export function createAuditLogger(): AuditLogger {
     flushTimer.unref();
   }
 
-  function log(
-    event: AuditEventType,
-    source?: string,
-    detail?: Record<string, unknown>,
-  ): void {
+  function log(event: AuditEventType, source?: string, detail?: Record<string, unknown>): void {
     const entry: AuditEntry = {
       ts: new Date().toISOString(),
       event,
