@@ -2,58 +2,128 @@
    Mobile Layout
    =========================================== */
 
-/* Tablet: Horizontal nav */
-@media (max-width: 1100px) {
-  .nav {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 4px;
-    padding: 10px 14px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
+/* -------------------------------------------
+   Mobile (<768px): Sidebar as fixed overlay
+   ------------------------------------------- */
 
-  .nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-group {
-    display: contents;
-  }
-
-  .nav-group__items {
-    display: contents;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .nav-group--collapsed .nav-group__items {
-    display: contents;
-  }
-
-  .nav-item {
-    padding: 8px 14px;
-    font-size: 13px;
-    border-radius: var(--radius-md);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-}
-
-/* Mobile-specific styles */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  /* Single-column grid, no sidebar column */
   .shell {
     --shell-pad: 8px;
     --shell-gap: 8px;
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--shell-topbar-height) 1fr;
+    grid-template-areas:
+      "topbar"
+      "content";
   }
 
-  /* Topbar */
+  /* Also override collapsed grid template */
+  .shell--nav-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sidebar becomes a fixed overlay panel */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 288px;
+    height: 100%;
+    z-index: 100;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    padding-left: calc(12px + env(safe-area-inset-left, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(-100%);
+    transition: transform 250ms ease;
+    flex-direction: column;
+    /* Remove grid-area so it does not participate in shell grid */
+    grid-area: unset;
+  }
+
+  @supports (height: 100dvh) {
+    .nav {
+      height: 100dvh;
+    }
+  }
+
+  /* When mobile nav is open, slide sidebar in */
+  .nav--mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Undo forced collapsed styles from tablet breakpoint */
+  .nav--mobile-open .nav-item__text,
+  .nav--mobile-open .nav-label__text,
+  .nav--mobile-open .nav-label__chevron,
+  .nav--mobile-open .nav-utilities__divider {
+    display: revert;
+  }
+
+  .nav--mobile-open .nav-item {
+    justify-content: flex-start;
+    padding: 8px 10px;
+  }
+
+  .nav--mobile-open .nav-item.active {
+    border-left-width: 3px;
+  }
+
+  .nav--mobile-open .nav-label {
+    display: flex;
+  }
+
+  .nav--mobile-open .nav-header__text {
+    display: flex;
+  }
+
+  .nav--mobile-open .nav-status__text {
+    display: flex;
+  }
+
+  .nav--mobile-open .nav-status {
+    justify-content: flex-start;
+  }
+
+  .nav--mobile-open .nav-group {
+    margin-bottom: 20px;
+  }
+
+  .nav--mobile-open .nav-group--collapsed .nav-group__items {
+    display: none;
+  }
+
+  /* Hide bottom collapse toggle on mobile (use topbar toggle) */
+  .nav > .nav-collapse-toggle {
+    display: none;
+  }
+
+  /* Backdrop: 50% black overlay behind sidebar */
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 250ms ease;
+  }
+
+  .nav-backdrop--visible {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Topbar adjustments */
   .topbar {
+    position: sticky;
+    top: 0;
     padding: 10px 12px;
+    padding-left: calc(12px + env(safe-area-inset-left, 0px));
+    padding-right: calc(12px + env(safe-area-inset-right, 0px));
     gap: 8px;
     flex-direction: row;
     flex-wrap: wrap;
@@ -94,34 +164,6 @@
     display: none;
   }
 
-  /* Nav */
-  .nav {
-    padding: 8px 10px;
-    gap: 4px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-group {
-    display: contents;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .nav-item {
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: var(--radius-md);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
   /* Content */
   .content-header {
     display: none;
@@ -129,6 +171,9 @@
 
   .content {
     padding: 4px 4px 16px;
+    padding-left: calc(4px + env(safe-area-inset-left, 0px));
+    padding-right: calc(4px + env(safe-area-inset-right, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     gap: 12px;
   }
 
@@ -191,6 +236,12 @@
   .pill {
     padding: 4px 10px;
     font-size: 12px;
+  }
+
+  /* Grid utilities */
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
   }
 
   /* Chat */
@@ -271,6 +322,7 @@
   .list-item {
     padding: 10px;
     border-radius: var(--radius-md);
+    grid-template-columns: 1fr;
   }
 
   .list-title {
@@ -299,9 +351,18 @@
     width: 12px;
     height: 12px;
   }
+
+  /* Table */
+  .table-head,
+  .table-row {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* Small mobile */
+/* -------------------------------------------
+   Small mobile (<400px)
+   ------------------------------------------- */
+
 @media (max-width: 400px) {
   .shell {
     --shell-pad: 4px;
@@ -309,23 +370,24 @@
 
   .topbar {
     padding: 8px 10px;
+    padding-left: calc(10px + env(safe-area-inset-left, 0px));
+    padding-right: calc(10px + env(safe-area-inset-right, 0px));
   }
 
   .brand-title {
     font-size: 13px;
   }
 
+  /* Narrow the overlay sidebar slightly on very small screens */
   .nav {
-    padding: 6px 8px;
-  }
-
-  .nav-item {
-    padding: 6px 8px;
-    font-size: 11px;
+    width: 260px;
   }
 
   .content {
     padding: 4px 4px 12px;
+    padding-left: calc(4px + env(safe-area-inset-left, 0px));
+    padding-right: calc(4px + env(safe-area-inset-right, 0px));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     gap: 10px;
   }
 
@@ -370,5 +432,22 @@
   .theme-icon {
     width: 11px;
     height: 11px;
+  }
+}
+
+/* -------------------------------------------
+   Safe area insets for notched phones
+   ------------------------------------------- */
+
+@supports (padding: env(safe-area-inset-top)) {
+  @media (max-width: 768px) {
+    .topbar {
+      padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    }
+
+    .nav {
+      padding-top: calc(16px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
   }
 }

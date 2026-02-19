@@ -88,6 +88,8 @@ export type AppViewState = {
   execApprovalBusy: boolean;
   execApprovalError: string | null;
   pendingGatewayUrl: string | null;
+  /** Mobile nav overlay open state */
+  mobileNavOpen: boolean;
   configLoading: boolean;
   configRaw: string;
   configRawOriginal: string;
@@ -282,4 +284,6 @@ export type AppViewState = {
   handleOpenSidebar: (content: string) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
+  openMobileNav: () => void;
+  closeMobileNav: () => void;
 };

@@ -104,6 +104,9 @@ function resolveOnboardingMode(): boolean {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
+/** Breakpoint below which the mobile overlay nav is used. */
+const MOBILE_NAV_BREAKPOINT = 768;
+
 @customElement("yoyoclaw-app")
 export class YoYoClawApp extends LitElement {
   @state() settings: UiSettings = loadSettings();
@@ -144,6 +147,9 @@ export class YoYoClawApp extends LitElement {
   @state() sidebarContent: string | null = null;
   @state() sidebarError: string | null = null;
   @state() splitRatio = this.settings.splitRatio;
+
+  // Mobile nav overlay state
+  @state() mobileNavOpen = false;
 
   @state() nodesLoading = false;
   @state() nodes: Array<Record<string, unknown>> = [];
@@ -280,7 +286,7 @@ export class YoYoClawApp extends LitElement {
   @state() usageLogFilterHasTools = false;
   @state() usageLogFilterQuery = "";
 
-  // Non-reactive (don’t trigger renders just for timer bookkeeping).
+  // Non-reactive (don't trigger renders just for timer bookkeeping).
   usageQueryDebounceTimer: number | null = null;
 
   @state() cronLoading = false;
@@ -565,6 +571,19 @@ export class YoYoClawApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  /** Open the mobile nav overlay (only effective at mobile widths). */
+  openMobileNav() {
+    if (window.innerWidth > MOBILE_NAV_BREAKPOINT) {
+      return;
+    }
+    this.mobileNavOpen = true;
+  }
+
+  /** Close the mobile nav overlay. */
+  closeMobileNav() {
+    this.mobileNavOpen = false;
   }
 
   render() {

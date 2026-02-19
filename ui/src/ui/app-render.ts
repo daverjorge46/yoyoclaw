@@ -51,7 +51,13 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import {
+  normalizeBasePath,
+  TAB_GROUPS,
+  UTILITY_TABS,
+  subtitleForTab,
+  titleForTab,
+} from "./navigation.ts";
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
@@ -70,6 +76,9 @@ import { renderSkills } from "./views/skills.ts";
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
 
+/** Breakpoint below which the mobile overlay nav is used. */
+const MOBILE_NAV_BREAKPOINT = 768;
+
 function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
   const list = state.agentsList?.agents ?? [];
   const parsed = parseAgentSessionKey(state.sessionKey);
@@ -84,6 +93,25 @@ function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
     return candidate;
   }
   return identity?.avatarUrl;
+}
+
+/**
+ * Handle topbar toggle click: on mobile widths open/close the mobile nav
+ * overlay; on larger screens toggle the persistent collapsed state.
+ */
+function handleTopbarToggleClick(state: AppViewState) {
+  if (window.innerWidth <= MOBILE_NAV_BREAKPOINT) {
+    if (state.mobileNavOpen) {
+      state.closeMobileNav();
+    } else {
+      state.openMobileNav();
+    }
+  } else {
+    state.applySettings({
+      ...state.settings,
+      navCollapsed: !state.settings.navCollapsed,
+    });
+  }
 }
 
 export function renderApp(state: AppViewState) {
@@ -105,19 +133,23 @@ export function renderApp(state: AppViewState) {
     state.agentsList?.agents?.[0]?.id ??
     null;
 
+  const navClasses = [
+    "nav",
+    state.settings.navCollapsed ? "nav--collapsed" : "",
+    state.mobileNavOpen ? "nav--mobile-open" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return html`
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
       <header class="topbar">
         <div class="topbar-left">
           <button
             class="nav-collapse-toggle"
-            @click=${() =>
-              state.applySettings({
-                ...state.settings,
-                navCollapsed: !state.settings.navCollapsed,
-              })}
+            @click=${() => handleTopbarToggleClick(state)}
             title="${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}"
-            aria-label="${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}"
+            aria-label="${state.mobileNavOpen ? "Close navigation" : state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}"
           >
             <span class="nav-collapse-toggle__icon">${icons.menu}</span>
           </button>
@@ -140,7 +172,21 @@ export function renderApp(state: AppViewState) {
           ${renderThemeToggle(state)}
         </div>
       </header>
-      <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
+      <div
+        class="nav-backdrop ${state.mobileNavOpen ? "nav-backdrop--visible" : ""}"
+        @click=${() => state.closeMobileNav()}
+        aria-hidden="true"
+      ></div>
+      <aside class="${navClasses}">
+        <div class="nav-header">
+          <div class="nav-header__logo">
+            <img src="${basePath ? `${basePath}/yoyo.svg` : "/yoyo.svg"}" alt="YoyoClaw" width="28" height="28" />
+          </div>
+          <div class="nav-header__text">
+            <span class="nav-header__title">YoyoClaw</span>
+            <span class="nav-header__sub">Control Panel</span>
+          </div>
+        </div>
         ${TAB_GROUPS.map((group) => {
           const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
@@ -167,10 +213,13 @@ export function renderApp(state: AppViewState) {
             </div>
           `;
         })}
-        <div class="nav-group nav-group--links">
-          <div class="nav-label nav-label--static">
-            <span class="nav-label__text">Resources</span>
+        <div class="nav-utilities">
+          <div class="nav-utilities__divider"></div>
+          <div class="nav-utilities__items">
+            ${UTILITY_TABS.map((tab) => renderTab(state, tab))}
           </div>
+        </div>
+        <div class="nav-group nav-group--links">
           <div class="nav-group__items">
             <a
               class="nav-item nav-item--external"
@@ -184,6 +233,28 @@ export function renderApp(state: AppViewState) {
             </a>
           </div>
         </div>
+        <div class="nav-status" aria-label="Connection status">
+          <span class="nav-status__dot ${state.connected ? "nav-status__dot--connected" : "nav-status__dot--disconnected"}"></span>
+          <span class="nav-status__text">
+            <span class="nav-status__label">YoyoClaw</span>
+            <span class="nav-status__sub">${state.connected ? "Connected" : "Disconnected"}</span>
+          </span>
+        </div>
+        <button
+          class="nav-collapse-toggle"
+          @click=${() => {
+            state.applySettings({
+              ...state.settings,
+              navCollapsed: !state.settings.navCollapsed,
+            });
+          }}
+          title=${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label=${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <span class="nav-collapse-toggle__icon">
+            ${state.settings.navCollapsed ? icons.panelLeftOpen : icons.panelLeftClose}
+          </span>
+        </button>
       </aside>
       <main class="content ${isChat ? "content--chat" : ""}">
         <section class="content-header">

@@ -72,6 +72,10 @@ export function renderTab(state: AppViewState, tab: Tab) {
           }
         }
         state.setTab(tab);
+        // Close mobile nav overlay after selecting a tab
+        if (state.mobileNavOpen) {
+          state.closeMobileNav();
+        }
       }}
       title=${titleForTab(tab)}
     >

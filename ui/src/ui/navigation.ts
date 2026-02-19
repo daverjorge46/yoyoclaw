@@ -1,14 +1,13 @@
 import type { IconName } from "./icons.js";
 
 export const TAB_GROUPS = [
-  { label: "Chat", tabs: ["chat"] },
-  {
-    label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
-  },
-  { label: "Agent", tabs: ["agents", "skills", "nodes"] },
-  { label: "Settings", tabs: ["config", "debug", "logs"] },
+  { label: "Operations", tabs: ["chat", "channels", "sessions"] },
+  { label: "Automation", tabs: ["cron", "skills", "agents"] },
+  { label: "System", tabs: ["instances", "nodes", "usage"] },
 ] as const;
+
+export const UTILITY_TABS = ["overview", "config", "debug", "logs"] as const;
+export type UtilityTab = (typeof UTILITY_TABS)[number];
 
 export type Tab =
   | "agents"
@@ -131,7 +130,7 @@ export function iconForTab(tab: Tab): IconName {
     case "overview":
       return "barChart";
     case "channels":
-      return "link";
+      return "radio";
     case "instances":
       return "radio";
     case "sessions":
