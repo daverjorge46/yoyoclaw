@@ -214,6 +214,16 @@ run_onboarding() {
   ok "Onboarding complete"
 }
 
+# ── Shell completions ──────────────────────────────────────────────
+generate_completions() {
+  info "Generating shell completions..."
+  if yoyoclaw completion --write-state 2>/dev/null; then
+    ok "Shell completions generated"
+  else
+    warn "Shell completions could not be generated (non-critical)"
+  fi
+}
+
 # ── Success message ─────────────────────────────────────────────────
 print_success() {
   local state_dir="$HOME/.yoyoclaw-$PROFILE"
@@ -245,6 +255,7 @@ main() {
   install_and_build
   link_global
   run_onboarding
+  generate_completions
   print_success
 }
 
