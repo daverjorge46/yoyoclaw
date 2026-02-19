@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import os from "node:os";
 import { runCommandWithTimeout, runExec } from "../process/exec.js";
 
@@ -38,7 +39,15 @@ export async function readSystemdUserLingerStatus(
       return { user, linger: value };
     }
   } catch {
-    // ignore; loginctl may be unavailable
+    // loginctl show-user may fail when logind doesn't track the user
+    // (e.g. SSH without pam_systemd). Fall back to the linger file.
+  }
+  try {
+    const lingerFile = `/var/lib/systemd/linger/${user}`;
+    const exists = fs.existsSync(lingerFile);
+    return { user, linger: exists ? "yes" : "no" };
+  } catch {
+    // filesystem check failed
   }
   return null;
 }

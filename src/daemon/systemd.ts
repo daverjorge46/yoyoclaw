@@ -181,19 +181,33 @@ function ensureXdgRuntimeDir(): void {
 
 async function assertSystemdAvailable() {
   ensureXdgRuntimeDir();
-  const res = await execSystemctl(["--user", "status"]);
-  if (res.code === 0) {
-    return;
+  const maxAttempts = 3;
+  let lastDetail = "";
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const res = await execSystemctl(["--user", "status"]);
+    if (res.code === 0) {
+      return;
+    }
+    lastDetail = res.stderr || res.stdout;
+    if (lastDetail.toLowerCase().includes("not found")) {
+      break;
+    }
+    // Bus may not be ready yet (e.g. linger was just enabled and the
+    // user manager is still starting).  Wait briefly before retrying.
+    if (attempt < maxAttempts - 1 && lastDetail.toLowerCase().includes("failed to connect")) {
+      await new Promise((resolve) => setTimeout(resolve, 2_000));
+    } else {
+      break;
+    }
   }
-  const detail = res.stderr || res.stdout;
   const hint =
     "\n\nAlternatives:" +
     "\n  - Run the gateway in foreground mode: yoyoclaw gateway run" +
     "\n  - Enable user services: loginctl enable-linger $USER (then retry)";
-  if (detail.toLowerCase().includes("not found")) {
+  if (lastDetail.toLowerCase().includes("not found")) {
     throw new Error("systemctl not available; systemd user services are required on Linux." + hint);
   }
-  throw new Error(`systemctl --user unavailable: ${detail || "unknown error"}`.trim() + hint);
+  throw new Error(`systemctl --user unavailable: ${lastDetail || "unknown error"}`.trim() + hint);
 }
 
 export async function installSystemdService({
