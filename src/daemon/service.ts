@@ -1,4 +1,6 @@
 import type { GatewayServiceRuntime } from "./service-runtime.js";
+import { loadConfig } from "../config/io.js";
+import { resolveGatewayPort } from "../config/paths.js";
 import {
   installLaunchAgent,
   isLaunchAgentLoaded,
@@ -8,6 +10,12 @@ import {
   stopLaunchAgent,
   uninstallLaunchAgent,
 } from "./launchd.js";
+import {
+  isFallbackGatewayRunning,
+  readFallbackGatewayRuntime,
+  startFallbackGatewayProcess,
+  stopFallbackGatewayProcess,
+} from "./process-fallback.js";
 import {
   installScheduledTask,
   isScheduledTaskInstalled,
@@ -20,6 +28,7 @@ import {
 import {
   installSystemdService,
   isSystemdServiceEnabled,
+  isSystemdUserServiceAvailable,
   readSystemdServiceExecStart,
   readSystemdServiceRuntime,
   restartSystemdService,
@@ -105,20 +114,47 @@ export function resolveGatewayService(): GatewayService {
         await uninstallSystemdService(args);
       },
       stop: async (args) => {
-        await stopSystemdService({
-          stdout: args.stdout,
-          env: args.env,
-        });
+        if (await isSystemdUserServiceAvailable()) {
+          await stopSystemdService({ stdout: args.stdout, env: args.env });
+          return;
+        }
+        args.stdout.write(
+          "[fallback] systemd --user bus unavailable; stopping via direct process management\n",
+        );
+        await stopFallbackGatewayProcess({ env: args.env ?? {}, stdout: args.stdout });
       },
       restart: async (args) => {
-        await restartSystemdService({
-          stdout: args.stdout,
-          env: args.env,
-        });
+        if (await isSystemdUserServiceAvailable()) {
+          await restartSystemdService({ stdout: args.stdout, env: args.env });
+          return;
+        }
+        args.stdout.write(
+          "[fallback] systemd --user bus unavailable; restarting via direct process management\n",
+        );
+        const env = args.env ?? {};
+        await stopFallbackGatewayProcess({ env, stdout: args.stdout });
+        const port = resolveGatewayPort(loadConfig());
+        await startFallbackGatewayProcess({ env, port, stdout: args.stdout });
       },
-      isLoaded: async (args) => isSystemdServiceEnabled(args),
-      readCommand: readSystemdServiceExecStart,
-      readRuntime: async (env) => await readSystemdServiceRuntime(env),
+      isLoaded: async (args) => {
+        if (await isSystemdUserServiceAvailable()) {
+          return isSystemdServiceEnabled(args);
+        }
+        return isFallbackGatewayRunning(args.env ?? {});
+      },
+      readCommand: async (env) => {
+        try {
+          return await readSystemdServiceExecStart(env);
+        } catch {
+          return null;
+        }
+      },
+      readRuntime: async (env) => {
+        if (await isSystemdUserServiceAvailable()) {
+          return await readSystemdServiceRuntime(env);
+        }
+        return readFallbackGatewayRuntime(env);
+      },
     };
   }
 
