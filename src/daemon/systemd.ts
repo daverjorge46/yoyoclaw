@@ -143,6 +143,7 @@ async function execSystemctl(
 }
 
 export async function isSystemdUserServiceAvailable(): Promise<boolean> {
+  ensureXdgRuntimeDir();
   const res = await execSystemctl(["--user", "status"]);
   if (res.code === 0) {
     return true;
@@ -169,7 +170,17 @@ export async function isSystemdUserServiceAvailable(): Promise<boolean> {
   return false;
 }
 
+function ensureXdgRuntimeDir(): void {
+  if (!process.env.XDG_RUNTIME_DIR) {
+    const uid = process.getuid?.();
+    if (uid !== undefined) {
+      process.env.XDG_RUNTIME_DIR = `/run/user/${uid}`;
+    }
+  }
+}
+
 async function assertSystemdAvailable() {
+  ensureXdgRuntimeDir();
   const res = await execSystemctl(["--user", "status"]);
   if (res.code === 0) {
     return;
