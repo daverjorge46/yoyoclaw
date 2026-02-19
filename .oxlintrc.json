@@ -21,6 +21,7 @@
     "unicorn/require-post-message-target-origin": "off"
   },
   "ignorePatterns": [
+    ".claude/hooks/",
     "assets/",
     "dist/",
     "docs/_layouts/",
@@ -28,9 +29,9 @@
     "node_modules/",
     "patches/",
     "pnpm-lock.yaml/",
+    "Peekaboo/",
     "skills/",
     "src/canvas-host/a2ui/a2ui.bundle.js",
-    "Peekaboo/",
     "Swabble/",
     "vendor/"
   ]
