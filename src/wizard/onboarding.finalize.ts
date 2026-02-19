@@ -448,7 +448,7 @@ export async function finalizeOnboardingWizard(
       : [
           "If you want your agent to be able to search the web, you’ll need an API key.",
           "",
-          "OpenClaw uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won’t work.",
+          "YoyoClaw uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won't work.",
           "",
           "Set it up interactively:",
           `- Run: ${formatCliCommand("yoyoclaw configure --section web")}`,
