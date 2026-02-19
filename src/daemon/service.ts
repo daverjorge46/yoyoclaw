@@ -11,7 +11,6 @@ import {
   uninstallLaunchAgent,
 } from "./launchd.js";
 import {
-  isFallbackGatewayRunning,
   readFallbackGatewayRuntime,
   startFallbackGatewayProcess,
   stopFallbackGatewayProcess,
@@ -108,7 +107,15 @@ export function resolveGatewayService(): GatewayService {
       loadedText: "enabled",
       notLoadedText: "disabled",
       install: async (args) => {
-        await installSystemdService(args);
+        if (await isSystemdUserServiceAvailable()) {
+          await installSystemdService(args);
+          return;
+        }
+        args.stdout.write(
+          "[fallback] systemd --user bus unavailable; starting gateway as background process\n",
+        );
+        const port = resolveGatewayPort(loadConfig());
+        await startFallbackGatewayProcess({ env: args.env, port, stdout: args.stdout });
       },
       uninstall: async (args) => {
         await uninstallSystemdService(args);
@@ -140,7 +147,11 @@ export function resolveGatewayService(): GatewayService {
         if (await isSystemdUserServiceAvailable()) {
           return isSystemdServiceEnabled(args);
         }
-        return isFallbackGatewayRunning(args.env ?? {});
+        // In fallback mode the service is always "available" — there is no
+        // install/enable step.  Returning true lets lifecycle commands
+        // (start, restart, stop) reach the fallback handlers which already
+        // handle the "no process running" case gracefully.
+        return true;
       },
       readCommand: async (env) => {
         try {
